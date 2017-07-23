@@ -119,13 +119,13 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private ColourInfo effectColour = Color4.White;
+        private SRGBColour effectColour = Color4.White;
 
         /// <summary>
-        /// The colour of drawn buffered object after applying all effects (e.g. blur). Does not affect the original
-        /// which is drawn when <see cref="DrawOriginal"/> is true.
+        /// The multiplicative colour of drawn buffered object after applying all effects (e.g. blur). Default is <see cref="Color4.White"/>.
+        /// Does not affect the original which is drawn when <see cref="DrawOriginal"/> is true.
         /// </summary>
-        public ColourInfo EffectColour
+        public SRGBColour EffectColour
         {
             get { return effectColour; }
 
@@ -135,6 +135,47 @@ namespace osu.Framework.Graphics.Containers
                     return;
 
                 effectColour = value;
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
+
+        private BlendingMode effectBlendingMode;
+
+        /// <summary>
+        /// The <see cref="BlendingMode"/> to use after applying all effects. Default is <see cref="BlendingMode.Inherit"/>.
+        /// <see cref="BlendingMode.Inherit"/> inherits the blending mode of the original, i.e. <see cref="Drawable.BlendingMode"/> is used.
+        /// Does not affect the original which is drawn when <see cref="DrawOriginal"/> is true.
+        /// </summary>
+        public BlendingMode EffectBlendingMode
+        {
+            get { return effectBlendingMode; }
+
+            set
+            {
+                if (effectBlendingMode.Equals(value))
+                    return;
+
+                effectBlendingMode = value;
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
+
+        private EffectPlacement effectPlacement;
+
+        /// <summary>
+        /// Whether the buffered effect should be drawn <see cref="EffectPlacement.Behind"/> or <see cref="EffectPlacement.InFront"/> of the original. 
+        /// <see cref="EffectPlacement.Behind"/> by default. Does not have any effect if <see cref="DrawOriginal"/> is false.
+        /// </summary>
+        public EffectPlacement EffectPlacement
+        {
+            get { return effectPlacement; }
+
+            set
+            {
+                if (effectPlacement == value)
+                    return;
+
+                effectPlacement = value;
                 Invalidate(Invalidation.DrawNode);
             }
         }
@@ -242,7 +283,10 @@ namespace osu.Framework.Graphics.Containers
             n.DrawVersion = drawVersion;
             n.UpdateVersion = updateVersion;
             n.BackgroundColour = backgroundColour;
+
             n.EffectColour = effectColour;
+            n.EffectBlending = effectBlendingMode;
+            n.EffectPlacement = effectPlacement;
 
             n.DrawOriginal = drawOriginal;
             n.BlurSigma = blurSigma;
@@ -312,5 +356,11 @@ namespace osu.Framework.Graphics.Containers
 
         //    base.Dispose(isDisposing);
         //}
+    }
+
+    public enum EffectPlacement
+    {
+        Behind,
+        InFront,
     }
 }
