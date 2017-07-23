@@ -13,12 +13,12 @@ namespace osu.Framework.Graphics.Effects
         /// <summary>
         /// The parameters of the edge effect.
         /// </summary>
-        public EdgeEffectParameters Parameters { get; set; }
+        public EdgeEffectParameters Parameters;
 
         /// <summary>
-        /// Determines how large a radius is masked away around the corners.
+        /// Determines how large a radius is masked away around the corners. Default is 0.
         /// </summary>
-        public float CornerRadius { get; set; }
+        public float CornerRadius;
 
         public Container ApplyTo(Drawable drawable)
         {
