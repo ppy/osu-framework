@@ -62,9 +62,9 @@ namespace osu.Framework.Graphics.Lines
 
             Vector2 current = origin + pointOnCircle(theta) * Width;
             Color4 currentColour = colourAt(current);
-            current *= DrawInfo.Matrix;
+            current = DrawInfo.Matrix * current;
 
-            Vector2 screenOrigin = origin * DrawInfo.Matrix;
+            Vector2 screenOrigin = DrawInfo.Matrix * origin;
             Color4 originColour = colourAt(origin);
 
             for (int i = 1; i <= amountPoints; i++)
@@ -88,7 +88,7 @@ namespace osu.Framework.Graphics.Lines
                 float angularOffset = Math.Min(i * step, thetaDiff);
                 current = origin + pointOnCircle(theta + dir * angularOffset) * Width;
                 currentColour = colourAt(current);
-                current *= DrawInfo.Matrix;
+                current = DrawInfo.Matrix * current;
 
                 // Second outer point
                 Shared.HalfCircleBatch.Add(new TexturedVertex3D
@@ -106,9 +106,9 @@ namespace osu.Framework.Graphics.Lines
             Line lineLeft = new Line(line.StartPoint + ortho * Width, line.EndPoint + ortho * Width);
             Line lineRight = new Line(line.StartPoint - ortho * Width, line.EndPoint - ortho * Width);
 
-            Line screenLineLeft = new Line(lineLeft.StartPoint * DrawInfo.Matrix, lineLeft.EndPoint * DrawInfo.Matrix);
-            Line screenLineRight = new Line(lineRight.StartPoint * DrawInfo.Matrix, lineRight.EndPoint * DrawInfo.Matrix);
-            Line screenLine = new Line(line.StartPoint * DrawInfo.Matrix, line.EndPoint * DrawInfo.Matrix);
+            Line screenLineLeft = new Line(DrawInfo.Matrix * lineLeft.StartPoint, DrawInfo.Matrix * lineLeft.EndPoint);
+            Line screenLineRight = new Line(DrawInfo.Matrix * lineRight.StartPoint, DrawInfo.Matrix * lineRight.EndPoint);
+            Line screenLine = new Line(DrawInfo.Matrix * line.StartPoint, DrawInfo.Matrix * line.EndPoint);
 
             Shared.QuadBatch.Add(new TexturedVertex3D
             {

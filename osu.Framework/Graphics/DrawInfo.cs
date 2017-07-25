@@ -37,34 +37,34 @@ namespace osu.Framework.Graphics
         {
             if (translation != Vector2.Zero)
             {
-                MatrixExtensions.TranslateFromLeft(ref Matrix, translation);
-                MatrixExtensions.TranslateFromRight(ref MatrixInverse, -translation);
+                MatrixExtensions.TranslateFromRight(ref Matrix, translation);
+                MatrixExtensions.TranslateFromLeft(ref MatrixInverse, -translation);
             }
 
             if (rotation != 0)
             {
                 float radians = MathHelper.DegreesToRadians(rotation);
-                MatrixExtensions.RotateFromLeft(ref Matrix, radians);
-                MatrixExtensions.RotateFromRight(ref MatrixInverse, -radians);
+                MatrixExtensions.RotateFromRight(ref Matrix, radians);
+                MatrixExtensions.RotateFromLeft(ref MatrixInverse, -radians);
             }
 
             if (shear != Vector2.Zero)
             {
-                MatrixExtensions.ShearFromLeft(ref Matrix, -shear);
-                MatrixExtensions.ShearFromRight(ref MatrixInverse, shear);
+                MatrixExtensions.ShearFromRight(ref Matrix, -shear);
+                MatrixExtensions.ShearFromLeft(ref MatrixInverse, shear);
             }
 
             if (scale != Vector2.One)
             {
                 Vector2 inverseScale = new Vector2(1.0f / scale.X, 1.0f / scale.Y);
-                MatrixExtensions.ScaleFromLeft(ref Matrix, scale);
-                MatrixExtensions.ScaleFromRight(ref MatrixInverse, inverseScale);
+                MatrixExtensions.ScaleFromRight(ref Matrix, scale);
+                MatrixExtensions.ScaleFromLeft(ref MatrixInverse, inverseScale);
             }
 
             if (origin != Vector2.Zero)
             {
-                MatrixExtensions.TranslateFromLeft(ref Matrix, -origin);
-                MatrixExtensions.TranslateFromRight(ref MatrixInverse, origin);
+                MatrixExtensions.TranslateFromRight(ref Matrix, -origin);
+                MatrixExtensions.TranslateFromLeft(ref MatrixInverse, origin);
             }
 
             //========================================================================================
