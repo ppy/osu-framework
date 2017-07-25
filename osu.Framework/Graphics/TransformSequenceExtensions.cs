@@ -77,7 +77,7 @@ namespace osu.Framework.Graphics
         /// Smoothly adjusts <see cref="Drawable.Colour"/> over time.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public static TransformSequence<T> FadeColour<T>(this TransformSequence<T> t, SRGBColour newColour, double duration = 0, Easing easing = Easing.None)
+        public static TransformSequence<T> FadeColour<T>(this TransformSequence<T> t, ColourInfo newColour, double duration = 0, Easing easing = Easing.None)
             where T : Drawable =>
             t.Append(o => o.FadeColour(newColour, duration, easing));
 
@@ -85,7 +85,7 @@ namespace osu.Framework.Graphics
         /// Instantaneously flashes <see cref="Drawable.Colour"/>, then smoothly changes it back over time.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public static TransformSequence<T> FlashColour<T>(this TransformSequence<T> t, SRGBColour flashColour, double duration, Easing easing = Easing.None)
+        public static TransformSequence<T> FlashColour<T>(this TransformSequence<T> t, ColourInfo flashColour, double duration, Easing easing = Easing.None)
             where T : Drawable =>
             t.Append(o => o.FlashColour(flashColour, duration, easing));
 

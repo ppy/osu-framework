@@ -1006,37 +1006,22 @@ namespace osu.Framework.Graphics
 
         #region Colour / Alpha / Blending
 
-        private ColourInfo colourInfo = ColourInfo.SingleColour(Color4.White);
+        private ColourInfo colour = Color4.White;
 
         /// <summary>
-        /// Colours of the individual corner vertices of this Drawable in sRGB space.
+        /// Colour of this <see cref="Drawable"/> in sRGB space. Can contain individual colours for all four
+        /// corners of this <see cref="Drawable"/>, which are then interpolated, but can also be assigned
+        /// just a single colour. Implicit casts from <see cref="SRGBColour"/> and from <see cref="Color4"/> exist.
         /// </summary>
-        public ColourInfo ColourInfo
+        public ColourInfo Colour
         {
-            get { return colourInfo; }
+            get { return colour; }
 
             set
             {
-                if (colourInfo.Equals(value)) return;
-                colourInfo = value;
+                if (colour.Equals(value)) return;
 
-                Invalidate(Invalidation.Colour);
-            }
-        }
-
-        /// <summary>
-        /// Colour of this Drawable in sRGB space. Only valid if no individual colours
-        /// have been specified for each corner vertex via <see cref="ColourInfo"/>.
-        /// </summary>
-        public SRGBColour Colour
-        {
-            get { return colourInfo.Colour; }
-
-            set
-            {
-                if (colourInfo.HasSingleColour && colourInfo.TopLeft.Equals(value)) return;
-
-                colourInfo.Colour = value;
+                colour = value;
 
                 Invalidate(Invalidation.Colour);
             }
@@ -1290,12 +1275,12 @@ namespace osu.Framework.Graphics
             di.ApplyTransform(pos, drawScale, Rotation, Shear, OriginPosition);
             di.Blending = new BlendingInfo(localBlendingMode);
 
-            ColourInfo colour = alpha != 1 ? colourInfo.MultiplyAlpha(alpha) : colourInfo;
+            ColourInfo drawInfoColour = alpha != 1 ? colour.MultiplyAlpha(alpha) : colour;
 
             // No need for a Parent null check here, because null parents always have
             // a single colour (white).
             if (di.Colour.HasSingleColour)
-                di.Colour.ApplyChild(colour);
+                di.Colour.ApplyChild(drawInfoColour);
             else
             {
                 Debug.Assert(Parent != null,
@@ -1310,7 +1295,7 @@ namespace osu.Framework.Graphics
                 interp.BottomLeft = Vector2.Divide(interp.BottomLeft, parentSize);
                 interp.BottomRight = Vector2.Divide(interp.BottomRight, parentSize);
 
-                di.Colour.ApplyChild(colour, interp);
+                di.Colour.ApplyChild(drawInfoColour, interp);
             }
 
             return di;

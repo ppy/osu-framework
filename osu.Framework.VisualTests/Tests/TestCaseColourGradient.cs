@@ -65,7 +65,7 @@ namespace osu.Framework.VisualTests.Tests
                     {
                         Text = labels[i],
                         TextSize = 20,
-                        ColourInfo = colours[0],
+                        Colour = colours[0],
                     },
                     boxes[i] = new Box
                     {
@@ -73,7 +73,7 @@ namespace osu.Framework.VisualTests.Tests
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
                         Size = new Vector2(0.5f),
-                        ColourInfo = colours[i],
+                        Colour = colours[i],
                     },
                 });
             }

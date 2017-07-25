@@ -25,7 +25,7 @@ namespace osu.Framework.Graphics
         /// <param name="duration">The transform duration.</param>
         /// <param name="easing">The transform easing to be used for tweening.</param>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public static TransformSequence<TThis> TransformTo<TThis, TValue>(this TThis t, string propertyOrFieldName, TValue newValue, double duration, Easing easing)
+        public static TransformSequence<TThis> TransformTo<TThis, TValue>(this TThis t, string propertyOrFieldName, TValue newValue, double duration = 0, Easing easing = Easing.None)
             where TThis : ITransformable =>
             t.TransformTo(t.MakeTransform(propertyOrFieldName, newValue, duration, easing));
 
@@ -58,7 +58,7 @@ namespace osu.Framework.Graphics
         /// <param name="duration">The transform duration.</param>
         /// <param name="easing">The transform easing to be used for tweening.</param>
         /// <returns>The resulting <see cref="Transform{TValue, T}"/>.</returns>
-        public static Transform<TValue, TThis> MakeTransform<TThis, TValue>(this TThis t, string propertyOrFieldName, TValue newValue, double duration, Easing easing)
+        public static Transform<TValue, TThis> MakeTransform<TThis, TValue>(this TThis t, string propertyOrFieldName, TValue newValue, double duration = 0, Easing easing = Easing.None)
             where TThis : ITransformable =>
             t.PopulateTransform(new TransformCustom<TValue, TThis>(propertyOrFieldName), newValue, duration, easing);
 
@@ -74,7 +74,7 @@ namespace osu.Framework.Graphics
         /// <param name="duration">The transform duration.</param>
         /// <param name="easing">The transform easing to be used for tweening.</param>
         /// <returns>The populated <paramref name="transform"/>.</returns>
-        public static Transform<TValue, TThis> PopulateTransform<TValue, TThis>(this TThis t, Transform<TValue, TThis> transform, TValue newValue, double duration, Easing easing)
+        public static Transform<TValue, TThis> PopulateTransform<TValue, TThis>(this TThis t, Transform<TValue, TThis> transform, TValue newValue, double duration = 0, Easing easing = Easing.None)
             where TThis : ITransformable
         {
             if (duration < 0)
@@ -162,16 +162,16 @@ namespace osu.Framework.Graphics
         /// Smoothly adjusts <see cref="Drawable.Colour"/> over time.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public static TransformSequence<T> FadeColour<T>(this T drawable, SRGBColour newColour, double duration = 0, Easing easing = Easing.None) where T : Drawable =>
+        public static TransformSequence<T> FadeColour<T>(this T drawable, ColourInfo newColour, double duration = 0, Easing easing = Easing.None) where T : Drawable =>
             drawable.TransformTo(nameof(drawable.Colour), newColour, duration, easing);
 
         /// <summary>
         /// Instantaneously flashes <see cref="Drawable.Colour"/>, then smoothly changes it back over time.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public static TransformSequence<T> FlashColour<T>(this T drawable, SRGBColour flashColour, double duration, Easing easing = Easing.None) where T : Drawable
+        public static TransformSequence<T> FlashColour<T>(this T drawable, ColourInfo flashColour, double duration, Easing easing = Easing.None) where T : Drawable
         {
-            SRGBColour endValue = (drawable.Transforms.LastOrDefault(t => t.TargetMember == nameof(drawable.Colour)) as Transform<SRGBColour>)?.EndValue ?? drawable.Colour;
+            ColourInfo endValue = (drawable.Transforms.LastOrDefault(t => t.TargetMember == nameof(drawable.Colour)) as Transform<ColourInfo>)?.EndValue ?? drawable.Colour;
             return drawable.FadeColour(flashColour).FadeColour(endValue, duration, easing);
         }
 
