@@ -64,7 +64,7 @@ namespace osu.Framework.Graphics.Colour
             return result;
         }
 
-        public SRGBColour Colour
+        private SRGBColour singleColour
         {
             get
             {
@@ -93,7 +93,7 @@ namespace osu.Framework.Graphics.Colour
             }
 
             if (childColour.HasSingleColour)
-                Colour *= childColour.Colour;
+                singleColour *= childColour.singleColour;
             else
             {
                 HasSingleColour = false;
@@ -136,9 +136,7 @@ namespace osu.Framework.Graphics.Colour
             result.TopLeft.MultiplyAlpha(alpha);
 
             if (HasSingleColour)
-            {
                 result.BottomLeft = result.TopRight = result.BottomRight = result.TopLeft;
-            }
             else
             {
                 result.BottomLeft.MultiplyAlpha(alpha);
@@ -211,6 +209,9 @@ namespace osu.Framework.Graphics.Colour
         }
 
         public static implicit operator ColourInfo(SRGBColour colour) => SingleColour(colour);
+        public static implicit operator SRGBColour(ColourInfo colour) => colour.singleColour;
+
         public static implicit operator ColourInfo(Color4 colour) => (SRGBColour)colour;
+        public static implicit operator Color4(ColourInfo colour) => (SRGBColour)colour;
     }
 }

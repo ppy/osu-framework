@@ -42,7 +42,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         // Gets colour at the localPos position in the unit square of our Colour gradient box.
         private Color4 colourAt(Vector2 localPos) => DrawInfo.Colour.HasSingleColour
-            ? DrawInfo.Colour.Colour.Linear
+            ? (Color4)DrawInfo.Colour
             : DrawInfo.Colour.Interpolate(localPos).Linear;
 
         private static readonly Vector2 origin = new Vector2(0.5f, 0.5f);

@@ -9,29 +9,38 @@ using osu.Framework.Graphics.Containers;
 namespace osu.Framework.Graphics.Effects
 {
     /// <summary>
-    /// Creates an outline around the drawable this effect gets applied to.
+    /// Creates a glow around the drawable this effect gets applied to.
     /// </summary>
-    public class OutlineEffect : IEffect<BufferedContainer>
+    public class GlowEffect : IEffect<BufferedContainer>
     {
         /// <summary>
-        /// The strength of the outline. A higher strength means that the blur effect used to draw the outline fades slower.
-        /// Default is 1.
+        /// The strength of the glow. A higher strength means that the glow fades outward slower. Default is 1.
         /// </summary>
         public float Strength = 1f;
 
         /// <summary>
-        /// The sigma value for the blur effect used to draw the outline. This controls over how many pixels the outline gets spread.
-        /// Default is <see cref="Vector2.One"/>.
+        /// The sigma value for the blur of the glow. This controls how spread out the glow is. Default is 5 in both X and Y.
         /// </summary>
-        public Vector2 BlurSigma = Vector2.One;
+        public Vector2 BlurSigma = new Vector2(5);
 
         /// <summary>
-        /// The color of the outline. Default is <see cref="Color4.Black"/>.
+        /// The color of the outline. Default is <see cref="Color4.White"/>.
         /// </summary>
-        public ColourInfo Colour = Color4.Black;
+        public ColourInfo Colour = Color4.White;
 
         /// <summary>
-        /// Whether to automatically pad by the blur extent such that no clipping occurs at the sides of the effect. Default is false.
+        /// The blending mode of the glow. Default is additive.
+        /// </summary>
+        public BlendingMode BlendingMode = BlendingMode.Additive;
+
+        /// <summary>
+        /// Whether to draw the glow <see cref="EffectPlacement.InFront"/> or <see cref="EffectPlacement.Behind"/> the glowing
+        /// <see cref="Drawable"/>. Default is <see cref="EffectPlacement.InFront"/>.
+        /// </summary>
+        public EffectPlacement Placement = EffectPlacement.InFront;
+
+        /// <summary>
+        /// Whether to automatically pad by the glow extent such that no clipping occurs at the sides of the effect. Default is false.
         /// </summary>
         public bool PadExtent;
 
@@ -46,6 +55,8 @@ namespace osu.Framework.Graphics.Effects
             Strength = Strength,
             Sigma = BlurSigma,
             Colour = Colour,
+            BlendingMode = BlendingMode,
+            Placement = Placement,
             PadExtent = PadExtent,
             CacheDrawnEffect = CacheDrawnEffect,
 

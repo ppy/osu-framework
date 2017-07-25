@@ -26,6 +26,8 @@ namespace osu.Framework.Graphics.Containers
         public bool DrawOriginal;
         public Color4 BackgroundColour;
         public ColourInfo EffectColour;
+        public BlendingMode EffectBlending;
+        public EffectPlacement EffectPlacement;
 
         public Vector2 BlurSigma;
         public Vector2I BlurRadius;
@@ -199,17 +201,26 @@ namespace osu.Framework.Graphics.Containers
                 ? new RectangleF(ScreenSpaceDrawRectangle.X, ScreenSpaceDrawRectangle.Y, frameBufferSize.X, frameBufferSize.Y)
                 : ScreenSpaceDrawRectangle;
 
-            // Blit the final framebuffer to screen.
-            GLWrapper.SetBlend(DrawInfo.Blending);
-
             Shader.Bind();
+
+            if (DrawOriginal && EffectPlacement == EffectPlacement.InFront)
+            {
+                GLWrapper.SetBlend(DrawInfo.Blending);
+                drawFrameBufferToBackBuffer(FrameBuffers[originalIndex], drawRectangle, DrawInfo.Colour);
+            }
+
+            // Blit the final framebuffer to screen.
+            GLWrapper.SetBlend(EffectBlending == BlendingMode.Inherit ? DrawInfo.Blending : new BlendingInfo(EffectBlending));
 
             ColourInfo effectColour = DrawInfo.Colour;
             effectColour.ApplyChild(EffectColour);
             drawFrameBufferToBackBuffer(FrameBuffers[0], drawRectangle, effectColour);
 
-            if (DrawOriginal)
+            if (DrawOriginal && EffectPlacement == EffectPlacement.Behind)
+            {
+                GLWrapper.SetBlend(DrawInfo.Blending);
                 drawFrameBufferToBackBuffer(FrameBuffers[originalIndex], drawRectangle, DrawInfo.Colour);
+            }
 
             Shader.Unbind();
         }
