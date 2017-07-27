@@ -156,7 +156,30 @@ namespace osu.Framework.Extensions
                 ExceptionDispatchInfo.Capture(task.Exception?.InnerException).Throw();
         }
 
-        public static string GetMd5Hash(this Stream stream)
+        /// <summary>
+        /// Gets a SHA-2 (256bit) hash for the given stream, seeking the stream before and after.
+        /// </summary>
+        /// <param name="stream">The stream to create a hash from.</param>
+        /// <returns>A lower-case hex string representation of the has (64 characters).</returns>
+        public static string ComputeSHA2Hash(this Stream stream)
+        {
+            string hash;
+
+            stream.Seek(0, SeekOrigin.Begin);
+
+            using (var alg = SHA256.Create())
+            {
+                alg.ComputeHash(stream);
+                hash = BitConverter.ToString(alg.Hash).Replace("-", "").ToLowerInvariant();
+            }
+
+            stream.Seek(0, SeekOrigin.Begin);
+
+            return hash;
+        }
+
+        [Obsolete]
+        public static string ComputeMD5Hash(this Stream stream)
         {
             string hash;
 
