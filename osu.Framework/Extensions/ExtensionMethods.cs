@@ -153,7 +153,13 @@ namespace osu.Framework.Extensions
         public static void ThrowIfFaulted(this Task task)
         {
             if (task.IsFaulted)
-                ExceptionDispatchInfo.Capture(task.Exception?.InnerException).Throw();
+            {
+                Exception e = task.Exception;
+                while (e?.InnerException != null)
+                    e = e.InnerException;
+
+                ExceptionDispatchInfo.Capture(e).Throw();
+            }
         }
 
         /// <summary>
