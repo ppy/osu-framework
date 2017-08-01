@@ -43,6 +43,13 @@ namespace osu.Framework.Platform
         public abstract void Delete(string path);
 
         /// <summary>
+        /// Retrieve a list of directories at the specified path.
+        /// </summary>
+        /// <param name="path">The path to list.</param>
+        /// <returns>A list of directories in the path, relative to the path.</returns>
+        public abstract string[] GetDirectories(string path);
+
+        /// <summary>
         /// Retrieve a stream from an underlying file inside this storage.
         /// </summary>
         /// <param name="path">The path of the file.</param>

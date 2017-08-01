@@ -32,6 +32,8 @@ namespace osu.Framework.Desktop.Platform
 
         public override void Delete(string path) => File.Delete(Path.Combine(BasePath, path));
 
+        public override string[] GetDirectories(string path) => Directory.GetDirectories(Path.Combine(BasePath, path));
+
         public override void OpenInNativeExplorer()
         {
             Process.Start(BasePath);
