@@ -19,15 +19,15 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Check whether a file exists at the specified path.
         /// </summary>
-        /// <param name="path"></param>
-        /// <returns></returns>
+        /// <param name="path">The path to check.</param>
+        /// <returns>Whether a file exists.</returns>
         public abstract bool Exists(string path);
 
         /// <summary>
         /// Check whether a directory exists at the specified path.
         /// </summary>
-        /// <param name="path"></param>
-        /// <returns></returns>
+        /// <param name="path">The path to check.</param>
+        /// <returns>Whether a directory exists.</returns>
         public abstract bool ExistsDirectory(string path);
 
         /// <summary>
