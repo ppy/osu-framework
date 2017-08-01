@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.IO;
 
 namespace osu.Framework.Desktop.Platform.Windows
 {
@@ -13,13 +12,6 @@ namespace osu.Framework.Desktop.Platform.Windows
         {
         }
 
-        protected override string BasePath
-        {
-            get
-            {
-                string appdata = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-                return Path.Combine(appdata, BaseName);
-            }
-        }
+        protected override string LocateBasePath() => Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
     }
 }
