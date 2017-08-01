@@ -24,6 +24,13 @@ namespace osu.Framework.Platform
         public abstract bool Exists(string path);
 
         /// <summary>
+        /// Check whether a directory exists at the specified path.
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        public abstract bool ExistsDirectory(string path);
+
+        /// <summary>
         /// Delete a directory and all its contents recursively.
         /// </summary>
         /// <param name="path">The path of the directory to delete.</param>
