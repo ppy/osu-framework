@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -153,7 +154,16 @@ namespace osu.Framework.Extensions
         public static void ThrowIfFaulted(this Task task)
         {
             if (task.IsFaulted)
-                ExceptionDispatchInfo.Capture(task.Exception?.InnerException).Throw();
+            {
+                Exception e = task.Exception;
+
+                Debug.Assert(e != null);
+
+                while (e.InnerException != null)
+                    e = e.InnerException;
+
+                ExceptionDispatchInfo.Capture(e).Throw();
+            }
         }
 
         /// <summary>
