@@ -25,13 +25,20 @@ namespace osu.Framework.Desktop.Platform
 
         public override bool ExistsDirectory(string path) => Directory.Exists(GetUsablePathFor(path));
 
-        public override void DeleteDirectory(string path) => Directory.Delete(GetUsablePathFor(path), true);
+        public override void DeleteDirectory(string path)
+        {
+            path = GetUsablePathFor(path);
+
+            // handles the case where the directory doesn't exist, which will throw a DirectoryNotFoundException.
+            if (Directory.Exists(path))
+                Directory.Delete(path, true);
+        }
 
         public override void Delete(string path)
         {
             path = GetUsablePathFor(path);
 
-            // handles the case where the directory doesn't exist, which will cause an exception.
+            // handles the case where the containing directory doesn't exist, which will throw a DirectoryNotFoundException.
             if (File.Exists(path))
                 File.Delete(path);
         }
