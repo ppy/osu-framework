@@ -26,6 +26,10 @@ namespace osu.Framework.Desktop.Platform
 
         public override bool Exists(string path) => File.Exists(Path.Combine(BasePath, path));
 
+        public override bool ExistsDirectory(string path) => Directory.Exists(Path.Combine(BasePath, path));
+
+        public override void DeleteDirectory(string path) => Directory.Delete(Path.Combine(BasePath, path), true);
+
         public override void Delete(string path) => File.Delete(Path.Combine(BasePath, path));
 
         public override void OpenInNativeExplorer()
