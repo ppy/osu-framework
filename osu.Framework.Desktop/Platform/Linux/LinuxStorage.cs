@@ -13,24 +13,23 @@ namespace osu.Framework.Desktop.Platform.Linux
         {
         }
 
-        protected override string BasePath
+        protected override string LocateBasePath()
         {
-            get
+            string home = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+            string xdg = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
+            string[] paths =
             {
-                string home = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
-                string xdg = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
-                string[] paths =
-                {
-                    Path.Combine(xdg ?? Path.Combine(home, ".local", "share"), BaseName),
-                    Path.Combine(home, "." + BaseName)
-                };
-                foreach (string path in paths)
-                {
-                    if (Directory.Exists(path))
-                        return path;
-                }
-                return paths[0];
+                xdg ?? Path.Combine(home, ".local", "share"),
+                Path.Combine(home)
+            };
+
+            foreach (string path in paths)
+            {
+                if (Directory.Exists(path))
+                    return path;
             }
+
+            return paths[0];
         }
     }
 }

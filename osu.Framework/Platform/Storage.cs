@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
 using System.IO;
 using osu.Framework.IO.File;
 using SQLite.Net;
@@ -11,10 +12,34 @@ namespace osu.Framework.Platform
     {
         protected string BaseName { get; set; }
 
+        protected readonly string BasePath;
+
+        /// <summary>
+        /// An optional path to be added after <see cref="BaseName"/>.
+        /// </summary>
+        protected string SubDirectory { get; set; } = string.Empty;
+
         protected Storage(string baseName)
         {
             BaseName = FileSafety.FilenameStrip(baseName);
+            BasePath = LocateBasePath();
+            if (BasePath == null)
+                throw new NullReferenceException(nameof(BasePath));
         }
+
+        /// <summary>
+        /// Find the location which will be used as a root for this storage.
+        /// This should usually be a platform-specific implementation.
+        /// </summary>
+        /// <returns></returns>
+        protected abstract string LocateBasePath();
+
+        /// <summary>
+        /// Get a Storage-usable path for the provided path.
+        /// </summary>
+        /// <param name="path">An incomplete path, usually provided as user input.</param>
+        /// <returns></returns>
+        protected string GetUsablePathFor(string path) => Path.Combine(BasePath, BaseName, SubDirectory, path);
 
         /// <summary>
         /// Check whether a file exists at the specified path.
@@ -41,6 +66,25 @@ namespace osu.Framework.Platform
         /// </summary>
         /// <param name="path">The path of the file to delete.</param>
         public abstract void Delete(string path);
+
+        /// <summary>
+        /// Retrieve a list of directories at the specified path.
+        /// </summary>
+        /// <param name="path">The path to list.</param>
+        /// <returns>A list of directories in the path, relative to the path.</returns>
+        public abstract string[] GetDirectories(string path);
+
+        /// <summary>
+        /// Retrieve a <see cref="Storage"/> for a contained directory.
+        /// </summary>
+        /// <param name="path">The subdirectory to use as a root.</param>
+        /// <returns>A more specific storage.</returns>
+        public Storage GetStorageForDirectory(string path)
+        {
+            var clone = (Storage)MemberwiseClone();
+            clone.SubDirectory = path;
+            return clone;
+        }
 
         /// <summary>
         /// Retrieve a stream from an underlying file inside this storage.
