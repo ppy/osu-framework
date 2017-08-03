@@ -88,7 +88,14 @@ namespace osu.Framework.Graphics.UserInterface
             DropdownMenu.ItemsContainer.Add(item);
         }
 
-        // TODO: RemoveDropdownItem?
+        public void RemoveDropdownItem(T value)
+        {
+            if (!itemMap.ContainsKey(value))
+                throw new ArgumentException($"Non-existent selection in {nameof(Dropdown<T>)}!");
+
+            DropdownMenu.ItemsContainer.Remove(itemMap[value]);
+            itemMap.Remove(value);
+        }
 
         public Bindable<T> Current { get; } = new Bindable<T>();
 

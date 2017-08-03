@@ -155,6 +155,8 @@ namespace osu.Framework.Graphics.UserInterface
         /// <param name="item">The item to add.</param>
         public void AddItem(T item) => addTab(item);
 
+        public void RemoveItem(T item) => removeTab(item);
+
         private TabItem<T> addTab(T value, bool addToDropdown = true)
         {
             // Do not allow duplicate adding
@@ -165,6 +167,14 @@ namespace osu.Framework.Graphics.UserInterface
             AddTabItem(tab, addToDropdown);
 
             return tab;
+        }
+
+        private void removeTab(T value, bool removeFromDropdown = true)
+        {
+            if (!tabMap.ContainsKey(value))
+                throw new InvalidOperationException($"Item {value} doesn't exist in this {nameof(TabControl<T>)}");
+            
+            RemoveTabItem(value, removeFromDropdown);
         }
 
         /// <summary>
@@ -186,6 +196,16 @@ namespace osu.Framework.Graphics.UserInterface
             if (addToDropdown)
                 Dropdown?.AddDropdownItem((tab.Value as Enum)?.GetDescription() ?? tab.Value.ToString(), tab.Value);
             TabContainer.Add(tab);
+        }
+
+        protected void RemoveTabItem(T value, bool removeFromDropdown = true)
+        {
+            tabMap.Remove(value);
+
+            if (removeFromDropdown)
+                Dropdown?.RemoveDropdownItem(value);
+
+            TabContainer.RemoveAll(child => child.Value.Equals(value));
         }
 
         /// <summary>

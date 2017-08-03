@@ -10,6 +10,7 @@ namespace osu.Framework.Graphics.UserInterface
 {
     public abstract class TabItem : ClickableContainer
     {
+        protected abstract bool isClosable { get; }
     }
 
     public abstract class TabItem<T> : TabItem
@@ -19,6 +20,8 @@ namespace osu.Framework.Graphics.UserInterface
         internal Action<TabItem<T>> PinnedChanged;
 
         public override bool IsPresent => base.IsPresent && Y == 0;
+        
+        protected override bool isClosable => false;
 
         public readonly T Value;
 
