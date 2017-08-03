@@ -155,6 +155,10 @@ namespace osu.Framework.Graphics.UserInterface
         /// <param name="item">The item to add.</param>
         public void AddItem(T item) => addTab(item);
 
+        /// <summary>
+        /// Removes an item from the control.
+        /// </summary>
+        /// <param name="item">The item to remove.</param>
         public void RemoveItem(T item) => removeTab(item);
 
         private TabItem<T> addTab(T value, bool addToDropdown = true)
@@ -174,7 +178,13 @@ namespace osu.Framework.Graphics.UserInterface
             if (!tabMap.ContainsKey(value))
                 throw new InvalidOperationException($"Item {value} doesn't exist in this {nameof(TabControl<T>)}");
             
+            int currentIndex = MathHelper.Clamp(TabContainer.IndexOf(tabMap[value]), 0, TabContainer.Children.Count - 2);
+
             RemoveTabItem(value, removeFromDropdown);
+
+            if (TabContainer.Children.Any())
+                // Select the tab at the removed tab's index, if any tabs exist
+                SelectTab(TabContainer.Children.ElementAt(currentIndex));
         }
 
         /// <summary>
@@ -198,14 +208,19 @@ namespace osu.Framework.Graphics.UserInterface
             TabContainer.Add(tab);
         }
 
-        protected void RemoveTabItem(T value, bool removeFromDropdown = true)
+        /// <summary>
+        /// Removes an arbitrary <see cref="TabItem{T}"/> to the control
+        /// </summary>
+        /// <param name="tab">The tab to remove</param>
+        /// <param name="removeFromDropdown">Whether the tab should be removed from the Dropdown if supported by the <see cref="TabControl{T}"/> implementation</param>
+        protected void RemoveTabItem(T tab, bool removeFromDropdown = true)
         {
-            tabMap.Remove(value);
+            tabMap.Remove(tab);
 
             if (removeFromDropdown)
-                Dropdown?.RemoveDropdownItem(value);
+                Dropdown?.RemoveDropdownItem(tab);
 
-            TabContainer.RemoveAll(child => child.Value.Equals(value));
+            TabContainer.RemoveAll(child => child.Value.Equals(tab));
         }
 
         /// <summary>

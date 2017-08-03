@@ -10,7 +10,7 @@ namespace osu.Framework.Graphics.UserInterface
 {
     public abstract class TabItem : ClickableContainer
     {
-        protected abstract bool isClosable { get; }
+        protected abstract bool IsRemovable { get; }
     }
 
     public abstract class TabItem<T> : TabItem
@@ -21,7 +21,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         public override bool IsPresent => base.IsPresent && Y == 0;
         
-        protected override bool isClosable => false;
+        protected override bool IsRemovable => false;
 
         public readonly T Value;
 
