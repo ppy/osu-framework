@@ -64,6 +64,7 @@
     <Compile Include="TestCase.cs" />
     <Compile Include="Drawables\TestCaseButton.cs" />
     <Compile Include="Drawables\StepButtons\ToggleStepButton.cs" />
+    <Compile Include="Tests\TestTestCase.cs" />
     <Compile Include="VisualTestRunner.cs" />
   </ItemGroup>
   <ItemGroup>
