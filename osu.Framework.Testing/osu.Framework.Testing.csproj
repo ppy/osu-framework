@@ -52,7 +52,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="GridTestCase.cs" />
-    <Compile Include="TestRunner.cs" />
+    <Compile Include="TestBrowserTestRunner.cs" />
     <Compile Include="Drawables\StepButtons\AssertButton.cs" />
     <Compile Include="Drawables\StepButtons\SingleStepButton.cs" />
     <Compile Include="DynamicClassCompiler.cs" />
@@ -65,7 +65,7 @@
     <Compile Include="Drawables\TestCaseButton.cs" />
     <Compile Include="Drawables\StepButtons\ToggleStepButton.cs" />
     <Compile Include="Tests\TestTestCase.cs" />
-    <Compile Include="VisualTestRunner.cs" />
+    <Compile Include="TestCaseTestRunner.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\osu-framework.licenseheader">
@@ -83,6 +83,9 @@
       <Project>{c76bf5b3-985e-4d39-95fe-97c9c879b83a}</Project>
       <Name>osu.Framework</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

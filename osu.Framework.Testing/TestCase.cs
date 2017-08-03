@@ -29,7 +29,7 @@ namespace osu.Framework.Testing
         public void RunTest()
         {
             using (var host = new HeadlessGameHost())
-                host.Run(new VisualTestRunner(this));
+                host.Run(new TestCaseTestRunner(this));
         }
 
         protected TestCase()

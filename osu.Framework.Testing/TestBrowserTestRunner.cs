@@ -10,14 +10,14 @@ using osu.Framework.Screens;
 
 namespace osu.Framework.Testing
 {
-    public class TestRunner : Screen
+    public class TestBrowserTestRunner : Screen
     {
         private const double time_between_tests = 200;
 
         private Bindable<double> volume;
         private double volumeAtStartup;
 
-        public TestRunner(TestBrowser browser)
+        public TestBrowserTestRunner(TestBrowser browser)
         {
             this.browser = browser;
         }

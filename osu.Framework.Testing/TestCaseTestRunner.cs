@@ -9,9 +9,9 @@ using osu.Framework.Screens;
 
 namespace osu.Framework.Testing
 {
-    public class VisualTestRunner : Game
+    public class TestCaseTestRunner : Game
     {
-        public VisualTestRunner(TestCase t)
+        public TestCaseTestRunner(TestCase t)
         {
             Add(new TestRunner(t));
         }

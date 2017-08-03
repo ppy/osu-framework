@@ -9,7 +9,7 @@ namespace osu.Framework.VisualTests
     {
         public AutomatedVisualTestGame()
         {
-            Add(new TestRunner(new TestBrowser()));
+            Add(new TestBrowserTestRunner(new TestBrowser()));
         }
     }
 }
