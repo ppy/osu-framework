@@ -3,6 +3,8 @@
 
 using System;
 using System.Linq;
+using NUnit.Framework;
+using osu.Framework.Desktop.Platform;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -22,6 +24,13 @@ namespace osu.Framework.Testing
         private readonly Container content;
 
         protected override Container<Drawable> Content => content;
+
+        [Test]
+        public void RunTest()
+        {
+            using (var host = new HeadlessGameHost())
+                host.Run(new VisualTestRunner(this));
+        }
 
         protected TestCase()
         {

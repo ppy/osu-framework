@@ -6,12 +6,14 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Testing;
 using System.Linq;
 using System.Collections.Generic;
+using NUnit.Framework;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Graphics;
 using OpenTK;
 
 namespace osu.Framework.VisualTests.Tests
 {
+    [TestFixture]
     internal class TestCaseSearchContainer : TestCase
     {
         public override string Description => "Tests the SearchContainer";

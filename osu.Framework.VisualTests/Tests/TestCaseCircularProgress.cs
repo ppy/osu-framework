@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using NUnit.Framework;
 using OpenTK.Graphics;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.UserInterface;
@@ -11,6 +12,7 @@ using osu.Framework.Testing;
 
 namespace osu.Framework.VisualTests.Tests
 {
+    [TestFixture]
     internal class TestCaseCircularProgress : TestCase
     {
         public override string Description => @"Circular progress bar";

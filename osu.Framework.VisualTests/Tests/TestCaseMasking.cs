@@ -8,11 +8,13 @@ using osu.Framework.Graphics.Sprites;
 using OpenTK;
 using OpenTK.Graphics;
 using System;
+using NUnit.Framework;
 using osu.Framework.Testing;
 using osu.Framework.Input;
 
 namespace osu.Framework.VisualTests.Tests
 {
+    [TestFixture]
     internal class TestCaseMasking : TestCase
     {
         public override string Description => @"Various scenarios which potentially challenge masking calculations.";

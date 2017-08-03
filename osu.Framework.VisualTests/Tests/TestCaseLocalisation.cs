@@ -4,6 +4,7 @@
 using System;
 using System.Globalization;
 using System.IO;
+using NUnit.Framework;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Configuration;
@@ -16,6 +17,7 @@ using osu.Framework.Testing;
 
 namespace osu.Framework.VisualTests.Tests
 {
+    [TestFixture]
     internal class TestCaseLocalisation : TestCase
     {
         public override string Description => "Localisation engine";

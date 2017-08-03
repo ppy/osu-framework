@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using NUnit.Framework;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Extensions;
@@ -16,6 +17,7 @@ using osu.Framework.Testing;
 
 namespace osu.Framework.VisualTests.Tests
 {
+    [TestFixture]
     internal class TestCaseTabControl : TestCase
     {
         public override string Description => @"Tab control";

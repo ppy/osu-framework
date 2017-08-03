@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using NUnit.Framework;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics;
@@ -12,6 +13,7 @@ using osu.Framework.Testing;
 
 namespace osu.Framework.VisualTests.Tests
 {
+    [TestFixture]
     internal class TestCaseDropdownBox : TestCase
     {
         public override string Description => @"Drop-down boxes";

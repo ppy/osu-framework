@@ -7,10 +7,12 @@ using osu.Framework.Testing;
 using OpenTK;
 using OpenTK.Graphics;
 using System;
+using NUnit.Framework;
 using osu.Framework.Physics;
 
 namespace osu.Framework.VisualTests.Tests
 {
+    [TestFixture]
     internal class TestCaseRigidBody : TestCase
     {
         public override string Description => @"Rigid body simulation scenarios.";

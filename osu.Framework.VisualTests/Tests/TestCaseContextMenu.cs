@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using NUnit.Framework;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics;
@@ -12,6 +13,7 @@ using osu.Framework.Testing;
 
 namespace osu.Framework.VisualTests.Tests
 {
+    [TestFixture]
     internal class TestCaseContextMenu : TestCase
     {
         public override string Description => @"Menu visible on right click";
@@ -69,7 +71,7 @@ namespace osu.Framework.VisualTests.Tests
 
         private class ContextMenuBox : Container, IHasContextMenu
         {
-            public ContextMenuItem[] ContextMenuItems => new []
+            public ContextMenuItem[] ContextMenuItems => new[]
             {
                 new ContextMenuItem(@"Change width") { Action = () => this.ResizeWidthTo(Width * 2, 100, Easing.OutQuint) },
                 new ContextMenuItem(@"Change height") { Action = () => this.ResizeHeightTo(Height * 2, 100, Easing.OutQuint) },

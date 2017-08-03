@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using NUnit.Framework;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
@@ -10,6 +11,7 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.VisualTests.Tests
 {
+    [TestFixture]
     public class TestCaseSliderbar : TestCase
     {
         public override string Description => @"Sliderbar tests.";
