@@ -160,6 +160,7 @@
     <Compile Include="Graphics\Transforms\TransformCustom.cs" />
     <Compile Include="Graphics\Transforms\TransformEdgeEffectColour.cs" />
     <Compile Include="Graphics\UserInterface\BasicCheckbox.cs" />
+    <Compile Include="Graphics\UserInterface\BasicDropdown.cs" />
     <Compile Include="Graphics\UserInterface\Checkbox.cs" />
     <Compile Include="Graphics\UserInterface\ContextMenu.cs" />
     <Compile Include="Graphics\UserInterface\ContextMenuItem.cs" />
