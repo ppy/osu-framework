@@ -27,7 +27,7 @@ namespace osu.Framework.Testing
         protected override Container<Drawable> Content => content;
 
         [Test]
-        public void RunTest()
+        public virtual void RunTest()
         {
             using (var host = new HeadlessGameHost())
                 host.Run(new TestCaseTestRunner(this));
