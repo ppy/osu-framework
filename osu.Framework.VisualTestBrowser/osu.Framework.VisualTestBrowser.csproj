@@ -42,10 +42,6 @@
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.CodeDom.Providers.DotNetCompilerPlatform, Version=1.0.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.NoInstall.1.0.3.2\lib\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="OpenTK, Version=3.0.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)\packages\ppy.OpenTK.3.0\lib\net45\OpenTK.dll</HintPath>
       <Private>True</Private>
@@ -57,13 +53,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AutomatedVisualTestGame.cs" />
-    <Compile Include="Drawables\TestCaseButton.cs" />
-    <Compile Include="DynamicClassCompiler.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TestBrowser.cs" />
-    <Compile Include="TestBrowserConfig.cs" />
-    <Compile Include="TestBrowserTestRunner.cs" />
     <Compile Include="VisualTestGame.cs" />
     <None Include="..\osu-framework.licenseheader">
       <Link>osu-framework.licenseheader</Link>

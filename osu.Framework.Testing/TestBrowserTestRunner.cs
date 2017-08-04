@@ -8,7 +8,7 @@ using osu.Framework.Configuration;
 using osu.Framework.Platform;
 using osu.Framework.Screens;
 
-namespace osu.Framework.VisualTests
+namespace osu.Framework.Testing
 {
     public class TestBrowserTestRunner : Screen
     {

@@ -4,7 +4,7 @@
 using osu.Framework.Configuration;
 using osu.Framework.Platform;
 
-namespace osu.Framework.VisualTests
+namespace osu.Framework.Testing
 {
     internal class TestBrowserConfig : ConfigManager<TestBrowserSetting>
     {
