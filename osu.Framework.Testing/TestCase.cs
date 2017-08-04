@@ -16,6 +16,7 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Testing
 {
+    [TestFixture]
     public abstract class TestCase : Container
     {
         public virtual string Description => @"The base class for a test case";
