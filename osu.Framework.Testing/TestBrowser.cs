@@ -15,12 +15,11 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Platform;
 using osu.Framework.Screens;
-using osu.Framework.Testing;
-using osu.Framework.VisualTests.Drawables;
+using osu.Framework.Testing.Drawables;
 using OpenTK;
 using OpenTK.Graphics;
 
-namespace osu.Framework.VisualTests
+namespace osu.Framework.Testing
 {
     public class TestBrowser : Screen
     {

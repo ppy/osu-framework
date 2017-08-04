@@ -10,7 +10,7 @@ using System.Threading;
 using Microsoft.CodeDom.Providers.DotNetCompilerPlatform;
 using osu.Framework.Logging;
 
-namespace osu.Framework.VisualTests
+namespace osu.Framework.Testing
 {
     public class DynamicClassCompiler
     {
