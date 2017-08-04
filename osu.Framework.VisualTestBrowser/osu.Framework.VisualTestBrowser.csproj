@@ -71,6 +71,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\osu.Framework.Desktop.Tests\osu.Framework.Desktop.Tests.csproj">
+      <Project>{46c1d3d0-ea66-4488-a186-621a36b9f0d5}</Project>
+      <Name>osu.Framework.Desktop.Tests</Name>
+    </ProjectReference>
     <ProjectReference Include="..\osu.Framework.Desktop\osu.Framework.Desktop.csproj">
       <Project>{65dc628f-a640-4111-ab35-3a5652bc1e17}</Project>
       <Name>osu.Framework.Desktop</Name>

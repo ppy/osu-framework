@@ -17,6 +17,6 @@ namespace osu.Framework.VisualTests
 
     internal enum TestBrowserSetting
     {
-        LastTest
+        LastTest,
     }
 }

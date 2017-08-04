@@ -7,7 +7,8 @@
     <OutputType>Library</OutputType>
     <RootNamespace>osu.Framework.Desktop.Tests</RootNamespace>
     <AssemblyName>osu.Framework.Desktop.Tests</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -34,6 +35,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="OpenTK, Version=3.0.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
+      <HintPath>$(SolutionDir)\packages\ppy.OpenTK.3.0\lib\net45\OpenTK.dll</HintPath>
       <SpecificVersion>False</SpecificVersion>
     </Reference>
     <Reference Include="System" />
@@ -98,10 +100,6 @@
     <ProjectReference Include="..\osu.Framework.Desktop\osu.Framework.Desktop.csproj">
       <Project>{65DC628F-A640-4111-AB35-3A5652BC1E17}</Project>
       <Name>osu.Framework.Desktop</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\osu.Framework.VisualTests\osu.Framework.VisualTestBrowser.csproj">
-      <Project>{1F02F11C-2C66-4D25-BBB5-5C752AAD3E62}</Project>
-      <Name>osu.Framework.VisualTestBrowser</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
