@@ -223,6 +223,8 @@ namespace osu.Framework.Graphics.UserInterface
                 Dropdown?.RemoveDropdownItem(tab.Value);
 
             TabContainer.Remove(tabItem);
+
+            performTabSort(TabContainer.Children.Last());
         }
 
         /// <summary>
@@ -254,6 +256,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void performTabSort(TabItem<T> tab)
         {
+            if (!tab.IsRemovable) return;
+
             if (IsLoaded)
                 TabContainer.Remove(tab);
 
