@@ -178,13 +178,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (!tabMap.ContainsKey(value))
                 throw new InvalidOperationException($"Item {value} doesn't exist in this {nameof(TabControl<T>)}");
             
-            int currentIndex = MathHelper.Clamp(TabContainer.IndexOf(tabMap[value]), 0, TabContainer.Children.Count - 2);
-
-            RemoveTabItem(value, removeFromDropdown);
-
-            if (TabContainer.Children.Any())
-                // Select the tab at the removed tab's index, if any tabs exist
-                SelectTab(TabContainer.Children.ElementAt(currentIndex));
+            RemoveTabItem(tabMap[value], removeFromDropdown);
         }
 
         /// <summary>
@@ -213,14 +207,22 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         /// <param name="tab">The tab to remove</param>
         /// <param name="removeFromDropdown">Whether the tab should be removed from the Dropdown if supported by the <see cref="TabControl{T}"/> implementation</param>
-        protected void RemoveTabItem(T tab, bool removeFromDropdown = true)
+        protected void RemoveTabItem(TabItem<T> tab, bool removeFromDropdown = true)
         {
-            tabMap.Remove(tab);
+            TabItem<T> tabItem = tabMap[tab.Value];
+
+            if (!tabItem.IsRemovable) return;
+
+            if (tab == SelectedTab)
+                SelectedTab = null;
+
+            tab.ActivationRequested -= SelectTab;
+            tabMap.Remove(tab.Value);
 
             if (removeFromDropdown)
-                Dropdown?.RemoveDropdownItem(tab);
+                Dropdown?.RemoveDropdownItem(tab.Value);
 
-            TabContainer.RemoveAll(child => child.Value.Equals(tab));
+            TabContainer.Remove(tabItem);
         }
 
         /// <summary>
