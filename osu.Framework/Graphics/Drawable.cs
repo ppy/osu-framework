@@ -1362,6 +1362,10 @@ namespace osu.Framework.Graphics
 
         /// <summary>
         /// Invalidates draw matrix and autosize caches.
+        /// <para>
+        /// This does not ensure that the containing containers have been updated before us, thus updates involving
+        /// parent states (e.g. DrawInfo) are NOT safe to run inside <see cref="Invalidate"/>.
+        /// </para>
         /// </summary>
         /// <returns>If the invalidate was actually necessary.</returns>
         public virtual bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
