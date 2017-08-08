@@ -203,7 +203,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Removes a given child from this container.
         /// </summary>
-        public bool Remove(T drawable)
+        public virtual bool Remove(T drawable)
         {
             if (Content != this)
                 return Content.Remove(drawable);
