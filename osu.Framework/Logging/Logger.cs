@@ -143,7 +143,11 @@ namespace osu.Framework.Logging
         public void Add(string message = @"", LogLevel level = LogLevel.Verbose)
         {
 #if DEBUG
-            System.Diagnostics.Debug.Print($"[{Target.ToString().ToLower()}:{level.ToString().ToLower()}] {message}");
+            var debugLine = $"[{Target.ToString().ToLower()}:{level.ToString().ToLower()}] {message}";
+            // fire to all debug listeners (like visual studio's output window)
+            System.Diagnostics.Debug.Print(debugLine);
+            // fire for console displays (appveyor/CI).
+            Console.WriteLine(debugLine);
 #endif
 
 #if Public
