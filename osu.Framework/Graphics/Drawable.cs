@@ -1813,12 +1813,9 @@ namespace osu.Framework.Graphics
         {
             if (screenSpaceState == null) return null;
 
-            return new InputState
-            {
-                Keyboard = screenSpaceState.Keyboard,
-                Mouse = new LocalMouseState(screenSpaceState.Mouse.NativeState, this),
-                Last = screenSpaceState.Last
-            };
+            var clone = screenSpaceState.Clone();
+            clone.Mouse = new LocalMouseState(screenSpaceState.Mouse.NativeState, this);
+            return clone;
         }
 
         /// <summary>
