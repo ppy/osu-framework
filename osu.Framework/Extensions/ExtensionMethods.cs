@@ -187,7 +187,7 @@ namespace osu.Framework.Extensions
 
             return hash;
         }
-        
+
         public static string ComputeMD5Hash(this Stream stream)
         {
             string hash;
