@@ -661,6 +661,11 @@ namespace osu.Framework.Graphics
             {
                 Vector2 conversion = relativeToAbsoluteFactor;
 
+                if ((relativeAxes & Axes.X) > 0)
+                    v.X *= conversion.X;
+                if ((relativeAxes & Axes.Y) > 0)
+                    v.Y *= conversion.Y;
+
                 // FillMode only makes sense if both axes are relatively sized as the general rule
                 // for n-dimensional aspect preservation is to simply take the minimum or the maximum
                 // scale among all active axes. For single axes the minimum / maximum is just the
@@ -668,16 +673,11 @@ namespace osu.Framework.Graphics
                 if (relativeAxes == Axes.Both && fillMode != FillMode.Stretch)
                 {
                     if (fillMode == FillMode.Fill)
-                        conversion = new Vector2(Math.Max(conversion.X, conversion.Y * fillAspectRatio));
+                        v = new Vector2(Math.Max(v.X, v.Y * fillAspectRatio));
                     else if (fillMode == FillMode.Fit)
-                        conversion = new Vector2(Math.Min(conversion.X, conversion.Y * fillAspectRatio));
-                    conversion.Y /= fillAspectRatio;
+                        v = new Vector2(Math.Min(v.X, v.Y * fillAspectRatio));
+                    v.Y /= fillAspectRatio;
                 }
-
-                if ((relativeAxes & Axes.X) > 0)
-                    v.X *= conversion.X;
-                if ((relativeAxes & Axes.Y) > 0)
-                    v.Y *= conversion.Y;
             }
             return v;
         }

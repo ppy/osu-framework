@@ -44,7 +44,7 @@ namespace osu.Framework.Desktop.Tests.Platform
                         Thread.Sleep(1);
                 };
 
-                Assert.IsTrue(waitAction.BeginInvoke(null, null).AsyncWaitHandle.WaitOne(1000),
+                Assert.IsTrue(waitAction.BeginInvoke(null, null).AsyncWaitHandle.WaitOne(10000),
                     @"Message was not received in a timely fashion");
             }
         }
