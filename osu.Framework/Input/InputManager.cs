@@ -670,6 +670,8 @@ namespace osu.Framework.Input
                 Repeat = repeat
             };
 
+            PopulateDataKeyDown(state, args);
+
             if (!unfocusIfNoLongerValid())
             {
                 if (args.Key == Key.Escape)
@@ -684,12 +686,28 @@ namespace osu.Framework.Input
             return keyboardInputQueue.Any(target => target.TriggerOnKeyDown(state, args));
         }
 
+        /// <summary>
+        /// Provides the ability to populate the state data (or further adjust the state) right before all OnKeyDown events are triggered.
+        /// </summary>
+        protected virtual void PopulateDataKeyDown(InputState state, KeyDownEventArgs args)
+        {
+        }
+
+        /// <summary>
+        /// Provides the ability to populate the state data (or further adjust the state) right before all OnKeyUp events are triggered.
+        /// </summary>
+        protected virtual void PopulateDataKeyUp(InputState state, KeyUpEventArgs args)
+        {
+        }
+
         private bool handleKeyUp(InputState state, Key key)
         {
             KeyUpEventArgs args = new KeyUpEventArgs
             {
                 Key = key
             };
+
+            PopulateDataKeyUp(state, args);
 
             if (!unfocusIfNoLongerValid() && (FocusedDrawable?.TriggerOnKeyUp(state, args) ?? false))
                 return true;
