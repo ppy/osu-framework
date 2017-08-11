@@ -1145,14 +1145,6 @@ namespace osu.Framework.Graphics
         public virtual double LifetimeEnd { get; set; } = double.MaxValue;
 
         /// <summary>
-        /// Updates the current time to the provided time. For drawables this is a no-op
-        /// as they obtain their time via their <see cref="Clock"/>.
-        /// </summary>
-        public void UpdateTime(FrameTimeInfo time)
-        {
-        }
-
-        /// <summary>
         /// Whether this drawable is alive.
         /// </summary>
         public virtual bool IsAlive

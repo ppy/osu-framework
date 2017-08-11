@@ -356,11 +356,7 @@ namespace osu.Framework.Graphics.Containers
             bool anyAliveChanged = false;
 
             for (int i = internalChildren.Count - 1; i >= 0; i--)
-            {
-                var item = internalChildren[i];
-                item.UpdateTime(Time);
-                anyAliveChanged |= checkChildLife(item);
-            }
+                anyAliveChanged |= checkChildLife(internalChildren[i]);
 
             if (anyAliveChanged)
                 childrenSizeDependencies.Invalidate();

@@ -8,11 +8,6 @@ namespace osu.Framework.Lists
     public interface IHasLifetime
     {
         /// <summary>
-        /// Updates the current time to the provided time.
-        /// </summary>
-        void UpdateTime(FrameTimeInfo time);
-
-        /// <summary>
         /// Whether this life-timed object is currently loaded.
         /// </summary>
         bool IsLoaded { get; }
