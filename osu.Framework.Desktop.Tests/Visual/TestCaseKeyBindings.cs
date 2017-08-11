@@ -47,6 +47,10 @@ namespace osu.Framework.Desktop.Tests.Visual
             Ctrl_Alt_A,
             Ctrl_Alt_S,
             Ctrl_Alt_D_or_F,
+            Ctrl,
+            Alt,
+            Ctrl_And_Alt,
+            //Ctrl_Or_Alt
         }
 
         private class TestInputManager : KeyBindingInputManager<TestAction>
@@ -71,6 +75,12 @@ namespace osu.Framework.Desktop.Tests.Visual
                 { new[] { Key.LControl, Key.LAlt, Key.S }, TestAction.Ctrl_Alt_S },
                 { new[] { Key.LControl, Key.LAlt, Key.D }, TestAction.Ctrl_Alt_D_or_F },
                 { new[] { Key.LControl, Key.LAlt, Key.F }, TestAction.Ctrl_Alt_D_or_F },
+
+                { new[] { Key.LControl }, TestAction.Ctrl },
+                { new[] { Key.LAlt }, TestAction.Alt },
+                { new[] { Key.LControl, Key.LAlt }, TestAction.Ctrl_And_Alt },
+                //{ new[] { Key.LControl }, TestAction.Ctrl_Or_Alt },
+                //{ new[] { Key.LAlt }, TestAction.Ctrl_Or_Alt },
             };
         }
 
