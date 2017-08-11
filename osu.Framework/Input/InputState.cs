@@ -11,17 +11,11 @@ namespace osu.Framework.Input
         public IMouseState Mouse;
         public InputState Last;
 
-        /// <summary>
-        /// Used to store game-specific data which is added on along the input path.
-        /// </summary>
-        public object Data;
-
         public InputState Clone() => new InputState
         {
             Keyboard = Keyboard?.Clone(),
             Mouse = Mouse?.Clone(),
             Last = Last,
-            Data = Data,
         };
     }
 }
