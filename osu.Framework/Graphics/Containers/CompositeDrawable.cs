@@ -35,8 +35,7 @@ namespace osu.Framework.Graphics.Containers
         #region Contruction and disposal
 
         /// <summary>
-        /// Contructs a <see cref="CompositeDrawable"/> that stores its children in a given <see cref="LifetimeList{T}"/>.
-        /// If null is provides, then a new <see cref="LifetimeList{T}"/> is automatically created.
+        /// Contructs a <see cref="CompositeDrawable"/> that stores children.
         /// </summary>
         protected CompositeDrawable()
         {
@@ -75,7 +74,7 @@ namespace osu.Framework.Graphics.Containers
             // for their correct alive state in the case LifetimeStart is set to a definite value.
             internalChildren.ForEach(loadChild);
 
-            // Let's also perform an update on our LifetimeList to add any alive children.
+            // Let's also perform an update on our children's life to add any alive children.
             UpdateChildrenLife();
         }
 
