@@ -13,29 +13,50 @@ namespace osu.Framework.Input.Bindings
     /// </summary>
     public class KeyCombination : IEquatable<KeyCombination>
     {
+        /// <summary>
+        /// The keys.
+        /// </summary>
         public readonly IEnumerable<Key> Keys;
 
+        /// <summary>
+        /// Construct a new instance.
+        /// </summary>
+        /// <param name="keys">The keys.</param>
         public KeyCombination(params Key[] keys)
         {
             Keys = keys;
         }
 
+        /// <summary>
+        /// Construct a new instance.
+        /// </summary>
+        /// <param name="keys">The keys.</param>
         public KeyCombination(IEnumerable<Key> keys)
         {
             Keys = keys;
         }
 
-        public KeyCombination(string stringRepresentation)
+        /// <summary>
+        /// Construct a new instance.
+        /// </summary>
+        /// <param name="keys">A comma-separated (KeyCode) string representation of the keys.</param>
+        public KeyCombination(string keys)
         {
-            Keys = stringRepresentation.Split(',').Select(s => (Key)int.Parse(s));
+            Keys = keys.Split(',').Select(s => (Key)int.Parse(s));
         }
 
-        public bool CheckValid(IEnumerable<Key> keys, bool requireExactMatch = false)
+        /// <summary>
+        /// Check whether the provided input is a valid trigger for this combination.
+        /// </summary>
+        /// <param name="trigger">The potential trigger for this combination.</param>
+        /// <param name="requireExactMatch">Whether we require an exact match (ie. should we consider a superset trigger valid or not).</param>
+        /// <returns>Whether the trigger keys are valid.</returns>
+        public bool CheckValid(IEnumerable<Key> trigger, bool requireExactMatch = false)
         {
             if (requireExactMatch)
-                return Keys.SequenceEqual(keys);
+                return Keys.SequenceEqual(trigger);
             else
-                return !Keys.Except(keys).Any();
+                return !Keys.Except(trigger).Any();
         }
 
         public bool Equals(KeyCombination other)
