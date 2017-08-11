@@ -44,13 +44,13 @@ namespace osu.Framework.Desktop.Tests.Visual
             Ctrl_A,
             Ctrl_S,
             Ctrl_D_or_F,
-            Ctrl_Alt_A,
-            Ctrl_Alt_S,
-            Ctrl_Alt_D_or_F,
+            Ctrl_Shift_A,
+            Ctrl_Shift_S,
+            Ctrl_Shift_D_or_F,
             Ctrl,
-            Alt,
-            Ctrl_And_Alt,
-            //Ctrl_Or_Alt
+            Shift,
+            Ctrl_And_Shift,
+            //Ctrl_OrLShift
         }
 
         private class TestInputManager : KeyBindingInputManager<TestAction>
@@ -71,16 +71,16 @@ namespace osu.Framework.Desktop.Tests.Visual
                 { new[] { Key.LControl, Key.D }, TestAction.Ctrl_D_or_F },
                 { new[] { Key.LControl, Key.F }, TestAction.Ctrl_D_or_F },
 
-                { new[] { Key.LControl, Key.LAlt, Key.A }, TestAction.Ctrl_Alt_A },
-                { new[] { Key.LControl, Key.LAlt, Key.S }, TestAction.Ctrl_Alt_S },
-                { new[] { Key.LControl, Key.LAlt, Key.D }, TestAction.Ctrl_Alt_D_or_F },
-                { new[] { Key.LControl, Key.LAlt, Key.F }, TestAction.Ctrl_Alt_D_or_F },
+                { new[] { Key.LControl, Key.LShift, Key.A }, TestAction.Ctrl_Shift_A },
+                { new[] { Key.LControl, Key.LShift, Key.S }, TestAction.Ctrl_Shift_S },
+                { new[] { Key.LControl, Key.LShift, Key.D }, TestAction.Ctrl_Shift_D_or_F },
+                { new[] { Key.LControl, Key.LShift, Key.F }, TestAction.Ctrl_Shift_D_or_F },
 
                 { new[] { Key.LControl }, TestAction.Ctrl },
-                { new[] { Key.LAlt }, TestAction.Alt },
-                { new[] { Key.LControl, Key.LAlt }, TestAction.Ctrl_And_Alt },
-                //{ new[] { Key.LControl }, TestAction.Ctrl_Or_Alt },
-                //{ new[] { Key.LAlt }, TestAction.Ctrl_Or_Alt },
+                { new[] { Key.LShift }, TestAction.Shift },
+                { new[] { Key.LControl, Key.LShift }, TestAction.Ctrl_And_Shift },
+                //{ new[] { Key.LControl }, TestAction.Ctrl_OrLShift },
+                //{ new[] { Key.LShift }, TestAction.Ctrl_OrLShift },
             };
         }
 

@@ -57,9 +57,9 @@ namespace osu.Framework.Input.Bindings
                 return base.PropagateKeyDown(drawables, state, args);
             }
 
-            KeyBinding newBinding;
+            var validBindings = Mappings.Except(pressedBindings).Where(m => m.Keys.CheckValid(state.Keyboard.Keys)).ToList();
 
-            while ((newBinding = Mappings.Except(pressedBindings).LastOrDefault(m => m.Keys.CheckValid(state.Keyboard.Keys))) != null)
+            foreach (var newBinding in validBindings)
             {
                 if (concurrencyMode == ConcurrentActionMode.All || pressedBindings.All(p => p.Action != newBinding.Action))
                 {
@@ -67,11 +67,15 @@ namespace osu.Framework.Input.Bindings
 
                     //we handled a new binding and there is an existing one. if we don't want concurrency, let's propagate a released event.
                     if (handled && concurrencyMode == ConcurrentActionMode.None && pressedBindings.Count > 0)
-                        handled |= drawables.OfType<IHandleKeyBindings<T>>().Any(d => d.OnReleased(pressedBindings.First().GetAction<T>()));
+                    {
+                        handled |= drawables.OfType<IHandleKeyBindings<T>>().Any(d => d.OnReleased(pressedBindings.Last().GetAction<T>()));
+                    }
                 }
 
                 // store both the pressed combination and the resulting action, just in case the assignments change while we are actuated.
                 pressedBindings.Add(newBinding);
+                if (handled && concurrencyMode == ConcurrentActionMode.None)
+                    break;
             }
 
             return handled || base.PropagateKeyDown(drawables, state, args);
