@@ -351,11 +351,11 @@ namespace osu.Framework.Graphics.Containers
         {
             bool anyAliveChanged = false;
 
-            for (int i = 0; i < internalChildren.Count; i++)
+            for (int i = internalChildren.Count - 1; i >= 0; i--)
             {
                 var item = internalChildren[i];
                 item.UpdateTime(Time);
-                anyAliveChanged |= checkChildLife(item, ref i);
+                anyAliveChanged |= checkChildLife(item);
             }
 
             if (anyAliveChanged)
@@ -369,9 +369,8 @@ namespace osu.Framework.Graphics.Containers
         /// the child from <see cref="aliveInternalChildren"/> depending on its alive state.
         /// </summary>
         /// <param name="child">The child to check.</param>
-        /// <param name="i">The index of this child. This is used to modify the iterand in the case of removals from <see cref="internalChildren"/>.</param>
         /// <returns>Whether the child's alive state has changed.</returns>
-        private bool checkChildLife(Drawable child, ref int i)
+        private bool checkChildLife(Drawable child)
         {
             bool changed = false;
 
@@ -401,7 +400,6 @@ namespace osu.Framework.Graphics.Containers
                 if (child.RemoveWhenNotAlive)
                 {
                     RemoveInternal(child);
-                    i--;
 
                     if (child.DisposeOnDeathRemoval)
                         child.Dispose();
