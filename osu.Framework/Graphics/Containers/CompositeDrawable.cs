@@ -291,8 +291,13 @@ namespace osu.Framework.Graphics.Containers
             if (drawable.IsLoaded)
                 drawable.Parent = this;
 
+            // If the drawable's ChildId is not zero, then it was added to another parent even if it wasn't loaded
+            if (drawable.ChildID != 0)
+                throw new InvalidOperationException("May not add a drawable to multiple containers.");
+
             drawable.ChildID = ++currentChildID;
 
+            // If we're already loaded, we can eagerly allow children to be loaded
             if (IsLoaded)
                 loadChild(drawable);
 
