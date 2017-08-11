@@ -34,8 +34,7 @@ namespace osu.Framework.Lists
         bool IsAlive { get; }
 
         /// <summary>
-        /// Whether this life-timed object should be removed from a <see cref="LifetimeList{T}"/>
-        /// if <see cref="IsAlive"/> is false.
+        /// Whether this life-timed object should be removed from its container if <see cref="IsAlive"/> is false.
         /// </summary>
         bool RemoveWhenNotAlive { get; }
     }
