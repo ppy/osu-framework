@@ -243,6 +243,11 @@ namespace osu.Framework.Graphics
         /// </summary>
         internal bool IsPartOfComposite => ChildID != 0;
 
+        /// <summary>
+        /// Whether this drawable is part of its parent's <see cref="CompositeDrawable.AliveInternalChildren"/>.
+        /// </summary>
+        internal bool IsCurrentlyAlive = false;
+
         private float depth;
 
         /// <summary>
