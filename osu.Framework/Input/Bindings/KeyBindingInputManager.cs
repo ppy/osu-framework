@@ -57,18 +57,21 @@ namespace osu.Framework.Input.Bindings
                 return base.PropagateKeyDown(drawables, state, args);
             }
 
-            if (concurrencyMode == ConcurrentActionMode.None && pressedBindings.Count > 0)
-                return true;
+            KeyBinding newBinding;
 
-            KeyBinding validKeyBinding;
-
-            while ((validKeyBinding = Mappings.Except(pressedBindings).LastOrDefault(m => m.Keys.CheckValid(state.Keyboard.Keys, concurrencyMode == ConcurrentActionMode.None))) != null)
+            while ((newBinding = Mappings.Except(pressedBindings).LastOrDefault(m => m.Keys.CheckValid(state.Keyboard.Keys))) != null)
             {
-                if (concurrencyMode == ConcurrentActionMode.UniqueAndSameActions || pressedBindings.All(p => p.Action != validKeyBinding.Action))
-                    handled = drawables.OfType<IHandleKeyBindings<T>>().Any(d => d.OnPressed(validKeyBinding.GetAction<T>()));
+                if (concurrencyMode == ConcurrentActionMode.All || pressedBindings.All(p => p.Action != newBinding.Action))
+                {
+                    handled = drawables.OfType<IHandleKeyBindings<T>>().Any(d => d.OnPressed(newBinding.GetAction<T>()));
+
+                    //we handled a new binding and there is an existing one. if we don't want concurrency, let's propagate a released event.
+                    if (handled && concurrencyMode == ConcurrentActionMode.None && pressedBindings.Count > 0)
+                        handled |= drawables.OfType<IHandleKeyBindings<T>>().Any(d => d.OnReleased(pressedBindings.First().GetAction<T>()));
+                }
 
                 // store both the pressed combination and the resulting action, just in case the assignments change while we are actuated.
-                pressedBindings.Add(validKeyBinding);
+                pressedBindings.Add(newBinding);
             }
 
             return handled || base.PropagateKeyDown(drawables, state, args);
@@ -80,12 +83,12 @@ namespace osu.Framework.Input.Bindings
 
             foreach (var binding in pressedBindings.ToList())
             {
-                if (!binding.Keys.CheckValid(state.Keyboard.Keys, concurrencyMode == ConcurrentActionMode.None))
+                if (!binding.Keys.CheckValid(state.Keyboard.Keys))
                 {
                     // clear the no-longer-valid combination/action.
                     pressedBindings.Remove(binding);
 
-                    if (concurrencyMode == ConcurrentActionMode.UniqueAndSameActions || pressedBindings.All(p => p.Action != binding.Action))
+                    if (concurrencyMode == ConcurrentActionMode.All || pressedBindings.All(p => p.Action != binding.Action))
                     {
                         // set data as KeyUp if we're all done with this action.
                         handled = drawables.OfType<IHandleKeyBindings<T>>().Any(d => d.OnReleased(binding.GetAction<T>()));
@@ -100,7 +103,7 @@ namespace osu.Framework.Input.Bindings
     public enum ConcurrentActionMode
     {
         /// <summary>
-        /// One action can be pressed at once. The first action matching a chord will take precedence and no other action will be pressed until it has first been released.
+        /// One action can be pressed at once. If a new matching binding is encountered, any existing binding is first released.
         /// </summary>
         None,
         /// <summary>
@@ -110,10 +113,10 @@ namespace osu.Framework.Input.Bindings
         /// </summary>
         UniqueActions,
         /// <summary>
-        /// Unique actions are allowed to be pressed at the same time. There may therefore be more than one action in an actuated state at once (same as <see cref="UniqueActions"/>).
-        /// In addition to this, multiple <see cref="IHandleKeyBindings{T}.OnPressed"/> are fired for single actions, even if <see cref="IHandleKeyBindings{T}.OnReleased(T)"/> has not yet been fired.
-        /// The same goes for <see cref="IHandleKeyBindings{T}.OnReleased(T)"/>, which is fired for each matching binding that is released.
+        /// Unique actions are allowed to be pressed at the same time, as well as multiple times from different bindings. There may therefore be
+        /// more than one action in an pressed state at once, as well as multiple consecutive <see cref="IHandleKeyBindings{T}.OnPressed"/> events
+        /// for a single action (followed by an eventual balancing number of <see cref="IHandleKeyBindings{T}.OnReleased(T)"/> events).
         /// </summary>
-        UniqueAndSameActions,
+        All,
     }
 }

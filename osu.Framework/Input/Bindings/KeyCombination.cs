@@ -49,15 +49,8 @@ namespace osu.Framework.Input.Bindings
         /// Check whether the provided input is a valid trigger for this combination.
         /// </summary>
         /// <param name="trigger">The potential trigger for this combination.</param>
-        /// <param name="requireExactMatch">Whether we require an exact match (ie. should we consider a superset trigger valid or not).</param>
         /// <returns>Whether the trigger keys are valid.</returns>
-        public bool CheckValid(IEnumerable<Key> trigger, bool requireExactMatch = false)
-        {
-            if (requireExactMatch)
-                return Keys.SequenceEqual(trigger);
-            else
-                return !Keys.Except(trigger).Any();
-        }
+        public bool CheckValid(IEnumerable<Key> trigger) => !Keys.Except(trigger).Any();
 
         public bool Equals(KeyCombination other)
         {
