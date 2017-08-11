@@ -11,6 +11,7 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Testing;
+using osu.Framework.Extensions.Color4Extensions;
 using OpenTK.Graphics;
 using OpenTK.Input;
 
@@ -31,9 +32,9 @@ namespace osu.Framework.Desktop.Tests.Visual
         {
             base.LoadComplete();
 
-            Cell(0).Add(new KeyBindingTester(ConcurrentActionMode.None));
-            Cell(1).Add(new KeyBindingTester(ConcurrentActionMode.UniqueActions));
-            Cell(2).Add(new KeyBindingTester(ConcurrentActionMode.All));
+            Cell(0).Add(new KeyBindingTester(SimultaneousBindingMode.None));
+            Cell(1).Add(new KeyBindingTester(SimultaneousBindingMode.Unique));
+            Cell(2).Add(new KeyBindingTester(SimultaneousBindingMode.All));
         }
 
         private enum TestAction
@@ -55,7 +56,7 @@ namespace osu.Framework.Desktop.Tests.Visual
 
         private class TestInputManager : KeyBindingInputManager<TestAction>
         {
-            public TestInputManager(ConcurrentActionMode concurrencyMode = ConcurrentActionMode.None) : base(concurrencyMode)
+            public TestInputManager(SimultaneousBindingMode concurrencyMode = SimultaneousBindingMode.None) : base(concurrencyMode)
             {
             }
 
@@ -92,21 +93,25 @@ namespace osu.Framework.Desktop.Tests.Visual
             {
                 this.action = action;
 
-                BackgroundColour = Color4.DarkBlue;
+                BackgroundColour = Color4.SkyBlue;
                 Text = action.ToString().Replace('_', ' ');
 
                 RelativeSizeAxes = Axes.X;
                 Height = 40;
                 Width = 0.3f;
                 Padding = new MarginPadding(2);
+
+                Background.Alpha = alphaTarget;
             }
+
+            private float alphaTarget = 0.5f;
 
             public bool OnPressed(TestAction action)
             {
                 if (this.action == action)
                 {
-                    BackgroundColour = Color4.Red;
-                    Background.FlashColour(Color4.White, 100);
+                    alphaTarget += 0.2f;
+                    Background.FadeTo(alphaTarget, 100, Easing.OutQuint);
                     return true;
                 }
 
@@ -117,7 +122,8 @@ namespace osu.Framework.Desktop.Tests.Visual
             {
                 if (this.action == action)
                 {
-                    BackgroundColour = Color4.DarkBlue;
+                    alphaTarget -= 0.2f;
+                    Background.FadeTo(alphaTarget, 100, Easing.OutQuint);
                     return true;
                 }
 
@@ -127,7 +133,7 @@ namespace osu.Framework.Desktop.Tests.Visual
 
         private class KeyBindingTester : Container
         {
-            public KeyBindingTester(ConcurrentActionMode concurrency)
+            public KeyBindingTester(SimultaneousBindingMode concurrency)
             {
                 RelativeSizeAxes = Axes.Both;
 
