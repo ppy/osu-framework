@@ -203,7 +203,7 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
-        /// Removes an arbitrary <see cref="TabItem{T}"/> to the control
+        /// Removes an arbitrary <see cref="TabItem{T}"/> from the control
         /// </summary>
         /// <param name="tab">The tab to remove</param>
         /// <param name="removeFromDropdown">Whether the tab should be removed from the Dropdown if supported by the <see cref="TabControl{T}"/> implementation</param>
@@ -256,7 +256,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void performTabSort(TabItem<T> tab)
         {
-            if (!tab.IsRemovable) return;
+            if (tab == null) return;
 
             if (IsLoaded)
                 TabContainer.Remove(tab);
