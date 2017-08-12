@@ -16,17 +16,17 @@ namespace osu.Framework.Input.Bindings
     public abstract class KeyBindingInputManager<T> : PassThroughInputManager
         where T : struct
     {
-        private readonly SimultaneousBindingMode concurrencyMode;
+        private readonly SimultaneousBindingMode simultaneousMode;
 
         protected readonly List<KeyBinding> Mappings = new List<KeyBinding>();
 
         /// <summary>
         /// Create a new instance.
         /// </summary>
-        /// <param name="concurrencyMode">Specify how to deal with multiple matches of <see cref="KeyCombination"/>s and <see cref="T"/>s.</param>
-        protected KeyBindingInputManager(SimultaneousBindingMode concurrencyMode = SimultaneousBindingMode.None)
+        /// <param name="simultaneousMode">Specify how to deal with multiple matches of <see cref="KeyCombination"/>s and <see cref="T"/>s.</param>
+        protected KeyBindingInputManager(SimultaneousBindingMode simultaneousMode = SimultaneousBindingMode.None)
         {
-            this.concurrencyMode = concurrencyMode;
+            this.simultaneousMode = simultaneousMode;
         }
 
         protected abstract IEnumerable<KeyBinding> CreateDefaultMappings();
@@ -75,7 +75,7 @@ namespace osu.Framework.Input.Bindings
                 pressedBindings.Add(newBinding);
 
                 // we handled a new binding and there is an existing one. if we don't want concurrency, let's propagate a released event.
-                if (concurrencyMode == SimultaneousBindingMode.None)
+                if (simultaneousMode == SimultaneousBindingMode.None)
                 {
                     // we only want to handle the first valid binding (the one with the most keys) in non-simultaneous mode.
                     if (anyHandled)
@@ -88,7 +88,7 @@ namespace osu.Framework.Input.Bindings
                 }
 
                 // only handle if we are a new non-pressed action (or a concurrency mode that supports multiple simultaneous triggers).
-                if (concurrencyMode == SimultaneousBindingMode.All || !pressedActions.Contains(newBinding.GetAction<T>()))
+                if (simultaneousMode == SimultaneousBindingMode.All || !pressedActions.Contains(newBinding.GetAction<T>()))
                 {
                     pressedActions.Add(newBinding.GetAction<T>());
                     anyHandled |= drawables.OfType<IKeyBindingHandler<T>>().Any(d => d.OnPressed(newBinding.GetAction<T>()));
@@ -110,10 +110,10 @@ namespace osu.Framework.Input.Bindings
                 var thisAction = binding.GetAction<T>();
                 var thisActionInt = (int)(object)thisAction;
 
-                // we either want multiple release events due to concurrency mode, or we only want one when we
+                // we either want multiple release events due to the simultaneous mode, or we only want one when we
                 // - were pressed (as an action)
                 // - are the last pressed binding with this action
-                if (concurrencyMode == SimultaneousBindingMode.All || pressedActions.Contains(thisAction) && pressedBindings.All(b => b.Action != thisActionInt))
+                if (simultaneousMode == SimultaneousBindingMode.All || pressedActions.Contains(thisAction) && pressedBindings.All(b => b.Action != thisActionInt))
                 {
                     handled |= drawables.OfType<IKeyBindingHandler<T>>().Any(d => d.OnReleased(binding.GetAction<T>()));
                     pressedActions.Remove(thisAction);
