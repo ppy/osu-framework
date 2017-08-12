@@ -45,12 +45,13 @@ namespace osu.Framework.Input.Bindings
         }
 
         private readonly List<KeyBinding> pressedBindings = new List<KeyBinding>();
+        private readonly List<T> pressedActions = new List<T>();
 
         private bool isModifier(Key k) => k < Key.F1;
 
         protected override bool PropagateKeyDown(IEnumerable<Drawable> drawables, InputState state, KeyDownEventArgs args)
         {
-            bool handled = false;
+            bool anyHandled = false;
 
             if (args.Repeat)
             {
@@ -60,7 +61,7 @@ namespace osu.Framework.Input.Bindings
                 return base.PropagateKeyDown(drawables, state, args);
             }
 
-            var validBindings = Mappings.Except(pressedBindings).Where(m => m.Keys.CheckValid(state.Keyboard.Keys));
+            var validBindings = Mappings.Except(pressedBindings).Where(m => m.Keys.Keys.Contains(args.Key) && m.Keys.CheckValid(state.Keyboard.Keys));
 
             if (isModifier(args.Key))
                 // if the current key pressed was a modifier, only handle modifier-only bindings.
@@ -71,42 +72,55 @@ namespace osu.Framework.Input.Bindings
 
             foreach (var newBinding in validBindings.ToList())
             {
-                if (concurrencyMode == SimultaneousBindingMode.All || pressedBindings.All(p => p.Action != newBinding.Action))
-                {
-                    handled = drawables.OfType<IHandleKeyBindings<T>>().Any(d => d.OnPressed(newBinding.GetAction<T>()));
+                // store both the pressed combination and the resulting action, just in case the assignments change while we are actuated.
+                pressedBindings.Add(newBinding);
 
-                    //we handled a new binding and there is an existing one. if we don't want concurrency, let's propagate a released event.
-                    if (handled && concurrencyMode == SimultaneousBindingMode.None && pressedBindings.Count > 0)
+                //we handled a new binding and there is an existing one. if we don't want concurrency, let's propagate a released event.
+                if (concurrencyMode == SimultaneousBindingMode.None)
+                {
+                    if (anyHandled)
+                        continue;
+
+                    if (pressedActions.Any())
                     {
-                        handled |= drawables.OfType<IHandleKeyBindings<T>>().Any(d => d.OnReleased(pressedBindings.Last().GetAction<T>()));
+                        var previous = pressedActions.First();
+                        pressedActions.Clear();
+
+                        // this assignment is unnecessary; just keeps resharper happy.
+                        anyHandled |= drawables.OfType<IHandleKeyBindings<T>>().Any(d => d.OnReleased(previous));
                     }
                 }
 
-                // store both the pressed combination and the resulting action, just in case the assignments change while we are actuated.
-                pressedBindings.Add(newBinding);
-                if (handled && concurrencyMode == SimultaneousBindingMode.None)
-                    break;
+                // only handle if we are a unique action (or a concurrency mode that supports multiple simultaneous triggers).
+                if (concurrencyMode == SimultaneousBindingMode.All || !pressedActions.Contains(newBinding.GetAction<T>()))
+                {
+                    pressedActions.Add(newBinding.GetAction<T>());
+                    anyHandled |= drawables.OfType<IHandleKeyBindings<T>>().Any(d => d.OnPressed(newBinding.GetAction<T>()));
+                }
             }
 
-            return handled || base.PropagateKeyDown(drawables, state, args);
+            return anyHandled || base.PropagateKeyDown(drawables, state, args);
         }
 
         protected override bool PropagateKeyUp(IEnumerable<Drawable> drawables, InputState state, KeyUpEventArgs args)
         {
             bool handled = false;
 
-            foreach (var binding in pressedBindings.ToList())
+            foreach (var binding in pressedBindings.Where(b => !b.Keys.CheckValid(state.Keyboard.Keys)).ToList())
             {
-                if (!binding.Keys.CheckValid(state.Keyboard.Keys))
-                {
-                    // clear the no-longer-valid combination/action.
-                    pressedBindings.Remove(binding);
+                // clear the no-longer-valid combination/action.
+                pressedBindings.Remove(binding);
 
-                    if (concurrencyMode == SimultaneousBindingMode.All || pressedBindings.All(p => p.Action != binding.Action))
-                    {
-                        // set data as KeyUp if we're all done with this action.
-                        handled = drawables.OfType<IHandleKeyBindings<T>>().Any(d => d.OnReleased(binding.GetAction<T>()));
-                    }
+                var thisAction = binding.GetAction<T>();
+                var thisActionInt = (int)(object)thisAction;
+
+                // we either want multiple release events due to concurrency mode, or we only want one when we
+                // - were pressed (as an action)
+                // - are the last pressed binding with this action
+                if (concurrencyMode == SimultaneousBindingMode.All || pressedActions.Contains(thisAction) && pressedBindings.All(b => b.Action != thisActionInt))
+                {
+                    handled |= drawables.OfType<IHandleKeyBindings<T>>().Any(d => d.OnReleased(binding.GetAction<T>()));
+                    pressedActions.Remove(thisAction);
                 }
             }
 

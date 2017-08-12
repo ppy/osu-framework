@@ -11,7 +11,6 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Testing;
-using osu.Framework.Extensions.Color4Extensions;
 using OpenTK.Graphics;
 using OpenTK.Input;
 
@@ -45,6 +44,9 @@ namespace osu.Framework.Desktop.Tests.Visual
             Ctrl_A,
             Ctrl_S,
             Ctrl_D_or_F,
+            Shift_A,
+            Shift_S,
+            Shift_D_or_F,
             Ctrl_Shift_A,
             Ctrl_Shift_S,
             Ctrl_Shift_D_or_F,
@@ -71,6 +73,11 @@ namespace osu.Framework.Desktop.Tests.Visual
                 { new[] { Key.LControl, Key.S }, TestAction.Ctrl_S },
                 { new[] { Key.LControl, Key.D }, TestAction.Ctrl_D_or_F },
                 { new[] { Key.LControl, Key.F }, TestAction.Ctrl_D_or_F },
+
+                { new[] { Key.LShift, Key.A }, TestAction.Shift_A },
+                { new[] { Key.LShift, Key.S }, TestAction.Shift_S },
+                { new[] { Key.LShift, Key.D }, TestAction.Shift_D_or_F },
+                { new[] { Key.LShift, Key.F }, TestAction.Shift_D_or_F },
 
                 { new[] { Key.LControl, Key.LShift, Key.A }, TestAction.Ctrl_Shift_A },
                 { new[] { Key.LControl, Key.LShift, Key.S }, TestAction.Ctrl_Shift_S },
