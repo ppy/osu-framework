@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using OpenTK.Input;
 
@@ -34,7 +35,6 @@ namespace osu.Framework.Input.Bindings
         {
             base.LoadComplete();
             ReloadMappings();
-
         }
 
         protected virtual void ReloadMappings()
@@ -74,23 +74,20 @@ namespace osu.Framework.Input.Bindings
                 // store both the pressed combination and the resulting action, just in case the assignments change while we are actuated.
                 pressedBindings.Add(newBinding);
 
-                //we handled a new binding and there is an existing one. if we don't want concurrency, let's propagate a released event.
+                // we handled a new binding and there is an existing one. if we don't want concurrency, let's propagate a released event.
                 if (concurrencyMode == SimultaneousBindingMode.None)
                 {
+                    // we only want to handle the first valid binding (the one with the most keys) in non-simultaneous mode.
                     if (anyHandled)
                         continue;
 
-                    if (pressedActions.Any())
-                    {
-                        var previous = pressedActions.First();
-                        pressedActions.Clear();
-
-                        // this assignment is unnecessary; just keeps resharper happy.
-                        anyHandled |= drawables.OfType<IHandleKeyBindings<T>>().Any(d => d.OnReleased(previous));
-                    }
+                    // we also want to release any existing pressed actions.
+                    foreach (var action in pressedActions)
+                        drawables.OfType<IHandleKeyBindings<T>>().ForEach(d => d.OnReleased(action));
+                    pressedActions.Clear();
                 }
 
-                // only handle if we are a unique action (or a concurrency mode that supports multiple simultaneous triggers).
+                // only handle if we are a new non-pressed action (or a concurrency mode that supports multiple simultaneous triggers).
                 if (concurrencyMode == SimultaneousBindingMode.All || !pressedActions.Contains(newBinding.GetAction<T>()))
                 {
                     pressedActions.Add(newBinding.GetAction<T>());
