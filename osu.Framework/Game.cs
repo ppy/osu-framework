@@ -12,15 +12,15 @@ using osu.Framework.Graphics.Visualisation;
 using osu.Framework.Input;
 using osu.Framework.IO.Stores;
 using osu.Framework.Platform;
-using OpenTK.Input;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
+using osu.Framework.Input.Bindings;
 using OpenTK;
 using GameWindow = osu.Framework.Platform.GameWindow;
 
 namespace osu.Framework
 {
-    public abstract class Game : Container
+    public abstract class Game : Container, IKeyBindingHandler<FrameworkAction>
     {
         public GameWindow Window => Host?.Window;
 
@@ -63,10 +63,6 @@ namespace osu.Framework
                     Origin = Anchor.Centre,
                     RelativeSizeAxes = Axes.Both,
                 },
-                new GlobalHotkeys
-                {
-                    Handler = globalKeyDown
-                }
             });
         }
 
@@ -188,43 +184,39 @@ namespace osu.Framework
             set { performanceContainer.State = value; }
         }
 
-        private bool globalKeyDown(InputState state, KeyDownEventArgs args)
+        public bool OnPressed(FrameworkAction action)
         {
-            if (state.Keyboard.ControlPressed)
+            switch (action)
             {
-                switch (args.Key)
-                {
-                    case Key.F11:
-                        switch (FrameStatisticsMode)
-                        {
-                            case FrameStatisticsMode.None:
-                                FrameStatisticsMode = FrameStatisticsMode.Minimal;
-                                break;
-                            case FrameStatisticsMode.Minimal:
-                                FrameStatisticsMode = FrameStatisticsMode.Full;
-                                break;
-                            case FrameStatisticsMode.Full:
-                                FrameStatisticsMode = FrameStatisticsMode.None;
-                                break;
-                        }
-                        return true;
-                    case Key.F1:
-                        DrawVisualiser.ToggleVisibility();
-                        return true;
-                    case Key.F10:
-                        logOverlay.ToggleVisibility();
-                        return true;
-                }
-            }
-
-            if (state.Keyboard.AltPressed && args.Key == Key.Enter)
-            {
-                Window?.CycleMode();
-                return true;
+                case FrameworkAction.CycleFrameStatistics:
+                    switch (FrameStatisticsMode)
+                    {
+                        case FrameStatisticsMode.None:
+                            FrameStatisticsMode = FrameStatisticsMode.Minimal;
+                            break;
+                        case FrameStatisticsMode.Minimal:
+                            FrameStatisticsMode = FrameStatisticsMode.Full;
+                            break;
+                        case FrameStatisticsMode.Full:
+                            FrameStatisticsMode = FrameStatisticsMode.None;
+                            break;
+                    }
+                    return true;
+                case FrameworkAction.ToggleDrawVisualiser:
+                    DrawVisualiser.ToggleVisibility();
+                    return true;
+                case FrameworkAction.ToggleLogOverlay:
+                    logOverlay.ToggleVisibility();
+                    return true;
+                case FrameworkAction.ToggleFullscreen:
+                    Window?.CycleMode();
+                    return true;
             }
 
             return false;
         }
+
+        public bool OnReleased(FrameworkAction action) => false;
 
         public void Exit()
         {

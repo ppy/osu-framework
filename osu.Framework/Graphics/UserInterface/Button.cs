@@ -24,7 +24,7 @@ namespace osu.Framework.Graphics.UserInterface
         public Color4 BackgroundColour
         {
             get { return Background.Colour; }
-            set { Background.Colour = value; }
+            set { Background.FadeColour(value); }
         }
 
         protected override Container<Drawable> Content => content;
