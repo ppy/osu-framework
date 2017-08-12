@@ -36,11 +36,11 @@ namespace osu.Framework.Input.Bindings
         }
 
         /// <summary>
-        /// Check whether the provided input is a valid trigger for this combination.
+        /// Check whether the provided input is a valid pressedKeys for this combination.
         /// </summary>
-        /// <param name="trigger">The potential trigger for this combination.</param>
-        /// <returns>Whether the trigger keys are valid.</returns>
-        public bool CheckValid(IEnumerable<Key> trigger) => !Keys.Except(trigger).Any();
+        /// <param name="pressedKeys">The potential pressedKeys for this combination.</param>
+        /// <returns>Whether the pressedKeys keys are valid.</returns>
+        public bool IsPressed(IEnumerable<Key> pressedKeys) => !Keys.Except(pressedKeys).Any();
 
         public bool Equals(KeyCombination other)
         {

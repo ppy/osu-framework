@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
@@ -18,7 +19,7 @@ namespace osu.Framework.Input.Bindings
     {
         private readonly SimultaneousBindingMode simultaneousMode;
 
-        protected readonly List<KeyBinding> Mappings = new List<KeyBinding>();
+        protected readonly List<KeyBinding> KeyBindings = new List<KeyBinding>();
 
         /// <summary>
         /// Create a new instance.
@@ -39,8 +40,8 @@ namespace osu.Framework.Input.Bindings
 
         protected virtual void ReloadMappings()
         {
-            Mappings.Clear();
-            Mappings.AddRange(CreateDefaultMappings());
+            KeyBindings.Clear();
+            KeyBindings.AddRange(CreateDefaultMappings());
         }
 
         private readonly List<KeyBinding> pressedBindings = new List<KeyBinding>();
@@ -50,7 +51,7 @@ namespace osu.Framework.Input.Bindings
 
         protected override bool PropagateKeyDown(IEnumerable<Drawable> drawables, InputState state, KeyDownEventArgs args)
         {
-            bool anyHandled = false;
+            bool handled = false;
 
             if (args.Repeat)
             {
@@ -60,28 +61,25 @@ namespace osu.Framework.Input.Bindings
                 return base.PropagateKeyDown(drawables, state, args);
             }
 
-            var validBindings = Mappings.Except(pressedBindings).Where(m => m.Keys.Keys.Contains(args.Key) && m.Keys.CheckValid(state.Keyboard.Keys));
+            var newlyPressed = KeyBindings.Except(pressedBindings).Where(m =>
+                m.KeyCombination.Keys.Contains(args.Key) // only handle bindings matching current key (not required for correct logic)
+                && m.KeyCombination.IsPressed(state.Keyboard.Keys));
 
             if (isModifier(args.Key))
                 // if the current key pressed was a modifier, only handle modifier-only bindings.
-                validBindings = validBindings.Where(b => b.Keys.Keys.All(isModifier));
+                newlyPressed = newlyPressed.Where(b => b.KeyCombination.Keys.All(isModifier));
 
             // we want to always handle bindings with more keys before bindings with less.
-            validBindings = validBindings.OrderByDescending(b => b.Keys.Keys.Count());
+            newlyPressed = newlyPressed.OrderByDescending(b => b.KeyCombination.Keys.Count()).ToList();
 
-            foreach (var newBinding in validBindings.ToList())
+            pressedBindings.AddRange(newlyPressed);
+
+            foreach (var newBinding in newlyPressed)
             {
-                // store both the pressed combination and the resulting action, just in case the assignments change while we are actuated.
-                pressedBindings.Add(newBinding);
-
                 // we handled a new binding and there is an existing one. if we don't want concurrency, let's propagate a released event.
                 if (simultaneousMode == SimultaneousBindingMode.None)
                 {
-                    // we only want to handle the first valid binding (the one with the most keys) in non-simultaneous mode.
-                    if (anyHandled)
-                        continue;
-
-                    // we also want to release any existing pressed actions.
+                    // we want to release any existing pressed actions.
                     foreach (var action in pressedActions)
                         drawables.OfType<IKeyBindingHandler<T>>().ForEach(d => d.OnReleased(action));
                     pressedActions.Clear();
@@ -91,32 +89,38 @@ namespace osu.Framework.Input.Bindings
                 if (simultaneousMode == SimultaneousBindingMode.All || !pressedActions.Contains(newBinding.GetAction<T>()))
                 {
                     pressedActions.Add(newBinding.GetAction<T>());
-                    anyHandled |= drawables.OfType<IKeyBindingHandler<T>>().Any(d => d.OnPressed(newBinding.GetAction<T>()));
+                    handled |= drawables.OfType<IKeyBindingHandler<T>>().Any(d => d.OnPressed(newBinding.GetAction<T>()));
                 }
+
+                // we only want to handle the first valid binding (the one with the most keys) in non-simultaneous mode.
+                if (simultaneousMode == SimultaneousBindingMode.None && handled)
+                    break;
             }
 
-            return anyHandled || base.PropagateKeyDown(drawables, state, args);
+            return handled || base.PropagateKeyDown(drawables, state, args);
         }
 
         protected override bool PropagateKeyUp(IEnumerable<Drawable> drawables, InputState state, KeyUpEventArgs args)
         {
             bool handled = false;
 
-            foreach (var binding in pressedBindings.Where(b => !b.Keys.CheckValid(state.Keyboard.Keys)).ToList())
+            var newlyReleased = pressedBindings.Where(b => !b.KeyCombination.IsPressed(state.Keyboard.Keys)).ToList();
+
+            Trace.Assert(newlyReleased.All(b => b.KeyCombination.Keys.Contains(args.Key)));
+
+            foreach (var binding in newlyReleased)
             {
-                // clear the no-longer-valid combination/action.
                 pressedBindings.Remove(binding);
 
-                var thisAction = binding.GetAction<T>();
-                var thisActionInt = (int)(object)thisAction;
+                var action = binding.GetAction<T>();
 
                 // we either want multiple release events due to the simultaneous mode, or we only want one when we
                 // - were pressed (as an action)
                 // - are the last pressed binding with this action
-                if (simultaneousMode == SimultaneousBindingMode.All || pressedActions.Contains(thisAction) && pressedBindings.All(b => b.Action != thisActionInt))
+                if (simultaneousMode == SimultaneousBindingMode.All || pressedActions.Contains(action) && pressedBindings.All(b => b.Action != binding.Action))
                 {
                     handled |= drawables.OfType<IKeyBindingHandler<T>>().Any(d => d.OnReleased(binding.GetAction<T>()));
-                    pressedActions.Remove(thisAction);
+                    pressedActions.Remove(action);
                 }
             }
 

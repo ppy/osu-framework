@@ -4,14 +4,14 @@
 namespace osu.Framework.Input.Bindings
 {
     /// <summary>
-    /// A binding of a <see cref="KeyCombination"/> to an action.
+    /// A binding of a <see cref="Bindings.KeyCombination"/> to an action.
     /// </summary>
     public class KeyBinding
     {
         /// <summary>
         /// The combination of keys which will trigger this binding.
         /// </summary>
-        public KeyCombination Keys;
+        public KeyCombination KeyCombination;
 
         /// <summary>
         /// The resultant action which is triggered by this binding.
@@ -26,7 +26,7 @@ namespace osu.Framework.Input.Bindings
         /// <param name="action">The resultant action which is triggered by this binding. Usually an enum type.</param>
         public KeyBinding(KeyCombination keys, object action)
         {
-            Keys = keys;
+            KeyCombination = keys;
             Action = (int)action;
         }
 
@@ -44,6 +44,6 @@ namespace osu.Framework.Input.Bindings
         /// <returns>A cast <see cref="T"/> representation of <see cref="Action"/>.</returns>
         public virtual T GetAction<T>() => (T)(object)Action;
 
-        public override string ToString() => $"{Keys}=>{Action}";
+        public override string ToString() => $"{KeyCombination}=>{Action}";
     }
 }
