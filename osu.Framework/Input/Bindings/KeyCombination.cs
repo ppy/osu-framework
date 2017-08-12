@@ -22,27 +22,17 @@ namespace osu.Framework.Input.Bindings
         /// Construct a new instance.
         /// </summary>
         /// <param name="keys">The keys.</param>
-        public KeyCombination(params Key[] keys)
-        {
-            Keys = keys;
-        }
-
-        /// <summary>
-        /// Construct a new instance.
-        /// </summary>
-        /// <param name="keys">The keys.</param>
         public KeyCombination(IEnumerable<Key> keys)
         {
-            Keys = keys;
+            Keys = keys.OrderBy(k => (int)k).ToArray();
         }
 
         /// <summary>
         /// Construct a new instance.
         /// </summary>
         /// <param name="keys">A comma-separated (KeyCode) string representation of the keys.</param>
-        public KeyCombination(string keys)
+        public KeyCombination(string keys) : this(keys.Split(',').Select(s => (Key)int.Parse(s)))
         {
-            Keys = keys.Split(',').Select(s => (Key)int.Parse(s));
         }
 
         /// <summary>
@@ -67,14 +57,14 @@ namespace osu.Framework.Input.Bindings
             return Equals((KeyCombination)obj);
         }
 
-        public override int GetHashCode() => Keys != null ? Keys.Select(k => k.GetHashCode()).Aggregate((h1, h2) => h1 + h2) : 0;
+        public override int GetHashCode() => Keys != null ? Keys.Select(k => k.GetHashCode()).Aggregate((h1, h2) => h1 * 17 + h2) : 0;
 
-        public static implicit operator KeyCombination(Key singleKey) => new KeyCombination(singleKey);
+        public static implicit operator KeyCombination(Key singleKey) => new KeyCombination(new[] { singleKey });
 
         public static implicit operator KeyCombination(string stringRepresentation) => new KeyCombination(stringRepresentation);
 
         public static implicit operator KeyCombination(Key[] keys) => new KeyCombination(keys);
 
-        public override string ToString() => Keys.Select(k => ((int)k).ToString()).Aggregate((s1, s2) => $"{s1},{s2}");
+        public override string ToString() => Keys?.Select(k => ((int)k).ToString()).Aggregate((s1, s2) => $"{s1},{s2}") ?? string.Empty;
     }
 }
