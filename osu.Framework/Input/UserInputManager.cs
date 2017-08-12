@@ -14,12 +14,12 @@ namespace osu.Framework.Input
     {
         protected override IEnumerable<InputHandler> InputHandlers => Host.AvailableInputHandlers;
 
-        protected override IDictionary<KeyCombination, FrameworkAction> CreateDefaultMappings() => new Dictionary<KeyCombination, FrameworkAction>
+        protected override IEnumerable<KeyBinding> CreateDefaultMappings() => new[]
         {
-            { new[] { Key.LControl, Key.F1 }, FrameworkAction.ToggleDrawVisualiser },
-            { new[] { Key.LControl, Key.F11 }, FrameworkAction.CycleFrameStatistics },
-            { new[] { Key.LControl, Key.F10 }, FrameworkAction.ToggleLogOverlay },
-            { new[] { Key.LAlt, Key.Enter }, FrameworkAction.ToggleFullscreen },
+            new KeyBinding(new[] { Key.LControl, Key.F1 }, FrameworkAction.ToggleDrawVisualiser),
+            new KeyBinding(new[] { Key.LControl, Key.F11 }, FrameworkAction.CycleFrameStatistics),
+            new KeyBinding(new[] { Key.LControl, Key.F10 }, FrameworkAction.ToggleLogOverlay),
+            new KeyBinding(new[] { Key.LAlt, Key.Enter }, FrameworkAction.ToggleFullscreen),
         };
 
         public UserInputManager()

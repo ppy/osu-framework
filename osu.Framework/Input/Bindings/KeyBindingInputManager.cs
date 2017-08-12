@@ -28,7 +28,7 @@ namespace osu.Framework.Input.Bindings
             this.concurrencyMode = concurrencyMode;
         }
 
-        protected abstract IDictionary<KeyCombination, T> CreateDefaultMappings();
+        protected abstract IEnumerable<KeyBinding> CreateDefaultMappings();
 
         protected override void LoadComplete()
         {
@@ -40,8 +40,7 @@ namespace osu.Framework.Input.Bindings
         protected virtual void ReloadMappings()
         {
             Mappings.Clear();
-            foreach (var kvp in CreateDefaultMappings())
-                Mappings.Add(new KeyBinding(kvp.Key, kvp.Value));
+            Mappings.AddRange(CreateDefaultMappings());
         }
 
         private readonly List<KeyBinding> pressedBindings = new List<KeyBinding>();
