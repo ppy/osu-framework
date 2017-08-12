@@ -171,7 +171,7 @@
     <Compile Include="Graphics\UserInterface\TabControl.cs" />
     <Compile Include="Graphics\UserInterface\TabItem.cs" />
     <Compile Include="Input\CustomInputManager.cs" />
-    <Compile Include="Input\Bindings\IHandleKeyBindings.cs" />
+    <Compile Include="Input\Bindings\IKeyBindingHandler.cs" />
     <Compile Include="Input\Bindings\KeyBinding.cs" />
     <Compile Include="Input\Bindings\KeyBindingInputManager.cs" />
     <Compile Include="Input\Bindings\KeyCombination.cs" />

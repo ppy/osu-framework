@@ -4,10 +4,10 @@
 namespace osu.Framework.Input.Bindings
 {
     /// <summary>
-    /// Used to mark classes which handle a specific variety of key bindings.
+    /// Handles key bindings.
     /// </summary>
     /// <typeparam name="T">The type of bindings, commonly an enum.</typeparam>
-    public interface IHandleKeyBindings<in T>
+    public interface IKeyBindingHandler<in T>
         where T : struct
     {
         /// <summary>

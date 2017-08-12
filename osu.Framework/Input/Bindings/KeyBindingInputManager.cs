@@ -10,7 +10,7 @@ using OpenTK.Input;
 namespace osu.Framework.Input.Bindings
 {
     /// <summary>
-    /// Maps input actions to custom action data of type <see cref="T"/>. Use in conjunction with <see cref="Drawable"/>s implementing <see cref="IHandleKeyBindings{T}"/>.
+    /// Maps input actions to custom action data of type <see cref="T"/>. Use in conjunction with <see cref="Drawable"/>s implementing <see cref="IKeyBindingHandler{T}"/>.
     /// </summary>
     /// <typeparam name="T">The type of the custom action.</typeparam>
     public abstract class KeyBindingInputManager<T> : PassThroughInputManager
@@ -83,7 +83,7 @@ namespace osu.Framework.Input.Bindings
 
                     // we also want to release any existing pressed actions.
                     foreach (var action in pressedActions)
-                        drawables.OfType<IHandleKeyBindings<T>>().ForEach(d => d.OnReleased(action));
+                        drawables.OfType<IKeyBindingHandler<T>>().ForEach(d => d.OnReleased(action));
                     pressedActions.Clear();
                 }
 
@@ -91,7 +91,7 @@ namespace osu.Framework.Input.Bindings
                 if (concurrencyMode == SimultaneousBindingMode.All || !pressedActions.Contains(newBinding.GetAction<T>()))
                 {
                     pressedActions.Add(newBinding.GetAction<T>());
-                    anyHandled |= drawables.OfType<IHandleKeyBindings<T>>().Any(d => d.OnPressed(newBinding.GetAction<T>()));
+                    anyHandled |= drawables.OfType<IKeyBindingHandler<T>>().Any(d => d.OnPressed(newBinding.GetAction<T>()));
                 }
             }
 
@@ -115,7 +115,7 @@ namespace osu.Framework.Input.Bindings
                 // - are the last pressed binding with this action
                 if (concurrencyMode == SimultaneousBindingMode.All || pressedActions.Contains(thisAction) && pressedBindings.All(b => b.Action != thisActionInt))
                 {
-                    handled |= drawables.OfType<IHandleKeyBindings<T>>().Any(d => d.OnReleased(binding.GetAction<T>()));
+                    handled |= drawables.OfType<IKeyBindingHandler<T>>().Any(d => d.OnReleased(binding.GetAction<T>()));
                     pressedActions.Remove(thisAction);
                 }
             }
@@ -132,14 +132,14 @@ namespace osu.Framework.Input.Bindings
         None,
         /// <summary>
         /// Unique actions are allowed to be pressed at the same time. There may therefore be more than one action in an actuated state at once.
-        /// If one action has multiple bindings, only the first will trigger an <see cref="IHandleKeyBindings{T}.OnPressed"/>.
-        /// The last binding to be released will trigger an <see cref="IHandleKeyBindings{T}.OnReleased(T)"/>.
+        /// If one action has multiple bindings, only the first will trigger an <see cref="IKeyBindingHandler{T}.OnPressed"/>.
+        /// The last binding to be released will trigger an <see cref="IKeyBindingHandler{T}.OnReleased(T)"/>.
         /// </summary>
         Unique,
         /// <summary>
         /// Unique actions are allowed to be pressed at the same time, as well as multiple times from different bindings. There may therefore be
-        /// more than one action in an pressed state at once, as well as multiple consecutive <see cref="IHandleKeyBindings{T}.OnPressed"/> events
-        /// for a single action (followed by an eventual balancing number of <see cref="IHandleKeyBindings{T}.OnReleased(T)"/> events).
+        /// more than one action in an pressed state at once, as well as multiple consecutive <see cref="IKeyBindingHandler{T}.OnPressed"/> events
+        /// for a single action (followed by an eventual balancing number of <see cref="IKeyBindingHandler{T}.OnReleased(T)"/> events).
         /// </summary>
         All,
     }

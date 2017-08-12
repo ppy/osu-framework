@@ -92,7 +92,7 @@ namespace osu.Framework.Desktop.Tests.Visual
             };
         }
 
-        private class TestButton : Button, IHandleKeyBindings<TestAction>
+        private class TestButton : Button, IKeyBindingHandler<TestAction>
         {
             private readonly TestAction action;
 
