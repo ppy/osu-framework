@@ -1888,7 +1888,7 @@ namespace osu.Framework.Graphics
 
             public IMouseState Clone()
             {
-                throw new NotSupportedException();
+                return (LocalMouseState)MemberwiseClone();
             }
         }
 
