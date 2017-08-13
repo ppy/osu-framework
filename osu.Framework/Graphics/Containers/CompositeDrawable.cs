@@ -251,7 +251,6 @@ namespace osu.Framework.Graphics.Containers
         {
             foreach (Drawable t in internalChildren)
             {
-                t.Parent = null;
                 t.IsCurrentlyAlive = false;
 
                 if (disposeChildren)
@@ -260,6 +259,8 @@ namespace osu.Framework.Graphics.Containers
                     (t as CompositeDrawable)?.ClearInternal();
                     t.Dispose();
                 }
+                else
+                    t.Parent = null;
 
                 Trace.Assert(t.Parent == null);
             }
