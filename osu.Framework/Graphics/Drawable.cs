@@ -93,7 +93,7 @@ namespace osu.Framework.Graphics
 
         /// <summary>
         /// Whether this Drawable should be disposed when it is automatically removed from
-        /// its <see cref="Parent"/> due to <see cref="IsAlive"/> being false.
+        /// its <see cref="Parent"/> due to <see cref="ShouldBeAlive"/> being false.
         /// </summary>
         public virtual bool DisposeOnDeathRemoval => false;
 
@@ -103,7 +103,7 @@ namespace osu.Framework.Graphics
 
         /// <summary>
         /// Whether this Drawable is fully loaded.
-        /// Override to false for delaying the load further (e.g. using <see cref="IsAlive"/>).
+        /// Override to false for delaying the load further (e.g. using <see cref="ShouldBeAlive"/>).
         /// </summary>
         public virtual bool IsLoaded => loadState >= LoadState.Loaded;
 
@@ -246,7 +246,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Whether this drawable is part of its parent's <see cref="CompositeDrawable.AliveInternalChildren"/>.
         /// </summary>
-        internal bool IsCurrentlyAlive = false;
+        public bool IsAlive { get; internal set; }
 
         private float depth;
 
@@ -1145,9 +1145,10 @@ namespace osu.Framework.Graphics
         public virtual double LifetimeEnd { get; set; } = double.MaxValue;
 
         /// <summary>
-        /// Whether this drawable is alive.
+        /// Whether this drawable should currently be alive.
+        /// This is queried by the framework to decide the <see cref="IsAlive"/> state of this drawable for the next frame.
         /// </summary>
-        public virtual bool IsAlive
+        protected internal virtual bool ShouldBeAlive
         {
             get
             {

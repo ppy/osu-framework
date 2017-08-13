@@ -222,7 +222,7 @@ namespace osu.Framework.Graphics.Containers
                 return false;
 
             internalChildren.RemoveAt(index);
-            if (drawable.IsCurrentlyAlive)
+            if (drawable.IsAlive)
                 aliveInternalChildren.Remove(drawable);
 
             if (drawable.IsLoaded)
@@ -232,7 +232,7 @@ namespace osu.Framework.Graphics.Containers
             }
 
             drawable.Parent = null;
-            drawable.IsCurrentlyAlive = false;
+            drawable.IsAlive = false;
 
             if (AutoSizeAxes != Axes.None)
                 InvalidateFromChild(Invalidation.RequiredParentSizeToFit);
@@ -251,7 +251,7 @@ namespace osu.Framework.Graphics.Containers
         {
             foreach (Drawable t in internalChildren)
             {
-                t.IsCurrentlyAlive = false;
+                t.IsAlive = false;
 
                 if (disposeChildren)
                 {
@@ -304,10 +304,10 @@ namespace osu.Framework.Graphics.Containers
 
             internalChildren.Add(drawable);
 
-            if (drawable.IsLoaded && drawable.IsAlive)
+            if (drawable.IsLoaded && drawable.ShouldBeAlive)
             {
                 aliveInternalChildren.Add(drawable);
-                drawable.IsCurrentlyAlive = true;
+                drawable.IsAlive = true;
             }
 
             if (AutoSizeAxes != Axes.None)
@@ -375,26 +375,26 @@ namespace osu.Framework.Graphics.Containers
         {
             bool changed = false;
 
-            if (child.IsAlive)
+            if (child.ShouldBeAlive)
             {
-                if (!child.IsCurrentlyAlive)
+                if (!child.IsAlive)
                 {
                     loadChild(child);
 
                     if (child.IsLoaded)
                     {
                         aliveInternalChildren.Add(child);
-                        child.IsCurrentlyAlive = true;
+                        child.IsAlive = true;
                         changed = true;
                     }
                 }
             }
             else
             {
-                if (child.IsCurrentlyAlive)
+                if (child.IsAlive)
                 {
                     aliveInternalChildren.Remove(child);
-                    child.IsCurrentlyAlive = false;
+                    child.IsAlive = false;
                     changed = true;
                 }
 
