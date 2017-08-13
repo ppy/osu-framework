@@ -664,37 +664,36 @@ namespace osu.Framework.Input
 
         private bool handleKeyDown(InputState state, Key key, bool repeat)
         {
-            KeyDownEventArgs args = new KeyDownEventArgs
-            {
-                Key = key,
-                Repeat = repeat
-            };
-
             if (!unfocusIfNoLongerValid())
             {
-                if (args.Key == Key.Escape)
+                if (key == Key.Escape)
                 {
                     ChangeFocus(null);
                     return true;
                 }
-                if (FocusedDrawable.TriggerOnKeyDown(state, args))
-                    return true;
+
+                keyboardInputQueue.Insert(0, FocusedDrawable);
             }
 
-            return keyboardInputQueue.Any(target => target.TriggerOnKeyDown(state, args));
+            return PropagateKeyDown(keyboardInputQueue, state, new KeyDownEventArgs { Key = key, Repeat = repeat });
+        }
+
+        protected virtual bool PropagateKeyDown(IEnumerable<Drawable> drawables, InputState state, KeyDownEventArgs args)
+        {
+            return drawables.Any(target => target.TriggerOnKeyDown(state, args));
         }
 
         private bool handleKeyUp(InputState state, Key key)
         {
-            KeyUpEventArgs args = new KeyUpEventArgs
-            {
-                Key = key
-            };
+            if (!unfocusIfNoLongerValid() && FocusedDrawable != null)
+                keyboardInputQueue.Insert(0, FocusedDrawable);
 
-            if (!unfocusIfNoLongerValid() && (FocusedDrawable?.TriggerOnKeyUp(state, args) ?? false))
-                return true;
+            return PropagateKeyUp(keyboardInputQueue, state, new KeyUpEventArgs { Key = key });
+        }
 
-            return keyboardInputQueue.Any(target => target.TriggerOnKeyUp(state, args));
+        protected virtual bool PropagateKeyUp(IEnumerable<Drawable> drawables, InputState state, KeyUpEventArgs args)
+        {
+            return drawables.Any(target => target.TriggerOnKeyUp(state, args));
         }
 
         /// <summary>
