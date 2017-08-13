@@ -6,26 +6,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using osu.Framework.IO.File;
+using osu.Framework.Platform;
 using osu.Framework.Threading;
 
 namespace osu.Framework.Logging
 {
     public class Logger
     {
-        /// <summary>
-        /// Directory to place all log files.
-        /// </summary>
-        public static string LogDirectory
-        {
-            get { return logDirectory; }
-            set
-            {
-                logDirectory = value;
-                hasLogDirectory = null; //we should check again whether the directory exists.
-            }
-        }
-
         /// <summary>
         /// Global control over logging.
         /// </summary>
@@ -45,6 +32,11 @@ namespace osu.Framework.Logging
         /// An identifier for version used in log file headers to figure where the log file came from.
         /// </summary>
         public static string VersionIdentifier = @"unknown";
+
+        /// <summary>
+        /// The storage to place logs inside.
+        /// </summary>
+        public static Storage Storage;
 
         /// <summary>
         /// Add a plain-text phrase which should always be filtered from logs.
@@ -130,7 +122,7 @@ namespace osu.Framework.Logging
 
         public LoggingTarget Target { get; }
 
-        public string Filename => logDirectory == null ? null : Path.Combine(logDirectory, $@"{Target.ToString().ToLower()}.log");
+        public string Filename => $@"{Target.ToString().ToLower()}.log";
 
         private Logger(LoggingTarget target = LoggingTarget.Runtime)
         {
@@ -151,7 +143,11 @@ namespace osu.Framework.Logging
         public void Add(string message = @"", LogLevel level = LogLevel.Verbose)
         {
 #if DEBUG
-            System.Diagnostics.Debug.Print($"[{Target.ToString().ToLower()}:{level.ToString().ToLower()}] {message}");
+            var debugLine = $"[{Target.ToString().ToLower()}:{level.ToString().ToLower()}] {message}";
+            // fire to all debug listeners (like visual studio's output window)
+            System.Diagnostics.Debug.Print(debugLine);
+            // fire for console displays (appveyor/CI).
+            Console.WriteLine(debugLine);
 #endif
 
 #if Public
@@ -189,13 +185,15 @@ namespace osu.Framework.Logging
 
             background_scheduler.Add(delegate
             {
-                ensureLogDirectoryExists();
-                if (hasLogDirectory.HasValue && !hasLogDirectory.Value)
+                if (Storage == null)
                     return;
 
                 try
                 {
-                    File.AppendAllLines(Filename, lines);
+                    using (var stream = Storage.GetStream(Filename, FileAccess.Write, FileMode.Append))
+                    using (var writer = new StreamWriter(stream))
+                        foreach (var line in lines)
+                            writer.WriteLine(line);
                 }
                 catch
                 {
@@ -208,20 +206,9 @@ namespace osu.Framework.Logging
         /// <summary>
         /// Deletes log file from disk.
         /// </summary>
-        /// <param name="lastLogSuffix">If specified, creates a copy of the last log file with specified suffix.</param>
-        public void Clear(string lastLogSuffix = null)
+        public void Clear()
         {
-            background_scheduler.Add(delegate
-            {
-                ensureLogDirectoryExists();
-                if (Filename == null) return;
-
-                if (!string.IsNullOrEmpty(lastLogSuffix))
-                    FileSafety.FileMove(Filename, Filename.Replace(@".log", $@"_{lastLogSuffix}.log"));
-                else
-                    FileSafety.FileDelete(Filename);
-            });
-
+            background_scheduler.Add(() => Storage?.Delete(Filename));
             addHeader();
         }
 
@@ -237,30 +224,6 @@ namespace osu.Framework.Logging
         private static readonly List<string> filters = new List<string>();
         private static readonly Dictionary<LoggingTarget, Logger> static_loggers = new Dictionary<LoggingTarget, Logger>();
         private static readonly ThreadedScheduler background_scheduler = new ThreadedScheduler(@"Logger");
-        private static bool? hasLogDirectory;
-        private static string logDirectory;
-
-        private void ensureLogDirectoryExists()
-        {
-            if (hasLogDirectory.HasValue)
-                return;
-
-            if (logDirectory != null)
-            {
-                try
-                {
-                    Directory.CreateDirectory(logDirectory);
-                    hasLogDirectory = true;
-                }
-                catch
-                {
-                }
-
-                return;
-            }
-
-            hasLogDirectory = false;
-        }
     }
 
     public class LogEntry

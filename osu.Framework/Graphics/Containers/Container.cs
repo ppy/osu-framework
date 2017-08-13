@@ -33,8 +33,7 @@ namespace osu.Framework.Graphics.Containers
         where T : Drawable
     {
         /// <summary>
-        /// Contructs a container that stores its children in a given <see cref="LifetimeList{T}"/>.
-        /// If null is provides, then a new <see cref="LifetimeList{T}"/> is automatically created.
+        /// Contructs a <see cref="Container"/> that stores children.
         /// </summary>
         public Container()
         {
@@ -203,7 +202,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Removes a given child from this container.
         /// </summary>
-        public bool Remove(T drawable)
+        public virtual bool Remove(T drawable)
         {
             if (Content != this)
                 return Content.Remove(drawable);

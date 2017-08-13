@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -153,10 +154,41 @@ namespace osu.Framework.Extensions
         public static void ThrowIfFaulted(this Task task)
         {
             if (task.IsFaulted)
-                ExceptionDispatchInfo.Capture(task.Exception?.InnerException).Throw();
+            {
+                Exception e = task.Exception;
+
+                Debug.Assert(e != null);
+
+                while (e.InnerException != null)
+                    e = e.InnerException;
+
+                ExceptionDispatchInfo.Capture(e).Throw();
+            }
         }
 
-        public static string GetMd5Hash(this Stream stream)
+        /// <summary>
+        /// Gets a SHA-2 (256bit) hash for the given stream, seeking the stream before and after.
+        /// </summary>
+        /// <param name="stream">The stream to create a hash from.</param>
+        /// <returns>A lower-case hex string representation of the has (64 characters).</returns>
+        public static string ComputeSHA2Hash(this Stream stream)
+        {
+            string hash;
+
+            stream.Seek(0, SeekOrigin.Begin);
+
+            using (var alg = SHA256.Create())
+            {
+                alg.ComputeHash(stream);
+                hash = BitConverter.ToString(alg.Hash).Replace("-", "").ToLowerInvariant();
+            }
+
+            stream.Seek(0, SeekOrigin.Begin);
+
+            return hash;
+        }
+
+        public static string ComputeMD5Hash(this Stream stream)
         {
             string hash;
 

@@ -14,6 +14,7 @@ using osu.Framework.Desktop.Input.Handlers.Keyboard;
 using osu.Framework.Desktop.Input.Handlers.Mouse;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
+using osu.Framework.Logging;
 
 namespace osu.Framework.Desktop.Platform
 {
@@ -21,6 +22,20 @@ namespace osu.Framework.Desktop.Platform
     {
         private readonly TcpIpcProvider ipcProvider;
         private readonly Task ipcTask;
+
+        public override Storage Storage
+        {
+            get
+            {
+                return base.Storage;
+            }
+
+            protected set
+            {
+                base.Storage = value;
+                Logger.Storage = value.GetStorageForDirectory("logs");
+            }
+        }
 
         protected DesktopGameHost(string gameName = @"", bool bindIPCPort = false)
             : base(gameName)

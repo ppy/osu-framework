@@ -161,6 +161,7 @@
     <Compile Include="Graphics\Transforms\TransformCustom.cs" />
     <Compile Include="Graphics\Transforms\TransformEdgeEffectColour.cs" />
     <Compile Include="Graphics\UserInterface\BasicCheckbox.cs" />
+    <Compile Include="Graphics\UserInterface\BasicDropdown.cs" />
     <Compile Include="Graphics\UserInterface\Checkbox.cs" />
     <Compile Include="Graphics\UserInterface\ContextMenu.cs" />
     <Compile Include="Graphics\UserInterface\ContextMenuItem.cs" />
@@ -171,8 +172,11 @@
     <Compile Include="Graphics\UserInterface\TabControl.cs" />
     <Compile Include="Graphics\UserInterface\TabItem.cs" />
     <Compile Include="Input\CustomInputManager.cs" />
+    <Compile Include="Input\Bindings\IKeyBindingHandler.cs" />
+    <Compile Include="Input\Bindings\KeyBinding.cs" />
+    <Compile Include="Input\Bindings\KeyBindingInputManager.cs" />
+    <Compile Include="Input\Bindings\KeyCombination.cs" />
     <Compile Include="Graphics\Visualisation\PropertyDisplay.cs" />
-    <Compile Include="Input\GlobalHotkeys.cs" />
     <Compile Include="Input\Handlers\IHasCursorSensitivity.cs" />
     <Compile Include="Input\KeyUpEventArgs.cs" />
     <Compile Include="Allocation\TimedExpiryCache.cs" />
@@ -309,7 +313,6 @@
     <Compile Include="Graphics\Transforms\Transformable.cs" />
     <Compile Include="Graphics\Transforms\Transform.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lists\IHasLifetime.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Lists\LifetimeList.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MathUtils\Interpolation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Timing\DecoupleableInterpolatingFramedClock.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Timing\FramedClock.cs" />

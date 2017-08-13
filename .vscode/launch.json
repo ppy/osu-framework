@@ -1,33 +1,17 @@
 {
     "version": "0.2.0",
-    "configurations": [
-        {
-            "name": "VisualTests (debug)",
-            "windows": {
-                "type": "clr"
-            },
-            "type": "mono",
-            "request": "launch",
-            "program": "${workspaceRoot}/osu.Framework.VisualTests/bin/Debug/osu.Framework.VisualTests.exe",
-            "cwd": "${workspaceRoot}",
-            "preLaunchTask": "Build (Debug)",
-            "runtimeExecutable": null,
-            "env": {},
-            "console": "internalConsole"
+    "configurations": [{
+        "name": "VisualTests (debug)",
+        "windows": {
+            "type": "clr"
         },
-        {
-            "name": "VisualTests (release)",
-            "windows": {
-                "type": "clr"
-            },
-            "type": "mono",
-            "request": "launch",
-            "program": "${workspaceRoot}/osu.Framework.VisualTests/bin/Release/osu.Framework.VisualTests.exe",
-            "cwd": "${workspaceRoot}",
-            "preLaunchTask": "Build (Release)",
-            "runtimeExecutable": null,
-            "env": {},
-            "console": "internalConsole"
-        }
-    ]
+        "type": "mono",
+        "request": "launch",
+        "program": "${workspaceRoot}/osu.Framework.VisualTestBrowser/bin/Debug/osu.Framework.VisualTests.exe",
+        "cwd": "${workspaceRoot}",
+        "preLaunchTask": "Build (Debug)",
+        "runtimeExecutable": null,
+        "env": {},
+        "console": "internalConsole"
+    }]
 }

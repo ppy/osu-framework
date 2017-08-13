@@ -7,7 +7,8 @@
     <OutputType>Library</OutputType>
     <RootNamespace>osu.Framework.Desktop.Tests</RootNamespace>
     <AssemblyName>osu.Framework.Desktop.Tests</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -33,7 +34,12 @@
       <HintPath>$(SolutionDir)\packages\NUnit.3.7.1\lib\net45\nunit.framework.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="OpenTK, Version=3.0.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
+      <HintPath>$(SolutionDir)\packages\ppy.OpenTK.3.0\lib\net45\OpenTK.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Drawing" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\osu-framework.licenseheader">
@@ -46,7 +52,42 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Platform\HeadlessGameHostTest.cs" />
-    <Compile Include="Benchmark\VisualTests.cs" />
+    <Compile Include="Visual\TestCaseAnimation.cs" />
+    <Compile Include="Visual\TestCaseBufferedContainer.cs" />
+    <Compile Include="Visual\TestCaseCheckboxes.cs" />
+    <Compile Include="Visual\TestCaseCircularProgress.cs" />
+    <Compile Include="Visual\TestCaseColourGradient.cs" />
+    <Compile Include="Visual\TestCaseContextMenu.cs" />
+    <Compile Include="Visual\TestCaseCoordinateSpaces.cs" />
+    <Compile Include="Visual\TestCaseDrawablePath.cs" />
+    <Compile Include="Visual\TestCaseDropdownBox.cs" />
+    <Compile Include="Visual\TestCaseDynamicDepth.cs" />
+    <Compile Include="Visual\TestCaseEffects.cs" />
+    <Compile Include="Visual\TestCaseFillModes.cs" />
+    <Compile Include="Visual\TestCaseFlow.cs" />
+    <Compile Include="Visual\TestCaseHollowEdgeEffect.cs" />
+    <Compile Include="Visual\TestCaseInputResampler.cs" />
+    <Compile Include="Visual\TestCaseKeyBindings.cs" />
+    <Compile Include="Visual\TestCaseLocalisation.cs" />
+    <Compile Include="Visual\TestCaseMasking.cs" />
+    <Compile Include="Visual\TestCaseNestedHover.cs" />
+    <Compile Include="Visual\TestCaseNonAsyncContainer.cs" />
+    <Compile Include="Visual\TestCaseOnlineTextures.cs" />
+    <Compile Include="Visual\TestCasePadding.cs" />
+    <Compile Include="Visual\TestCaseRigidBody.cs" />
+    <Compile Include="Visual\TestCaseScreen.cs" />
+    <Compile Include="Visual\TestCaseScrollableFlow.cs" />
+    <Compile Include="Visual\TestCaseSearchContainer.cs" />
+    <Compile Include="Visual\TestCaseSizing.cs" />
+    <Compile Include="Visual\TestCaseSliderbar.cs" />
+    <Compile Include="Visual\TestCaseSmoothedEdges.cs" />
+    <Compile Include="Visual\TestCaseSpriteText.cs" />
+    <Compile Include="Visual\TestCaseTabControl.cs" />
+    <Compile Include="Visual\TestCaseTextBox.cs" />
+    <Compile Include="Visual\TestCaseTextFlow.cs" />
+    <Compile Include="Visual\TestCaseTooltip.cs" />
+    <Compile Include="Visual\TestCaseTransformSequence.cs" />
+    <Compile Include="Visual\TestCaseTriangles.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\osu.Framework.Testing\osu.Framework.Testing.csproj">
@@ -60,10 +101,6 @@
     <ProjectReference Include="..\osu.Framework.Desktop\osu.Framework.Desktop.csproj">
       <Project>{65DC628F-A640-4111-AB35-3A5652BC1E17}</Project>
       <Name>osu.Framework.Desktop</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\osu.Framework.VisualTests\osu.Framework.VisualTests.csproj">
-      <Project>{1F02F11C-2C66-4D25-BBB5-5C752AAD3E62}</Project>
-      <Name>osu.Framework.VisualTests</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

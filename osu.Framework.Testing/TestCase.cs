@@ -3,6 +3,8 @@
 
 using System;
 using System.Linq;
+using NUnit.Framework;
+using osu.Framework.Desktop.Platform;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -14,6 +16,7 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Testing
 {
+    [TestFixture]
     public abstract class TestCase : Container
     {
         public virtual string Description => @"The base class for a test case";
@@ -22,6 +25,13 @@ namespace osu.Framework.Testing
         private readonly Container content;
 
         protected override Container<Drawable> Content => content;
+
+        [Test]
+        public virtual void RunTest()
+        {
+            using (var host = new HeadlessGameHost())
+                host.Run(new TestCaseTestRunner(this));
+        }
 
         protected TestCase()
         {

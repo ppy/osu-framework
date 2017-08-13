@@ -243,6 +243,11 @@ namespace osu.Framework.Graphics
         /// </summary>
         internal bool IsPartOfComposite => ChildID != 0;
 
+        /// <summary>
+        /// Whether this drawable is part of its parent's <see cref="CompositeDrawable.AliveInternalChildren"/>.
+        /// </summary>
+        internal bool IsCurrentlyAlive = false;
+
         private float depth;
 
         /// <summary>
@@ -661,6 +666,11 @@ namespace osu.Framework.Graphics
             {
                 Vector2 conversion = relativeToAbsoluteFactor;
 
+                if ((relativeAxes & Axes.X) > 0)
+                    v.X *= conversion.X;
+                if ((relativeAxes & Axes.Y) > 0)
+                    v.Y *= conversion.Y;
+
                 // FillMode only makes sense if both axes are relatively sized as the general rule
                 // for n-dimensional aspect preservation is to simply take the minimum or the maximum
                 // scale among all active axes. For single axes the minimum / maximum is just the
@@ -668,16 +678,11 @@ namespace osu.Framework.Graphics
                 if (relativeAxes == Axes.Both && fillMode != FillMode.Stretch)
                 {
                     if (fillMode == FillMode.Fill)
-                        conversion = new Vector2(Math.Max(conversion.X, conversion.Y * fillAspectRatio));
+                        v = new Vector2(Math.Max(v.X, v.Y * fillAspectRatio));
                     else if (fillMode == FillMode.Fit)
-                        conversion = new Vector2(Math.Min(conversion.X, conversion.Y * fillAspectRatio));
-                    conversion.Y /= fillAspectRatio;
+                        v = new Vector2(Math.Min(v.X, v.Y * fillAspectRatio));
+                    v.Y /= fillAspectRatio;
                 }
-
-                if ((relativeAxes & Axes.X) > 0)
-                    v.X *= conversion.X;
-                if ((relativeAxes & Axes.Y) > 0)
-                    v.Y *= conversion.Y;
             }
             return v;
         }
@@ -1140,14 +1145,6 @@ namespace osu.Framework.Graphics
         public virtual double LifetimeEnd { get; set; } = double.MaxValue;
 
         /// <summary>
-        /// Updates the current time to the provided time. For drawables this is a no-op
-        /// as they obtain their time via their <see cref="Clock"/>.
-        /// </summary>
-        public void UpdateTime(FrameTimeInfo time)
-        {
-        }
-
-        /// <summary>
         /// Whether this drawable is alive.
         /// </summary>
         public virtual bool IsAlive
@@ -1362,6 +1359,10 @@ namespace osu.Framework.Graphics
 
         /// <summary>
         /// Invalidates draw matrix and autosize caches.
+        /// <para>
+        /// This does not ensure that the parent containers have been updated before us, thus operations involving
+        /// parent states (e.g. <see cref="DrawInfo"/>) should not be executed in an overriden implementation.
+        /// </para>
         /// </summary>
         /// <returns>If the invalidate was actually necessary.</returns>
         public virtual bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
@@ -1634,7 +1635,7 @@ namespace osu.Framework.Graphics
         /// <param name="state">The state after the mouse was moved.</param>
         /// <returns>True if this Drawable accepts being dragged. If so, then future
         /// <see cref="OnDrag(InputState)"/> and <see cref="OnDragEnd(InputState)"/>
-        /// events will be reveiced. Otherwise, the event is propagated up the scene
+        /// events will be received. Otherwise, the event is propagated up the scene
         /// graph to the next eligible Drawable.</returns>
         protected virtual bool OnDragStart(InputState state) => false;
 
@@ -1809,12 +1810,9 @@ namespace osu.Framework.Graphics
         {
             if (screenSpaceState == null) return null;
 
-            return new InputState
-            {
-                Keyboard = screenSpaceState.Keyboard,
-                Mouse = new LocalMouseState(screenSpaceState.Mouse.NativeState, this),
-                Last = screenSpaceState.Last
-            };
+            var clone = screenSpaceState.Clone();
+            clone.Mouse = new LocalMouseState(screenSpaceState.Mouse.NativeState, this);
+            return clone;
         }
 
         /// <summary>
@@ -1890,7 +1888,7 @@ namespace osu.Framework.Graphics
 
             public IMouseState Clone()
             {
-                throw new NotSupportedException();
+                return (LocalMouseState)MemberwiseClone();
             }
         }
 
