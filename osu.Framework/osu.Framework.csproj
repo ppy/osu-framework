@@ -311,7 +311,6 @@
     <Compile Include="Graphics\Easing.cs" />
     <Compile Include="Graphics\Transforms\Transformable.cs" />
     <Compile Include="Graphics\Transforms\Transform.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Lists\IHasLifetime.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MathUtils\Interpolation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Timing\DecoupleableInterpolatingFramedClock.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Timing\FramedClock.cs" />
