@@ -1,6 +1,7 @@
 // Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
 using NUnit.Framework;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
@@ -20,6 +21,7 @@ namespace osu.Framework.Desktop.Tests.Visual
             Add(container = new Container());
             testRemoval();
             testReAddingDrawable();
+            testMultipleAdds();
         }
 
         /// <summary>
@@ -48,6 +50,29 @@ namespace osu.Framework.Desktop.Tests.Visual
                 container.Add(sprite);
                 container.Remove(sprite);
                 container.Add(sprite);
+            });
+        }
+
+        private void testMultipleAdds()
+        {
+            AddAssert("Adding container to multiple conatiners", () =>
+            {
+                try
+                {
+                    Add(new Container
+                    {
+                        // Container is an IReadOnlyList<T>, so Children can accept a Container.
+                        // This further means that CompositeDrawable.AddInternal will try to add all of
+                        // the children of the Container that was set to Children, which should throw an exception
+                        Children = new Container { Child = new Container() }
+                    });
+
+                    return false;
+                }
+                catch (InvalidOperationException)
+                {
+                    return true;
+                }
             });
         }
     }

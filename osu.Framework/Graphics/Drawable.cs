@@ -243,6 +243,11 @@ namespace osu.Framework.Graphics
         /// </summary>
         internal bool IsPartOfComposite => ChildID != 0;
 
+        /// <summary>
+        /// Whether this drawable is part of its parent's <see cref="CompositeDrawable.AliveInternalChildren"/>.
+        /// </summary>
+        internal bool IsCurrentlyAlive = false;
+
         private float depth;
 
         /// <summary>
@@ -1138,14 +1143,6 @@ namespace osu.Framework.Graphics
         /// The time at which this drawable is no longer valid (and is considered for disposal).
         /// </summary>
         public virtual double LifetimeEnd { get; set; } = double.MaxValue;
-
-        /// <summary>
-        /// Updates the current time to the provided time. For drawables this is a no-op
-        /// as they obtain their time via their <see cref="Clock"/>.
-        /// </summary>
-        public void UpdateTime(FrameTimeInfo time)
-        {
-        }
 
         /// <summary>
         /// Whether this drawable is alive.
