@@ -241,6 +241,9 @@ namespace osu.Framework.Platform
             GLWrapper.Initialize(this);
 
             setVSyncMode();
+
+            GLWrapper.Reset(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
+            GLWrapper.ClearColour(Color4.Black);
         }
 
         private long lastDrawFrameId;
