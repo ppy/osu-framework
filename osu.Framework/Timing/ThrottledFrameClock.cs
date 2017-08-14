@@ -32,7 +32,7 @@ namespace osu.Framework.Timing
             int timeToSleepFloored = 0;
 
             //If we are limiting to a specific rate, and not enough time has passed for the next frame to be accepted we should pause here.
-            if (MaximumUpdateHz > 0)
+            if (MaximumUpdateHz > 0 && minimumFrameTime > 0)
             {
                 double targetMilliseconds = minimumFrameTime;
                 if (ElapsedFrameTime < targetMilliseconds)
