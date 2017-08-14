@@ -105,7 +105,7 @@ namespace osu.Framework.Graphics
         /// Whether this Drawable is fully loaded.
         /// Override to false for delaying the load further (e.g. using <see cref="ShouldBeAlive"/>).
         /// </summary>
-        public virtual bool IsLoaded => loadState >= LoadState.Loaded;
+        public bool IsLoaded => loadState >= LoadState.Loaded;
 
         private volatile LoadState loadState;
 
@@ -170,8 +170,8 @@ namespace osu.Framework.Graphics
             {
                 switch (loadState)
                 {
+                    case LoadState.Ready:
                     case LoadState.Loaded:
-                    case LoadState.Alive:
                         return;
                     case LoadState.Loading:
                         break;
@@ -195,7 +195,7 @@ namespace osu.Framework.Graphics
                 double elapsed = perf.CurrentTime - t1;
                 if (perf.CurrentTime > 1000 && elapsed > 50 && ThreadSafety.IsUpdateThread)
                     Logger.Log($@"Drawable [{ToString()}] took {elapsed:0.00}ms to load and was not async!", LoggingTarget.Performance);
-                loadState = LoadState.Loaded;
+                loadState = LoadState.Ready;
             }
         }
 
@@ -204,13 +204,13 @@ namespace osu.Framework.Graphics
         /// </summary>
         private bool loadComplete()
         {
-            if (loadState < LoadState.Loaded) return false;
+            if (loadState < LoadState.Ready) return false;
 
             MainThread = Thread.CurrentThread;
             scheduler?.SetCurrentThread(MainThread);
 
             Invalidate();
-            loadState = LoadState.Alive;
+            loadState = LoadState.Loaded;
             LoadComplete();
             OnLoadComplete?.Invoke(this);
             return true;
@@ -316,8 +316,13 @@ namespace osu.Framework.Graphics
             if (Parent != null) //we don't want to update our clock if we are at the top of the stack. it's handled elsewhere for us.
                 customClock?.ProcessFrame();
 
-            if (loadState < LoadState.Alive)
-                if (!loadComplete()) return false;
+            if (loadState < LoadState.Ready)
+                return false;
+
+            if (loadState == LoadState.Ready)
+                loadComplete();
+
+            Debug.Assert(loadState == LoadState.Loaded);
 
             UpdateTransforms();
 
@@ -1152,9 +1157,6 @@ namespace osu.Framework.Graphics
         {
             get
             {
-                //we have been loaded but our parent has since been nullified
-                if (Parent == null && IsLoaded) return false;
-
                 if (LifetimeStart == double.MinValue && LifetimeEnd == double.MaxValue)
                     return true;
 
@@ -2131,13 +2133,13 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Loading is complete, but has not yet been finalized on the update thread
         /// (<see cref="Drawable.LoadComplete"/> has not been called yet, which
-        /// always runs on the update thread and requires <see cref="Drawable.IsLoaded"/>).
+        /// always runs on the update thread and requires <see cref="Drawable.IsAlive"/>).
         /// </summary>
-        Loaded,
+        Ready,
         /// <summary>
         /// Loading is fully completed and the Drawable is now part of the scene graph.
         /// </summary>
-        Alive
+        Loaded
     }
 
     /// <summary>

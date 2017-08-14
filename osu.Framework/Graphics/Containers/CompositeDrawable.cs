@@ -225,7 +225,7 @@ namespace osu.Framework.Graphics.Containers
             if (drawable.IsAlive)
                 aliveInternalChildren.Remove(drawable);
 
-            if (drawable.IsLoaded)
+            if (drawable.LoadState >= LoadState.Ready)
             {
                 // The string construction is quite expensive, so we are using Debug.Assert here.
                 Debug.Assert(drawable.Parent == this, $@"Removed a drawable ({drawable}) whose parent was not this ({this}), but {drawable.Parent}.");
@@ -289,26 +289,20 @@ namespace osu.Framework.Graphics.Containers
             if (drawable == this)
                 throw new InvalidOperationException($"{nameof(CompositeDrawable)} may not be added to itself.");
 
-            if (drawable.IsLoaded)
-                drawable.Parent = this;
-
             // If the drawable's ChildId is not zero, then it was added to another parent even if it wasn't loaded
             if (drawable.ChildID != 0)
                 throw new InvalidOperationException("May not add a drawable to multiple containers.");
 
             drawable.ChildID = ++currentChildID;
 
+            if (drawable.LoadState >= LoadState.Ready)
+                drawable.Parent = this;
             // If we're already loaded, we can eagerly allow children to be loaded
-            if (IsLoaded)
+            else if (LoadState >= LoadState.Ready)
                 loadChild(drawable);
 
             internalChildren.Add(drawable);
-
-            if (drawable.IsLoaded && drawable.ShouldBeAlive)
-            {
-                aliveInternalChildren.Add(drawable);
-                drawable.IsAlive = true;
-            }
+            checkChildLife(drawable);
 
             if (AutoSizeAxes != Axes.None)
                 InvalidateFromChild(Invalidation.RequiredParentSizeToFit);
@@ -373,6 +367,12 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>Whether the child's alive state has changed.</returns>
         private bool checkChildLife(Drawable child)
         {
+            Debug.Assert(internalChildren.Contains(child), "Can only check and react to the life of our own children.");
+
+            // Can not have alive children if we are not loaded.
+            if (LoadState < LoadState.Ready)
+                return false;
+
             bool changed = false;
 
             if (child.ShouldBeAlive)
@@ -381,7 +381,7 @@ namespace osu.Framework.Graphics.Containers
                 {
                     loadChild(child);
 
-                    if (child.IsLoaded)
+                    if (child.LoadState >= LoadState.Ready)
                     {
                         aliveInternalChildren.Add(child);
                         child.IsAlive = true;
@@ -447,7 +447,8 @@ namespace osu.Framework.Graphics.Containers
             for (int i = 0; i < aliveInternalChildren.Count; ++i)
             {
                 Drawable c = aliveInternalChildren[i];
-                if (c.IsLoaded) c.UpdateSubTree();
+                Debug.Assert(c.LoadState >= LoadState.Ready);
+                c.UpdateSubTree();
             }
 
             if (schedulerAfterChildren != null)
