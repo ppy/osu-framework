@@ -16,16 +16,15 @@ namespace osu.Framework.Physics
     /// Currently, the simulation only supports <see cref="Drawable"/>s with centre origin and absolute
     /// positioning.
     /// </summary>
-    public class RigidBodySimulation
+    public class RigidBodyContainer : Container
     {
-        private readonly CompositeDrawable container;
         private readonly Dictionary<Drawable, RigidBody> states = new Dictionary<Drawable, RigidBody>();
 
-        public RigidBodySimulation(CompositeDrawable container)
+        protected override void LoadComplete()
         {
-            this.container = container;
+            base.LoadComplete();
 
-            foreach (Drawable d in container.InternalChildren)
+            foreach (Drawable d in InternalChildren)
             {
                 RigidBody body = getRigidBody(d);
                 body.ApplyImpulse(new Vector2(RNG.NextSingle() - 0.5f, RNG.NextSingle() - 0.5f) * 100, body.Centre + new Vector2(RNG.NextSingle() - 0.5f, RNG.NextSingle() - 0.5f) * 100);
@@ -39,7 +38,7 @@ namespace osu.Framework.Physics
         {
             RigidBody body;
             if (!states.TryGetValue(d, out body))
-                states[d] = body = d == container ? new ContainerBody(d, this) : new DrawableBody(d, this);
+                states[d] = body = d == this ? new ContainerBody(d, this) : new DrawableBody(d, this);
 
             return body;
         }
@@ -50,13 +49,13 @@ namespace osu.Framework.Physics
         /// Advances the simulation by a time step.
         /// </summary>
         /// <param name="dt">The time step to advance the simulation by.</param>
-        public void Update(float dt)
+        private void integrate(float dt)
         {
             toSimulate.Clear();
 
-            foreach (Drawable d in container.InternalChildren)
+            foreach (Drawable d in InternalChildren)
                 toSimulate.Add(d);
-            toSimulate.Add(container);
+            toSimulate.Add(this);
 
             // Read the new state from each drawable in question
             foreach (Drawable d in toSimulate)
@@ -76,7 +75,7 @@ namespace osu.Framework.Physics
                     if (other == d)
                         continue;
 
-                    if (d != container && body.CheckAndHandleCollisionWith(getRigidBody(other)))
+                    if (d != this && body.CheckAndHandleCollisionWith(getRigidBody(other)))
                         d.Colour = Color4.Red;
                 }
             }
@@ -91,8 +90,14 @@ namespace osu.Framework.Physics
             }
         }
 
-        internal Matrix3 ScreenToSimulationSpace => container.DrawInfo.MatrixInverse;
+        protected override void UpdateAfterChildren()
+        {
+            //integrate((float)Time.Elapsed / 100);
+            base.UpdateAfterChildren();
+        }
 
-        internal Matrix3 SimulationToScreenSpace => container.DrawInfo.Matrix;
+        internal Matrix3 ScreenToSimulationSpace => DrawInfo.MatrixInverse;
+
+        internal Matrix3 SimulationToScreenSpace => DrawInfo.Matrix;
     }
 }

@@ -17,16 +17,10 @@ namespace osu.Framework.Desktop.Tests.Visual
     {
         public override string Description => @"Rigid body simulation scenarios.";
 
-        private readonly Container testContainer;
-        private RigidBodySimulation sim;
+        private RigidBodyContainer sim;
 
         public TestCaseRigidBody()
         {
-            Add(testContainer = new Container
-            {
-                RelativeSizeAxes = Axes.Both,
-            });
-
             string[] testNames =
             {
                 @"Random Children",
@@ -43,7 +37,7 @@ namespace osu.Framework.Desktop.Tests.Visual
 
         private bool overlapsAny(Drawable d)
         {
-            foreach (Drawable other in testContainer.Children)
+            foreach (Drawable other in sim.Children)
                 if (other.ScreenSpaceDrawQuad.AABB.IntersectsWith(d.ScreenSpaceDrawQuad.AABB))
                     return true;
 
@@ -62,13 +56,17 @@ namespace osu.Framework.Desktop.Tests.Visual
                     continue;
                 }
 
-                testContainer.Add(d);
+                sim.Add(d);
             }
         }
 
         private void loadTest(int testType)
         {
-            testContainer.Clear();
+            sim?.Clear();
+            Child = sim = new RigidBodyContainer()
+            {
+                RelativeSizeAxes = Axes.Both,
+            };
 
             switch (testType)
             {
@@ -123,14 +121,6 @@ namespace osu.Framework.Desktop.Tests.Visual
 
                     break;
             }
-
-            sim = new RigidBodySimulation(testContainer);
-        }
-
-        protected override void UpdateAfterChildren()
-        {
-            sim.Update((float)Time.Elapsed / 100);
-            base.UpdateAfterChildren();
         }
     }
 }

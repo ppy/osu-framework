@@ -21,7 +21,7 @@ namespace osu.Framework.Physics.RigidBodies
         /// </summary>
         private readonly Drawable drawable;
 
-        public DrawableBody(Drawable d, RigidBodySimulation sim) : base(sim)
+        public DrawableBody(Drawable d, RigidBodyContainer sim) : base(sim)
         {
             drawable = d;
         }

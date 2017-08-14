@@ -13,7 +13,7 @@ namespace osu.Framework.Physics
     /// </summary>
     public abstract class RigidBody
     {
-        private readonly RigidBodySimulation simulation;
+        private readonly RigidBodyContainer simulation;
 
         /// <summary>
         /// Controls how elastic the material is. A value of 1 means perfect elasticity
@@ -74,7 +74,7 @@ namespace osu.Framework.Physics
         /// </summary>
         protected List<Vector2> Normals = new List<Vector2>();
 
-        protected RigidBody(RigidBodySimulation sim)
+        protected RigidBody(RigidBodyContainer sim)
         {
             simulation = sim;
             Mass = 1f; // Arbitrarily 1 kg for now

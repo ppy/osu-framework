@@ -12,7 +12,7 @@ namespace osu.Framework.Physics.RigidBodies
     /// </summary>
     public class ContainerBody : DrawableBody
     {
-        public ContainerBody(Drawable d, RigidBodySimulation sim) : base(d, sim)
+        public ContainerBody(Drawable d, RigidBodyContainer sim) : base(d, sim)
         {
             Mass = float.MaxValue;
         }
@@ -32,6 +32,11 @@ namespace osu.Framework.Physics.RigidBodies
         public override void ApplyImpulse(Vector2 impulse, Vector2 pos)
         {
             // Do nothing. We want to be immovable.
+        }
+
+        public override void ReadState()
+        {
+            base.ReadState();
         }
 
         public override void ApplyState()
