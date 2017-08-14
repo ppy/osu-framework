@@ -117,7 +117,7 @@ namespace osu.Framework.Input.Bindings
     /// </summary>
     public abstract class KeyBindingInputManager : PassThroughInputManager
     {
-        protected readonly List<KeyBinding> KeyBindings = new List<KeyBinding>();
+        protected IEnumerable<KeyBinding> KeyBindings;
 
         public abstract IEnumerable<KeyBinding> DefaultMappings { get; }
 
@@ -129,8 +129,7 @@ namespace osu.Framework.Input.Bindings
 
         protected virtual void ReloadMappings()
         {
-            KeyBindings.Clear();
-            KeyBindings.AddRange(DefaultMappings);
+            KeyBindings = DefaultMappings;
         }
     }
 
