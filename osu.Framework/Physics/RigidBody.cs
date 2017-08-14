@@ -84,9 +84,9 @@ namespace osu.Framework.Physics
             AngularMomentum = 0;
         }
 
-        protected Matrix3 ScreenToSimulationSpace => simulation.ScreenToSimulationSpace;
+        protected Matrix3 ScreenToSimulationSpace => simulation.DrawInfo.MatrixInverse;
 
-        protected Matrix3 SimulationToScreenSpace => simulation.SimulationToScreenSpace;
+        protected Matrix3 SimulationToScreenSpace => simulation.DrawInfo.Matrix;
 
         /// <summary>
         /// Computes the moment of inertia.

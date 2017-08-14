@@ -34,11 +34,6 @@ namespace osu.Framework.Physics.RigidBodies
             // Do nothing. We want to be immovable.
         }
 
-        public override void ReadState()
-        {
-            base.ReadState();
-        }
-
         public override void ApplyState()
         {
             base.ApplyState();

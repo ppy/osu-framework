@@ -4,11 +4,11 @@
 using System;
 using NUnit.Framework;
 using osu.Framework.Graphics;
-using osu.Framework.Graphics.Containers;
 using osu.Framework.Physics;
 using osu.Framework.Testing;
 using OpenTK;
 using OpenTK.Graphics;
+using osu.Framework.MathUtils;
 
 namespace osu.Framework.Desktop.Tests.Visual
 {
@@ -17,22 +17,17 @@ namespace osu.Framework.Desktop.Tests.Visual
     {
         public override string Description => @"Rigid body simulation scenarios.";
 
-        private RigidBodyContainer sim;
+        private TestRigidBodyContainer sim;
 
         public TestCaseRigidBody()
         {
-            string[] testNames =
+            Child = sim = new TestRigidBodyContainer()
             {
-                @"Random Children",
+                RelativeSizeAxes = Axes.Both,
             };
 
-            for (int i = 0; i < testNames.Length; i++)
-            {
-                int test = i;
-                AddStep(testNames[i], delegate { loadTest(test); });
-            }
-
-            loadTest(0);
+            AddStep(@"Reset", reset);
+            reset();
         }
 
         private bool overlapsAny(Drawable d)
@@ -48,78 +43,78 @@ namespace osu.Framework.Desktop.Tests.Visual
         {
             for (int i = 0; i < n; i++)
             {
-                Drawable d = generate();
-
-                if (overlapsAny(d))
-                {
-                    --i;
-                    continue;
-                }
+                Drawable d;
+                do d = generate();
+                while (overlapsAny(d));
 
                 sim.Add(d);
             }
         }
 
-        private void loadTest(int testType)
+        private void reset()
         {
-            sim?.Clear();
-            Child = sim = new RigidBodyContainer()
+            sim.Clear();
+
+            Random random = new Random(1337);
+
+            // Boxes
+            generateN(10, () => new InfofulBox
             {
-                RelativeSizeAxes = Axes.Both,
-            };
+                Position = new Vector2((float)random.NextDouble(), (float)random.NextDouble()) * 1000,
+                Size = new Vector2((float)random.NextDouble(), (float)random.NextDouble()) * 200,
+                Rotation = (float)random.NextDouble() * 360,
+                Colour = new Color4(253, 253, 253, 255),
+                Origin = Anchor.Centre,
+                Anchor = Anchor.TopLeft,
+            });
 
-            switch (testType)
+            // Circles
+            generateN(10, delegate
             {
-                case 0:
-                    Random random = new Random(1337);
+                Vector2 size = new Vector2((float)random.NextDouble()) * 200;
+                return new InfofulBox
+                {
+                    Position = new Vector2((float)random.NextDouble(), (float)random.NextDouble()) * 1000,
+                    Size = size,
+                    Rotation = (float)random.NextDouble() * 360,
+                    CornerRadius = size.X / 2,
+                    Colour = new Color4(253, 253, 253, 255),
+                    Origin = Anchor.Centre,
+                    Anchor = Anchor.TopLeft,
+                    Masking = true,
+                };
+            });
 
-                    // Boxes
-                    generateN(10, () => new InfofulBox
-                    {
-                        Position = new Vector2((float)random.NextDouble(), (float)random.NextDouble()) * 1000,
-                        Size = new Vector2((float)random.NextDouble(), (float)random.NextDouble()) * 200,
-                        Rotation = (float)random.NextDouble() * 360,
-                        Colour = new Color4(253, 253, 253, 255),
-                        Origin = Anchor.Centre,
-                        Anchor = Anchor.TopLeft,
-                    });
+            // Totally random stuff
+            generateN(10, delegate
+            {
+                Vector2 size = new Vector2((float)random.NextDouble(), (float)random.NextDouble()) * 200;
+                return new InfofulBox
+                {
+                    Position = new Vector2((float)random.NextDouble(), (float)random.NextDouble()) * 1000,
+                    Size = size,
+                    Rotation = (float)random.NextDouble() * 360,
+                    Shear = new Vector2((float)random.NextDouble(), (float)random.NextDouble()) * 2 - new Vector2(1),
+                    CornerRadius = (float)random.NextDouble() * Math.Min(size.X, size.Y) / 2,
+                    Colour = new Color4(253, 253, 253, 255),
+                    Origin = Anchor.Centre,
+                    Anchor = Anchor.TopLeft,
+                    Masking = true,
+                };
+            });
+        }
 
-                    // Circles
-                    generateN(10, delegate
-                    {
-                        Vector2 size = new Vector2((float)random.NextDouble()) * 200;
-                        return new InfofulBox
-                        {
-                            Position = new Vector2((float)random.NextDouble(), (float)random.NextDouble()) * 1000,
-                            Size = size,
-                            Rotation = (float)random.NextDouble() * 360,
-                            CornerRadius = size.X / 2,
-                            Colour = new Color4(253, 253, 253, 255),
-                            Origin = Anchor.Centre,
-                            Anchor = Anchor.TopLeft,
-                            Masking = true,
-                        };
-                    });
+        private class TestRigidBodyContainer : RigidBodyContainer
+        {
+            protected override void LoadComplete()
+            {
+                base.LoadComplete();
 
-                    // Totally random stuff
-                    generateN(10, delegate
-                    {
-                        Vector2 size = new Vector2((float)random.NextDouble(), (float)random.NextDouble()) * 200;
-                        return new InfofulBox
-                        {
-                            Position = new Vector2((float)random.NextDouble(), (float)random.NextDouble()) * 1000,
-                            Size = size,
-                            Rotation = (float)random.NextDouble() * 360,
-                            Shear = new Vector2((float)random.NextDouble(), (float)random.NextDouble()) * 2 - new Vector2(1),
-                            CornerRadius = (float)random.NextDouble() * Math.Min(size.X, size.Y) / 2,
-                            Colour = new Color4(253, 253, 253, 255),
-                            Origin = Anchor.Centre,
-                            Anchor = Anchor.TopLeft,
-                            Masking = true,
-                        };
-                    });
-
-                    break;
+                foreach (Drawable d in InternalChildren)
+                {
+                    RigidBody body = GetRigidBody(d);
+                    body.ApplyImpulse(new Vector2(RNG.NextSingle() - 0.5f, RNG.NextSingle() - 0.5f) * 100, body.Centre + new Vector2(RNG.NextSingle() - 0.5f, RNG.NextSingle() - 0.5f) * 100);
+                }
             }
         }
     }
