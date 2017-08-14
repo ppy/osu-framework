@@ -14,12 +14,10 @@ namespace osu.Framework.Input.Bindings
     /// Maps input actions to custom action data of type <see cref="T"/>. Use in conjunction with <see cref="Drawable"/>s implementing <see cref="IKeyBindingHandler{T}"/>.
     /// </summary>
     /// <typeparam name="T">The type of the custom action.</typeparam>
-    public abstract class KeyBindingInputManager<T> : PassThroughInputManager
+    public abstract class KeyBindingInputManager<T> : KeyBindingInputManager
         where T : struct
     {
         private readonly SimultaneousBindingMode simultaneousMode;
-
-        protected readonly List<KeyBinding> KeyBindings = new List<KeyBinding>();
 
         /// <summary>
         /// Create a new instance.
@@ -28,20 +26,6 @@ namespace osu.Framework.Input.Bindings
         protected KeyBindingInputManager(SimultaneousBindingMode simultaneousMode = SimultaneousBindingMode.None)
         {
             this.simultaneousMode = simultaneousMode;
-        }
-
-        protected abstract IEnumerable<KeyBinding> CreateDefaultMappings();
-
-        protected override void LoadComplete()
-        {
-            base.LoadComplete();
-            ReloadMappings();
-        }
-
-        protected virtual void ReloadMappings()
-        {
-            KeyBindings.Clear();
-            KeyBindings.AddRange(CreateDefaultMappings());
         }
 
         private readonly List<KeyBinding> pressedBindings = new List<KeyBinding>();
@@ -125,6 +109,28 @@ namespace osu.Framework.Input.Bindings
             }
 
             return handled || base.PropagateKeyUp(drawables, state, args);
+        }
+    }
+
+    /// <summary>
+    /// Maps input actions to custom action data.
+    /// </summary>
+    public abstract class KeyBindingInputManager : PassThroughInputManager
+    {
+        protected readonly List<KeyBinding> KeyBindings = new List<KeyBinding>();
+
+        public abstract IEnumerable<KeyBinding> DefaultMappings { get; }
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+            ReloadMappings();
+        }
+
+        protected virtual void ReloadMappings()
+        {
+            KeyBindings.Clear();
+            KeyBindings.AddRange(DefaultMappings);
         }
     }
 
