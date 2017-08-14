@@ -299,13 +299,15 @@ namespace osu.Framework.IO.Network
 
             canPerform = false;
 
+            ThreadPool.QueueUserWorkItem(_ => perform());
+
             int workerThreads, completionPortThreads;
             ThreadPool.GetAvailableThreads(out workerThreads, out completionPortThreads);
             if (workerThreads == 0)
                 logger.Add(@"WARNING: ThreadPool is saturated!", LogLevel.Error);
         }
 
-        private void perform(Object threadContext)
+        private void perform()
         {
             Aborted = false;
             abortRequest();
@@ -519,7 +521,7 @@ namespace osu.Framework.IO.Network
                 completed = true;
             };
 
-            perform(null);
+            perform();
 
             while (!completed && !Aborted)
                 Thread.Sleep(10);
@@ -564,7 +566,7 @@ namespace osu.Framework.IO.Network
                     logger.Add($@"Request to {Url} ({address}) failed with {statusCode} (retrying {default_retry_count - retriesRemaining}/{default_retry_count}).");
 
                     //do a retry
-                    perform(null);
+                    perform();
                     return;
                 }
                 if (useFallbackPath == null && allowRetry && didGetIPv6IP)
