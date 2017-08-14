@@ -1,11 +1,9 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics;
-using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
@@ -73,16 +71,14 @@ namespace osu.Framework.Testing.Drawables.Steps
         {
             var flash = new Box
             {
-                RelativeSizeAxes = Axes.Both
+                RelativeSizeAxes = Axes.Both,
+                Colour = Color4.RoyalBlue,
+                BlendingMode = BlendingMode.Additive,
+                Alpha = 0.6f,
             };
 
             Add(flash);
-
-            flash.Colour = Color4.RoyalBlue;
-            flash.BlendingMode = BlendingMode.Additive;
-            flash.Alpha = 0.6f;
-            flash.FadeOut(200);
-            flash.Expire();
+            flash.FadeOut(200).Expire();
 
             Success();
             return base.OnDragEnd(state);
@@ -93,7 +89,7 @@ namespace osu.Framework.Testing.Drawables.Steps
             var value = Current.Value;
 
             ValueChanged?.Invoke(value);
-            spriteText.Text = $"{text}: {value:0.00}";
+            spriteText.Text = $"{text}: {Convert.ToDouble(value):G3}";
             selection.ResizeWidthTo(normalizedValue);
         }
 
