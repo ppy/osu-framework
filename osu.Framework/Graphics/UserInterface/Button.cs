@@ -72,7 +72,6 @@ namespace osu.Framework.Graphics.UserInterface
 
             flash.Colour = Background.Colour;
             flash.BlendingMode = BlendingMode.Additive;
-            flash.Alpha = 0.3f;
             flash.FadeOutFromOne(200);
             flash.Expire();
 
