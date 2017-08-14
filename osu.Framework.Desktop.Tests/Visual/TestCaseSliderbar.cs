@@ -60,6 +60,8 @@ namespace osu.Framework.Desktop.Tests.Visual
             });
 
             sliderBar.Current.BindTo(sliderBarValue);
+
+            AddSliderStep("Value", -10.0, 10.0, 0.0, v => sliderBarValue.Value = v);
         }
 
         private void sliderBarValueChanged(double newValue)
