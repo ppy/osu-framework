@@ -9,7 +9,7 @@ using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
-using osu.Framework.Testing.Drawables.StepButtons;
+using osu.Framework.Testing.Drawables.Steps;
 using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Graphics;
@@ -21,7 +21,7 @@ namespace osu.Framework.Testing
     {
         public virtual string Description => @"The base class for a test case";
 
-        public readonly FillFlowContainer<StepButton> StepsContainer;
+        public readonly FillFlowContainer<Drawable> StepsContainer;
         private readonly Container content;
 
         protected override Container<Drawable> Content => content;
@@ -48,7 +48,7 @@ namespace osu.Framework.Testing
                     RelativeSizeAxes = Axes.Y,
                     Width = steps_width,
                 },
-                StepsContainer = new FillFlowContainer<StepButton>
+                StepsContainer = new FillFlowContainer<Drawable>
                 {
                     Direction = FillDirection.Vertical,
                     Depth = float.MinValue,
@@ -93,7 +93,7 @@ namespace osu.Framework.Testing
             runNextStep(onCompletion);
         }
 
-        private StepButton loadableStep => actionIndex >= 0 ? StepsContainer.Children.ElementAtOrDefault(actionIndex) : null;
+        private Drawable loadableStep => actionIndex >= 0 ? StepsContainer.Children.ElementAtOrDefault(actionIndex) : null;
 
         protected virtual double TimePerAction => 200;
 
@@ -120,7 +120,7 @@ namespace osu.Framework.Testing
 
             actionRepetition++;
 
-            if (actionRepetition > (loadableStep?.RequiredRepetitions ?? 1) - 1)
+            if (actionRepetition > ((loadableStep as StepButton)?.RequiredRepetitions ?? 1) - 1)
             {
                 Console.WriteLine();
                 actionIndex++;
@@ -169,6 +169,15 @@ namespace osu.Framework.Testing
             {
                 Text = @"Wait",
                 BackgroundColour = Color4.Gray
+            });
+        }
+
+        protected void AddSliderStep<T>(string description, T min, T max, T start, Action<T> valueChanged)
+            where T : struct
+        {
+            StepsContainer.Add(new StepSlider<T>(description, min, max, start)
+            {
+                ValueChanged = valueChanged,
             });
         }
 

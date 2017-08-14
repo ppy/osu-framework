@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(SolutionDir)\packages\Microsoft.Net.Compilers.2.2.0\build\Microsoft.Net.Compilers.props" Condition="Exists('$(SolutionDir)\packages\Microsoft.Net.Compilers.2.2.0\build\Microsoft.Net.Compilers.props')" />
   <Import Project="$(SolutionDir)\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.NoInstall.1.0.3.2\build\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props" Condition="Exists('$(SolutionDir)\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.NoInstall.1.0.3.2\build\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" />
@@ -52,11 +52,12 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Drawables\StepButtons\AssertButton.cs" />
-    <Compile Include="Drawables\StepButtons\RepeatStepButton.cs" />
-    <Compile Include="Drawables\StepButtons\SingleStepButton.cs" />
-    <Compile Include="Drawables\StepButtons\StepButton.cs" />
-    <Compile Include="Drawables\StepButtons\ToggleStepButton.cs" />
+    <Compile Include="Drawables\Steps\AssertButton.cs" />
+    <Compile Include="Drawables\Steps\RepeatStepButton.cs" />
+    <Compile Include="Drawables\Steps\SingleStepButton.cs" />
+    <Compile Include="Drawables\Steps\StepButton.cs" />
+    <Compile Include="Drawables\Steps\StepSlider.cs" />
+    <Compile Include="Drawables\Steps\ToggleStepButton.cs" />
     <Compile Include="Drawables\TestCaseButton.cs" />
     <Compile Include="DynamicClassCompiler.cs" />
     <Compile Include="GridTestCase.cs" />

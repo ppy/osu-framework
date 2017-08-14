@@ -5,7 +5,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.UserInterface;
 using OpenTK.Graphics;
 
-namespace osu.Framework.Testing.Drawables.StepButtons
+namespace osu.Framework.Testing.Drawables.Steps
 {
     public abstract class StepButton : Button
     {
