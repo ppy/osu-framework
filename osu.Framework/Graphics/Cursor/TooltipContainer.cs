@@ -3,7 +3,6 @@
 
 using OpenTK;
 using OpenTK.Graphics;
-using osu.Framework.Allocation;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shapes;
@@ -25,7 +24,7 @@ namespace osu.Framework.Graphics.Cursor
 
         private ITooltip currentTooltip;
 
-        private UserInputManager inputManager;
+        private InputManager inputManager;
 
         /// <summary>
         /// Duration the cursor has to stay in a circular region of <see cref="AppearRadius"/>
@@ -82,10 +81,10 @@ namespace osu.Framework.Graphics.Cursor
             }
         }
 
-        [BackgroundDependencyLoader]
-        private void load(UserInputManager input)
+        protected override void LoadComplete()
         {
-            inputManager = input;
+            base.LoadComplete();
+            inputManager = GetContainingInputManager();
         }
 
         private Vector2 computeTooltipPosition()

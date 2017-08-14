@@ -5,7 +5,6 @@ using System;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
-using osu.Framework.Allocation;
 using osu.Framework.Graphics.Shapes;
 
 namespace osu.Framework.Graphics.UserInterface
@@ -52,14 +51,6 @@ namespace osu.Framework.Graphics.UserInterface
             AnimateClose();
         }
 
-        private InputManager inputManager;
-
-        [BackgroundDependencyLoader]
-        private void load(UserInputManager inputManager)
-        {
-            this.inputManager = inputManager;
-        }
-
         private MenuState state;
 
         public MenuState State
@@ -74,13 +65,13 @@ namespace osu.Framework.Graphics.UserInterface
                     case MenuState.Closed:
                         AnimateClose();
                         if (HasFocus)
-                            inputManager.ChangeFocus(null);
+                            GetContainingInputManager().ChangeFocus(null);
                         break;
                     case MenuState.Opened:
                         AnimateOpen();
 
                         //schedule required as we may not be present currently.
-                        Schedule(() => inputManager.ChangeFocus(this));
+                        Schedule(() => GetContainingInputManager().ChangeFocus(this));
                         break;
                 }
 
