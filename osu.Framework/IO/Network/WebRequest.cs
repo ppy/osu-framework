@@ -11,7 +11,6 @@ using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
-using Amib.Threading;
 using osu.Framework.Extensions;
 using osu.Framework.Logging;
 
@@ -127,9 +126,6 @@ namespace osu.Framework.IO.Network
 
         private static readonly Logger logger;
 
-        private static readonly SmartThreadPool thread_pool;
-        private IWorkItemResult workItem;
-
         /// <summary>
         /// The remote IP address used for this connection.
         /// </summary>
@@ -137,13 +133,6 @@ namespace osu.Framework.IO.Network
 
         static WebRequest()
         {
-            thread_pool = new SmartThreadPool(new STPStartInfo
-            {
-                MaxWorkerThreads = 64,
-                AreThreadsBackground = true,
-                IdleTimeout = 300000
-            });
-
             //set some sane defaults for ServicePoints
             ServicePointManager.Expect100Continue = false;
             ServicePointManager.DefaultConnectionLimit = 12;
@@ -298,20 +287,25 @@ namespace osu.Framework.IO.Network
 
         public WebHeaderCollection ResponseHeaders => response?.Headers;
 
+        private bool canPerform = true;
+
         /// <summary>
         /// Start the request asynchronously.
         /// </summary>
         public void Perform()
         {
-            if (workItem != null)
+            if (!canPerform)
                 throw new InvalidOperationException("Can not perform a web request multiple times.");
 
-            workItem = thread_pool.QueueWorkItem(perform);
-            if (thread_pool.InUseThreads == thread_pool.MaxThreads)
+            canPerform = false;
+
+            int workerThreads, completionPortThreads;
+            ThreadPool.GetAvailableThreads(out workerThreads, out completionPortThreads);
+            if (workerThreads == 0)
                 logger.Add(@"WARNING: ThreadPool is saturated!", LogLevel.Error);
         }
 
-        private void perform()
+        private void perform(Object threadContext)
         {
             Aborted = false;
             abortRequest();
@@ -321,7 +315,7 @@ namespace osu.Framework.IO.Network
             try
             {
                 reportForwardProgress();
-                thread_pool.QueueWorkItem(checkTimeoutLoop);
+                ThreadPool.QueueUserWorkItem(checkTimeoutLoop);
 
                 requestBody = new MemoryStream();
 
@@ -525,7 +519,7 @@ namespace osu.Framework.IO.Network
                 completed = true;
             };
 
-            perform();
+            perform(null);
 
             while (!completed && !Aborted)
                 Thread.Sleep(10);
@@ -570,7 +564,7 @@ namespace osu.Framework.IO.Network
                     logger.Add($@"Request to {Url} ({address}) failed with {statusCode} (retrying {default_retry_count - retriesRemaining}/{default_retry_count}).");
 
                     //do a retry
-                    perform();
+                    perform(null);
                     return;
                 }
                 if (useFallbackPath == null && allowRetry && didGetIPv6IP)
@@ -623,9 +617,7 @@ namespace osu.Framework.IO.Network
             Aborted = true;
 
             abortRequest();
-
-            workItem?.Cancel();
-            workItem = null;
+            canPerform = true;
 
             if (!KeepEventsBound)
                 unbindEvents();
@@ -702,15 +694,13 @@ namespace osu.Framework.IO.Network
 
         private bool hasExceededTimeout => timeSinceLastAction > Timeout;
 
-        private object checkTimeoutLoop(object state)
+        private void checkTimeoutLoop(object state)
         {
             while (!Aborted && !Completed)
             {
                 if (hasExceededTimeout) abortRequest();
                 Thread.Sleep(500);
             }
-
-            return state;
         }
 
         private void reportForwardProgress()
