@@ -35,16 +35,12 @@ namespace osu.Framework.Graphics.Containers
         #region Contruction and disposal
 
         /// <summary>
-        /// Contructs a <see cref="CompositeDrawable"/> that stores its children in a given <see cref="LifetimeList{T}"/>.
-        /// If null is provides, then a new <see cref="LifetimeList{T}"/> is automatically created.
+        /// Contructs a <see cref="CompositeDrawable"/> that stores children.
         /// </summary>
         protected CompositeDrawable()
         {
-            internalChildren = new LifetimeList<Drawable>(new ChildComparer(this));
-            internalChildren.Removed += obj =>
-            {
-                if (obj.DisposeOnDeathRemoval) obj.Dispose();
-            };
+            internalChildren = new SortedList<Drawable>(new ChildComparer(this));
+            aliveInternalChildren = new SortedList<Drawable>(new ChildComparer(this));
         }
 
         private Game game;
@@ -73,18 +69,13 @@ namespace osu.Framework.Graphics.Containers
             if (shader == null)
                 shader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
 
-            // From now on, since we ourself are loaded now,
-            // we actually permit children to be loaded if our
-            // lifetimelist (internalChildren) requests a load.
-            internalChildren.LoadRequested += loadChild;
-
             // We are in a potentially async context, so let's aggressively load all our children
             // regardless of their alive state. this also gives children a clock so they can be checked
             // for their correct alive state in the case LifetimeStart is set to a definite value.
             internalChildren.ForEach(loadChild);
 
-            // Let's also perform an update on our LifetimeList to add any alive children.
-            internalChildren.Update(Clock.TimeInfo);
+            // Let's also perform an update on our children's life to add any alive children.
+            UpdateChildrenLife();
         }
 
         private void loadChild(Drawable child)
@@ -177,15 +168,13 @@ namespace osu.Framework.Graphics.Containers
             return y.ChildID.CompareTo(x.ChildID);
         }
 
-        private readonly LifetimeList<Drawable> internalChildren;
-
+        private readonly SortedList<Drawable> internalChildren;
         /// <summary>
         /// This <see cref="CompositeDrawable"/> list of children. Assigning to this property will dispose all existing children of this <see cref="CompositeDrawable"/>.
         /// </summary>
         protected internal IReadOnlyList<Drawable> InternalChildren
         {
             get { return internalChildren; }
-
             set { InternalChildrenEnumerable = value; }
         }
 
@@ -201,7 +190,8 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        protected internal IReadOnlyList<Drawable> AliveInternalChildren => internalChildren.AliveItems;
+        private readonly SortedList<Drawable> aliveInternalChildren;
+        protected internal IReadOnlyList<Drawable> AliveInternalChildren => aliveInternalChildren;
 
         /// <summary>
         /// The index of a given child within <see cref="InternalChildren"/>.
@@ -227,8 +217,13 @@ namespace osu.Framework.Graphics.Containers
             if (drawable == null)
                 throw new ArgumentNullException(nameof(drawable));
 
-            if (!internalChildren.Remove(drawable))
+            int index = IndexOfInternal(drawable);
+            if (index < 0)
                 return false;
+
+            internalChildren.RemoveAt(index);
+            if (drawable.IsCurrentlyAlive)
+                aliveInternalChildren.Remove(drawable);
 
             if (drawable.IsLoaded)
             {
@@ -237,6 +232,7 @@ namespace osu.Framework.Graphics.Containers
             }
 
             drawable.Parent = null;
+            drawable.IsCurrentlyAlive = false;
 
             if (AutoSizeAxes != Axes.None)
                 InvalidateFromChild(Invalidation.RequiredParentSizeToFit);
@@ -255,6 +251,8 @@ namespace osu.Framework.Graphics.Containers
         {
             foreach (Drawable t in internalChildren)
             {
+                t.IsCurrentlyAlive = false;
+
                 if (disposeChildren)
                 {
                     //cascade disposal
@@ -262,14 +260,13 @@ namespace osu.Framework.Graphics.Containers
                     t.Dispose();
                 }
                 else
-                {
                     t.Parent = null;
-                }
 
                 Trace.Assert(t.Parent == null);
             }
 
             internalChildren.Clear();
+            aliveInternalChildren.Clear();
 
             if (AutoSizeAxes != Axes.None)
                 InvalidateFromChild(Invalidation.RequiredParentSizeToFit);
@@ -295,8 +292,23 @@ namespace osu.Framework.Graphics.Containers
             if (drawable.IsLoaded)
                 drawable.Parent = this;
 
+            // If the drawable's ChildId is not zero, then it was added to another parent even if it wasn't loaded
+            if (drawable.ChildID != 0)
+                throw new InvalidOperationException("May not add a drawable to multiple containers.");
+
             drawable.ChildID = ++currentChildID;
+
+            // If we're already loaded, we can eagerly allow children to be loaded
+            if (IsLoaded)
+                loadChild(drawable);
+
             internalChildren.Add(drawable);
+
+            if (drawable.IsLoaded && drawable.IsAlive)
+            {
+                aliveInternalChildren.Add(drawable);
+                drawable.IsCurrentlyAlive = true;
+            }
 
             if (AutoSizeAxes != Axes.None)
                 InvalidateFromChild(Invalidation.RequiredParentSizeToFit);
@@ -342,13 +354,60 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>True iff the life status of at least one child changed.</returns>
         protected virtual bool UpdateChildrenLife()
         {
-            if (internalChildren.Update(Time))
-            {
+            bool anyAliveChanged = false;
+
+            for (int i = internalChildren.Count - 1; i >= 0; i--)
+                anyAliveChanged |= checkChildLife(internalChildren[i]);
+
+            if (anyAliveChanged)
                 childrenSizeDependencies.Invalidate();
-                return true;
+
+            return anyAliveChanged;
+        }
+
+        /// <summary>
+        /// Checks whether the alive state of a child has changed processes it. This will add or remove
+        /// the child from <see cref="aliveInternalChildren"/> depending on its alive state.
+        /// </summary>
+        /// <param name="child">The child to check.</param>
+        /// <returns>Whether the child's alive state has changed.</returns>
+        private bool checkChildLife(Drawable child)
+        {
+            bool changed = false;
+
+            if (child.IsAlive)
+            {
+                if (!child.IsCurrentlyAlive)
+                {
+                    loadChild(child);
+
+                    if (child.IsLoaded)
+                    {
+                        aliveInternalChildren.Add(child);
+                        child.IsCurrentlyAlive = true;
+                        changed = true;
+                    }
+                }
+            }
+            else
+            {
+                if (child.IsCurrentlyAlive)
+                {
+                    aliveInternalChildren.Remove(child);
+                    child.IsCurrentlyAlive = false;
+                    changed = true;
+                }
+
+                if (child.RemoveWhenNotAlive)
+                {
+                    RemoveInternal(child);
+
+                    if (child.DisposeOnDeathRemoval)
+                        child.Dispose();
+                }
             }
 
-            return false;
+            return changed;
         }
 
         public override void UpdateClock(IFrameBasedClock clock)
@@ -384,11 +443,10 @@ namespace osu.Framework.Graphics.Containers
             if (!IsPresent || !RequiresChildrenUpdate) return false;
 
             // We iterate by index to gain performance
-            var aliveChildren = internalChildren.AliveItems;
             // ReSharper disable once ForCanBeConvertedToForeach
-            for (int i = 0; i < aliveChildren.Count; ++i)
+            for (int i = 0; i < aliveInternalChildren.Count; ++i)
             {
-                Drawable c = aliveChildren[i];
+                Drawable c = aliveInternalChildren[i];
                 if (c.IsLoaded) c.UpdateSubTree();
             }
 
@@ -525,7 +583,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="maskingBounds">The masking bounds. Children lying outside of them should be ignored.</param>
         private static void addFromComposite(int treeIndex, ref int j, CompositeDrawable parentComposite, List<DrawNode> target, RectangleF maskingBounds)
         {
-            SortedList<Drawable> current = parentComposite.internalChildren.AliveItems;
+            SortedList<Drawable> current = parentComposite.aliveInternalChildren;
             // ReSharper disable once ForCanBeConvertedToForeach
             for (int i = 0; i < current.Count; ++i)
             {
@@ -578,7 +636,7 @@ namespace osu.Framework.Graphics.Containers
         internal sealed override DrawNode GenerateDrawNodeSubtree(int treeIndex, RectangleF bounds)
         {
             // No need for a draw node at all if there are no children and we are not glowing.
-            if (internalChildren.AliveItems.Count == 0 && CanBeFlattened)
+            if (aliveInternalChildren.Count == 0 && CanBeFlattened)
                 return null;
 
             CompositeDrawNode cNode = base.GenerateDrawNodeSubtree(treeIndex, bounds) as CompositeDrawNode;
@@ -594,7 +652,7 @@ namespace osu.Framework.Graphics.Containers
                 childBounds.Intersect(ScreenSpaceDrawQuad.AABBFloat);
 
             if (cNode.Children == null)
-                cNode.Children = new List<DrawNode>(internalChildren.AliveItems.Count);
+                cNode.Children = new List<DrawNode>(aliveInternalChildren.Count);
 
             List<DrawNode> target = cNode.Children;
 
@@ -700,10 +758,9 @@ namespace osu.Framework.Graphics.Containers
                 return false;
 
             // We iterate by index to gain performance
-            var aliveChildren = internalChildren.AliveItems;
             // ReSharper disable once ForCanBeConvertedToForeach
-            for (int i = 0; i < aliveChildren.Count; ++i)
-                aliveChildren[i].BuildKeyboardInputQueue(queue);
+            for (int i = 0; i < aliveInternalChildren.Count; ++i)
+                aliveInternalChildren[i].BuildKeyboardInputQueue(queue);
 
             return true;
         }
@@ -714,10 +771,9 @@ namespace osu.Framework.Graphics.Containers
                 return false;
 
             // We iterate by index to gain performance
-            var aliveChildren = internalChildren.AliveItems;
             // ReSharper disable once ForCanBeConvertedToForeach
-            for (int i = 0; i < aliveChildren.Count; ++i)
-                aliveChildren[i].BuildMouseInputQueue(screenSpaceMousePos, queue);
+            for (int i = 0; i < aliveInternalChildren.Count; ++i)
+                aliveInternalChildren[i].BuildMouseInputQueue(screenSpaceMousePos, queue);
 
             return true;
         }
