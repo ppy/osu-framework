@@ -20,6 +20,32 @@ namespace osu.Framework.Audio
             Dispose(false);
         }
 
+        private event Action onLoaded;
+
+        private readonly object loadedLock = new object();
+
+        /// <summary>
+        /// Executes an action as soon as this audio component is loaded. If this component is already loaded, the action is executed on the next update.
+        /// </summary>
+        /// <param name="action">The action to perform.</param>
+        public void RunWhenLoaded(Action action)
+        {
+            lock (loadedLock)
+                onLoaded += action;
+        }
+
+        private void checkOnLoaded()
+        {
+            if (IsLoaded && onLoaded != null)
+            {
+                lock (loadedLock)
+                {
+                    onLoaded();
+                    onLoaded = null;
+                }
+            }
+        }
+
         /// <summary>
         /// Updates this audio component. Always runs on the audio thread.
         /// </summary>
@@ -32,9 +58,16 @@ namespace osu.Framework.Audio
             FrameStatistics.Add(StatisticsCounterType.TasksRun, PendingActions.Count);
             FrameStatistics.Increment(StatisticsCounterType.Components);
 
+            checkOnLoaded();
+
             Action action;
             while (!IsDisposed && PendingActions.TryDequeue(out action))
+            {
                 action();
+
+                // Check if the OnLoaded event should be executed as IsLoaded may have changed.
+                checkOnLoaded();
+            }
         }
 
         public virtual bool HasCompleted => IsDisposed;
