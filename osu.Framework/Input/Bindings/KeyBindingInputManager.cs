@@ -101,7 +101,7 @@ namespace osu.Framework.Input.Bindings
                 // we either want multiple release events due to the simultaneous mode, or we only want one when we
                 // - were pressed (as an action)
                 // - are the last pressed binding with this action
-                if (simultaneousMode == SimultaneousBindingMode.All || pressedActions.Contains(action) && pressedBindings.All(b => b.Action != binding.Action))
+                if (simultaneousMode == SimultaneousBindingMode.All || pressedActions.Contains(action) && pressedBindings.All(b => !b.Action.Equals(binding.Action)))
                 {
                     handled |= drawables.OfType<IKeyBindingHandler<T>>().Any(d => d.OnReleased(binding.GetAction<T>()));
                     pressedActions.Remove(action);
