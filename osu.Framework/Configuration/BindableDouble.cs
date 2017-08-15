@@ -11,6 +11,9 @@ namespace osu.Framework.Configuration
     {
         public override bool IsDefault => Math.Abs(Value - Default) < Precision;
 
+        /// <summary>
+        /// The precision up to which the value of this bindable should be rounded.
+        /// </summary>
         public double Precision = double.Epsilon;
 
         public override double Value
@@ -35,6 +38,11 @@ namespace osu.Framework.Configuration
         {
         }
 
+        /// <summary>
+        /// Binds outselves to another bindable such that they receive bi-directional updates.
+        /// We will take on any value limitations of the bindable we bind width.
+        /// </summary>
+        /// <param name="them">The foreign bindable. This should always be the most permanent end of the bind (ie. a ConfigManager)</param>
         public override void BindTo(Bindable<double> them)
         {
             var dbl = them as BindableDouble;
@@ -52,11 +60,15 @@ namespace osu.Framework.Configuration
 
         public override string ToString() => Value.ToString("0.0###", NumberFormatInfo.InvariantInfo);
 
-        public override void Parse(object s)
+        /// <summary>
+        /// Parse an input into this instance.
+        /// </summary>
+        /// <param name="input">The input which is to be parsed.</param>
+        public override void Parse(object input)
         {
-            string str = s as string;
+            string str = input as string;
             if (str == null)
-                throw new InvalidCastException($@"Input type {s.GetType()} could not be cast to a string for parsing");
+                throw new InvalidCastException($@"Input type {input.GetType()} could not be cast to a string for parsing");
 
             var parsed = double.Parse(str, NumberFormatInfo.InvariantInfo);
             if (parsed < MinValue || parsed > MaxValue)
