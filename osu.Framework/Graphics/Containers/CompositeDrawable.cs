@@ -350,8 +350,11 @@ namespace osu.Framework.Graphics.Containers
         {
             bool anyAliveChanged = false;
 
-            for (int i = internalChildren.Count - 1; i >= 0; i--)
-                anyAliveChanged |= checkChildLife(internalChildren[i]);
+            // checkChildLife may remove a child from internalChildren. In order to not skip children,
+            // we keep track of the original amount children to apply an offset to the iterator
+            int originalCount = internalChildren.Count;
+            for (int i = 0; i < internalChildren.Count; i++)
+                anyAliveChanged |= checkChildLife(internalChildren[i + internalChildren.Count - originalCount]);
 
             if (anyAliveChanged)
                 childrenSizeDependencies.Invalidate();
