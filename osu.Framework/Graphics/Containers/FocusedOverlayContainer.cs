@@ -4,7 +4,6 @@
 using System.Linq;
 using osu.Framework.Input;
 using OpenTK.Input;
-using osu.Framework.Allocation;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -26,21 +25,15 @@ namespace osu.Framework.Graphics.Containers
             base.OnFocusLost(state);
         }
 
-        [BackgroundDependencyLoader]
-        private void load(UserInputManager inputManager)
-        {
-            InputManager = inputManager;
-        }
-
         protected override void PopIn()
         {
-            Schedule(() => InputManager.TriggerFocusContention());
+            Schedule(() => GetContainingInputManager().TriggerFocusContention());
         }
 
         protected override void PopOut()
         {
             if (HasFocus)
-                InputManager.ChangeFocus(null);
+                GetContainingInputManager().ChangeFocus(null);
         }
     }
 }

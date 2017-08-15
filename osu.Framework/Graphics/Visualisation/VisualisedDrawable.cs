@@ -287,9 +287,9 @@ namespace osu.Framework.Graphics.Visualisation
 
         public bool CheckExpiry()
         {
-            if (!IsAlive) return false;
+            if (!ShouldBeAlive) return false;
 
-            if (!Target.IsAlive || Target.Parent == null || !Target.IsPresent)
+            if (!Target.IsAlive || Target.Parent == null)
             {
                 Expire();
                 return false;
