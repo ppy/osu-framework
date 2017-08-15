@@ -1305,7 +1305,7 @@ namespace osu.Framework.Graphics
                     $"The {nameof(di)} of null parents should always have the single colour white, and therefore this branch should never be hit.");
 
                 // Cannot use ToParentSpace here, because ToParentSpace depends on DrawInfo to be completed
-                Quad interp = Quad.FromRectangle(DrawRectangle) * (di.Matrix * Parent.DrawInfo.MatrixInverse);
+                Quad interp = Parent.DrawInfo.MatrixInverse * di.Matrix * Quad.FromRectangle(DrawRectangle);
                 Vector2 parentSize = Parent.DrawSize;
 
                 interp.TopLeft = Vector2.Divide(interp.TopLeft, parentSize);
@@ -1487,7 +1487,7 @@ namespace osu.Framework.Graphics
             if (other == this)
                 return input;
 
-            return input * DrawInfo.Matrix * other.DrawInfo.MatrixInverse;
+            return other.DrawInfo.MatrixInverse * DrawInfo.Matrix * input;
         }
 
         /// <summary>
@@ -1501,7 +1501,7 @@ namespace osu.Framework.Graphics
             if (other == this)
                 return input;
 
-            return Quad.FromRectangle(input) * (DrawInfo.Matrix * other.DrawInfo.MatrixInverse);
+            return other.DrawInfo.MatrixInverse * DrawInfo.Matrix * Quad.FromRectangle(input);
         }
 
         /// <summary>
@@ -1525,7 +1525,7 @@ namespace osu.Framework.Graphics
         /// <returns>The vector in screen coordinates.</returns>
         public Vector2 ToScreenSpace(Vector2 input)
         {
-            return input * DrawInfo.Matrix;
+            return DrawInfo.Matrix * input;
         }
 
         /// <summary>
@@ -1535,7 +1535,7 @@ namespace osu.Framework.Graphics
         /// <returns>The quad in screen coordinates.</returns>
         public Quad ToScreenSpace(RectangleF input)
         {
-            return Quad.FromRectangle(input) * DrawInfo.Matrix;
+            return DrawInfo.Matrix * Quad.FromRectangle(input);
         }
 
         /// <summary>
@@ -1545,7 +1545,7 @@ namespace osu.Framework.Graphics
         /// <returns>The vector in local coordinates.</returns>
         public Vector2 ToLocalSpace(Vector2 screenSpacePos)
         {
-            return screenSpacePos * DrawInfo.MatrixInverse;
+            return DrawInfo.MatrixInverse * screenSpacePos;
         }
 
         /// <summary>
@@ -1555,7 +1555,7 @@ namespace osu.Framework.Graphics
         /// <returns>The quad in local coordinates.</returns>
         public Quad ToLocalSpace(Quad screenSpaceQuad)
         {
-            return screenSpaceQuad * DrawInfo.MatrixInverse;
+            return DrawInfo.MatrixInverse * screenSpaceQuad;
         }
 
         #endregion

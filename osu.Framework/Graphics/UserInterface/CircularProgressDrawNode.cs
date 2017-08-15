@@ -56,13 +56,13 @@ namespace osu.Framework.Graphics.UserInterface
             int amountPoints = (int)Math.Ceiling(Math.Abs(Angle) / step);
 
             Matrix3 transformationMatrix = DrawInfo.Matrix;
-            MatrixExtensions.ScaleFromLeft(ref transformationMatrix, DrawSize);
+            MatrixExtensions.ScaleFromRight(ref transformationMatrix, DrawSize);
 
             Vector2 current = origin + pointOnCircle(start_angle) * 0.5f;
             Color4 currentColour = colourAt(current);
-            current *= transformationMatrix;
+            current = transformationMatrix * current;
 
-            Vector2 screenOrigin = origin * transformationMatrix;
+            Vector2 screenOrigin = transformationMatrix * origin;
             Color4 originColour = colourAt(origin);
 
             for (int i = 1; i <= amountPoints; i++)
@@ -96,7 +96,7 @@ namespace osu.Framework.Graphics.UserInterface
                 // Update `current`
                 current = origin + pointOnCircle(start_angle + angularOffset) * 0.5f;
                 currentColour = colourAt(current);
-                current *= transformationMatrix;
+                current = transformationMatrix * current;
 
                 // Second outer point
                 Shared.HalfCircleBatch.Add(new TexturedVertex2D

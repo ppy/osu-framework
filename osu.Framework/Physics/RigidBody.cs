@@ -174,7 +174,7 @@ namespace osu.Framework.Physics
             bool didCollide = false;
             for (int i = 0; i < Vertices.Count; ++i)
             {
-                if (other.Contains(Vertices[i] * SimulationToScreenSpace))
+                if (other.Contains(SimulationToScreenSpace * Vertices[i]))
                 {
                     // Compute both impulse responses _before_ applying them, such that
                     // they do not influence each other.

@@ -28,7 +28,7 @@ namespace osu.Framework.Physics.RigidBodies
 
         protected override float ComputeI()
         {
-            Matrix3 mat = drawable.DrawInfo.Matrix * drawable.Parent.DrawInfo.MatrixInverse;
+            Matrix3 mat = drawable.Parent.DrawInfo.MatrixInverse * drawable.DrawInfo.Matrix;
             Vector2 size = drawable.DrawSize;
 
             // Inertial moment for a linearly transformed rectangle with a given size around its center.
@@ -97,25 +97,25 @@ namespace osu.Framework.Physics.RigidBodies
             }
 
             // To simulation space
-            Matrix3 mat = drawable.DrawInfo.Matrix * ScreenToSimulationSpace;
+            Matrix3 mat = ScreenToSimulationSpace * drawable.DrawInfo.Matrix;
             Matrix3 normMat = mat.Inverted();
             normMat.Transpose();
 
             // Remove translation
             normMat.M31 = normMat.M32 = normMat.M13 = normMat.M23 = 0;
-            Vector2 translation = Vector2.Zero * normMat;
+            Vector2 translation = normMat * Vector2.Zero;
 
             for (int i = 0; i < Vertices.Count; ++i)
             {
-                Vertices[i] *= mat;
-                Normals[i] = (Normals[i] * normMat - translation).Normalized();
+                Vertices[i] = mat * Vertices[i];
+                Normals[i] = (normMat * Normals[i] - translation).Normalized();
             }
         }
 
         public override void ReadState()
         {
-            Matrix3 mat = drawable.Parent.DrawInfo.Matrix * ScreenToSimulationSpace;
-            Centre = drawable.BoundingBox.Centre * mat;
+            Matrix3 mat = ScreenToSimulationSpace * drawable.Parent.DrawInfo.Matrix;
+            Centre = mat * drawable.BoundingBox.Centre;
             Rotation = MathHelper.DegreesToRadians(drawable.Rotation); // TODO: Fix rotations
 
             base.ReadState();
@@ -125,8 +125,8 @@ namespace osu.Framework.Physics.RigidBodies
         {
             base.ApplyState();
 
-            Matrix3 mat = SimulationToScreenSpace * drawable.Parent.DrawInfo.MatrixInverse;
-            drawable.Position = Centre * mat + (drawable.Position - drawable.BoundingBox.Centre);
+            Matrix3 mat = drawable.Parent.DrawInfo.MatrixInverse * SimulationToScreenSpace;
+            drawable.Position = mat * Centre + (drawable.Position - drawable.BoundingBox.Centre);
             drawable.Rotation = MathHelper.RadiansToDegrees(Rotation); // TODO: Fix rotations
         }
 
