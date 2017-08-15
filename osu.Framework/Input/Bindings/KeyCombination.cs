@@ -74,6 +74,8 @@ namespace osu.Framework.Input.Bindings
         {
             switch (key)
             {
+                case Key.Unknown:
+                    return string.Empty;
                 case Key.ShiftLeft:
                     return "LShift";
                 case Key.ShiftRight:
