@@ -20,6 +20,32 @@ namespace osu.Framework.Physics
     public class RigidBodyContainer : Container
     {
         /// <summary>
+        /// The relative speed at which the simulation runs. A value of 1 means it runs as fast
+        /// as the rest of the game.
+        /// </summary>
+        public float SimulationSpeed = 1;
+
+        /// <summary>
+        /// Sets the <see cref="RigidBody.Restitution"/> of all rigid bodies.
+        /// </summary>
+        /// <param name="value">The value to set the <see cref="RigidBody.Restitution"/> to.</param>
+        public void SetRestitution(float value)
+        {
+            foreach (var c in InternalChildren)
+                SetRestitution(c, value);
+        }
+
+        /// <summary>
+        /// Sets the <see cref="RigidBody.FrictionCoefficient"/> of all rigid bodies.
+        /// </summary>
+        /// <param name="value">The value to set the <see cref="RigidBody.FrictionCoefficient"/> to.</param>
+        public void SetFrictionCoefficient(float value)
+        {
+            foreach (var c in InternalChildren)
+                SetFrictionCoefficient(c, value);
+        }
+
+        /// <summary>
         /// Sets the <see cref="RigidBody.Restitution"/> of a <see cref="RigidBody"/> corresponding to
         /// a <paramref name="child"/> of this <see cref="RigidBodyContainer"/>.
         /// </summary>
@@ -105,7 +131,7 @@ namespace osu.Framework.Physics
 
         protected override void UpdateAfterChildren()
         {
-            integrate((float)Time.Elapsed / 1000);
+            integrate(SimulationSpeed * (float)Time.Elapsed / 1000);
             base.UpdateAfterChildren();
         }
     }

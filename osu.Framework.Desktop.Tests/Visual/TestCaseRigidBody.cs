@@ -26,7 +26,11 @@ namespace osu.Framework.Desktop.Tests.Visual
                 RelativeSizeAxes = Axes.Both,
             };
 
-            AddStep(@"Reset", reset);
+            AddStep("Reset bodies", reset);
+            AddSliderStep("Simulation speed", 0.0, 4.0, 1.0, v => sim.SimulationSpeed = (float)v);
+            AddSliderStep("Restitution", -1.0, 1.0, 1.0, v => sim.SetRestitution((float)v));
+            AddSliderStep("Friction", -1.0, 5.0, 0.0, v => sim.SetFrictionCoefficient((float)v));
+
             reset();
         }
 
