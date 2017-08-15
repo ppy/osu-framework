@@ -6,6 +6,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Primitives;
 using OpenTK;
 using OpenTK.Graphics;
+using osu.Framework.Graphics.Colour;
 
 namespace osu.Framework.MathUtils
 {
@@ -31,7 +32,24 @@ namespace osu.Framework.MathUtils
             return Lerp(start, final, 1 - Math.Pow(@base, exponent));
         }
 
-        public static Color4 ValueAt(double time, Color4 startColour, Color4 endColour, double startTime, double endTime, EasingTypes easing = EasingTypes.None)
+        public static ColourInfo ValueAt(double time, ColourInfo startColour, ColourInfo endColour, double startTime, double endTime, Easing easing = Easing.None)
+        {
+            if (startColour.HasSingleColour && endColour.HasSingleColour)
+                return ValueAt(time, (Color4)startColour, (Color4)endColour, startTime, endTime, easing);
+
+            return new ColourInfo
+            {
+                TopLeft = ValueAt(time, (Color4)startColour.TopLeft, (Color4)endColour.TopLeft, startTime, endTime, easing),
+                BottomLeft = ValueAt(time, (Color4)startColour.BottomLeft, (Color4)endColour.BottomLeft, startTime, endTime, easing),
+                TopRight = ValueAt(time, (Color4)startColour.TopRight, (Color4)endColour.TopRight, startTime, endTime, easing),
+                BottomRight = ValueAt(time, (Color4)startColour.BottomRight, (Color4)endColour.BottomRight, startTime, endTime, easing),
+            };
+        }
+
+        public static SRGBColour ValueAt(double time, SRGBColour startColour, SRGBColour endColour, double startTime, double endTime, Easing easing = Easing.None) =>
+            ValueAt(time, (Color4)startColour, (Color4)endColour, startTime, endTime, easing);
+
+        public static Color4 ValueAt(double time, Color4 startColour, Color4 endColour, double startTime, double endTime, Easing easing = Easing.None)
         {
             if (startColour == endColour)
                 return startColour;
@@ -49,7 +67,37 @@ namespace osu.Framework.MathUtils
                 (float)Math.Max(0, Math.Min(1, ApplyEasing(easing, current, startColour.A, endColour.A - startColour.A, duration))));
         }
 
-        public static double ValueAt(double time, double val1, double val2, double startTime, double endTime, EasingTypes easing = EasingTypes.None)
+        public static byte ValueAt(double time, byte val1, byte val2, double startTime, double endTime, Easing easing = Easing.None) =>
+            (byte)Math.Round(ValueAt(time, (double)val1, val2, startTime, endTime, easing));
+
+        public static sbyte ValueAt(double time, sbyte val1, sbyte val2, double startTime, double endTime, Easing easing = Easing.None) =>
+            (sbyte)Math.Round(ValueAt(time, (double)val1, val2, startTime, endTime, easing));
+
+        public static short ValueAt(double time, short val1, short val2, double startTime, double endTime, Easing easing = Easing.None) =>
+            (short)Math.Round(ValueAt(time, (double)val1, val2, startTime, endTime, easing));
+
+        public static ushort ValueAt(double time, ushort val1, ushort val2, double startTime, double endTime, Easing easing = Easing.None) =>
+            (ushort)Math.Round(ValueAt(time, (double)val1, val2, startTime, endTime, easing));
+
+        public static int ValueAt(double time, int val1, int val2, double startTime, double endTime, Easing easing = Easing.None) =>
+            (int)Math.Round(ValueAt(time, (double)val1, val2, startTime, endTime, easing));
+
+        public static uint ValueAt(double time, uint val1, uint val2, double startTime, double endTime, Easing easing = Easing.None) =>
+            (uint)Math.Round(ValueAt(time, (double)val1, val2, startTime, endTime, easing));
+
+        public static long ValueAt(double time, long val1, long val2, double startTime, double endTime, Easing easing = Easing.None) =>
+            (long)Math.Round(ValueAt(time, (double)val1, val2, startTime, endTime, easing));
+
+        public static ulong ValueAt(double time, ulong val1, ulong val2, double startTime, double endTime, Easing easing = Easing.None) =>
+            (ulong)Math.Round(ValueAt(time, (double)val1, val2, startTime, endTime, easing));
+
+        public static float ValueAt(double time, float val1, float val2, double startTime, double endTime, Easing easing = Easing.None) =>
+            (float)ValueAt(time, (double)val1, val2, startTime, endTime, easing);
+
+        public static decimal ValueAt(double time, decimal val1, decimal val2, double startTime, double endTime, Easing easing = Easing.None) =>
+            (decimal)ValueAt(time, (double)val1, (double)val2, startTime, endTime, easing);
+
+        public static double ValueAt(double time, double val1, double val2, double startTime, double endTime, Easing easing = Easing.None)
         {
             if (val1 == val2)
                 return val1;
@@ -65,7 +113,7 @@ namespace osu.Framework.MathUtils
             return ApplyEasing(easing, current, val1, val2 - val1, duration);
         }
 
-        public static Vector2 ValueAt(double time, Vector2 val1, Vector2 val2, double startTime, double endTime, EasingTypes easing = EasingTypes.None)
+        public static Vector2 ValueAt(double time, Vector2 val1, Vector2 val2, double startTime, double endTime, Easing easing = Easing.None)
         {
             float current = (float)(time - startTime);
             float duration = (float)(endTime - startTime);
@@ -78,7 +126,7 @@ namespace osu.Framework.MathUtils
                 (float)ApplyEasing(easing, current, val1.Y, val2.Y - val1.Y, duration));
         }
 
-        public static RectangleF ValueAt(double time, RectangleF val1, RectangleF val2, double startTime, double endTime, EasingTypes easing = EasingTypes.None)
+        public static RectangleF ValueAt(double time, RectangleF val1, RectangleF val2, double startTime, double endTime, Easing easing = Easing.None)
         {
             float current = (float)(time - startTime);
             float duration = (float)(endTime - startTime);
@@ -93,7 +141,7 @@ namespace osu.Framework.MathUtils
                 (float)ApplyEasing(easing, current, val1.Height, val2.Height - val1.Height, duration));
         }
 
-        public static double ApplyEasing(EasingTypes easing, double time, double initial, double change, double duration)
+        public static double ApplyEasing(Easing easing, double time, double initial, double change, double duration)
         {
             if (change == 0 || time == 0 || duration == 0) return initial;
             if (time == duration) return initial + change;
@@ -102,59 +150,59 @@ namespace osu.Framework.MathUtils
             {
                 default:
                     return change * (time / duration) + initial;
-                case EasingTypes.In:
-                case EasingTypes.InQuad:
+                case Easing.In:
+                case Easing.InQuad:
                     return change * (time /= duration) * time + initial;
-                case EasingTypes.Out:
-                case EasingTypes.OutQuad:
+                case Easing.Out:
+                case Easing.OutQuad:
                     return -change * (time /= duration) * (time - 2) + initial;
-                case EasingTypes.InOutQuad:
+                case Easing.InOutQuad:
                     if ((time /= duration / 2) < 1) return change / 2 * time * time + initial;
                     return -change / 2 * (--time * (time - 2) - 1) + initial;
-                case EasingTypes.InCubic:
+                case Easing.InCubic:
                     return change * (time /= duration) * time * time + initial;
-                case EasingTypes.OutCubic:
+                case Easing.OutCubic:
                     return change * ((time = time / duration - 1) * time * time + 1) + initial;
-                case EasingTypes.InOutCubic:
+                case Easing.InOutCubic:
                     if ((time /= duration / 2) < 1) return change / 2 * time * time * time + initial;
                     return change / 2 * ((time -= 2) * time * time + 2) + initial;
-                case EasingTypes.InQuart:
+                case Easing.InQuart:
                     return change * (time /= duration) * time * time * time + initial;
-                case EasingTypes.OutQuart:
+                case Easing.OutQuart:
                     return -change * ((time = time / duration - 1) * time * time * time - 1) + initial;
-                case EasingTypes.InOutQuart:
+                case Easing.InOutQuart:
                     if ((time /= duration / 2) < 1) return change / 2 * time * time * time * time + initial;
                     return -change / 2 * ((time -= 2) * time * time * time - 2) + initial;
-                case EasingTypes.InQuint:
+                case Easing.InQuint:
                     return change * (time /= duration) * time * time * time * time + initial;
-                case EasingTypes.OutQuint:
+                case Easing.OutQuint:
                     return change * ((time = time / duration - 1) * time * time * time * time + 1) + initial;
-                case EasingTypes.OutPow10:
+                case Easing.OutPow10:
                     return change * ((time = time / duration - 1) * Math.Pow(time, 10) + 1) + initial;
-                case EasingTypes.InOutQuint:
+                case Easing.InOutQuint:
                     if ((time /= duration / 2) < 1) return change / 2 * time * time * time * time * time + initial;
                     return change / 2 * ((time -= 2) * time * time * time * time + 2) + initial;
-                case EasingTypes.InSine:
+                case Easing.InSine:
                     return -change * Math.Cos(time / duration * (MathHelper.Pi / 2)) + change + initial;
-                case EasingTypes.OutSine:
+                case Easing.OutSine:
                     return change * Math.Sin(time / duration * (MathHelper.Pi / 2)) + initial;
-                case EasingTypes.InOutSine:
+                case Easing.InOutSine:
                     return -change / 2 * (Math.Cos(MathHelper.Pi * time / duration) - 1) + initial;
-                case EasingTypes.InExpo:
+                case Easing.InExpo:
                     return change * Math.Pow(2, 10 * (time / duration - 1)) + initial;
-                case EasingTypes.OutExpo:
+                case Easing.OutExpo:
                     return time == duration ? initial + change : change * (-Math.Pow(2, -10 * time / duration) + 1) + initial;
-                case EasingTypes.InOutExpo:
+                case Easing.InOutExpo:
                     if ((time /= duration / 2) < 1) return change / 2 * Math.Pow(2, 10 * (time - 1)) + initial;
                     return change / 2 * (-Math.Pow(2, -10 * --time) + 2) + initial;
-                case EasingTypes.InCirc:
+                case Easing.InCirc:
                     return -change * (Math.Sqrt(1 - (time /= duration) * time) - 1) + initial;
-                case EasingTypes.OutCirc:
+                case Easing.OutCirc:
                     return change * Math.Sqrt(1 - (time = time / duration - 1) * time) + initial;
-                case EasingTypes.InOutCirc:
+                case Easing.InOutCirc:
                     if ((time /= duration / 2) < 1) return -change / 2 * (Math.Sqrt(1 - time * time) - 1) + initial;
                     return change / 2 * (Math.Sqrt(1 - (time -= 2) * time) + 1) + initial;
-                case EasingTypes.InElastic:
+                case Easing.InElastic:
                     {
                         if ((time /= duration) == 1) return initial + change;
 
@@ -170,7 +218,7 @@ namespace osu.Framework.MathUtils
                             s = p / (2 * MathHelper.Pi) * Math.Asin(change / a);
                         return -(a * Math.Pow(2, 10 * (time -= 1)) * Math.Sin((time * duration - s) * (2 * MathHelper.Pi) / p)) + initial;
                     }
-                case EasingTypes.OutElastic:
+                case Easing.OutElastic:
                     {
                         if ((time /= duration) == 1) return initial + change;
 
@@ -185,7 +233,7 @@ namespace osu.Framework.MathUtils
                         else s = p / (2 * MathHelper.Pi) * Math.Asin(change / a);
                         return a * Math.Pow(2, -10 * time) * Math.Sin((time * duration - s) * (2 * MathHelper.Pi) / p) + change + initial;
                     }
-                case EasingTypes.OutElasticHalf:
+                case Easing.OutElasticHalf:
                     {
                         if ((time /= duration) == 1) return initial + change;
 
@@ -200,7 +248,7 @@ namespace osu.Framework.MathUtils
                         else s = p / (2 * MathHelper.Pi) * Math.Asin(change / a);
                         return a * Math.Pow(2, -10 * time) * Math.Sin((0.5f * time * duration - s) * (2 * MathHelper.Pi) / p) + change + initial;
                     }
-                case EasingTypes.OutElasticQuarter:
+                case Easing.OutElasticQuarter:
                     {
                         if ((time /= duration) == 1) return initial + change;
 
@@ -215,7 +263,7 @@ namespace osu.Framework.MathUtils
                         else s = p / (2 * MathHelper.Pi) * Math.Asin(change / a);
                         return a * Math.Pow(2, -10 * time) * Math.Sin((0.25f * time * duration - s) * (2 * MathHelper.Pi) / p) + change + initial;
                     }
-                case EasingTypes.InOutElastic:
+                case Easing.InOutElastic:
                     {
                         if ((time /= duration / 2) == 2) return initial + change;
 
@@ -231,25 +279,25 @@ namespace osu.Framework.MathUtils
                         if (time < 1) return -.5 * (a * Math.Pow(2, 10 * (time -= 1)) * Math.Sin((time * duration - s) * (2 * MathHelper.Pi) / p)) + initial;
                         return a * Math.Pow(2, -10 * (time -= 1)) * Math.Sin((time * duration - s) * (2 * MathHelper.Pi) / p) * .5 + change + initial;
                     }
-                case EasingTypes.InBack:
+                case Easing.InBack:
                     {
                         const double s = 1.70158;
                         return change * (time /= duration) * time * ((s + 1) * time - s) + initial;
                     }
-                case EasingTypes.OutBack:
+                case Easing.OutBack:
                     {
                         const double s = 1.70158;
                         return change * ((time = time / duration - 1) * time * ((s + 1) * time + s) + 1) + initial;
                     }
-                case EasingTypes.InOutBack:
+                case Easing.InOutBack:
                     {
                         double s = 1.70158;
                         if ((time /= duration / 2) < 1) return change / 2 * (time * time * (((s *= 1.525) + 1) * time - s)) + initial;
                         return change / 2 * ((time -= 2) * time * (((s *= 1.525) + 1) * time + s) + 2) + initial;
                     }
-                case EasingTypes.InBounce:
-                    return change - ApplyEasing(EasingTypes.OutBounce, duration - time, 0, change, duration) + initial;
-                case EasingTypes.OutBounce:
+                case Easing.InBounce:
+                    return change - ApplyEasing(Easing.OutBounce, duration - time, 0, change, duration) + initial;
+                case Easing.OutBounce:
                     if ((time /= duration) < 1 / 2.75)
                     {
                         return change * (7.5625 * time * time) + initial;
@@ -263,9 +311,9 @@ namespace osu.Framework.MathUtils
                         return change * (7.5625 * (time -= 2.25 / 2.75) * time + .9375) + initial;
                     }
                     return change * (7.5625 * (time -= 2.625 / 2.75) * time + .984375) + initial;
-                case EasingTypes.InOutBounce:
-                    if (time < duration / 2) return ApplyEasing(EasingTypes.InBounce, time * 2, 0, change, duration) * .5 + initial;
-                    return ApplyEasing(EasingTypes.OutBounce, time * 2 - duration, 0, change, duration) * .5 + change * .5 + initial;
+                case Easing.InOutBounce:
+                    if (time < duration / 2) return ApplyEasing(Easing.InBounce, time * 2, 0, change, duration) * .5 + initial;
+                    return ApplyEasing(Easing.OutBounce, time * 2 - duration, 0, change, duration) * .5 + change * .5 + initial;
             }
         }
     }

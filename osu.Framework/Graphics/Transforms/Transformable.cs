@@ -7,18 +7,20 @@ using osu.Framework.Timing;
 using System.Linq;
 using osu.Framework.Allocation;
 using System.Collections.Generic;
+using System.Diagnostics;
+using osu.Framework.MathUtils;
 
 namespace osu.Framework.Graphics.Transforms
 {
     /// <summary>
-    /// A type of object which can have transforms attached to it.
-    /// An implementer of this class must call <see cref="UpdateTransforms"/> to update the transforms.
+    /// A type of object which can have <see cref="Transform"/>s operating upon it.
+    /// An implementer of this class must call <see cref="UpdateTransforms"/> to
+    /// update and apply its <see cref="Transform"/>s.
     /// </summary>
-    public abstract class Transformable<T>
-        where T : Transformable<T>
+    public abstract class Transformable : ITransformable
     {
         /// <summary>
-        /// The clock that is used to provide the timing for the transforms.
+        /// The clock that is used to provide the timing for this object's <see cref="Transform"/>s.
         /// </summary>
         public abstract IFrameBasedClock Clock { get; set; }
 
@@ -28,34 +30,26 @@ namespace osu.Framework.Graphics.Transforms
         public FrameTimeInfo Time => Clock.TimeInfo;
 
         /// <summary>
-        /// The time to use for starting transforms which support <see cref="Delay(double, bool)"/>
+        /// The starting time to use for new <see cref="Transform"/>s.
         /// </summary>
-        protected double TransformStartTime => (Clock?.CurrentTime ?? 0) + TransformDelay;
+        public double TransformStartTime => (Clock?.CurrentTime ?? 0) + TransformDelay;
 
         /// <summary>
-        /// Delay until the transformations are started, in milliseconds.
+        /// Delay from the current time until new <see cref="Transform"/>s are started, in milliseconds.
         /// </summary>
         protected double TransformDelay { get; private set; }
 
-        private SortedList<ITransform<T>> transforms;
+        private SortedList<Transform> transformsLazy;
+
+        private SortedList<Transform> transforms => transformsLazy ?? (transformsLazy = new SortedList<Transform>(Transform.COMPARER));
+
         /// <summary>
-        /// A lazily-initialized list of <see cref="ITransform{T}"/>s applied to this class.
+        /// A lazily-initialized list of <see cref="Transform"/>s applied to this object.
         /// </summary>
-        public SortedList<ITransform<T>> Transforms => transforms ?? (transforms = new SortedList<ITransform<T>>(new TransformTimeComparer<T>()));
+        public IReadOnlyList<Transform> Transforms => transforms;
 
         /// <summary>
-        /// We will need to pass in the derived version of ourselves in various methods below (including <see cref="ITransform{T}.Apply(T)"/>)
-        /// however this is both messy and may potentially have a performance overhead. So a local casted reference is kept to avoid this.
-        /// </summary>
-        private readonly T derivedThis;
-
-        protected Transformable()
-        {
-            derivedThis = (T)this;
-        }
-
-        /// <summary>
-        /// Resets <see cref="TransformDelay"/> and processes updates to this class based on loaded transforms.
+        /// Resets <see cref="TransformDelay"/> and processes updates to this class based on loaded <see cref="Transform"/>s.
         /// </summary>
         protected void UpdateTransforms()
         {
@@ -63,65 +57,153 @@ namespace osu.Framework.Graphics.Transforms
             updateTransforms();
         }
 
+        private List<Action> removalActionsLazy;
+        private List<Action> removalActions => removalActionsLazy ?? (removalActionsLazy = new List<Action>());
+
         /// <summary>
-        /// Process updates to this class based on loaded transforms. This does not reset <see cref="TransformDelay"/>.
-        /// This is used for performing extra updates on transforms when new transforms are added.
+        /// Process updates to this class based on loaded <see cref="Transform"/>s. This does not reset <see cref="TransformDelay"/>.
+        /// This is used for performing extra updates on <see cref="Transform"/>s when new <see cref="Transform"/>s are added.
         /// </summary>
         private void updateTransforms()
         {
-            if (transforms == null || transforms.Count == 0)
+            if (transformsLazy == null)
                 return;
 
-            for (int i = 0; i < transforms.Count; ++i)
+            for (int i = 0; i < transformsLazy.Count; ++i)
             {
-                var t = transforms[i];
+                var t = transformsLazy[i];
 
                 if (t.StartTime > Time.Current)
                     break;
 
-                if (!t.Time.HasValue)
+                if (!t.HasStartValue)
                 {
-                    // this is the first time we are updating this transform with a valid time.
-                    t.ReadIntoStartValue(derivedThis);
+                    t.ReadIntoStartValue();
+                    t.HasStartValue = true;
 
-                    var ourType = t.GetType();
-
-                    for (int j = 0; j < i; j++)
+                    // This is the first time we are updating this transform.
+                    // We will find other still active transforms which act on the same target member and remove them.
+                    // Since following transforms acting on the same target member are immediately removed when a
+                    // new one is added, we can be sure that previous transforms were added before this one and can
+                    // be safely removed.
+                    for (int j = 0; j < i; ++j)
                     {
-                        if (transforms[j].GetType() == ourType)
+                        var otherTransform = transformsLazy[j];
+                        if (otherTransform.TargetMember == t.TargetMember)
                         {
-                            transforms.RemoveAt(j--);
+                            transformsLazy.RemoveAt(j--);
                             i--;
+
+                            if (otherTransform.OnAbort != null)
+                                removalActions.Add(otherTransform.OnAbort);
                         }
                     }
                 }
 
-                t.UpdateTime(Time);
-                t.Apply(derivedThis);
+                t.Apply(Time.Current);
 
                 if (t.EndTime <= Time.Current)
                 {
-                    transforms.RemoveAt(i--);
-                    if (t.HasNextIteration)
+                    transformsLazy.RemoveAt(i--);
+                    if (t.IsLooping)
                     {
-                        t.NextIteration();
+                        t.StartTime += t.LoopDelay;
+                        t.EndTime += t.LoopDelay;
 
                         // this could be added back at a lower index than where we are currently iterating, but
                         // running the same transform twice isn't a huge deal.
-                        transforms.Add(t);
+                        transformsLazy.Add(t);
                     }
+                    else if (t.OnComplete != null)
+                        removalActions.Add(t.OnComplete);
                 }
+            }
+
+            invokePendingRemovalActions();
+        }
+
+        private void invokePendingRemovalActions()
+        {
+            if (removalActionsLazy?.Count > 0)
+            {
+                var toRemove = removalActionsLazy.ToArray();
+                removalActionsLazy.Clear();
+
+                foreach (var action in toRemove)
+                    action();
             }
         }
 
         /// <summary>
-        /// Clear all transformations and resets <see cref="TransformDelay"/>.
+        /// Removes a <see cref="Transform"/>.
         /// </summary>
-        /// <param name="propagateChildren">Whether we also clear down the child tree.</param>
-        public virtual void ClearTransforms(bool propagateChildren = false)
+        /// <param name="toRemove">The <see cref="Transform"/> to remove.</param>
+        public void RemoveTransform(Transform toRemove)
         {
-            DelayReset();
-            transforms?.Clear();
+            if (transformsLazy == null || !transformsLazy.Remove(toRemove))
+                return;
+
+            toRemove.OnAbort?.Invoke();
+        }
+
+        /// <summary>
+        /// Clears <see cref="Transform"/>s.
+        /// </summary>
+        /// <param name="propagateChildren">Whether we also clear the <see cref="Transform"/>s of children.</param>
+        /// <param name="targetMember">
+        /// An optional <see cref="Transform.TargetMember"/> name of <see cref="Transform"/>s to clear.
+        /// Null for clearing all <see cref="Transform"/>s.
+        /// </param>
+        public virtual void ClearTransforms(bool propagateChildren = false, string targetMember = null)
+        {
+            if (transformsLazy == null)
+                return;
+
+            Transform[] toAbort;
+            if (targetMember == null)
+            {
+                toAbort = transformsLazy.ToArray();
+                transformsLazy.Clear();
+            }
+            else
+            {
+                toAbort = transformsLazy.Where(t => t.TargetMember == targetMember).ToArray();
+                transformsLazy.RemoveAll(t => t.TargetMember == targetMember);
+            }
+
+            foreach (var t in toAbort)
+                t.OnAbort?.Invoke();
+        }
+
+        /// <summary>
+        /// Finishes specified <see cref="Transform"/>s, using their <see cref="Transform{TValue}.EndValue"/>.
+        /// </summary>
+        /// <param name="propagateChildren">Whether we also finish the <see cref="Transform"/>s of children.</param>
+        /// <param name="targetMember">
+        /// An optional <see cref="Transform.TargetMember"/> name of <see cref="Transform"/>s to finish.
+        /// Null for finishing all <see cref="Transform"/>s.
+        /// </param>
+        public virtual void FinishTransforms(bool propagateChildren = false, string targetMember = null)
+        {
+            if (transformsLazy == null)
+                return;
+
+            Func<Transform, bool> toFlushPredicate;
+            if (targetMember == null)
+                toFlushPredicate = t => !t.IsLooping;
+            else
+                toFlushPredicate = t => !t.IsLooping && t.TargetMember == targetMember;
+
+            // Flush is undefined for endlessly looping transforms
+            var toFlush = transformsLazy.Where(toFlushPredicate).ToArray();
+
+            transformsLazy.RemoveAll(t => toFlushPredicate(t));
+
+            foreach (Transform t in toFlush)
+            {
+                t.Apply(t.EndTime);
+                t.OnComplete?.Invoke();
+            }
         }
 
         /// <summary>
@@ -130,161 +212,109 @@ namespace osu.Framework.Graphics.Transforms
         /// <param name="duration">The delay duration to add.</param>
         /// <param name="propagateChildren">Whether we also delay down the child tree.</param>
         /// <returns>This</returns>
-        public virtual T Delay(double duration, bool propagateChildren = false)
-        {
-            if (duration == 0) return derivedThis;
-
-            TransformDelay += duration;
-            return derivedThis;
-        }
+        internal virtual void AddDelay(double duration, bool propagateChildren = false) => TransformDelay += duration;
 
         /// <summary>
-        /// Reset <see cref="TransformDelay"/>.
-        /// </summary>
-        /// <returns>This</returns>
-        public virtual T DelayReset()
-        {
-            Delay(-TransformDelay);
-            return derivedThis;
-        }
-
-        /// <summary>
-        /// Flush specified transforms, using the last available values (ignoring current clock time).
-        /// </summary>
-        /// <param name="propagateChildren">Whether we also flush down the child tree.</param>
-        /// <param name="flushType">An optional type of transform to flush. Null for all types.</param>
-        public virtual void Flush(bool propagateChildren = false, Type flushType = null)
-        {
-            var operateTransforms = flushType == null ? Transforms : Transforms.Where(t => t.GetType() == flushType);
-
-            foreach (ITransform<T> t in operateTransforms)
-            {
-                t.UpdateTime(new FrameTimeInfo { Current = t.EndTime });
-                t.Apply(derivedThis);
-            }
-
-            if (flushType == null)
-                ClearTransforms();
-            else
-                Transforms.RemoveAll(t => t.GetType() == flushType);
-        }
-
-        /// <summary>
-        /// Start a sequence of transforms with a (cumulative) relative delay applied.
+        /// Start a sequence of <see cref="Transform"/>s with a (cumulative) relative delay applied.
         /// </summary>
         /// <param name="delay">The offset in milliseconds from current time. Note that this stacks with other nested sequences.</param>
         /// <param name="recursive">Whether this should be applied to all children.</param>
         /// <returns>A <see cref="InvokeOnDisposal"/> to be used in a using() statement.</returns>
         public InvokeOnDisposal BeginDelayedSequence(double delay, bool recursive = false)
         {
-            Delay(delay, recursive);
+            if (delay == 0)
+                return null;
 
-            return new InvokeOnDisposal(() => Delay(-delay, recursive));
-        }
+            AddDelay(delay, recursive);
+            double newTransformDelay = TransformDelay;
 
-        /// <summary>
-        /// Start a sequence of transforms from an absolute time value.
-        /// </summary>
-        /// <param name="startOffset">The offset in milliseconds from absolute zero.</param>
-        /// <param name="recursive">Whether this should be applied to all children.</param>
-        /// <returns>A <see cref="InvokeOnDisposal"/> to be used in a using() statement.</returns>
-        /// <exception cref="InvalidOperationException">Absolute sequences should never be nested inside another existing sequence.</exception>
-        public InvokeOnDisposal BeginAbsoluteSequence(double startOffset = 0, bool recursive = false)
-        {
-            if (TransformDelay != 0) throw new InvalidOperationException($"Cannot use {nameof(BeginAbsoluteSequence)} with a non-zero transform delay already present");
-            return BeginDelayedSequence(-(Clock?.CurrentTime ?? 0) + startOffset, recursive);
-        }
-
-        private bool isInLoopedSequence;
-
-        /// <summary>
-        /// Loop all transforms created within a using block of this sequence.
-        /// </summary>
-        /// <param name="pause">The time to pause between loop iterations. 0 by default.</param>
-        /// <param name="numIterations">The amount of loop iterations to perform. A negative value results in looping indefinitely. -1 by default.</param>
-        public InvokeOnDisposal BeginLoopedSequence(double pause = 0, int numIterations = -1)
-        {
-            if (isInLoopedSequence)
-                throw new InvalidOperationException($"May not nest multiple {nameof(BeginLoopedSequence)}s.");
-            isInLoopedSequence = true;
-
-            if (pause < 0)
-                throw new InvalidOperationException($"May not call {nameof(BeginLoopedSequence)} with a negative {nameof(pause)}, but was {pause}.");
-
-            // We do not want to loop those
-            HashSet<ITransform<T>> existingTransforms = new HashSet<ITransform<T>>(Transforms);
-
-            return new InvokeOnDisposal(delegate
+            return new InvokeOnDisposal(() =>
             {
-                var newTransforms = Transforms.Except(existingTransforms).ToArray();
-                isInLoopedSequence = false;
+                if (!Precision.AlmostEquals(newTransformDelay, TransformDelay))
+                    throw new InvalidOperationException(
+                        $"{nameof(TransformStartTime)} at the end of delayed sequence is not the same as at the beginning, but should be. " +
+                        $"(begin={newTransformDelay} end={TransformDelay})");
 
-                if (newTransforms.Length == 0)
-                    return;
-
-                double duration = newTransforms.Max(t => t.EndTime) - newTransforms.Min(t => t.StartTime);
-                foreach (var t in Transforms.Except(existingTransforms))
-                    t.Loop(pause + duration - t.Duration, numIterations);
+                AddDelay(-delay, recursive);
             });
         }
 
         /// <summary>
-        /// Warp the time for all transformations contained in <see cref="Transforms"/>.
+        /// Start a sequence of <see cref="Transform"/>s from an absolute time value (adjusts <see cref="TransformStartTime"/>).
         /// </summary>
-        /// <param name="timeSpan">The time span to warp, in milliseconds.</param>
-        public void TimeWarp(double timeSpan)
+        /// <param name="newTransformStartTime">The new value for <see cref="TransformStartTime"/>.</param>
+        /// <param name="recursive">Whether this should be applied to all children.</param>
+        /// <returns>A <see cref="InvokeOnDisposal"/> to be used in a using() statement.</returns>
+        /// <exception cref="InvalidOperationException">Absolute sequences should never be nested inside another existing sequence.</exception>
+        public virtual InvokeOnDisposal BeginAbsoluteSequence(double newTransformStartTime, bool recursive = false)
         {
-            if (timeSpan == 0)
-                return;
+            double oldTransformDelay = TransformDelay;
+            double newTransformDelay = TransformDelay = newTransformStartTime - (Clock?.CurrentTime ?? 0);
 
-            foreach (ITransform<T> t in Transforms)
+            return new InvokeOnDisposal(() =>
             {
-                t.StartTime += timeSpan;
-                t.EndTime += timeSpan;
-            }
+                if (!Precision.AlmostEquals(newTransformDelay, TransformDelay))
+                    throw new InvalidOperationException(
+                        $"{nameof(TransformStartTime)} at the end of absolute sequence is not the same as at the beginning, but should be. " +
+                        $"(begin={newTransformDelay} end={TransformDelay})");
+
+                TransformDelay = oldTransformDelay;
+            });
         }
 
         /// <summary>
-        /// Applies a transform to this object.
+        /// Used to assign a monotonically increasing ID to <see cref="Transform"/>s as they are added. This member is
+        /// incremented whenever a <see cref="Transform"/> is added.
         /// </summary>
-        /// <typeparam name="TValue">The value type upon which the transform acts.</typeparam>
-        /// <param name="newValue">The value to transform to.</param>
-        /// <param name="duration">The transform duration.</param>
-        /// <param name="easing">The transform easing.</param>
-        /// <param name="transform">The transform to use.</param>
-        public void TransformTo<TValue>(TValue newValue, double duration, EasingTypes easing, Transform<TValue, T> transform) where TValue : struct, IEquatable<TValue>
-        {
-            //if (duration == 0 && TransformDelay == 0)
-            //{
-            //    // we can apply transforms instantly under certain conditions.
-            //    transform.UpdateTime(new FrameTimeInfo { Current = transform.EndTime });
-            //    transform.Apply(derivedThis);
-            //    return;
-            //}
+        private ulong currentTransformID;
 
-            double startTime = TransformStartTime;
-
-            transform.StartTime = startTime;
-            transform.EndTime = startTime + duration;
-            transform.EndValue = newValue;
-            transform.Easing = easing;
-
-            addTransform(transform);
-        }
-
-        private void addTransform(ITransform<T> transform)
+        /// <summary>
+        /// Adds to this object a <see cref="Transform"/> which was previously populated using this object via
+        /// <see cref="TransformableExtensions.PopulateTransform{TValue, TThis}(TThis, Transform{TValue, TThis}, TValue, double, Easing)"/>.
+        /// Added <see cref="Transform"/>s are immediately applied, and therefore have an immediate effect on this object if the current time of this
+        /// object falls within <see cref="Transform.StartTime"/> and <see cref="Transform.EndTime"/>.
+        /// If <see cref="Clock"/> is null, e.g. because this object has just been constructed, then the given transform will be finished instantaneously.
+        /// </summary>
+        /// <param name="transform">The <see cref="Transform"/> to be added.</param>
+        public void AddTransform(Transform transform)
         {
             if (transform == null)
                 throw new ArgumentNullException(nameof(transform));
 
+            if (!ReferenceEquals(transform.TargetTransformable, this))
+                throw new InvalidOperationException(
+                    $"{nameof(transform)} must have been populated via {nameof(TransformableExtensions)}.{nameof(TransformableExtensions.PopulateTransform)} " +
+                    "using this object prior to being added.");
+
             if (Clock == null)
             {
-                transform.UpdateTime(new FrameTimeInfo { Current = transform.EndTime });
-                transform.Apply(derivedThis);
+                transform.Apply(transform.EndTime);
+                transform.OnComplete?.Invoke();
                 return;
             }
 
-            Transforms.Add(transform);
+            Debug.Assert(!(transform.TransformID == 0 && transforms.Contains(transform)), $"Zero-id {nameof(Transform)}s should never be contained already.");
+
+            // This contains check may be optimized away in the future, should it become a bottleneck
+            if (transform.TransformID != 0 && transforms.Contains(transform))
+                throw new InvalidOperationException($"{nameof(Transformable)} may not contain the same {nameof(Transform)} more than once.");
+
+            transform.TransformID = ++currentTransformID;
+            int insertionIndex = transforms.Add(transform);
+
+            // Remove all existing following transforms touching the same property at this one.
+            for (int i = insertionIndex + 1; i < transformsLazy.Count; ++i)
+            {
+                var t = transformsLazy[i];
+                if (t.TargetMember == transform.TargetMember)
+                {
+                    transformsLazy.RemoveAt(i--);
+                    if (t.OnAbort != null)
+                        removalActions.Add(t.OnAbort);
+                }
+            }
+
+            invokePendingRemovalActions();
 
             // If our newly added transform could have an immediate effect, then let's
             // make this effect happen immediately.

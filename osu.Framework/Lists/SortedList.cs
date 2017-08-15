@@ -55,7 +55,6 @@ namespace osu.Framework.Lists
                 throw new ArgumentNullException(nameof(value));
 
             int index = list.BinarySearch(value, Comparer);
-
             if (index < 0)
                 index = ~index;
 

@@ -39,7 +39,7 @@ namespace osu.Framework.Graphics
     /// Drawables are always rectangular in shape in their local coordinate system,
     /// which makes them quad-shaped in arbitrary (linearly transformed) coordinate systems.
     /// </summary>
-    public abstract class Drawable : Transformable<Drawable>, IDisposable, IDrawable
+    public abstract class Drawable : Transformable, IDisposable, IDrawable
     {
         #region Construction and disposal
 
@@ -93,7 +93,7 @@ namespace osu.Framework.Graphics
 
         /// <summary>
         /// Whether this Drawable should be disposed when it is automatically removed from
-        /// its <see cref="Parent"/> due to <see cref="IsAlive"/> being false.
+        /// its <see cref="Parent"/> due to <see cref="ShouldBeAlive"/> being false.
         /// </summary>
         public virtual bool DisposeOnDeathRemoval => false;
 
@@ -103,9 +103,9 @@ namespace osu.Framework.Graphics
 
         /// <summary>
         /// Whether this Drawable is fully loaded.
-        /// Override to false for delaying the load further (e.g. using <see cref="IsAlive"/>).
+        /// Override to false for delaying the load further (e.g. using <see cref="ShouldBeAlive"/>).
         /// </summary>
-        public virtual bool IsLoaded => loadState >= LoadState.Loaded;
+        public bool IsLoaded => loadState >= LoadState.Loaded;
 
         private volatile LoadState loadState;
 
@@ -148,30 +148,30 @@ namespace osu.Framework.Graphics
         /// Create a local dependency container which will be used by ourselves and all our nested children.
         /// If not overridden, the load-time parent's dependency tree will be used.
         /// </summary>
-        /// <param name="parent">The parent <see cref="DependencyContainer"/> which should be passed through if we want fallback lookups to work.</param>
+        /// <param name="parent">The parent <see cref="IReadOnlyDependencyContainer"/> which should be passed through if we want fallback lookups to work.</param>
         /// <returns>A new dependency container to be stored for this Drawable.</returns>
-        protected virtual DependencyContainer CreateLocalDependencies(DependencyContainer parent) => parent;
+        protected virtual IReadOnlyDependencyContainer CreateLocalDependencies(IReadOnlyDependencyContainer parent) => parent;
 
         /// <summary>
         /// Contains all dependencies that can be injected into this Drawable using <see cref="BackgroundDependencyLoader"/>.
         /// Add or override dependencies by calling <see cref="DependencyContainer.Cache{T}(T, bool, bool)"/>.
         /// </summary>
-        protected DependencyContainer Dependencies { get; private set; }
+        public IReadOnlyDependencyContainer Dependencies { get; private set; }
 
         /// <summary>
         /// Loads this drawable, including the gathering of dependencies and initialisation of required resources.
         /// </summary>
         /// <param name="clock">The clock we should use by default.</param>
-        /// <param name="dependencies">The dependency tree we will inherit by default. May be extended via <see cref="CreateLocalDependencies(DependencyContainer)"/></param>
-        internal void Load(IFrameBasedClock clock, DependencyContainer dependencies)
+        /// <param name="dependencies">The dependency tree we will inherit by default. May be extended via <see cref="CreateLocalDependencies(IReadOnlyDependencyContainer)"/></param>
+        internal void Load(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies)
         {
             // Blocks when loading from another thread already.
             lock (loadLock)
             {
                 switch (loadState)
                 {
+                    case LoadState.Ready:
                     case LoadState.Loaded:
-                    case LoadState.Alive:
                         return;
                     case LoadState.Loading:
                         break;
@@ -190,12 +190,12 @@ namespace osu.Framework.Graphics
                 // get our dependencies from our parent, but allow local overriding of our inherited dependency container
                 Dependencies = CreateLocalDependencies(dependencies);
 
-                Dependencies.Initialize(this);
+                Dependencies.Inject(this);
 
                 double elapsed = perf.CurrentTime - t1;
                 if (perf.CurrentTime > 1000 && elapsed > 50 && ThreadSafety.IsUpdateThread)
                     Logger.Log($@"Drawable [{ToString()}] took {elapsed:0.00}ms to load and was not async!", LoggingTarget.Performance);
-                loadState = LoadState.Loaded;
+                loadState = LoadState.Ready;
             }
         }
 
@@ -204,13 +204,13 @@ namespace osu.Framework.Graphics
         /// </summary>
         private bool loadComplete()
         {
-            if (loadState < LoadState.Loaded) return false;
+            if (loadState < LoadState.Ready) return false;
 
             MainThread = Thread.CurrentThread;
             scheduler?.SetCurrentThread(MainThread);
 
             Invalidate();
-            loadState = LoadState.Alive;
+            loadState = LoadState.Loaded;
             LoadComplete();
             OnLoadComplete?.Invoke(this);
             return true;
@@ -242,6 +242,11 @@ namespace osu.Framework.Graphics
         /// to alert the user of an invalid operation.
         /// </summary>
         internal bool IsPartOfComposite => ChildID != 0;
+
+        /// <summary>
+        /// Whether this drawable is part of its parent's <see cref="CompositeDrawable.AliveInternalChildren"/>.
+        /// </summary>
+        public bool IsAlive { get; internal set; }
 
         private float depth;
 
@@ -311,8 +316,13 @@ namespace osu.Framework.Graphics
             if (Parent != null) //we don't want to update our clock if we are at the top of the stack. it's handled elsewhere for us.
                 customClock?.ProcessFrame();
 
-            if (loadState < LoadState.Alive)
-                if (!loadComplete()) return false;
+            if (loadState < LoadState.Ready)
+                return false;
+
+            if (loadState == LoadState.Ready)
+                loadComplete();
+
+            Debug.Assert(loadState == LoadState.Loaded);
 
             UpdateTransforms();
 
@@ -661,6 +671,11 @@ namespace osu.Framework.Graphics
             {
                 Vector2 conversion = relativeToAbsoluteFactor;
 
+                if ((relativeAxes & Axes.X) > 0)
+                    v.X *= conversion.X;
+                if ((relativeAxes & Axes.Y) > 0)
+                    v.Y *= conversion.Y;
+
                 // FillMode only makes sense if both axes are relatively sized as the general rule
                 // for n-dimensional aspect preservation is to simply take the minimum or the maximum
                 // scale among all active axes. For single axes the minimum / maximum is just the
@@ -668,16 +683,11 @@ namespace osu.Framework.Graphics
                 if (relativeAxes == Axes.Both && fillMode != FillMode.Stretch)
                 {
                     if (fillMode == FillMode.Fill)
-                        conversion = new Vector2(Math.Max(conversion.X, conversion.Y * fillAspectRatio));
+                        v = new Vector2(Math.Max(v.X, v.Y * fillAspectRatio));
                     else if (fillMode == FillMode.Fit)
-                        conversion = new Vector2(Math.Min(conversion.X, conversion.Y * fillAspectRatio));
-                    conversion.Y /= fillAspectRatio;
+                        v = new Vector2(Math.Min(v.X, v.Y * fillAspectRatio));
+                    v.Y /= fillAspectRatio;
                 }
-
-                if ((relativeAxes & Axes.X) > 0)
-                    v.X *= conversion.X;
-                if ((relativeAxes & Axes.Y) > 0)
-                    v.Y *= conversion.Y;
             }
             return v;
         }
@@ -1006,37 +1016,22 @@ namespace osu.Framework.Graphics
 
         #region Colour / Alpha / Blending
 
-        private ColourInfo colourInfo = ColourInfo.SingleColour(Color4.White);
+        private ColourInfo colour = Color4.White;
 
         /// <summary>
-        /// Colours of the individual corner vertices of this Drawable in sRGB space.
+        /// Colour of this <see cref="Drawable"/> in sRGB space. Can contain individual colours for all four
+        /// corners of this <see cref="Drawable"/>, which are then interpolated, but can also be assigned
+        /// just a single colour. Implicit casts from <see cref="SRGBColour"/> and from <see cref="Color4"/> exist.
         /// </summary>
-        public ColourInfo ColourInfo
+        public ColourInfo Colour
         {
-            get { return colourInfo; }
+            get { return colour; }
 
             set
             {
-                if (colourInfo.Equals(value)) return;
-                colourInfo = value;
+                if (colour.Equals(value)) return;
 
-                Invalidate(Invalidation.Colour);
-            }
-        }
-
-        /// <summary>
-        /// Colour of this Drawable in sRGB space. Only valid if no individual colours
-        /// have been specified for each corner vertex via <see cref="ColourInfo"/>.
-        /// </summary>
-        public SRGBColour Colour
-        {
-            get { return colourInfo.Colour; }
-
-            set
-            {
-                if (colourInfo.HasSingleColour && colourInfo.TopLeft.Equals(value)) return;
-
-                colourInfo.Colour = value;
+                colour = value;
 
                 Invalidate(Invalidation.Colour);
             }
@@ -1155,23 +1150,13 @@ namespace osu.Framework.Graphics
         public virtual double LifetimeEnd { get; set; } = double.MaxValue;
 
         /// <summary>
-        /// Updates the current time to the provided time. For drawables this is a no-op
-        /// as they obtain their time via their <see cref="Clock"/>.
+        /// Whether this drawable should currently be alive.
+        /// This is queried by the framework to decide the <see cref="IsAlive"/> state of this drawable for the next frame.
         /// </summary>
-        public void UpdateTime(FrameTimeInfo time)
-        {
-        }
-
-        /// <summary>
-        /// Whether this drawable is alive.
-        /// </summary>
-        public virtual bool IsAlive
+        protected internal virtual bool ShouldBeAlive
         {
             get
             {
-                //we have been loaded but our parent has since been nullified
-                if (Parent == null && IsLoaded) return false;
-
                 if (LifetimeStart == double.MinValue && LifetimeEnd == double.MaxValue)
                     return true;
 
@@ -1187,6 +1172,24 @@ namespace osu.Framework.Graphics
         #endregion
 
         #region Parenting (scene graph operations, including ProxyDrawable)
+
+        /// <summary>
+        /// Retrieve the first parent in the tree which derives from <see cref="InputManager"/>.
+        /// As this is performing an upward tree traversal, avoid calling every frame.
+        /// </summary>
+        /// <returns>The first parent <see cref="InputManager"/>.</returns>
+        protected InputManager GetContainingInputManager()
+        {
+            Drawable search = Parent;
+            while (search != null)
+            {
+                var test = search as InputManager;
+                if (test != null) return test;
+
+                search = search.Parent;
+            }
+            return null;
+        }
 
         private CompositeDrawable parent;
 
@@ -1290,12 +1293,12 @@ namespace osu.Framework.Graphics
             di.ApplyTransform(pos, drawScale, Rotation, Shear, OriginPosition);
             di.Blending = new BlendingInfo(localBlendingMode);
 
-            ColourInfo colour = alpha != 1 ? colourInfo.MultiplyAlpha(alpha) : colourInfo;
+            ColourInfo drawInfoColour = alpha != 1 ? colour.MultiplyAlpha(alpha) : colour;
 
             // No need for a Parent null check here, because null parents always have
             // a single colour (white).
             if (di.Colour.HasSingleColour)
-                di.Colour.ApplyChild(colour);
+                di.Colour.ApplyChild(drawInfoColour);
             else
             {
                 Debug.Assert(Parent != null,
@@ -1310,7 +1313,7 @@ namespace osu.Framework.Graphics
                 interp.BottomLeft = Vector2.Divide(interp.BottomLeft, parentSize);
                 interp.BottomRight = Vector2.Divide(interp.BottomRight, parentSize);
 
-                di.Colour.ApplyChild(colour, interp);
+                di.Colour.ApplyChild(drawInfoColour, interp);
             }
 
             return di;
@@ -1377,6 +1380,10 @@ namespace osu.Framework.Graphics
 
         /// <summary>
         /// Invalidates draw matrix and autosize caches.
+        /// <para>
+        /// This does not ensure that the parent containers have been updated before us, thus operations involving
+        /// parent states (e.g. <see cref="DrawInfo"/>) should not be executed in an overriden implementation.
+        /// </para>
         /// </summary>
         /// <returns>If the invalidate was actually necessary.</returns>
         public virtual bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
@@ -1649,7 +1656,7 @@ namespace osu.Framework.Graphics
         /// <param name="state">The state after the mouse was moved.</param>
         /// <returns>True if this Drawable accepts being dragged. If so, then future
         /// <see cref="OnDrag(InputState)"/> and <see cref="OnDragEnd(InputState)"/>
-        /// events will be reveiced. Otherwise, the event is propagated up the scene
+        /// events will be received. Otherwise, the event is propagated up the scene
         /// graph to the next eligible Drawable.</returns>
         protected virtual bool OnDragStart(InputState state) => false;
 
@@ -1824,12 +1831,9 @@ namespace osu.Framework.Graphics
         {
             if (screenSpaceState == null) return null;
 
-            return new InputState
-            {
-                Keyboard = screenSpaceState.Keyboard,
-                Mouse = new LocalMouseState(screenSpaceState.Mouse.NativeState, this),
-                Last = screenSpaceState.Last
-            };
+            var clone = screenSpaceState.Clone();
+            clone.Mouse = new LocalMouseState(screenSpaceState.Mouse.NativeState, this);
+            return clone;
         }
 
         /// <summary>
@@ -1905,7 +1909,7 @@ namespace osu.Framework.Graphics
 
             public IMouseState Clone()
             {
-                throw new NotSupportedException();
+                return (LocalMouseState)MemberwiseClone();
             }
         }
 
@@ -1913,7 +1917,7 @@ namespace osu.Framework.Graphics
 
         #region Transforms
 
-        protected ScheduledDelegate Schedule(Action action) => Scheduler.AddDelayed(action, TransformDelay);
+        protected internal ScheduledDelegate Schedule(Action action) => Scheduler.AddDelayed(action, TransformDelay);
 
         /// <summary>
         /// Make this drawable automatically clean itself up after all transforms have finished playing.
@@ -1929,14 +1933,14 @@ namespace osu.Framework.Graphics
 
             //expiry should happen either at the end of the last transform or using the current sequence delay (whichever is highest).
             double max = TransformStartTime;
-            foreach (ITransform<Drawable> t in Transforms)
+            foreach (Transform t in Transforms)
                 if (t.EndTime > max) max = t.EndTime + 1; //adding 1ms here ensures we can expire on the current frame without issue.
             LifetimeEnd = max;
 
             if (calculateLifetimeStart)
             {
                 double min = double.MaxValue;
-                foreach (ITransform<Drawable> t in Transforms)
+                foreach (Transform t in Transforms)
                     if (t.StartTime < min) min = t.StartTime;
                 LifetimeStart = min < int.MaxValue ? min : int.MinValue;
             }
@@ -1945,126 +1949,12 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Hide sprite instantly.
         /// </summary>
-        public virtual void Hide() => FadeOut();
+        public virtual void Hide() => this.FadeOut();
 
         /// <summary>
         /// Show sprite instantly.
         /// </summary>
-        public virtual void Show() => FadeIn();
-
-        #region Helpers
-
-        public void FadeIn(double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            FadeTo(1, duration, easing);
-        }
-
-        public void FadeInFromZero(double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            FadeTo(0);
-            FadeIn(duration, easing);
-        }
-
-        public void FadeOut(double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            FadeTo(0, duration, easing);
-        }
-
-        public void FadeOutFromOne(double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            FadeTo(1);
-            FadeOut(duration, easing);
-        }
-
-        public void FadeTo(float newAlpha, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            TransformTo(newAlpha, duration, easing, new TransformAlpha());
-        }
-
-        public void RotateTo(float newRotation, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            TransformTo(newRotation, duration, easing, new TransformRotation());
-        }
-
-        public void MoveTo(Direction direction, float destination, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            switch (direction)
-            {
-                case Direction.Horizontal:
-                    MoveToX(destination, duration, easing);
-                    break;
-                case Direction.Vertical:
-                    MoveToY(destination, duration, easing);
-                    break;
-            }
-        }
-
-        public void MoveToX(float destination, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            TransformTo(destination, duration, easing, new TransformPositionX());
-        }
-
-        public void MoveToY(float destination, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            TransformTo(destination, duration, easing, new TransformPositionY());
-        }
-
-        public void ScaleTo(float newScale, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            TransformTo(new Vector2(newScale), duration, easing, new TransformScale());
-        }
-
-        public void ScaleTo(Vector2 newScale, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            TransformTo(newScale, duration, easing, new TransformScale());
-        }
-
-        public void ResizeTo(float newSize, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            TransformTo(new Vector2(newSize), duration, easing, new TransformSize());
-        }
-
-        public void ResizeTo(Vector2 newSize, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            TransformTo(newSize, duration, easing, new TransformSize());
-        }
-
-        public void ResizeWidthTo(float newWidth, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            TransformTo(newWidth, duration, easing, new TransformWidth());
-        }
-
-        public void ResizeHeightTo(float newHeight, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            TransformTo(newHeight, duration, easing, new TransformHeight());
-        }
-
-        public void MoveTo(Vector2 newPosition, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            TransformTo(newPosition, duration, easing, new TransformPosition());
-        }
-
-        public void MoveToOffset(Vector2 offset, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            MoveTo((Transforms.FindLast(t => t is TransformPosition) as TransformPosition)?.EndValue ?? Position + offset, duration, easing);
-        }
-
-        public void FadeColour(Color4 newColour, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            TransformTo(newColour, duration, easing, new TransformColour());
-        }
-
-        public void FlashColour(Color4 flashColour, double duration, EasingTypes easing = EasingTypes.None)
-        {
-            Color4 endValue = (Transforms.FindLast(t => t is TransformColour) as TransformColour)?.EndValue ?? Colour;
-
-            Flush(false, typeof(TransformColour));
-
-            FadeColour(flashColour);
-            FadeColour(endValue, duration, easing);
-        }
-
-        #endregion
+        public virtual void Show() => this.FadeIn();
 
         #endregion
 
@@ -2214,8 +2104,14 @@ namespace osu.Framework.Graphics
 
     public enum Direction
     {
-        Horizontal = 0,
-        Vertical = 1,
+        Horizontal,
+        Vertical,
+    }
+
+    public enum RotationDirection
+    {
+        Clockwise,
+        CounterClockwise,
     }
 
     public enum BlendingMode
@@ -2255,13 +2151,13 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Loading is complete, but has not yet been finalized on the update thread
         /// (<see cref="Drawable.LoadComplete"/> has not been called yet, which
-        /// always runs on the update thread and requires <see cref="Drawable.IsLoaded"/>).
+        /// always runs on the update thread and requires <see cref="Drawable.IsAlive"/>).
         /// </summary>
-        Loaded,
+        Ready,
         /// <summary>
         /// Loading is fully completed and the Drawable is now part of the scene graph.
         /// </summary>
-        Alive
+        Loaded
     }
 
     /// <summary>

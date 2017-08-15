@@ -7,6 +7,7 @@ using osu.Framework.Graphics.OpenGL.Textures;
 using OpenTK.Graphics.ES30;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Logging;
 
 namespace osu.Framework.Graphics.Textures
 {
@@ -64,7 +65,10 @@ namespace osu.Framework.Graphics.Textures
             if (atlasHeight == 0 || atlasWidth == 0) return Vector2I.Zero;
 
             if (currentY + height > atlasHeight)
+            {
+                Logger.Log($"TextureAtlas size exceeded; generating new {atlasWidth}x{atlasHeight} texture");
                 Reset();
+            }
 
             // Super naive implementation only going from left to right.
             Vector2I res = new Vector2I(0, currentY);

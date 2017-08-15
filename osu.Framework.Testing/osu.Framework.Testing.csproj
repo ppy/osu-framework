@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(SolutionDir)\packages\Microsoft.Net.Compilers.2.2.0\build\Microsoft.Net.Compilers.props" Condition="Exists('$(SolutionDir)\packages\Microsoft.Net.Compilers.2.2.0\build\Microsoft.Net.Compilers.props')" />
   <Import Project="$(SolutionDir)\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.NoInstall.1.0.3.2\build\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props" Condition="Exists('$(SolutionDir)\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.NoInstall.1.0.3.2\build\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" />
@@ -38,6 +38,11 @@
   <ItemGroup>
     <Reference Include="Microsoft.CodeDom.Providers.DotNetCompilerPlatform, Version=1.0.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.NoInstall.1.0.3.2\lib\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="nunit.framework, Version=3.7.1.0, Culture=neutral, PublicKeyToken=2638cd05610744eb, processorArchitecture=MSIL">
+      <HintPath>$(SolutionDir)\packages\NUnit.3.7.1\lib\net45\nunit.framework.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="OpenTK, Version=3.0.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)\packages\ppy.OpenTK.3.0\lib\net45\OpenTK.dll</HintPath>
@@ -47,19 +52,21 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="GridTestCase.cs" />
-    <Compile Include="TestRunner.cs" />
     <Compile Include="Drawables\StepButtons\AssertButton.cs" />
-    <Compile Include="Drawables\StepButtons\SingleStepButton.cs" />
-    <Compile Include="DynamicClassCompiler.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Drawables\StepButtons\RepeatStepButton.cs" />
+    <Compile Include="Drawables\StepButtons\SingleStepButton.cs" />
     <Compile Include="Drawables\StepButtons\StepButton.cs" />
+    <Compile Include="Drawables\StepButtons\ToggleStepButton.cs" />
+    <Compile Include="Drawables\TestCaseButton.cs" />
+    <Compile Include="DynamicClassCompiler.cs" />
+    <Compile Include="GridTestCase.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestBrowser.cs" />
     <Compile Include="TestBrowserConfig.cs" />
+    <Compile Include="TestBrowserTestRunner.cs" />
     <Compile Include="TestCase.cs" />
-    <Compile Include="Drawables\TestCaseButton.cs" />
-    <Compile Include="Drawables\StepButtons\ToggleStepButton.cs" />
+    <Compile Include="Tests\TestTestCase.cs" />
+    <Compile Include="TestCaseTestRunner.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\osu-framework.licenseheader">
@@ -69,10 +76,23 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\osu.Framework.Desktop\osu.Framework.Desktop.csproj">
+      <Project>{65DC628F-A640-4111-AB35-3A5652BC1E17}</Project>
+      <Name>osu.Framework.Desktop</Name>
+    </ProjectReference>
     <ProjectReference Include="..\osu.Framework\osu.Framework.csproj">
       <Project>{c76bf5b3-985e-4d39-95fe-97c9c879b83a}</Project>
       <Name>osu.Framework</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('$(SolutionDir)\packages\Microsoft.Net.Compilers.2.2.0\build\Microsoft.Net.Compilers.props')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\packages\Microsoft.Net.Compilers.2.2.0\build\Microsoft.Net.Compilers.props'))" />
+  </Target>
 </Project>

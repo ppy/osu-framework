@@ -271,7 +271,7 @@ namespace osu.Framework.Graphics.Visualisation
             }
 
             previewBox.Alpha = Math.Max(0.2f, Target.Alpha);
-            previewBox.ColourInfo = Target.ColourInfo;
+            previewBox.Colour = Target.Colour;
 
             int childCount = (Target as CompositeDrawable)?.InternalChildren.Count ?? 0;
 
@@ -287,9 +287,9 @@ namespace osu.Framework.Graphics.Visualisation
 
         public bool CheckExpiry()
         {
-            if (!IsAlive) return false;
+            if (!ShouldBeAlive) return false;
 
-            if (!Target.IsAlive || Target.Parent == null || !Target.IsPresent)
+            if (!Target.IsAlive || Target.Parent == null)
             {
                 Expire();
                 return false;

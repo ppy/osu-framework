@@ -98,7 +98,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         protected override void PopIn()
         {
-            FadeIn(100);
+            this.FadeIn(100);
             if (Target == null)
                 chooseTarget();
             else
@@ -111,7 +111,7 @@ namespace osu.Framework.Graphics.Visualisation
         protected override void PopOut()
         {
             task?.Cancel();
-            FadeOut(100);
+            this.FadeOut(100);
 
             // Don't keep resources for visualizing the target
             // allocated; unbind callback events.
@@ -150,11 +150,8 @@ namespace osu.Framework.Graphics.Visualisation
                 if (!dAsContainer.InternalChildren.Any())
                     return null;
 
-                foreach (var c in dAsContainer.InternalChildren)
+                foreach (var c in dAsContainer.AliveInternalChildren)
                 {
-                    if (!c.IsAlive)
-                        continue;
-
                     var contained = findTargetIn(c, state);
                     if (contained != null)
                     {

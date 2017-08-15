@@ -35,7 +35,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override void UpdateValue(float value)
         {
-            SelectionBox.ScaleTo(new Vector2(value, 1), 300, EasingTypes.OutQuint);
+            SelectionBox.ScaleTo(new Vector2(value, 1), 300, Easing.OutQuint);
         }
     }
 }

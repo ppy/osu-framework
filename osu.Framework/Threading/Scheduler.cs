@@ -182,7 +182,7 @@ namespace osu.Framework.Threading
             return false;
         }
 
-        public bool Add(ScheduledDelegate task)
+        public void Add(ScheduledDelegate task)
         {
             lock (timedTasks)
             {
@@ -191,7 +191,6 @@ namespace osu.Framework.Threading
                 else
                     timedTasks.AddInPlace(task);
             }
-            return true;
         }
 
         /// <summary>
@@ -206,7 +205,8 @@ namespace osu.Framework.Threading
             lock (timedTasks)
             {
                 ScheduledDelegate del = new ScheduledDelegate(task, currentTime + timeUntilRun, repeat ? timeUntilRun : -1);
-                return Add(del) ? del : null;
+                Add(del);
+                return del;
             }
         }
 

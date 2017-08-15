@@ -9,7 +9,6 @@ using SQLite.Net.Platform.Generic;
 using SQLite.Net.Interop;
 using SQLite.Net.Platform.Win32;
 using System.Diagnostics;
-using osu.Framework.Logging;
 
 namespace osu.Framework.Desktop.Platform
 {
@@ -18,15 +17,33 @@ namespace osu.Framework.Desktop.Platform
         public DesktopStorage(string baseName)
             : base(baseName)
         {
-            //todo: this is obviously not the right way to do this.
-            Logger.LogDirectory = Path.Combine(BasePath, @"logs");
         }
 
-        protected virtual string BasePath => @"./"; //use current directory by default
+        protected override string LocateBasePath() => @"./"; //use current directory by default
 
-        public override bool Exists(string path) => File.Exists(Path.Combine(BasePath, path));
+        public override bool Exists(string path) => File.Exists(GetUsablePathFor(path));
 
-        public override void Delete(string path) => File.Delete(Path.Combine(BasePath, path));
+        public override bool ExistsDirectory(string path) => Directory.Exists(GetUsablePathFor(path));
+
+        public override void DeleteDirectory(string path)
+        {
+            path = GetUsablePathFor(path);
+
+            // handles the case where the directory doesn't exist, which will throw a DirectoryNotFoundException.
+            if (Directory.Exists(path))
+                Directory.Delete(path, true);
+        }
+
+        public override void Delete(string path)
+        {
+            path = GetUsablePathFor(path);
+
+            // handles the case where the containing directory doesn't exist, which will throw a DirectoryNotFoundException.
+            if (File.Exists(path))
+                File.Delete(path);
+        }
+
+        public override string[] GetDirectories(string path) => Directory.GetDirectories(GetUsablePathFor(path));
 
         public override void OpenInNativeExplorer()
         {
@@ -35,7 +52,7 @@ namespace osu.Framework.Desktop.Platform
 
         public override Stream GetStream(string path, FileAccess access = FileAccess.Read, FileMode mode = FileMode.OpenOrCreate)
         {
-            path = Path.Combine(BasePath, path);
+            path = GetUsablePathFor(path);
 
             if (string.IsNullOrEmpty(path))
                 throw new ArgumentNullException(nameof(path));
@@ -60,7 +77,7 @@ namespace osu.Framework.Desktop.Platform
                 platform = new SQLitePlatformWin32(Architecture.NativeIncludePath);
             else
                 platform = new SQLitePlatformGeneric();
-            return new SQLiteConnection(platform, Path.Combine(BasePath, $@"{name}.db"));
+            return new SQLiteConnection(platform, GetUsablePathFor($@"{name}.db"));
         }
 
         public override void DeleteDatabase(string name) => Delete($@"{name}.db");

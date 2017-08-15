@@ -59,12 +59,12 @@ namespace osu.Framework.Graphics.Visualisation
 
         protected override void PopIn()
         {
-            ResizeWidthTo(width, 500, EasingTypes.OutQuint);
+            this.ResizeWidthTo(width, 500, Easing.OutQuint);
         }
 
         protected override void PopOut()
         {
-            ResizeWidthTo(0, 500, EasingTypes.OutQuint);
+            this.ResizeWidthTo(0, 500, Easing.OutQuint);
         }
 
         private class PropertyItem : Container

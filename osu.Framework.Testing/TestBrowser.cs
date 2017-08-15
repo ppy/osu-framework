@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using osu.Framework.Allocation;
@@ -12,6 +13,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Platform;
 using osu.Framework.Screens;
 using osu.Framework.Testing.Drawables;
@@ -36,14 +38,45 @@ namespace osu.Framework.Testing
 
         private bool interactive;
 
+        private readonly BasicDropdown<Assembly> assemblyDropdown;
+
         public TestBrowser()
         {
+            assemblyDropdown = new BasicDropdown<Assembly>
+            {
+                Width = 400,
+            };
+
+            assemblyDropdown.Current.ValueChanged += updateList;
+
+            var loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies().ToList();
+            var loadedPaths = loadedAssemblies.Select(a => a.Location).ToArray();
+
+            var referencedPaths = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*Test*.dll");
+            var toLoad = referencedPaths.Where(r => !loadedPaths.Contains(r, StringComparer.InvariantCultureIgnoreCase)).ToList();
+            toLoad.ForEach(path => loadedAssemblies.Add(AppDomain.CurrentDomain.Load(AssemblyName.GetAssemblyName(path))));
+
             //we want to build the lists here because we're interested in the assembly we were *created* on.
-            Assembly asm = Assembly.GetCallingAssembly();
-            foreach (Type type in asm.GetLoadableTypes().Where(t => t.IsSubclassOf(typeof(TestCase)) && !t.IsAbstract))
-                TestTypes.Add(type);
+            foreach (Assembly asm in AppDomain.CurrentDomain.GetAssemblies().Where(n => n.FullName.Contains("Test")))
+            {
+                var tests = asm.GetLoadableTypes().Where(t => t.IsSubclassOf(typeof(TestCase)) && !t.IsAbstract).ToList();
+
+                if (!tests.Any())
+                    continue;
+
+                assemblyDropdown.AddDropdownItem(asm.GetName().Name, asm);
+                foreach (Type type in tests)
+                    TestTypes.Add(type);
+            }
 
             TestTypes.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.Ordinal));
+        }
+
+        private void updateList(Assembly asm)
+        {
+            leftFlowContainer.Clear();
+            //Add buttons for each TestCase.
+            leftFlowContainer.AddRange(TestTypes.Where(t => t.Assembly == asm).Select(t => new TestCaseButton(t) { Action = () => LoadTest(t) }));
         }
 
         [BackgroundDependencyLoader]
@@ -80,38 +113,71 @@ namespace osu.Framework.Testing
                         }
                     }
                 },
-                testContentContainer = new Container
+                new Container
                 {
                     RelativeSizeAxes = Axes.Both,
                     Padding = new MarginPadding { Left = 200 },
-                    Child = compilingNotice = new Container
+                    Children = new[]
                     {
-                        Alpha = 0,
-                        Anchor = Anchor.Centre,
-                        Origin = Anchor.Centre,
-                        Masking = true,
-                        Depth = float.MinValue,
-                        CornerRadius = 5,
-                        AutoSizeAxes = Axes.Both,
-                        Children = new Drawable[]
+                        new Container
                         {
-                            new Box
+                            RelativeSizeAxes = Axes.X,
+                            Height = 50,
+                            Depth = -1,
+                            Children = new Drawable[]
                             {
-                                RelativeSizeAxes = Axes.Both,
-                                Colour = Color4.Black,
-                            },
-                            new SpriteText
-                            {
-                                TextSize = 30,
-                                Text = @"Compiling new version..."
+                                new Box
+                                {
+                                    RelativeSizeAxes = Axes.Both,
+                                    Colour = Color4.Black,
+                                },
+                                new FillFlowContainer
+                                {
+                                    Direction = FillDirection.Horizontal,
+                                    Margin = new MarginPadding(10),
+                                    Children = new Drawable[]
+                                    {
+                                        new SpriteText
+                                        {
+                                            Padding = new MarginPadding(5),
+                                            Text = "Current Assembly:"
+                                        },
+                                        assemblyDropdown
+                                    }
+                                }
                             }
                         },
+                        testContentContainer = new Container
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Padding = new MarginPadding { Top = 50 },
+                            Child = compilingNotice = new Container
+                            {
+                                Alpha = 0,
+                                Anchor = Anchor.Centre,
+                                Origin = Anchor.Centre,
+                                Masking = true,
+                                Depth = float.MinValue,
+                                CornerRadius = 5,
+                                AutoSizeAxes = Axes.Both,
+                                Children = new Drawable[]
+                                {
+                                    new Box
+                                    {
+                                        RelativeSizeAxes = Axes.Both,
+                                        Colour = Color4.Black,
+                                    },
+                                    new SpriteText
+                                    {
+                                        TextSize = 30,
+                                        Text = @"Compiling new version..."
+                                    }
+                                },
+                            }
+                        }
                     }
                 }
             };
-
-            //Add buttons for each TestCase.
-            leftFlowContainer.AddRange(TestTypes.Select(t => new TestCaseButton(t) { Action = () => LoadTest(t) }));
 
             backgroundCompiler = new DynamicClassCompiler
             {
@@ -140,7 +206,7 @@ namespace osu.Framework.Testing
         {
             Schedule(() =>
             {
-                compilingNotice.FadeOut(800, EasingTypes.InQuint);
+                compilingNotice.FadeOut(800, Easing.InQuint);
                 compilingNotice.FadeColour(newType == null ? Color4.Red : Color4.YellowGreen, 100);
 
                 if (newType == null) return;
@@ -185,6 +251,8 @@ namespace osu.Framework.Testing
 
             if (testType != null)
             {
+                assemblyDropdown.Current.Value = testType.Assembly;
+
                 testContentContainer.Add(CurrentTest = (TestCase)Activator.CreateInstance(testType));
                 if (!interactive) CurrentTest.OnLoadComplete = d => ((TestCase)d).RunAllSteps(onCompletion);
             }

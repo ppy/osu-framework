@@ -11,7 +11,6 @@ using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
-using osu.Framework.Graphics.Transforms;
 using osu.Framework.MathUtils;
 using osu.Framework.Threading;
 using System;
@@ -39,7 +38,8 @@ namespace osu.Framework.Graphics.Containers
     /// appearance of the container at the cost of performance. Such effects include
     /// uniform fading of children, blur, and other post-processing effects.
     /// </summary>
-    public class BufferedContainer<T> : Container<T>, IBufferedContainer where T : Drawable
+    public class BufferedContainer<T> : Container<T>, IBufferedContainer
+        where T : Drawable
     {
         private bool drawOriginal;
 
@@ -122,8 +122,8 @@ namespace osu.Framework.Graphics.Containers
         private ColourInfo effectColour = Color4.White;
 
         /// <summary>
-        /// The colour of drawn buffered object after applying all effects (e.g. blur). Does not affect the original
-        /// which is drawn when <see cref="DrawOriginal"/> is true.
+        /// The multiplicative colour of drawn buffered object after applying all effects (e.g. blur). Default is <see cref="Color4.White"/>.
+        /// Does not affect the original which is drawn when <see cref="DrawOriginal"/> is true.
         /// </summary>
         public ColourInfo EffectColour
         {
@@ -135,6 +135,47 @@ namespace osu.Framework.Graphics.Containers
                     return;
 
                 effectColour = value;
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
+
+        private BlendingMode effectBlendingMode;
+
+        /// <summary>
+        /// The <see cref="BlendingMode"/> to use after applying all effects. Default is <see cref="BlendingMode.Inherit"/>.
+        /// <see cref="BlendingMode.Inherit"/> inherits the blending mode of the original, i.e. <see cref="Drawable.BlendingMode"/> is used.
+        /// Does not affect the original which is drawn when <see cref="DrawOriginal"/> is true.
+        /// </summary>
+        public BlendingMode EffectBlendingMode
+        {
+            get { return effectBlendingMode; }
+
+            set
+            {
+                if (effectBlendingMode.Equals(value))
+                    return;
+
+                effectBlendingMode = value;
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
+
+        private EffectPlacement effectPlacement;
+
+        /// <summary>
+        /// Whether the buffered effect should be drawn behind or in front of the original. 
+        /// Behind by default. Does not have any effect if <see cref="DrawOriginal"/> is false.
+        /// </summary>
+        public EffectPlacement EffectPlacement
+        {
+            get { return effectPlacement; }
+
+            set
+            {
+                if (effectPlacement == value)
+                    return;
+
+                effectPlacement = value;
                 Invalidate(Invalidation.DrawNode);
             }
         }
@@ -242,7 +283,10 @@ namespace osu.Framework.Graphics.Containers
             n.DrawVersion = drawVersion;
             n.UpdateVersion = updateVersion;
             n.BackgroundColour = backgroundColour;
+
             n.EffectColour = effectColour;
+            n.EffectBlending = effectBlendingMode;
+            n.EffectPlacement = effectPlacement;
 
             n.DrawOriginal = drawOriginal;
             n.BlurSigma = blurSigma;
@@ -312,20 +356,11 @@ namespace osu.Framework.Graphics.Containers
 
         //    base.Dispose(isDisposing);
         //}
+    }
 
-        /// <summary>
-        /// Helper function for creating and adding a <see cref="Transform{TValue, T}"/> that blurs
-        /// the buffered container.
-        /// </summary>
-        public void BlurTo(Vector2 newBlurSigma, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            TransformTo(newBlurSigma, duration, easing, new TransformBlurSigma());
-        }
-
-        protected class TransformBlurSigma : TransformVector
-        {
-            public override void Apply(Drawable d) => ((BufferedContainer)d).BlurSigma = CurrentValue;
-            public override void ReadIntoStartValue(Drawable d) => StartValue = ((BufferedContainer)d).BlurSigma;
-        }
+    public enum EffectPlacement
+    {
+        Behind,
+        InFront,
     }
 }

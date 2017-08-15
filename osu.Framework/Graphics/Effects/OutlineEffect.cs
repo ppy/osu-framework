@@ -5,7 +5,6 @@ using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.MathUtils;
 
 namespace osu.Framework.Graphics.Effects
 {
@@ -15,47 +14,42 @@ namespace osu.Framework.Graphics.Effects
     public class OutlineEffect : IEffect<BufferedContainer>
     {
         /// <summary>
-        /// The color of the outline.
+        /// The strength of the outline. A higher strength means that the blur effect used to draw the outline fades slower.
+        /// Default is 1.
         /// </summary>
-        public ColourInfo OutlineColour { get; set; } = Color4.Black;
+        public float Strength = 1f;
 
         /// <summary>
         /// The sigma value for the blur effect used to draw the outline. This controls over how many pixels the outline gets spread.
+        /// Default is <see cref="Vector2.One"/>.
         /// </summary>
-        public Vector2 BlurSigma { get; set; } = Vector2.One;
+        public Vector2 BlurSigma = Vector2.One;
 
         /// <summary>
-        /// The strength of the outline. A higher strength means that the blur effect used to draw the outline fades slower.
+        /// The color of the outline. Default is <see cref="Color4.Black"/>.
         /// </summary>
-        public float Strength { get; set; } = 1f;
+        public ColourInfo Colour = Color4.Black;
 
         /// <summary>
-        /// True if the effect should be cached. This is an optimization, but can cause issues if the drawable changes the way it looks without changing its size. Turned off by default.
+        /// Whether to automatically pad by the blur extent such that no clipping occurs at the sides of the effect. Default is false.
         /// </summary>
-        public bool CacheDrawnEffect { get; set; }
+        public bool PadExtent;
 
-        public BufferedContainer ApplyTo(Drawable drawable)
+        /// <summary>
+        /// True if the effect should be cached. This is an optimization, but can cause issues if the drawable changes the way it looks without changing its size.
+        /// Turned off by default.
+        /// </summary>
+        public bool CacheDrawnEffect;
+
+        public BufferedContainer ApplyTo(Drawable drawable) => drawable.WithEffect(new BlurEffect
         {
-            return new BufferedContainer
-            {
-                CacheDrawnFrameBuffer = CacheDrawnEffect,
+            Strength = Strength,
+            Sigma = BlurSigma,
+            Colour = Colour,
+            PadExtent = PadExtent,
+            CacheDrawnEffect = CacheDrawnEffect,
 
-                Padding = new MarginPadding
-                {
-                    Horizontal = Blur.KernelSize(BlurSigma.X),
-                    Vertical = Blur.KernelSize(BlurSigma.Y)
-                },
-
-                RelativeSizeAxes = drawable.RelativeSizeAxes,
-                AutoSizeAxes = Axes.Both & ~drawable.RelativeSizeAxes,
-                Anchor = drawable.Anchor,
-                Origin = drawable.Origin,
-
-                DrawOriginal = true,
-                EffectColour = OutlineColour.MultiplyAlpha(Strength),
-                BlurSigma = BlurSigma,
-                Child = drawable
-            };
-        }
+            DrawOriginal = true,
+        });
     }
 }

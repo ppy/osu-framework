@@ -15,7 +15,7 @@ namespace osu.Framework.Graphics.Containers
             if (state == Visibility.Hidden)
             {
                 PopOut();
-                Flush(true);
+                FinishTransforms(true);
             }
 
             base.LoadComplete();

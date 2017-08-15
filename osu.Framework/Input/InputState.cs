@@ -15,7 +15,7 @@ namespace osu.Framework.Input
         {
             Keyboard = Keyboard?.Clone(),
             Mouse = Mouse?.Clone(),
-            Last = Last
+            Last = Last,
         };
     }
 }

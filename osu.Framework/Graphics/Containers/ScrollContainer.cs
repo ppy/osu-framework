@@ -166,7 +166,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// The direction in which scrolling is supported, converted to an int for array index lookups.
         /// </summary>
-        protected int ScrollDim => (int)ScrollDirection;
+        protected int ScrollDim => ScrollDirection == Direction.Horizontal ? 0 : 1;
 
         /// <summary>
         /// Creates a scroll container.
@@ -209,7 +209,7 @@ namespace osu.Framework.Graphics.Containers
 
         private void updateScrollbar()
         {
-            Scrollbar.ResizeTo(Math.Min(1, availableContent > 0 ? displayableContent / availableContent : 0), 200, EasingTypes.OutQuint);
+            Scrollbar.ResizeTo(Math.Min(1, availableContent > 0 ? displayableContent / availableContent : 0), 200, Easing.OutQuint);
             Scrollbar.FadeTo(ScrollbarVisible && availableContent - 1 > displayableContent ? 1 : 0, 200);
             updatePadding();
         }
@@ -506,26 +506,26 @@ namespace osu.Framework.Graphics.Containers
                 ResizeTo(1);
             }
 
-            public void ResizeTo(float val, int duration = 0, EasingTypes easing = EasingTypes.None)
+            public void ResizeTo(float val, int duration = 0, Easing easing = Easing.None)
             {
                 Vector2 size = new Vector2(10)
                 {
                     [scrollDim] = val
                 };
-                ResizeTo(size, duration, easing);
+                this.ResizeTo(size, duration, easing);
             }
 
             protected override bool OnClick(InputState state) => true;
 
             protected override bool OnHover(InputState state)
             {
-                FadeColour(hoverColour, 100);
+                this.FadeColour(hoverColour, 100);
                 return true;
             }
 
             protected override void OnHoverLost(InputState state)
             {
-                FadeColour(defaultColour, 100);
+                this.FadeColour(defaultColour, 100);
             }
 
             protected override bool OnDragStart(InputState state)

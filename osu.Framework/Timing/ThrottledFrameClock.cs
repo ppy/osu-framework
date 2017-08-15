@@ -29,12 +29,12 @@ namespace osu.Framework.Timing
 
         private void throttle()
         {
-            double targetMilliseconds = minimumFrameTime;
             int timeToSleepFloored = 0;
 
             //If we are limiting to a specific rate, and not enough time has passed for the next frame to be accepted we should pause here.
-            if (targetMilliseconds > 0)
+            if (MaximumUpdateHz > 0 && minimumFrameTime > 0)
             {
+                double targetMilliseconds = minimumFrameTime;
                 if (ElapsedFrameTime < targetMilliseconds)
                 {
                     // Using ticks for sleeping is pointless due to them being rounded to milliseconds internally anyways (in windows at least).

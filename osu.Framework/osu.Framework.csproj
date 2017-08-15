@@ -82,6 +82,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Allocation\IReadOnlyDependencyContainer.cs" />
     <Compile Include="Audio\AudioComponent.cs" />
     <Compile Include="Audio\IBassAudio.cs" />
     <Compile Include="Audio\IHasPitchAdjust.cs" />
@@ -120,6 +121,8 @@
     <Compile Include="Graphics\Containers\AsyncLoadWrapper.cs" />
     <Compile Include="Graphics\Containers\CompositeDrawable.cs" />
     <Compile Include="Graphics\Containers\DelayedLoadWrapper.cs" />
+    <Compile Include="Graphics\Containers\IFillFlowContainer.cs" />
+    <Compile Include="Graphics\Effects\GlowEffect.cs" />
     <Compile Include="Graphics\Effects\OutlineEffect.cs" />
     <Compile Include="Graphics\Containers\IBufferedContainer.cs" />
     <Compile Include="Graphics\Cursor\CursorEffectContainer.cs" />
@@ -150,7 +153,14 @@
     <Compile Include="Graphics\OpenGL\Vertices\UncolouredVertex2D.cs" />
     <Compile Include="Graphics\OpenGL\Vertices\Vertex2D.cs" />
     <Compile Include="Graphics\Textures\TextureWhitePixel.cs" />
+    <Compile Include="Graphics\Transforms\ITransformable.cs" />
+    <Compile Include="Graphics\TransformSequenceExtensions.cs" />
+    <Compile Include="Graphics\TransformableExtensions.cs" />
+    <Compile Include="Graphics\Transforms\TransformSequence.cs" />
+    <Compile Include="Graphics\Transforms\TransformCustom.cs" />
+    <Compile Include="Graphics\Transforms\TransformEdgeEffectColour.cs" />
     <Compile Include="Graphics\UserInterface\BasicCheckbox.cs" />
+    <Compile Include="Graphics\UserInterface\BasicDropdown.cs" />
     <Compile Include="Graphics\UserInterface\Checkbox.cs" />
     <Compile Include="Graphics\UserInterface\ContextMenu.cs" />
     <Compile Include="Graphics\UserInterface\ContextMenuItem.cs" />
@@ -161,8 +171,11 @@
     <Compile Include="Graphics\UserInterface\TabControl.cs" />
     <Compile Include="Graphics\UserInterface\TabItem.cs" />
     <Compile Include="Input\CustomInputManager.cs" />
+    <Compile Include="Input\Bindings\IKeyBindingHandler.cs" />
+    <Compile Include="Input\Bindings\KeyBinding.cs" />
+    <Compile Include="Input\Bindings\KeyBindingInputManager.cs" />
+    <Compile Include="Input\Bindings\KeyCombination.cs" />
     <Compile Include="Graphics\Visualisation\PropertyDisplay.cs" />
-    <Compile Include="Input\GlobalHotkeys.cs" />
     <Compile Include="Input\Handlers\IHasCursorSensitivity.cs" />
     <Compile Include="Input\KeyUpEventArgs.cs" />
     <Compile Include="Allocation\TimedExpiryCache.cs" />
@@ -192,7 +205,6 @@
     <Compile Include="Graphics\OpenGL\Textures\TextureGLAtlas.cs" />
     <Compile Include="Graphics\OpenGL\Textures\TextureGLAtlasWhite.cs" />
     <Compile Include="Graphics\Shapes\Triangle.cs" />
-    <Compile Include="Graphics\Transforms\TransformSize.cs" />
     <Compile Include="Graphics\UserInterface\BasicSliderBar.cs" />
     <Compile Include="Graphics\UserInterface\DropdownHeader.cs" />
     <Compile Include="Graphics\UserInterface\Dropdown.cs" />
@@ -208,16 +220,6 @@
     <Compile Include="Graphics\Performance\PerformanceOverlay.cs" />
     <Compile Include="Graphics\MarginPadding.cs" />
     <Compile Include="Graphics\Sprites\SpriteDrawNode.cs" />
-    <Compile Include="Graphics\Transforms\ITransform.cs" />
-    <Compile Include="Graphics\Transforms\TransformAlpha.cs" />
-    <Compile Include="Graphics\Transforms\TransformColour.cs" />
-    <Compile Include="Graphics\Transforms\TransformFloat.cs" />
-    <Compile Include="Graphics\Transforms\TransformPosition.cs" />
-    <Compile Include="Graphics\Transforms\TransformPositionX.cs" />
-    <Compile Include="Graphics\Transforms\TransformPositionY.cs" />
-    <Compile Include="Graphics\Transforms\TransformRotation.cs" />
-    <Compile Include="Graphics\Transforms\TransformVector.cs" />
-    <Compile Include="Graphics\Transforms\TransformScale.cs" />
     <Compile Include="Graphics\UserInterface\Button.cs" />
     <Compile Include="Graphics\UserInterface\TextBox.cs" />
     <Compile Include="Graphics\Visualisation\FlashyBox.cs" />
@@ -306,11 +308,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Shaders\ShaderPart.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Shaders\Uniform.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Shaders\UniformBase.cs" />
-    <Compile Include="Graphics\EasingTypes.cs" />
+    <Compile Include="Graphics\Easing.cs" />
     <Compile Include="Graphics\Transforms\Transformable.cs" />
     <Compile Include="Graphics\Transforms\Transform.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Lists\IHasLifetime.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Lists\LifetimeList.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MathUtils\Interpolation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Timing\DecoupleableInterpolatingFramedClock.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Timing\FramedClock.cs" />

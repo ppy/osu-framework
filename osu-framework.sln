@@ -11,7 +11,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleGame", "SampleGame\Sa
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "osu.Framework.Tests", "osu.Framework.Tests\osu.Framework.Tests.csproj", "{79803407-6F50-484F-93F5-641911EABD8A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "osu.Framework.VisualTests", "osu.Framework.VisualTests\osu.Framework.VisualTests.csproj", "{1F02F11C-2C66-4D25-BBB5-5C752AAD3E62}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "osu.Framework.VisualTestBrowser", "osu.Framework.VisualTestBrowser\osu.Framework.VisualTestBrowser.csproj", "{1F02F11C-2C66-4D25-BBB5-5C752AAD3E62}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "osu.Framework.Desktop.Tests", "osu.Framework.Desktop.Tests\osu.Framework.Desktop.Tests.csproj", "{46C1D3D0-EA66-4488-A186-621A36B9F0D5}"
 EndProject

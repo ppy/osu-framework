@@ -91,9 +91,7 @@ namespace osu.Framework.Graphics.Visualisation
 
                 flow.Add(drawEntry);
 
-                drawEntry.FadeInFromZero(800, EasingTypes.OutQuint);
-                using (drawEntry.BeginDelayedSequence(display_length))
-                    drawEntry.FadeOut(800, EasingTypes.InQuint);
+                drawEntry.FadeInFromZero(800, Easing.OutQuint).Delay(display_length).FadeOut(800, Easing.InQuint);
                 drawEntry.Expire();
             });
         }
@@ -131,7 +129,7 @@ namespace osu.Framework.Graphics.Visualisation
         {
             Logger.NewEntry += addEntry;
             enabled.Value = true;
-            FadeIn(100);
+            this.FadeIn(100);
         }
 
         protected override void PopOut()
@@ -139,7 +137,7 @@ namespace osu.Framework.Graphics.Visualisation
             Logger.NewEntry -= addEntry;
             setHoldState(false);
             enabled.Value = false;
-            FadeOut(100);
+            this.FadeOut(100);
         }
     }
 

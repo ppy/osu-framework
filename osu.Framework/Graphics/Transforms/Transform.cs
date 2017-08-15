@@ -1,70 +1,78 @@
 // Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using osu.Framework.Threading;
-using osu.Framework.Timing;
+using osu.Framework.Extensions.TypeExtensions;
+using System;
+using System.Collections.Generic;
 
 namespace osu.Framework.Graphics.Transforms
 {
-    public abstract class Transform<T> : ITransform<T>
+    public abstract class Transform
     {
-        public long CreationID { get; private set; }
+        internal ulong TransformID;
 
-        // ReSharper disable once StaticMemberInGenericType
-        private static readonly AtomicCounter creation_counter = new AtomicCounter();
+        public Easing Easing;
 
-        protected Transform()
+        public abstract ITransformable TargetTransformable { get; }
+
+        public double StartTime { get; internal set; }
+        public double EndTime { get; internal set; }
+
+        public bool IsLooping { get; internal set; }
+        public double LoopDelay { get; internal set; }
+
+        public abstract string TargetMember { get; }
+
+        public abstract void Apply(double time);
+
+        public abstract void ReadIntoStartValue();
+
+        internal bool HasStartValue;
+
+        public Action OnComplete;
+
+        public Action OnAbort;
+
+        public Transform Clone() => (Transform)MemberwiseClone();
+
+        public static readonly IComparer<Transform> COMPARER = new TransformTimeComparer();
+
+        private class TransformTimeComparer : IComparer<Transform>
         {
-            CreationID = creation_counter.Increment();
+            public int Compare(Transform x, Transform y)
+            {
+                if (x == null) throw new ArgumentNullException(nameof(x));
+                if (y == null) throw new ArgumentNullException(nameof(y));
+
+                int compare = x.StartTime.CompareTo(y.StartTime);
+                if (compare != 0) return compare;
+                compare = x.TransformID.CompareTo(y.TransformID);
+                return compare;
+            }
         }
-
-        public double Duration => EndTime - StartTime;
-
-        public EasingTypes Easing;
-
-        public double StartTime { get; set; }
-        public double EndTime { get; set; }
-
-        public abstract void Apply(T d);
-
-        public abstract void ReadIntoStartValue(T d);
-
-        private double loopDelay;
-        private int loopCount;
-        private int currentLoopCount;
-
-        public void Loop(double delay, int loopCount = -1)
-        {
-            loopDelay = delay;
-            this.loopCount = loopCount;
-        }
-
-        public void NextIteration()
-        {
-            currentLoopCount++;
-            double duration = Duration;
-            StartTime = EndTime + loopDelay;
-            EndTime = StartTime + duration;
-        }
-
-        public bool HasNextIteration => Time?.Current > EndTime && loopCount != currentLoopCount;
-
-        public void UpdateTime(FrameTimeInfo time)
-        {
-            Time = time;
-        }
-
-        public FrameTimeInfo? Time { get; private set; }
     }
 
-    public abstract class Transform<TValue, T> : Transform<T>
+    public abstract class Transform<TValue> : Transform
     {
         public TValue StartValue { get; protected set; }
-        public TValue EndValue { get; set; }
+        public TValue EndValue { get; protected internal set; }
+    }
 
-        public override string ToString()
-        {
-            return string.Format("Transform({2}) {0}-{1}", StartTime, EndTime, typeof(TValue));
-        }
+    public abstract class Transform<TValue, T> : Transform<TValue>
+        where T : ITransformable
+    {
+        public override ITransformable TargetTransformable => Target;
+
+        public T Target { get; internal set; }
+
+        public sealed override void Apply(double time) => Apply(Target, time);
+
+        public sealed override void ReadIntoStartValue() => ReadIntoStartValue(Target);
+
+        protected abstract void Apply(T d, double time);
+
+        protected abstract void ReadIntoStartValue(T d);
+
+        public override string ToString() => $"{typeof(Transform<TValue, T>).ReadableName()} => {Target} {StartTime}:{StartValue}-{EndTime}:{EndValue}";
     }
 }
