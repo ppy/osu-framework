@@ -4,7 +4,7 @@
 namespace osu.Framework.Configuration
 {
     /// <summary>
-    /// Respresents a class which can be bound to in order to watch for (and react to) value changes.
+    /// An interface which can be bound to in order to watch for (and react to) value changes.
     /// </summary>
     public interface IBindable : IParseable
     {
