@@ -639,7 +639,7 @@ namespace osu.Framework.Input
         private bool handleMouseDragStart(InputState state)
         {
             Trace.Assert(DraggedDrawable == null, "The draggingDrawable was not set to null by handleMouseDragEnd.");
-            DraggedDrawable = mouseDownInputQueue?.FirstOrDefault(target => target.IsAlive && target.TriggerOnDragStart(state));
+            DraggedDrawable = mouseDownInputQueue?.FirstOrDefault(target => target.IsAlive && target.IsPresent && target.TriggerOnDragStart(state));
             if (DraggedDrawable != null)
                 DraggedDrawable.IsDragged = true;
             return DraggedDrawable != null;

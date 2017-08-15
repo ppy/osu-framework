@@ -1,7 +1,6 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using osu.Framework.Allocation;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
 using System.Collections.Generic;
@@ -14,12 +13,12 @@ namespace osu.Framework.Graphics.Cursor
         where TSelf : CursorEffectContainer<TSelf, TTarget>
         where TTarget : class, IDrawable
     {
-        private UserInputManager inputManager;
+        private InputManager inputManager;
 
-        [BackgroundDependencyLoader]
-        private void load(UserInputManager input)
+        protected override void LoadComplete()
         {
-            inputManager = input;
+            base.LoadComplete();
+            inputManager = GetContainingInputManager();
         }
 
         private readonly HashSet<IDrawable> childDrawables = new HashSet<IDrawable>();

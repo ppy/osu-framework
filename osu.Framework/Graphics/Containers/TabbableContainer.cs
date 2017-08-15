@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Input;
 using OpenTK.Input;
-using osu.Framework.Allocation;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -28,21 +27,13 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public Container<Drawable> TabbableContentContainer { private get; set; }
 
-        private InputManager inputManager;
-
-        [BackgroundDependencyLoader]
-        private void load(UserInputManager inputManager)
-        {
-            this.inputManager = inputManager;
-        }
-
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
             if (TabbableContentContainer == null || args.Key != Key.Tab)
                 return false;
 
             var nextTab = nextTabStop(TabbableContentContainer, state.Keyboard.ShiftPressed);
-            if (nextTab != null) inputManager.ChangeFocus(nextTab);
+            if (nextTab != null) GetContainingInputManager().ChangeFocus(nextTab);
             return true;
         }
 

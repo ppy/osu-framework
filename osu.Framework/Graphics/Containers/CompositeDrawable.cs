@@ -222,17 +222,17 @@ namespace osu.Framework.Graphics.Containers
                 return false;
 
             internalChildren.RemoveAt(index);
-            if (drawable.IsCurrentlyAlive)
+            if (drawable.IsAlive)
                 aliveInternalChildren.Remove(drawable);
 
-            if (drawable.IsLoaded)
+            if (drawable.LoadState >= LoadState.Ready)
             {
                 // The string construction is quite expensive, so we are using Debug.Assert here.
                 Debug.Assert(drawable.Parent == this, $@"Removed a drawable ({drawable}) whose parent was not this ({this}), but {drawable.Parent}.");
             }
 
             drawable.Parent = null;
-            drawable.IsCurrentlyAlive = false;
+            drawable.IsAlive = false;
 
             if (AutoSizeAxes != Axes.None)
                 InvalidateFromChild(Invalidation.RequiredParentSizeToFit);
@@ -251,8 +251,7 @@ namespace osu.Framework.Graphics.Containers
         {
             foreach (Drawable t in internalChildren)
             {
-                t.Parent = null;
-                t.IsCurrentlyAlive = false;
+                t.IsAlive = false;
 
                 if (disposeChildren)
                 {
@@ -260,6 +259,8 @@ namespace osu.Framework.Graphics.Containers
                     (t as CompositeDrawable)?.ClearInternal();
                     t.Dispose();
                 }
+                else
+                    t.Parent = null;
 
                 Trace.Assert(t.Parent == null);
             }
@@ -288,26 +289,20 @@ namespace osu.Framework.Graphics.Containers
             if (drawable == this)
                 throw new InvalidOperationException($"{nameof(CompositeDrawable)} may not be added to itself.");
 
-            if (drawable.IsLoaded)
-                drawable.Parent = this;
-
             // If the drawable's ChildId is not zero, then it was added to another parent even if it wasn't loaded
             if (drawable.ChildID != 0)
                 throw new InvalidOperationException("May not add a drawable to multiple containers.");
 
             drawable.ChildID = ++currentChildID;
 
+            if (drawable.LoadState >= LoadState.Ready)
+                drawable.Parent = this;
             // If we're already loaded, we can eagerly allow children to be loaded
-            if (IsLoaded)
+            else if (LoadState >= LoadState.Ready)
                 loadChild(drawable);
 
             internalChildren.Add(drawable);
-
-            if (drawable.IsLoaded && drawable.IsAlive)
-            {
-                aliveInternalChildren.Add(drawable);
-                drawable.IsCurrentlyAlive = true;
-            }
+            checkChildLife(drawable);
 
             if (AutoSizeAxes != Axes.None)
                 InvalidateFromChild(Invalidation.RequiredParentSizeToFit);
@@ -348,7 +343,7 @@ namespace osu.Framework.Graphics.Containers
 
         /// <summary>
         /// Updates the life status of <see cref="InternalChildren"/> according to their
-        /// <see cref="IHasLifetime.IsAlive"/> property.
+        /// <see cref="Drawable.ShouldBeAlive"/> property.
         /// </summary>
         /// <returns>True iff the life status of at least one child changed.</returns>
         protected virtual bool UpdateChildrenLife()
@@ -372,28 +367,34 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>Whether the child's alive state has changed.</returns>
         private bool checkChildLife(Drawable child)
         {
+            Debug.Assert(internalChildren.Contains(child), "Can only check and react to the life of our own children.");
+
+            // Can not have alive children if we are not loaded.
+            if (LoadState < LoadState.Ready)
+                return false;
+
             bool changed = false;
 
-            if (child.IsAlive)
+            if (child.ShouldBeAlive)
             {
-                if (!child.IsCurrentlyAlive)
+                if (!child.IsAlive)
                 {
                     loadChild(child);
 
-                    if (child.IsLoaded)
+                    if (child.LoadState >= LoadState.Ready)
                     {
                         aliveInternalChildren.Add(child);
-                        child.IsCurrentlyAlive = true;
+                        child.IsAlive = true;
                         changed = true;
                     }
                 }
             }
             else
             {
-                if (child.IsCurrentlyAlive)
+                if (child.IsAlive)
                 {
                     aliveInternalChildren.Remove(child);
-                    child.IsCurrentlyAlive = false;
+                    child.IsAlive = false;
                     changed = true;
                 }
 
@@ -446,7 +447,8 @@ namespace osu.Framework.Graphics.Containers
             for (int i = 0; i < aliveInternalChildren.Count; ++i)
             {
                 Drawable c = aliveInternalChildren[i];
-                if (c.IsLoaded) c.UpdateSubTree();
+                Debug.Assert(c.LoadState >= LoadState.Ready);
+                c.UpdateSubTree();
             }
 
             if (schedulerAfterChildren != null)

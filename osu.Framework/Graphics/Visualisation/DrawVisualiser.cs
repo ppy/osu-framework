@@ -150,11 +150,8 @@ namespace osu.Framework.Graphics.Visualisation
                 if (!dAsContainer.InternalChildren.Any())
                     return null;
 
-                foreach (var c in dAsContainer.InternalChildren)
+                foreach (var c in dAsContainer.AliveInternalChildren)
                 {
-                    if (!c.IsAlive)
-                        continue;
-
                     var contained = findTargetIn(c, state);
                     if (contained != null)
                     {
