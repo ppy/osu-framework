@@ -116,7 +116,8 @@ namespace osu.Framework.Configuration
         }
 
         /// <summary>
-        /// Parse an input into this instance.
+        /// Parse an object into this instance.
+        /// An object deriving T can be parsed, or a string can be parsed if T is an enum type.
         /// </summary>
         /// <param name="input">The input which is to be parsed.</param>
         public virtual void Parse(object input)
