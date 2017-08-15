@@ -12,7 +12,7 @@ namespace osu.Framework.Configuration
         public override bool IsDefault => Math.Abs(Value - Default) < Precision;
 
         /// <summary>
-        /// The precision at which we should do equality comparisons.
+        /// The precision up to which the value of this bindable should be rounded.
         /// </summary>
         public double Precision = double.Epsilon;
 
