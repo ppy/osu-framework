@@ -3,7 +3,7 @@
 
 using System;
 
-namespace osu.Framework.Testing.Drawables.StepButtons
+namespace osu.Framework.Testing.Drawables.Steps
 {
     public class SingleStepButton : StepButton
     {
@@ -17,7 +17,5 @@ namespace osu.Framework.Testing.Drawables.StepButtons
                 Success();
             };
         }
-
-
     }
 }
