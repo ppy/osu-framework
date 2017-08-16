@@ -31,7 +31,8 @@ namespace osu.Framework.Input.Bindings
         /// Construct a new instance.
         /// </summary>
         /// <param name="keys">A comma-separated (KeyCode) string representation of the keys.</param>
-        public KeyCombination(string keys) : this(keys.Split(',').Select(s => (Key)int.Parse(s)))
+        public KeyCombination(string keys)
+            : this(keys.Split(',').Select(s => (Key)int.Parse(s)))
         {
         }
 
@@ -66,5 +67,101 @@ namespace osu.Framework.Input.Bindings
         public static implicit operator KeyCombination(Key[] keys) => new KeyCombination(keys);
 
         public override string ToString() => Keys?.Select(k => ((int)k).ToString()).Aggregate((s1, s2) => $"{s1},{s2}") ?? string.Empty;
+
+        public string ReadableString() => Keys?.Select(getReadableKey).Aggregate((s1, s2) => $"{s1}+{s2}") ?? string.Empty;
+
+        private string getReadableKey(Key key)
+        {
+            switch (key)
+            {
+                case Key.Unknown:
+                    return string.Empty;
+                case Key.ShiftLeft:
+                    return "LShift";
+                case Key.ShiftRight:
+                    return "RShift";
+                case Key.ControlLeft:
+                    return "LCtrl";
+                case Key.ControlRight:
+                    return "RCtrl";
+                case Key.AltLeft:
+                    return "LAlt";
+                case Key.AltRight:
+                    return "RAlt";
+                case Key.WinLeft:
+                    return "LWin";
+                case Key.WinRight:
+                    return "RWin";
+                case Key.Escape:
+                    return "Esc";
+                case Key.BackSpace:
+                    return "Backsp";
+                case Key.Insert:
+                    return "Ins";
+                case Key.Delete:
+                    return "Del";
+                case Key.PageUp:
+                    return "Pgup";
+                case Key.PageDown:
+                    return "Pgdn";
+                case Key.CapsLock:
+                    return "Caps";
+                case Key.Number0:
+                case Key.Keypad0:
+                    return "0";
+                case Key.Number1:
+                case Key.Keypad1:
+                    return "1";
+                case Key.Number2:
+                case Key.Keypad2:
+                    return "2";
+                case Key.Number3:
+                case Key.Keypad3:
+                    return "3";
+                case Key.Number4:
+                case Key.Keypad4:
+                    return "4";
+                case Key.Number5:
+                case Key.Keypad5:
+                    return "5";
+                case Key.Number6:
+                case Key.Keypad6:
+                    return "6";
+                case Key.Number7:
+                case Key.Keypad7:
+                    return "7";
+                case Key.Number8:
+                case Key.Keypad8:
+                    return "8";
+                case Key.Number9:
+                case Key.Keypad9:
+                    return "9";
+                case Key.Tilde:
+                    return "~";
+                case Key.Minus:
+                    return "-";
+                case Key.Plus:
+                    return "+";
+                case Key.BracketLeft:
+                    return "(";
+                case Key.BracketRight:
+                    return ")";
+                case Key.Semicolon:
+                    return ";";
+                case Key.Quote:
+                    return "\"";
+                case Key.Comma:
+                    return ",";
+                case Key.Period:
+                    return ".";
+                case Key.Slash:
+                    return "/";
+                case Key.BackSlash:
+                case Key.NonUSBackSlash:
+                    return "\\";
+                default:
+                    return key.ToString();
+            }
+        }
     }
 }

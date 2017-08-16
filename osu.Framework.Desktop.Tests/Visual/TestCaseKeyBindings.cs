@@ -62,7 +62,7 @@ namespace osu.Framework.Desktop.Tests.Visual
             {
             }
 
-            protected override IEnumerable<KeyBinding> CreateDefaultMappings() => new[]
+            public override IEnumerable<KeyBinding> DefaultMappings => new[]
             {
                 new KeyBinding(Key.A, TestAction.A ),
                 new KeyBinding(Key.S, TestAction.S ),
