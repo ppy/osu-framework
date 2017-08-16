@@ -113,9 +113,9 @@ namespace osu.Framework.Graphics.Primitives
                 new Triangle(TopLeft, TopRight, BottomLeft).Contains(pos);
         }
 
-        public double Area => new Triangle(BottomRight, BottomLeft, TopRight).Area + new Triangle(TopLeft, TopRight, BottomLeft).Area;
+        public float Area => new Triangle(BottomRight, BottomLeft, TopRight).Area + new Triangle(TopLeft, TopRight, BottomLeft).Area;
 
-        public double ConservativeArea
+        public float ConservativeArea
         {
             get
             {

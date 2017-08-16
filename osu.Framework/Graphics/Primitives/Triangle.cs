@@ -56,9 +56,9 @@ namespace osu.Framework.Graphics.Primitives
             }
         }
 
-        public double ConservativeArea => Math.Abs((P0.Y - P1.Y) * (P1.X - P2.X)) / 2;
+        public float ConservativeArea => Math.Abs((P0.Y - P1.Y) * (P1.X - P2.X)) / 2;
 
-        public double Area
+        public float Area
         {
             get
             {
@@ -66,7 +66,7 @@ namespace osu.Framework.Graphics.Primitives
                 float b = (P0 - P2).Length;
                 float c = (P1 - P2).Length;
                 float s = (a + b + c) / 2.0f;
-                return Math.Sqrt(s * (s - a) * (s - b) * (s - c));
+                return (float)Math.Sqrt(s * (s - a) * (s - b) * (s - c));
             }
         }
     }
