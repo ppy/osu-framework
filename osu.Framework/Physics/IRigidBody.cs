@@ -84,10 +84,13 @@ namespace osu.Framework.Physics
         bool BodyContains(Vector2 screenSpacePos);
     }
 
-    public static class IRigidBodyExtensions
+    /// <summary>
+    /// Helper extension methods operating on <see cref="IRigidBody"/>.
+    /// </summary>
+    public static class RigidBodyExtensions
     {
         /// <summary>
-        /// Helper function for code brevity in <see cref="computeImpulse(RigidBodyContainer, Vector2, Vector2)"/>.
+        /// Helper function for code brevity in <see cref="ComputeImpulse(IRigidBody, IRigidBody, Vector2, Vector2)"/>.
         /// Can be moved into the function as a nested method once C# 7 is out.
         /// </summary>
         public static float ImpulseDenominator(this IRigidBody body, Vector2 pos, Vector2 normal)
