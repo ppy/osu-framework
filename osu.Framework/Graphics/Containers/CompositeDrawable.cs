@@ -298,7 +298,7 @@ namespace osu.Framework.Graphics.Containers
             if (drawable.LoadState >= LoadState.Ready)
                 drawable.Parent = this;
             // If we're already loaded, we can eagerly allow children to be loaded
-            else if (LoadState >= LoadState.Ready)
+            else if (LoadState >= LoadState.Loading)
                 loadChild(drawable);
 
             internalChildren.Add(drawable);
