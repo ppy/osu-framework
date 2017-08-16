@@ -664,11 +664,18 @@ namespace osu.Framework.Input
 
         private bool handleKeyDown(InputState state, Key key, bool repeat)
         {
-            if (!unfocusIfNoLongerValid())
-                keyboardInputQueue.Insert(0, FocusedDrawable);
+            var args = new KeyDownEventArgs { Key = key, Repeat = repeat };
 
-            return PropagateKeyDown(keyboardInputQueue, state, new KeyDownEventArgs { Key = key, Repeat = repeat });
+            if (!unfocusIfNoLongerValid())
+            {
+                if (FocusedDrawable != null && PropagateKeyDown(new[] { FocusedDrawable }, state, args))
+                    return true;
+            }
+
+            return PropagateKeyDown(GetKeyboardInputQueue(), state, args);
         }
+
+        protected virtual IEnumerable<Drawable> GetKeyboardInputQueue() => keyboardInputQueue;
 
         protected virtual bool PropagateKeyDown(IEnumerable<Drawable> drawables, InputState state, KeyDownEventArgs args)
         {
@@ -677,10 +684,10 @@ namespace osu.Framework.Input
 
         private bool handleKeyUp(InputState state, Key key)
         {
-            if (!unfocusIfNoLongerValid() && FocusedDrawable != null)
-                keyboardInputQueue.Insert(0, FocusedDrawable);
+            if (!unfocusIfNoLongerValid() && FocusedDrawable != null && PropagateKeyUp(new[] { FocusedDrawable }, state, new KeyUpEventArgs { Key = key }))
+                return true;
 
-            return PropagateKeyUp(keyboardInputQueue, state, new KeyUpEventArgs { Key = key });
+            return PropagateKeyUp(GetKeyboardInputQueue(), state, new KeyUpEventArgs { Key = key });
         }
 
         protected virtual bool PropagateKeyUp(IEnumerable<Drawable> drawables, InputState state, KeyUpEventArgs args)
