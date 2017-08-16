@@ -15,9 +15,8 @@ namespace osu.Framework.Input.Bindings
 
         /// <summary>
         /// The resultant action which is triggered by this binding.
-        /// This is an <see cref="int"/> representation of an enum type.
         /// </summary>
-        public int Action;
+        public object Action;
 
         /// <summary>
         /// Construct a new instance.
@@ -27,7 +26,8 @@ namespace osu.Framework.Input.Bindings
         public KeyBinding(KeyCombination keys, object action)
         {
             KeyCombination = keys;
-            Action = (int)action;
+
+            Action = action;
         }
 
         /// <summary>
@@ -42,7 +42,7 @@ namespace osu.Framework.Input.Bindings
         /// </summary>
         /// <typeparam name="T">The enum type.</typeparam>
         /// <returns>A cast <see cref="T"/> representation of <see cref="Action"/>.</returns>
-        public virtual T GetAction<T>() => (T)(object)Action;
+        public virtual T GetAction<T>() => (T)Action;
 
         public override string ToString() => $"{KeyCombination}=>{Action}";
     }
