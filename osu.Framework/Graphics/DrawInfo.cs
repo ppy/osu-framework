@@ -35,6 +35,12 @@ namespace osu.Framework.Graphics
         /// <param name="origin">The center of rotation and scale.</param>
         public void ApplyTransform(Vector2 translation, Vector2 scale, float rotation, Vector2 shear, Vector2 origin)
         {
+            checkComponentValid(translation, nameof(translation));
+            checkComponentValid(scale, nameof(scale));
+            checkComponentValid(rotation, nameof(rotation));
+            checkComponentValid(shear, nameof(shear));
+            checkComponentValid(origin, nameof(origin));
+
             if (translation != Vector2.Zero)
             {
                 MatrixExtensions.TranslateFromLeft(ref Matrix, translation);
@@ -72,6 +78,18 @@ namespace osu.Framework.Graphics
             //========================================================================================
             //target.MatrixInverse = target.Matrix;
             //MatrixExtensions.FastInvert(ref target.MatrixInverse);
+        }
+
+        private void checkComponentValid(float component, string name)
+        {
+            if (float.IsNaN(component) || float.IsInfinity(component))
+                throw new ArgumentException($"Invalid value ({component}) provided for component {name}.");
+        }
+
+        private void checkComponentValid(Vector2 component, string name)
+        {
+            checkComponentValid(component.X, name + ".X");
+            checkComponentValid(component.Y, name + ".Y");
         }
 
         public bool Equals(DrawInfo other)
