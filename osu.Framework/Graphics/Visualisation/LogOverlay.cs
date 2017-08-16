@@ -19,8 +19,6 @@ namespace osu.Framework.Graphics.Visualisation
     {
         private readonly FillFlowContainer flow;
 
-        protected override bool HideOnEscape => false;
-
         protected override bool BlockPassThroughMouse => false;
 
         private Bindable<bool> enabled;

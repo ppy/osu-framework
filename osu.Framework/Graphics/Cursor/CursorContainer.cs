@@ -18,8 +18,6 @@ namespace osu.Framework.Graphics.Cursor
         //OverlayContainer tried to be smart about this, but we don't want none of that.
         public override bool HandleInput => IsPresent;
 
-        protected override bool HideOnEscape => false;
-
         public CursorContainer()
         {
             Depth = float.MinValue;
