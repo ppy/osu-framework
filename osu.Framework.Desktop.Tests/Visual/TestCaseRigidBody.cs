@@ -106,7 +106,7 @@ namespace osu.Framework.Desktop.Tests.Visual
             });
 
             foreach (var d in sim.Children)
-                sim.SetMass(d, (float)d.ScreenSpaceDrawQuad.Area);
+                sim.SetMass(d, d.ScreenSpaceDrawQuad.Area);
         }
 
         private class TestRigidBodyContainer : RigidBodyContainer
