@@ -4,11 +4,13 @@
 using System;
 using NUnit.Framework;
 using osu.Framework.Graphics;
-using osu.Framework.Graphics.Containers;
 using osu.Framework.Physics;
 using osu.Framework.Testing;
 using OpenTK;
 using OpenTK.Graphics;
+using osu.Framework.MathUtils;
+using osu.Framework.Graphics.Shapes;
+using osu.Framework.Graphics.UserInterface;
 
 namespace osu.Framework.Desktop.Tests.Visual
 {
@@ -17,120 +19,162 @@ namespace osu.Framework.Desktop.Tests.Visual
     {
         public override string Description => @"Rigid body simulation scenarios.";
 
-        private readonly Container testContainer;
-        private RigidBodySimulation sim;
+        private readonly TestRigidBodySimulation sim;
+
+        private float restitutionBacking;
+        private float restitution
+        {
+            get { return restitutionBacking; }
+            set {
+                restitutionBacking = value;
+
+                if (sim == null)
+                    return;
+
+                foreach (var d in sim.Children)
+                    d.Restitution = value;
+                sim.Restitution = value;
+            }
+        }
+
+        private float frictionBacking;
+        private float friction
+        {
+            get { return frictionBacking; }
+            set {
+                frictionBacking = value;
+
+                if (sim == null)
+                    return;
+
+                foreach (var d in sim.Children)
+                    d.FrictionCoefficient = value;
+                sim.FrictionCoefficient = value;
+            }
+        }
 
         public TestCaseRigidBody()
         {
-            Add(testContainer = new Container
-            {
-                RelativeSizeAxes = Axes.Both,
-            });
+            Child = sim = new TestRigidBodySimulation { RelativeSizeAxes = Axes.Both };
 
-            string[] testNames =
-            {
-                @"Random Children",
-            };
+            AddStep("Reset bodies", reset);
 
-            for (int i = 0; i < testNames.Length; i++)
-            {
-                int test = i;
-                AddStep(testNames[i], delegate { loadTest(test); });
-            }
+            AddSliderStep("Simulation speed", 0.0, 1.0, 0.5, v => sim.SimulationSpeed = (float)v);
+            AddSliderStep("Restitution", -1.0, 1.0, 1.0, v => restitution = (float)v);
+            AddSliderStep("Friction", -1.0, 5.0, 0.0, v => friction = (float)v);
 
-            loadTest(0);
+            reset();
         }
 
         private bool overlapsAny(Drawable d)
         {
-            foreach (Drawable other in testContainer.Children)
+            foreach (var other in sim.Children)
                 if (other.ScreenSpaceDrawQuad.AABB.IntersectsWith(d.ScreenSpaceDrawQuad.AABB))
                     return true;
 
             return false;
         }
 
-        private void generateN(int n, Func<Drawable> generate)
+        private void generateN(int n, Func<RigidBodyContainer<Drawable>> generate)
         {
             for (int i = 0; i < n; i++)
             {
-                Drawable d = generate();
-
-                if (overlapsAny(d))
+                RigidBodyContainer<Drawable> d;
+                do
                 {
-                    --i;
-                    continue;
+                    d = generate();
                 }
+                while (overlapsAny(d));
 
-                testContainer.Add(d);
+                sim.Add(d);
             }
         }
 
-        private void loadTest(int testType)
+        private void reset()
         {
-            testContainer.Clear();
+            sim.Clear();
 
-            switch (testType)
+            Random random = new Random(1337);
+
+            // Add a textbox... because we can.
+            generateN(3, () => new RigidBodyContainer<Drawable>
             {
-                case 0:
-                    Random random = new Random(1337);
+                Position = new Vector2((float)random.NextDouble(), (float)random.NextDouble()) * 1000,
+                Size = new Vector2(1, 0.1f + 0.2f * (float)random.NextDouble()) * (150 + 150  * (float)random.NextDouble()),
+                Rotation = (float)random.NextDouble() * 360,
+                Child = new TextBox
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    PlaceholderText = "Text box fun!",
+                },
+            });
 
-                    // Boxes
-                    generateN(10, () => new InfofulBox
-                    {
-                        Position = new Vector2((float)random.NextDouble(), (float)random.NextDouble()) * 1000,
-                        Size = new Vector2((float)random.NextDouble(), (float)random.NextDouble()) * 200,
-                        Rotation = (float)random.NextDouble() * 360,
-                        Colour = new Color4(253, 253, 253, 255),
-                        Origin = Anchor.Centre,
-                        Anchor = Anchor.TopLeft,
-                    });
+            // Boxes
+            generateN(10, () => new TestRigidBody
+            {
+                Position = new Vector2((float)random.NextDouble(), (float)random.NextDouble()) * 1000,
+                Size = new Vector2((float)random.NextDouble(), (float)random.NextDouble()) * 200,
+                Rotation = (float)random.NextDouble() * 360,
+                Colour = new Color4(253, 253, 253, 255),
+            });
 
-                    // Circles
-                    generateN(10, delegate
-                    {
-                        Vector2 size = new Vector2((float)random.NextDouble()) * 200;
-                        return new InfofulBox
-                        {
-                            Position = new Vector2((float)random.NextDouble(), (float)random.NextDouble()) * 1000,
-                            Size = size,
-                            Rotation = (float)random.NextDouble() * 360,
-                            CornerRadius = size.X / 2,
-                            Colour = new Color4(253, 253, 253, 255),
-                            Origin = Anchor.Centre,
-                            Anchor = Anchor.TopLeft,
-                            Masking = true,
-                        };
-                    });
+            // Circles
+            generateN(5, () =>
+            {
+                Vector2 size = new Vector2((float)random.NextDouble()) * 200;
+                return new TestRigidBody
+                {
+                    Position = new Vector2((float)random.NextDouble(), (float)random.NextDouble()) * 1000,
+                    Size = size,
+                    Rotation = (float)random.NextDouble() * 360,
+                    CornerRadius = size.X / 2,
+                    Colour = new Color4(253, 253, 253, 255),
+                    Masking = true,
+                };
+            });
 
-                    // Totally random stuff
-                    generateN(10, delegate
-                    {
-                        Vector2 size = new Vector2((float)random.NextDouble(), (float)random.NextDouble()) * 200;
-                        return new InfofulBox
-                        {
-                            Position = new Vector2((float)random.NextDouble(), (float)random.NextDouble()) * 1000,
-                            Size = size,
-                            Rotation = (float)random.NextDouble() * 360,
-                            Shear = new Vector2((float)random.NextDouble(), (float)random.NextDouble()) * 2 - new Vector2(1),
-                            CornerRadius = (float)random.NextDouble() * Math.Min(size.X, size.Y) / 2,
-                            Colour = new Color4(253, 253, 253, 255),
-                            Origin = Anchor.Centre,
-                            Anchor = Anchor.TopLeft,
-                            Masking = true,
-                        };
-                    });
+            // Totally random stuff
+            generateN(10, () =>
+            {
+                Vector2 size = new Vector2((float)random.NextDouble(), (float)random.NextDouble()) * 200;
+                return new TestRigidBody
+                {
+                    Position = new Vector2((float)random.NextDouble(), (float)random.NextDouble()) * 1000,
+                    Size = size,
+                    Rotation = (float)random.NextDouble() * 360,
+                    Shear = new Vector2((float)random.NextDouble(), (float)random.NextDouble()) * 2 - new Vector2(1),
+                    CornerRadius = (float)random.NextDouble() * Math.Min(size.X, size.Y) / 2,
+                    Colour = new Color4(253, 253, 253, 255),
+                    Masking = true,
+                };
+            });
 
-                    break;
+            // Set appropriate properties
+            foreach (var d in sim.Children)
+            {
+                d.Mass = Math.Max(0.01f, d.ScreenSpaceDrawQuad.Area);
+                d.FrictionCoefficient = friction;
+                d.Restitution = restitution;
             }
-
-            sim = new RigidBodySimulation(testContainer);
         }
 
-        protected override void UpdateAfterChildren()
+        private class TestRigidBody : RigidBodyContainer<Drawable>
         {
-            sim.Update((float)Time.Elapsed / 100);
-            base.UpdateAfterChildren();
+            public TestRigidBody()
+            {
+                Child = new Box { RelativeSizeAxes = Axes.Both };
+            }
+        }
+
+        private class TestRigidBodySimulation : RigidBodySimulation
+        {
+            protected override void LoadComplete()
+            {
+                base.LoadComplete();
+
+                foreach (var d in Children)
+                    d.ApplyImpulse(new Vector2(RNG.NextSingle() - 0.5f, RNG.NextSingle() - 0.5f) * 100, d.Centre + new Vector2(RNG.NextSingle() - 0.5f, RNG.NextSingle() - 0.5f) * 100);
+            }
         }
     }
 }

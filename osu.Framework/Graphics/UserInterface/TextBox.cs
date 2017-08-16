@@ -478,7 +478,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (textInput?.ImeActive == true) return true;
 
-            if (args.Key >= Key.F1 && args.Key <= Key.F35)
+            if (args.Key <= Key.F35)
                 return false;
 
             if (HandlePendingText(state)) return true;
