@@ -12,8 +12,6 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     public abstract class FocusedOverlayContainer : OverlayContainer
     {
-        protected InputManager InputManager;
-
         public override bool RequestsFocus => State == Visibility.Visible;
 
         public override bool AcceptsFocus => true;
