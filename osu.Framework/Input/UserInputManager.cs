@@ -27,17 +27,7 @@ namespace osu.Framework.Input
             UseParentState = false;
         }
 
-        protected override bool PropagateKeyDown(IEnumerable<Drawable> drawables, InputState state, KeyDownEventArgs args)
-        {
-            // always handle ourselves before all children.
-            return base.PropagateKeyDown(new[] { Child }.Concat(drawables), state, args);
-        }
-
-        protected override bool PropagateKeyUp(IEnumerable<Drawable> drawables, InputState state, KeyUpEventArgs args)
-        {
-            // always handle ourselves before all children.
-            return base.PropagateKeyUp(new[] { Child }.Concat(drawables), state, args);
-        }
+        protected override IEnumerable<Drawable> GetKeyboardInputQueue() => new[] { Child }.Concat(base.GetKeyboardInputQueue());
     }
 
     public enum FrameworkAction
