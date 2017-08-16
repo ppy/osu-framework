@@ -26,21 +26,33 @@ namespace osu.Framework.Physics
         public float SimulationSpeed = 1;
 
         /// <summary>
-        /// Sets the <see cref="RigidBody.Restitution"/> of all rigid bodies.
+        /// The default value of <see cref="RigidBody.Restitution"/> for newly added children.
+        /// </summary>
+        public float DefaultRestitution = 1;
+
+        /// <summary>
+        /// The default value of <see cref="RigidBody.FrictionCoefficient"/> for newly added children.
+        /// </summary>
+        public float DefaultFrictionCoefficient;
+
+        /// <summary>
+        /// Sets the <see cref="RigidBody.Restitution"/> of all current and future rigid bodies.
         /// </summary>
         /// <param name="value">The value to set the <see cref="RigidBody.Restitution"/> to.</param>
         public void SetRestitution(float value)
         {
+            DefaultRestitution = value;
             foreach (var c in InternalChildren)
                 SetRestitution(c, value);
         }
 
         /// <summary>
-        /// Sets the <see cref="RigidBody.FrictionCoefficient"/> of all rigid bodies.
+        /// Sets the <see cref="RigidBody.FrictionCoefficient"/> of all current and future rigid bodies.
         /// </summary>
         /// <param name="value">The value to set the <see cref="RigidBody.FrictionCoefficient"/> to.</param>
         public void SetFrictionCoefficient(float value)
         {
+            DefaultFrictionCoefficient = value;
             foreach (var c in InternalChildren)
                 SetFrictionCoefficient(c, value);
         }
@@ -84,7 +96,11 @@ namespace osu.Framework.Physics
         {
             RigidBody body;
             if (!states.TryGetValue(d, out body))
+            {
                 states[d] = body = d == this ? new ContainerBody(d, this) : new DrawableBody(d, this);
+                body.Restitution = DefaultRestitution;
+                body.FrictionCoefficient = DefaultFrictionCoefficient;
+            }
 
             return body;
         }
