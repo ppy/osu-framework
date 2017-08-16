@@ -9,6 +9,8 @@ using osu.Framework.Testing;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.MathUtils;
+using osu.Framework.Graphics.Shapes;
+using osu.Framework.Graphics.UserInterface;
 
 namespace osu.Framework.Desktop.Tests.Visual
 {
@@ -17,17 +19,49 @@ namespace osu.Framework.Desktop.Tests.Visual
     {
         public override string Description => @"Rigid body simulation scenarios.";
 
-        private readonly TestRigidBodyContainer sim;
+        private readonly TestRigidBodySimulation sim;
+
+        private float restitutionBacking;
+        private float restitution
+        {
+            get { return restitutionBacking; }
+            set {
+                restitutionBacking = value;
+
+                if (sim == null)
+                    return;
+
+                foreach (var d in sim.Children)
+                    d.Restitution = value;
+                sim.Restitution = value;
+            }
+        }
+
+        private float frictionBacking;
+        private float friction
+        {
+            get { return frictionBacking; }
+            set {
+                frictionBacking = value;
+
+                if (sim == null)
+                    return;
+
+                foreach (var d in sim.Children)
+                    d.FrictionCoefficient = value;
+                sim.FrictionCoefficient = value;
+            }
+        }
 
         public TestCaseRigidBody()
         {
-            Child = sim = new TestRigidBodyContainer { RelativeSizeAxes = Axes.Both };
+            Child = sim = new TestRigidBodySimulation { RelativeSizeAxes = Axes.Both };
 
             AddStep("Reset bodies", reset);
 
-            AddSliderStep("Simulation speed", 0.0, 4.0, 1.0, v => sim.SimulationSpeed = (float)v);
-            AddSliderStep("Restitution", -1.0, 1.0, 1.0, v => sim.SetRestitution((float)v));
-            AddSliderStep("Friction", -1.0, 5.0, 0.0, v => sim.SetFrictionCoefficient((float)v));
+            AddSliderStep("Simulation speed", 0.0, 1.0, 0.5, v => sim.SimulationSpeed = (float)v);
+            AddSliderStep("Restitution", -1.0, 1.0, 1.0, v => restitution = (float)v);
+            AddSliderStep("Friction", -1.0, 5.0, 0.0, v => friction = (float)v);
 
             reset();
         }
@@ -41,12 +75,15 @@ namespace osu.Framework.Desktop.Tests.Visual
             return false;
         }
 
-        private void generateN(int n, Func<Drawable> generate)
+        private void generateN(int n, Func<RigidBodyContainer<Drawable>> generate)
         {
             for (int i = 0; i < n; i++)
             {
-                Drawable d;
-                do d = generate();
+                RigidBodyContainer<Drawable> d;
+                do
+                {
+                    d = generate();
+                }
                 while (overlapsAny(d));
 
                 sim.Add(d);
@@ -59,39 +96,48 @@ namespace osu.Framework.Desktop.Tests.Visual
 
             Random random = new Random(1337);
 
+            // Add a textbox... because we can.
+            generateN(3, () => new RigidBodyContainer<Drawable>
+            {
+                Position = new Vector2((float)random.NextDouble(), (float)random.NextDouble()) * 1000,
+                Size = new Vector2(1, 0.1f + 0.2f * (float)random.NextDouble()) * (150 + 150  * (float)random.NextDouble()),
+                Rotation = (float)random.NextDouble() * 360,
+                Child = new TextBox
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    PlaceholderText = "Text box fun!",
+                },
+            });
+
             // Boxes
-            generateN(10, () => new InfofulBox
+            generateN(10, () => new TestRigidBody
             {
                 Position = new Vector2((float)random.NextDouble(), (float)random.NextDouble()) * 1000,
                 Size = new Vector2((float)random.NextDouble(), (float)random.NextDouble()) * 200,
                 Rotation = (float)random.NextDouble() * 360,
                 Colour = new Color4(253, 253, 253, 255),
-                Origin = Anchor.Centre,
-                Anchor = Anchor.TopLeft,
             });
 
             // Circles
-            generateN(10, delegate
+            generateN(5, () =>
             {
                 Vector2 size = new Vector2((float)random.NextDouble()) * 200;
-                return new InfofulBox
+                return new TestRigidBody
                 {
                     Position = new Vector2((float)random.NextDouble(), (float)random.NextDouble()) * 1000,
                     Size = size,
                     Rotation = (float)random.NextDouble() * 360,
                     CornerRadius = size.X / 2,
                     Colour = new Color4(253, 253, 253, 255),
-                    Origin = Anchor.Centre,
-                    Anchor = Anchor.TopLeft,
                     Masking = true,
                 };
             });
 
             // Totally random stuff
-            generateN(10, delegate
+            generateN(10, () =>
             {
                 Vector2 size = new Vector2((float)random.NextDouble(), (float)random.NextDouble()) * 200;
-                return new InfofulBox
+                return new TestRigidBody
                 {
                     Position = new Vector2((float)random.NextDouble(), (float)random.NextDouble()) * 1000,
                     Size = size,
@@ -99,27 +145,35 @@ namespace osu.Framework.Desktop.Tests.Visual
                     Shear = new Vector2((float)random.NextDouble(), (float)random.NextDouble()) * 2 - new Vector2(1),
                     CornerRadius = (float)random.NextDouble() * Math.Min(size.X, size.Y) / 2,
                     Colour = new Color4(253, 253, 253, 255),
-                    Origin = Anchor.Centre,
-                    Anchor = Anchor.TopLeft,
                     Masking = true,
                 };
             });
 
+            // Set appropriate properties
             foreach (var d in sim.Children)
-                sim.SetMass(d, d.ScreenSpaceDrawQuad.Area);
+            {
+                d.Mass = Math.Max(0.01f, d.ScreenSpaceDrawQuad.Area);
+                d.FrictionCoefficient = friction;
+                d.Restitution = restitution;
+            }
         }
 
-        private class TestRigidBodyContainer : RigidBodyContainer
+        private class TestRigidBody : RigidBodyContainer<Drawable>
+        {
+            public TestRigidBody()
+            {
+                Child = new Box { RelativeSizeAxes = Axes.Both };
+            }
+        }
+
+        private class TestRigidBodySimulation : RigidBodySimulation
         {
             protected override void LoadComplete()
             {
                 base.LoadComplete();
 
-                foreach (Drawable d in InternalChildren)
-                {
-                    RigidBody body = GetRigidBody(d);
-                    body.ApplyImpulse(new Vector2(RNG.NextSingle() - 0.5f, RNG.NextSingle() - 0.5f) * 100, body.Centre + new Vector2(RNG.NextSingle() - 0.5f, RNG.NextSingle() - 0.5f) * 100);
-                }
+                foreach (var d in Children)
+                    d.ApplyImpulse(new Vector2(RNG.NextSingle() - 0.5f, RNG.NextSingle() - 0.5f) * 100, d.Centre + new Vector2(RNG.NextSingle() - 0.5f, RNG.NextSingle() - 0.5f) * 100);
             }
         }
     }
