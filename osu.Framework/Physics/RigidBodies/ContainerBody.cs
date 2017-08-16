@@ -3,6 +3,7 @@
 
 using osu.Framework.Graphics;
 using OpenTK;
+using System;
 
 namespace osu.Framework.Physics.RigidBodies
 {
@@ -14,7 +15,12 @@ namespace osu.Framework.Physics.RigidBodies
     {
         public ContainerBody(Drawable d, RigidBodyContainer sim) : base(d, sim)
         {
-            Mass = float.MaxValue;
+        }
+
+        public override float Mass
+        {
+            get { return float.MaxValue; }
+            set { throw new InvalidOperationException($"May not set the {nameof(Mass)} of a {nameof(ContainerBody)}."); }
         }
 
         protected override void UpdateVertices()

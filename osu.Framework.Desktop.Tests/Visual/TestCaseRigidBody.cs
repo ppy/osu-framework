@@ -17,16 +17,14 @@ namespace osu.Framework.Desktop.Tests.Visual
     {
         public override string Description => @"Rigid body simulation scenarios.";
 
-        private TestRigidBodyContainer sim;
+        private readonly TestRigidBodyContainer sim;
 
         public TestCaseRigidBody()
         {
-            Child = sim = new TestRigidBodyContainer()
-            {
-                RelativeSizeAxes = Axes.Both,
-            };
+            Child = sim = new TestRigidBodyContainer { RelativeSizeAxes = Axes.Both };
 
             AddStep("Reset bodies", reset);
+
             AddSliderStep("Simulation speed", 0.0, 4.0, 1.0, v => sim.SimulationSpeed = (float)v);
             AddSliderStep("Restitution", -1.0, 1.0, 1.0, v => sim.SetRestitution((float)v));
             AddSliderStep("Friction", -1.0, 5.0, 0.0, v => sim.SetFrictionCoefficient((float)v));
@@ -106,6 +104,9 @@ namespace osu.Framework.Desktop.Tests.Visual
                     Masking = true,
                 };
             });
+
+            foreach (var d in sim.Children)
+                sim.SetMass(d, (float)d.ScreenSpaceDrawQuad.Area);
         }
 
         private class TestRigidBodyContainer : RigidBodyContainer

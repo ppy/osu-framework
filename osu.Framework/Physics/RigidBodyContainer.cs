@@ -2,10 +2,8 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using OpenTK;
-using OpenTK.Graphics;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.MathUtils;
 using System.Collections.Generic;
 using osu.Framework.Physics.RigidBodies;
 using System;
@@ -36,12 +34,19 @@ namespace osu.Framework.Physics
         public float DefaultFrictionCoefficient;
 
         /// <summary>
+        /// The default value of <see cref="RigidBody.Mass"/> for newly added children.
+        /// </summary>
+        public float DefaultMass = 1;
+
+        /// <summary>
         /// Sets the <see cref="RigidBody.Restitution"/> of all current and future rigid bodies.
         /// </summary>
         /// <param name="value">The value to set the <see cref="RigidBody.Restitution"/> to.</param>
         public void SetRestitution(float value)
         {
             DefaultRestitution = value;
+
+            SetRestitution(this, value);
             foreach (var c in InternalChildren)
                 SetRestitution(c, value);
         }
@@ -53,8 +58,22 @@ namespace osu.Framework.Physics
         public void SetFrictionCoefficient(float value)
         {
             DefaultFrictionCoefficient = value;
+
+            SetFrictionCoefficient(this, value);
             foreach (var c in InternalChildren)
                 SetFrictionCoefficient(c, value);
+        }
+
+        /// <summary>
+        /// Sets the <see cref="RigidBody.Mass"/> of all current and future rigid bodies.
+        /// </summary>
+        /// <param name="value">The value to set the <see cref="RigidBody.Mass"/> to.</param>
+        public void SetMass(float value)
+        {
+            DefaultMass = value;
+
+            foreach (var c in InternalChildren)
+                SetMass(c, value);
         }
 
         /// <summary>
@@ -63,14 +82,7 @@ namespace osu.Framework.Physics
         /// </summary>
         /// <param name="child">The child of which to set the <see cref="RigidBody.Restitution"/>.</param>
         /// <param name="value">The value to set the <see cref="RigidBody.Restitution"/> to.</param>
-        public void SetRestitution(Drawable child, float value)
-        {
-            if (!Contains(child))
-                throw new InvalidOperationException(
-                    $"Can not set the {nameof(RigidBody.Restitution)} of a {nameof(Drawable)} which is not contained within this {nameof(RigidBodyContainer)}.");
-
-            GetRigidBody(child).Restitution = value;
-        }
+        public void SetRestitution(Drawable child, float value) => GetRigidBody(child).Restitution = value;
 
         /// <summary>
         /// Sets the <see cref="RigidBody.FrictionCoefficient"/> of a <see cref="RigidBody"/> corresponding to
@@ -78,14 +90,15 @@ namespace osu.Framework.Physics
         /// </summary>
         /// <param name="child">The child of which to set the <see cref="RigidBody.FrictionCoefficient"/>.</param>
         /// <param name="value">The value to set the <see cref="RigidBody.FrictionCoefficient"/> to.</param>
-        public void SetFrictionCoefficient(Drawable child, float value)
-        {
-            if (!Contains(child))
-                throw new InvalidOperationException(
-                    $"Can not set the {nameof(RigidBody.FrictionCoefficient)} of a {nameof(Drawable)} which is not contained within this {nameof(RigidBodyContainer)}.");
+        public void SetFrictionCoefficient(Drawable child, float value) => GetRigidBody(child).FrictionCoefficient = value;
 
-            GetRigidBody(child).FrictionCoefficient = value;
-        }
+        /// <summary>
+        /// Sets the <see cref="RigidBody.Mass"/> of a <see cref="RigidBody"/> corresponding to
+        /// a <paramref name="child"/> of this <see cref="RigidBodyContainer"/>.
+        /// </summary>
+        /// <param name="child">The child of which to set the <see cref="RigidBody.Mass"/>.</param>
+        /// <param name="value">The value to set the <see cref="RigidBody.Mass"/> to.</param>
+        public void SetMass(Drawable child, float value) => GetRigidBody(child).Mass = value;
 
         private readonly Dictionary<Drawable, RigidBody> states = new Dictionary<Drawable, RigidBody>();
 
@@ -94,12 +107,20 @@ namespace osu.Framework.Physics
         /// </summary>
         protected RigidBody GetRigidBody(Drawable d)
         {
+            if (d != this && !Contains(d))
+                throw new InvalidOperationException(
+                    $"Can not obtain a {nameof(RigidBody)} of a {nameof(Drawable)} which is not part of this {nameof(RigidBodyContainer)}.");
+
             RigidBody body;
             if (!states.TryGetValue(d, out body))
             {
                 states[d] = body = d == this ? new ContainerBody(d, this) : new DrawableBody(d, this);
+
                 body.Restitution = DefaultRestitution;
                 body.FrictionCoefficient = DefaultFrictionCoefficient;
+
+                if (d != this)
+                    body.Mass = DefaultMass;
             }
 
             return body;

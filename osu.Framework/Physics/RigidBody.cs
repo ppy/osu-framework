@@ -31,7 +31,7 @@ namespace osu.Framework.Physics
 
         public float Rotation;
 
-        public float Mass;
+        public virtual float Mass { get; set; } = 1;
 
         public Vector2 Velocity
         {
@@ -77,11 +77,6 @@ namespace osu.Framework.Physics
         protected RigidBody(RigidBodyContainer sim)
         {
             simulation = sim;
-            Mass = 1f; // Arbitrarily 1 kg for now
-
-            // Initially no moments
-            Momentum = Vector2.Zero;
-            AngularMomentum = 0;
         }
 
         protected Matrix3 ScreenToSimulationSpace => simulation.DrawInfo.MatrixInverse;
