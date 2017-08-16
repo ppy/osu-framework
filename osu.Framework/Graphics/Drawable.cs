@@ -1067,7 +1067,7 @@ namespace osu.Framework.Graphics
         /// Determines whether this Drawable is present based on its <see cref="Alpha"/> value.
         /// Can be forced always on with <see cref="AlwaysPresent"/>.
         /// </summary>
-        public virtual bool IsPresent => AlwaysPresent || Alpha > visibility_cutoff;
+        public virtual bool IsPresent => (AlwaysPresent || Alpha > visibility_cutoff) && Scale.X > Precision.FLOAT_EPSILON && Scale.Y > Precision.FLOAT_EPSILON;
 
         private bool alwaysPresent;
 
