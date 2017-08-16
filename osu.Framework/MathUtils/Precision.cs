@@ -8,7 +8,7 @@ namespace osu.Framework.MathUtils
 {
     public static class Precision
     {
-        public const float FLOAT_EPSILON = 1e-3f;
+        public const float FLOAT_EPSILON = 1e-4f;
         public const double DOUBLE_EPSILON = 1e-7;
 
         public static bool DefinitelyBigger(float value1, float value2, float acceptableDifference = FLOAT_EPSILON)

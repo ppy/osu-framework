@@ -4,7 +4,7 @@
 using System;
 using OpenTK.Graphics;
 
-namespace osu.Framework.Testing.Drawables.StepButtons
+namespace osu.Framework.Testing.Drawables.Steps
 {
     public class RepeatStepButton : StepButton
     {

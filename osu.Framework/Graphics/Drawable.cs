@@ -24,6 +24,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using osu.Framework.MathUtils;
 
 namespace osu.Framework.Graphics
 {
@@ -743,7 +744,10 @@ namespace osu.Framework.Graphics
 
             set
             {
-                if (scale == value) return;
+                value = Vector2.ComponentMax(new Vector2(Precision.FLOAT_EPSILON), value);
+
+                if (scale == value)
+                    return;
                 scale = value;
 
                 Invalidate(Invalidation.MiscGeometry);
