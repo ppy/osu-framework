@@ -665,15 +665,7 @@ namespace osu.Framework.Input
         private bool handleKeyDown(InputState state, Key key, bool repeat)
         {
             if (!unfocusIfNoLongerValid())
-            {
-                if (key == Key.Escape)
-                {
-                    ChangeFocus(null);
-                    return true;
-                }
-
                 keyboardInputQueue.Insert(0, FocusedDrawable);
-            }
 
             return PropagateKeyDown(keyboardInputQueue, state, new KeyDownEventArgs { Key = key, Repeat = repeat });
         }
