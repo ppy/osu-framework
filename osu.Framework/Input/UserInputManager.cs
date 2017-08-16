@@ -14,7 +14,7 @@ namespace osu.Framework.Input
     {
         protected override IEnumerable<InputHandler> InputHandlers => Host.AvailableInputHandlers;
 
-        public override IEnumerable<KeyBinding> DefaultMappings => new[]
+        public override IEnumerable<KeyBinding> DefaultKeyBindings => new[]
         {
             new KeyBinding(new[] { Key.LControl, Key.F1 }, FrameworkAction.ToggleDrawVisualiser),
             new KeyBinding(new[] { Key.LControl, Key.F11 }, FrameworkAction.CycleFrameStatistics),

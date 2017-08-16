@@ -119,7 +119,7 @@ namespace osu.Framework.Input.Bindings
     {
         protected IEnumerable<KeyBinding> KeyBindings;
 
-        public abstract IEnumerable<KeyBinding> DefaultMappings { get; }
+        public abstract IEnumerable<KeyBinding> DefaultKeyBindings { get; }
 
         protected override void LoadComplete()
         {
@@ -129,7 +129,7 @@ namespace osu.Framework.Input.Bindings
 
         protected virtual void ReloadMappings()
         {
-            KeyBindings = DefaultMappings;
+            KeyBindings = DefaultKeyBindings;
         }
     }
 
