@@ -186,7 +186,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         /// <param name="tab">The tab to add</param>
         /// <param name="addToDropdown">Whether the tab should be added to the Dropdown if supported by the <see cref="TabControl{T}"/> implementation</param>
-        protected void AddTabItem(TabItem<T> tab, bool addToDropdown = true)
+        protected virtual void AddTabItem(TabItem<T> tab, bool addToDropdown = true)
         {
             tab.PinnedChanged += t =>
             {
@@ -207,11 +207,9 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         /// <param name="tab">The tab to remove</param>
         /// <param name="removeFromDropdown">Whether the tab should be removed from the Dropdown if supported by the <see cref="TabControl{T}"/> implementation</param>
-        protected void RemoveTabItem(TabItem<T> tab, bool removeFromDropdown = true)
+        protected virtual void RemoveTabItem(TabItem<T> tab, bool removeFromDropdown = true)
         {
-            TabItem<T> tabItem = tabMap[tab.Value];
-
-            if (!tabItem.IsRemovable) return;
+            if (!tab.IsRemovable) return;
 
             if (tab == SelectedTab)
                 SelectedTab = null;
@@ -222,9 +220,10 @@ namespace osu.Framework.Graphics.UserInterface
             if (removeFromDropdown)
                 Dropdown?.RemoveDropdownItem(tab.Value);
 
-            TabContainer.Remove(tabItem);
+            TabContainer.Remove(tab);
 
-            performTabSort(TabContainer.Children.Last());
+            if (TabContainer.Count > 0)
+                performTabSort(TabContainer.Last());
         }
 
         /// <summary>
@@ -256,8 +255,6 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void performTabSort(TabItem<T> tab)
         {
-            if (tab == null) return;
-
             if (IsLoaded)
                 TabContainer.Remove(tab);
 

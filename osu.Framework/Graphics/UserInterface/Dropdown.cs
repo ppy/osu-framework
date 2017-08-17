@@ -88,6 +88,10 @@ namespace osu.Framework.Graphics.UserInterface
             DropdownMenu.ItemsContainer.Add(item);
         }
 
+        /// <summary>
+        /// Remove a menu item directly.
+        /// </summary>
+        /// <param name="value">Value of the menu item to be removed.</param>
         public void RemoveDropdownItem(T value)
         {
             if (!itemMap.ContainsKey(value))
