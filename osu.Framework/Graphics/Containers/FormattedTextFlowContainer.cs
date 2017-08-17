@@ -9,6 +9,10 @@ using System;
 
 namespace osu.Framework.Graphics.Containers
 {
+    /// <summary>
+    /// A container where you can add text and specify how it should be formatted
+    /// </summary>
+    /// <typeparam name="T">A type that the derived class uses to represent markers</typeparam>
     public abstract class FormattedTextFlowContainer<T> : TextFlowContainer
     {
         /// <summary>
@@ -17,12 +21,12 @@ namespace osu.Framework.Graphics.Containers
         protected abstract Dictionary<string, T> MarkerDelimeters { get; }
 
         /// <summary>
-        /// If a maker needs both a start and an end or if it should continue until the end if not closed
+        /// If a marker needs both a start and an end or if it should continue until the end if not closed
         /// </summary>
         protected virtual bool MarkerNeedsEnd => true;
 
         /// <summary>
-        /// Overrides any existing text and adds the new one with <see cref="AddFormattedText(string)"/>
+        /// Overrides any existing text and adds the new one with <see cref="AddFormattedText(string, Action{SpriteText})"/>
         /// </summary>
         public string FormattedText
         {
@@ -41,7 +45,7 @@ namespace osu.Framework.Graphics.Containers
         protected abstract void FormatText(List<T> markers, SpriteText text);
 
         /// <summary>
-        /// Add new formatted text to this text flow. The \n character will create a new paragraph, not just a line break. If you need \n to be a line break, use <see cref="AddParagraph(string, Action{SpriteText})"/> instead.
+        /// Add new formatted text to this text flow. The \n character will create a new paragraph, not just a line break. If you need \n to be a line break, use <see cref="AddFormattedParagraph(string, Action{SpriteText})"/> instead.
         /// </summary>
         /// <returns>A collection of the <see cref="SpriteText" /> objects for each word created from the given text.</returns>
         /// <param name="text">The formatted text to add.</param>
@@ -49,7 +53,7 @@ namespace osu.Framework.Graphics.Containers
         public IEnumerable<SpriteText> AddFormattedText(string text, Action<SpriteText> creationParameters = null) => addFormattedLine(text, creationParameters, true);
 
         /// <summary>
-        /// Add a new formatted paragraph to this text flow. The \n character will create a line break. If you need \n to be a new paragraph, not just a line break, use <see cref="AddText(string, Action{SpriteText})"/> instead.
+        /// Add a new formatted paragraph to this text flow. The \n character will create a line break. If you need \n to be a new paragraph, not just a line break, use <see cref="AddFormattedText(string, Action{SpriteText})"/> instead.
         /// </summary>
         /// <returns>A collection of the <see cref="SpriteText" /> objects for each word created from the given text.</returns>
         /// <param name="paragraph">The formatted paragraph to add.</param>
@@ -57,7 +61,7 @@ namespace osu.Framework.Graphics.Containers
         public IEnumerable<SpriteText> AddFormattedParagraph(string paragraph, Action<SpriteText> creationParameters = null) => addFormattedLine(paragraph, creationParameters, false);
 
 
-        private IEnumerable<SpriteText> addFormattedLine(string text, Action<SpriteText> creationParameter = null, bool paragraph = false)
+        private IEnumerable<SpriteText> addFormattedLine(string text, Action<SpriteText> creationParameter, bool paragraph)
         {
             List<SpriteText> lines = new List<SpriteText>();
 
