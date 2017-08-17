@@ -69,8 +69,6 @@ namespace osu.Framework.Graphics.Containers
             var addLineAction = paragraph ? AddText : (Func<string, Action<SpriteText>, IEnumerable<SpriteText>>)AddParagraph;
 
             Dictionary<T, bool>  markerActive = MarkerDelimeters.Values.ToDictionary(type => type, type => false);
-            //Dictionaries throw an exception if you try to get values from not set keys
-            markerActive[default(T)] = false;
 
             List<SplitMarker> markers = new List<SplitMarker>();
             foreach (KeyValuePair<string, T> pair in MarkerDelimeters)
@@ -78,7 +76,7 @@ namespace osu.Framework.Graphics.Containers
 
             // Add a sentinel marker for the end of the string such that the entire string is rendered
             // without requiring code duplication.
-            markers.Add(new SplitMarker { Index = text.Length, Length = 0, Type = default(T) });
+            markers.Add(new SplitMarker { Index = text.Length, Length = 0 });
 
             // Sort markers from earliest to latest
             markers.Sort();
@@ -93,8 +91,10 @@ namespace osu.Framework.Graphics.Containers
 
                 lastIndex = marker.Index + marker.Length;
 
-                // Switch marker type state that we just encountered.
-                markerActive[marker.Type] ^= true;
+                //Check if this isn't the decoy marker
+                if(marker.Length != 0)
+                    // Switch marker type state that we just encountered.
+                    markerActive[marker.Type] ^= true;
             }
 
             if(creationParameter != null)
