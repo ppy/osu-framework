@@ -177,7 +177,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (!tabMap.ContainsKey(value))
                 throw new InvalidOperationException($"Item {value} doesn't exist in this {nameof(TabControl<T>)}");
-            
+
             RemoveTabItem(tabMap[value], removeFromDropdown);
         }
 
