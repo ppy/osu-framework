@@ -3,6 +3,7 @@
 
 using osu.Framework.Desktop.Platform.Windows.Native;
 using osu.Framework.Platform;
+using System;
 
 namespace osu.Framework.Desktop.Platform.Windows
 {
@@ -11,6 +12,8 @@ namespace osu.Framework.Desktop.Platform.Windows
         private readonly TimePeriod timePeriod;
 
         public override Clipboard GetClipboard() => new WindowsClipboard();
+
+        public override bool CapsLockEnabled => Console.CapsLock;
 
         internal WindowsGameHost(string gameName, bool bindIPC = false)
             : base(gameName, bindIPC)
