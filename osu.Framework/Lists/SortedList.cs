@@ -88,6 +88,8 @@ namespace osu.Framework.Lists
 
         public bool Contains(T item) => IndexOf(item) >= 0;
 
+        public int BinarySearch(T value) => list.BinarySearch(value, Comparer);
+
         public int IndexOf(T value)
         {
             int index = list.BinarySearch(value, Comparer);
