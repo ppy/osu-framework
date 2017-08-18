@@ -34,13 +34,14 @@ namespace osu.Framework.Input.Bindings
 
         private bool isModifier(InputKey k) => k < InputKey.F1;
 
+        protected override bool PropagateMouseDown(IEnumerable<Drawable> drawables, InputState state, MouseDownEventArgs args) =>
+            handleNewDown(state, KeyCombination.FromMouseButton(args.Button)) || base.PropagateMouseDown(drawables, state, args);
+
+        protected override bool PropagateMouseUp(IEnumerable<Drawable> drawables, InputState state, MouseUpEventArgs args) =>
+            handleNewUp(InputQueue, state, KeyCombination.FromMouseButton(args.Button)) || base.PropagateMouseUp(drawables, state, args);
+
         protected override bool PropagateKeyDown(IEnumerable<Drawable> drawables, InputState state, KeyDownEventArgs args)
         {
-            bool handled = false;
-
-            var pressedCombination = KeyCombination.FromInputState(state);
-            var inputKey = KeyCombination.KeyToInputKey(args.Key);
-
             if (args.Repeat)
             {
                 if (pressedBindings.Count > 0)
@@ -49,11 +50,26 @@ namespace osu.Framework.Input.Bindings
                 return base.PropagateKeyDown(drawables, state, args);
             }
 
+            return handleNewDown(state, KeyCombination.FromKey(args.Key)) || base.PropagateKeyDown(drawables, state, args);
+        }
+
+        protected override bool PropagateKeyUp(IEnumerable<Drawable> drawables, InputState state, KeyUpEventArgs args) =>
+            handleNewUp(drawables, state, KeyCombination.FromKey(args.Key)) || base.PropagateKeyUp(drawables, state, args);
+
+        private bool handleNewDown(InputState state, InputKey newKey)
+        {
+            // we *always* want non-positional input queue for action processing.
+            var drawables = InputQueue;
+
+            var pressedCombination = KeyCombination.FromInputState(state);
+
+            bool handled = false;
+
             var newlyPressed = KeyBindings.Except(pressedBindings).Where(m =>
-                m.KeyCombination.Keys.Contains(inputKey) // only handle bindings matching current key (not required for correct logic)
+                m.KeyCombination.Keys.Contains(newKey) // only handle bindings matching current key (not required for correct logic)
                 && m.KeyCombination.IsPressed(pressedCombination));
 
-            if (isModifier(inputKey))
+            if (isModifier(newKey))
                 // if the current key pressed was a modifier, only handle modifier-only bindings.
                 newlyPressed = newlyPressed.Where(b => b.KeyCombination.Keys.All(isModifier));
 
@@ -85,19 +101,19 @@ namespace osu.Framework.Input.Bindings
                     break;
             }
 
-            return handled || base.PropagateKeyDown(drawables, state, args);
+            return handled;
         }
 
-        protected override bool PropagateKeyUp(IEnumerable<Drawable> drawables, InputState state, KeyUpEventArgs args)
+        // ReSharper disable once UnusedParameter.Local
+        private bool handleNewUp(IEnumerable<Drawable> drawables, InputState state, InputKey releasedKey)
         {
-            bool handled = false;
-
             var pressedCombination = KeyCombination.FromInputState(state);
-            var inputKey = KeyCombination.KeyToInputKey(args.Key);
+
+            bool handled = false;
 
             var newlyReleased = pressedBindings.Where(b => !b.KeyCombination.IsPressed(pressedCombination)).ToList();
 
-            Trace.Assert(newlyReleased.All(b => b.KeyCombination.Keys.Contains(inputKey)));
+            Trace.Assert(newlyReleased.All(b => b.KeyCombination.Keys.Contains(releasedKey)));
 
             foreach (var binding in newlyReleased)
             {
@@ -115,7 +131,7 @@ namespace osu.Framework.Input.Bindings
                 }
             }
 
-            return handled || base.PropagateKeyUp(drawables, state, args);
+            return handled;
         }
     }
 

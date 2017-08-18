@@ -164,12 +164,12 @@ namespace osu.Framework.Input.Bindings
             }
         }
 
-        public static InputKey KeyToInputKey(Key key)
+        public static InputKey FromKey(Key key)
         {
             return (InputKey)key;
         }
 
-        public static InputKey MouseButtonToInputKey(MouseButton button)
+        public static InputKey FromMouseButton(MouseButton button)
         {
             return (InputKey)((int)InputKey.FirstMouseButton + button);
         }
@@ -181,13 +181,13 @@ namespace osu.Framework.Input.Bindings
             if (state.Mouse != null)
             {
                 foreach (var button in state.Mouse.Buttons)
-                    keys.Add(MouseButtonToInputKey(button));
+                    keys.Add(FromMouseButton(button));
             }
 
             if (state.Keyboard != null)
             {
                 foreach (var key in state.Keyboard.Keys)
-                    keys.Add(KeyToInputKey(key));
+                    keys.Add(FromKey(key));
             }
 
             return new KeyCombination(keys);

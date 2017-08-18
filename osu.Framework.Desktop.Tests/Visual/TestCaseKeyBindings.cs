@@ -52,7 +52,9 @@ namespace osu.Framework.Desktop.Tests.Visual
             Ctrl,
             Shift,
             Ctrl_And_Shift,
-            Ctrl_Or_Shift
+            Ctrl_Or_Shift,
+            LeftMouse,
+            RightMouse
         }
 
         private class TestInputManager : KeyBindingInputManager<TestAction>
@@ -88,6 +90,9 @@ namespace osu.Framework.Desktop.Tests.Visual
                 new KeyBinding(new[] { InputKey.LControl, InputKey.LShift }, TestAction.Ctrl_And_Shift),
                 new KeyBinding(new[] { InputKey.LControl }, TestAction.Ctrl_Or_Shift),
                 new KeyBinding(new[] { InputKey.LShift }, TestAction.Ctrl_Or_Shift),
+
+                new KeyBinding(new[] { InputKey.MouseLeft }, TestAction.LeftMouse),
+                new KeyBinding(new[] { InputKey.MouseRight }, TestAction.RightMouse),
             };
         }
 
