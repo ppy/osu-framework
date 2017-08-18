@@ -176,16 +176,16 @@ namespace osu.Framework.Graphics.UserInterface
         private void removeTab(T value, bool removeFromDropdown = true)
         {
             if (!tabMap.ContainsKey(value))
-                throw new InvalidOperationException($"Item {value} doesn't exist in this {nameof(TabControl<T>)}");
+                throw new InvalidOperationException($"Item {value} doesn't exist in this {nameof(TabControl<T>)}.");
 
             RemoveTabItem(tabMap[value], removeFromDropdown);
         }
 
         /// <summary>
-        /// Adds an arbitrary <see cref="TabItem{T}"/> to the control
+        /// Adds an arbitrary <see cref="TabItem{T}"/> to the control.
         /// </summary>
-        /// <param name="tab">The tab to add</param>
-        /// <param name="addToDropdown">Whether the tab should be added to the Dropdown if supported by the <see cref="TabControl{T}"/> implementation</param>
+        /// <param name="tab">The tab to add.</param>
+        /// <param name="addToDropdown">Whether the tab should be added to the Dropdown if supported by the <see cref="TabControl{T}"/> implementation.</param>
         protected virtual void AddTabItem(TabItem<T> tab, bool addToDropdown = true)
         {
             tab.PinnedChanged += t =>
@@ -203,10 +203,10 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
-        /// Removes an arbitrary <see cref="TabItem{T}"/> from the control
+        /// Removes a <see cref="TabItem{T}"/> from this <see cref="TabControl{T}"/>.
         /// </summary>
-        /// <param name="tab">The tab to remove</param>
-        /// <param name="removeFromDropdown">Whether the tab should be removed from the Dropdown if supported by the <see cref="TabControl{T}"/> implementation</param>
+        /// <param name="tab">The tab to remove.</param>
+        /// <param name="removeFromDropdown">Whether the tab should be removed from the Dropdown if supported by the <see cref="TabControl{T}"/> implementation.</param>
         protected virtual void RemoveTabItem(TabItem<T> tab, bool removeFromDropdown = true)
         {
             if (!tab.IsRemovable) return;
@@ -214,7 +214,6 @@ namespace osu.Framework.Graphics.UserInterface
             if (tab == SelectedTab)
                 SelectedTab = null;
 
-            tab.ActivationRequested -= SelectTab;
             tabMap.Remove(tab.Value);
 
             if (removeFromDropdown)

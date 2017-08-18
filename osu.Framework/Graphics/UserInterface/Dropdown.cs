@@ -75,7 +75,7 @@ namespace osu.Framework.Graphics.UserInterface
         public void AddDropdownItem(string text, T value)
         {
             if (itemMap.ContainsKey(value))
-                throw new ArgumentException($"Duplicated selections in {nameof(Dropdown<T>)}!");
+                throw new ArgumentException($"The item {value} already exists in this {nameof(Dropdown<T>)}.");
             var item = CreateMenuItem(text, value);
             item.Action = () =>
             {
@@ -95,7 +95,7 @@ namespace osu.Framework.Graphics.UserInterface
         public void RemoveDropdownItem(T value)
         {
             if (!itemMap.ContainsKey(value))
-                throw new ArgumentException($"Non-existent selection in {nameof(Dropdown<T>)}!");
+                throw new ArgumentException($"The item {value} does not exist in this {nameof(Dropdown<T>)}.");
 
             DropdownMenu.ItemsContainer.Remove(itemMap[value]);
             itemMap.Remove(value);
