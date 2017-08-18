@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System.Collections.Generic;
 using OpenTK;
 using OpenTK.Input;
 
@@ -11,6 +12,8 @@ namespace osu.Framework.Input
         IMouseState NativeState { get; }
 
         IMouseState LastState { get; set; }
+
+        IReadOnlyList<MouseButton> Buttons { get; }
 
         Vector2 Delta { get; }
         Vector2 Position { get; }

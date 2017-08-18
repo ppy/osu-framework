@@ -1888,6 +1888,8 @@ namespace osu.Framework.Graphics
                 this.us = us;
             }
 
+            public IReadOnlyList<MouseButton> Buttons => NativeState.Buttons;
+
             public Vector2 Delta => Position - LastPosition;
 
             public Vector2 Position => us.Parent?.ToLocalSpace(NativeState.Position) ?? NativeState.Position;
