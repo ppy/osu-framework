@@ -159,6 +159,30 @@ namespace osu.Framework.Input.Bindings
                 case InputKey.BackSlash:
                 case InputKey.NonUSBackSlash:
                     return "\\";
+                case InputKey.MouseLeft:
+                    return "LMouse";
+                case InputKey.MouseMiddle:
+                    return "MMouse";
+                case InputKey.MouseRight:
+                    return "RMouse";
+                case InputKey.MouseButton1:
+                    return "M4";
+                case InputKey.MouseButton2:
+                    return "M5";
+                case InputKey.MouseButton3:
+                    return "M6";
+                case InputKey.MouseButton4:
+                    return "M7";
+                case InputKey.MouseButton5:
+                    return "M8";
+                case InputKey.MouseButton6:
+                    return "M9";
+                case InputKey.MouseButton7:
+                    return "M10";
+                case InputKey.MouseButton8:
+                    return "M11";
+                case InputKey.MouseButton9:
+                    return "M12";
                 default:
                     return key.ToString();
             }
