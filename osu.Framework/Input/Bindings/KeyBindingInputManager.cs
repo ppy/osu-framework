@@ -29,7 +29,9 @@ namespace osu.Framework.Input.Bindings
         }
 
         private readonly List<KeyBinding> pressedBindings = new List<KeyBinding>();
+
         private readonly List<T> pressedActions = new List<T>();
+        public IEnumerable<T> PressedActions => pressedActions;
 
         private bool isModifier(Key k) => k < Key.F1;
 
