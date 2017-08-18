@@ -30,6 +30,10 @@ namespace osu.Framework.Input.Bindings
         private readonly List<KeyBinding> pressedBindings = new List<KeyBinding>();
 
         private readonly List<T> pressedActions = new List<T>();
+
+        /// <summary>
+        /// All actions in a currently pressed state.
+        /// </summary>
         public IEnumerable<T> PressedActions => pressedActions;
 
         private bool isModifier(InputKey k) => k < InputKey.F1;
