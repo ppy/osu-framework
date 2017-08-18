@@ -585,11 +585,25 @@ namespace osu.Framework.Input
             return PropagateMouseUp(mouseDownInputQueue.Where(target => target.IsAlive && target.IsPresent), state, args);
         }
 
+        /// <summary>
+        /// Triggers mouse up events on drawables in <paramref cref="drawables"/> until it is handled.
+        /// </summary>
+        /// <param name="drawables">The drawables in the queue.</param>
+        /// <param name="state">The input state.</param>
+        /// <param name="args">The args.</param>
+        /// <returns>Whether the mouse up event was handled.</returns>
         protected virtual bool PropagateMouseUp(IEnumerable<Drawable> drawables, InputState state, MouseUpEventArgs args)
         {
             return drawables.Any(target => target.TriggerOnMouseUp(state, args));
         }
 
+        /// <summary>
+        /// Triggers mouse down events on drawables in <paramref cref="drawables"/> until it is handled.
+        /// </summary>
+        /// <param name="drawables">The drawables in the queue.</param>
+        /// <param name="state">The input state.</param>
+        /// <param name="args">The args.</param>
+        /// <returns>Whether the mouse down event was handled.</returns>
         protected virtual bool PropagateMouseDown(IEnumerable<Drawable> drawables, InputState state, MouseDownEventArgs args)
         {
             return drawables.Any(target => target.TriggerOnMouseDown(state, args));
@@ -691,6 +705,13 @@ namespace osu.Framework.Input
             return PropagateKeyDown(inputQueue, state, args);
         }
 
+        /// <summary>
+        /// Triggers key down events on drawables in <paramref cref="drawables"/> until it is handled.
+        /// </summary>
+        /// <param name="drawables">The drawables in the queue.</param>
+        /// <param name="state">The input state.</param>
+        /// <param name="args">The args.</param>
+        /// <returns>Whether the key down event was handled.</returns>
         protected virtual bool PropagateKeyDown(IEnumerable<Drawable> drawables, InputState state, KeyDownEventArgs args)
         {
             return drawables.Any(target => target.TriggerOnKeyDown(state, args));
@@ -704,6 +725,13 @@ namespace osu.Framework.Input
             return PropagateKeyUp(inputQueue, state, new KeyUpEventArgs { Key = key });
         }
 
+        /// <summary>
+        /// Triggers key up events on drawables in <paramref cref="drawables"/> until it is handled.
+        /// </summary>
+        /// <param name="drawables">The drawables in the queue.</param>
+        /// <param name="state">The input state.</param>
+        /// <param name="args">The args.</param>
+        /// <returns>Whether the key up event was handled.</returns>
         protected virtual bool PropagateKeyUp(IEnumerable<Drawable> drawables, InputState state, KeyUpEventArgs args)
         {
             return drawables.Any(target => target.TriggerOnKeyUp(state, args));
