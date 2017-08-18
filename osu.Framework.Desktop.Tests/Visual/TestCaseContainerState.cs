@@ -95,5 +95,31 @@ namespace osu.Framework.Desktop.Tests.Visual
                 }
             });
         }
+
+        /// <summary>
+        /// Tests whether the result of a <see cref="Container{T}.Contains(T)"/> operation is valid between multiple containers.
+        /// This tests whether the comparator + equality operation in <see cref="CompositeDrawable.IndexOfInternal(Graphics.Drawable)"/> is valid.
+        /// </summary>
+        [Test]
+        public void TestContainerContains()
+        {
+            var drawableA = new Sprite();
+            var drawableB = new Sprite();
+            var containerA = new Container { Child = drawableA };
+            var containerB = new Container { Child = drawableB };
+
+            var newContainer = new Container<Container> { Children = new[] { containerA, containerB } };
+
+            // Because drawableA and drawableB have been added to separate containers,
+            // they will both have Depth = 0 and ChildID = 1, which leads to edge cases if a
+            // sorting comparer that doesn't compare references is used for Contains().
+            // If this is not handled properly, it may have devastating effects in, e.g. Remove().
+
+            Assert.IsTrue(newContainer.First(c => c.Contains(drawableA)) == containerA);
+            Assert.IsTrue(newContainer.First(c => c.Contains(drawableB)) == containerB);
+
+            Assert.DoesNotThrow(() => newContainer.First(c => c.Contains(drawableA)).Remove(drawableA));
+            Assert.DoesNotThrow(() => newContainer.First(c => c.Contains(drawableB)).Remove(drawableB));
+        }
     }
 }
