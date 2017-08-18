@@ -9,20 +9,20 @@ using OpenTK.Input;
 namespace osu.Framework.Input.Bindings
 {
     /// <summary>
-    /// Represent a combination of more than one <see cref="Key"/>s.
+    /// Represent a combination of more than one <see cref="InputKey"/>s.
     /// </summary>
     public class KeyCombination : IEquatable<KeyCombination>
     {
         /// <summary>
         /// The keys.
         /// </summary>
-        public readonly IEnumerable<Key> Keys;
+        public readonly IEnumerable<InputKey> Keys;
 
         /// <summary>
         /// Construct a new instance.
         /// </summary>
         /// <param name="keys">The keys.</param>
-        public KeyCombination(IEnumerable<Key> keys)
+        public KeyCombination(IEnumerable<InputKey> keys)
         {
             Keys = keys.OrderBy(k => (int)k).ToArray();
         }
@@ -32,7 +32,7 @@ namespace osu.Framework.Input.Bindings
         /// </summary>
         /// <param name="keys">A comma-separated (KeyCode) string representation of the keys.</param>
         public KeyCombination(string keys)
-            : this(keys.Split(',').Select(s => (Key)int.Parse(s)))
+            : this(keys.Split(',').Select(s => (InputKey)int.Parse(s)))
         {
         }
 
@@ -41,7 +41,7 @@ namespace osu.Framework.Input.Bindings
         /// </summary>
         /// <param name="pressedKeys">The potential pressedKeys for this combination.</param>
         /// <returns>Whether the pressedKeys keys are valid.</returns>
-        public bool IsPressed(IEnumerable<Key> pressedKeys) => !Keys.Except(pressedKeys).Any();
+        public bool IsPressed(KeyCombination pressedKeys) => !Keys.Except(pressedKeys.Keys).Any();
 
         public bool Equals(KeyCombination other)
         {
@@ -58,110 +58,167 @@ namespace osu.Framework.Input.Bindings
             return Equals((KeyCombination)obj);
         }
 
-        public override int GetHashCode() => Keys != null ? Keys.Select(k => k.GetHashCode()).Aggregate((h1, h2) => h1 * 17 + h2) : 0;
+        public override int GetHashCode() => Keys != null ? Keys.Select(b => b.GetHashCode()).Aggregate((h1, h2) => h1 * 17 + h2) : 0;
 
-        public static implicit operator KeyCombination(Key singleKey) => new KeyCombination(new[] { singleKey });
+        public static implicit operator KeyCombination(InputKey singleKey) => new KeyCombination(new[] { singleKey });
 
         public static implicit operator KeyCombination(string stringRepresentation) => new KeyCombination(stringRepresentation);
 
-        public static implicit operator KeyCombination(Key[] keys) => new KeyCombination(keys);
+        public static implicit operator KeyCombination(InputKey[] keys) => new KeyCombination(keys);
 
-        public override string ToString() => Keys?.Select(k => ((int)k).ToString()).Aggregate((s1, s2) => $"{s1},{s2}") ?? string.Empty;
+        public override string ToString() => Keys?.Select(b => ((int)b).ToString()).Aggregate((s1, s2) => $"{s1},{s2}") ?? string.Empty;
 
         public string ReadableString() => Keys?.Select(getReadableKey).Aggregate((s1, s2) => $"{s1}+{s2}") ?? string.Empty;
 
-        private string getReadableKey(Key key)
+        private string getReadableKey(InputKey key)
         {
             switch (key)
             {
-                case Key.Unknown:
+                case InputKey.None:
                     return string.Empty;
-                case Key.ShiftLeft:
-                    return "LShift";
-                case Key.ShiftRight:
-                    return "RShift";
-                case Key.ControlLeft:
-                    return "LCtrl";
-                case Key.ControlRight:
-                    return "RCtrl";
-                case Key.AltLeft:
-                    return "LAlt";
-                case Key.AltRight:
-                    return "RAlt";
-                case Key.WinLeft:
-                    return "LWin";
-                case Key.WinRight:
-                    return "RWin";
-                case Key.Escape:
+                case InputKey.Shift:
+                    return "Shift";
+                case InputKey.Control:
+                    return "Ctrl";
+                case InputKey.Alt:
+                    return "Alt";
+                case InputKey.Win:
+                    return "Win";
+                case InputKey.Escape:
                     return "Esc";
-                case Key.BackSpace:
+                case InputKey.BackSpace:
                     return "Backsp";
-                case Key.Insert:
+                case InputKey.Insert:
                     return "Ins";
-                case Key.Delete:
+                case InputKey.Delete:
                     return "Del";
-                case Key.PageUp:
+                case InputKey.PageUp:
                     return "Pgup";
-                case Key.PageDown:
+                case InputKey.PageDown:
                     return "Pgdn";
-                case Key.CapsLock:
+                case InputKey.CapsLock:
                     return "Caps";
-                case Key.Number0:
-                case Key.Keypad0:
+                case InputKey.Number0:
+                case InputKey.Keypad0:
                     return "0";
-                case Key.Number1:
-                case Key.Keypad1:
+                case InputKey.Number1:
+                case InputKey.Keypad1:
                     return "1";
-                case Key.Number2:
-                case Key.Keypad2:
+                case InputKey.Number2:
+                case InputKey.Keypad2:
                     return "2";
-                case Key.Number3:
-                case Key.Keypad3:
+                case InputKey.Number3:
+                case InputKey.Keypad3:
                     return "3";
-                case Key.Number4:
-                case Key.Keypad4:
+                case InputKey.Number4:
+                case InputKey.Keypad4:
                     return "4";
-                case Key.Number5:
-                case Key.Keypad5:
+                case InputKey.Number5:
+                case InputKey.Keypad5:
                     return "5";
-                case Key.Number6:
-                case Key.Keypad6:
+                case InputKey.Number6:
+                case InputKey.Keypad6:
                     return "6";
-                case Key.Number7:
-                case Key.Keypad7:
+                case InputKey.Number7:
+                case InputKey.Keypad7:
                     return "7";
-                case Key.Number8:
-                case Key.Keypad8:
+                case InputKey.Number8:
+                case InputKey.Keypad8:
                     return "8";
-                case Key.Number9:
-                case Key.Keypad9:
+                case InputKey.Number9:
+                case InputKey.Keypad9:
                     return "9";
-                case Key.Tilde:
+                case InputKey.Tilde:
                     return "~";
-                case Key.Minus:
+                case InputKey.Minus:
                     return "-";
-                case Key.Plus:
+                case InputKey.Plus:
                     return "+";
-                case Key.BracketLeft:
+                case InputKey.BracketLeft:
                     return "(";
-                case Key.BracketRight:
+                case InputKey.BracketRight:
                     return ")";
-                case Key.Semicolon:
+                case InputKey.Semicolon:
                     return ";";
-                case Key.Quote:
+                case InputKey.Quote:
                     return "\"";
-                case Key.Comma:
+                case InputKey.Comma:
                     return ",";
-                case Key.Period:
+                case InputKey.Period:
                     return ".";
-                case Key.Slash:
+                case InputKey.Slash:
                     return "/";
-                case Key.BackSlash:
-                case Key.NonUSBackSlash:
+                case InputKey.BackSlash:
+                case InputKey.NonUSBackSlash:
                     return "\\";
+                case InputKey.MouseLeft:
+                    return "M1";
+                case InputKey.MouseMiddle:
+                    return "M3";
+                case InputKey.MouseRight:
+                    return "M2";
+                case InputKey.MouseButton1:
+                    return "M4";
+                case InputKey.MouseButton2:
+                    return "M5";
+                case InputKey.MouseButton3:
+                    return "M6";
+                case InputKey.MouseButton4:
+                    return "M7";
+                case InputKey.MouseButton5:
+                    return "M8";
+                case InputKey.MouseButton6:
+                    return "M9";
+                case InputKey.MouseButton7:
+                    return "M10";
+                case InputKey.MouseButton8:
+                    return "M11";
+                case InputKey.MouseButton9:
+                    return "M12";
                 default:
                     return key.ToString();
             }
+        }
+
+        public static InputKey FromKey(Key key)
+        {
+            switch (key)
+            {
+                case Key.RShift:
+                    return InputKey.Shift;
+                case Key.RAlt:
+                    return InputKey.Alt;
+                case Key.RControl:
+                    return InputKey.Control;
+                case Key.RWin:
+                    return InputKey.Win;
+            }
+
+            return (InputKey)key;
+        }
+
+        public static InputKey FromMouseButton(MouseButton button)
+        {
+            return (InputKey)((int)InputKey.FirstMouseButton + button);
+        }
+
+        public static KeyCombination FromInputState(InputState state)
+        {
+            List<InputKey> keys = new List<InputKey>();
+
+            if (state.Mouse != null)
+            {
+                foreach (var button in state.Mouse.Buttons)
+                    keys.Add(FromMouseButton(button));
+            }
+
+            if (state.Keyboard != null)
+            {
+                foreach (var key in state.Keyboard.Keys)
+                    keys.Add(FromKey(key));
+            }
+
+            return new KeyCombination(keys);
         }
     }
 }
