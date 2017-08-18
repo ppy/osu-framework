@@ -24,7 +24,7 @@ namespace osu.Framework.Lists
             set { list[index] = value; }
         }
 
-        public SortedList(Func<T,T,int> comparer) : this(new ComparisonComparer<T>(comparer))
+        public SortedList(Func<T, T, int> comparer) : this(new ComparisonComparer<T>(comparer))
         {
         }
 
