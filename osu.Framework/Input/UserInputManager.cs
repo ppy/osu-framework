@@ -6,7 +6,6 @@ using System.Linq;
 using osu.Framework.Graphics;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Handlers;
-using OpenTK.Input;
 
 namespace osu.Framework.Input
 {
@@ -16,10 +15,10 @@ namespace osu.Framework.Input
 
         public override IEnumerable<KeyBinding> DefaultKeyBindings => new[]
         {
-            new KeyBinding(new[] { Key.LControl, Key.F1 }, FrameworkAction.ToggleDrawVisualiser),
-            new KeyBinding(new[] { Key.LControl, Key.F11 }, FrameworkAction.CycleFrameStatistics),
-            new KeyBinding(new[] { Key.LControl, Key.F10 }, FrameworkAction.ToggleLogOverlay),
-            new KeyBinding(new[] { Key.LAlt, Key.Enter }, FrameworkAction.ToggleFullscreen),
+            new KeyBinding(new[] { InputKey.LControl, InputKey.F1 }, FrameworkAction.ToggleDrawVisualiser),
+            new KeyBinding(new[] { InputKey.LControl, InputKey.F11 }, FrameworkAction.CycleFrameStatistics),
+            new KeyBinding(new[] { InputKey.LControl, InputKey.F10 }, FrameworkAction.ToggleLogOverlay),
+            new KeyBinding(new[] { InputKey.LAlt, InputKey.Enter }, FrameworkAction.ToggleFullscreen),
         };
 
         public UserInputManager()

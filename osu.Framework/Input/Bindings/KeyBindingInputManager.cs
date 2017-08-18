@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
-using OpenTK.Input;
 
 namespace osu.Framework.Input.Bindings
 {
@@ -33,11 +32,14 @@ namespace osu.Framework.Input.Bindings
         private readonly List<T> pressedActions = new List<T>();
         public IEnumerable<T> PressedActions => pressedActions;
 
-        private bool isModifier(Key k) => k < Key.F1;
+        private bool isModifier(InputKey k) => k < InputKey.F1;
 
         protected override bool PropagateKeyDown(IEnumerable<Drawable> drawables, InputState state, KeyDownEventArgs args)
         {
             bool handled = false;
+
+            var pressedCombination = KeyCombination.FromInputState(state);
+            var inputKey = KeyCombination.KeyToInputKey(args.Key);
 
             if (args.Repeat)
             {
@@ -48,10 +50,10 @@ namespace osu.Framework.Input.Bindings
             }
 
             var newlyPressed = KeyBindings.Except(pressedBindings).Where(m =>
-                m.KeyCombination.Keys.Contains(args.Key) // only handle bindings matching current key (not required for correct logic)
-                && m.KeyCombination.IsPressed(state.Keyboard.Keys));
+                m.KeyCombination.Keys.Contains(inputKey) // only handle bindings matching current key (not required for correct logic)
+                && m.KeyCombination.IsPressed(pressedCombination));
 
-            if (isModifier(args.Key))
+            if (isModifier(inputKey))
                 // if the current key pressed was a modifier, only handle modifier-only bindings.
                 newlyPressed = newlyPressed.Where(b => b.KeyCombination.Keys.All(isModifier));
 
@@ -90,9 +92,12 @@ namespace osu.Framework.Input.Bindings
         {
             bool handled = false;
 
-            var newlyReleased = pressedBindings.Where(b => !b.KeyCombination.IsPressed(state.Keyboard.Keys)).ToList();
+            var pressedCombination = KeyCombination.FromInputState(state);
+            var inputKey = KeyCombination.KeyToInputKey(args.Key);
 
-            Trace.Assert(newlyReleased.All(b => b.KeyCombination.Keys.Contains(args.Key)));
+            var newlyReleased = pressedBindings.Where(b => !b.KeyCombination.IsPressed(pressedCombination)).ToList();
+
+            Trace.Assert(newlyReleased.All(b => b.KeyCombination.Keys.Contains(inputKey)));
 
             foreach (var binding in newlyReleased)
             {
