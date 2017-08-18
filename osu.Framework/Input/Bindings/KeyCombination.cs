@@ -152,11 +152,11 @@ namespace osu.Framework.Input.Bindings
                 case InputKey.NonUSBackSlash:
                     return "\\";
                 case InputKey.MouseLeft:
-                    return "LMouse";
+                    return "M1";
                 case InputKey.MouseMiddle:
-                    return "MMouse";
+                    return "M3";
                 case InputKey.MouseRight:
-                    return "RMouse";
+                    return "M2";
                 case InputKey.MouseButton1:
                     return "M4";
                 case InputKey.MouseButton2:
