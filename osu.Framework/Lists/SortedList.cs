@@ -94,7 +94,7 @@ namespace osu.Framework.Lists
             if (index < 0)
                 return index;
             return list[index].Equals(value) ? index : -1;
-        } 
+        }
 
         public void CopyTo(T[] array, int arrayIndex) => list.CopyTo(array, arrayIndex);
 

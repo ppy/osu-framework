@@ -69,7 +69,7 @@ namespace osu.Framework.Desktop.Tests.Visual
                 });
             });
         }
-        
+
         /// <summary>
         /// The same as <see cref="TestPreLoadMultipleAdds"/> however instead runs after the container is loaded.
         /// </summary>
