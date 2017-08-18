@@ -9,73 +9,25 @@ namespace osu.Framework.Input.Bindings
     public enum InputKey
     {
         /// <summary>
-        /// A key outside the known keys.
+        /// No key pressed.
         /// </summary>
-        Unknown = 0,
+        None = 0,
         /// <summary>
-        /// The left shift key.
+        /// The shift key.
         /// </summary>
-        ShiftLeft = 1,
+        Shift = 1,
         /// <summary>
-        /// The left shift key (equivalent to ShiftLeft).
+        /// The control key.
         /// </summary>
-        LShift = 1,
+        Control = 3,
         /// <summary>
-        /// The right shift key.
+        /// The alt key.
         /// </summary>
-        ShiftRight = 2,
+        Alt = 5,
         /// <summary>
-        /// The right shift key (equivalent to ShiftRight).
+        /// The win key.
         /// </summary>
-        RShift = 2,
-        /// <summary>
-        /// The left control key.
-        /// </summary>
-        ControlLeft = 3,
-        /// <summary>
-        /// The left control key (equivalent to ControlLeft).
-        /// </summary>
-        LControl = 3,
-        /// <summary>
-        /// The right control key.
-        /// </summary>
-        ControlRight = 4,
-        /// <summary>
-        /// The right control key (equivalent to ControlRight).
-        /// </summary>
-        RControl = 4,
-        /// <summary>
-        /// The left alt key.
-        /// </summary>
-        AltLeft = 5,
-        /// <summary>
-        /// The left alt key (equivalent to AltLeft.
-        /// </summary>
-        LAlt = 5,
-        /// <summary>
-        /// The right alt key.
-        /// </summary>
-        AltRight = 6,
-        /// <summary>
-        /// The right alt key (equivalent to AltRight).
-        /// </summary>
-        RAlt = 6,
-        /// <summary>
-        /// The left win key.
-        /// </summary>
-        WinLeft = 7,
-        /// <summary>
-        /// The left win key (equivalent to WinLeft).
-        /// </summary>
-        LWin = 7,
-        /// <summary>
-        /// The right win key.
-        /// </summary>
-        WinRight = 8,
-        /// <summary>
-        /// The right win key (equivalent to WinRight).
-        /// </summary>
-        RWin = 8,
+        Win = 7,
         /// <summary>
         /// The menu key.
         /// </summary>

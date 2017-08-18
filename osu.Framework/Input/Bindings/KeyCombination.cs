@@ -74,24 +74,16 @@ namespace osu.Framework.Input.Bindings
         {
             switch (key)
             {
-                case InputKey.Unknown:
+                case InputKey.None:
                     return string.Empty;
-                case InputKey.ShiftLeft:
-                    return "LShift";
-                case InputKey.ShiftRight:
-                    return "RShift";
-                case InputKey.ControlLeft:
-                    return "LCtrl";
-                case InputKey.ControlRight:
-                    return "RCtrl";
-                case InputKey.AltLeft:
-                    return "LAlt";
-                case InputKey.AltRight:
-                    return "RAlt";
-                case InputKey.WinLeft:
-                    return "LWin";
-                case InputKey.WinRight:
-                    return "RWin";
+                case InputKey.Shift:
+                    return "Shift";
+                case InputKey.Control:
+                    return "Ctrl";
+                case InputKey.Alt:
+                    return "Alt";
+                case InputKey.Win:
+                    return "Win";
                 case InputKey.Escape:
                     return "Esc";
                 case InputKey.BackSpace:
@@ -190,6 +182,18 @@ namespace osu.Framework.Input.Bindings
 
         public static InputKey FromKey(Key key)
         {
+            switch (key)
+            {
+                case Key.RShift:
+                    return InputKey.Shift;
+                case Key.RAlt:
+                    return InputKey.Alt;
+                case Key.RControl:
+                    return InputKey.Control;
+                case Key.RWin:
+                    return InputKey.Win;
+            }
+
             return (InputKey)key;
         }
 
