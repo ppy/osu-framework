@@ -26,7 +26,7 @@ namespace osu.Framework.Input
             UseParentState = false;
         }
 
-        protected override IEnumerable<Drawable> GetKeyboardInputQueue() => new[] { Child }.Concat(base.GetKeyboardInputQueue());
+        protected override IEnumerable<Drawable> KeyBindingInputQueue => new[] { Child }.Concat(base.KeyBindingInputQueue);
     }
 
     public enum FrameworkAction

@@ -690,10 +690,8 @@ namespace osu.Framework.Input
                     return true;
             }
 
-            return PropagateKeyDown(GetKeyboardInputQueue(), state, args);
+            return PropagateKeyDown(inputQueue, state, args);
         }
-
-        protected virtual IEnumerable<Drawable> GetKeyboardInputQueue() => inputQueue;
 
         protected virtual bool PropagateKeyDown(IEnumerable<Drawable> drawables, InputState state, KeyDownEventArgs args)
         {
@@ -705,7 +703,7 @@ namespace osu.Framework.Input
             if (!unfocusIfNoLongerValid() && FocusedDrawable != null && PropagateKeyUp(new[] { FocusedDrawable }, state, new KeyUpEventArgs { Key = key }))
                 return true;
 
-            return PropagateKeyUp(GetKeyboardInputQueue(), state, new KeyUpEventArgs { Key = key });
+            return PropagateKeyUp(inputQueue, state, new KeyUpEventArgs { Key = key });
         }
 
         protected virtual bool PropagateKeyUp(IEnumerable<Drawable> drawables, InputState state, KeyUpEventArgs args)

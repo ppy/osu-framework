@@ -38,11 +38,17 @@ namespace osu.Framework.Input.Bindings
 
         private bool isModifier(InputKey k) => k < InputKey.F1;
 
+        /// <summary>
+        /// The input queue to be used for processing key bindings. Based on the non-positional <see cref="InputManager.InputQueue"/>.
+        /// Can be overridden to change priorities.
+        /// </summary>
+        protected virtual IEnumerable<Drawable> KeyBindingInputQueue => InputQueue;
+
         protected override bool PropagateMouseDown(IEnumerable<Drawable> drawables, InputState state, MouseDownEventArgs args) =>
             handleNewDown(state, KeyCombination.FromMouseButton(args.Button)) || base.PropagateMouseDown(drawables, state, args);
 
         protected override bool PropagateMouseUp(IEnumerable<Drawable> drawables, InputState state, MouseUpEventArgs args) =>
-            handleNewUp(InputQueue, state, KeyCombination.FromMouseButton(args.Button)) || base.PropagateMouseUp(drawables, state, args);
+            handleNewUp(state, KeyCombination.FromMouseButton(args.Button)) || base.PropagateMouseUp(drawables, state, args);
 
         protected override bool PropagateKeyDown(IEnumerable<Drawable> drawables, InputState state, KeyDownEventArgs args)
         {
@@ -58,13 +64,10 @@ namespace osu.Framework.Input.Bindings
         }
 
         protected override bool PropagateKeyUp(IEnumerable<Drawable> drawables, InputState state, KeyUpEventArgs args) =>
-            handleNewUp(drawables, state, KeyCombination.FromKey(args.Key)) || base.PropagateKeyUp(drawables, state, args);
+            handleNewUp(state, KeyCombination.FromKey(args.Key)) || base.PropagateKeyUp(drawables, state, args);
 
         private bool handleNewDown(InputState state, InputKey newKey)
         {
-            // we *always* want non-positional input queue for action processing.
-            var drawables = InputQueue;
-
             var pressedCombination = KeyCombination.FromInputState(state);
 
             bool handled = false;
@@ -89,7 +92,7 @@ namespace osu.Framework.Input.Bindings
                 {
                     // we want to release any existing pressed actions.
                     foreach (var action in pressedActions)
-                        drawables.OfType<IKeyBindingHandler<T>>().ForEach(d => d.OnReleased(action));
+                        KeyBindingInputQueue.OfType<IKeyBindingHandler<T>>().ForEach(d => d.OnReleased(action));
                     pressedActions.Clear();
                 }
 
@@ -97,7 +100,7 @@ namespace osu.Framework.Input.Bindings
                 if (simultaneousMode == SimultaneousBindingMode.All || !pressedActions.Contains(newBinding.GetAction<T>()))
                 {
                     pressedActions.Add(newBinding.GetAction<T>());
-                    handled |= drawables.OfType<IKeyBindingHandler<T>>().Any(d => d.OnPressed(newBinding.GetAction<T>()));
+                    handled |= KeyBindingInputQueue.OfType<IKeyBindingHandler<T>>().Any(d => d.OnPressed(newBinding.GetAction<T>()));
                 }
 
                 // we only want to handle the first valid binding (the one with the most keys) in non-simultaneous mode.
@@ -109,7 +112,7 @@ namespace osu.Framework.Input.Bindings
         }
 
         // ReSharper disable once UnusedParameter.Local
-        private bool handleNewUp(IEnumerable<Drawable> drawables, InputState state, InputKey releasedKey)
+        private bool handleNewUp(InputState state, InputKey releasedKey)
         {
             var pressedCombination = KeyCombination.FromInputState(state);
 
@@ -130,7 +133,7 @@ namespace osu.Framework.Input.Bindings
                 // - are the last pressed binding with this action
                 if (simultaneousMode == SimultaneousBindingMode.All || pressedActions.Contains(action) && pressedBindings.All(b => !b.Action.Equals(binding.Action)))
                 {
-                    handled |= drawables.OfType<IKeyBindingHandler<T>>().Any(d => d.OnReleased(binding.GetAction<T>()));
+                    handled |= KeyBindingInputQueue.OfType<IKeyBindingHandler<T>>().Any(d => d.OnReleased(binding.GetAction<T>()));
                     pressedActions.Remove(action);
                 }
             }
