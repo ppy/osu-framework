@@ -60,7 +60,7 @@ namespace osu.Framework.Input.Bindings
 
         public override int GetHashCode() => Keys != null ? Keys.Select(b => b.GetHashCode()).Aggregate((h1, h2) => h1 * 17 + h2) : 0;
 
-        public static implicit operator KeyCombination(InputKey singleButton) => new KeyCombination(new[] { singleButton });
+        public static implicit operator KeyCombination(InputKey singleKey) => new KeyCombination(new[] { singleKey });
 
         public static implicit operator KeyCombination(string stringRepresentation) => new KeyCombination(stringRepresentation);
 
