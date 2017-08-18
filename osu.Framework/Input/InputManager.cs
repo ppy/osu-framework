@@ -119,9 +119,7 @@ namespace osu.Framework.Input
 
         /// <summary>
         /// Contains all <see cref="Drawable"/>s in top-down order which are considered
-        /// for non-positional input. This list is the same as <see cref="HoveredDrawables"/>, only
-        /// that the return value of <see cref="Drawable.OnHover(InputState)"/> is not taken
-        /// into account.
+        /// for non-positional input.
         /// </summary>
         public IReadOnlyList<Drawable> InputQueue => inputQueue;
 
