@@ -1,11 +1,15 @@
-// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using NUnit.Framework;
+using OpenTK;
+using OpenTK.Graphics;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Effects;
+using osu.Framework.Graphics.Shapes;
+using osu.Framework.Graphics.Sprites;
 using osu.Framework.Testing;
-using OpenTK.Graphics;
 
 namespace osu.Framework.Desktop.Tests.Visual
 {
@@ -82,12 +86,59 @@ namespace osu.Framework.Desktop.Tests.Visual
 osu! is written in C# on the .NET Framework. On August 28, 2016, osu!'s source code was open-sourced under the MIT License. [2] [3] Dubbed as ""Lazer"", the project aims to make osu! available to more platforms and transparent. [4] The community includes over 9 million registered users, with a total of 6 billion ranked plays.[5]"
             });
 
+            paragraphContainer.Add(new TestCaseCustomText
+            {
+                RelativeSizeAxes = Axes.X,
+                AutoSizeAxes = Axes.Y,
+                Placeholders = new[]
+                {
+                    new LineBaseBox
+                    {
+                        Colour = Color4.Purple,
+                        LineBaseHeight = 25f,
+                        Size = new Vector2(25, 25)
+                    }.WithEffect(new OutlineEffect
+                    {
+                        Strength = 20f,
+                        PadExtent = true,
+                        BlurSigma = new Vector2(5f),
+                        Colour = Color4.White
+                    })
+                },
+                Text = "Test icons [RedBox] interleaved\n[GreenBox] with other [0] text"
+            });
+
             AddStep(@"resize paragraph 1", () => { paragraphContainer.Width = 1f; });
             AddStep(@"resize paragraph 2", () => { paragraphContainer.Width = 0.6f; });
             AddStep(@"header inset", () => { textFlowContainer.FirstLineIndent += 2; });
             AddStep(@"body inset", () => { textFlowContainer.ContentIndent += 4; });
             AddToggleStep(@"Zero paragraph spacing", state => textFlowContainer.ParagraphSpacing = state ? 0 : 0.5f);
             AddToggleStep(@"Non-zero line spacing", state => textFlowContainer.LineSpacing = state ? 1 : 0);
+        }
+        class LineBaseBox : Box, IHasLineBaseHeight
+        {
+            public float LineBaseHeight { get; set; }
+        }
+        class TestCaseCustomText : CustomizableTextContainer
+        {
+            public TestCaseCustomText()
+            {
+                AddIconCallback("RedBox", makeRedBox);
+                AddIconCallback("GreenBox", makeGreenBox);
+            }
+
+            Drawable makeGreenBox() => new LineBaseBox
+            {
+                Colour = Color4.Green,
+                LineBaseHeight = 25f,
+                Size = new Vector2(25, 25)
+            };
+            Drawable makeRedBox() => new LineBaseBox
+            {
+                Colour = Color4.Red,
+                LineBaseHeight = 10f,
+                Size = new Vector2(25, 25)
+            };
         }
     }
 }
