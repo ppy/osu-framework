@@ -105,7 +105,7 @@ osu! is written in C# on the .NET Framework. On August 28, 2016, osu!'s source c
                         Colour = Color4.White
                     })
                 },
-                Text = "Test icons [RedBox] interleaved\n[GreenBox] with other [0] text"
+                Text = "Test icons [RedBox] interleaved\n[GreenBox] with other [0] text, also [[0]] escaping stuff is possible."
             });
 
             AddStep(@"resize paragraph 1", () => { paragraphContainer.Width = 1f; });

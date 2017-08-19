@@ -88,7 +88,7 @@ namespace osu.Framework.Graphics.Containers
                 Drawable placeholderDrawable = null;
                 var nextPlaceholderIndex = str.IndexOf('[', index);
                 // make sure we skip ahead to the next [ as long as the current [ is escaped
-                while (nextPlaceholderIndex != -1 && str.IndexOf("[[", nextPlaceholderIndex) == 0)
+                while (nextPlaceholderIndex != -1 && str.IndexOf("[[", nextPlaceholderIndex) == nextPlaceholderIndex)
                     nextPlaceholderIndex = str.IndexOf('[', nextPlaceholderIndex + 2);
 
                 string strPiece = null;
@@ -96,7 +96,7 @@ namespace osu.Framework.Graphics.Containers
                 {
                     var placeholderEnd = str.IndexOf(']', nextPlaceholderIndex);
                     // make sure we skip ahead to the next ] as long as the current ] is escaped
-                    while (placeholderEnd != -1 && str.IndexOf("]]", placeholderEnd) == 0)
+                    while (placeholderEnd != -1 && str.IndexOf("]]", placeholderEnd) == placeholderEnd)
                         placeholderEnd = str.IndexOf(']', placeholderEnd + 2);
 
                     if (placeholderEnd != -1)
