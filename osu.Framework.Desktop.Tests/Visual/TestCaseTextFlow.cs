@@ -115,11 +115,11 @@ osu! is written in C# on the .NET Framework. On August 28, 2016, osu!'s source c
             AddToggleStep(@"Zero paragraph spacing", state => textFlowContainer.ParagraphSpacing = state ? 0 : 0.5f);
             AddToggleStep(@"Non-zero line spacing", state => textFlowContainer.LineSpacing = state ? 1 : 0);
         }
-        class LineBaseBox : Box, IHasLineBaseHeight
+        private class LineBaseBox : Box, IHasLineBaseHeight
         {
             public float LineBaseHeight { get; set; }
         }
-        class TestCaseCustomText : CustomizableTextContainer
+        private class TestCaseCustomText : CustomizableTextContainer
         {
             public TestCaseCustomText()
             {
@@ -127,13 +127,13 @@ osu! is written in C# on the .NET Framework. On August 28, 2016, osu!'s source c
                 AddIconFactory("GreenBox", makeGreenBox);
             }
 
-            Drawable makeGreenBox() => new LineBaseBox
+            private Drawable makeGreenBox() => new LineBaseBox
             {
                 Colour = Color4.Green,
                 LineBaseHeight = 25f,
                 Size = new Vector2(25, 25)
             };
-            Drawable makeRedBox() => new LineBaseBox
+            private Drawable makeRedBox() => new LineBaseBox
             {
                 Colour = Color4.Red,
                 LineBaseHeight = 10f,

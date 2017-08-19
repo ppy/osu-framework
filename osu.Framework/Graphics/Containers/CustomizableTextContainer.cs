@@ -28,8 +28,8 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private List<Drawable> placeholders = new List<Drawable>();
-        private Dictionary<string, Delegate> iconFactories = new Dictionary<string, Delegate>();
+        private readonly List<Drawable> placeholders = new List<Drawable>();
+        private readonly Dictionary<string, Delegate> iconFactories = new Dictionary<string, Delegate>();
 
         /// <summary>
         /// Adds the given drawable as a placeholder that can be used when adding text. The drawable must not have a parent. Returns the index that can be used to reference the added placeholder.
@@ -78,7 +78,7 @@ namespace osu.Framework.Graphics.Containers
          * text.Text = "Something [0] very special!"
          */
 
-        internal override IEnumerable<SpriteText> addLine(TextLine line, bool newLineIsParagraph)
+        internal override IEnumerable<SpriteText> AddLine(TextLine line, bool newLineIsParagraph)
         {
             if (!newLineIsParagraph)
                 AddInternal(new NewLineContainer(true));
@@ -91,7 +91,7 @@ namespace osu.Framework.Graphics.Containers
                 Drawable placeholderDrawable = null;
                 var nextPlaceholderIndex = str.IndexOf('[', index);
                 // make sure we skip ahead to the next [ as long as the current [ is escaped
-                while (nextPlaceholderIndex != -1 && str.IndexOf("[[", nextPlaceholderIndex) == nextPlaceholderIndex)
+                while (nextPlaceholderIndex != -1 && str.IndexOf("[[", nextPlaceholderIndex, StringComparison.InvariantCulture) == nextPlaceholderIndex)
                     nextPlaceholderIndex = str.IndexOf('[', nextPlaceholderIndex + 2);
 
                 string strPiece = null;
@@ -99,7 +99,7 @@ namespace osu.Framework.Graphics.Containers
                 {
                     var placeholderEnd = str.IndexOf(']', nextPlaceholderIndex);
                     // make sure we skip ahead to the next ] as long as the current ] is escaped
-                    while (placeholderEnd != -1 && str.IndexOf("]]", placeholderEnd) == placeholderEnd)
+                    while (placeholderEnd != -1 && str.IndexOf("]]", placeholderEnd, StringComparison.InvariantCulture) == placeholderEnd)
                         placeholderEnd = str.IndexOf(']', placeholderEnd + 2);
 
                     if (placeholderEnd != -1)
@@ -164,8 +164,7 @@ namespace osu.Framework.Graphics.Containers
                     index = str.Length;
                 }
                 // unescape stuff
-                strPiece.Replace("[[", "[");
-                strPiece.Replace("]]", "]");
+                strPiece = strPiece.Replace("[[", "[").Replace("]]", "]");
                 bool first = true;
                 foreach (string l in strPiece.Split('\n'))
                 {
@@ -180,7 +179,7 @@ namespace osu.Framework.Graphics.Containers
                     {
                         if (string.IsNullOrEmpty(word)) continue;
 
-                        var textSprite = createSpriteTextWithLine(line);
+                        var textSprite = CreateSpriteTextWithLine(line);
                         textSprite.Text = word;
                         sprites.Add(textSprite);
                         AddInternal(textSprite);
@@ -191,7 +190,7 @@ namespace osu.Framework.Graphics.Containers
                 if (placeholderDrawable != null)
                 {
                     if (placeholderDrawable.Parent != null)
-                        throw new ArgumentException($"All icons used by a customizable text container must not have a parent. If you get this error message it means one of your icon factories created a drawable that was already added to another parent, or you used a drawable as a placeholder that already has another parent or you used an index-based placeholder (like [2]) more than once.");
+                        throw new ArgumentException("All icons used by a customizable text container must not have a parent. If you get this error message it means one of your icon factories created a drawable that was already added to another parent, or you used a drawable as a placeholder that already has another parent or you used an index-based placeholder (like [2]) more than once.");
                     AddInternal(placeholderDrawable);
                 }
             }

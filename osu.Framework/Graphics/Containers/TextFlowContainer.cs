@@ -125,7 +125,7 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>A collection of the <see cref="SpriteText" /> objects for each word created from the given text.</returns>
         /// <param name="text">The text to add.</param>
         /// <param name="creationParameters">A callback providing any <see cref="SpriteText" /> instances created for this new text.</param>
-        public IEnumerable<SpriteText> AddText(string text, Action<SpriteText> creationParameters = null) => addLine(new TextLine(text, creationParameters), true);
+        public IEnumerable<SpriteText> AddText(string text, Action<SpriteText> creationParameters = null) => AddLine(new TextLine(text, creationParameters), true);
 
         /// <summary>
         /// Add a new paragraph to this text flow. The \n character will create a line break. If you need \n to be a new paragraph, not just a line break, use <see cref="AddText(string, Action{SpriteText})"/> instead.
@@ -133,7 +133,7 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>A collection of the <see cref="SpriteText" /> objects for each word created from the given text.</returns>
         /// <param name="paragraph">The paragraph to add.</param>
         /// <param name="creationParameters">A callback providing any <see cref="SpriteText" /> instances created for this new paragraph.</param>
-        public IEnumerable<SpriteText> AddParagraph(string paragraph, Action<SpriteText> creationParameters = null) => addLine(new TextLine(paragraph, creationParameters), false);
+        public IEnumerable<SpriteText> AddParagraph(string paragraph, Action<SpriteText> creationParameters = null) => AddLine(new TextLine(paragraph, creationParameters), false);
 
         /// <summary>
         /// End current line and start a new one.
@@ -152,7 +152,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected virtual SpriteText CreateSpriteText() => new SpriteText();
 
-        internal SpriteText createSpriteTextWithLine(TextLine line)
+        internal SpriteText CreateSpriteTextWithLine(TextLine line)
         {
             var spriteText = CreateSpriteText();
             defaultCreationParameters?.Invoke(spriteText);
@@ -165,7 +165,7 @@ namespace osu.Framework.Graphics.Containers
             throw new InvalidOperationException($"Use {nameof(AddText)} to add text to a {nameof(TextFlowContainer)}.");
         }
 
-        internal virtual IEnumerable<SpriteText> addLine(TextLine line, bool newLineIsParagraph)
+        internal virtual IEnumerable<SpriteText> AddLine(TextLine line, bool newLineIsParagraph)
         {
             bool first = true;
             var sprites = new List<SpriteText>();
@@ -188,7 +188,7 @@ namespace osu.Framework.Graphics.Containers
                 {
                     if (string.IsNullOrEmpty(word)) continue;
 
-                    var textSprite = createSpriteTextWithLine(line);
+                    var textSprite = CreateSpriteTextWithLine(line);
                     textSprite.Text = word;
                     sprites.Add(textSprite);
                     base.Add(textSprite);

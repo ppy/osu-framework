@@ -150,7 +150,7 @@ namespace osu.Framework.IO.Stores
 
     public class FontStore : TextureStore
     {
-        private List<GlyphStore> glyphStores = new List<GlyphStore>();
+        private readonly List<GlyphStore> glyphStores = new List<GlyphStore>();
 
         public FontStore()
         {
