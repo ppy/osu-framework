@@ -1,11 +1,11 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using osu.Framework.Logging;
+using osu.Framework.Platform;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using osu.Framework.Logging;
-using osu.Framework.Platform;
 
 namespace osu.Framework.Configuration
 {
@@ -43,6 +43,26 @@ namespace osu.Framework.Configuration
             if (bindable == null)
             {
                 bindable = new BindableDouble(value);
+                addBindable(lookup, bindable);
+            }
+            else
+            {
+                bindable.Value = value;
+            }
+
+            if (min.HasValue) bindable.MinValue = min.Value;
+            if (max.HasValue) bindable.MaxValue = max.Value;
+
+            return bindable;
+        }
+
+        public BindableFloat Set(T lookup, float value, float? min = null, float? max = null)
+        {
+            BindableFloat bindable = GetOriginalBindable<float>(lookup) as BindableFloat;
+
+            if (bindable == null)
+            {
+                bindable = new BindableFloat(value);
                 addBindable(lookup, bindable);
             }
             else
