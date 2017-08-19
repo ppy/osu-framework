@@ -7,7 +7,7 @@ using System.Globalization;
 
 namespace osu.Framework.Configuration
 {
-    public class BindableSingle : BindableNumber<float>
+    public class BindableFloat : BindableNumber<float>
     {
         public override bool IsDefault => Math.Abs(Value - Default) < Precision;
 
@@ -33,7 +33,7 @@ namespace osu.Framework.Configuration
         protected override float DefaultMinValue => float.MinValue;
         protected override float DefaultMaxValue => float.MaxValue;
 
-        public BindableSingle(float value = 0)
+        public BindableFloat(float value = 0)
             : base(value)
         {
         }
@@ -45,7 +45,7 @@ namespace osu.Framework.Configuration
         /// <param name="them">The foreign bindable. This should always be the most permanent end of the bind (ie. a ConfigManager)</param>
         public override void BindTo(Bindable<float> them)
         {
-            var dbl = them as BindableSingle;
+            var dbl = them as BindableFloat;
             if (dbl != null)
             {
                 MinValue = Math.Max(MinValue, dbl.MinValue);

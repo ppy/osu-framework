@@ -56,13 +56,13 @@ namespace osu.Framework.Configuration
             return bindable;
         }
 
-        public BindableSingle Set(T lookup, float value, float? min = null, float? max = null)
+        public BindableFloat Set(T lookup, float value, float? min = null, float? max = null)
         {
-            BindableSingle bindable = GetOriginalBindable<float>(lookup) as BindableSingle;
+            BindableFloat bindable = GetOriginalBindable<float>(lookup) as BindableFloat;
 
             if (bindable == null)
             {
-                bindable = new BindableSingle(value);
+                bindable = new BindableFloat(value);
                 addBindable(lookup, bindable);
             }
             else

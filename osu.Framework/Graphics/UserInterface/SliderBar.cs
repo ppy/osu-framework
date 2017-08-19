@@ -42,7 +42,7 @@ namespace osu.Framework.Graphics.UserInterface
             else if (typeof(T) == typeof(double))
                 CurrentNumber = new BindableDouble() as BindableNumber<T>;
             else if (typeof(T) == typeof(float))
-                CurrentNumber = new BindableSingle() as BindableNumber<T>;
+                CurrentNumber = new BindableFloat() as BindableNumber<T>;
 
             if (CurrentNumber == null)
                 throw new NotSupportedException($"We don't support the generic type of {nameof(BindableNumber<T>)}.");
