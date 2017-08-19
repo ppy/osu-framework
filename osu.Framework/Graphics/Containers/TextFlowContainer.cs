@@ -184,7 +184,7 @@ namespace osu.Framework.Graphics.Containers
                         base.Add(new NewLineContainer(newLineIsParagraph));
                 }
 
-                foreach (string word in splitWords(l))
+                foreach (string word in SplitWords(l))
                 {
                     if (string.IsNullOrEmpty(word)) continue;
 
@@ -200,7 +200,7 @@ namespace osu.Framework.Graphics.Containers
             return sprites;
         }
 
-        protected string[] splitWords(string text)
+        protected string[] SplitWords(string text)
         {
             var words = new List<string>();
             var builder = new StringBuilder();

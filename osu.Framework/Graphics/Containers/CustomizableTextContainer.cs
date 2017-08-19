@@ -175,7 +175,7 @@ namespace osu.Framework.Graphics.Containers
                             AddInternal(new NewLineContainer(newLineIsParagraph));
                     }
 
-                    foreach (string word in splitWords(l))
+                    foreach (string word in SplitWords(l))
                     {
                         if (string.IsNullOrEmpty(word)) continue;
 
