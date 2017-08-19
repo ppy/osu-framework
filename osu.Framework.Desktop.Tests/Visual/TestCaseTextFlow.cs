@@ -61,6 +61,12 @@ namespace osu.Framework.Desktop.Tests.Visual
             textFlowContainer.AddText("CONSIDERABLY", t => t.Colour = Color4.Pink);
             textFlowContainer.AddText(" SWIFT VERMILION REYNARD BOUNDS ABOVE THE SLOTHFUL MAHOGANY HOUND!!", t => t.Colour = Color4.Red);
             textFlowContainer.AddText("\n\n0123456789!@#$%^&*()_-+-[]{}.,<>;'\\\\", t => t.Colour = Color4.Blue);
+            var textSize = 48f;
+            textFlowContainer.AddParagraph("Multiple Text Sizes", t =>
+            {
+                t.TextSize = textSize;
+                textSize -= 12f;
+            });
             textFlowContainer.AddText("\nI'm a paragraph\nnewlines are cool", t => t.Colour = Color4.Beige);
             textFlowContainer.AddText(" (and so are inline styles!)", t => t.Colour = Color4.Yellow);
             textFlowContainer.AddParagraph("There's 2 line breaks\n\ninside this paragraph!", t => t.Colour = Color4.GreenYellow);

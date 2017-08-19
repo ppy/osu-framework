@@ -1,12 +1,12 @@
-// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using osu.Framework.Caching;
+using osu.Framework.Graphics.Sprites;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using osu.Framework.Caching;
-using osu.Framework.Graphics.Sprites;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -152,7 +152,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected virtual SpriteText CreateSpriteText() => new SpriteText();
 
-        private SpriteText createSpriteTextWithLine(TextLine line)
+        internal SpriteText createSpriteTextWithLine(TextLine line)
         {
             var spriteText = CreateSpriteText();
             defaultCreationParameters?.Invoke(spriteText);
@@ -165,7 +165,7 @@ namespace osu.Framework.Graphics.Containers
             throw new InvalidOperationException($"Use {nameof(AddText)} to add text to a {nameof(TextFlowContainer)}.");
         }
 
-        private IEnumerable<SpriteText> addLine(TextLine line, bool newLineIsParagraph)
+        internal virtual IEnumerable<SpriteText> addLine(TextLine line, bool newLineIsParagraph)
         {
             bool first = true;
             var sprites = new List<SpriteText>();
@@ -200,7 +200,7 @@ namespace osu.Framework.Graphics.Containers
             return sprites;
         }
 
-        private string[] splitWords(string text)
+        protected string[] splitWords(string text)
         {
             var words = new List<string>();
             var builder = new StringBuilder();
@@ -226,41 +226,71 @@ namespace osu.Framework.Graphics.Containers
 
         private void computeLayout()
         {
-            bool first = true, newLine = false;
-            int newLineCount = 0;
-            float previousLineHeight = 0, nextLineHeight = 0;
+            List<List<Drawable>> childrenByLine = new List<List<Drawable>>();
+            var curLine = new List<Drawable>();
             foreach (var c in Children)
             {
                 NewLineContainer nlc = c as NewLineContainer;
                 if (nlc != null)
                 {
-                    previousLineHeight = nextLineHeight;
-                    nlc.Height = nlc.IndicatesNewParagraph ? previousLineHeight * ParagraphSpacing : 0;
-
-                    if (!newLine)
-                        newLineCount = 0;
-                    newLineCount++;
-                    newLine = true;
-                    continue;
+                    curLine.Add(nlc);
+                    childrenByLine.Add(curLine);
+                    curLine = new List<Drawable>();
                 }
-
-                nextLineHeight = ((SpriteText)c).TextSize; //this cast should always success because of valid children types
-                MarginPadding margin = new MarginPadding { Top = previousLineHeight * newLineCount * LineSpacing };
-                if (first)
+                else
                 {
-                    margin.Left = FirstLineIndent;
-                    first = false;
+                    if (c.X == 0)
+                    {
+                        if (curLine.Count > 0)
+                            childrenByLine.Add(curLine);
+                        curLine = new List<Drawable>();
+                    }
+                    curLine.Add(c);
                 }
-                else if (newLine || c.X == 0)
+            }
+            if (curLine.Count > 0)
+                childrenByLine.Add(curLine);
+            var firstLine = true;
+            var lineSpacingValue = 0f;
+            var currentLineHeight = 0f;
+            var lastLineHeight = 0f;
+            foreach (var line in childrenByLine)
+            {
+                var firstChild = true;
+                var lineBaseHeightValues = line.OfType<IHasLineBaseHeight>().Select(l => l.LineBaseHeight);
+                var lineBaseHeight = lineBaseHeightValues.Any() ? lineBaseHeightValues.Max() : 0f;
+                currentLineHeight = 0f;
+                foreach (var c in line)
                 {
-                    margin.Left = ContentIndent;
-                    newLine = false;
+                    var nlc = c as NewLineContainer;
+                    if (nlc != null)
+                    {
+                        nlc.Height = nlc.IndicatesNewParagraph ? (currentLineHeight == 0 ? lastLineHeight : currentLineHeight) * ParagraphSpacing : 0;
+                        continue;
+                    }
+
+                    var childLineBaseHeight = (c as IHasLineBaseHeight)?.LineBaseHeight ?? 0f;
+                    var margin = new MarginPadding { Top = (childLineBaseHeight != 0f ? lineBaseHeight - childLineBaseHeight : 0f) + lineSpacingValue };
+                    if (firstLine)
+                        margin.Left = FirstLineIndent;
+                    else if (firstChild)
+                        margin.Left = ContentIndent;
+
+                    c.Margin = margin;
+
+                    if (c.Height > currentLineHeight)
+                        currentLineHeight = c.Height;
+
+                    firstChild = false;
                 }
-                c.Margin = margin;
+                if (currentLineHeight != 0f)
+                    lastLineHeight = currentLineHeight;
+                lineSpacingValue = lastLineHeight * LineSpacing;
+                firstLine = false;
             }
         }
 
-        private class NewLineContainer : Container
+        internal class NewLineContainer : Container
         {
             public readonly bool IndicatesNewParagraph;
 
@@ -271,7 +301,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private class TextLine
+        internal class TextLine
         {
             public readonly string Text;
             private readonly Action<SpriteText> creationParameters;

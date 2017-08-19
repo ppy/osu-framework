@@ -149,6 +149,7 @@
     <Compile Include="Graphics\OpenGL\Vertices\TimedTexturedVertex2D.cs" />
     <Compile Include="Graphics\OpenGL\Vertices\UncolouredVertex2D.cs" />
     <Compile Include="Graphics\OpenGL\Vertices\Vertex2D.cs" />
+    <Compile Include="Graphics\Sprites\IHasLineBaseHeight.cs" />
     <Compile Include="Graphics\Textures\TextureWhitePixel.cs" />
     <Compile Include="Graphics\Transforms\ITransformable.cs" />
     <Compile Include="Graphics\TransformSequenceExtensions.cs" />
