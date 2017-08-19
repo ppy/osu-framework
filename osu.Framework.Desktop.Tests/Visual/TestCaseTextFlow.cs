@@ -123,8 +123,8 @@ osu! is written in C# on the .NET Framework. On August 28, 2016, osu!'s source c
         {
             public TestCaseCustomText()
             {
-                AddIconCallback("RedBox", makeRedBox);
-                AddIconCallback("GreenBox", makeGreenBox);
+                AddIconFactory("RedBox", makeRedBox);
+                AddIconFactory("GreenBox", makeGreenBox);
             }
 
             Drawable makeGreenBox() => new LineBaseBox

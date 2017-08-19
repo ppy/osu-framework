@@ -60,14 +60,8 @@ namespace osu.Framework.IO.Stores
             fontLoadTask = null;
         }
 
-        public bool HasGlyph(char c)
-        {
-            return font.Characters.ContainsKey(c);
-        }
-        public int GetBaseHeight()
-        {
-            return font.BaseHeight;
-        }
+        public bool HasGlyph(char c) => font.Characters.ContainsKey(c);
+        public int GetBaseHeight() => font.BaseHeight;
         public int? GetBaseHeight(string name)
         {
             if (name != fontName && name != null)

@@ -5,8 +5,14 @@ using System.Linq;
 
 namespace osu.Framework.Graphics.Containers
 {
+    /// <summary>
+    /// A <see cref="TextFlowContainer"/> that supports adding icons into its text. Inherit from this class to define reusable custom placeholders for icons.
+    /// </summary>
     public class CustomizableTextContainer : TextFlowContainer
     {
+        /// <summary>
+        /// Sets the placeholders that should be used to replace the numeric placeholders, in the order given.
+        /// </summary>
         public IEnumerable<Drawable> Placeholders
         {
             set
@@ -22,27 +28,44 @@ namespace osu.Framework.Graphics.Containers
         private List<Drawable> placeholders = new List<Drawable>();
         private Dictionary<string, Delegate> iconFactories = new Dictionary<string, Delegate>();
 
-        public void AddPlaceholder(Drawable drawable)
+        /// <summary>
+        /// Adds the given drawable as a placeholder that can be used when adding text. The drawable must not have a parent. Returns the index that can be used to reference the added placeholder.
+        /// </summary>
+        /// <param name="drawable">The drawable to use as a placeholder. This drawable must not have a parent.</param>
+        /// <returns>The index that can be used to reference the added placeholder.</returns>
+        public int AddPlaceholder(Drawable drawable)
         {
             placeholders.Add(drawable);
-        }
-        protected void AddIconCallback(string name, Delegate factory)
-        {
-            iconFactories.Add(name, factory);
-        }
-        protected void AddIconCallback(string name, Func<Drawable> factory)
-        {
-            iconFactories.Add(name, factory);
-        }
-        protected void AddIconCallback(string name, Func<int, Drawable> factory)
-        {
-            iconFactories.Add(name, factory);
-        }
-        protected void AddIconCallback(string name, Func<int, int, Drawable> factory)
-        {
-            iconFactories.Add(name, factory);
+            return placeholders.Count - 1;
         }
 
+        // I dislike these overloads as much as you, but if we only had the general overload taking a Delegate, AddIconFactory("test", someInstanceMethod) would not compile (because we would need to cast someInstanceMethod to a delegate type first).
+        /// <summary>
+        /// Adds the given factory method as a placeholder. It will be used to create a drawable each time [name] is encountered in the text. The factory method must return a <see cref="Drawable"/> and may contain an arbitrary number of integer parameters. If there are, fe, 2 integer parameters on the factory method, the placeholder in the text would need to look like [name(42, 1337)] supplying the values 42 and 1337 to the method as arguments.
+        /// </summary>
+        /// <param name="name">The name of the placeholder that the factory should create drawables for.</param>
+        /// <param name="factory">The factory method creating drawables.</param>
+        protected void AddIconFactory(string name, Delegate factory) => iconFactories.Add(name, factory);
+        /// <summary>
+        /// Adds the given factory method as a placeholder. It will be used to create a drawable each time [name] is encountered in the text. The factory method must return a <see cref="Drawable"/> and may contain an arbitrary number of integer parameters. If there are, fe, 2 integer parameters on the factory method, the placeholder in the text would need to look like [name(42, 1337)] supplying the values 42 and 1337 to the method as arguments.
+        /// </summary>
+        /// <param name="name">The name of the placeholder that the factory should create drawables for.</param>
+        /// <param name="factory">The factory method creating drawables.</param>
+        protected void AddIconFactory(string name, Func<Drawable> factory) => iconFactories.Add(name, factory);
+        /// <summary>
+        /// Adds the given factory method as a placeholder. It will be used to create a drawable each time [name] is encountered in the text. The factory method must return a <see cref="Drawable"/> and may contain an arbitrary number of integer parameters. If there are, fe, 2 integer parameters on the factory method, the placeholder in the text would need to look like [name(42, 1337)] supplying the values 42 and 1337 to the method as arguments.
+        /// </summary>
+        /// <param name="name">The name of the placeholder that the factory should create drawables for.</param>
+        /// <param name="factory">The factory method creating drawables.</param>
+        protected void AddIconFactory(string name, Func<int, Drawable> factory) => iconFactories.Add(name, factory);
+        /// <summary>
+        /// Adds the given factory method as a placeholder. It will be used to create a drawable each time [name] is encountered in the text. The factory method must return a <see cref="Drawable"/> and may contain an arbitrary number of integer parameters. If there are, fe, 2 integer parameters on the factory method, the placeholder in the text would need to look like [name(42, 1337)] supplying the values 42 and 1337 to the method as arguments.
+        /// </summary>
+        /// <param name="name">The name of the placeholder that the factory should create drawables for.</param>
+        /// <param name="factory">The factory method creating drawables.</param>
+        protected void AddIconFactory(string name, Func<int, int, Drawable> factory) => iconFactories.Add(name, factory);
+
+        // Example usage of the syntax this class intends to support:
         /*
          * text.Text = "This [HeartIcon] is a permanent health upgrade";
          * text.Text = "Press [KeyboardKeyIcon(65)] to advance text."; // <- 65 = keycode for "A"
