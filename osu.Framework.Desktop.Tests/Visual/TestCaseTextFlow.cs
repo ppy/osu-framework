@@ -90,7 +90,7 @@ osu! is written in C# on the .NET Framework. On August 28, 2016, osu!'s source c
             {
                 RelativeSizeAxes = Axes.X,
                 AutoSizeAxes = Axes.Y,
-                Placeholders = new[]
+                Placeholders = new Drawable[]
                 {
                     new LineBaseBox
                     {
@@ -115,10 +115,12 @@ osu! is written in C# on the .NET Framework. On August 28, 2016, osu!'s source c
             AddToggleStep(@"Zero paragraph spacing", state => textFlowContainer.ParagraphSpacing = state ? 0 : 0.5f);
             AddToggleStep(@"Non-zero line spacing", state => textFlowContainer.LineSpacing = state ? 1 : 0);
         }
+
         private class LineBaseBox : Box, IHasLineBaseHeight
         {
             public float LineBaseHeight { get; set; }
         }
+
         private class TestCaseCustomText : CustomizableTextContainer
         {
             public TestCaseCustomText()
@@ -133,6 +135,7 @@ osu! is written in C# on the .NET Framework. On August 28, 2016, osu!'s source c
                 LineBaseHeight = 25f,
                 Size = new Vector2(25, 25)
             };
+
             private Drawable makeRedBox() => new LineBaseBox
             {
                 Colour = Color4.Red,

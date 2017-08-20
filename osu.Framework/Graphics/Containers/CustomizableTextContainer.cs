@@ -49,34 +49,27 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="name">The name of the placeholder that the factory should create drawables for.</param>
         /// <param name="factory">The factory method creating drawables.</param>
         protected void AddIconFactory(string name, Delegate factory) => iconFactories.Add(name, factory);
+
         /// <summary>
         /// Adds the given factory method as a placeholder. It will be used to create a drawable each time [name] is encountered in the text. The factory method must return a <see cref="Drawable"/> and may contain an arbitrary number of integer parameters. If there are, fe, 2 integer parameters on the factory method, the placeholder in the text would need to look like [name(42, 1337)] supplying the values 42 and 1337 to the method as arguments.
         /// </summary>
         /// <param name="name">The name of the placeholder that the factory should create drawables for.</param>
         /// <param name="factory">The factory method creating drawables.</param>
         protected void AddIconFactory(string name, Func<Drawable> factory) => iconFactories.Add(name, factory);
+
         /// <summary>
         /// Adds the given factory method as a placeholder. It will be used to create a drawable each time [name] is encountered in the text. The factory method must return a <see cref="Drawable"/> and may contain an arbitrary number of integer parameters. If there are, fe, 2 integer parameters on the factory method, the placeholder in the text would need to look like [name(42, 1337)] supplying the values 42 and 1337 to the method as arguments.
         /// </summary>
         /// <param name="name">The name of the placeholder that the factory should create drawables for.</param>
         /// <param name="factory">The factory method creating drawables.</param>
         protected void AddIconFactory(string name, Func<int, Drawable> factory) => iconFactories.Add(name, factory);
+
         /// <summary>
         /// Adds the given factory method as a placeholder. It will be used to create a drawable each time [name] is encountered in the text. The factory method must return a <see cref="Drawable"/> and may contain an arbitrary number of integer parameters. If there are, fe, 2 integer parameters on the factory method, the placeholder in the text would need to look like [name(42, 1337)] supplying the values 42 and 1337 to the method as arguments.
         /// </summary>
         /// <param name="name">The name of the placeholder that the factory should create drawables for.</param>
         /// <param name="factory">The factory method creating drawables.</param>
         protected void AddIconFactory(string name, Func<int, int, Drawable> factory) => iconFactories.Add(name, factory);
-
-        // Example usage of the syntax this class intends to support:
-        /*
-         * text.Text = "This [HeartIcon] is a permanent health upgrade";
-         * text.Text = "Press [KeyboardKeyIcon(65)] to advance text."; // <- 65 = keycode for "A"
-         * text.Text = "I can escape [[0]] too!";
-
-         * text.AddPlaceholder(0, someComplexDrawable);
-         * text.Text = "Something [0] very special!"
-         */
 
         internal override IEnumerable<SpriteText> AddLine(TextLine line, bool newLineIsParagraph)
         {
@@ -85,11 +78,11 @@ namespace osu.Framework.Graphics.Containers
 
             List<SpriteText> sprites = new List<SpriteText>();
             int index = 0;
-            var str = line.Text;
+            string str = line.Text;
             while (index < str.Length)
             {
                 Drawable placeholderDrawable = null;
-                var nextPlaceholderIndex = str.IndexOf('[', index);
+                int nextPlaceholderIndex = str.IndexOf('[', index);
                 // make sure we skip ahead to the next [ as long as the current [ is escaped
                 while (nextPlaceholderIndex != -1 && str.IndexOf("[[", nextPlaceholderIndex, StringComparison.InvariantCulture) == nextPlaceholderIndex)
                     nextPlaceholderIndex = str.IndexOf('[', nextPlaceholderIndex + 2);
@@ -97,7 +90,7 @@ namespace osu.Framework.Graphics.Containers
                 string strPiece = null;
                 if (nextPlaceholderIndex != -1)
                 {
-                    var placeholderEnd = str.IndexOf(']', nextPlaceholderIndex);
+                    int placeholderEnd = str.IndexOf(']', nextPlaceholderIndex);
                     // make sure we skip ahead to the next ] as long as the current ] is escaped
                     while (placeholderEnd != -1 && str.IndexOf("]]", placeholderEnd, StringComparison.InvariantCulture) == placeholderEnd)
                         placeholderEnd = str.IndexOf(']', placeholderEnd + 2);
@@ -105,14 +98,14 @@ namespace osu.Framework.Graphics.Containers
                     if (placeholderEnd != -1)
                     {
                         strPiece = str.Substring(index, nextPlaceholderIndex - index);
-                        var placeholderStr = str.Substring(nextPlaceholderIndex + 1, placeholderEnd - nextPlaceholderIndex - 1).Trim();
-                        var placeholderName = placeholderStr;
-                        var paramStr = "";
-                        var parensOpen = placeholderStr.IndexOf('(');
+                        string placeholderStr = str.Substring(nextPlaceholderIndex + 1, placeholderEnd - nextPlaceholderIndex - 1).Trim();
+                        string placeholderName = placeholderStr;
+                        string paramStr = "";
+                        int parensOpen = placeholderStr.IndexOf('(');
                         if (parensOpen != -1)
                         {
                             placeholderName = placeholderStr.Substring(0, parensOpen).Trim();
-                            var parensClose = placeholderStr.IndexOf(')', parensOpen);
+                            int parensClose = placeholderStr.IndexOf(')', parensOpen);
                             if (parensClose != -1)
                                 paramStr = placeholderStr.Substring(parensOpen + 1, parensClose - parensOpen - 1).Trim();
                             else
@@ -138,7 +131,7 @@ namespace osu.Framework.Graphics.Containers
                             }
                             else
                             {
-                                var argStrs = paramStr.Split(',');
+                                string[] argStrs = paramStr.Split(',');
                                 args = new object[argStrs.Length];
                                 for (int i = 0; i < argStrs.Length; ++i)
                                 {
@@ -158,6 +151,7 @@ namespace osu.Framework.Graphics.Containers
                         index = placeholderEnd + 1;
                     }
                 }
+
                 if (strPiece == null)
                 {
                     strPiece = str.Substring(index);
@@ -170,7 +164,7 @@ namespace osu.Framework.Graphics.Containers
                 {
                     if (!first)
                     {
-                        var lastChild = Children.LastOrDefault();
+                        Drawable lastChild = Children.LastOrDefault();
                         if (lastChild != null)
                             AddInternal(new NewLineContainer(newLineIsParagraph));
                     }
@@ -179,7 +173,7 @@ namespace osu.Framework.Graphics.Containers
                     {
                         if (string.IsNullOrEmpty(word)) continue;
 
-                        var textSprite = CreateSpriteTextWithLine(line);
+                        SpriteText textSprite = CreateSpriteTextWithLine(line);
                         textSprite.Text = word;
                         sprites.Add(textSprite);
                         AddInternal(textSprite);
@@ -187,6 +181,7 @@ namespace osu.Framework.Graphics.Containers
 
                     first = false;
                 }
+
                 if (placeholderDrawable != null)
                 {
                     if (placeholderDrawable.Parent != null)

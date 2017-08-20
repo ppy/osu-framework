@@ -227,7 +227,7 @@ namespace osu.Framework.Graphics.Containers
         private void computeLayout()
         {
             List<List<Drawable>> childrenByLine = new List<List<Drawable>>();
-            var curLine = new List<Drawable>();
+            List<Drawable> curLine = new List<Drawable>();
             foreach (var c in Children)
             {
                 NewLineContainer nlc = c as NewLineContainer;
@@ -252,30 +252,30 @@ namespace osu.Framework.Graphics.Containers
             if (curLine.Count > 0)
                 childrenByLine.Add(curLine);
 
-            var firstLine = true;
-            var lastLineHeight = 0f;
-            foreach (var line in childrenByLine)
+            bool isFirstLine = true;
+            float lastLineHeight = 0f;
+            foreach (List<Drawable> line in childrenByLine)
             {
-                var firstChild = true;
-                var lineBaseHeightValues = line.OfType<IHasLineBaseHeight>().Select(l => l.LineBaseHeight);
-                var lineBaseHeight = lineBaseHeightValues.Any() ? lineBaseHeightValues.Max() : 0f;
-                var currentLineHeight = 0f;
-                var lineSpacingValue = lastLineHeight * LineSpacing;
+                bool isFirstChild = true;
+                IEnumerable<float> lineBaseHeightValues = line.OfType<IHasLineBaseHeight>().Select(l => l.LineBaseHeight);
+                float lineBaseHeight = lineBaseHeightValues.Any() ? lineBaseHeightValues.Max() : 0f;
+                float currentLineHeight = 0f;
+                float lineSpacingValue = lastLineHeight * LineSpacing;
 
-                foreach (var c in line)
+                foreach (Drawable c in line)
                 {
-                    var nlc = c as NewLineContainer;
+                    NewLineContainer nlc = c as NewLineContainer;
                     if (nlc != null)
                     {
                         nlc.Height = nlc.IndicatesNewParagraph ? (currentLineHeight == 0 ? lastLineHeight : currentLineHeight) * ParagraphSpacing : 0;
                         continue;
                     }
 
-                    var childLineBaseHeight = (c as IHasLineBaseHeight)?.LineBaseHeight ?? 0f;
-                    var margin = new MarginPadding { Top = (childLineBaseHeight != 0f ? lineBaseHeight - childLineBaseHeight : 0f) + lineSpacingValue };
-                    if (firstLine)
+                    float childLineBaseHeight = (c as IHasLineBaseHeight)?.LineBaseHeight ?? 0f;
+                    MarginPadding margin = new MarginPadding { Top = (childLineBaseHeight != 0f ? lineBaseHeight - childLineBaseHeight : 0f) + lineSpacingValue };
+                    if (isFirstLine)
                         margin.Left = FirstLineIndent;
-                    else if (firstChild)
+                    else if (isFirstChild)
                         margin.Left = ContentIndent;
 
                     c.Margin = margin;
@@ -283,13 +283,13 @@ namespace osu.Framework.Graphics.Containers
                     if (c.Height > currentLineHeight)
                         currentLineHeight = c.Height;
 
-                    firstChild = false;
+                    isFirstChild = false;
                 }
 
                 if (currentLineHeight != 0f)
                     lastLineHeight = currentLineHeight;
 
-                firstLine = false;
+                isFirstLine = false;
             }
         }
 
