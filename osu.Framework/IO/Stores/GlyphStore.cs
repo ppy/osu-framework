@@ -1,13 +1,14 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using Cyotek.Drawing.BitmapFont;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Textures;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace osu.Framework.IO.Stores
 {
@@ -59,6 +60,16 @@ namespace osu.Framework.IO.Stores
             fontLoadTask = null;
         }
 
+        public bool HasGlyph(char c) => font.Characters.ContainsKey(c);
+        public int GetBaseHeight() => font.BaseHeight;
+        public int? GetBaseHeight(string name)
+        {
+            if (name != fontName)
+                return null;
+
+            return font.BaseHeight;
+        }
+
         public RawTexture Get(string name)
         {
             if (name.Length > 1 && !name.StartsWith($@"{fontName}/", StringComparison.Ordinal))
@@ -72,7 +83,6 @@ namespace osu.Framework.IO.Stores
                 return null;
 
             RawTexture page = getTexturePage(c.TexturePage);
-
             loadedGlyphCount++;
 
             int width = c.Bounds.Width + c.Offset.X + 1;
@@ -140,6 +150,8 @@ namespace osu.Framework.IO.Stores
 
     public class FontStore : TextureStore
     {
+        private readonly List<GlyphStore> glyphStores = new List<GlyphStore>();
+
         public FontStore()
         {
         }
@@ -147,6 +159,41 @@ namespace osu.Framework.IO.Stores
         public FontStore(GlyphStore glyphStore)
             : base(glyphStore)
         {
+        }
+
+        public override void AddStore(IResourceStore<RawTexture> store)
+        {
+            var gs = store as GlyphStore;
+            if (gs != null)
+                glyphStores.Add(gs);
+            base.AddStore(store);
+        }
+        public override void RemoveStore(IResourceStore<RawTexture> store)
+        {
+            var gs = store as GlyphStore;
+            if (gs != null)
+                glyphStores.Remove(gs);
+            base.RemoveStore(store);
+        }
+
+        public float? GetBaseHeight(char c)
+        {
+            foreach (var store in glyphStores)
+            {
+                if (store.HasGlyph(c))
+                    return store.GetBaseHeight() / ScaleAdjust;
+            }
+            return null;
+        }
+        public float? GetBaseHeight(string fontName)
+        {
+            foreach (var store in glyphStores)
+            {
+                var bh = store.GetBaseHeight(fontName);
+                if (bh.HasValue)
+                    return bh.Value / ScaleAdjust;
+            }
+            return null;
         }
     }
 }
