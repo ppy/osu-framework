@@ -5,7 +5,6 @@ using osu.Framework.Lists;
 using System.Collections.Generic;
 using System;
 using System.Diagnostics;
-using System.Threading;
 using OpenTK;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.OpenGL;
@@ -277,7 +276,7 @@ namespace osu.Framework.Graphics.Containers
         /// Used to assign a monotonically increasing ID to children as they are added. This member is
         /// incremented whenever a child is added.
         /// </summary>
-        private static long currentChildID;
+        private ulong currentChildID;
 
         /// <summary>
         /// Adds a child to <see cref="InternalChildren"/>.
@@ -294,7 +293,7 @@ namespace osu.Framework.Graphics.Containers
             if (drawable.ChildID != 0)
                 throw new InvalidOperationException("May not add a drawable to multiple containers.");
 
-            drawable.ChildID = Interlocked.Increment(ref currentChildID);
+            drawable.ChildID = ++currentChildID;
 
             if (drawable.LoadState >= LoadState.Ready)
                 drawable.Parent = this;
