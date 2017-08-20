@@ -167,19 +167,23 @@ namespace osu.Framework.Graphics.Containers
 
         internal virtual IEnumerable<SpriteText> AddLine(TextLine line, bool newLineIsParagraph)
         {
-            bool first = true;
-            var sprites = new List<SpriteText>();
-
             // !newLineIsParagraph effectively means that we want to add just *one* paragraph, which means we need to make sure that any previous paragraphs
             // are terminated. Thus, we add a NewLineContainer that indicates the end of the paragraph before adding our current paragraph.
             if (!newLineIsParagraph)
                 base.Add(new NewLineContainer(true));
 
+            return AddString(line, newLineIsParagraph);
+        }
+
+        internal IEnumerable<SpriteText> AddString(TextLine line, bool newLineIsParagraph)
+        {
+            bool first = true;
+            var sprites = new List<SpriteText>();
             foreach (string l in line.Text.Split('\n'))
             {
                 if (!first)
                 {
-                    var lastChild = Children.LastOrDefault();
+                    Drawable lastChild = Children.LastOrDefault();
                     if (lastChild != null)
                         base.Add(new NewLineContainer(newLineIsParagraph));
                 }
@@ -226,8 +230,8 @@ namespace osu.Framework.Graphics.Containers
 
         private void computeLayout()
         {
-            List<List<Drawable>> childrenByLine = new List<List<Drawable>>();
-            List<Drawable> curLine = new List<Drawable>();
+            var childrenByLine = new List<List<Drawable>>();
+            var curLine = new List<Drawable>();
             foreach (var c in Children)
             {
                 NewLineContainer nlc = c as NewLineContainer;
@@ -254,7 +258,7 @@ namespace osu.Framework.Graphics.Containers
 
             bool isFirstLine = true;
             float lastLineHeight = 0f;
-            foreach (List<Drawable> line in childrenByLine)
+            foreach (var line in childrenByLine)
             {
                 bool isFirstChild = true;
                 IEnumerable<float> lineBaseHeightValues = line.OfType<IHasLineBaseHeight>().Select(l => l.LineBaseHeight);
@@ -307,17 +311,17 @@ namespace osu.Framework.Graphics.Containers
         internal class TextLine
         {
             public readonly string Text;
-            private readonly Action<SpriteText> creationParameters;
+            internal readonly Action<SpriteText> CreationParameters;
 
             public TextLine(string text, Action<SpriteText> creationParameters = null)
             {
                 Text = text;
-                this.creationParameters = creationParameters;
+                this.CreationParameters = creationParameters;
             }
 
             public void ApplyParameters(SpriteText spriteText)
             {
-                creationParameters?.Invoke(spriteText);
+                CreationParameters?.Invoke(spriteText);
             }
         }
     }

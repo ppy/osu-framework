@@ -64,7 +64,7 @@ namespace osu.Framework.IO.Stores
         public int GetBaseHeight() => font.BaseHeight;
         public int? GetBaseHeight(string name)
         {
-            if (name != fontName && name != null)
+            if (name != fontName)
                 return null;
 
             return font.BaseHeight;

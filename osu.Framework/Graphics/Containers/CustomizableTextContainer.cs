@@ -4,7 +4,6 @@
 using osu.Framework.Graphics.Sprites;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -42,30 +41,30 @@ namespace osu.Framework.Graphics.Containers
             return placeholders.Count - 1;
         }
 
-        // I dislike these overloads as much as you, but if we only had the general overload taking a Delegate, AddIconFactory("test", someInstanceMethod) would not compile (because we would need to cast someInstanceMethod to a delegate type first).
         /// <summary>
-        /// Adds the given factory method as a placeholder. It will be used to create a drawable each time [name] is encountered in the text. The factory method must return a <see cref="Drawable"/> and may contain an arbitrary number of integer parameters. If there are, fe, 2 integer parameters on the factory method, the placeholder in the text would need to look like [name(42, 1337)] supplying the values 42 and 1337 to the method as arguments.
+        /// Adds the given factory method as a placeholder. It will be used to create a drawable each time [<paramref name="name"/>] is encountered in the text. The <paramref name="factory"/> method must return a <see cref="Drawable"/> and may contain an arbitrary number of integer parameters. If there are, fe, 2 integer parameters on the factory method, the placeholder in the text would need to look like [<paramref name="name"/>(42, 1337)] supplying the values 42 and 1337 to the method as arguments.
         /// </summary>
         /// <param name="name">The name of the placeholder that the factory should create drawables for.</param>
         /// <param name="factory">The factory method creating drawables.</param>
         protected void AddIconFactory(string name, Delegate factory) => iconFactories.Add(name, factory);
 
+        // I dislike the following overloads as much as you, but if we only had the general overload taking a Delegate, AddIconFactory("test", someInstanceMethod) would not compile (because we would need to cast someInstanceMethod to a delegate type first).
         /// <summary>
-        /// Adds the given factory method as a placeholder. It will be used to create a drawable each time [name] is encountered in the text. The factory method must return a <see cref="Drawable"/> and may contain an arbitrary number of integer parameters. If there are, fe, 2 integer parameters on the factory method, the placeholder in the text would need to look like [name(42, 1337)] supplying the values 42 and 1337 to the method as arguments.
+        /// Adds the given factory method as a placeholder. It will be used to create a drawable each time [<paramref name="name"/>] is encountered in the text. The <paramref name="factory"/> method must return a <see cref="Drawable"/> and may contain an arbitrary number of integer parameters. If there are, fe, 2 integer parameters on the factory method, the placeholder in the text would need to look like [<paramref name="name"/>(42, 1337)] supplying the values 42 and 1337 to the method as arguments.
         /// </summary>
         /// <param name="name">The name of the placeholder that the factory should create drawables for.</param>
         /// <param name="factory">The factory method creating drawables.</param>
         protected void AddIconFactory(string name, Func<Drawable> factory) => iconFactories.Add(name, factory);
 
         /// <summary>
-        /// Adds the given factory method as a placeholder. It will be used to create a drawable each time [name] is encountered in the text. The factory method must return a <see cref="Drawable"/> and may contain an arbitrary number of integer parameters. If there are, fe, 2 integer parameters on the factory method, the placeholder in the text would need to look like [name(42, 1337)] supplying the values 42 and 1337 to the method as arguments.
+        /// Adds the given factory method as a placeholder. It will be used to create a drawable each time [<paramref name="name"/>] is encountered in the text. The <paramref name="factory"/> method must return a <see cref="Drawable"/> and may contain an arbitrary number of integer parameters. If there are, fe, 2 integer parameters on the factory method, the placeholder in the text would need to look like [<paramref name="name"/>(42, 1337)] supplying the values 42 and 1337 to the method as arguments.
         /// </summary>
         /// <param name="name">The name of the placeholder that the factory should create drawables for.</param>
         /// <param name="factory">The factory method creating drawables.</param>
         protected void AddIconFactory(string name, Func<int, Drawable> factory) => iconFactories.Add(name, factory);
 
         /// <summary>
-        /// Adds the given factory method as a placeholder. It will be used to create a drawable each time [name] is encountered in the text. The factory method must return a <see cref="Drawable"/> and may contain an arbitrary number of integer parameters. If there are, fe, 2 integer parameters on the factory method, the placeholder in the text would need to look like [name(42, 1337)] supplying the values 42 and 1337 to the method as arguments.
+        /// Adds the given factory method as a placeholder. It will be used to create a drawable each time [<paramref name="name"/>] is encountered in the text. The <paramref name="factory"/> method must return a <see cref="Drawable"/> and may contain an arbitrary number of integer parameters. If there are, fe, 2 integer parameters on the factory method, the placeholder in the text would need to look like [<paramref name="name"/>(42, 1337)] supplying the values 42 and 1337 to the method as arguments.
         /// </summary>
         /// <param name="name">The name of the placeholder that the factory should create drawables for.</param>
         /// <param name="factory">The factory method creating drawables.</param>
@@ -76,7 +75,7 @@ namespace osu.Framework.Graphics.Containers
             if (!newLineIsParagraph)
                 AddInternal(new NewLineContainer(true));
 
-            List<SpriteText> sprites = new List<SpriteText>();
+            var sprites = new List<SpriteText>();
             int index = 0;
             string str = line.Text;
             while (index < str.Length)
@@ -91,7 +90,7 @@ namespace osu.Framework.Graphics.Containers
                 if (nextPlaceholderIndex != -1)
                 {
                     int placeholderEnd = str.IndexOf(']', nextPlaceholderIndex);
-                    // make sure we skip ahead to the next ] as long as the current ] is escaped
+                    // make sure we skip  ahead to the next ] as long as the current ] is escaped
                     while (placeholderEnd != -1 && str.IndexOf("]]", placeholderEnd, StringComparison.InvariantCulture) == placeholderEnd)
                         placeholderEnd = str.IndexOf(']', placeholderEnd + 2);
 
@@ -137,7 +136,7 @@ namespace osu.Framework.Graphics.Containers
                                 {
                                     int argVal;
                                     if (!int.TryParse(argStrs[i], out argVal))
-                                        throw new ArgumentException($"The argument {argStrs[i]} in placeholder {placeholderStr} is not an integer.");
+                                        throw new ArgumentException($"The argument \"{argStrs[i]}\" in placeholder {placeholderStr} is not an integer.");
 
                                     args[i] = argVal;
                                 }
@@ -159,28 +158,7 @@ namespace osu.Framework.Graphics.Containers
                 }
                 // unescape stuff
                 strPiece = strPiece.Replace("[[", "[").Replace("]]", "]");
-                bool first = true;
-                foreach (string l in strPiece.Split('\n'))
-                {
-                    if (!first)
-                    {
-                        Drawable lastChild = Children.LastOrDefault();
-                        if (lastChild != null)
-                            AddInternal(new NewLineContainer(newLineIsParagraph));
-                    }
-
-                    foreach (string word in SplitWords(l))
-                    {
-                        if (string.IsNullOrEmpty(word)) continue;
-
-                        SpriteText textSprite = CreateSpriteTextWithLine(line);
-                        textSprite.Text = word;
-                        sprites.Add(textSprite);
-                        AddInternal(textSprite);
-                    }
-
-                    first = false;
-                }
+                AddString(new TextLine(strPiece, line.CreationParameters), newLineIsParagraph);
 
                 if (placeholderDrawable != null)
                 {

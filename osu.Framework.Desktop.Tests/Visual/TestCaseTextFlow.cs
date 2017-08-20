@@ -133,7 +133,7 @@ osu! is written in C# on the .NET Framework. On August 28, 2016, osu!'s source c
             {
                 Colour = Color4.Green,
                 LineBaseHeight = 25f,
-                Size = new Vector2(25, 25)
+                Size = new Vector2(25, 20)
             };
 
             private Drawable makeRedBox() => new LineBaseBox
