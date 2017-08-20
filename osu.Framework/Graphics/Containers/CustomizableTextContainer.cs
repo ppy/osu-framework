@@ -158,7 +158,7 @@ namespace osu.Framework.Graphics.Containers
                 }
                 // unescape stuff
                 strPiece = strPiece.Replace("[[", "[").Replace("]]", "]");
-                AddString(new TextLine(strPiece, line.CreationParameters), newLineIsParagraph);
+                sprites.AddRange(AddString(new TextLine(strPiece, line.CreationParameters), newLineIsParagraph));
 
                 if (placeholderDrawable != null)
                 {

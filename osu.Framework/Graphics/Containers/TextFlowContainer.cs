@@ -316,7 +316,7 @@ namespace osu.Framework.Graphics.Containers
             public TextLine(string text, Action<SpriteText> creationParameters = null)
             {
                 Text = text;
-                this.CreationParameters = creationParameters;
+                CreationParameters = creationParameters;
             }
 
             public void ApplyParameters(SpriteText spriteText)
