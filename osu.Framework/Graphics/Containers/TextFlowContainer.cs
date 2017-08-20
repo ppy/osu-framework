@@ -248,18 +248,20 @@ namespace osu.Framework.Graphics.Containers
                     curLine.Add(c);
                 }
             }
+
             if (curLine.Count > 0)
                 childrenByLine.Add(curLine);
+
             var firstLine = true;
-            var lineSpacingValue = 0f;
-            var currentLineHeight = 0f;
             var lastLineHeight = 0f;
             foreach (var line in childrenByLine)
             {
                 var firstChild = true;
                 var lineBaseHeightValues = line.OfType<IHasLineBaseHeight>().Select(l => l.LineBaseHeight);
                 var lineBaseHeight = lineBaseHeightValues.Any() ? lineBaseHeightValues.Max() : 0f;
-                currentLineHeight = 0f;
+                var currentLineHeight = 0f;
+                var lineSpacingValue = lastLineHeight * LineSpacing;
+
                 foreach (var c in line)
                 {
                     var nlc = c as NewLineContainer;
@@ -283,9 +285,10 @@ namespace osu.Framework.Graphics.Containers
 
                     firstChild = false;
                 }
+
                 if (currentLineHeight != 0f)
                     lastLineHeight = currentLineHeight;
-                lineSpacingValue = lastLineHeight * LineSpacing;
+
                 firstLine = false;
             }
         }
