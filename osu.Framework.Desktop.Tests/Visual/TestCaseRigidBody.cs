@@ -59,9 +59,9 @@ namespace osu.Framework.Desktop.Tests.Visual
 
             AddStep("Reset bodies", reset);
 
-            AddSliderStep("Simulation speed", 0.0, 1.0, 0.5, v => sim.SimulationSpeed = (float)v);
-            AddSliderStep("Restitution", -1.0, 1.0, 1.0, v => restitution = (float)v);
-            AddSliderStep("Friction", -1.0, 5.0, 0.0, v => friction = (float)v);
+            AddSliderStep("Simulation speed", 0f, 1f, 0.5f, v => sim.SimulationSpeed = v);
+            AddSliderStep("Restitution", -1f, 1f, 1f, v => restitution = v);
+            AddSliderStep("Friction", -1f, 5f, 0f, v => friction = v);
 
             reset();
         }
