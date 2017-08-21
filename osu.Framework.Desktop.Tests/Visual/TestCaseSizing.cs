@@ -41,7 +41,9 @@ namespace osu.Framework.Desktop.Tests.Visual
                 @"Margin",
                 @"Inner Margin",
                 @"Drawable Margin",
-                @"Relative Inside Autosize"
+                @"Relative Inside Autosize",
+                @"Positive/negative/zero scale",
+                @"Positive/negative/zero size",
             };
 
             for (int i = 0; i < testNames.Length; i++)
@@ -891,6 +893,48 @@ namespace osu.Framework.Desktop.Tests.Visual
                         });
 
                         sizedBox.ScaleTo(new Vector2(2), 1000, Easing.Out).Then().ScaleTo(Vector2.One, 1000, Easing.In).Loop();
+                        break;
+                    }
+                case 13:
+                    {
+                        Box box2;
+                        testContainer.Add(new Container
+                        {
+                            Anchor = Anchor.Centre,
+                            Origin = Anchor.Centre,
+                            AutoSizeAxes = Axes.Both,
+                            Masking = true,
+                            Child = box2 = new Box
+                            {
+                                Anchor = Anchor.Centre,
+                                Origin = Anchor.Centre,
+                                Size = new Vector2(200)
+                            }
+                        });
+
+                        box2.ScaleTo(new Vector2(-1), 1000, Easing.InSine).Then().ScaleTo(new Vector2(1), 1000, Easing.InSine).Loop();
+
+                        break;
+                    }
+                case 14:
+                    {
+                        Box box2;
+                        testContainer.Add(new Container
+                        {
+                            Anchor = Anchor.Centre,
+                            Origin = Anchor.Centre,
+                            AutoSizeAxes = Axes.Both,
+                            Masking = true,
+                            Child = box2 = new Box
+                            {
+                                Anchor = Anchor.Centre,
+                                Origin = Anchor.Centre,
+                                Size = new Vector2(200)
+                            }
+                        });
+
+                        box2.ResizeTo(new Vector2(-200), 1000, Easing.InSine).Then().ResizeTo(new Vector2(200), 1000, Easing.InSine).Loop();
+
                         break;
                     }
             }
