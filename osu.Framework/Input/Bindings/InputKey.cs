@@ -603,5 +603,13 @@ namespace osu.Framework.Input.Bindings
         /// Indicates the last available mouse button.
         /// </summary>
         MouseLastButton = 144,
+        /// <summary>
+        /// Mouse wheel rolled up.
+        /// </summary>
+        MouseWheelUp = 145,
+        /// <summary>
+        /// Mouse wheel rolled down.
+        /// </summary>
+        MouseWheelDown = 146
     }
 }
