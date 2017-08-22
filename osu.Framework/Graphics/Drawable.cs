@@ -744,7 +744,10 @@ namespace osu.Framework.Graphics
 
             set
             {
-                value = Vector2.ComponentMax(new Vector2(Precision.FLOAT_EPSILON), value);
+                if (Math.Abs(value.X) < Precision.FLOAT_EPSILON)
+                    value.X = Precision.FLOAT_EPSILON;
+                if (Math.Abs(value.Y) < Precision.FLOAT_EPSILON)
+                    value.Y = Precision.FLOAT_EPSILON;
 
                 if (scale == value)
                     return;
@@ -1067,7 +1070,7 @@ namespace osu.Framework.Graphics
         /// Determines whether this Drawable is present based on its <see cref="Alpha"/> value.
         /// Can be forced always on with <see cref="AlwaysPresent"/>.
         /// </summary>
-        public virtual bool IsPresent => AlwaysPresent || Alpha > visibility_cutoff && Scale.X > Precision.FLOAT_EPSILON && Scale.Y > Precision.FLOAT_EPSILON;
+        public virtual bool IsPresent => AlwaysPresent || Alpha > visibility_cutoff && Math.Abs(Scale.X) > Precision.FLOAT_EPSILON && Math.Abs(Scale.Y) > Precision.FLOAT_EPSILON;
 
         private bool alwaysPresent;
 
