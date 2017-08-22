@@ -175,6 +175,10 @@ namespace osu.Framework.Input.Bindings
                     return "M11";
                 case InputKey.MouseButton9:
                     return "M12";
+                case InputKey.MouseWheelDown:
+                    return "Wheel Down";
+                case InputKey.MouseWheelUp:
+                    return "Wheel Up";
                 default:
                     return key.ToString();
             }
@@ -210,6 +214,9 @@ namespace osu.Framework.Input.Bindings
             {
                 foreach (var button in state.Mouse.Buttons)
                     keys.Add(FromMouseButton(button));
+
+                if (state.Mouse.WheelDelta > 0) keys.Add(InputKey.MouseWheelUp);
+                if (state.Mouse.WheelDelta < 0) keys.Add(InputKey.MouseWheelDown);
             }
 
             if (state.Keyboard != null)

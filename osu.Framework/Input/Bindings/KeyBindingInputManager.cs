@@ -44,11 +44,28 @@ namespace osu.Framework.Input.Bindings
         /// </summary>
         protected virtual IEnumerable<Drawable> KeyBindingInputQueue => InputQueue;
 
+        protected override bool PropagateWheel(IEnumerable<Drawable> drawables, InputState state)
+        {
+            if (base.PropagateWheel(drawables, state)) return true;
+
+            // we need to create a local cloned state to ensure the underlying code in handleNewUp thinks we are in a sane state,
+            // even though we are pressing and releasing an InputKey in a single frame.
+            var clonedState = state.Clone();
+            var clonedMouseState = (MouseState)clonedState.Mouse;
+
+            clonedMouseState.Wheel = 0;
+            clonedMouseState.LastState = null;
+
+            InputKey key = state.Mouse.WheelDelta > 0 ? InputKey.MouseWheelUp : InputKey.MouseWheelDown;
+
+            return handleNewDown(state, key) | handleNewUp(clonedState, key);
+        }
+
         protected override bool PropagateMouseDown(IEnumerable<Drawable> drawables, InputState state, MouseDownEventArgs args) =>
-            handleNewDown(state, KeyCombination.FromMouseButton(args.Button)) || base.PropagateMouseDown(drawables, state, args);
+            base.PropagateMouseDown(drawables, state, args) || handleNewDown(state, KeyCombination.FromMouseButton(args.Button));
 
         protected override bool PropagateMouseUp(IEnumerable<Drawable> drawables, InputState state, MouseUpEventArgs args) =>
-            handleNewUp(state, KeyCombination.FromMouseButton(args.Button)) || base.PropagateMouseUp(drawables, state, args);
+            base.PropagateMouseUp(drawables, state, args) || handleNewUp(state, KeyCombination.FromMouseButton(args.Button));
 
         protected override bool PropagateKeyDown(IEnumerable<Drawable> drawables, InputState state, KeyDownEventArgs args)
         {
@@ -60,11 +77,11 @@ namespace osu.Framework.Input.Bindings
                 return base.PropagateKeyDown(drawables, state, args);
             }
 
-            return handleNewDown(state, KeyCombination.FromKey(args.Key)) || base.PropagateKeyDown(drawables, state, args);
+            return base.PropagateKeyDown(drawables, state, args) || handleNewDown(state, KeyCombination.FromKey(args.Key));
         }
 
         protected override bool PropagateKeyUp(IEnumerable<Drawable> drawables, InputState state, KeyUpEventArgs args) =>
-            handleNewUp(state, KeyCombination.FromKey(args.Key)) || base.PropagateKeyUp(drawables, state, args);
+            base.PropagateKeyUp(drawables, state, args) || handleNewUp(state, KeyCombination.FromKey(args.Key));
 
         private bool handleNewDown(InputState state, InputKey newKey)
         {

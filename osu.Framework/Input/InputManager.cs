@@ -689,7 +689,18 @@ namespace osu.Framework.Input
 
         private bool handleWheel(InputState state)
         {
-            return positionalInputQueue.Any(target => target.TriggerOnWheel(state));
+            return PropagateWheel(positionalInputQueue, state);
+        }
+
+        /// <summary>
+        /// Triggers wheel events on drawables in <paramref cref="drawables"/> until it is handled.
+        /// </summary>
+        /// <param name="drawables">The drawables in the queue.</param>
+        /// <param name="state">The input state.</param>
+        /// <returns></returns>
+        protected virtual bool PropagateWheel(IEnumerable<Drawable> drawables, InputState state)
+        {
+            return drawables.Any(target => target.TriggerOnWheel(state));
         }
 
         private bool handleKeyDown(InputState state, Key key, bool repeat)
