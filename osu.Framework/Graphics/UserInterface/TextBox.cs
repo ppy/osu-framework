@@ -490,6 +490,9 @@ namespace osu.Framework.Graphics.UserInterface
 
             switch (args.Key)
             {
+                case Key.Escape:
+                    GetContainingInputManager().ChangeFocus(null);
+                    return true;
                 case Key.Tab:
                     return base.OnKeyDown(state, args);
                 case Key.End:

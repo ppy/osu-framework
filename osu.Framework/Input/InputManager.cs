@@ -69,12 +69,12 @@ namespace osu.Framework.Input
         /// <summary>
         /// The sequential list in which to handle mouse input.
         /// </summary>
-        private readonly List<Drawable> mouseInputQueue = new List<Drawable>();
+        private readonly List<Drawable> positionalInputQueue = new List<Drawable>();
 
         /// <summary>
         /// The sequential list in which to handle keyboard input.
         /// </summary>
-        private readonly List<Drawable> keyboardInputQueue = new List<Drawable>();
+        private readonly List<Drawable> inputQueue = new List<Drawable>();
 
         /// <summary>
         /// The <see cref="Drawable"/> which is currently being dragged. null if none is.
@@ -111,11 +111,17 @@ namespace osu.Framework.Input
 
         /// <summary>
         /// Contains all <see cref="Drawable"/>s in top-down order which are considered
-        /// for mouse input. This list is the same as <see cref="HoveredDrawables"/>, only
+        /// for positional input. This list is the same as <see cref="HoveredDrawables"/>, only
         /// that the return value of <see cref="Drawable.OnHover(InputState)"/> is not taken
         /// into account.
         /// </summary>
-        public IReadOnlyList<Drawable> MouseInputQueue => mouseInputQueue;
+        public IReadOnlyList<Drawable> PositionalInputQueue => positionalInputQueue;
+
+        /// <summary>
+        /// Contains all <see cref="Drawable"/>s in top-down order which are considered
+        /// for non-positional input.
+        /// </summary>
+        public IReadOnlyList<Drawable> InputQueue => inputQueue;
 
         protected InputManager()
         {
@@ -249,7 +255,7 @@ namespace osu.Framework.Input
 
             if (CurrentState.Mouse != null)
             {
-                foreach (var d in mouseInputQueue)
+                foreach (var d in positionalInputQueue)
                     if (d is IRequireHighFrequencyMousePosition)
                         if (d.TriggerOnMouseMove(CurrentState)) break;
             }
@@ -360,22 +366,22 @@ namespace osu.Framework.Input
 
         private void updateInputQueues(InputState state)
         {
-            keyboardInputQueue.Clear();
-            mouseInputQueue.Clear();
+            inputQueue.Clear();
+            positionalInputQueue.Clear();
 
             if (state.Keyboard != null)
                 foreach (Drawable d in AliveInternalChildren)
-                    d.BuildKeyboardInputQueue(keyboardInputQueue);
+                    d.BuildKeyboardInputQueue(inputQueue);
 
             if (state.Mouse != null)
                 foreach (Drawable d in AliveInternalChildren)
-                    d.BuildMouseInputQueue(state.Mouse.Position, mouseInputQueue);
+                    d.BuildMouseInputQueue(state.Mouse.Position, positionalInputQueue);
 
             // Keyboard and mouse queues were created in back-to-front order.
             // We want input to first reach front-most drawables, so the queues
             // need to be reversed.
-            keyboardInputQueue.Reverse();
-            mouseInputQueue.Reverse();
+            inputQueue.Reverse();
+            positionalInputQueue.Reverse();
         }
 
         private void updateHoverEvents(InputState state)
@@ -388,7 +394,7 @@ namespace osu.Framework.Input
             hoveredDrawables.Clear();
 
             // First, we need to construct hoveredDrawables for the current frame
-            foreach (Drawable d in mouseInputQueue)
+            foreach (Drawable d in positionalInputQueue)
             {
                 hoveredDrawables.Add(d);
 
@@ -561,9 +567,9 @@ namespace osu.Framework.Input
                 Button = button
             };
 
-            mouseDownInputQueue = new List<Drawable>(mouseInputQueue);
+            mouseDownInputQueue = new List<Drawable>(positionalInputQueue);
 
-            return mouseInputQueue.Find(target => target.TriggerOnMouseDown(state, args)) != null;
+            return PropagateMouseDown(positionalInputQueue, state, args);
         }
 
         private bool handleMouseUp(InputState state, MouseButton button)
@@ -576,17 +582,41 @@ namespace osu.Framework.Input
             };
 
             //extra check for IsAlive because we are using an outdated queue.
-            return mouseDownInputQueue.Any(target => target.IsAlive && target.IsPresent && target.TriggerOnMouseUp(state, args));
+            return PropagateMouseUp(mouseDownInputQueue.Where(target => target.IsAlive && target.IsPresent), state, args);
+        }
+
+        /// <summary>
+        /// Triggers mouse up events on drawables in <paramref cref="drawables"/> until it is handled.
+        /// </summary>
+        /// <param name="drawables">The drawables in the queue.</param>
+        /// <param name="state">The input state.</param>
+        /// <param name="args">The args.</param>
+        /// <returns>Whether the mouse up event was handled.</returns>
+        protected virtual bool PropagateMouseUp(IEnumerable<Drawable> drawables, InputState state, MouseUpEventArgs args)
+        {
+            return drawables.Any(target => target.TriggerOnMouseUp(state, args));
+        }
+
+        /// <summary>
+        /// Triggers mouse down events on drawables in <paramref cref="drawables"/> until it is handled.
+        /// </summary>
+        /// <param name="drawables">The drawables in the queue.</param>
+        /// <param name="state">The input state.</param>
+        /// <param name="args">The args.</param>
+        /// <returns>Whether the mouse down event was handled.</returns>
+        protected virtual bool PropagateMouseDown(IEnumerable<Drawable> drawables, InputState state, MouseDownEventArgs args)
+        {
+            return drawables.Any(target => target.TriggerOnMouseDown(state, args));
         }
 
         private bool handleMouseMove(InputState state)
         {
-            return mouseInputQueue.Any(target => target.TriggerOnMouseMove(state));
+            return positionalInputQueue.Any(target => target.TriggerOnMouseMove(state));
         }
 
         private bool handleMouseClick(InputState state)
         {
-            var intersectingQueue = mouseInputQueue.Intersect(mouseDownInputQueue);
+            var intersectingQueue = positionalInputQueue.Intersect(mouseDownInputQueue);
 
             Drawable focusTarget = null;
 
@@ -627,7 +657,7 @@ namespace osu.Framework.Input
 
         private bool handleMouseDoubleClick(InputState state)
         {
-            return mouseInputQueue.Any(target => target.TriggerOnDoubleClick(state));
+            return positionalInputQueue.Any(target => target.TriggerOnDoubleClick(state));
         }
 
         private bool handleMouseDrag(InputState state)
@@ -659,7 +689,7 @@ namespace osu.Framework.Input
 
         private bool handleWheel(InputState state)
         {
-            return mouseInputQueue.Any(target => target.TriggerOnWheel(state));
+            return positionalInputQueue.Any(target => target.TriggerOnWheel(state));
         }
 
         private bool handleKeyDown(InputState state, Key key, bool repeat)
@@ -672,11 +702,16 @@ namespace osu.Framework.Input
                     return true;
             }
 
-            return PropagateKeyDown(GetKeyboardInputQueue(), state, args);
+            return PropagateKeyDown(inputQueue, state, args);
         }
 
-        protected virtual IEnumerable<Drawable> GetKeyboardInputQueue() => keyboardInputQueue;
-
+        /// <summary>
+        /// Triggers key down events on drawables in <paramref cref="drawables"/> until it is handled.
+        /// </summary>
+        /// <param name="drawables">The drawables in the queue.</param>
+        /// <param name="state">The input state.</param>
+        /// <param name="args">The args.</param>
+        /// <returns>Whether the key down event was handled.</returns>
         protected virtual bool PropagateKeyDown(IEnumerable<Drawable> drawables, InputState state, KeyDownEventArgs args)
         {
             return drawables.Any(target => target.TriggerOnKeyDown(state, args));
@@ -687,9 +722,16 @@ namespace osu.Framework.Input
             if (!unfocusIfNoLongerValid() && FocusedDrawable != null && PropagateKeyUp(new[] { FocusedDrawable }, state, new KeyUpEventArgs { Key = key }))
                 return true;
 
-            return PropagateKeyUp(GetKeyboardInputQueue(), state, new KeyUpEventArgs { Key = key });
+            return PropagateKeyUp(inputQueue, state, new KeyUpEventArgs { Key = key });
         }
 
+        /// <summary>
+        /// Triggers key up events on drawables in <paramref cref="drawables"/> until it is handled.
+        /// </summary>
+        /// <param name="drawables">The drawables in the queue.</param>
+        /// <param name="state">The input state.</param>
+        /// <param name="args">The args.</param>
+        /// <returns>Whether the key up event was handled.</returns>
         protected virtual bool PropagateKeyUp(IEnumerable<Drawable> drawables, InputState state, KeyUpEventArgs args)
         {
             return drawables.Any(target => target.TriggerOnKeyUp(state, args));
@@ -727,7 +769,7 @@ namespace osu.Framework.Input
             return true;
         }
 
-        private void focusTopMostRequestingDrawable() => ChangeFocus(keyboardInputQueue.FirstOrDefault(target => target.RequestsFocus));
+        private void focusTopMostRequestingDrawable() => ChangeFocus(inputQueue.FirstOrDefault(target => target.RequestsFocus));
     }
 
     public enum ConfineMouseMode

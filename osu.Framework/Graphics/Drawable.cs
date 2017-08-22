@@ -234,7 +234,7 @@ namespace osu.Framework.Graphics
         /// ID is unique within the <see cref="Parent"/> <see cref="CompositeDrawable"/>.
         /// The primary use case of this ID is stable sorting of Drawables with equal <see cref="Depth"/>.
         /// </summary>
-        public ulong ChildID { get; internal set; }
+        public long ChildID { get; internal set; }
 
         /// <summary>
         /// Whether this drawable has been added to a parent <see cref="CompositeDrawable"/>. Note that this does NOT imply that
@@ -744,7 +744,10 @@ namespace osu.Framework.Graphics
 
             set
             {
-                value = Vector2.ComponentMax(new Vector2(Precision.FLOAT_EPSILON), value);
+                if (Math.Abs(value.X) < Precision.FLOAT_EPSILON)
+                    value.X = Precision.FLOAT_EPSILON;
+                if (Math.Abs(value.Y) < Precision.FLOAT_EPSILON)
+                    value.Y = Precision.FLOAT_EPSILON;
 
                 if (scale == value)
                     return;
@@ -1067,7 +1070,7 @@ namespace osu.Framework.Graphics
         /// Determines whether this Drawable is present based on its <see cref="Alpha"/> value.
         /// Can be forced always on with <see cref="AlwaysPresent"/>.
         /// </summary>
-        public virtual bool IsPresent => AlwaysPresent || Alpha > visibility_cutoff && Scale.X > Precision.FLOAT_EPSILON && Scale.Y > Precision.FLOAT_EPSILON;
+        public virtual bool IsPresent => AlwaysPresent || Alpha > visibility_cutoff && Math.Abs(Scale.X) > Precision.FLOAT_EPSILON && Math.Abs(Scale.Y) > Precision.FLOAT_EPSILON;
 
         private bool alwaysPresent;
 
@@ -1887,6 +1890,8 @@ namespace osu.Framework.Graphics
                 LastState = null;
                 this.us = us;
             }
+
+            public IReadOnlyList<MouseButton> Buttons => NativeState.Buttons;
 
             public Vector2 Delta => Position - LastPosition;
 

@@ -552,6 +552,8 @@ namespace osu.Framework.Platform
         {
             Dispose(true);
             GC.SuppressFinalize(this);
+
+            Root?.Dispose();
         }
 
         #endregion
