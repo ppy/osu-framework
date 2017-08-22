@@ -62,10 +62,10 @@ namespace osu.Framework.Input.Bindings
         }
 
         protected override bool PropagateMouseDown(IEnumerable<Drawable> drawables, InputState state, MouseDownEventArgs args) =>
-            handleNewDown(state, KeyCombination.FromMouseButton(args.Button)) || base.PropagateMouseDown(drawables, state, args);
+            base.PropagateMouseDown(drawables, state, args) || handleNewDown(state, KeyCombination.FromMouseButton(args.Button));
 
         protected override bool PropagateMouseUp(IEnumerable<Drawable> drawables, InputState state, MouseUpEventArgs args) =>
-            handleNewUp(state, KeyCombination.FromMouseButton(args.Button)) || base.PropagateMouseUp(drawables, state, args);
+            base.PropagateMouseUp(drawables, state, args) || handleNewUp(state, KeyCombination.FromMouseButton(args.Button));
 
         protected override bool PropagateKeyDown(IEnumerable<Drawable> drawables, InputState state, KeyDownEventArgs args)
         {
@@ -77,11 +77,11 @@ namespace osu.Framework.Input.Bindings
                 return base.PropagateKeyDown(drawables, state, args);
             }
 
-            return handleNewDown(state, KeyCombination.FromKey(args.Key)) || base.PropagateKeyDown(drawables, state, args);
+            return base.PropagateKeyDown(drawables, state, args) || handleNewDown(state, KeyCombination.FromKey(args.Key));
         }
 
         protected override bool PropagateKeyUp(IEnumerable<Drawable> drawables, InputState state, KeyUpEventArgs args) =>
-            handleNewUp(state, KeyCombination.FromKey(args.Key)) || base.PropagateKeyUp(drawables, state, args);
+            base.PropagateKeyUp(drawables, state, args) || handleNewUp(state, KeyCombination.FromKey(args.Key));
 
         private bool handleNewDown(InputState state, InputKey newKey)
         {
