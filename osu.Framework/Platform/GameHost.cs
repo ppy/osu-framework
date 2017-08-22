@@ -79,6 +79,11 @@ namespace osu.Framework.Platform
 
         public virtual Storage Storage { get; protected set; }
 
+        /// <summary>
+        /// If capslock is enabled on the system, false if not overwritten by a subclass
+        /// </summary>
+        public virtual bool CapsLockEnabled => false;
+
         private readonly List<GameThread> threads;
 
         public IEnumerable<GameThread> Threads => threads;
