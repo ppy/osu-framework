@@ -30,6 +30,11 @@ namespace osu.Framework.Input.Bindings
             Action = action;
         }
 
+        public KeyBinding(InputKey key, object action)
+            : this((KeyCombination)key, action)
+        {
+        }
+
         /// <summary>
         /// Constructor for derived classes that may require serialisation.
         /// </summary>
