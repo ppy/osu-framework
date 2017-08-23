@@ -30,6 +30,11 @@ namespace osu.Framework.Input.Bindings
             Action = action;
         }
 
+        /// <summary>
+        /// Construct a new instance.
+        /// </summary>
+        /// <param name="key">The key which will trigger this binding.</param>
+        /// <param name="action">The resultant action which is triggered by this binding. Usually an enum type.</param>
         public KeyBinding(InputKey key, object action)
             : this((KeyCombination)key, action)
         {
