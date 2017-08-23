@@ -25,6 +25,7 @@ using osu.Framework.Localisation;
 using osu.Framework.Logging;
 using osu.Framework.Statistics;
 using osu.Framework.Threading;
+using osu.Framework.Timing;
 
 namespace osu.Framework.Platform
 {
@@ -227,7 +228,7 @@ namespace osu.Framework.Platform
 
         protected Container Root;
 
-        protected void UpdateFrame()
+        protected virtual void UpdateFrame()
         {
             if (Root == null) return;
 
@@ -386,6 +387,11 @@ namespace osu.Framework.Platform
             }
         }
 
+        /// <summary>
+        /// The clock which is to be used by the scene graph (will be assigned to <see cref="Root"/>).
+        /// </summary>
+        protected virtual IFrameBasedClock SceneGraphClock => UpdateThread.Clock;
+
         private void bootstrapSceneGraph(Game game)
         {
             var root = new UserInputManager { Child = game };
@@ -395,7 +401,7 @@ namespace osu.Framework.Platform
 
             game.SetHost(this);
 
-            root.Load(UpdateThread.Clock, Dependencies);
+            root.Load(SceneGraphClock, Dependencies);
 
             //publish bootstrapped scene graph to all threads.
             Root = root;
