@@ -12,6 +12,8 @@ namespace osu.Framework.Graphics
 
         internal sealed override Drawable Original { get; }
 
+        public override bool RemoveWhenNotAlive => base.RemoveWhenNotAlive && Original.RemoveWhenNotAlive;
+
         protected internal override bool ShouldBeAlive => base.ShouldBeAlive && Original.ShouldBeAlive;
 
         // We do not want to receive updates. That is the business
