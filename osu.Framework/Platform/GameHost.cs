@@ -541,6 +541,9 @@ namespace osu.Framework.Platform
             {
                 isDisposed = true;
             }
+
+            stopAllThreads();
+            Root?.Dispose();
         }
 
         ~GameHost()
@@ -552,8 +555,6 @@ namespace osu.Framework.Platform
         {
             Dispose(true);
             GC.SuppressFinalize(this);
-
-            Root?.Dispose();
         }
 
         #endregion
