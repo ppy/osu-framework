@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using osu.Framework.Input.Handlers;
+using osu.Framework.Timing;
 
 namespace osu.Framework.Desktop.Platform
 {
@@ -11,9 +12,15 @@ namespace osu.Framework.Desktop.Platform
     /// </summary>
     public class HeadlessGameHost : DesktopGameHost
     {
-        public HeadlessGameHost(string gameName = @"", bool bindIPC = false)
+        private readonly IFrameBasedClock customClock;
+
+        protected override IFrameBasedClock SceneGraphClock => customClock ?? base.SceneGraphClock;
+
+        public HeadlessGameHost(string gameName = @"", bool bindIPC = false, bool realtime = true)
             : base(gameName, bindIPC)
         {
+            if (!realtime) customClock = new FramedClock(new FastClock(1000.0 / 30));
+
             UpdateThread.Scheduler.Update();
             Dependencies.Cache(Storage = new DesktopStorage(string.Empty));
         }
@@ -31,6 +38,33 @@ namespace osu.Framework.Desktop.Platform
             //we can't draw.
         }
 
+        protected override void UpdateFrame()
+        {
+            customClock?.ProcessFrame();
+
+            base.UpdateFrame();
+        }
+
         protected override IEnumerable<InputHandler> CreateAvailableInputHandlers() => new InputHandler[] { };
+
+        private class FastClock : IClock
+        {
+            private readonly double increment;
+            private double time;
+
+            /// <summary>
+            /// A clock which increments each time <see cref="CurrentTime"/> is requested.
+            /// Run fast. Run consistent.
+            /// </summary>
+            /// <param name="increment">Milliseconds we should increment the clock by each time the time is requested.</param>
+            public FastClock(double increment)
+            {
+                this.increment = increment;
+            }
+
+            public double CurrentTime => time += increment;
+            public double Rate => 1;
+            public bool IsRunning => true;
+        }
     }
 }

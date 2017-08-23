@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Linq;
@@ -7,7 +7,6 @@ using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Graphics.Textures;
 using osu.Framework.Testing;
 using OpenTK;
 using OpenTK.Graphics;
@@ -15,11 +14,11 @@ using OpenTK.Graphics;
 namespace osu.Framework.Desktop.Tests.Visual
 {
     [TestFixture]
-    internal class TestCaseOnlineTextures : TestCase
+    internal class TestCaseDelayedLoad : TestCase
     {
         private const int panel_count = 2048;
 
-        public TestCaseOnlineTextures()
+        public TestCaseDelayedLoad()
         {
             FillFlowContainerNoInput flow;
             ScrollContainer scroll;
@@ -49,23 +48,9 @@ namespace osu.Framework.Desktop.Tests.Visual
                         new DelayedLoadWrapper(new Container
                         {
                             RelativeSizeAxes = Axes.Both,
-                            OnLoadComplete = d =>
-                            {
-                                var c = (Container)d;
-
-                                if ((c.Children.FirstOrDefault() as Sprite)?.Texture == null)
-                                {
-                                    c.Add(new SpriteText {
-                                        Colour = Color4.Gray,
-                                        Text = @"nope",
-                                        Anchor = Anchor.Centre,
-                                        Origin = Anchor.Centre,
-                                    });
-                                }
-                            },
                             Children = new Drawable[]
                             {
-                                new Avatar(i) { RelativeSizeAxes = Axes.Both }
+                                new TestBox{ RelativeSizeAxes = Axes.Both }
                             }
                         }),
                         new SpriteText { Text = i.ToString() },
@@ -87,19 +72,23 @@ namespace osu.Framework.Desktop.Tests.Visual
         }
     }
 
-    public class Avatar : Sprite
+    public class TestBox : Container
     {
-        private readonly int userId;
-
-        public Avatar(int userId)
+        public TestBox()
         {
-            this.userId = userId;
+            RelativeSizeAxes = Axes.Both;
         }
 
         [BackgroundDependencyLoader]
-        private void load(TextureStore textures)
+        private void load()
         {
-            Texture = textures.Get($@"https://a.ppy.sh/{userId}");
+            Child = new SpriteText
+            {
+                Colour = Color4.Yellow,
+                Text = @"loaded",
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre,
+            };
         }
     }
 }
