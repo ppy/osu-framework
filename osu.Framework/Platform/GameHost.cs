@@ -537,11 +537,10 @@ namespace osu.Framework.Platform
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!isDisposed)
-            {
-                isDisposed = true;
-            }
+            if (isDisposed)
+                return;
 
+            isDisposed = true;
             stopAllThreads();
             Root?.Dispose();
         }
