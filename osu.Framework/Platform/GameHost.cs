@@ -537,10 +537,12 @@ namespace osu.Framework.Platform
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!isDisposed)
-            {
-                isDisposed = true;
-            }
+            if (isDisposed)
+                return;
+
+            isDisposed = true;
+            stopAllThreads();
+            Root?.Dispose();
         }
 
         ~GameHost()
@@ -552,8 +554,6 @@ namespace osu.Framework.Platform
         {
             Dispose(true);
             GC.SuppressFinalize(this);
-
-            Root?.Dispose();
         }
 
         #endregion
