@@ -147,7 +147,7 @@ namespace osu.Framework.Extensions
             }
         }
 
-        public static string GetDescription(this Enum value)
+        public static string GetDescription(this object value)
             => value.GetType().GetField(value.ToString())
                     .GetCustomAttribute<DescriptionAttribute>()?.Description ?? value.ToString();
 

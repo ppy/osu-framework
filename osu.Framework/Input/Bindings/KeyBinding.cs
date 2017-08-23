@@ -31,6 +31,16 @@ namespace osu.Framework.Input.Bindings
         }
 
         /// <summary>
+        /// Construct a new instance.
+        /// </summary>
+        /// <param name="key">The key which will trigger this binding.</param>
+        /// <param name="action">The resultant action which is triggered by this binding. Usually an enum type.</param>
+        public KeyBinding(InputKey key, object action)
+            : this((KeyCombination)key, action)
+        {
+        }
+
+        /// <summary>
         /// Constructor for derived classes that may require serialisation.
         /// </summary>
         public KeyBinding()
