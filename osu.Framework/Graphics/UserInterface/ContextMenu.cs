@@ -9,13 +9,13 @@ using System.Collections.Generic;
 namespace osu.Framework.Graphics.UserInterface
 {
     /// <summary>
-    /// Creates a container that manages <see cref="ContextMenuItem"/>s within a <see cref="Menu"/>.
+    /// Creates a container that manages <see cref="ContextMenuItem"/>s within a <see cref="UserInterface.Menu"/>.
     /// This container will auto-size its width to fit the maximum size of the <see cref="ContextMenuItem"/>s inside <see cref="Items"/>.
     /// </summary>
     public class ContextMenu<TItem> : Container
         where TItem : ContextMenuItem
     {
-        private readonly Menu<TItem> menu;
+        public readonly Menu<TItem> Menu;
 
         /// <summary>
         /// Creates a new menu. Can be overridden to customize.
@@ -25,17 +25,17 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Current state of menu.
         /// </summary>
-        public MenuState State => menu.State;
+        public MenuState State => Menu.State;
 
         /// <summary>
         /// Opens the menu.
         /// </summary>
-        public void Open() => menu.State = MenuState.Opened;
+        public void Open() => Menu.State = MenuState.Opened;
 
         /// <summary>
         /// Closes the menu.
         /// </summary>
-        public void Close() => menu.State = MenuState.Closed;
+        public void Close() => Menu.State = MenuState.Closed;
 
         /// <summary>
         /// Gets or sets the items to be contained in the menu.
@@ -44,14 +44,14 @@ namespace osu.Framework.Graphics.UserInterface
         {
             set
             {
-                menu.ItemsContainer.ChildrenEnumerable = value;
+                Menu.ItemsContainer.ChildrenEnumerable = value;
 
                 foreach (var item in Items)
                     item.Action += Close;
             }
             get
             {
-                return menu.ItemsContainer.Children;
+                return Menu.ItemsContainer.Children;
             }
         }
 
@@ -61,7 +61,7 @@ namespace osu.Framework.Graphics.UserInterface
         public ContextMenu()
         {
             AutoSizeAxes = Axes.Y;
-            Add(menu = CreateMenu());
+            Add(Menu = CreateMenu());
         }
 
         private float computeMenuWidth()
