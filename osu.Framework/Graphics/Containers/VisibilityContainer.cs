@@ -14,9 +14,12 @@ namespace osu.Framework.Graphics.Containers
         {
             if (state == Visibility.Hidden)
             {
+                // do this without triggering the StateChanged event, since hidden is a default.
                 PopOut();
                 FinishTransforms(true);
             }
+            else
+                updateState();
 
             base.LoadComplete();
         }
@@ -31,18 +34,25 @@ namespace osu.Framework.Graphics.Containers
                 if (value == state) return;
                 state = value;
 
-                switch (value)
-                {
-                    case Visibility.Hidden:
-                        PopOut();
-                        break;
-                    case Visibility.Visible:
-                        PopIn();
-                        break;
-                }
+                if (!IsLoaded) return;
 
-                StateChanged?.Invoke(this, state);
+                updateState();
             }
+        }
+
+        private void updateState()
+        {
+            switch (state)
+            {
+                case Visibility.Hidden:
+                    PopOut();
+                    break;
+                case Visibility.Visible:
+                    PopIn();
+                    break;
+            }
+
+            StateChanged?.Invoke(this, state);
         }
 
         public override void Hide() => State = Visibility.Hidden;

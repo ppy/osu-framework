@@ -3,8 +3,8 @@
 
 using OpenTK;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Transforms;
-using osu.Framework.Lists;
 using osu.Framework.Timing;
 
 namespace osu.Framework.Graphics
@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics
     /// It is mostly useful in cases where you need to specify additional constraints on a <see cref="Drawable"/>, but also do not want to force inheriting from
     /// any particular subclass of <see cref="Drawable"/>.
     /// </summary>
-    public interface IDrawable : IHasLifetime, ITransformable
+    public interface IDrawable : ITransformable
     {
         /// <summary>
         /// Absolute size of this Drawable in the <see cref="Parent"/>'s coordinate system.
@@ -28,6 +28,11 @@ namespace osu.Framework.Graphics
         /// of this drawable.
         /// </summary>
         DrawInfo DrawInfo { get; }
+
+        /// <summary>
+        /// The screen-space quad this drawable occupies.
+        /// </summary>
+        Quad ScreenSpaceDrawQuad { get; }
 
         /// <summary>
         /// The parent of this drawable in the scene graph.

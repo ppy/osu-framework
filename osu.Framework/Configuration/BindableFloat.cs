@@ -1,39 +1,39 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using OpenTK;
 using System;
 using System.Globalization;
-using OpenTK;
 
 namespace osu.Framework.Configuration
 {
-    public class BindableDouble : BindableNumber<double>
+    public class BindableFloat : BindableNumber<float>
     {
         public override bool IsDefault => Math.Abs(Value - Default) < Precision;
 
         /// <summary>
         /// The precision up to which the value of this bindable should be rounded.
         /// </summary>
-        public double Precision = double.Epsilon;
+        public float Precision = float.Epsilon;
 
-        public override double Value
+        public override float Value
         {
             get { return base.Value; }
             set
             {
-                double boundValue = MathHelper.Clamp(value, MinValue, MaxValue);
+                float boundValue = MathHelper.Clamp(value, MinValue, MaxValue);
 
-                if (Precision > double.Epsilon)
-                    boundValue = Math.Round(boundValue / Precision) * Precision;
+                if (Precision > float.Epsilon)
+                    boundValue = (float)Math.Round(boundValue / Precision) * Precision;
 
                 base.Value = boundValue;
             }
         }
 
-        protected override double DefaultMinValue => double.MinValue;
-        protected override double DefaultMaxValue => double.MaxValue;
+        protected override float DefaultMinValue => float.MinValue;
+        protected override float DefaultMaxValue => float.MaxValue;
 
-        public BindableDouble(double value = 0)
+        public BindableFloat(float value = 0)
             : base(value)
         {
         }
@@ -43,16 +43,16 @@ namespace osu.Framework.Configuration
         /// We will take on any value limitations of the bindable we bind width.
         /// </summary>
         /// <param name="them">The foreign bindable. This should always be the most permanent end of the bind (ie. a ConfigManager)</param>
-        public override void BindTo(Bindable<double> them)
+        public override void BindTo(Bindable<float> them)
         {
-            var dbl = them as BindableDouble;
+            var dbl = them as BindableFloat;
             if (dbl != null)
             {
                 MinValue = Math.Max(MinValue, dbl.MinValue);
                 MaxValue = Math.Min(MaxValue, dbl.MaxValue);
                 if (MinValue > MaxValue)
                     throw new ArgumentOutOfRangeException(
-                        $"Can not weld bindable doubles with non-overlapping min/max-ranges. The ranges were [{MinValue} - {MaxValue}] and [{dbl.MinValue} - {dbl.MaxValue}].", nameof(them));
+                        $"Can not weld bindable singles with non-overlapping min/max-ranges. The ranges were [{MinValue} - {MaxValue}] and [{dbl.MinValue} - {dbl.MaxValue}].", nameof(them));
             }
 
             base.BindTo(them);
@@ -70,7 +70,7 @@ namespace osu.Framework.Configuration
             if (str == null)
                 throw new InvalidCastException($@"Input type {input.GetType()} could not be cast to a string for parsing");
 
-            var parsed = double.Parse(str, NumberFormatInfo.InvariantInfo);
+            var parsed = float.Parse(str, NumberFormatInfo.InvariantInfo);
             if (parsed < MinValue || parsed > MaxValue)
                 throw new ArgumentOutOfRangeException($"Parsed number ({parsed}) is outside the valid range ({MinValue} - {MaxValue})");
 

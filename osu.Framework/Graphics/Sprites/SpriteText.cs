@@ -1,26 +1,26 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using osu.Framework.Caching;
-using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Textures;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Allocation;
-using osu.Framework.IO.Stores;
-using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Caching;
 using osu.Framework.Configuration;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Graphics.Textures;
+using osu.Framework.Graphics.UserInterface;
+using osu.Framework.IO.Stores;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace osu.Framework.Graphics.Sprites
 {
     /// <summary>
     /// A container for simple text rendering purposes. If more complex text rendering is required, use <see cref="TextFlowContainer"/> instead.
     /// </summary>
-    public class SpriteText : FillFlowContainer, IHasCurrentValue<string>
+    public class SpriteText : FillFlowContainer, IHasCurrentValue<string>, IHasLineBaseHeight
     {
         private static readonly char[] default_fixed_width_exceptions = { '.', ':', ',' };
 
@@ -95,11 +95,29 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
+        /// <summary>
+        /// Gets the base height of the font used by this text. If the font of this text is invalid, 0 is returned.
+        /// </summary>
+        public float LineBaseHeight
+        {
+            get
+            {
+                var baseHeight = store.GetBaseHeight(Font);
+                if (baseHeight.HasValue)
+                    return baseHeight.Value * TextSize;
+
+                if (string.IsNullOrEmpty(Text))
+                    return 0;
+
+                return store.GetBaseHeight(Text[0]).GetValueOrDefault() * TextSize;
+            }
+        }
+
         private Cached layout = new Cached();
 
         private float spaceWidth;
 
-        private TextureStore store;
+        private FontStore store;
 
         public override bool HandleInput => false;
 

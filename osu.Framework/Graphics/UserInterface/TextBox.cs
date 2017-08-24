@@ -43,8 +43,6 @@ namespace osu.Framework.Graphics.UserInterface
 
         private AudioManager audio;
 
-        private InputManager inputManager;
-
         /// <summary>
         /// Should this TextBox accept arrow keys for navigation?
         /// </summary>
@@ -112,10 +110,9 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         [BackgroundDependencyLoader]
-        private void load(GameHost host, AudioManager audio, UserInputManager inputManager)
+        private void load(GameHost host, AudioManager audio)
         {
             this.audio = audio;
-            this.inputManager = inputManager;
 
             textInput = host.GetTextInput();
             clipboard = host.GetClipboard();
@@ -481,7 +478,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (textInput?.ImeActive == true) return true;
 
-            if (args.Key >= Key.F1 && args.Key <= Key.F35)
+            if (args.Key <= Key.F35)
                 return false;
 
             if (HandlePendingText(state)) return true;
@@ -493,6 +490,9 @@ namespace osu.Framework.Graphics.UserInterface
 
             switch (args.Key)
             {
+                case Key.Escape:
+                    GetContainingInputManager().ChangeFocus(null);
+                    return true;
                 case Key.Tab:
                     return base.OnKeyDown(state, args);
                 case Key.End:
@@ -565,7 +565,7 @@ namespace osu.Framework.Graphics.UserInterface
                     if (HasFocus)
                     {
                         if (ReleaseFocusOnCommit)
-                            inputManager.ChangeFocus(null);
+                            GetContainingInputManager().ChangeFocus(null);
 
                         Background.Colour = ReleaseFocusOnCommit ? BackgroundUnfocused : BackgroundFocused;
                         Background.ClearTransforms();
@@ -688,7 +688,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 selectionEnd = getCharacterClosestTo(state.Mouse.Position);
                 if (selectionLength > 0)
-                    inputManager.ChangeFocus(this);
+                    GetContainingInputManager().ChangeFocus(this);
 
                 cursorAndLayout.Invalidate();
             }

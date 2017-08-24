@@ -2,97 +2,109 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using OpenTK;
-using OpenTK.Graphics;
 using osu.Framework.Graphics;
-using osu.Framework.Graphics.Containers;
-using osu.Framework.MathUtils;
 using System.Collections.Generic;
-using osu.Framework.Physics.RigidBodies;
+using System;
 
 namespace osu.Framework.Physics
 {
     /// <summary>
-    /// Applies rigid body simulation to the <see cref="Drawable"/>s within a given <see cref="Container"/>.
-    /// Currently, the simulation only supports <see cref="Drawable"/>s with centre origin and absolute
-    /// positioning.
+    /// Applies rigid body simulation to all children.
     /// </summary>
-    public class RigidBodySimulation
+    public class RigidBodySimulation : RigidBodySimulation<Drawable>
     {
-        private readonly CompositeDrawable container;
-        private readonly Dictionary<Drawable, RigidBody> states = new Dictionary<Drawable, RigidBody>();
+    }
 
-        public RigidBodySimulation(CompositeDrawable container)
+    /// <summary>
+    /// Applies rigid body simulation to all children.
+    /// </summary>
+    public class RigidBodySimulation<T> : RigidBodyContainer<RigidBodyContainer<T>>
+        where T : Drawable
+    {
+        public RigidBodySimulation()
         {
-            this.container = container;
-
-            foreach (Drawable d in container.InternalChildren)
-            {
-                RigidBody body = getRigidBody(d);
-                body.ApplyImpulse(new Vector2(RNG.NextSingle() - 0.5f, RNG.NextSingle() - 0.5f) * 100, body.Centre + new Vector2(RNG.NextSingle() - 0.5f, RNG.NextSingle() - 0.5f) * 100);
-            }
+            // For this special case of a rigid body container we don't ware about the origin
+            // since no rotation can ever happen. Therefore, let's revert to the usual default.
+            Origin = Anchor.TopLeft;
         }
 
         /// <summary>
-        /// Obtains the <see cref="RigidBody"/> state associated with a given <see cref="Drawable"/>.
+        /// The relative speed at which the simulation runs. A value of 1 means it runs as fast
+        /// as the rest of the game.
         /// </summary>
-        private RigidBody getRigidBody(Drawable d)
-        {
-            RigidBody body;
-            if (!states.TryGetValue(d, out body))
-                states[d] = body = d == container ? new ContainerBody(d, this) : new DrawableBody(d, this);
+        public float SimulationSpeed = 1;
 
-            return body;
-        }
-
-        private readonly List<Drawable> toSimulate = new List<Drawable>();
+        private readonly List<IRigidBody> toSimulate = new List<IRigidBody>();
 
         /// <summary>
         /// Advances the simulation by a time step.
         /// </summary>
         /// <param name="dt">The time step to advance the simulation by.</param>
-        public void Update(float dt)
+        private void integrate(float dt)
         {
             toSimulate.Clear();
 
-            foreach (Drawable d in container.InternalChildren)
+            foreach (var d in Children)
                 toSimulate.Add(d);
-            toSimulate.Add(container);
+            toSimulate.Add(this);
 
             // Read the new state from each drawable in question
-            foreach (Drawable d in toSimulate)
+            foreach (var d in toSimulate)
             {
-                RigidBody body = getRigidBody(d);
-                body.ReadState();
+                d.Simulation = this;
+                d.ReadState();
             }
 
             // Handle collisions between each pair of bodies.
-            foreach (Drawable d in toSimulate)
-            {
-                d.Colour = Color4.White;
-                RigidBody body = getRigidBody(d);
-
-                foreach (Drawable other in toSimulate)
-                {
-                    if (other == d)
-                        continue;
-
-                    if (d != container && body.CheckAndHandleCollisionWith(getRigidBody(other)))
-                        d.Colour = Color4.Red;
-                }
-            }
+            foreach (var d in toSimulate)
+                foreach (var other in toSimulate)
+                    if (other != d)
+                        d.CheckAndHandleCollisionWith(other);
 
             // Advance the simulation by the given time step for each body and
             // apply the state to each drawable in question.
-            foreach (Drawable d in toSimulate)
+            foreach (var d in toSimulate)
             {
-                RigidBody body = getRigidBody(d);
-                body.Integrate(new Vector2(0, 9.81f * body.Mass), 0, dt);
-                body.ApplyState();
+                d.Integrate(new Vector2(0, 981f * d.Mass), 0, dt);
+                d.ApplyState();
             }
         }
 
-        internal Matrix3 ScreenToSimulationSpace => container.DrawInfo.MatrixInverse;
+        protected override void UpdateAfterChildren()
+        {
+            integrate(SimulationSpeed * (float)Time.Elapsed / 1000);
+            base.UpdateAfterChildren();
+        }
 
-        internal Matrix3 SimulationToScreenSpace => container.DrawInfo.Matrix;
+        public override float Mass
+        {
+            get { return float.MaxValue; }
+            set { throw new InvalidOperationException($"May not set the {nameof(Mass)} of a {nameof(RigidBodySimulation<T>)}."); }
+        }
+
+        protected override void UpdateVertices()
+        {
+            base.UpdateVertices();
+
+            // We want to behave like a hollow box, so all normals need to point inward.
+            for (int i = 0; i < Normals.Count; ++i)
+                Normals[i] = -Normals[i];
+        }
+
+        // For hollow-box behavior we want to be contained whenever we are _not_ inside
+        public override bool BodyContains(Vector2 screenSpacePos) => !base.BodyContains(screenSpacePos);
+
+        public override void ApplyImpulse(Vector2 impulse, Vector2 pos)
+        {
+            // Do nothing. We want to be immovable.
+        }
+
+        public override void ApplyState()
+        {
+            base.ApplyState();
+
+            Momentum = Vector2.Zero;
+            AngularMomentum = 0;
+        }
     }
 }

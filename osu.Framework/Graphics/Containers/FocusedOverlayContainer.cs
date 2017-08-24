@@ -1,10 +1,8 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System.Linq;
 using osu.Framework.Input;
 using OpenTK.Input;
-using osu.Framework.Allocation;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -13,34 +11,34 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     public abstract class FocusedOverlayContainer : OverlayContainer
     {
-        protected InputManager InputManager;
-
         public override bool RequestsFocus => State == Visibility.Visible;
 
         public override bool AcceptsFocus => true;
 
-        protected override void OnFocusLost(InputState state)
+        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
-            if (state.Keyboard.Keys.Contains(Key.Escape))
-                Hide();
-            base.OnFocusLost(state);
-        }
+            if (HasFocus && State == Visibility.Visible)
+            {
+                switch (args.Key)
+                {
+                    case Key.Escape:
+                        Hide();
+                        return true;
+                }
+            }
 
-        [BackgroundDependencyLoader]
-        private void load(UserInputManager inputManager)
-        {
-            InputManager = inputManager;
+            return base.OnKeyDown(state, args);
         }
 
         protected override void PopIn()
         {
-            Schedule(() => InputManager.TriggerFocusContention());
+            Schedule(() => GetContainingInputManager().TriggerFocusContention());
         }
 
         protected override void PopOut()
         {
             if (HasFocus)
-                InputManager.ChangeFocus(null);
+                GetContainingInputManager().ChangeFocus(null);
         }
     }
 }

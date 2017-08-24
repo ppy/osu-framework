@@ -71,5 +71,18 @@ namespace osu.Framework.Tests.Lists
             Assert.IsFalse(list.Any());
             Assert.AreEqual(0, list.Count);
         }
+
+        [Test]
+        public void TestIndexOf()
+        {
+            var list = new SortedList<int>(Comparer<int>.Default)
+            {
+                10,
+                10,
+                10,
+            };
+
+            Assert.IsTrue(list.IndexOf(10) >= 0);
+        }
     }
 }

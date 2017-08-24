@@ -41,7 +41,8 @@ namespace osu.Framework.Desktop.Tests.Visual
                 @"Margin",
                 @"Inner Margin",
                 @"Drawable Margin",
-                @"Relative Inside Autosize"
+                @"Relative Inside Autosize",
+                @"Negative sizing"
             };
 
             for (int i = 0; i < testNames.Length; i++)
@@ -893,6 +894,51 @@ namespace osu.Framework.Desktop.Tests.Visual
                         sizedBox.ScaleTo(new Vector2(2), 1000, Easing.Out).Then().ScaleTo(Vector2.One, 1000, Easing.In).Loop();
                         break;
                     }
+                case 13:
+                    {
+                        testContainer.Add(new FillFlowContainer
+                        {
+                            Anchor = Anchor.Centre,
+                            Origin = Anchor.Centre,
+                            RelativeSizeAxes = Axes.X,
+                            AutoSizeAxes = Axes.Y,
+                            Direction = FillDirection.Vertical,
+                            Spacing = new Vector2(0, 20),
+                            Children = new[]
+                            {
+                                new FillFlowContainer
+                                {
+                                    Name = "Top row",
+                                    RelativeSizeAxes = Axes.X,
+                                    Height = 200,
+                                    Direction = FillDirection.Horizontal,
+                                    Spacing = new Vector2(100, 0),
+                                    Children = new[]
+                                    {
+                                        new NegativeSizingContainer(Anchor.TopLeft, true),
+                                        new NegativeSizingContainer(Anchor.Centre, true),
+                                        new NegativeSizingContainer(Anchor.BottomRight, true)
+                                    }
+                                },
+                                new FillFlowContainer
+                                {
+                                    Name = "Bottom row",
+                                    RelativeSizeAxes = Axes.X,
+                                    Height = 200,
+                                    Direction = FillDirection.Horizontal,
+                                    Spacing = new Vector2(100, 0),
+                                    Children = new[]
+                                    {
+                                        new NegativeSizingContainer(Anchor.TopLeft, false),
+                                        new NegativeSizingContainer(Anchor.Centre, false),
+                                        new NegativeSizingContainer(Anchor.BottomRight, false)
+                                    }
+                                }
+                            }
+                        });
+
+                        break;
+                    }
             }
         }
 
@@ -941,6 +987,59 @@ namespace osu.Framework.Desktop.Tests.Visual
                 Depth = -2,
                 Colour = colour ?? Color4.Red,
             });
+        }
+
+        private class NegativeSizingContainer : Container
+        {
+            private const float size = 200;
+
+            private readonly Box box;
+            private readonly SpriteText text;
+
+            private readonly bool useScale;
+
+            public NegativeSizingContainer(Anchor anchor, bool useScale)
+            {
+                this.useScale = useScale;
+
+                Anchor = Anchor.Centre;
+                Origin = Anchor.Centre;
+                AutoSizeAxes = Axes.Both;
+
+                Children = new Drawable[]
+                {
+                    box = new Box
+                    {
+                        Anchor = anchor,
+                        Origin = anchor,
+                        Size = new Vector2(size)
+                    },
+                    text = new SpriteText
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        Colour = Color4.Red,
+                        BypassAutoSizeAxes = Axes.Both
+                    }
+                };
+            }
+
+            protected override void LoadComplete()
+            {
+                base.LoadComplete();
+
+                if (useScale)
+                    box.ScaleTo(new Vector2(-1), 3000, Easing.InSine).Then().ScaleTo(new Vector2(1), 3000, Easing.InSine).Loop();
+                else
+                    box.ResizeTo(new Vector2(-size), 3000, Easing.InSine).Then().ResizeTo(new Vector2(size), 3000, Easing.InSine).Loop();
+            }
+
+            protected override void Update()
+            {
+                base.Update();
+
+                text.Text = useScale ? $"Scale: {box.Scale}" : $"Size: {box.Size}";
+            }
         }
     }
 

@@ -12,7 +12,6 @@ using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Testing;
 using OpenTK.Graphics;
-using OpenTK.Input;
 
 namespace osu.Framework.Desktop.Tests.Visual
 {
@@ -53,7 +52,9 @@ namespace osu.Framework.Desktop.Tests.Visual
             Ctrl,
             Shift,
             Ctrl_And_Shift,
-            Ctrl_Or_Shift
+            Ctrl_Or_Shift,
+            LeftMouse,
+            RightMouse
         }
 
         private class TestInputManager : KeyBindingInputManager<TestAction>
@@ -62,33 +63,36 @@ namespace osu.Framework.Desktop.Tests.Visual
             {
             }
 
-            protected override IEnumerable<KeyBinding> CreateDefaultMappings() => new[]
+            public override IEnumerable<KeyBinding> DefaultKeyBindings => new[]
             {
-                new KeyBinding(Key.A, TestAction.A ),
-                new KeyBinding(Key.S, TestAction.S ),
-                new KeyBinding(Key.D, TestAction.D_or_F ),
-                new KeyBinding(Key.F, TestAction.D_or_F ),
+                new KeyBinding(InputKey.A, TestAction.A ),
+                new KeyBinding(InputKey.S, TestAction.S ),
+                new KeyBinding(InputKey.D, TestAction.D_or_F ),
+                new KeyBinding(InputKey.F, TestAction.D_or_F ),
 
-                new KeyBinding(new[] { Key.LControl, Key.A }, TestAction.Ctrl_A ),
-                new KeyBinding(new[] { Key.LControl, Key.S }, TestAction.Ctrl_S ),
-                new KeyBinding(new[] { Key.LControl, Key.D }, TestAction.Ctrl_D_or_F ),
-                new KeyBinding(new[] { Key.LControl, Key.F }, TestAction.Ctrl_D_or_F ),
+                new KeyBinding(new[] { InputKey.Control, InputKey.A }, TestAction.Ctrl_A ),
+                new KeyBinding(new[] { InputKey.Control, InputKey.S }, TestAction.Ctrl_S ),
+                new KeyBinding(new[] { InputKey.Control, InputKey.D }, TestAction.Ctrl_D_or_F ),
+                new KeyBinding(new[] { InputKey.Control, InputKey.F }, TestAction.Ctrl_D_or_F ),
 
-                new KeyBinding(new[] { Key.LShift, Key.A }, TestAction.Shift_A ),
-                new KeyBinding(new[] { Key.LShift, Key.S }, TestAction.Shift_S ),
-                new KeyBinding(new[] { Key.LShift, Key.D }, TestAction.Shift_D_or_F ),
-                new KeyBinding(new[] { Key.LShift, Key.F }, TestAction.Shift_D_or_F ),
+                new KeyBinding(new[] { InputKey.Shift, InputKey.A }, TestAction.Shift_A ),
+                new KeyBinding(new[] { InputKey.Shift, InputKey.S }, TestAction.Shift_S ),
+                new KeyBinding(new[] { InputKey.Shift, InputKey.D }, TestAction.Shift_D_or_F ),
+                new KeyBinding(new[] { InputKey.Shift, InputKey.F }, TestAction.Shift_D_or_F ),
 
-                new KeyBinding(new[] { Key.LControl, Key.LShift, Key.A }, TestAction.Ctrl_Shift_A ),
-                new KeyBinding(new[] { Key.LControl, Key.LShift, Key.S }, TestAction.Ctrl_Shift_S),
-                new KeyBinding(new[] { Key.LControl, Key.LShift, Key.D }, TestAction.Ctrl_Shift_D_or_F),
-                new KeyBinding(new[] { Key.LControl, Key.LShift, Key.F }, TestAction.Ctrl_Shift_D_or_F),
+                new KeyBinding(new[] { InputKey.Control, InputKey.Shift, InputKey.A }, TestAction.Ctrl_Shift_A ),
+                new KeyBinding(new[] { InputKey.Control, InputKey.Shift, InputKey.S }, TestAction.Ctrl_Shift_S),
+                new KeyBinding(new[] { InputKey.Control, InputKey.Shift, InputKey.D }, TestAction.Ctrl_Shift_D_or_F),
+                new KeyBinding(new[] { InputKey.Control, InputKey.Shift, InputKey.F }, TestAction.Ctrl_Shift_D_or_F),
 
-                new KeyBinding(new[] { Key.LControl }, TestAction.Ctrl),
-                new KeyBinding(new[] { Key.LShift }, TestAction.Shift),
-                new KeyBinding(new[] { Key.LControl, Key.LShift }, TestAction.Ctrl_And_Shift),
-                new KeyBinding(new[] { Key.LControl }, TestAction.Ctrl_Or_Shift),
-                new KeyBinding(new[] { Key.LShift }, TestAction.Ctrl_Or_Shift),
+                new KeyBinding(new[] { InputKey.Control }, TestAction.Ctrl),
+                new KeyBinding(new[] { InputKey.Shift }, TestAction.Shift),
+                new KeyBinding(new[] { InputKey.Control, InputKey.Shift }, TestAction.Ctrl_And_Shift),
+                new KeyBinding(new[] { InputKey.Control }, TestAction.Ctrl_Or_Shift),
+                new KeyBinding(new[] { InputKey.Shift }, TestAction.Ctrl_Or_Shift),
+
+                new KeyBinding(new[] { InputKey.MouseLeft }, TestAction.LeftMouse),
+                new KeyBinding(new[] { InputKey.MouseRight }, TestAction.RightMouse),
             };
         }
 

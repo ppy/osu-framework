@@ -6,7 +6,6 @@ using System.Linq;
 using osu.Framework.Graphics;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Handlers;
-using OpenTK.Input;
 
 namespace osu.Framework.Input
 {
@@ -14,12 +13,12 @@ namespace osu.Framework.Input
     {
         protected override IEnumerable<InputHandler> InputHandlers => Host.AvailableInputHandlers;
 
-        protected override IEnumerable<KeyBinding> CreateDefaultMappings() => new[]
+        public override IEnumerable<KeyBinding> DefaultKeyBindings => new[]
         {
-            new KeyBinding(new[] { Key.LControl, Key.F1 }, FrameworkAction.ToggleDrawVisualiser),
-            new KeyBinding(new[] { Key.LControl, Key.F11 }, FrameworkAction.CycleFrameStatistics),
-            new KeyBinding(new[] { Key.LControl, Key.F10 }, FrameworkAction.ToggleLogOverlay),
-            new KeyBinding(new[] { Key.LAlt, Key.Enter }, FrameworkAction.ToggleFullscreen),
+            new KeyBinding(new[] { InputKey.Control, InputKey.F1 }, FrameworkAction.ToggleDrawVisualiser),
+            new KeyBinding(new[] { InputKey.Control, InputKey.F11 }, FrameworkAction.CycleFrameStatistics),
+            new KeyBinding(new[] { InputKey.Control, InputKey.F10 }, FrameworkAction.ToggleLogOverlay),
+            new KeyBinding(new[] { InputKey.Alt, InputKey.Enter }, FrameworkAction.ToggleFullscreen),
         };
 
         public UserInputManager()
@@ -27,17 +26,7 @@ namespace osu.Framework.Input
             UseParentState = false;
         }
 
-        protected override bool PropagateKeyDown(IEnumerable<Drawable> drawables, InputState state, KeyDownEventArgs args)
-        {
-            // always handle ourselves before all children.
-            return base.PropagateKeyDown(new[] { Child }.Concat(drawables), state, args);
-        }
-
-        protected override bool PropagateKeyUp(IEnumerable<Drawable> drawables, InputState state, KeyUpEventArgs args)
-        {
-            // always handle ourselves before all children.
-            return base.PropagateKeyUp(new[] { Child }.Concat(drawables), state, args);
-        }
+        protected override IEnumerable<Drawable> KeyBindingInputQueue => new[] { Child }.Concat(base.KeyBindingInputQueue);
     }
 
     public enum FrameworkAction
