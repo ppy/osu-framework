@@ -55,14 +55,15 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         private MenuState state;
-
         public MenuState State
         {
             get { return state; }
             set
             {
-                if (state == value) return;
+                if (state == value)
+                    return;
                 state = value;
+
                 switch (value)
                 {
                     case MenuState.Closed:
@@ -75,7 +76,11 @@ namespace osu.Framework.Graphics.UserInterface
                         AnimateOpen();
 
                         //schedule required as we may not be present currently.
-                        Schedule(() => GetContainingInputManager().ChangeFocus(this));
+                        Schedule(() =>
+                        {
+                            if (state == MenuState.Opened)
+                                GetContainingInputManager().ChangeFocus(this);
+                        });
 
                         OnOpen?.Invoke();
                         break;
