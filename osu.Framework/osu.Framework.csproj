@@ -164,6 +164,8 @@
     <Compile Include="Graphics\UserInterface\ContextMenu.cs" />
     <Compile Include="Graphics\UserInterface\ContextMenuItem.cs" />
     <Compile Include="Graphics\UserInterface\IHasCurrentValue.cs" />
+    <Compile Include="Graphics\UserInterface\MenuBar.cs" />
+    <Compile Include="Graphics\UserInterface\MenuBarItem.cs" />
     <Compile Include="Graphics\UserInterface\MenuItem.cs" />
     <Compile Include="Graphics\UserInterface\Menu.cs" />
     <Compile Include="Graphics\Shapes\EquilateralTriangle.cs" />
