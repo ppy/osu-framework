@@ -208,50 +208,7 @@ namespace osu.Framework.Input
                 pendingStates = new[] { new InputState() };
 
             foreach (InputState s in pendingStates)
-            {
-                bool hasNewKeyboard = s.Keyboard != null;
-                bool hasNewMouse = s.Mouse != null;
-
-                var last = CurrentState;
-
-                //avoid lingering references that would stay forever.
-                last.Last = null;
-
-                CurrentState = s;
-                CurrentState.Last = last;
-
-                if (CurrentState.Keyboard == null) CurrentState.Keyboard = last.Keyboard ?? new KeyboardState();
-                if (CurrentState.Mouse == null) CurrentState.Mouse = last.Mouse ?? new MouseState();
-
-                TransformState(CurrentState);
-
-                //move above?
-                updateInputQueues(CurrentState);
-
-                // we only want to set a last state if both the new and old state are of the same type.
-                // this avoids giving the new state a false impression of being able to calculate delta values based on a last
-                // state potentially from a different input source.
-                if (last.Mouse != null && s.Mouse != null)
-                {
-                    if (last.Mouse.GetType() == s.Mouse.GetType())
-                    {
-                        last.Mouse.LastState = null;
-                        s.Mouse.LastState = last.Mouse;
-                    }
-
-                    if (last.Mouse.HasAnyButtonPressed)
-                        s.Mouse.PositionMouseDown = last.Mouse.PositionMouseDown;
-                }
-
-                //hover could change even when the mouse state has not.
-                updateHoverEvents(CurrentState);
-
-                if (hasNewMouse)
-                    updateMouseEvents(CurrentState);
-
-                if (hasNewKeyboard || CurrentState.Keyboard.Keys.Any())
-                    updateKeyboardEvents(CurrentState);
-            }
+                HandleNewState(s);
 
             if (CurrentState.Mouse != null)
             {
@@ -266,6 +223,52 @@ namespace osu.Framework.Input
                 focusTopMostRequestingDrawable();
 
             base.Update();
+        }
+
+        protected virtual void HandleNewState(InputState state)
+        {
+            bool hasNewKeyboard = state.Keyboard != null;
+            bool hasNewMouse = state.Mouse != null;
+
+            var last = CurrentState;
+
+            //avoid lingering references that would stay forever.
+            last.Last = null;
+
+            CurrentState = state;
+            CurrentState.Last = last;
+
+            if (CurrentState.Keyboard == null) CurrentState.Keyboard = last.Keyboard ?? new KeyboardState();
+            if (CurrentState.Mouse == null) CurrentState.Mouse = last.Mouse ?? new MouseState();
+
+            TransformState(CurrentState);
+
+            //move above?
+            updateInputQueues(CurrentState);
+
+            // we only want to set a last state if both the new and old state are of the same type.
+            // this avoids giving the new state a false impression of being able to calculate delta values based on a last
+            // state potentially from a different input source.
+            if (last.Mouse != null && state.Mouse != null)
+            {
+                if (last.Mouse.GetType() == state.Mouse.GetType())
+                {
+                    last.Mouse.LastState = null;
+                    state.Mouse.LastState = last.Mouse;
+                }
+
+                if (last.Mouse.HasAnyButtonPressed)
+                    state.Mouse.PositionMouseDown = last.Mouse.PositionMouseDown;
+            }
+
+            //hover could change even when the mouse state has not.
+            updateHoverEvents(CurrentState);
+
+            if (hasNewMouse)
+                updateMouseEvents(CurrentState);
+
+            if (hasNewKeyboard || CurrentState.Keyboard.Keys.Any())
+                updateKeyboardEvents(CurrentState);
         }
 
         /// <summary>
