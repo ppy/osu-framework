@@ -11,11 +11,14 @@ namespace osu.Framework.Input
         public IMouseState Mouse;
         public InputState Last;
 
-        public InputState Clone() => new InputState
+        public virtual InputState Clone()
         {
-            Keyboard = Keyboard?.Clone(),
-            Mouse = Mouse?.Clone(),
-            Last = Last,
-        };
+            var clone = (InputState)MemberwiseClone();
+            clone.Keyboard = Keyboard?.Clone();
+            clone.Mouse = Mouse?.Clone();
+            clone.Last = Last;
+
+            return clone;
+        }
     }
 }
