@@ -48,7 +48,7 @@ namespace osu.Framework.Input.Bindings
         {
             if (base.PropagateWheel(drawables, state)) return true;
 
-            // we need to create a local cloned state to ensure the underlying code in handleNewUp thinks we are in a sane state,
+            // we need to create a local cloned state to ensure the underlying code in handleNewReleased thinks we are in a sane state,
             // even though we are pressing and releasing an InputKey in a single frame.
             var clonedState = state.Clone();
             var clonedMouseState = (MouseState)clonedState.Mouse;
@@ -58,14 +58,14 @@ namespace osu.Framework.Input.Bindings
 
             InputKey key = state.Mouse.WheelDelta > 0 ? InputKey.MouseWheelUp : InputKey.MouseWheelDown;
 
-            return handleNewDown(state, key) | handleNewUp(clonedState, key);
+            return handleNewPressed(state, key) | handleNewReleased(clonedState, key);
         }
 
         protected override bool PropagateMouseDown(IEnumerable<Drawable> drawables, InputState state, MouseDownEventArgs args) =>
-            base.PropagateMouseDown(drawables, state, args) || handleNewDown(state, KeyCombination.FromMouseButton(args.Button));
+            base.PropagateMouseDown(drawables, state, args) || handleNewPressed(state, KeyCombination.FromMouseButton(args.Button));
 
         protected override bool PropagateMouseUp(IEnumerable<Drawable> drawables, InputState state, MouseUpEventArgs args) =>
-            base.PropagateMouseUp(drawables, state, args) || handleNewUp(state, KeyCombination.FromMouseButton(args.Button));
+            base.PropagateMouseUp(drawables, state, args) || handleNewReleased(state, KeyCombination.FromMouseButton(args.Button));
 
         protected override bool PropagateKeyDown(IEnumerable<Drawable> drawables, InputState state, KeyDownEventArgs args)
         {
@@ -77,13 +77,13 @@ namespace osu.Framework.Input.Bindings
                 return base.PropagateKeyDown(drawables, state, args);
             }
 
-            return base.PropagateKeyDown(drawables, state, args) || handleNewDown(state, KeyCombination.FromKey(args.Key));
+            return base.PropagateKeyDown(drawables, state, args) || handleNewPressed(state, KeyCombination.FromKey(args.Key));
         }
 
         protected override bool PropagateKeyUp(IEnumerable<Drawable> drawables, InputState state, KeyUpEventArgs args) =>
-            base.PropagateKeyUp(drawables, state, args) || handleNewUp(state, KeyCombination.FromKey(args.Key));
+            base.PropagateKeyUp(drawables, state, args) || handleNewReleased(state, KeyCombination.FromKey(args.Key));
 
-        private bool handleNewDown(InputState state, InputKey newKey)
+        private bool handleNewPressed(InputState state, InputKey newKey)
         {
             var pressedCombination = KeyCombination.FromInputState(state);
 
@@ -104,21 +104,7 @@ namespace osu.Framework.Input.Bindings
 
             foreach (var newBinding in newlyPressed)
             {
-                // we handled a new binding and there is an existing one. if we don't want concurrency, let's propagate a released event.
-                if (simultaneousMode == SimultaneousBindingMode.None)
-                {
-                    // we want to release any existing pressed actions.
-                    foreach (var action in pressedActions)
-                        KeyBindingInputQueue.OfType<IKeyBindingHandler<T>>().ForEach(d => d.OnReleased(action));
-                    pressedActions.Clear();
-                }
-
-                // only handle if we are a new non-pressed action (or a concurrency mode that supports multiple simultaneous triggers).
-                if (simultaneousMode == SimultaneousBindingMode.All || !pressedActions.Contains(newBinding.GetAction<T>()))
-                {
-                    pressedActions.Add(newBinding.GetAction<T>());
-                    handled |= KeyBindingInputQueue.OfType<IKeyBindingHandler<T>>().Any(d => d.OnPressed(newBinding.GetAction<T>()));
-                }
+                handled |= PropagatePressed(KeyBindingInputQueue, newBinding.GetAction<T>());
 
                 // we only want to handle the first valid binding (the one with the most keys) in non-simultaneous mode.
                 if (simultaneousMode == SimultaneousBindingMode.None && handled)
@@ -128,8 +114,31 @@ namespace osu.Framework.Input.Bindings
             return handled;
         }
 
+        protected virtual bool PropagatePressed(IEnumerable<Drawable> drawables, T pressed)
+        {
+            bool handled = false;
+
+            // we handled a new binding and there is an existing one. if we don't want concurrency, let's propagate a released event.
+            if (simultaneousMode == SimultaneousBindingMode.None)
+            {
+                // we want to release any existing pressed actions.
+                foreach (var action in pressedActions)
+                    drawables.OfType<IKeyBindingHandler<T>>().ForEach(d => d.OnReleased(action));
+                pressedActions.Clear();
+            }
+
+            // only handle if we are a new non-pressed action (or a concurrency mode that supports multiple simultaneous triggers).
+            if (simultaneousMode == SimultaneousBindingMode.All || !pressedActions.Contains(pressed))
+            {
+                pressedActions.Add(pressed);
+                handled |= drawables.OfType<IKeyBindingHandler<T>>().Any(d => d.OnPressed(pressed));
+            }
+
+            return handled;
+        }
+
         // ReSharper disable once UnusedParameter.Local
-        private bool handleNewUp(InputState state, InputKey releasedKey)
+        private bool handleNewReleased(InputState state, InputKey releasedKey)
         {
             var pressedCombination = KeyCombination.FromInputState(state);
 
@@ -145,14 +154,23 @@ namespace osu.Framework.Input.Bindings
 
                 var action = binding.GetAction<T>();
 
-                // we either want multiple release events due to the simultaneous mode, or we only want one when we
-                // - were pressed (as an action)
-                // - are the last pressed binding with this action
-                if (simultaneousMode == SimultaneousBindingMode.All || pressedActions.Contains(action) && pressedBindings.All(b => !b.Action.Equals(binding.Action)))
-                {
-                    handled |= KeyBindingInputQueue.OfType<IKeyBindingHandler<T>>().Any(d => d.OnReleased(binding.GetAction<T>()));
-                    pressedActions.Remove(action);
-                }
+                handled |= PropagateReleased(KeyBindingInputQueue, action);
+            }
+
+            return handled;
+        }
+
+        protected virtual bool PropagateReleased(IEnumerable<Drawable> drawables, T released)
+        {
+            bool handled = false;
+
+            // we either want multiple release events due to the simultaneous mode, or we only want one when we
+            // - were pressed (as an action)
+            // - are the last pressed binding with this action
+            if (simultaneousMode == SimultaneousBindingMode.All || pressedActions.Contains(released) && pressedBindings.All(b => !b.Action.Equals(released)))
+            {
+                handled |= drawables.OfType<IKeyBindingHandler<T>>().Any(d => d.OnReleased(released));
+                pressedActions.Remove(released);
             }
 
             return handled;
