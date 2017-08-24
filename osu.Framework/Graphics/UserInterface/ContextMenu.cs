@@ -85,17 +85,6 @@ namespace osu.Framework.Graphics.UserInterface
             base.UpdateAfterChildren();
             if (!menuWidth.IsValid)
             {
-                // The menu items cannot be both relative and auto-sized to fit the entire width of the menu so they (along with the menu)
-                // are defined to be relatively-sized on the x-axis. We need to define the size ourselves to give them a valid size.
-                float textWidth = 0;
-                float contentWidth = 0;
-
-                foreach (var item in Items)
-                {
-                    textWidth = Math.Max(textWidth, item.TextDrawWidth);
-                    contentWidth = Math.Max(contentWidth, item.ContentDrawWidth);
-                }
-
                 Width = computeMenuWidth();
                 menuWidth.Validate();
             }
