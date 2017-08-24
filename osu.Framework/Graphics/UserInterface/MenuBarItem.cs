@@ -48,7 +48,7 @@ namespace osu.Framework.Graphics.UserInterface
             AddInternal(ContextMenu = CreateContextMenu());
             ContextMenu.Anchor = Anchor.BottomLeft;
             ContextMenu.BypassAutoSizeAxes = Axes.Both;
-            ContextMenu.Menu.OnClose += Close;
+            ContextMenu.OnClose += Close;
 
             TitleText.Anchor = Anchor.Centre;
             TitleText.Origin = Anchor.Centre;

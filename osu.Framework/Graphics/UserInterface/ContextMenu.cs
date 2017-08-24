@@ -15,7 +15,9 @@ namespace osu.Framework.Graphics.UserInterface
     public class ContextMenu<TItem> : Container
         where TItem : ContextMenuItem
     {
-        public readonly Menu<TItem> Menu;
+        public event Action OnClose;
+
+        protected readonly Menu<TItem> Menu;
 
         /// <summary>
         /// Creates a new menu. Can be overridden to customize.
@@ -62,6 +64,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             AutoSizeAxes = Axes.Y;
             Add(Menu = CreateMenu());
+            Menu.OnClose += OnClose;
         }
 
         private float computeMenuWidth()
