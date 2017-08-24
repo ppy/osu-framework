@@ -64,7 +64,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             AutoSizeAxes = Axes.Y;
             Add(Menu = CreateMenu());
-            Menu.OnClose += OnClose;
+            Menu.OnClose += () => OnClose?.Invoke();
         }
 
         private float computeMenuWidth()
