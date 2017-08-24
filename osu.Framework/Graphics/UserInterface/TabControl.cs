@@ -155,6 +155,12 @@ namespace osu.Framework.Graphics.UserInterface
         /// <param name="item">The item to add.</param>
         public void AddItem(T item) => addTab(item);
 
+        /// <summary>
+        /// Removes an item from the control.
+        /// </summary>
+        /// <param name="item">The item to remove.</param>
+        public void RemoveItem(T item) => removeTab(item);
+
         private TabItem<T> addTab(T value, bool addToDropdown = true)
         {
             // Do not allow duplicate adding
@@ -167,12 +173,20 @@ namespace osu.Framework.Graphics.UserInterface
             return tab;
         }
 
+        private void removeTab(T value, bool removeFromDropdown = true)
+        {
+            if (!tabMap.ContainsKey(value))
+                throw new InvalidOperationException($"Item {value} doesn't exist in this {nameof(TabControl<T>)}.");
+
+            RemoveTabItem(tabMap[value], removeFromDropdown);
+        }
+
         /// <summary>
-        /// Adds an arbitrary <see cref="TabItem{T}"/> to the control
+        /// Adds an arbitrary <see cref="TabItem{T}"/> to the control.
         /// </summary>
-        /// <param name="tab">The tab to add</param>
-        /// <param name="addToDropdown">Whether the tab should be added to the Dropdown if supported by the <see cref="TabControl{T}"/> implementation</param>
-        protected void AddTabItem(TabItem<T> tab, bool addToDropdown = true)
+        /// <param name="tab">The tab to add.</param>
+        /// <param name="addToDropdown">Whether the tab should be added to the Dropdown if supported by the <see cref="TabControl{T}"/> implementation.</param>
+        protected virtual void AddTabItem(TabItem<T> tab, bool addToDropdown = true)
         {
             tab.PinnedChanged += t =>
             {
@@ -186,6 +200,29 @@ namespace osu.Framework.Graphics.UserInterface
             if (addToDropdown)
                 Dropdown?.AddDropdownItem((tab.Value as Enum)?.GetDescription() ?? tab.Value.ToString(), tab.Value);
             TabContainer.Add(tab);
+        }
+
+        /// <summary>
+        /// Removes a <see cref="TabItem{T}"/> from this <see cref="TabControl{T}"/>.
+        /// </summary>
+        /// <param name="tab">The tab to remove.</param>
+        /// <param name="removeFromDropdown">Whether the tab should be removed from the Dropdown if supported by the <see cref="TabControl{T}"/> implementation.</param>
+        protected virtual void RemoveTabItem(TabItem<T> tab, bool removeFromDropdown = true)
+        {
+            if (!tab.IsRemovable) return;
+
+            if (tab == SelectedTab)
+                SelectedTab = null;
+
+            tabMap.Remove(tab.Value);
+
+            if (removeFromDropdown)
+                Dropdown?.RemoveDropdownItem(tab.Value);
+
+            TabContainer.Remove(tab);
+
+            if (TabContainer.Count > 0)
+                performTabSort(TabContainer.Last());
         }
 
         /// <summary>
