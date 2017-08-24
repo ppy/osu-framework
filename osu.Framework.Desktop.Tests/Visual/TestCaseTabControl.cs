@@ -60,6 +60,14 @@ namespace osu.Framework.Desktop.Tests.Visual
                     pinnedAndAutoSort.AddItem(item);
             });
 
+            AddStep("RemoveItem", () =>
+            {
+                if (pinnedAndAutoSort.Any())
+                {
+                    pinnedAndAutoSort.RemoveItem(pinnedAndAutoSort.Items.Last());
+                }
+            });
+
             AddStep("PinItem", () =>
             {
                 var item = nextTest.Invoke();
@@ -88,6 +96,8 @@ namespace osu.Framework.Desktop.Tests.Visual
         private class StyledTabItem : TabItem<TestEnum>
         {
             private readonly SpriteText text;
+
+            public override bool IsRemovable => true;
 
             public StyledTabItem(TestEnum value) : base(value)
             {

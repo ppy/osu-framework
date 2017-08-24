@@ -10,6 +10,10 @@ namespace osu.Framework.Graphics.UserInterface
 {
     public abstract class TabItem : ClickableContainer
     {
+        /// <summary>
+        /// If false, ths <see cref="TabItem{T}"/> cannot be removed from its <see cref="TabControl{T}"/>.
+        /// </summary>
+        public abstract bool IsRemovable { get; }
     }
 
     public abstract class TabItem<T> : TabItem
@@ -19,6 +23,8 @@ namespace osu.Framework.Graphics.UserInterface
         internal Action<TabItem<T>> PinnedChanged;
 
         public override bool IsPresent => base.IsPresent && Y == 0;
+
+        public override bool IsRemovable => false;
 
         public readonly T Value;
 
