@@ -21,6 +21,9 @@ namespace osu.Framework.Graphics.UserInterface
     public class Menu<TItem> : Container, IStateful<MenuState>
         where TItem : MenuItem
     {
+        public event Action OnClose;
+        public event Action OnOpen;
+
         public readonly Box Background;
         public readonly FillFlowContainer<TItem> ItemsContainer;
         public readonly ScrollContainer ScrollContainer;
@@ -52,26 +55,34 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         private MenuState state;
-
         public MenuState State
         {
             get { return state; }
             set
             {
-                if (state == value) return;
+                if (state == value)
+                    return;
                 state = value;
+
                 switch (value)
                 {
                     case MenuState.Closed:
                         AnimateClose();
                         if (HasFocus)
                             GetContainingInputManager().ChangeFocus(null);
+                        OnClose?.Invoke();
                         break;
                     case MenuState.Opened:
                         AnimateOpen();
 
                         //schedule required as we may not be present currently.
-                        Schedule(() => GetContainingInputManager().ChangeFocus(this));
+                        Schedule(() =>
+                        {
+                            if (state == MenuState.Opened)
+                                GetContainingInputManager().ChangeFocus(this);
+                        });
+
+                        OnOpen?.Invoke();
                         break;
                 }
 
