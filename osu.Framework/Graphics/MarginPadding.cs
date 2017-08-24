@@ -7,31 +7,42 @@ using System;
 namespace osu.Framework.Graphics
 {
     /// <summary>
-    /// Holds data about the margin or padding of a <see cref="Drawable"/>. The margin describes the size of an empty area around its <see cref="Drawable"/>, while the padding describes the size of an empty area inside its container.
+    /// Holds data about the margin or padding of a <see cref="Drawable"/>.
+    /// The margin describes the size of an empty area around its <see cref="Drawable"/>, while the padding describes the size of an empty area inside its container.
     /// </summary>
     public struct MarginPadding : IEquatable<MarginPadding>
     {
         /// <summary>
-        /// The absolute size of the space that should be left empty above the <see cref="Drawable"/> if used as margin or the absolute size of the space that should be left empty from the top of the container if used as padding.
+        /// The absolute size of the space that should be left empty above the <see cref="Drawable"/> if used as margin, or
+        /// the absolute size of the space that should be left empty from the top of the container if used as padding.
         /// </summary>
         public float Top;
+
         /// <summary>
-        /// The absolute size of the space that should be left empty to the left of the <see cref="Drawable"/> or the absolute size of the space that should be left empty from the left of the container if used as padding.
+        /// The absolute size of the space that should be left empty to the left of the <see cref="Drawable"/> if used as margin, or
+        /// the absolute size of the space that should be left empty from the left of the container if used as padding.
         /// </summary>
         public float Left;
+
         /// <summary>
-        /// The absolute size of the space that should be left empty below the <see cref="Drawable"/> or the absolute size of the space that should be left empty from the bottom of the container if used as padding.
+        /// The absolute size of the space that should be left empty below the <see cref="Drawable"/> if used as margin, or
+        /// the absolute size of the space that should be left empty from the bottom of the container if used as padding.
         /// </summary>
         public float Bottom;
+
         /// <summary>
-        /// The absolute size of the space that should be left empty to the right of the <see cref="Drawable"/> or the absolute size of the space that should be left empty from the right of the container if used as padding.
+        /// The absolute size of the space that should be left empty to the right of the <see cref="Drawable"/> if used as margin, or
+        /// the absolute size of the space that should be left empty from the right of the container if used as padding.
         /// </summary>
         public float Right;
 
         /// <summary>
-        /// Gets the total absolute size of the empty space horizontally around the <see cref="Drawable"/> or the absolute size of the space left empty from the right and left of the container if used as padding. Effectively <see cref="Right"/> + <see cref="Left"/>.
+        /// Gets the total absolute size of the empty space horizontally around the <see cref="Drawable"/> if used as margin, or
+        /// the absolute size of the space left empty from the right and left of the container if used as padding.
+        /// Effectively <see cref="Right"/> + <see cref="Left"/>.
         /// </summary>
         public float TotalHorizontal => Left + Right;
+
         /// <summary>
         /// Sets the values of both <see cref="Left"/> and <see cref="Right"/> to the assigned value.
         /// </summary>
@@ -41,9 +52,12 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
-        /// Gets the total absolute size of the empty space vertically around the <see cref="Drawable"/> or the absolute size of the space left empty from the top and bottom of the container if used as padding. Effectively <see cref="Top"/> + <see cref="Bottom"/>.
+        /// Gets the total absolute size of the empty space vertically around the <see cref="Drawable"/> or
+        /// the absolute size of the space left empty from the top and bottom of the container if used as padding.
+        /// Effectively <see cref="Top"/> + <see cref="Bottom"/>.
         /// </summary>
         public float TotalVertical => Top + Bottom;
+
         /// <summary>
         /// Sets the values of both <see cref="Top"/> and <see cref="Bottom"/> to the assigned value.
         /// </summary>
