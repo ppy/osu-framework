@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
@@ -21,8 +22,8 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public IReadOnlyList<TItem> Items
         {
-            get { return itemsContainer; }
-            set { itemsContainer.Children = value; }
+            get { return itemsContainer.Select(r => r.Model).ToList(); }
+            set { itemsContainer.ChildrenEnumerable = value.Select(CreateMenuItemRepresentation); }
         }
 
         /// <summary>
@@ -54,7 +55,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private readonly Box background;
         private readonly ScrollContainer scrollContainer;
-        private readonly FillFlowContainer<TItem> itemsContainer;
+        private readonly FillFlowContainer<MenuItemRepresentation> itemsContainer;
 
         public Menu()
         {
@@ -71,7 +72,7 @@ namespace osu.Framework.Graphics.UserInterface
                 {
                     RelativeSizeAxes = Axes.Both,
                     Masking = false,
-                    Child = itemsContainer = new FillFlowContainer<TItem>
+                    Child = itemsContainer = new FillFlowContainer<MenuItemRepresentation>
                     {
                         RelativeSizeAxes = Axes.X,
                         AutoSizeAxes = Axes.Y,
@@ -95,14 +96,14 @@ namespace osu.Framework.Graphics.UserInterface
         /// Adds a <see cref="TItem"/> to this <see cref="Menu{TItem}"/>.
         /// </summary>
         /// <param name="item">The <see cref="TItem"/> to add.</param>
-        public void Add(TItem item) => itemsContainer.Add(item);
+        public void Add(TItem item) => itemsContainer.Add(CreateMenuItemRepresentation(item));
 
         /// <summary>
         /// Removes a <see cref="TItem"/> from this <see cref="Menu{TItem}"/>.
         /// </summary>
         /// <param name="item">The <see cref="TItem"/> to remove.</param>
         /// <returns>Whether <paramref name="item"/> was successfully removed.</returns>
-        public bool Remove(TItem item) => itemsContainer.Remove(item);
+        public bool Remove(TItem item) => itemsContainer.RemoveAll(r => r.Model == item) > 0;
 
         /// <summary>
         /// Clears all <see cref="TItem"/>s in this <see cref="Menu{TItem}"/>.
@@ -191,6 +192,120 @@ namespace osu.Framework.Graphics.UserInterface
         public override bool AcceptsFocus => true;
         protected override bool OnClick(InputState state) => true;
         protected override void OnFocusLost(InputState state) => State = MenuState.Closed;
+
+        protected virtual MenuItemRepresentation CreateMenuItemRepresentation(TItem model) => new MenuItemRepresentation(model);
+
+        #region MenuItemRepresentation
+        protected class MenuItemRepresentation : ClickableContainer
+        {
+            public string Text;
+
+            protected Box Background;
+            protected Container Foreground;
+
+            private Color4 backgroundColour = Color4.DarkSlateGray;
+
+            public Color4 BackgroundColour
+            {
+                get { return backgroundColour; }
+                set
+                {
+                    backgroundColour = value;
+                    FormatBackground();
+                }
+            }
+
+            private Color4 foregroundColour = Color4.White;
+
+            public Color4 ForegroundColour
+            {
+                get { return foregroundColour; }
+                set
+                {
+                    foregroundColour = value;
+                    FormatForeground();
+                }
+            }
+
+            private Color4 backgroundColourHover = Color4.DarkGray;
+
+            public Color4 BackgroundColourHover
+            {
+                get { return backgroundColourHover; }
+                set
+                {
+                    backgroundColourHover = value;
+                    FormatBackground();
+                }
+            }
+
+            private Color4 foregroundColourHover = Color4.White;
+
+            public Color4 ForegroundColourHover
+            {
+                get { return foregroundColourHover; }
+                set
+                {
+                    foregroundColourHover = value;
+                    FormatForeground();
+                }
+            }
+
+            public readonly TItem Model;
+
+            protected override Container<Drawable> Content => Foreground;
+
+            public MenuItemRepresentation(TItem model)
+            {
+                Model = model;
+
+                RelativeSizeAxes = Axes.X;
+                AutoSizeAxes = Axes.Y;
+                InternalChildren = new Drawable[]
+                {
+                    Background = new Box
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                    },
+                    Foreground = new Container
+                    {
+                        RelativeSizeAxes = Axes.X,
+                        AutoSizeAxes = Axes.Y,
+                    },
+                };
+            }
+
+            protected virtual void FormatBackground(bool hover = false)
+            {
+                Background.FadeColour(hover ? BackgroundColourHover : BackgroundColour);
+            }
+
+            protected virtual void FormatForeground(bool hover = false)
+            {
+                Foreground.FadeColour(hover ? ForegroundColourHover : ForegroundColour);
+            }
+
+            protected override void LoadComplete()
+            {
+                base.LoadComplete();
+                Background.Colour = BackgroundColour;
+            }
+
+            protected override bool OnHover(InputState state)
+            {
+                FormatBackground(true);
+                FormatForeground(true);
+                return base.OnHover(state);
+            }
+
+            protected override void OnHoverLost(InputState state)
+            {
+                base.OnHover(state);
+                FormatBackground();
+                FormatForeground();
+            }
+        }
+        #endregion
     }
 
     public class Menu : Menu<MenuItem>
