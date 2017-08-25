@@ -193,18 +193,20 @@ namespace osu.Framework.Graphics.UserInterface
         protected override bool OnClick(InputState state) => true;
         protected override void OnFocusLost(InputState state) => State = MenuState.Closed;
 
+        /// <summary>
+        /// Creates the visual representation for a <see cref="TItem"/>.
+        /// </summary>
+        /// <param name="model">The <see cref="TItem"/> that is to be visualised.</param>
+        /// <returns>The visual representation.</returns>
         protected virtual MenuItemRepresentation CreateMenuItemRepresentation(TItem model) => new MenuItemRepresentation(model);
 
         #region MenuItemRepresentation
-        protected class MenuItemRepresentation : ClickableContainer
+        protected class MenuItemRepresentation : CompositeDrawable
         {
-            public string Text;
-
-            protected Box Background;
-            protected Container Foreground;
-
             private Color4 backgroundColour = Color4.DarkSlateGray;
-
+            /// <summary>
+            /// Gets or sets the default background colour.
+            /// </summary>
             public Color4 BackgroundColour
             {
                 get { return backgroundColour; }
@@ -216,7 +218,9 @@ namespace osu.Framework.Graphics.UserInterface
             }
 
             private Color4 foregroundColour = Color4.White;
-
+            /// <summary>
+            /// Gets or sets the default foreground colour.
+            /// </summary>
             public Color4 ForegroundColour
             {
                 get { return foregroundColour; }
@@ -228,7 +232,9 @@ namespace osu.Framework.Graphics.UserInterface
             }
 
             private Color4 backgroundColourHover = Color4.DarkGray;
-
+            /// <summary>
+            /// Gets or sets the background colour when this <see cref="MenuItemRepresentation"/> is hovered.
+            /// </summary>
             public Color4 BackgroundColourHover
             {
                 get { return backgroundColourHover; }
@@ -240,7 +246,9 @@ namespace osu.Framework.Graphics.UserInterface
             }
 
             private Color4 foregroundColourHover = Color4.White;
-
+            /// <summary>
+            /// Gets or sets the foreground colour when this <see cref="MenuItemRepresentation"/> is hovered.
+            /// </summary>
             public Color4 ForegroundColourHover
             {
                 get { return foregroundColourHover; }
@@ -253,7 +261,8 @@ namespace osu.Framework.Graphics.UserInterface
 
             public readonly TItem Model;
 
-            protected override Container<Drawable> Content => Foreground;
+            private readonly Box background;
+            private readonly Container foreground;
 
             public MenuItemRepresentation(TItem model)
             {
@@ -263,11 +272,11 @@ namespace osu.Framework.Graphics.UserInterface
                 AutoSizeAxes = Axes.Y;
                 InternalChildren = new Drawable[]
                 {
-                    Background = new Box
+                    background = new Box
                     {
                         RelativeSizeAxes = Axes.Both,
                     },
-                    Foreground = new Container
+                    foreground = new Container
                     {
                         RelativeSizeAxes = Axes.X,
                         AutoSizeAxes = Axes.Y,
@@ -275,20 +284,38 @@ namespace osu.Framework.Graphics.UserInterface
                 };
             }
 
+            /// <summary>
+            /// Adds a <see cref="Drawable"/> to the foreground of this <see cref="MenuItemRepresentation"/>.
+            /// </summary>
+            /// <param name="drawable">The <see cref="Drawable"/> to add.</param>
+            public void Add(Drawable drawable) => foreground.Add(drawable);
+
+            /// <summary>
+            /// Removes a <see cref="Drawable"/> from the foreground of this <see cref="MenuItemRepresentation"/>.
+            /// </summary>
+            /// <param name="drawable">The <see cref="Drawable"/> to remove.</param>
+            /// <returns>Whether <paramref name="drawable"/> was successfully removed.</returns>
+            public bool Remove(Drawable drawable) => foreground.Remove(drawable);
+
+            /// <summary>
+            /// Clears the foreground of this <see cref="MenuItemRepresentation"/>.
+            /// </summary>
+            public void Clear() => foreground.Clear();
+
             protected virtual void FormatBackground(bool hover = false)
             {
-                Background.FadeColour(hover ? BackgroundColourHover : BackgroundColour);
+                background.FadeColour(hover ? BackgroundColourHover : BackgroundColour);
             }
 
             protected virtual void FormatForeground(bool hover = false)
             {
-                Foreground.FadeColour(hover ? ForegroundColourHover : ForegroundColour);
+                foreground.FadeColour(hover ? ForegroundColourHover : ForegroundColour);
             }
 
             protected override void LoadComplete()
             {
                 base.LoadComplete();
-                Background.Colour = BackgroundColour;
+                background.Colour = BackgroundColour;
             }
 
             protected override bool OnHover(InputState state)
