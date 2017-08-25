@@ -137,7 +137,7 @@ namespace osu.Framework.Input.Bindings
             return handled;
         }
 
-        // ReSharper disable once UnusedParameter.Local
+        // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
         private bool handleNewReleased(InputState state, InputKey releasedKey)
         {
             var pressedCombination = KeyCombination.FromInputState(state);

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -41,6 +42,7 @@ namespace osu.Framework.Graphics.Textures
                         for (int i = 0; i < length; i++)
                         {
                             //BGRA -> RGBA
+                            Debug.Assert(src != null);
                             dest[0] = src[2];
                             dest[1] = src[1];
                             dest[2] = src[0];
