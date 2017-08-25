@@ -341,11 +341,11 @@ namespace osu.Framework.Graphics.UserInterface
             public readonly Menu<TItem> Menu;
             public readonly TItem Model;
 
-            private readonly Container text;
+            private readonly Drawable text;
             private readonly FillFlowContainer content;
 
-            private readonly Box background;
-            private readonly Container foreground;
+            protected readonly Box Background;
+            protected readonly Container Foreground;
 
             public MenuItemRepresentation(Menu<TItem> menu, TItem model)
             {
@@ -356,17 +356,17 @@ namespace osu.Framework.Graphics.UserInterface
                 AutoSizeAxes = Axes.Y;
                 InternalChildren = new Drawable[]
                 {
-                    background = new Box
+                    Background = new Box
                     {
                         RelativeSizeAxes = Axes.Both,
                     },
-                    foreground = new Container
+                    Foreground = new Container
                     {
                         RelativeSizeAxes = Axes.X,
                         AutoSizeAxes = Axes.Y,
                         Children = new Drawable[]
                         {
-                            text = CreateTextContainer(model.Text),
+                            text = CreateText(model.Text),
                             content = new FillFlowContainer
                             {
                                 Direction = FillDirection.Horizontal,
@@ -405,19 +405,19 @@ namespace osu.Framework.Graphics.UserInterface
 
             protected virtual void AnimateBackground(bool hover)
             {
-                background.FadeColour(hover ? BackgroundColourHover : BackgroundColour);
+                Background.FadeColour(hover ? BackgroundColourHover : BackgroundColour);
             }
 
             protected virtual void AnimateForeground(bool hover)
             {
-                foreground.FadeColour(hover ? ForegroundColourHover : ForegroundColour);
+                Foreground.FadeColour(hover ? ForegroundColourHover : ForegroundColour);
             }
 
             protected override void LoadComplete()
             {
                 base.LoadComplete();
-                background.Colour = BackgroundColour;
-                foreground.Colour = ForegroundColour;
+                Background.Colour = BackgroundColour;
+                Foreground.Colour = ForegroundColour;
             }
 
             protected override bool OnHover(InputState state)
@@ -445,10 +445,10 @@ namespace osu.Framework.Graphics.UserInterface
             }
 
             /// <summary>
-            /// Creates a new container with text which will be displayed at the centre-left of this <see cref="MenuItemRepresentation"/>.
+            /// Creates the text which will be displayed in this <see cref="MenuItemRepresentation"/>.
             /// </summary>
             /// <param name="title">The text to be displayed in this <see cref="MenuItemRepresentation"/>.</param>
-            protected virtual Container CreateTextContainer(string title) => new Container
+            protected virtual Drawable CreateText(string title) => new Container
             {
                 AutoSizeAxes = Axes.Both,
                 Anchor = Anchor.CentreLeft,

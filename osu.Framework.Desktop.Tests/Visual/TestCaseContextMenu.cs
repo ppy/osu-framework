@@ -71,12 +71,12 @@ namespace osu.Framework.Desktop.Tests.Visual
 
         private class ContextMenuBox : Container, IHasContextMenu
         {
-            public ContextMenuItem[] ContextMenuItems => new[]
+            public MenuItem[] ContextMenuItems => new[]
             {
-                new ContextMenuItem(@"Change width") { Action = () => this.ResizeWidthTo(Width * 2, 100, Easing.OutQuint) },
-                new ContextMenuItem(@"Change height") { Action = () => this.ResizeHeightTo(Height * 2, 100, Easing.OutQuint) },
-                new ContextMenuItem(@"Change width back") { Action = () => this.ResizeWidthTo(Width / 2, 100, Easing.OutQuint) },
-                new ContextMenuItem(@"Change height back") { Action = () => this.ResizeHeightTo(Height / 2, 100, Easing.OutQuint) },
+                new MenuItem(@"Change width", () => this.ResizeWidthTo(Width * 2, 100, Easing.OutQuint)),
+                new MenuItem(@"Change height", () => this.ResizeHeightTo(Height * 2, 100, Easing.OutQuint)),
+                new MenuItem(@"Change width back", () => this.ResizeWidthTo(Width / 2, 100, Easing.OutQuint)),
+                new MenuItem(@"Change height back", () => this.ResizeHeightTo(Height / 2, 100, Easing.OutQuint)),
             };
         }
     }

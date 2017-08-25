@@ -377,13 +377,9 @@ namespace osu.Framework.Desktop.Tests.Visual
             }
         }
 
-        private class AnchorDropdown : Dropdown<Anchor>
+        private class AnchorDropdown : BasicDropdown<Anchor>
         {
-            protected override Menu CreateMenu() => new Menu();
-
             protected override DropdownHeader CreateHeader() => new TestCaseDropdownHeader();
-
-            protected override DropdownMenuItem<Anchor> CreateMenuItem(string key, Anchor value) => new AnchorDropdownMenuItem(value);
         }
 
         private class AnchorDropdownMenuItem : DropdownMenuItem<Anchor>
@@ -391,23 +387,12 @@ namespace osu.Framework.Desktop.Tests.Visual
             public AnchorDropdownMenuItem(Anchor anchor)
                 : base(anchor.ToString(), anchor)
             {
-                AutoSizeAxes = Axes.Y;
-                Foreground.Padding = new MarginPadding(2);
-
-                Children = new[]
-                {
-                    new SpriteText { Text = anchor.ToString() },
-                };
             }
         }
 
-        private class FillDirectionDropdown : Dropdown<FlowTestCase>
+        private class FillDirectionDropdown : BasicDropdown<FlowTestCase>
         {
-            protected override Menu CreateMenu() => new Menu();
-
             protected override DropdownHeader CreateHeader() => new TestCaseDropdownHeader();
-
-            protected override DropdownMenuItem<FlowTestCase> CreateMenuItem(string key, FlowTestCase value) => new FillDirectionDropdownMenuItem(value);
         }
 
         private class FillDirectionDropdownMenuItem : DropdownMenuItem<FlowTestCase>
@@ -415,13 +400,6 @@ namespace osu.Framework.Desktop.Tests.Visual
             public FillDirectionDropdownMenuItem(FlowTestCase testCase)
                 : base(testCase.ToString(), testCase)
             {
-                AutoSizeAxes = Axes.Y;
-                Foreground.Padding = new MarginPadding(2);
-
-                Children = new[]
-                {
-                    new SpriteText { Text = testCase.ToString() },
-                };
             }
         }
 
