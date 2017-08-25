@@ -33,15 +33,6 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
-        /// Gets or sets the corner radius of this <see cref="Menu{TItem}"/>.
-        /// </summary>
-        public new float CornerRadius
-        {
-            get { return base.CornerRadius; }
-            set { base.CornerRadius = value; }
-        }
-
-        /// <summary>
         /// Gets or sets whether the scroll bar of this <see cref="Menu{TItem}"/> is visible.
         /// </summary>
         public bool ScrollbarVisible
