@@ -255,15 +255,11 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 // We're now defining the size of ourselves based on our children, but our children are relatively-sized, so we need to compute our size ourselves
                 float textWidth = 0;
-                float contentWidth = 0;
 
                 foreach (var item in Children)
-                {
                     textWidth = Math.Max(textWidth, item.TextDrawWidth);
-                    contentWidth = Math.Max(contentWidth, item.ContentDrawWidth);
-                }
 
-                Width = textWidth + contentWidth;
+                Width = textWidth;
             }
 
             menuWidth.Validate();
@@ -284,8 +280,7 @@ namespace osu.Framework.Graphics.UserInterface
             public readonly Menu<TItem> Menu;
             public readonly TItem Model;
 
-            private readonly Drawable text;
-            private readonly FillFlowContainer content;
+            private readonly Drawable content;
 
             protected readonly Box Background;
             protected readonly Container Foreground;
@@ -307,17 +302,7 @@ namespace osu.Framework.Graphics.UserInterface
                     {
                         RelativeSizeAxes = Axes.X,
                         AutoSizeAxes = Axes.Y,
-                        Children = new[]
-                        {
-                            text = CreateText(model.Text),
-                            content = new FillFlowContainer
-                            {
-                                Direction = FillDirection.Horizontal,
-                                AutoSizeAxes = Axes.Both,
-                                Anchor = Anchor.CentreRight,
-                                Origin = Anchor.CentreRight,
-                            }
-                        }
+                        Child = content = CreateContent(),
                     },
                 };
             }
@@ -381,36 +366,7 @@ namespace osu.Framework.Graphics.UserInterface
             /// <summary>
             /// The draw width of the text of this <see cref="MenuItemRepresentation"/>.
             /// </summary>
-            public float TextDrawWidth => text.DrawWidth;
-
-            /// <summary>
-            /// The draw width of the content of this <see cref="MenuItemRepresentation"/>. This does not include <see cref="TextDrawWidth"/>.
-            /// </summary>
-            public float ContentDrawWidth => content.DrawWidth;
-
-            /// <summary>
-            /// Adds a <see cref="Drawable"/> to the foreground of this <see cref="MenuItemRepresentation"/>.
-            /// </summary>
-            /// <param name="drawable">The <see cref="Drawable"/> to add.</param>
-            protected void Add(Drawable drawable) => content.Add(drawable);
-
-            /// <summary>
-            /// Adds <see cref="Drawable"/>s to the foreground of this <see cref="MenuItemRepresentation"/>.
-            /// </summary>
-            /// <param name="drawable">The <see cref="Drawable"/>s to add.</param>
-            protected void AddRange(IEnumerable<Drawable> drawable) => content.AddRange(drawable);
-
-            /// <summary>
-            /// Removes a <see cref="Drawable"/> from the foreground of this <see cref="MenuItemRepresentation"/>.
-            /// </summary>
-            /// <param name="drawable">The <see cref="Drawable"/> to remove.</param>
-            /// <returns>Whether <paramref name="drawable"/> was successfully removed.</returns>
-            public bool Remove(Drawable drawable) => content.Remove(drawable);
-
-            /// <summary>
-            /// Clears the foreground of this <see cref="MenuItemRepresentation"/>.
-            /// </summary>
-            public void Clear() => content.Clear();
+            public float TextDrawWidth => content.DrawWidth;
 
             protected virtual void AnimateBackground(bool hover)
             {
@@ -456,8 +412,7 @@ namespace osu.Framework.Graphics.UserInterface
             /// <summary>
             /// Creates the text which will be displayed in this <see cref="MenuItemRepresentation"/>.
             /// </summary>
-            /// <param name="title">The text to be displayed in this <see cref="MenuItemRepresentation"/>.</param>
-            protected virtual Drawable CreateText(string title) => new Container
+            protected virtual Drawable CreateContent() => new Container
             {
                 AutoSizeAxes = Axes.Both,
                 Anchor = Anchor.CentreLeft,
@@ -467,7 +422,7 @@ namespace osu.Framework.Graphics.UserInterface
                     Anchor = Anchor.CentreLeft,
                     Origin = Anchor.CentreLeft,
                     TextSize = 17,
-                    Text = title,
+                    Text = Model.Text,
                 }
             };
         }
