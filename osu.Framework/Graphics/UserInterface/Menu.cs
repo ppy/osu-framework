@@ -213,7 +213,7 @@ namespace osu.Framework.Graphics.UserInterface
                 set
                 {
                     backgroundColour = value;
-                    FormatBackground();
+                    AnimateBackground(IsHovered);
                 }
             }
 
@@ -227,7 +227,7 @@ namespace osu.Framework.Graphics.UserInterface
                 set
                 {
                     foregroundColour = value;
-                    FormatForeground();
+                    AnimateForeground(IsHovered);
                 }
             }
 
@@ -241,7 +241,7 @@ namespace osu.Framework.Graphics.UserInterface
                 set
                 {
                     backgroundColourHover = value;
-                    FormatBackground();
+                    AnimateBackground(IsHovered);
                 }
             }
 
@@ -255,7 +255,7 @@ namespace osu.Framework.Graphics.UserInterface
                 set
                 {
                     foregroundColourHover = value;
-                    FormatForeground();
+                    AnimateForeground(IsHovered);
                 }
             }
 
@@ -302,12 +302,12 @@ namespace osu.Framework.Graphics.UserInterface
             /// </summary>
             public void Clear() => foreground.Clear();
 
-            protected virtual void FormatBackground(bool hover = false)
+            protected virtual void AnimateBackground(bool hover)
             {
                 background.FadeColour(hover ? BackgroundColourHover : BackgroundColour);
             }
 
-            protected virtual void FormatForeground(bool hover = false)
+            protected virtual void AnimateForeground(bool hover)
             {
                 foreground.FadeColour(hover ? ForegroundColourHover : ForegroundColour);
             }
@@ -316,20 +316,21 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 base.LoadComplete();
                 background.Colour = BackgroundColour;
+                foreground.Colour = ForegroundColour;
             }
 
             protected override bool OnHover(InputState state)
             {
-                FormatBackground(true);
-                FormatForeground(true);
+                AnimateBackground(true);
+                AnimateForeground(true);
                 return base.OnHover(state);
             }
 
             protected override void OnHoverLost(InputState state)
             {
                 base.OnHover(state);
-                FormatBackground();
-                FormatForeground();
+                AnimateBackground(false);
+                AnimateForeground(false);
             }
         }
         #endregion
