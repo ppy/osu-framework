@@ -110,6 +110,11 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public void Clear() => itemsContainer.Clear();
 
+        /// <summary>
+        /// Gets the model representations contained by this <see cref="Menu"/>.
+        /// </summary>
+        protected IReadOnlyList<MenuItemRepresentation> Children => itemsContainer;
+
         private MenuState state = MenuState.Closed;
         /// <summary>
         /// Gets or sets the current state of this <see cref="Menu{TItem}"/>.
@@ -289,6 +294,12 @@ namespace osu.Framework.Graphics.UserInterface
             /// </summary>
             /// <param name="drawable">The <see cref="Drawable"/> to add.</param>
             protected void Add(Drawable drawable) => foreground.Add(drawable);
+
+            /// <summary>
+            /// Adds <see cref="Drawable"/>s to the foreground of this <see cref="MenuItemRepresentation"/>.
+            /// </summary>
+            /// <param name="drawable">The <see cref="Drawable"/>s to add.</param>
+            protected void AddRange(IEnumerable<Drawable> drawable) => foreground.AddRange(drawable);
 
             /// <summary>
             /// Removes a <see cref="Drawable"/> from the foreground of this <see cref="MenuItemRepresentation"/>.
