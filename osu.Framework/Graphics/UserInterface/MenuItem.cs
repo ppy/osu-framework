@@ -11,12 +11,12 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// The text which this <see cref="MenuItem"/> displays.
         /// </summary>
-        public readonly Bindable<string> Text;
+        public readonly Bindable<string> Text = new Bindable<string>();
 
         /// <summary>
         /// The <see cref="Action"/> that is performed when this <see cref="MenuItem"/> is clicked.
         /// </summary>
-        public readonly Bindable<Action> Action;
+        public readonly Bindable<Action> Action = new Bindable<Action>();
 
         /// <summary>
         /// Creates a new <see cref="MenuItem"/>.
@@ -24,8 +24,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <param name="text">The text to display.</param>
         public MenuItem(string text)
         {
-            Text = new Bindable<string>(text);
-            Action = new Bindable<Action>();
+            Text.Value = text;
         }
 
         /// <summary>
@@ -34,9 +33,9 @@ namespace osu.Framework.Graphics.UserInterface
         /// <param name="text">The text to display.</param>
         /// <param name="action">The <see cref="Action"/> to perform when clicked.</param>
         public MenuItem(string text, Action action)
+            : this(text)
         {
-            Text = new Bindable<string>(text);
-            Action = new Bindable<Action>(action);
+            Action.Value = action;
         }
     }
 }
