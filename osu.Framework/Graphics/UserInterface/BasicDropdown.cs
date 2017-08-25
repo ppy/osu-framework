@@ -46,11 +46,11 @@ namespace osu.Framework.Graphics.UserInterface
                 CornerRadius = 4;
             }
 
-            protected override MenuItemRepresentation CreateMenuItemRepresentation(DropdownMenuItem<T> model) => new BasicDropdownMenuItemRepresentation(this, model);
+            protected override DrawableMenuItem CreateDrawableMenuItem(DropdownMenuItem<T> model) => new DrawableBasicDropdownMenuItem(this, model);
 
-            private class BasicDropdownMenuItemRepresentation : DropdownMenuItemRepresentation
+            private class DrawableBasicDropdownMenuItem : DrawableDropdownMenuItem
             {
-                public BasicDropdownMenuItemRepresentation(Menu<DropdownMenuItem<T>> menu, DropdownMenuItem<T> model)
+                public DrawableBasicDropdownMenuItem(Menu<DropdownMenuItem<T>> menu, DropdownMenuItem<T> model)
                     : base(menu, model)
                 {
                     Foreground.Padding = new MarginPadding(2);

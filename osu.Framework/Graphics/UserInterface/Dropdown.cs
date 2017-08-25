@@ -202,7 +202,7 @@ namespace osu.Framework.Graphics.UserInterface
             /// <param name="item">The item to select.</param>
             public void SelectItem(DropdownMenuItem<T> item)
             {
-                Children.OfType<DropdownMenuItemRepresentation>().ForEach(c => c.IsSelected = c.Model == item);
+                Children.OfType<DrawableDropdownMenuItem>().ForEach(c => c.IsSelected = c.Model == item);
             }
 
             /// <summary>
@@ -222,8 +222,8 @@ namespace osu.Framework.Graphics.UserInterface
             /// </summary>
             public bool AnyPresent => Children.Any(c => c.IsPresent);
 
-            #region DropdownMenuItemRepresentation
-            protected class DropdownMenuItemRepresentation : MenuItemRepresentation
+            #region DrawableDropdownMenuItem
+            protected class DrawableDropdownMenuItem : DrawableMenuItem
             {
                 private bool selected;
                 public bool IsSelected
@@ -264,7 +264,7 @@ namespace osu.Framework.Graphics.UserInterface
                     }
                 }
 
-                public DropdownMenuItemRepresentation(Menu<DropdownMenuItem<T>> menu, DropdownMenuItem<T> model)
+                public DrawableDropdownMenuItem(Menu<DropdownMenuItem<T>> menu, DropdownMenuItem<T> model)
                     : base(model)
                 {
                 }

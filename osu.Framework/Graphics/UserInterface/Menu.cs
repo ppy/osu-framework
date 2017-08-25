@@ -27,7 +27,7 @@ namespace osu.Framework.Graphics.UserInterface
             get { return itemsContainer.Select(r => r.Model).ToList(); }
             set
             {
-                itemsContainer.ChildrenEnumerable = value.Select(CreateMenuItemRepresentation);
+                itemsContainer.ChildrenEnumerable = value.Select(CreateDrawableMenuItem);
                 menuWidth.Invalidate();
             }
         }
@@ -86,7 +86,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private readonly Box background;
         private readonly ScrollContainer scrollContainer;
-        private readonly FlowContainer<MenuItemRepresentation> itemsContainer;
+        private readonly FlowContainer<DrawableMenuItem> itemsContainer;
 
         public Menu()
         {
@@ -127,7 +127,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <param name="item">The <see cref="TItem"/> to add.</param>
         public void Add(TItem item)
         {
-            var drawableItem = CreateMenuItemRepresentation(item);
+            var drawableItem = CreateDrawableMenuItem(item);
             drawableItem.CloseRequested = Close;
 
             itemsContainer.Add(drawableItem);
@@ -149,7 +149,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Gets the model representations contained by this <see cref="Menu"/>.
         /// </summary>
-        protected IReadOnlyList<MenuItemRepresentation> Children => itemsContainer;
+        protected IReadOnlyList<DrawableMenuItem> Children => itemsContainer;
 
         private MenuState state = MenuState.Closed;
         /// <summary>
@@ -273,12 +273,12 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         /// <param name="model">The <see cref="TItem"/> that is to be visualised.</param>
         /// <returns>The visual representation.</returns>
-        protected virtual MenuItemRepresentation CreateMenuItemRepresentation(TItem model) => new MenuItemRepresentation(model);
+        protected virtual DrawableMenuItem CreateDrawableMenuItem(TItem model) => new DrawableMenuItem(model);
 
-        protected virtual FlowContainer<MenuItemRepresentation> CreateItemsFlow() => new FillFlowContainer<MenuItemRepresentation> { Direction = FillDirection.Vertical };
+        protected virtual FlowContainer<DrawableMenuItem> CreateItemsFlow() => new FillFlowContainer<DrawableMenuItem> { Direction = FillDirection.Vertical };
 
-        #region MenuItemRepresentation
-        protected class MenuItemRepresentation : CompositeDrawable
+        #region DrawableMenuItem
+        protected class DrawableMenuItem : CompositeDrawable
         {
             public readonly TItem Model;
 
@@ -292,7 +292,7 @@ namespace osu.Framework.Graphics.UserInterface
             protected readonly Box Background;
             protected readonly Container Foreground;
 
-            public MenuItemRepresentation(TItem model)
+            public DrawableMenuItem(TItem model)
             {
                 Model = model;
 
@@ -343,7 +343,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             private Color4 backgroundColourHover = Color4.DarkGray;
             /// <summary>
-            /// Gets or sets the background colour when this <see cref="MenuItemRepresentation"/> is hovered.
+            /// Gets or sets the background colour when this <see cref="DrawableMenuItem"/> is hovered.
             /// </summary>
             public Color4 BackgroundColourHover
             {
@@ -357,7 +357,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             private Color4 foregroundColourHover = Color4.White;
             /// <summary>
-            /// Gets or sets the foreground colour when this <see cref="MenuItemRepresentation"/> is hovered.
+            /// Gets or sets the foreground colour when this <see cref="DrawableMenuItem"/> is hovered.
             /// </summary>
             public Color4 ForegroundColourHover
             {
@@ -370,7 +370,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
 
             /// <summary>
-            /// The draw width of the text of this <see cref="MenuItemRepresentation"/>.
+            /// The draw width of the text of this <see cref="DrawableMenuItem"/>.
             /// </summary>
             public float TextDrawWidth => content.DrawWidth;
 
@@ -416,7 +416,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
 
             /// <summary>
-            /// Creates the text which will be displayed in this <see cref="MenuItemRepresentation"/>.
+            /// Creates the text which will be displayed in this <see cref="DrawableMenuItem"/>.
             /// </summary>
             protected virtual Drawable CreateContent() => new Container
             {
