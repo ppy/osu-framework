@@ -27,7 +27,11 @@ namespace osu.Framework.Graphics.UserInterface
             get { return itemsContainer.Select(r => r.Model).ToList(); }
             set
             {
-                itemsContainer.ChildrenEnumerable = value.Select(CreateDrawableMenuItem);
+                itemsContainer.Clear();
+
+                foreach (var item in value)
+                    Add(item);
+
                 menuWidth.Invalidate();
             }
         }
