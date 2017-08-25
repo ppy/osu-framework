@@ -117,10 +117,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             base.LoadComplete();
 
-            if (State == MenuState.Closed)
-                AnimateClose();
-            else
-                AnimateOpen();
+            updateState();
         }
 
         /// <summary>
@@ -166,23 +163,30 @@ namespace osu.Framework.Graphics.UserInterface
                     return;
                 state = value;
 
-                switch (value)
-                {
-                    case MenuState.Closed:
-                        AnimateClose();
-                        if (HasFocus)
-                            GetContainingInputManager().ChangeFocus(null);
-                        break;
-                    case MenuState.Opened:
-                        AnimateOpen();
+                if (!IsLoaded) return;
 
-                        //schedule required as we may not be present currently.
-                        Schedule(() => GetContainingInputManager().ChangeFocus(this));
-                        break;
-                }
-
-                UpdateMenuHeight();
+                updateState();
             }
+        }
+
+        private void updateState()
+        {
+            switch (state)
+            {
+                case MenuState.Closed:
+                    AnimateClose();
+                    if (HasFocus)
+                        GetContainingInputManager().ChangeFocus(null);
+                    break;
+                case MenuState.Opened:
+                    AnimateOpen();
+
+                    //schedule required as we may not be present currently.
+                    Schedule(() => GetContainingInputManager().ChangeFocus(this));
+                    break;
+            }
+
+            UpdateMenuHeight();
         }
 
         /// <summary>
