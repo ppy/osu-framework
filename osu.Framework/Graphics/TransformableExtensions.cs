@@ -270,25 +270,6 @@ namespace osu.Framework.Graphics
             drawable.MoveTo((drawable.Transforms.LastOrDefault(t => t.TargetMember == nameof(drawable.Position)) as Transform<Vector2>)?.EndValue ?? drawable.Position + offset, duration, easing);
 
         /// <summary>
-        /// Smoothly adjusts the alpha channel of the colour of <see cref="IContainer.EdgeEffect"/> over time.
-        /// </summary>
-        /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public static TransformSequence<T> FadeEdgeEffectTo<T>(this T container, float newAlpha, double duration = 0, Easing easing = Easing.None)
-            where T : IContainer
-        {
-            Color4 targetColour = container.EdgeEffect.Colour;
-            targetColour.A = newAlpha;
-            return container.FadeEdgeEffectTo(targetColour, duration, easing);
-        }
-
-        /// <summary>
-        /// Smoothly adjusts the colour of <see cref="IContainer.EdgeEffect"/> over time.
-        /// </summary>
-        /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public static TransformSequence<T> FadeEdgeEffectTo<T>(this T container, Color4 newColour, double duration = 0, Easing easing = Easing.None) where T : IContainer =>
-            container.TransformTo(container.PopulateTransform(new TransformEdgeEffectColour(), newColour, duration, easing));
-
-        /// <summary>
         /// Smoothly adjusts <see cref="IContainer.RelativeChildSize"/> over time.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
@@ -319,5 +300,36 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> TransformSpacingTo<T>(this T flowContainer, Vector2 newSpacing, double duration = 0, Easing easing = Easing.None)
             where T : IFillFlowContainer =>
             flowContainer.TransformTo(nameof(flowContainer.Spacing), newSpacing, duration, easing);
+
+        /// <summary>
+        /// Smoothly adjusts the alpha channel of the colour of <see cref="IContainer.EdgeEffect"/> over time.
+        /// </summary>
+        /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
+        public static TransformSequence<T> FadeEdgeEffectTo<T>(this T container, float newAlpha, double duration = 0, Easing easing = Easing.None)
+            where T : IContainer
+        {
+            Color4 targetColour = container.EdgeEffect.Colour;
+            targetColour.A = newAlpha;
+            return container.FadeEdgeEffectTo(targetColour, duration, easing);
+        }
+
+        /// <summary>
+        /// Smoothly adjusts the colour of <see cref="IContainer.EdgeEffect"/> over time.
+        /// </summary>
+        /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
+        public static TransformSequence<T> FadeEdgeEffectTo<T>(this T container, Color4 newColour, double duration = 0, Easing easing = Easing.None) where T : IContainer
+        {
+            var effect = container.EdgeEffect;
+            effect.Colour = newColour;
+            return container.TweenEdgeEffectTo(effect, duration, easing);
+        }
+
+        /// <summary>
+        /// Smoothly adjusts all parameters of <see cref="IContainer.EdgeEffect"/> over time.
+        /// </summary>
+        /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
+        public static TransformSequence<T> TweenEdgeEffectTo<T>(this T container, EdgeEffectParameters newParameters, double duration = 0, Easing easing = Easing.None)
+            where T : IContainer =>
+            container.TransformTo(nameof(container.EdgeEffect), newParameters, duration, easing);
     }
 }

@@ -7,6 +7,7 @@ using osu.Framework.Graphics.Primitives;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Colour;
+using osu.Framework.Graphics.Containers;
 
 namespace osu.Framework.MathUtils
 {
@@ -43,6 +44,19 @@ namespace osu.Framework.MathUtils
                 BottomLeft = ValueAt(time, (Color4)startColour.BottomLeft, (Color4)endColour.BottomLeft, startTime, endTime, easing),
                 TopRight = ValueAt(time, (Color4)startColour.TopRight, (Color4)endColour.TopRight, startTime, endTime, easing),
                 BottomRight = ValueAt(time, (Color4)startColour.BottomRight, (Color4)endColour.BottomRight, startTime, endTime, easing),
+            };
+        }
+
+        public static EdgeEffectParameters ValueAt(double time, EdgeEffectParameters startParams, EdgeEffectParameters endParams, double startTime, double endTime, Easing easing = Easing.None)
+        {
+            return new EdgeEffectParameters
+            {
+                Type = startParams.Type,
+                Hollow = startParams.Hollow,
+                Colour = ValueAt(time, startParams.Colour, endParams.Colour, startTime, endTime, easing),
+                Offset = ValueAt(time, startParams.Offset, endParams.Offset, startTime, endTime, easing),
+                Radius = ValueAt(time, startParams.Radius, endParams.Radius, startTime, endTime, easing),
+                Roundness = ValueAt(time, startParams.Roundness, endParams.Roundness, startTime, endTime, easing),
             };
         }
 
