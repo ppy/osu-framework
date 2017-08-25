@@ -288,7 +288,7 @@ namespace osu.Framework.Graphics.UserInterface
             /// Adds a <see cref="Drawable"/> to the foreground of this <see cref="MenuItemRepresentation"/>.
             /// </summary>
             /// <param name="drawable">The <see cref="Drawable"/> to add.</param>
-            public void Add(Drawable drawable) => foreground.Add(drawable);
+            protected void Add(Drawable drawable) => foreground.Add(drawable);
 
             /// <summary>
             /// Removes a <see cref="Drawable"/> from the foreground of this <see cref="MenuItemRepresentation"/>.
