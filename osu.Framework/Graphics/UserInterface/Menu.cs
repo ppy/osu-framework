@@ -48,18 +48,31 @@ namespace osu.Framework.Graphics.UserInterface
                     }
                 }
             };
-
-            AnimateClose();
         }
 
-        private MenuState state;
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+
+            if (State == MenuState.Closed)
+                AnimateClose();
+            else
+                AnimateOpen();
+        }
+
+        private MenuState state = MenuState.Closed;
+        /// <summary>
+        /// The current state of this <see cref="Menu{TItem}"/>.
+        /// </summary>
         public MenuState State
         {
             get { return state; }
             set
             {
-                if (state == value) return;
+                if (state == value)
+                    return;
                 state = value;
+
                 switch (value)
                 {
                     case MenuState.Closed:
@@ -108,20 +121,22 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        protected float ContentHeight => Math.Min(ItemsContainer.Height, MaxHeight);
-
-        protected virtual void UpdateContentHeight()
-        {
-            Height = ContentHeight;
-        }
-
         protected override void UpdateAfterChildren()
         {
             base.UpdateAfterChildren();
             UpdateContentHeight();
         }
 
+        protected virtual void UpdateContentHeight() => Height = Math.Min(ItemsContainer.Height, MaxHeight);
+
+        /// <summary>
+        /// Animates the opening of this <see cref="Menu{TItem}"/>.
+        /// </summary>
         protected virtual void AnimateOpen() => Show();
+
+        /// <summary>
+        /// Animates the closing of this <see cref="Menu{TItem}"/>.
+        /// </summary>
         protected virtual void AnimateClose() => Hide();
 
         public override bool AcceptsFocus => true;
