@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Caching;
-using osu.Framework.Graphics.Containers;
 using System;
 using System.Collections.Generic;
 
@@ -12,30 +11,18 @@ namespace osu.Framework.Graphics.UserInterface
     /// Creates a container that manages <see cref="ContextMenuItem"/>s within a <see cref="Menu"/>.
     /// This container will auto-size its width to fit the maximum size of the <see cref="ContextMenuItem"/>s inside <see cref="Items"/>.
     /// </summary>
-    public class ContextMenu<TItem> : Container
+    public class ContextMenu<TItem> : Menu<TItem>
         where TItem : ContextMenuItem
     {
-        private readonly Menu<TItem> menu;
-
-        /// <summary>
-        /// Creates a new menu. Can be overridden to customize.
-        /// </summary>
-        protected virtual Menu<TItem> CreateMenu() => new Menu<TItem>();
-
-        /// <summary>
-        /// Current state of menu.
-        /// </summary>
-        public MenuState State => menu.State;
-
         /// <summary>
         /// Opens the menu.
         /// </summary>
-        public void Open() => menu.State = MenuState.Opened;
+        public void Open() => State = MenuState.Opened;
 
         /// <summary>
         /// Closes the menu.
         /// </summary>
-        public void Close() => menu.State = MenuState.Closed;
+        public void Close() => State = MenuState.Closed;
 
         /// <summary>
         /// Gets or sets the items to be contained in the menu.
@@ -44,24 +31,15 @@ namespace osu.Framework.Graphics.UserInterface
         {
             set
             {
-                menu.ItemsContainer.ChildrenEnumerable = value;
+                ItemsContainer.ChildrenEnumerable = value;
 
                 foreach (var item in Items)
                     item.Action += Close;
             }
             get
             {
-                return menu.ItemsContainer.Children;
+                return ItemsContainer.Children;
             }
-        }
-
-        /// <summary>
-        /// Creates a new <see cref="ContextMenu{TItem}"/>.
-        /// </summary>
-        public ContextMenu()
-        {
-            AutoSizeAxes = Axes.Y;
-            Add(menu = CreateMenu());
         }
 
         private float computeMenuWidth()

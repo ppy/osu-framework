@@ -27,8 +27,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         public Menu()
         {
-            RelativeSizeAxes = Axes.X;
             Masking = true;
+
             Children = new Drawable[]
             {
                 Background = new Box
@@ -48,11 +48,11 @@ namespace osu.Framework.Graphics.UserInterface
                     }
                 }
             };
+
             AnimateClose();
         }
 
         private MenuState state;
-
         public MenuState State
         {
             get { return state; }

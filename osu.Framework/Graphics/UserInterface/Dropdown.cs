@@ -127,6 +127,8 @@ namespace osu.Framework.Graphics.UserInterface
                 DropdownMenu = CreateMenu()
             };
 
+            DropdownMenu.RelativeSizeAxes = Axes.X;
+
             Header.Action = DropdownMenu.Toggle;
             Current.ValueChanged += selectionChanged;
         }
