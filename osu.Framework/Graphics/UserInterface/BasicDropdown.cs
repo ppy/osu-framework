@@ -8,7 +8,7 @@ namespace osu.Framework.Graphics.UserInterface
 {
     public class BasicDropdown<T> : Dropdown<T>
     {
-        protected override Menu CreateMenu() => new Menu();
+        protected override Menu CreateMenu() => new Menu { CornerRadius = 4 };
 
         protected override DropdownHeader CreateHeader() => new BasicDropdownHeader();
 
@@ -17,7 +17,6 @@ namespace osu.Framework.Graphics.UserInterface
         public BasicDropdown()
         {
             Header.CornerRadius = 4;
-            DropdownMenu.CornerRadius = 4;
         }
 
         public class BasicDropdownHeader : DropdownHeader

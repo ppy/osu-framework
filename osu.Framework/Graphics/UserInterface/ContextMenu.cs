@@ -17,18 +17,18 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Gets or sets the items to be contained in the menu.
         /// </summary>
-        public IEnumerable<TItem> Items
+        public new IReadOnlyList<TItem> Items
         {
+            get
+            {
+                return base.Items;
+            }
             set
             {
-                ItemsContainer.ChildrenEnumerable = value;
+                base.Items = value;
 
                 foreach (var item in Items)
                     item.Action += Close;
-            }
-            get
-            {
-                return ItemsContainer.Children;
             }
         }
 

@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Collections.Generic;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
@@ -9,38 +10,68 @@ using osu.Framework.Graphics.Shapes;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public enum MenuState
-    {
-        Closed,
-        Opened
-    }
-
     /// <summary>
     /// A list of command or selection items.
     /// </summary>
-    public class Menu<TItem> : Container, IStateful<MenuState>
+    public class Menu<TItem> : CompositeDrawable, IStateful<MenuState>
         where TItem : MenuItem
     {
-        public readonly Box Background;
-        public readonly FillFlowContainer<TItem> ItemsContainer;
-        public readonly ScrollContainer ScrollContainer;
+        /// <summary>
+        /// Gets or sets the <see cref="TItem"/>s contained within this <see cref="Menu{TItem}"/>.
+        /// </summary>
+        public IReadOnlyList<TItem> Items
+        {
+            get { return itemsContainer; }
+            set { itemsContainer.Children = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the corner radius of this <see cref="Menu{TItem}"/>.
+        /// </summary>
+        public new float CornerRadius
+        {
+            get { return base.CornerRadius; }
+            set { base.CornerRadius = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets whether the scroll bar of this <see cref="Menu{TItem}"/> is visible.
+        /// </summary>
+        public bool ScrollbarVisible
+        {
+            get { return scrollContainer.ScrollbarVisible; }
+            set { scrollContainer.ScrollbarVisible = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the background colour of this <see cref="Menu{TItem}"/>.
+        /// </summary>
+        public Color4 BackgroundColour
+        {
+            get { return background.Colour; }
+            set { background.Colour = value; }
+        }
+
+        private readonly Box background;
+        private readonly ScrollContainer scrollContainer;
+        private readonly FillFlowContainer<TItem> itemsContainer;
 
         public Menu()
         {
             Masking = true;
 
-            Children = new Drawable[]
+            InternalChildren = new Drawable[]
             {
-                Background = new Box
+                background = new Box
                 {
                     RelativeSizeAxes = Axes.Both,
                     Colour = Color4.Black
                 },
-                ScrollContainer = new ScrollContainer
+                scrollContainer = new ScrollContainer
                 {
                     RelativeSizeAxes = Axes.Both,
                     Masking = false,
-                    Child = ItemsContainer = new FillFlowContainer<TItem>
+                    Child = itemsContainer = new FillFlowContainer<TItem>
                     {
                         RelativeSizeAxes = Axes.X,
                         AutoSizeAxes = Axes.Y,
@@ -60,9 +91,27 @@ namespace osu.Framework.Graphics.UserInterface
                 AnimateOpen();
         }
 
+        /// <summary>
+        /// Adds a <see cref="TItem"/> to this <see cref="Menu{TItem}"/>.
+        /// </summary>
+        /// <param name="item">The <see cref="TItem"/> to add.</param>
+        public void Add(TItem item) => itemsContainer.Add(item);
+
+        /// <summary>
+        /// Removes a <see cref="TItem"/> from this <see cref="Menu{TItem}"/>.
+        /// </summary>
+        /// <param name="item">The <see cref="TItem"/> to remove.</param>
+        /// <returns>Whether <paramref name="item"/> was successfully removed.</returns>
+        public bool Remove(TItem item) => itemsContainer.Remove(item);
+
+        /// <summary>
+        /// Clears all <see cref="TItem"/>s in this <see cref="Menu{TItem}"/>.
+        /// </summary>
+        public void Clear() => itemsContainer.Clear();
+
         private MenuState state = MenuState.Closed;
         /// <summary>
-        /// The current state of this <see cref="Menu{TItem}"/>.
+        /// Gets or sets the current state of this <see cref="Menu{TItem}"/>.
         /// </summary>
         public MenuState State
         {
@@ -109,7 +158,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private float maxHeight = float.MaxValue;
         /// <summary>
-        /// The maximum height allowable by this <see cref="Menu{TItem}"/>.
+        /// Gets or sets maximum height allowable by this <see cref="Menu{TItem}"/>.
         /// </summary>
         public float MaxHeight
         {
@@ -127,7 +176,7 @@ namespace osu.Framework.Graphics.UserInterface
             UpdateContentHeight();
         }
 
-        protected virtual void UpdateContentHeight() => Height = Math.Min(ItemsContainer.Height, MaxHeight);
+        protected virtual void UpdateContentHeight() => Height = Math.Min(itemsContainer.Height, MaxHeight);
 
         /// <summary>
         /// Animates the opening of this <see cref="Menu{TItem}"/>.
@@ -146,5 +195,11 @@ namespace osu.Framework.Graphics.UserInterface
 
     public class Menu : Menu<MenuItem>
     {
+    }
+
+    public enum MenuState
+    {
+        Closed,
+        Opened
     }
 }

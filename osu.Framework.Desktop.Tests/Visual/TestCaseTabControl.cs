@@ -120,7 +120,7 @@ namespace osu.Framework.Desktop.Tests.Visual
 
         private class StyledDropdown : Dropdown<TestEnum>
         {
-            protected override Menu CreateMenu() => new Menu();
+            protected override Menu CreateMenu() => new Menu { ScrollbarVisible = false };
 
             protected override DropdownHeader CreateHeader() => new StyledDropdownHeader();
 
@@ -129,7 +129,7 @@ namespace osu.Framework.Desktop.Tests.Visual
             public StyledDropdown()
             {
                 DropdownMenu.CornerRadius = 4;
-                DropdownMenu.ScrollContainer.ScrollbarVisible = false;
+
 
                 DropdownMenu.Anchor = Anchor.TopRight;
                 DropdownMenu.Origin = Anchor.TopRight;

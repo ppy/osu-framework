@@ -49,7 +49,7 @@ namespace osu.Framework.Desktop.Tests.Visual
             AddRepeatStep("add item", () => styledDropdownMenu.AddDropdownItem(@"test " + i, @"test " + i++), items_to_add);
             AddAssert("item count is correct", () => styledDropdownMenu.Items.Count() == items_to_add * 2);
 
-            AddStep("click item 13", () => getMenuFromDropdown(styledDropdownMenu).ItemsContainer.Children[13].TriggerOnClick());
+            AddStep("click item 13", () => getMenuFromDropdown(styledDropdownMenu).Items[13].TriggerOnClick());
 
             AddAssert("dropdown1 is closed", () => getMenuFromDropdown(styledDropdownMenu).State == MenuState.Closed);
             AddAssert("item 13 is selected", () => styledDropdownMenu.Current == styledDropdownMenu.Items.ElementAt(13).Value);

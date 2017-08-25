@@ -85,7 +85,7 @@ namespace osu.Framework.Graphics.UserInterface
                 DropdownMenu.State = MenuState.Closed;
             };
             itemMap[item.Value] = item;
-            DropdownMenu.ItemsContainer.Add(item);
+            DropdownMenu.Add(item);
         }
 
         /// <summary>
@@ -97,7 +97,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (!itemMap.ContainsKey(value))
                 throw new ArgumentException($"The item {value} does not exist in this {nameof(Dropdown<T>)}.");
 
-            DropdownMenu.ItemsContainer.Remove(itemMap[value]);
+            DropdownMenu.Remove(itemMap[value]);
             itemMap.Remove(value);
         }
 
@@ -164,7 +164,7 @@ namespace osu.Framework.Graphics.UserInterface
         public void ClearItems()
         {
             itemMap.Clear();
-            DropdownMenu.ItemsContainer.Clear();
+            DropdownMenu.Clear();
         }
 
         /// <summary>
