@@ -128,7 +128,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             base.LoadComplete();
 
-            Header.Label = SelectedItem?.Text;
+            Header.Label = SelectedItem?.Text.Value;
         }
 
         private void selectionChanged(T newSelection = default(T))
