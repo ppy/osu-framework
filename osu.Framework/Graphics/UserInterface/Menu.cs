@@ -364,7 +364,7 @@ namespace osu.Framework.Graphics.UserInterface
                     {
                         RelativeSizeAxes = Axes.X,
                         AutoSizeAxes = Axes.Y,
-                        Children = new Drawable[]
+                        Children = new[]
                         {
                             text = CreateText(model.Text),
                             content = new FillFlowContainer

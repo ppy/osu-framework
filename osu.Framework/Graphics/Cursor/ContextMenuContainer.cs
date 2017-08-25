@@ -22,7 +22,7 @@ namespace osu.Framework.Graphics.Cursor
         private Vector2 relativeCursorPosition;
 
         /// <summary>
-        /// Creates a new context menu. Can be overridden to supply custom subclass of <see cref="ContextMenu{TItem}"/>.
+        /// Creates a new context menu. Can be overridden to supply custom subclass of <see cref="Menu{TItem}"/>.
         /// </summary>
         protected virtual Menu CreateMenu() => new Menu();
 
