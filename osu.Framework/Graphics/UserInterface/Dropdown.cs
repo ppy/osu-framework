@@ -265,7 +265,7 @@ namespace osu.Framework.Graphics.UserInterface
                 }
 
                 public DropdownMenuItemRepresentation(Menu<DropdownMenuItem<T>> menu, DropdownMenuItem<T> model)
-                    : base(menu, model)
+                    : base(model)
                 {
                 }
 

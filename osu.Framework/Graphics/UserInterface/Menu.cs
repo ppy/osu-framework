@@ -127,7 +127,10 @@ namespace osu.Framework.Graphics.UserInterface
         /// <param name="item">The <see cref="TItem"/> to add.</param>
         public void Add(TItem item)
         {
-            itemsContainer.Add(CreateMenuItemRepresentation(item));
+            var drawableItem = CreateMenuItemRepresentation(item);
+            drawableItem.CloseRequested = Close;
+
+            itemsContainer.Add(drawableItem);
             menuWidth.Invalidate();
         }
 
@@ -270,24 +273,27 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         /// <param name="model">The <see cref="TItem"/> that is to be visualised.</param>
         /// <returns>The visual representation.</returns>
-        protected virtual MenuItemRepresentation CreateMenuItemRepresentation(TItem model) => new MenuItemRepresentation(this, model);
+        protected virtual MenuItemRepresentation CreateMenuItemRepresentation(TItem model) => new MenuItemRepresentation(model);
 
         protected virtual FlowContainer<MenuItemRepresentation> CreateItemsFlow() => new FillFlowContainer<MenuItemRepresentation> { Direction = FillDirection.Vertical };
 
         #region MenuItemRepresentation
         protected class MenuItemRepresentation : CompositeDrawable
         {
-            public readonly Menu<TItem> Menu;
             public readonly TItem Model;
+
+            /// <summary>
+            /// Fired generally when this item was clicked and requests the containing menu to close itself.
+            /// </summary>
+            public Action CloseRequested;
 
             private readonly Drawable content;
 
             protected readonly Box Background;
             protected readonly Container Foreground;
 
-            public MenuItemRepresentation(Menu<TItem> menu, TItem model)
+            public MenuItemRepresentation(TItem model)
             {
-                Menu = menu;
                 Model = model;
 
                 RelativeSizeAxes = Axes.X;
@@ -405,7 +411,7 @@ namespace osu.Framework.Graphics.UserInterface
                     return false;
 
                 Model.Action.Value?.Invoke();
-                Menu.Close();
+                CloseRequested?.Invoke();
                 return true;
             }
 
