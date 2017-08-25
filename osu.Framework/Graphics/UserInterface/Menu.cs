@@ -82,7 +82,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private readonly Box background;
         private readonly ScrollContainer scrollContainer;
-        private readonly FillFlowContainer<MenuItemRepresentation> itemsContainer;
+        private readonly FlowContainer<MenuItemRepresentation> itemsContainer;
 
         public Menu()
         {
@@ -99,14 +99,12 @@ namespace osu.Framework.Graphics.UserInterface
                 {
                     RelativeSizeAxes = Axes.Both,
                     Masking = false,
-                    Child = itemsContainer = new FillFlowContainer<MenuItemRepresentation>
-                    {
-                        RelativeSizeAxes = Axes.X,
-                        AutoSizeAxes = Axes.Y,
-                        Direction = FillDirection.Vertical
-                    }
+                    Child = itemsContainer = CreateItemsFlow()
                 }
             };
+
+            itemsContainer.RelativeSizeAxes = Axes.X;
+            itemsContainer.AutoSizeAxes = Axes.Y;
         }
 
         protected override void LoadComplete()
@@ -170,7 +168,7 @@ namespace osu.Framework.Graphics.UserInterface
                         break;
                 }
 
-                updateMenuHeight();
+                UpdateMenuHeight();
             }
         }
 
@@ -199,7 +197,7 @@ namespace osu.Framework.Graphics.UserInterface
             set
             {
                 maxHeight = value;
-                updateMenuHeight();
+                UpdateMenuHeight();
             }
         }
 
@@ -221,7 +219,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             base.UpdateAfterChildren();
 
-            updateMenuHeight();
+            UpdateMenuHeight();
             updateMenuWidth();
         }
 
@@ -232,7 +230,15 @@ namespace osu.Framework.Graphics.UserInterface
             base.InvalidateFromChild(invalidation);
         }
 
-        private void updateMenuHeight() => Height = Math.Min(itemsContainer.Height, MaxHeight);
+        /// <summary>
+        /// The height of the <see cref="TItem"/>s contained by this <see cref="Menu{TItem}"/>, clamped by <see cref="MaxHeight"/>.
+        /// </summary>
+        protected float ContentHeight => Math.Min(itemsContainer.Height, MaxHeight);
+
+        /// <summary>
+        /// Computes and applies the height of this <see cref="Menu{TItem}"/>.
+        /// </summary>
+        protected virtual void UpdateMenuHeight() => Height = ContentHeight;
 
         private void updateMenuWidth()
         {
@@ -268,6 +274,8 @@ namespace osu.Framework.Graphics.UserInterface
         /// <param name="model">The <see cref="TItem"/> that is to be visualised.</param>
         /// <returns>The visual representation.</returns>
         protected virtual MenuItemRepresentation CreateMenuItemRepresentation(TItem model) => new MenuItemRepresentation(this, model);
+
+        protected virtual FlowContainer<MenuItemRepresentation> CreateItemsFlow() => new FillFlowContainer<MenuItemRepresentation> { Direction = FillDirection.Vertical };
 
         #region MenuItemRepresentation
         protected class MenuItemRepresentation : CompositeDrawable
