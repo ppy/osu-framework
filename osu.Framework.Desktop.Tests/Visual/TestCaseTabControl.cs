@@ -126,9 +126,6 @@ namespace osu.Framework.Desktop.Tests.Visual
 
             public StyledDropdown()
             {
-                Menu.CornerRadius = 4;
-
-
                 Menu.Anchor = Anchor.TopRight;
                 Menu.Origin = Anchor.TopRight;
                 Header.Anchor = Anchor.TopRight;
@@ -140,6 +137,7 @@ namespace osu.Framework.Desktop.Tests.Visual
                 public StyledDropdownMenu()
                 {
                     ScrollbarVisible = false;
+                    CornerRadius = 4;
                 }
             }
         }
