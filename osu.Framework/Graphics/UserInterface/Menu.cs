@@ -25,7 +25,11 @@ namespace osu.Framework.Graphics.UserInterface
         public IReadOnlyList<TItem> Items
         {
             get { return itemsContainer.Select(r => r.Model).ToList(); }
-            set { itemsContainer.ChildrenEnumerable = value.Select(CreateMenuItemRepresentation); }
+            set
+            {
+                itemsContainer.ChildrenEnumerable = value.Select(CreateMenuItemRepresentation);
+                menuWidth.Invalidate();
+            }
         }
 
         /// <summary>
@@ -121,7 +125,11 @@ namespace osu.Framework.Graphics.UserInterface
         /// Adds a <see cref="TItem"/> to this <see cref="Menu{TItem}"/>.
         /// </summary>
         /// <param name="item">The <see cref="TItem"/> to add.</param>
-        public void Add(TItem item) => itemsContainer.Add(CreateMenuItemRepresentation(item));
+        public void Add(TItem item)
+        {
+            itemsContainer.Add(CreateMenuItemRepresentation(item));
+            menuWidth.Invalidate();
+        }
 
         /// <summary>
         /// Removes a <see cref="TItem"/> from this <see cref="Menu{TItem}"/>.
@@ -221,13 +229,6 @@ namespace osu.Framework.Graphics.UserInterface
 
             UpdateMenuHeight();
             updateMenuWidth();
-        }
-
-        public override void InvalidateFromChild(Invalidation invalidation)
-        {
-            if ((invalidation & Invalidation.RequiredParentSizeToFit) > 0)
-                menuWidth.Invalidate();
-            base.InvalidateFromChild(invalidation);
         }
 
         /// <summary>
