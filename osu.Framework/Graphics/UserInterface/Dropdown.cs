@@ -249,7 +249,7 @@ namespace osu.Framework.Graphics.UserInterface
                     set
                     {
                         backgroundColourSelected = value;
-                        AnimateBackground(IsSelected);
+                        UpdateBackgroundColour();
                     }
                 }
 
@@ -260,7 +260,7 @@ namespace osu.Framework.Graphics.UserInterface
                     set
                     {
                         foregroundColourSelected = value;
-                        AnimateForeground(IsHovered);
+                        UpdateForegroundColour();
                     }
                 }
 
@@ -274,18 +274,18 @@ namespace osu.Framework.Graphics.UserInterface
                     if (!IsLoaded)
                         return;
 
-                    AnimateBackground(IsHovered);
-                    AnimateForeground(IsHovered);
+                    UpdateBackgroundColour();
+                    UpdateForegroundColour();
                 }
 
-                protected override void AnimateBackground(bool hover)
+                protected override void UpdateBackgroundColour()
                 {
-                    Background.FadeColour(hover ? BackgroundColourHover : (IsSelected ? BackgroundColourSelected : BackgroundColour));
+                    Background.FadeColour(IsHovered ? BackgroundColourHover : (IsSelected ? BackgroundColourSelected : BackgroundColour));
                 }
 
-                protected override void AnimateForeground(bool hover)
+                protected override void UpdateForegroundColour()
                 {
-                    Foreground.FadeColour(hover ? ForegroundColourHover : (IsSelected ? ForegroundColourSelected : ForegroundColour));
+                    Foreground.FadeColour(IsHovered ? ForegroundColourHover : (IsSelected ? ForegroundColourSelected : ForegroundColour));
                 }
 
                 protected override void LoadComplete()

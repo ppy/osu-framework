@@ -329,7 +329,7 @@ namespace osu.Framework.Graphics.UserInterface
                 set
                 {
                     backgroundColour = value;
-                    AnimateBackground(IsHovered);
+                    UpdateBackgroundColour();
                 }
             }
 
@@ -343,7 +343,7 @@ namespace osu.Framework.Graphics.UserInterface
                 set
                 {
                     foregroundColour = value;
-                    AnimateForeground(IsHovered);
+                    UpdateForegroundColour();
                 }
             }
 
@@ -357,7 +357,7 @@ namespace osu.Framework.Graphics.UserInterface
                 set
                 {
                     backgroundColourHover = value;
-                    AnimateBackground(IsHovered);
+                    UpdateBackgroundColour();
                 }
             }
 
@@ -371,7 +371,7 @@ namespace osu.Framework.Graphics.UserInterface
                 set
                 {
                     foregroundColourHover = value;
-                    AnimateForeground(IsHovered);
+                    UpdateForegroundColour();
                 }
             }
 
@@ -380,14 +380,20 @@ namespace osu.Framework.Graphics.UserInterface
             /// </summary>
             public float TextDrawWidth => content.DrawWidth;
 
-            protected virtual void AnimateBackground(bool hover)
+            /// <summary>
+            /// Called after the <see cref="BackgroundColour"/> is modified or the hover state changes.
+            /// </summary>
+            protected virtual void UpdateBackgroundColour()
             {
-                Background.FadeColour(hover ? BackgroundColourHover : BackgroundColour);
+                Background.FadeColour(IsHovered ? BackgroundColourHover : BackgroundColour);
             }
 
-            protected virtual void AnimateForeground(bool hover)
+            /// <summary>
+            /// Called after the <see cref="ForegroundColour"/> is modified or the hover state changes.
+            /// </summary>
+            protected virtual void UpdateForegroundColour()
             {
-                Foreground.FadeColour(hover ? ForegroundColourHover : ForegroundColour);
+                Foreground.FadeColour(IsHovered ? ForegroundColourHover : ForegroundColour);
             }
 
             protected override void LoadComplete()
@@ -399,16 +405,16 @@ namespace osu.Framework.Graphics.UserInterface
 
             protected override bool OnHover(InputState state)
             {
-                AnimateBackground(true);
-                AnimateForeground(true);
+                UpdateBackgroundColour();
+                UpdateForegroundColour();
                 return base.OnHover(state);
             }
 
             protected override void OnHoverLost(InputState state)
             {
                 base.OnHover(state);
-                AnimateBackground(false);
-                AnimateForeground(false);
+                UpdateBackgroundColour();
+                UpdateForegroundColour();
             }
 
             protected override bool OnClick(InputState state)
