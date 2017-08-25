@@ -54,6 +54,10 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         private bool useParentWidth;
+
+        /// <summary>
+        /// Gets or sets whether the menu should expand to the width of the parent. If false, a width will be calculated based on the widest item.
+        /// </summary>
         public bool UseParentWidth
         {
             get { return useParentWidth; }
@@ -94,12 +98,15 @@ namespace osu.Framework.Graphics.UserInterface
                 {
                     RelativeSizeAxes = Axes.Both,
                     Masking = false,
-                    Child = itemsContainer = CreateItemsFlow()
+                    Child = itemsContainer = new FillFlowContainer<DrawableMenuItem>
+                    {
+                        Direction = FillDirection.Vertical,
+                        RelativeSizeAxes = Axes.X,
+                        AutoSizeAxes = Axes.Y,
+                        Padding = ItemFlowContainerPadding
+                    },
                 }
             };
-
-            itemsContainer.RelativeSizeAxes = Axes.X;
-            itemsContainer.AutoSizeAxes = Axes.Y;
         }
 
         protected override void LoadComplete()
@@ -266,7 +273,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <returns>The visual representation.</returns>
         protected virtual DrawableMenuItem CreateDrawableMenuItem(TItem model) => new DrawableMenuItem(model);
 
-        protected virtual FlowContainer<DrawableMenuItem> CreateItemsFlow() => new FillFlowContainer<DrawableMenuItem> { Direction = FillDirection.Vertical };
+        protected virtual MarginPadding ItemFlowContainerPadding => new MarginPadding();
 
         #region DrawableMenuItem
         protected class DrawableMenuItem : CompositeDrawable
