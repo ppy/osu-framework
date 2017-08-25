@@ -79,10 +79,25 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
+        /// <summary>
+        /// Opens this <see cref="Menu{TItem}"/>.
+        /// </summary>
+        public void Open() => State = MenuState.Opened;
+
+        /// <summary>
+        /// Closes this <see cref="Menu{TItem}"/>.
+        /// </summary>
+        public void Close() => State = MenuState.Closed;
+
+        /// <summary>
+        /// Toggles the state of this <see cref="Menu{TItem}"/>.
+        /// </summary>
         public void Toggle() => State = State == MenuState.Closed ? MenuState.Opened : MenuState.Closed;
 
         private float maxHeight = float.MaxValue;
-
+        /// <summary>
+        /// The maximum height allowable by this <see cref="Menu{TItem}"/>.
+        /// </summary>
         public float MaxHeight
         {
             get { return maxHeight; }
@@ -107,13 +122,10 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         protected virtual void AnimateOpen() => Show();
-
         protected virtual void AnimateClose() => Hide();
 
         public override bool AcceptsFocus => true;
-
         protected override bool OnClick(InputState state) => true;
-
         protected override void OnFocusLost(InputState state) => State = MenuState.Closed;
     }
 

@@ -128,7 +128,6 @@ namespace osu.Framework.Desktop.Tests.Visual
 
             public StyledDropdown()
             {
-                DropdownMenu.MaxHeight = int.MaxValue;
                 DropdownMenu.CornerRadius = 4;
                 DropdownMenu.ScrollContainer.ScrollbarVisible = false;
 

@@ -15,16 +15,6 @@ namespace osu.Framework.Graphics.UserInterface
         where TItem : ContextMenuItem
     {
         /// <summary>
-        /// Opens the menu.
-        /// </summary>
-        public void Open() => State = MenuState.Opened;
-
-        /// <summary>
-        /// Closes the menu.
-        /// </summary>
-        public void Close() => State = MenuState.Closed;
-
-        /// <summary>
         /// Gets or sets the items to be contained in the menu.
         /// </summary>
         public IEnumerable<TItem> Items
