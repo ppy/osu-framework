@@ -332,6 +332,15 @@ namespace osu.Framework.Graphics.UserInterface
                 AnimateBackground(false);
                 AnimateForeground(false);
             }
+
+            protected override bool OnClick(InputState state)
+            {
+                if (Model.Action.Disabled)
+                    return false;
+
+                Model.Action.Value?.Invoke();
+                return true;
+            }
         }
         #endregion
     }
