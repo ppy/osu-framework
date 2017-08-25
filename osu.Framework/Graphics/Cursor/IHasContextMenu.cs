@@ -10,6 +10,6 @@ namespace osu.Framework.Graphics.Cursor
         /// <summary>
         /// Menu items that appear when the drawable is right-clicked.
         /// </summary>
-        ContextMenuItem[] ContextMenuItems { get; }
+        MenuItem[] ContextMenuItems { get; }
     }
 }

@@ -161,7 +161,6 @@
     <Compile Include="Graphics\UserInterface\BasicCheckbox.cs" />
     <Compile Include="Graphics\UserInterface\BasicDropdown.cs" />
     <Compile Include="Graphics\UserInterface\Checkbox.cs" />
-    <Compile Include="Graphics\UserInterface\ContextMenu.cs" />
     <Compile Include="Graphics\UserInterface\IHasCurrentValue.cs" />
     <Compile Include="Graphics\UserInterface\MenuItem.cs" />
     <Compile Include="Graphics\UserInterface\Menu.cs" />

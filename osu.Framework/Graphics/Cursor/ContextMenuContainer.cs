@@ -10,13 +10,13 @@ using osu.Framework.Input;
 namespace osu.Framework.Graphics.Cursor
 {
     /// <summary>
-    /// A container which manages a <see cref="ContextMenu{TItem}"/>.
+    /// A container which manages a <see cref="Menu"/>.
     /// If a right-click happens on a <see cref="Drawable"/> that implements <see cref="IHasContextMenu"/> and exists as a child of the same <see cref="InputManager"/> as this container,
-    /// a <see cref="ContextMenu{TItem}"/> will be displayed with bottom-right origin at the right-clicked position.
+    /// a <see cref="Menu"/> will be displayed with bottom-right origin at the right-clicked position.
     /// </summary>
     public class ContextMenuContainer : CursorEffectContainer<ContextMenuContainer, IHasContextMenu>
     {
-        private readonly ContextMenu<ContextMenuItem> menu;
+        private readonly Menu menu;
 
         private IHasContextMenu menuTarget;
         private Vector2 relativeCursorPosition;
@@ -24,7 +24,7 @@ namespace osu.Framework.Graphics.Cursor
         /// <summary>
         /// Creates a new context menu. Can be overridden to supply custom subclass of <see cref="ContextMenu{TItem}"/>.
         /// </summary>
-        protected virtual ContextMenu<ContextMenuItem> CreateContextMenu() => new ContextMenu<ContextMenuItem>();
+        protected virtual Menu CreateMenu() => new Menu();
 
         private readonly Container content;
         protected override Container<Drawable> Content => content;
@@ -38,7 +38,7 @@ namespace osu.Framework.Graphics.Cursor
             {
                 RelativeSizeAxes = Axes.Both,
             });
-            AddInternal(menu = CreateContextMenu());
+            AddInternal(menu = CreateMenu());
         }
 
         protected override void OnSizingChanged()
