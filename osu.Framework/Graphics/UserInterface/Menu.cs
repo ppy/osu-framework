@@ -24,7 +24,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public IReadOnlyList<TItem> Items
         {
-            get { return itemsContainer.Select(r => r.Model).ToList(); }
+            get { return itemsContainer.Select(r => r.Item).ToList(); }
             set
             {
                 itemsContainer.Clear();
@@ -138,7 +138,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         /// <param name="item">The <see cref="TItem"/> to remove.</param>
         /// <returns>Whether <paramref name="item"/> was successfully removed.</returns>
-        public bool Remove(TItem item) => itemsContainer.RemoveAll(r => r.Model == item) > 0;
+        public bool Remove(TItem item) => itemsContainer.RemoveAll(r => r.Item == item) > 0;
 
         /// <summary>
         /// Clears all <see cref="TItem"/>s in this <see cref="Menu{TItem}"/>.
@@ -146,7 +146,7 @@ namespace osu.Framework.Graphics.UserInterface
         public void Clear() => itemsContainer.Clear();
 
         /// <summary>
-        /// Gets the model representations contained by this <see cref="Menu"/>.
+        /// Gets the item representations contained by this <see cref="Menu"/>.
         /// </summary>
         protected IReadOnlyList<DrawableMenuItem> Children => itemsContainer;
 
@@ -277,16 +277,16 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Creates the visual representation for a <see cref="TItem"/>.
         /// </summary>
-        /// <param name="model">The <see cref="TItem"/> that is to be visualised.</param>
+        /// <param name="item">The <see cref="TItem"/> that is to be visualised.</param>
         /// <returns>The visual representation.</returns>
-        protected virtual DrawableMenuItem CreateDrawableMenuItem(TItem model) => new DrawableMenuItem(model);
+        protected virtual DrawableMenuItem CreateDrawableMenuItem(TItem item) => new DrawableMenuItem(item);
 
         protected virtual MarginPadding ItemFlowContainerPadding => new MarginPadding();
 
         #region DrawableMenuItem
         protected class DrawableMenuItem : CompositeDrawable
         {
-            public readonly TItem Model;
+            public readonly TItem Item;
 
             /// <summary>
             /// Fired generally when this item was clicked and requests the containing menu to close itself.
@@ -298,9 +298,9 @@ namespace osu.Framework.Graphics.UserInterface
             protected readonly Box Background;
             protected readonly Container Foreground;
 
-            public DrawableMenuItem(TItem model)
+            public DrawableMenuItem(TItem item)
             {
-                Model = model;
+                Item = item;
 
                 RelativeSizeAxes = Axes.X;
                 AutoSizeAxes = Axes.Y;
@@ -419,10 +419,10 @@ namespace osu.Framework.Graphics.UserInterface
 
             protected override bool OnClick(InputState state)
             {
-                if (Model.Action.Disabled)
+                if (Item.Action.Disabled)
                     return false;
 
-                Model.Action.Value?.Invoke();
+                Item.Action.Value?.Invoke();
                 CloseRequested?.Invoke();
                 return true;
             }
@@ -440,7 +440,7 @@ namespace osu.Framework.Graphics.UserInterface
                     Anchor = Anchor.CentreLeft,
                     Origin = Anchor.CentreLeft,
                     TextSize = 17,
-                    Text = Model.Text,
+                    Text = Item.Text,
                 }
             };
         }

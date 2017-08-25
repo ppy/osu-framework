@@ -80,7 +80,7 @@ namespace osu.Framework.Desktop.Tests.Visual
 
             private class StyledDropdownMenu : DropdownMenu
             {
-                public void SelectItem(MenuItem item) => Children.FirstOrDefault(c => c.Model == item)?.TriggerOnClick();
+                public void SelectItem(MenuItem item) => Children.FirstOrDefault(c => c.Item == item)?.TriggerOnClick();
             }
         }
 

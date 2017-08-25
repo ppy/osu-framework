@@ -202,20 +202,20 @@ namespace osu.Framework.Graphics.UserInterface
             /// <param name="item">The item to select.</param>
             public void SelectItem(DropdownMenuItem<T> item)
             {
-                Children.OfType<DrawableDropdownMenuItem>().ForEach(c => c.IsSelected = c.Model == item);
+                Children.OfType<DrawableDropdownMenuItem>().ForEach(c => c.IsSelected = c.Item == item);
             }
 
             /// <summary>
             /// Shows an item from this <see cref="DropdownMenu"/>.
             /// </summary>
             /// <param name="item">The item to show.</param>
-            public void HideItem(DropdownMenuItem<T> item) => Children.FirstOrDefault(c => c.Model == item)?.Hide();
+            public void HideItem(DropdownMenuItem<T> item) => Children.FirstOrDefault(c => c.Item == item)?.Hide();
 
             /// <summary>
             /// Hides an item from this <see cref="DropdownMenu"/>
             /// </summary>
             /// <param name="item"></param>
-            public void ShowItem(DropdownMenuItem<T> item) => Children.FirstOrDefault(c => c.Model == item)?.Show();
+            public void ShowItem(DropdownMenuItem<T> item) => Children.FirstOrDefault(c => c.Item == item)?.Show();
 
             /// <summary>
             /// Whether any items part of this <see cref="DropdownMenu"/> are present.
@@ -230,7 +230,7 @@ namespace osu.Framework.Graphics.UserInterface
                 {
                     get
                     {
-                        return !Model.Action.Disabled && selected;
+                        return !Item.Action.Disabled && selected;
                     }
                     set
                     {
@@ -264,8 +264,8 @@ namespace osu.Framework.Graphics.UserInterface
                     }
                 }
 
-                public DrawableDropdownMenuItem(Menu<DropdownMenuItem<T>> menu, DropdownMenuItem<T> model)
-                    : base(model)
+                public DrawableDropdownMenuItem(DropdownMenuItem<T> item)
+                    : base(item)
                 {
                 }
 
