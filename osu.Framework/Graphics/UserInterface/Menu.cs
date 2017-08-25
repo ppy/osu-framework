@@ -280,6 +280,47 @@ namespace osu.Framework.Graphics.UserInterface
         #region MenuItemRepresentation
         protected class MenuItemRepresentation : CompositeDrawable
         {
+            public readonly Menu<TItem> Menu;
+            public readonly TItem Model;
+
+            private readonly Drawable text;
+            private readonly FillFlowContainer content;
+
+            protected readonly Box Background;
+            protected readonly Container Foreground;
+
+            public MenuItemRepresentation(Menu<TItem> menu, TItem model)
+            {
+                Menu = menu;
+                Model = model;
+
+                RelativeSizeAxes = Axes.X;
+                AutoSizeAxes = Axes.Y;
+                InternalChildren = new Drawable[]
+                {
+                    Background = new Box
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                    },
+                    Foreground = new Container
+                    {
+                        RelativeSizeAxes = Axes.X,
+                        AutoSizeAxes = Axes.Y,
+                        Children = new[]
+                        {
+                            text = CreateText(model.Text),
+                            content = new FillFlowContainer
+                            {
+                                Direction = FillDirection.Horizontal,
+                                AutoSizeAxes = Axes.Both,
+                                Anchor = Anchor.CentreRight,
+                                Origin = Anchor.CentreRight,
+                            }
+                        }
+                    },
+                };
+            }
+
             private Color4 backgroundColour = Color4.DarkSlateGray;
             /// <summary>
             /// Gets or sets the default background colour.
@@ -345,47 +386,6 @@ namespace osu.Framework.Graphics.UserInterface
             /// The draw width of the content of this <see cref="MenuItemRepresentation"/>. This does not include <see cref="TextDrawWidth"/>.
             /// </summary>
             public float ContentDrawWidth => content.DrawWidth;
-
-            public readonly Menu<TItem> Menu;
-            public readonly TItem Model;
-
-            private readonly Drawable text;
-            private readonly FillFlowContainer content;
-
-            protected readonly Box Background;
-            protected readonly Container Foreground;
-
-            public MenuItemRepresentation(Menu<TItem> menu, TItem model)
-            {
-                Menu = menu;
-                Model = model;
-
-                RelativeSizeAxes = Axes.X;
-                AutoSizeAxes = Axes.Y;
-                InternalChildren = new Drawable[]
-                {
-                    Background = new Box
-                    {
-                        RelativeSizeAxes = Axes.Both,
-                    },
-                    Foreground = new Container
-                    {
-                        RelativeSizeAxes = Axes.X,
-                        AutoSizeAxes = Axes.Y,
-                        Children = new[]
-                        {
-                            text = CreateText(model.Text),
-                            content = new FillFlowContainer
-                            {
-                                Direction = FillDirection.Horizontal,
-                                AutoSizeAxes = Axes.Both,
-                                Anchor = Anchor.CentreRight,
-                                Origin = Anchor.CentreRight,
-                            }
-                        }
-                    },
-                };
-            }
 
             /// <summary>
             /// Adds a <see cref="Drawable"/> to the foreground of this <see cref="MenuItemRepresentation"/>.

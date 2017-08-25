@@ -39,6 +39,7 @@ namespace osu.Framework.Graphics.Cursor
             {
                 RelativeSizeAxes = Axes.Both,
             });
+
             AddInternal(menu = CreateMenu());
         }
 
