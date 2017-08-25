@@ -16,7 +16,6 @@ using osu.Framework.Allocation;
 using osu.Framework.Graphics.Transforms;
 using osu.Framework.Timing;
 using osu.Framework.Caching;
-using osu.Framework.MathUtils;
 using osu.Framework.Threading;
 using osu.Framework.Statistics;
 using System.Threading.Tasks;
@@ -735,8 +734,18 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Helper function for creating and adding a <see cref="Transform{TValue, T}"/> that fades the current <see cref="EdgeEffect"/>.
         /// </summary>
-        protected TransformSequence<CompositeDrawable> FadeEdgeEffectTo(Color4 newColour, double duration = 0, Easing easing = Easing.None) =>
-            this.TransformTo(this.PopulateTransform(new TransformEdgeEffectColour(), newColour, duration, easing));
+        protected TransformSequence<CompositeDrawable> FadeEdgeEffectTo(Color4 newColour, double duration = 0, Easing easing = Easing.None)
+        {
+            var effect = EdgeEffect;
+            effect.Colour = newColour;
+            return TweenEdgeEffectTo(effect, duration, easing);
+        }
+
+        /// <summary>
+        /// Helper function for creating and adding a <see cref="Transform{TValue, T}"/> that tweens the current <see cref="EdgeEffect"/>.
+        /// </summary>
+        protected TransformSequence<CompositeDrawable> TweenEdgeEffectTo(EdgeEffectParameters newParams, double duration = 0, Easing easing = Easing.None) =>
+            this.TransformTo(nameof(EdgeEffect), newParams, duration, easing);
 
         #endregion
 
@@ -1251,30 +1260,5 @@ namespace osu.Framework.Graphics.Containers
         }
 
         #endregion
-
-        private class TransformEdgeEffectColour : Transform<Color4, CompositeDrawable>
-        {
-            /// <summary>
-            /// Current value of the transformed colour in linear colour space.
-            /// </summary>
-            private Color4 valueAt(double time)
-            {
-                if (time < StartTime) return StartValue;
-                if (time >= EndTime) return EndValue;
-
-                return Interpolation.ValueAt(time, StartValue, EndValue, StartTime, EndTime, Easing);
-            }
-
-            public override string TargetMember => "EdgeEffect.Colour";
-
-            protected override void Apply(CompositeDrawable c, double time)
-            {
-                EdgeEffectParameters e = c.EdgeEffect;
-                e.Colour = valueAt(time);
-                c.EdgeEffect = e;
-            }
-
-            protected override void ReadIntoStartValue(CompositeDrawable d) => StartValue = d.EdgeEffect.Colour;
-        }
     }
 }
