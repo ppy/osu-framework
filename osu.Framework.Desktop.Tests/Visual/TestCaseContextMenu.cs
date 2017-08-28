@@ -43,7 +43,7 @@ namespace osu.Framework.Desktop.Tests.Visual
 
         public TestCaseContextMenu()
         {
-            Add(new ContextMenuContainer<MenuItem>
+            Add(new ContextMenuContainer
             {
                 RelativeSizeAxes = Axes.Both,
                 Children = new[]
@@ -69,7 +69,7 @@ namespace osu.Framework.Desktop.Tests.Visual
                 .Loop();
         }
 
-        private class ContextMenuBox : Container, IHasContextMenu<MenuItem>
+        private class ContextMenuBox : Container, IHasContextMenu
         {
             public MenuItem[] ContextMenuItems => new[]
             {

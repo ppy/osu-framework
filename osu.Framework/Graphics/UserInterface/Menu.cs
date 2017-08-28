@@ -16,13 +16,23 @@ namespace osu.Framework.Graphics.UserInterface
     /// <summary>
     /// A list of command or selection items.
     /// </summary>
-    public class Menu<TItem> : CompositeDrawable, IStateful<MenuState>
-        where TItem : MenuItem
+    public class Menu : CompositeDrawable, IStateful<MenuState>
     {
         /// <summary>
-        /// Gets or sets the <see cref="TItem"/>s contained within this <see cref="Menu{TItem}"/>.
+        /// Invoked when this <see cref="Menu"/> has opened.
         /// </summary>
-        public IReadOnlyList<TItem> Items
+        public event Action OnOpen;
+
+        /// <summary>
+        /// Invoked when this <see cref="Menu"/> has closed. This may have been the cause of either a selection
+        /// or a click outside of the <see cref="Menu"/> and does not indicate a selection has occurred.
+        /// </summary>
+        public event Action OnClose;
+
+        /// <summary>
+        /// Gets or sets the <see cref="MenuItem"/>s contained within this <see cref="Menu"/>.
+        /// </summary>
+        public IReadOnlyList<MenuItem> Items
         {
             get { return itemsContainer.Select(r => r.Item).ToList(); }
             set
@@ -37,7 +47,7 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
-        /// Gets or sets whether the scroll bar of this <see cref="Menu{TItem}"/> is visible.
+        /// Gets or sets whether the scroll bar of this <see cref="Menu"/> is visible.
         /// </summary>
         public bool ScrollbarVisible
         {
@@ -48,13 +58,13 @@ namespace osu.Framework.Graphics.UserInterface
         public new Axes RelativeSizeAxes
         {
             get { return base.RelativeSizeAxes; }
-            set { throw new InvalidOperationException($"{nameof(Menu<TItem>)} will determine its size based on the value of {nameof(UseParentWidth)}."); }
+            set { throw new InvalidOperationException($"{nameof(MenuItem)} will determine its size based on the value of {nameof(UseParentWidth)}."); }
         }
 
         public new Axes AutoSizeAxes
         {
             get { return base.AutoSizeAxes; }
-            set { throw new InvalidOperationException($"{nameof(Menu<TItem>)} will determine its size based on the value of {nameof(UseParentWidth)}."); }
+            set { throw new InvalidOperationException($"{nameof(MenuItem)} will determine its size based on the value of {nameof(UseParentWidth)}."); }
         }
 
         private bool useParentWidth;
@@ -73,7 +83,7 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
-        /// Gets or sets the background colour of this <see cref="Menu{TItem}"/>.
+        /// Gets or sets the background colour of this <see cref="Menu"/>.
         /// </summary>
         public Color4 BackgroundColour
         {
@@ -121,10 +131,10 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
-        /// Adds a <see cref="TItem"/> to this <see cref="Menu{TItem}"/>.
+        /// Adds a <see cref="MenuItem"/> to this <see cref="Menu"/>.
         /// </summary>
-        /// <param name="item">The <see cref="TItem"/> to add.</param>
-        public void Add(TItem item)
+        /// <param name="item">The <see cref="MenuItem"/> to add.</param>
+        public void Add(MenuItem item)
         {
             var drawableItem = CreateDrawableMenuItem(item);
             drawableItem.CloseRequested = Close;
@@ -134,14 +144,14 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
-        /// Removes a <see cref="TItem"/> from this <see cref="Menu{TItem}"/>.
+        /// Removes a <see cref="MenuItem"/> from this <see cref="Menu"/>.
         /// </summary>
-        /// <param name="item">The <see cref="TItem"/> to remove.</param>
+        /// <param name="item">The <see cref="MenuItem"/> to remove.</param>
         /// <returns>Whether <paramref name="item"/> was successfully removed.</returns>
-        public bool Remove(TItem item) => itemsContainer.RemoveAll(r => r.Item == item) > 0;
+        public bool Remove(MenuItem item) => itemsContainer.RemoveAll(r => r.Item == item) > 0;
 
         /// <summary>
-        /// Clears all <see cref="TItem"/>s in this <see cref="Menu{TItem}"/>.
+        /// Clears all <see cref="MenuItem"/>s in this <see cref="Menu"/>.
         /// </summary>
         public void Clear() => itemsContainer.Clear();
 
@@ -152,7 +162,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private MenuState state = MenuState.Closed;
         /// <summary>
-        /// Gets or sets the current state of this <see cref="Menu{TItem}"/>.
+        /// Gets or sets the current state of this <see cref="Menu"/>.
         /// </summary>
         public MenuState State
         {
@@ -175,14 +185,19 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 case MenuState.Closed:
                     AnimateClose();
+
                     if (HasFocus)
                         GetContainingInputManager().ChangeFocus(null);
+
+                    OnClose?.Invoke();
                     break;
                 case MenuState.Opened:
                     AnimateOpen();
 
                     //schedule required as we may not be present currently.
                     Schedule(() => GetContainingInputManager().ChangeFocus(this));
+
+                    OnOpen?.Invoke();
                     break;
             }
 
@@ -190,23 +205,23 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
-        /// Opens this <see cref="Menu{TItem}"/>.
+        /// Opens this <see cref="Menu"/>.
         /// </summary>
         public void Open() => State = MenuState.Opened;
 
         /// <summary>
-        /// Closes this <see cref="Menu{TItem}"/>.
+        /// Closes this <see cref="Menu"/>.
         /// </summary>
         public void Close() => State = MenuState.Closed;
 
         /// <summary>
-        /// Toggles the state of this <see cref="Menu{TItem}"/>.
+        /// Toggles the state of this <see cref="Menu"/>.
         /// </summary>
         public void Toggle() => State = State == MenuState.Closed ? MenuState.Opened : MenuState.Closed;
 
         private float maxHeight = float.MaxValue;
         /// <summary>
-        /// Gets or sets maximum height allowable by this <see cref="Menu{TItem}"/>.
+        /// Gets or sets maximum height allowable by this <see cref="Menu"/>.
         /// </summary>
         public float MaxHeight
         {
@@ -219,12 +234,12 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
-        /// Animates the opening of this <see cref="Menu{TItem}"/>.
+        /// Animates the opening of this <see cref="Menu"/>.
         /// </summary>
         protected virtual void AnimateOpen() => Show();
 
         /// <summary>
-        /// Animates the closing of this <see cref="Menu{TItem}"/>.
+        /// Animates the closing of this <see cref="Menu"/>.
         /// </summary>
         protected virtual void AnimateClose() => Hide();
 
@@ -241,12 +256,12 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
-        /// The height of the <see cref="TItem"/>s contained by this <see cref="Menu{TItem}"/>, clamped by <see cref="MaxHeight"/>.
+        /// The height of the <see cref="MenuItem"/>s contained by this <see cref="Menu"/>, clamped by <see cref="MaxHeight"/>.
         /// </summary>
         protected float ContentHeight => Math.Min(itemsContainer.Height, MaxHeight);
 
         /// <summary>
-        /// Computes and applies the height of this <see cref="Menu{TItem}"/>.
+        /// Computes and applies the height of this <see cref="Menu"/>.
         /// </summary>
         protected virtual void UpdateMenuHeight() => Height = ContentHeight;
 
@@ -275,18 +290,18 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
-        /// Creates the visual representation for a <see cref="TItem"/>.
+        /// Creates the visual representation for a <see cref="MenuItem"/>.
         /// </summary>
-        /// <param name="item">The <see cref="TItem"/> that is to be visualised.</param>
+        /// <param name="item">The <see cref="MenuItem"/> that is to be visualised.</param>
         /// <returns>The visual representation.</returns>
-        protected virtual DrawableMenuItem CreateDrawableMenuItem(TItem item) => new DrawableMenuItem(item);
+        protected virtual DrawableMenuItem CreateDrawableMenuItem(MenuItem item) => new DrawableMenuItem(item);
 
         protected virtual MarginPadding ItemFlowContainerPadding => new MarginPadding();
 
         #region DrawableMenuItem
         protected class DrawableMenuItem : CompositeDrawable
         {
-            public readonly TItem Item;
+            public readonly MenuItem Item;
 
             /// <summary>
             /// Fired generally when this item was clicked and requests the containing menu to close itself.
@@ -298,7 +313,7 @@ namespace osu.Framework.Graphics.UserInterface
             protected readonly Box Background;
             protected readonly Container Foreground;
 
-            public DrawableMenuItem(TItem item)
+            public DrawableMenuItem(MenuItem item)
             {
                 Item = item;
 
@@ -447,10 +462,6 @@ namespace osu.Framework.Graphics.UserInterface
             };
         }
         #endregion
-    }
-
-    public class Menu : Menu<MenuItem>
-    {
     }
 
     public enum MenuState
