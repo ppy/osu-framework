@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Collections.Generic;
 using osu.Framework.Configuration;
 
 namespace osu.Framework.Graphics.UserInterface
@@ -17,6 +18,11 @@ namespace osu.Framework.Graphics.UserInterface
         /// The <see cref="Action"/> that is performed when this <see cref="MenuItem"/> is clicked.
         /// </summary>
         public readonly Bindable<Action> Action = new Bindable<Action>();
+
+        /// <summary>
+        /// A list of items which are to be displayed in a sub-menu originating from this <see cref="MenuItem"/>.
+        /// </summary>
+        public IReadOnlyList<MenuItem> Items;
 
         /// <summary>
         /// Creates a new <see cref="MenuItem"/>.
