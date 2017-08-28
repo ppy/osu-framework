@@ -195,7 +195,11 @@ namespace osu.Framework.Graphics.UserInterface
                     AnimateOpen();
 
                     //schedule required as we may not be present currently.
-                    Schedule(() => GetContainingInputManager().ChangeFocus(this));
+                    Schedule(() =>
+                    {
+                        if (State == MenuState.Opened)
+                            GetContainingInputManager().ChangeFocus(this);
+                    });
 
                     OnOpen?.Invoke();
                     break;
