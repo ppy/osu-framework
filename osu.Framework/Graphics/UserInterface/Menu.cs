@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Caching;
+using osu.Framework.Extensions.IEnumerableExtensions;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
@@ -39,8 +40,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 itemsContainer.Clear();
 
-                foreach (var item in value)
-                    Add(item);
+                value?.ForEach(Add);
 
                 menuWidth.Invalidate();
             }

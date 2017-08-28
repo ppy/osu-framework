@@ -40,7 +40,7 @@ namespace osu.Framework.Graphics.UserInterface
         public IReadOnlyList<MenuItem> Items
         {
             get { return ItemsContainer.Select(i => i.Item).ToList(); }
-            set { value.ForEach(Add); }
+            set { value?.ForEach(Add); }
         }
 
         /// <summary>
