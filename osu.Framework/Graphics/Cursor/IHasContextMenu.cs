@@ -5,12 +5,11 @@ using osu.Framework.Graphics.UserInterface;
 
 namespace osu.Framework.Graphics.Cursor
 {
-    public interface IHasContextMenu<out TItem> : IDrawable
-        where TItem : MenuItem
+    public interface IHasContextMenu : IDrawable
     {
         /// <summary>
         /// Menu items that appear when the drawable is right-clicked.
         /// </summary>
-        TItem[] ContextMenuItems { get; }
+        MenuItem[] ContextMenuItems { get; }
     }
 }

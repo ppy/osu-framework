@@ -194,7 +194,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected virtual DropdownMenu CreateMenu() => new DropdownMenu();
 
         #region DropdownMenu
-        public class DropdownMenu : Menu<DropdownMenuItem<T>>
+        public class DropdownMenu : Menu
         {
             /// <summary>
             /// Selects an item from this <see cref="DropdownMenu"/>.
@@ -264,7 +264,7 @@ namespace osu.Framework.Graphics.UserInterface
                     }
                 }
 
-                public DrawableDropdownMenuItem(DropdownMenuItem<T> item)
+                public DrawableDropdownMenuItem(MenuItem item)
                     : base(item)
                 {
                 }
