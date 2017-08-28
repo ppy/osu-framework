@@ -419,9 +419,9 @@ namespace osu.Framework.Graphics.UserInterface
 
             protected override void OnHoverLost(InputState state)
             {
-                base.OnHover(state);
                 UpdateBackgroundColour();
                 UpdateForegroundColour();
+                base.OnHoverLost(state);
             }
 
             protected override bool OnClick(InputState state)
