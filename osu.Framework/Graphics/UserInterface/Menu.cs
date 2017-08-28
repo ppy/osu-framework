@@ -428,21 +428,29 @@ namespace osu.Framework.Graphics.UserInterface
             }
 
             /// <summary>
-            /// Creates the text which will be displayed in this <see cref="DrawableMenuItem"/>.
+            /// Creates the content which will be displayed in this <see cref="DrawableMenuItem"/>.
             /// </summary>
-            protected virtual Drawable CreateContent() => new Container
+            protected virtual Drawable CreateContent()
             {
-                AutoSizeAxes = Axes.Both,
-                Anchor = Anchor.CentreLeft,
-                Origin = Anchor.CentreLeft,
-                Child = new SpriteText
+                SpriteText text;
+                var container = new Container
                 {
+                    AutoSizeAxes = Axes.Both,
                     Anchor = Anchor.CentreLeft,
                     Origin = Anchor.CentreLeft,
-                    TextSize = 17,
-                    Text = Item.Text,
-                }
-            };
+                    Child = text = new SpriteText
+                    {
+                        Anchor = Anchor.CentreLeft,
+                        Origin = Anchor.CentreLeft,
+                        TextSize = 17,
+                        Text = Item.Text,
+
+                    }
+                };
+
+                Item.Text.ValueChanged += newText => text.Text = newText;
+                return container;
+            }
         }
         #endregion
     }
