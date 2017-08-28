@@ -317,6 +317,13 @@ namespace osu.Framework.Graphics.UserInterface
                         Child = content = CreateContent(),
                     },
                 };
+
+                var textContent = content as IHasText;
+                if (textContent != null)
+                {
+                    textContent.Text = item.Text;
+                    Item.Text.ValueChanged += newText => textContent.Text = newText;
+                }
             }
 
             private Color4 backgroundColour = Color4.DarkSlateGray;
@@ -429,28 +436,15 @@ namespace osu.Framework.Graphics.UserInterface
 
             /// <summary>
             /// Creates the content which will be displayed in this <see cref="DrawableMenuItem"/>.
+            /// If the <see cref="Drawable"/> returned implements <see cref="IHasText"/>, the text will be automatically
+            /// updated when the <see cref="MenuItem.Text"/> is updated.
             /// </summary>
-            protected virtual Drawable CreateContent()
+            protected virtual Drawable CreateContent() => new SpriteText
             {
-                SpriteText text;
-                var container = new Container
-                {
-                    AutoSizeAxes = Axes.Both,
-                    Anchor = Anchor.CentreLeft,
-                    Origin = Anchor.CentreLeft,
-                    Child = text = new SpriteText
-                    {
-                        Anchor = Anchor.CentreLeft,
-                        Origin = Anchor.CentreLeft,
-                        TextSize = 17,
-                        Text = Item.Text,
-
-                    }
-                };
-
-                Item.Text.ValueChanged += newText => text.Text = newText;
-                return container;
-            }
+                Anchor = Anchor.CentreLeft,
+                Origin = Anchor.CentreLeft,
+                TextSize = 17
+            };
         }
         #endregion
     }

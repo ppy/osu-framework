@@ -56,12 +56,7 @@ namespace osu.Framework.Graphics.UserInterface
                     Foreground.Padding = new MarginPadding(2);
                 }
 
-                protected override Drawable CreateContent()
-                {
-                    var text = new SpriteText { Text = Item.Text };
-                    Item.Text.ValueChanged += newText => text.Text = newText;
-                    return text;
-                }
+                protected override Drawable CreateContent() => new SpriteText();
             }
         }
     }
