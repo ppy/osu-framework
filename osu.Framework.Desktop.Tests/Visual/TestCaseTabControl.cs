@@ -120,22 +120,25 @@ namespace osu.Framework.Desktop.Tests.Visual
 
         private class StyledDropdown : Dropdown<TestEnum>
         {
-            protected override Menu CreateMenu() => new Menu();
+            protected override DropdownMenu CreateMenu() => new StyledDropdownMenu();
 
             protected override DropdownHeader CreateHeader() => new StyledDropdownHeader();
 
-            protected override DropdownMenuItem<TestEnum> CreateMenuItem(string key, TestEnum value) => new StyledDropdownMenuItem(key, value);
-
             public StyledDropdown()
             {
-                DropdownMenu.MaxHeight = int.MaxValue;
-                DropdownMenu.CornerRadius = 4;
-                DropdownMenu.ScrollContainer.ScrollbarVisible = false;
-
-                DropdownMenu.Anchor = Anchor.TopRight;
-                DropdownMenu.Origin = Anchor.TopRight;
+                Menu.Anchor = Anchor.TopRight;
+                Menu.Origin = Anchor.TopRight;
                 Header.Anchor = Anchor.TopRight;
                 Header.Origin = Anchor.TopRight;
+            }
+
+            private class StyledDropdownMenu : DropdownMenu
+            {
+                public StyledDropdownMenu()
+                {
+                    ScrollbarVisible = false;
+                    CornerRadius = 4;
+                }
             }
         }
 
@@ -156,21 +159,6 @@ namespace osu.Framework.Desktop.Tests.Visual
                 Foreground.Children = new[]
                 {
                     new Box { Width = 20, Height = 20 }
-                };
-            }
-        }
-
-        private class StyledDropdownMenuItem : DropdownMenuItem<TestEnum>
-        {
-            public StyledDropdownMenuItem(string text, TestEnum value)
-                : base(text, value)
-            {
-                AutoSizeAxes = Axes.Y;
-                Foreground.Padding = new MarginPadding(2);
-
-                Children = new[]
-                {
-                    new SpriteText { Text = text },
                 };
             }
         }

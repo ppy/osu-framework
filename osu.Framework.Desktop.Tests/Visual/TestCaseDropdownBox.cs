@@ -22,66 +22,65 @@ namespace osu.Framework.Desktop.Tests.Visual
 
         public TestCaseDropdownBox()
         {
-            StyledDropdownMenu styledDropdownMenu, styledDropdownMenu2;
+            StyledDropdown styledDropdown, styledDropdownMenu2;
 
             var testItems = new string[10];
             int i = 0;
             while (i < items_to_add)
                 testItems[i] = @"test " + i++;
 
-            Add(styledDropdownMenu = new StyledDropdownMenu
+            Add(styledDropdown = new StyledDropdown
             {
                 Width = 150,
                 Position = new Vector2(200, 70),
                 Items = testItems.Select(item => new KeyValuePair<string, string>(item, item)),
             });
 
-            Add(styledDropdownMenu2 = new StyledDropdownMenu
+            Add(styledDropdownMenu2 = new StyledDropdown
             {
                 Width = 150,
                 Position = new Vector2(400, 70),
                 Items = testItems.Select(item => new KeyValuePair<string, string>(item, item)),
             });
 
-            AddStep("click dropdown1", () => toggleDropdownViaClick(styledDropdownMenu));
-            AddAssert("dropdown is open", () => getMenuFromDropdown(styledDropdownMenu).State == MenuState.Opened);
+            AddStep("click dropdown1", () => toggleDropdownViaClick(styledDropdown));
+            AddAssert("dropdown is open", () => styledDropdown.Menu.State == MenuState.Opened);
 
-            AddRepeatStep("add item", () => styledDropdownMenu.AddDropdownItem(@"test " + i, @"test " + i++), items_to_add);
-            AddAssert("item count is correct", () => styledDropdownMenu.Items.Count() == items_to_add * 2);
+            AddRepeatStep("add item", () => styledDropdown.AddDropdownItem(@"test " + i, @"test " + i++), items_to_add);
+            AddAssert("item count is correct", () => styledDropdown.Items.Count() == items_to_add * 2);
 
-            AddStep("click item 13", () => getMenuFromDropdown(styledDropdownMenu).ItemsContainer.Children[13].TriggerOnClick());
+            AddStep("click item 13", () => styledDropdown.SelectItem(styledDropdown.Menu.Items[13]));
 
-            AddAssert("dropdown1 is closed", () => getMenuFromDropdown(styledDropdownMenu).State == MenuState.Closed);
-            AddAssert("item 13 is selected", () => styledDropdownMenu.Current == styledDropdownMenu.Items.ElementAt(13).Value);
+            AddAssert("dropdown1 is closed", () => styledDropdown.Menu.State == MenuState.Closed);
+            AddAssert("item 13 is selected", () => styledDropdown.Current == styledDropdown.Items.ElementAt(13).Value);
 
-            AddStep("select item 15", () => styledDropdownMenu.Current.Value = styledDropdownMenu.Items.ElementAt(15).Value);
-            AddAssert("item 15 is selected", () => styledDropdownMenu.Current == styledDropdownMenu.Items.ElementAt(15).Value);
+            AddStep("select item 15", () => styledDropdown.Current.Value = styledDropdown.Items.ElementAt(15).Value);
+            AddAssert("item 15 is selected", () => styledDropdown.Current == styledDropdown.Items.ElementAt(15).Value);
 
-            AddStep("click dropdown1", () => toggleDropdownViaClick(styledDropdownMenu));
-            AddAssert("dropdown1 is open", () => getMenuFromDropdown(styledDropdownMenu).State == MenuState.Opened);
+            AddStep("click dropdown1", () => toggleDropdownViaClick(styledDropdown));
+            AddAssert("dropdown1 is open", () => styledDropdown.Menu.State == MenuState.Opened);
 
             AddStep("click dropdown2", () => toggleDropdownViaClick(styledDropdownMenu2));
 
-            AddAssert("dropdown1 is closed", () => getMenuFromDropdown(styledDropdownMenu).State == MenuState.Closed);
-            AddAssert("dropdown2 is open", () => getMenuFromDropdown(styledDropdownMenu2).State == MenuState.Opened);
+            AddAssert("dropdown1 is closed", () => styledDropdown.Menu.State == MenuState.Closed);
+            AddAssert("dropdown2 is open", () => styledDropdownMenu2.Menu.State == MenuState.Opened);
         }
 
-        private Menu getMenuFromDropdown(StyledDropdownMenu dropdown) => (Menu)dropdown.Children[1];
+        private void toggleDropdownViaClick(StyledDropdown dropdown) => dropdown.Children.First().TriggerOnClick();
 
-        private void toggleDropdownViaClick(StyledDropdownMenu dropdown) => dropdown.Children.First().TriggerOnClick();
-
-        private class StyledDropdownMenu : Dropdown<string>
+        private class StyledDropdown : BasicDropdown<string>
         {
-            protected override Menu CreateMenu() => new Menu();
+            public new DropdownMenu Menu => base.Menu;
+
+            protected override DropdownMenu CreateMenu() => new StyledDropdownMenu();
 
             protected override DropdownHeader CreateHeader() => new StyledDropdownHeader();
 
-            protected override DropdownMenuItem<string> CreateMenuItem(string key, string value) => new StyledDropdownMenuItem(key);
+            public void SelectItem(MenuItem item) => ((StyledDropdownMenu)Menu).SelectItem(item);
 
-            public StyledDropdownMenu()
+            private class StyledDropdownMenu : DropdownMenu
             {
-                Header.CornerRadius = 4;
-                DropdownMenu.CornerRadius = 4;
+                public void SelectItem(MenuItem item) => Children.FirstOrDefault(c => c.Item == item)?.TriggerOnClick();
             }
         }
 
@@ -103,21 +102,6 @@ namespace osu.Framework.Desktop.Tests.Visual
                 Children = new[]
                 {
                     label = new SpriteText(),
-                };
-            }
-        }
-
-        private class StyledDropdownMenuItem : DropdownMenuItem<string>
-        {
-            public StyledDropdownMenuItem(string text)
-                : base(text, text)
-            {
-                AutoSizeAxes = Axes.Y;
-                Foreground.Padding = new MarginPadding(2);
-
-                Children = new[]
-                {
-                    new SpriteText { Text = text },
                 };
             }
         }

@@ -151,6 +151,7 @@
     <Compile Include="Graphics\OpenGL\Vertices\UncolouredVertex2D.cs" />
     <Compile Include="Graphics\OpenGL\Vertices\Vertex2D.cs" />
     <Compile Include="Graphics\Sprites\IHasLineBaseHeight.cs" />
+    <Compile Include="Graphics\Sprites\IHasText.cs" />
     <Compile Include="Graphics\Textures\TextureWhitePixel.cs" />
     <Compile Include="Graphics\Transforms\ITransformable.cs" />
     <Compile Include="Graphics\TransformSequenceExtensions.cs" />
@@ -160,8 +161,6 @@
     <Compile Include="Graphics\UserInterface\BasicCheckbox.cs" />
     <Compile Include="Graphics\UserInterface\BasicDropdown.cs" />
     <Compile Include="Graphics\UserInterface\Checkbox.cs" />
-    <Compile Include="Graphics\UserInterface\ContextMenu.cs" />
-    <Compile Include="Graphics\UserInterface\ContextMenuItem.cs" />
     <Compile Include="Graphics\UserInterface\IHasCurrentValue.cs" />
     <Compile Include="Graphics\UserInterface\MenuItem.cs" />
     <Compile Include="Graphics\UserInterface\Menu.cs" />

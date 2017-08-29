@@ -8,16 +8,13 @@ namespace osu.Framework.Graphics.UserInterface
 {
     public class BasicDropdown<T> : Dropdown<T>
     {
-        protected override Menu CreateMenu() => new Menu();
+        protected override DropdownMenu CreateMenu() => new BasicDropdownMenu();
 
         protected override DropdownHeader CreateHeader() => new BasicDropdownHeader();
-
-        protected override DropdownMenuItem<T> CreateMenuItem(string key, T value) => new BasicDropdownMenuItem(key, value);
 
         public BasicDropdown()
         {
             Header.CornerRadius = 4;
-            DropdownMenu.CornerRadius = 4;
         }
 
         public class BasicDropdownHeader : DropdownHeader
@@ -42,18 +39,24 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        public class BasicDropdownMenuItem : DropdownMenuItem<T>
+        private class BasicDropdownMenu : DropdownMenu
         {
-            public BasicDropdownMenuItem(string key, T value)
-                : base(key, value)
+            public BasicDropdownMenu()
             {
-                AutoSizeAxes = Axes.Y;
-                Foreground.Padding = new MarginPadding(2);
+                CornerRadius = 4;
+            }
 
-                Children = new[]
+            protected override DrawableMenuItem CreateDrawableMenuItem(MenuItem item) => new DrawableBasicDropdownMenuItem(item);
+
+            private class DrawableBasicDropdownMenuItem : DrawableDropdownMenuItem
+            {
+                public DrawableBasicDropdownMenuItem(MenuItem item)
+                    : base(item)
                 {
-                    new SpriteText { Text = key },
-                };
+                    Foreground.Padding = new MarginPadding(2);
+                }
+
+                protected override Drawable CreateContent() => new SpriteText();
             }
         }
     }

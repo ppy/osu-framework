@@ -7,6 +7,8 @@ using System.Linq;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
+using OpenTK.Graphics;
+using osu.Framework.Extensions.IEnumerableExtensions;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -17,24 +19,12 @@ namespace osu.Framework.Graphics.UserInterface
     public abstract class Dropdown<T> : FillFlowContainer, IHasCurrentValue<T>
     {
         protected internal DropdownHeader Header;
-        protected internal Menu DropdownMenu;
+        protected internal DropdownMenu Menu;
 
         /// <summary>
         /// Creates the header part of the control.
         /// </summary>
         protected abstract DropdownHeader CreateHeader();
-
-        /// <summary>
-        /// Creates the menu body.
-        /// </summary>
-        protected abstract Menu CreateMenu();
-
-        /// <summary>
-        /// Creates a menu item.
-        /// </summary>
-        /// <param name="text">Text to display on the menu item.</param>
-        /// <param name="value">Value selected by the menu item.</param>
-        protected abstract DropdownMenuItem<T> CreateMenuItem(string text, T value);
 
         /// <summary>
         /// A mapping from menu items to their values.
@@ -76,16 +66,17 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (itemMap.ContainsKey(value))
                 throw new ArgumentException($"The item {value} already exists in this {nameof(Dropdown<T>)}.");
-            var item = CreateMenuItem(text, value);
-            item.Action = () =>
+
+            var newItem = new DropdownMenuItem<T>(text, value, () =>
             {
                 if (!Current.Disabled)
-                    Current.Value = item.Value;
+                    Current.Value = value;
 
-                DropdownMenu.State = MenuState.Closed;
-            };
-            itemMap[item.Value] = item;
-            DropdownMenu.ItemsContainer.Add(item);
+                Menu.State = MenuState.Closed;
+            });
+
+            Menu.Add(newItem);
+            itemMap[value] = newItem;
         }
 
         /// <summary>
@@ -97,7 +88,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (!itemMap.ContainsKey(value))
                 throw new ArgumentException($"The item {value} does not exist in this {nameof(Dropdown<T>)}.");
 
-            DropdownMenu.ItemsContainer.Remove(itemMap[value]);
+            Menu.Remove(itemMap[value]);
             itemMap.Remove(value);
         }
 
@@ -124,10 +115,12 @@ namespace osu.Framework.Graphics.UserInterface
             Children = new Drawable[]
             {
                 Header = CreateHeader(),
-                DropdownMenu = CreateMenu()
+                Menu = CreateMenu()
             };
 
-            Header.Action = DropdownMenu.Toggle;
+            Menu.UseParentWidth = true;
+
+            Header.Action = Menu.Toggle;
             Current.ValueChanged += selectionChanged;
         }
 
@@ -135,25 +128,23 @@ namespace osu.Framework.Graphics.UserInterface
         {
             base.LoadComplete();
 
-            Header.Label = SelectedItem?.Text;
+            Header.Label = SelectedItem?.Text.Value;
         }
 
         private void selectionChanged(T newSelection = default(T))
         {
-            foreach (var i in MenuItems)
-                i.IsSelected = false;
-
             // refresh if SelectedItem and SelectedValue mismatched
             // null is not a valid value for Dictionary, so neither here
             if ((SelectedItem == null || !EqualityComparer<T>.Default.Equals(SelectedItem.Value, newSelection))
                 && newSelection != null)
+            {
                 itemMap.TryGetValue(newSelection, out selectedItem);
+            }
+
+            Menu.SelectItem(SelectedItem);
 
             if (SelectedItem != null)
-            {
                 Header.Label = SelectedItem.Text;
-                SelectedItem.IsSelected = true;
-            }
         }
 
         /// <summary>
@@ -162,7 +153,7 @@ namespace osu.Framework.Graphics.UserInterface
         public void ClearItems()
         {
             itemMap.Clear();
-            DropdownMenu.ItemsContainer.Clear();
+            Menu.Clear();
         }
 
         /// <summary>
@@ -174,7 +165,7 @@ namespace osu.Framework.Graphics.UserInterface
             DropdownMenuItem<T> item;
             if (itemMap.TryGetValue(val, out item))
             {
-                item.Hide();
+                Menu.HideItem(item);
                 updateHeaderVisibility();
             }
         }
@@ -188,13 +179,124 @@ namespace osu.Framework.Graphics.UserInterface
             DropdownMenuItem<T> item;
             if (itemMap.TryGetValue(val, out item))
             {
-                item.Show();
+                Menu.ShowItem(item);
                 updateHeaderVisibility();
             }
         }
 
-        private void updateHeaderVisibility() => Header.Alpha = MenuItems.Any(i => i.IsPresent) ? 1 : 0;
+        private void updateHeaderVisibility() => Header.Alpha = Menu.AnyPresent ? 1 : 0;
 
         protected override bool OnHover(InputState state) => true;
+
+        /// <summary>
+        /// Creates the menu body.
+        /// </summary>
+        protected virtual DropdownMenu CreateMenu() => new DropdownMenu();
+
+        #region DropdownMenu
+        public class DropdownMenu : Menu
+        {
+            /// <summary>
+            /// Selects an item from this <see cref="DropdownMenu"/>.
+            /// </summary>
+            /// <param name="item">The item to select.</param>
+            public void SelectItem(DropdownMenuItem<T> item)
+            {
+                Children.OfType<DrawableDropdownMenuItem>().ForEach(c => c.IsSelected = c.Item == item);
+            }
+
+            /// <summary>
+            /// Shows an item from this <see cref="DropdownMenu"/>.
+            /// </summary>
+            /// <param name="item">The item to show.</param>
+            public void HideItem(DropdownMenuItem<T> item) => Children.FirstOrDefault(c => c.Item == item)?.Hide();
+
+            /// <summary>
+            /// Hides an item from this <see cref="DropdownMenu"/>
+            /// </summary>
+            /// <param name="item"></param>
+            public void ShowItem(DropdownMenuItem<T> item) => Children.FirstOrDefault(c => c.Item == item)?.Show();
+
+            /// <summary>
+            /// Whether any items part of this <see cref="DropdownMenu"/> are present.
+            /// </summary>
+            public bool AnyPresent => Children.Any(c => c.IsPresent);
+
+            #region DrawableDropdownMenuItem
+            protected class DrawableDropdownMenuItem : DrawableMenuItem
+            {
+                private bool selected;
+                public bool IsSelected
+                {
+                    get
+                    {
+                        return !Item.Action.Disabled && selected;
+                    }
+                    set
+                    {
+                        if (selected == value)
+                            return;
+                        selected = value;
+
+                        OnSelectChange();
+                    }
+                }
+
+                private Color4 backgroundColourSelected = Color4.SlateGray;
+                public Color4 BackgroundColourSelected
+                {
+                    get { return backgroundColourSelected; }
+                    set
+                    {
+                        backgroundColourSelected = value;
+                        UpdateBackgroundColour();
+                    }
+                }
+
+                private Color4 foregroundColourSelected = Color4.White;
+                public Color4 ForegroundColourSelected
+                {
+                    get { return foregroundColourSelected; }
+                    set
+                    {
+                        foregroundColourSelected = value;
+                        UpdateForegroundColour();
+                    }
+                }
+
+                public DrawableDropdownMenuItem(MenuItem item)
+                    : base(item)
+                {
+                }
+
+                protected virtual void OnSelectChange()
+                {
+                    if (!IsLoaded)
+                        return;
+
+                    UpdateBackgroundColour();
+                    UpdateForegroundColour();
+                }
+
+                protected override void UpdateBackgroundColour()
+                {
+                    Background.FadeColour(IsHovered ? BackgroundColourHover : (IsSelected ? BackgroundColourSelected : BackgroundColour));
+                }
+
+                protected override void UpdateForegroundColour()
+                {
+                    Foreground.FadeColour(IsHovered ? ForegroundColourHover : (IsSelected ? ForegroundColourSelected : ForegroundColour));
+                }
+
+                protected override void LoadComplete()
+                {
+                    base.LoadComplete();
+                    Background.Colour = IsSelected ? BackgroundColourSelected : BackgroundColour;
+                    Foreground.Colour = IsSelected ? ForegroundColourSelected : ForegroundColour;
+                }
+            }
+            #endregion
+        }
+        #endregion
     }
 }
