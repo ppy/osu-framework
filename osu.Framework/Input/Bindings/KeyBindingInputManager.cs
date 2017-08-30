@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
+using osu.Framework.Logging;
 
 namespace osu.Framework.Input.Bindings
 {
@@ -116,7 +117,7 @@ namespace osu.Framework.Input.Bindings
 
         protected virtual bool PropagatePressed(IEnumerable<Drawable> drawables, T pressed)
         {
-            bool handled = false;
+            IDrawable handled = null;
 
             // we handled a new binding and there is an existing one. if we don't want concurrency, let's propagate a released event.
             if (simultaneousMode == SimultaneousBindingMode.None)
@@ -131,10 +132,13 @@ namespace osu.Framework.Input.Bindings
             if (simultaneousMode == SimultaneousBindingMode.All || !pressedActions.Contains(pressed))
             {
                 pressedActions.Add(pressed);
-                handled |= drawables.OfType<IKeyBindingHandler<T>>().Any(d => d.OnPressed(pressed));
+                handled = drawables.OfType<IKeyBindingHandler<T>>().FirstOrDefault(d => d.OnPressed(pressed));
             }
 
-            return handled;
+            if (handled != null)
+                Logger.Log($"Pressed ({pressed}) handled by {handled}.", LoggingTarget.Runtime, LogLevel.Debug);
+
+            return handled != null;
         }
 
         // ReSharper disable once UnusedParameter.Local
@@ -162,18 +166,21 @@ namespace osu.Framework.Input.Bindings
 
         protected virtual bool PropagateReleased(IEnumerable<Drawable> drawables, T released)
         {
-            bool handled = false;
+            IDrawable handled = null;
 
             // we either want multiple release events due to the simultaneous mode, or we only want one when we
             // - were pressed (as an action)
             // - are the last pressed binding with this action
             if (simultaneousMode == SimultaneousBindingMode.All || pressedActions.Contains(released) && pressedBindings.All(b => !b.Action.Equals(released)))
             {
-                handled |= drawables.OfType<IKeyBindingHandler<T>>().Any(d => d.OnReleased(released));
+                handled = drawables.OfType<IKeyBindingHandler<T>>().FirstOrDefault(d => d.OnReleased(released));
                 pressedActions.Remove(released);
             }
 
-            return handled;
+            if (handled != null)
+                Logger.Log($"Released ({released}) handled by {handled}.", LoggingTarget.Runtime, LogLevel.Debug);
+
+            return handled != null;
         }
     }
 

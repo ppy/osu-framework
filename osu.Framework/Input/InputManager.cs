@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using osu.Framework.Logging;
 
 namespace osu.Framework.Input
 {
@@ -597,7 +598,12 @@ namespace osu.Framework.Input
         /// <returns>Whether the mouse up event was handled.</returns>
         protected virtual bool PropagateMouseUp(IEnumerable<Drawable> drawables, InputState state, MouseUpEventArgs args)
         {
-            return drawables.Any(target => target.TriggerOnMouseUp(state, args));
+            var handled = drawables.FirstOrDefault(target => target.TriggerOnMouseUp(state, args));
+
+            if (handled != null)
+                Logger.Log($"MouseUp ({args.Button}) handled by {handled}.", LoggingTarget.Runtime, LogLevel.Debug);
+
+            return handled != null;
         }
 
         /// <summary>
@@ -609,7 +615,12 @@ namespace osu.Framework.Input
         /// <returns>Whether the mouse down event was handled.</returns>
         protected virtual bool PropagateMouseDown(IEnumerable<Drawable> drawables, InputState state, MouseDownEventArgs args)
         {
-            return drawables.Any(target => target.TriggerOnMouseDown(state, args));
+            var handled = drawables.FirstOrDefault(target => target.TriggerOnMouseDown(state, args));
+
+            if (handled != null)
+                Logger.Log($"MouseDown ({args.Button}) handled by {handled}.", LoggingTarget.Runtime, LogLevel.Debug);
+
+            return handled != null;
         }
 
         private bool handleMouseMove(InputState state)
@@ -655,6 +666,10 @@ namespace osu.Framework.Input
             }
 
             ChangeFocus(focusTarget, state);
+
+            if (clickedDrawable != null)
+                Logger.Log($"MouseClick handled by {clickedDrawable}.", LoggingTarget.Runtime, LogLevel.Debug);
+
             return clickedDrawable != null;
         }
 
@@ -674,7 +689,10 @@ namespace osu.Framework.Input
             Trace.Assert(DraggedDrawable == null, "The draggingDrawable was not set to null by handleMouseDragEnd.");
             DraggedDrawable = mouseDownInputQueue?.FirstOrDefault(target => target.IsAlive && target.IsPresent && target.TriggerOnDragStart(state));
             if (DraggedDrawable != null)
+            {
                 DraggedDrawable.IsDragged = true;
+                Logger.Log($"MouseDragStart handled by {DraggedDrawable}.", LoggingTarget.Runtime, LogLevel.Debug);
+            }
             return DraggedDrawable != null;
         }
 
@@ -703,7 +721,12 @@ namespace osu.Framework.Input
         /// <returns></returns>
         protected virtual bool PropagateWheel(IEnumerable<Drawable> drawables, InputState state)
         {
-            return drawables.Any(target => target.TriggerOnWheel(state));
+            var handled = drawables.FirstOrDefault(target => target.TriggerOnWheel(state));
+
+            if (handled != null)
+                Logger.Log($"Wheel ({state.Mouse.WheelDelta}) handled by {handled}.", LoggingTarget.Runtime, LogLevel.Debug);
+
+            return handled != null;
         }
 
         private bool handleKeyDown(InputState state, Key key, bool repeat)
@@ -724,7 +747,12 @@ namespace osu.Framework.Input
         /// <returns>Whether the key down event was handled.</returns>
         protected virtual bool PropagateKeyDown(IEnumerable<Drawable> drawables, InputState state, KeyDownEventArgs args)
         {
-            return drawables.Any(target => target.TriggerOnKeyDown(state, args));
+            var handled = drawables.FirstOrDefault(target => target.TriggerOnKeyDown(state, args));
+
+            if (handled != null)
+                Logger.Log($"KeyDown ({args.Key}) handled by {handled}.", LoggingTarget.Runtime, LogLevel.Debug);
+
+            return handled != null;
         }
 
         private bool handleKeyUp(InputState state, Key key)
@@ -745,7 +773,12 @@ namespace osu.Framework.Input
         /// <returns>Whether the key up event was handled.</returns>
         protected virtual bool PropagateKeyUp(IEnumerable<Drawable> drawables, InputState state, KeyUpEventArgs args)
         {
-            return drawables.Any(target => target.TriggerOnKeyUp(state, args));
+            var handled = drawables.FirstOrDefault(target => target.TriggerOnKeyUp(state, args));
+
+            if (handled != null)
+                Logger.Log($"KeyUp ({args.Key}) handled by {handled}.", LoggingTarget.Runtime, LogLevel.Debug);
+
+            return handled != null;
         }
 
         /// <summary>
