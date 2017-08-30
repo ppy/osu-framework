@@ -13,6 +13,11 @@ namespace osu.Framework
         where T : struct, IComparable
     {
         /// <summary>
+        /// Invoked when the state of this <see cref="IStateful{T}"/> has changed.
+        /// </summary>
+        event Action<T> StateChanged;
+
+        /// <summary>
         /// The current state of this object.
         /// </summary>
         T State { get; set; }

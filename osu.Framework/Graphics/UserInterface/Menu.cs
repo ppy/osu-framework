@@ -161,6 +161,9 @@ namespace osu.Framework.Graphics.UserInterface
         protected IReadOnlyList<DrawableMenuItem> Children => itemsContainer;
 
         private MenuState state = MenuState.Closed;
+
+        public event Action<MenuState> StateChanged;
+
         /// <summary>
         /// Gets or sets the current state of this <see cref="Menu"/>.
         /// </summary>
@@ -176,6 +179,8 @@ namespace osu.Framework.Graphics.UserInterface
                 if (!IsLoaded) return;
 
                 updateState();
+
+                StateChanged?.Invoke(State);
             }
         }
 

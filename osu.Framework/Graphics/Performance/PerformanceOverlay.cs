@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.Textures;
@@ -13,6 +14,8 @@ namespace osu.Framework.Graphics.Performance
     internal class PerformanceOverlay : FillFlowContainer<FrameStatisticsDisplay>, IStateful<FrameStatisticsMode>
     {
         private FrameStatisticsMode state;
+
+        public event Action<FrameStatisticsMode> StateChanged;
 
         public FrameStatisticsMode State
         {
@@ -37,6 +40,8 @@ namespace osu.Framework.Graphics.Performance
 
                 foreach (FrameStatisticsDisplay d in Children)
                     d.State = state;
+
+                StateChanged?.Invoke(State);
             }
         }
 

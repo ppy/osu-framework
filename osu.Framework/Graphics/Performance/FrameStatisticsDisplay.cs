@@ -62,6 +62,8 @@ namespace osu.Framework.Graphics.Performance
 
         private FrameStatisticsMode state;
 
+        public event Action<FrameStatisticsMode> StateChanged;
+
         public FrameStatisticsMode State
         {
             get { return state; }
@@ -94,6 +96,8 @@ namespace osu.Framework.Graphics.Performance
                 }
 
                 Active = true;
+
+                StateChanged?.Invoke(State);
             }
         }
 
