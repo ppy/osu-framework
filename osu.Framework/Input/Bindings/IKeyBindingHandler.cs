@@ -1,13 +1,15 @@
 // Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using osu.Framework.Graphics;
+
 namespace osu.Framework.Input.Bindings
 {
     /// <summary>
-    /// Handles key bindings.
+    /// A drawable that handles key bindings.
     /// </summary>
     /// <typeparam name="T">The type of bindings, commonly an enum.</typeparam>
-    public interface IKeyBindingHandler<in T>
+    public interface IKeyBindingHandler<in T> : IDrawable
         where T : struct
     {
         /// <summary>

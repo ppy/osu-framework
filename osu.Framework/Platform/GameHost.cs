@@ -236,6 +236,9 @@ namespace osu.Framework.Platform
                 Root.Size = Window != null ? new Vector2(Window.ClientSize.Width, Window.ClientSize.Height) :
                     new Vector2(config.Get<int>(FrameworkSetting.Width), config.Get<int>(FrameworkSetting.Height));
 
+            // Ensure we maintain a valid size for any children immediately scaling by the window size
+            Root.Size = Vector2.ComponentMax(Vector2.One, Root.Size);
+
             Root.UpdateSubTree();
             using (var buffer = DrawRoots.Get(UsageType.Write))
                 buffer.Object = Root.GenerateDrawNodeSubtree(buffer.Index, Root.ScreenSpaceDrawQuad.AABBFloat);
