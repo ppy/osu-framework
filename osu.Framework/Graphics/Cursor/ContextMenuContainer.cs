@@ -24,7 +24,7 @@ namespace osu.Framework.Graphics.Cursor
         /// <summary>
         /// Creates a new context menu. Can be overridden to supply custom subclass of <see cref="Menu"/>.
         /// </summary>
-        protected virtual Menu CreateMenu() => new Menu();
+        protected virtual Menu CreateMenu() => new Menu(Direction.Vertical);
 
         private readonly Container content;
         protected override Container<Drawable> Content => content;
