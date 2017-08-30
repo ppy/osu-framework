@@ -57,7 +57,6 @@ namespace osu.Framework.Graphics.Transforms
             updateTransforms();
         }
 
-        private List<Action> removalActionsLazy;
         private List<Action> removalActions => removalActionsLazy ?? (removalActionsLazy = new List<Action>());
 
         /// <summary>
@@ -122,10 +121,13 @@ namespace osu.Framework.Graphics.Transforms
             invokePendingRemovalActions();
         }
 
+        private List<Action> removalActionsLazy;
+
         private void invokePendingRemovalActions()
         {
             if (removalActionsLazy?.Count > 0)
             {
+                // ReSharper disable once PossibleNullReferenceException (resharper bug? https://twitter.com/ppy/status/900974047894183936)
                 var toRemove = removalActionsLazy.ToArray();
                 removalActionsLazy.Clear();
 
