@@ -238,7 +238,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnDragStart(InputState state)
         {
-            if (IsDragging) return false;
+            if (IsDragging || !state.Mouse.IsPressed(MouseButton.Left)) return false;
 
             lastDragTime = Time.Current;
             averageDragDelta = averageDragTime = 0;
