@@ -8,6 +8,7 @@ using osu.Framework.MathUtils;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Shapes;
+using OpenTK.Input;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -237,7 +238,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnDragStart(InputState state)
         {
-            if (IsDragging) return false;
+            if (IsDragging || !state.Mouse.IsPressed(MouseButton.Left)) return false;
 
             lastDragTime = Time.Current;
             averageDragDelta = averageDragTime = 0;
@@ -248,7 +249,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
         {
-            if (IsDragging) return false;
+            if (IsDragging || args.Button != MouseButton.Left) return false;
 
             // Continue from where we currently are scrolled to.
             target = Current;
@@ -536,6 +537,8 @@ namespace osu.Framework.Graphics.Containers
 
             protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
             {
+                if (args.Button != MouseButton.Left) return false;
+
                 //note that we are changing the colour of the box here as to not interfere with the hover effect.
                 box.FadeColour(highlightColour, 100);
 
@@ -546,6 +549,8 @@ namespace osu.Framework.Graphics.Containers
 
             protected override bool OnMouseUp(InputState state, MouseUpEventArgs args)
             {
+                if (args.Button != MouseButton.Left) return false;
+
                 box.FadeColour(Color4.White, 100);
 
                 return base.OnMouseUp(state, args);
