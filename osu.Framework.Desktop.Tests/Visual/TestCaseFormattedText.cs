@@ -18,37 +18,54 @@ namespace osu.Framework.Desktop.Tests.Visual
 
         public TestCaseFormattedText()
         {
+            string text = "a _little_ *test*\n" +
+                          "_multiple *markers* at once_\n" +
+                          "*incorrectly _ordered* markers_\n" +
+                          "*markers across\n" +
+                          "multiple lines*\n" +
+                          "*a marker without an end";
+
             TextBox textBox;
             MarkdownContainer textBoxMarkdown;
-            Child = new FillFlowContainer
+            Children = new Drawable[]
             {
-                Direction = FillDirection.Vertical,
-                RelativeSizeAxes = Axes.Both,
-                Children = new Drawable[]
+                new FillFlowContainer
                 {
-                    new MarkdownContainer
+                    Direction = FillDirection.Vertical,
+                    RelativeSizeAxes = Axes.Both,
+                    Children = new Drawable[]
                     {
-                        RelativeSizeAxes = Axes.X,
-                        AutoSizeAxes = Axes.Y,
-                        FormattedText = "a _little_ *Test*\n" +
-                                        "*a marker without an end"
-                    },
-                    new MarkdownContainerEndless
-                    {
-                        RelativeSizeAxes = Axes.X,
-                        AutoSizeAxes = Axes.Y,
-                        FormattedText = "*a marker without an end but the parser doesn't care",
-                    },
-                    textBox = new TextBox
-                    {
-                        Size = new Vector2(300, 30),
-                    },
-                    textBoxMarkdown = new MarkdownContainer
-                    {
-                        RelativeSizeAxes = Axes.X,
-                        AutoSizeAxes = Axes.Y,
+                        new MarkdownContainer
+                        {
+                            RelativeSizeAxes = Axes.X,
+                            AutoSizeAxes = Axes.Y,
+                            FormattedText = text,
+                        },
+                        new MarkdownContainerEndless
+                        {
+                            RelativeSizeAxes = Axes.X,
+                            AutoSizeAxes = Axes.Y,
+                            FormattedText = "*a marker without an end but the parser doesn't care",
+                        },
+                        textBox = new TextBox
+                        {
+                            Size = new Vector2(300, 30),
+                        },
+                        textBoxMarkdown = new MarkdownContainer
+                        {
+                            RelativeSizeAxes = Axes.X,
+                            AutoSizeAxes = Axes.Y,
+                        }
                     }
-                }
+                },
+                new TextFlowContainer
+                {
+                    Anchor = Anchor.TopRight,
+                    Origin = Anchor.TopRight,
+                    RelativeSizeAxes = Axes.Both,
+                    Width = 0.5f,
+                    Text = text,
+                },
             };
 
             textBox.Current.ValueChanged += newValue => textBoxMarkdown.FormattedText = newValue;
