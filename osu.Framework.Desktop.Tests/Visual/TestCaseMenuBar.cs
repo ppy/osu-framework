@@ -26,6 +26,7 @@ namespace osu.Framework.Desktop.Tests.Visual
                 Origin = Anchor.Centre,
                 State = MenuState.Opened,
                 AlwaysOpen = true,
+                RequireClickToOpen = true,
                 Items = new[]
                 {
                     generateRandomMenu("First"),

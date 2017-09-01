@@ -40,7 +40,6 @@ namespace osu.Framework.Graphics.Cursor
             });
 
             AddInternal(menu = CreateMenu());
-            menu.RequireClickToOpen = false;
         }
 
         protected override void OnSizingChanged()

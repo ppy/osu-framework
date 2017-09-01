@@ -119,7 +119,6 @@ namespace osu.Framework.Graphics.UserInterface
             };
 
             Menu.RelativeSizeAxes = Axes.X;
-            Menu.RequireClickToOpen = false;
 
             Header.Action = Menu.Toggle;
             Current.ValueChanged += selectionChanged;

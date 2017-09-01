@@ -199,7 +199,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Whether a click is required to open sub-<see cref="Menu"/> of this <see cref="Menu"/>.
         /// </summary>
-        public bool RequireClickToOpen = true;
+        public bool RequireClickToOpen;
 
         private MenuState state = MenuState.Closed;
         /// <summary>
@@ -472,8 +472,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <returns></returns>
         protected virtual Menu CreateSubMenu() => new Menu(Direction.Vertical)
         {
-            Anchor = direction == Direction.Horizontal ? Anchor.BottomLeft : Anchor.TopRight,
-            RequireClickToOpen = false
+            Anchor = direction == Direction.Horizontal ? Anchor.BottomLeft : Anchor.TopRight
         };
 
         /// <summary>
