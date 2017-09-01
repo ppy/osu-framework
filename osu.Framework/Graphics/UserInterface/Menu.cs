@@ -18,12 +18,13 @@ namespace osu.Framework.Graphics.UserInterface
 {
     public class Menu : CompositeDrawable, IStateful<MenuState>
     {
-        /// <summary>
-        /// The delay before opening sub-menus when menu items are hovered.
-        /// </summary>
-        private const double hover_open_delay = 500;
 
         public event Action<MenuState> StateChanged;
+
+        /// <summary>
+        /// Gets or sets the delay before opening sub-<see cref="Menu"/>s when menu items are hovered.
+        /// </summary>
+        public double HoverOpenDelay = 500;
 
         /// <summary>
         /// The <see cref="Container{T}"/> that contains the content of this <see cref="Menu"/>.
@@ -381,11 +382,17 @@ namespace osu.Framework.Graphics.UserInterface
             subMenu.subMenu?.Close();
 
             openDelegate?.Cancel();
-            openDelegate = Scheduler.AddDelayed(() =>
+
+            if (RequireClickToOpen || HoverOpenDelay == 0)
+                subMenu.openAt(item);
+            else
             {
-                if (item.IsHovered)
-                    subMenu.openAt(item);
-            }, RequireClickToOpen ? 0 : hover_open_delay);
+                openDelegate = Scheduler.AddDelayed(() =>
+                {
+                    if (item.IsHovered)
+                        subMenu.openAt(item);
+                }, HoverOpenDelay);
+            }
         }
 
         public override bool AcceptsFocus => true;
