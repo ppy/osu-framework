@@ -25,8 +25,6 @@ namespace osu.Framework.Desktop.Tests.Visual
 
         private Random rng;
 
-        protected override double TimePerAction => 100;
-
         private readonly ManualInputManager inputManager;
         private readonly Container menuContainer;
         private MenuStructure menus;
@@ -62,13 +60,6 @@ namespace osu.Framework.Desktop.Tests.Visual
             testClickingOutsideClosesMenus(true);
 
             AddStep("Give back control", () => testReset(false, true));
-        }
-
-        protected override void LoadComplete()
-        {
-            base.LoadComplete();
-
-            RunAllSteps();
         }
 
         #region Test Cases
