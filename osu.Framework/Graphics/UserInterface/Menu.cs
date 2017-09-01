@@ -212,7 +212,11 @@ namespace osu.Framework.Graphics.UserInterface
             set
             {
                 if (AlwaysOpen && value == MenuState.Closed)
+                {
+                    if (lazySubMenu.IsValueCreated)
+                        subMenu?.clearRecursively();
                     return;
+                }
 
                 if (state == value)
                     return;
