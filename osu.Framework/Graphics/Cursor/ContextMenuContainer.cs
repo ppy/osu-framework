@@ -84,11 +84,11 @@ namespace osu.Framework.Graphics.Cursor
             }
         }
 
-        protected override void Update()
+        protected override void UpdateAfterChildren()
         {
+            base.UpdateAfterChildren();
             if (menu.State == MenuState.Opened && menuTarget != null)
                 menu.Position = menuTarget.ToSpaceOfOtherDrawable(relativeCursorPosition, this);
-            base.Update();
         }
     }
 }
