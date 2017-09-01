@@ -18,7 +18,7 @@ namespace osu.Framework.Desktop.Tests.Visual
 
         public TestCaseFormattedText()
         {
-            string text = "a _little_ *test*\n" +
+            const string text = "a _little_ *test*\n" +
                           "_multiple *markers* at once_\n" +
                           "*incorrectly _ordered* markers_\n" +
                           "*markers across\n" +
