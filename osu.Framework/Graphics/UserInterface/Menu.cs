@@ -293,7 +293,11 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Closes this <see cref="Menu"/>.
         /// </summary>
-        public void Close() => State = MenuState.Closed;
+        public void Close()
+        {
+            State = MenuState.Closed;
+            openedAtItem = null;
+        }
 
         /// <summary>
         /// Toggles the state of this <see cref="Menu"/>.
@@ -363,10 +367,6 @@ namespace osu.Framework.Graphics.UserInterface
                 return;
             }
 
-            // Make sure we only show one level of the submenu if we re-open
-            if (subMenu.State == MenuState.Closed)
-                subMenu.subMenu?.Close();
-
             openDelegate?.Cancel();
             subMenu.openAt(item);
         }
@@ -377,9 +377,6 @@ namespace osu.Framework.Graphics.UserInterface
             // If we're not a sub-menu, then hover shouldn't display a sub-menu unless an item is clicked
             if (RequireClickToOpen && subMenu.State == MenuState.Closed)
                 return;
-
-            // Make sure we only show one level of the submenu
-            subMenu.subMenu?.Close();
 
             openDelegate?.Cancel();
 
@@ -400,28 +397,11 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override void OnFocusLost(InputState state)
         {
-            // For the case where this menu is a sub-menu, and one of the items that has a sub-menu is being hovered,
-            // the focus will be transferred to that sub-menu while this menu will receive OnFocusLost
-            // If this is not done then this menu will close and the sub-menu won't be shown.
-            if (anySubMenuOpened)
+            // Case where a sub-menu was opened the focus will be transferred to that sub-menu while this menu will receive OnFocusLost
+            if (subMenu?.State == MenuState.Opened)
                 return;
 
-            // This covers the case where one of the parent menus are hovered, which will close the 2nd-level sub-menus (see menuItemHovered)
-            // which causes this sub-menu to lose focus, and requires focus to be transferred to the parent's 1st-level sub-menu
-            // If this is not done, a menu with focus won't exist, and clicks outside the menus to close them won't work
-            var hoveredParent = findHoveredParent;
-            if (hoveredParent != null)
-            {
-                hoveredParent.subMenu.Schedule(() =>
-                {
-                    if (hoveredParent.subMenu.State == MenuState.Opened)
-                        GetContainingInputManager().ChangeFocus(hoveredParent.subMenu);
-                });
-
-                return;
-            }
-
-            // At this point we are guaranteed to have lost focus due to clicks outside the menu structure
+            // At this point we should have lost focus due to clicks outside the menu structure
             closeAll();
         }
 
@@ -438,39 +418,37 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
+        private DrawableMenuItem openedAtItem;
+
         /// <summary>
         /// Opens a <see cref="Menu"/> with the items of <paramref name="item"/> and at a position offset from <paramref name="item"/>.
         /// </summary>
         /// <param name="item">The <see cref="DrawableMenuItem"/> which the sub-<see cref="Menu"/> should display for.</param>
         private void openAt(DrawableMenuItem item)
         {
+            if (openedAtItem == item)
+                return;
+            openedAtItem = item;
+
             Items = item.Item.Items;
             Position = new Vector2(parentMenu.direction == Direction.Vertical ? parentMenu.Width : item.X, parentMenu.direction == Direction.Horizontal ? parentMenu.Height : item.Y);
             Open();
+
+            subMenu?.clearRecursively();
         }
 
         /// <summary>
-        /// Searches up through the parent <see cref="Menu"/>s and returns the first one that is hovered,
-        /// or null if there is no hovered <see cref="Menu"/>.
+        /// Closes this <see cref="Menu"/> and the <see cref="subMenu"/> recursively.
         /// </summary>
-        private Menu findHoveredParent
+        private void clearRecursively()
         {
-            get
-            {
-                if (parentMenu == null)
-                    return null;
+            Clear();
 
-                if (parentMenu.IsHovered)
-                    return parentMenu;
+            if (lazySubMenu.IsValueCreated)
+                subMenu?.clearRecursively();
 
-                return parentMenu.findHoveredParent;
-            }
+            openedAtItem = null;
         }
-
-        /// <summary>
-        /// Checks if any sub-<see cref="Menu"/>s of this <see cref="Menu"/> are open.
-        /// </summary>
-        private bool anySubMenuOpened => subMenu?.State == MenuState.Opened;
         #endregion
 
         /// <summary>
@@ -661,7 +639,7 @@ namespace osu.Framework.Graphics.UserInterface
                         Hovered?.Invoke(this);
                 });
 
-                return base.OnHover(state);
+                return true;
             }
 
             protected override void OnHoverLost(InputState state)
@@ -673,13 +651,11 @@ namespace osu.Framework.Graphics.UserInterface
 
             protected override bool OnClick(InputState state)
             {
-                if (Item.Items?.Count == 0)
-                {
-                    if (Item.Action.Disabled)
-                        return false;
+                if (Item.Action.Disabled)
+                    return true;
 
+                if (Item.Items?.Count == 0)
                     Item.Action.Value?.Invoke();
-                }
 
                 Clicked?.Invoke(this);
 
