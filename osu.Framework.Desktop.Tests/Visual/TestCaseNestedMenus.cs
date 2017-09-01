@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
@@ -52,6 +53,8 @@ namespace osu.Framework.Desktop.Tests.Visual
             testActionClick();
             testInstantOpen();
             testHoverOpen();
+            testHoverChange();
+            testDelayedHoverChange();
             testMenuClicksDontClose();
             testMenuClickClosesSubMenus();
             testActionClickClosesMenus();
@@ -198,6 +201,54 @@ namespace osu.Framework.Desktop.Tests.Visual
             AddStep("Hover item", () => inputManager.MoveMouseTo(menus.GetSubStructure(2).GetMenuItem(0)));
             AddAssert("Check closed", () => menus.GetSubMenu(3).State == MenuState.Closed);
             AddAssert("Check open", () => menus.GetSubMenu(3).State == MenuState.Opened);
+        }
+
+        /// <summary>
+        /// Tests if hovering over a different item on the main <see cref="Menu"/> will instantly open another menu
+        /// and correctly changes the sub-menu items to the new items from the hovered item.
+        /// </summary>
+        private void testHoverChange()
+        {
+            testReset();
+
+            IReadOnlyList<MenuItem> currentItems = null;
+            AddStep("Click item", () =>
+            {
+                clickItem(0, 0);
+                currentItems = menus.GetSubMenu(1).Items;
+            });
+
+            AddAssert("Check open", () => menus.GetSubMenu(1).State == MenuState.Opened);
+            AddStep("Hover item", () => inputManager.MoveMouseTo(menus.GetSubStructure(0).GetMenuItem(1)));
+            AddAssert("Check open", () => menus.GetSubMenu(1).State == MenuState.Opened);
+
+            AddAssert("Check new items", () => !menus.GetSubMenu(1).Items.SequenceEqual(currentItems));
+        }
+
+        /// <summary>
+        /// Tests whether hovering over a different item on a sub-menu opens a new sub-menu in a delayed fashion
+        /// and correctly changes the sub-menu items to the new items from the hovered item.
+        /// </summary>
+        private void testDelayedHoverChange()
+        {
+            testReset();
+
+            AddStep("Click item", () => clickItem(0, 2));
+            AddStep("Hover item", () => inputManager.MoveMouseTo(menus.GetSubStructure(1).GetMenuItem(0)));
+            AddAssert("Check closed", () => menus.GetSubMenu(2).State == MenuState.Closed);
+            AddAssert("Check open", () => menus.GetSubMenu(2).State == MenuState.Opened);
+
+            IReadOnlyList<MenuItem> currentItems = null;
+            AddStep("Hover item", () =>
+            {
+                currentItems = menus.GetSubMenu(2).Items;
+                inputManager.MoveMouseTo(menus.GetSubStructure(1).GetMenuItem(1));
+            });
+
+            AddAssert("Check open", () => menus.GetSubMenu(1).State == MenuState.Opened);
+            AddAssert("Check open", () => menus.GetSubMenu(1).State == MenuState.Opened);
+
+            AddAssert("Check new items", () => !menus.GetSubMenu(2).Items.SequenceEqual(currentItems));
         }
 
         /// <summary>
