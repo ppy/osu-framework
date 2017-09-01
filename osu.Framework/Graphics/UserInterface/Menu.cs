@@ -21,10 +21,23 @@ namespace osu.Framework.Graphics.UserInterface
 
         public event Action<MenuState> StateChanged;
 
+        private double hoverOpenDelay;
         /// <summary>
         /// Gets or sets the delay before opening sub-<see cref="Menu"/>s when menu items are hovered.
         /// </summary>
-        public double HoverOpenDelay = 500;
+        public double HoverOpenDelay
+        {
+            get { return hoverOpenDelay; }
+            set
+            {
+                if (hoverOpenDelay == value)
+                    return;
+                hoverOpenDelay = value;
+
+                if (lazySubMenu.IsValueCreated)
+                    subMenu.HoverOpenDelay = value;
+            }
+        }
 
         /// <summary>
         /// The <see cref="Container{T}"/> that contains the content of this <see cref="Menu"/>.
@@ -85,6 +98,9 @@ namespace osu.Framework.Graphics.UserInterface
             lazySubMenu = new Lazy<Menu>(() =>
             {
                 var menu = CreateSubMenu();
+
+                menu.HoverOpenDelay = HoverOpenDelay;
+
                 subMenuContainer.Add(menu);
                 return menu;
             });
