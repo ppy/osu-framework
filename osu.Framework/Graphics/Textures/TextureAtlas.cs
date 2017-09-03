@@ -30,7 +30,7 @@ namespace osu.Framework.Graphics.Textures
 
         private readonly bool manualMipmaps;
         private readonly All filteringMode;
-        private readonly object locker = new object();
+        private readonly object textureRetrievalLock = new object();
 
         public TextureAtlas(int width, int height, bool manualMipmaps = false, All filteringMode = All.Linear)
         {
@@ -95,7 +95,7 @@ namespace osu.Framework.Graphics.Textures
 
         internal Texture Add(int width, int height)
         {
-            lock (locker)
+            lock (textureRetrievalLock)
             {
                 if (atlasTexture == null)
                     Reset();
