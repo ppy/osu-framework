@@ -197,7 +197,7 @@ namespace osu.Framework.Graphics.UserInterface
         public class DropdownMenu : Menu
         {
             public DropdownMenu()
-                : base(Graphics.Direction.Vertical)
+                : base(Direction.Vertical)
             {
             }
 

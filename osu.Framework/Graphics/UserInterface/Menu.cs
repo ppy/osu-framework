@@ -51,27 +51,34 @@ namespace osu.Framework.Graphics.UserInterface
         protected readonly FillFlowContainer<DrawableMenuItem> ItemsContainer;
 
         /// <summary>
+        /// The container that provides the masking effects for this <see cref="Menu"/>.
+        /// </summary>
+        protected readonly Container MaskingContainer;
+
+        /// <summary>
         /// Gets the item representations contained by this <see cref="Menu"/>.
         /// </summary>
         protected IReadOnlyList<DrawableMenuItem> Children => ItemsContainer;
+
+        protected readonly Direction Direction;
+
 
         private readonly Lazy<Menu> lazySubMenu;
         private Menu subMenu => lazySubMenu.Value;
         private Menu parentMenu;
 
         private readonly Box background;
-        private readonly Direction direction;
 
         private Cached sizeCache = new Cached();
 
         public Menu(Direction direction)
         {
-            this.direction = direction;
+            Direction = direction;
 
             Container<Menu> subMenuContainer;
             InternalChildren = new Drawable[]
             {
-                new Container
+                MaskingContainer = new Container
                 {
                     Name = "Our contents",
                     RelativeSizeAxes = Axes.Both,
@@ -376,8 +383,8 @@ namespace osu.Framework.Graphics.UserInterface
                 // When scrolling in one direction, ItemsContainer is auto-sized in that direction and relative-sized in the other
                 // In the case of the auto-sized direction, we want to use its size. In the case of the relative-sized direction, we want
                 // to use the (above) computed size.
-                width = direction == Direction.Horizontal ? ItemsContainer.Width : width;
-                height = direction == Direction.Vertical ? ItemsContainer.Height : height;
+                width = Direction == Direction.Horizontal ? ItemsContainer.Width : width;
+                height = Direction == Direction.Vertical ? ItemsContainer.Height : height;
 
                 width = Math.Min(MaxWidth, width);
                 height = Math.Min(MaxHeight, height);
@@ -386,9 +393,9 @@ namespace osu.Framework.Graphics.UserInterface
                 width = (RelativeSizeAxes & Axes.X) > 0 ? Width : width;
                 height = (RelativeSizeAxes & Axes.Y) > 0 ? Height : height;
 
-                if (State == MenuState.Closed && direction == Direction.Horizontal)
+                if (State == MenuState.Closed && Direction == Direction.Horizontal)
                     width = 0;
-                if (State == MenuState.Closed && direction == Direction.Vertical)
+                if (State == MenuState.Closed && Direction == Direction.Vertical)
                     height = 0;
 
                 UpdateSize(new Vector2(width, height));
@@ -486,7 +493,7 @@ namespace osu.Framework.Graphics.UserInterface
             openedAtItem = item;
 
             Items = item.Item.Items;
-            Position = new Vector2(parentMenu.direction == Direction.Vertical ? parentMenu.Width : item.X, parentMenu.direction == Direction.Horizontal ? parentMenu.Height : item.Y);
+            Position = new Vector2(parentMenu.Direction == Direction.Vertical ? parentMenu.Width : item.X, parentMenu.Direction == Direction.Horizontal ? parentMenu.Height : item.Y);
             Open();
 
             subMenu?.clearRecursively();
@@ -512,7 +519,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <returns></returns>
         protected virtual Menu CreateSubMenu() => new Menu(Direction.Vertical)
         {
-            Anchor = direction == Direction.Horizontal ? Anchor.BottomLeft : Anchor.TopRight
+            Anchor = Direction == Direction.Horizontal ? Anchor.BottomLeft : Anchor.TopRight
         };
 
         /// <summary>
