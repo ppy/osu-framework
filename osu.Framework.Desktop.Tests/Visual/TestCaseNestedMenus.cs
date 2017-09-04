@@ -71,6 +71,17 @@ namespace osu.Framework.Desktop.Tests.Visual
             // Todo: Convert all of these to NUnit tests after https://github.com/ppy/osu-framework/issues/1014 is resolved
         }
 
+        private class ClickOpenMenu : Menu
+        {
+            protected override Menu CreateSubMenu() => new ClickOpenMenu(HoverOpenDelay) { RequireClickToOpen = false };
+
+            public ClickOpenMenu(double timePerAction) : base(Direction.Vertical)
+            {
+                RequireClickToOpen = true;
+                HoverOpenDelay = timePerAction;
+            }
+        }
+
         #region Test Cases
         /// <summary>
         /// Blocks all user input and resets the <see cref="Menu"/>.
@@ -81,13 +92,11 @@ namespace osu.Framework.Desktop.Tests.Visual
             {
                 rng = new Random(1337);
 
-                var menu = new Menu(Direction.Vertical)
+                var menu = new ClickOpenMenu(TimePerAction)
                 {
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
                     AlwaysOpen = true,
-                    RequireClickToOpen = true,
-                    HoverOpenDelay = TimePerAction,
                     Items = new[]
                     {
                         generateRandomMenuItem("First"),

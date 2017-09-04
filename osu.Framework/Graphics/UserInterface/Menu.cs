@@ -19,26 +19,17 @@ namespace osu.Framework.Graphics.UserInterface
 {
     public class Menu : CompositeDrawable, IStateful<MenuState>
     {
-
         public event Action<MenuState> StateChanged;
 
-        private double hoverOpenDelay;
         /// <summary>
         /// Gets or sets the delay before opening sub-<see cref="Menu"/>s when menu items are hovered.
         /// </summary>
-        public double HoverOpenDelay
-        {
-            get { return hoverOpenDelay; }
-            set
-            {
-                if (hoverOpenDelay == value)
-                    return;
-                hoverOpenDelay = value;
+        protected double HoverOpenDelay = 100;
 
-                if (lazySubMenu.IsValueCreated)
-                    subMenu.HoverOpenDelay = value;
-            }
-        }
+        /// <summary>
+        /// Whether a click is required to open sub-<see cref="Menu"/> of this <see cref="Menu"/>.
+        /// </summary>
+        protected bool RequireClickToOpen;
 
         /// <summary>
         /// The <see cref="Container{T}"/> that contains the content of this <see cref="Menu"/>.
@@ -61,7 +52,6 @@ namespace osu.Framework.Graphics.UserInterface
         protected IReadOnlyList<DrawableMenuItem> Children => ItemsContainer;
 
         protected readonly Direction Direction;
-
 
         private readonly Lazy<Menu> lazySubMenu;
         private Menu subMenu => lazySubMenu.Value;
@@ -108,9 +98,6 @@ namespace osu.Framework.Graphics.UserInterface
             lazySubMenu = new Lazy<Menu>(() =>
             {
                 var menu = CreateSubMenu();
-
-                menu.HoverOpenDelay = HoverOpenDelay;
-
                 subMenuContainer.Add(menu);
                 return menu;
             });
@@ -222,11 +209,6 @@ namespace osu.Framework.Graphics.UserInterface
                 updateState();
             }
         }
-
-        /// <summary>
-        /// Whether a click is required to open sub-<see cref="Menu"/> of this <see cref="Menu"/>.
-        /// </summary>
-        public bool RequireClickToOpen;
 
         private MenuState state = MenuState.Closed;
         /// <summary>
