@@ -60,6 +60,8 @@ namespace osu.Framework.Desktop.Tests.Visual
             testClickingOutsideClosesMenus(true);
 
             AddStep("Give back control", () => testReset(false, true));
+
+            // Todo: Convert all of these to NUnit tests after https://github.com/ppy/osu-framework/issues/1014 is resolved
         }
 
         #region Test Cases
