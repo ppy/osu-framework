@@ -19,12 +19,14 @@ namespace osu.Framework.Input.Handlers
 
         protected ConcurrentQueue<InputState> PendingStates = new ConcurrentQueue<InputState>();
 
+        private readonly object pendingStatesRetrievalLock = new object();
+
         /// <summary>
         /// Retrieve a list of all pending states since the last call to this method.
         /// </summary>
         public virtual List<InputState> GetPendingStates()
         {
-            lock (this)
+            lock (pendingStatesRetrievalLock)
             {
                 List<InputState> pending = new List<InputState>();
 
