@@ -364,9 +364,15 @@ namespace osu.Framework.Graphics.UserInterface
             // Regardless of the above result, if we are relative-sizing, just use the stored width/height
             width = (RelativeSizeAxes & Axes.X) > 0 ? Width : width;
             height = (RelativeSizeAxes & Axes.Y) > 0 ? Height : height;
+                UpdateSize(new Vector2(width, height));
 
-            Size = new Vector2(width, height);
         }
+
+        /// <summary>
+        /// Resizes this <see cref="Menu"/>.
+        /// </summary>
+        /// <param name="newSize">The new size.</param>
+        protected virtual void UpdateSize(Vector2 newSize) => Size = newSize;
 
         #region Hover/Focus logic
         private void menuItemClicked(DrawableMenuItem item)
