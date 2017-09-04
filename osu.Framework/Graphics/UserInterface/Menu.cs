@@ -357,13 +357,17 @@ namespace osu.Framework.Graphics.UserInterface
             // to use the (above) computed size.
             width = direction == Direction.Horizontal ? ItemsContainer.Width : width;
             height = direction == Direction.Vertical ? ItemsContainer.Height : height;
+                // Regardless of the above result, if we are relative-sizing, just use the stored width/height
+                width = (RelativeSizeAxes & Axes.X) > 0 ? Width : width;
+                height = (RelativeSizeAxes & Axes.Y) > 0 ? Height : height;
 
             width = Math.Min(MaxWidth, width);
             height = Math.Min(MaxHeight, height);
+                if (State == MenuState.Closed && direction == Direction.Horizontal)
+                    width = 0;
+                if (State == MenuState.Closed && direction == Direction.Vertical)
+                    height = 0;
 
-            // Regardless of the above result, if we are relative-sizing, just use the stored width/height
-            width = (RelativeSizeAxes & Axes.X) > 0 ? Width : width;
-            height = (RelativeSizeAxes & Axes.Y) > 0 ? Height : height;
                 UpdateSize(new Vector2(width, height));
 
         }
