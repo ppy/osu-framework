@@ -25,24 +25,31 @@ namespace osu.Framework.Desktop.Tests.Visual
 
         private Random rng;
 
-        private readonly ManualInputManager inputManager;
+        private ManualInputManager inputManager;
         private readonly Container menuContainer;
         private MenuStructure menus;
 
         public TestCaseNestedMenus()
         {
-            inputManager = new ManualInputManager
-            {
-                Children = new Drawable[]
-                {
-                    menuContainer = new Container { RelativeSizeAxes = Axes.Both },
-                    new CursorContainer()
-                }
-            };
-
-            Add(inputManager);
+            Add(menuContainer = new Container { RelativeSizeAxes = Axes.Both });
 
             testReset(false);
+
+            AddStep("Add automated InputManager", delegate
+            {
+                if (inputManager != null) return;
+
+                Remove(menuContainer);
+
+                Add(inputManager = new ManualInputManager
+                {
+                    Children = new Drawable[]
+                    {
+                        new CursorContainer(),
+                        menuContainer
+                    }
+                });
+            });
 
             testAlwaysOpen();
             testHoverState();
@@ -93,8 +100,11 @@ namespace osu.Framework.Desktop.Tests.Visual
                 menuContainer.Add(menu);
                 menus = new MenuStructure(menu);
 
-                inputManager.UseParentState = userControl;
-                inputManager.MoveMouseTo(Vector2.Zero);
+                if (inputManager != null)
+                {
+                    inputManager.UseParentState = userControl;
+                    inputManager.MoveMouseTo(Vector2.Zero);
+                }
             });
 
             if (step)
