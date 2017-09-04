@@ -67,7 +67,7 @@ namespace osu.Framework.Graphics.Cursor
 
                     if (menuTarget == null)
                     {
-                        if (menu.State == MenuState.Opened)
+                        if (menu.State == MenuState.Open)
                             menu.Close();
                         return false;
                     }
@@ -87,7 +87,7 @@ namespace osu.Framework.Graphics.Cursor
         protected override void UpdateAfterChildren()
         {
             base.UpdateAfterChildren();
-            if (menu.State == MenuState.Opened && menuTarget != null)
+            if (menu.State == MenuState.Open && menuTarget != null)
                 menu.Position = menuTarget.ToSpaceOfOtherDrawable(relativeCursorPosition, this);
         }
     }

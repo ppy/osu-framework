@@ -194,7 +194,7 @@ namespace osu.Framework.Graphics.UserInterface
                 alwaysOpen = value;
 
                 if (value && state == MenuState.Closed)
-                    state = MenuState.Opened;
+                    state = MenuState.Open;
 
                 if (!IsLoaded)
                     return;
@@ -242,7 +242,7 @@ namespace osu.Framework.Graphics.UserInterface
                         GetContainingInputManager().ChangeFocus(null);
 
                     break;
-                case MenuState.Opened:
+                case MenuState.Open:
                     AnimateOpen();
 
                     if (AlwaysOpen)
@@ -251,7 +251,7 @@ namespace osu.Framework.Graphics.UserInterface
                     //schedule required as we may not be present currently.
                     Schedule(() =>
                     {
-                        if (State == MenuState.Opened)
+                        if (State == MenuState.Open)
                             GetContainingInputManager().ChangeFocus(this);
                     });
                     break;
@@ -301,7 +301,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Opens this <see cref="Menu"/>.
         /// </summary>
-        public void Open() => State = MenuState.Opened;
+        public void Open() => State = MenuState.Open;
 
         /// <summary>
         /// Closes this <see cref="Menu"/>.
@@ -311,7 +311,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Toggles the state of this <see cref="Menu"/>.
         /// </summary>
-        public void Toggle() => State = State == MenuState.Closed ? MenuState.Opened : MenuState.Closed;
+        public void Toggle() => State = State == MenuState.Closed ? MenuState.Open : MenuState.Closed;
 
         /// <summary>
         /// Animates the opening of this <see cref="Menu"/>.
@@ -383,7 +383,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             // We only want to close the sub-menu if we're not a sub menu - if we are a sub menu
             // then clicks should instead cause the sub menus to instantly show up
-            if (RequireClickToOpen && subMenu?.State == MenuState.Opened)
+            if (RequireClickToOpen && subMenu?.State == MenuState.Open)
             {
                 subMenu.Close();
                 return;
@@ -423,7 +423,7 @@ namespace osu.Framework.Graphics.UserInterface
         private void menuItemHovered(DrawableMenuItem item)
         {
             // If we're not a sub-menu, then hover shouldn't display a sub-menu unless an item is clicked
-            if (RequireClickToOpen && subMenu?.State != MenuState.Opened)
+            if (RequireClickToOpen && subMenu?.State != MenuState.Open)
                 return;
 
             openDelegate?.Cancel();
@@ -447,7 +447,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected override void OnFocusLost(InputState state)
         {
             // Case where a sub-menu was opened the focus will be transferred to that sub-menu while this menu will receive OnFocusLost
-            if (subMenu?.State == MenuState.Opened)
+            if (subMenu?.State == MenuState.Open)
                 return;
 
             // At this point we should have lost focus due to clicks outside the menu structure
@@ -703,6 +703,6 @@ namespace osu.Framework.Graphics.UserInterface
     public enum MenuState
     {
         Closed,
-        Opened
+        Open
     }
 }
