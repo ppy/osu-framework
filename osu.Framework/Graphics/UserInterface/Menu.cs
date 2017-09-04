@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Caching;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -60,6 +61,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         private readonly Box background;
         private readonly Direction direction;
+
+        private Cached sizeCache = new Cached();
 
         public Menu(Direction direction)
         {
@@ -169,7 +172,7 @@ namespace osu.Framework.Graphics.UserInterface
                     return;
                 maxWidth = value;
 
-                // Todo: Invalidate
+                sizeCache.Invalidate();
             }
         }
 
@@ -186,7 +189,7 @@ namespace osu.Framework.Graphics.UserInterface
                     return;
                 maxHeight = value;
 
-                // Todo: Invalidate
+                sizeCache.Invalidate();
             }
         }
 
@@ -273,6 +276,7 @@ namespace osu.Framework.Graphics.UserInterface
                     break;
             }
 
+            sizeCache.Invalidate();
             StateChanged?.Invoke(State);
         }
 
@@ -298,12 +302,22 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         /// <param name="item">The <see cref="MenuItem"/> to remove.</param>
         /// <returns>Whether <paramref name="item"/> was successfully removed.</returns>
-        public bool Remove(MenuItem item) => ItemsContainer.RemoveAll(d => d.Item == item) > 0;
+        public bool Remove(MenuItem item)
+        {
+            bool result = ItemsContainer.RemoveAll(d => d.Item == item) > 0;
+            sizeCache.Invalidate();
+
+            return result;
+        }
 
         /// <summary>
         /// Clears all <see cref="MenuItem"/>s in this <see cref="Menu"/>.
         /// </summary>
-        public void Clear() => ItemsContainer.Clear();
+        public void Clear()
+        {
+            ItemsContainer.Clear();
+            sizeCache.Invalidate();
+        }
 
         /// <summary>
         /// Opens this <see cref="Menu"/>.
@@ -334,35 +348,44 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         protected virtual void AnimateClose() => Hide();
 
+        public override void InvalidateFromChild(Invalidation invalidation)
+        {
+            if ((invalidation & Invalidation.RequiredParentSizeToFit) > 0)
+                sizeCache.Invalidate();
+            base.InvalidateFromChild(invalidation);
+        }
+
         protected override void UpdateAfterChildren()
         {
             base.UpdateAfterChildren();
 
-            // Todo: The following should use invalidate
-
-            // Our children will be relatively-sized on the axis separate to the menu direction, so we need to compute
-            // that size ourselves, based on the content size of our children, to give them a valid relative size
-
-            float width = 0;
-            float height = 0;
-
-            foreach (var item in Children)
+            if (!sizeCache.IsValid)
             {
-                width = Math.Max(width, item.ContentDrawWidth);
-                height = Math.Max(height, item.ContentDrawHeight);
-            }
+                // Our children will be relatively-sized on the axis separate to the menu direction, so we need to compute
+                // that size ourselves, based on the content size of our children, to give them a valid relative size
 
-            // When scrolling in one direction, ItemsContainer is auto-sized in that direction and relative-sized in the other
-            // In the case of the auto-sized direction, we want to use its size. In the case of the relative-sized direction, we want
-            // to use the (above) computed size.
-            width = direction == Direction.Horizontal ? ItemsContainer.Width : width;
-            height = direction == Direction.Vertical ? ItemsContainer.Height : height;
+                float width = 0;
+                float height = 0;
+
+                foreach (var item in Children)
+                {
+                    width = Math.Max(width, item.ContentDrawWidth);
+                    height = Math.Max(height, item.ContentDrawHeight);
+                }
+
+                // When scrolling in one direction, ItemsContainer is auto-sized in that direction and relative-sized in the other
+                // In the case of the auto-sized direction, we want to use its size. In the case of the relative-sized direction, we want
+                // to use the (above) computed size.
+                width = direction == Direction.Horizontal ? ItemsContainer.Width : width;
+                height = direction == Direction.Vertical ? ItemsContainer.Height : height;
+
+                width = Math.Min(MaxWidth, width);
+                height = Math.Min(MaxHeight, height);
+
                 // Regardless of the above result, if we are relative-sizing, just use the stored width/height
                 width = (RelativeSizeAxes & Axes.X) > 0 ? Width : width;
                 height = (RelativeSizeAxes & Axes.Y) > 0 ? Height : height;
 
-            width = Math.Min(MaxWidth, width);
-            height = Math.Min(MaxHeight, height);
                 if (State == MenuState.Closed && direction == Direction.Horizontal)
                     width = 0;
                 if (State == MenuState.Closed && direction == Direction.Vertical)
@@ -370,6 +393,8 @@ namespace osu.Framework.Graphics.UserInterface
 
                 UpdateSize(new Vector2(width, height));
 
+                sizeCache.Validate();
+            }
         }
 
         /// <summary>
