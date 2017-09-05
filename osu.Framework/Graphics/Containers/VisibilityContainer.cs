@@ -52,7 +52,7 @@ namespace osu.Framework.Graphics.Containers
                     break;
             }
 
-            StateChanged?.Invoke(this, state);
+            StateChanged?.Invoke(state);
         }
 
         public override void Hide() => State = Visibility.Hidden;
@@ -61,7 +61,7 @@ namespace osu.Framework.Graphics.Containers
 
         public override bool HandleInput => State == Visibility.Visible;
 
-        public event Action<VisibilityContainer, Visibility> StateChanged;
+        public event Action<Visibility> StateChanged;
 
         protected abstract void PopIn();
 
