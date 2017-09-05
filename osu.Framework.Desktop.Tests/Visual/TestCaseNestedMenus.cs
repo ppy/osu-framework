@@ -15,6 +15,7 @@ using osu.Framework.Testing;
 using OpenTK;
 using OpenTK.Input;
 using MouseState = osu.Framework.Input.MouseState;
+using NUnit.Framework;
 
 namespace osu.Framework.Desktop.Tests.Visual
 {
@@ -26,50 +27,53 @@ namespace osu.Framework.Desktop.Tests.Visual
         private Random rng;
 
         private ManualInputManager inputManager;
-        private readonly Container menuContainer;
         private MenuStructure menus;
 
         public TestCaseNestedMenus()
         {
-            Add(menuContainer = new Container { RelativeSizeAxes = Axes.Both });
+            rng = new Random(1337);
 
-            testReset(false);
+            Add(createMenu());
+        }
 
-            AddStep("Add automated InputManager", delegate
+        [SetUp]
+        public void SetUp()
+        {
+            Clear();
+
+            rng = new Random(1337);
+
+            Menu menu;
+            Add(inputManager = new ManualInputManager
             {
-                if (inputManager != null) return;
-
-                Remove(menuContainer);
-
-                Add(inputManager = new ManualInputManager
+                UseParentState = false,
+                Children = new Drawable[]
                 {
-                    Children = new Drawable[]
+                    new CursorContainer(),
+                    new Container
                     {
-                        new CursorContainer(),
-                        menuContainer
+                        RelativeSizeAxes = Axes.Both,
+                        Child = menu = createMenu()
                     }
-                });
+                }
             });
 
-            testAlwaysOpen();
-            testHoverState();
-            testRequireClickToOpen();
-            testDoubleClick();
-            testActionClick();
-            testInstantOpen();
-            testHoverOpen();
-            testHoverChange();
-            testDelayedHoverChange();
-            testMenuClicksDontClose();
-            testMenuClickClosesSubMenus();
-            testActionClickClosesMenus();
-            testClickingOutsideClosesMenus(false);
-            testClickingOutsideClosesMenus(true);
-
-            AddStep("Give back control", () => testReset(false, true));
-
-            // Todo: Convert all of these to NUnit tests after https://github.com/ppy/osu-framework/issues/1014 is resolved
+            menus = new MenuStructure(menu);
+            inputManager.MoveMouseTo(Vector2.Zero);
         }
+
+        private Menu createMenu() => new ClickOpenMenu(TimePerAction)
+        {
+            Anchor = Anchor.Centre,
+            Origin = Anchor.Centre,
+            AlwaysOpen = true,
+            Items = new[]
+            {
+                generateRandomMenuItem("First"),
+                generateRandomMenuItem("Second"),
+                generateRandomMenuItem("Third"),
+            }
+        };
 
         private class ClickOpenMenu : Menu
         {
@@ -83,53 +87,14 @@ namespace osu.Framework.Desktop.Tests.Visual
         }
 
         #region Test Cases
-        /// <summary>
-        /// Blocks all user input and resets the <see cref="Menu"/>.
-        /// </summary>
-        private void testReset(bool step = true, bool userControl = false)
-        {
-            var reset = new Action(() =>
-            {
-                rng = new Random(1337);
-
-                var menu = new ClickOpenMenu(TimePerAction)
-                {
-                    Anchor = Anchor.Centre,
-                    Origin = Anchor.Centre,
-                    AlwaysOpen = true,
-                    Items = new[]
-                    {
-                        generateRandomMenuItem("First"),
-                        generateRandomMenuItem("Second"),
-                        generateRandomMenuItem("Third"),
-                    }
-                };
-
-                menuContainer.Clear();
-                menuContainer.Add(menu);
-                menus = new MenuStructure(menu);
-
-                if (inputManager != null)
-                {
-                    inputManager.UseParentState = userControl;
-                    inputManager.MoveMouseTo(Vector2.Zero);
-                }
-            });
-
-            if (step)
-                AddStep("Reset", reset);
-            else
-                reset();
-        }
 
         /// <summary>
         /// Tests if the <see cref="Menu"/> respects <see cref="Menu.AlwaysOpen"/> = true, by not alowing it to be closed
         /// when a click happens outside the <see cref="Menu"/>.
         /// </summary>
-        private void testAlwaysOpen()
+        [Test]
+        public void TestAlwaysOpen()
         {
-            testReset();
-
             AddStep("Click outside", () => inputManager.Click(MouseButton.Left));
             AddAssert("Check AlwaysOpen = true", () => menus.GetSubMenu(0).State == MenuState.Open);
         }
@@ -137,10 +102,9 @@ namespace osu.Framework.Desktop.Tests.Visual
         /// <summary>
         /// Tests if the hover state on <see cref="Menu.DrawableMenuItem"/>s is valid.
         /// </summary>
-        private void testHoverState()
+        [Test]
+        public void TestHoverState()
         {
-            testReset();
-
             AddAssert("Check submenu closed", () => menus.GetSubMenu(1)?.State != MenuState.Open);
             AddStep("Hover item", () => inputManager.MoveMouseTo(menus.GetMenuItem(0)));
             AddAssert("Check item hovered", () => menus.GetMenuItem(0).IsHovered);
@@ -149,10 +113,9 @@ namespace osu.Framework.Desktop.Tests.Visual
         /// <summary>
         /// Tests if the <see cref="Menu"/> respects <see cref="Menu.RequireClickToOpen"/> = true.
         /// </summary>
-        private void testRequireClickToOpen()
+        [Test]
+        public void TestRequireClickToOpen()
         {
-            testReset();
-
             AddStep("Hover item", () => inputManager.MoveMouseTo(menus.GetSubStructure(0).GetMenuItem(0)));
             AddAssert("Check closed", () => menus.GetSubMenu(1)?.State != MenuState.Open);
             AddAssert("Check closed", () => menus.GetSubMenu(1)?.State != MenuState.Open);
@@ -164,10 +127,9 @@ namespace osu.Framework.Desktop.Tests.Visual
         /// Tests if clicking once on a menu that has <see cref="Menu.RequireClickToOpen"/> opens it, and clicking a second time
         /// closes it.
         /// </summary>
-        private void testDoubleClick()
+        [Test]
+        public void TestDoubleClick()
         {
-            testReset();
-
             AddStep("Click item", () => clickItem(0, 0));
             AddAssert("Check open", () => menus.GetSubMenu(1).State == MenuState.Open);
             AddStep("Click item", () => clickItem(0, 0));
@@ -177,10 +139,9 @@ namespace osu.Framework.Desktop.Tests.Visual
         /// <summary>
         /// Tests whether click on <see cref="Menu.DrawableMenuItem"/>s causes sub-menus to instantly appear.
         /// </summary>
-        private void testInstantOpen()
+        [Test]
+        public void TestInstantOpen()
         {
-            testReset();
-
             AddStep("Click item", () => clickItem(0, 1));
             AddAssert("Check open", () => menus.GetSubMenu(1).State == MenuState.Open);
             AddStep("Click item", () => clickItem(1, 0));
@@ -190,10 +151,9 @@ namespace osu.Framework.Desktop.Tests.Visual
         /// <summary>
         /// Tests if clicking on an item that has no sub-menu causes the menu to close.
         /// </summary>
-        private void testActionClick()
+        [Test]
+        public void TestActionClick()
         {
-            testReset();
-
             AddStep("Click item", () => clickItem(0, 0));
             AddStep("Click item", () => clickItem(1, 0));
             AddAssert("Check closed", () => menus.GetSubMenu(1)?.State != MenuState.Open);
@@ -202,10 +162,9 @@ namespace osu.Framework.Desktop.Tests.Visual
         /// <summary>
         /// Tests if hovering over menu items respects the <see cref="Menu.HoverOpenDelay"/>.
         /// </summary>
-        private void testHoverOpen()
+        [Test]
+        public void TestHoverOpen()
         {
-            testReset();
-
             AddStep("Click item", () => clickItem(0, 1));
             AddStep("Hover item", () => inputManager.MoveMouseTo(menus.GetSubStructure(1).GetMenuItem(0)));
             AddAssert("Check closed", () => menus.GetSubMenu(2)?.State != MenuState.Open);
@@ -219,10 +178,9 @@ namespace osu.Framework.Desktop.Tests.Visual
         /// Tests if hovering over a different item on the main <see cref="Menu"/> will instantly open another menu
         /// and correctly changes the sub-menu items to the new items from the hovered item.
         /// </summary>
-        private void testHoverChange()
+        [Test]
+        public void TestHoverChange()
         {
-            testReset();
-
             IReadOnlyList<MenuItem> currentItems = null;
             AddStep("Click item", () =>
             {
@@ -261,10 +219,9 @@ namespace osu.Framework.Desktop.Tests.Visual
         /// Tests whether hovering over a different item on a sub-menu opens a new sub-menu in a delayed fashion
         /// and correctly changes the sub-menu items to the new items from the hovered item.
         /// </summary>
-        private void testDelayedHoverChange()
+        [Test]
+        public void TestDelayedHoverChange()
         {
-            testReset();
-
             AddStep("Click item", () => clickItem(0, 2));
             AddStep("Hover item", () => inputManager.MoveMouseTo(menus.GetSubStructure(1).GetMenuItem(0)));
             AddAssert("Check closed", () => menus.GetSubMenu(2)?.State != MenuState.Open);
@@ -302,10 +259,9 @@ namespace osu.Framework.Desktop.Tests.Visual
         /// <summary>
         /// Tests whether clicking on <see cref="Menu"/>s that have opened sub-menus don't close the sub-menus.
         /// </summary>
-        private void testMenuClicksDontClose()
+        [Test]
+        public void TestMenuClicksDontClose()
         {
-            testReset();
-
             AddStep("Click item", () => clickItem(0, 1));
             AddStep("Click item", () => clickItem(1, 0));
             AddStep("Click item", () => clickItem(2, 0));
@@ -334,10 +290,9 @@ namespace osu.Framework.Desktop.Tests.Visual
         /// <summary>
         /// Tests whether clicking on the <see cref="Menu"/> that has <see cref="Menu.RequireClickToOpen"/> closes all sub menus.
         /// </summary>
-        private void testMenuClickClosesSubMenus()
+        [Test]
+        public void TestMenuClickClosesSubMenus()
         {
-            testReset();
-
             AddStep("Click item", () => clickItem(0, 1));
             AddStep("Click item", () => clickItem(1, 0));
             AddStep("Click item", () => clickItem(2, 0));
@@ -360,10 +315,9 @@ namespace osu.Framework.Desktop.Tests.Visual
         /// <summary>
         /// Tests whether clicking on an action in a sub-menu closes all <see cref="Menu"/>s.
         /// </summary>
-        private void testActionClickClosesMenus()
+        [Test]
+        public void TestActionClickClosesMenus()
         {
-            testReset();
-
             AddStep("Click item", () => clickItem(0, 1));
             AddStep("Click item", () => clickItem(1, 0));
             AddStep("Click item", () => clickItem(2, 0));
@@ -387,10 +341,10 @@ namespace osu.Framework.Desktop.Tests.Visual
         /// Tests whether clicking outside the <see cref="Menu"/> structure closes all sub-menus.
         /// </summary>
         /// <param name="hoverPrevious">Whether the previous menu should first be hovered before clicking outside.</param>
-        private void testClickingOutsideClosesMenus(bool hoverPrevious)
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestClickingOutsideClosesMenus(bool hoverPrevious)
         {
-            testReset();
-
             for (int i = 0; i <= 3; i++)
             {
                 int i2 = i;
