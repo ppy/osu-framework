@@ -239,6 +239,22 @@ namespace osu.Framework.Desktop.Tests.Visual
             AddAssert("Check open", () => menus.GetSubMenu(1).State == MenuState.Open);
 
             AddAssert("Check new items", () => !menus.GetSubMenu(1).Items.SequenceEqual(currentItems));
+            AddAssert("Check closed", () =>
+            {
+                int currentSubMenu = 3;
+                while (true)
+                {
+                    var subMenu = menus.GetSubMenu(currentSubMenu);
+                    if (subMenu == null)
+                        break;
+
+                    if (subMenu.State == MenuState.Open)
+                        return false;
+                    currentSubMenu++;
+                }
+
+                return true;
+            });
         }
 
         /// <summary>
@@ -265,6 +281,22 @@ namespace osu.Framework.Desktop.Tests.Visual
             AddAssert("Check open", () => menus.GetSubMenu(1).State == MenuState.Open);
 
             AddAssert("Check new items", () => !menus.GetSubMenu(2).Items.SequenceEqual(currentItems));
+            AddAssert("Check closed", () =>
+            {
+                int currentSubMenu = 3;
+                while (true)
+                {
+                    var subMenu = menus.GetSubMenu(currentSubMenu);
+                    if (subMenu == null)
+                        break;
+
+                    if (subMenu.State == MenuState.Open)
+                        return false;
+                    currentSubMenu++;
+                }
+
+                return true;
+            });
         }
 
         /// <summary>
