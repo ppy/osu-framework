@@ -287,7 +287,7 @@ namespace osu.Framework.Desktop.Tests.Visual
                 AddStep("Click item", () => inputManager.Click(MouseButton.Left));
                 AddAssert("Check all open", () =>
                 {
-                    for (int j = 0; j <= 3; j++)
+                    for (int j = 0; j <= menuIndex; j++)
                     {
                         int menuIndex2 = j;
                         if (menus.GetSubMenu(menuIndex2)?.State != MenuState.Open)
