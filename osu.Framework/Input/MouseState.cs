@@ -28,7 +28,7 @@ namespace osu.Framework.Input
 
         public Vector2 Delta => Position - LastPosition;
 
-        public Vector2 Position { get; protected set; }
+        public Vector2 Position { get; set; }
 
         public Vector2 LastPosition => LastState?.Position ?? Position;
 

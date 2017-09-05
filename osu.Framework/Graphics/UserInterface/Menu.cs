@@ -5,80 +5,126 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Caching;
+using osu.Framework.Extensions.IEnumerableExtensions;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.MathUtils;
+using osu.Framework.Threading;
+using OpenTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    /// <summary>
-    /// A list of command or selection items.
-    /// </summary>
     public class Menu : CompositeDrawable, IStateful<MenuState>
     {
-        /// <summary>
-        /// Invoked when this <see cref="Menu"/> has opened.
-        /// </summary>
-        public event Action OnOpen;
+        public event Action<MenuState> StateChanged;
 
         /// <summary>
-        /// Invoked when this <see cref="Menu"/> has closed. This may have been the cause of either a selection
-        /// or a click outside of the <see cref="Menu"/> and does not indicate a selection has occurred.
+        /// Gets or sets the delay before opening sub-<see cref="Menu"/>s when menu items are hovered.
         /// </summary>
-        public event Action OnClose;
+        protected double HoverOpenDelay = 100;
+
+        /// <summary>
+        /// Whether a click is required to open sub-<see cref="Menu"/> of this <see cref="Menu"/>.
+        /// </summary>
+        protected bool RequireClickToOpen;
+
+        /// <summary>
+        /// The <see cref="Container{T}"/> that contains the content of this <see cref="Menu"/>.
+        /// </summary>
+        protected readonly ScrollContainer<Container<DrawableMenuItem>> ContentContainer;
+
+        /// <summary>
+        /// The <see cref="Container{T}"/> that contains the items of this <see cref="Menu"/>.
+        /// </summary>
+        protected readonly FillFlowContainer<DrawableMenuItem> ItemsContainer;
+
+        /// <summary>
+        /// The container that provides the masking effects for this <see cref="Menu"/>.
+        /// </summary>
+        protected readonly Container MaskingContainer;
+
+        /// <summary>
+        /// Gets the item representations contained by this <see cref="Menu"/>.
+        /// </summary>
+        protected IReadOnlyList<DrawableMenuItem> Children => ItemsContainer;
+
+        protected readonly Direction Direction;
+
+        private Menu parentMenu;
+        private Menu subMenu;
+
+        private readonly Box background;
+
+        private Cached sizeCache = new Cached();
+
+        private readonly Container<Menu> subMenuContainer;
+
+        public Menu(Direction direction)
+        {
+            Direction = direction;
+
+            InternalChildren = new Drawable[]
+            {
+                MaskingContainer = new Container
+                {
+                    Name = "Our contents",
+                    RelativeSizeAxes = Axes.Both,
+                    Masking = true,
+                    Children = new Drawable[]
+                    {
+                        background = new Box
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Colour = Color4.Black
+                        },
+                        ContentContainer = new ScrollContainer<Container<DrawableMenuItem>>(direction)
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Masking = false,
+                            Child = ItemsContainer = new FillFlowContainer<DrawableMenuItem> { Direction = direction == Direction.Horizontal ? FillDirection.Horizontal : FillDirection.Vertical }
+                        }
+                    }
+                },
+                subMenuContainer = new Container<Menu>
+                {
+                    Name = "Sub menu container",
+                    AutoSizeAxes = Axes.Both
+                }
+            };
+
+            switch (direction)
+            {
+                case Direction.Horizontal:
+                    ItemsContainer.AutoSizeAxes = Axes.X;
+                    break;
+                case Direction.Vertical:
+                    ItemsContainer.AutoSizeAxes = Axes.Y;
+                    break;
+            }
+
+            // The menu will provide a valid size for the items container based on our own size
+            ItemsContainer.RelativeSizeAxes = Axes.Both & ~ItemsContainer.AutoSizeAxes;
+        }
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+            updateState();
+        }
 
         /// <summary>
         /// Gets or sets the <see cref="MenuItem"/>s contained within this <see cref="Menu"/>.
         /// </summary>
         public IReadOnlyList<MenuItem> Items
         {
-            get { return itemsContainer.Select(r => r.Item).ToList(); }
+            get { return ItemsContainer.Select(r => r.Item).ToList(); }
             set
             {
-                itemsContainer.Clear();
-
-                foreach (var item in value)
-                    Add(item);
-
-                menuWidth.Invalidate();
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets whether the scroll bar of this <see cref="Menu"/> is visible.
-        /// </summary>
-        public bool ScrollbarVisible
-        {
-            get { return scrollContainer.ScrollbarVisible; }
-            set { scrollContainer.ScrollbarVisible = value; }
-        }
-
-        public new Axes RelativeSizeAxes
-        {
-            get { return base.RelativeSizeAxes; }
-            set { throw new InvalidOperationException($"{nameof(MenuItem)} will determine its size based on the value of {nameof(UseParentWidth)}."); }
-        }
-
-        public new Axes AutoSizeAxes
-        {
-            get { return base.AutoSizeAxes; }
-            set { throw new InvalidOperationException($"{nameof(MenuItem)} will determine its size based on the value of {nameof(UseParentWidth)}."); }
-        }
-
-        private bool useParentWidth;
-
-        /// <summary>
-        /// Gets or sets whether the menu should expand to the width of the parent. If false, a width will be calculated based on the widest item.
-        /// </summary>
-        public bool UseParentWidth
-        {
-            get { return useParentWidth; }
-            set
-            {
-                useParentWidth = value;
-                menuWidth.Invalidate();
+                Clear();
+                value?.ForEach(Add);
             }
         }
 
@@ -91,89 +137,93 @@ namespace osu.Framework.Graphics.UserInterface
             set { background.Colour = value; }
         }
 
-        private Cached menuWidth = new Cached();
-
-        private readonly Box background;
-        private readonly ScrollContainer scrollContainer;
-        private readonly FlowContainer<DrawableMenuItem> itemsContainer;
-
-        public Menu()
+        /// <summary>
+        /// Gets or sets whether the scroll bar of this <see cref="Menu"/> should be visible.
+        /// </summary>
+        public bool ScrollbarVisible
         {
-            Masking = true;
+            get { return ContentContainer.ScrollbarVisible; }
+            set { ContentContainer.ScrollbarVisible = value; }
+        }
 
-            InternalChildren = new Drawable[]
+        private float maxWidth = float.MaxValue;
+        /// <summary>
+        /// Gets or sets the maximum allowable width by this <see cref="Menu"/>.
+        /// </summary>
+        public float MaxWidth
+        {
+            get { return maxWidth; }
+            set
             {
-                background = new Box
-                {
-                    RelativeSizeAxes = Axes.Both,
-                    Colour = Color4.Black
-                },
-                scrollContainer = new ScrollContainer
-                {
-                    RelativeSizeAxes = Axes.Both,
-                    Masking = false,
-                    Child = itemsContainer = new FillFlowContainer<DrawableMenuItem>
-                    {
-                        Direction = FillDirection.Vertical,
-                        RelativeSizeAxes = Axes.X,
-                        AutoSizeAxes = Axes.Y,
-                        Padding = ItemFlowContainerPadding
-                    },
-                }
-            };
+                if (Precision.AlmostEquals(maxWidth, value))
+                    return;
+                maxWidth = value;
+
+                sizeCache.Invalidate();
+            }
         }
 
-        protected override void LoadComplete()
+        private float maxHeight = float.PositiveInfinity;
+        /// <summary>
+        /// Gets or sets the maximum allowable height by this <see cref="Menu"/>.
+        /// </summary>
+        public float MaxHeight
         {
-            base.LoadComplete();
+            get { return maxHeight; }
+            set
+            {
+                if (Precision.AlmostEquals(maxHeight, value))
+                    return;
+                maxHeight = value;
 
-            updateState();
+                sizeCache.Invalidate();
+            }
         }
 
+        private bool alwaysOpen;
         /// <summary>
-        /// Adds a <see cref="MenuItem"/> to this <see cref="Menu"/>.
+        /// Gets or sets whether this <see cref="Menu"/> should always be open.
         /// </summary>
-        /// <param name="item">The <see cref="MenuItem"/> to add.</param>
-        public void Add(MenuItem item)
+        public bool AlwaysOpen
         {
-            var drawableItem = CreateDrawableMenuItem(item);
-            drawableItem.CloseRequested = Close;
+            get { return alwaysOpen; }
+            set
+            {
+                if (alwaysOpen == value)
+                    return;
+                alwaysOpen = value;
 
-            itemsContainer.Add(drawableItem);
-            menuWidth.Invalidate();
+                if (value && state == MenuState.Closed)
+                    state = MenuState.Open;
+
+                if (!IsLoaded)
+                    return;
+
+                updateState();
+            }
         }
-
-        /// <summary>
-        /// Removes a <see cref="MenuItem"/> from this <see cref="Menu"/>.
-        /// </summary>
-        /// <param name="item">The <see cref="MenuItem"/> to remove.</param>
-        /// <returns>Whether <paramref name="item"/> was successfully removed.</returns>
-        public bool Remove(MenuItem item) => itemsContainer.RemoveAll(r => r.Item == item) > 0;
-
-        /// <summary>
-        /// Clears all <see cref="MenuItem"/>s in this <see cref="Menu"/>.
-        /// </summary>
-        public void Clear() => itemsContainer.Clear();
-
-        /// <summary>
-        /// Gets the item representations contained by this <see cref="Menu"/>.
-        /// </summary>
-        protected IReadOnlyList<DrawableMenuItem> Children => itemsContainer;
 
         private MenuState state = MenuState.Closed;
         /// <summary>
         /// Gets or sets the current state of this <see cref="Menu"/>.
         /// </summary>
-        public MenuState State
+        public virtual MenuState State
         {
             get { return state; }
             set
             {
+                if (AlwaysOpen)
+                {
+                    subMenu?.Close();
+                    return;
+                }
+
                 if (state == value)
                     return;
                 state = value;
 
-                if (!IsLoaded) return;
+                if (!IsLoaded)
+                    return;
 
                 updateState();
             }
@@ -181,7 +231,9 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void updateState()
         {
-            switch (state)
+            subMenu?.Close();
+
+            switch (State)
             {
                 case MenuState.Closed:
                     AnimateClose();
@@ -189,29 +241,67 @@ namespace osu.Framework.Graphics.UserInterface
                     if (HasFocus)
                         GetContainingInputManager().ChangeFocus(null);
 
-                    OnClose?.Invoke();
                     break;
-                case MenuState.Opened:
+                case MenuState.Open:
                     AnimateOpen();
+
+                    if (AlwaysOpen)
+                        break;
 
                     //schedule required as we may not be present currently.
                     Schedule(() =>
                     {
-                        if (State == MenuState.Opened)
+                        if (State == MenuState.Open)
                             GetContainingInputManager().ChangeFocus(this);
                     });
-
-                    OnOpen?.Invoke();
                     break;
             }
 
-            UpdateMenuHeight();
+            sizeCache.Invalidate();
+            StateChanged?.Invoke(State);
+        }
+
+        /// <summary>
+        /// Adds a <see cref="MenuItem"/> to this <see cref="Menu"/>.
+        /// </summary>
+        /// <param name="item">The <see cref="MenuItem"/> to add.</param>
+        public virtual void Add(MenuItem item)
+        {
+            var drawableItem = CreateDrawableMenuItem(item);
+            drawableItem.AutoSizeAxes = ItemsContainer.AutoSizeAxes;
+            drawableItem.RelativeSizeAxes = ItemsContainer.RelativeSizeAxes;
+            drawableItem.Clicked = menuItemClicked;
+            drawableItem.Hovered = menuItemHovered;
+
+            ItemsContainer.Add(drawableItem);
+        }
+
+        /// <summary>
+        /// Removes a <see cref="MenuItem"/> from this <see cref="Menu"/>.
+        /// </summary>
+        /// <param name="item">The <see cref="MenuItem"/> to remove.</param>
+        /// <returns>Whether <paramref name="item"/> was successfully removed.</returns>
+        public bool Remove(MenuItem item)
+        {
+            bool result = ItemsContainer.RemoveAll(d => d.Item == item) > 0;
+            sizeCache.Invalidate();
+
+            return result;
+        }
+
+        /// <summary>
+        /// Clears all <see cref="MenuItem"/>s in this <see cref="Menu"/>.
+        /// </summary>
+        public void Clear()
+        {
+            ItemsContainer.Clear();
+            sizeCache.Invalidate();
         }
 
         /// <summary>
         /// Opens this <see cref="Menu"/>.
         /// </summary>
-        public void Open() => State = MenuState.Opened;
+        public void Open() => State = MenuState.Open;
 
         /// <summary>
         /// Closes this <see cref="Menu"/>.
@@ -221,21 +311,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Toggles the state of this <see cref="Menu"/>.
         /// </summary>
-        public void Toggle() => State = State == MenuState.Closed ? MenuState.Opened : MenuState.Closed;
-
-        private float maxHeight = float.MaxValue;
-        /// <summary>
-        /// Gets or sets maximum height allowable by this <see cref="Menu"/>.
-        /// </summary>
-        public float MaxHeight
-        {
-            get { return maxHeight; }
-            set
-            {
-                maxHeight = value;
-                UpdateMenuHeight();
-            }
-        }
+        public void Toggle() => State = State == MenuState.Closed ? MenuState.Open : MenuState.Closed;
 
         /// <summary>
         /// Animates the opening of this <see cref="Menu"/>.
@@ -247,51 +323,164 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         protected virtual void AnimateClose() => Hide();
 
-        public override bool AcceptsFocus => true;
-        protected override bool OnClick(InputState state) => true;
-        protected override void OnFocusLost(InputState state) => State = MenuState.Closed;
+        public override void InvalidateFromChild(Invalidation invalidation)
+        {
+            if ((invalidation & Invalidation.RequiredParentSizeToFit) > 0)
+                sizeCache.Invalidate();
+            base.InvalidateFromChild(invalidation);
+        }
 
         protected override void UpdateAfterChildren()
         {
             base.UpdateAfterChildren();
 
-            UpdateMenuHeight();
-            updateMenuWidth();
-        }
-
-        /// <summary>
-        /// The height of the <see cref="MenuItem"/>s contained by this <see cref="Menu"/>, clamped by <see cref="MaxHeight"/>.
-        /// </summary>
-        protected float ContentHeight => Math.Min(itemsContainer.Height, MaxHeight);
-
-        /// <summary>
-        /// Computes and applies the height of this <see cref="Menu"/>.
-        /// </summary>
-        protected virtual void UpdateMenuHeight() => Height = ContentHeight;
-
-        private void updateMenuWidth()
-        {
-            if (menuWidth.IsValid)
-                return;
-
-            if (UseParentWidth)
+            if (!sizeCache.IsValid)
             {
-                base.RelativeSizeAxes = Axes.X;
-                Width = 1;
-            }
-            else
-            {
-                // We're now defining the size of ourselves based on our children, but our children are relatively-sized, so we need to compute our size ourselves
-                float textWidth = 0;
+                // Our children will be relatively-sized on the axis separate to the menu direction, so we need to compute
+                // that size ourselves, based on the content size of our children, to give them a valid relative size
+
+                float width = 0;
+                float height = 0;
 
                 foreach (var item in Children)
-                    textWidth = Math.Max(textWidth, item.TextDrawWidth);
+                {
+                    width = Math.Max(width, item.ContentDrawWidth);
+                    height = Math.Max(height, item.ContentDrawHeight);
+                }
 
-                Width = textWidth;
+                // When scrolling in one direction, ItemsContainer is auto-sized in that direction and relative-sized in the other
+                // In the case of the auto-sized direction, we want to use its size. In the case of the relative-sized direction, we want
+                // to use the (above) computed size.
+                width = Direction == Direction.Horizontal ? ItemsContainer.Width : width;
+                height = Direction == Direction.Vertical ? ItemsContainer.Height : height;
+
+                width = Math.Min(MaxWidth, width);
+                height = Math.Min(MaxHeight, height);
+
+                // Regardless of the above result, if we are relative-sizing, just use the stored width/height
+                width = (RelativeSizeAxes & Axes.X) > 0 ? Width : width;
+                height = (RelativeSizeAxes & Axes.Y) > 0 ? Height : height;
+
+                if (State == MenuState.Closed && Direction == Direction.Horizontal)
+                    width = 0;
+                if (State == MenuState.Closed && Direction == Direction.Vertical)
+                    height = 0;
+
+                UpdateSize(new Vector2(width, height));
+
+                sizeCache.Validate();
+            }
+        }
+
+        /// <summary>
+        /// Resizes this <see cref="Menu"/>.
+        /// </summary>
+        /// <param name="newSize">The new size.</param>
+        protected virtual void UpdateSize(Vector2 newSize) => Size = newSize;
+
+        #region Hover/Focus logic
+        private void menuItemClicked(DrawableMenuItem item)
+        {
+            // We only want to close the sub-menu if we're not a sub menu - if we are a sub menu
+            // then clicks should instead cause the sub menus to instantly show up
+            if (RequireClickToOpen && subMenu?.State == MenuState.Open)
+            {
+                subMenu.Close();
+                return;
             }
 
-            menuWidth.Validate();
+            // Check if there is a sub menu to display
+            if (item.Item.Items?.Count == 0)
+            {
+                // This item must have attempted to invoke an action - close all menus
+                closeAll();
+                return;
+            }
+
+            openDelegate?.Cancel();
+            openSubmenuFor(item);
         }
+
+        private void openSubmenuFor(DrawableMenuItem item)
+        {
+            if (subMenu == null)
+            {
+                subMenuContainer.Add(subMenu = CreateSubMenu());
+                subMenu.parentMenu = this;
+            }
+            else
+                subMenu.Close();
+
+            subMenu.Items = item.Item.Items;
+            subMenu.Position = new Vector2(
+                Direction == Direction.Vertical ? Width : item.X,
+                Direction == Direction.Horizontal ? Height : item.Y);
+
+            subMenu.Open();
+        }
+
+        private ScheduledDelegate openDelegate;
+        private void menuItemHovered(DrawableMenuItem item)
+        {
+            // If we're not a sub-menu, then hover shouldn't display a sub-menu unless an item is clicked
+            if (RequireClickToOpen && subMenu?.State != MenuState.Open)
+                return;
+
+            openDelegate?.Cancel();
+
+            if (RequireClickToOpen || HoverOpenDelay == 0)
+                openSubmenuFor(item);
+            else
+            {
+                openDelegate = Scheduler.AddDelayed(() =>
+                {
+                    if (item.IsHovered)
+                        openSubmenuFor(item);
+                }, HoverOpenDelay);
+            }
+        }
+
+        public override bool AcceptsFocus => true;
+        protected override bool OnClick(InputState state) => true;
+        protected override bool OnHover(InputState state) => true;
+
+        protected override void OnFocusLost(InputState state)
+        {
+            // Case where a sub-menu was opened the focus will be transferred to that sub-menu while this menu will receive OnFocusLost
+            if (subMenu?.State == MenuState.Open)
+                return;
+
+            // At this point we should have lost focus due to clicks outside the menu structure
+            closeAll();
+        }
+
+        /// <summary>
+        /// Closes all open <see cref="Menu"/>s.
+        /// </summary>
+        private void closeAll()
+        {
+            Close();
+
+            var iterator = parentMenu;
+            while (iterator != null)
+            {
+                if (iterator.IsHovered)
+                    break;
+                iterator.Close();
+                iterator = iterator.parentMenu;
+            }
+        }
+
+        #endregion
+
+        /// <summary>
+        /// Creates a sub-menu for <see cref="MenuItem.Items"/> of <see cref="MenuItem"/>s added to this <see cref="Menu"/>.
+        /// </summary>
+        /// <returns></returns>
+        protected virtual Menu CreateSubMenu() => new Menu(Direction.Vertical)
+        {
+            Anchor = Direction == Direction.Horizontal ? Anchor.BottomLeft : Anchor.TopRight
+        };
 
         /// <summary>
         /// Creates the visual representation for a <see cref="MenuItem"/>.
@@ -300,44 +489,51 @@ namespace osu.Framework.Graphics.UserInterface
         /// <returns>The visual representation.</returns>
         protected virtual DrawableMenuItem CreateDrawableMenuItem(MenuItem item) => new DrawableMenuItem(item);
 
-        protected virtual MarginPadding ItemFlowContainerPadding => new MarginPadding();
-
         #region DrawableMenuItem
         protected class DrawableMenuItem : CompositeDrawable
         {
+            /// <summary>
+            /// Invoked when this <see cref="DrawableMenuItem"/> is clicked. This occurs regardless of whether or not <see cref="MenuItem.Action"/> was
+            /// invoked or not, or whether <see cref="Item"/> contains any sub-<see cref="MenuItem"/>s.
+            /// </summary>
+            public Action<DrawableMenuItem> Clicked;
+
+            /// <summary>
+            /// Invoked when this <see cref="DrawableMenuItem"/> is hovered. This runs one update frame behind the actual hover event.
+            /// </summary>
+            public Action<DrawableMenuItem> Hovered;
+
+            /// <summary>
+            /// The <see cref="MenuItem"/> which this <see cref="DrawableMenuItem"/> represents.
+            /// </summary>
             public readonly MenuItem Item;
 
             /// <summary>
-            /// Fired generally when this item was clicked and requests the containing menu to close itself.
+            /// The content of this <see cref="DrawableMenuItem"/>, created through <see cref="CreateContent"/>.
             /// </summary>
-            public Action CloseRequested;
+            protected readonly Drawable Content;
 
-            private readonly Drawable content;
-
+            /// <summary>
+            /// The background of this <see cref="DrawableMenuItem"/>.
+            /// </summary>
             protected readonly Box Background;
+
+            /// <summary>
+            /// The foreground of this <see cref="DrawableMenuItem"/>. This contains the content of this <see cref="DrawableMenuItem"/>.
+            /// </summary>
             protected readonly Container Foreground;
 
             public DrawableMenuItem(MenuItem item)
             {
                 Item = item;
 
-                RelativeSizeAxes = Axes.X;
-                AutoSizeAxes = Axes.Y;
                 InternalChildren = new Drawable[]
                 {
-                    Background = new Box
-                    {
-                        RelativeSizeAxes = Axes.Both,
-                    },
-                    Foreground = new Container
-                    {
-                        RelativeSizeAxes = Axes.X,
-                        AutoSizeAxes = Axes.Y,
-                        Child = content = CreateContent(),
-                    },
+                    Background = new Box { RelativeSizeAxes = Axes.Both },
+                    Foreground = new Container { Child = Content = CreateContent() },
                 };
 
-                var textContent = content as IHasText;
+                var textContent = Content as IHasText;
                 if (textContent != null)
                 {
                     textContent.Text = item.Text;
@@ -401,10 +597,35 @@ namespace osu.Framework.Graphics.UserInterface
                 }
             }
 
+            public override Axes RelativeSizeAxes
+            {
+                get { return base.RelativeSizeAxes; }
+                set
+                {
+                    base.RelativeSizeAxes = value;
+                    Foreground.RelativeSizeAxes = value;
+                }
+            }
+
+            public new Axes AutoSizeAxes
+            {
+                get { return base.AutoSizeAxes; }
+                set
+                {
+                    base.AutoSizeAxes = value;
+                    Foreground.AutoSizeAxes = value;
+                }
+            }
+
             /// <summary>
             /// The draw width of the text of this <see cref="DrawableMenuItem"/>.
             /// </summary>
-            public float TextDrawWidth => content.DrawWidth;
+            public float ContentDrawWidth => Content.DrawWidth;
+
+            /// <summary>
+            /// The draw width of the text of this <see cref="DrawableMenuItem"/>.
+            /// </summary>
+            public float ContentDrawHeight => Content.DrawHeight;
 
             /// <summary>
             /// Called after the <see cref="BackgroundColour"/> is modified or the hover state changes.
@@ -433,7 +654,14 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 UpdateBackgroundColour();
                 UpdateForegroundColour();
-                return base.OnHover(state);
+
+                Schedule(() =>
+                {
+                    if (IsHovered)
+                        Hovered?.Invoke(this);
+                });
+
+                return false;
             }
 
             protected override void OnHoverLost(InputState state)
@@ -446,10 +674,13 @@ namespace osu.Framework.Graphics.UserInterface
             protected override bool OnClick(InputState state)
             {
                 if (Item.Action.Disabled)
-                    return false;
+                    return true;
 
-                Item.Action.Value?.Invoke();
-                CloseRequested?.Invoke();
+                if (Item.Items?.Count == 0)
+                    Item.Action.Value?.Invoke();
+
+                Clicked?.Invoke(this);
+
                 return true;
             }
 
@@ -462,7 +693,8 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 Anchor = Anchor.CentreLeft,
                 Origin = Anchor.CentreLeft,
-                TextSize = 17
+                Padding = new MarginPadding(5),
+                TextSize = 17,
             };
         }
         #endregion
@@ -471,6 +703,6 @@ namespace osu.Framework.Graphics.UserInterface
     public enum MenuState
     {
         Closed,
-        Opened
+        Open
     }
 }
