@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Diagnostics;
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Desktop.Platform;
@@ -218,7 +219,8 @@ namespace osu.Framework.Testing
             StepsContainer.Add(new AssertButton
             {
                 Text = description,
-                ExtendedDescription = $"{extendedDescription} ({actionIndex})",
+                ExtendedDescription = extendedDescription,
+                CallStack = new StackTrace(1),
                 Assertion = assert,
             });
         }
