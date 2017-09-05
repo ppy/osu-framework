@@ -26,12 +26,37 @@ namespace osu.Framework.Testing
 
         protected override Container<Drawable> Content => content;
 
-        [Test]
-        public virtual void RunTest()
+        private bool mainTest = true;
+
+        /// <summary>
+        /// Runs prior to all tests except <see cref="TestConstructor"/> to ensure that the <see cref="TestCase"/>
+        /// is reverted to a clean state for all tests.
+        /// </summary>
+        [SetUp]
+        public void SetupTest()
         {
-            using (var host = new HeadlessGameHost(realtime: false))
+            if (!mainTest)
+                StepsContainer.Clear();
+        }
+
+        /// <summary>
+        /// Ensures that the NUnit test runs correctly by running a <see cref="HeadlessGameHost"/>.
+        /// This runs during NUnit's TearDown to ensure that <see cref="TestCase"/> steps (e.g. from <see cref="AddStep(string, Action)"/>)
+        /// are properly added and executed.
+        /// </summary>
+        [TearDown]
+        public void RunTest()
+        {
+            using (var host = new HeadlessGameHost())
                 host.Run(new TestCaseTestRunner(this));
         }
+
+        /// <summary>
+        /// Tests any steps and assertions in the constructor of this <see cref="TestCase"/>.
+        /// This test must run before any other tests, as it relies on <see cref="StepsContainer"/> not being cleared and not having any elements.
+        /// </summary>
+        [Test, Order(int.MinValue)]
+        public void TestConstructor() { mainTest = false; }
 
         protected TestCase()
         {
@@ -84,22 +109,29 @@ namespace osu.Framework.Testing
         private int actionRepetition;
         private ScheduledDelegate stepRunner;
 
-        public void RunAllSteps(Action onCompletion = null)
+        public void RunAllSteps(Action onCompletion = null, Action<Exception> onError = null)
         {
             stepRunner?.Cancel();
 
             actionIndex = -1;
             actionRepetition = 0;
-            runNextStep(onCompletion);
+            runNextStep(onCompletion, onError);
         }
 
         private Drawable loadableStep => actionIndex >= 0 ? StepsContainer.Children.ElementAtOrDefault(actionIndex) : null;
 
         protected virtual double TimePerAction => 200;
 
-        private void runNextStep(Action onCompletion)
+        private void runNextStep(Action onCompletion, Action<Exception> onError)
         {
-            loadableStep?.TriggerOnClick();
+            try
+            {
+                loadableStep?.TriggerOnClick();
+            }
+            catch (Exception e)
+            {
+                onError?.Invoke(e);
+            }
 
             string text = ".";
 
@@ -134,7 +166,7 @@ namespace osu.Framework.Testing
             }
 
             if (Parent != null)
-                stepRunner = Scheduler.AddDelayed(() => runNextStep(onCompletion), TimePerAction);
+                stepRunner = Scheduler.AddDelayed(() => runNextStep(onCompletion, onError), TimePerAction);
         }
 
         protected void AddStep(string description, Action action)
@@ -186,7 +218,7 @@ namespace osu.Framework.Testing
             StepsContainer.Add(new AssertButton
             {
                 Text = description,
-                ExtendedDescription = extendedDescription,
+                ExtendedDescription = $"{extendedDescription} ({actionIndex})",
                 Assertion = assert,
             });
         }
