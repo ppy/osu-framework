@@ -40,12 +40,16 @@ namespace osu.Framework.Graphics.Visualisation
 
         private TreeContainerStatus state;
 
+        public event Action<TreeContainerStatus> StateChanged;
+
         public TreeContainerStatus State
         {
             get { return state; }
 
             set
             {
+                if (state == value)
+                    return;
                 state = value;
 
                 switch (state)
@@ -57,6 +61,8 @@ namespace osu.Framework.Graphics.Visualisation
                         this.FadeIn(300, Easing.OutQuint);
                         break;
                 }
+
+                StateChanged?.Invoke(State);
             }
         }
 
@@ -182,7 +188,7 @@ namespace osu.Framework.Graphics.Visualisation
                 }
             });
 
-            PropertyDisplay.StateChanged += (c, v) => propertyButton.BackgroundColour = v == Visibility.Visible ? buttonBackgroundHighlighted : buttonBackground;
+            PropertyDisplay.StateChanged += v => propertyButton.BackgroundColour = v == Visibility.Visible ? buttonBackgroundHighlighted : buttonBackground;
         }
 
         protected override void Update()

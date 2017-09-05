@@ -118,7 +118,7 @@ namespace osu.Framework.Graphics.UserInterface
                 Menu = CreateMenu()
             };
 
-            Menu.UseParentWidth = true;
+            Menu.RelativeSizeAxes = Axes.X;
 
             Header.Action = Menu.Toggle;
             Current.ValueChanged += selectionChanged;
@@ -196,6 +196,11 @@ namespace osu.Framework.Graphics.UserInterface
         #region DropdownMenu
         public class DropdownMenu : Menu
         {
+            public DropdownMenu()
+                : base(Direction.Vertical)
+            {
+            }
+
             /// <summary>
             /// Selects an item from this <see cref="DropdownMenu"/>.
             /// </summary>

@@ -67,7 +67,7 @@ namespace osu.Framework.Graphics.Visualisation
 
             propertyDisplay = treeContainer.PropertyDisplay;
 
-            propertyDisplay.StateChanged += (display, visibility) =>
+            propertyDisplay.StateChanged += visibility =>
             {
                 switch (visibility)
                 {
