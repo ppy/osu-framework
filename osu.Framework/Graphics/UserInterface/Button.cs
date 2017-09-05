@@ -63,17 +63,20 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnClick(InputState state)
         {
-            var flash = new Box
+            if (Enabled.Value)
             {
-                RelativeSizeAxes = Axes.Both
-            };
+                var flash = new Box
+                {
+                    RelativeSizeAxes = Axes.Both
+                };
 
-            Add(flash);
+                Add(flash);
 
-            flash.Colour = Background.Colour;
-            flash.BlendingMode = BlendingMode.Additive;
-            flash.FadeOutFromOne(200);
-            flash.Expire();
+                flash.Colour = Background.Colour;
+                flash.BlendingMode = BlendingMode.Additive;
+                flash.FadeOutFromOne(200);
+                flash.Expire();
+            }
 
             return base.OnClick(state);
         }

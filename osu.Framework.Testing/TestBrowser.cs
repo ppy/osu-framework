@@ -79,6 +79,8 @@ namespace osu.Framework.Testing
             leftFlowContainer.AddRange(TestTypes.Where(t => t.Assembly == asm).Select(t => new TestCaseButton(t) { Action = () => LoadTest(t) }));
         }
 
+        private Button runAllButton;
+
         [BackgroundDependencyLoader]
         private void load(Storage storage, GameHost host)
         {
@@ -133,8 +135,10 @@ namespace osu.Framework.Testing
                                 },
                                 new FillFlowContainer
                                 {
+                                    Spacing = new Vector2(5),
                                     Direction = FillDirection.Horizontal,
-                                    Margin = new MarginPadding(10),
+                                    RelativeSizeAxes = Axes.Both,
+                                    Padding = new MarginPadding(10),
                                     Children = new Drawable[]
                                     {
                                         new SpriteText
@@ -142,7 +146,24 @@ namespace osu.Framework.Testing
                                             Padding = new MarginPadding(5),
                                             Text = "Current Assembly:"
                                         },
-                                        assemblyDropdown
+                                        assemblyDropdown,
+                                        runAllButton = new Button
+                                        {
+                                            Text = "Run all steps",
+                                            BackgroundColour = Color4.MediumPurple,
+                                            Action = delegate
+                                            {
+                                                runAllButton.Enabled.Value = false;
+                                                runAllButton.BackgroundColour = Color4.DimGray;
+                                                CurrentTest.RunAllSteps(delegate
+                                                {
+                                                    runAllButton.Enabled.Value = true;
+                                                    runAllButton.BackgroundColour = Color4.MediumPurple;
+                                                });
+                                            },
+                                            Width = 150,
+                                            RelativeSizeAxes = Axes.Y,
+                                        },
                                     }
                                 }
                             }
