@@ -11,9 +11,9 @@ namespace osu.Framework.Testing
 {
     public class TestCaseTestRunner : Game
     {
-        public TestCaseTestRunner(TestCase t)
+        public TestCaseTestRunner(TestCase testCase)
         {
-            Add(new TestRunner(t));
+            Add(new TestRunner(testCase));
         }
 
         public class TestRunner : Screen
@@ -59,9 +59,21 @@ namespace osu.Framework.Testing
 
                 Console.WriteLine($@"{(int)Time.Current}: Running {test} visual test cases...");
 
+                // Nunit will run the tests in the TestCase with the same TestCase instance so the TestCase
+                // needs to be removed before the host is exited, otherwise it will end up disposed
+
                 test.RunAllSteps(() =>
                 {
-                    Scheduler.AddDelayed(host.Exit, time_between_tests);
+                    Scheduler.AddDelayed(() =>
+                    {
+                        Remove(test);
+                        host.Exit();
+                    }, time_between_tests);
+                }, e =>
+                {
+                    // Other tests may run even if this one failed, so the TestCase still needs to be removed
+                    Remove(test);
+                    throw new Exception("The test case threw an exception while running", e);
                 });
             }
         }
