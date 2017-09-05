@@ -71,7 +71,7 @@ namespace osu.Framework.Testing
                     }, time_between_tests);
                 }, e =>
                 {
-                    // Other tests may run even if this one failed, so the TestCase still needs to be removed 
+                    // Other tests may run even if this one failed, so the TestCase still needs to be removed
                     Remove(test);
                     throw new Exception("The test case threw an exception while running", e);
                 });

@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Diagnostics;
 using OpenTK.Graphics;
 
 namespace osu.Framework.Testing.Drawables.Steps
@@ -9,8 +10,8 @@ namespace osu.Framework.Testing.Drawables.Steps
     public class AssertButton : StepButton
     {
         public Func<bool> Assertion;
-
         public string ExtendedDescription;
+        public StackTrace CallStack;
 
         public AssertButton()
         {
@@ -26,9 +27,22 @@ namespace osu.Framework.Testing.Drawables.Steps
                 BackgroundColour = Color4.YellowGreen;
             }
             else
-                throw new Exception($"{Text} {ExtendedDescription}");
+                throw new TracedException($"{Text} {ExtendedDescription}", CallStack);
         }
 
         public override string ToString() => "Assert: " + base.ToString();
+
+        private class TracedException : Exception
+        {
+            private readonly StackTrace trace;
+
+            public TracedException(string description, StackTrace trace)
+                : base(description)
+            {
+                this.trace = trace;
+            }
+
+            public override string StackTrace => trace.ToString();
+        }
     }
 }
