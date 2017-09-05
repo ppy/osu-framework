@@ -151,11 +151,12 @@ namespace osu.Framework.Testing
                                         {
                                             Text = "Run all steps",
                                             BackgroundColour = Color4.MediumPurple,
-                                            Action = delegate {
+                                            Action = delegate
+                                            {
                                                 runAllButton.Enabled.Value = false;
                                                 runAllButton.BackgroundColour = Color4.DimGray;
-
-                                                CurrentTest.RunAllSteps(delegate {
+                                                CurrentTest.RunAllSteps(delegate
+                                                {
                                                     runAllButton.Enabled.Value = true;
                                                     runAllButton.BackgroundColour = Color4.MediumPurple;
                                                 });
