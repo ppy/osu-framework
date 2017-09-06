@@ -516,7 +516,7 @@ namespace osu.Framework.Graphics.UserInterface
             /// <summary>
             /// The background of this <see cref="DrawableMenuItem"/>.
             /// </summary>
-            protected readonly Box Background;
+            protected readonly Drawable Background;
 
             /// <summary>
             /// The foreground of this <see cref="DrawableMenuItem"/>. This contains the content of this <see cref="DrawableMenuItem"/>.
@@ -527,9 +527,9 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 Item = item;
 
-                InternalChildren = new Drawable[]
+                InternalChildren = new[]
                 {
-                    Background = new Box { RelativeSizeAxes = Axes.Both },
+                    Background = CreateBackground(),
                     Foreground = new Container { Child = Content = CreateContent() },
                 };
 
@@ -683,6 +683,11 @@ namespace osu.Framework.Graphics.UserInterface
 
                 return true;
             }
+
+            /// <summary>
+            /// Creates the background of this <see cref="DrawableMenuItem"/>.
+            /// </summary>
+            protected virtual Drawable CreateBackground() => new Box { RelativeSizeAxes = Axes.Both };
 
             /// <summary>
             /// Creates the content which will be displayed in this <see cref="DrawableMenuItem"/>.
