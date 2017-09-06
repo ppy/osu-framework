@@ -496,12 +496,12 @@ namespace osu.Framework.Graphics.UserInterface
             /// Invoked when this <see cref="DrawableMenuItem"/> is clicked. This occurs regardless of whether or not <see cref="MenuItem.Action"/> was
             /// invoked or not, or whether <see cref="Item"/> contains any sub-<see cref="MenuItem"/>s.
             /// </summary>
-            public Action<DrawableMenuItem> Clicked;
+            internal Action<DrawableMenuItem> Clicked;
 
             /// <summary>
             /// Invoked when this <see cref="DrawableMenuItem"/> is hovered. This runs one update frame behind the actual hover event.
             /// </summary>
-            public Action<DrawableMenuItem> Hovered;
+            internal Action<DrawableMenuItem> Hovered;
 
             /// <summary>
             /// The <see cref="MenuItem"/> which this <see cref="DrawableMenuItem"/> represents.
