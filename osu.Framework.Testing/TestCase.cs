@@ -46,7 +46,7 @@ namespace osu.Framework.Testing
         /// are properly added and executed.
         /// </summary>
         [TearDown]
-        public void RunTest()
+        public virtual void RunTest()
         {
             using (var host = new HeadlessGameHost())
                 host.Run(new TestCaseTestRunner(this));
