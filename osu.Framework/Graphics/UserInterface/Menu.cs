@@ -662,6 +662,8 @@ namespace osu.Framework.Graphics.UserInterface
 
                     UpdateForegroundColour();
                     UpdateBackgroundColour();
+
+                    StateChanged?.Invoke();
                 }
             }
 
