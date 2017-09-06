@@ -226,6 +226,7 @@ namespace osu.Framework.Graphics.UserInterface
                     return;
 
                 updateState();
+                StateChanged?.Invoke(State);
             }
         }
 
@@ -258,7 +259,6 @@ namespace osu.Framework.Graphics.UserInterface
             }
 
             sizeCache.Invalidate();
-            StateChanged?.Invoke(State);
         }
 
         /// <summary>
@@ -296,7 +296,7 @@ namespace osu.Framework.Graphics.UserInterface
         public void Clear()
         {
             ItemsContainer.Clear();
-            sizeCache.Invalidate();
+            updateState();
         }
 
         /// <summary>
@@ -412,8 +412,6 @@ namespace osu.Framework.Graphics.UserInterface
                 subMenu.parentMenu = this;
                 subMenu.StateChanged += subMenuStateChanged;
             }
-            else
-                subMenu.Close();
 
             subMenu.Items = item.Item.Items;
             subMenu.Position = new Vector2(
@@ -663,7 +661,7 @@ namespace osu.Framework.Graphics.UserInterface
                     UpdateForegroundColour();
                     UpdateBackgroundColour();
 
-                    StateChanged?.Invoke();
+                    StateChanged?.Invoke(state);
                 }
             }
 
