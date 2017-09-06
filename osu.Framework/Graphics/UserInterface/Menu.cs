@@ -490,7 +490,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected virtual DrawableMenuItem CreateDrawableMenuItem(MenuItem item) => new DrawableMenuItem(item);
 
         #region DrawableMenuItem
-        protected class DrawableMenuItem : CompositeDrawable
+        public class DrawableMenuItem : CompositeDrawable
         {
             /// <summary>
             /// Invoked when this <see cref="DrawableMenuItem"/> is clicked. This occurs regardless of whether or not <see cref="MenuItem.Action"/> was

@@ -228,7 +228,7 @@ namespace osu.Framework.Graphics.UserInterface
             public bool AnyPresent => Children.Any(c => c.IsPresent);
 
             #region DrawableDropdownMenuItem
-            protected class DrawableDropdownMenuItem : DrawableMenuItem
+            public class DrawableDropdownMenuItem : DrawableMenuItem
             {
                 private bool selected;
                 public bool IsSelected
