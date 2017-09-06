@@ -62,15 +62,29 @@ namespace osu.Framework.Desktop.Platform
             Exited += onExit;
         }
 
+        protected override void OnMove(EventArgs e)
+        {
+            base.OnMove(e);
+
+            // The game is windowed and the whole window is on the screen (it is not minimized or moved outside of the screen)
+            if (WindowMode.Value == Configuration.WindowMode.Windowed
+                && Position.X > 0 && Position.X < 1
+                && Position.Y > 0 && Position.Y < 1)
+            {
+                windowPositionX.Value = Position.X;
+                windowPositionY.Value = Position.Y;
+            }
+        }
+
         protected override void OnResize(EventArgs e)
         {
             base.OnResize(e);
-            switch (WindowMode.Value)
+
+            // The game is windowed and not minimized
+            if (WindowMode.Value == Configuration.WindowMode.Windowed && !ClientSize.IsEmpty)
             {
-                case Configuration.WindowMode.Windowed:
-                    width.Value = ClientSize.Width;
-                    height.Value = ClientSize.Height;
-                    break;
+                width.Value = ClientSize.Width;
+                height.Value = ClientSize.Height;
             }
         }
 
@@ -130,16 +144,10 @@ namespace osu.Framework.Desktop.Platform
 
         private void onExit()
         {
-            switch (WindowMode.Value)
+            if (WindowMode.Value == Configuration.WindowMode.Fullscreen)
             {
-                case Configuration.WindowMode.Fullscreen:
-                    widthFullscreen.Value = ClientSize.Width;
-                    heightFullscreen.Value = ClientSize.Height;
-                    break;
-                case Configuration.WindowMode.Windowed:
-                    windowPositionX.Value = Position.X;
-                    windowPositionY.Value = Position.Y;
-                    break;
+                widthFullscreen.Value = ClientSize.Width;
+                heightFullscreen.Value = ClientSize.Height;
             }
 
             DisplayDevice.Default.RestoreResolution();
