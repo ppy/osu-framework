@@ -73,7 +73,7 @@ namespace osu.Framework.Testing.Drawables.Steps
             {
                 RelativeSizeAxes = Axes.Both,
                 Colour = Color4.RoyalBlue,
-                BlendingMode = BlendingMode.Additive,
+                Blending = BlendingMode.Additive,
                 Alpha = 0.6f,
             };
 

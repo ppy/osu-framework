@@ -486,7 +486,7 @@ namespace osu.Framework.Graphics.Containers
                 RelativeSizeAxes = scrollDir == Direction.Horizontal ? Axes.X : Axes.Y;
                 Colour = defaultColour;
 
-                BlendingMode = BlendingMode.Additive;
+                Blending = BlendingMode.Additive;
 
                 CornerRadius = 5;
 

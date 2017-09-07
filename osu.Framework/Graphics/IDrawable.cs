@@ -70,7 +70,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Determines how this Drawable is blended with other already drawn Drawables.
         /// </summary>
-        BlendingMode BlendingMode { get; }
+        BlendingModeParameters Blending { get; }
 
         /// <summary>
         /// Whether this Drawable is currently hovered over.

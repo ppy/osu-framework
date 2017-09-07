@@ -1093,21 +1093,37 @@ namespace osu.Framework.Graphics
             }
         }
 
-        private BlendingMode blendingMode;
+        private BlendingModeParameters blending;
 
         /// <summary>
         /// Determines how this Drawable is blended with other already drawn Drawables.
-        /// Inherits the <see cref="Parent"/>'s <see cref="BlendingMode"/> by default.
+        /// Inherits the <see cref="Parent"/>'s <see cref="Blending"/> by default.
         /// </summary>
-        public BlendingMode BlendingMode
+        public BlendingModeParameters Blending
         {
-            get { return blendingMode; }
+            get { return blending; }
 
             set
             {
-                if (blendingMode == value) return;
+                if (blending.Equals(value))
+                    return;
 
-                blendingMode = value;
+                blending = value;
+                Invalidate(Invalidation.Colour);
+            }
+        }
+
+        private BlendingEquation alphaBlendingEquation;
+
+        public BlendingEquation AlphaBlendingEquation
+        {
+            get { return alphaBlendingEquation; }
+            set
+            {
+                if (alphaBlendingEquation == value)
+                    return;
+                alphaBlendingEquation = value;
+
                 Invalidate(Invalidation.Colour);
             }
         }
@@ -1287,14 +1303,20 @@ namespace osu.Framework.Graphics
 
             Vector2 pos = DrawPosition + AnchorPosition;
             Vector2 drawScale = DrawScale;
-            BlendingMode localBlendingMode = BlendingMode;
+            BlendingModeParameters localBlendingMode = Blending;
 
             if (Parent != null)
             {
                 pos += Parent.ChildOffset;
 
-                if (localBlendingMode == BlendingMode.Inherit)
-                    localBlendingMode = Parent.BlendingMode;
+                if (localBlendingMode.Mode == BlendingMode.Inherit)
+                    localBlendingMode.Mode = Parent.Blending.Mode;
+
+                if (localBlendingMode.RGBEquation == BlendingEquation.Inherit)
+                    localBlendingMode.RGBEquation = Parent.Blending.RGBEquation;
+
+                if (localBlendingMode.AlphaEquation == BlendingEquation.Inherit)
+                    localBlendingMode.AlphaEquation = Parent.Blending.AlphaEquation;
             }
 
             di.ApplyTransform(pos, drawScale, Rotation, Shear, OriginPosition);
@@ -2123,6 +2145,22 @@ namespace osu.Framework.Graphics
         CounterClockwise,
     }
 
+    public struct BlendingModeParameters
+    {
+        public BlendingMode Mode;
+        public BlendingEquation RGBEquation;
+        public BlendingEquation AlphaEquation;
+
+        public static implicit operator BlendingModeParameters(BlendingMode blendingMode) => new BlendingModeParameters { Mode = blendingMode };
+        public static implicit operator BlendingModeParameters(BlendingEquation blendingEquation) => new BlendingModeParameters
+        {
+            RGBEquation = blendingEquation,
+            AlphaEquation = blendingEquation
+        };
+
+        public bool Equals(BlendingModeParameters other) => other.Mode == Mode && other.RGBEquation == RGBEquation && other.AlphaEquation == AlphaEquation;
+    }
+
     public enum BlendingMode
     {
         /// <summary>
@@ -2141,6 +2179,34 @@ namespace osu.Framework.Graphics
         /// No alpha blending whatsoever.
         /// </summary>
         None,
+    }
+
+    public enum BlendingEquation
+    {
+        /// <summary>
+        /// Inherits from parent.
+        /// </summary>
+        Inherit = 0,
+        /// <summary>
+        /// Adds the source and destination colours.
+        /// </summary>
+        Add,
+        /// <summary>
+        /// Chooses the minimum of each component of the source and destination colours.
+        /// </summary>
+        Min,
+        /// <summary>
+        /// Chooses the maximum of each component of the source and destination colours.
+        /// </summary>
+        Max,
+        /// <summary>
+        /// Subtracts the destination colour from the source colour.
+        /// </summary>
+        Subtract,
+        /// <summary>
+        /// Subtracts the source colour from the destination colour.
+        /// </summary>
+        ReverseSubtract,
     }
 
     /// <summary>
