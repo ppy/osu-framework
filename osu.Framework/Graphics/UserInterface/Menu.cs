@@ -19,6 +19,9 @@ namespace osu.Framework.Graphics.UserInterface
 {
     public class Menu : CompositeDrawable, IStateful<MenuState>
     {
+        /// <summary>
+        /// Invoked when this <see cref="Menu"/>'s <see cref="State"/> changes.
+        /// </summary>
         public event Action<MenuState> StateChanged;
 
         /// <summary>
