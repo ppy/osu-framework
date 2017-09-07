@@ -407,6 +407,7 @@ namespace osu.Framework.Graphics.UserInterface
                 Direction == Direction.Horizontal ? Height : item.Y);
 
             currentlySelected = item;
+
             if (item.Item.Items.Count > 0)
                 subMenu.Open();
             else
@@ -418,6 +419,9 @@ namespace osu.Framework.Graphics.UserInterface
             switch (state)
             {
                 case MenuItemState.Selected:
+                    if (currentlySelected != item)
+                        currentlySelected.State = MenuItemState.NotSelected;
+
                     openSubmenuFor(item);
                     break;
             }
