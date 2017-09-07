@@ -374,6 +374,36 @@ namespace osu.Framework.Desktop.Tests.Visual
                 });
             }
         }
+
+        [Test]
+        public void TestSelectedState()
+        {
+            AddStep("Click item", () => clickItem(0, 2));
+            AddAssert("Check open", () => menus.GetSubMenu(1).State == MenuState.Open);
+
+            AddStep("Hover item", () => inputManager.MoveMouseTo(menus.GetSubStructure(1).GetMenuItems()[1]));
+            AddAssert("Check closed", () => menus.GetSubMenu(2)?.State != MenuState.Open);
+            AddAssert("Check open", () => menus.GetSubMenu(2).State == MenuState.Open);
+            AddAssert("Check selected index", () => menus.GetSubStructure(1).GetSelectedIndex() == 1);
+
+            IReadOnlyList<Drawable> items = null;
+            AddStep("Get items", () => items = menus.GetSubStructure(2).GetMenuItems().ToList());
+
+            AddStep("Change selection", () => menus.GetSubStructure(1).SetSelectedState(0, MenuItemState.Selected));
+            AddAssert("Check selected index", () => menus.GetSubStructure(1).GetSelectedIndex() == 0);
+            AddAssert("Check closed", () => menus.GetSubMenu(2)?.State != MenuState.Open);
+            AddAssert("Check different items", () => !menus.GetSubStructure(2).GetMenuItems().SequenceEqual(items));
+
+            AddStep("Get items", () => items = menus.GetSubStructure(2).GetMenuItems().ToList());
+
+            AddStep("Change selection", () => menus.GetSubStructure(1).SetSelectedState(2, MenuItemState.Selected));
+            AddAssert("Check selected index", () => menus.GetSubStructure(1).GetSelectedIndex() == 2);
+            AddAssert("Check open", () => menus.GetSubMenu(2).State == MenuState.Open);
+            AddAssert("Check different items", () => !menus.GetSubStructure(2).GetMenuItems().SequenceEqual(items));
+
+            AddStep("Close menus", () => menus.GetSubMenu(0).Close());
+            AddAssert("Check selected index", () => menus.GetSubStructure(1).GetSelectedIndex() == -1);
+        }
         #endregion
 
         private void clickItem(int menuIndex, int itemIndex)
