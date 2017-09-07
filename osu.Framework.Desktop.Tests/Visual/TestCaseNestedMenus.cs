@@ -106,8 +106,8 @@ namespace osu.Framework.Desktop.Tests.Visual
         public void TestHoverState()
         {
             AddAssert("Check submenu closed", () => menus.GetSubMenu(1)?.State != MenuState.Open);
-            AddStep("Hover item", () => inputManager.MoveMouseTo(menus.GetMenuItem(0)));
-            AddAssert("Check item hovered", () => menus.GetMenuItem(0).IsHovered);
+            AddStep("Hover item", () => inputManager.MoveMouseTo(menus.GetMenuItems()[0]));
+            AddAssert("Check item hovered", () => menus.GetMenuItems()[0].IsHovered);
         }
 
         /// <summary>
@@ -116,7 +116,7 @@ namespace osu.Framework.Desktop.Tests.Visual
         [Test]
         public void TestRequireClickToOpen()
         {
-            AddStep("Hover item", () => inputManager.MoveMouseTo(menus.GetSubStructure(0).GetMenuItem(0)));
+            AddStep("Hover item", () => inputManager.MoveMouseTo(menus.GetSubStructure(0).GetMenuItems()[0]));
             AddAssert("Check closed", () => menus.GetSubMenu(1)?.State != MenuState.Open);
             AddAssert("Check closed", () => menus.GetSubMenu(1)?.State != MenuState.Open);
             AddStep("Click item", () => inputManager.Click(MouseButton.Left));
@@ -166,10 +166,10 @@ namespace osu.Framework.Desktop.Tests.Visual
         public void TestHoverOpen()
         {
             AddStep("Click item", () => clickItem(0, 1));
-            AddStep("Hover item", () => inputManager.MoveMouseTo(menus.GetSubStructure(1).GetMenuItem(0)));
+            AddStep("Hover item", () => inputManager.MoveMouseTo(menus.GetSubStructure(1).GetMenuItems()[0]));
             AddAssert("Check closed", () => menus.GetSubMenu(2)?.State != MenuState.Open);
             AddAssert("Check open", () => menus.GetSubMenu(2).State == MenuState.Open);
-            AddStep("Hover item", () => inputManager.MoveMouseTo(menus.GetSubStructure(2).GetMenuItem(0)));
+            AddStep("Hover item", () => inputManager.MoveMouseTo(menus.GetSubStructure(2).GetMenuItems()[0]));
             AddAssert("Check closed", () => menus.GetSubMenu(3)?.State != MenuState.Open);
             AddAssert("Check open", () => menus.GetSubMenu(3).State == MenuState.Open);
         }
@@ -193,7 +193,7 @@ namespace osu.Framework.Desktop.Tests.Visual
             });
 
             AddAssert("Check open", () => menus.GetSubMenu(1).State == MenuState.Open);
-            AddStep("Hover item", () => inputManager.MoveMouseTo(menus.GetSubStructure(0).GetMenuItem(1)));
+            AddStep("Hover item", () => inputManager.MoveMouseTo(menus.GetSubStructure(0).GetMenuItems()[1]));
             AddAssert("Check open", () => menus.GetSubMenu(1).State == MenuState.Open);
 
             AddAssert("Check new items", () => !menus.GetSubMenu(1).Items.SequenceEqual(currentItems));
@@ -223,19 +223,19 @@ namespace osu.Framework.Desktop.Tests.Visual
         public void TestDelayedHoverChange()
         {
             AddStep("Click item", () => clickItem(0, 2));
-            AddStep("Hover item", () => inputManager.MoveMouseTo(menus.GetSubStructure(1).GetMenuItem(0)));
+            AddStep("Hover item", () => inputManager.MoveMouseTo(menus.GetSubStructure(1).GetMenuItems()[0]));
             AddAssert("Check closed", () => menus.GetSubMenu(2)?.State != MenuState.Open);
-            AddAssert("Check open", () => menus.GetSubMenu(2).State == MenuState.Open);
+            AddAssert("Check closed", () => menus.GetSubMenu(2)?.State != MenuState.Open);
 
             IReadOnlyList<MenuItem> currentItems = null;
             AddStep("Hover item", () =>
             {
                 currentItems = menus.GetSubMenu(2).Items;
-                inputManager.MoveMouseTo(menus.GetSubStructure(1).GetMenuItem(1));
+                inputManager.MoveMouseTo(menus.GetSubStructure(1).GetMenuItems()[1]);
             });
 
-            AddAssert("Check open", () => menus.GetSubMenu(1).State == MenuState.Open);
-            AddAssert("Check open", () => menus.GetSubMenu(1).State == MenuState.Open);
+            AddAssert("Check closed", () => menus.GetSubMenu(2)?.State != MenuState.Open);
+            AddAssert("Check open", () => menus.GetSubMenu(2).State == MenuState.Open);
 
             AddAssert("Check new items", () => !menus.GetSubMenu(2).Items.SequenceEqual(currentItems));
             AddAssert("Check closed", () =>
@@ -270,7 +270,7 @@ namespace osu.Framework.Desktop.Tests.Visual
             for (int i = 3; i >= 1; i--)
             {
                 int menuIndex = i;
-                AddStep("Hover item", () => inputManager.MoveMouseTo(menus.GetSubStructure(menuIndex).GetMenuItem(0)));
+                AddStep("Hover item", () => inputManager.MoveMouseTo(menus.GetSubStructure(menuIndex).GetMenuItems()[0]));
                 AddAssert("Check submenu open", () => menus.GetSubMenu(menuIndex + 1).State == MenuState.Open);
                 AddStep("Click item", () => inputManager.Click(MouseButton.Left));
                 AddAssert("Check all open", () =>
@@ -357,7 +357,7 @@ namespace osu.Framework.Desktop.Tests.Visual
                 }
 
                 if (hoverPrevious && i > 0)
-                    AddStep("Hover previous", () => inputManager.MoveMouseTo(menus.GetSubStructure(i2 - 1).GetMenuItem(i2 > 1 ? 0 : 1)));
+                    AddStep("Hover previous", () => inputManager.MoveMouseTo(menus.GetSubStructure(i2 - 1).GetMenuItems()[i2 > 1 ? 0 : 1]));
 
                 AddStep("Remove hover", () => inputManager.MoveMouseTo(Vector2.Zero));
                 AddStep("Click outside", () => inputManager.Click(MouseButton.Left));
@@ -374,11 +374,41 @@ namespace osu.Framework.Desktop.Tests.Visual
                 });
             }
         }
+
+        [Test]
+        public void TestSelectedState()
+        {
+            AddStep("Click item", () => clickItem(0, 2));
+            AddAssert("Check open", () => menus.GetSubMenu(1).State == MenuState.Open);
+
+            AddStep("Hover item", () => inputManager.MoveMouseTo(menus.GetSubStructure(1).GetMenuItems()[1]));
+            AddAssert("Check closed", () => menus.GetSubMenu(2)?.State != MenuState.Open);
+            AddAssert("Check open", () => menus.GetSubMenu(2).State == MenuState.Open);
+            AddAssert("Check selected index", () => menus.GetSubStructure(1).GetSelectedIndex() == 1);
+
+            IReadOnlyList<Drawable> items = null;
+            AddStep("Get items", () => items = menus.GetSubStructure(2).GetMenuItems().ToList());
+
+            AddStep("Change selection", () => menus.GetSubStructure(1).SetSelectedState(0, MenuItemState.Selected));
+            AddAssert("Check selected index", () => menus.GetSubStructure(1).GetSelectedIndex() == 0);
+            AddAssert("Check closed", () => menus.GetSubMenu(2)?.State != MenuState.Open);
+            AddAssert("Check different items", () => !menus.GetSubStructure(2).GetMenuItems().SequenceEqual(items));
+
+            AddStep("Get items", () => items = menus.GetSubStructure(2).GetMenuItems().ToList());
+
+            AddStep("Change selection", () => menus.GetSubStructure(1).SetSelectedState(2, MenuItemState.Selected));
+            AddAssert("Check selected index", () => menus.GetSubStructure(1).GetSelectedIndex() == 2);
+            AddAssert("Check open", () => menus.GetSubMenu(2).State == MenuState.Open);
+            AddAssert("Check different items", () => !menus.GetSubStructure(2).GetMenuItems().SequenceEqual(items));
+
+            AddStep("Close menus", () => menus.GetSubMenu(0).Close());
+            AddAssert("Check selected index", () => menus.GetSubStructure(1).GetSelectedIndex() == -1);
+        }
         #endregion
 
         private void clickItem(int menuIndex, int itemIndex)
         {
-            inputManager.MoveMouseTo(menus.GetSubStructure(menuIndex).GetMenuItem(itemIndex));
+            inputManager.MoveMouseTo(menus.GetSubStructure(menuIndex).GetMenuItems()[itemIndex]);
             inputManager.Click(MouseButton.Left);
         }
 
@@ -440,6 +470,9 @@ namespace osu.Framework.Desktop.Tests.Visual
             public override int Priority => 0;
         }
 
+        /// <summary>
+        /// Helper class used to retrieve various internal properties/items from a <see cref="Menu"/>.
+        /// </summary>
         private class MenuStructure
         {
             private readonly Menu menu;
@@ -449,17 +482,49 @@ namespace osu.Framework.Desktop.Tests.Visual
                 this.menu = menu;
             }
 
-            public Drawable GetMenuItem(int index)
+            /// <summary>
+            /// Retrieves the <see cref="Menu.DrawableMenuItem"/>s of the <see cref="Menu"/> represented by this <see cref="MenuStructure"/>.
+            /// </summary>
+            public IReadOnlyList<Drawable> GetMenuItems()
             {
                 var contents = (CompositeDrawable)menu.InternalChildren[0];
                 var contentContainer = (CompositeDrawable)contents.InternalChildren[1];
-                var itemsContainer = (CompositeDrawable)((CompositeDrawable)contentContainer.InternalChildren[0]).InternalChildren[0];
-
-                return itemsContainer.InternalChildren[index];
+                return ((CompositeDrawable)((CompositeDrawable)contentContainer.InternalChildren[0]).InternalChildren[0]).InternalChildren;
             }
 
-            public MenuStructure GetSubStructure(int index) => new MenuStructure(GetSubMenu(index));
+            /// <summary>
+            /// Finds the <see cref="Menu.DrawableMenuItem"/> index in the <see cref="Menu"/> represented by this <see cref="MenuStructure"/> that
+            /// has <see cref="Menu.DrawableMenuItem.State"/> set to <see cref="MenuItemState.Selected"/>.
+            /// </summary>
+            public int GetSelectedIndex()
+            {
+                var items = GetMenuItems();
 
+                for (int i = 0; i < items.Count; i++)
+                {
+                    var state = (MenuItemState)(items[i]?.GetType().GetProperty("State")?.GetValue(items[i]) ?? MenuItemState.NotSelected);
+                    if (state == MenuItemState.Selected)
+                        return i;
+                }
+
+                return -1;
+            }
+
+            /// <summary>
+            /// Sets the <see cref="Menu.DrawableMenuItem"/> <see cref="Menu.DrawableMenuItem.State"/> at the specified index to a specified state.
+            /// </summary>
+            /// <param name="index">The index of the <see cref="Menu.DrawableMenuItem"/> to set the state of.</param>
+            /// <param name="state">The state to be set.</param>
+            public void SetSelectedState(int index, MenuItemState state)
+            {
+                var item = GetMenuItems()[index];
+                item.GetType().GetProperty("State")?.SetValue(item, state);
+            }
+
+            /// <summary>
+            /// Retrieves the sub-<see cref="Menu"/> at an index-offset from the current <see cref="Menu"/>.
+            /// </summary>
+            /// <param name="index">The sub-<see cref="Menu"/> index. An index of 0 is the <see cref="Menu"/> represented by this <see cref="MenuStructure"/>.</param>
             public Menu GetSubMenu(int index)
             {
                 var currentMenu = menu;
@@ -474,6 +539,12 @@ namespace osu.Framework.Desktop.Tests.Visual
 
                 return currentMenu;
             }
+
+            /// <summary>
+            /// Generates a new <see cref="MenuStructure"/> for the a sub-<see cref="Menu"/>.
+            /// </summary>
+            /// <param name="index">The sub-<see cref="Menu"/> index to generate the <see cref="MenuStructure"/> for. An index of 0 is the <see cref="Menu"/> represented by this <see cref="MenuStructure"/>.</param>
+            public MenuStructure GetSubStructure(int index) => new MenuStructure(GetSubMenu(index));
         }
     }
 }

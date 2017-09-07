@@ -19,6 +19,9 @@ namespace osu.Framework.Graphics.UserInterface
 {
     public class Menu : CompositeDrawable, IStateful<MenuState>
     {
+        /// <summary>
+        /// Invoked when this <see cref="Menu"/>'s <see cref="State"/> changes.
+        /// </summary>
         public event Action<MenuState> StateChanged;
 
         /// <summary>
@@ -222,43 +225,31 @@ namespace osu.Framework.Graphics.UserInterface
                     return;
                 state = value;
 
-                if (!IsLoaded)
-                    return;
-
                 updateState();
+                StateChanged?.Invoke(State);
             }
         }
 
         private void updateState()
         {
+            if (!IsLoaded)
+                return;
+
             subMenu?.Close();
 
             switch (State)
             {
                 case MenuState.Closed:
                     AnimateClose();
-
-                    if (HasFocus)
-                        GetContainingInputManager().ChangeFocus(null);
-
                     break;
                 case MenuState.Open:
                     AnimateOpen();
 
-                    if (AlwaysOpen)
-                        break;
-
-                    //schedule required as we may not be present currently.
-                    Schedule(() =>
-                    {
-                        if (State == MenuState.Open)
-                            GetContainingInputManager().ChangeFocus(this);
-                    });
+                    GetContainingInputManager().TriggerFocusContention();
                     break;
             }
 
             sizeCache.Invalidate();
-            StateChanged?.Invoke(State);
         }
 
         /// <summary>
@@ -272,6 +263,7 @@ namespace osu.Framework.Graphics.UserInterface
             drawableItem.RelativeSizeAxes = ItemsContainer.RelativeSizeAxes;
             drawableItem.Clicked = menuItemClicked;
             drawableItem.Hovered = menuItemHovered;
+            drawableItem.StateChanged += s => itemStateChanged(drawableItem, s);
 
             ItemsContainer.Add(drawableItem);
         }
@@ -295,7 +287,7 @@ namespace osu.Framework.Graphics.UserInterface
         public void Clear()
         {
             ItemsContainer.Clear();
-            sizeCache.Invalidate();
+            updateState();
         }
 
         /// <summary>
@@ -401,22 +393,54 @@ namespace osu.Framework.Graphics.UserInterface
             openSubmenuFor(item);
         }
 
+        private DrawableMenuItem currentlySelected;
+
         private void openSubmenuFor(DrawableMenuItem item)
         {
             if (subMenu == null)
             {
                 subMenuContainer.Add(subMenu = CreateSubMenu());
                 subMenu.parentMenu = this;
+                subMenu.StateChanged += subMenuStateChanged;
             }
-            else
-                subMenu.Close();
 
             subMenu.Items = item.Item.Items;
             subMenu.Position = new Vector2(
                 Direction == Direction.Vertical ? Width : item.X,
                 Direction == Direction.Horizontal ? Height : item.Y);
 
-            subMenu.Open();
+            currentlySelected = item;
+
+            if (item.Item.Items.Count > 0)
+                subMenu.Open();
+            else
+                subMenu.Close();
+        }
+
+        private void itemStateChanged(DrawableMenuItem item, MenuItemState state)
+        {
+            switch (state)
+            {
+                case MenuItemState.Selected:
+                    if (currentlySelected != item)
+                        currentlySelected.State = MenuItemState.NotSelected;
+
+                    openSubmenuFor(item);
+                    break;
+            }
+        }
+
+        private void subMenuStateChanged(MenuState state)
+        {
+            switch (state)
+            {
+                case MenuState.Closed:
+                    currentlySelected.State = MenuItemState.NotSelected;
+                    break;
+                case MenuState.Open:
+                    currentlySelected.State = MenuItemState.Selected;
+                    break;
+            }
         }
 
         private ScheduledDelegate openDelegate;
@@ -440,6 +464,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
+        public override bool RequestsFocus => State == MenuState.Open;
         public override bool AcceptsFocus => true;
         protected override bool OnClick(InputState state) => true;
         protected override bool OnHover(InputState state) => true;
@@ -490,18 +515,23 @@ namespace osu.Framework.Graphics.UserInterface
         protected virtual DrawableMenuItem CreateDrawableMenuItem(MenuItem item) => new DrawableMenuItem(item);
 
         #region DrawableMenuItem
-        protected class DrawableMenuItem : CompositeDrawable
+        protected class DrawableMenuItem : CompositeDrawable, IStateful<MenuItemState>
         {
+            /// <summary>
+            /// Invoked when this <see cref="DrawableMenuItem"/>'s <see cref="State"/> changes.
+            /// </summary>
+            public event Action<MenuItemState> StateChanged;
+
             /// <summary>
             /// Invoked when this <see cref="DrawableMenuItem"/> is clicked. This occurs regardless of whether or not <see cref="MenuItem.Action"/> was
             /// invoked or not, or whether <see cref="Item"/> contains any sub-<see cref="MenuItem"/>s.
             /// </summary>
-            public Action<DrawableMenuItem> Clicked;
+            internal Action<DrawableMenuItem> Clicked;
 
             /// <summary>
             /// Invoked when this <see cref="DrawableMenuItem"/> is hovered. This runs one update frame behind the actual hover event.
             /// </summary>
-            public Action<DrawableMenuItem> Hovered;
+            internal Action<DrawableMenuItem> Hovered;
 
             /// <summary>
             /// The <see cref="MenuItem"/> which this <see cref="DrawableMenuItem"/> represents.
@@ -516,7 +546,7 @@ namespace osu.Framework.Graphics.UserInterface
             /// <summary>
             /// The background of this <see cref="DrawableMenuItem"/>.
             /// </summary>
-            protected readonly Box Background;
+            protected readonly Drawable Background;
 
             /// <summary>
             /// The foreground of this <see cref="DrawableMenuItem"/>. This contains the content of this <see cref="DrawableMenuItem"/>.
@@ -527,9 +557,9 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 Item = item;
 
-                InternalChildren = new Drawable[]
+                InternalChildren = new[]
                 {
-                    Background = new Box { RelativeSizeAxes = Axes.Both },
+                    Background = CreateBackground(),
                     Foreground = new Container { Child = Content = CreateContent() },
                 };
 
@@ -617,6 +647,23 @@ namespace osu.Framework.Graphics.UserInterface
                 }
             }
 
+            private MenuItemState state;
+            public MenuItemState State
+            {
+                get { return state; }
+                set
+                {
+                    if (state == value)
+                        return;
+                    state = value;
+
+                    UpdateForegroundColour();
+                    UpdateBackgroundColour();
+
+                    StateChanged?.Invoke(state);
+                }
+            }
+
             /// <summary>
             /// The draw width of the text of this <see cref="DrawableMenuItem"/>.
             /// </summary>
@@ -685,6 +732,11 @@ namespace osu.Framework.Graphics.UserInterface
             }
 
             /// <summary>
+            /// Creates the background of this <see cref="DrawableMenuItem"/>.
+            /// </summary>
+            protected virtual Drawable CreateBackground() => new Box { RelativeSizeAxes = Axes.Both };
+
+            /// <summary>
             /// Creates the content which will be displayed in this <see cref="DrawableMenuItem"/>.
             /// If the <see cref="Drawable"/> returned implements <see cref="IHasText"/>, the text will be automatically
             /// updated when the <see cref="MenuItem.Text"/> is updated.
@@ -704,5 +756,11 @@ namespace osu.Framework.Graphics.UserInterface
     {
         Closed,
         Open
+    }
+
+    public enum MenuItemState
+    {
+        NotSelected,
+        Selected
     }
 }
