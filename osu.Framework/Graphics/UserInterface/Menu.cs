@@ -238,23 +238,11 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 case MenuState.Closed:
                     AnimateClose();
-
-                    if (HasFocus)
-                        GetContainingInputManager().ChangeFocus(null);
-
                     break;
                 case MenuState.Open:
                     AnimateOpen();
 
-                    if (AlwaysOpen)
-                        break;
-
-                    //schedule required as we may not be present currently.
-                    Schedule(() =>
-                    {
-                        if (State == MenuState.Open)
-                            GetContainingInputManager().ChangeFocus(this);
-                    });
+                    GetContainingInputManager().TriggerFocusContention();
                     break;
             }
 
@@ -419,7 +407,10 @@ namespace osu.Framework.Graphics.UserInterface
                 Direction == Direction.Horizontal ? Height : item.Y);
 
             currentlySelected = item;
-            subMenu.Open();
+            if (item.Item.Items.Count > 0)
+                subMenu.Open();
+            else
+                subMenu.Close();
         }
 
         private void itemStateChanged(DrawableMenuItem item, MenuItemState state)
@@ -466,6 +457,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
+        public override bool RequestsFocus => State == MenuState.Open;
         public override bool AcceptsFocus => true;
         protected override bool OnClick(InputState state) => true;
         protected override bool OnHover(InputState state) => true;
