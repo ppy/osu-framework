@@ -66,7 +66,6 @@ namespace osu.Framework.Desktop.Tests.Visual
         {
             Anchor = Anchor.Centre,
             Origin = Anchor.Centre,
-            AlwaysOpen = true,
             Items = new[]
             {
                 generateRandomMenuItem("First"),
@@ -77,11 +76,10 @@ namespace osu.Framework.Desktop.Tests.Visual
 
         private class ClickOpenMenu : Menu
         {
-            protected override Menu CreateSubMenu() => new ClickOpenMenu(HoverOpenDelay) { RequireClickToOpen = false };
+            protected override Menu CreateSubMenu() => new ClickOpenMenu(HoverOpenDelay, false);
 
-            public ClickOpenMenu(double timePerAction) : base(Direction.Vertical)
+            public ClickOpenMenu(double timePerAction, bool topLevel = true) : base(Direction.Vertical, topLevel)
             {
-                RequireClickToOpen = true;
                 HoverOpenDelay = timePerAction;
             }
         }
@@ -89,7 +87,7 @@ namespace osu.Framework.Desktop.Tests.Visual
         #region Test Cases
 
         /// <summary>
-        /// Tests if the <see cref="Menu"/> respects <see cref="Menu.AlwaysOpen"/> = true, by not alowing it to be closed
+        /// Tests if the <see cref="Menu"/> respects <see cref="Menu.TopLevelMenu"/> = true, by not alowing it to be closed
         /// when a click happens outside the <see cref="Menu"/>.
         /// </summary>
         [Test]
@@ -111,10 +109,10 @@ namespace osu.Framework.Desktop.Tests.Visual
         }
 
         /// <summary>
-        /// Tests if the <see cref="Menu"/> respects <see cref="Menu.RequireClickToOpen"/> = true.
+        /// Tests if the <see cref="Menu"/> respects <see cref="Menu.TopLevelMenu"/> = true.
         /// </summary>
         [Test]
-        public void TestRequireClickToOpen()
+        public void TestTopLevelMenu()
         {
             AddStep("Hover item", () => inputManager.MoveMouseTo(menus.GetSubStructure(0).GetMenuItems()[0]));
             AddAssert("Check closed", () => menus.GetSubMenu(1)?.State != MenuState.Open);
@@ -124,7 +122,7 @@ namespace osu.Framework.Desktop.Tests.Visual
         }
 
         /// <summary>
-        /// Tests if clicking once on a menu that has <see cref="Menu.RequireClickToOpen"/> opens it, and clicking a second time
+        /// Tests if clicking once on a menu that has <see cref="Menu.TopLevelMenu"/> opens it, and clicking a second time
         /// closes it.
         /// </summary>
         [Test]
@@ -227,17 +225,14 @@ namespace osu.Framework.Desktop.Tests.Visual
             AddAssert("Check closed", () => menus.GetSubMenu(2)?.State != MenuState.Open);
             AddAssert("Check closed", () => menus.GetSubMenu(2)?.State != MenuState.Open);
 
-            IReadOnlyList<MenuItem> currentItems = null;
             AddStep("Hover item", () =>
             {
-                currentItems = menus.GetSubMenu(2).Items;
                 inputManager.MoveMouseTo(menus.GetSubStructure(1).GetMenuItems()[1]);
             });
 
             AddAssert("Check closed", () => menus.GetSubMenu(2)?.State != MenuState.Open);
             AddAssert("Check open", () => menus.GetSubMenu(2).State == MenuState.Open);
 
-            AddAssert("Check new items", () => !menus.GetSubMenu(2).Items.SequenceEqual(currentItems));
             AddAssert("Check closed", () =>
             {
                 int currentSubMenu = 3;
@@ -258,6 +253,7 @@ namespace osu.Framework.Desktop.Tests.Visual
 
         /// <summary>
         /// Tests whether clicking on <see cref="Menu"/>s that have opened sub-menus don't close the sub-menus.
+        /// Then tests hovering in reverse order to make sure only the lower level menus close.
         /// </summary>
         [Test]
         public void TestMenuClicksDontClose()
@@ -288,7 +284,7 @@ namespace osu.Framework.Desktop.Tests.Visual
         }
 
         /// <summary>
-        /// Tests whether clicking on the <see cref="Menu"/> that has <see cref="Menu.RequireClickToOpen"/> closes all sub menus.
+        /// Tests whether clicking on the <see cref="Menu"/> that has <see cref="Menu.TopLevelMenu"/> closes all sub menus.
         /// </summary>
         [Test]
         public void TestMenuClickClosesSubMenus()
@@ -375,6 +371,9 @@ namespace osu.Framework.Desktop.Tests.Visual
             }
         }
 
+        /// <summary>
+        /// Opens some menus and then changes the selected item.
+        /// </summary>
         [Test]
         public void TestSelectedState()
         {
@@ -382,30 +381,26 @@ namespace osu.Framework.Desktop.Tests.Visual
             AddAssert("Check open", () => menus.GetSubMenu(1).State == MenuState.Open);
 
             AddStep("Hover item", () => inputManager.MoveMouseTo(menus.GetSubStructure(1).GetMenuItems()[1]));
-            AddAssert("Check closed", () => menus.GetSubMenu(2)?.State != MenuState.Open);
+            AddAssert("Check closed 1", () => menus.GetSubMenu(2)?.State != MenuState.Open);
             AddAssert("Check open", () => menus.GetSubMenu(2).State == MenuState.Open);
-            AddAssert("Check selected index", () => menus.GetSubStructure(1).GetSelectedIndex() == 1);
-
-            IReadOnlyList<Drawable> items = null;
-            AddStep("Get items", () => items = menus.GetSubStructure(2).GetMenuItems().ToList());
+            AddAssert("Check selected index 1", () => menus.GetSubStructure(1).GetSelectedIndex() == 1);
 
             AddStep("Change selection", () => menus.GetSubStructure(1).SetSelectedState(0, MenuItemState.Selected));
             AddAssert("Check selected index", () => menus.GetSubStructure(1).GetSelectedIndex() == 0);
-            AddAssert("Check closed", () => menus.GetSubMenu(2)?.State != MenuState.Open);
-            AddAssert("Check different items", () => !menus.GetSubStructure(2).GetMenuItems().SequenceEqual(items));
-
-            AddStep("Get items", () => items = menus.GetSubStructure(2).GetMenuItems().ToList());
 
             AddStep("Change selection", () => menus.GetSubStructure(1).SetSelectedState(2, MenuItemState.Selected));
-            AddAssert("Check selected index", () => menus.GetSubStructure(1).GetSelectedIndex() == 2);
-            AddAssert("Check open", () => menus.GetSubMenu(2).State == MenuState.Open);
-            AddAssert("Check different items", () => !menus.GetSubStructure(2).GetMenuItems().SequenceEqual(items));
+            AddAssert("Check selected index 2", () => menus.GetSubStructure(1).GetSelectedIndex() == 2);
 
             AddStep("Close menus", () => menus.GetSubMenu(0).Close());
-            AddAssert("Check selected index", () => menus.GetSubStructure(1).GetSelectedIndex() == -1);
+            AddAssert("Check selected index 4", () => menus.GetSubStructure(1).GetSelectedIndex() == -1);
         }
         #endregion
 
+        /// <summary>
+        /// Click an item in a menu.
+        /// </summary>
+        /// <param name="menuIndex">The level of menu our click targets.</param>
+        /// <param name="itemIndex">The item to click in the menu.</param>
         private void clickItem(int menuIndex, int itemIndex)
         {
             inputManager.MoveMouseTo(menus.GetSubStructure(menuIndex).GetMenuItems()[itemIndex]);

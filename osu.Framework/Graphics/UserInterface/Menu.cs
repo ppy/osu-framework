@@ -11,6 +11,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Logging;
 using osu.Framework.MathUtils;
 using osu.Framework.Threading;
 using OpenTK;
@@ -30,9 +31,10 @@ namespace osu.Framework.Graphics.UserInterface
         protected double HoverOpenDelay = 100;
 
         /// <summary>
-        /// Whether a click is required to open sub-<see cref="Menu"/> of this <see cref="Menu"/>.
+        /// Whether this menu is always displayed in an open state (ie. a menu bar).
+        /// Clicks are required to activate <see cref="DrawableMenuItem"/>.
         /// </summary>
-        protected bool RequireClickToOpen;
+        protected readonly bool TopLevelMenu;
 
         /// <summary>
         /// The <see cref="Container{T}"/> that contains the content of this <see cref="Menu"/>.
@@ -57,17 +59,26 @@ namespace osu.Framework.Graphics.UserInterface
         protected readonly Direction Direction;
 
         private Menu parentMenu;
-        private Menu subMenu;
+        private Menu submenu;
 
         private readonly Box background;
 
         private Cached sizeCache = new Cached();
 
-        private readonly Container<Menu> subMenuContainer;
+        private readonly Container<Menu> submenuContainer;
 
-        public Menu(Direction direction)
+        /// <summary>
+        /// Constructs a menu.
+        /// </summary>
+        /// <param name="direction">The direction of layout for this menu.</param>
+        /// <param name="topLevelMenu">Whether the resultant menu is always displayed in an open state (ie. a menu bar).</param>
+        public Menu(Direction direction, bool topLevelMenu = false)
         {
             Direction = direction;
+            TopLevelMenu = topLevelMenu;
+
+            if (topLevelMenu)
+                state = MenuState.Open;
 
             InternalChildren = new Drawable[]
             {
@@ -91,7 +102,7 @@ namespace osu.Framework.Graphics.UserInterface
                         }
                     }
                 },
-                subMenuContainer = new Container<Menu>
+                submenuContainer = new Container<Menu>
                 {
                     Name = "Sub menu container",
                     AutoSizeAxes = Axes.Both
@@ -183,29 +194,6 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        private bool alwaysOpen;
-        /// <summary>
-        /// Gets or sets whether this <see cref="Menu"/> should always be open.
-        /// </summary>
-        public bool AlwaysOpen
-        {
-            get { return alwaysOpen; }
-            set
-            {
-                if (alwaysOpen == value)
-                    return;
-                alwaysOpen = value;
-
-                if (value && state == MenuState.Closed)
-                    state = MenuState.Open;
-
-                if (!IsLoaded)
-                    return;
-
-                updateState();
-            }
-        }
-
         private MenuState state = MenuState.Closed;
         /// <summary>
         /// Gets or sets the current state of this <see cref="Menu"/>.
@@ -215,9 +203,9 @@ namespace osu.Framework.Graphics.UserInterface
             get { return state; }
             set
             {
-                if (AlwaysOpen)
+                if (TopLevelMenu)
                 {
-                    subMenu?.Close();
+                    submenu?.Close();
                     return;
                 }
 
@@ -235,7 +223,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (!IsLoaded)
                 return;
 
-            subMenu?.Close();
+            submenu?.Close();
 
             switch (State)
             {
@@ -244,8 +232,12 @@ namespace osu.Framework.Graphics.UserInterface
                     break;
                 case MenuState.Open:
                     AnimateOpen();
-
-                    GetContainingInputManager().TriggerFocusContention();
+                    if (!TopLevelMenu)
+                        // We may not be present at this point, so must run on the next frame.
+                        Schedule(delegate
+                        {
+                            if (State == MenuState.Open) GetContainingInputManager().ChangeFocus(this);
+                        });
                     break;
             }
 
@@ -266,6 +258,15 @@ namespace osu.Framework.Graphics.UserInterface
             drawableItem.StateChanged += s => itemStateChanged(drawableItem, s);
 
             ItemsContainer.Add(drawableItem);
+        }
+
+        private void itemStateChanged(DrawableMenuItem item, MenuItemState state)
+        {
+            if (state != MenuItemState.Selected) return;
+
+            if (item != selectedItem && selectedItem != null)
+                selectedItem.State = MenuItemState.NotSelected;
+            selectedItem = item;
         }
 
         /// <summary>
@@ -375,9 +376,9 @@ namespace osu.Framework.Graphics.UserInterface
         {
             // We only want to close the sub-menu if we're not a sub menu - if we are a sub menu
             // then clicks should instead cause the sub menus to instantly show up
-            if (RequireClickToOpen && subMenu?.State == MenuState.Open)
+            if (TopLevelMenu && submenu?.State == MenuState.Open)
             {
-                subMenu.Close();
+                submenu.Close();
                 return;
             }
 
@@ -390,55 +391,55 @@ namespace osu.Framework.Graphics.UserInterface
             }
 
             openDelegate?.Cancel();
+
             openSubmenuFor(item);
         }
 
-        private DrawableMenuItem currentlySelected;
+        private DrawableMenuItem selectedItem;
+
+        /// <summary>
+        /// The item which triggered opening us as a submenu.
+        /// </summary>
+        private MenuItem triggeringItem;
 
         private void openSubmenuFor(DrawableMenuItem item)
         {
-            if (subMenu == null)
+            item.State = MenuItemState.Selected;
+
+            if (submenu == null)
             {
-                subMenuContainer.Add(subMenu = CreateSubMenu());
-                subMenu.parentMenu = this;
-                subMenu.StateChanged += subMenuStateChanged;
+                submenuContainer.Add(submenu = CreateSubMenu());
+                submenu.parentMenu = this;
+                submenu.StateChanged += submenuStateChanged;
             }
 
-            subMenu.Items = item.Item.Items;
-            subMenu.Position = new Vector2(
+            submenu.triggeringItem = item.Item;
+
+            submenu.Items = item.Item.Items;
+            submenu.Position = new Vector2(
                 Direction == Direction.Vertical ? Width : item.X,
                 Direction == Direction.Horizontal ? Height : item.Y);
 
-            currentlySelected = item;
-
             if (item.Item.Items.Count > 0)
-                subMenu.Open();
-            else
-                subMenu.Close();
-        }
-
-        private void itemStateChanged(DrawableMenuItem item, MenuItemState state)
-        {
-            switch (state)
             {
-                case MenuItemState.Selected:
-                    if (currentlySelected != item)
-                        currentlySelected.State = MenuItemState.NotSelected;
-
-                    openSubmenuFor(item);
-                    break;
+                if (submenu.State == MenuState.Open)
+                    Schedule(delegate { GetContainingInputManager().ChangeFocus(submenu); });
+                else
+                    submenu.Open();
             }
+            else
+                submenu.Close();
         }
 
-        private void subMenuStateChanged(MenuState state)
+        private void submenuStateChanged(MenuState state)
         {
             switch (state)
             {
                 case MenuState.Closed:
-                    currentlySelected.State = MenuItemState.NotSelected;
+                    selectedItem.State = MenuItemState.NotSelected;
                     break;
                 case MenuState.Open:
-                    currentlySelected.State = MenuItemState.Selected;
+                    selectedItem.State = MenuItemState.Selected;
                     break;
             }
         }
@@ -447,12 +448,12 @@ namespace osu.Framework.Graphics.UserInterface
         private void menuItemHovered(DrawableMenuItem item)
         {
             // If we're not a sub-menu, then hover shouldn't display a sub-menu unless an item is clicked
-            if (RequireClickToOpen && subMenu?.State != MenuState.Open)
+            if (TopLevelMenu && submenu?.State != MenuState.Open)
                 return;
 
             openDelegate?.Cancel();
 
-            if (RequireClickToOpen || HoverOpenDelay == 0)
+            if (TopLevelMenu || HoverOpenDelay == 0)
                 openSubmenuFor(item);
             else
             {
@@ -464,19 +465,22 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        public override bool RequestsFocus => State == MenuState.Open;
-        public override bool AcceptsFocus => true;
         protected override bool OnClick(InputState state) => true;
         protected override bool OnHover(InputState state) => true;
+
+        public override bool AcceptsFocus => !TopLevelMenu;
+
+        public override bool RequestsFocus => !TopLevelMenu && State == MenuState.Open;
 
         protected override void OnFocusLost(InputState state)
         {
             // Case where a sub-menu was opened the focus will be transferred to that sub-menu while this menu will receive OnFocusLost
-            if (subMenu?.State == MenuState.Open)
+            if (submenu?.State == MenuState.Open)
                 return;
 
-            // At this point we should have lost focus due to clicks outside the menu structure
-            closeAll();
+            if (!TopLevelMenu)
+                // At this point we should have lost focus due to clicks outside the menu structure
+                closeAll();
         }
 
         /// <summary>
@@ -485,14 +489,17 @@ namespace osu.Framework.Graphics.UserInterface
         private void closeAll()
         {
             Close();
+            parentMenu?.closeFromChild(triggeringItem);
+        }
 
-            var iterator = parentMenu;
-            while (iterator != null)
+        private void closeFromChild(MenuItem source)
+        {
+            if (IsHovered || (parentMenu?.IsHovered ?? false)) return;
+
+            if (triggeringItem?.Items?.Contains(source) ?? false)
             {
-                if (iterator.IsHovered)
-                    break;
-                iterator.Close();
-                iterator = iterator.parentMenu;
+                Close();
+                parentMenu?.closeFromChild(triggeringItem);
             }
         }
 
@@ -653,9 +660,9 @@ namespace osu.Framework.Graphics.UserInterface
                 get { return state; }
                 set
                 {
-                    if (state == value)
-                        return;
                     state = value;
+
+                    Logger.Log($"Menu item {Item.Text} is {state}");
 
                     UpdateForegroundColour();
                     UpdateBackgroundColour();
@@ -718,12 +725,14 @@ namespace osu.Framework.Graphics.UserInterface
                 base.OnHoverLost(state);
             }
 
+            private bool hasSubmenu => Item.Items?.Count > 0;
+
             protected override bool OnClick(InputState state)
             {
                 if (Item.Action.Disabled)
                     return true;
 
-                if (Item.Items?.Count == 0)
+                if (!hasSubmenu)
                     Item.Action.Value?.Invoke();
 
                 Clicked?.Invoke(this);
