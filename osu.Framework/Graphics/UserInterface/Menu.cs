@@ -222,9 +222,6 @@ namespace osu.Framework.Graphics.UserInterface
                     return;
                 state = value;
 
-                if (!IsLoaded)
-                    return;
-
                 updateState();
                 StateChanged?.Invoke(State);
             }
@@ -232,6 +229,9 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void updateState()
         {
+            if (!IsLoaded)
+                return;
+
             subMenu?.Close();
 
             switch (State)
