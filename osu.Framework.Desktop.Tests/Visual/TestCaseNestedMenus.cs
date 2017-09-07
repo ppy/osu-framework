@@ -34,9 +34,6 @@ namespace osu.Framework.Desktop.Tests.Visual
             rng = new Random(1337);
 
             Add(createMenu());
-
-            SetUp();
-            TestSelectedState();
         }
 
         [SetUp]
