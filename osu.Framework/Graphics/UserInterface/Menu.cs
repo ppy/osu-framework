@@ -761,7 +761,7 @@ namespace osu.Framework.Graphics.UserInterface
 
     public enum MenuItemState
     {
-        Selected,
-        NotSelected
+        NotSelected,
+        Selected
     }
 }
