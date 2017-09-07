@@ -385,13 +385,8 @@ namespace osu.Framework.Desktop.Tests.Visual
             AddAssert("Check open", () => menus.GetSubMenu(2).State == MenuState.Open);
             AddAssert("Check selected index 1", () => menus.GetSubStructure(1).GetSelectedIndex() == 1);
 
-            IReadOnlyList<Drawable> items = null;
-            AddStep("Get items", () => items = menus.GetSubStructure(2).GetMenuItems().ToList());
-
             AddStep("Change selection", () => menus.GetSubStructure(1).SetSelectedState(0, MenuItemState.Selected));
             AddAssert("Check selected index", () => menus.GetSubStructure(1).GetSelectedIndex() == 0);
-
-            AddStep("Get items", () => items = menus.GetSubStructure(2).GetMenuItems().ToList());
 
             AddStep("Change selection", () => menus.GetSubStructure(1).SetSelectedState(2, MenuItemState.Selected));
             AddAssert("Check selected index 2", () => menus.GetSubStructure(1).GetSelectedIndex() == 2);
