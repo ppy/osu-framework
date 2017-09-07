@@ -32,7 +32,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected override void PopIn()
         {
-            Schedule(() => GetContainingInputManager().TriggerFocusContention());
+            Schedule(() => GetContainingInputManager().TriggerFocusContention(this));
         }
 
         protected override void PopOut()

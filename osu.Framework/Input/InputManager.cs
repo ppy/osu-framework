@@ -138,10 +138,13 @@ namespace osu.Framework.Input
         /// <summary>
         /// Reset current focused drawable to the top-most drawable which is <see cref="Drawable.RequestsFocus"/>.
         /// </summary>
-        public void TriggerFocusContention()
+        /// <param name="triggerSource">The source which triggered this event.</param>
+        public void TriggerFocusContention(Drawable triggerSource)
         {
-            if (FocusedDrawable != this)
-                ChangeFocus(null);
+            if (FocusedDrawable == null) return;
+
+            Logger.Log($"Focus contention triggered by {triggerSource}.");
+            ChangeFocus(null);
         }
 
         /// <summary>
@@ -184,6 +187,8 @@ namespace osu.Framework.Input
             }
 
             FocusedDrawable = potentialFocusTarget;
+
+            Logger.Log($"Focus switched to {FocusedDrawable?.ToString() ?? "nothing"}.", LoggingTarget.Runtime, LogLevel.Debug);
 
             if (FocusedDrawable != null)
             {
