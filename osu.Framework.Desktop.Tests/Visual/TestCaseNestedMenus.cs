@@ -225,7 +225,7 @@ namespace osu.Framework.Desktop.Tests.Visual
             AddStep("Click item", () => clickItem(0, 2));
             AddStep("Hover item", () => inputManager.MoveMouseTo(menus.GetSubStructure(1).GetMenuItems()[0]));
             AddAssert("Check closed", () => menus.GetSubMenu(2)?.State != MenuState.Open);
-            AddAssert("Check open", () => menus.GetSubMenu(2).State == MenuState.Open);
+            AddAssert("Check closed", () => menus.GetSubMenu(2)?.State != MenuState.Open);
 
             IReadOnlyList<MenuItem> currentItems = null;
             AddStep("Hover item", () =>
@@ -234,8 +234,8 @@ namespace osu.Framework.Desktop.Tests.Visual
                 inputManager.MoveMouseTo(menus.GetSubStructure(1).GetMenuItems()[1]);
             });
 
-            AddAssert("Check open", () => menus.GetSubMenu(1).State == MenuState.Open);
-            AddAssert("Check open", () => menus.GetSubMenu(1).State == MenuState.Open);
+            AddAssert("Check closed", () => menus.GetSubMenu(2)?.State != MenuState.Open);
+            AddAssert("Check open", () => menus.GetSubMenu(2).State == MenuState.Open);
 
             AddAssert("Check new items", () => !menus.GetSubMenu(2).Items.SequenceEqual(currentItems));
             AddAssert("Check closed", () =>
@@ -488,7 +488,7 @@ namespace osu.Framework.Desktop.Tests.Visual
             public void SetSelectedState(int index, MenuItemState state)
             {
                 var item = GetMenuItems()[index];
-                item.GetType().GetProperty("State").SetValue(item, state);
+                item.GetType().GetProperty("State")?.SetValue(item, state);
             }
 
             /// <summary>
