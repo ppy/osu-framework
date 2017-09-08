@@ -10,10 +10,21 @@ namespace osu.Framework.Graphics.Animations
     /// <summary>
     /// An animation that switches the displayed texture when a new frame is displayed.
     /// </summary>
-    public class TextureAnimation : Animation<Texture>
+    public class TextureAnimation : Animation<Texture>, IFlippable
     {
         private readonly Sprite textureHolder;
         private Vector2 maxTextureSize = Vector2.Zero;
+
+        public bool FlipH
+        {
+            get { return textureHolder.FlipH; }
+            set { textureHolder.FlipH = value; }
+        }
+        public bool FlipV
+        {
+            get { return textureHolder.FlipV; }
+            set { textureHolder.FlipV = value; }
+        }
 
         public TextureAnimation()
         {
