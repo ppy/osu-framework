@@ -22,6 +22,8 @@ namespace osu.Framework.Graphics.Sprites
         public RectangleF DrawRectangle;
         public Vector2 InflationAmount;
         public bool WrapTexture;
+        public bool FlipH;
+        public bool FlipV;
 
         public Shader TextureShader;
         public Shader RoundedTextureShader;
@@ -31,7 +33,7 @@ namespace osu.Framework.Graphics.Sprites
         protected virtual void Blit(Action<TexturedVertex2D> vertexAction)
         {
             Texture.DrawQuad(ScreenSpaceDrawQuad, DrawInfo.Colour, null, vertexAction,
-                new Vector2(InflationAmount.X / DrawRectangle.Width, InflationAmount.Y / DrawRectangle.Height));
+                new Vector2(InflationAmount.X / DrawRectangle.Width, InflationAmount.Y / DrawRectangle.Height), null, FlipH, FlipV);
         }
 
         public override void Draw(Action<TexturedVertex2D> vertexAction)

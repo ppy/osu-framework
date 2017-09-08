@@ -69,9 +69,9 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             parent.DrawTriangle(vertexTriangle, boundsInParent(textureRect), drawColour, vertexAction, inflationPercentage);
         }
 
-        public override void DrawQuad(Quad vertexQuad, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null)
+        public override void DrawQuad(Quad vertexQuad, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null, bool flipH = false, bool flipV = false)
         {
-            parent.DrawQuad(vertexQuad, boundsInParent(textureRect), drawColour, vertexAction, inflationPercentage, blendRangeOverride);
+            parent.DrawQuad(vertexQuad, boundsInParent(textureRect), drawColour, vertexAction, inflationPercentage, blendRangeOverride, flipH, flipV);
         }
 
         internal override bool Upload()
