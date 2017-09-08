@@ -16,6 +16,7 @@ using OpenTK.Input;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Configuration;
+using osu.Framework.Graphics.Colour;
 using osu.Framework.Platform;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Timing;
@@ -349,6 +350,12 @@ namespace osu.Framework.Graphics.UserInterface
             ch.Depth = -selectionLeft;
 
             TextFlow.Add(ch);
+
+            var transparentWhite = new Color4(1, 1, 1, 0f);
+
+            ch.FadeColour(transparentWhite)
+                .FadeColour(ColourInfo.GradientHorizontal(Color4.White, transparentWhite), caret_move_time / 2).Then()
+                .FadeColour(Color4.White, caret_move_time / 2);
 
             // Add back all the previously removed characters
             TextFlow.AddRange(charsRight);
