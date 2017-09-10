@@ -1093,13 +1093,13 @@ namespace osu.Framework.Graphics
             }
         }
 
-        private BlendingModeParameters blending;
+        private BlendingParameters blending;
 
         /// <summary>
         /// Determines how this Drawable is blended with other already drawn Drawables.
         /// Inherits the <see cref="Parent"/>'s <see cref="Blending"/> by default.
         /// </summary>
-        public BlendingModeParameters Blending
+        public BlendingParameters Blending
         {
             get { return blending; }
 
@@ -1287,7 +1287,7 @@ namespace osu.Framework.Graphics
 
             Vector2 pos = DrawPosition + AnchorPosition;
             Vector2 drawScale = DrawScale;
-            BlendingModeParameters localBlending = Blending;
+            BlendingParameters localBlending = Blending;
 
             if (Parent != null)
             {

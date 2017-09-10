@@ -153,7 +153,7 @@ namespace osu.Framework.Desktop.Tests.Visual
 
         private void updateBlending()
         {
-            foregroundContainer.Blending = new BlendingModeParameters
+            foregroundContainer.Blending = new BlendingParameters
             {
                 Mode = colourModeDropdown.Current,
                 RGBEquation = colourEquation.Current,

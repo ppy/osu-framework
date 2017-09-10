@@ -37,7 +37,7 @@ namespace osu.Framework.Graphics.Effects
         /// <summary>
         /// The blending mode of the blur. Default is inheriting from the target drawable.
         /// </summary>
-        public BlendingModeParameters Blending;
+        public BlendingParameters Blending;
 
         /// <summary>
         /// Whether to draw the blur in front or behind the original. Default is behind.

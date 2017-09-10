@@ -3,20 +3,20 @@
 
 namespace osu.Framework.Graphics
 {
-    public struct BlendingModeParameters
+    public struct BlendingParameters
     {
         public BlendingMode Mode;
         public BlendingEquation RGBEquation;
         public BlendingEquation AlphaEquation;
 
-        public static implicit operator BlendingModeParameters(BlendingMode blendingMode) => new BlendingModeParameters { Mode = blendingMode };
-        public static implicit operator BlendingModeParameters(BlendingEquation blendingEquation) => new BlendingModeParameters
+        public static implicit operator BlendingParameters(BlendingMode blendingMode) => new BlendingParameters { Mode = blendingMode };
+        public static implicit operator BlendingParameters(BlendingEquation blendingEquation) => new BlendingParameters
         {
             RGBEquation = blendingEquation,
             AlphaEquation = blendingEquation
         };
 
-        public bool Equals(BlendingModeParameters other) => other.Mode == Mode && other.RGBEquation == RGBEquation && other.AlphaEquation == AlphaEquation;
+        public bool Equals(BlendingParameters other) => other.Mode == Mode && other.RGBEquation == RGBEquation && other.AlphaEquation == AlphaEquation;
     }
 
     public enum BlendingMode

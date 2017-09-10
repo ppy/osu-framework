@@ -15,7 +15,7 @@ namespace osu.Framework.Graphics
         public BlendEquationMode RGBEquation;
         public BlendEquationMode AlphaEquation;
 
-        public BlendingInfo(BlendingModeParameters parameters)
+        public BlendingInfo(BlendingParameters parameters)
         {
             switch (parameters.Mode)
             {

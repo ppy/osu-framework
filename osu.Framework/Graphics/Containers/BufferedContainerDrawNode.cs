@@ -26,7 +26,7 @@ namespace osu.Framework.Graphics.Containers
         public bool DrawOriginal;
         public Color4 BackgroundColour;
         public ColourInfo EffectColour;
-        public BlendingModeParameters EffectBlending;
+        public BlendingParameters EffectBlending;
         public EffectPlacement EffectPlacement;
 
         public Vector2 BlurSigma;
