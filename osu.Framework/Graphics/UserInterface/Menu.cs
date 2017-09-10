@@ -522,7 +522,8 @@ namespace osu.Framework.Graphics.UserInterface
         protected virtual DrawableMenuItem CreateDrawableMenuItem(MenuItem item) => new DrawableMenuItem(item);
 
         #region DrawableMenuItem
-        protected class DrawableMenuItem : CompositeDrawable, IStateful<MenuItemState>
+        // must be public due to mono bug(?) https://github.com/ppy/osu/issues/1204
+        public class DrawableMenuItem : CompositeDrawable, IStateful<MenuItemState>
         {
             /// <summary>
             /// Invoked when this <see cref="DrawableMenuItem"/>'s <see cref="State"/> changes.
