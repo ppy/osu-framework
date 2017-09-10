@@ -3,10 +3,24 @@
 
 namespace osu.Framework.Graphics
 {
+    /// <summary>
+    /// Contains information about how an <see cref="IDrawable"/> should be blended into its destination.
+    /// </summary>
     public struct BlendingParameters
     {
+        /// <summary>
+        /// Gets or sets <see cref="BlendingMode"/> to use.
+        /// </summary>
         public BlendingMode Mode;
+
+        /// <summary>
+        /// Gets or sets the <see cref="BlendingEquation"/> to use for the RGB components of the blend.
+        /// </summary>
         public BlendingEquation RGBEquation;
+
+        /// <summary>
+        /// Gets or sets the <see cref="BlendingEquation"/> to use for the alpha component of the blend.
+        /// </summary>
         public BlendingEquation AlphaEquation;
 
         public static implicit operator BlendingParameters(BlendingMode blendingMode) => new BlendingParameters { Mode = blendingMode };
