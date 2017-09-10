@@ -55,7 +55,7 @@ namespace osu.Framework.Graphics.Effects
             Strength = Strength,
             Sigma = BlurSigma,
             Colour = Colour,
-            BlendingMode = BlendingMode,
+            Blending = BlendingMode,
             Placement = Placement,
             PadExtent = PadExtent,
             CacheDrawnEffect = CacheDrawnEffect,
