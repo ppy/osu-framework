@@ -1287,24 +1287,24 @@ namespace osu.Framework.Graphics
 
             Vector2 pos = DrawPosition + AnchorPosition;
             Vector2 drawScale = DrawScale;
-            BlendingModeParameters localBlendingMode = Blending;
+            BlendingModeParameters localBlending = Blending;
 
             if (Parent != null)
             {
                 pos += Parent.ChildOffset;
 
-                if (localBlendingMode.Mode == BlendingMode.Inherit)
-                    localBlendingMode.Mode = Parent.Blending.Mode;
+                if (localBlending.Mode == BlendingMode.Inherit)
+                    localBlending.Mode = Parent.Blending.Mode;
 
-                if (localBlendingMode.RGBEquation == BlendingEquation.Inherit)
-                    localBlendingMode.RGBEquation = Parent.Blending.RGBEquation;
+                if (localBlending.RGBEquation == BlendingEquation.Inherit)
+                    localBlending.RGBEquation = Parent.Blending.RGBEquation;
 
-                if (localBlendingMode.AlphaEquation == BlendingEquation.Inherit)
-                    localBlendingMode.AlphaEquation = Parent.Blending.AlphaEquation;
+                if (localBlending.AlphaEquation == BlendingEquation.Inherit)
+                    localBlending.AlphaEquation = Parent.Blending.AlphaEquation;
             }
 
             di.ApplyTransform(pos, drawScale, Rotation, Shear, OriginPosition);
-            di.Blending = new BlendingInfo(localBlendingMode);
+            di.Blending = new BlendingInfo(localBlending);
 
             ColourInfo drawInfoColour = alpha != 1 ? colour.MultiplyAlpha(alpha) : colour;
 
