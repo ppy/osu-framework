@@ -142,7 +142,7 @@ namespace osu.Framework.Graphics.Containers
         private BlendingParameters effectBlending;
 
         /// <summary>
-        /// The <see cref="BlendingMode"/> to use after applying all effects. Default is <see cref="BlendingMode.Inherit"/>.
+        /// The <see cref="BlendingParameters"/> to use after applying all effects. Default is <see cref="BlendingMode.Inherit"/>.
         /// <see cref="BlendingMode.Inherit"/> inherits the blending mode of the original, i.e. <see cref="Drawable.Blending"/> is used.
         /// Does not affect the original which is drawn when <see cref="DrawOriginal"/> is true.
         /// </summary>
