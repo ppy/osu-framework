@@ -1112,22 +1112,6 @@ namespace osu.Framework.Graphics
                 Invalidate(Invalidation.Colour);
             }
         }
-
-        private BlendingEquation alphaBlendingEquation;
-
-        public BlendingEquation AlphaBlendingEquation
-        {
-            get { return alphaBlendingEquation; }
-            set
-            {
-                if (alphaBlendingEquation == value)
-                    return;
-                alphaBlendingEquation = value;
-
-                Invalidate(Invalidation.Colour);
-            }
-        }
-
         #endregion
 
         #region Timekeeping
