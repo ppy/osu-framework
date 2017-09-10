@@ -53,6 +53,7 @@
   <ItemGroup>
     <Compile Include="Platform\HeadlessGameHostTest.cs" />
     <Compile Include="Visual\TestCaseAnimation.cs" />
+    <Compile Include="Visual\TestCaseBlending.cs" />
     <Compile Include="Visual\TestCaseBufferedContainer.cs" />
     <Compile Include="Visual\TestCaseCheckboxes.cs" />
     <Compile Include="Visual\TestCaseCircularProgress.cs" />
