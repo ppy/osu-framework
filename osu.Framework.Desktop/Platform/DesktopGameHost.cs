@@ -71,7 +71,10 @@ namespace osu.Framework.Desktop.Platform
         private void ensureShadowCopy()
         {
             string exe = System.Reflection.Assembly.GetEntryAssembly().Location;
-            if (exe != null && exe.Contains(@"_shadow"))
+
+            Debug.Assert(exe != null);
+
+            if (exe.Contains(@"_shadow"))
             {
                 //we are already running a shadow copy. monitor the original executable path for changes.
                 exe = exe.Replace(@"_shadow", @"");
@@ -90,9 +93,7 @@ namespace osu.Framework.Desktop.Platform
                 return;
             }
 
-            string shadowExe = exe?.Replace(@".exe", @"_shadow.exe");
-
-            if (shadowExe == null) return;
+            string shadowExe = exe.Replace(@".exe", @"_shadow.exe");
 
             int attempts = 5;
             while (attempts-- > 0)

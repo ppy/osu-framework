@@ -7,7 +7,6 @@ using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
 using osu.Framework.Threading;
-using osu.Framework.Lists;
 
 namespace osu.Framework.Graphics.Visualisation
 {
@@ -21,7 +20,7 @@ namespace osu.Framework.Graphics.Visualisation
         private readonly InfoOverlay overlay;
         private ScheduledDelegate task;
 
-        private readonly SortedList<VisualisedDrawable> hoveredDrawables = new SortedList<VisualisedDrawable>(VisualisedDrawable.Comparer);
+        private InputManager inputManager;
 
         public DrawVisualiser()
         {
@@ -77,6 +76,12 @@ namespace osu.Framework.Graphics.Visualisation
                         break;
                 }
             };
+        }
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+            inputManager = GetContainingInputManager();
         }
 
         private VisualisedDrawable findVisualised(Drawable d, VisualisedDrawable root)
@@ -192,7 +197,7 @@ namespace osu.Framework.Graphics.Visualisation
 
             if (target != null)
             {
-                targetDrawable = createVisualisedDrawable(null, target);
+                targetDrawable = createVisualisedDrawable(target);
                 treeContainer.Add(targetDrawable);
 
                 runUpdate(); // run an initial update to immediately show the selected hierarchy.
@@ -221,28 +226,11 @@ namespace osu.Framework.Graphics.Visualisation
             visualise(Target, targetDrawable);
         }
 
-        private void updateHoveredDrawable()
+        private VisualisedDrawable createVisualisedDrawable(Drawable target)
         {
-            overlay.Target = hoveredDrawables.Count > 0 ? hoveredDrawables.Last().Target : null;
-        }
-
-        private VisualisedDrawable createVisualisedDrawable(VisualisedDrawable parent, Drawable target)
-        {
-            var vis = new VisualisedDrawable(parent, target, treeContainer)
+            var vis = new VisualisedDrawable(target, treeContainer)
             {
                 RequestTarget = delegate { Target = target; }
-            };
-
-            vis.HoverGained = delegate
-            {
-                hoveredDrawables.Add(vis);
-                updateHoveredDrawable();
-            };
-
-            vis.HoverLost = delegate
-            {
-                hoveredDrawables.Remove(vis);
-                updateHoveredDrawable();
             };
 
             vis.HighlightTarget = delegate
@@ -305,7 +293,7 @@ namespace osu.Framework.Graphics.Visualisation
                 if (dr == null)
                 {
                     var cLocal = c;
-                    dr = createVisualisedDrawable(vis, cLocal);
+                    dr = createVisualisedDrawable(cLocal);
                     vis.Flow.Add(dr);
                 }
 
@@ -342,9 +330,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         protected override bool OnMouseMove(InputState state)
         {
-            if (targetSearching)
-                overlay.Target = findTarget(state);
-
+            overlay.Target = targetSearching ? findTarget(state) : inputManager.HoveredDrawables.OfType<VisualisedDrawable>().FirstOrDefault()?.Target;
             return base.OnMouseMove(state);
         }
     }

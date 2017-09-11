@@ -239,8 +239,6 @@ namespace osu.Framework.IO.File
 
             foreach (string file in Directory.GetFiles(oldDirectory))
             {
-                if (file == null) continue;
-
                 string newFile = Path.Combine(newDirectory, Path.GetFileName(file));
 
                 bool didMove = FileMove(file, newFile, didExist);
