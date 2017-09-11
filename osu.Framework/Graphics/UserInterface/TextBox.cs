@@ -16,6 +16,7 @@ using OpenTK.Input;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Configuration;
+using osu.Framework.Graphics.Colour;
 using osu.Framework.Platform;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Timing;
@@ -26,13 +27,15 @@ namespace osu.Framework.Graphics.UserInterface
     {
         protected FillFlowContainer TextFlow;
         protected Box Background;
-        protected Box Caret;
+        protected Drawable Caret;
         protected Container TextContainer;
 
         /// <summary>
         /// Padding to be used within the TextContainer. Requires special handling due to the sideways scrolling of text content.
         /// </summary>
         protected virtual float LeftRightPadding => 5;
+
+        private const float caret_move_time = 60;
 
         public int? LengthLimit;
 
@@ -84,18 +87,10 @@ namespace osu.Framework.Graphics.UserInterface
                     Anchor = Anchor.CentreLeft,
                     Origin = Anchor.CentreLeft,
                     Position = new Vector2(LeftRightPadding, 0),
-                    Children = new Drawable[]
+                    Children = new[]
                     {
                         Placeholder = CreatePlaceholder(),
-                        Caret = new Box
-                        {
-                            Size = new Vector2(1, 0.9f),
-                            Colour = Color4.Transparent,
-                            Anchor = Anchor.CentreLeft,
-                            Origin = Anchor.CentreLeft,
-                            RelativeSizeAxes = Axes.Y,
-                            Alpha = 0,
-                        },
+                        Caret = new DrawableCaret(),
                         TextFlow = new FillFlowContainer
                         {
                             Direction = FillDirection.Horizontal,
@@ -165,20 +160,22 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void updateCursorAndLayout()
         {
+            const float cursor_width = 3;
+
             Placeholder.TextSize = CalculatedTextSize;
 
             textUpdateScheduler.Update();
 
+            float caretWidth = cursor_width;
+
             Vector2 cursorPos = Vector2.Zero;
             if (text.Length > 0)
-                cursorPos.X = getPositionAt(selectionLeft);
+                cursorPos.X = getPositionAt(selectionLeft) - cursor_width / 2;
 
             float cursorPosEnd = getPositionAt(selectionEnd);
 
-            float cursorWidth = 2;
-
             if (selectionLength > 0)
-                cursorWidth = getPositionAt(selectionRight) - cursorPos.X;
+                caretWidth = getPositionAt(selectionRight) - cursorPos.X;
 
             float cursorRelativePositionAxesInBox = (cursorPosEnd - textContainerPosX) / DrawWidth;
 
@@ -196,7 +193,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 Caret.ClearTransforms();
                 Caret.MoveTo(cursorPos, 60, Easing.Out);
-                Caret.ScaleTo(new Vector2(cursorWidth, 1), 60, Easing.Out);
+                Caret.ResizeWidthTo(caretWidth, caret_move_time, Easing.Out);
 
                 if (selectionLength > 0)
                     Caret
@@ -353,6 +350,12 @@ namespace osu.Framework.Graphics.UserInterface
             ch.Depth = -selectionLeft;
 
             TextFlow.Add(ch);
+
+            var transparentWhite = new Color4(1, 1, 1, 0f);
+
+            ch.FadeColour(transparentWhite)
+                .FadeColour(ColourInfo.GradientHorizontal(Color4.White, transparentWhite), caret_move_time / 2).Then()
+                .FadeColour(Color4.White, caret_move_time / 2);
 
             // Add back all the previously removed characters
             TextFlow.AddRange(charsRight);
@@ -878,5 +881,27 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         #endregion
+
+        private class DrawableCaret : CompositeDrawable
+        {
+            public DrawableCaret()
+            {
+                RelativeSizeAxes = Axes.Y;
+                Size = new Vector2(1, 0.9f);
+                Alpha = 0;
+                Colour = Color4.Transparent;
+                Anchor = Anchor.CentreLeft;
+                Origin = Anchor.CentreLeft;
+
+                Masking = true;
+                CornerRadius = 1;
+
+                InternalChild = new Box
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Colour = Color4.White,
+                };
+            }
+        }
     }
 }
