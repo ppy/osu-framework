@@ -8,7 +8,6 @@ using osu.Framework.Input;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Extensions.Color4Extensions;
-using System.Collections.Generic;
 using OpenTK.Input;
 using osu.Framework.Graphics.Shapes;
 
@@ -16,19 +15,6 @@ namespace osu.Framework.Graphics.Visualisation
 {
     internal class VisualisedDrawable : Container
     {
-        public class NestingDepthComparer : IComparer<VisualisedDrawable>
-        {
-            public int Compare(VisualisedDrawable x, VisualisedDrawable y)
-            {
-                if (x == null) throw new ArgumentNullException(nameof(x));
-                if (y == null) throw new ArgumentNullException(nameof(y));
-
-                return x.nestingDepth.CompareTo(y.nestingDepth);
-            }
-        }
-
-        public static IComparer<VisualisedDrawable> Comparer => new NestingDepthComparer();
-
         public Drawable Target { get; }
 
         private bool isHighlighted;
@@ -63,9 +49,6 @@ namespace osu.Framework.Graphics.Visualisation
         private readonly Drawable activityAutosize;
         private readonly Drawable activityLayout;
 
-        public Action HoverGained;
-        public Action HoverLost;
-
         public Action RequestTarget;
         public Action HighlightTarget;
 
@@ -74,13 +57,10 @@ namespace osu.Framework.Graphics.Visualisation
         public FillFlowContainer<VisualisedDrawable> Flow;
         private readonly TreeContainer tree;
 
-        private readonly int nestingDepth;
-
-        public VisualisedDrawable(VisualisedDrawable parent, Drawable d, TreeContainer tree)
+        public VisualisedDrawable(Drawable d, TreeContainer tree)
         {
             this.tree = tree;
 
-            nestingDepth = (parent?.nestingDepth ?? 0) + 1;
             Target = d;
 
             attachEvents();
@@ -191,14 +171,12 @@ namespace osu.Framework.Graphics.Visualisation
 
         protected override bool OnHover(InputState state)
         {
-            HoverGained?.Invoke();
             background.Colour = Color4.PaleVioletRed.Opacity(0.7f);
             return base.OnHover(state);
         }
 
         protected override void OnHoverLost(InputState state)
         {
-            HoverLost?.Invoke();
             background.Colour = Color4.Transparent;
             base.OnHoverLost(state);
         }
