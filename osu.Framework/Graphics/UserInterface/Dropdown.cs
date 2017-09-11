@@ -228,7 +228,8 @@ namespace osu.Framework.Graphics.UserInterface
             public bool AnyPresent => Children.Any(c => c.IsPresent);
 
             #region DrawableDropdownMenuItem
-            protected class DrawableDropdownMenuItem : DrawableMenuItem
+            // must be public due to mono bug(?) https://github.com/ppy/osu/issues/1204
+            public class DrawableDropdownMenuItem : DrawableMenuItem
             {
                 private bool selected;
                 public bool IsSelected
