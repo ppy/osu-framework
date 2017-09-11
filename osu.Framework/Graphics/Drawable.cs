@@ -1093,25 +1093,25 @@ namespace osu.Framework.Graphics
             }
         }
 
-        private BlendingMode blendingMode;
+        private BlendingParameters blending;
 
         /// <summary>
         /// Determines how this Drawable is blended with other already drawn Drawables.
-        /// Inherits the <see cref="Parent"/>'s <see cref="BlendingMode"/> by default.
+        /// Inherits the <see cref="Parent"/>'s <see cref="Blending"/> by default.
         /// </summary>
-        public BlendingMode BlendingMode
+        public BlendingParameters Blending
         {
-            get { return blendingMode; }
+            get { return blending; }
 
             set
             {
-                if (blendingMode == value) return;
+                if (blending.Equals(value))
+                    return;
 
-                blendingMode = value;
+                blending = value;
                 Invalidate(Invalidation.Colour);
             }
         }
-
         #endregion
 
         #region Timekeeping
@@ -1287,18 +1287,24 @@ namespace osu.Framework.Graphics
 
             Vector2 pos = DrawPosition + AnchorPosition;
             Vector2 drawScale = DrawScale;
-            BlendingMode localBlendingMode = BlendingMode;
+            BlendingParameters localBlending = Blending;
 
             if (Parent != null)
             {
                 pos += Parent.ChildOffset;
 
-                if (localBlendingMode == BlendingMode.Inherit)
-                    localBlendingMode = Parent.BlendingMode;
+                if (localBlending.Mode == BlendingMode.Inherit)
+                    localBlending.Mode = Parent.Blending.Mode;
+
+                if (localBlending.RGBEquation == BlendingEquation.Inherit)
+                    localBlending.RGBEquation = Parent.Blending.RGBEquation;
+
+                if (localBlending.AlphaEquation == BlendingEquation.Inherit)
+                    localBlending.AlphaEquation = Parent.Blending.AlphaEquation;
             }
 
             di.ApplyTransform(pos, drawScale, Rotation, Shear, OriginPosition);
-            di.Blending = new BlendingInfo(localBlendingMode);
+            di.Blending = new BlendingInfo(localBlending);
 
             ColourInfo drawInfoColour = alpha != 1 ? colour.MultiplyAlpha(alpha) : colour;
 
@@ -2121,26 +2127,6 @@ namespace osu.Framework.Graphics
     {
         Clockwise,
         CounterClockwise,
-    }
-
-    public enum BlendingMode
-    {
-        /// <summary>
-        /// Inherits from parent.
-        /// </summary>
-        Inherit = 0,
-        /// <summary>
-        /// Mixes with existing colour by a factor of the colour's alpha.
-        /// </summary>
-        Mixture,
-        /// <summary>
-        /// Purely additive (by a factor of the colour's alpha) blending.
-        /// </summary>
-        Additive,
-        /// <summary>
-        /// No alpha blending whatsoever.
-        /// </summary>
-        None,
     }
 
     /// <summary>

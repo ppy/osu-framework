@@ -113,6 +113,7 @@
     <Compile Include="Graphics\Animations\FrameData.cs" />
     <Compile Include="Graphics\Animations\IAnimation.cs" />
     <Compile Include="Graphics\Animations\TextureAnimation.cs" />
+    <Compile Include="Graphics\BlendingParameters.cs" />
     <Compile Include="Graphics\Containers\AsyncLoadWrapper.cs" />
     <Compile Include="Graphics\Containers\CompositeDrawable.cs" />
     <Compile Include="Graphics\Containers\CustomizableTextContainer.cs" />
