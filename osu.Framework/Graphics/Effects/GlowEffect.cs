@@ -31,7 +31,7 @@ namespace osu.Framework.Graphics.Effects
         /// <summary>
         /// The blending mode of the glow. Default is additive.
         /// </summary>
-        public BlendingMode BlendingMode = BlendingMode.Additive;
+        public BlendingParameters Blending = BlendingMode.Additive;
 
         /// <summary>
         /// Whether to draw the glow <see cref="EffectPlacement.InFront"/> or <see cref="EffectPlacement.Behind"/> the glowing
@@ -55,7 +55,7 @@ namespace osu.Framework.Graphics.Effects
             Strength = Strength,
             Sigma = BlurSigma,
             Colour = Colour,
-            BlendingMode = BlendingMode,
+            Blending = Blending,
             Placement = Placement,
             PadExtent = PadExtent,
             CacheDrawnEffect = CacheDrawnEffect,

@@ -243,6 +243,7 @@ namespace osu.Framework.Graphics.OpenGL
 
                 lastBlendingEnabledState = true;
 
+                GL.BlendEquationSeparate(blendingInfo.RGBEquation, blendingInfo.AlphaEquation);
                 GL.BlendFuncSeparate(blendingInfo.Source, blendingInfo.Destination, blendingInfo.SourceAlpha, blendingInfo.DestinationAlpha);
             }
 

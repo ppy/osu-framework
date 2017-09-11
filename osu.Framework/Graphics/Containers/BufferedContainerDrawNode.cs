@@ -26,7 +26,7 @@ namespace osu.Framework.Graphics.Containers
         public bool DrawOriginal;
         public Color4 BackgroundColour;
         public ColourInfo EffectColour;
-        public BlendingMode EffectBlending;
+        public BlendingParameters EffectBlending;
         public EffectPlacement EffectPlacement;
 
         public Vector2 BlurSigma;
@@ -210,7 +210,7 @@ namespace osu.Framework.Graphics.Containers
             }
 
             // Blit the final framebuffer to screen.
-            GLWrapper.SetBlend(EffectBlending == BlendingMode.Inherit ? DrawInfo.Blending : new BlendingInfo(EffectBlending));
+            GLWrapper.SetBlend(new BlendingInfo(EffectBlending));
 
             ColourInfo effectColour = DrawInfo.Colour;
             effectColour.ApplyChild(EffectColour);
