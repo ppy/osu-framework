@@ -155,11 +155,7 @@ namespace osu.Framework.Testing
                                             {
                                                 runAllButton.Enabled.Value = false;
                                                 runAllButton.BackgroundColour = Color4.DimGray;
-                                                CurrentTest.RunAllSteps(delegate
-                                                {
-                                                    runAllButton.Enabled.Value = true;
-                                                    runAllButton.BackgroundColour = Color4.MediumPurple;
-                                                });
+                                                CurrentTest.RunAllSteps(() => runAllComplete(), e => runAllComplete(true));
                                             },
                                             Width = 150,
                                             RelativeSizeAxes = Axes.Y,
@@ -217,6 +213,12 @@ namespace osu.Framework.Testing
             }
         }
 
+        private void runAllComplete(bool error = false)
+        {
+            runAllButton.Enabled.Value = true;
+            runAllButton.BackgroundColour = error ? Color4.Red : Color4.MediumPurple;
+        }
+
         private void compileStarted()
         {
             compilingNotice.Show();
@@ -258,6 +260,8 @@ namespace osu.Framework.Testing
 
         public void LoadTest(Type testType = null, Action onCompletion = null)
         {
+            runAllComplete();
+
             if (testType == null && TestTypes.Count > 0)
                 testType = TestTypes[0];
 
