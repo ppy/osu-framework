@@ -276,6 +276,8 @@ namespace osu.Framework.Testing
 
                 testContentContainer.Add(CurrentTest = (TestCase)Activator.CreateInstance(testType));
                 if (!interactive) CurrentTest.OnLoadComplete = d => ((TestCase)d).RunAllSteps(onCompletion);
+
+                CurrentTest.RunFirstStep();
             }
 
             updateButtons();

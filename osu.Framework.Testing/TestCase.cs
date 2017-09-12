@@ -125,6 +125,8 @@ namespace osu.Framework.Testing
             runNextStep(onCompletion, onError);
         }
 
+        public void RunFirstStep() => loadableStep?.TriggerOnClick();
+
         private Drawable loadableStep => actionIndex >= 0 ? StepsContainer.Children.ElementAtOrDefault(actionIndex) : null;
 
         protected virtual double TimePerAction => 200;
@@ -181,7 +183,7 @@ namespace osu.Framework.Testing
                 stepRunner = Scheduler.AddDelayed(() => runNextStep(onCompletion, onError), TimePerAction);
         }
 
-        protected void AddStep(string description, Action action)
+        public void AddStep(string description, Action action)
         {
             StepsContainer.Add(new SingleStepButton
             {
