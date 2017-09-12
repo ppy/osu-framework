@@ -288,7 +288,8 @@ namespace osu.Framework.Testing
 
                 foreach (var m in methods.Where(m => m.Name != "TestConstructor" && m.GetCustomAttributes(typeof(TestAttribute), false).Length > 0))
                 {
-                    CurrentTest.AddStep(m.Name, () => { setUpMethod?.Invoke(CurrentTest, null); });
+                    var step = CurrentTest.AddStep(m.Name, () => { setUpMethod?.Invoke(CurrentTest, null); });
+                    step.BackgroundColour = Color4.Teal;
                     m.Invoke(CurrentTest, null);
                 }
 

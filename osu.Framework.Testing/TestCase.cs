@@ -183,13 +183,17 @@ namespace osu.Framework.Testing
                 stepRunner = Scheduler.AddDelayed(() => runNextStep(onCompletion, onError), TimePerAction);
         }
 
-        public void AddStep(string description, Action action)
+        public StepButton AddStep(string description, Action action)
         {
-            StepsContainer.Add(new SingleStepButton
+            var step = new SingleStepButton
             {
                 Text = description,
                 Action = action
-            });
+            };
+
+            StepsContainer.Add(step);
+
+            return step;
         }
 
         protected void AddRepeatStep(string description, Action action, int invocationCount)
