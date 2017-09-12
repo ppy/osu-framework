@@ -74,14 +74,19 @@ namespace osu.Framework.Testing
                     RelativeSizeAxes = Axes.Y,
                     Width = steps_width,
                 },
-                StepsContainer = new FillFlowContainer<Drawable>
+                scroll = new ScrollContainer
                 {
-                    Direction = FillDirection.Vertical,
-                    Depth = float.MinValue,
-                    Padding = new MarginPadding(5),
-                    Spacing = new Vector2(5),
-                    AutoSizeAxes = Axes.Y,
                     Width = steps_width,
+                    Depth = float.MinValue,
+                    RelativeSizeAxes = Axes.Y,
+                    Padding = new MarginPadding(5),
+                    Child = StepsContainer = new FillFlowContainer<Drawable>
+                    {
+                        Direction = FillDirection.Vertical,
+                        Spacing = new Vector2(5),
+                        RelativeSizeAxes = Axes.X,
+                        AutoSizeAxes = Axes.Y,
+                    },
                 },
                 new Container
                 {
@@ -109,6 +114,7 @@ namespace osu.Framework.Testing
         private int actionIndex;
         private int actionRepetition;
         private ScheduledDelegate stepRunner;
+        private readonly ScrollContainer scroll;
 
         public void RunAllSteps(Action onCompletion = null, Action<Exception> onError = null)
         {
@@ -127,7 +133,12 @@ namespace osu.Framework.Testing
         {
             try
             {
-                loadableStep?.TriggerOnClick();
+                if (loadableStep != null)
+                {
+                    if (loadableStep.IsMaskedAway)
+                        scroll.ScrollTo(loadableStep);
+                    loadableStep.TriggerOnClick();
+                }
             }
             catch (Exception e)
             {
