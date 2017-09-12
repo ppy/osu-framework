@@ -73,6 +73,8 @@ namespace osu.Framework.Audio.Track
 
         public override void Update()
         {
+            base.Update();
+
             lock (clock)
             {
                 if (CurrentTime >= Length)
