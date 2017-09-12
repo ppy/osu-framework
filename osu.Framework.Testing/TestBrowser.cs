@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions;
@@ -280,6 +281,16 @@ namespace osu.Framework.Testing
 
                 testContentContainer.Add(CurrentTest = (TestCase)Activator.CreateInstance(testType));
                 if (!interactive) CurrentTest.OnLoadComplete = d => ((TestCase)d).RunAllSteps(onCompletion);
+
+                var methods = testType.GetMethods();
+
+                var setUpMethod = methods.FirstOrDefault(m => m.GetCustomAttributes(typeof(SetUpAttribute), false).Length > 0);
+
+                foreach (var m in methods.Where(m => m.Name != "TestConstructor" && m.GetCustomAttributes(typeof(TestAttribute), false).Length > 0))
+                {
+                    CurrentTest.AddStep(m.Name, () => { setUpMethod?.Invoke(CurrentTest, null); });
+                    m.Invoke(CurrentTest, null);
+                }
 
                 CurrentTest.RunFirstStep();
             }
