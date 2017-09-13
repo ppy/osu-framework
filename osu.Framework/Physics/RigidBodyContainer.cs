@@ -171,12 +171,12 @@ namespace osu.Framework.Physics
 
             // Remove translation
             normMat.M31 = normMat.M32 = normMat.M13 = normMat.M23 = 0;
-            Vector2 translation = Vector2.Zero * normMat;
+            Vector2 translation = Vector2Extensions.Transform(Vector2.Zero, normMat);
 
             for (int i = 0; i < Vertices.Count; ++i)
             {
-                Vertices[i] *= mat;
-                Normals[i] = (Normals[i] * normMat - translation).Normalized();
+                Vertices[i] = Vector2Extensions.Transform(Vertices[i], mat);
+                Normals[i] = (Vector2Extensions.Transform(Normals[i], normMat) - translation).Normalized();
             }
         }
 
@@ -210,7 +210,7 @@ namespace osu.Framework.Physics
             bool didCollide = false;
             for (int i = 0; i < Vertices.Count; ++i)
             {
-                if (other.BodyContains(Vertices[i] * SimulationToScreenSpace))
+                if (other.BodyContains(Vector2Extensions.Transform(Vertices[i], SimulationToScreenSpace)))
                 {
                     // Compute both impulse responses _before_ applying them, such that
                     // they do not influence each other.
@@ -252,7 +252,7 @@ namespace osu.Framework.Physics
         public void ReadState()
         {
             Matrix3 mat = Parent.DrawInfo.Matrix * ScreenToSimulationSpace;
-            Centre = BoundingBox.Centre * mat;
+            Centre = Vector2Extensions.Transform(BoundingBox.Centre, mat);
             RotationRadians = MathHelper.DegreesToRadians(Rotation); // TODO: Fix rotations
 
             MomentOfInertia = ComputeI();
@@ -265,7 +265,7 @@ namespace osu.Framework.Physics
         public virtual void ApplyState()
         {
             Matrix3 mat = SimulationToScreenSpace * Parent.DrawInfo.MatrixInverse;
-            Position = Centre * mat + (Position - BoundingBox.Centre);
+            Position = Vector2Extensions.Transform(Centre, mat) + (Position - BoundingBox.Centre);
             Rotation = MathHelper.RadiansToDegrees(RotationRadians); // TODO: Fix rotations
         }
 

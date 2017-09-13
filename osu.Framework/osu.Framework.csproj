@@ -167,6 +167,7 @@
     <Compile Include="Graphics\Shapes\EquilateralTriangle.cs" />
     <Compile Include="Graphics\UserInterface\TabControl.cs" />
     <Compile Include="Graphics\UserInterface\TabItem.cs" />
+    <Compile Include="Graphics\Vector2Extensions.cs" />
     <Compile Include="Input\Bindings\InputKey.cs" />
     <Compile Include="Input\CustomInputManager.cs" />
     <Compile Include="Input\Bindings\IKeyBindingHandler.cs" />
