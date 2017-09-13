@@ -60,9 +60,9 @@ namespace osu.Framework.Graphics.UserInterface
 
             Vector2 current = origin + pointOnCircle(start_angle) * 0.5f;
             Color4 currentColour = colourAt(current);
-            current *= transformationMatrix;
+            current = Vector2Extensions.Transform(current, transformationMatrix);
 
-            Vector2 screenOrigin = origin * transformationMatrix;
+            Vector2 screenOrigin = Vector2Extensions.Transform(origin, transformationMatrix);
             Color4 originColour = colourAt(origin);
 
             for (int i = 1; i <= amountPoints; i++)
@@ -96,7 +96,7 @@ namespace osu.Framework.Graphics.UserInterface
                 // Update `current`
                 current = origin + pointOnCircle(start_angle + angularOffset) * 0.5f;
                 currentColour = colourAt(current);
-                current *= transformationMatrix;
+                current = Vector2Extensions.Transform(current, transformationMatrix);
 
                 // Second outer point
                 Shared.HalfCircleBatch.Add(new TexturedVertex2D

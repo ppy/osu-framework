@@ -113,13 +113,11 @@ namespace osu.Framework.Graphics.Shaders
                     int size;
                     int length;
                     ActiveUniformType type;
-                    StringBuilder uniformName = new StringBuilder(100);
-                    GL.GetActiveUniform(this, i, 100, out length, out size, out type, uniformName);
+                    string uniformName;
+                    GL.GetActiveUniform(this, i, 100, out length, out size, out type, out uniformName);
 
-                    string strName = uniformName.ToString();
-
-                    uniformsArray[i] = new UniformBase(this, strName, GL.GetUniformLocation(this, strName), type);
-                    uniforms.Add(strName, uniformsArray[i]);
+                    uniformsArray[i] = new UniformBase(this, uniformName, GL.GetUniformLocation(this, uniformName), type);
+                    uniforms.Add(uniformName, uniformsArray[i]);
                 }
 
                 foreach (KeyValuePair<string, object> kvp in global_properties)
