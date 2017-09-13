@@ -29,6 +29,12 @@
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Castle.Core, Version=4.1.1.0, Culture=neutral, PublicKeyToken=407dd0808d44fbdc, processorArchitecture=MSIL">
+      <HintPath>..\packages\Castle.Core.4.1.1\lib\net45\Castle.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Moq, Version=4.7.99.0, Culture=neutral, PublicKeyToken=69f491c39445e920, processorArchitecture=MSIL">
+      <HintPath>..\packages\Moq.4.7.99\lib\net45\Moq.dll</HintPath>
+    </Reference>
     <Reference Include="nunit.framework, Version=3.7.1.0, Culture=neutral, PublicKeyToken=2638cd05610744eb, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)\packages\NUnit.3.7.1\lib\net45\nunit.framework.dll</HintPath>
       <Private>True</Private>
@@ -38,6 +44,7 @@
   <ItemGroup>
     <Compile Include="Lists\TestSortedList.cs" />
     <Compile Include="MathUtils\TestInterpolation.cs" />
+    <Compile Include="MathUtils\TestRNG.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\osu.Framework\osu.Framework.csproj">
@@ -49,6 +56,7 @@
     <None Include="..\osu-framework.licenseheader">
       <Link>osu-framework.licenseheader</Link>
     </None>
+    <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
