@@ -29,13 +29,6 @@ namespace osu.Framework.Desktop.Tests.Visual
         private ManualInputManager inputManager;
         private MenuStructure menus;
 
-        public TestCaseNestedMenus()
-        {
-            rng = new Random(1337);
-
-            Add(createMenu());
-        }
-
         [SetUp]
         public void SetUp()
         {
@@ -46,7 +39,6 @@ namespace osu.Framework.Desktop.Tests.Visual
             Menu menu;
             Add(inputManager = new ManualInputManager
             {
-                UseParentState = false,
                 Children = new Drawable[]
                 {
                     new CursorContainer(),
@@ -59,7 +51,6 @@ namespace osu.Framework.Desktop.Tests.Visual
             });
 
             menus = new MenuStructure(menu);
-            inputManager.MoveMouseTo(Vector2.Zero);
         }
 
         private Menu createMenu() => new ClickOpenMenu(TimePerAction)
@@ -429,12 +420,27 @@ namespace osu.Framework.Desktop.Tests.Visual
 
             public ManualInputManager()
             {
+                UseParentState = true;
                 AddHandler(handler = new ManualInputHandler());
             }
 
-            public void MoveMouseTo(Drawable drawable) => MoveMouseTo(drawable.ToScreenSpace(drawable.LayoutRectangle.Centre));
-            public void MoveMouseTo(Vector2 position) => handler.MoveMouseTo(position);
-            public void Click(MouseButton button) => handler.Click(button);
+            public void MoveMouseTo(Drawable drawable)
+            {
+                UseParentState = false;
+                MoveMouseTo(drawable.ToScreenSpace(drawable.LayoutRectangle.Centre));
+            }
+
+            public void MoveMouseTo(Vector2 position)
+            {
+                UseParentState = false;
+                handler.MoveMouseTo(position);
+            }
+
+            public void Click(MouseButton button)
+            {
+                UseParentState = false;
+                handler.Click(button);
+            }
         }
 
         private class ManualInputHandler : InputHandler
