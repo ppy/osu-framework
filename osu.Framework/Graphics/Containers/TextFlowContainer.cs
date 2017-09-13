@@ -86,6 +86,23 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        private Anchor textAnchor;
+        /// <summary>
+        /// The <see cref="Anchor"/> which text should flow from.
+        /// </summary>
+        public Anchor TextAnchor
+        {
+            get { return textAnchor; }
+            set
+            {
+                if (textAnchor == value)
+                    return;
+                textAnchor = value;
+
+                layout.Invalidate();
+            }
+        }
+
         /// <summary>
         /// An easy way to set the full text of a text flow in one go.
         /// This will overwrite any existing text added using this method of <see cref="AddText(string, Action{SpriteText})"/>
@@ -234,6 +251,9 @@ namespace osu.Framework.Graphics.Containers
             var curLine = new List<Drawable>();
             foreach (var c in Children)
             {
+                c.Anchor = TextAnchor;
+                c.Origin = TextAnchor;
+
                 NewLineContainer nlc = c as NewLineContainer;
                 if (nlc != null)
                 {
