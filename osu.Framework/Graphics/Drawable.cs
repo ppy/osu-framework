@@ -1500,7 +1500,7 @@ namespace osu.Framework.Graphics
             if (other == this)
                 return input;
 
-            return input * DrawInfo.Matrix * other.DrawInfo.MatrixInverse;
+            return Vector2.Transform(Vector2.Transform(input, DrawInfo.Matrix), other.DrawInfo.MatrixInverse);
         }
 
         /// <summary>
@@ -1538,7 +1538,7 @@ namespace osu.Framework.Graphics
         /// <returns>The vector in screen coordinates.</returns>
         public Vector2 ToScreenSpace(Vector2 input)
         {
-            return input * DrawInfo.Matrix;
+            return Vector2.Transform(input, DrawInfo.Matrix);
         }
 
         /// <summary>
@@ -1558,7 +1558,7 @@ namespace osu.Framework.Graphics
         /// <returns>The vector in local coordinates.</returns>
         public Vector2 ToLocalSpace(Vector2 screenSpacePos)
         {
-            return screenSpacePos * DrawInfo.MatrixInverse;
+            return Vector2.Transform(screenSpacePos, DrawInfo.MatrixInverse);
         }
 
         /// <summary>

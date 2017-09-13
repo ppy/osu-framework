@@ -46,10 +46,10 @@ namespace osu.Framework.Graphics.Primitives
         public static Quad operator *(Quad r, Matrix3 m)
         {
             return new Quad(
-                r.TopLeft * m,
-                r.TopRight * m,
-                r.BottomLeft * m,
-                r.BottomRight * m);
+                Vector2.Transform(r.TopLeft, m),
+                Vector2.Transform(r.TopRight, m),
+                Vector2.Transform(r.BottomLeft, m),
+                Vector2.Transform(r.BottomRight, m));
         }
 
         public Matrix2 BasisTransform
