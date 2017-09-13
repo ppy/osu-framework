@@ -150,7 +150,6 @@ namespace osu.Framework.Desktop.Tests.Visual
 
         private class CustomTooltipSpriteText : Container, IHasTooltip
         {
-            private readonly SpriteText text;
             private readonly string tooltipText;
 
             public string TooltipText => tooltipText;
@@ -162,7 +161,7 @@ namespace osu.Framework.Desktop.Tests.Visual
                 AutoSizeAxes = Axes.Both;
                 Children = new[]
                 {
-                    text = new SpriteText
+                    new SpriteText
                     {
                         Text = displayedText,
                     }
