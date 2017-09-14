@@ -15,6 +15,7 @@ using osu.Framework.Logging;
 using osu.Framework.MathUtils;
 using osu.Framework.Threading;
 using OpenTK;
+using OpenTK.Input;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -463,6 +464,18 @@ namespace osu.Framework.Graphics.UserInterface
                         openSubmenuFor(item);
                 }, HoverOpenDelay);
             }
+        }
+
+        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
+        {
+            switch (args.Key)
+            {
+                case Key.Escape:
+                    Close();
+                    return true;
+            }
+
+            return base.OnKeyDown(state, args);
         }
 
         protected override bool OnClick(InputState state) => true;
