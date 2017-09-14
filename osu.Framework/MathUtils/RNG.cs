@@ -11,7 +11,7 @@ namespace osu.Framework.MathUtils
     public static class RNG
     {
         // Base RNG. Maybe expose methods for re-seeding in the future?
-        static public IRandomProvider Random { private get; set; } = (IRandomProvider) new RandomProvider();
+        static public IRandomProvider Random { private get; set; } = new RandomProvider();
 
         /// <summary>
         /// Returns a non-negative signed integer.

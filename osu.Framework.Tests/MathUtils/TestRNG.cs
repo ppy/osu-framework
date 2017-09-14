@@ -1,7 +1,6 @@
 ﻿using Moq;
 using NUnit.Framework;
 using osu.Framework.MathUtils;
-using System;
 
 namespace osu.Framework.Tests.MathUtils
 {
