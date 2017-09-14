@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -33,6 +34,9 @@ namespace osu.Framework.Graphics.Textures
                     //convert from BGRA (System.Drawing) to RGBA
                     //don't need to consider stride because we're in a raw format
                     var src = (byte*)data.Scan0;
+
+                    Debug.Assert(src != null);
+
                     fixed (byte* pixels = t.Pixels)
                     {
                         var dest = pixels;
