@@ -2,12 +2,9 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using SQLite.Net;
+using SQLite;
 using System.IO;
 using osu.Framework.Platform;
-using SQLite.Net.Platform.Generic;
-using SQLite.Net.Interop;
-using SQLite.Net.Platform.Win32;
 using System.Diagnostics;
 
 namespace osu.Framework.Desktop.Platform
@@ -72,12 +69,7 @@ namespace osu.Framework.Desktop.Platform
         public override SQLiteConnection GetDatabase(string name)
         {
             Directory.CreateDirectory(BasePath);
-            ISQLitePlatform platform;
-            if (RuntimeInfo.IsWindows)
-                platform = new SQLitePlatformWin32(Architecture.NativeIncludePath);
-            else
-                platform = new SQLitePlatformGeneric();
-            return new SQLiteConnection(platform, GetUsablePathFor($@"{name}.db"));
+            return new SQLiteConnection(GetUsablePathFor($@"{name}.db"));
         }
 
         public override void DeleteDatabase(string name) => Delete($@"{name}.db");

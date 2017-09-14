@@ -4,7 +4,7 @@
 using System;
 using System.IO;
 using osu.Framework.IO.File;
-using SQLite.Net;
+using SQLite;
 
 namespace osu.Framework.Platform
 {
