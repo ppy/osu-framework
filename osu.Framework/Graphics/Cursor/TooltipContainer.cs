@@ -45,6 +45,8 @@ namespace osu.Framework.Graphics.Cursor
         /// </summary>
         protected virtual ITooltip CreateTooltip() => new Tooltip();
 
+        private bool hasValidTooltip(IHasTooltip target) => !string.IsNullOrEmpty(target?.TooltipText);
+
         private readonly Container content;
         protected override Container<Drawable> Content => content;
 
@@ -164,7 +166,7 @@ namespace osu.Framework.Graphics.Cursor
             // While we are dragging a tooltipped drawable we should show a tooltip for it.
             IHasTooltip draggedTarget = inputManager.DraggedDrawable as IHasTooltip;
             if (draggedTarget != null)
-                return draggedTarget;
+                return hasValidTooltip(draggedTarget) ? draggedTarget : null;
 
             // Always keep 10 positions at equally-sized time intervals that add up to AppearDelay.
             double positionRecordInterval = AppearDelay / 10;
@@ -192,8 +194,13 @@ namespace osu.Framework.Graphics.Cursor
             Vector2 first = relevantPositions.FirstOrDefault().Position;
             float appearRadiusSq = AppearRadius * AppearRadius;
 
-            if (relevantPositions.All(t => Vector2.DistanceSquared(t.Position, first) < appearRadiusSq))
-                return FindTarget();
+            if (relevantPositions.All(t => Vector2Extensions.DistanceSquared(t.Position, first) < appearRadiusSq))
+            {
+                // Only return the target if it has a valid tooltip
+                IHasTooltip target = FindTarget();
+                if (hasValidTooltip(target))
+                    return target;
+            }
 
             return null;
         }
@@ -235,7 +242,7 @@ namespace osu.Framework.Graphics.Cursor
         /// </summary>
         /// <param name="tooltipTarget">The target of the tooltip.</param>
         /// <returns>True if the currently visible tooltip should be hidden, false otherwise.</returns>
-        protected virtual bool ShallHideTooltip(IHasTooltip tooltipTarget) => !tooltipTarget.IsHovered && !tooltipTarget.IsDragged;
+        protected virtual bool ShallHideTooltip(IHasTooltip tooltipTarget) => !hasValidTooltip(tooltipTarget) || !tooltipTarget.IsHovered && !tooltipTarget.IsDragged;
 
         private ITooltip getTooltip(IHasTooltip target) => (target as IHasCustomTooltip)?.GetCustomTooltip() ?? defaultTooltip;
 

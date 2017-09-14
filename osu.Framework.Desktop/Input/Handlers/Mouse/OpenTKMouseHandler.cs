@@ -77,6 +77,11 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
             if (!mouseInWindow)
                 return;
 
+            if (e.Mouse.X < 0 || e.Mouse.Y < 0)
+                // todo: investigate further why we are getting negative values from OpenTK events
+                // on windows when crossing centre screen boundaries (width/2 or height/2).
+                return;
+
             handleState(new OpenTKEventMouseState(e.Mouse, host.IsActive, null));
         }
 

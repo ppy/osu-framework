@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions;
@@ -155,11 +156,7 @@ namespace osu.Framework.Testing
                                             {
                                                 runAllButton.Enabled.Value = false;
                                                 runAllButton.BackgroundColour = Color4.DimGray;
-                                                CurrentTest.RunAllSteps(delegate
-                                                {
-                                                    runAllButton.Enabled.Value = true;
-                                                    runAllButton.BackgroundColour = Color4.MediumPurple;
-                                                });
+                                                CurrentTest.RunAllSteps(() => runAllComplete(), e => runAllComplete(true));
                                             },
                                             Width = 150,
                                             RelativeSizeAxes = Axes.Y,
@@ -217,6 +214,12 @@ namespace osu.Framework.Testing
             }
         }
 
+        private void runAllComplete(bool error = false)
+        {
+            runAllButton.Enabled.Value = true;
+            runAllButton.BackgroundColour = error ? Color4.Red : Color4.MediumPurple;
+        }
+
         private void compileStarted()
         {
             compilingNotice.Show();
@@ -258,6 +261,8 @@ namespace osu.Framework.Testing
 
         public void LoadTest(Type testType = null, Action onCompletion = null)
         {
+            runAllComplete();
+
             if (testType == null && TestTypes.Count > 0)
                 testType = TestTypes[0];
 
@@ -276,6 +281,19 @@ namespace osu.Framework.Testing
 
                 testContentContainer.Add(CurrentTest = (TestCase)Activator.CreateInstance(testType));
                 if (!interactive) CurrentTest.OnLoadComplete = d => ((TestCase)d).RunAllSteps(onCompletion);
+
+                var methods = testType.GetMethods();
+
+                var setUpMethod = methods.FirstOrDefault(m => m.GetCustomAttributes(typeof(SetUpAttribute), false).Length > 0);
+
+                foreach (var m in methods.Where(m => m.Name != "TestConstructor" && m.GetCustomAttributes(typeof(TestAttribute), false).Length > 0))
+                {
+                    var step = CurrentTest.AddStep(m.Name, () => { setUpMethod?.Invoke(CurrentTest, null); });
+                    step.BackgroundColour = Color4.Teal;
+                    m.Invoke(CurrentTest, null);
+                }
+
+                CurrentTest.RunFirstStep();
             }
 
             updateButtons();

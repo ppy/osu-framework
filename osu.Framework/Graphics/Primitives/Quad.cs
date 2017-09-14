@@ -46,10 +46,10 @@ namespace osu.Framework.Graphics.Primitives
         public static Quad operator *(Quad r, Matrix3 m)
         {
             return new Quad(
-                r.TopLeft * m,
-                r.TopRight * m,
-                r.BottomLeft * m,
-                r.BottomRight * m);
+                Vector2Extensions.Transform(r.TopLeft, m),
+                Vector2Extensions.Transform(r.TopRight, m),
+                Vector2Extensions.Transform(r.BottomLeft, m),
+                Vector2Extensions.Transform(r.BottomRight, m));
         }
 
         public Matrix2 BasisTransform
@@ -74,8 +74,8 @@ namespace osu.Framework.Graphics.Primitives
         public Vector2 Centre => (TopLeft + TopRight + BottomLeft + BottomRight) / 4;
         public Vector2 Size => new Vector2(Width, Height);
 
-        public float Width => Vector2.Distance(TopLeft, TopRight);
-        public float Height => Vector2.Distance(TopLeft, BottomLeft);
+        public float Width => Vector2Extensions.Distance(TopLeft, TopRight);
+        public float Height => Vector2Extensions.Distance(TopLeft, BottomLeft);
 
         public RectangleI AABB
         {
@@ -123,13 +123,13 @@ namespace osu.Framework.Graphics.Primitives
                     return Math.Abs((TopLeft.Y - BottomLeft.Y) * (TopLeft.X - TopRight.X));
 
                 // Uncomment this to speed this computation up at the cost of losing accuracy when considering shearing.
-                //return Math.Sqrt(Vector2.DistanceSquared(TopLeft, TopRight) * Vector2.DistanceSquared(TopLeft, BottomLeft));
+                //return Math.Sqrt(Vector2Extensions.DistanceSquared(TopLeft, TopRight) * Vector2Extensions.DistanceSquared(TopLeft, BottomLeft));
 
                 Vector2 d1 = TopLeft - TopRight;
                 float lsq1 = d1.LengthSquared;
 
                 Vector2 d2 = TopLeft - BottomLeft;
-                float lsq2 = Vector2.DistanceSquared(d2, d1 * Vector2.Dot(d2, d1 * MathHelper.InverseSqrtFast(lsq1)));
+                float lsq2 = Vector2Extensions.DistanceSquared(d2, d1 * Vector2.Dot(d2, d1 * MathHelper.InverseSqrtFast(lsq1)));
 
                 return (float)Math.Sqrt(lsq1 * lsq2);
             }

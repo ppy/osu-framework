@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System.Diagnostics;
 using System.IO;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -35,6 +36,9 @@ namespace osu.Framework.Graphics.Textures
                     unsafe
                     {
                         byte* p = (byte*)pixels.Scan0;
+
+                        Debug.Assert(p != null);
+
                         int i = 0;
                         for (int y = 0; y < bmp.Height; y++)
                         {

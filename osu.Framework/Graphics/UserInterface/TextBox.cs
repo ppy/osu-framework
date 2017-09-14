@@ -351,10 +351,8 @@ namespace osu.Framework.Graphics.UserInterface
 
             TextFlow.Add(ch);
 
-            var transparentWhite = new Color4(1, 1, 1, 0f);
-
-            ch.FadeColour(transparentWhite)
-                .FadeColour(ColourInfo.GradientHorizontal(Color4.White, transparentWhite), caret_move_time / 2).Then()
+            ch.FadeColour(Color4.Transparent)
+                .FadeColour(ColourInfo.GradientHorizontal(Color4.White, Color4.Transparent), caret_move_time / 2).Then()
                 .FadeColour(Color4.White, caret_move_time / 2);
 
             // Add back all the previously removed characters

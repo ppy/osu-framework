@@ -139,23 +139,23 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private BlendingMode effectBlendingMode;
+        private BlendingParameters effectBlending;
 
         /// <summary>
-        /// The <see cref="BlendingMode"/> to use after applying all effects. Default is <see cref="BlendingMode.Inherit"/>.
-        /// <see cref="BlendingMode.Inherit"/> inherits the blending mode of the original, i.e. <see cref="Drawable.BlendingMode"/> is used.
+        /// The <see cref="BlendingParameters"/> to use after applying all effects. Default is <see cref="BlendingMode.Inherit"/>.
+        /// <see cref="BlendingMode.Inherit"/> inherits the blending mode of the original, i.e. <see cref="Drawable.Blending"/> is used.
         /// Does not affect the original which is drawn when <see cref="DrawOriginal"/> is true.
         /// </summary>
-        public BlendingMode EffectBlendingMode
+        public BlendingParameters EffectBlending
         {
-            get { return effectBlendingMode; }
+            get { return effectBlending; }
 
             set
             {
-                if (effectBlendingMode.Equals(value))
+                if (effectBlending.Equals(value))
                     return;
 
-                effectBlendingMode = value;
+                effectBlending = value;
                 Invalidate(Invalidation.DrawNode);
             }
         }
@@ -284,8 +284,18 @@ namespace osu.Framework.Graphics.Containers
             n.UpdateVersion = updateVersion;
             n.BackgroundColour = backgroundColour;
 
+            BlendingParameters localEffectBlending = EffectBlending;
+            if (localEffectBlending.Mode == BlendingMode.Inherit)
+                localEffectBlending.Mode = Blending.Mode;
+
+            if (localEffectBlending.RGBEquation == BlendingEquation.Inherit)
+                localEffectBlending.RGBEquation = Blending.RGBEquation;
+
+            if (localEffectBlending.AlphaEquation == BlendingEquation.Inherit)
+                localEffectBlending.AlphaEquation = Blending.AlphaEquation;
+
             n.EffectColour = effectColour;
-            n.EffectBlending = effectBlendingMode;
+            n.EffectBlending = localEffectBlending;
             n.EffectPlacement = effectPlacement;
 
             n.DrawOriginal = drawOriginal;

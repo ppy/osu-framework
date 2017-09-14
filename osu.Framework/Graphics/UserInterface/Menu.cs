@@ -15,6 +15,7 @@ using osu.Framework.Logging;
 using osu.Framework.MathUtils;
 using osu.Framework.Threading;
 using OpenTK;
+using OpenTK.Input;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -465,6 +466,18 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
+        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
+        {
+            switch (args.Key)
+            {
+                case Key.Escape:
+                    Close();
+                    return true;
+            }
+
+            return base.OnKeyDown(state, args);
+        }
+
         protected override bool OnClick(InputState state) => true;
         protected override bool OnHover(InputState state) => true;
 
@@ -522,7 +535,8 @@ namespace osu.Framework.Graphics.UserInterface
         protected virtual DrawableMenuItem CreateDrawableMenuItem(MenuItem item) => new DrawableMenuItem(item);
 
         #region DrawableMenuItem
-        protected class DrawableMenuItem : CompositeDrawable, IStateful<MenuItemState>
+        // must be public due to mono bug(?) https://github.com/ppy/osu/issues/1204
+        public class DrawableMenuItem : CompositeDrawable, IStateful<MenuItemState>
         {
             /// <summary>
             /// Invoked when this <see cref="DrawableMenuItem"/>'s <see cref="State"/> changes.

@@ -10,10 +10,12 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     public class CircularContainer : Container
     {
-        protected override void UpdateAfterChildren()
+        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
-            base.UpdateAfterChildren();
-            CornerRadius = Math.Min(DrawSize.X, DrawSize.Y) / 2f;
+            if ((invalidation & Invalidation.DrawSize) > 0)
+                CornerRadius = Math.Min(DrawSize.X, DrawSize.Y) / 2f;
+
+            return base.Invalidate(invalidation, source, shallPropagate);
         }
     }
 }
