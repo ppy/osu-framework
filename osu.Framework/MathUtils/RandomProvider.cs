@@ -8,7 +8,7 @@ namespace osu.Framework.MathUtils
     internal class RandomProvider : IRandomProvider
     {
 
-        private Random _random;
+        private readonly Random _random;
 
         public RandomProvider(Random random = null)
         {
