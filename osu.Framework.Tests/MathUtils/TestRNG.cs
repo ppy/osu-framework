@@ -14,13 +14,13 @@ namespace osu.Framework.Tests.MathUtils
         public void TestNext()
         {
             Mock<IRandomProvider> mockRandomProvider = new Mock<IRandomProvider>();
-            const int expectedRandomNumber = 134123;
-            mockRandomProvider.Setup((mock) => mock.Next()).Returns(expectedRandomNumber);
+            const int expected_random_number = 134123;
+            mockRandomProvider.Setup(mock => mock.Next()).Returns(expected_random_number);
             RNG.Random = mockRandomProvider.Object;
 
             int actualRandomNumber = RNG.Next();
 
-            Assert.AreEqual(expectedRandomNumber, actualRandomNumber);
+            Assert.AreEqual(expected_random_number, actualRandomNumber);
             mockRandomProvider.Verify(mock => mock.Next(), Times.Once);
         }
     }
