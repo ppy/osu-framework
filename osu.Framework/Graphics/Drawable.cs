@@ -167,8 +167,13 @@ namespace osu.Framework.Graphics
         internal void Load(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies)
         {
             // Blocks when loading from another thread already.
+            double t0 = perf.CurrentTime;
             lock (loadLock)
             {
+                double lockDuration = perf.CurrentTime - t0;
+                if (perf.CurrentTime > 1000 && lockDuration > 50 && ThreadSafety.IsUpdateThread)
+                    Logger.Log($@"Drawable [{ToString()}] load was blocked for {lockDuration:0.00}ms!", LoggingTarget.Performance);
+
                 switch (loadState)
                 {
                     case LoadState.Ready:
@@ -193,9 +198,9 @@ namespace osu.Framework.Graphics
 
                 Dependencies.Inject(this);
 
-                double elapsed = perf.CurrentTime - t1;
-                if (perf.CurrentTime > 1000 && elapsed > 50 && ThreadSafety.IsUpdateThread)
-                    Logger.Log($@"Drawable [{ToString()}] took {elapsed:0.00}ms to load and was not async!", LoggingTarget.Performance);
+                double loadDuration = perf.CurrentTime - t1;
+                if (perf.CurrentTime > 1000 && loadDuration > 50 && ThreadSafety.IsUpdateThread)
+                    Logger.Log($@"Drawable [{ToString()}] took {loadDuration:0.00}ms to load and was not async!", LoggingTarget.Performance);
                 loadState = LoadState.Ready;
             }
         }
