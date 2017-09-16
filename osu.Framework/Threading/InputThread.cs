@@ -19,6 +19,10 @@ namespace osu.Framework.Threading
             StatisticsCounterType.KeyEvents,
         };
 
-        public void RunUpdate() => ProcessFrame();
+        public void RunUpdate()
+        {
+            if (!IsActive) return; // do not process input if not active
+            ProcessFrame();
+        }
     }
 }
