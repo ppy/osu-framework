@@ -101,8 +101,8 @@ namespace osu.Framework.Audio.Track
             double currentTimeLocal = Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetPosition(activeStream)) * 1000;
             Interlocked.Exchange(ref currentTime, currentTimeLocal == Length && !isPlayed ? 0 : currentTimeLocal);
 
-            var leftChannel = Bass.ChannelGetLevelLeft(activeStream) / 32768f;
-            var rightChannel = Bass.ChannelGetLevelRight(activeStream) / 32768f;
+            var leftChannel = isPlayed ? (Bass.ChannelGetLevelLeft(activeStream) / 32768f) : -1;
+            var rightChannel = isPlayed ? (Bass.ChannelGetLevelRight(activeStream) / 32768f) : -1;
 
             if (leftChannel >= 0 && rightChannel >= 0)
             {
@@ -112,6 +112,12 @@ namespace osu.Framework.Audio.Track
                 float[] tempFrequencyData = new float[256];
                 Bass.ChannelGetData(activeStream, tempFrequencyData, (int)DataFlags.FFT512);
                 currentAmplitudes.FrequencyAmplitudes = tempFrequencyData;
+            }
+            else
+            {
+                currentAmplitudes.LeftChannel = 0;
+                currentAmplitudes.RightChannel = 0;
+                currentAmplitudes.FrequencyAmplitudes = new float[256];
             }
 
             base.Update();
