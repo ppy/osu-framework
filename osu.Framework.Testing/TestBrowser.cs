@@ -201,7 +201,6 @@ namespace osu.Framework.Testing
             {
                 CompilationStarted = compileStarted,
                 CompilationFinished = compileFinished,
-                WatchDirectory = @"Tests",
             };
 
             try
@@ -262,6 +261,8 @@ namespace osu.Framework.Testing
         public void LoadTest(Type testType = null, Action onCompletion = null)
         {
             runAllComplete();
+
+            backgroundCompiler.Checkpoint(testType);
 
             if (testType == null && TestTypes.Count > 0)
                 testType = TestTypes[0];

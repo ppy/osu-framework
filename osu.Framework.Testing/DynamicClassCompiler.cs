@@ -19,10 +19,16 @@ namespace osu.Framework.Testing
 
         public Action<Type> CompilationFinished;
 
-        private FileSystemWatcher fsw_cs;
-        private FileSystemWatcher fsw_dll;
+        private FileSystemWatcher fsw;
 
-        private string CurrentCodeFilePath;
+        private string lastTouchedFile;
+
+        private Type checkpointedType;
+
+        public void Checkpoint(Type type)
+        {
+            checkpointedType = type;
+        }
 
         /// <summary>
         /// Find the base path of the closest solution folder
@@ -51,9 +57,15 @@ namespace osu.Framework.Testing
             return csc;
         }
 
-        private Dictionary<string, string> overrideDlls = new Dictionary<string, string>();
+        private HashSet<string> overrideDlls = new HashSet<string>();
 
         private HashSet<string> changedFiles = new HashSet<string>();
+
+        //private List<string> ignoreTypes = new List<string>()
+        //{
+        //    "OsuGameBase",
+        //    "APIAccess"
+        //};
 
         public void Start()
         {
@@ -64,81 +76,87 @@ namespace osu.Framework.Testing
             if (!Directory.Exists(basePath))
                 return;
 
-            fsw_dll = new FileSystemWatcher(basePath, @"*.dll")
+            fsw = new FileSystemWatcher(basePath, @"*.cs")
             {
                 EnableRaisingEvents = true,
                 IncludeSubdirectories = true,
                 NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.CreationTime,
             };
 
-            fsw_dll.Changed += (sender, e) =>
+            fsw.Changed += (sender, e) =>
             {
-                Logger.Log($"{e.ChangeType} on {e.FullPath}");
-                var tempName = Path.GetTempFileName() + ".dll";
+                lastTouchedFile = e.FullPath;
 
-                while (true)
+                var sln = findSolutionPath();
+
+                var oneDeeper = new DirectoryInfo(Path.GetDirectoryName(e.FullPath));
+
+                while (oneDeeper.Parent?.FullName != sln)
+                    oneDeeper = oneDeeper.Parent;
+
+                if (assemblies == null)
                 {
-                    try
+                    assemblies = new HashSet<string>();
+
+                    foreach (var ass in AppDomain.CurrentDomain.GetAssemblies().Where(a => !a.IsDynamic))
                     {
-                        File.Copy(e.FullPath, tempName);
-                        break;
+                        foreach (var refAss in ass.GetReferencedAssemblies())
+                            Assembly.Load(refAss);
                     }
-                    catch
-                    {
-                        Thread.Sleep(50);
-                    }
+
+                    foreach (var ass in AppDomain.CurrentDomain.GetAssemblies().Where(a => !a.IsDynamic))
+                        assemblies.Add(ass.Location);
+
+                    foreach (var path in Directory.GetFiles(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), @"*.dll"))
+                        assemblies.Add(path);
                 }
 
-                overrideDlls[Path.GetFileName(e.Name)] = tempName;
+                assemblies.Remove(oneDeeper.FullName.Split(Path.DirectorySeparatorChar).Last() + ".dll");
 
-                recompile();
-            };
+                changedFiles.Add(lastTouchedFile);
 
-            fsw_cs = new FileSystemWatcher(basePath, @"*.cs")
-            {
-                EnableRaisingEvents = true,
-                IncludeSubdirectories = true,
-                NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.CreationTime,
-            };
+                /*
 
-            fsw_cs.Changed += (sender, e) =>
-            {
+                foreach (var f in Directory.GetFiles(oneDeeper.FullName, "*.cs", SearchOption.AllDirectories))
+                {
+                    var parts = f.Split(Path.DirectorySeparatorChar);
 
-                changedFiles.Add(e.FullPath);
+                    // we don't want to include files that may be in the /obj/ directory.
+                    if (parts.Any(p => p == "obj")) continue;
 
-                //if (!Path.GetFileName(e.Name).StartsWith("TestCase"))
-                //    return;
+                    var filename = parts.Last();
 
-                CurrentCodeFilePath = e.FullPath;
+                    if (ignoreTypes.Contains(filename.Replace(".cs", "")))
+                        continue;
+
+                    // we don't want to include extension methods. these get ambiguous.
+                    if (filename.EndsWith("Extensions.cs"))
+                        continue;
+
+                    // we are an interface.
+                    if (filename[0] == 'I' && char.IsUpper(filename[1]))
+                        continue;
+
+                    changedFiles.Add(f);
+                }
+
+                */
 
                 recompile();
             };
         }
 
-        private Lazy<List<string>> initialAssemblies = new Lazy<List<string>>(() => AppDomain.CurrentDomain.GetAssemblies().Where(a => !a.IsDynamic).Select(a => a.Location).ToList());
+        private HashSet<string> assemblies;
 
         private void recompile()
         {
-            if (string.IsNullOrEmpty(CurrentCodeFilePath)) return;
-
             CompilerParameters cp = new CompilerParameters
             {
                 GenerateInMemory = true,
                 TreatWarningsAsErrors = false,
                 GenerateExecutable = false,
+
             };
-
-            var assemblies = initialAssemblies.Value.ToList();
-
-            foreach (var a in assemblies.ToList())
-            {
-                string overridePath;
-                if (overrideDlls.TryGetValue(Path.GetFileName(a), out overridePath))
-                {
-                    assemblies.Remove(a);
-                    assemblies.Add(overridePath);
-                }
-            }
 
             cp.ReferencedAssemblies.AddRange(assemblies.ToArray());
 
@@ -147,7 +165,7 @@ namespace osu.Framework.Testing
             {
                 try
                 {
-                    source = File.ReadAllText(CurrentCodeFilePath);
+                    source = File.ReadAllText(lastTouchedFile);
                     break;
                 }
                 catch
@@ -156,7 +174,7 @@ namespace osu.Framework.Testing
                 }
             }
 
-            Logger.Log($@"Recompiling {Path.GetFileName(CurrentCodeFilePath)}...", LoggingTarget.Runtime, LogLevel.Important);
+            Logger.Log($@"Recompiling {Path.GetFileName(lastTouchedFile)}...", LoggingTarget.Runtime, LogLevel.Important);
 
             CompilationStarted?.Invoke();
 
@@ -168,10 +186,18 @@ namespace osu.Framework.Testing
 
                 if (compile.Errors.HasErrors)
                 {
-                    string text = "Compile error: ";
                     bool attemptRecompile = false;
+
                     foreach (CompilerError ce in compile.Errors)
                     {
+                        if (ce.IsWarning) continue;
+
+                        if (ce.ErrorNumber == "CS0121")
+                        {
+                            changedFiles.Remove(ce.FileName);
+                            attemptRecompile = true;
+                        }
+
                         if (ce.ErrorNumber == "CS0122")
                         {
                             string filename = ce.ErrorText.Split('\'')[1] + ".cs";
@@ -182,7 +208,7 @@ namespace osu.Framework.Testing
                             }
                         }
 
-                        text += "\r\n" + ce;
+                        Logger.Log(ce.ToString(), LoggingTarget.Runtime, LogLevel.Error);
                     }
 
                     if (attemptRecompile)
@@ -190,14 +216,12 @@ namespace osu.Framework.Testing
                         recompile();
                         return;
                     }
-
-                    Logger.Log(text, LoggingTarget.Runtime, LogLevel.Error);
                 }
                 else
                 {
                     Module module = compile.CompiledAssembly.GetModules()[0];
                     if (module != null)
-                        newType = module.GetTypes().Last(t => t.Name.StartsWith("TestCase"));
+                        newType = module.GetTypes().LastOrDefault(t => t.Name == checkpointedType.Name);
                 }
             }
 
