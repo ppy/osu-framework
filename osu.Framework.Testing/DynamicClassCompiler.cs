@@ -13,7 +13,8 @@ using System.Collections.Generic;
 
 namespace osu.Framework.Testing
 {
-    public class DynamicClassCompiler
+    public class DynamicClassCompiler<T>
+        where T : IDynamicallyCompile
     {
         public Action CompilationStarted;
 
@@ -23,17 +24,23 @@ namespace osu.Framework.Testing
 
         private string lastTouchedFile;
 
-        private Type checkpointedType;
+        private T checkpointObject;
 
-        public void Checkpoint(Type type)
+        public void Checkpoint(T obj)
         {
-            checkpointedType = type;
+            checkpointObject = obj;
+
+            watchedFiles.Clear();
+
+            addFileFromType(checkpointObject.GetType());
+            foreach (var t in checkpointObject.RequiredTypes)
+                addFileFromType(t);
         }
 
         /// <summary>
         /// Find the base path of the closest solution folder
         /// </summary>
-        private static string findSolutionPath()
+        private readonly Lazy<string> solutionPath = new Lazy<string>(delegate
         {
             var di = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory);
 
@@ -41,31 +48,24 @@ namespace osu.Framework.Testing
                 di = di.Parent;
 
             return di.FullName;
-        }
+        });
 
-        private static CSharpCodeProvider createCodeProvider()
+        private readonly HashSet<string> watchedFiles = new HashSet<string>();
+
+        private HashSet<string> assemblies;
+        private readonly CSharpCodeProvider codeProvider;
+
+        public DynamicClassCompiler()
         {
-            var csc = new CSharpCodeProvider();
+            codeProvider = new CSharpCodeProvider();
 
-            var newPath = Path.Combine(findSolutionPath(), "packages", "Microsoft.Net.Compilers.2.3.2", "tools", "csc.exe");
+            var newPath = Path.Combine(solutionPath.Value, "packages", "Microsoft.Net.Compilers.2.3.2", "tools", "csc.exe");
 
             //Black magic to fix incorrect packages path (http://stackoverflow.com/a/40311406)
-            var settings = csc.GetType().GetField("_compilerSettings", BindingFlags.Instance | BindingFlags.NonPublic)?.GetValue(csc);
+            var settings = codeProvider.GetType().GetField("_compilerSettings", BindingFlags.Instance | BindingFlags.NonPublic)?.GetValue(codeProvider);
             var path = settings?.GetType().GetField("_compilerFullPath", BindingFlags.Instance | BindingFlags.NonPublic);
             path?.SetValue(settings, newPath);
-
-            return csc;
         }
-
-        private HashSet<string> overrideDlls = new HashSet<string>();
-
-        private readonly HashSet<string> changedFiles = new HashSet<string>();
-
-        //private List<string> ignoreTypes = new List<string>()
-        //{
-        //    "OsuGameBase",
-        //    "APIAccess"
-        //};
 
         public void Start()
         {
@@ -85,68 +85,24 @@ namespace osu.Framework.Testing
 
             fsw.Changed += (sender, e) =>
             {
+                if (checkpointObject == null)
+                    return;
+
+                if (!watchedFiles.Contains(e.FullPath))
+                    return;
+
                 lastTouchedFile = e.FullPath;
-
-                var sln = findSolutionPath();
-
-                var oneDeeper = new DirectoryInfo(Path.GetDirectoryName(e.FullPath));
-
-                while (oneDeeper.Parent != null && oneDeeper.Parent.FullName != sln)
-                    oneDeeper = oneDeeper.Parent;
-
-                if (assemblies == null)
-                {
-                    assemblies = new HashSet<string>();
-
-                    foreach (var ass in AppDomain.CurrentDomain.GetAssemblies().Where(a => !a.IsDynamic))
-                    {
-                        foreach (var refAss in ass.GetReferencedAssemblies())
-                            Assembly.Load(refAss);
-                    }
-
-                    foreach (var ass in AppDomain.CurrentDomain.GetAssemblies().Where(a => !a.IsDynamic))
-                        assemblies.Add(ass.Location);
-
-                    foreach (var path in Directory.GetFiles(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), @"*.dll"))
-                        assemblies.Add(path);
-                }
-
-                assemblies.Remove(oneDeeper.FullName.Split(Path.DirectorySeparatorChar).Last() + ".dll");
-
-                changedFiles.Add(lastTouchedFile);
-
-                /*
-
-                foreach (var f in Directory.GetFiles(oneDeeper.FullName, "*.cs", SearchOption.AllDirectories))
-                {
-                    var parts = f.Split(Path.DirectorySeparatorChar);
-
-                    // we don't want to include files that may be in the /obj/ directory.
-                    if (parts.Any(p => p == "obj")) continue;
-
-                    var filename = parts.Last();
-
-                    if (ignoreTypes.Contains(filename.Replace(".cs", "")))
-                        continue;
-
-                    // we don't want to include extension methods. these get ambiguous.
-                    if (filename.EndsWith("Extensions.cs"))
-                        continue;
-
-                    // we are an interface.
-                    if (filename[0] == 'I' && char.IsUpper(filename[1]))
-                        continue;
-
-                    changedFiles.Add(f);
-                }
-
-                */
-
                 recompile();
             };
         }
 
-        private HashSet<string> assemblies;
+        private void addFileFromType(Type t) => addFileFromTypeName(t.Name);
+
+        private void addFileFromTypeName(string name)
+        {
+            foreach (var f in Directory.GetFiles(solutionPath.Value, $"{name}.cs", SearchOption.AllDirectories))
+                watchedFiles.Add(f);
+        }
 
         private void recompile()
         {
@@ -155,79 +111,61 @@ namespace osu.Framework.Testing
                 GenerateInMemory = true,
                 TreatWarningsAsErrors = false,
                 GenerateExecutable = false,
-
             };
+
+            if (assemblies == null)
+            {
+                assemblies = new HashSet<string>();
+                foreach (var ass in AppDomain.CurrentDomain.GetAssemblies().Where(a => !a.IsDynamic))
+                    assemblies.Add(ass.Location);
+            }
 
             cp.ReferencedAssemblies.AddRange(assemblies.ToArray());
 
-            while (true)
-            {
-                try
-                {
-                    File.ReadAllText(lastTouchedFile);
-                    break;
-                }
-                catch
-                {
-                    Thread.Sleep(100);
-                }
-            }
+            while (!checkFileReady(lastTouchedFile))
+                Thread.Sleep(10);
 
-            Logger.Log($@"Recompiling {Path.GetFileName(lastTouchedFile)}...", LoggingTarget.Runtime, LogLevel.Important);
+            Logger.Log($@"Recompiling {Path.GetFileName(checkpointObject.GetType().Name)}...", LoggingTarget.Runtime, LogLevel.Important);
 
             CompilationStarted?.Invoke();
 
-            Type newType = null;
+            CompilerResults compile = codeProvider.CompileAssemblyFromFile(cp, watchedFiles.ToArray());
 
-            using (var provider = createCodeProvider())
+            Type compiledType = null;
+
+            if (compile.Errors.HasErrors)
             {
-                CompilerResults compile = provider.CompileAssemblyFromFile(cp, changedFiles.ToArray());
-
-                if (compile.Errors.HasErrors)
+                foreach (CompilerError ce in compile.Errors)
                 {
-                    bool attemptRecompile = false;
-
-                    foreach (CompilerError ce in compile.Errors)
-                    {
-                        if (ce.IsWarning) continue;
-
-                        if (ce.ErrorNumber == "CS0121")
-                        {
-                            changedFiles.Remove(ce.FileName);
-                            attemptRecompile = true;
-                        }
-
-                        if (ce.ErrorNumber == "CS0122")
-                        {
-                            string filename = ce.ErrorText.Split('\'')[1] + ".cs";
-                            foreach (var f in Directory.GetFiles(findSolutionPath(), filename, SearchOption.AllDirectories))
-                            {
-                                changedFiles.Add(f);
-                                attemptRecompile = true;
-                            }
-                        }
-
-                        Logger.Log(ce.ToString(), LoggingTarget.Runtime, LogLevel.Error);
-                    }
-
-                    if (attemptRecompile)
-                    {
-                        recompile();
-                        return;
-                    }
-                }
-                else
-                {
-                    Module module = compile.CompiledAssembly.GetModules()[0];
-                    if (module != null)
-                        newType = module.GetTypes().LastOrDefault(t => t.Name == checkpointedType.Name);
+                    if (ce.IsWarning) continue;
+                    Logger.Log(ce.ToString(), LoggingTarget.Runtime, LogLevel.Error);
                 }
             }
+            else
+            {
+                compiledType = compile.CompiledAssembly.GetModules()[0]?.GetTypes().LastOrDefault(t => t.Name == checkpointObject.GetType().Name);
+            }
 
-            CompilationFinished?.Invoke(newType);
+            CompilationFinished?.Invoke(compiledType);
 
-            if (newType != null)
+            if (compiledType != null)
                 Logger.Log(@"Complete!", LoggingTarget.Runtime, LogLevel.Important);
+        }
+
+        /// <summary>
+        /// Check whether a file has finished being written to.
+        /// </summary>
+        private static bool checkFileReady(string filename)
+        {
+            try
+            {
+                using (FileStream inputStream = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.None))
+                    return inputStream.Length > 0;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
     }
 }

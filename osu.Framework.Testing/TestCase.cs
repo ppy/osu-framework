@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using NUnit.Framework;
@@ -18,7 +19,7 @@ using OpenTK.Graphics;
 namespace osu.Framework.Testing
 {
     [TestFixture]
-    public abstract class TestCase : Container
+    public abstract class TestCase : Container, IDynamicallyCompile
     {
         public virtual string Description => @"The base class for a test case";
 
@@ -241,5 +242,7 @@ namespace osu.Framework.Testing
                 Assertion = assert,
             });
         }
+
+        public virtual IReadOnlyList<Type> RequiredTypes => new Type[] { };
     }
 }

@@ -35,7 +35,7 @@ namespace osu.Framework.Testing
 
         private ConfigManager<TestBrowserSetting> config;
 
-        private DynamicClassCompiler backgroundCompiler;
+        private DynamicClassCompiler<TestCase> backgroundCompiler;
 
         private bool interactive;
 
@@ -197,7 +197,7 @@ namespace osu.Framework.Testing
                 }
             };
 
-            backgroundCompiler = new DynamicClassCompiler
+            backgroundCompiler = new DynamicClassCompiler<TestCase>
             {
                 CompilationStarted = compileStarted,
                 CompilationFinished = compileFinished,
@@ -262,8 +262,6 @@ namespace osu.Framework.Testing
         {
             runAllComplete();
 
-            backgroundCompiler.Checkpoint(testType);
-
             if (testType == null && TestTypes.Count > 0)
                 testType = TestTypes[0];
 
@@ -278,7 +276,14 @@ namespace osu.Framework.Testing
 
             if (testType != null)
             {
+                // if we are a dynamically compiled type (via DynamicClassCompiler) we should update the dropdown accordingly.
+                if (assemblyDropdown.Items.All(kvp => kvp.Value != testType.Assembly))
+                    assemblyDropdown.AddDropdownItem($"dynamic ({testType.Name})", testType.Assembly);
+
+                var lastItem = assemblyDropdown.Current.Value;
                 assemblyDropdown.Current.Value = testType.Assembly;
+                if (lastItem?.CodeBase.Contains("DotNetCompiler") ?? false)
+                    assemblyDropdown.RemoveDropdownItem(lastItem);
 
                 testContentContainer.Add(CurrentTest = (TestCase)Activator.CreateInstance(testType));
                 if (!interactive) CurrentTest.OnLoadComplete = d => ((TestCase)d).RunAllSteps(onCompletion);
@@ -293,6 +298,8 @@ namespace osu.Framework.Testing
                     step.BackgroundColour = Color4.Teal;
                     m.Invoke(CurrentTest, null);
                 }
+
+                backgroundCompiler.Checkpoint(CurrentTest);
 
                 CurrentTest.RunFirstStep();
             }
