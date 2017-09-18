@@ -4,7 +4,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{79803407-6F50-484F-93F5-641911EABD8A}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <OutputType>WinExe</OutputType>
     <RootNamespace>osu.Framework.Tests</RootNamespace>
     <AssemblyName>osu.Framework.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
@@ -20,6 +20,7 @@
     <WarningLevel>4</WarningLevel>
     <ConsolePause>false</ConsolePause>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Optimize>true</Optimize>
@@ -28,17 +29,70 @@
     <WarningLevel>4</WarningLevel>
     <ConsolePause>false</ConsolePause>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="nunit.framework, Version=3.8.1.0, Culture=neutral, PublicKeyToken=2638cd05610744eb, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)\packages\NUnit.3.8.1\lib\net45\nunit.framework.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="OpenTK, Version=3.0.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
+      <HintPath>..\packages\OpenTK.3.0.0-git00009\lib\net20\OpenTK.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Drawing" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AutomatedVisualTestGame.cs" />
     <Compile Include="Lists\TestSortedList.cs" />
     <Compile Include="MathUtils\TestInterpolation.cs" />
+    <Compile Include="Platform\HeadlessGameHostTest.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="VisualTestGame.cs" />
+    <Compile Include="Visual\TestCaseAnimation.cs" />
+    <Compile Include="Visual\TestCaseBlending.cs" />
+    <Compile Include="Visual\TestCaseBufferedContainer.cs" />
+    <Compile Include="Visual\TestCaseCheckboxes.cs" />
+    <Compile Include="Visual\TestCaseCircularProgress.cs" />
+    <Compile Include="Visual\TestCaseColourGradient.cs" />
+    <Compile Include="Visual\TestCaseContainerState.cs" />
+    <Compile Include="Visual\TestCaseContextMenu.cs" />
+    <Compile Include="Visual\TestCaseCoordinateSpaces.cs" />
+    <Compile Include="Visual\TestCaseDelayedLoad.cs" />
+    <Compile Include="Visual\TestCaseDrawablePath.cs" />
+    <Compile Include="Visual\TestCaseDropdownBox.cs" />
+    <Compile Include="Visual\TestCaseDynamicDepth.cs" />
+    <Compile Include="Visual\TestCaseEffects.cs" />
+    <Compile Include="Visual\TestCaseFillModes.cs" />
+    <Compile Include="Visual\TestCaseFlow.cs" />
+    <Compile Include="Visual\TestCaseHollowEdgeEffect.cs" />
+    <Compile Include="Visual\TestCaseInputResampler.cs" />
+    <Compile Include="Visual\TestCaseKeyBindings.cs" />
+    <Compile Include="Visual\TestCaseLocalisation.cs" />
+    <Compile Include="Visual\TestCaseMasking.cs" />
+    <Compile Include="Visual\TestCaseNestedHover.cs" />
+    <Compile Include="Visual\TestCaseNestedMenus.cs" />
+    <Compile Include="Visual\TestCasePadding.cs" />
+    <Compile Include="Visual\TestCasePropertyBoundaries.cs" />
+    <Compile Include="Visual\TestCaseRigidBody.cs" />
+    <Compile Include="Visual\TestCaseScreen.cs" />
+    <Compile Include="Visual\TestCaseScrollableFlow.cs" />
+    <Compile Include="Visual\TestCaseSearchContainer.cs" />
+    <Compile Include="Visual\TestCaseSizing.cs" />
+    <Compile Include="Visual\TestCaseSliderbar.cs" />
+    <Compile Include="Visual\TestCaseSmoothedEdges.cs" />
+    <Compile Include="Visual\TestCaseSpriteText.cs" />
+    <Compile Include="Visual\TestCaseTabControl.cs" />
+    <Compile Include="Visual\TestCaseTextBox.cs" />
+    <Compile Include="Visual\TestCaseTextFlow.cs" />
+    <Compile Include="Visual\TestCaseTooltip.cs" />
+    <Compile Include="Visual\TestCaseTransformSequence.cs" />
+    <Compile Include="Visual\TestCaseTriangles.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\osu.Framework\osu.Framework.csproj">
@@ -51,6 +105,7 @@
       <Link>osu-framework.licenseheader</Link>
     </None>
     <None Include="app.config" />
+    <None Include="OpenTK.dll.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
