@@ -59,7 +59,7 @@ namespace osu.Framework.Testing
 
         private HashSet<string> overrideDlls = new HashSet<string>();
 
-        private HashSet<string> changedFiles = new HashSet<string>();
+        private readonly HashSet<string> changedFiles = new HashSet<string>();
 
         //private List<string> ignoreTypes = new List<string>()
         //{
@@ -91,7 +91,7 @@ namespace osu.Framework.Testing
 
                 var oneDeeper = new DirectoryInfo(Path.GetDirectoryName(e.FullPath));
 
-                while (oneDeeper.Parent?.FullName != sln)
+                while (oneDeeper.Parent != null && oneDeeper.Parent.FullName != sln)
                     oneDeeper = oneDeeper.Parent;
 
                 if (assemblies == null)
@@ -160,12 +160,11 @@ namespace osu.Framework.Testing
 
             cp.ReferencedAssemblies.AddRange(assemblies.ToArray());
 
-            string source;
             while (true)
             {
                 try
                 {
-                    source = File.ReadAllText(lastTouchedFile);
+                    File.ReadAllText(lastTouchedFile);
                     break;
                 }
                 catch
