@@ -138,13 +138,12 @@ namespace osu.Framework.Graphics.UserInterface
             if ((SelectedItem == null || !EqualityComparer<T>.Default.Equals(SelectedItem.Value, newSelection))
                 && newSelection != null)
             {
-                itemMap.TryGetValue(newSelection, out selectedItem);
+                if (!itemMap.TryGetValue(newSelection, out selectedItem))
+                    throw new InvalidOperationException($"Attempted to update dropdown to a value which wasn't contained as an item ({newSelection}).");
             }
 
-            Menu.SelectItem(SelectedItem);
-
-            if (SelectedItem != null)
-                Header.Label = SelectedItem.Text;
+            Menu.SelectItem(selectedItem);
+            Header.Label = selectedItem.Text;
         }
 
         /// <summary>
