@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(SolutionDir)\packages\Microsoft.Net.Compilers.2.3.2\build\Microsoft.Net.Compilers.props" Condition="Exists('$(SolutionDir)\packages\Microsoft.Net.Compilers.2.3.2\build\Microsoft.Net.Compilers.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -48,8 +49,16 @@
     <Reference Include="ManagedBass.Fx, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)\packages\ManagedBass.Fx.2.0.0\lib\netstandard1.4\ManagedBass.Fx.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.CodeDom.Providers.DotNetCompilerPlatform, Version=1.0.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>$(SolutionDir)\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.NoInstall.1.0.3.2\lib\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="nunit.framework, Version=3.8.1.0, Culture=neutral, PublicKeyToken=2638cd05610744eb, processorArchitecture=MSIL">
+      <HintPath>$(SolutionDir)\packages\NUnit.3.8.1\lib\net45\nunit.framework.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="OpenTK, Version=3.0.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
@@ -75,6 +84,7 @@
     <Reference Include="SQLiteNetExtensions">
       <HintPath>$(SolutionDir)\packages\SQLiteNetExtensions.1.3.0\lib\portable-net45+netcore45+wpa81+wp8+MonoAndroid1+MonoTouch1\SQLiteNetExtensions.dll</HintPath>
     </Reference>
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
@@ -94,6 +104,7 @@
     <Compile Include="Configuration\FrameworkDebugConfig.cs" />
     <Compile Include="Configuration\NonNullableBindable.cs" />
     <Compile Include="Configuration\WindowMode.cs" />
+    <Compile Include="Development\DebugUtils.cs" />
     <Compile Include="Extensions\Color4Extensions\Color4Extensions.cs" />
     <Compile Include="Extensions\PolygonExtensions\ConvexPolygonExtensions.cs" />
     <Compile Include="Extensions\PolygonExtensions\PolygonExtensions.cs" />
@@ -105,7 +116,7 @@
     <Compile Include="Audio\Sample\SampleChannelBass.cs" />
     <Compile Include="Audio\Sample\SampleManager.cs" />
     <Compile Include="Audio\Track\TrackManager.cs" />
-    <Compile Include="DebugUtils\ThreadSafety.cs" />
+    <Compile Include="Development\ThreadSafety.cs" />
     <Compile Include="Extensions\ExtensionMethods.cs" />
     <Compile Include="Extensions\IEnumerableExtensions\EnumerableExtensions.cs" />
     <Compile Include="Extensions\TypeExtensions\TypeExtensions.cs" />
@@ -169,6 +180,7 @@
     <Compile Include="Graphics\UserInterface\TabControl.cs" />
     <Compile Include="Graphics\UserInterface\TabItem.cs" />
     <Compile Include="Graphics\Vector2Extensions.cs" />
+    <Compile Include="Host.cs" />
     <Compile Include="Input\Bindings\InputKey.cs" />
     <Compile Include="Input\CustomInputManager.cs" />
     <Compile Include="Input\Bindings\IKeyBindingHandler.cs" />
@@ -176,7 +188,14 @@
     <Compile Include="Input\Bindings\KeyBindingInputManager.cs" />
     <Compile Include="Input\Bindings\KeyCombination.cs" />
     <Compile Include="Graphics\Visualisation\PropertyDisplay.cs" />
+    <Compile Include="Input\GameWindowTextInput.cs" />
     <Compile Include="Input\Handlers\IHasCursorSensitivity.cs" />
+    <Compile Include="Input\Handlers\Keyboard\OpenTKKeyboardHandler.cs" />
+    <Compile Include="Input\Handlers\Mouse\OpenTKEventMouseState.cs" />
+    <Compile Include="Input\Handlers\Mouse\OpenTKMouseHandler.cs" />
+    <Compile Include="Input\Handlers\Mouse\OpenTKMouseState.cs" />
+    <Compile Include="Input\Handlers\Mouse\OpenTKPollMouseState.cs" />
+    <Compile Include="Input\Handlers\Mouse\OpenTKRawMouseHandler.cs" />
     <Compile Include="Input\KeyUpEventArgs.cs" />
     <Compile Include="Allocation\TimedExpiryCache.cs" />
     <Compile Include="Input\IRequireHighFrequencyMousePosition.cs" />
@@ -262,6 +281,23 @@
     <Compile Include="Physics\IRigidBody.cs" />
     <Compile Include="Physics\RigidBodyContainer.cs" />
     <Compile Include="Physics\RigidBodySimulation.cs" />
+    <Compile Include="Platform\Architecture.cs" />
+    <Compile Include="Platform\DesktopGameHost.cs" />
+    <Compile Include="Platform\DesktopGameWindow.cs" />
+    <Compile Include="Platform\DesktopStorage.cs" />
+    <Compile Include="Platform\HeadlessGameHost.cs" />
+    <Compile Include="Platform\Linux\LinuxClipboard.cs" />
+    <Compile Include="Platform\Linux\LinuxGameHost.cs" />
+    <Compile Include="Platform\Linux\LinuxStorage.cs" />
+    <Compile Include="Platform\TcpIpcProvider.cs" />
+    <Compile Include="Platform\Windows\Native\Execution.cs" />
+    <Compile Include="Platform\Windows\Native\Input.cs" />
+    <Compile Include="Platform\Windows\Native\Registry.cs" />
+    <Compile Include="Platform\Windows\TimePeriod.cs" />
+    <Compile Include="Platform\Windows\WindowsClipboard.cs" />
+    <Compile Include="Platform\Windows\WindowsGameHost.cs" />
+    <Compile Include="Platform\Windows\WindowsGameWindow.cs" />
+    <Compile Include="Platform\Windows\WindowsStorage.cs" />
     <Compile Include="Screens\Screen.cs" />
     <Compile Include="Graphics\Sprites\Sprite.cs" />
     <Compile Include="Graphics\Sprites\SpriteText.cs" />
@@ -345,6 +381,22 @@
     <Compile Include="IUpdateable.cs" />
     <Compile Include="Platform\Clipboard.cs" />
     <Compile Include="Platform\IIpcHost.cs" />
+    <Compile Include="Testing\Drawables\Steps\AssertButton.cs" />
+    <Compile Include="Testing\Drawables\Steps\RepeatStepButton.cs" />
+    <Compile Include="Testing\Drawables\Steps\SingleStepButton.cs" />
+    <Compile Include="Testing\Drawables\Steps\StepButton.cs" />
+    <Compile Include="Testing\Drawables\Steps\StepSlider.cs" />
+    <Compile Include="Testing\Drawables\Steps\ToggleStepButton.cs" />
+    <Compile Include="Testing\Drawables\TestCaseButton.cs" />
+    <Compile Include="Testing\DynamicClassCompiler.cs" />
+    <Compile Include="Testing\GridTestCase.cs" />
+    <Compile Include="Testing\IDynamicallyCompile.cs" />
+    <Compile Include="Testing\TestBrowser.cs" />
+    <Compile Include="Testing\TestBrowserConfig.cs" />
+    <Compile Include="Testing\TestBrowserTestRunner.cs" />
+    <Compile Include="Testing\TestCase.cs" />
+    <Compile Include="Testing\TestCaseTestRunner.cs" />
+    <Compile Include="Testing\Tests\TestTestCase.cs" />
     <Compile Include="Threading\GameThread.cs" />
     <Compile Include="Threading\DrawThread.cs" />
     <Compile Include="Threading\UpdateThread.cs" />
@@ -376,6 +428,24 @@
       <Link>osu-framework.licenseheader</Link>
     </None>
     <None Include="app.config" />
+    <None Include="libbass.dylib">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="libbass.x64.so">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="libbass.x86.so">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="libbass_fx.dylib">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="libbass_fx.x64.so">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="libbass_fx.x86.so">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="OpenTK.dll.config" />
     <None Include="packages.config" />
     <EmbeddedResource Include="Resources\Shaders\sh_Bloom.fs" />
@@ -390,6 +460,66 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\Fonts\LICENSE.txt" />
+    <Content Include="x64\avcodec-51.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="x64\avformat-52.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="x64\avutil-49.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="x64\bass.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="x64\bass_fx.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="x64\d3dcompiler_47.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="x64\libEGL.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="x64\libGLESv2.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="x64\pthreadGC2.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="x64\SQLite.Interop.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="x86\avcodec-51.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="x86\avformat-52.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="x86\avutil-49.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="x86\bass.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="x86\bass_fx.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="x86\d3dcompiler_47.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="x86\libEGL.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="x86\libGLESv2.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="x86\pthreadGC2.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="x86\SQLite.Interop.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <EmbeddedResource Include="Resources\Textures\sample-texture.png" />
     <EmbeddedResource Include="Resources\Shaders\sh_Utils.h" />
     <EmbeddedResource Include="Resources\Shaders\sh_Texture.fs" />
@@ -410,4 +540,10 @@
   <Import Project="$(SolutionDir)\packages\SQLitePCLRaw.lib.e_sqlite3.v110_xp.1.0.1\build\SQLitePCLRaw.lib.e_sqlite3.v110_xp.targets" Condition="Exists('$(SolutionDir)\packages\SQLitePCLRaw.lib.e_sqlite3.v110_xp.1.0.1\build\SQLitePCLRaw.lib.e_sqlite3.v110_xp.targets')" />
   <Import Project="$(SolutionDir)\packages\SQLitePCLRaw.lib.e_sqlite3.osx.1.0.1\build\SQLitePCLRaw.lib.e_sqlite3.osx.targets" Condition="Exists('$(SolutionDir)\packages\SQLitePCLRaw.lib.e_sqlite3.osx.1.0.1\build\SQLitePCLRaw.lib.e_sqlite3.osx.targets')" />
   <Import Project="$(SolutionDir)\packages\SQLitePCLRaw.lib.e_sqlite3.linux.1.0.1\build\SQLitePCLRaw.lib.e_sqlite3.linux.targets" Condition="Exists('$(SolutionDir)\packages\SQLitePCLRaw.lib.e_sqlite3.linux.1.0.1\build\SQLitePCLRaw.lib.e_sqlite3.linux.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('$(SolutionDir)\packages\Microsoft.Net.Compilers.2.3.2\build\Microsoft.Net.Compilers.props')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\packages\Microsoft.Net.Compilers.2.3.2\build\Microsoft.Net.Compilers.props'))" />
+  </Target>
 </Project>

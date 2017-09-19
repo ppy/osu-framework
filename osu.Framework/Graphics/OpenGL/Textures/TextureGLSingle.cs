@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
-using osu.Framework.DebugUtils;
+using osu.Framework.Development;
 using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Primitives;
 using OpenTK;
