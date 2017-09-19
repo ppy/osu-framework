@@ -104,8 +104,14 @@ namespace osu.Framework.Testing
                 watchedFiles.Add(f);
         }
 
+        private bool isCompiling;
+
         private void recompile()
         {
+            if (isCompiling)
+                return;
+            isCompiling = true;
+
             CompilerParameters cp = new CompilerParameters
             {
                 GenerateInMemory = true,
@@ -150,6 +156,8 @@ namespace osu.Framework.Testing
 
             if (compiledType != null)
                 Logger.Log(@"Complete!", LoggingTarget.Runtime, LogLevel.Important);
+
+            isCompiling = false;
         }
 
         /// <summary>
