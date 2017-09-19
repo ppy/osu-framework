@@ -73,6 +73,7 @@
     <Compile Include="Visual\TestCaseInputResampler.cs" />
     <Compile Include="Visual\TestCaseKeyBindings.cs" />
     <Compile Include="Visual\TestCaseLocalisation.cs" />
+    <Compile Include="Visual\TestCaseFormattedText.cs" />
     <Compile Include="Visual\TestCaseMasking.cs" />
     <Compile Include="Visual\TestCaseNestedMenus.cs" />
     <Compile Include="Visual\TestCaseNestedHover.cs" />

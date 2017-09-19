@@ -121,6 +121,7 @@
     <Compile Include="Graphics\Containers\CustomizableTextContainer.cs" />
     <Compile Include="Graphics\Containers\DelayedLoadWrapper.cs" />
     <Compile Include="Graphics\Containers\IFillFlowContainer.cs" />
+    <Compile Include="Graphics\Containers\FormattedTextFlowContainer.cs" />
     <Compile Include="Graphics\Effects\GlowEffect.cs" />
     <Compile Include="Graphics\Effects\OutlineEffect.cs" />
     <Compile Include="Graphics\Containers\IBufferedContainer.cs" />
