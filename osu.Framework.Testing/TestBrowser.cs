@@ -276,14 +276,13 @@ namespace osu.Framework.Testing
 
             if (testType != null)
             {
+                assemblyDropdown.RemoveDropdownItem(assemblyDropdown.Items.LastOrDefault(i => i.Value.CodeBase.Contains("DotNetCompiler")).Value);
+
                 // if we are a dynamically compiled type (via DynamicClassCompiler) we should update the dropdown accordingly.
-                if (assemblyDropdown.Items.All(kvp => kvp.Value != testType.Assembly))
+                if (testType.Assembly.CodeBase.Contains("DotNetCompiler"))
                     assemblyDropdown.AddDropdownItem($"dynamic ({testType.Name})", testType.Assembly);
 
-                var lastItem = assemblyDropdown.Current.Value;
                 assemblyDropdown.Current.Value = testType.Assembly;
-                if (lastItem?.CodeBase.Contains("DotNetCompiler") ?? false)
-                    assemblyDropdown.RemoveDropdownItem(lastItem);
 
                 testContentContainer.Add(CurrentTest = (TestCase)Activator.CreateInstance(testType));
                 if (!interactive) CurrentTest.OnLoadComplete = d => ((TestCase)d).RunAllSteps(onCompletion);
