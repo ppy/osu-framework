@@ -468,11 +468,10 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
-            switch (args.Key)
+            if (args.Key == Key.Escape && !TopLevelMenu)
             {
-                case Key.Escape:
-                    Close();
-                    return true;
+                Close();
+                return true;
             }
 
             return base.OnKeyDown(state, args);
