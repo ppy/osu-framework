@@ -10,6 +10,7 @@ using System.Threading;
 using Microsoft.CodeDom.Providers.DotNetCompilerPlatform;
 using osu.Framework.Logging;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace osu.Framework.Testing
 {
@@ -29,12 +30,6 @@ namespace osu.Framework.Testing
         public void Checkpoint(T obj)
         {
             checkpointObject = obj;
-
-            watchedFiles.Clear();
-
-            addFileFromType(checkpointObject.GetType());
-            foreach (var t in checkpointObject.RequiredTypes)
-                addFileFromType(t);
         }
 
         /// <summary>
@@ -50,7 +45,8 @@ namespace osu.Framework.Testing
             return di.FullName;
         });
 
-        private readonly HashSet<string> watchedFiles = new HashSet<string>();
+        private List<string> requiredFiles = new List<string>();
+        private List<string> requiredTypeNames = new List<string>();
 
         private HashSet<string> assemblies;
         private readonly CSharpCodeProvider codeProvider;
@@ -88,20 +84,31 @@ namespace osu.Framework.Testing
                 if (checkpointObject == null)
                     return;
 
-                if (!watchedFiles.Contains(e.FullPath))
+                var checkpointName = checkpointObject.GetType().Name;
+
+                var reqTypes = checkpointObject.RequiredTypes.Select(t => t.Name).ToList();
+
+                // add ourselves as a required type.
+                reqTypes.Add(checkpointName);
+                // if we are a TestCase, add the class we are testing automatically.
+                reqTypes.Add(checkpointName.Replace("TestCase", ""));
+
+                if (!reqTypes.Contains(Path.GetFileNameWithoutExtension(e.Name)))
                     return;
 
+                if (!reqTypes.SequenceEqual(requiredTypeNames))
+                {
+                    requiredTypeNames = reqTypes;
+                    requiredFiles = Directory
+                        .EnumerateFiles(solutionPath.Value, "*.cs", SearchOption.AllDirectories)
+                        .Where(fw => requiredTypeNames.Contains(Path.GetFileNameWithoutExtension(fw)))
+                        .ToList();
+                }
+
                 lastTouchedFile = e.FullPath;
-                recompile();
+
+                Task.Run((Action)recompile);
             };
-        }
-
-        private void addFileFromType(Type t) => addFileFromTypeName(t.Name);
-
-        private void addFileFromTypeName(string name)
-        {
-            foreach (var f in Directory.GetFiles(solutionPath.Value, $"{name}.cs", SearchOption.AllDirectories))
-                watchedFiles.Add(f);
         }
 
         private bool isCompiling;
@@ -135,7 +142,7 @@ namespace osu.Framework.Testing
 
             CompilationStarted?.Invoke();
 
-            CompilerResults compile = codeProvider.CompileAssemblyFromFile(cp, watchedFiles.ToArray());
+            CompilerResults compile = codeProvider.CompileAssemblyFromFile(cp, requiredFiles.ToArray());
 
             Type compiledType = null;
 
