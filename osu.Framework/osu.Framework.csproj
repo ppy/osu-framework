@@ -104,6 +104,7 @@
     <Compile Include="Configuration\FrameworkDebugConfig.cs" />
     <Compile Include="Configuration\NonNullableBindable.cs" />
     <Compile Include="Configuration\WindowMode.cs" />
+    <Compile Include="Development\DebugUtils.cs" />
     <Compile Include="Extensions\Color4Extensions\Color4Extensions.cs" />
     <Compile Include="Extensions\PolygonExtensions\ConvexPolygonExtensions.cs" />
     <Compile Include="Extensions\PolygonExtensions\PolygonExtensions.cs" />
@@ -115,7 +116,7 @@
     <Compile Include="Audio\Sample\SampleChannelBass.cs" />
     <Compile Include="Audio\Sample\SampleManager.cs" />
     <Compile Include="Audio\Track\TrackManager.cs" />
-    <Compile Include="DebugUtils\ThreadSafety.cs" />
+    <Compile Include="Development\ThreadSafety.cs" />
     <Compile Include="Extensions\ExtensionMethods.cs" />
     <Compile Include="Extensions\IEnumerableExtensions\EnumerableExtensions.cs" />
     <Compile Include="Extensions\TypeExtensions\TypeExtensions.cs" />

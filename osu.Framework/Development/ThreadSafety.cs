@@ -5,7 +5,7 @@ using System.Diagnostics;
 using System.Threading;
 using osu.Framework.Platform;
 
-namespace osu.Framework.DebugUtils
+namespace osu.Framework.Development
 {
     internal static class ThreadSafety
     {

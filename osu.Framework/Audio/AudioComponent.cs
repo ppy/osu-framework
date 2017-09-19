@@ -3,7 +3,7 @@
 
 using System;
 using System.Collections.Concurrent;
-using osu.Framework.DebugUtils;
+using osu.Framework.Development;
 using osu.Framework.Statistics;
 
 namespace osu.Framework.Audio

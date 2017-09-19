@@ -11,6 +11,7 @@ using Microsoft.CodeDom.Providers.DotNetCompilerPlatform;
 using osu.Framework.Logging;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using osu.Framework.Development;
 
 namespace osu.Framework.Testing
 {
@@ -32,19 +33,6 @@ namespace osu.Framework.Testing
             checkpointObject = obj;
         }
 
-        /// <summary>
-        /// Find the base path of the closest solution folder
-        /// </summary>
-        private readonly Lazy<string> solutionPath = new Lazy<string>(delegate
-        {
-            var di = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory);
-
-            while (!Directory.GetFiles(di.FullName, "*.sln").Any() && di.Parent != null)
-                di = di.Parent;
-
-            return di.FullName;
-        });
-
         private List<string> requiredFiles = new List<string>();
         private List<string> requiredTypeNames = new List<string>();
 
@@ -55,7 +43,7 @@ namespace osu.Framework.Testing
         {
             codeProvider = new CSharpCodeProvider();
 
-            var newPath = Path.Combine(solutionPath.Value, "packages", "Microsoft.Net.Compilers.2.3.2", "tools", "csc.exe");
+            var newPath = Path.Combine(DebugUtils.GetSolutionPath(), "packages", "Microsoft.Net.Compilers.2.3.2", "tools", "csc.exe");
 
             //Black magic to fix incorrect packages path (http://stackoverflow.com/a/40311406)
             var settings = codeProvider.GetType().GetField("_compilerSettings", BindingFlags.Instance | BindingFlags.NonPublic)?.GetValue(codeProvider);
@@ -100,7 +88,7 @@ namespace osu.Framework.Testing
                 {
                     requiredTypeNames = reqTypes;
                     requiredFiles = Directory
-                        .EnumerateFiles(solutionPath.Value, "*.cs", SearchOption.AllDirectories)
+                        .EnumerateFiles(DebugUtils.GetSolutionPath(), "*.cs", SearchOption.AllDirectories)
                         .Where(fw => requiredTypeNames.Contains(Path.GetFileNameWithoutExtension(fw)))
                         .ToList();
                 }
