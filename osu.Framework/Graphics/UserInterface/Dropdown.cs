@@ -83,13 +83,19 @@ namespace osu.Framework.Graphics.UserInterface
         /// Remove a menu item directly.
         /// </summary>
         /// <param name="value">Value of the menu item to be removed.</param>
-        public void RemoveDropdownItem(T value)
+        public bool RemoveDropdownItem(T value)
         {
-            if (!itemMap.ContainsKey(value))
-                throw new ArgumentException($"The item {value} does not exist in this {nameof(Dropdown<T>)}.");
+            if (value == null)
+                return false;
 
-            Menu.Remove(itemMap[value]);
+            DropdownMenuItem<T> item = null;
+            if (!itemMap.TryGetValue(value, out item))
+                return false;
+
+            Menu.Remove(item);
             itemMap.Remove(value);
+
+            return true;
         }
 
         public Bindable<T> Current { get; } = new Bindable<T>();
