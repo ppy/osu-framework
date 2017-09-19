@@ -35,7 +35,7 @@ namespace osu.Framework.Testing
 
         private ConfigManager<TestBrowserSetting> config;
 
-        private DynamicClassCompiler backgroundCompiler;
+        private DynamicClassCompiler<TestCase> backgroundCompiler;
 
         private bool interactive;
 
@@ -58,7 +58,7 @@ namespace osu.Framework.Testing
             toLoad.ForEach(path => loadedAssemblies.Add(AppDomain.CurrentDomain.Load(AssemblyName.GetAssemblyName(path))));
 
             //we want to build the lists here because we're interested in the assembly we were *created* on.
-            foreach (Assembly asm in AppDomain.CurrentDomain.GetAssemblies().Where(n => n.FullName.Contains("Test")))
+            foreach (Assembly asm in AppDomain.CurrentDomain.GetAssemblies().Where(n => n.FullName.StartsWith("osu.")))
             {
                 var tests = asm.GetLoadableTypes().Where(t => t.IsSubclassOf(typeof(TestCase)) && !t.IsAbstract).ToList();
 
@@ -197,11 +197,10 @@ namespace osu.Framework.Testing
                 }
             };
 
-            backgroundCompiler = new DynamicClassCompiler
+            backgroundCompiler = new DynamicClassCompiler<TestCase>
             {
                 CompilationStarted = compileStarted,
                 CompilationFinished = compileFinished,
-                WatchDirectory = @"Tests",
             };
 
             try
@@ -277,6 +276,12 @@ namespace osu.Framework.Testing
 
             if (testType != null)
             {
+                assemblyDropdown.RemoveDropdownItem(assemblyDropdown.Items.LastOrDefault(i => i.Value.CodeBase.Contains("DotNetCompiler")).Value);
+
+                // if we are a dynamically compiled type (via DynamicClassCompiler) we should update the dropdown accordingly.
+                if (testType.Assembly.CodeBase.Contains("DotNetCompiler"))
+                    assemblyDropdown.AddDropdownItem($"dynamic ({testType.Name})", testType.Assembly);
+
                 assemblyDropdown.Current.Value = testType.Assembly;
 
                 testContentContainer.Add(CurrentTest = (TestCase)Activator.CreateInstance(testType));
@@ -292,6 +297,8 @@ namespace osu.Framework.Testing
                     step.BackgroundColour = Color4.Teal;
                     m.Invoke(CurrentTest, null);
                 }
+
+                backgroundCompiler.Checkpoint(CurrentTest);
 
                 CurrentTest.RunFirstStep();
             }
