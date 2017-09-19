@@ -86,7 +86,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private Anchor textAnchor;
+        private Anchor textAnchor = Anchor.TopLeft;
         /// <summary>
         /// The <see cref="Anchor"/> which text should flow from.
         /// </summary>
