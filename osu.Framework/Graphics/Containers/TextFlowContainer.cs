@@ -86,6 +86,25 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        private Anchor textAnchor = Anchor.TopLeft;
+        /// <summary>
+        /// The <see cref="Anchor"/> which text should flow from.
+        /// </summary>
+        public Anchor TextAnchor
+        {
+            get { return textAnchor; }
+            set
+            {
+                if (textAnchor == value)
+                    return;
+                textAnchor = value;
+
+                // Todo: This is temporary for now because we don't have an easy way to re-flow the container...
+                if (IsLoaded)
+                    throw new InvalidOperationException($"{nameof(TextAnchor)} may not change after the {nameof(TextFlowContainer)} is loaded.");
+            }
+        }
+
         /// <summary>
         /// An easy way to set the full text of a text flow in one go.
         /// This will overwrite any existing text added using this method of <see cref="AddText(string, Action{SpriteText})"/>
@@ -117,6 +136,15 @@ namespace osu.Framework.Graphics.Containers
                 computeLayout();
                 layout.Validate();
             }
+        }
+
+        protected override int Compare(Drawable x, Drawable y)
+        {
+            // FillFlowContainer will reverse the ordering of right-anchored words such that the (previously) first word would be
+            // the right-most word, whereas it should still be flowed left-to-right. This is achieved by reversing the comparator.
+            if ((TextAnchor & Anchor.x2) > 0)
+                return base.Compare(y, x);
+            return base.Compare(x, y);
         }
 
         /// <summary>
@@ -234,6 +262,9 @@ namespace osu.Framework.Graphics.Containers
             var curLine = new List<Drawable>();
             foreach (var c in Children)
             {
+                c.Anchor = TextAnchor;
+                c.Origin = TextAnchor;
+
                 NewLineContainer nlc = c as NewLineContainer;
                 if (nlc != null)
                 {
