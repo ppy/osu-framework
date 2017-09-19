@@ -90,6 +90,13 @@
     <Compile Include="Platform\HeadlessGameHost.cs" />
     <Compile Include="Platform\TcpIpcProvider.cs" />
     <Compile Include="Platform\Linux\LinuxClipboard.cs" />
+    <Compile Include="Platform\MacOS\MacOSGameHost.cs" />
+    <Compile Include="Platform\MacOS\MacOSClipboard.cs" />
+    <Compile Include="Platform\MacOS\MacOSStorage.cs" />
+    <Compile Include="Platform\MacOS\MacOSGameWindow.cs" />
+    <Compile Include="Platform\MacOS\Native\Cocoa.cs" />
+    <Compile Include="Platform\MacOS\Native\Class.cs" />
+    <Compile Include="Platform\MacOS\Native\Selector.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\osu.Framework\osu.Framework.csproj">
@@ -190,6 +197,10 @@
     <Content Include="x86\SQLite.Interop.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Platform\MacOS\" />
+    <Folder Include="Platform\MacOS\Native\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
