@@ -74,7 +74,7 @@ namespace osu.Framework.Graphics.Cursor
 
                     menu.Items = menuTarget.ContextMenuItems;
 
-                    menu.Position = state.Mouse.Position;
+                    menu.Position = ToLocalSpace(state.Mouse.NativeState.Position);
                     relativeCursorPosition = ToSpaceOfOtherDrawable(menu.Position, menuTarget);
                     menu.Open();
                     return true;
