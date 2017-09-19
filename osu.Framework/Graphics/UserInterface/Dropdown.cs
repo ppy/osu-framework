@@ -88,7 +88,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (value == null)
                 return false;
 
-            DropdownMenuItem<T> item = null;
+            DropdownMenuItem<T> item;
             if (!itemMap.TryGetValue(value, out item))
                 return false;
 
