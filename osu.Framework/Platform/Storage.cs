@@ -38,8 +38,14 @@ namespace osu.Framework.Platform
         /// Get a Storage-usable path for the provided path.
         /// </summary>
         /// <param name="path">An incomplete path, usually provided as user input.</param>
+        /// <param name="createIfNotExisting">Create the path if it doesn't already exist.</param>
         /// <returns></returns>
-        protected string GetUsablePathFor(string path) => Path.Combine(BasePath, BaseName, SubDirectory, path);
+        protected string GetUsablePathFor(string path, bool createIfNotExisting = false)
+        {
+            var resolvedPath = Path.Combine(BasePath, BaseName, SubDirectory, path);
+            if (createIfNotExisting) Directory.CreateDirectory(Path.GetDirectoryName(resolvedPath));
+            return resolvedPath;
+        }
 
         /// <summary>
         /// Check whether a file exists at the specified path.

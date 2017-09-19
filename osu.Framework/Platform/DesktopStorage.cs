@@ -51,7 +51,7 @@ namespace osu.Framework.Platform
 
         public override Stream GetStream(string path, FileAccess access = FileAccess.Read, FileMode mode = FileMode.OpenOrCreate)
         {
-            path = GetUsablePathFor(path);
+            path = GetUsablePathFor(path, access != FileAccess.Read);
 
             if (string.IsNullOrEmpty(path))
                 throw new ArgumentNullException(nameof(path));
@@ -59,24 +59,21 @@ namespace osu.Framework.Platform
             switch (access)
             {
                 case FileAccess.Read:
-                    if (!File.Exists(path))
-                        return null;
+                    if (!File.Exists(path)) return null;
                     return File.Open(path, FileMode.Open, access, FileShare.Read);
                 default:
-                    Directory.CreateDirectory(Path.GetDirectoryName(path));
                     return File.Open(path, mode, access);
             }
         }
 
         public override SQLiteConnection GetDatabase(string name)
         {
-            Directory.CreateDirectory(BasePath);
             ISQLitePlatform platform;
             if (RuntimeInfo.IsWindows)
                 platform = new SQLitePlatformWin32(Architecture.NativeIncludePath);
             else
                 platform = new SQLitePlatformGeneric();
-            return new SQLiteConnection(platform, GetUsablePathFor($@"{name}.db"));
+            return new SQLiteConnection(platform, GetUsablePathFor($@"{name}.db", true));
         }
 
         public override void DeleteDatabase(string name) => Delete($@"{name}.db");
