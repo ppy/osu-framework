@@ -136,6 +136,13 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        protected override int Compare(Drawable x, Drawable y)
+        {
+            if ((TextAnchor & Anchor.x2) > 0)
+                return base.Compare(y, x);
+            return base.Compare(x, y);
+        }
+
         /// <summary>
         /// Add new text to this text flow. The \n character will create a new paragraph, not just a line break. If you need \n to be a line break, use <see cref="AddParagraph(string, Action{SpriteText})"/> instead.
         /// </summary>
