@@ -2,8 +2,8 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Collections.Concurrent;
 using osu.Framework.DebugUtils;
+using osu.Framework.Lists;
 using osu.Framework.Statistics;
 
 namespace osu.Framework.Audio
@@ -13,7 +13,7 @@ namespace osu.Framework.Audio
         /// <summary>
         /// Audio operations will be run on a separate dedicated thread, so we need to schedule any audio API calls using this queue.
         /// </summary>
-        protected ConcurrentQueue<Action> PendingActions = new ConcurrentQueue<Action>();
+        protected SingleTypeQueue<Action> PendingActions = new SingleTypeQueue<Action>();
 
         ~AudioComponent()
         {

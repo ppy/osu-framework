@@ -9,6 +9,7 @@ using ManagedBass;
 using ManagedBass.Fx;
 using OpenTK;
 using osu.Framework.IO;
+using osu.Framework.Lists;
 using System.Diagnostics;
 
 namespace osu.Framework.Audio.Track
@@ -41,8 +42,12 @@ namespace osu.Framework.Audio.Track
 
         public override bool IsLoaded => isLoaded;
 
+        protected int SeekActionConstant;
+
         public TrackBass(Stream data, bool quick = false)
         {
+            SeekActionConstant = PendingActions.AddType();
+
             PendingActions.Enqueue(() =>
             {
                 Preview = quick;
@@ -192,7 +197,7 @@ namespace osu.Framework.Audio.Track
             double conservativeLength = Length == 0 ? double.MaxValue : Length;
             double conservativeClamped = MathHelper.Clamp(seek, 0, conservativeLength);
 
-            PendingActions.Enqueue(() =>
+            PendingActions.EnqueueType(SeekActionConstant, DuplicateAction.RemoveDuplicate, () =>
             {
                 double clamped = MathHelper.Clamp(seek, 0, Length);
 

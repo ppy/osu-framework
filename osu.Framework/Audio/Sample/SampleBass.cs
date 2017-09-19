@@ -3,7 +3,7 @@
 
 using ManagedBass;
 using System;
-using System.Collections.Concurrent;
+using osu.Framework.Lists;
 
 namespace osu.Framework.Audio.Sample
 {
@@ -13,7 +13,7 @@ namespace osu.Framework.Audio.Sample
 
         public override bool IsLoaded => sampleId != 0;
 
-        public SampleBass(byte[] data, ConcurrentQueue<Action> customPendingActions = null)
+        public SampleBass(byte[] data, SingleTypeQueue<Action> customPendingActions = null)
         {
             if (customPendingActions != null)
                 PendingActions = customPendingActions;
