@@ -94,7 +94,7 @@ namespace osu.Framework.Desktop.Tests.Visual
                         Origin = Anchor.TopLeft,
                         BackgroundColour = Color4.Red,
                         Alpha = 0,
-                        Action = delegate { Exit(); }
+                        Action = Exit
                     },
                     new Button
                     {

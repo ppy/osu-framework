@@ -83,16 +83,19 @@
   <ItemGroup>
     <Reference Include="mscorlib" />
     <Reference Include="OpenTK, Version=3.0.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)\packages\ppy.OpenTK.3.0\lib\net45\OpenTK.dll</HintPath>
+      <HintPath>$(SolutionDir)\packages\OpenTK.3.0.0-git00009\lib\net20\OpenTK.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\osu-framework.licenseheader">
       <Link>osu-framework.licenseheader</Link>
     </None>
     <None Include="app.config" />
+    <None Include="OpenTK.dll.config" />
     <None Include="packages.config" />
     <None Include="Properties\app.manifest" />
   </ItemGroup>

@@ -155,7 +155,7 @@ namespace osu.Framework.Graphics
 
         /// <summary>
         /// Contains all dependencies that can be injected into this Drawable using <see cref="BackgroundDependencyLoader"/>.
-        /// Add or override dependencies by calling <see cref="DependencyContainer.Cache{T}(T, bool, bool)"/>.
+        /// Add or override dependencies by calling <see cref="DependencyContainer.Cache{T}(T, bool)"/>.
         /// </summary>
         public IReadOnlyDependencyContainer Dependencies { get; private set; }
 
@@ -167,8 +167,13 @@ namespace osu.Framework.Graphics
         internal void Load(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies)
         {
             // Blocks when loading from another thread already.
+            double t0 = perf.CurrentTime;
             lock (loadLock)
             {
+                double lockDuration = perf.CurrentTime - t0;
+                if (perf.CurrentTime > 1000 && lockDuration > 50 && ThreadSafety.IsUpdateThread)
+                    Logger.Log($@"Drawable [{ToString()}] load was blocked for {lockDuration:0.00}ms!", LoggingTarget.Performance);
+
                 switch (loadState)
                 {
                     case LoadState.Ready:
@@ -193,9 +198,9 @@ namespace osu.Framework.Graphics
 
                 Dependencies.Inject(this);
 
-                double elapsed = perf.CurrentTime - t1;
-                if (perf.CurrentTime > 1000 && elapsed > 50 && ThreadSafety.IsUpdateThread)
-                    Logger.Log($@"Drawable [{ToString()}] took {elapsed:0.00}ms to load and was not async!", LoggingTarget.Performance);
+                double loadDuration = perf.CurrentTime - t1;
+                if (perf.CurrentTime > 1000 && loadDuration > 50 && ThreadSafety.IsUpdateThread)
+                    Logger.Log($@"Drawable [{ToString()}] took {loadDuration:0.00}ms to load and was not async!", LoggingTarget.Performance);
                 loadState = LoadState.Ready;
             }
         }
@@ -1500,7 +1505,7 @@ namespace osu.Framework.Graphics
             if (other == this)
                 return input;
 
-            return input * DrawInfo.Matrix * other.DrawInfo.MatrixInverse;
+            return Vector2Extensions.Transform(Vector2Extensions.Transform(input, DrawInfo.Matrix), other.DrawInfo.MatrixInverse);
         }
 
         /// <summary>
@@ -1538,7 +1543,7 @@ namespace osu.Framework.Graphics
         /// <returns>The vector in screen coordinates.</returns>
         public Vector2 ToScreenSpace(Vector2 input)
         {
-            return input * DrawInfo.Matrix;
+            return Vector2Extensions.Transform(input, DrawInfo.Matrix);
         }
 
         /// <summary>
@@ -1558,7 +1563,7 @@ namespace osu.Framework.Graphics
         /// <returns>The vector in local coordinates.</returns>
         public Vector2 ToLocalSpace(Vector2 screenSpacePos)
         {
-            return screenSpacePos * DrawInfo.MatrixInverse;
+            return Vector2Extensions.Transform(screenSpacePos, DrawInfo.MatrixInverse);
         }
 
         /// <summary>

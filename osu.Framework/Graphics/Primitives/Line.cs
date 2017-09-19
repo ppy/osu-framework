@@ -54,7 +54,7 @@ namespace osu.Framework.Graphics.Primitives
         /// </summary>
         public float DistanceSquaredToPoint(Vector2 p)
         {
-            return Vector2.DistanceSquared(p, ClosestPointTo(p));
+            return Vector2Extensions.DistanceSquared(p, ClosestPointTo(p));
         }
 
         /// <summary>
@@ -62,7 +62,7 @@ namespace osu.Framework.Graphics.Primitives
         /// </summary>
         public float DistanceToPoint(Vector2 p)
         {
-            return Vector2.Distance(p, ClosestPointTo(p));
+            return Vector2Extensions.Distance(p, ClosestPointTo(p));
         }
 
         /// <summary>

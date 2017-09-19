@@ -126,6 +126,8 @@ namespace osu.Framework.Graphics.Transforms
         {
             if (removalActionsLazy?.Count > 0)
             {
+                Debug.Assert(removalActionsLazy != null);
+
                 var toRemove = removalActionsLazy.ToArray();
                 removalActionsLazy.Clear();
 

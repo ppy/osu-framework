@@ -127,7 +127,7 @@ namespace osu.Framework.Desktop.Tests.Visual
 
         private class HeaderContainer : Container, IHasFilterableChildren
         {
-            public string[] FilterTerms => header.FilterTerms;
+            public IEnumerable<string> FilterTerms => header.FilterTerms;
 
             public bool MatchingFilter
             {
@@ -164,12 +164,12 @@ namespace osu.Framework.Desktop.Tests.Visual
 
         private class KeywordText : SpriteText, IHasFilterTerms
         {
-            public string[] FilterTerms => new[] { Text };
+            public IEnumerable<string> FilterTerms => new[] { Text };
         }
 
         private class FilterableFlowContainer : FillFlowContainer, IFilterable
         {
-            public string[] FilterTerms => Children.OfType<IHasFilterTerms>().SelectMany(d => d.FilterTerms).ToArray();
+            public IEnumerable<string> FilterTerms => Children.OfType<IHasFilterTerms>().SelectMany(d => d.FilterTerms);
 
             public bool MatchingFilter
             {
@@ -185,7 +185,7 @@ namespace osu.Framework.Desktop.Tests.Visual
 
         private class SearchableText : SpriteText, IFilterable
         {
-            public string[] FilterTerms => new[] { Text };
+            public IEnumerable<string> FilterTerms => new[] { Text };
 
             public bool MatchingFilter
             {

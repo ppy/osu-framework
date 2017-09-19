@@ -4,13 +4,14 @@
 using System;
 using NUnit.Framework;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Shapes;
+using osu.Framework.Graphics.UserInterface;
+using osu.Framework.MathUtils;
 using osu.Framework.Physics;
 using osu.Framework.Testing;
 using OpenTK;
 using OpenTK.Graphics;
-using osu.Framework.MathUtils;
-using osu.Framework.Graphics.Shapes;
-using osu.Framework.Graphics.UserInterface;
+
 
 namespace osu.Framework.Desktop.Tests.Visual
 {
@@ -25,7 +26,8 @@ namespace osu.Framework.Desktop.Tests.Visual
         private float restitution
         {
             get { return restitutionBacking; }
-            set {
+            set
+            {
                 restitutionBacking = value;
 
                 if (sim == null)
@@ -41,7 +43,8 @@ namespace osu.Framework.Desktop.Tests.Visual
         private float friction
         {
             get { return frictionBacking; }
-            set {
+            set
+            {
                 frictionBacking = value;
 
                 if (sim == null)
@@ -100,7 +103,7 @@ namespace osu.Framework.Desktop.Tests.Visual
             generateN(3, () => new RigidBodyContainer<Drawable>
             {
                 Position = new Vector2((float)random.NextDouble(), (float)random.NextDouble()) * 1000,
-                Size = new Vector2(1, 0.1f + 0.2f * (float)random.NextDouble()) * (150 + 150  * (float)random.NextDouble()),
+                Size = new Vector2(1, 0.1f + 0.2f * (float)random.NextDouble()) * (150 + 150 * (float)random.NextDouble()),
                 Rotation = (float)random.NextDouble() * 360,
                 Child = new TextBox
                 {

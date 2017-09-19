@@ -1,6 +1,8 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System.Collections.Generic;
+
 namespace osu.Framework.Graphics.Containers
 {
     /// <summary>
@@ -10,8 +12,8 @@ namespace osu.Framework.Graphics.Containers
     public interface IHasFilterTerms
     {
         /// <summary>
-        /// An array of relevant terms which match the current object in a filtered scenario.
+        /// An enumerator of relevant terms which match the current object in a filtered scenario.
         /// </summary>
-        string[] FilterTerms { get; }
+        IEnumerable<string> FilterTerms { get; }
     }
 }

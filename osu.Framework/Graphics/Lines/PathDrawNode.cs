@@ -62,9 +62,9 @@ namespace osu.Framework.Graphics.Lines
 
             Vector2 current = origin + pointOnCircle(theta) * Width;
             Color4 currentColour = colourAt(current);
-            current *= DrawInfo.Matrix;
+            current = Vector2Extensions.Transform(current, DrawInfo.Matrix);
 
-            Vector2 screenOrigin = origin * DrawInfo.Matrix;
+            Vector2 screenOrigin = Vector2Extensions.Transform(origin, DrawInfo.Matrix);
             Color4 originColour = colourAt(origin);
 
             for (int i = 1; i <= amountPoints; i++)
@@ -88,7 +88,7 @@ namespace osu.Framework.Graphics.Lines
                 float angularOffset = Math.Min(i * step, thetaDiff);
                 current = origin + pointOnCircle(theta + dir * angularOffset) * Width;
                 currentColour = colourAt(current);
-                current *= DrawInfo.Matrix;
+                current = Vector2Extensions.Transform(current, DrawInfo.Matrix);
 
                 // Second outer point
                 Shared.HalfCircleBatch.Add(new TexturedVertex3D
@@ -106,9 +106,9 @@ namespace osu.Framework.Graphics.Lines
             Line lineLeft = new Line(line.StartPoint + ortho * Width, line.EndPoint + ortho * Width);
             Line lineRight = new Line(line.StartPoint - ortho * Width, line.EndPoint - ortho * Width);
 
-            Line screenLineLeft = new Line(lineLeft.StartPoint * DrawInfo.Matrix, lineLeft.EndPoint * DrawInfo.Matrix);
-            Line screenLineRight = new Line(lineRight.StartPoint * DrawInfo.Matrix, lineRight.EndPoint * DrawInfo.Matrix);
-            Line screenLine = new Line(line.StartPoint * DrawInfo.Matrix, line.EndPoint * DrawInfo.Matrix);
+            Line screenLineLeft = new Line(Vector2Extensions.Transform(lineLeft.StartPoint, DrawInfo.Matrix), Vector2Extensions.Transform(lineLeft.EndPoint, DrawInfo.Matrix));
+            Line screenLineRight = new Line(Vector2Extensions.Transform(lineRight.StartPoint, DrawInfo.Matrix), Vector2Extensions.Transform(lineRight.EndPoint, DrawInfo.Matrix));
+            Line screenLine = new Line(Vector2Extensions.Transform(line.StartPoint, DrawInfo.Matrix), Vector2Extensions.Transform(line.EndPoint, DrawInfo.Matrix));
 
             Shared.QuadBatch.Add(new TexturedVertex3D
             {

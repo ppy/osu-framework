@@ -546,7 +546,7 @@ namespace osu.Framework.Input
                     }
                 }
 
-                if (!isDragging && Vector2.Distance(mouse.PositionMouseDown ?? mouse.Position, mouse.Position) > drag_start_distance)
+                if (!isDragging && Vector2Extensions.Distance(mouse.PositionMouseDown ?? mouse.Position, mouse.Position) > drag_start_distance)
                 {
                     isDragging = true;
                     handleMouseDragStart(state);
@@ -554,7 +554,7 @@ namespace osu.Framework.Input
             }
             else if (last.HasAnyButtonPressed)
             {
-                if (isValidClick && (DraggedDrawable == null || Vector2.Distance(mouse.PositionMouseDown ?? mouse.Position, mouse.Position) < click_drag_distance))
+                if (isValidClick && (DraggedDrawable == null || Vector2Extensions.Distance(mouse.PositionMouseDown ?? mouse.Position, mouse.Position) < click_drag_distance))
                     handleMouseClick(state);
 
                 mouseDownInputQueue = null;

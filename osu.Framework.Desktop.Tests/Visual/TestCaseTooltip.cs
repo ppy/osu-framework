@@ -95,6 +95,8 @@ namespace osu.Framework.Desktop.Tests.Visual
                         {
                             new TooltipSpriteText("this text has a tooltip!"),
                             new TooltipSpriteText("this one too!"),
+                            new CustomTooltipSpriteText("this text has an empty tooltip!", string.Empty),
+                            new CustomTooltipSpriteText("this text has a nulled tooltip!", null),
                             new TooltipTextbox
                             {
                                 Text = "with real time updates!",
@@ -146,22 +148,32 @@ namespace osu.Framework.Desktop.Tests.Visual
             ttc.Add(makeBox(Anchor.BottomRight));
         }
 
-        private class TooltipSpriteText : Container, IHasTooltip
+        private class CustomTooltipSpriteText : Container, IHasTooltip
         {
-            private readonly SpriteText text;
+            private readonly string tooltipText;
 
-            public string TooltipText => text.Text;
+            public string TooltipText => tooltipText;
 
-            public TooltipSpriteText(string tooltipText)
+            public CustomTooltipSpriteText(string displayedText, string tooltipText)
             {
+                this.tooltipText = tooltipText;
+
                 AutoSizeAxes = Axes.Both;
                 Children = new[]
                 {
-                    text = new SpriteText
+                    new SpriteText
                     {
-                        Text = tooltipText,
+                        Text = displayedText,
                     }
                 };
+            }
+        }
+
+        private class TooltipSpriteText : CustomTooltipSpriteText
+        {
+            public TooltipSpriteText(string tooltipText)
+                : base(tooltipText, tooltipText)
+            {
             }
         }
 

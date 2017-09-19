@@ -120,7 +120,7 @@ namespace osu.Framework.Allocation
         /// <summary>
         /// Caches an instance of a type. This instance will be returned each time you <see cref="Get(Type)"/>.
         /// </summary>
-        public T Cache<T>(T instance = null, bool overwrite = false, bool lazy = false) where T : class
+        public T Cache<T>(T instance = null, bool overwrite = false) where T : class
         {
             if (!overwrite && cache.ContainsKey(typeof(T)))
                 throw new InvalidOperationException($@"Type {typeof(T).FullName} is already cached");
