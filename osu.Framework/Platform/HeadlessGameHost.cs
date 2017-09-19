@@ -22,7 +22,7 @@ namespace osu.Framework.Platform
             if (!realtime) customClock = new FramedClock(new FastClock(1000.0 / 30));
 
             UpdateThread.Scheduler.Update();
-            Dependencies.Cache(Storage = new DesktopStorage(string.Empty));
+            Dependencies.Cache(Storage = new DesktopStorage($"headless-{gameName}"));
         }
 
         protected override void UpdateInitialize()
