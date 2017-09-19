@@ -101,15 +101,24 @@ namespace osu.Framework.Audio.Track
             double currentTimeLocal = Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetPosition(activeStream)) * 1000;
             Interlocked.Exchange(ref currentTime, currentTimeLocal == Length && !isPlayed ? 0 : currentTimeLocal);
 
-            //As reported in https://github.com/ManagedBass/ManagedBass/issues/32, ManagedBass returns -32768 when it should return 32768, the following lines prevent having invalid values
-            float tempLevel = Bass.ChannelGetLevelLeft(activeStream) / 32768f;
-            currentAmplitudes.LeftChannel = tempLevel == -1 ? 1 : tempLevel;
-            tempLevel = Bass.ChannelGetLevelRight(activeStream) / 32768f;
-            currentAmplitudes.RightChannel = tempLevel == -1 ? 1 : tempLevel;
+            var leftChannel = isPlayed ? Bass.ChannelGetLevelLeft(activeStream) / 32768f : -1;
+            var rightChannel = isPlayed ? Bass.ChannelGetLevelRight(activeStream) / 32768f : -1;
 
-            float[] tempFrequencyData = new float[256];
-            Bass.ChannelGetData(activeStream, tempFrequencyData, (int)DataFlags.FFT512);
-            currentAmplitudes.FrequencyAmplitudes = tempFrequencyData;
+            if (leftChannel >= 0 && rightChannel >= 0)
+            {
+                currentAmplitudes.LeftChannel = leftChannel;
+                currentAmplitudes.RightChannel = rightChannel;
+
+                float[] tempFrequencyData = new float[256];
+                Bass.ChannelGetData(activeStream, tempFrequencyData, (int)DataFlags.FFT512);
+                currentAmplitudes.FrequencyAmplitudes = tempFrequencyData;
+            }
+            else
+            {
+                currentAmplitudes.LeftChannel = 0;
+                currentAmplitudes.RightChannel = 0;
+                currentAmplitudes.FrequencyAmplitudes = new float[256];
+            }
 
             base.Update();
         }
