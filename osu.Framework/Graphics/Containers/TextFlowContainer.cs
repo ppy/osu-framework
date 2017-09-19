@@ -99,7 +99,9 @@ namespace osu.Framework.Graphics.Containers
                     return;
                 textAnchor = value;
 
-                layout.Invalidate();
+                // Todo: This is temporary for now because we don't have an easy way to re-flow the container...
+                if (IsLoaded)
+                    throw new InvalidOperationException($"{nameof(TextAnchor)} may not change after the {nameof(TextFlowContainer)} is loaded.");
             }
         }
 
