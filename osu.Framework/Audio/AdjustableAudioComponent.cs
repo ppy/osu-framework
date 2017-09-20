@@ -58,7 +58,7 @@ namespace osu.Framework.Audio
             Frequency.ValueChanged += InvalidateState;
         }
 
-        internal void InvalidateState(double newValue = 0)
+        internal void InvalidateState(double newValue = 0, double oldValue = 0)
         {
             PendingActions.Enqueue(OnStateChanged);
         }

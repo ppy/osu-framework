@@ -119,7 +119,7 @@ namespace osu.Framework.Graphics.Visualisation
         private void load(FrameworkConfigManager config)
         {
             enabled = config.GetBindable<bool>(FrameworkSetting.ShowLogOverlay);
-            enabled.ValueChanged += val => State = val ? Visibility.Visible : Visibility.Hidden;
+            enabled.ValueChanged += (newValue, oldValue) => State = newValue ? Visibility.Visible : Visibility.Hidden;
             enabled.TriggerChange();
         }
 

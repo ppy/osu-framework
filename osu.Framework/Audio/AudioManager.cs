@@ -131,7 +131,7 @@ namespace osu.Framework.Audio
             base.Dispose(disposing);
         }
 
-        private void onDeviceChanged(string newDevice)
+        private void onDeviceChanged(string newDevice, string oldDevice)
         {
             scheduler.Add(() => setAudioDevice(string.IsNullOrEmpty(newDevice) ? null : newDevice));
         }

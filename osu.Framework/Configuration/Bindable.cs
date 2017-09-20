@@ -71,9 +71,11 @@ namespace osu.Framework.Configuration
                 if (Disabled)
                     throw new InvalidOperationException($"Can not set value to \"{value.ToString()}\" as bindable is disabled.");
 
+                T oldValue = this.value;
+
                 this.value = value;
 
-                TriggerValueChange();
+                TriggerValueChange(oldValue);
             }
         }
 
@@ -136,13 +138,13 @@ namespace osu.Framework.Configuration
         /// </summary>
         public void TriggerChange()
         {
-            TriggerValueChange();
+            TriggerValueChange(value);
             TriggerDisabledChange();
         }
 
-        protected void TriggerValueChange()
+        protected void TriggerValueChange(T oldValue)
         {
-            ValueChanged?.Invoke(value);
+            ValueChanged?.Invoke(value, oldValue);
             bindings?.ForEachAlive(b => b.Value = value);
         }
 
@@ -190,7 +192,7 @@ namespace osu.Framework.Configuration
             return copy;
         }
 
-        public delegate void BindableValueChanged<in TValue>(TValue newValue);
+        public delegate void BindableValueChanged<in TValue>(TValue newValue, TValue oldValue);
 
         public delegate void BindableDisabledChanged(bool isDisabled);
     }

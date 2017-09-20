@@ -146,9 +146,9 @@ namespace osu.Framework.Tests.Visual
             colourEquation.Current.Value = foregroundContainer.Blending.RGBEquation;
             alphaEquation.Current.Value = foregroundContainer.Blending.AlphaEquation;
 
-            colourModeDropdown.Current.ValueChanged += v => updateBlending();
-            colourEquation.Current.ValueChanged += v => updateBlending();
-            alphaEquation.Current.ValueChanged += v => updateBlending();
+            colourModeDropdown.Current.ValueChanged += (newValue, oldValue) => updateBlending();
+            colourEquation.Current.ValueChanged += (newValue, oldValue) => updateBlending();
+            alphaEquation.Current.ValueChanged += (newValue, oldValue) => updateBlending();
         }
 
         private void updateBlending()

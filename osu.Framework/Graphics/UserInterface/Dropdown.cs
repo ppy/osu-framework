@@ -137,7 +137,7 @@ namespace osu.Framework.Graphics.UserInterface
             Header.Label = SelectedItem?.Text.Value;
         }
 
-        private void selectionChanged(T newSelection = default(T))
+        private void selectionChanged(T newSelection = default(T), T oldSelection = default(T))
         {
             // refresh if SelectedItem and SelectedValue mismatched
             // null is not a valid value for Dictionary, so neither here

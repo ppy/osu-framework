@@ -187,7 +187,7 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        private void setText(string newText)
+        private void setText(string newText, string oldText)
         {
             if (text == newText)
                 return;
@@ -209,7 +209,7 @@ namespace osu.Framework.Graphics.Sprites
                 if (current != null)
                     throw new InvalidOperationException($@"property {nameof(Text)} cannot be set manually if {nameof(Current)} set");
 
-                setText(value);
+                setText(value, text);
             }
         }
 

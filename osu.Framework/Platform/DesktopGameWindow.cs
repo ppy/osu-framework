@@ -73,7 +73,7 @@ namespace osu.Framework.Platform
             }
         }
 
-        private void confineMouseMode_ValueChanged(ConfineMouseMode newValue)
+        private void confineMouseMode_ValueChanged(ConfineMouseMode newValue, ConfineMouseMode oldValue)
         {
             bool confine = false;
 
@@ -93,7 +93,7 @@ namespace osu.Framework.Platform
                 CursorState &= ~CursorState.Confined;
         }
 
-        private void windowMode_ValueChanged(WindowMode newMode)
+        private void windowMode_ValueChanged(WindowMode newMode, WindowMode oldMode)
         {
             switch (newMode)
             {

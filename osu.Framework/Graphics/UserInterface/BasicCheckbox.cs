@@ -64,7 +64,7 @@ namespace osu.Framework.Graphics.UserInterface
                 }
             };
 
-            Current.ValueChanged += c => box.FadeColour(c ? CheckedColor : UncheckedColor, FadeDuration);
+            Current.ValueChanged += (newChecked, oldChecked) => box.FadeColour(newChecked ? CheckedColor : UncheckedColor, FadeDuration);
         }
     }
 }

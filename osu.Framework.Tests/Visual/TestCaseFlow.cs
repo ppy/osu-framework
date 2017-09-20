@@ -111,7 +111,7 @@ namespace osu.Framework.Tests.Visual
             selectionDropdown.Current.ValueChanged += changeTest;
             buildTest();
             selectionDropdown.Current.Value = FlowTestCase.Full;
-            changeTest(FlowTestCase.Full);
+            changeTest(FlowTestCase.Full, FlowTestCase.Full);
         }
 
         protected override void Update()
@@ -133,10 +133,10 @@ namespace osu.Framework.Tests.Visual
             }
         }
 
-        private void changeTest(FlowTestCase testCase)
+        private void changeTest(FlowTestCase newTestCase, FlowTestCase oldTestCase)
         {
             var method =
-                GetType().GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance).SingleOrDefault(m => m.GetCustomAttribute<FlowTestCaseAttribute>()?.TestCase == testCase);
+                GetType().GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance).SingleOrDefault(m => m.GetCustomAttribute<FlowTestCaseAttribute>()?.TestCase == newTestCase);
             if (method != null)
                 method.Invoke(this, new object[0]);
         }
