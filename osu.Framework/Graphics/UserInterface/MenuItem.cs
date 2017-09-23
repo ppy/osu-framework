@@ -22,7 +22,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// A list of items which are to be displayed in a sub-menu originating from this <see cref="MenuItem"/>.
         /// </summary>
-        public IReadOnlyList<MenuItem> Items = new MenuItem[0];
+        public IReadOnlyList<MenuItem> Items = Array.Empty<MenuItem>();
 
         /// <summary>
         /// Creates a new <see cref="MenuItem"/>.

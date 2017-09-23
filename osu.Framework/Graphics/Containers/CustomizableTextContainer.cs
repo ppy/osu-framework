@@ -126,7 +126,7 @@ namespace osu.Framework.Graphics.Containers
                             object[] args;
                             if (string.IsNullOrWhiteSpace(paramStr))
                             {
-                                args = new object[0];
+                                args = Array.Empty<object>();
                             }
                             else
                             {
