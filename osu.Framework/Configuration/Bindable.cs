@@ -152,10 +152,15 @@ namespace osu.Framework.Configuration
             bindings?.ForEachAlive(b => b.Disabled = disabled);
         }
 
+        /// <summary>
+        /// Unbind any events bound to <see cref="ValueChanged"/> and <see cref="DisabledChanged"/>, along with
+        /// removing all bound <see cref="Bindable{T}"/>s via <see cref="GetBoundCopy"/> or <see cref="BindTo"/>.
+        /// </summary>
         public void UnbindAll()
         {
             ValueChanged = null;
             DisabledChanged = null;
+            bindings.Clear();
         }
 
         public string Description { get; set; }
