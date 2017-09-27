@@ -232,10 +232,17 @@ namespace osu.Framework.Graphics.UserInterface
             /// </summary>
             public bool AnyPresent => Children.Any(c => c.IsPresent);
 
+            protected override DrawableMenuItem CreateDrawableMenuItem(MenuItem item) => new DrawableDropdownMenuItem(item);
+
             #region DrawableDropdownMenuItem
             // must be public due to mono bug(?) https://github.com/ppy/osu/issues/1204
             public class DrawableDropdownMenuItem : DrawableMenuItem
             {
+                public DrawableDropdownMenuItem(MenuItem item)
+                    : base(item)
+                {
+                }
+
                 private bool selected;
                 public bool IsSelected
                 {
@@ -273,11 +280,6 @@ namespace osu.Framework.Graphics.UserInterface
                         foregroundColourSelected = value;
                         UpdateForegroundColour();
                     }
-                }
-
-                public DrawableDropdownMenuItem(MenuItem item)
-                    : base(item)
-                {
                 }
 
                 protected virtual void OnSelectChange()

@@ -7,7 +7,7 @@
         },
         "type": "mono",
         "request": "launch",
-        "program": "${workspaceRoot}/osu.Framework.VisualTestBrowser/bin/Debug/osu.Framework.VisualTests.exe",
+        "program": "${workspaceRoot}/osu.Framework.Tests/bin/Debug/osu.Framework.Tests.exe",
         "cwd": "${workspaceRoot}",
         "preLaunchTask": "Build (Debug)",
         "runtimeExecutable": null,
