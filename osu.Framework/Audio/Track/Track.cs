@@ -50,7 +50,7 @@ namespace osu.Framework.Audio.Track
         public abstract double CurrentTime { get; }
 
         /// <summary>
-        /// Lenth of the track in milliseconds.
+        /// Length of the track in milliseconds.
         /// </summary>
         public double Length { get; protected set; }
 
