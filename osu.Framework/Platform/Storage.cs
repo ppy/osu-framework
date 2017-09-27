@@ -3,8 +3,8 @@
 
 using System;
 using System.IO;
+using Microsoft.Data.Sqlite;
 using osu.Framework.IO.File;
-using SQLite.Net;
 
 namespace osu.Framework.Platform
 {
@@ -106,7 +106,7 @@ namespace osu.Framework.Platform
         /// </summary>
         /// <param name="name">The name of the database.</param>
         /// <returns>An SQLite connection.</returns>
-        public abstract SQLiteConnection GetDatabase(string name);
+        public abstract SqliteConnection GetDatabase(string name);
 
         /// <summary>
         /// Delete an SQLite database from within this storage.
