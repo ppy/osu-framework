@@ -70,7 +70,7 @@ namespace osu.Framework.Tests.Visual
                     },
                     new SpriteText
                     {
-                        Current = engine.Format("{0}", DateTime.Now),
+                        Current = engine.Format($"{DateTime.Now}"),
                         TextSize = 48,
                         Colour = Color4.White
                     },

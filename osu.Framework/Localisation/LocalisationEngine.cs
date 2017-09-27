@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -31,7 +32,7 @@ namespace osu.Framework.Localisation
 
         private readonly WeakList<UnicodeBindableString> unicodeBindings = new WeakList<UnicodeBindableString>();
         private readonly WeakList<LocalisedString> localisedBindings = new WeakList<LocalisedString>();
-        private readonly WeakList<FormattableString> formattableBindings = new WeakList<FormattableString>();
+        private readonly WeakList<FormatString> formattableBindings = new WeakList<FormatString>();
 
         public void AddLanguage(string language, IResourceStore<string> storage)
         {
@@ -61,17 +62,17 @@ namespace osu.Framework.Localisation
             return bindable;
         }
 
-        public FormattableString Format(string format, params object[] objects)
+        public FormatString Format(FormattableString formattable)
         {
-            var bindable = new FormattableString(format, objects);
+            var bindable = new FormatString(formattable);
             formattableBindings.Add(bindable);
 
             return bindable;
         }
 
-        public VaraintFormattableString FormatVariant(string formatKey, params object[] objects)
+        public FormatString FormatVariant(string formatKey, params object[] objects)
         {
-            var bindable = new VaraintFormattableString(GetLocalisedString(formatKey), objects);
+            var bindable = new FormatString(new LocalisedFormatString(GetLocalisedString(formatKey), objects));
             formattableBindings.Add(bindable);
 
             return bindable;

@@ -108,6 +108,74 @@ osu! is written in C# on the .NET Framework. On August 28, 2016, osu!'s source c
                 Text = "Test icons [RedBox] interleaved\n[GreenBox] with other [0] text, also [[0]] escaping stuff is possible."
             });
 
+            paragraphContainer.Add(new Container
+            {
+                Size = new Vector2(300),
+                Children = new Drawable[]
+                {
+                    new Box
+                    {
+                        Name = "Background",
+                        RelativeSizeAxes = Axes.Both,
+                        Alpha = 0.1f
+                    },
+                    new TextFlowContainer
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        TextAnchor = Anchor.TopLeft,
+                        Text = "TopLeft"
+                    },
+                    new TextFlowContainer
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        TextAnchor = Anchor.TopCentre,
+                        Text = "TopCentre"
+                    },
+                    new TextFlowContainer
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        TextAnchor = Anchor.TopRight,
+                        Text = "TopRight"
+                    },
+                    new TextFlowContainer
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        TextAnchor = Anchor.BottomLeft,
+                        Text = "BottomLeft"
+                    },
+                    new TextFlowContainer
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        TextAnchor = Anchor.BottomCentre,
+                        Text = "BottomCentre"
+                    },
+                    new TextFlowContainer
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        TextAnchor = Anchor.BottomRight,
+                        Text = "BottomRight"
+                    },
+                    new TextFlowContainer
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        TextAnchor = Anchor.CentreLeft,
+                        Text = "CentreLeft"
+                    },
+                    new TextFlowContainer
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        TextAnchor = Anchor.Centre,
+                        Text = "Centre"
+                    },
+                    new TextFlowContainer
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        TextAnchor = Anchor.CentreRight,
+                        Text = "CentreRight"
+                    }
+                }
+            });
+
             AddStep(@"resize paragraph 1", () => { paragraphContainer.Width = 1f; });
             AddStep(@"resize paragraph 2", () => { paragraphContainer.Width = 0.6f; });
             AddStep(@"header inset", () => { textFlowContainer.FirstLineIndent += 2; });

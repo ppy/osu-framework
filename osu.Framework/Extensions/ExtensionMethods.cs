@@ -122,18 +122,6 @@ namespace osu.Framework.Extensions
             }
         }
 
-        public static long ToUnixTimestamp(this DateTime date)
-        {
-            var epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-            return (date - epoch).Ticks / TimeSpan.TicksPerSecond;
-        }
-
-        public static long TotalMilliseconds(this DateTime date)
-        {
-            var epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-            return (date - epoch).Ticks / TimeSpan.TicksPerMillisecond;
-        }
-
         public static IEnumerable<Type> GetLoadableTypes(this Assembly assembly)
         {
             if (assembly == null) throw new ArgumentNullException(nameof(assembly));
