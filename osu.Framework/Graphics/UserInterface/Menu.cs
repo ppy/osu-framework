@@ -417,9 +417,9 @@ namespace osu.Framework.Graphics.UserInterface
             submenu.triggeringItem = item.Item;
 
             submenu.Items = item.Item.Items;
-            submenu.Position = new Vector2(
-                Direction == Direction.Vertical ? Width : item.X,
-                Direction == Direction.Horizontal ? Height : item.Y);
+            submenu.Position = item.ToSpaceOfOtherDrawable(new Vector2(
+                Direction == Direction.Vertical ? item.DrawWidth : 0,
+                Direction == Direction.Horizontal ? item.DrawHeight : 0), this);
 
             if (item.Item.Items.Count > 0)
             {
