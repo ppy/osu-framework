@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Net;
 using Newtonsoft.Json;
 
 namespace osu.Framework.IO.Network
@@ -16,6 +17,13 @@ namespace osu.Framework.IO.Network
             : base(url, args)
         {
             base.Finished += finished;
+        }
+
+        protected override HttpWebRequest CreateWebRequest(string requestString = null)
+        {
+            var req = base.CreateWebRequest(requestString);
+            req.Accept = @"application/json";
+            return req;
         }
 
         private void finished(WebRequest request, Exception e)
