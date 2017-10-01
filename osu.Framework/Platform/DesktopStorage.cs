@@ -4,7 +4,6 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using Microsoft.Data.Sqlite;
 
 namespace osu.Framework.Platform
 {
@@ -63,9 +62,9 @@ namespace osu.Framework.Platform
             }
         }
 
-        public override SqliteConnection GetDatabase(string name)
+        public override string GetDatabaseConnectionString(string name)
         {
-            return new SqliteConnection(string.Concat("Data Source=", GetUsablePathFor($@"{name}.db", true)));
+            return string.Concat("Data Source=", GetUsablePathFor($@"{name}.db", true));
         }
 
         public override void DeleteDatabase(string name) => Delete($@"{name}.db");
