@@ -152,6 +152,16 @@ namespace osu.Framework.Threading
             return countRun;
         }
 
+        public void CancelDelayedTasks()
+        {
+            lock (timedTasks)
+            {
+                foreach (var t in timedTasks)
+                    t.Cancel();
+                timedTasks.Clear();
+            }
+        }
+
         internal void SetCurrentThread(Thread thread)
         {
             mainThreadId = thread?.ManagedThreadId ?? -1;
