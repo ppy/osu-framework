@@ -165,16 +165,16 @@ namespace osu.Framework.Tests.Visual
 
         /// <summary>
         /// Tests that using <see cref="FillMode.Fit"/> inside a <see cref="FlowContainer{T}"/> that is autosizing in one axis doesn't result in autosize feedback loops.
-        /// Various sizes of the box are tested to ensure that non-one sizes also don't lead to feedback loops.
+        /// Various sizes of the box are tested to ensure that non-one sizes also don't lead to erroneous sizes.
         /// </summary>
         /// <param name="value">The relative size of the box that is fitting.</param>
+        [TestCase(0f)]
         [TestCase(0.5f)]
         [TestCase(1f)]
-        [TestCase(1.5f)]
         public void TestFitInsideFlow(float value)
         {
-            Clear();
-            Add(new FillFlowContainer
+            ClearInternal();
+            AddInternal(new FillFlowContainer
             {
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
