@@ -185,6 +185,8 @@ namespace osu.Framework.Audio.Track
             });
         }
 
+        private Action seekAction;
+
         public override bool Seek(double seek)
         {
             // At this point the track may not yet be loaded which is indicated by a 0 length.
@@ -192,8 +194,13 @@ namespace osu.Framework.Audio.Track
             double conservativeLength = Length == 0 ? double.MaxValue : Length;
             double conservativeClamped = MathHelper.Clamp(seek, 0, conservativeLength);
 
-            PendingActions.Enqueue(() =>
+            Action action = null;
+
+            action = () =>
             {
+                // we only want to run the most fresh seek event, else we may fall behind (seeks can be realtively expensive).
+                if (action != seekAction) return;
+
                 double clamped = MathHelper.Clamp(seek, 0, Length);
 
                 if (clamped != CurrentTime)
@@ -201,7 +208,10 @@ namespace osu.Framework.Audio.Track
                     long pos = Bass.ChannelSeconds2Bytes(activeStream, clamped / 1000d);
                     Bass.ChannelSetPosition(activeStream, pos);
                 }
-            });
+            };
+
+            seekAction = action;
+            PendingActions.Enqueue(action);
 
             return conservativeClamped == seek;
         }
