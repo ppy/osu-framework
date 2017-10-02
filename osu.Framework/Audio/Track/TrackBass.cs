@@ -198,7 +198,7 @@ namespace osu.Framework.Audio.Track
 
             action = () =>
             {
-                // we only want to run the most fresh seek event, else we may fall behind (seeks can be realtively expensive).
+                // we only want to run the most fresh seek event, else we may fall behind (seeks can be relatively expensive).
                 if (action != seekAction) return;
 
                 double clamped = MathHelper.Clamp(seek, 0, Length);
