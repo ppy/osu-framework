@@ -152,6 +152,9 @@ namespace osu.Framework.Threading
             return countRun;
         }
 
+        /// <summary>
+        /// Cancel any pending work tasks.
+        /// </summary>
         public void CancelDelayedTasks()
         {
             lock (timedTasks)
