@@ -308,6 +308,7 @@
     <Compile Include="Audio\Track\Track.cs" />
     <Compile Include="Audio\Track\TrackBass.cs" />
     <Compile Include="Audio\Track\TrackVirtual.cs" />
+    <Compile Include="Audio\Track\Waveform.cs" />
     <Compile Include="Game.cs" />
     <Compile Include="Platform\GameHost.cs" />
     <Compile Include="Platform\GameWindow.cs" />

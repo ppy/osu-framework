@@ -10,6 +10,9 @@ using ManagedBass.Fx;
 using OpenTK;
 using osu.Framework.IO;
 using System.Diagnostics;
+using System.Linq;
+using osu.Framework.Extensions.IEnumerableExtensions;
+using System.Collections.Generic;
 
 namespace osu.Framework.Audio.Track
 {
@@ -21,6 +24,11 @@ namespace osu.Framework.Audio.Track
         /// Should this track only be used for preview purposes? This suggests it has not yet been fully loaded.
         /// </summary>
         public bool Preview { get; private set; }
+
+        /// <summary>
+        /// The handle for decoding this track.
+        /// </summary>
+        private int decodeStream;
 
         /// <summary>
         /// The handle for this track, if there is one.
@@ -54,8 +62,8 @@ namespace osu.Framework.Audio.Track
 
                 var procs = new DataStreamFileProcedures(dataStream);
 
-                BassFlags flags = Preview ? 0 : BassFlags.Decode | BassFlags.Prescan;
-                activeStream = Bass.CreateStream(StreamSystem.NoBuffer, flags, procs.BassProcedures, IntPtr.Zero);
+                BassFlags flags = Preview ? 0 : BassFlags.Decode | BassFlags.Prescan | BassFlags.Float;
+                decodeStream = activeStream = Bass.CreateStream(StreamSystem.NoBuffer, flags, procs.BassProcedures, IntPtr.Zero);
 
                 if (!Preview)
                 {
@@ -121,6 +129,40 @@ namespace osu.Framework.Audio.Track
             }
 
             base.Update();
+        }
+
+        private Waveform waveform;
+
+        public override void QueryWaveform(Action<Waveform> callback)
+        {
+            PendingActions.Enqueue(() =>
+            {
+                if (waveform != null)
+                {
+                    callback?.Invoke(waveform);
+                    return;
+                }
+
+                bool wasPlaying = Bass.ChannelIsActive(activeStream) == PlaybackState.Playing;
+                Bass.ChannelStop(activeStream);
+
+                long lastPos = Bass.ChannelGetPosition(decodeStream);
+                Bass.ChannelSetPosition(decodeStream, 0);
+
+                long length = Bass.ChannelGetLength(decodeStream);
+                var rawData = new float[length / 4];
+                length = Bass.ChannelGetData(decodeStream, rawData, (int)length);
+
+                Bass.ChannelSetPosition(decodeStream, lastPos);
+                if (wasPlaying)
+                    Bass.ChannelPlay(activeStream);
+
+                ChannelInfo info;
+                Bass.ChannelGetInfo(decodeStream, out info);
+
+                waveform = new Waveform(rawData, info.Frequency, info.Channels);
+                callback?.Invoke(waveform);
+            });
         }
 
         public override void Reset()
