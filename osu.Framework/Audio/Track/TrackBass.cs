@@ -135,8 +135,13 @@ namespace osu.Framework.Audio.Track
 
         public override void QueryWaveform(Action<Waveform> callback)
         {
+            WaveformQueryCancelled = false;
+
             PendingActions.Enqueue(() =>
             {
+                if (WaveformQueryCancelled)
+                    return;
+
                 if (waveform != null)
                 {
                     callback?.Invoke(waveform);
