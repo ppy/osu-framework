@@ -105,6 +105,9 @@ namespace osu.Framework.Audio.Track
         /// <param name="callback">The function to be called with the generated <see cref="Waveform"/>.</param>
         public virtual void QueryWaveform(Action<Waveform> callback) => callback?.Invoke(new Waveform(null, 1, 1));
 
+        /// <summary>
+        /// Cancels a pending waveform generation query. This will not cancel a currently running waveform generation.
+        /// </summary>
         public void CancelWaveformQuery() => WaveformQueryCancelled = true;
 
         public override void Update()
