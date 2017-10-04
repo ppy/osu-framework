@@ -7,27 +7,27 @@ using System.Collections.Generic;
 namespace osu.Framework.Audio.Track
 {
     /// <summary>
-    /// Stores data about the samples of a <see cref="Track"/> that can be used to generate points for waveform plots of the audio.
+    /// Procsses audio sample data such that it can then be consumed to generate waveform plots of the audio.
     /// </summary>
     public class Waveform
     {
         /// <summary>
-        /// Points are initially generated to a 1ms resolution to cover most use cases.
+        /// <see cref="WaveformPoint"/>s are initially generated to a 1ms resolution to cover most use cases.
         /// </summary>
         private const float resolution = 0.001f;
 
         /// <summary>
-        /// Maximum number of <see cref="WaveformPoint"/>s that are plottable.
+        /// Maximum number of <see cref="WaveformPoint"/>s that can be generated through <see cref="Generate(int)"/>.
         /// </summary>
-        public int TotalPoints => points.Count;
+        public int MaximumPoints => points.Count;
 
         /// <summary>
-        /// The number of channels that are plottable.
+        /// The number of channels stored by <see cref="WaveformPoint"/>s.
         /// </summary>
         public readonly int Channels;
 
         /// <summary>
-        /// List of all plottable points.
+        /// List of all <see cref="WaveformPoint"/>s.
         /// </summary>
         private readonly List<WaveformPoint> points = new List<WaveformPoint>();
 
@@ -64,22 +64,22 @@ namespace osu.Framework.Audio.Track
         }
 
         /// <summary>
-        /// Generates a set of points that can be used to plot a waveform of the track's audio.
+        /// Generates a set of points that can be used to plot the waveform.
         /// </summary>
-        /// <param name="dataPoints">The number of points required. This must be smaller than <see cref="TotalPoints"/>.</param>
-        /// <returns>The list of points.</returns>
+        /// <param name="dataPoints">The number of points required. This must be smaller than <see cref="MaximumPoints"/>.</param>
+        /// <returns>The list of points which approximate the waveform.</returns>
         public List<WaveformPoint> Generate(int dataPoints)
         {
             if (dataPoints < 0) throw new ArgumentOutOfRangeException(nameof(dataPoints));
             if (dataPoints == 0) return new List<WaveformPoint>();
-            if (dataPoints > TotalPoints) throw new ArgumentOutOfRangeException(nameof(dataPoints));
+            if (dataPoints > MaximumPoints) throw new ArgumentOutOfRangeException(nameof(dataPoints));
 
-            List<WaveformPoint> generatedPoints = new List<WaveformPoint>();
+            var generatedPoints = new List<WaveformPoint>();
             int pointsPerGeneratedPoint = (int)Math.Ceiling((float)points.Count / dataPoints);
 
             for (int i = 0; i < points.Count; i += pointsPerGeneratedPoint)
             {
-                int endIndex = (int)Math.Min(points.Count, i + pointsPerGeneratedPoint);
+                int endIndex = Math.Min(points.Count, i + pointsPerGeneratedPoint);
 
                 var point = new WaveformPoint(Channels);
                 for (int j = i; j < endIndex; j++)
@@ -99,10 +99,20 @@ namespace osu.Framework.Audio.Track
         }
     }
 
+    /// <summary>
+    /// Represents a singular point of data in a <see cref="Waveform"/>.
+    /// </summary>
     public struct WaveformPoint
     {
+        /// <summary>
+        /// An array of amplitudes, one for each channel.
+        /// </summary>
         public readonly float[] Amplitude;
 
+        /// <summary>
+        /// Cconstructs a <see cref="WaveformPoint"/>.
+        /// </summary>
+        /// <param name="channels">The number of channels that contain data.</param>
         public WaveformPoint(int channels)
         {
             Amplitude = new float[channels];

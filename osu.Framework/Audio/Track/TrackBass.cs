@@ -10,9 +10,6 @@ using ManagedBass.Fx;
 using OpenTK;
 using osu.Framework.IO;
 using System.Diagnostics;
-using System.Linq;
-using osu.Framework.Extensions.IEnumerableExtensions;
-using System.Collections.Generic;
 
 namespace osu.Framework.Audio.Track
 {
@@ -156,7 +153,7 @@ namespace osu.Framework.Audio.Track
 
                 long length = Bass.ChannelGetLength(decodeStream);
                 var rawData = new float[length / 4];
-                length = Bass.ChannelGetData(decodeStream, rawData, (int)length);
+                Bass.ChannelGetData(decodeStream, rawData, (int)length);
 
                 Bass.ChannelSetPosition(decodeStream, lastPos);
                 if (wasPlaying)

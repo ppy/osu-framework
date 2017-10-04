@@ -95,7 +95,7 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         public virtual TrackAmplitudes CurrentAmplitudes => new TrackAmplitudes();
 
-        protected bool WaveformQueryCancelled = false;
+        protected bool WaveformQueryCancelled;
 
         /// <summary>
         /// Constructs a <see cref="Waveform"/> from the samples in this <see cref="Track"/>.
