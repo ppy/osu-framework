@@ -4,6 +4,7 @@
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Cursor;
+using osu.Framework.IO.Stores;
 using osu.Framework.Platform;
 using osu.Framework.Testing;
 
@@ -14,6 +15,8 @@ namespace osu.Framework.Tests
         [BackgroundDependencyLoader]
         private void load()
         {
+            Resources.AddStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(@"osu.Framework.Tests.exe"), "Resources"));
+
             Children = new Drawable[]
             {
                 new TestBrowser(),
