@@ -54,6 +54,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="VisualTestGame.cs" />
+    <Compile Include="Visual\FrameworkTestCase.cs" />
     <Compile Include="Visual\TestCaseAnimation.cs" />
     <Compile Include="Visual\TestCaseBlending.cs" />
     <Compile Include="Visual\TestCaseBufferedContainer.cs" />
