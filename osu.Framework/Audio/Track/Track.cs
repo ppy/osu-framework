@@ -95,21 +95,6 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         public virtual TrackAmplitudes CurrentAmplitudes => new TrackAmplitudes();
 
-        protected bool WaveformQueryCancelled;
-
-        /// <summary>
-        /// Constructs a <see cref="Waveform"/> from the samples in this <see cref="Track"/>.
-        /// The first query will pause the audio while the waveform generates, resuming it after completion.
-        /// Any subsequent queries will not pause the audio.
-        /// </summary>
-        /// <param name="callback">The function to be called with the generated <see cref="Waveform"/>.</param>
-        public virtual void QueryWaveform(Action<Waveform> callback) => callback?.Invoke(new Waveform(null, 1, 1));
-
-        /// <summary>
-        /// Cancels a pending waveform generation query. This will not cancel a currently running waveform generation.
-        /// </summary>
-        public void CancelWaveformQuery() => WaveformQueryCancelled = true;
-
         public override void Update()
         {
             FrameStatistics.Increment(StatisticsCounterType.Tracks);

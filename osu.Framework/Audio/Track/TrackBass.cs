@@ -3,7 +3,6 @@
 
 using System;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Threading;
 using ManagedBass;
 using ManagedBass.Fx;
@@ -126,45 +125,6 @@ namespace osu.Framework.Audio.Track
             }
 
             base.Update();
-        }
-
-        private Waveform waveform;
-
-        public override void QueryWaveform(Action<Waveform> callback)
-        {
-            WaveformQueryCancelled = false;
-
-            PendingActions.Enqueue(() =>
-            {
-                if (WaveformQueryCancelled)
-                    return;
-
-                if (waveform != null)
-                {
-                    callback?.Invoke(waveform);
-                    return;
-                }
-
-                bool wasPlaying = Bass.ChannelIsActive(activeStream) == PlaybackState.Playing;
-                Bass.ChannelStop(activeStream);
-
-                long lastPos = Bass.ChannelGetPosition(decodeStream);
-                Bass.ChannelSetPosition(decodeStream, 0);
-
-                long length = Bass.ChannelGetLength(decodeStream);
-                var rawData = new float[length / 4];
-                Bass.ChannelGetData(decodeStream, rawData, (int)length);
-
-                Bass.ChannelSetPosition(decodeStream, lastPos);
-                if (wasPlaying)
-                    Bass.ChannelPlay(activeStream);
-
-                ChannelInfo info;
-                Bass.ChannelGetInfo(decodeStream, out info);
-
-                waveform = new Waveform(rawData, info.Frequency, info.Channels);
-                callback?.Invoke(waveform);
-            });
         }
 
         public override void Reset()

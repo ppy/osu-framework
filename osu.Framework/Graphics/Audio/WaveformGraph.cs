@@ -3,6 +3,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Audio.Track;
 using osu.Framework.Graphics.Batches;
@@ -20,7 +23,9 @@ namespace osu.Framework.Graphics.Audio
     /// </summary>
     public class WaveformGraph : Drawable
     {
+        private Waveform baseWaveform;
         private Waveform waveform;
+
         private Shader shader;
         private readonly Texture texture;
 
@@ -55,31 +60,29 @@ namespace osu.Framework.Graphics.Audio
             }
         }
 
-        private Track track;
+        private CancellationTokenSource cancellationSource;
+
+        private Stream track;
         /// <summary>
         /// Gets or sets the <see cref="Track"/> whose audio waveform is to be displayed.
         /// </summary>
-        public Track Track
+        public Stream Track
         {
             get { return track; }
             set
             {
                 if (track == value)
                     return;
-
-                // Cancel any queries on the old track so the audio thread is not saturated
-                track?.CancelWaveformQuery();
                 track = value;
 
-                track.QueryWaveform(w =>
-                {
-                    // If the track has changed, don't show the previous waveform
-                    if (Track != value)
-                        return;
+                cancellationSource?.Cancel();
+                cancellationSource = new CancellationTokenSource();
 
-                    waveform = w;
+                Task.Run(async () =>
+                {
+                    waveform = await Waveform.FromStreamAsync(value, cancellationSource.Token);
                     Invalidate(Invalidation.DrawNode);
-                });
+                }, cancellationSource.Token);
             }
         }
 
@@ -93,7 +96,7 @@ namespace osu.Framework.Graphics.Audio
             n.Texture = texture;
             n.Size = DrawSize;
             n.Shared = sharedData;
-            n.Points = waveform?.Generate((int)MathHelper.Clamp(Math.Ceiling(DrawWidth) * Resolution, 0, waveform.MaximumPoints));
+            n.Points = waveform?.Points;
             n.Channels = waveform?.Channels ?? 0;
 
             base.ApplyDrawNode(node);
@@ -111,7 +114,7 @@ namespace osu.Framework.Graphics.Audio
 
             public WaveformDrawNodeSharedData Shared;
 
-            public List<WaveformPoint> Points;
+            public IReadOnlyList<WaveformPoint> Points;
             public Vector2 Size;
             public int Channels;
 

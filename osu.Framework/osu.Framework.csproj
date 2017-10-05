@@ -94,6 +94,7 @@
     <Compile Include="Audio\IHasPitchAdjust.cs" />
     <Compile Include="Audio\Sample\Sample.cs" />
     <Compile Include="Audio\Sample\SampleBass.cs" />
+    <Compile Include="Audio\Track\DataStreamFileProcedures.cs" />
     <Compile Include="Caching\Cached.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\MatrixExtensions\MatrixExtensions.cs" />
     <Compile Include="Configuration\BindableLong.cs" />

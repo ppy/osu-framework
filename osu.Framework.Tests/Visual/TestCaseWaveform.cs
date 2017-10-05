@@ -3,7 +3,7 @@
 
 using System.Collections.Generic;
 using osu.Framework.Allocation;
-using osu.Framework.Audio;
+using osu.Framework.Audio.Track;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Audio;
 using osu.Framework.Graphics.Containers;
@@ -73,10 +73,9 @@ namespace osu.Framework.Tests.Visual
         }
 
         [BackgroundDependencyLoader]
-        private void load(AudioManager audio)
+        private void load(Game game)
         {
-            var track = audio.GetTrackManager().Get("sample-track");
-            waveforms.ForEach(w => w.Track = track);
+            waveforms.ForEach(w => w.Track = game.Resources.GetStream("Tracks/sample-track.mp3"));
         }
     }
 }

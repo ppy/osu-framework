@@ -3,6 +3,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+using ManagedBass;
 
 namespace osu.Framework.Audio.Track
 {
@@ -17,85 +21,89 @@ namespace osu.Framework.Audio.Track
         private const float resolution = 0.001f;
 
         /// <summary>
-        /// Maximum number of <see cref="WaveformPoint"/>s that can be generated through <see cref="Generate(int)"/>.
-        /// </summary>
-        public int MaximumPoints => points.Count;
-
-        /// <summary>
-        /// The number of channels stored by <see cref="WaveformPoint"/>s.
+        /// The number of channels represented by each <see cref="WaveformPoint"/>.
         /// </summary>
         public readonly int Channels;
 
+        private readonly List<WaveformPoint> points;
         /// <summary>
         /// List of all <see cref="WaveformPoint"/>s.
         /// </summary>
-        private readonly List<WaveformPoint> points = new List<WaveformPoint>();
+        public IReadOnlyList<WaveformPoint> Points => points;
 
-        public Waveform(float[] sampleData, int frequency, int channels)
+        private Waveform(List<WaveformPoint> points, int channels)
         {
-            if (sampleData == null)
-                return;
-
-            if (frequency <= 0) throw new ArgumentOutOfRangeException(nameof(frequency));
-            if (channels < 1) throw new ArgumentOutOfRangeException(nameof(channels));
-
+            this.points = points;
             Channels = channels;
-
-            // Each "point" is generated from a number of samples, each sample contains a number of channels
-            int sampleDataPerPoint = (int)(frequency * resolution * channels);
-            points.Capacity = sampleData.Length / sampleDataPerPoint;
-
-            // Process a sequence of samples for each point
-            for (int i = 0; i < sampleData.Length; i += sampleDataPerPoint)
-            {
-                int endIndex = Math.Min(sampleData.Length, i + sampleDataPerPoint);
-
-                // Process each sample in the sequence
-                var point = new WaveformPoint(channels);
-                for (int j = i; j < endIndex; j += channels)
-                {
-                    // Process each channel in the sample
-                    for (int c = 0; c < channels; c++)
-                        point.Amplitude[c] = Math.Max(point.Amplitude[c], Math.Abs(sampleData[j + c]));
-                }
-
-                points.Add(point);
-            }
         }
 
-        /// <summary>
-        /// Generates a set of points that can be used to plot the waveform.
-        /// </summary>
-        /// <param name="dataPoints">The number of points required. This must be smaller than <see cref="MaximumPoints"/>.</param>
-        /// <returns>The list of points which approximate the waveform.</returns>
-        public List<WaveformPoint> Generate(int dataPoints)
+        public static Task<Waveform> FromStreamAsync(Stream data, CancellationToken cancellationToken)
         {
-            if (dataPoints < 0) throw new ArgumentOutOfRangeException(nameof(dataPoints));
-            if (dataPoints == 0) return new List<WaveformPoint>();
-            if (dataPoints > MaximumPoints) throw new ArgumentOutOfRangeException(nameof(dataPoints));
-
-            var generatedPoints = new List<WaveformPoint>();
-            int pointsPerGeneratedPoint = (int)Math.Ceiling((float)points.Count / dataPoints);
-
-            for (int i = 0; i < points.Count; i += pointsPerGeneratedPoint)
+            return Task.Run(() =>
             {
-                int endIndex = Math.Min(points.Count, i + pointsPerGeneratedPoint);
+                var procs = new DataStreamFileProcedures(data);
 
-                var point = new WaveformPoint(Channels);
-                for (int j = i; j < endIndex; j++)
+                int decodeStream = Bass.CreateStream(StreamSystem.NoBuffer, BassFlags.Decode | BassFlags.Float, procs.BassProcedures, IntPtr.Zero);
+
+                ChannelInfo info;
+                Bass.ChannelGetInfo(decodeStream, out info);
+
+                long length = Bass.ChannelGetLength(decodeStream);
+                var rawData = new float[length / 4];
+                Bass.ChannelGetData(decodeStream, rawData, (int)length);
+
+                // Each "point" is generated from a number of samples, each sample contains a number of channels
+                int sampleDataPerPoint = (int)(info.Frequency * resolution * info.Channels);
+                var points = new List<WaveformPoint>(rawData.Length / sampleDataPerPoint);
+
+                // Process a sequence of samples for each point
+                for (int i = 0; i < rawData.Length; i += sampleDataPerPoint)
                 {
-                    for (int c = 0; c < Channels; c++)
-                        point.Amplitude[c] += points[j].Amplitude[c];
+                    int endIndex = Math.Min(rawData.Length, i + sampleDataPerPoint);
+
+                    // Process each sample in the sequence
+                    var point = new WaveformPoint(info.Channels);
+                    for (int j = i; j < endIndex; j += info.Channels)
+                    {
+                        // Process each channel in the sample
+                        for (int c = 0; c < info.Channels; c++)
+                            point.Amplitude[c] = Math.Max(point.Amplitude[c], Math.Abs(rawData[j + c]));
+                    }
+
+                    points.Add(point);
                 }
 
-                // Mean
-                for (int c = 0; c < Channels; c++)
-                    point.Amplitude[c] /= endIndex - i;
+                return new Waveform(points, info.Channels);
+            }, cancellationToken);
+        }
 
-                generatedPoints.Add(point);
-            }
+        public Task<Waveform> WithPoints(int pointCount, CancellationToken cancellationToken)
+        {
+            return Task.Run(() =>
+            {
+                var generatedPoints = new List<WaveformPoint>();
+                float pointsPerGeneratedPoint = (float)points.Count / pointCount;
 
-            return generatedPoints;
+                for (float i = 0; i < points.Count; i += pointsPerGeneratedPoint)
+                {
+                    int endIndex = (int)Math.Min(points.Count, Math.Ceiling(i + pointsPerGeneratedPoint));
+
+                    var point = new WaveformPoint(Channels);
+                    for (int j = (int)i; j < endIndex; j++)
+                    {
+                        for (int c = 0; c < Channels; c++)
+                            point.Amplitude[c] += points[j].Amplitude[c];
+                    }
+
+                    // Mean
+                    for (int c = 0; c < Channels; c++)
+                        point.Amplitude[c] /= endIndex - i;
+
+                    generatedPoints.Add(point);
+                }
+
+                return new Waveform(generatedPoints, Channels);
+            }, cancellationToken);
         }
     }
 
