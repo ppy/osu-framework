@@ -5,7 +5,6 @@ using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using ManagedBass;
-using osu.Framework.IO;
 
 namespace osu.Framework.Audio.Track
 {
@@ -13,7 +12,7 @@ namespace osu.Framework.Audio.Track
     {
         private byte[] readBuffer = new byte[32768];
 
-        private readonly AsyncBufferStream dataStream;
+        private readonly Stream dataStream;
 
         public FileProcedures BassProcedures => new FileProcedures
         {
@@ -23,7 +22,7 @@ namespace osu.Framework.Audio.Track
             Seek = ac_Seek
         };
 
-        public DataStreamFileProcedures(AsyncBufferStream data)
+        public DataStreamFileProcedures(Stream data)
         {
             dataStream = data;
         }
