@@ -15,6 +15,9 @@ using OpenTK;
 
 namespace osu.Framework.Graphics.Audio
 {
+    /// <summary>
+    /// Visualises the waveform for a <see cref="Track"/>.
+    /// </summary>
     public class WaveformGraph : Drawable
     {
         private Waveform waveform;
