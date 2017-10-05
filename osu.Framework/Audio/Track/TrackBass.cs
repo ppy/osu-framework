@@ -82,8 +82,10 @@ namespace osu.Framework.Audio.Track
 
                 Length = Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetLength(activeStream)) * 1000;
 
+                float frequency;
+                Bass.ChannelGetAttribute(activeStream, ChannelAttribute.Frequency, out frequency);
+                initialFrequency = frequency;
                 bitrate = (int)Bass.ChannelGetAttribute(activeStream, ChannelAttribute.Bitrate);
-                Bass.ChannelGetInfo(decodeStream, out initialChannelInfo);
 
                 isLoaded = true;
             });
@@ -157,7 +159,10 @@ namespace osu.Framework.Audio.Track
                 if (wasPlaying)
                     Bass.ChannelPlay(activeStream);
 
-                waveform = new Waveform(rawData, initialChannelInfo.Frequency, initialChannelInfo.Channels);
+                ChannelInfo info;
+                Bass.ChannelGetInfo(decodeStream, out info);
+
+                waveform = new Waveform(rawData, info.Frequency, info.Channels);
                 callback?.Invoke(waveform);
             });
         }
@@ -275,9 +280,9 @@ namespace osu.Framework.Audio.Track
             Bass.ChannelSetAttribute(tempoAdjustStream, ChannelAttribute.Tempo, (Math.Abs(Tempo) - 1) * 100);
         }
 
-        private ChannelInfo initialChannelInfo;
+        private volatile float initialFrequency;
 
-        private int bassFreq => (int)MathHelper.Clamp(Math.Abs(initialChannelInfo.Frequency * FrequencyCalculated), 100, 100000);
+        private int bassFreq => (int)MathHelper.Clamp(Math.Abs(initialFrequency * FrequencyCalculated), 100, 100000);
 
         private volatile int bitrate;
 
