@@ -115,5 +115,8 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources\Tracks\sample-track.mp3" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Textures\sample-texture.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>
