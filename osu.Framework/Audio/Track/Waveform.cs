@@ -20,17 +20,8 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         private const float resolution = 0.001f;
 
-        /// <summary>
-        /// The number of channels represented by each <see cref="WaveformPoint"/> in <see cref="Points"/>.
-        /// </summary>
-        public int Channels { get; private set; }
-
+        private int channels;
         private List<WaveformPoint> points = new List<WaveformPoint>();
-
-        /// <summary>
-        /// List of all <see cref="WaveformPoint"/>s.
-        /// </summary>
-        public IReadOnlyList<WaveformPoint> Points => points;
 
         private readonly CancellationTokenSource readSource = new CancellationTokenSource();
         private readonly Task readTask;
@@ -75,36 +66,30 @@ namespace osu.Framework.Audio.Track
                     points.Add(point);
                 }
 
-                Channels = info.Channels;
+                channels = info.Channels;
             }, readSource.Token);
         }
 
-        private Waveform()
+        /// <summary>
+        /// Constructs an empty <see cref="Waveform"/>.
+        /// </summary>
+        public Waveform()
         {
         }
-
-        /// <summary>
-        /// Reads the data stream to generate the <see cref="WaveformPoint"/>s.
-        /// </summary>
-        /// <returns>The task.</returns>
-        public Task ReadAsync() => readTask;
-
-        private CancellationTokenSource generationSource;
 
         /// <summary>
         /// Generates a <see cref="Waveform"/> containing a specific number of points.
         /// </summary>
         /// <param name="pointCount">The number of points the resulting <see cref="Waveform"/> should contain.</param>
+        /// <param name="cancellationToken">The token to cancel the task.</param>
         /// <returns>An async task for the generation of the <see cref="Waveform"/>.</returns>
-        public Task<Waveform> GenerateAsync(int pointCount)
+        public async Task<Waveform> GenerateAsync(int pointCount, CancellationToken cancellationToken = default(CancellationToken))
         {
-            CancelGenerationAsync();
-            generationSource = new CancellationTokenSource();
+            if (readTask == null)
+                return new Waveform();
 
-            return Task.Run(async () =>
+            return await readTask.ContinueWith(_ =>
             {
-                await ReadAsync();
-
                 var generatedPoints = new List<WaveformPoint>();
                 float pointsPerGeneratedPoint = (float)points.Count / pointCount;
 
@@ -112,15 +97,15 @@ namespace osu.Framework.Audio.Track
                 {
                     int endIndex = (int)Math.Min(points.Count, Math.Ceiling(i + pointsPerGeneratedPoint));
 
-                    var point = new WaveformPoint(Channels);
+                    var point = new WaveformPoint(channels);
                     for (int j = (int)i; j < endIndex; j++)
                     {
-                        for (int c = 0; c < Channels; c++)
+                        for (int c = 0; c < channels; c++)
                             point.Amplitude[c] += points[j].Amplitude[c];
                     }
 
                     // Mean
-                    for (int c = 0; c < Channels; c++)
+                    for (int c = 0; c < channels; c++)
                         point.Amplitude[c] /= endIndex - i;
 
                     generatedPoints.Add(point);
@@ -129,27 +114,52 @@ namespace osu.Framework.Audio.Track
                 return new Waveform
                 {
                     points = generatedPoints,
-                    Channels = Channels
+                    channels = channels
                 };
-
-            }, generationSource.Token);
+            }, cancellationToken);
         }
 
         /// <summary>
-        /// Cancels a <see cref="GenerateAsync(int)"/> task.
+        /// Gets all the points represented by this <see cref="Waveform"/>.
         /// </summary>
-        public void CancelGenerationAsync()
+        public List<WaveformPoint> GetPoints() => GetPointsAsync().Result;
+
+        /// <summary>
+        /// Gets all the points represented by this <see cref="Waveform"/>.
+        /// </summary>
+        /// <param name="cancellationToken">The token to cancel the async request.</param>
+        public async Task<List<WaveformPoint>> GetPointsAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            generationSource?.Cancel();
-            generationSource?.Dispose();
+            if (readTask == null)
+                return points;
+            return await readTask.ContinueWith(_ => points, cancellationToken);
         }
 
+        /// <summary>
+        /// Gets the number of channels represented by each <see cref="WaveformPoint"/>.
+        /// </summary>
+        public int GetChannels() => GetChannelsAsync().Result;
+
+        /// <summary>
+        /// Gets the number of channels represented by each <see cref="WaveformPoint"/>.
+        /// </summary>
+        /// <param name="cancellationToken">The token to cancel the async request.</param>
+        public async Task<int> GetChannelsAsync(CancellationToken cancellationToken = default(CancellationToken))
+        {
+            if (readTask == null)
+                return channels;
+            return await readTask.ContinueWith(_ => channels, cancellationToken);
+        }
+
+        private bool isDisposed;
         public void Dispose()
         {
+            if (isDisposed)
+                return;
+            isDisposed = true;
+
             readSource?.Cancel();
             readSource?.Dispose();
-
-            CancelGenerationAsync();
         }
     }
 

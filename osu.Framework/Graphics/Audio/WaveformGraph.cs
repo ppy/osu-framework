@@ -3,7 +3,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Threading;
 using osu.Framework.Allocation;
 using osu.Framework.Audio.Track;
 using osu.Framework.Graphics.Batches;
@@ -21,9 +21,6 @@ namespace osu.Framework.Graphics.Audio
     /// </summary>
     public class WaveformGraph : Drawable
     {
-        private Waveform baseWaveform;
-        private Waveform waveform;
-
         private Shader shader;
         private readonly Texture texture;
 
@@ -54,42 +51,51 @@ namespace osu.Framework.Graphics.Audio
                     return;
                 resolution = value;
 
-                generateAsync(false);
+                Schedule(generate);
             }
         }
 
-        private Stream stream;
+        private Waveform waveform;
         /// <summary>
-        /// Gets or sets the audio <see cref="Stream"/> whose waveform is to be displayed.
+        /// The <see cref="Framework.Audio.Track.Waveform"/> to display.
         /// </summary>
-        public Stream Stream
+        public Waveform Waveform
         {
-            get { return stream; }
+            get { return waveform; }
             set
             {
-                if (stream == value)
+                if (waveform == value)
                     return;
-                stream = value;
 
-                generateAsync(true);
+                waveform?.Dispose();
+                waveform = value;
+
+                Schedule(generate);
             }
         }
 
-        private async void generateAsync(bool newStream)
-        {
-            if (newStream || baseWaveform == null && Stream != null)
-            {
-                baseWaveform?.Dispose();
-                baseWaveform = new Waveform(Stream);
-                await baseWaveform.ReadAsync();
-            }
+        private CancellationTokenSource generationSource = new CancellationTokenSource();
 
-            if (baseWaveform == null)
+        private Waveform generatedWaveform;
+        private void generate()
+        {
+            if (Waveform == null)
                 return;
 
-            waveform?.CancelGenerationAsync();
-            waveform = await baseWaveform.GenerateAsync((int)MathHelper.Clamp(Math.Ceiling(DrawWidth) * Resolution, 0, baseWaveform.Points.Count));
-            Invalidate(Invalidation.DrawNode);
+            cancelGeneration();
+            generationSource = new CancellationTokenSource();
+
+            Waveform.GenerateAsync((int)Math.Max(0, Math.Ceiling(DrawWidth) * Resolution), generationSource.Token).ContinueWith(w =>
+            {
+                generatedWaveform = w.Result;
+                Schedule(() => Invalidate(Invalidation.DrawNode));
+            }, generationSource.Token);
+        }
+
+        private void cancelGeneration()
+        {
+            generationSource?.Cancel();
+            generationSource?.Dispose();
         }
 
         private readonly WaveformDrawNodeSharedData sharedData = new WaveformDrawNodeSharedData();
@@ -102,10 +108,18 @@ namespace osu.Framework.Graphics.Audio
             n.Texture = texture;
             n.Size = DrawSize;
             n.Shared = sharedData;
-            n.Points = waveform?.Points;
-            n.Channels = waveform?.Channels ?? 0;
+            n.Points = generatedWaveform?.GetPoints();
+            n.Channels = generatedWaveform?.GetChannels() ?? 0;
 
             base.ApplyDrawNode(node);
+        }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+
+            if (isDisposing)
+                cancelGeneration();
         }
 
         private class WaveformDrawNodeSharedData

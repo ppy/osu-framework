@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using osu.Framework.Allocation;
+using osu.Framework.Audio.Track;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Audio;
 using osu.Framework.Graphics.Containers;
@@ -74,7 +75,8 @@ namespace osu.Framework.Tests.Visual
         [BackgroundDependencyLoader]
         private void load(Game game)
         {
-            waveforms.ForEach(w => w.Stream = game.Resources.GetStream("Tracks/sample-track.mp3"));
+            var waveform = new Waveform(game.Resources.GetStream("Tracks/sample-track.mp3"));
+            waveforms.ForEach(w => w.Waveform = waveform);
         }
     }
 }
