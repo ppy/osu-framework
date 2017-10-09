@@ -372,7 +372,7 @@ namespace osu.Framework.Graphics.Containers
             Debug.Assert(internalChildren.Contains(child), "Can only check and react to the life of our own children.");
 
             // Can not have alive children if we are not loaded.
-            if (LoadState < LoadState.Ready)
+            if (LoadState < LoadState.Loading)
                 return false;
 
             bool changed = false;
