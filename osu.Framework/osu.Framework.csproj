@@ -44,7 +44,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="ManagedBass, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)\packages\ManagedBass.2.0.1\lib\net45\ManagedBass.dll</HintPath>
+      <HintPath>$(SolutionDir)\packages\ManagedBass.2.0.2\lib\net45\ManagedBass.dll</HintPath>
     </Reference>
     <Reference Include="ManagedBass.Fx, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)\packages\ManagedBass.Fx.2.0.0\lib\netstandard1.4\ManagedBass.Fx.dll</HintPath>
