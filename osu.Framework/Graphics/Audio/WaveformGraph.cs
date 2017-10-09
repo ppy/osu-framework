@@ -60,8 +60,6 @@ namespace osu.Framework.Graphics.Audio
             }
         }
 
-        private CancellationTokenSource cancellationSource;
-
         private Stream stream;
         /// <summary>
         /// Gets or sets the audio <see cref="Stream"/> whose waveform is to be displayed.
@@ -79,12 +77,14 @@ namespace osu.Framework.Graphics.Audio
             }
         }
 
+        private CancellationTokenSource cancellationSource;
+
         private async void generateAsync(bool newStream)
         {
             cancellationSource?.Cancel();
             cancellationSource = new CancellationTokenSource();
 
-            if (newStream)
+            if (newStream || baseWaveform == null && Stream != null)
                 baseWaveform = await Waveform.FromStreamAsync(Stream, cancellationSource.Token);
 
             if (baseWaveform == null)
