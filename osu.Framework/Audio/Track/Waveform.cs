@@ -13,7 +13,7 @@ namespace osu.Framework.Audio.Track
     /// <summary>
     /// Procsses audio sample data such that it can then be consumed to generate waveform plots of the audio.
     /// </summary>
-    public class Waveform
+    public class Waveform : IDisposable
     {
         /// <summary>
         /// <see cref="WaveformPoint"/>s are initially generated to a 1ms resolution to cover most use cases.
@@ -23,82 +23,134 @@ namespace osu.Framework.Audio.Track
         /// <summary>
         /// The number of channels represented by each <see cref="WaveformPoint"/> in <see cref="Points"/>.
         /// </summary>
-        public readonly int Channels;
+        public int Channels { get; private set; }
 
-        private readonly List<WaveformPoint> points;
+        private List<WaveformPoint> points = new List<WaveformPoint>();
+
         /// <summary>
         /// List of all <see cref="WaveformPoint"/>s.
         /// </summary>
         public IReadOnlyList<WaveformPoint> Points => points;
 
-        private Waveform(List<WaveformPoint> points, int channels)
+        private readonly CancellationTokenSource readSource = new CancellationTokenSource();
+        private readonly Task readTask;
+
+        /// <summary>
+        /// Constructs a new <see cref="Waveform"/>.
+        /// </summary>
+        /// <param name="data">The sample data stream.</param>
+        public Waveform(Stream data)
         {
-            this.points = points;
-            Channels = channels;
+            readTask = Task.Run(() =>
+            {
+                var procs = new DataStreamFileProcedures(data);
+
+                int decodeStream = Bass.CreateStream(StreamSystem.NoBuffer, BassFlags.Decode | BassFlags.Float, procs.BassProcedures, IntPtr.Zero);
+
+                ChannelInfo info;
+                Bass.ChannelGetInfo(decodeStream, out info);
+
+                long length = Bass.ChannelGetLength(decodeStream);
+                var rawData = new float[length / 4];
+                Bass.ChannelGetData(decodeStream, rawData, (int)length);
+
+                // Each "point" is generated from a number of samples, each sample contains a number of channels
+                int sampleDataPerPoint = (int)(info.Frequency * resolution * info.Channels);
+                points.Capacity = rawData.Length / sampleDataPerPoint;
+
+                // Process a sequence of samples for each point
+                for (int i = 0; i < rawData.Length; i += sampleDataPerPoint)
+                {
+                    int endIndex = Math.Min(rawData.Length, i + sampleDataPerPoint);
+
+                    // Process each sample in the sequence
+                    var point = new WaveformPoint(info.Channels);
+                    for (int j = i; j < endIndex; j += info.Channels)
+                    {
+                        // Process each channel in the sample
+                        for (int c = 0; c < info.Channels; c++)
+                            point.Amplitude[c] = Math.Max(point.Amplitude[c], Math.Abs(rawData[j + c]));
+                    }
+
+                    points.Add(point);
+                }
+
+                Channels = info.Channels;
+            }, readSource.Token);
         }
 
-        public static Task<Waveform> FromStreamAsync(Stream data, CancellationToken cancellationToken) => Task.Run(() =>
+        private Waveform()
         {
-            var procs = new DataStreamFileProcedures(data);
+        }
 
-            int decodeStream = Bass.CreateStream(StreamSystem.NoBuffer, BassFlags.Decode | BassFlags.Float, procs.BassProcedures, IntPtr.Zero);
+        /// <summary>
+        /// Reads the data stream to generate the <see cref="WaveformPoint"/>s.
+        /// </summary>
+        /// <returns>The task.</returns>
+        public Task ReadAsync() => readTask;
 
-            ChannelInfo info;
-            Bass.ChannelGetInfo(decodeStream, out info);
+        private CancellationTokenSource generationSource;
 
-            long length = Bass.ChannelGetLength(decodeStream);
-            var rawData = new float[length / 4];
-            Bass.ChannelGetData(decodeStream, rawData, (int)length);
-
-            // Each "point" is generated from a number of samples, each sample contains a number of channels
-            int sampleDataPerPoint = (int)(info.Frequency * resolution * info.Channels);
-            var points = new List<WaveformPoint>(rawData.Length / sampleDataPerPoint);
-
-            // Process a sequence of samples for each point
-            for (int i = 0; i < rawData.Length; i += sampleDataPerPoint)
-            {
-                int endIndex = Math.Min(rawData.Length, i + sampleDataPerPoint);
-
-                // Process each sample in the sequence
-                var point = new WaveformPoint(info.Channels);
-                for (int j = i; j < endIndex; j += info.Channels)
-                {
-                    // Process each channel in the sample
-                    for (int c = 0; c < info.Channels; c++)
-                        point.Amplitude[c] = Math.Max(point.Amplitude[c], Math.Abs(rawData[j + c]));
-                }
-
-                points.Add(point);
-            }
-
-            return new Waveform(points, info.Channels);
-        }, cancellationToken);
-
-        public Task<Waveform> WithPoints(int pointCount, CancellationToken cancellationToken) => Task.Run(() =>
+        /// <summary>
+        /// Generates a <see cref="Waveform"/> containing a specific number of points.
+        /// </summary>
+        /// <param name="pointCount">The number of points the resulting <see cref="Waveform"/> should contain.</param>
+        /// <returns>An async task for the generation of the <see cref="Waveform"/>.</returns>
+        public Task<Waveform> GenerateAsync(int pointCount)
         {
-            var generatedPoints = new List<WaveformPoint>();
-            float pointsPerGeneratedPoint = (float)points.Count / pointCount;
+            CancelGenerationAsync();
+            generationSource = new CancellationTokenSource();
 
-            for (float i = 0; i < points.Count; i += pointsPerGeneratedPoint)
+            return Task.Run(async () =>
             {
-                int endIndex = (int)Math.Min(points.Count, Math.Ceiling(i + pointsPerGeneratedPoint));
+                await ReadAsync();
 
-                var point = new WaveformPoint(Channels);
-                for (int j = (int)i; j < endIndex; j++)
+                var generatedPoints = new List<WaveformPoint>();
+                float pointsPerGeneratedPoint = (float)points.Count / pointCount;
+
+                for (float i = 0; i < points.Count; i += pointsPerGeneratedPoint)
                 {
+                    int endIndex = (int)Math.Min(points.Count, Math.Ceiling(i + pointsPerGeneratedPoint));
+
+                    var point = new WaveformPoint(Channels);
+                    for (int j = (int)i; j < endIndex; j++)
+                    {
+                        for (int c = 0; c < Channels; c++)
+                            point.Amplitude[c] += points[j].Amplitude[c];
+                    }
+
+                    // Mean
                     for (int c = 0; c < Channels; c++)
-                        point.Amplitude[c] += points[j].Amplitude[c];
+                        point.Amplitude[c] /= endIndex - i;
+
+                    generatedPoints.Add(point);
                 }
 
-                // Mean
-                for (int c = 0; c < Channels; c++)
-                    point.Amplitude[c] /= endIndex - i;
+                return new Waveform
+                {
+                    points = generatedPoints,
+                    Channels = Channels
+                };
 
-                generatedPoints.Add(point);
-            }
+            }, generationSource.Token);
+        }
 
-            return new Waveform(generatedPoints, Channels);
-        }, cancellationToken);
+        /// <summary>
+        /// Cancels a <see cref="GenerateAsync(int)"/> task.
+        /// </summary>
+        public void CancelGenerationAsync()
+        {
+            generationSource?.Cancel();
+            generationSource?.Dispose();
+        }
+
+        public void Dispose()
+        {
+            readSource?.Cancel();
+            readSource?.Dispose();
+
+            CancelGenerationAsync();
+        }
     }
 
     /// <summary>

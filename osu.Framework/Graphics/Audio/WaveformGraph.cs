@@ -4,8 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Audio.Track;
 using osu.Framework.Graphics.Batches;
@@ -77,20 +75,20 @@ namespace osu.Framework.Graphics.Audio
             }
         }
 
-        private CancellationTokenSource cancellationSource;
-
         private async void generateAsync(bool newStream)
         {
-            cancellationSource?.Cancel();
-            cancellationSource = new CancellationTokenSource();
-
             if (newStream || baseWaveform == null && Stream != null)
-                baseWaveform = await Waveform.FromStreamAsync(Stream, cancellationSource.Token);
+            {
+                baseWaveform?.Dispose();
+                baseWaveform = new Waveform(Stream);
+                await baseWaveform.ReadAsync();
+            }
 
             if (baseWaveform == null)
                 return;
 
-            waveform = await baseWaveform.WithPoints((int)MathHelper.Clamp(Math.Ceiling(DrawWidth) * Resolution, 0, baseWaveform.Points.Count), cancellationSource.Token);
+            waveform?.CancelGenerationAsync();
+            waveform = await baseWaveform.GenerateAsync((int)MathHelper.Clamp(Math.Ceiling(DrawWidth) * Resolution, 0, baseWaveform.Points.Count));
             Invalidate(Invalidation.DrawNode);
         }
 
