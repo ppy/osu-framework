@@ -22,11 +22,6 @@ namespace osu.Framework.Audio.Track
         public bool Preview { get; private set; }
 
         /// <summary>
-        /// The handle for decoding this track.
-        /// </summary>
-        private int decodeStream;
-
-        /// <summary>
         /// The handle for this track, if there is one.
         /// </summary>
         private int activeStream;
@@ -59,7 +54,7 @@ namespace osu.Framework.Audio.Track
                 var procs = new DataStreamFileProcedures(dataStream);
 
                 BassFlags flags = Preview ? 0 : BassFlags.Decode | BassFlags.Prescan | BassFlags.Float;
-                decodeStream = activeStream = Bass.CreateStream(StreamSystem.NoBuffer, flags, procs.BassProcedures, IntPtr.Zero);
+                activeStream = Bass.CreateStream(StreamSystem.NoBuffer, flags, procs.BassProcedures, IntPtr.Zero);
 
                 if (!Preview)
                 {
