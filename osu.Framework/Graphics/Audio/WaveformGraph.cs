@@ -56,7 +56,7 @@ namespace osu.Framework.Graphics.Audio
                     return;
                 resolution = value;
 
-                Invalidate(Invalidation.DrawNode);
+                generateAsync(false);
             }
         }
 
@@ -75,15 +75,23 @@ namespace osu.Framework.Graphics.Audio
                     return;
                 stream = value;
 
-                cancellationSource?.Cancel();
-                cancellationSource = new CancellationTokenSource();
-
-                Task.Run(async () =>
-                {
-                    waveform = await Waveform.FromStreamAsync(value, cancellationSource.Token);
-                    Invalidate(Invalidation.DrawNode);
-                }, cancellationSource.Token);
+                generateAsync(true);
             }
+        }
+
+        private async void generateAsync(bool newStream)
+        {
+            cancellationSource?.Cancel();
+            cancellationSource = new CancellationTokenSource();
+
+            if (newStream)
+                baseWaveform = await Waveform.FromStreamAsync(Stream, cancellationSource.Token);
+
+            if (baseWaveform == null)
+                return;
+
+            waveform = await baseWaveform.WithPoints((int)MathHelper.Clamp(Math.Ceiling(DrawWidth) * Resolution, 0, baseWaveform.Points.Count), cancellationSource.Token);
+            Invalidate(Invalidation.DrawNode);
         }
 
         private readonly WaveformDrawNodeSharedData sharedData = new WaveformDrawNodeSharedData();
