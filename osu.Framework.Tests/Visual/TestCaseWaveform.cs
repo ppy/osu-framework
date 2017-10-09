@@ -75,7 +75,7 @@ namespace osu.Framework.Tests.Visual
         [BackgroundDependencyLoader]
         private void load(Game game)
         {
-            waveforms.ForEach(w => w.Track = game.Resources.GetStream("Tracks/sample-track.mp3"));
+            waveforms.ForEach(w => w.Stream = game.Resources.GetStream("Tracks/sample-track.mp3"));
         }
     }
 }

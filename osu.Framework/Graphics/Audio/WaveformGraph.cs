@@ -19,7 +19,7 @@ using OpenTK;
 namespace osu.Framework.Graphics.Audio
 {
     /// <summary>
-    /// Visualises the waveform for a <see cref="Track"/>.
+    /// Visualises the waveform for an audio stream.
     /// </summary>
     public class WaveformGraph : Drawable
     {
@@ -62,18 +62,18 @@ namespace osu.Framework.Graphics.Audio
 
         private CancellationTokenSource cancellationSource;
 
-        private Stream track;
+        private Stream stream;
         /// <summary>
-        /// Gets or sets the <see cref="Track"/> whose audio waveform is to be displayed.
+        /// Gets or sets the audio <see cref="Stream"/> whose waveform is to be displayed.
         /// </summary>
-        public Stream Track
+        public Stream Stream
         {
-            get { return track; }
+            get { return stream; }
             set
             {
-                if (track == value)
+                if (stream == value)
                     return;
-                track = value;
+                stream = value;
 
                 cancellationSource?.Cancel();
                 cancellationSource = new CancellationTokenSource();

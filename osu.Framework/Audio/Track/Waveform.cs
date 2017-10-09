@@ -21,7 +21,7 @@ namespace osu.Framework.Audio.Track
         private const float resolution = 0.001f;
 
         /// <summary>
-        /// The number of channels represented by each <see cref="WaveformPoint"/>.
+        /// The number of channels represented by each <see cref="WaveformPoint"/> in <see cref="Points"/>.
         /// </summary>
         public readonly int Channels;
 
