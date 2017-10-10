@@ -12,10 +12,12 @@ namespace osu.Framework.Graphics.Containers
     {
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
+            bool result = base.Invalidate(invalidation, source, shallPropagate);
+
             if ((invalidation & Invalidation.DrawSize) > 0)
                 CornerRadius = Math.Min(DrawSize.X, DrawSize.Y) / 2f;
 
-            return base.Invalidate(invalidation, source, shallPropagate);
+            return result;
         }
     }
 }
