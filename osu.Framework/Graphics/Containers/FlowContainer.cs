@@ -118,7 +118,7 @@ namespace osu.Framework.Graphics.Containers
                 // in the vertical direction. Now, we can add relatively sized children with FillMode.Fit to make sure their
                 // aspect ratio is preserved while still allowing them to flow vertically. This special case can not result
                 // in an autosize-related feedback loop, and we can thus simply allow it.
-                if ((d.RelativeSizeAxes & AutoSizeAxes) != 0 && (d.FillMode != FillMode.Fit || d.RelativeSizeAxes != Axes.Both || d.Size.X >= RelativeChildSize.X || d.Size.Y >= RelativeChildSize.Y || AutoSizeAxes == Axes.Both))
+                if ((d.RelativeSizeAxes & AutoSizeAxes) != 0 && (d.FillMode != FillMode.Fit || d.RelativeSizeAxes != Axes.Both || d.Size.X > RelativeChildSize.X || d.Size.Y > RelativeChildSize.Y || AutoSizeAxes == Axes.Both))
                     throw new InvalidOperationException(
                         "Drawables inside a flow container may not have a relative size axis that the flow container is auto sizing for." +
                         $"The flow container is set to autosize in {AutoSizeAxes} axes and the child is set to relative size in {d.RelativeSizeAxes} axes.");

@@ -262,25 +262,26 @@ namespace osu.Framework.Platform
             if (Root == null)
                 return;
 
-            using (drawMonitor.BeginCollecting(PerformanceCollectionType.GLReset))
-            {
-                GLWrapper.Reset(Root.DrawSize);
-                GLWrapper.ClearColour(Color4.Black);
-            }
-
             while (!exitInitiated)
             {
                 using (var buffer = DrawRoots.Get(UsageType.Read))
                 {
-                    if (buffer?.Object != null && buffer.FrameId != lastDrawFrameId)
+                    if (buffer?.Object == null || buffer.FrameId == lastDrawFrameId)
                     {
-                        buffer.Object.Draw(null);
-                        lastDrawFrameId = buffer.FrameId;
-                        break;
+                        Thread.Sleep(1);
+                        continue;
                     }
-                }
 
-                Thread.Sleep(1);
+                    using (drawMonitor.BeginCollecting(PerformanceCollectionType.GLReset))
+                    {
+                        GLWrapper.Reset(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
+                        GLWrapper.ClearColour(Color4.Black);
+                    }
+
+                    buffer.Object.Draw(null);
+                    lastDrawFrameId = buffer.FrameId;
+                    break;
+                }
             }
 
             GLWrapper.FlushCurrentBatch();
