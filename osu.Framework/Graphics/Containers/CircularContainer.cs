@@ -14,7 +14,7 @@ namespace osu.Framework.Graphics.Containers
         {
             bool result = base.Invalidate(invalidation, source, shallPropagate);
 
-            if ((invalidation & Invalidation.DrawSize) > 0)
+            if ((invalidation & (Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit)) > 0)
                 CornerRadius = Math.Min(DrawSize.X, DrawSize.Y) / 2f;
 
             return result;
