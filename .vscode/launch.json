@@ -13,5 +13,19 @@
         "runtimeExecutable": null,
         "env": {},
         "console": "internalConsole"
+    },
+    {
+        "name": "VisualTests (Release)",
+        "windows": {
+            "type": "clr"
+        },
+        "type": "mono",
+        "request": "launch",
+        "program": "${workspaceRoot}/osu.Framework.Tests/bin/Release/osu.Framework.Tests.exe",
+        "cwd": "${workspaceRoot}",
+        "preLaunchTask": "Build (Release)",
+        "runtimeExecutable": null,
+        "env": {},
+        "console": "internalConsole"
     }]
 }
