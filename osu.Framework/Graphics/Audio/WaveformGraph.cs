@@ -14,6 +14,7 @@ using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using OpenTK;
 using osu.Framework.Graphics.OpenGL;
+using osu.Framework.Caching;
 
 namespace osu.Framework.Graphics.Audio
 {
@@ -24,6 +25,8 @@ namespace osu.Framework.Graphics.Audio
     {
         private Shader shader;
         private readonly Texture texture;
+
+        private Cached waveformCache = new Cached();
 
         public WaveformGraph()
         {
@@ -52,7 +55,7 @@ namespace osu.Framework.Graphics.Audio
                     return;
                 resolution = value;
 
-                Schedule(generate);
+                waveformCache.Invalidate();
             }
         }
 
@@ -71,12 +74,32 @@ namespace osu.Framework.Graphics.Audio
                 waveform?.Dispose();
                 waveform = value;
 
-                Schedule(generate);
+                waveformCache.Invalidate();
+            }
+        }
+
+        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
+        {
+            var result = base.Invalidate(invalidation, source, shallPropagate);
+
+            if ((invalidation & Invalidation.RequiredParentSizeToFit) > 0)
+                waveformCache.Invalidate();
+
+            return result;
+        }
+
+        protected override void Update()
+        {
+            base.Update();
+
+            if (!waveformCache.IsValid)
+            {
+                generate();
+                waveformCache.Validate();
             }
         }
 
         private CancellationTokenSource generationSource = new CancellationTokenSource();
-
         private Waveform generatedWaveform;
         private void generate()
         {
@@ -97,16 +120,6 @@ namespace osu.Framework.Graphics.Audio
         {
             generationSource?.Cancel();
             generationSource?.Dispose();
-        }
-
-        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
-        {
-            var result = base.Invalidate(invalidation, source, shallPropagate);
-
-            if ((invalidation & Invalidation.RequiredParentSizeToFit) > 0)
-                generate();
-
-            return result;
         }
 
         private readonly WaveformDrawNodeSharedData sharedData = new WaveformDrawNodeSharedData();
