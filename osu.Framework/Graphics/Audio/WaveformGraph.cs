@@ -130,7 +130,6 @@ namespace osu.Framework.Graphics.Audio
 
             n.Shader = shader;
             n.Texture = texture;
-            n.ScreenSpaceDrawQuad = ScreenSpaceDrawQuad;
             n.DrawSize = DrawSize;
             n.Shared = sharedData;
             n.Points = generatedWaveform?.GetPoints();
@@ -160,7 +159,6 @@ namespace osu.Framework.Graphics.Audio
             public WaveformDrawNodeSharedData Shared;
 
             public IReadOnlyList<WaveformPoint> Points;
-            public Quad ScreenSpaceDrawQuad;
             public Vector2 DrawSize;
             public int Channels;
 
