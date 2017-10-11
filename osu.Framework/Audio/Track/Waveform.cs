@@ -100,10 +100,11 @@ namespace osu.Framework.Audio.Track
 
                 for (float i = 0; i < points.Count; i += pointsPerGeneratedPoint)
                 {
+                    int startIndex = (int)i;
                     int endIndex = (int)Math.Min(points.Count, Math.Ceiling(i + pointsPerGeneratedPoint));
 
                     var point = new WaveformPoint(channels);
-                    for (int j = (int)i; j < endIndex; j++)
+                    for (int j = startIndex; j < endIndex; j++)
                     {
                         for (int c = 0; c < channels; c++)
                             point.Amplitude[c] += points[j].Amplitude[c];
@@ -111,7 +112,7 @@ namespace osu.Framework.Audio.Track
 
                     // Mean
                     for (int c = 0; c < channels; c++)
-                        point.Amplitude[c] /= endIndex - i;
+                        point.Amplitude[c] /= endIndex - startIndex;
 
                     generatedPoints.Add(point);
                 }
