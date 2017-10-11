@@ -63,6 +63,9 @@ namespace osu.Framework.Audio.Track
                             point.Amplitude[c] = Math.Max(point.Amplitude[c], Math.Abs(rawData[j + c]));
                     }
 
+                    for (int c = 0; c < info.Channels; c++)
+                        point.Amplitude[c] = Math.Min(1, point.Amplitude[c]);
+
                     points.Add(point);
                 }
 
