@@ -85,7 +85,7 @@ namespace osu.Framework.Graphics.Audio
             cancelGeneration();
             generationSource = new CancellationTokenSource();
 
-            Waveform.GenerateAsync((int)Math.Max(0, Math.Ceiling(DrawWidth) * Resolution), generationSource.Token).ContinueWith(w =>
+            Waveform.GenerateAsync((int)Math.Max(0, Math.Ceiling(DrawWidth * Scale.X) * Resolution), generationSource.Token).ContinueWith(w =>
             {
                 generatedWaveform = w.Result;
                 Schedule(() => Invalidate(Invalidation.DrawNode));
@@ -96,6 +96,16 @@ namespace osu.Framework.Graphics.Audio
         {
             generationSource?.Cancel();
             generationSource?.Dispose();
+        }
+
+        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
+        {
+            var result = base.Invalidate(invalidation, source, shallPropagate);
+
+            if ((invalidation & Invalidation.DrawSize) > 0)
+                generate();
+
+            return result;
         }
 
         private readonly WaveformDrawNodeSharedData sharedData = new WaveformDrawNodeSharedData();
