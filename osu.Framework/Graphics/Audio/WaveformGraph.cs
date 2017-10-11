@@ -13,6 +13,7 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using OpenTK;
+using osu.Framework.Graphics.OpenGL;
 
 namespace osu.Framework.Graphics.Audio
 {
@@ -102,7 +103,7 @@ namespace osu.Framework.Graphics.Audio
         {
             var result = base.Invalidate(invalidation, source, shallPropagate);
 
-            if ((invalidation & Invalidation.DrawSize) > 0)
+            if ((invalidation & Invalidation.RequiredParentSizeToFit) > 0)
                 generate();
 
             return result;
@@ -116,7 +117,8 @@ namespace osu.Framework.Graphics.Audio
 
             n.Shader = shader;
             n.Texture = texture;
-            n.Size = DrawSize;
+            n.ScreenSpaceDrawQuad = ScreenSpaceDrawQuad;
+            n.DrawSize = DrawSize;
             n.Shared = sharedData;
             n.Points = generatedWaveform?.GetPoints();
             n.Channels = generatedWaveform?.GetChannels() ?? 0;
@@ -145,7 +147,8 @@ namespace osu.Framework.Graphics.Audio
             public WaveformDrawNodeSharedData Shared;
 
             public IReadOnlyList<WaveformPoint> Points;
-            public Vector2 Size;
+            public Quad ScreenSpaceDrawQuad;
+            public Vector2 DrawSize;
             public int Channels;
 
             public override void Draw(Action<TexturedVertex2D> vertexAction)
@@ -158,11 +161,24 @@ namespace osu.Framework.Graphics.Audio
                 Shader.Bind();
                 Texture.TextureGL.Bind();
 
-                float separation = Size.X / (Points.Count - 1);
                 Vector2 localInflationAmount = new Vector2(0, 1) * DrawInfo.MatrixInverse.ExtractScale().Xy;
+
+                // We're dealing with a _large_ number of points, so we need to optimise the quadToDraw * drawInfo.Matrix multiplications below
+                // for points that are going to be masked out anyway. This allows for higher resolution graphs at larger scales with virtually no performance loss.
+                RectangleF localMaskingRectangle = (Quad.FromRectangle(GLWrapper.CurrentMaskingInfo.ScreenSpaceAABB) * DrawInfo.MatrixInverse).AABBFloat;
+
+                float separation = DrawSize.X / (Points.Count - 1);
 
                 for (int i = 0; i < Points.Count - 1; i++)
                 {
+                    float leftX = i * separation;
+                    float rightX = (i + 1) * separation;
+
+                    if (rightX < localMaskingRectangle.Left)
+                        continue;
+                    if (leftX > localMaskingRectangle.Right)
+                        break; // X is always increasing
+
                     ColourInfo colour = DrawInfo.Colour;
                     Quad quadToDraw;
 
@@ -171,22 +187,22 @@ namespace osu.Framework.Graphics.Audio
                         default:
                         case 2:
                             {
-                                float height = Size.Y / 2;
+                                float height = DrawSize.Y / 2;
                                 quadToDraw = new Quad(
-                                    new Vector2(i * separation, height - Points[i].Amplitude[0] * height),
-                                    new Vector2((i + 1) * separation, height - Points[i + 1].Amplitude[0] * height),
-                                    new Vector2(i * separation, height + Points[i].Amplitude[1] * height),
-                                    new Vector2((i + 1) * separation, height + Points[i + 1].Amplitude[1] * height)
+                                    new Vector2(leftX, height - Points[i].Amplitude[0] * height),
+                                    new Vector2(rightX, height - Points[i + 1].Amplitude[0] * height),
+                                    new Vector2(leftX, height + Points[i].Amplitude[1] * height),
+                                    new Vector2(rightX, height + Points[i + 1].Amplitude[1] * height)
                                 );
                             }
                             break;
                         case 1:
                             {
                                 quadToDraw = new Quad(
-                                    new Vector2(i * separation, Size.Y - Points[i].Amplitude[0] * Size.Y),
-                                    new Vector2((i + 1) * separation, Size.Y - Points[i + 1].Amplitude[0] * Size.Y),
-                                    new Vector2(i * separation, Size.Y),
-                                    new Vector2((i + 1) * separation, Size.Y)
+                                    new Vector2(leftX, DrawSize.Y - Points[i].Amplitude[0] * DrawSize.Y),
+                                    new Vector2(rightX, DrawSize.Y - Points[i + 1].Amplitude[0] * DrawSize.Y),
+                                    new Vector2(leftX, DrawSize.Y),
+                                    new Vector2(rightX, DrawSize.Y)
                                 );
                                 break;
                             }
