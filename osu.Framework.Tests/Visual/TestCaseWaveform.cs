@@ -11,12 +11,20 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using OpenTK;
 using OpenTK.Graphics;
+using System;
 
 namespace osu.Framework.Tests.Visual
 {
     internal class TestCaseWaveform : FrameworkTestCase
     {
         private readonly List<WaveformGraph> waveforms = new List<WaveformGraph>();
+
+        public override IReadOnlyList<Type> RequiredTypes => new[]
+        {
+            typeof(Waveform),
+            typeof(WaveformGraph),
+            typeof(DataStreamFileProcedures)
+        };
 
         public TestCaseWaveform()
         {

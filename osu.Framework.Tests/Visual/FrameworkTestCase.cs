@@ -8,7 +8,7 @@ using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual
 {
-    internal class FrameworkTestCase : TestCase
+    public class FrameworkTestCase : TestCase
     {
         public override void RunTest()
         {
