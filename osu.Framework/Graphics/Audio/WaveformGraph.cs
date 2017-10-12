@@ -68,7 +68,6 @@ namespace osu.Framework.Graphics.Audio
                 if (waveform == value)
                     return;
 
-                waveform?.Dispose();
                 waveform = value;
 
                 cancelGeneration();
@@ -137,9 +136,7 @@ namespace osu.Framework.Graphics.Audio
         protected override void Dispose(bool isDisposing)
         {
             base.Dispose(isDisposing);
-
             cancelGeneration();
-            Waveform?.Dispose();
         }
 
         private class WaveformDrawNodeSharedData
