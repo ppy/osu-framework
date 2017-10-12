@@ -23,7 +23,7 @@ namespace osu.Framework.Audio.Track
         private int channels;
         private List<WaveformPoint> points = new List<WaveformPoint>();
 
-        private readonly CancellationTokenSource readSource = new CancellationTokenSource();
+        private readonly CancellationTokenSource cancelSource = new CancellationTokenSource();
         private readonly Task readTask;
 
         /// <summary>
@@ -70,7 +70,7 @@ namespace osu.Framework.Audio.Track
                 }
 
                 channels = info.Channels;
-            }, readSource.Token);
+            }, cancelSource.Token);
         }
 
         /// <summary>
@@ -81,19 +81,21 @@ namespace osu.Framework.Audio.Track
         }
 
         /// <summary>
-        /// Generates a <see cref="Waveform"/> containing a specific number of points.
+        /// Creates a new <see cref="Waveform"/> containing a specific number of data points by selecting the average value of each sampled group.
         /// </summary>
         /// <param name="pointCount">The number of points the resulting <see cref="Waveform"/> should contain.</param>
         /// <param name="cancellationToken">The token to cancel the task.</param>
         /// <returns>An async task for the generation of the <see cref="Waveform"/>.</returns>
-        public async Task<Waveform> GenerateAsync(int pointCount, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<Waveform> GenerateResampledAsync(int pointCount, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (pointCount < 0) throw new ArgumentOutOfRangeException(nameof(pointCount));
 
             if (readTask == null)
                 return new Waveform();
 
-            return await readTask.ContinueWith(_ =>
+            await readTask;
+
+            return await Task.Run(() =>
             {
                 var generatedPoints = new List<WaveformPoint>();
                 float pointsPerGeneratedPoint = (float)points.Count / pointCount;
@@ -133,12 +135,13 @@ namespace osu.Framework.Audio.Track
         /// <summary>
         /// Gets all the points represented by this <see cref="Waveform"/>.
         /// </summary>
-        /// <param name="cancellationToken">The token to cancel the async request.</param>
-        public async Task<List<WaveformPoint>> GetPointsAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<List<WaveformPoint>> GetPointsAsync()
         {
             if (readTask == null)
                 return points;
-            return await readTask.ContinueWith(_ => points, cancellationToken);
+
+            await readTask;
+            return points;
         }
 
         /// <summary>
@@ -149,24 +152,41 @@ namespace osu.Framework.Audio.Track
         /// <summary>
         /// Gets the number of channels represented by each <see cref="WaveformPoint"/>.
         /// </summary>
-        /// <param name="cancellationToken">The token to cancel the async request.</param>
-        public async Task<int> GetChannelsAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<int> GetChannelsAsync()
         {
             if (readTask == null)
                 return channels;
-            return await readTask.ContinueWith(_ => channels, cancellationToken);
+
+            await readTask;
+            return channels;
+        }
+
+        #region Disposal
+
+        ~Waveform()
+        {
+            Dispose(false);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         private bool isDisposed;
-        public void Dispose()
+
+        protected virtual void Dispose(bool disposing)
         {
             if (isDisposed)
                 return;
             isDisposed = true;
 
-            readSource?.Cancel();
-            readSource?.Dispose();
+            cancelSource?.Cancel();
+            cancelSource?.Dispose();
         }
+
+        #endregion
     }
 
     /// <summary>

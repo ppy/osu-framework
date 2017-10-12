@@ -14,7 +14,6 @@ using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using OpenTK;
 using osu.Framework.Graphics.OpenGL;
-using osu.Framework.Caching;
 
 namespace osu.Framework.Graphics.Audio
 {
@@ -25,8 +24,6 @@ namespace osu.Framework.Graphics.Audio
     {
         private Shader shader;
         private readonly Texture texture;
-
-        private Cached waveformCache = new Cached();
 
         public WaveformGraph()
         {
@@ -55,7 +52,7 @@ namespace osu.Framework.Graphics.Audio
                     return;
                 resolution = value;
 
-                waveformCache.Invalidate();
+                cancelGeneration();
             }
         }
 
@@ -74,7 +71,7 @@ namespace osu.Framework.Graphics.Audio
                 waveform?.Dispose();
                 waveform = value;
 
-                waveformCache.Invalidate();
+                cancelGeneration();
             }
         }
 
@@ -83,7 +80,7 @@ namespace osu.Framework.Graphics.Audio
             var result = base.Invalidate(invalidation, source, shallPropagate);
 
             if ((invalidation & Invalidation.RequiredParentSizeToFit) > 0)
-                waveformCache.Invalidate();
+                cancelGeneration();
 
             return result;
         }
@@ -92,34 +89,33 @@ namespace osu.Framework.Graphics.Audio
         {
             base.Update();
 
-            if (!waveformCache.IsValid)
-            {
+            if (cancelSource == null)
                 generate();
-                waveformCache.Validate();
-            }
         }
 
-        private CancellationTokenSource generationSource = new CancellationTokenSource();
+        private CancellationTokenSource cancelSource = new CancellationTokenSource();
+
         private Waveform generatedWaveform;
+
         private void generate()
         {
             if (Waveform == null)
                 return;
 
-            cancelGeneration();
-            generationSource = new CancellationTokenSource();
+            cancelSource = new CancellationTokenSource();
 
-            Waveform.GenerateAsync((int)Math.Max(0, Math.Ceiling(DrawWidth * Scale.X) * Resolution), generationSource.Token).ContinueWith(w =>
+            Waveform.GenerateResampledAsync((int)Math.Max(0, Math.Ceiling(DrawWidth * Scale.X) * Resolution), cancelSource.Token).ContinueWith(w =>
             {
                 generatedWaveform = w.Result;
                 Schedule(() => Invalidate(Invalidation.DrawNode));
-            }, generationSource.Token);
+            }, cancelSource.Token);
         }
 
         private void cancelGeneration()
         {
-            generationSource?.Cancel();
-            generationSource?.Dispose();
+            cancelSource?.Cancel();
+            cancelSource?.Dispose();
+            cancelSource = null;
         }
 
         private readonly WaveformDrawNodeSharedData sharedData = new WaveformDrawNodeSharedData();
@@ -142,8 +138,8 @@ namespace osu.Framework.Graphics.Audio
         {
             base.Dispose(isDisposing);
 
-            if (isDisposing)
-                cancelGeneration();
+            cancelGeneration();
+            Waveform?.Dispose();
         }
 
         private class WaveformDrawNodeSharedData
