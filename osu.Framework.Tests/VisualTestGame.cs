@@ -10,7 +10,7 @@ using osu.Framework.Testing;
 
 namespace osu.Framework.Tests
 {
-    internal class VisualTestGame : Game
+    internal class VisualTestGame : TestGame
     {
         [BackgroundDependencyLoader]
         private void load()
