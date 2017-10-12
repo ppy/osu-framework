@@ -189,6 +189,7 @@ namespace osu.Framework.Audio.Track
 
             cancelSource?.Cancel();
             cancelSource?.Dispose();
+            points = null;
         }
 
         #endregion
