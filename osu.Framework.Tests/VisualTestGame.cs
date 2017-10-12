@@ -4,19 +4,16 @@
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Cursor;
-using osu.Framework.IO.Stores;
 using osu.Framework.Platform;
 using osu.Framework.Testing;
 
 namespace osu.Framework.Tests
 {
-    internal class VisualTestGame : Game
+    internal class VisualTestGame : TestGame
     {
         [BackgroundDependencyLoader]
         private void load()
         {
-            Resources.AddStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(@"osu.Framework.Tests.exe"), "Resources"));
-
             Children = new Drawable[]
             {
                 new TestBrowser(),
@@ -27,7 +24,6 @@ namespace osu.Framework.Tests
         public override void SetHost(GameHost host)
         {
             base.SetHost(host);
-
             host.Window.CursorState |= CursorState.Hidden;
         }
     }

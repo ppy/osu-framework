@@ -53,6 +53,7 @@
     <Compile Include="Platform\HeadlessGameHostTest.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TestGame.cs" />
     <Compile Include="VisualTestGame.cs" />
     <Compile Include="Visual\FrameworkTestCase.cs" />
     <Compile Include="Visual\TestCaseAnimation.cs" />
