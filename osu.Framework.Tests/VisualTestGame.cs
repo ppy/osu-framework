@@ -4,6 +4,7 @@
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Cursor;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Platform;
 using osu.Framework.Testing;
 
@@ -14,10 +15,13 @@ namespace osu.Framework.Tests
         [BackgroundDependencyLoader]
         private void load()
         {
-            Children = new Drawable[]
+            Child = new DrawSizePreservingFillContainer
             {
-                new TestBrowser(),
-                new CursorContainer(),
+                Children = new Drawable[]
+                {
+                    new TestBrowser(),
+                    new CursorContainer(),
+                },
             };
         }
 
