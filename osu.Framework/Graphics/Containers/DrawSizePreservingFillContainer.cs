@@ -86,7 +86,7 @@ namespace osu.Framework.Graphics.Containers
         Average,
         /// <summary>
         /// Ensures <see cref="DrawSizePreservingFillContainer.TargetDrawSize"/> is perfectly
-        /// matched, while aspect ratio of children is disregarded.
+        /// matched while aspect ratio of children is disregarded.
         /// </summary>
         Separate,
     }
