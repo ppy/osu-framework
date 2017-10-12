@@ -67,6 +67,7 @@
     <Compile Include="Visual\TestCaseCoordinateSpaces.cs" />
     <Compile Include="Visual\TestCaseDelayedLoad.cs" />
     <Compile Include="Visual\TestCaseDrawablePath.cs" />
+    <Compile Include="Visual\TestCaseDspfContainer.cs" />
     <Compile Include="Visual\TestCaseDropdownBox.cs" />
     <Compile Include="Visual\TestCaseDynamicDepth.cs" />
     <Compile Include="Visual\TestCaseEffects.cs" />
