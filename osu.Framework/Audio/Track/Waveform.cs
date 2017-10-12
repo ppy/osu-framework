@@ -19,6 +19,11 @@ namespace osu.Framework.Audio.Track
         /// <see cref="WaveformPoint"/>s are initially generated to a 1ms resolution to cover most use cases.
         /// </summary>
         private const float resolution = 0.001f;
+        /// <summary>
+        /// The data stream is iteratively decoded to provide this many points per iteration so as to not exceed BASS's internal buffer size.
+        /// </summary>
+        private const int points_per_iteration = 100000;
+        private const int bytes_per_sample = 4;
 
         private int channels;
         private List<WaveformPoint> points = new List<WaveformPoint>();
@@ -44,31 +49,36 @@ namespace osu.Framework.Audio.Track
                 Bass.ChannelGetInfo(decodeStream, out info);
 
                 long length = Bass.ChannelGetLength(decodeStream);
-                var rawData = new float[length / 4];
-                Bass.ChannelGetData(decodeStream, rawData, (int)length);
 
                 // Each "point" is generated from a number of samples, each sample contains a number of channels
                 int sampleDataPerPoint = (int)(info.Frequency * resolution * info.Channels);
-                points.Capacity = rawData.Length / sampleDataPerPoint;
+                points.Capacity = (int)(length / sampleDataPerPoint);
 
-                // Process a sequence of samples for each point
-                for (int i = 0; i < rawData.Length; i += sampleDataPerPoint)
+                int bytesPerIteration = sampleDataPerPoint * points_per_iteration;
+                var dataBuffer = new float[bytesPerIteration / bytes_per_sample];
+
+                while (length > 0)
                 {
-                    int endIndex = Math.Min(rawData.Length, i + sampleDataPerPoint);
+                    length = Bass.ChannelGetData(decodeStream, dataBuffer, bytesPerIteration);
+                    int samplesRead = (int)(length / bytes_per_sample);
 
-                    // Process each sample in the sequence
-                    var point = new WaveformPoint(info.Channels);
-                    for (int j = i; j < endIndex; j += info.Channels)
+                    // Process a sequence of samples for each point
+                    for (int i = 0; i < samplesRead; i += sampleDataPerPoint)
                     {
-                        // Process each channel in the sample
+                        // Process each sample in the sequence
+                        var point = new WaveformPoint(info.Channels);
+                        for (int j = i; j < i + sampleDataPerPoint; j += info.Channels)
+                        {
+                            // Process each channel in the sample
+                            for (int c = 0; c < info.Channels; c++)
+                                point.Amplitude[c] = Math.Max(point.Amplitude[c], Math.Abs(dataBuffer[j + c]));
+                        }
+
                         for (int c = 0; c < info.Channels; c++)
-                            point.Amplitude[c] = Math.Max(point.Amplitude[c], Math.Abs(rawData[j + c]));
+                            point.Amplitude[c] = Math.Min(1, point.Amplitude[c]);
+
+                        points.Add(point);
                     }
-
-                    for (int c = 0; c < info.Channels; c++)
-                        point.Amplitude[c] = Math.Min(1, point.Amplitude[c]);
-
-                    points.Add(point);
                 }
 
                 channels = info.Channels;
@@ -179,6 +189,7 @@ namespace osu.Framework.Audio.Track
 
             cancelSource?.Cancel();
             cancelSource?.Dispose();
+            points = null;
         }
 
         #endregion
