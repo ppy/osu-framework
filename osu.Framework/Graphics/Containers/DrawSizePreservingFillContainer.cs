@@ -44,7 +44,7 @@ namespace osu.Framework.Graphics.Containers
                     break;
 
                 case DrawSizePreservationStrategy.Maximum:
-                    Scale = new Vector2(Math.Min(drawSizeRatio.X, drawSizeRatio.Y));
+                    Scale = new Vector2(Math.Max(drawSizeRatio.X, drawSizeRatio.Y));
                     break;
 
                 case DrawSizePreservationStrategy.Average:
@@ -55,7 +55,6 @@ namespace osu.Framework.Graphics.Containers
                     Scale = drawSizeRatio;
                     break;
             }
-
 
             Size = Vector2.Divide(Vector2.One, Scale);
         }
