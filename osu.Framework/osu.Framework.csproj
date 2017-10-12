@@ -217,6 +217,7 @@
     <Compile Include="Graphics\Containers\OverlayContainer.cs" />
     <Compile Include="Graphics\Containers\ScrollContainer.cs" />
     <Compile Include="Graphics\Containers\CompositeDrawNode.cs" />
+    <Compile Include="Graphics\Containers\DrawSizePreservingFillContainer.cs" />
     <Compile Include="Graphics\Cursor\CursorContainer.cs" />
     <Compile Include="Graphics\IDrawable.cs" />
     <Compile Include="Graphics\Lines\Path.cs" />
