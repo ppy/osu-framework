@@ -4,10 +4,6 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using SQLite.Net;
-using SQLite.Net.Interop;
-using SQLite.Net.Platform.Generic;
-using SQLite.Net.Platform.Win32;
 
 namespace osu.Framework.Platform
 {
@@ -66,14 +62,9 @@ namespace osu.Framework.Platform
             }
         }
 
-        public override SQLiteConnection GetDatabase(string name)
+        public override string GetDatabaseConnectionString(string name)
         {
-            ISQLitePlatform platform;
-            if (RuntimeInfo.IsWindows)
-                platform = new SQLitePlatformWin32(Architecture.NativeIncludePath);
-            else
-                platform = new SQLitePlatformGeneric();
-            return new SQLiteConnection(platform, GetUsablePathFor($@"{name}.db", true));
+            return string.Concat("Data Source=", GetUsablePathFor($@"{name}.db", true));
         }
 
         public override void DeleteDatabase(string name) => Delete($@"{name}.db");

@@ -248,6 +248,7 @@ namespace osu.Framework.Logging
         Network,
         Tournament,
         Performance,
-        Debug
+        Debug,
+        Database
     }
 }
