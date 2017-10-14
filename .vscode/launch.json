@@ -1,7 +1,7 @@
 {
     "version": "0.2.0",
     "configurations": [{
-        "name": "VisualTests (debug)",
+        "name": "VisualTests (Debug)",
         "windows": {
             "type": "clr"
         },
@@ -10,6 +10,20 @@
         "program": "${workspaceRoot}/osu.Framework.Tests/bin/Debug/osu.Framework.Tests.exe",
         "cwd": "${workspaceRoot}",
         "preLaunchTask": "Build (Debug)",
+        "runtimeExecutable": null,
+        "env": {},
+        "console": "internalConsole"
+    },
+    {
+        "name": "VisualTests (Release)",
+        "windows": {
+            "type": "clr"
+        },
+        "type": "mono",
+        "request": "launch",
+        "program": "${workspaceRoot}/osu.Framework.Tests/bin/Release/osu.Framework.Tests.exe",
+        "cwd": "${workspaceRoot}",
+        "preLaunchTask": "Build (Release)",
         "runtimeExecutable": null,
         "env": {},
         "console": "internalConsole"

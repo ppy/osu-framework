@@ -5,7 +5,7 @@ using osu.Framework.Testing;
 
 namespace osu.Framework.Tests
 {
-    public class AutomatedVisualTestGame : Game
+    internal class AutomatedVisualTestGame : TestGame
     {
         public AutomatedVisualTestGame()
         {

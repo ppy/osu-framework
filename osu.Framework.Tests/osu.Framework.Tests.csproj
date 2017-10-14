@@ -53,7 +53,9 @@
     <Compile Include="Platform\HeadlessGameHostTest.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TestGame.cs" />
     <Compile Include="VisualTestGame.cs" />
+    <Compile Include="Visual\FrameworkTestCase.cs" />
     <Compile Include="Visual\TestCaseAnimation.cs" />
     <Compile Include="Visual\TestCaseBlending.cs" />
     <Compile Include="Visual\TestCaseBufferedContainer.cs" />
@@ -65,6 +67,7 @@
     <Compile Include="Visual\TestCaseCoordinateSpaces.cs" />
     <Compile Include="Visual\TestCaseDelayedLoad.cs" />
     <Compile Include="Visual\TestCaseDrawablePath.cs" />
+    <Compile Include="Visual\TestCaseDspfContainer.cs" />
     <Compile Include="Visual\TestCaseDropdownBox.cs" />
     <Compile Include="Visual\TestCaseDynamicDepth.cs" />
     <Compile Include="Visual\TestCaseEffects.cs" />
@@ -93,6 +96,7 @@
     <Compile Include="Visual\TestCaseTooltip.cs" />
     <Compile Include="Visual\TestCaseTransformSequence.cs" />
     <Compile Include="Visual\TestCaseTriangles.cs" />
+    <Compile Include="Visual\TestCaseWaveform.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\osu.Framework\osu.Framework.csproj">
@@ -110,6 +114,12 @@
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Tracks\sample-track.mp3" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Textures\sample-texture.png" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>
