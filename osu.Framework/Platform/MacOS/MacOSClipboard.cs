@@ -8,14 +8,14 @@ namespace osu.Framework.Platform.MacOS
 {
     public class MacOSClipboard : Clipboard
     {
-        internal NSPasteboard generalPasteboard = NSPasteboard.GeneralPasteboard();
+        internal NSPasteboard GeneralPasteboard = NSPasteboard.GeneralPasteboard();
 
         public override string GetText()
         {
             NSArray classArray = NSArray.ArrayWithObject(Class.Get("NSString"));
-            if (generalPasteboard.CanReadObjectForClasses(classArray, null))
+            if (GeneralPasteboard.CanReadObjectForClasses(classArray, null))
             {
-                var result = generalPasteboard.ReadObjectsForClasses(classArray, null);
+                var result = GeneralPasteboard.ReadObjectsForClasses(classArray, null);
                 var objects = result?.ToArray() ?? new IntPtr[0];
                 if (objects.Length > 0 && objects[0] != IntPtr.Zero)
                     return Cocoa.FromNSString(objects[0]);
@@ -25,8 +25,8 @@ namespace osu.Framework.Platform.MacOS
 
         public override void SetText(string selectedText)
         {
-            generalPasteboard.ClearContents();
-            generalPasteboard.WriteObjects(NSArray.ArrayWithObject(Cocoa.ToNSString(selectedText)));
+            GeneralPasteboard.ClearContents();
+            GeneralPasteboard.WriteObjects(NSArray.ArrayWithObject(Cocoa.ToNSString(selectedText)));
         }
     }
 }

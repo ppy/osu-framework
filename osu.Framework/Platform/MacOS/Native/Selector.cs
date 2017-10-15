@@ -9,18 +9,12 @@ namespace osu.Framework.Platform.MacOS.Native
 {
     internal static class Selector
     {
-        static Type typeSelector;
-        static MethodInfo methodSelectorGet;
-
-        static Selector()
-        {
-            typeSelector = typeof(OpenTK.NativeWindow).Assembly.GetTypes().Single(x => x.Name == "Selector");
-            methodSelectorGet = typeSelector.GetMethod("Get");
-        }
+        private static readonly Type type_selector = typeof(OpenTK.NativeWindow).Assembly.GetTypes().Single(x => x.Name == "Selector");
+        private static readonly MethodInfo method_selector_get = type_selector.GetMethod("Get");
 
         public static IntPtr Get(string name)
         {
-            return (IntPtr)methodSelectorGet.Invoke(null, new object[] { name });
+            return (IntPtr)method_selector_get.Invoke(null, new object[] { name });
         }
     }
 }
