@@ -78,7 +78,7 @@ namespace osu.Framework.Platform
 
         public virtual Clipboard GetClipboard() => null;
 
-        public virtual Storage GetStorage(string baseName) => null;
+        protected abstract Storage GetStorage(string baseName);
 
         public virtual Storage Storage { get; protected set; }
 

@@ -12,7 +12,7 @@ namespace osu.Framework.Platform.Windows
 
         public override Clipboard GetClipboard() => new WindowsClipboard();
 
-        public override Storage GetStorage(string baseName) => new WindowsStorage(baseName);
+        protected override Storage GetStorage(string baseName) => new WindowsStorage(baseName);
 
         public override bool CapsLockEnabled => Console.CapsLock;
 

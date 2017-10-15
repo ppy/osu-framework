@@ -18,7 +18,7 @@ namespace osu.Framework.Platform.MacOS
             };
         }
 
-        public override Storage GetStorage(string baseName) => new MacOSStorage(baseName);
+        protected override Storage GetStorage(string baseName) => new MacOSStorage(baseName);
 
         public override Clipboard GetClipboard() => new MacOSClipboard();
     }
