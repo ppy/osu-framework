@@ -66,6 +66,11 @@ namespace osu.Framework.Platform
             }
         }
 
+        public override string GetDatabaseConnectionString(string name)
+        {
+            return string.Concat("Data Source=", GetUsablePathFor($@"{name}.db", true));
+        }
+
         public override SQLiteConnection GetDatabase(string name)
         {
             ISQLitePlatform platform;

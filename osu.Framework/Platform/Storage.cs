@@ -102,6 +102,13 @@ namespace osu.Framework.Platform
         public abstract Stream GetStream(string path, FileAccess access = FileAccess.Read, FileMode mode = FileMode.OpenOrCreate);
 
         /// <summary>
+        /// Retrieve an SQLite database connection string from within this storage.
+        /// </summary>
+        /// <param name="name">The name of the database.</param>
+        /// <returns>An SQLite connection string.</returns>
+        public abstract string GetDatabaseConnectionString(string name);
+
+        /// <summary>
         /// Retrieve an SQLite database from within this storage.
         /// </summary>
         /// <param name="name">The name of the database.</param>
