@@ -429,6 +429,13 @@
     <Compile Include="Platform\MacOS\MacOSClipboard.cs" />
     <Compile Include="Platform\MacOS\MacOSGameHost.cs" />
     <Compile Include="Platform\MacOS\MacOSStorage.cs" />
+    <Compile Include="Platform\MacOS\MacOSGameWindow.cs" />
+    <Compile Include="Platform\MacOS\Native\Class.cs" />
+    <Compile Include="Platform\MacOS\Native\Cocoa.cs" />
+    <Compile Include="Platform\MacOS\Native\Selector.cs" />
+    <Compile Include="Platform\MacOS\Native\NSPasteboard.cs" />
+    <Compile Include="Platform\MacOS\Native\NSArray.cs" />
+    <Compile Include="Platform\MacOS\Native\NSDictionary.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\osu-framework.licenseheader">
@@ -539,6 +546,9 @@
     <EmbeddedResource Include="Resources\Shaders\sh_TextureRounded.fs" />
     <EmbeddedResource Include="Resources\Fonts\OpenSans_1.png" />
     <EmbeddedResource Include="Resources\Fonts\OpenSans_0.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Platform\MacOS\Native\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

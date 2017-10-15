@@ -19,9 +19,6 @@ namespace osu.Framework.Platform.Linux
             Dependencies.Cache(Storage = new LinuxStorage(gameName));
         }
 
-        public override Clipboard GetClipboard()
-        {
-            return new LinuxClipboard();
-        }
+        public override Clipboard GetClipboard() => new LinuxClipboard();
     }
 }

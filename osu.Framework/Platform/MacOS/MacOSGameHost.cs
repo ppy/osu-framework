@@ -8,7 +8,7 @@ namespace osu.Framework.Platform.MacOS
         internal MacOSGameHost(string gameName, bool bindIPC = false)
             : base(gameName, bindIPC)
         {
-            Window = new DesktopGameWindow();
+            Window = new MacOSGameWindow();
             Window.WindowStateChanged += (sender, e) =>
             {
                 if (Window.WindowState != OpenTK.WindowState.Minimized)
@@ -19,9 +19,6 @@ namespace osu.Framework.Platform.MacOS
             Dependencies.Cache(Storage = new MacOSStorage(gameName));
         }
 
-        public override Clipboard GetClipboard()
-        {
-            return new MacOSClipboard();
-        }
+        public override Clipboard GetClipboard() => new MacOSClipboard();
     }
 }
