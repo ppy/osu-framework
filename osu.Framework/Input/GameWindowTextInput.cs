@@ -32,6 +32,9 @@ namespace osu.Framework.Input
                     || state.IsKeyDown(OpenTK.Input.Key.LWin)
                     || state.IsKeyDown(OpenTK.Input.Key.RWin))
                     return;
+                // arbitrary choice here, but it caters for any non-printable keys on an A1243 Apple Keyboard
+                if (e.KeyChar > 63000)
+                    return;
             }
             pending += e.KeyChar;
         }
