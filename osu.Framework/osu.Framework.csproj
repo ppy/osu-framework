@@ -426,6 +426,9 @@
     <Compile Include="Graphics\Containers\TextFlowContainer.cs" />
     <Compile Include="Graphics\UserInterface\CircularProgress.cs" />
     <Compile Include="Threading\AudioThread.cs" />
+    <Compile Include="Platform\MacOS\MacOSClipboard.cs" />
+    <Compile Include="Platform\MacOS\MacOSGameHost.cs" />
+    <Compile Include="Platform\MacOS\MacOSStorage.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\osu-framework.licenseheader">
