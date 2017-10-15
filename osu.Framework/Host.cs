@@ -14,7 +14,7 @@ namespace osu.Framework
         {
             if (RuntimeInfo.IsMacOsx)
                 return new MacOSGameHost(gameName, bindIPC);
-            
+
             if (RuntimeInfo.IsUnix)
                 return new LinuxGameHost(gameName, bindIPC);
 

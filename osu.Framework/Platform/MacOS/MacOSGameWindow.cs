@@ -80,7 +80,7 @@ namespace osu.Framework.Platform.MacOS
                     key = OpenTK.Input.Key.RControl;
                     keyDown = (modifierFlags & modifierFlagRightControl) > 0;
                     break;
-                
+
                 case MacOSKeyCodes.LAlt:
                     key = OpenTK.Input.Key.LAlt;
                     keyDown = (modifierFlags & modifierFlagLeftAlt) > 0;
