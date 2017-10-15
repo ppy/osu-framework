@@ -21,20 +21,6 @@ namespace osu.Framework.Platform
         private readonly TcpIpcProvider ipcProvider;
         private readonly Task ipcTask;
 
-        public override Storage Storage
-        {
-            get
-            {
-                return base.Storage;
-            }
-
-            protected set
-            {
-                base.Storage = value;
-                Logger.Storage = value.GetStorageForDirectory("logs");
-            }
-        }
-
         protected DesktopGameHost(string gameName = @"", bool bindIPCPort = false)
             : base(gameName)
         {
@@ -61,6 +47,8 @@ namespace osu.Framework.Platform
                     ipcTask = Task.Factory.StartNew(ipcProvider.StartAsync, TaskCreationOptions.LongRunning);
                 }
             }
+
+            Logger.Storage = Storage.GetStorageForDirectory("logs");
         }
 
         /// <summary>

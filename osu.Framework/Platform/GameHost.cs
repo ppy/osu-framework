@@ -80,7 +80,7 @@ namespace osu.Framework.Platform
 
         protected abstract Storage GetStorage(string baseName);
 
-        public virtual Storage Storage { get; protected set; }
+        public Storage Storage { get; protected set; }
 
         /// <summary>
         /// If capslock is enabled on the system, false if not overwritten by a subclass
