@@ -78,6 +78,8 @@ namespace osu.Framework.Platform
 
         public virtual Clipboard GetClipboard() => null;
 
+        public virtual Storage GetStorage(string baseName) => null;
+
         public virtual Storage Storage { get; protected set; }
 
         /// <summary>
@@ -150,6 +152,8 @@ namespace osu.Framework.Platform
             AppDomain.CurrentDomain.UnhandledException += exceptionHandler;
 
             Dependencies.Cache(this);
+            Dependencies.Cache(Storage = GetStorage(gameName));
+
             Name = gameName;
             Logger.GameIdentifier = gameName;
 

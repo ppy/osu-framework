@@ -20,7 +20,7 @@ namespace osu.Framework.Platform.MacOS
                 if (objects.Length > 0 && objects[0] != IntPtr.Zero)
                     return Cocoa.FromNSString(objects[0]);
             }
-            return "";
+            return string.Empty;
         }
 
         public override void SetText(string selectedText)

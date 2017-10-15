@@ -16,8 +16,9 @@ namespace osu.Framework.Platform.Linux
                 else
                     OnDeactivated();
             };
-            Dependencies.Cache(Storage = new LinuxStorage(gameName));
         }
+
+        public override Storage GetStorage(string baseName) => new LinuxStorage(baseName);
 
         public override Clipboard GetClipboard() => new LinuxClipboard();
     }
