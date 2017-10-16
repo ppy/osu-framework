@@ -560,6 +560,8 @@ namespace osu.Framework.Platform
 
             config?.Dispose();
             debugConfig?.Dispose();
+
+            Logger.WaitForCompletion();
         }
 
         ~GameHost()

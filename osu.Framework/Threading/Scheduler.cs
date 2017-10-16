@@ -325,10 +325,11 @@ namespace osu.Framework.Threading
     public class ThreadedScheduler : Scheduler
     {
         private bool isDisposed;
+        private readonly Thread workerThread;
 
         public ThreadedScheduler(string threadName = null, int runInterval = 50)
         {
-            var workerThread = new Thread(() =>
+            workerThread = new Thread(() =>
             {
                 while (!isDisposed)
                 {
@@ -347,6 +348,9 @@ namespace osu.Framework.Threading
         protected override void Dispose(bool disposing)
         {
             isDisposed = true;
+
+            workerThread.Join();
+
             base.Dispose(disposing);
         }
 
