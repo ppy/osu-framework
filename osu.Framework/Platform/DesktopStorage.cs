@@ -46,7 +46,7 @@ namespace osu.Framework.Platform
 
         public override void OpenInNativeExplorer()
         {
-            Process.Start(BasePath);
+            Process.Start(GetUsablePathFor(string.Empty));
         }
 
         public override Stream GetStream(string path, FileAccess access = FileAccess.Read, FileMode mode = FileMode.OpenOrCreate)
