@@ -224,6 +224,14 @@ namespace osu.Framework.Logging
         private static readonly List<string> filters = new List<string>();
         private static readonly Dictionary<LoggingTarget, Logger> static_loggers = new Dictionary<LoggingTarget, Logger>();
         private static readonly ThreadedScheduler background_scheduler = new ThreadedScheduler(@"Logger");
+
+        /// <summary>
+        /// Pause execution until all logger writes have completed and file handles have been closed.
+        /// </summary>
+        public static void WaitForCompletion()
+        {
+            background_scheduler.Dispose();
+        }
     }
 
     public class LogEntry

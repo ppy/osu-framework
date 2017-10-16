@@ -557,6 +557,11 @@ namespace osu.Framework.Platform
             isDisposed = true;
             stopAllThreads();
             Root?.Dispose();
+
+            config?.Dispose();
+            debugConfig?.Dispose();
+
+            Logger.WaitForCompletion();
         }
 
         ~GameHost()
