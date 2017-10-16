@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using osu.Framework.Extensions.InputExtensions;
 using osu.Framework.Platform;
 
 namespace osu.Framework.Input
@@ -25,12 +26,13 @@ namespace osu.Framework.Input
             if (RuntimeInfo.IsMacOsx)
             {
                 var state = OpenTK.Input.Keyboard.GetState();
-                if (state.IsKeyDown(OpenTK.Input.Key.LControl)
-                    || state.IsKeyDown(OpenTK.Input.Key.RControl)
-                    || state.IsKeyDown(OpenTK.Input.Key.LAlt)
-                    || state.IsKeyDown(OpenTK.Input.Key.RAlt)
-                    || state.IsKeyDown(OpenTK.Input.Key.LWin)
-                    || state.IsKeyDown(OpenTK.Input.Key.RWin))
+                if (state.IsKeyDown(
+                        OpenTK.Input.Key.LControl,
+                        OpenTK.Input.Key.RControl,
+                        OpenTK.Input.Key.LAlt,
+                        OpenTK.Input.Key.RAlt,
+                        OpenTK.Input.Key.LWin,
+                        OpenTK.Input.Key.RWin))
                     return;
                 // arbitrary choice here, but it caters for any non-printable keys on an A1243 Apple Keyboard
                 if (e.KeyChar > 63000)
