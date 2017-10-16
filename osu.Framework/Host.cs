@@ -3,6 +3,7 @@
 
 using osu.Framework.Platform;
 using osu.Framework.Platform.Linux;
+using osu.Framework.Platform.MacOS;
 using osu.Framework.Platform.Windows;
 
 namespace osu.Framework
@@ -11,6 +12,9 @@ namespace osu.Framework
     {
         public static DesktopGameHost GetSuitableHost(string gameName, bool bindIPC = false)
         {
+            if (RuntimeInfo.IsMacOsx)
+                return new MacOSGameHost(gameName, bindIPC);
+
             if (RuntimeInfo.IsUnix)
                 return new LinuxGameHost(gameName, bindIPC);
 
