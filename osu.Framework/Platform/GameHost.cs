@@ -558,8 +558,8 @@ namespace osu.Framework.Platform
             stopAllThreads();
             Root?.Dispose();
 
-            config.Dispose();
-            debugConfig.Dispose();
+            config?.Dispose();
+            debugConfig?.Dispose();
         }
 
         ~GameHost()
