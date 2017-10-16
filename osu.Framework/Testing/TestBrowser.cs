@@ -42,10 +42,10 @@ namespace osu.Framework.Testing
         private readonly BasicDropdown<Assembly> assemblyDropdown;
 
         /// <summary>
-        /// Creates a new TestBrowser that loads the TestCases of every assembly that start with either "osu" or the specified string (if not null)
+        /// Creates a new TestBrowser that displays the TestCases of every assembly that start with either "osu" or the specified namespace (if it isn't null)
         /// </summary>
-        /// <param name="assemblyNameBeginning">Assembly name beginnings that should get loaded</param>
-        public TestBrowser(string assemblyNameBeginning = null)
+        /// <param name="assemblyNamespace">Assembly prefix which is used to match assemblies whose tests should be displayed</param>
+        public TestBrowser(string assemblyNamespace = null)
         {
             assemblyDropdown = new BasicDropdown<Assembly>
             {
@@ -62,7 +62,7 @@ namespace osu.Framework.Testing
             toLoad.ForEach(path => loadedAssemblies.Add(AppDomain.CurrentDomain.Load(AssemblyName.GetAssemblyName(path))));
 
             //we want to build the lists here because we're interested in the assembly we were *created* on.
-            foreach (Assembly asm in AppDomain.CurrentDomain.GetAssemblies().Where(n => n.FullName.StartsWith("osu") || assemblyNameBeginning != null && n.FullName.StartsWith(assemblyNameBeginning)))
+            foreach (Assembly asm in AppDomain.CurrentDomain.GetAssemblies().Where(n => n.FullName.StartsWith("osu") || assemblyNamespace != null && n.FullName.StartsWith(assemblyNamespace)))
             {
                 var tests = asm.GetLoadableTypes().Where(t => t.IsSubclassOf(typeof(TestCase)) && !t.IsAbstract).ToList();
 
