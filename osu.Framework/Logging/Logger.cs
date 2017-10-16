@@ -238,7 +238,7 @@ namespace osu.Framework.Logging
         Debug,
         Verbose,
         Important,
-        Error,
+        Error
     }
 
     public enum LoggingTarget
@@ -248,6 +248,7 @@ namespace osu.Framework.Logging
         Network,
         Tournament,
         Performance,
-        Debug
+        Debug,
+        Database
     }
 }
