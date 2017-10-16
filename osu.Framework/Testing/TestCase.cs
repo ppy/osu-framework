@@ -49,8 +49,17 @@ namespace osu.Framework.Testing
         [TearDown]
         public virtual void RunTest()
         {
-            using (var host = new HeadlessGameHost())
+            string name = $"test-{Guid.NewGuid()}";
+
+            Storage storage;
+            using (var host = new HeadlessGameHost(name, realtime: false))
+            {
+                storage = host.Storage;
                 host.Run(new TestCaseTestRunner(this));
+            }
+
+            // clean up after each run
+            storage.DeleteDirectory(string.Empty);
         }
 
         /// <summary>
