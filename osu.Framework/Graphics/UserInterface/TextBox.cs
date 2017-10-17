@@ -19,6 +19,7 @@ using osu.Framework.Configuration;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Platform;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Input.Bindings;
 using osu.Framework.Timing;
 
 namespace osu.Framework.Graphics.UserInterface
@@ -70,36 +71,39 @@ namespace osu.Framework.Graphics.UserInterface
 
         public TextBox()
         {
-            Masking = true;
-            CornerRadius = 3;
-
-            AddRange(new Drawable[]
+            Child = new PlatformInputManager
             {
-                Background = new Box
+                Masking = true,
+                CornerRadius = 3,
+                RelativeSizeAxes = Axes.Both,
+                Children = new Drawable[]
                 {
-                    Colour = BackgroundUnfocused,
-                    RelativeSizeAxes = Axes.Both,
-                },
-                TextContainer = new Container
-                {
-                    AutoSizeAxes = Axes.X,
-                    RelativeSizeAxes = Axes.Y,
-                    Anchor = Anchor.CentreLeft,
-                    Origin = Anchor.CentreLeft,
-                    Position = new Vector2(LeftRightPadding, 0),
-                    Children = new[]
+                    Background = new Box
                     {
-                        Placeholder = CreatePlaceholder(),
-                        Caret = new DrawableCaret(),
-                        TextFlow = new FillFlowContainer
+                        Colour = BackgroundUnfocused,
+                        RelativeSizeAxes = Axes.Both,
+                    },
+                    TextContainer = new KeyBindingContainer(this)
+                    {
+                        AutoSizeAxes = Axes.X,
+                        RelativeSizeAxes = Axes.Y,
+                        Anchor = Anchor.CentreLeft,
+                        Origin = Anchor.CentreLeft,
+                        Position = new Vector2(LeftRightPadding, 0),
+                        Children = new[]
                         {
-                            Direction = FillDirection.Horizontal,
-                            AutoSizeAxes = Axes.X,
-                            RelativeSizeAxes = Axes.Y,
+                            Placeholder = CreatePlaceholder(),
+                            Caret = new DrawableCaret(),
+                            TextFlow = new FillFlowContainer
+                            {
+                                Direction = FillDirection.Horizontal,
+                                AutoSizeAxes = Axes.X,
+                                RelativeSizeAxes = Axes.Y,
+                            },
                         },
                     },
-                },
-            });
+                }
+            };
 
             Current.ValueChanged += newValue => { Text = newValue; };
         }
@@ -900,6 +904,37 @@ namespace osu.Framework.Graphics.UserInterface
                     Colour = Color4.White,
                 };
             }
+        }
+
+        private class KeyBindingContainer : Container, IKeyBindingHandler<PlatformAction>
+        {
+            private readonly TextBox textBox;
+
+            public KeyBindingContainer(TextBox textBox)
+            {
+                this.textBox = textBox;
+            }
+
+            public bool OnPressed(PlatformAction action)
+            {
+                if (!textBox.HasFocus) return false;
+
+                switch (action)
+                {
+                    case PlatformAction.Cut:
+                        Console.WriteLine("Pressed Cut");
+                        break;
+                    case PlatformAction.Copy:
+                        Console.WriteLine("Pressed Copy");
+                        break;
+                    case PlatformAction.Paste:
+                        Console.WriteLine("Pressed Paste");
+                        break;
+                }
+                return true;
+            }
+
+            public bool OnReleased(PlatformAction action) => false;
         }
     }
 }

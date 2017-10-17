@@ -20,7 +20,7 @@ using GameWindow = osu.Framework.Platform.GameWindow;
 
 namespace osu.Framework
 {
-    public abstract class Game : Container, IKeyBindingHandler<FrameworkAction>
+    public abstract class Game : Container, IKeyBindingHandler<FrameworkAction>, IKeyBindingHandler<PlatformAction>
     {
         public GameWindow Window => Host?.Window;
 
@@ -217,6 +217,10 @@ namespace osu.Framework
         }
 
         public bool OnReleased(FrameworkAction action) => false;
+
+        public bool OnPressed(PlatformAction action) => false;
+
+        public bool OnReleased(PlatformAction action) => false;
 
         public void Exit()
         {

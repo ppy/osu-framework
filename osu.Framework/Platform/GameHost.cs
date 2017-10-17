@@ -20,6 +20,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Input;
+using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Localisation;
 using osu.Framework.Logging;
@@ -81,6 +82,8 @@ namespace osu.Framework.Platform
         protected abstract Storage GetStorage(string baseName);
 
         public Storage Storage { get; protected set; }
+
+        public PlatformInputManager PlatformInputManager { get; private set; }
 
         /// <summary>
         /// If capslock is enabled on the system, false if not overwritten by a subclass
@@ -402,7 +405,14 @@ namespace osu.Framework.Platform
 
         private void bootstrapSceneGraph(Game game)
         {
-            var root = new UserInputManager { Child = game };
+            var root = new UserInputManager(game)
+            {
+                Child = PlatformInputManager = new PlatformInputManager
+                {
+                    Child = game,
+                    RelativeSizeAxes = Axes.Both
+                }
+            };
 
             Dependencies.Cache(root);
             Dependencies.Cache(game);
@@ -542,6 +552,8 @@ namespace osu.Framework.Platform
         protected abstract IEnumerable<InputHandler> CreateAvailableInputHandlers();
 
         public IEnumerable<InputHandler> AvailableInputHandlers { get; private set; }
+
+        public virtual IEnumerable<KeyBinding> PlatformKeyBindings => new KeyBinding[0];
 
         public abstract ITextInputSource GetTextInput();
 

@@ -11,6 +11,8 @@ namespace osu.Framework.Input
 {
     public class UserInputManager : KeyBindingInputManager<FrameworkAction>
     {
+        private readonly Drawable handler;
+
         protected override IEnumerable<InputHandler> InputHandlers => Host.AvailableInputHandlers;
 
         public override IEnumerable<KeyBinding> DefaultKeyBindings => new[]
@@ -21,12 +23,13 @@ namespace osu.Framework.Input
             new KeyBinding(new[] { InputKey.Alt, InputKey.Enter }, FrameworkAction.ToggleFullscreen),
         };
 
-        public UserInputManager()
+        public UserInputManager(Drawable handler = null)
         {
+            this.handler = handler;
             UseParentState = false;
         }
 
-        protected override IEnumerable<Drawable> KeyBindingInputQueue => new[] { Child }.Concat(base.KeyBindingInputQueue);
+        protected override IEnumerable<Drawable> KeyBindingInputQueue => new[] { handler ?? Child }.Concat(base.KeyBindingInputQueue);
     }
 
     public enum FrameworkAction
