@@ -12,6 +12,8 @@ namespace osu.Framework.Platform.Windows
 
         public override Clipboard GetClipboard() => new WindowsClipboard();
 
+        protected override Storage GetStorage(string baseName) => new WindowsStorage(baseName);
+
         public override bool CapsLockEnabled => Console.CapsLock;
 
         internal WindowsGameHost(string gameName, bool bindIPC = false)
@@ -30,8 +32,6 @@ namespace osu.Framework.Platform.Windows
                 else
                     OnDeactivated();
             };
-
-            Dependencies.Cache(Storage = new WindowsStorage(gameName));
         }
 
         protected override void Dispose(bool isDisposing)
