@@ -262,12 +262,12 @@ namespace osu.Framework.IO.Network
                             const string boundary = @"-----------------------------28947758029299";
 
                             var formData = new MultipartFormDataContent(boundary);
-                            contentLength = formData.ReadAsByteArrayAsync().Result.Length;
 
                             formData.Add(new FormUrlEncodedContent(Parameters));
 
                             foreach (var p in Files)
                                 formData.Add(new ByteArrayContent(p.Value), p.Key, p.Key);
+                            contentLength = formData.ReadAsByteArrayAsync().Result.Length;
 
                             requestStream = new LengthTrackingStream(formData.ReadAsStreamAsync().Result);
                             requestStream.BytesRead.ValueChanged += v =>
