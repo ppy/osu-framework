@@ -8,7 +8,6 @@ using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Security.Authentication;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -114,6 +113,7 @@ namespace osu.Framework.IO.Network
         /// <summary>
         /// The request headers.
         /// </summary>
+        // ReSharper disable once CollectionNeverUpdated.Global
         public Dictionary<string, string> Headers = new Dictionary<string, string>();
 
         public const int DEFAULT_TIMEOUT = 10000;
@@ -139,9 +139,9 @@ namespace osu.Framework.IO.Network
             var handler = new HttpClientHandler
             {
                 AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
-                SslProtocols = SslProtocols.Tls,
-                CheckCertificateRevocationList = false,
-                MaxConnectionsPerServer = 12
+//                SslProtocols = SslProtocols.Tls,
+//                CheckCertificateRevocationList = false,
+//                MaxConnectionsPerServer = 12
             };
 
             client = new HttpClient(handler);
