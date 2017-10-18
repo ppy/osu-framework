@@ -319,7 +319,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 case PlatformActionType.WordNext:
                     {
-                        int searchStart = Math.Min(Text.Length - 1, selectionEnd);
+                        int searchStart = MathHelper.Clamp(selectionEnd, 0, Text.Length - 1);
                         while (searchStart < Text.Length && text[searchStart] == ' ')
                             searchStart++;
                         int nextSpace = text.IndexOf(' ', searchStart);
@@ -329,7 +329,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 case PlatformActionType.WordPrevious:
                     {
-                        int searchStart = Math.Max(0, selectionEnd - 2);
+                        int searchStart = MathHelper.Clamp(selectionEnd - 2, 0, Text.Length - 1);
                         while (searchStart > 0 && text[searchStart] == ' ')
                             searchStart--;
                         int lastSpace = text.LastIndexOf(' ', searchStart);
