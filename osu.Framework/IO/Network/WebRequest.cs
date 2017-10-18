@@ -285,7 +285,7 @@ namespace osu.Framework.IO.Network
 
                             request = new HttpRequestMessage(System.Net.Http.HttpMethod.Post, Url) { Content = new StreamContent(requestStream) };
                             request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse($"multipart/form-data; boundary={boundary}");
-                            
+
                             break;
                     }
 
@@ -371,44 +371,41 @@ namespace osu.Framework.IO.Network
             if (Aborted)
                 return;
 
-            switch (e)
+            if (e == null)
+                logger.Add($@"Request to {Url} successfully completed!");
+            else
             {
-                default:
-                    bool allowRetry = true;
+                bool allowRetry = true;
 
-                    switch (response.StatusCode)
-                    {
-                        case HttpStatusCode.RequestTimeout:
-                            if (hasExceededTimeout)
-                            {
-                                logger.Add($@"Timeout exceeded ({timeSinceLastAction} > {DEFAULT_TIMEOUT})");
-                                e = new WebException($"Timeout to {Url} after {timeSinceLastAction / 1000} seconds idle (read {responseBytesRead} bytes).", WebExceptionStatus.Timeout);
-                            }
-                            break;
-                        case HttpStatusCode.NotFound:
-                        case HttpStatusCode.MethodNotAllowed:
-                        case HttpStatusCode.Forbidden:
-                            allowRetry = false;
-                            break;
-                        case HttpStatusCode.Unauthorized:
-                            allowRetry = false;
-                            break;
-                    }
+                switch (response.StatusCode)
+                {
+                    case HttpStatusCode.RequestTimeout:
+                        if (hasExceededTimeout)
+                        {
+                            logger.Add($@"Timeout exceeded ({timeSinceLastAction} > {DEFAULT_TIMEOUT})");
+                            e = new WebException($"Timeout to {Url} after {timeSinceLastAction / 1000} seconds idle (read {responseBytesRead} bytes).", WebExceptionStatus.Timeout);
+                        }
+                        break;
+                    case HttpStatusCode.NotFound:
+                    case HttpStatusCode.MethodNotAllowed:
+                    case HttpStatusCode.Forbidden:
+                        allowRetry = false;
+                        break;
+                    case HttpStatusCode.Unauthorized:
+                        allowRetry = false;
+                        break;
+                }
 
-                    if (allowRetry && retriesRemaining-- > 0 && responseBytesRead == 0)
-                    {
-                        logger.Add($@"Request to {Url} failed with {response.StatusCode} (retrying {default_retry_count - retriesRemaining}/{default_retry_count}).");
+                if (allowRetry && retriesRemaining-- > 0 && responseBytesRead == 0)
+                {
+                    logger.Add($@"Request to {Url} failed with {response.StatusCode} (retrying {default_retry_count - retriesRemaining}/{default_retry_count}).");
 
-                        //do a retry
-                        PerformAsync();
-                        return;
-                    }
+                    //do a retry
+                    PerformAsync();
+                    return;
+                }
 
-                    logger.Add($@"Request to {Url} failed with {response.StatusCode} (FAILED).");
-                    break;
-                case null:
-                    logger.Add($@"Request to {Url} successfully completed!");
-                    break;
+                logger.Add($@"Request to {Url} failed with {response.StatusCode} (FAILED).");
             }
 
             Finished?.Invoke(this, e);
@@ -600,8 +597,8 @@ namespace osu.Framework.IO.Network
             public override long Length => baseStream.Length;
             public override long Position
             {
-                get => baseStream.Position;
-                set => baseStream.Position = value;
+                get { return baseStream.Position; }
+                set { baseStream.Position = value; }
             }
 
             protected override void Dispose(bool disposing)
