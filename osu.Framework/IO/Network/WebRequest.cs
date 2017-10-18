@@ -260,14 +260,20 @@ namespace osu.Framework.IO.Network
                             request = new HttpRequestMessage(System.Net.Http.HttpMethod.Get, string.IsNullOrEmpty(requestString) ? Url : $"{Url}?{requestString}");
                             break;
                         case HttpMethod.POST:
-                            const string boundary = @"-----------------------------28947758029299";
+                            const string boundary = "-----------------------------28947758029299";
 
                             var formData = new MultipartFormDataContent(boundary);
 
-                            formData.Add(new FormUrlEncodedContent(Parameters));
+                            foreach (var p in Parameters)
+                                formData.Add(new StringContent(p.Value), p.Key);
 
                             foreach (var p in Files)
-                                formData.Add(new ByteArrayContent(p.Value), p.Key, p.Key);
+                            {
+                                var byteContent = new ByteArrayContent(p.Value);
+                                byteContent.Headers.Add("Content-Type", "application/octet-stream");
+                                formData.Add(byteContent, p.Key, p.Key);
+                            }
+
                             contentLength = formData.ReadAsByteArrayAsync().Result.Length;
 
                             requestStream = new LengthTrackingStream(formData.ReadAsStreamAsync().Result);
@@ -278,6 +284,8 @@ namespace osu.Framework.IO.Network
                             };
 
                             request = new HttpRequestMessage(System.Net.Http.HttpMethod.Post, Url) { Content = new StreamContent(requestStream) };
+                            request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse($"multipart/form-data; boundary={boundary}");
+                            
                             break;
                     }
 
