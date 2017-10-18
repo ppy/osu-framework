@@ -269,16 +269,14 @@ namespace osu.Framework.IO.Network
                             foreach (var p in Files)
                                 formData.Add(new ByteArrayContent(p.Value), p.Key, p.Key);
 
-                            using (var requestStream = new LengthTrackingStream(formData.ReadAsStreamAsync().Result))
+                            requestStream = new LengthTrackingStream(formData.ReadAsStreamAsync().Result);
+                            requestStream.BytesRead.ValueChanged += v =>
                             {
-                                requestStream.BytesRead.ValueChanged += v =>
-                                {
-                                    reportForwardProgress();
-                                    UploadProgress?.Invoke(this, v, contentLength);
-                                };
+                                reportForwardProgress();
+                                UploadProgress?.Invoke(this, v, contentLength);
+                            };
 
-                                request = new HttpRequestMessage(System.Net.Http.HttpMethod.Post, Url) { Content = new StreamContent(requestStream) };
-                            }
+                            request = new HttpRequestMessage(System.Net.Http.HttpMethod.Post, Url) { Content = new StreamContent(requestStream) };
                             break;
                     }
 
