@@ -319,15 +319,21 @@ namespace osu.Framework.Graphics.UserInterface
 
                 case PlatformActionType.WordNext:
                     {
-                        int nextSpace = text.IndexOf(' ', Math.Min(Text.Length - 1, selectionEnd) + 1);
+                        int searchStart = Math.Min(Text.Length - 1, selectionEnd);
+                        while (searchStart < Text.Length && text[searchStart] == ' ')
+                            searchStart++;
+                        int nextSpace = text.IndexOf(' ', searchStart);
                         amount = (nextSpace >= 0 ? nextSpace : text.Length) - selectionEnd;
                     }
                     break;
 
                 case PlatformActionType.WordPrevious:
                     {
-                        int lastSpace = text.LastIndexOf(' ', Math.Max(0, selectionEnd - 2));
-                        amount = lastSpace >= 0 ? -(selectionEnd - lastSpace - 1) : -selectionEnd;
+                        int searchStart = Math.Max(0, selectionEnd - 2);
+                        while (searchStart > 0 && text[searchStart] == ' ')
+                            searchStart--;
+                        int lastSpace = text.LastIndexOf(' ', searchStart);
+                        amount = lastSpace > 0 ? -(selectionEnd - lastSpace - 1) : -selectionEnd;
                     }
                     break;
             }
