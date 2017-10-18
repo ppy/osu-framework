@@ -6,9 +6,17 @@ using osu.Framework.Input.Bindings;
 
 namespace osu.Framework.Input
 {
+    /// <summary>
+    /// Provides actions that are expected to have different key bindings per platform.
+    /// The framework will always contain one top-level instance of this class, but extra instances
+    /// can be created to handle events that should trigger specifically on a focused drawable.
+    /// Will send repeat events by default.
+    /// </summary>
     public class PlatformInputManager : KeyBindingInputManager<PlatformAction>
     {
         public override IEnumerable<KeyBinding> DefaultKeyBindings => Host.PlatformKeyBindings;
+
+        protected override bool SendRepeats => true;
     }
 
     public struct PlatformAction

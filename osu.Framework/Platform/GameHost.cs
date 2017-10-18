@@ -587,6 +587,10 @@ namespace osu.Framework.Platform
 
         #endregion
 
+        /// <summary>
+        /// Defines the platform-specific key bindings that will be used by <see cref="osu.Framework.Input.PlatformInputManager"/>.
+        /// Should be overridden per-platform to provide native key bindings.
+        /// </summary>
         public virtual IEnumerable<KeyBinding> PlatformKeyBindings => new[]
         {
             new KeyBinding(new KeyCombination(new[] { InputKey.Control, InputKey.X }), new PlatformAction(PlatformActionType.Cut)),
