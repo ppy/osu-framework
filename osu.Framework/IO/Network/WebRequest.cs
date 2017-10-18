@@ -111,6 +111,11 @@ namespace osu.Framework.IO.Network
         /// </summary>
         public Dictionary<string, byte[]> Files = new Dictionary<string, byte[]>();
 
+        /// <summary>
+        /// The request headers.
+        /// </summary>
+        public Dictionary<string, string> Headers = new Dictionary<string, string>();
+
         public const int DEFAULT_TIMEOUT = 10000;
 
         public HttpMethod Method;
@@ -279,6 +284,9 @@ namespace osu.Framework.IO.Network
 
                     if (!string.IsNullOrEmpty(Accept))
                         request?.Headers.Accept.TryParseAdd(Accept);
+
+                    foreach (var kvp in Headers)
+                        request?.Headers.Add(kvp.Key, kvp.Value);
 
                     response = client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken.Token).Result;
 
