@@ -266,6 +266,98 @@ namespace osu.Framework.Graphics.UserInterface
 
         private Cached cursorAndLayout = new Cached();
 
+        private bool handleAction(PlatformAction action)
+        {
+            int? amount = null;
+
+            switch (action.ActionType)
+            {
+                // Clipboard
+                case PlatformActionType.Cut:
+                case PlatformActionType.Copy:
+                    if (string.IsNullOrEmpty(SelectedText) || !AllowClipboardExport) return true;
+
+                    clipboard?.SetText(SelectedText);
+                    if (action.ActionType == PlatformActionType.Cut)
+                        removeCharacterOrSelection();
+                    return true;
+
+                case PlatformActionType.Paste:
+                    //the text may get pasted into the hidden textbox, so we don't need any direct clipboard interaction here.
+                    string pending = textInput?.GetPendingText();
+
+                    if (string.IsNullOrEmpty(pending))
+                        pending = clipboard?.GetText();
+
+                    insertString(pending);
+                    return true;
+
+                case PlatformActionType.SelectAll:
+                    selectionStart = 0;
+                    selectionEnd = text.Length;
+                    cursorAndLayout.Invalidate();
+                    return true;
+
+                // Cursor Manipulation
+                case PlatformActionType.CharNext:
+                    if (!HandleLeftRightArrows) return false;
+                    amount = 1;
+                    break;
+
+                case PlatformActionType.CharPrevious:
+                    if (!HandleLeftRightArrows) return false;
+                    amount = -1;
+                    break;
+
+                case PlatformActionType.LineEnd:
+                    amount = text.Length;
+                    break;
+
+                case PlatformActionType.LineStart:
+                    amount = -text.Length;
+                    break;
+
+                case PlatformActionType.WordNext:
+                    {
+                        int nextSpace = text.IndexOf(' ', Math.Min(Text.Length - 1, selectionEnd) + 1);
+                        amount = (nextSpace >= 0 ? nextSpace : text.Length) - selectionEnd;
+                    }
+                    break;
+
+                case PlatformActionType.WordPrevious:
+                    {
+                        int lastSpace = text.LastIndexOf(' ', Math.Max(0, selectionEnd - 2));
+                        amount = lastSpace >= 0 ? -(selectionEnd - lastSpace - 1) : -selectionEnd;
+                    }
+                    break;
+            }
+
+            if (amount.HasValue)
+            {
+                switch (action.ActionMethod)
+                {
+                    case PlatformActionMethod.Move:
+                        resetSelection();
+                        moveSelection(amount.Value, false);
+                        break;
+
+                    case PlatformActionMethod.Select:
+                        moveSelection(amount.Value, true);
+                        break;
+
+                    case PlatformActionMethod.Delete:
+                        if (selectionLength == 0)
+                            selectionEnd = MathHelper.Clamp(selectionStart + amount.Value, 0, text.Length);
+                        if (selectionLength > 0)
+                            removeCharacterOrSelection();
+                        break;
+                }
+                return true;
+            }
+
+            return false;
+        }
+
         private void moveSelection(int offset, bool expand)
         {
             if (textInput?.ImeActive == true) return;
@@ -490,81 +582,26 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (ReadOnly) return true;
 
-            if (state.Keyboard.AltPressed)
+            if (state.Keyboard.AltPressed || state.Keyboard.ControlPressed || state.Keyboard.SuperPressed)
                 return false;
 
             switch (args.Key)
             {
+                case Key.Left:
+                case Key.Right:
+                case Key.Delete:
+                case Key.BackSpace:
+                case Key.Home:
+                case Key.End:
+                    return false;
+
                 case Key.Escape:
                     GetContainingInputManager().ChangeFocus(null);
                     return true;
+
                 case Key.Tab:
                     return base.OnKeyDown(state, args);
-                case Key.End:
-                    moveSelection(text.Length, state.Keyboard.ShiftPressed);
-                    return true;
-                case Key.Home:
-                    moveSelection(-text.Length, state.Keyboard.ShiftPressed);
-                    return true;
-                case Key.Left:
-                    {
-                        if (!HandleLeftRightArrows) return false;
 
-                        if (selectionEnd == 0)
-                        {
-                            //we only clear if you aren't holding shift
-                            if (!state.Keyboard.ShiftPressed)
-                                resetSelection();
-                            return true;
-                        }
-
-                        int amount = 1;
-                        if (state.Keyboard.ControlPressed)
-                        {
-                            int lastSpace = text.LastIndexOf(' ', Math.Max(0, selectionEnd - 2));
-                            if (lastSpace >= 0)
-                            {
-                                //if you have something selected and shift is not held down
-                                //A selection reset is required to select a word inside the current selection
-                                if (!state.Keyboard.ShiftPressed)
-                                    resetSelection();
-                                amount = selectionEnd - lastSpace - 1;
-                            }
-                            else
-                                amount = selectionEnd;
-                        }
-
-                        moveSelection(-amount, state.Keyboard.ShiftPressed);
-                        return true;
-                    }
-                case Key.Right:
-                    {
-                        if (!HandleLeftRightArrows) return false;
-
-                        if (selectionEnd == text.Length)
-                        {
-                            if (!state.Keyboard.ShiftPressed)
-                                resetSelection();
-                            return true;
-                        }
-
-                        int amount = 1;
-                        if (state.Keyboard.ControlPressed)
-                        {
-                            int nextSpace = text.IndexOf(' ', selectionEnd + 1);
-                            if (nextSpace >= 0)
-                            {
-                                if (!state.Keyboard.ShiftPressed)
-                                    resetSelection();
-                                amount = nextSpace - selectionEnd;
-                            }
-                            else
-                                amount = text.Length - selectionEnd;
-                        }
-
-                        moveSelection(amount, state.Keyboard.ShiftPressed);
-                        return true;
-                    }
                 case Key.KeypadEnter:
                 case Key.Enter:
                     if (HasFocus)
@@ -580,81 +617,6 @@ namespace osu.Framework.Graphics.UserInterface
                         OnCommit?.Invoke(this, true);
                     }
                     return true;
-                case Key.Delete:
-                    if (selectionLength == 0)
-                    {
-                        if (text.Length == selectionStart)
-                            return true;
-
-                        if (state.Keyboard.ControlPressed)
-                        {
-                            int spacePos = selectionStart;
-                            while (text[spacePos] == ' ' && spacePos < text.Length)
-                                spacePos++;
-
-                            spacePos = MathHelper.Clamp(text.IndexOf(' ', spacePos), 0, text.Length);
-                            selectionEnd = spacePos;
-
-                            if (selectionStart == 0 && spacePos == 0)
-                                selectionEnd = text.Length;
-
-                            if (selectionLength == 0)
-                                return true;
-                        }
-                        else
-                        {
-                            //we're deleting in front of the cursor, so move the cursor forward once first
-                            selectionStart = selectionEnd = selectionStart + 1;
-                        }
-                    }
-
-                    removeCharacterOrSelection();
-                    return true;
-                case Key.Back:
-                    if (selectionLength == 0 && state.Keyboard.ControlPressed)
-                    {
-                        int spacePos = selectionLeft >= 2 ? Math.Max(0, text.LastIndexOf(' ', selectionLeft - 2) + 1) : 0;
-                        selectionStart = spacePos;
-                    }
-
-                    removeCharacterOrSelection();
-                    return true;
-            }
-
-            if (state.Keyboard.ControlPressed)
-            {
-                //handling of function keys
-                switch (args.Key)
-                {
-                    case Key.A:
-                        selectionStart = 0;
-                        selectionEnd = text.Length;
-                        cursorAndLayout.Invalidate();
-                        return true;
-                    case Key.C:
-                        if (string.IsNullOrEmpty(SelectedText) || !AllowClipboardExport) return true;
-
-                        clipboard?.SetText(SelectedText);
-                        return true;
-                    case Key.X:
-                        if (string.IsNullOrEmpty(SelectedText) || !AllowClipboardExport) return true;
-
-                        clipboard?.SetText(SelectedText);
-                        removeCharacterOrSelection();
-                        return true;
-                    case Key.V:
-
-                        //the text may get pasted into the hidden textbox, so we don't need any direct clipboard interaction here.
-                        string pending = textInput?.GetPendingText();
-
-                        if (string.IsNullOrEmpty(pending))
-                            pending = clipboard?.GetText();
-
-                        insertString(pending);
-                        return true;
-                }
-
-                return false;
             }
 
             return true;
@@ -915,24 +877,7 @@ namespace osu.Framework.Graphics.UserInterface
                 this.textBox = textBox;
             }
 
-            public bool OnPressed(PlatformAction action)
-            {
-                if (!textBox.HasFocus) return false;
-
-                switch (action)
-                {
-                    case PlatformAction.Cut:
-                        Console.WriteLine("Pressed Cut");
-                        break;
-                    case PlatformAction.Copy:
-                        Console.WriteLine("Pressed Copy");
-                        break;
-                    case PlatformAction.Paste:
-                        Console.WriteLine("Pressed Paste");
-                        break;
-                }
-                return true;
-            }
+            public bool OnPressed(PlatformAction action) => textBox.HasFocus && textBox.handleAction(action);
 
             public bool OnReleased(PlatformAction action) => false;
         }

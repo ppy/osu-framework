@@ -11,10 +11,36 @@ namespace osu.Framework.Input
         public override IEnumerable<KeyBinding> DefaultKeyBindings => Host.PlatformKeyBindings;
     }
 
-    public enum PlatformAction
+    public struct PlatformAction
+    {
+        public PlatformActionType ActionType;
+        public PlatformActionMethod? ActionMethod;
+
+        public PlatformAction(PlatformActionType actionType, PlatformActionMethod? actionMethod = null)
+        {
+            ActionType = actionType;
+            ActionMethod = actionMethod;
+        }
+    }
+
+    public enum PlatformActionType
     {
         Cut,
         Copy,
-        Paste
+        Paste,
+        SelectAll,
+        CharPrevious,
+        CharNext,
+        WordPrevious,
+        WordNext,
+        LineStart,
+        LineEnd
+    }
+
+    public enum PlatformActionMethod
+    {
+        Move,
+        Select,
+        Delete
     }
 }
