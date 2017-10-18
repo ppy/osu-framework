@@ -219,6 +219,7 @@ namespace osu.Framework.IO.Network
         private bool canPerform = true;
 
         private CancellationTokenSource cancellationToken;
+        private LengthTrackingStream requestStream;
         private HttpResponseMessage response;
         private int contentLength;
 
@@ -514,6 +515,8 @@ namespace osu.Framework.IO.Network
             isDisposed = true;
 
             abortRequest();
+
+            requestStream?.Dispose();
 
             if (!(ResponseStream is MemoryStream))
                 ResponseStream?.Dispose();
