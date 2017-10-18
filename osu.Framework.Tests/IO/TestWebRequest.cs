@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System.Threading;
 using NUnit.Framework;
 using osu.Framework.IO.Network;
 
@@ -42,6 +43,25 @@ namespace osu.Framework.Tests.IO
             Assert.IsTrue(request.Aborted);
             Assert.IsFalse(request.Completed);
             Assert.IsTrue(hasThrown);
+        }
+
+        [Test]
+        public void TestAbortGet()
+        {
+            var request = new WebRequest($"https://{valid_get_url}") { Method = HttpMethod.GET };
+
+            bool hasThrown = false;
+            request.Finished += (webRequest, exception) => hasThrown = exception != null;
+
+            request.PerformAsync();
+            request.Abort();
+
+            Thread.Sleep(100);
+
+            Assert.AreEqual(null, request.ResponseData);
+            Assert.IsTrue(request.Aborted);
+            Assert.IsFalse(request.Completed);
+            Assert.IsFalse(hasThrown);
         }
     }
 }

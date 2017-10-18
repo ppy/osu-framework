@@ -228,16 +228,16 @@ namespace osu.Framework.IO.Network
         /// </summary>
         public Task PerformAsync()
         {
+            if (!canPerform)
+                throw new InvalidOperationException("Can not perform a web request multiple times.");
+            canPerform = false;
+
+            Aborted = false;
+            abortRequest();
+            cancellationToken = new CancellationTokenSource();
+
             return Task.Factory.StartNew(() =>
             {
-                if (!canPerform)
-                    throw new InvalidOperationException("Can not perform a web request multiple times.");
-                canPerform = false;
-
-                Aborted = false;
-                abortRequest();
-                cancellationToken = new CancellationTokenSource();
-
                 PrePerform();
 
                 try
@@ -317,7 +317,7 @@ namespace osu.Framework.IO.Network
                 {
                     Complete(e);
                 }
-            }, TaskCreationOptions.LongRunning);
+            }, cancellationToken.Token, TaskCreationOptions.LongRunning, TaskScheduler.Current);
         }
 
         /// <summary>
