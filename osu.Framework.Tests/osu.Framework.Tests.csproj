@@ -48,6 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AutomatedVisualTestGame.cs" />
+    <Compile Include="IO\TestWebRequest.cs" />
     <Compile Include="Lists\TestSortedList.cs" />
     <Compile Include="MathUtils\TestInterpolation.cs" />
     <Compile Include="Platform\HeadlessGameHostTest.cs" />
