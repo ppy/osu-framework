@@ -136,15 +136,7 @@ namespace osu.Framework.IO.Network
 
         static WebRequest()
         {
-            var handler = new HttpClientHandler
-            {
-                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
-//                SslProtocols = SslProtocols.Tls,
-//                CheckCertificateRevocationList = false,
-//                MaxConnectionsPerServer = 12
-            };
-
-            client = new HttpClient(handler);
+            client = new HttpClient(new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate });
             client.DefaultRequestHeaders.UserAgent.ParseAdd("osu!");
             client.DefaultRequestHeaders.ExpectContinue = true;
             client.Timeout = System.Threading.Timeout.InfiniteTimeSpan;
