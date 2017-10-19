@@ -2,15 +2,15 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.CodeDom.Compiler;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
-using Microsoft.CodeDom.Providers.DotNetCompilerPlatform;
 using osu.Framework.Logging;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using osu.Framework.Development;
 
 namespace osu.Framework.Testing
@@ -37,19 +37,6 @@ namespace osu.Framework.Testing
         private List<string> requiredTypeNames = new List<string>();
 
         private HashSet<string> assemblies;
-        private readonly CSharpCodeProvider codeProvider;
-
-        public DynamicClassCompiler()
-        {
-            codeProvider = new CSharpCodeProvider();
-
-            var newPath = Path.Combine(DebugUtils.GetSolutionPath(), "packages", "Microsoft.Net.Compilers.2.3.2", "tools", "csc.exe");
-
-            //Black magic to fix incorrect packages path (http://stackoverflow.com/a/40311406)
-            var settings = codeProvider.GetType().GetField("_compilerSettings", BindingFlags.Instance | BindingFlags.NonPublic)?.GetValue(codeProvider);
-            var path = settings?.GetType().GetField("_compilerFullPath", BindingFlags.Instance | BindingFlags.NonPublic);
-            path?.SetValue(settings, newPath);
-        }
 
         public void Start()
         {
@@ -107,13 +94,6 @@ namespace osu.Framework.Testing
                 return;
             isCompiling = true;
 
-            CompilerParameters cp = new CompilerParameters
-            {
-                GenerateInMemory = true,
-                TreatWarningsAsErrors = false,
-                GenerateExecutable = false,
-            };
-
             if (assemblies == null)
             {
                 assemblies = new HashSet<string>();
@@ -121,7 +101,8 @@ namespace osu.Framework.Testing
                     assemblies.Add(ass.Location);
             }
 
-            cp.ReferencedAssemblies.AddRange(assemblies.ToArray());
+            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+            var references = assemblies.Select(a => MetadataReference.CreateFromFile(a));
 
             while (!checkFileReady(lastTouchedFile))
                 Thread.Sleep(10);
@@ -130,21 +111,34 @@ namespace osu.Framework.Testing
 
             CompilationStarted?.Invoke();
 
-            CompilerResults compile = codeProvider.CompileAssemblyFromFile(cp, requiredFiles.ToArray());
+            var compilation = CSharpCompilation.Create(
+                "DotNetCompiler_" + Guid.NewGuid().ToString("D"),
+                requiredFiles.Select(f => CSharpSyntaxTree.ParseText(File.ReadAllText(f))),
+                references,
+                options
+            );
 
             Type compiledType = null;
 
-            if (compile.Errors.HasErrors)
+            using (var ms = new MemoryStream())
             {
-                foreach (CompilerError ce in compile.Errors)
+                var compilationResult = compilation.Emit(ms);
+
+                if (compilationResult.Success)
                 {
-                    if (ce.IsWarning) continue;
-                    Logger.Log(ce.ToString(), LoggingTarget.Runtime, LogLevel.Error);
+                    ms.Seek(0, SeekOrigin.Begin);
+                    var assembly = Assembly.Load(ms.ToArray());
+                    compiledType = assembly.GetModules()[0]?.GetTypes().LastOrDefault(t => t.Name == checkpointObject.GetType().Name);
                 }
-            }
-            else
-            {
-                compiledType = compile.CompiledAssembly.GetModules()[0]?.GetTypes().LastOrDefault(t => t.Name == checkpointObject.GetType().Name);
+                else
+                {
+                    foreach (var diagnostic in compilationResult.Diagnostics)
+                    {
+                        if (diagnostic.Severity < DiagnosticSeverity.Error)
+                            continue;
+                        Logger.Log(diagnostic.ToString(), LoggingTarget.Runtime, LogLevel.Error);
+                    }
+                }
             }
 
             CompilationFinished?.Invoke(compiledType);
