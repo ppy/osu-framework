@@ -7,6 +7,7 @@
     <OutputType>WinExe</OutputType>
     <RootNamespace>osu.Framework.Tests</RootNamespace>
     <AssemblyName>osu.Framework.Tests</AssemblyName>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <TargetFrameworkProfile />
   </PropertyGroup>
