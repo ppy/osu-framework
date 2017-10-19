@@ -3,22 +3,16 @@
 
 using System;
 using System.Drawing;
-using System.Windows.Forms;
 using osu.Framework.Configuration;
 using osu.Framework.Input;
 using OpenTK;
 
 namespace osu.Framework.Platform
 {
-    public class DesktopGameWindow : GameWindow, IDropTarget
+    public class DesktopGameWindow : GameWindow
     {
         private const int default_width = 1366;
         private const int default_height = 768;
-
-        public event Action<DragEventArgs> DragEnter;
-        public event Action<EventArgs> DragLeave;
-        public event Action<DragEventArgs> DragDrop;
-        public event Action<DragEventArgs> DragOver;
 
         private readonly BindableInt widthFullscreen = new BindableInt();
         private readonly BindableInt heightFullscreen = new BindableInt();
@@ -175,13 +169,5 @@ namespace osu.Framework.Platform
                     break;
             }
         }
-
-        public void OnDragEnter(DragEventArgs e) => DragEnter?.Invoke(e);
-
-        public void OnDragLeave(EventArgs e) => DragLeave?.Invoke(e);
-
-        public void OnDragDrop(DragEventArgs e) => DragDrop?.Invoke(e);
-
-        public void OnDragOver(DragEventArgs e) => DragOver?.Invoke(e);
     }
 }
