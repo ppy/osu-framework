@@ -356,6 +356,8 @@ namespace osu.Framework.IO.Network
 
                     while (true)
                     {
+                        cancellationToken.Token.ThrowIfCancellationRequested();
+
                         int read = responseStream.Read(buffer, 0, buffer_size);
 
                         reportForwardProgress();
