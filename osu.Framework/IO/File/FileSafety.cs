@@ -168,13 +168,13 @@ namespace osu.Framework.IO.File
             try
             {
                 //try alternative method: move to a cleanup folder and delete later.
-                if (!Directory.Exists(@"_cleanup"))
+                if (!Directory.Exists(CLEANUP_DIRECTORY))
                 {
-                    DirectoryInfo di = Directory.CreateDirectory(@"_cleanup");
+                    DirectoryInfo di = Directory.CreateDirectory(CLEANUP_DIRECTORY);
                     di.Attributes |= FileAttributes.Hidden;
                 }
 
-                System.IO.File.Move(filename, CLEANUP_DIRECTORY + @"/" + Guid.NewGuid());
+                System.IO.File.Move(filename, Path.Combine(CLEANUP_DIRECTORY, Guid.NewGuid().ToString()));
                 return true;
             }
             catch
@@ -182,6 +182,15 @@ namespace osu.Framework.IO.File
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Delete any files in the cleanup directory.
+        /// </summary>
+        public static void Cleanup()
+        {
+            if (Directory.Exists(CLEANUP_DIRECTORY))
+                Directory.Delete(CLEANUP_DIRECTORY, true);
         }
 
         public static string AsciiOnly(string input)

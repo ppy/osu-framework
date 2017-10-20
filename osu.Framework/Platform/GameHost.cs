@@ -26,6 +26,7 @@ using osu.Framework.Logging;
 using osu.Framework.Statistics;
 using osu.Framework.Threading;
 using osu.Framework.Timing;
+using osu.Framework.IO.File;
 
 namespace osu.Framework.Platform
 {
@@ -150,6 +151,8 @@ namespace osu.Framework.Platform
             Instance = this;
 
             AppDomain.CurrentDomain.UnhandledException += exceptionHandler;
+
+            FileSafety.Cleanup();
 
             Dependencies.Cache(this);
             Dependencies.Cache(Storage = GetStorage(gameName));
