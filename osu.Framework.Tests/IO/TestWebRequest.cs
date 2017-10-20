@@ -118,7 +118,6 @@ namespace osu.Framework.Tests.IO
             Assert.IsTrue(responseObject.Headers.ContentType == null);
         }
 
-        [Serializable]
         private class HttpBinResponse
         {
             [JsonProperty("data")]
@@ -133,7 +132,6 @@ namespace osu.Framework.Tests.IO
             [JsonProperty("json")]
             public TestObject Json;
 
-            [Serializable]
             public class HttpBinHeaders
             {
                 [JsonProperty("Content-Length")]
