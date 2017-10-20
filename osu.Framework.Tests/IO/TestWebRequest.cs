@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using Newtonsoft.Json;
@@ -133,6 +134,7 @@ namespace osu.Framework.Tests.IO
             Assert.IsTrue(responseObject.Headers.ContentType == null);
         }
 
+        [Serializable]
         private class HttpBinResponse
         {
             [JsonProperty("data")]
@@ -147,6 +149,7 @@ namespace osu.Framework.Tests.IO
             [JsonProperty("json")]
             public TestObject Json { get; set; }
 
+            [Serializable]
             public class HttpBinHeaders
             {
                 [JsonProperty("Content-Length")]
@@ -160,6 +163,7 @@ namespace osu.Framework.Tests.IO
             }
         }
 
+        [Serializable]
         public class TestObject
         {
             public string TestString = "readable";
