@@ -21,7 +21,8 @@ namespace osu.Framework.Tests.IO
         [TestCase("https", true)]
         public void TestValidGet(string protocol, bool async)
         {
-            var request = new WebRequest($"{protocol}://{valid_get_url}") { Method = HttpMethod.GET };
+            var url = $"{protocol}://httpbin.org/get";
+            var request = new JsonWebRequest<HttpBinGetResponse>(url) { Method = HttpMethod.GET };
 
             bool hasThrown = false;
             request.Finished += (webRequest, exception) => hasThrown = exception != null;
@@ -31,7 +32,12 @@ namespace osu.Framework.Tests.IO
             else
                 Assert.DoesNotThrow(request.Perform);
 
-            Assert.AreNotEqual(0, request.ResponseData.Length);
+            var responseObject = request.ResponseObject;
+
+            Assert.IsTrue(responseObject != null);
+            Assert.IsTrue(responseObject.Headers.UserAgent == "osu!");
+            Assert.IsTrue(responseObject.Url == url);
+
             Assert.IsFalse(request.Aborted);
             Assert.IsTrue(request.Completed);
             Assert.IsFalse(hasThrown);
@@ -53,7 +59,8 @@ namespace osu.Framework.Tests.IO
             else
                 Assert.DoesNotThrow(request.Perform);
 
-            Assert.AreEqual(null, request.ResponseData);
+            Assert.IsTrue(request.ResponseString == null);
+
             Assert.IsTrue(request.Aborted);
             Assert.IsFalse(request.Completed);
             Assert.IsTrue(hasThrown);
@@ -73,7 +80,8 @@ namespace osu.Framework.Tests.IO
             else
                 Assert.DoesNotThrow(request.Perform);
 
-            Assert.AreEqual(string.Empty, request.ResponseString);
+            Assert.IsEmpty(request.ResponseString);
+
             Assert.IsFalse(request.Aborted);
             Assert.IsTrue(request.Completed);
             Assert.IsFalse(hasThrown);
@@ -83,7 +91,7 @@ namespace osu.Framework.Tests.IO
         [TestCase(true)]
         public void TestAbortGet(bool async)
         {
-            var request = new WebRequest($"https://{valid_get_url}") { Method = HttpMethod.GET };
+            var request = new JsonWebRequest<HttpBinGetResponse>("https://httpbin.org/get") { Method = HttpMethod.GET };
 
             bool hasThrown = false;
             request.Finished += (webRequest, exception) => hasThrown = exception != null;
@@ -94,7 +102,8 @@ namespace osu.Framework.Tests.IO
             else
                 Assert.DoesNotThrow(request.Perform);
 
-            Assert.AreEqual(string.Empty, request.ResponseData);
+            Assert.IsTrue(request.ResponseObject == null);
+
             Assert.IsTrue(request.Aborted);
             Assert.IsFalse(request.Completed);
             Assert.IsFalse(hasThrown);
@@ -104,7 +113,7 @@ namespace osu.Framework.Tests.IO
         [TestCase(true)]
         public void TestPostWithJsonResponse(bool async)
         {
-            var request = new JsonWebRequest<HttpBinResponse>("https://httpbin.org/post") { Method = HttpMethod.POST };
+            var request = new JsonWebRequest<HttpBinPostResponse>("https://httpbin.org/post") { Method = HttpMethod.POST };
 
             request.AddParameter("testkey1", "testval1");
             request.AddParameter("testkey2", "testval2");
@@ -137,7 +146,7 @@ namespace osu.Framework.Tests.IO
         [TestCase(true)]
         public void TestPostWithJsonRequest(bool async)
         {
-            var request = new JsonWebRequest<HttpBinResponse>("https://httpbin.org/post") { Method = HttpMethod.POST };
+            var request = new JsonWebRequest<HttpBinPostResponse>("https://httpbin.org/post") { Method = HttpMethod.POST };
 
             var testObject = new TestObject();
             request.AddRaw(JsonConvert.SerializeObject(testObject));
@@ -160,7 +169,18 @@ namespace osu.Framework.Tests.IO
         }
 
         [Serializable]
-        private class HttpBinResponse
+        private class HttpBinGetResponse
+        {
+            [JsonProperty("headers")]
+            public HttpBinHeaders Headers { get; set; }
+
+            [JsonProperty("url")]
+            public string Url { get; set; }
+        }
+
+
+        [Serializable]
+        private class HttpBinPostResponse
         {
             [JsonProperty("data")]
             public string Data { get; set; }
@@ -173,19 +193,19 @@ namespace osu.Framework.Tests.IO
 
             [JsonProperty("json")]
             public TestObject Json { get; set; }
+        }
 
-            [Serializable]
-            public class HttpBinHeaders
-            {
-                [JsonProperty("Content-Length")]
-                public int ContentLength { get; set; }
+        [Serializable]
+        public class HttpBinHeaders
+        {
+            [JsonProperty("Content-Length")]
+            public int ContentLength { get; set; }
 
-                [JsonProperty("Content-Type")]
-                public string ContentType { get; set; }
+            [JsonProperty("Content-Type")]
+            public string ContentType { get; set; }
 
-                [JsonProperty("User-Agent")]
-                public string UserAgent { get; set; }
-            }
+            [JsonProperty("User-Agent")]
+            public string UserAgent { get; set; }
         }
 
         [Serializable]
