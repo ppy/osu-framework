@@ -18,7 +18,7 @@ namespace osu.Framework.Tests.IO
 
         [TestCase("http")]
         [TestCase("https")]
-        public void TestValidGet(string protocol)
+        public void TestValidGetAsync(string protocol)
         {
             var request = new WebRequest($"{protocol}://{valid_get_url}") { Method = HttpMethod.GET };
 
@@ -26,6 +26,22 @@ namespace osu.Framework.Tests.IO
             request.Finished += (webRequest, exception) => hasThrown = exception != null;
 
             Assert.DoesNotThrowAsync(request.PerformAsync);
+            Assert.AreNotEqual(0, request.ResponseData.Length);
+            Assert.IsFalse(request.Aborted);
+            Assert.IsTrue(request.Completed);
+            Assert.IsFalse(hasThrown);
+        }
+
+        [TestCase("http")]
+        [TestCase("https")]
+        public void TestValidGet(string protocol)
+        {
+            var request = new WebRequest($"{protocol}://{valid_get_url}") { Method = HttpMethod.GET };
+
+            bool hasThrown = false;
+            request.Finished += (webRequest, exception) => hasThrown = exception != null;
+
+            Assert.DoesNotThrow(request.Perform);
             Assert.AreNotEqual(0, request.ResponseData.Length);
             Assert.IsFalse(request.Aborted);
             Assert.IsTrue(request.Completed);

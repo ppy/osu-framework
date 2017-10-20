@@ -332,6 +332,11 @@ namespace osu.Framework.IO.Network
         }
 
         /// <summary>
+        /// Performs the request synchronously.
+        /// </summary>
+        public void Perform() => PerformAsync().Wait();
+
+        /// <summary>
         /// Task to run direct before performing the request.
         /// </summary>
         protected virtual void PrePerform()
