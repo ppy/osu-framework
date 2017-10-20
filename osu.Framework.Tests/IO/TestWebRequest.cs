@@ -1,7 +1,6 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using Newtonsoft.Json;
@@ -121,27 +120,27 @@ namespace osu.Framework.Tests.IO
         private class HttpBinResponse
         {
             [JsonProperty("data")]
-            public string Data;
+            public string Data { get; set; }
 
             [JsonProperty("form")]
-            public IDictionary<string, string> Form;
+            public IDictionary<string, string> Form { get; set; }
 
             [JsonProperty("headers")]
-            public HttpBinHeaders Headers;
+            public HttpBinHeaders Headers { get; set; }
 
             [JsonProperty("json")]
-            public TestObject Json;
+            public TestObject Json { get; set; }
 
             public class HttpBinHeaders
             {
                 [JsonProperty("Content-Length")]
-                public int ContentLength;
+                public int ContentLength { get; set; }
 
                 [JsonProperty("Content-Type")]
-                public string ContentType;
+                public string ContentType { get; set; }
 
                 [JsonProperty("User-Agent")]
-                public string UserAgent;
+                public string UserAgent { get; set; }
             }
         }
 
