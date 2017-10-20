@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading;
 using Newtonsoft.Json;
 using NUnit.Framework;
 using osu.Framework.IO.Network;
@@ -13,66 +12,66 @@ namespace osu.Framework.Tests.IO
     [TestFixture]
     public class TestWebRequest
     {
-        private const string valid_get_url = "a.ppy.sh/2";
+        private const string valid_get_url = "httpbin.org/get";
         private const string invalid_get_url = "a.ppy.shhhhh";
 
-        [TestCase("http")]
-        [TestCase("https")]
-        public void TestValidGetAsync(string protocol)
+        [TestCase("http", false)]
+        [TestCase("https", false)]
+        [TestCase("http", true)]
+        [TestCase("https", true)]
+        public void TestValidGet(string protocol, bool async)
         {
             var request = new WebRequest($"{protocol}://{valid_get_url}") { Method = HttpMethod.GET };
 
             bool hasThrown = false;
             request.Finished += (webRequest, exception) => hasThrown = exception != null;
 
-            Assert.DoesNotThrowAsync(request.PerformAsync);
+            if (async)
+                Assert.DoesNotThrowAsync(request.PerformAsync);
+            else
+                Assert.DoesNotThrow(request.Perform);
+
             Assert.AreNotEqual(0, request.ResponseData.Length);
             Assert.IsFalse(request.Aborted);
             Assert.IsTrue(request.Completed);
             Assert.IsFalse(hasThrown);
         }
 
-        [TestCase("http")]
-        [TestCase("https")]
-        public void TestValidGet(string protocol)
-        {
-            var request = new WebRequest($"{protocol}://{valid_get_url}") { Method = HttpMethod.GET };
-
-            bool hasThrown = false;
-            request.Finished += (webRequest, exception) => hasThrown = exception != null;
-
-            Assert.DoesNotThrow(request.Perform);
-            Assert.AreNotEqual(0, request.ResponseData.Length);
-            Assert.IsFalse(request.Aborted);
-            Assert.IsTrue(request.Completed);
-            Assert.IsFalse(hasThrown);
-        }
-
-        [TestCase("http")]
-        [TestCase("https")]
-        public void TestInvalidGet(string protocol)
+        [TestCase("http", false)]
+        [TestCase("https", false)]
+        [TestCase("http", true)]
+        [TestCase("https", true)]
+        public void TestInvalidGet(string protocol, bool async)
         {
             var request = new WebRequest($"{protocol}://{invalid_get_url}") { Method = HttpMethod.GET };
 
             bool hasThrown = false;
             request.Finished += (webRequest, exception) => hasThrown = exception != null;
 
-            Assert.DoesNotThrowAsync(request.PerformAsync);
+            if (async)
+                Assert.DoesNotThrowAsync(request.PerformAsync);
+            else
+                Assert.DoesNotThrow(request.Perform);
+
             Assert.AreEqual(null, request.ResponseData);
             Assert.IsTrue(request.Aborted);
             Assert.IsFalse(request.Completed);
             Assert.IsTrue(hasThrown);
         }
 
-        [Test]
-        public void TestBadStatusCode()
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestBadStatusCode(bool async)
         {
             var request = new WebRequest("https://httpbin.org/hidden-basic-auth/user/passwd");
 
             bool hasThrown = false;
             request.Finished += (webRequest, exception) => hasThrown = exception != null;
 
-            Assert.DoesNotThrowAsync(request.PerformAsync);
+            if (async)
+                Assert.DoesNotThrowAsync(request.PerformAsync);
+            else
+                Assert.DoesNotThrow(request.Perform);
 
             Assert.AreEqual(string.Empty, request.ResponseString);
             Assert.IsFalse(request.Aborted);
@@ -80,34 +79,40 @@ namespace osu.Framework.Tests.IO
             Assert.IsFalse(hasThrown);
         }
 
-        [Test]
-        public void TestAbortGet()
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestAbortGet(bool async)
         {
             var request = new WebRequest($"https://{valid_get_url}") { Method = HttpMethod.GET };
 
             bool hasThrown = false;
             request.Finished += (webRequest, exception) => hasThrown = exception != null;
+            request.Started += webRequest => request.Abort();
 
-            request.PerformAsync();
-            request.Abort();
+            if (async)
+                Assert.DoesNotThrowAsync(request.PerformAsync);
+            else
+                Assert.DoesNotThrow(request.Perform);
 
-            Thread.Sleep(100);
-
-            Assert.AreEqual(null, request.ResponseData);
+            Assert.AreEqual(string.Empty, request.ResponseData);
             Assert.IsTrue(request.Aborted);
             Assert.IsFalse(request.Completed);
             Assert.IsFalse(hasThrown);
         }
 
-        [Test]
-        public void TestPostWithJsonResponse()
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestPostWithJsonResponse(bool async)
         {
             var request = new JsonWebRequest<HttpBinResponse>("https://httpbin.org/post") { Method = HttpMethod.POST };
 
             request.AddParameter("testkey1", "testval1");
             request.AddParameter("testkey2", "testval2");
 
-            Assert.DoesNotThrowAsync(request.PerformAsync);
+            if (async)
+                Assert.DoesNotThrowAsync(request.PerformAsync);
+            else
+                Assert.DoesNotThrow(request.Perform);
 
             var responseObject = request.ResponseObject;
 
@@ -128,15 +133,19 @@ namespace osu.Framework.Tests.IO
             Assert.IsTrue(responseObject.Headers.ContentType.StartsWith("multipart/form-data; boundary="));
         }
 
-        [Test]
-        public void TestPostWithJsonRequest()
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestPostWithJsonRequest(bool async)
         {
             var request = new JsonWebRequest<HttpBinResponse>("https://httpbin.org/post") { Method = HttpMethod.POST };
 
             var testObject = new TestObject();
             request.AddRaw(JsonConvert.SerializeObject(testObject));
 
-            Assert.DoesNotThrowAsync(request.PerformAsync);
+            if (async)
+                Assert.DoesNotThrowAsync(request.PerformAsync);
+            else
+                Assert.DoesNotThrow(request.Perform);
 
             var responseObject = request.ResponseObject;
 
