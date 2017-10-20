@@ -152,7 +152,7 @@ namespace osu.Framework.Platform
 
             AppDomain.CurrentDomain.UnhandledException += exceptionHandler;
 
-            FileSafety.Cleanup();
+            FileSafety.DeleteCleanupDirectory();
 
             Dependencies.Cache(this);
             Dependencies.Cache(Storage = GetStorage(gameName));

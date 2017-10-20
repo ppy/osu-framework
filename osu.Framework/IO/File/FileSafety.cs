@@ -150,6 +150,11 @@ namespace osu.Framework.IO.File
             return NativeMethods.MoveFileEx(deathLocation, null, MoveFileFlags.DelayUntilReboot);
         }
 
+        /// <summary>
+        /// Performs a file delete. If a delete operation fails (as can regularly happen on windows), the file is moved to a temporary directory for future cleanup (see <see cref="DeleteCleanupDirectory"/>).
+        /// </summary>
+        /// <param name="filename">The relative or full path of the file to delete.</param>
+        /// <returns>True if deletion was successful by any means, or the file didn't exist.</returns>
         public static bool FileDelete(string filename)
         {
             filename = PathSanitise(filename);
@@ -185,9 +190,9 @@ namespace osu.Framework.IO.File
         }
 
         /// <summary>
-        /// Delete any files in the cleanup directory.
+        /// Delete any files in the cleanup directory (see <see cref="FileDelete(string)"/>).
         /// </summary>
-        public static void Cleanup()
+        public static void DeleteCleanupDirectory()
         {
             if (Directory.Exists(CLEANUP_DIRECTORY))
                 Directory.Delete(CLEANUP_DIRECTORY, true);
