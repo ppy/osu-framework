@@ -382,10 +382,10 @@ namespace osu.Framework.IO.Network
             if (Aborted)
                 return;
 
-            if (e == null)
-                logger.Add($@"Request to {Url} successfully completed!");
-            else if (response == null)
+            if (e != null)
                 logger.Add($"Request to {Url} failed with {e.Message} (FAILED).");
+            else if (response.IsSuccessStatusCode)
+                logger.Add($@"Request to {Url} successfully completed!");
             else
             {
                 bool allowRetry = true;

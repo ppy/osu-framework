@@ -48,6 +48,22 @@ namespace osu.Framework.Tests.IO
         }
 
         [Test]
+        public void TestBadStatusCode()
+        {
+            var request = new WebRequest("https://httpbin.org/hidden-basic-auth/user/passwd");
+
+            bool hasThrown = false;
+            request.Finished += (webRequest, exception) => hasThrown = exception != null;
+
+            Assert.DoesNotThrowAsync(request.PerformAsync);
+
+            Assert.AreEqual(string.Empty, request.ResponseString);
+            Assert.IsFalse(request.Aborted);
+            Assert.IsTrue(request.Completed);
+            Assert.IsFalse(hasThrown);
+        }
+
+        [Test]
         public void TestAbortGet()
         {
             var request = new WebRequest($"https://{valid_get_url}") { Method = HttpMethod.GET };
