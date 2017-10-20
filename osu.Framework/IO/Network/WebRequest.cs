@@ -213,7 +213,7 @@ namespace osu.Framework.IO.Network
         private CancellationTokenSource cancellationToken;
         private LengthTrackingStream requestStream;
         private HttpResponseMessage response;
-        private int contentLength;
+        private long contentLength;
 
         /// <summary>
         /// Performs the request asynchronously.
@@ -252,31 +252,50 @@ namespace osu.Framework.IO.Network
                             request = new HttpRequestMessage(System.Net.Http.HttpMethod.Get, string.IsNullOrEmpty(requestString) ? Url : $"{Url}?{requestString}");
                             break;
                         case HttpMethod.POST:
-                            const string boundary = "-----------------------------28947758029299";
-
-                            var formData = new MultipartFormDataContent(boundary);
-
-                            foreach (var p in Parameters)
-                                formData.Add(new StringContent(p.Value), p.Key);
-
-                            foreach (var p in Files)
+                            if (Parameters.Count + Files.Count == 0)
                             {
-                                var byteContent = new ByteArrayContent(p.Value);
-                                byteContent.Headers.Add("Content-Type", "application/octet-stream");
-                                formData.Add(byteContent, p.Key, p.Key);
+                                contentLength = rawContent.Length;
+                                rawContent.Seek(0, SeekOrigin.Begin);
+
+                                requestStream = new LengthTrackingStream(rawContent);
+                                requestStream.BytesRead.ValueChanged += v =>
+                                {
+                                    reportForwardProgress();
+                                    UploadProgress?.Invoke(this, v, contentLength);
+                                };
+
+                                request = new HttpRequestMessage(System.Net.Http.HttpMethod.Post, Url) { Content = new StreamContent(requestStream) };
+                                if (!string.IsNullOrEmpty(ContentType))
+                                    request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse(ContentType);
                             }
-
-                            contentLength = formData.ReadAsByteArrayAsync().Result.Length;
-
-                            requestStream = new LengthTrackingStream(formData.ReadAsStreamAsync().Result);
-                            requestStream.BytesRead.ValueChanged += v =>
+                            else
                             {
-                                reportForwardProgress();
-                                UploadProgress?.Invoke(this, v, contentLength);
-                            };
+                                const string boundary = "-----------------------------28947758029299";
 
-                            request = new HttpRequestMessage(System.Net.Http.HttpMethod.Post, Url) { Content = new StreamContent(requestStream) };
-                            request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse($"multipart/form-data; boundary={boundary}");
+                                var formData = new MultipartFormDataContent(boundary);
+
+                                foreach (var p in Parameters)
+                                    formData.Add(new StringContent(p.Value), p.Key);
+
+                                foreach (var p in Files)
+                                {
+                                    var byteContent = new ByteArrayContent(p.Value);
+                                    byteContent.Headers.Add("Content-Type", "application/octet-stream");
+                                    formData.Add(byteContent, p.Key, p.Key);
+                                }
+
+                                contentLength = formData.ReadAsByteArrayAsync().Result.Length;
+
+                                requestStream = new LengthTrackingStream(formData.ReadAsStreamAsync().Result);
+                                requestStream.BytesRead.ValueChanged += v =>
+                                {
+                                    reportForwardProgress();
+                                    UploadProgress?.Invoke(this, v, contentLength);
+                                };
+
+                                request = new HttpRequestMessage(System.Net.Http.HttpMethod.Post, Url) { Content = new StreamContent(requestStream) };
+                                request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse($"multipart/form-data; boundary={boundary}");
+                            }
 
                             break;
                     }

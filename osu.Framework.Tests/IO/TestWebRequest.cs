@@ -101,7 +101,8 @@ namespace osu.Framework.Tests.IO
         {
             var request = new JsonWebRequest<HttpBinResponse>("https://httpbin.org/post") { Method = HttpMethod.POST };
 
-            request.AddRaw(JsonConvert.SerializeObject(new TestObject()));
+            var testObject = new TestObject();
+            request.AddRaw(JsonConvert.SerializeObject(testObject));
 
             Assert.DoesNotThrowAsync(request.PerformAsync);
 
@@ -112,8 +113,9 @@ namespace osu.Framework.Tests.IO
 
             Assert.IsTrue(responseObject.Headers.ContentLength > 0);
             Assert.IsTrue(responseObject.Json != null);
+            Assert.AreEqual(testObject.TestString, responseObject.Json.TestString);
 
-            Assert.IsTrue(!responseObject.Headers.ContentType.StartsWith("multipart/form-data; boundary="));
+            Assert.IsTrue(responseObject.Headers.ContentType == null);
         }
 
         [Serializable]
@@ -129,7 +131,7 @@ namespace osu.Framework.Tests.IO
             public HttpBinHeaders Headers;
 
             [JsonProperty("json")]
-            public string Json;
+            public TestObject Json;
 
             [Serializable]
             public class HttpBinHeaders
