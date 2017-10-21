@@ -47,23 +47,24 @@ namespace osu.Framework.Tests.IO
         [TestCase("https", false)]
         [TestCase("http", true)]
         [TestCase("https", true)]
-        public void TestInvalidGet(string protocol, bool async)
+        public void TestInvalidGetExceptions(string protocol, bool async)
         {
             var request = new WebRequest($"{protocol}://{invalid_get_url}") { Method = HttpMethod.GET };
 
-            bool hasThrown = false;
-            request.Finished += (webRequest, exception) => hasThrown = exception != null;
+            Exception finishedException = null;
+            request.Finished += (webRequest, exception) => finishedException = exception;
 
             if (async)
-                Assert.DoesNotThrowAsync(request.PerformAsync);
+                Assert.ThrowsAsync<AggregateException>(request.PerformAsync);
             else
-                Assert.DoesNotThrow(request.Perform);
+                Assert.Throws<AggregateException>(request.Perform);
 
             Assert.IsTrue(request.ResponseString == null);
 
             Assert.IsTrue(request.Aborted);
             Assert.IsFalse(request.Completed);
-            Assert.IsTrue(hasThrown);
+
+            Assert.IsNotNull(finishedException);
         }
 
         [TestCase(false)]

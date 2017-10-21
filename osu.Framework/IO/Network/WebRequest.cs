@@ -327,6 +327,7 @@ namespace osu.Framework.IO.Network
                 catch (Exception e)
                 {
                     Complete(e);
+                    throw;
                 }
             }, cancellationToken.Token, TaskCreationOptions.LongRunning, TaskScheduler.Current);
         }
