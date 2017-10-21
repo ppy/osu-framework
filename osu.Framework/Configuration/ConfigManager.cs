@@ -42,7 +42,7 @@ namespace osu.Framework.Configuration
 
             if (bindable == null)
             {
-                bindable = new BindableDouble(value);
+                bindable = new BindableDouble(value) { Default = value };
                 addBindable(lookup, bindable);
             }
             else
@@ -62,7 +62,7 @@ namespace osu.Framework.Configuration
 
             if (bindable == null)
             {
-                bindable = new BindableFloat(value);
+                bindable = new BindableFloat(value) { Default = value };
                 addBindable(lookup, bindable);
             }
             else
@@ -82,7 +82,7 @@ namespace osu.Framework.Configuration
 
             if (bindable == null)
             {
-                bindable = new BindableInt(value);
+                bindable = new BindableInt(value) { Default = value };
                 addBindable(lookup, bindable);
             }
             else
@@ -102,7 +102,7 @@ namespace osu.Framework.Configuration
 
             if (bindable == null)
             {
-                bindable = new BindableBool(value);
+                bindable = new BindableBool(value) { Default = value };
                 addBindable(lookup, bindable);
             }
             else
@@ -133,7 +133,7 @@ namespace osu.Framework.Configuration
 
         private Bindable<U> set<U>(T lookup, U value)
         {
-            Bindable<U> bindable = new Bindable<U>(value);
+            Bindable<U> bindable = new Bindable<U>(value) { Default = value };
             addBindable(lookup, bindable);
             return bindable;
         }
