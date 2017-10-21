@@ -241,6 +241,8 @@ namespace osu.Framework.IO.Network
 
                     switch (Method)
                     {
+                        default:
+                            throw new InvalidOperationException($"HTTP method {Method} is currently not supported");
                         case HttpMethod.GET:
                             Debug.Assert(Files.Count == 0);
 
