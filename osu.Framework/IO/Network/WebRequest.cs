@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -213,7 +212,12 @@ namespace osu.Framework.IO.Network
         private CancellationTokenSource cancellationToken;
         private LengthTrackingStream requestStream;
         private HttpResponseMessage response;
-        private long contentLength;
+
+        private long contentLength => requestStream?.Length ?? 0;
+
+        private const string form_boundary = "-----------------------------28947758029299";
+
+        private const string form_content_type = "multipart/form-data; boundary=" + form_boundary;
 
         /// <summary>
         /// Performs the request asynchronously.
@@ -237,7 +241,7 @@ namespace osu.Framework.IO.Network
                     reportForwardProgress();
                     ThreadPool.QueueUserWorkItem(checkTimeoutLoop);
 
-                    HttpRequestMessage request = null;
+                    HttpRequestMessage request;
 
                     switch (Method)
                     {
@@ -257,27 +261,30 @@ namespace osu.Framework.IO.Network
                             request = new HttpRequestMessage(System.Net.Http.HttpMethod.Get, string.IsNullOrEmpty(requestString) ? Url : $"{Url}?{requestString}");
                             break;
                         case HttpMethod.POST:
-                            if (Parameters.Count + Files.Count == 0)
+                            request = new HttpRequestMessage(System.Net.Http.HttpMethod.Post, Url);
+
+                            Stream postContent;
+
+                            if (rawContent != null)
                             {
-                                contentLength = rawContent.Length;
-                                rawContent.Seek(0, SeekOrigin.Begin);
+                                if (Parameters.Count > 0)
+                                    throw new InvalidOperationException($"Cannot use {nameof(AddRaw)} in conjunction with {nameof(AddParameter)}");
+                                if (Files.Count > 0)
+                                    throw new InvalidOperationException($"Cannot use {nameof(AddRaw)} in conjunction with {nameof(AddFile)}");
 
-                                requestStream = new LengthTrackingStream(rawContent);
-                                requestStream.BytesRead.ValueChanged += v =>
-                                {
-                                    reportForwardProgress();
-                                    UploadProgress?.Invoke(this, v, contentLength);
-                                };
-
-                                request = new HttpRequestMessage(System.Net.Http.HttpMethod.Post, Url) { Content = new StreamContent(requestStream) };
-                                if (!string.IsNullOrEmpty(ContentType))
-                                    request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse(ContentType);
+                                postContent = new MemoryStream();
+                                rawContent.Position = 0;
+                                rawContent.CopyTo(postContent);
+                                postContent.Position = 0;
                             }
                             else
                             {
-                                const string boundary = "-----------------------------28947758029299";
+                                if (!string.IsNullOrEmpty(ContentType) && ContentType != form_content_type)
+                                    throw new InvalidOperationException($"Cannot use custom {nameof(ContentType)} in a POST request.");
 
-                                var formData = new MultipartFormDataContent(boundary);
+                                ContentType = form_content_type;
+
+                                var formData = new MultipartFormDataContent(form_boundary);
 
                                 foreach (var p in Parameters)
                                     formData.Add(new StringContent(p.Value), p.Key);
@@ -289,27 +296,28 @@ namespace osu.Framework.IO.Network
                                     formData.Add(byteContent, p.Key, p.Key);
                                 }
 
-                                contentLength = formData.ReadAsByteArrayAsync().Result.Length;
-
-                                requestStream = new LengthTrackingStream(formData.ReadAsStreamAsync().Result);
-                                requestStream.BytesRead.ValueChanged += v =>
-                                {
-                                    reportForwardProgress();
-                                    UploadProgress?.Invoke(this, v, contentLength);
-                                };
-
-                                request = new HttpRequestMessage(System.Net.Http.HttpMethod.Post, Url) { Content = new StreamContent(requestStream) };
-                                request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse($"multipart/form-data; boundary={boundary}");
+                                postContent = formData.ReadAsStreamAsync().Result;
                             }
 
+                            requestStream = new LengthTrackingStream(postContent);
+
+                            requestStream.BytesRead.ValueChanged += v =>
+                            {
+                                reportForwardProgress();
+                                UploadProgress?.Invoke(this, v, contentLength);
+                            };
+
+                            request.Content = new StreamContent(requestStream);
+                            if (!string.IsNullOrEmpty(ContentType))
+                                request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse(ContentType);
                             break;
                     }
 
                     if (!string.IsNullOrEmpty(Accept))
-                        request?.Headers.Accept.TryParseAdd(Accept);
+                        request.Headers.Accept.TryParseAdd(Accept);
 
                     foreach (var kvp in Headers)
-                        request?.Headers.Add(kvp.Key, kvp.Value);
+                        request.Headers.Add(kvp.Key, kvp.Value);
 
                     response = client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken.Token).Result;
 
@@ -621,6 +629,7 @@ namespace osu.Framework.IO.Network
             public override bool CanSeek => baseStream.CanSeek;
             public override bool CanWrite => baseStream.CanWrite;
             public override long Length => baseStream.Length;
+
             public override long Position
             {
                 get { return baseStream.Position; }
