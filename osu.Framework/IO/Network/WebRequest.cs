@@ -244,7 +244,10 @@ namespace osu.Framework.IO.Network
                         default:
                             throw new InvalidOperationException($"HTTP method {Method} is currently not supported");
                         case HttpMethod.GET:
-                            Debug.Assert(Files.Count == 0);
+                            if (Parameters.Count > 0)
+                                throw new InvalidOperationException($"Cannot use {nameof(AddParameter)} in a GET request. Please set the {nameof(Method)} to POST.");
+                            if (Files.Count > 0)
+                                throw new InvalidOperationException($"Cannot use {nameof(AddFile)} in a GET request. Please set the {nameof(Method)} to POST.");
 
                             StringBuilder requestParameters = new StringBuilder();
                             foreach (var p in Parameters)
