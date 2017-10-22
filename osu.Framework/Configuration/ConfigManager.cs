@@ -47,7 +47,7 @@ namespace osu.Framework.Configuration
             }
             else
             {
-                bindable.Value = value;
+                bindable.Default = bindable.Value = value;
             }
 
             if (min.HasValue) bindable.MinValue = min.Value;
@@ -67,7 +67,7 @@ namespace osu.Framework.Configuration
             }
             else
             {
-                bindable.Value = value;
+                bindable.Default = bindable.Value = value;
             }
 
             if (min.HasValue) bindable.MinValue = min.Value;
@@ -87,7 +87,7 @@ namespace osu.Framework.Configuration
             }
             else
             {
-                bindable.Value = value;
+                bindable.Default = bindable.Value = value;
             }
 
             if (min.HasValue) bindable.MinValue = min.Value;
@@ -107,7 +107,7 @@ namespace osu.Framework.Configuration
             }
             else
             {
-                bindable.Value = value;
+                bindable.Default = bindable.Value = value;
             }
 
             return bindable;
@@ -120,8 +120,7 @@ namespace osu.Framework.Configuration
             if (bindable == null)
                 bindable = set(lookup, value);
             else
-                bindable.Value = value;
-
+                bindable.Default = bindable.Value = value;
             return bindable;
         }
 
