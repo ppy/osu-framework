@@ -204,6 +204,8 @@ namespace osu.Framework.Configuration
 
         /// <summary>
         /// Sets the value of the bindable to Min + (Max - Min) * amt
+        /// <param name="amt">The proportional amount to set, ranging from 0 to 1.</param>
+        /// <param name="snap">If greater than 0, snap the final value to the closest multiple of this number.</param>
         /// </summary>
         public void SetProportional(float amt, float snap = 0)
         {

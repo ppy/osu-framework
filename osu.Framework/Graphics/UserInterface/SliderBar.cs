@@ -29,8 +29,6 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public float KeyboardStep;
 
-        public float SnapInterval;
-
         protected readonly BindableNumber<T> CurrentNumber;
 
         public Bindable<T> Current => CurrentNumber;
@@ -138,7 +136,7 @@ namespace osu.Framework.Graphics.UserInterface
             var xPosition = ToLocalSpace(state?.Mouse.NativeState.Position ?? Vector2.Zero).X - RangePadding;
 
             if (!CurrentNumber.Disabled)
-                CurrentNumber.SetProportional(xPosition / UsableWidth, state != null && state.Keyboard.ShiftPressed ? SnapInterval : 0);
+                CurrentNumber.SetProportional(xPosition / UsableWidth, state != null && state.Keyboard.ShiftPressed ? KeyboardStep : 0);
 
             OnUserChange();
         }
