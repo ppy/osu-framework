@@ -7,7 +7,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
 using OpenTK.Input;
 using OpenTK;
-using System.Diagnostics;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -92,21 +91,19 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
+        protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
+        {
+            handleMouseInput(state);
+            return true;
+        }
+
         protected override bool OnDrag(InputState state)
         {
             handleMouseInput(state);
             return true;
         }
 
-        protected override bool OnDragStart(InputState state)
-        {
-            Trace.Assert(state.Mouse.PositionMouseDown.HasValue,
-                $@"Can not start a {nameof(SliderBar<T>)} drag without knowing the mouse down position.");
-
-            Vector2 posDiff = state.Mouse.PositionMouseDown.Value - state.Mouse.Position;
-
-            return Math.Abs(posDiff.X) > Math.Abs(posDiff.Y);
-        }
+        protected override bool OnDragStart(InputState state) => true;
 
         protected override bool OnDragEnd(InputState state) => true;
 
