@@ -4,7 +4,7 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using osu.Framework.IO.Network;
+using WebRequest = osu.Framework.IO.Network.WebRequest;
 
 namespace osu.Framework.IO.Stores
 {
@@ -12,22 +12,19 @@ namespace osu.Framework.IO.Stores
     {
         public async Task<byte[]> GetAsync(string url)
         {
-            return await Task.Factory.StartNew(delegate
-            {
-                if (!url.StartsWith(@"https://", StringComparison.Ordinal))
-                    return null;
+            if (!url.StartsWith(@"https://", StringComparison.Ordinal))
+                return null;
 
-                try
-                {
-                    WebRequest req = new WebRequest($@"{url}");
-                    req.BlockingPerform();
-                    return req.ResponseData;
-                }
-                catch
-                {
-                    return null;
-                }
-            }, TaskCreationOptions.LongRunning).ConfigureAwait(false);
+            try
+            {
+                WebRequest req = new WebRequest($@"{url}");
+                await req.PerformAsync();
+                return req.ResponseData;
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         public byte[] Get(string url)
