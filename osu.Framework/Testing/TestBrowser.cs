@@ -55,7 +55,7 @@ namespace osu.Framework.Testing
             assemblyDropdown.Current.ValueChanged += updateList;
 
             var loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies().ToList();
-            var loadedPaths = loadedAssemblies.Select(a => a.Location).ToArray();
+            var loadedPaths = loadedAssemblies.Where(a => !a.IsDynamic).Select(a => a.Location).ToArray();
 
             var referencedPaths = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*Test*.dll");
             var toLoad = referencedPaths.Where(r => !loadedPaths.Contains(r, StringComparer.InvariantCultureIgnoreCase)).ToList();
@@ -280,10 +280,10 @@ namespace osu.Framework.Testing
 
             if (testType != null)
             {
-                assemblyDropdown.RemoveDropdownItem(assemblyDropdown.Items.LastOrDefault(i => i.Value.CodeBase.Contains("DotNetCompiler")).Value);
+                assemblyDropdown.RemoveDropdownItem(assemblyDropdown.Items.LastOrDefault(i => i.Value.FullName.Contains("DotNetCompiler")).Value);
 
                 // if we are a dynamically compiled type (via DynamicClassCompiler) we should update the dropdown accordingly.
-                if (testType.Assembly.CodeBase.Contains("DotNetCompiler"))
+                if (testType.Assembly.FullName.Contains("DotNetCompiler"))
                     assemblyDropdown.AddDropdownItem($"dynamic ({testType.Name})", testType.Assembly);
 
                 assemblyDropdown.Current.Value = testType.Assembly;

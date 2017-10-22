@@ -449,7 +449,7 @@ namespace osu.Framework.Graphics
 
                 if ((value & Axes.Y) > (relativePositionAxes & Axes.Y))
                     Y = conversion.Y == 0 ? 0 : Y / conversion.Y;
-                else if ((relativePositionAxes & Axes.X) > (value & Axes.X))
+                else if ((relativePositionAxes & Axes.Y) > (value & Axes.Y))
                     Y *= conversion.Y;
 
                 relativePositionAxes = value;
