@@ -1,8 +1,11 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net461</TargetFramework>
     <OutputType>WinExe</OutputType>
     <PlatformTarget>AnyCPU</PlatformTarget>
+    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
+    <Company></Company>
+    <Authors />
     <Version>1.0.0.0</Version>
     <Copyright>Copyright © ppy Pty Ltd 2017</Copyright>
   </PropertyGroup>
@@ -25,5 +28,10 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources\Tracks\sample-track.mp3" />
     <EmbeddedResource Include="Resources\Textures\sample-texture.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="OpenTK.dll.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>
