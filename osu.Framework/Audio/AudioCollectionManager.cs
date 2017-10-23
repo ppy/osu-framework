@@ -56,15 +56,10 @@ namespace osu.Framework.Audio
         {
             base.Update();
 
-            for (int i = 0; i < Items.Count; i++)
+            foreach (var item in Items)
             {
-                var item = Items[i];
-
                 if (item.HasCompleted)
-                {
-                    Items.RemoveAt(i--);
                     continue;
-                }
 
                 item.Update();
             }
