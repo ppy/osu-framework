@@ -237,7 +237,7 @@ namespace osu.Framework.Tests.Visual
 
                 case 4:
                     {
-                        Drawable createMaskingBox(float scale)
+                        Func<float, Drawable> createMaskingBox = delegate (float scale)
                         {
                             float size = 200 / scale;
                             return new Container
