@@ -30,8 +30,8 @@
     <EmbeddedResource Include="Resources\Textures\sample-texture.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Update="OpenTK.dll.config">
+    <Content Include="OpenTK.dll.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    </Content>
   </ItemGroup>
 </Project>
