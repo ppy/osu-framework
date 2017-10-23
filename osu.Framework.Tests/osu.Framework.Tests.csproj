@@ -1,4 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\LangVer.props" />
   <PropertyGroup>
     <TargetFramework>net461</TargetFramework>
     <OutputType>WinExe</OutputType>
