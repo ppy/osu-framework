@@ -138,6 +138,9 @@ namespace osu.Framework.IO.Network
             client = new HttpClient(new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate });
             client.DefaultRequestHeaders.UserAgent.ParseAdd("osu!");
             client.DefaultRequestHeaders.ExpectContinue = true;
+
+            // Timeout is controlled manually through cancellation tokens because
+            // HttpClient does not properly timeout while reading chunked data
             client.Timeout = System.Threading.Timeout.InfiniteTimeSpan;
 
             logger = Logger.GetLogger(LoggingTarget.Network, true);
@@ -209,7 +212,10 @@ namespace osu.Framework.IO.Network
 
         private bool canPerform = true;
 
-        private CancellationTokenSource cancellationToken;
+        private CancellationTokenSource abortToken;
+        private CancellationTokenSource timeoutToken;
+        private CancellationTokenSource linkedToken;
+
         private LengthTrackingStream requestStream;
         private HttpResponseMessage response;
 
@@ -230,7 +236,9 @@ namespace osu.Framework.IO.Network
 
             Aborted = false;
             abortRequest();
-            cancellationToken = new CancellationTokenSource();
+            abortToken = new CancellationTokenSource();
+            timeoutToken = new CancellationTokenSource();
+            linkedToken = CancellationTokenSource.CreateLinkedTokenSource(abortToken.Token, timeoutToken.Token);
 
             return Task.Factory.StartNew(() =>
             {
@@ -239,7 +247,6 @@ namespace osu.Framework.IO.Network
                 try
                 {
                     reportForwardProgress();
-                    ThreadPool.QueueUserWorkItem(checkTimeoutLoop);
 
                     HttpRequestMessage request;
 
@@ -317,7 +324,7 @@ namespace osu.Framework.IO.Network
                     foreach (var kvp in Headers)
                         request.Headers.Add(kvp.Key, kvp.Value);
 
-                    response = client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken.Token).Result;
+                    response = client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, linkedToken.Token).Result;
 
                     ResponseStream = CreateOutputStream();
 
@@ -335,12 +342,17 @@ namespace osu.Framework.IO.Network
                             break;
                     }
                 }
+                catch (Exception) when (timeoutToken.IsCancellationRequested)
+                {
+                    logger.Add($@"Request timeout exceeded ({timeSinceLastAction})");
+                    Complete(new WebException($"Request to {Url} timed out after {timeSinceLastAction / 1000} seconds idle (read {responseBytesRead} bytes).", WebExceptionStatus.Timeout));
+                }
                 catch (Exception e)
                 {
                     Complete(e);
                     throw;
                 }
-            }, cancellationToken.Token, TaskCreationOptions.LongRunning, TaskScheduler.Current);
+            }, linkedToken.Token, TaskCreationOptions.LongRunning, TaskScheduler.Current);
         }
 
         /// <summary>
@@ -357,66 +369,61 @@ namespace osu.Framework.IO.Network
 
         private void beginResponse()
         {
-            try
+            using (var responseStream = response.Content.ReadAsStreamAsync().Result)
             {
-                using (var responseStream = response.Content.ReadAsStreamAsync().Result)
+                reportForwardProgress();
+                Started?.Invoke(this);
+
+                buffer = new byte[buffer_size];
+
+                while (true)
                 {
+                    linkedToken.Token.ThrowIfCancellationRequested();
+
+                    int read = responseStream.Read(buffer, 0, buffer_size);
+
                     reportForwardProgress();
-                    Started?.Invoke(this);
 
-                    buffer = new byte[buffer_size];
-
-                    while (true)
+                    if (read > 0)
                     {
-                        cancellationToken.Token.ThrowIfCancellationRequested();
-
-                        int read = responseStream.Read(buffer, 0, buffer_size);
-
-                        reportForwardProgress();
-
-                        if (read > 0)
-                        {
-                            ResponseStream.Write(buffer, 0, read);
-                            responseBytesRead += read;
-                            DownloadProgress?.Invoke(this, responseBytesRead, response.Content.Headers.ContentLength ?? responseBytesRead);
-                        }
-                        else
-                        {
-                            ResponseStream.Seek(0, SeekOrigin.Begin);
-                            Complete();
-                            break;
-                        }
+                        ResponseStream.Write(buffer, 0, read);
+                        responseBytesRead += read;
+                        DownloadProgress?.Invoke(this, responseBytesRead, response.Content.Headers.ContentLength ?? responseBytesRead);
+                    }
+                    else
+                    {
+                        ResponseStream.Seek(0, SeekOrigin.Begin);
+                        Complete();
+                        break;
                     }
                 }
             }
-            catch (Exception e)
-            {
-                Complete(e);
-            }
         }
-
 
         protected virtual void Complete(Exception e = null)
         {
             if (Aborted)
                 return;
 
+            var we = e as WebException;
+
+            bool allowRetry = false;
+            bool hasFailed = false;
+
             if (e != null)
-                logger.Add($"Request to {Url} failed with {e.Message} (FAILED).");
-            else if (response.IsSuccessStatusCode)
-                logger.Add($@"Request to {Url} successfully completed!");
-            else
             {
-                bool allowRetry = true;
+                hasFailed = true;
+                allowRetry = we?.Status == WebExceptionStatus.Timeout;
+            }
+            else if (!response.IsSuccessStatusCode)
+            {
+                hasFailed = true;
+                allowRetry = true;
 
                 switch (response.StatusCode)
                 {
+                    case HttpStatusCode.GatewayTimeout:
                     case HttpStatusCode.RequestTimeout:
-                        if (hasExceededTimeout)
-                        {
-                            logger.Add($@"Timeout exceeded ({timeSinceLastAction} > {DEFAULT_TIMEOUT})");
-                            e = new WebException($"Timeout to {Url} after {timeSinceLastAction / 1000} seconds idle (read {responseBytesRead} bytes).", WebExceptionStatus.Timeout);
-                        }
                         break;
                     case HttpStatusCode.NotFound:
                     case HttpStatusCode.MethodNotAllowed:
@@ -427,18 +434,23 @@ namespace osu.Framework.IO.Network
                         allowRetry = false;
                         break;
                 }
+            }
 
+            if (hasFailed)
+            {
                 if (allowRetry && retriesRemaining-- > 0 && responseBytesRead == 0)
                 {
-                    logger.Add($@"Request to {Url} failed with {response.StatusCode} (retrying {default_retry_count - retriesRemaining}/{default_retry_count}).");
+                    logger.Add($@"Request to {Url} failed with {e?.ToString() ?? response.StatusCode.ToString()} (retrying {default_retry_count - retriesRemaining}/{default_retry_count}).");
 
                     //do a retry
-                    PerformAsync();
+                    Perform();
                     return;
                 }
 
-                logger.Add($@"Request to {Url} failed with {response.StatusCode} (FAILED).");
+                logger.Add($"Request to {Url} failed with {e?.ToString() ?? response.StatusCode.ToString()} (FAILED).");
             }
+            else
+                logger.Add($@"Request to {Url} successfully completed!");
 
             Finished?.Invoke(this, e);
 
@@ -453,9 +465,13 @@ namespace osu.Framework.IO.Network
 
         private void abortRequest()
         {
-            cancellationToken?.Cancel();
-            cancellationToken?.Dispose();
-            cancellationToken = null;
+            linkedToken?.Cancel();
+            linkedToken?.Dispose();
+            linkedToken = null;
+            abortToken?.Dispose();
+            abortToken = null;
+            timeoutToken?.Dispose();
+            timeoutToken = null;
         }
 
         /// <summary>
@@ -524,20 +540,10 @@ namespace osu.Framework.IO.Network
 
         private long timeSinceLastAction => (DateTime.Now.Ticks - lastAction) / TimeSpan.TicksPerMillisecond;
 
-        private bool hasExceededTimeout => timeSinceLastAction > Timeout;
-
-        private void checkTimeoutLoop(object state)
-        {
-            while (!Aborted && !Completed)
-            {
-                if (hasExceededTimeout) abortRequest();
-                Thread.Sleep(500);
-            }
-        }
-
         private void reportForwardProgress()
         {
             lastAction = DateTime.Now.Ticks;
+            timeoutToken.CancelAfter(Timeout);
         }
 
         #endregion
