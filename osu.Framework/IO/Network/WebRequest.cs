@@ -236,11 +236,15 @@ namespace osu.Framework.IO.Network
 
             Aborted = false;
             abortRequest();
-            abortToken = new CancellationTokenSource();
-            timeoutToken = new CancellationTokenSource();
-            linkedToken = CancellationTokenSource.CreateLinkedTokenSource(abortToken.Token, timeoutToken.Token);
 
-            await Task.Factory.StartNew(() =>
+            await Task.Factory.StartNew(internalPerform, TaskCreationOptions.LongRunning);
+        }
+
+        private void internalPerform()
+        {
+            using (abortToken = new CancellationTokenSource())
+            using (timeoutToken = new CancellationTokenSource())
+            using (linkedToken = CancellationTokenSource.CreateLinkedTokenSource(abortToken.Token, timeoutToken.Token))
             {
                 PrePerform();
 
@@ -355,7 +359,9 @@ namespace osu.Framework.IO.Network
                     Complete(e);
                     throw;
                 }
-            }, linkedToken.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+            }
+
+            canPerform = true;
         }
 
         /// <summary>
@@ -446,8 +452,7 @@ namespace osu.Framework.IO.Network
                     logger.Add($@"Request to {Url} failed with {e?.ToString() ?? response.StatusCode.ToString()} (retrying {default_retry_count - retriesRemaining}/{default_retry_count}).");
 
                     //do a retry
-                    Abort();
-                    Perform();
+                    internalPerform();
                     return;
                 }
 
@@ -469,13 +474,13 @@ namespace osu.Framework.IO.Network
 
         private void abortRequest()
         {
-            linkedToken?.Cancel();
-            linkedToken?.Dispose();
-            linkedToken = null;
-            abortToken?.Dispose();
-            abortToken = null;
-            timeoutToken?.Dispose();
-            timeoutToken = null;
+            try
+            {
+                abortToken?.Cancel();
+            }
+            catch (ObjectDisposedException)
+            {
+            }
         }
 
         /// <summary>
@@ -487,7 +492,6 @@ namespace osu.Framework.IO.Network
             Aborted = true;
 
             abortRequest();
-            canPerform = true;
 
             if (!KeepEventsBound)
                 unbindEvents();
