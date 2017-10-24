@@ -443,6 +443,7 @@ namespace osu.Framework.IO.Network
                     logger.Add($@"Request to {Url} failed with {e?.ToString() ?? response.StatusCode.ToString()} (retrying {default_retry_count - retriesRemaining}/{default_retry_count}).");
 
                     //do a retry
+                    Abort();
                     Perform();
                     return;
                 }
