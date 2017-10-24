@@ -8,6 +8,7 @@ using SQLite.Net;
 using SQLite.Net.Interop;
 using SQLite.Net.Platform.Generic;
 using SQLite.Net.Platform.Win32;
+using osu.Framework.IO.File;
 
 namespace osu.Framework.Platform
 {
@@ -33,14 +34,7 @@ namespace osu.Framework.Platform
                 Directory.Delete(path, true);
         }
 
-        public override void Delete(string path)
-        {
-            path = GetUsablePathFor(path);
-
-            // handles the case where the containing directory doesn't exist, which will throw a DirectoryNotFoundException.
-            if (File.Exists(path))
-                File.Delete(path);
-        }
+        public override void Delete(string path) => FileSafety.FileDelete(GetUsablePathFor(path));
 
         public override string[] GetDirectories(string path) => Directory.GetDirectories(GetUsablePathFor(path));
 
