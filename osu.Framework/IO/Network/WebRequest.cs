@@ -246,10 +246,9 @@ namespace osu.Framework.IO.Network
             using (timeoutToken = new CancellationTokenSource())
             using (linkedToken = CancellationTokenSource.CreateLinkedTokenSource(abortToken.Token, timeoutToken.Token))
             {
-                PrePerform();
-
                 try
                 {
+                    PrePerform();
                     reportForwardProgress();
 
                     HttpRequestMessage request;
