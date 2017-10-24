@@ -11,7 +11,7 @@ using osu.Framework.Statistics;
 
 namespace osu.Framework.Graphics.Batches
 {
-    public abstract class VertexBatch<T> : IVertexBatch
+    public abstract class VertexBatch<T> : IVertexBatch, IDisposable
         where T : struct, IEquatable<T>, IVertex
     {
         public List<VertexBuffer<T>> VertexBuffers = new List<VertexBuffer<T>>();

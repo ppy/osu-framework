@@ -50,6 +50,7 @@ namespace osu.Framework.Configuration
                 bindable.Value = value;
             }
 
+            bindable.Default = value;
             if (min.HasValue) bindable.MinValue = min.Value;
             if (max.HasValue) bindable.MaxValue = max.Value;
 
@@ -70,6 +71,7 @@ namespace osu.Framework.Configuration
                 bindable.Value = value;
             }
 
+            bindable.Default = value;
             if (min.HasValue) bindable.MinValue = min.Value;
             if (max.HasValue) bindable.MaxValue = max.Value;
 
@@ -90,6 +92,7 @@ namespace osu.Framework.Configuration
                 bindable.Value = value;
             }
 
+            bindable.Default = value;
             if (min.HasValue) bindable.MinValue = min.Value;
             if (max.HasValue) bindable.MaxValue = max.Value;
 
@@ -110,6 +113,8 @@ namespace osu.Framework.Configuration
                 bindable.Value = value;
             }
 
+            bindable.Default = value;
+
             return bindable;
         }
 
@@ -121,6 +126,8 @@ namespace osu.Framework.Configuration
                 bindable = set(lookup, value);
             else
                 bindable.Value = value;
+
+            bindable.Default = value;
 
             return bindable;
         }
