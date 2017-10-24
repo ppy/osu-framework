@@ -633,6 +633,8 @@ namespace osu.Framework.Input
             return positionalInputQueue.Any(target => target.TriggerOnMouseMove(state));
         }
 
+        private Drawable clickedDrawable;
+
         private bool handleMouseClick(InputState state)
         {
             var intersectingQueue = positionalInputQueue.Intersect(mouseDownInputQueue);
@@ -641,7 +643,7 @@ namespace osu.Framework.Input
 
             // click pass, triggering an OnClick on all drawables up to the first which returns true.
             // an extra IsHovered check is performed because we are using an outdated queue (for valid reasons which we need to document).
-            var clickedDrawable = intersectingQueue.FirstOrDefault(t => t.CanReceiveInput && t.ReceiveMouseInputAt(state.Mouse.Position) && t.TriggerOnClick(state));
+            clickedDrawable = intersectingQueue.FirstOrDefault(t => t.CanReceiveInput && t.ReceiveMouseInputAt(state.Mouse.Position) && t.TriggerOnClick(state));
 
             if (clickedDrawable != null)
             {
@@ -680,7 +682,9 @@ namespace osu.Framework.Input
 
         private bool handleMouseDoubleClick(InputState state)
         {
-            return positionalInputQueue.Any(target => target.TriggerOnDoubleClick(state));
+            if (clickedDrawable == null) return false;
+
+            return clickedDrawable.ReceiveMouseInputAt(state.Mouse.Position) && clickedDrawable.TriggerOnDoubleClick(state);
         }
 
         private bool handleMouseDrag(InputState state)
