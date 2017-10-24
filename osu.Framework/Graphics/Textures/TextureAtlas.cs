@@ -49,6 +49,9 @@ namespace osu.Framework.Graphics.Textures
             if (atlasWidth == 0 || atlasHeight == 0)
                 return;
 
+            if (atlasTexture == null)
+                Logger.Log($"New TextureAtlas initialised {atlasWidth}x{atlasHeight}", LoggingTarget.Runtime, LogLevel.Debug);
+
             atlasTexture = new TextureGLAtlas(atlasWidth, atlasHeight, manualMipmaps, filteringMode);
 
             using (var whiteTex = Add(3, 3))
@@ -67,7 +70,7 @@ namespace osu.Framework.Graphics.Textures
 
             if (currentY + height > atlasHeight)
             {
-                Logger.Log($"TextureAtlas size exceeded; generating new {atlasWidth}x{atlasHeight} texture");
+                Logger.Log($"TextureAtlas size exceeded; generating new {atlasWidth}x{atlasHeight} texture", LoggingTarget.Performance);
                 Reset();
             }
 
