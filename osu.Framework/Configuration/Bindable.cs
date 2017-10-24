@@ -132,24 +132,24 @@ namespace osu.Framework.Configuration
 
         /// <summary>
         /// Raise <see cref="ValueChanged"/> and <see cref="DisabledChanged"/> once, without any changes actually occurring.
-        /// Useful for trigering bound events with initial state data.
+        /// This does not propagate to any outward bound bindables.
         /// </summary>
         public void TriggerChange()
         {
-            TriggerValueChange();
-            TriggerDisabledChange();
+            TriggerValueChange(false);
+            TriggerDisabledChange(false);
         }
 
-        protected void TriggerValueChange()
+        protected void TriggerValueChange(bool propagateToBindings = true)
         {
             ValueChanged?.Invoke(value);
-            bindings?.ForEachAlive(b => b.Value = value);
+            if (propagateToBindings) bindings?.ForEachAlive(b => b.Value = value);
         }
 
-        protected void TriggerDisabledChange()
+        protected void TriggerDisabledChange(bool propagateToBindings = true)
         {
             DisabledChanged?.Invoke(disabled);
-            bindings?.ForEachAlive(b => b.Disabled = disabled);
+            if (propagateToBindings) bindings?.ForEachAlive(b => b.Disabled = disabled);
         }
 
         /// <summary>
