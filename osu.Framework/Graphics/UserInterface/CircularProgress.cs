@@ -15,7 +15,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         public CircularProgress()
         {
-            Current.ValueChanged += newValue => Invalidate(Invalidation.DrawNode);
+            Current.ValueChanged += (newValue, oldValue) => Invalidate(Invalidation.DrawNode);
         }
 
         private Shader roundedTextureShader;

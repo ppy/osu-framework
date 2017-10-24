@@ -591,7 +591,7 @@ namespace osu.Framework.Graphics.UserInterface
                 if (textContent != null)
                 {
                     textContent.Text = item.Text;
-                    Item.Text.ValueChanged += newText => textContent.Text = newText;
+                    Item.Text.ValueChanged += (newText, oldText) => textContent.Text = newText;
                 }
             }
 

@@ -77,11 +77,11 @@ namespace osu.Framework.Testing
             TestTypes.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.Ordinal));
         }
 
-        private void updateList(Assembly asm)
+        private void updateList(Assembly newAssembly, Assembly oldAssemlby)
         {
             leftFlowContainer.Clear();
             //Add buttons for each TestCase.
-            leftFlowContainer.AddRange(TestTypes.Where(t => t.Assembly == asm).Select(t => new TestCaseButton(t) { Action = () => LoadTest(t) }));
+            leftFlowContainer.AddRange(TestTypes.Where(t => t.Assembly == newAssembly).Select(t => new TestCaseButton(t) { Action = () => LoadTest(t) }));
         }
 
         private Button runAllButton;

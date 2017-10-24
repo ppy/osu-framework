@@ -43,9 +43,9 @@ namespace osu.Framework.Input.Handlers.Mouse
                 windowMode.BindTo(desktopWindow.WindowMode);
             }
 
-            Enabled.ValueChanged += enabled =>
+            Enabled.ValueChanged += (newEnabled, oldEnabled) =>
             {
-                if (enabled)
+                if (newEnabled)
                 {
                     host.InputThread.Scheduler.Add(scheduled = new ScheduledDelegate(delegate
                     {

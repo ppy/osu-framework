@@ -27,9 +27,9 @@ namespace osu.Framework.Input.Handlers.Mouse
 
             mouseInWindow = host.Window.CursorInWindow;
 
-            Enabled.ValueChanged += enabled =>
+            Enabled.ValueChanged += (newEnabled, oldEnabled) =>
             {
-                if (enabled)
+                if (newEnabled)
                 {
                     host.Window.MouseMove += handleMouseEvent;
                     host.Window.MouseDown += handleMouseEvent;

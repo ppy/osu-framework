@@ -95,7 +95,7 @@ namespace osu.Framework.Graphics.UserInterface
                 ChildrenEnumerable = tabMap.Values
             });
 
-            Current.ValueChanged += newSelection =>
+            Current.ValueChanged += (newSelection, oldSelection) =>
             {
                 if (IsLoaded)
                     SelectTab(tabMap[Current]);

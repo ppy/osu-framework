@@ -122,7 +122,7 @@ namespace osu.Framework.Tests.Visual
                 AddAssert("Visible end-children: " + term.Value, () => term.Value == search.Children.SelectMany(container => container.Children.Cast<Container>()).SelectMany(container => container.Children).Count(drawable => drawable.IsPresent));
             });
 
-            textBox.Current.ValueChanged += newValue => search.SearchTerm = newValue;
+            textBox.Current.ValueChanged += (newValue, oldValue) => search.SearchTerm = newValue;
         }
 
         private class HeaderContainer : Container, IHasFilterableChildren

@@ -24,7 +24,7 @@ namespace osu.Framework.Localisation
         public LocalisationEngine(FrameworkConfigManager config)
         {
             preferUnicode = config.GetBindable<bool>(FrameworkSetting.ShowUnicode);
-            preferUnicode.ValueChanged += newValue => unicodeBindings.ForEachAlive(b => b.PreferUnicode = newValue);
+            preferUnicode.ValueChanged += (newValue, oldValue) => unicodeBindings.ForEachAlive(b => b.PreferUnicode = newValue);
 
             locale = config.GetBindable<string>(FrameworkSetting.Locale);
             locale.ValueChanged += checkLocale;
@@ -80,7 +80,7 @@ namespace osu.Framework.Localisation
 
         protected virtual string GetLocalised(string key) => current.Get(key);
 
-        private void checkLocale(string newValue)
+        private void checkLocale(string newValue, string oldValue)
         {
             var locales = SupportedLocales.ToList();
             string validLocale = null;

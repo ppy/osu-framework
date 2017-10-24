@@ -456,13 +456,13 @@ namespace osu.Framework.Platform
             Dependencies.Cache(Localisation = new LocalisationEngine(config));
 
             activeGCMode = debugConfig.GetBindable<GCLatencyMode>(DebugSetting.ActiveGCMode);
-            activeGCMode.ValueChanged += newMode =>
+            activeGCMode.ValueChanged += (newMode, oldMode) =>
             {
                 GCSettings.LatencyMode = IsActive ? newMode : GCLatencyMode.Interactive;
             };
 
             frameSyncMode = config.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
-            frameSyncMode.ValueChanged += newMode =>
+            frameSyncMode.ValueChanged += (newMode, oldMode) =>
             {
                 float refreshRate = DisplayDevice.Default.RefreshRate;
                 // For invalid refresh rates let's assume 60 Hz as it is most common.
@@ -502,9 +502,9 @@ namespace osu.Framework.Platform
             };
 
             enabledInputHandlers = config.GetBindable<string>(FrameworkSetting.ActiveInputHandlers);
-            enabledInputHandlers.ValueChanged += enabledString =>
+            enabledInputHandlers.ValueChanged += (newEnabledString, oldEnabledString) =>
             {
-                var configHandlers = enabledString.Split(' ').Where(s => !string.IsNullOrWhiteSpace(s));
+                var configHandlers = newEnabledString.Split(' ').Where(s => !string.IsNullOrWhiteSpace(s));
                 bool useDefaults = !configHandlers.Any();
 
                 // make sure all the handlers in the configuration file are available, else reset to sane defaults.

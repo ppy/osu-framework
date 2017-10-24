@@ -64,7 +64,7 @@ namespace osu.Framework.Tests.Visual
             AddSliderStep("Value", -10.0, 10.0, 0.0, v => sliderBarValue.Value = v);
         }
 
-        private void sliderBarValueChanged(double newValue)
+        private void sliderBarValueChanged(double newValue, double oldValue)
         {
             sliderbarText.Text = $"Selected value: {newValue:N}";
         }
