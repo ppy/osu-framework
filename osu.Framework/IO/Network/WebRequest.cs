@@ -352,7 +352,7 @@ namespace osu.Framework.IO.Network
                     Complete(e);
                     throw;
                 }
-            }, linkedToken.Token, TaskCreationOptions.LongRunning, TaskScheduler.Current);
+            }, linkedToken.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
         }
 
         /// <summary>
