@@ -344,8 +344,11 @@ namespace osu.Framework.IO.Network
                 }
                 catch (Exception) when (timeoutToken.IsCancellationRequested)
                 {
-                    logger.Add($@"Request timeout exceeded ({timeSinceLastAction})");
                     Complete(new WebException($"Request to {Url} timed out after {timeSinceLastAction / 1000} seconds idle (read {responseBytesRead} bytes).", WebExceptionStatus.Timeout));
+                }
+                catch (Exception) when (abortToken.IsCancellationRequested)
+                {
+                    Complete(new WebException($"Request to {Url} aborted by user.", WebExceptionStatus.RequestCanceled));
                 }
                 catch (Exception e)
                 {
