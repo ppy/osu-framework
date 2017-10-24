@@ -249,7 +249,6 @@ namespace osu.Framework.IO.Network
                 try
                 {
                     PrePerform();
-                    reportForwardProgress();
 
                     HttpRequestMessage request;
 
@@ -308,7 +307,6 @@ namespace osu.Framework.IO.Network
                             }
 
                             requestStream = new LengthTrackingStream(postContent);
-
                             requestStream.BytesRead.ValueChanged += v =>
                             {
                                 reportForwardProgress();
@@ -327,6 +325,7 @@ namespace osu.Framework.IO.Network
                     foreach (var kvp in Headers)
                         request.Headers.Add(kvp.Key, kvp.Value);
 
+                    reportForwardProgress();
                     response = client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, linkedToken.Token).Result;
 
                     ResponseStream = CreateOutputStream();
