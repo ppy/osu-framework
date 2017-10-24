@@ -140,7 +140,7 @@ namespace osu.Framework.IO.Network
             client.DefaultRequestHeaders.ExpectContinue = true;
             client.Timeout = System.Threading.Timeout.InfiniteTimeSpan;
 
-            logger = Logger.GetLogger(LoggingTarget.Network, true);
+            logger = Logger.GetLogger(LoggingTarget.Network);
         }
 
         public WebRequest(string url = null, params object[] args)
