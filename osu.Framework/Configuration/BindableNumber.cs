@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using OpenTK;
 
 namespace osu.Framework.Configuration
 {
@@ -203,12 +204,20 @@ namespace osu.Framework.Configuration
 
         /// <summary>
         /// Sets the value of the bindable to Min + (Max - Min) * amt
+        /// <param name="amt">The proportional amount to set, ranging from 0 to 1.</param>
+        /// <param name="snap">If greater than 0, snap the final value to the closest multiple of this number.</param>
         /// </summary>
-        public void SetProportional(float amt)
+        public void SetProportional(float amt, float snap = 0)
         {
             var min = Convert.ToDouble(MinValue);
             var max = Convert.ToDouble(MaxValue);
-            Set(min + (max - min) * amt);
+            var value = min + (max - min) * amt;
+            if (snap > 0)
+            {
+                var floor = Math.Floor(value / snap) * snap;
+                value = MathHelper.Clamp(value - floor < snap / 2f ? floor : floor + snap, min, max);
+            }
+            Set(value);
         }
     }
 }
