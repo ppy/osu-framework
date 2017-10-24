@@ -10,15 +10,23 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     public abstract class VisibilityContainer : Container, IStateful<Visibility>
     {
+        /// <summary>
+        /// Whether we should be in a hidden state when first displayed.
+        /// Override this and set to true to *always* perform a <see cref="PopIn"/> animation even when the state is non-hidden at
+        /// first display.
+        /// </summary>
+        protected virtual bool StartHidden => state == Visibility.Hidden;
+
         protected override void LoadComplete()
         {
-            if (state == Visibility.Hidden)
+            if (StartHidden)
             {
                 // do this without triggering the StateChanged event, since hidden is a default.
                 PopOut();
                 FinishTransforms(true);
             }
-            else
+
+            if (state != Visibility.Hidden)
                 updateState();
 
             base.LoadComplete();
