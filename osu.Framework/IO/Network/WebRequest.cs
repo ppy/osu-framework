@@ -228,7 +228,7 @@ namespace osu.Framework.IO.Network
         /// <summary>
         /// Performs the request asynchronously.
         /// </summary>
-        public Task PerformAsync()
+        public async Task PerformAsync()
         {
             if (!canPerform)
                 throw new InvalidOperationException("Can not perform a web request multiple times.");
@@ -240,7 +240,7 @@ namespace osu.Framework.IO.Network
             timeoutToken = new CancellationTokenSource();
             linkedToken = CancellationTokenSource.CreateLinkedTokenSource(abortToken.Token, timeoutToken.Token);
 
-            return Task.Factory.StartNew(() =>
+            await Task.Factory.StartNew(() =>
             {
                 PrePerform();
 
