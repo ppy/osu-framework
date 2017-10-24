@@ -143,7 +143,7 @@ namespace osu.Framework.IO.Network
             // HttpClient does not properly timeout while reading chunked data
             client.Timeout = System.Threading.Timeout.InfiniteTimeSpan;
 
-            logger = Logger.GetLogger(LoggingTarget.Network, true);
+            logger = Logger.GetLogger(LoggingTarget.Network);
         }
 
         public WebRequest(string url = null, params object[] args)
