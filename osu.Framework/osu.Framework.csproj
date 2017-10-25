@@ -205,6 +205,8 @@
     <Compile Include="Graphics\Cursor\ITooltip.cs" />
     <Compile Include="Graphics\Primitives\RectangleI.cs" />
     <Compile Include="Graphics\Primitives\Vector2I.cs" />
+    <Compile Include="Graphics\Shaders\ShaderPart.cs" />
+    <Compile Include="Graphics\Shaders\ShaderSourceType.cs" />
     <Compile Include="Graphics\Shapes\Circle.cs" />
     <Compile Include="Graphics\Containers\FillFlowContainer.cs" />
     <Compile Include="Graphics\Containers\IFilterable.cs" />
@@ -407,7 +409,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Shaders\AttributeInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Shaders\Shader.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Shaders\ShaderManager.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Graphics\Shaders\ShaderPart.cs" />
+    <Compile Include="Graphics\Shaders\GLSLShaderPart.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Shaders\Uniform.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Shaders\UniformBase.cs" />
     <Compile Include="Graphics\Easing.cs" />
