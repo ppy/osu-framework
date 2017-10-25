@@ -18,7 +18,7 @@ namespace osu.Framework.Audio.Sample
             if (customPendingActions != null)
                 PendingActions = customPendingActions;
 
-            PendingActions.Enqueue(() => { sampleId = Bass.SampleLoad(data, 0, data.Length, 8, BassFlags.Default | BassFlags.SampleOverrideLongestPlaying); });
+            EnqueueAction(() => { sampleId = Bass.SampleLoad(data, 0, data.Length, 8, BassFlags.Default | BassFlags.SampleOverrideLongestPlaying); });
         }
 
         protected override void Dispose(bool disposing)

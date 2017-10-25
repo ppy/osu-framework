@@ -22,7 +22,7 @@ namespace osu.Framework.Audio
 
         public void AddItemToList(T item)
         {
-            PendingActions.Enqueue(delegate
+            EnqueueAction(delegate
             {
                 if (Items.Contains(item)) return;
                 Items.Add(item);
@@ -31,12 +31,12 @@ namespace osu.Framework.Audio
 
         public void RegisterItem(T item)
         {
-            PendingActions.Enqueue(() => item.AddAdjustmentDependency(this));
+            EnqueueAction(() => item.AddAdjustmentDependency(this));
         }
 
         public void UnregisterItem(T item)
         {
-            PendingActions.Enqueue(() => item.RemoveAdjustmentDependency(this));
+            EnqueueAction(() => item.RemoveAdjustmentDependency(this));
         }
 
         internal override void OnStateChanged()
