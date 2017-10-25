@@ -150,6 +150,11 @@ namespace osu.Framework.IO.File
             return NativeMethods.MoveFileEx(deathLocation, null, MoveFileFlags.DelayUntilReboot);
         }
 
+        /// <summary>
+        /// Performs a file delete. If a delete operation fails (as can regularly happen on windows), the file is moved to a temporary directory for future cleanup (see <see cref="DeleteCleanupDirectory"/>).
+        /// </summary>
+        /// <param name="filename">The relative or full path of the file to delete.</param>
+        /// <returns>True if deletion was successful by any means, or the file didn't exist.</returns>
         public static bool FileDelete(string filename)
         {
             filename = PathSanitise(filename);
@@ -168,13 +173,13 @@ namespace osu.Framework.IO.File
             try
             {
                 //try alternative method: move to a cleanup folder and delete later.
-                if (!Directory.Exists(@"_cleanup"))
+                if (!Directory.Exists(CLEANUP_DIRECTORY))
                 {
-                    DirectoryInfo di = Directory.CreateDirectory(@"_cleanup");
+                    DirectoryInfo di = Directory.CreateDirectory(CLEANUP_DIRECTORY);
                     di.Attributes |= FileAttributes.Hidden;
                 }
 
-                System.IO.File.Move(filename, CLEANUP_DIRECTORY + @"/" + Guid.NewGuid());
+                System.IO.File.Move(filename, Path.Combine(CLEANUP_DIRECTORY, Guid.NewGuid().ToString()));
                 return true;
             }
             catch
@@ -182,6 +187,15 @@ namespace osu.Framework.IO.File
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Delete any files in the cleanup directory (see <see cref="FileDelete(string)"/>).
+        /// </summary>
+        public static void DeleteCleanupDirectory()
+        {
+            if (Directory.Exists(CLEANUP_DIRECTORY))
+                Directory.Delete(CLEANUP_DIRECTORY, true);
         }
 
         public static string AsciiOnly(string input)

@@ -110,7 +110,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
-            if (!IsHovered)
+            if (!IsHovered || CurrentNumber.Disabled)
                 return false;
 
             var step = KeyboardStep != 0 ? KeyboardStep : (Convert.ToSingle(CurrentNumber.MaxValue) - Convert.ToSingle(CurrentNumber.MinValue)) / 20;
@@ -136,7 +136,7 @@ namespace osu.Framework.Graphics.UserInterface
             var xPosition = ToLocalSpace(state?.Mouse.NativeState.Position ?? Vector2.Zero).X - RangePadding;
 
             if (!CurrentNumber.Disabled)
-                CurrentNumber.SetProportional(xPosition / UsableWidth);
+                CurrentNumber.SetProportional(xPosition / UsableWidth, state != null && state.Keyboard.ShiftPressed ? KeyboardStep : 0);
 
             OnUserChange();
         }
