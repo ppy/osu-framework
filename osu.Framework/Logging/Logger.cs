@@ -81,7 +81,7 @@ namespace osu.Framework.Logging
         {
             try
             {
-                GetLogger(target, true).Add(message, level);
+                GetLogger(target).Add(message, level);
             }
             catch
             {
@@ -106,15 +106,14 @@ namespace osu.Framework.Logging
         /// For classes that regularly log to the same target, this method may be preferred over the static Log method.
         /// </summary>
         /// <param name="target">The logging target.</param>
-        /// <param name="clearOnConstruct">Decides whether we clear any existing content from the log the first time we construct this logger.</param>
         /// <returns></returns>
-        public static Logger GetLogger(LoggingTarget target = LoggingTarget.Runtime, bool clearOnConstruct = false)
+        public static Logger GetLogger(LoggingTarget target = LoggingTarget.Runtime)
         {
             Logger l;
             if (!static_loggers.TryGetValue(target, out l))
             {
                 static_loggers[target] = l = new Logger(target);
-                if (clearOnConstruct) l.Clear();
+                l.Clear();
             }
 
             return l;
