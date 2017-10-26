@@ -18,7 +18,7 @@ namespace osu.Framework.IO.Network
 {
     public class WebRequest : IDisposable
     {
-        private const int max_retries = 1;
+        internal const int MAX_RETRIES = 1;
 
         /// <summary>
         /// Invoked when a response has been received, but not data has been received.
@@ -444,9 +444,11 @@ namespace osu.Framework.IO.Network
 
             if (hasFailed)
             {
-                if (allowRetry && RetryCount++ <= max_retries && responseBytesRead == 0)
+                if (allowRetry && RetryCount <= MAX_RETRIES && responseBytesRead == 0)
                 {
-                    logger.Add($@"Request to {Url} failed with {e?.ToString() ?? response.StatusCode.ToString()} (retrying {RetryCount}/{max_retries}).");
+                    RetryCount++;
+
+                    logger.Add($@"Request to {Url} failed with {e?.ToString() ?? response.StatusCode.ToString()} (retrying {RetryCount}/{MAX_RETRIES}).");
 
                     //do a retry
                     internalPerform();
