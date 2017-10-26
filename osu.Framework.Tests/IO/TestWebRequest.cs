@@ -339,6 +339,32 @@ namespace osu.Framework.Tests.IO
             Assert.IsTrue(responseObject.Headers.ContentType == null);
         }
 
+        [TestCase(false, false)]
+        [TestCase(false, true)]
+        [TestCase(true, false)]
+        [TestCase(true, true)]
+        public void TestGetBinaryData(bool async, bool chunked)
+        {
+            const int bytes_count = 65536;
+            const int chunk_size = 1024;
+
+            string endpoint = chunked ? "stream-bytes" : "bytes";
+
+            WebRequest request = new WebRequest($"http://httpbin.org/{endpoint}/{bytes_count}") { Method = HttpMethod.GET };
+            if (chunked)
+                request.AddParameter("chunk_size", chunk_size.ToString());
+
+            if (async)
+                Assert.DoesNotThrowAsync(request.PerformAsync);
+            else
+                Assert.DoesNotThrow(request.Perform);
+
+            Assert.IsTrue(request.Completed);
+            Assert.IsFalse(request.Aborted);
+
+            Assert.AreEqual(bytes_count, request.ResponseStream.Length);
+        }
+
         [Serializable]
         private class HttpBinGetResponse
         {
