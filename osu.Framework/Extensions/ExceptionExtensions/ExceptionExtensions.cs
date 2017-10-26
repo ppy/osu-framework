@@ -24,11 +24,29 @@ namespace osu.Framework.Extensions.ExceptionExtensions
         /// This preserves the stack trace of the exception that is rethrown, and will not include the point of rethrow.
         /// </summary>
         /// <param name="aggregateException">The captured exception.</param>
-        public static void RethrowIfSingular(this AggregateException aggregateException)
+        public static void RethrowIfSingular(this AggregateException aggregateException) => aggregateException.AsSingular().Rethrow();
+
+        /// <summary>
+        /// Flattens <paramref name="aggregateException"/> into a singular <see cref="Exception"/> if the <paramref name="aggregateException"/>
+        /// contains only a single <see cref="Exception"/>. Otherwise, returns <paramref name="aggregateException"/>.
+        /// </summary>
+        /// <param name="aggregateException">The captured exception.</param>
+        /// <returns>The highest level of flattening possible.</returns>
+        public static Exception AsSingular(this AggregateException aggregateException)
         {
-            if (aggregateException.InnerExceptions.Count == 1)
-                aggregateException.InnerException.Rethrow();
-            aggregateException.Rethrow();
+            if (aggregateException.InnerExceptions.Count != 1)
+                return aggregateException;
+
+            while (aggregateException.InnerExceptions.Count == 1)
+            {
+                var innerAggregate = aggregateException.InnerException as AggregateException;
+                if (innerAggregate == null)
+                    return aggregateException.InnerException;
+
+                aggregateException = innerAggregate;
+            }
+
+            return aggregateException;
         }
     }
 }

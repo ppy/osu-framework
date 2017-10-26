@@ -196,7 +196,7 @@ namespace osu.Framework.Tests.IO
             Assert.IsTrue(request.Aborted);
 
             Assert.IsTrue(thrownException != null);
-            Assert.IsTrue(thrownException.GetType() == typeof(WebException));
+            Assert.AreEqual(typeof(WebException), thrownException.GetType());
         }
 
         /// <summary>
