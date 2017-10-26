@@ -119,18 +119,8 @@ namespace osu.Framework.IO.Network
 
         private static readonly Logger logger;
 
-        private static readonly HttpClient client;
-
         static WebRequest()
         {
-            client = new HttpClient(new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate });
-            client.DefaultRequestHeaders.UserAgent.ParseAdd("osu!");
-            client.DefaultRequestHeaders.ExpectContinue = true;
-
-            // Timeout is controlled manually through cancellation tokens because
-            // HttpClient does not properly timeout while reading chunked data
-            client.Timeout = System.Threading.Timeout.InfiniteTimeSpan;
-
             logger = Logger.GetLogger(LoggingTarget.Network);
         }
 
@@ -229,120 +219,133 @@ namespace osu.Framework.IO.Network
 
         private void internalPerform()
         {
-            using (abortToken = new CancellationTokenSource())
-            using (timeoutToken = new CancellationTokenSource())
-            using (var linkedToken = CancellationTokenSource.CreateLinkedTokenSource(abortToken.Token, timeoutToken.Token))
+            // For now, a client is created for each request due to the following bug in mono:
+            // https://bugzilla.xamarin.com/show_bug.cgi?id=60396
+            // Todo: This must not be done, and is dangerous to do, see: https://aspnetmonsters.com/2016/08/2016-08-27-httpclientwrong/
+            using (var client = new HttpClient(new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate }))
             {
-                try
+                client.DefaultRequestHeaders.UserAgent.ParseAdd("osu!");
+                client.DefaultRequestHeaders.ExpectContinue = true;
+
+                // Timeout is controlled manually through cancellation tokens because
+                // HttpClient does not properly timeout while reading chunked data
+                client.Timeout = System.Threading.Timeout.InfiniteTimeSpan;
+
+                using (abortToken = new CancellationTokenSource())
+                using (timeoutToken = new CancellationTokenSource())
+                using (var linkedToken = CancellationTokenSource.CreateLinkedTokenSource(abortToken.Token, timeoutToken.Token))
                 {
-                    PrePerform();
-
-                    HttpRequestMessage request;
-
-                    switch (Method)
+                    try
                     {
-                        default:
-                            throw new InvalidOperationException($"HTTP method {Method} is currently not supported");
-                        case HttpMethod.GET:
-                            if (Files.Count > 0)
-                                throw new InvalidOperationException($"Cannot use {nameof(AddFile)} in a GET request. Please set the {nameof(Method)} to POST.");
+                        PrePerform();
 
-                            StringBuilder requestParameters = new StringBuilder();
-                            foreach (var p in Parameters)
-                                requestParameters.Append($@"{p.Key}={p.Value}&");
-                            string requestString = requestParameters.ToString().TrimEnd('&');
+                        HttpRequestMessage request;
 
-                            request = new HttpRequestMessage(System.Net.Http.HttpMethod.Get, string.IsNullOrEmpty(requestString) ? Url : $"{Url}?{requestString}");
-                            break;
-                        case HttpMethod.POST:
-                            request = new HttpRequestMessage(System.Net.Http.HttpMethod.Post, Url);
-
-                            Stream postContent;
-
-                            if (rawContent != null)
-                            {
-                                if (Parameters.Count > 0)
-                                    throw new InvalidOperationException($"Cannot use {nameof(AddRaw)} in conjunction with {nameof(AddParameter)}");
+                        switch (Method)
+                        {
+                            default:
+                                throw new InvalidOperationException($"HTTP method {Method} is currently not supported");
+                            case HttpMethod.GET:
                                 if (Files.Count > 0)
-                                    throw new InvalidOperationException($"Cannot use {nameof(AddRaw)} in conjunction with {nameof(AddFile)}");
+                                    throw new InvalidOperationException($"Cannot use {nameof(AddFile)} in a GET request. Please set the {nameof(Method)} to POST.");
 
-                                postContent = new MemoryStream();
-                                rawContent.Position = 0;
-                                rawContent.CopyTo(postContent);
-                                postContent.Position = 0;
-                            }
-                            else
-                            {
-                                if (!string.IsNullOrEmpty(ContentType) && ContentType != form_content_type)
-                                    throw new InvalidOperationException($"Cannot use custom {nameof(ContentType)} in a POST request.");
-
-                                ContentType = form_content_type;
-
-                                var formData = new MultipartFormDataContent(form_boundary);
-
+                                StringBuilder requestParameters = new StringBuilder();
                                 foreach (var p in Parameters)
-                                    formData.Add(new StringContent(p.Value), p.Key);
+                                    requestParameters.Append($@"{p.Key}={p.Value}&");
+                                string requestString = requestParameters.ToString().TrimEnd('&');
 
-                                foreach (var p in Files)
+                                request = new HttpRequestMessage(System.Net.Http.HttpMethod.Get, string.IsNullOrEmpty(requestString) ? Url : $"{Url}?{requestString}");
+                                break;
+                            case HttpMethod.POST:
+                                request = new HttpRequestMessage(System.Net.Http.HttpMethod.Post, Url);
+
+                                Stream postContent;
+
+                                if (rawContent != null)
                                 {
-                                    var byteContent = new ByteArrayContent(p.Value);
-                                    byteContent.Headers.Add("Content-Type", "application/octet-stream");
-                                    formData.Add(byteContent, p.Key, p.Key);
+                                    if (Parameters.Count > 0)
+                                        throw new InvalidOperationException($"Cannot use {nameof(AddRaw)} in conjunction with {nameof(AddParameter)}");
+                                    if (Files.Count > 0)
+                                        throw new InvalidOperationException($"Cannot use {nameof(AddRaw)} in conjunction with {nameof(AddFile)}");
+
+                                    postContent = new MemoryStream();
+                                    rawContent.Position = 0;
+                                    rawContent.CopyTo(postContent);
+                                    postContent.Position = 0;
+                                }
+                                else
+                                {
+                                    if (!string.IsNullOrEmpty(ContentType) && ContentType != form_content_type)
+                                        throw new InvalidOperationException($"Cannot use custom {nameof(ContentType)} in a POST request.");
+
+                                    ContentType = form_content_type;
+
+                                    var formData = new MultipartFormDataContent(form_boundary);
+
+                                    foreach (var p in Parameters)
+                                        formData.Add(new StringContent(p.Value), p.Key);
+
+                                    foreach (var p in Files)
+                                    {
+                                        var byteContent = new ByteArrayContent(p.Value);
+                                        byteContent.Headers.Add("Content-Type", "application/octet-stream");
+                                        formData.Add(byteContent, p.Key, p.Key);
+                                    }
+
+                                    postContent = formData.ReadAsStreamAsync().Result;
                                 }
 
-                                postContent = formData.ReadAsStreamAsync().Result;
-                            }
+                                requestStream = new LengthTrackingStream(postContent);
+                                requestStream.BytesRead.ValueChanged += v =>
+                                {
+                                    reportForwardProgress();
+                                    UploadProgress?.Invoke(v, contentLength);
+                                };
 
-                            requestStream = new LengthTrackingStream(postContent);
-                            requestStream.BytesRead.ValueChanged += v =>
-                            {
+                                request.Content = new StreamContent(requestStream);
+                                if (!string.IsNullOrEmpty(ContentType))
+                                    request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse(ContentType);
+                                break;
+                        }
+
+                        if (!string.IsNullOrEmpty(Accept))
+                            request.Headers.Accept.TryParseAdd(Accept);
+
+                        foreach (var kvp in Headers)
+                            request.Headers.Add(kvp.Key, kvp.Value);
+
+                        reportForwardProgress();
+                        response = client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, linkedToken.Token).Result;
+
+                        ResponseStream = CreateOutputStream();
+
+                        switch (Method)
+                        {
+                            case HttpMethod.GET:
+                                //GETs are easy
+                                beginResponse(linkedToken.Token);
+                                break;
+                            case HttpMethod.POST:
                                 reportForwardProgress();
-                                UploadProgress?.Invoke(v, contentLength);
-                            };
+                                UploadProgress?.Invoke(0, contentLength);
 
-                            request.Content = new StreamContent(requestStream);
-                            if (!string.IsNullOrEmpty(ContentType))
-                                request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse(ContentType);
-                            break;
+                                beginResponse(linkedToken.Token);
+                                break;
+                        }
                     }
-
-                    if (!string.IsNullOrEmpty(Accept))
-                        request.Headers.Accept.TryParseAdd(Accept);
-
-                    foreach (var kvp in Headers)
-                        request.Headers.Add(kvp.Key, kvp.Value);
-
-                    reportForwardProgress();
-                    response = client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, linkedToken.Token).Result;
-
-                    ResponseStream = CreateOutputStream();
-
-                    switch (Method)
+                    catch (Exception) when (timeoutToken.IsCancellationRequested)
                     {
-                        case HttpMethod.GET:
-                            //GETs are easy
-                            beginResponse(linkedToken.Token);
-                            break;
-                        case HttpMethod.POST:
-                            reportForwardProgress();
-                            UploadProgress?.Invoke(0, contentLength);
-
-                            beginResponse(linkedToken.Token);
-                            break;
+                        Complete(new WebException($"Request to {Url} timed out after {timeSinceLastAction / 1000} seconds idle (read {responseBytesRead} bytes).", WebExceptionStatus.Timeout));
                     }
-                }
-                catch (Exception) when (timeoutToken.IsCancellationRequested)
-                {
-                    Complete(new WebException($"Request to {Url} timed out after {timeSinceLastAction / 1000} seconds idle (read {responseBytesRead} bytes).", WebExceptionStatus.Timeout));
-                }
-                catch (Exception) when (abortToken.IsCancellationRequested)
-                {
-                    Complete(new WebException($"Request to {Url} aborted by user.", WebExceptionStatus.RequestCanceled));
-                }
-                catch (Exception e)
-                {
-                    Complete(e);
-                    throw;
+                    catch (Exception) when (abortToken.IsCancellationRequested)
+                    {
+                        Complete(new WebException($"Request to {Url} aborted by user.", WebExceptionStatus.RequestCanceled));
+                    }
+                    catch (Exception e)
+                    {
+                        Complete(e);
+                        throw;
+                    }
                 }
             }
         }
@@ -414,7 +417,6 @@ namespace osu.Framework.IO.Network
 
             if (e != null)
             {
-                Logger.Log($"{e}", LoggingTarget.Debug, LogLevel.Important);
                 hasFailed = true;
                 allowRetry = we?.Status == WebExceptionStatus.Timeout;
             }
@@ -556,6 +558,7 @@ namespace osu.Framework.IO.Network
             Abort();
 
             requestStream?.Dispose();
+            response?.Dispose();
 
             if (!(ResponseStream is MemoryStream))
                 ResponseStream?.Dispose();
