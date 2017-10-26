@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using Newtonsoft.Json;
 using NUnit.Framework;
 using osu.Framework.IO.Network;
@@ -171,6 +172,57 @@ namespace osu.Framework.Tests.IO
 
             Assert.IsTrue(responseObject == null);
             Assert.IsFalse(hasThrown);
+        }
+
+        /// <summary>
+        /// Tests being able to abort + restart a request.
+        /// </summary>
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestEventUnbindOnCompletion(bool async)
+        {
+            var request = new JsonWebRequest<HttpBinGetResponse>("https://httpbin.org/get") { Method = HttpMethod.GET };
+
+            request.Started += () => { };
+            request.Finished += e => { };
+            request.DownloadProgress += (l1, l2) => { };
+            request.UploadProgress += (l1, l2) => { };
+
+            Assert.DoesNotThrow(request.Perform);
+
+            var events = request.GetType().GetEvents(BindingFlags.Instance | BindingFlags.Public);
+            foreach (var e in events)
+            {
+                var field = request.GetType().GetField(e.Name, BindingFlags.Instance | BindingFlags.Public);
+                Assert.IsFalse(((Delegate)field?.GetValue(request))?.GetInvocationList().Length > 0);
+            }
+        }
+
+        /// <summary>
+        /// Tests being able to abort + restart a request.
+        /// </summary>
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestUnbindOnDispose(bool async)
+        {
+            WebRequest request;
+            using (request = new JsonWebRequest<HttpBinGetResponse>("https://httpbin.org/get") { Method = HttpMethod.GET })
+            {
+
+                request.Started += () => { };
+                request.Finished += e => { };
+                request.DownloadProgress += (l1, l2) => { };
+                request.UploadProgress += (l1, l2) => { };
+
+                Assert.DoesNotThrow(request.Perform);
+            }
+
+            var events = request.GetType().GetEvents(BindingFlags.Instance | BindingFlags.Public);
+            foreach (var e in events)
+            {
+                var field = request.GetType().GetField(e.Name, BindingFlags.Instance | BindingFlags.Public);
+                Assert.IsFalse(((Delegate)field?.GetValue(request))?.GetInvocationList().Length > 0);
+            }
         }
 
         [TestCase(false)]
