@@ -178,10 +178,39 @@ namespace osu.Framework.Tests.IO
             Assert.IsFalse(hasThrown);
         }
 
+        /// <summary>
+        /// Tests that specifically-crafted <see cref="WebRequest"/> is completed after one timeout.
+        /// </summary>
         [Test]
-        public void TestRetryFail()
+        public void TestOneTimeout()
         {
-            var request = new JsonWebRequest<HttpBinGetResponse>("https://httpbin.org/delay/4")
+            var request = new DelayedWebRequest
+            {
+                Method = HttpMethod.GET,
+                Timeout = 1000,
+                Delay = 2
+            };
+
+            Exception thrownException = null;
+            request.Finished += e => thrownException = e;
+            request.CompleteInvoked = () => request.Delay = 0;
+
+            Assert.DoesNotThrow(request.Perform);
+
+            Assert.IsTrue(request.Completed);
+            Assert.IsFalse(request.Aborted);
+
+            Assert.IsTrue(thrownException == null);
+            Assert.AreEqual(WebRequest.MAX_RETRIES, request.RetryCount);
+        }
+
+        /// <summary>
+        /// Tests that a <see cref="WebRequest"/> will only timeout a maximum of <see cref="WebRequest.MAX_RETRIES"/> times before being aborted.
+        /// </summary>
+        [Test]
+        public void TestFailTimeout()
+        {
+            var request = new WebRequest("https://httpbin.org/delay/4")
             {
                 Method = HttpMethod.GET,
                 Timeout = 1000
@@ -196,6 +225,7 @@ namespace osu.Framework.Tests.IO
             Assert.IsTrue(request.Aborted);
 
             Assert.IsTrue(thrownException != null);
+            Assert.AreEqual(WebRequest.MAX_RETRIES + 1, request.RetryCount);
             Assert.AreEqual(typeof(WebException), thrownException.GetType());
         }
 
@@ -353,6 +383,33 @@ namespace osu.Framework.Tests.IO
         public class TestObject
         {
             public string TestString = "readable";
+        }
+
+        private class DelayedWebRequest : WebRequest
+        {
+            public Action CompleteInvoked;
+
+            private int delay;
+            public int Delay
+            {
+                get { return delay; }
+                set
+                {
+                    delay = value;
+                    Url = $"http://httpbin.org/delay/{delay}";
+                }
+            }
+
+            public DelayedWebRequest()
+                : base("http://httpbin.org/delay/0")
+            {
+            }
+
+            protected override void Complete(Exception e = null)
+            {
+                CompleteInvoked?.Invoke();
+                base.Complete(e);
+            }
         }
     }
 }
