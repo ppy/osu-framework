@@ -3,12 +3,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Reflection;
 using Newtonsoft.Json;
 using NUnit.Framework;
 using osu.Framework.IO.Network;
 using HttpMethod = osu.Framework.IO.Network.HttpMethod;
+using WebRequest = osu.Framework.IO.Network.WebRequest;
 
 namespace osu.Framework.Tests.IO
 {
@@ -174,6 +176,27 @@ namespace osu.Framework.Tests.IO
 
             Assert.IsTrue(responseObject == null);
             Assert.IsFalse(hasThrown);
+        }
+
+        [Test]
+        public void TestRetryFail()
+        {
+            var request = new JsonWebRequest<HttpBinGetResponse>("https://httpbin.org/delay/4")
+            {
+                Method = HttpMethod.GET,
+                Timeout = 1000
+            };
+
+            Exception thrownException = null;
+            request.Finished += e => thrownException = e;
+
+            Assert.DoesNotThrow(request.Perform);
+
+            Assert.IsTrue(request.Completed);
+            Assert.IsTrue(request.Aborted);
+
+            Assert.IsTrue(thrownException != null);
+            Assert.IsTrue(thrownException.GetType() == typeof(WebException));
         }
 
         /// <summary>

@@ -18,6 +18,8 @@ namespace osu.Framework.IO.Network
 {
     public class WebRequest : IDisposable
     {
+        private const int max_retries = 1;
+
         /// <summary>
         /// Invoked when a response has been received, but not data has been received.
         /// </summary>
@@ -112,6 +114,8 @@ namespace osu.Framework.IO.Network
         /// The type of content expected by this web request.
         /// </summary>
         protected virtual string Accept => string.Empty;
+
+        internal int RetryCount { get; private set; }
 
         private static readonly Logger logger;
 
@@ -410,6 +414,7 @@ namespace osu.Framework.IO.Network
 
             if (e != null)
             {
+                Logger.Log($"{e}", LoggingTarget.Debug, LogLevel.Important);
                 hasFailed = true;
                 allowRetry = we?.Status == WebExceptionStatus.Timeout;
             }
@@ -436,9 +441,9 @@ namespace osu.Framework.IO.Network
 
             if (hasFailed)
             {
-                if (allowRetry && retriesRemaining-- > 0 && responseBytesRead == 0)
+                if (allowRetry && RetryCount++ <= max_retries && responseBytesRead == 0)
                 {
-                    logger.Add($@"Request to {Url} failed with {e?.ToString() ?? response.StatusCode.ToString()} (retrying {default_retry_count - retriesRemaining}/{default_retry_count}).");
+                    logger.Add($@"Request to {Url} failed with {e?.ToString() ?? response.StatusCode.ToString()} (retrying {RetryCount}/{max_retries}).");
 
                     //do a retry
                     internalPerform();
@@ -561,22 +566,6 @@ namespace osu.Framework.IO.Network
             Dispose(true);
             GC.SuppressFinalize(this);
         }
-
-        #endregion
-
-        #region Retry Logic
-
-        private const int default_retry_count = 2;
-
-        private int retryCount = default_retry_count;
-
-        public int RetryCount
-        {
-            get { return retryCount; }
-            set { retriesRemaining = retryCount = value; }
-        }
-
-        private int retriesRemaining = default_retry_count;
 
         #endregion
 
