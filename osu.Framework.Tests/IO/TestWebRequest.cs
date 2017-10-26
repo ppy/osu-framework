@@ -225,7 +225,7 @@ namespace osu.Framework.Tests.IO
             Assert.IsTrue(request.Aborted);
 
             Assert.IsTrue(thrownException != null);
-            Assert.AreEqual(WebRequest.MAX_RETRIES + 1, request.RetryCount);
+            Assert.AreEqual(WebRequest.MAX_RETRIES, request.RetryCount);
             Assert.AreEqual(typeof(WebException), thrownException.GetType());
         }
 

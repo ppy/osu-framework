@@ -441,7 +441,7 @@ namespace osu.Framework.IO.Network
 
             if (hasFailed)
             {
-                if (allowRetry && RetryCount <= MAX_RETRIES && responseBytesRead == 0)
+                if (allowRetry && RetryCount < MAX_RETRIES && responseBytesRead == 0)
                 {
                     RetryCount++;
 
