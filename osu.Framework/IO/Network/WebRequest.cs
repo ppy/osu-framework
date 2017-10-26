@@ -18,18 +18,51 @@ namespace osu.Framework.IO.Network
     public class WebRequest : IDisposable
     {
         /// <summary>
-        /// Update has progressed.
+        /// Invoked when a response has been received, but not data has been received.
         /// </summary>
-        /// <param name="request">The request.</param>
-        /// <param name="current">Total bytes processed.</param>
-        /// <param name="total">Total bytes required.</param>
-        public delegate void RequestUpdateHandler(WebRequest request, long current, long total);
+        public event Action Started;
 
         /// <summary>
-        /// Request has started.
+        /// Invoked when the <see cref="WebRequest"/> has finished.
+        /// An unsuccessful completion is indicated by the presence of an exception.
         /// </summary>
-        /// <param name="request">The request.</param>
-        public delegate void RequestStartedHandler(WebRequest request);
+        public event Action<Exception> Finished;
+
+        /// <summary>
+        /// Invoked when the download progress has changed.
+        /// </summary>
+        public event Action<long, long> DownloadProgress;
+
+        /// <summary>
+        /// Invoked when the upload progress has changed.
+        /// </summary>
+        public event Action<long, long> UploadProgress;
+
+        /// <summary>
+        /// Whether the <see cref="WebRequest"/> was aborted due to an exception or a user abort request.
+        /// </summary>
+        public bool Aborted { get; private set; }
+
+        private bool completed;
+        /// <summary>
+        /// Whether the <see cref="WebRequest"/> has been run.
+        /// </summary>
+        public bool Completed
+        {
+            get { return completed; }
+            set
+            {
+                completed = value;
+                if (!completed) return;
+
+                // WebRequests can only be used once - no need to keep events bound
+                // This helps with disposal in PerformAsync usages
+                Started = null;
+                Finished = null;
+                DownloadProgress = null;
+                UploadProgress = null;
+            }
+        }
 
         private string url;
 
@@ -48,42 +81,6 @@ namespace osu.Framework.IO.Network
                 url = value;
             }
         }
-
-        /// <summary>
-        /// The request has been aborted by the user or due to an exception.
-        /// </summary>
-        public bool Aborted { get; private set; }
-
-        /// <summary>
-        /// The request has been executed and successfully completed.
-        /// </summary>
-        public bool Completed { get; private set; }
-
-        /// <summary>
-        /// Monitor upload progress.
-        /// </summary>
-        public event RequestUpdateHandler UploadProgress;
-
-        /// <summary>
-        /// Monitor download progress.
-        /// </summary>
-        public event RequestUpdateHandler DownloadProgress;
-
-        /// <summary>
-        /// Invoked when the request has finished, possibly with an exception.
-        /// </summary>
-        public event Action<Exception> Finished;
-
-        /// <summary>
-        /// Request has started.
-        /// </summary>
-        public event RequestStartedHandler Started;
-
-        /// <summary>
-        /// To avoid memory leaks due to delegates being bound to events, on request completion events are removed by default.
-        /// This controls whether they should be kept to allow for further requests.
-        /// </summary>
-        public bool KeepEventsBound;
 
         /// <summary>
         /// POST parameters.
@@ -196,11 +193,8 @@ namespace osu.Framework.IO.Network
 
         public HttpResponseHeaders ResponseHeaders => response.Headers;
 
-        private bool canPerform = true;
-
         private CancellationTokenSource abortToken;
         private CancellationTokenSource timeoutToken;
-        private CancellationTokenSource linkedToken;
 
         private LengthTrackingStream requestStream;
         private HttpResponseMessage response;
@@ -216,13 +210,8 @@ namespace osu.Framework.IO.Network
         /// </summary>
         public async Task PerformAsync()
         {
-            if (!canPerform)
-                throw new InvalidOperationException("Can not perform a web request multiple times.");
-            canPerform = false;
-
-            Aborted = false;
-            abortRequest();
-
+            if (Completed)
+                throw new InvalidOperationException($"The {nameof(WebRequest)} has already been run.");
             await Task.Factory.StartNew(internalPerform, TaskCreationOptions.LongRunning);
         }
 
@@ -230,7 +219,7 @@ namespace osu.Framework.IO.Network
         {
             using (abortToken = new CancellationTokenSource())
             using (timeoutToken = new CancellationTokenSource())
-            using (linkedToken = CancellationTokenSource.CreateLinkedTokenSource(abortToken.Token, timeoutToken.Token))
+            using (var linkedToken = CancellationTokenSource.CreateLinkedTokenSource(abortToken.Token, timeoutToken.Token))
             {
                 try
                 {
@@ -296,7 +285,7 @@ namespace osu.Framework.IO.Network
                             requestStream.BytesRead.ValueChanged += v =>
                             {
                                 reportForwardProgress();
-                                UploadProgress?.Invoke(this, v, contentLength);
+                                UploadProgress?.Invoke(v, contentLength);
                             };
 
                             request.Content = new StreamContent(requestStream);
@@ -320,13 +309,13 @@ namespace osu.Framework.IO.Network
                     {
                         case HttpMethod.GET:
                             //GETs are easy
-                            beginResponse();
+                            beginResponse(linkedToken.Token);
                             break;
                         case HttpMethod.POST:
                             reportForwardProgress();
-                            UploadProgress?.Invoke(this, 0, contentLength);
+                            UploadProgress?.Invoke(0, contentLength);
 
-                            beginResponse();
+                            beginResponse(linkedToken.Token);
                             break;
                     }
                 }
@@ -344,8 +333,6 @@ namespace osu.Framework.IO.Network
                     throw;
                 }
             }
-
-            canPerform = true;
         }
 
         /// <summary>
@@ -360,18 +347,18 @@ namespace osu.Framework.IO.Network
         {
         }
 
-        private void beginResponse()
+        private void beginResponse(CancellationToken cancellationToken)
         {
             using (var responseStream = response.Content.ReadAsStreamAsync().Result)
             {
                 reportForwardProgress();
-                Started?.Invoke(this);
+                Started?.Invoke();
 
                 buffer = new byte[buffer_size];
 
                 while (true)
                 {
-                    linkedToken.Token.ThrowIfCancellationRequested();
+                    cancellationToken.ThrowIfCancellationRequested();
 
                     int read = responseStream.Read(buffer, 0, buffer_size);
 
@@ -381,7 +368,7 @@ namespace osu.Framework.IO.Network
                     {
                         ResponseStream.Write(buffer, 0, read);
                         responseBytesRead += read;
-                        DownloadProgress?.Invoke(this, responseBytesRead, response.Content.Headers.ContentLength ?? responseBytesRead);
+                        DownloadProgress?.Invoke(responseBytesRead, response.Content.Headers.ContentLength ?? responseBytesRead);
                     }
                     else
                     {
@@ -453,13 +440,9 @@ namespace osu.Framework.IO.Network
 
             Finished?.Invoke(e);
 
-            if (!KeepEventsBound)
-                unbindEvents();
-
             if (e != null)
                 Aborted = true;
-            else
-                Completed = true;
+            Completed = true;
         }
 
         /// <summary>
@@ -470,8 +453,14 @@ namespace osu.Framework.IO.Network
         {
         }
 
-        private void abortRequest()
+        /// <summary>
+        /// Forcefully abort the request.
+        /// </summary>
+        public void Abort()
         {
+            Aborted = true;
+            Completed = true;
+
             try
             {
                 abortToken?.Cancel();
@@ -479,20 +468,6 @@ namespace osu.Framework.IO.Network
             catch (ObjectDisposedException)
             {
             }
-        }
-
-        /// <summary>
-        /// Forcefully abort the request.
-        /// </summary>
-        public void Abort()
-        {
-            if (Aborted) return;
-            Aborted = true;
-
-            abortRequest();
-
-            if (!KeepEventsBound)
-                unbindEvents();
         }
 
         /// <summary>
@@ -532,14 +507,6 @@ namespace osu.Framework.IO.Network
             Parameters.Add(name, value);
         }
 
-        private void unbindEvents()
-        {
-            UploadProgress = null;
-            DownloadProgress = null;
-            Finished = null;
-            Started = null;
-        }
-
         #region Timeout Handling
 
         private long lastAction;
@@ -563,14 +530,12 @@ namespace osu.Framework.IO.Network
             if (isDisposed) return;
             isDisposed = true;
 
-            abortRequest();
+            Abort();
 
             requestStream?.Dispose();
 
             if (!(ResponseStream is MemoryStream))
                 ResponseStream?.Dispose();
-
-            unbindEvents();
         }
 
         public void Dispose()

@@ -32,14 +32,15 @@ namespace osu.Framework.Tests.IO
             else
                 Assert.DoesNotThrow(request.Perform);
 
+            Assert.IsTrue(request.Completed);
+            Assert.IsFalse(request.Aborted);
+
             var responseObject = request.ResponseObject;
 
             Assert.IsTrue(responseObject != null);
             Assert.IsTrue(responseObject.Headers.UserAgent == "osu!");
             Assert.IsTrue(responseObject.Url == url);
 
-            Assert.IsFalse(request.Aborted);
-            Assert.IsTrue(request.Completed);
             Assert.IsFalse(hasThrown);
         }
 
@@ -59,11 +60,10 @@ namespace osu.Framework.Tests.IO
             else
                 Assert.Throws<AggregateException>(request.Perform);
 
-            Assert.IsTrue(request.ResponseString == null);
-
+            Assert.IsTrue(request.Completed);
             Assert.IsTrue(request.Aborted);
-            Assert.IsFalse(request.Completed);
 
+            Assert.IsTrue(request.ResponseString == null);
             Assert.IsNotNull(finishedException);
         }
 
@@ -81,10 +81,11 @@ namespace osu.Framework.Tests.IO
             else
                 Assert.DoesNotThrow(request.Perform);
 
+            Assert.IsTrue(request.Completed);
+            Assert.IsFalse(request.Aborted);
+
             Assert.IsEmpty(request.ResponseString);
 
-            Assert.IsFalse(request.Aborted);
-            Assert.IsTrue(request.Completed);
             Assert.IsFalse(hasThrown);
         }
 
@@ -100,17 +101,18 @@ namespace osu.Framework.Tests.IO
 
             bool hasThrown = false;
             request.Finished += exception => hasThrown = exception != null;
-            request.Started += webRequest => request.Abort();
+            request.Started += () => request.Abort();
 
             if (async)
                 Assert.DoesNotThrowAsync(request.PerformAsync);
             else
                 Assert.DoesNotThrow(request.Perform);
 
+            Assert.IsTrue(request.Completed);
+            Assert.IsTrue(request.Aborted);
+
             Assert.IsTrue(request.ResponseObject == null);
 
-            Assert.IsTrue(request.Aborted);
-            Assert.IsFalse(request.Completed);
             Assert.IsFalse(hasThrown);
         }
 
@@ -131,10 +133,43 @@ namespace osu.Framework.Tests.IO
 
             Assert.DoesNotThrow(request.Abort);
 
+            Assert.IsTrue(request.Completed);
+            Assert.IsTrue(request.Aborted);
+
             Assert.IsTrue(request.ResponseObject == null);
 
+            Assert.IsFalse(hasThrown);
+        }
+
+        /// <summary>
+        /// Tests being able to abort + restart a request.
+        /// </summary>
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestRestartAfterAbort(bool async)
+        {
+            var request = new JsonWebRequest<HttpBinGetResponse>("https://httpbin.org/get") { Method = HttpMethod.GET };
+
+            bool hasThrown = false;
+            request.Finished += exception => hasThrown = exception != null;
+
+#pragma warning disable 4014
+            request.PerformAsync();
+#pragma warning restore 4014
+
+            Assert.DoesNotThrow(request.Abort);
+
+            if (async)
+                Assert.ThrowsAsync<InvalidOperationException>(request.PerformAsync);
+            else
+                Assert.Throws<AggregateException>(request.Perform);
+
+            Assert.IsTrue(request.Completed);
             Assert.IsTrue(request.Aborted);
-            Assert.IsFalse(request.Completed);
+
+            var responseObject = request.ResponseObject;
+
+            Assert.IsTrue(responseObject == null);
             Assert.IsFalse(hasThrown);
         }
 
@@ -154,8 +189,8 @@ namespace osu.Framework.Tests.IO
 
             var responseObject = request.ResponseObject;
 
-            Assert.IsFalse(request.Aborted);
             Assert.IsTrue(request.Completed);
+            Assert.IsFalse(request.Aborted);
 
             Assert.IsTrue(responseObject.Form != null);
             Assert.IsTrue(responseObject.Form.Count == 2);
@@ -187,8 +222,8 @@ namespace osu.Framework.Tests.IO
 
             var responseObject = request.ResponseObject;
 
-            Assert.IsFalse(request.Aborted);
             Assert.IsTrue(request.Completed);
+            Assert.IsFalse(request.Aborted);
 
             Assert.IsTrue(responseObject.Headers.ContentLength > 0);
             Assert.IsTrue(responseObject.Json != null);
