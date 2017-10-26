@@ -88,9 +88,13 @@ namespace osu.Framework.Tests.IO
             Assert.IsFalse(hasThrown);
         }
 
+        /// <summary>
+        /// Tests aborting the <see cref="WebRequest"/> after response has been received from the server
+        /// but before data has been read.
+        /// </summary>
         [TestCase(false)]
         [TestCase(true)]
-        public void TestAbortGet(bool async)
+        public void TestAbortReceive(bool async)
         {
             var request = new JsonWebRequest<HttpBinGetResponse>("https://httpbin.org/get") { Method = HttpMethod.GET };
 
@@ -102,6 +106,30 @@ namespace osu.Framework.Tests.IO
                 Assert.DoesNotThrowAsync(request.PerformAsync);
             else
                 Assert.DoesNotThrow(request.Perform);
+
+            Assert.IsTrue(request.ResponseObject == null);
+
+            Assert.IsTrue(request.Aborted);
+            Assert.IsFalse(request.Completed);
+            Assert.IsFalse(hasThrown);
+        }
+
+        /// <summary>
+        /// Tests aborting the <see cref="WebRequest"/> before the request is sent to the server.
+        /// </summary>
+        [Test]
+        public void TestAbortRequest()
+        {
+            var request = new JsonWebRequest<HttpBinGetResponse>("https://httpbin.org/get") { Method = HttpMethod.GET };
+
+            bool hasThrown = false;
+            request.Finished += (webRequest, exception) => hasThrown = exception != null;
+
+#pragma warning disable 4014
+            request.PerformAsync();
+#pragma warning restore 4014
+
+            Assert.DoesNotThrow(request.Abort);
 
             Assert.IsTrue(request.ResponseObject == null);
 
