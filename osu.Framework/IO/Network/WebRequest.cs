@@ -119,8 +119,13 @@ namespace osu.Framework.IO.Network
 
         private static readonly Logger logger;
 
+        // private static readonly HttpClient client;
+
         static WebRequest()
         {
+            // Todo: Re-enable the following either with a mono fix to https://bugzilla.xamarin.com/show_bug.cgi?id=60396 or when osu! supports .NET Core
+            // client = createHttpClient();
+
             logger = Logger.GetLogger(LoggingTarget.Network);
         }
 
@@ -219,18 +224,10 @@ namespace osu.Framework.IO.Network
 
         private void internalPerform()
         {
-            // For now, a client is created for each request due to the following bug in mono:
-            // https://bugzilla.xamarin.com/show_bug.cgi?id=60396
+            // For now, a client is created for each request due to the following bug in mono: https://bugzilla.xamarin.com/show_bug.cgi?id=60396
             // Todo: This must not be done, and is dangerous to do, see: https://aspnetmonsters.com/2016/08/2016-08-27-httpclientwrong/
-            using (var client = new HttpClient(new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate }))
+            using (var client = createHttpClient())
             {
-                client.DefaultRequestHeaders.UserAgent.ParseAdd("osu!");
-                client.DefaultRequestHeaders.ExpectContinue = true;
-
-                // Timeout is controlled manually through cancellation tokens because
-                // HttpClient does not properly timeout while reading chunked data
-                client.Timeout = System.Threading.Timeout.InfiniteTimeSpan;
-
                 using (abortToken = new CancellationTokenSource())
                 using (timeoutToken = new CancellationTokenSource())
                 using (var linkedToken = CancellationTokenSource.CreateLinkedTokenSource(abortToken.Token, timeoutToken.Token))
@@ -533,6 +530,19 @@ namespace osu.Framework.IO.Network
         public void AddParameter(string name, string value)
         {
             Parameters.Add(name, value);
+        }
+
+        private HttpClient createHttpClient()
+        {
+            var client = new HttpClient(new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate });
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("osu!");
+            client.DefaultRequestHeaders.ExpectContinue = true;
+
+            // Timeout is controlled manually through cancellation tokens because
+            // HttpClient does not properly timeout while reading chunked data
+            client.Timeout = System.Threading.Timeout.InfiniteTimeSpan;
+
+            return client;
         }
 
         #region Timeout Handling
