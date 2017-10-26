@@ -53,7 +53,7 @@ namespace osu.Framework.IO.Network
         public bool Completed
         {
             get { return completed; }
-            set
+            private set
             {
                 completed = value;
                 if (!completed) return;
