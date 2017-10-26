@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Configuration;
+using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Logging;
 
 namespace osu.Framework.IO.Network
@@ -212,7 +213,14 @@ namespace osu.Framework.IO.Network
         {
             if (Completed)
                 throw new InvalidOperationException($"The {nameof(WebRequest)} has already been run.");
-            await Task.Factory.StartNew(internalPerform, TaskCreationOptions.LongRunning);
+            try
+            {
+                await Task.Factory.StartNew(internalPerform, TaskCreationOptions.LongRunning);
+            }
+            catch (AggregateException ae)
+            {
+                ae.RethrowIfSingular();
+            }
         }
 
         private void internalPerform()
@@ -338,7 +346,17 @@ namespace osu.Framework.IO.Network
         /// <summary>
         /// Performs the request synchronously.
         /// </summary>
-        public void Perform() => PerformAsync().Wait();
+        public void Perform()
+        {
+            try
+            {
+                PerformAsync().Wait();
+            }
+            catch (AggregateException ae)
+            {
+                ae.RethrowIfSingular();
+            }
+        }
 
         /// <summary>
         /// Task to run direct before performing the request.

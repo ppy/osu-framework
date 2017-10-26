@@ -3,10 +3,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Reflection;
 using Newtonsoft.Json;
 using NUnit.Framework;
 using osu.Framework.IO.Network;
+using HttpMethod = osu.Framework.IO.Network.HttpMethod;
 
 namespace osu.Framework.Tests.IO
 {
@@ -57,9 +59,9 @@ namespace osu.Framework.Tests.IO
             request.Finished += exception => finishedException = exception;
 
             if (async)
-                Assert.ThrowsAsync<AggregateException>(request.PerformAsync);
+                Assert.ThrowsAsync<HttpRequestException>(request.PerformAsync);
             else
-                Assert.Throws<AggregateException>(request.Perform);
+                Assert.Throws<HttpRequestException>(request.Perform);
 
             Assert.IsTrue(request.Completed);
             Assert.IsTrue(request.Aborted);
@@ -163,7 +165,7 @@ namespace osu.Framework.Tests.IO
             if (async)
                 Assert.ThrowsAsync<InvalidOperationException>(request.PerformAsync);
             else
-                Assert.Throws<AggregateException>(request.Perform);
+                Assert.Throws<InvalidOperationException>(request.Perform);
 
             Assert.IsTrue(request.Completed);
             Assert.IsTrue(request.Aborted);
