@@ -315,7 +315,8 @@ namespace osu.Framework.IO.Network
                             request.Headers.Add(kvp.Key, kvp.Value);
 
                         reportForwardProgress();
-                        response = client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, linkedToken.Token).Result;
+                        using (request)
+                            response = client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, linkedToken.Token).Result;
 
                         ResponseStream = CreateOutputStream();
 
