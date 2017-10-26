@@ -25,7 +25,7 @@ namespace osu.Framework.Tests.IO
             var request = new JsonWebRequest<HttpBinGetResponse>(url) { Method = HttpMethod.GET };
 
             bool hasThrown = false;
-            request.Finished += (webRequest, exception) => hasThrown = exception != null;
+            request.Finished += exception => hasThrown = exception != null;
 
             if (async)
                 Assert.DoesNotThrowAsync(request.PerformAsync);
@@ -52,7 +52,7 @@ namespace osu.Framework.Tests.IO
             var request = new WebRequest($"{protocol}://{invalid_get_url}") { Method = HttpMethod.GET };
 
             Exception finishedException = null;
-            request.Finished += (webRequest, exception) => finishedException = exception;
+            request.Finished += exception => finishedException = exception;
 
             if (async)
                 Assert.ThrowsAsync<AggregateException>(request.PerformAsync);
@@ -74,7 +74,7 @@ namespace osu.Framework.Tests.IO
             var request = new WebRequest("https://httpbin.org/hidden-basic-auth/user/passwd");
 
             bool hasThrown = false;
-            request.Finished += (webRequest, exception) => hasThrown = exception != null;
+            request.Finished += exception => hasThrown = exception != null;
 
             if (async)
                 Assert.DoesNotThrowAsync(request.PerformAsync);
@@ -99,7 +99,7 @@ namespace osu.Framework.Tests.IO
             var request = new JsonWebRequest<HttpBinGetResponse>("https://httpbin.org/get") { Method = HttpMethod.GET };
 
             bool hasThrown = false;
-            request.Finished += (webRequest, exception) => hasThrown = exception != null;
+            request.Finished += exception => hasThrown = exception != null;
             request.Started += webRequest => request.Abort();
 
             if (async)
@@ -123,7 +123,7 @@ namespace osu.Framework.Tests.IO
             var request = new JsonWebRequest<HttpBinGetResponse>("https://httpbin.org/get") { Method = HttpMethod.GET };
 
             bool hasThrown = false;
-            request.Finished += (webRequest, exception) => hasThrown = exception != null;
+            request.Finished += exception => hasThrown = exception != null;
 
 #pragma warning disable 4014
             request.PerformAsync();

@@ -26,20 +26,6 @@ namespace osu.Framework.IO.Network
         public delegate void RequestUpdateHandler(WebRequest request, long current, long total);
 
         /// <summary>
-        /// Request has completed.
-        /// </summary>
-        /// <param name="request">The request.</param>
-        /// <param name="e">An error, if an error occurred, else null.</param>
-        public delegate void RequestCompleteHandler(WebRequest request, Exception e);
-
-        /// <summary>
-        /// Request has completed.
-        /// </summary>
-        /// <param name="request">The request.</param>
-        /// <param name="e">An error, if an error occurred, else null.</param>
-        public delegate void RequestCompleteHandler<T>(JsonWebRequest<T> request, Exception e);
-
-        /// <summary>
         /// Request has started.
         /// </summary>
         /// <param name="request">The request.</param>
@@ -84,9 +70,9 @@ namespace osu.Framework.IO.Network
         public event RequestUpdateHandler DownloadProgress;
 
         /// <summary>
-        /// Request has finished with success or failure. Check exception == null for success.
+        /// Invoked when the request has finished, possibly with an exception.
         /// </summary>
-        public event RequestCompleteHandler Finished;
+        public event Action<Exception> Finished;
 
         /// <summary>
         /// Request has started.
@@ -459,7 +445,13 @@ namespace osu.Framework.IO.Network
             else
                 logger.Add($@"Request to {Url} successfully completed!");
 
-            Finished?.Invoke(this, e);
+            try
+            {
+                ProcessResponse();
+            }
+            catch (Exception se) { e = e == null ? se : new AggregateException(e, se); }
+
+            Finished?.Invoke(e);
 
             if (!KeepEventsBound)
                 unbindEvents();
@@ -468,6 +460,14 @@ namespace osu.Framework.IO.Network
                 Aborted = true;
             else
                 Completed = true;
+        }
+
+        /// <summary>
+        /// Performs any post-processing of the response.
+        /// Exceptions thrown in this method will be passed to <see cref="Finished"/>.
+        /// </summary>
+        protected virtual void ProcessResponse()
+        {
         }
 
         private void abortRequest()
