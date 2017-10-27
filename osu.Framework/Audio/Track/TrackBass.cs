@@ -155,7 +155,7 @@ namespace osu.Framework.Audio.Track
 
             PendingActions.Enqueue(() =>
             {
-                if (IsRunning)
+                if (Bass.ChannelIsActive(activeStream) == PlaybackState.Playing)
                     Bass.ChannelPause(activeStream);
 
                 isPlayed = false;
