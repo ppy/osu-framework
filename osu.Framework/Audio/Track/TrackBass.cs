@@ -42,7 +42,7 @@ namespace osu.Framework.Audio.Track
 
         public TrackBass(Stream data, bool quick = false)
         {
-            PendingActions.Enqueue(() =>
+            EnqueueAction(() =>
             {
                 Preview = quick;
 
@@ -153,7 +153,7 @@ namespace osu.Framework.Audio.Track
         {
             base.Stop();
 
-            PendingActions.Enqueue(() =>
+            EnqueueAction(() =>
             {
                 if (Bass.ChannelIsActive(activeStream) == PlaybackState.Playing)
                     Bass.ChannelPause(activeStream);
@@ -175,7 +175,8 @@ namespace osu.Framework.Audio.Track
             isRunning = true;
 
             base.Start();
-            PendingActions.Enqueue(() =>
+
+            EnqueueAction(() =>
             {
                 if (Bass.ChannelPlay(activeStream))
                     isPlayed = true;
@@ -210,7 +211,7 @@ namespace osu.Framework.Audio.Track
             };
 
             seekAction = action;
-            PendingActions.Enqueue(action);
+            EnqueueAction(action);
 
             return conservativeClamped == seek;
         }

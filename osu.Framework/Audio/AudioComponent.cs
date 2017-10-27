@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Threading;
 using osu.Framework.Development;
 using osu.Framework.Statistics;
 
@@ -14,6 +15,32 @@ namespace osu.Framework.Audio
         /// Audio operations will be run on a separate dedicated thread, so we need to schedule any audio API calls using this queue.
         /// </summary>
         protected ConcurrentQueue<Action> PendingActions = new ConcurrentQueue<Action>();
+
+        /// <summary>
+        /// Enqueue an action to be run on the audio thread queue (<see cref="PendingActions"/>).
+        /// </summary>
+        /// <param name="action">The action to run.</param>
+        /// <param name="waitUntilComplete">Whether to block until the action has been completed. Useful to avoid threading issues for critical tasks.</param>
+        protected void EnqueueAction(Action action, bool waitUntilComplete = false)
+        {
+            var usableAction = action;
+
+            bool hasCompleted = false;
+            if (waitUntilComplete)
+            {
+                usableAction = () =>
+                {
+                    action();
+                    hasCompleted = true;
+                };
+            }
+
+            PendingActions.Enqueue(usableAction);
+
+            if (waitUntilComplete)
+                while (!hasCompleted)
+                    Thread.Sleep(1);
+        }
 
         ~AudioComponent()
         {
@@ -63,7 +90,7 @@ namespace osu.Framework.Audio
         // This code added to correctly implement the disposable pattern.
         public void Dispose()
         {
-            PendingActions.Enqueue(() => Dispose(true));
+            EnqueueAction(() => Dispose(true));
         }
 
         #endregion
