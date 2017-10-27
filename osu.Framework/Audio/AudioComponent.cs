@@ -22,7 +22,6 @@ namespace osu.Framework.Audio
 
         /// <summary>
         /// Run each loop of the audio thread after queued actions to allow components to update anything they need to.
-        /// If we require 
         /// </summary>
         protected virtual void UpdateState()
         {
