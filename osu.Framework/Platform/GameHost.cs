@@ -196,9 +196,13 @@ namespace osu.Framework.Platform
             }
         }
 
-        protected virtual void OnActivated() => UpdateThread.Scheduler.Add(() => setActive(true));
+        protected virtual void OnActivated()
+        {
+        }
 
-        protected virtual void OnDeactivated() => UpdateThread.Scheduler.Add(() => setActive(false));
+        protected virtual void OnDeactivated()
+        {
+        }
 
         /// <returns>true to cancel</returns>
         protected virtual bool OnExitRequested()
@@ -345,13 +349,14 @@ namespace osu.Framework.Platform
             {
                 if (Window != null)
                 {
-                    setActive(Window.Focused);
-
                     Window.KeyDown += window_KeyDown;
 
                     Window.ExitRequested += OnExitRequested;
                     Window.Exited += OnExited;
-                    Window.FocusedChanged += delegate { setActive(Window.Focused); };
+
+                    EventHandler<EventArgs> setActiveHandler = delegate { setActive(Window.Focused); };
+                    Window.Load += setActiveHandler;
+                    Window.FocusedChanged += setActiveHandler;
 
                     Window.UpdateFrame += delegate
                     {
