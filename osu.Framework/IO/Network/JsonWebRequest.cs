@@ -1,7 +1,6 @@
 // Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System;
 using Newtonsoft.Json;
 
 namespace osu.Framework.IO.Network
@@ -17,30 +16,12 @@ namespace osu.Framework.IO.Network
         public JsonWebRequest(string url = null, params object[] args)
             : base(url, args)
         {
-            base.Finished += finished;
         }
 
-        private void finished(WebRequest request, Exception e)
-        {
-            try
-            {
-                deserialisedResponse = JsonConvert.DeserializeObject<T>(ResponseString);
-            }
-            catch (Exception se)
-            {
-                e = e == null ? se : new AggregateException(e, se);
-            }
-
-            Finished?.Invoke(this, e);
-        }
+        protected override void ProcessResponse() => deserialisedResponse = JsonConvert.DeserializeObject<T>(ResponseString);
 
         private T deserialisedResponse;
 
         public T ResponseObject => deserialisedResponse;
-
-        /// <summary>
-        /// Request has finished with success or failure. Check exception == null for success.
-        /// </summary>
-        public new event RequestCompleteHandler<T> Finished;
     }
 }
