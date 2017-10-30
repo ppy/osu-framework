@@ -71,9 +71,9 @@ namespace osu.Framework.Audio.Track
             }
         }
 
-        public override void Update()
+        protected override void UpdateState()
         {
-            base.Update();
+            base.UpdateState();
 
             lock (clock)
             {
