@@ -72,9 +72,9 @@ namespace osu.Framework.Audio.Sample
             base.Play(restart);
         }
 
-        public override void Update()
+        protected override void UpdateState()
         {
-            base.Update();
+            base.UpdateState();
             playing = channel != 0 && Bass.ChannelIsActive(channel) != 0;
         }
 
