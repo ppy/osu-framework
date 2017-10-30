@@ -410,17 +410,12 @@ namespace osu.Framework.IO.Network
             var we = e as WebException;
 
             bool allowRetry = AllowRetryOnTimeout;
-            bool hasFailed = false;
 
             if (e != null)
-            {
-                hasFailed = true;
                 allowRetry &= we?.Status == WebExceptionStatus.Timeout;
-            }
             else if (!response.IsSuccessStatusCode)
             {
                 e = new WebException(response.StatusCode.ToString());
-                hasFailed = true;
 
                 switch (response.StatusCode)
                 {
@@ -438,7 +433,7 @@ namespace osu.Framework.IO.Network
                 }
             }
 
-            if (hasFailed)
+            if (e != null)
             {
                 if (allowRetry && RetryCount < MAX_RETRIES && responseBytesRead == 0)
                 {
