@@ -88,17 +88,17 @@ namespace osu.Framework.IO.Network
         /// <summary>
         /// POST parameters.
         /// </summary>
-        private Dictionary<string, string> parameters = new Dictionary<string, string>();
+        private readonly Dictionary<string, string> parameters = new Dictionary<string, string>();
 
         /// <summary>
         /// FILE parameters.
         /// </summary>
-        private IDictionary<string, byte[]> files = new Dictionary<string, byte[]>();
+        private readonly IDictionary<string, byte[]> files = new Dictionary<string, byte[]>();
 
         /// <summary>
         /// The request headers.
         /// </summary>
-        private IDictionary<string, string> headers = new Dictionary<string, string>();
+        private readonly IDictionary<string, string> headers = new Dictionary<string, string>();
 
         public const int DEFAULT_TIMEOUT = 10000;
 
@@ -529,10 +529,10 @@ namespace osu.Framework.IO.Network
 
         /// <summary>
         /// Add a new FILE parameter to this request. Replaces any existing file with the same name.
-        /// This may not be used in conjunction with <see cref="AddRaw"/>. GET requests may not contain files.
+        /// This may not be used in conjunction with <see cref="AddRaw(Stream)"/>. GET requests may not contain files.
         /// </summary>
         /// <param name="name">The name of the file. This becomes the name of the file in a multi-part form POST content.</param>
-        /// <param name="value">The file data.</param>
+        /// <param name="data">The file data.</param>
         public void AddFile(string name, byte[] data)
         {
             if (name == null) throw new ArgumentNullException(nameof(name));
@@ -543,7 +543,7 @@ namespace osu.Framework.IO.Network
 
         /// <summary>
         /// Add a new POST parameter to this request. Replaces any existing parameter with the same name.
-        /// This may not be used in conjunction with <see cref="AddRaw"/>.
+        /// This may not be used in conjunction with <see cref="AddRaw(Stream)"/>.
         /// </summary>
         /// <param name="name">The name of the parameter.</param>
         /// <param name="value">The parameter value.</param>
