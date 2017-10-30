@@ -419,6 +419,7 @@ namespace osu.Framework.IO.Network
             }
             else if (!response.IsSuccessStatusCode)
             {
+                e = new WebException(response.StatusCode.ToString());
                 hasFailed = true;
 
                 switch (response.StatusCode)
@@ -443,7 +444,7 @@ namespace osu.Framework.IO.Network
                 {
                     RetryCount++;
 
-                    logger.Add($@"Request to {Url} failed with {e?.ToString() ?? response.StatusCode.ToString()} (retrying {RetryCount}/{MAX_RETRIES}).");
+                    logger.Add($@"Request to {Url} failed with {e} (retrying {RetryCount}/{MAX_RETRIES}).");
 
                     // For now, a client is created for each request due to the following bug in mono: https://bugzilla.xamarin.com/show_bug.cgi?id=60396
                     // Todo: This must not be done, and is dangerous to do, see: https://aspnetmonsters.com/2016/08/2016-08-27-httpclientwrong/
@@ -454,7 +455,7 @@ namespace osu.Framework.IO.Network
                     return;
                 }
 
-                logger.Add($"Request to {Url} failed with {e?.ToString() ?? response.StatusCode.ToString()} (FAILED).");
+                logger.Add($"Request to {Url} failed with {e} (FAILED).");
             }
             else
                 logger.Add($@"Request to {Url} successfully completed!");

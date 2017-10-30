@@ -87,11 +87,11 @@ namespace osu.Framework.Tests.IO
                 Assert.DoesNotThrow(request.Perform);
 
             Assert.IsTrue(request.Completed);
-            Assert.IsFalse(request.Aborted);
+            Assert.IsTrue(request.Aborted);
 
             Assert.IsEmpty(request.ResponseString);
 
-            Assert.IsFalse(hasThrown);
+            Assert.IsTrue(hasThrown);
         }
 
         /// <summary>
