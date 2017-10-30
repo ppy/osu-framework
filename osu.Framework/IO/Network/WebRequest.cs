@@ -88,18 +88,17 @@ namespace osu.Framework.IO.Network
         /// <summary>
         /// POST parameters.
         /// </summary>
-        public Dictionary<string, string> Parameters = new Dictionary<string, string>();
+        private Dictionary<string, string> parameters = new Dictionary<string, string>();
 
         /// <summary>
         /// FILE parameters.
         /// </summary>
-        public Dictionary<string, byte[]> Files = new Dictionary<string, byte[]>();
+        private IDictionary<string, byte[]> files = new Dictionary<string, byte[]>();
 
         /// <summary>
         /// The request headers.
         /// </summary>
-        // ReSharper disable once CollectionNeverUpdated.Global
-        public Dictionary<string, string> Headers = new Dictionary<string, string>();
+        private IDictionary<string, string> headers = new Dictionary<string, string>();
 
         public const int DEFAULT_TIMEOUT = 10000;
 
@@ -243,11 +242,11 @@ namespace osu.Framework.IO.Network
                         default:
                             throw new InvalidOperationException($"HTTP method {Method} is currently not supported");
                         case HttpMethod.GET:
-                            if (Files.Count > 0)
+                            if (files.Count > 0)
                                 throw new InvalidOperationException($"Cannot use {nameof(AddFile)} in a GET request. Please set the {nameof(Method)} to POST.");
 
                             StringBuilder requestParameters = new StringBuilder();
-                            foreach (var p in Parameters)
+                            foreach (var p in parameters)
                                 requestParameters.Append($@"{p.Key}={p.Value}&");
                             string requestString = requestParameters.ToString().TrimEnd('&');
 
@@ -260,9 +259,9 @@ namespace osu.Framework.IO.Network
 
                             if (rawContent != null)
                             {
-                                if (Parameters.Count > 0)
+                                if (parameters.Count > 0)
                                     throw new InvalidOperationException($"Cannot use {nameof(AddRaw)} in conjunction with {nameof(AddParameter)}");
-                                if (Files.Count > 0)
+                                if (files.Count > 0)
                                     throw new InvalidOperationException($"Cannot use {nameof(AddRaw)} in conjunction with {nameof(AddFile)}");
 
                                 postContent = new MemoryStream();
@@ -279,10 +278,10 @@ namespace osu.Framework.IO.Network
 
                                 var formData = new MultipartFormDataContent(form_boundary);
 
-                                foreach (var p in Parameters)
+                                foreach (var p in parameters)
                                     formData.Add(new StringContent(p.Value), p.Key);
 
-                                foreach (var p in Files)
+                                foreach (var p in files)
                                 {
                                     var byteContent = new ByteArrayContent(p.Value);
                                     byteContent.Headers.Add("Content-Type", "application/octet-stream");
@@ -308,7 +307,7 @@ namespace osu.Framework.IO.Network
                     if (!string.IsNullOrEmpty(Accept))
                         request.Headers.Accept.TryParseAdd(Accept);
 
-                    foreach (var kvp in Headers)
+                    foreach (var kvp in headers)
                         request.Headers.Add(kvp.Key, kvp.Value);
 
                     reportForwardProgress();
@@ -495,19 +494,33 @@ namespace osu.Framework.IO.Network
 
         /// <summary>
         /// Adds a raw POST body to this request.
+        /// This may not be used in conjunction with <see cref="AddFile"/> and <see cref="AddParameter"/>.
         /// </summary>
-        public void AddRaw(string text) => AddRaw(Encoding.UTF8.GetBytes(text));
+        /// <param name="text">The text.</param>
+        public void AddRaw(string text)
+        {
+            AddRaw(Encoding.UTF8.GetBytes(text));
+        }
 
         /// <summary>
         /// Adds a raw POST body to this request.
+        /// This may not be used in conjunction with <see cref="AddFile"/> and <see cref="AddParameter"/>.
         /// </summary>
-        public void AddRaw(byte[] bytes) => AddRaw(new MemoryStream(bytes));
+        /// <param name="bytes">The raw data.</param>
+        public void AddRaw(byte[] bytes)
+        {
+            AddRaw(new MemoryStream(bytes));
+        }
 
         /// <summary>
         /// Adds a raw POST body to this request.
+        /// This may not be used in conjunction with <see cref="AddFile"/> and <see cref="AddParameter"/>.
         /// </summary>
+        /// <param name="stream">The stream containing the raw data. This stream will _not_ be finalized by this request.</param>
         public void AddRaw(Stream stream)
         {
+            if (stream == null) throw new ArgumentNullException(nameof(stream));
+
             if (rawContent == null)
                 rawContent = new MemoryStream();
 
@@ -515,19 +528,44 @@ namespace osu.Framework.IO.Network
         }
 
         /// <summary>
-        /// Add a new FILE parameter to this request.
+        /// Add a new FILE parameter to this request. Replaces any existing file with the same name.
+        /// This may not be used in conjunction with <see cref="AddRaw"/>. GET requests may not contain files.
         /// </summary>
+        /// <param name="name">The name of the file. This becomes the name of the file in a multi-part form POST content.</param>
+        /// <param name="value">The file data.</param>
         public void AddFile(string name, byte[] data)
         {
-            Files.Add(name, data);
+            if (name == null) throw new ArgumentNullException(nameof(name));
+            if (data == null) throw new ArgumentNullException(nameof(data));
+
+            files[name] = data;
         }
 
         /// <summary>
-        /// Add a new POST parameter to this request.
+        /// Add a new POST parameter to this request. Replaces any existing parameter with the same name.
+        /// This may not be used in conjunction with <see cref="AddRaw"/>.
         /// </summary>
+        /// <param name="name">The name of the parameter.</param>
+        /// <param name="value">The parameter value.</param>
         public void AddParameter(string name, string value)
         {
-            Parameters.Add(name, value);
+            if (name == null) throw new ArgumentNullException(nameof(name));
+            if (value == null) throw new ArgumentNullException(nameof(value));
+
+            parameters[name] = value;
+        }
+
+        /// <summary>
+        /// Adds a new header to this request. Replaces any existing header with the same name.
+        /// </summary>
+        /// <param name="name">The name of the header.</param>
+        /// <param name="value">The header value.</param>
+        public void AddHeader(string name, string value)
+        {
+            if (name == null) throw new ArgumentNullException(nameof(name));
+            if (value == null) throw new ArgumentNullException(nameof(value));
+
+            headers[name] = value;
         }
 
         private static void createHttpClient()
