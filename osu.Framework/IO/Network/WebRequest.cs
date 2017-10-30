@@ -117,6 +117,11 @@ namespace osu.Framework.IO.Network
 
         internal int RetryCount { get; private set; }
 
+        /// <summary>
+        /// Whether this request should internally retry (up to <see cref="MAX_RETRIES"/> times) on a timeout before throwing an exception.
+        /// </summary>
+        public bool AllowRetryOnTimeout { get; set; } = true;
+
         private static readonly Logger logger;
 
         private static HttpClient client;
@@ -404,18 +409,17 @@ namespace osu.Framework.IO.Network
 
             var we = e as WebException;
 
-            bool allowRetry = false;
+            bool allowRetry = AllowRetryOnTimeout;
             bool hasFailed = false;
 
             if (e != null)
             {
                 hasFailed = true;
-                allowRetry = we?.Status == WebExceptionStatus.Timeout;
+                allowRetry &= we?.Status == WebExceptionStatus.Timeout;
             }
             else if (!response.IsSuccessStatusCode)
             {
                 hasFailed = true;
-                allowRetry = true;
 
                 switch (response.StatusCode)
                 {
