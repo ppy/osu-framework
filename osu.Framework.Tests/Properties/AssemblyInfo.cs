@@ -2,27 +2,20 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 
-[assembly: AssemblyTitle("osu!framework")]
-[assembly: AssemblyDescription("Framework to support osu!")]
+[assembly: AssemblyTitle("osu.Framework.Tests")]
+[assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("ppy Pty Ltd")]
-[assembly: AssemblyProduct("osu!framework")]
+[assembly: AssemblyCompany("")]
+[assembly: AssemblyProduct("osu.Framework.Desktop")]
 [assembly: AssemblyCopyright("Copyright © ppy Pty Ltd 2017")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
-
-// We publish our internal attributes to other sub-projects of the framework.
-// Note, that we omit visual tests as they are meant to test the framework
-// behavior "in the wild".
-
-[assembly: InternalsVisibleTo("osu.Framework.Tests")]
 
 // Setting ComVisible to false makes the types in this assembly not visible
 // to COM components.  If you need to access a type in this assembly from
@@ -32,7 +25,7 @@ using System.Runtime.InteropServices;
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 
-[assembly: Guid("c76bf5b3-985e-4d39-95fe-97c9c879b83a")]
+[assembly: Guid("65dc628f-a640-4111-ab35-3a5652bc1e17")]
 
 // Version information for an assembly consists of the following four values:
 //
