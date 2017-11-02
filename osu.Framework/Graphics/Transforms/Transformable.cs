@@ -49,6 +49,11 @@ namespace osu.Framework.Graphics.Transforms
         public IReadOnlyList<Transform> Transforms => transforms;
 
         /// <summary>
+        /// Whether to remove completed transforms from the list of updatable transforms.
+        /// </summary>
+        protected virtual bool RemoveCompletedTransforms => true;
+
+        /// <summary>
         /// Resets <see cref="TransformDelay"/> and processes updates to this class based on loaded <see cref="Transform"/>s.
         /// </summary>
         protected void UpdateTransforms()
@@ -81,21 +86,24 @@ namespace osu.Framework.Graphics.Transforms
                     t.ReadIntoStartValue();
                     t.HasStartValue = true;
 
-                    // This is the first time we are updating this transform.
-                    // We will find other still active transforms which act on the same target member and remove them.
-                    // Since following transforms acting on the same target member are immediately removed when a
-                    // new one is added, we can be sure that previous transforms were added before this one and can
-                    // be safely removed.
-                    for (int j = 0; j < i; ++j)
+                    if (RemoveCompletedTransforms)
                     {
-                        var otherTransform = transformsLazy[j];
-                        if (otherTransform.TargetMember == t.TargetMember)
+                        // This is the first time we are updating this transform.
+                        // We will find other still active transforms which act on the same target member and remove them.
+                        // Since following transforms acting on the same target member are immediately removed when a
+                        // new one is added, we can be sure that previous transforms were added before this one and can
+                        // be safely removed.
+                        for (int j = 0; j < i; ++j)
                         {
-                            transformsLazy.RemoveAt(j--);
-                            i--;
+                            var otherTransform = transformsLazy[j];
+                            if (otherTransform.TargetMember == t.TargetMember)
+                            {
+                                transformsLazy.RemoveAt(j--);
+                                i--;
 
-                            if (otherTransform.OnAbort != null)
-                                removalActions.Add(otherTransform.OnAbort);
+                                if (otherTransform.OnAbort != null)
+                                    removalActions.Add(otherTransform.OnAbort);
+                            }
                         }
                     }
                 }
@@ -104,7 +112,9 @@ namespace osu.Framework.Graphics.Transforms
 
                 if (t.EndTime <= Time.Current)
                 {
-                    transformsLazy.RemoveAt(i--);
+                    if (RemoveCompletedTransforms)
+                        transformsLazy.RemoveAt(i--);
+
                     if (t.IsLooping)
                     {
                         t.StartTime += t.LoopDelay;
@@ -307,12 +317,15 @@ namespace osu.Framework.Graphics.Transforms
             // Remove all existing following transforms touching the same property at this one.
             for (int i = insertionIndex + 1; i < transformsLazy.Count; ++i)
             {
-                var t = transformsLazy[i];
-                if (t.TargetMember == transform.TargetMember)
+                if (RemoveCompletedTransforms)
                 {
-                    transformsLazy.RemoveAt(i--);
-                    if (t.OnAbort != null)
-                        removalActions.Add(t.OnAbort);
+                    var t = transformsLazy[i];
+                    if (t.TargetMember == transform.TargetMember)
+                    {
+                        transformsLazy.RemoveAt(i--);
+                        if (t.OnAbort != null)
+                            removalActions.Add(t.OnAbort);
+                    }
                 }
             }
 
