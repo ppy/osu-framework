@@ -18,12 +18,12 @@ using osu.Framework.Timing;
 
 namespace osu.Framework.Tests.Visual
 {
-    public class TestCaseReversibleTransforms : TestCase
+    public class TestCaseTransformRewinding : TestCase
     {
         protected override Container<Drawable> Content => content;
         private readonly FillFlowContainer content;
 
-        public TestCaseReversibleTransforms()
+        public TestCaseTransformRewinding()
         {
             base.Content.Add(content = new FillFlowContainer
             {
