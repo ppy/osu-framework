@@ -50,7 +50,7 @@ namespace osu.Framework.Tests.Visual
                         Add(new AnimationContainer
                         {
                             Size = new Vector2(200),
-                            Child = box = new ReversibleBox
+                            Child = box = new Box
                             {
                                 Anchor = Anchor.Centre,
                                 Origin = Anchor.Centre,
@@ -68,7 +68,7 @@ namespace osu.Framework.Tests.Visual
                         Add(new AnimationContainer
                         {
                             Size = new Vector2(200),
-                            Child = box = new ReversibleBox
+                            Child = box = new Box
                             {
                                 Anchor = Anchor.Centre,
                                 Origin = Anchor.Centre,
@@ -86,7 +86,7 @@ namespace osu.Framework.Tests.Visual
                         Add(new AnimationContainer
                         {
                             Size = new Vector2(200),
-                            Child = box = new ReversibleBox { Size = new Vector2(50) }
+                            Child = box = new Box { Size = new Vector2(50) }
                         });
 
                         box.MoveTo(new Vector2(150, 150), 300);
@@ -98,7 +98,7 @@ namespace osu.Framework.Tests.Visual
                         Add(new AnimationContainer
                         {
                             Size = new Vector2(200),
-                            Child = box = new ReversibleBox { Size = new Vector2(50) }
+                            Child = box = new Box { Size = new Vector2(50) }
                         });
 
                         box.MoveTo(new Vector2(150, 0), 100).Then().MoveTo(new Vector2(150, 150), 100).Then().MoveTo(new Vector2(0, 150), 100).Then().MoveTo(new Vector2(0), 100);
@@ -110,7 +110,7 @@ namespace osu.Framework.Tests.Visual
                         Add(new AnimationContainer
                         {
                             Size = new Vector2(200),
-                            Child = box = new ReversibleBox
+                            Child = box = new Box
                             {
                                 RelativeSizeAxes = Axes.Both,
                                 Scale = new Vector2(0.25f)
@@ -132,6 +132,8 @@ namespace osu.Framework.Tests.Visual
 
         private class AnimationContainer : Container
         {
+            public override bool RemoveCompletedTransforms => false;
+
             protected override Container<Drawable> Content => content;
             private readonly WrappingTimeContainer content;
 
@@ -185,11 +187,6 @@ namespace osu.Framework.Tests.Visual
                 currentTimeText.Text = content.Time.Current.ToString("n0");
                 maxTimeText.Text = content.MaxTime.ToString("n0");
             }
-        }
-
-        private class ReversibleBox : Box
-        {
-            protected override bool RemoveCompletedTransforms => false;
         }
 
         private class WrappingTimeContainer : Container
