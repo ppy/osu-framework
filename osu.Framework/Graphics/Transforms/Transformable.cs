@@ -49,9 +49,12 @@ namespace osu.Framework.Graphics.Transforms
         public IReadOnlyList<Transform> Transforms => transforms;
 
         /// <summary>
-        /// Whether to remove completed transforms from the list of updatable transforms.
+        /// Whether to remove completed transforms from the list of applicable transforms. Setting this to false allows for rewinding transforms.
+        /// <para>
+        /// This value is passed down by a parent <see cref="CompositeDrawable"/> and may be changed by overriding.
+        /// </para>
         /// </summary>
-        protected virtual bool RemoveCompletedTransforms => true;
+        public virtual bool RemoveCompletedTransforms { get; internal set; } = true;
 
         /// <summary>
         /// Resets <see cref="TransformDelay"/> and processes updates to this class based on loaded <see cref="Transform"/>s.
@@ -73,6 +76,27 @@ namespace osu.Framework.Graphics.Transforms
         {
             if (transformsLazy == null)
                 return;
+
+            if (!RemoveCompletedTransforms)
+            {
+                // Under the case that completed transforms are not removed, reversing the clock is permitted.
+                // We need to first look back through all the transforms and apply the start values of the ones that were previously
+                // applied, but now exist in the future relative to the current time.
+                for (int i = transformsLazy.Count - 1; i >= 0; i--)
+                {
+                    var t = transformsLazy[i];
+
+                    if (t.StartTime <= Time.Current)
+                        break;
+
+                    if (!t.Applied)
+                        continue;
+
+                    // Revert the transform's target to the transform's starting value, and mark that it hasn't been applied yet for future iterations
+                    t.Apply(Time.Current);
+                    t.Applied = false;
+                }
+            }
 
             for (int i = 0; i < transformsLazy.Count; ++i)
             {
@@ -109,6 +133,7 @@ namespace osu.Framework.Graphics.Transforms
                 }
 
                 t.Apply(Time.Current);
+                t.Applied = true;
 
                 if (t.EndTime <= Time.Current)
                 {
@@ -214,6 +239,7 @@ namespace osu.Framework.Graphics.Transforms
             foreach (Transform t in toFlush)
             {
                 t.Apply(t.EndTime);
+                t.Applied = true;
                 t.OnComplete?.Invoke();
             }
         }
@@ -301,6 +327,7 @@ namespace osu.Framework.Graphics.Transforms
             if (Clock == null)
             {
                 transform.Apply(transform.EndTime);
+                transform.Applied = true;
                 transform.OnComplete?.Invoke();
                 return;
             }

@@ -11,6 +11,11 @@ namespace osu.Framework.Graphics.Transforms
     {
         internal ulong TransformID;
 
+        /// <summary>
+        /// Whether this <see cref="Transform"/> has been applied to an <see cref="ITransformable"/>.
+        /// </summary>
+        internal bool Applied;
+
         public Easing Easing;
 
         public abstract ITransformable TargetTransformable { get; }

@@ -293,6 +293,7 @@ namespace osu.Framework.Graphics.Containers
                 throw new InvalidOperationException("May not add a drawable to multiple containers.");
 
             drawable.ChildID = ++currentChildID;
+            drawable.RemoveCompletedTransforms = RemoveCompletedTransforms;
 
             if (drawable.LoadState >= LoadState.Ready)
                 drawable.Parent = this;
@@ -671,6 +672,20 @@ namespace osu.Framework.Graphics.Containers
         #endregion
 
         #region Transforms
+
+        public override bool RemoveCompletedTransforms
+        {
+            get { return base.RemoveCompletedTransforms; }
+            internal set
+            {
+                if (base.RemoveCompletedTransforms == value)
+                    return;
+                base.RemoveCompletedTransforms = value;
+
+                foreach (var c in internalChildren)
+                    c.RemoveCompletedTransforms = value;
+            }
+        }
 
         public override void ClearTransforms(bool propagateChildren = false, string targetMember = null)
         {
