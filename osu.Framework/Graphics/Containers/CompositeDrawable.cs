@@ -683,7 +683,7 @@ namespace osu.Framework.Graphics.Containers
                 base.RemoveCompletedTransforms = value;
 
                 foreach (var c in internalChildren)
-                    c.RemoveCompletedTransforms = value;
+                    c.RemoveCompletedTransforms = RemoveCompletedTransforms;
             }
         }
 
