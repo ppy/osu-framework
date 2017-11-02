@@ -1952,11 +1952,7 @@ namespace osu.Framework.Graphics
                 return;
             }
 
-            //expiry should happen either at the end of the last transform or using the current sequence delay (whichever is highest).
-            double max = TransformStartTime;
-            foreach (Transform t in Transforms)
-                if (t.EndTime > max) max = t.EndTime + 1; //adding 1ms here ensures we can expire on the current frame without issue.
-            LifetimeEnd = max;
+            LifetimeEnd = LastTransformTime;
 
             if (calculateLifetimeStart)
             {
@@ -1965,6 +1961,24 @@ namespace osu.Framework.Graphics
                     if (t.StartTime < min) min = t.StartTime;
                 LifetimeStart = min < int.MaxValue ? min : int.MinValue;
             }
+        }
+
+        public double LastTransformTime
+        {
+            get
+            {
+                //expiry should happen either at the end of the last transform or using the current sequence delay (whichever is highest).
+                double max = TransformStartTime;
+                foreach (Transform t in Transforms)
+                    if (t.EndTime > max) max = t.EndTime + 1; //adding 1ms here ensures we can expire on the current frame without issue.
+
+                return max;
+            }
+        }
+
+        public TransformSequence<Drawable> WaitForTransforms()
+        {
+            return this.Delay(Math.Max(0, LastTransformTime - Time.Current));
         }
 
         /// <summary>
