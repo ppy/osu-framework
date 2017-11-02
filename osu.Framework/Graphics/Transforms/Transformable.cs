@@ -50,9 +50,6 @@ namespace osu.Framework.Graphics.Transforms
 
         /// <summary>
         /// Whether to remove completed transforms from the list of applicable transforms. Setting this to false allows for rewinding transforms.
-        /// <para>
-        /// This value is passed down by a parent <see cref="CompositeDrawable"/> and may be changed by overriding.
-        /// </para>
         /// </summary>
         public virtual bool RemoveCompletedTransforms { get; internal set; } = true;
 

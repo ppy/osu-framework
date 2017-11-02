@@ -673,6 +673,12 @@ namespace osu.Framework.Graphics.Containers
 
         #region Transforms
 
+        /// <summary>
+        /// Whether to remove completed transforms from the list of applicable transforms. Setting this to false allows for rewinding transforms.
+        /// <para>
+        /// This value is passed down to children.
+        /// </para>
+        /// </summary>
         public override bool RemoveCompletedTransforms
         {
             get { return base.RemoveCompletedTransforms; }

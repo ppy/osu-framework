@@ -6,13 +6,10 @@ using System.Linq;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Allocation;
-using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Graphics.UserInterface;
-using osu.Framework.MathUtils;
 using osu.Framework.Testing;
 using osu.Framework.Timing;
 
@@ -233,7 +230,7 @@ namespace osu.Framework.Tests.Visual
 
             private class ReversibleClock : IFrameBasedClock
             {
-                public double MinTime = 0;
+                public double MinTime;
                 public double MaxTime = 1000;
 
                 private IFrameBasedClock trackingClock;
