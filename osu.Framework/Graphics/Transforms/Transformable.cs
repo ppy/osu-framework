@@ -49,6 +49,23 @@ namespace osu.Framework.Graphics.Transforms
         public IReadOnlyList<Transform> Transforms => transforms;
 
         /// <summary>
+        /// The time in milliseconds of the last transform applied to this <see cref="Drawable"/>.
+        /// Will return the current time value if no transforms are present.
+        /// </summary>
+        public double LastTransformTime
+        {
+            get
+            {
+                //expiry should happen either at the end of the last transform or using the current sequence delay (whichever is highest).
+                double max = TransformStartTime;
+                foreach (Transform t in Transforms)
+                    if (t.EndTime > max) max = t.EndTime + 1; //adding 1ms here ensures we can expire on the current frame without issue.
+
+                return max;
+            }
+        }
+
+        /// <summary>
         /// Resets <see cref="TransformDelay"/> and processes updates to this class based on loaded <see cref="Transform"/>s.
         /// </summary>
         protected void UpdateTransforms()

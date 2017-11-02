@@ -331,5 +331,15 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> TweenEdgeEffectTo<T>(this T container, EdgeEffectParameters newParameters, double duration = 0, Easing easing = Easing.None)
             where T : IContainer =>
             container.TransformTo(nameof(container.EdgeEffect), newParameters, duration, easing);
+
+        /// <summary>
+        /// Returns a <see cref="TransformSequence{T}"/> which waits for all existing transforms to finish.
+        /// </summary>
+        /// <returns>A <see cref="TransformSequence{T}"/> which has a delay waiting for all transforms to be completed.</returns>
+        public static TransformSequence<T> WaitForTransforms<T>(this T transformable)
+            where T : Transformable
+        {
+            return transformable.Delay(Math.Max(0, transformable.LastTransformTime - transformable.Time.Current));
+        }
     }
 }
