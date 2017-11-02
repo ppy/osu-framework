@@ -267,7 +267,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
         public static TransformSequence<T> MoveToOffset<T>(this T drawable, Vector2 offset, double duration = 0, Easing easing = Easing.None) where T : Drawable =>
-            drawable.MoveTo((drawable.Transforms.LastOrDefault(t => t.TargetMember == nameof(drawable.Position)) as Transform<Vector2>)?.EndValue ?? drawable.Position + offset, duration, easing);
+            drawable.MoveTo(((drawable.Transforms.LastOrDefault(t => t.TargetMember == nameof(drawable.Position)) as Transform<Vector2>)?.EndValue ?? drawable.Position) + offset, duration, easing);
 
         /// <summary>
         /// Smoothly adjusts <see cref="IContainer.RelativeChildSize"/> over time.
