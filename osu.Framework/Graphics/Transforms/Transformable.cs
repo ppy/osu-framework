@@ -344,15 +344,12 @@ namespace osu.Framework.Graphics.Transforms
             // Remove all existing following transforms touching the same property at this one.
             for (int i = insertionIndex + 1; i < transformsLazy.Count; ++i)
             {
-                if (RemoveCompletedTransforms)
+                var t = transformsLazy[i];
+                if (t.TargetMember == transform.TargetMember)
                 {
-                    var t = transformsLazy[i];
-                    if (t.TargetMember == transform.TargetMember)
-                    {
-                        transformsLazy.RemoveAt(i--);
-                        if (t.OnAbort != null)
-                            removalActions.Add(t.OnAbort);
-                    }
+                    transformsLazy.RemoveAt(i--);
+                    if (t.OnAbort != null)
+                        removalActions.Add(t.OnAbort);
                 }
             }
 
