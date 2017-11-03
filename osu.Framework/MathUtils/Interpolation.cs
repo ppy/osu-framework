@@ -82,11 +82,7 @@ namespace osu.Framework.MathUtils
         }
 
         public static string ValueAt(double time, string startText, string endText, double startTime, double endTime, Easing easing = Easing.None)
-        {
-            if (time < endTime)
-                return startText;
-            return endText;
-        }
+            => time < endTime ? startText : endText;
 
         public static byte ValueAt(double time, byte val1, byte val2, double startTime, double endTime, Easing easing = Easing.None) =>
             (byte)Math.Round(ValueAt(time, (double)val1, val2, startTime, endTime, easing));
