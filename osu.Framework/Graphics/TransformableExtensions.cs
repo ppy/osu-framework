@@ -101,6 +101,15 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> Delay<T>(this T transformable, double delay, params TransformSequence<T>.Generator[] childGenerators) where T : ITransformable =>
             new TransformSequence<T>(transformable).Delay(delay, childGenerators);
 
+        /// <summary>
+        /// Returns a <see cref="TransformSequence{T}"/> which waits for all existing transforms to finish.
+        /// </summary>
+        /// <returns>A <see cref="TransformSequence{T}"/> which has a delay waiting for all transforms to be completed.</returns>
+        public static TransformSequence<T> DelayUntilTransformsFinished<T>(this T transformable)
+            where T : Transformable
+        {
+            return transformable.Delay(Math.Max(0, transformable.LatestTransformEndTime - transformable.Time.Current));
+        }
         public static TransformSequence<T> Loop<T>(this T transformable, double pause, int numIters, params TransformSequence<T>.Generator[] childGenerators)
             where T : ITransformable =>
             transformable.Delay(0).Loop(pause, numIters, childGenerators);
@@ -332,14 +341,5 @@ namespace osu.Framework.Graphics
             where T : IContainer =>
             container.TransformTo(nameof(container.EdgeEffect), newParameters, duration, easing);
 
-        /// <summary>
-        /// Returns a <see cref="TransformSequence{T}"/> which waits for all existing transforms to finish.
-        /// </summary>
-        /// <returns>A <see cref="TransformSequence{T}"/> which has a delay waiting for all transforms to be completed.</returns>
-        public static TransformSequence<T> WaitForTransforms<T>(this T transformable)
-            where T : Transformable
-        {
-            return transformable.Delay(Math.Max(0, transformable.LastTransformTime - transformable.Time.Current));
-        }
     }
 }

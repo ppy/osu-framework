@@ -49,10 +49,10 @@ namespace osu.Framework.Graphics.Transforms
         public IReadOnlyList<Transform> Transforms => transforms;
 
         /// <summary>
-        /// The time in milliseconds of the last transform applied to this <see cref="Drawable"/>.
+        /// The end time in milliseconds of the latest transform enqueued for this <see cref="Transformable"/>.
         /// Will return the current time value if no transforms are present.
         /// </summary>
-        public double LastTransformTime
+        public double LatestTransformEndTime
         {
             get
             {

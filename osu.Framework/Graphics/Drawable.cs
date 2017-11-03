@@ -1952,7 +1952,7 @@ namespace osu.Framework.Graphics
                 return;
             }
 
-            LifetimeEnd = LastTransformTime;
+            LifetimeEnd = LatestTransformEndTime;
 
             if (calculateLifetimeStart)
             {
