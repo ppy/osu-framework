@@ -136,7 +136,7 @@ namespace osu.Framework.Graphics
         /// <typeparam name="T">The type of the <see cref="ITransformable"/> the <see cref="Transform{TValue, T}"/> can be applied to.</typeparam>
         /// <param name="transformable">The <see cref="ITransformable"/> the <see cref="Transform{TValue, T}"/> will be applied to.</param>
         /// <param name="pause">The pause between iterations in milliseconds.</param>
-        /// <param name="numIters">The amount of iterations.</param>
+        /// <param name="numIters">The number of iterations.</param>
         /// <param name="childGenerators">The functions to generate the <see cref="TransformSequence{T}"/>s to be looped.</param>
         /// <returns>This <see cref="TransformSequence{T}"/>.</returns>
         public static TransformSequence<T> Loop<T>(this T transformable, double pause, int numIters, params TransformSequence<T>.Generator[] childGenerators)
