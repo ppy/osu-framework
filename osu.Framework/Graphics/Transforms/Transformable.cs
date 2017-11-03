@@ -130,7 +130,6 @@ namespace osu.Framework.Graphics.Transforms
                 }
 
                 t.Apply(Time.Current);
-                t.Applied = true;
 
                 if (t.EndTime <= Time.Current)
                 {
@@ -236,7 +235,6 @@ namespace osu.Framework.Graphics.Transforms
             foreach (Transform t in toFlush)
             {
                 t.Apply(t.EndTime);
-                t.Applied = true;
                 t.OnComplete?.Invoke();
             }
         }
@@ -324,7 +322,6 @@ namespace osu.Framework.Graphics.Transforms
             if (Clock == null)
             {
                 transform.Apply(transform.EndTime);
-                transform.Applied = true;
                 transform.OnComplete?.Invoke();
                 return;
             }

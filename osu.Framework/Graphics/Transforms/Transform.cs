@@ -70,7 +70,11 @@ namespace osu.Framework.Graphics.Transforms
 
         public T Target { get; internal set; }
 
-        public sealed override void Apply(double time) => Apply(Target, time);
+        public sealed override void Apply(double time)
+        {
+            Apply(Target, time);
+            Applied = true;
+        }
 
         public sealed override void ReadIntoStartValue() => ReadIntoStartValue(Target);
 
