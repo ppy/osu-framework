@@ -553,7 +553,7 @@ namespace osu.Framework.Graphics.Containers
 
                 box.FadeColour(Color4.White, 100);
 
-                return base.OnMouseUp(state, args);
+                return false;
             }
 
             protected override bool OnDrag(InputState state)

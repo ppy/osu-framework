@@ -206,7 +206,6 @@ namespace osu.Framework.Graphics.Visualisation
         protected override void OnHoverLost(InputState state)
         {
             State = TreeContainerStatus.Offscreen;
-            base.OnHoverLost(state);
         }
 
         protected override bool OnDragStart(InputState state) => titleBar.ReceiveMouseInputAt(state.Mouse.NativeState.Position);
@@ -214,7 +213,7 @@ namespace osu.Framework.Graphics.Visualisation
         protected override bool OnDrag(InputState state)
         {
             Position += state.Mouse.Delta;
-            return base.OnDrag(state);
+            return false;
         }
 
         protected override bool OnMouseDown(InputState state, MouseDownEventArgs args) => true;

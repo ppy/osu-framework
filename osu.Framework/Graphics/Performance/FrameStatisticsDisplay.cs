@@ -291,14 +291,14 @@ namespace osu.Framework.Graphics.Performance
         {
             if (args.Key == Key.ControlLeft)
                 Active = false;
-            return base.OnKeyDown(state, args);
+            return false;
         }
 
         protected override bool OnKeyUp(InputState state, KeyUpEventArgs args)
         {
             if (args.Key == Key.ControlLeft)
                 Active = true;
-            return base.OnKeyUp(state, args);
+            return false;
         }
 
         private void applyFrameGC(FrameStatistics frame)

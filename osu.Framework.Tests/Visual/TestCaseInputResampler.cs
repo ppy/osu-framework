@@ -201,7 +201,7 @@ namespace osu.Framework.Tests.Visual
             {
                 AddUserVertex(state.Mouse.Position);
                 DrawText.Text = "Custom Smoothed Drawn: Smoothed=" + NumVertices + ", Raw=" + NumRaw;
-                return base.OnDrag(state);
+                return false;
             }
         }
 

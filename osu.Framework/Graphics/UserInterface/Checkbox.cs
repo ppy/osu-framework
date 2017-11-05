@@ -16,7 +16,6 @@ namespace osu.Framework.Graphics.UserInterface
             if (!Current.Disabled)
                 Current.Value = !Current;
 
-            base.OnClick(state);
             return true;
         }
     }

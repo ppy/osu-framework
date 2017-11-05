@@ -125,7 +125,7 @@ namespace osu.Framework.Screens
                     return true;
             }
 
-            return base.OnKeyDown(state, args);
+            return false;
         }
 
         /// <summary>

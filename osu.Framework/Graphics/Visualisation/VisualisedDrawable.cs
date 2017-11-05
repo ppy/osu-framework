@@ -172,13 +172,12 @@ namespace osu.Framework.Graphics.Visualisation
         protected override bool OnHover(InputState state)
         {
             background.Colour = Color4.PaleVioletRed.Opacity(0.7f);
-            return base.OnHover(state);
+            return false;
         }
 
         protected override void OnHoverLost(InputState state)
         {
             background.Colour = Color4.Transparent;
-            base.OnHoverLost(state);
         }
 
         protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)

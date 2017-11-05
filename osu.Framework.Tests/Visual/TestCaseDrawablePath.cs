@@ -127,7 +127,7 @@ namespace osu.Framework.Tests.Visual
                     oldPos = pos;
                 }
 
-                return base.OnDrag(state);
+                return false;
             }
         }
     }

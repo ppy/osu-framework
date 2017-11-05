@@ -331,7 +331,7 @@ namespace osu.Framework.Graphics.Visualisation
         protected override bool OnMouseMove(InputState state)
         {
             overlay.Target = targetSearching ? findTarget(state) : inputManager.HoveredDrawables.OfType<VisualisedDrawable>().FirstOrDefault()?.Target;
-            return base.OnMouseMove(state);
+            return false;
         }
     }
 }

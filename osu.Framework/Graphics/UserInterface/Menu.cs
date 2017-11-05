@@ -474,7 +474,7 @@ namespace osu.Framework.Graphics.UserInterface
                 return true;
             }
 
-            return base.OnKeyDown(state, args);
+            return false;
         }
 
         protected override bool OnClick(InputState state) => true;
@@ -730,7 +730,6 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 UpdateBackgroundColour();
                 UpdateForegroundColour();
-                base.OnHoverLost(state);
             }
 
             private bool hasSubmenu => Item.Items?.Count > 0;

@@ -98,7 +98,6 @@ namespace osu.Framework.Testing.Drawables
         protected override void OnHoverLost(InputState state)
         {
             box.FadeTo(0.7f, 150);
-            base.OnHoverLost(state);
         }
     }
 }

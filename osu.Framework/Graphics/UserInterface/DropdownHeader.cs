@@ -64,13 +64,12 @@ namespace osu.Framework.Graphics.UserInterface
         protected override bool OnHover(InputState state)
         {
             Background.Colour = BackgroundColourHover;
-            return base.OnHover(state);
+            return false;
         }
 
         protected override void OnHoverLost(InputState state)
         {
             Background.Colour = BackgroundColour;
-            base.OnHoverLost(state);
         }
     }
 }

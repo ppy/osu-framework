@@ -35,7 +35,7 @@ namespace osu.Framework.Graphics.Cursor
         protected override bool OnMouseMove(InputState state)
         {
             ActiveCursor.Position = state.Mouse.Position;
-            return base.OnMouseMove(state);
+            return false;
         }
 
         protected override void PopIn()
