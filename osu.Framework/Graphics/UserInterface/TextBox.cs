@@ -23,7 +23,7 @@ using osu.Framework.Timing;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class TextBox : TabbableContainer, IHasCurrentValue<string>
+    public class TextBox : TabbableContainer, IHasCurrentValue<string>, IHandleOnDrag, IHandleOnDragStart, IHandleOnDoubleClick, IHandleOnMouseDown, IHandleOnMouseUp, IHandleOnFocusLost, IHandleOnClick, IHandleOnFocus
     {
         protected FillFlowContainer TextFlow;
         protected Box Background;
@@ -472,7 +472,7 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
-        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
+        public override bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
             if (!HasFocus)
                 return false;
@@ -656,7 +656,7 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
-        protected override bool OnDrag(InputState state)
+        public virtual bool OnDrag(InputState state)
         {
             //if (textInput?.ImeActive == true) return true;
 
@@ -696,7 +696,7 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
-        protected override bool OnDragStart(InputState state)
+        public virtual bool OnDragStart(InputState state)
         {
             if (HasFocus) return true;
 
@@ -708,7 +708,7 @@ namespace osu.Framework.Graphics.UserInterface
             return Math.Abs(posDiff.X) > Math.Abs(posDiff.Y);
         }
 
-        protected override bool OnDoubleClick(InputState state)
+        public virtual bool OnDoubleClick(InputState state)
         {
             if (textInput?.ImeActive == true) return true;
 
@@ -750,7 +750,7 @@ namespace osu.Framework.Graphics.UserInterface
             return -1;
         }
 
-        protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
+        public virtual bool OnMouseDown(InputState state, MouseDownEventArgs args)
         {
             if (textInput?.ImeActive == true) return true;
 
@@ -761,13 +761,13 @@ namespace osu.Framework.Graphics.UserInterface
             return false;
         }
 
-        protected override bool OnMouseUp(InputState state, MouseUpEventArgs args)
+        public virtual bool OnMouseUp(InputState state, MouseUpEventArgs args)
         {
             doubleClickWord = null;
             return true;
         }
 
-        protected override void OnFocusLost(InputState state)
+        public virtual void OnFocusLost(InputState state)
         {
             unbindInput();
 
@@ -783,9 +783,9 @@ namespace osu.Framework.Graphics.UserInterface
 
         public override bool AcceptsFocus => true;
 
-        protected override bool OnClick(InputState state) => !ReadOnly;
+        public virtual bool OnClick(InputState state) => !ReadOnly;
 
-        protected override void OnFocus(InputState state)
+        public virtual void OnFocus(InputState state)
         {
             bindInput();
 

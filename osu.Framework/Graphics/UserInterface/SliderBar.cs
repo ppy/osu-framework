@@ -11,7 +11,7 @@ using System.Diagnostics;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public abstract class SliderBar<T> : Container, IHasCurrentValue<T>
+    public abstract class SliderBar<T> : Container, IHasCurrentValue<T>, IHandleOnClick, IHandleOnDrag, IHandleOnDragStart, IHandleOnDragEnd, IHandleOnKeyDown
         where T : struct
     {
         /// <summary>
@@ -84,19 +84,19 @@ namespace osu.Framework.Graphics.UserInterface
             UpdateValue(NormalizedValue);
         }
 
-        protected override bool OnClick(InputState state)
+        public virtual bool OnClick(InputState state)
         {
             handleMouseInput(state);
             return true;
         }
 
-        protected override bool OnDrag(InputState state)
+        public virtual bool OnDrag(InputState state)
         {
             handleMouseInput(state);
             return true;
         }
 
-        protected override bool OnDragStart(InputState state)
+        public virtual bool OnDragStart(InputState state)
         {
             Trace.Assert(state.Mouse.PositionMouseDown.HasValue,
                 $@"Can not start a {nameof(SliderBar<T>)} drag without knowing the mouse down position.");
@@ -106,9 +106,9 @@ namespace osu.Framework.Graphics.UserInterface
             return Math.Abs(posDiff.X) > Math.Abs(posDiff.Y);
         }
 
-        protected override bool OnDragEnd(InputState state) => true;
+        public virtual bool OnDragEnd(InputState state) => true;
 
-        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
+        public virtual bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
             if (!IsHovered || CurrentNumber.Disabled)
                 return false;

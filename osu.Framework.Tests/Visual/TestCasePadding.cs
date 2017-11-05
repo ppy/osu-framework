@@ -177,7 +177,7 @@ namespace osu.Framework.Tests.Visual
 
         public override string Description => @"Add fixed padding via a PaddingContainer";
 
-        private class PaddedBox : Container
+        private class PaddedBox : Container, IHandleOnDrag, IHandleOnDragEnd, IHandleOnDragStart
         {
             private readonly SpriteText t1;
             private readonly SpriteText t2;
@@ -238,15 +238,15 @@ namespace osu.Framework.Tests.Visual
                 return base.Invalidate(invalidation, source, shallPropagate);
             }
 
-            protected override bool OnDrag(InputState state)
+            public virtual bool OnDrag(InputState state)
             {
                 Position += state.Mouse.Delta;
                 return true;
             }
 
-            protected override bool OnDragEnd(InputState state) => true;
+            public virtual bool OnDragEnd(InputState state) => true;
 
-            protected override bool OnDragStart(InputState state) => true;
+            public virtual bool OnDragStart(InputState state) => true;
         }
     }
 }

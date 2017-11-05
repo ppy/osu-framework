@@ -8,7 +8,7 @@ namespace osu.Framework.Graphics.Containers
     /// <summary>
     /// An element which starts hidden and can be toggled to visible.
     /// </summary>
-    public abstract class OverlayContainer : VisibilityContainer
+    public abstract class OverlayContainer : VisibilityContainer, IHandleOnHover, IHandleOnMouseDown, IHandleOnClick, IHandleOnDragStart, IHandleOnWheel, IHandleOnKeyDown, IHandleOnKeyUp
     {
         /// <summary>
         /// Whether we should block any mouse input from interacting with things behind us.
@@ -20,19 +20,19 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         protected virtual bool BlockPassThroughKeyboard => false;
 
-        protected override bool OnHover(InputState state) => BlockPassThroughMouse;
+        public virtual bool OnHover(InputState state) => BlockPassThroughMouse;
 
-        protected override bool OnMouseDown(InputState state, MouseDownEventArgs args) => BlockPassThroughMouse;
+        public virtual bool OnMouseDown(InputState state, MouseDownEventArgs args) => BlockPassThroughMouse;
 
-        protected override bool OnClick(InputState state) => BlockPassThroughMouse;
+        public virtual bool OnClick(InputState state) => BlockPassThroughMouse;
 
-        protected override bool OnDragStart(InputState state) => BlockPassThroughMouse;
+        public virtual bool OnDragStart(InputState state) => BlockPassThroughMouse;
 
-        protected override bool OnWheel(InputState state) => BlockPassThroughMouse;
+        public virtual bool OnWheel(InputState state) => BlockPassThroughMouse;
 
-        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args) => BlockPassThroughKeyboard;
+        public virtual bool OnKeyDown(InputState state, KeyDownEventArgs args) => BlockPassThroughKeyboard;
 
-        protected override bool OnKeyUp(InputState state, KeyUpEventArgs args) => BlockPassThroughKeyboard;
+        public virtual bool OnKeyUp(InputState state, KeyUpEventArgs args) => BlockPassThroughKeyboard;
     }
 
     public enum Visibility

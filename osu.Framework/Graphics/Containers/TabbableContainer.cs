@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics.Containers
     {
     }
 
-    public class TabbableContainer<T> : Container<T>, ITabbableContainer
+    public class TabbableContainer<T> : Container<T>, ITabbableContainer, IHandleOnKeyDown
         where T : Drawable
     {
         /// <summary>
@@ -27,7 +27,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public Container<Drawable> TabbableContentContainer { private get; set; }
 
-        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
+        public virtual bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
             if (TabbableContentContainer == null || args.Key != Key.Tab)
                 return false;

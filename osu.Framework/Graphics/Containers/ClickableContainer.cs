@@ -7,12 +7,12 @@ using osu.Framework.Input;
 
 namespace osu.Framework.Graphics.Containers
 {
-    public class ClickableContainer : Container
+    public class ClickableContainer : Container, IHandleOnClick
     {
         public Action Action;
         public readonly BindableBool Enabled = new BindableBool(true);
 
-        protected override bool OnClick(InputState state)
+        public virtual bool OnClick(InputState state)
         {
             if (Enabled.Value)
                 Action?.Invoke();

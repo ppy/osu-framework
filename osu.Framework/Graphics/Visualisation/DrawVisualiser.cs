@@ -10,7 +10,7 @@ using osu.Framework.Threading;
 
 namespace osu.Framework.Graphics.Visualisation
 {
-    public class DrawVisualiser : OverlayContainer
+    public class DrawVisualiser : OverlayContainer, IHandleOnMouseMove
     {
         private readonly TreeContainer treeContainer;
         private VisualisedDrawable highlightedTarget;
@@ -301,7 +301,7 @@ namespace osu.Framework.Graphics.Visualisation
             }
         }
 
-        protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
+        public override bool OnMouseDown(InputState state, MouseDownEventArgs args)
         {
             return targetSearching;
         }
@@ -311,7 +311,7 @@ namespace osu.Framework.Graphics.Visualisation
             return findTargetIn(Parent?.Parent, state);
         }
 
-        protected override bool OnClick(InputState state)
+        public override bool OnClick(InputState state)
         {
             if (targetSearching)
             {
@@ -328,7 +328,7 @@ namespace osu.Framework.Graphics.Visualisation
             return base.OnClick(state);
         }
 
-        protected override bool OnMouseMove(InputState state)
+        public virtual bool OnMouseMove(InputState state)
         {
             overlay.Target = targetSearching ? findTarget(state) : inputManager.HoveredDrawables.OfType<VisualisedDrawable>().FirstOrDefault()?.Target;
             return false;

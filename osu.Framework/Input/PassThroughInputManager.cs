@@ -7,7 +7,7 @@ using OpenTK;
 
 namespace osu.Framework.Input
 {
-    public class PassThroughInputManager : CustomInputManager
+    public class PassThroughInputManager : CustomInputManager, IHandleOnMouseMove, IHandleOnMouseDown, IHandleOnMouseUp, IHandleOnKeyDown, IHandleOnKeyUp
     {
         /// <summary>
         /// If there's an InputManager above us, decide whether we should use their available state.
@@ -59,15 +59,15 @@ namespace osu.Framework.Input
             return false;
         }
 
-        protected override bool OnMouseMove(InputState state) => acceptState(state);
+        public virtual bool OnMouseMove(InputState state) => acceptState(state);
 
-        protected override bool OnMouseDown(InputState state, MouseDownEventArgs args) => acceptState(state);
+        public virtual bool OnMouseDown(InputState state, MouseDownEventArgs args) => acceptState(state);
 
-        protected override bool OnMouseUp(InputState state, MouseUpEventArgs args) => acceptState(state);
+        public virtual bool OnMouseUp(InputState state, MouseUpEventArgs args) => acceptState(state);
 
-        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args) => acceptState(state);
+        public virtual bool OnKeyDown(InputState state, KeyDownEventArgs args) => acceptState(state);
 
-        protected override bool OnKeyUp(InputState state, KeyUpEventArgs args) => acceptState(state);
+        public virtual bool OnKeyUp(InputState state, KeyUpEventArgs args) => acceptState(state);
 
         /// <summary>
         /// An input state which allows for transformations to state which don't affect the source state.

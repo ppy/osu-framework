@@ -22,7 +22,7 @@ using System.Linq;
 
 namespace osu.Framework.Graphics.Performance
 {
-    internal class FrameStatisticsDisplay : Container, IStateful<FrameStatisticsMode>
+    internal class FrameStatisticsDisplay : Container, IStateful<FrameStatisticsMode>, IHandleOnKeyDown, IHandleOnKeyUp
     {
         protected const int WIDTH = 800;
         protected const int HEIGHT = 100;
@@ -287,14 +287,14 @@ namespace osu.Framework.Graphics.Performance
             }
         }
 
-        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
+        public virtual bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
             if (args.Key == Key.ControlLeft)
                 Active = false;
             return false;
         }
 
-        protected override bool OnKeyUp(InputState state, KeyUpEventArgs args)
+        public virtual bool OnKeyUp(InputState state, KeyUpEventArgs args)
         {
             if (args.Key == Key.ControlLeft)
                 Active = true;

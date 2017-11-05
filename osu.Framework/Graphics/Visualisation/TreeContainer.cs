@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics.Visualisation
         Offscreen
     }
 
-    internal class TreeContainer : Container, IStateful<TreeContainerStatus>
+    internal class TreeContainer : Container, IStateful<TreeContainerStatus>, IHandleOnHover, IHandleOnHoverLost, IHandleOnDragStart, IHandleOnDrag, IHandleOnMouseDown, IHandleOnClick
     {
         private readonly ScrollContainer scroll;
 
@@ -197,28 +197,28 @@ namespace osu.Framework.Graphics.Visualisation
             base.Update();
         }
 
-        protected override bool OnHover(InputState state)
+        public virtual bool OnHover(InputState state)
         {
             State = TreeContainerStatus.Onscreen;
             return true;
         }
 
-        protected override void OnHoverLost(InputState state)
+        public virtual void OnHoverLost(InputState state)
         {
             State = TreeContainerStatus.Offscreen;
         }
 
-        protected override bool OnDragStart(InputState state) => titleBar.ReceiveMouseInputAt(state.Mouse.NativeState.Position);
+        public virtual bool OnDragStart(InputState state) => titleBar.ReceiveMouseInputAt(state.Mouse.NativeState.Position);
 
-        protected override bool OnDrag(InputState state)
+        public virtual bool OnDrag(InputState state)
         {
             Position += state.Mouse.Delta;
             return false;
         }
 
-        protected override bool OnMouseDown(InputState state, MouseDownEventArgs args) => true;
+        public virtual bool OnMouseDown(InputState state, MouseDownEventArgs args) => true;
 
-        protected override bool OnClick(InputState state) => true;
+        public virtual bool OnClick(InputState state) => true;
 
         protected override void LoadComplete()
         {

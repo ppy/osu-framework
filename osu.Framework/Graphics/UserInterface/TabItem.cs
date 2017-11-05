@@ -62,7 +62,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         public readonly BindableBool Active = new BindableBool();
 
-        protected override bool OnClick(InputState state)
+        public override bool OnClick(InputState state)
         {
             base.OnClick(state);
             ActivationRequested?.Invoke(this);
