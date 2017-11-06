@@ -74,6 +74,6 @@ namespace osu.Framework.Tests.Visual
             AddInternal(text = new SpriteText { TextSize = 24 });
         }
 
-        protected override void OnCountChanged() => text.Text = resultFunction(Count);
+        protected override void OnCountChanged(double count) => text.Text = resultFunction(count);
     }
 }
