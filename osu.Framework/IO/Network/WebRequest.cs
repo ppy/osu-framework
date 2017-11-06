@@ -11,39 +11,61 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Configuration;
+using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Logging;
 
 namespace osu.Framework.IO.Network
 {
     public class WebRequest : IDisposable
     {
-        /// <summary>
-        /// Update has progressed.
-        /// </summary>
-        /// <param name="request">The request.</param>
-        /// <param name="current">Total bytes processed.</param>
-        /// <param name="total">Total bytes required.</param>
-        public delegate void RequestUpdateHandler(WebRequest request, long current, long total);
+        internal const int MAX_RETRIES = 1;
 
         /// <summary>
-        /// Request has completed.
+        /// Invoked when a response has been received, but not data has been received.
         /// </summary>
-        /// <param name="request">The request.</param>
-        /// <param name="e">An error, if an error occurred, else null.</param>
-        public delegate void RequestCompleteHandler(WebRequest request, Exception e);
+        public event Action Started;
 
         /// <summary>
-        /// Request has completed.
+        /// Invoked when the <see cref="WebRequest"/> has finished.
+        /// An unsuccessful completion is indicated by the presence of an exception.
         /// </summary>
-        /// <param name="request">The request.</param>
-        /// <param name="e">An error, if an error occurred, else null.</param>
-        public delegate void RequestCompleteHandler<T>(JsonWebRequest<T> request, Exception e);
+        public event Action<Exception> Finished;
 
         /// <summary>
-        /// Request has started.
+        /// Invoked when the download progress has changed.
         /// </summary>
-        /// <param name="request">The request.</param>
-        public delegate void RequestStartedHandler(WebRequest request);
+        public event Action<long, long> DownloadProgress;
+
+        /// <summary>
+        /// Invoked when the upload progress has changed.
+        /// </summary>
+        public event Action<long, long> UploadProgress;
+
+        /// <summary>
+        /// Whether the <see cref="WebRequest"/> was aborted due to an exception or a user abort request.
+        /// </summary>
+        public bool Aborted { get; private set; }
+
+        private bool completed;
+        /// <summary>
+        /// Whether the <see cref="WebRequest"/> has been run.
+        /// </summary>
+        public bool Completed
+        {
+            get { return completed; }
+            private set
+            {
+                completed = value;
+                if (!completed) return;
+
+                // WebRequests can only be used once - no need to keep events bound
+                // This helps with disposal in PerformAsync usages
+                Started = null;
+                Finished = null;
+                DownloadProgress = null;
+                UploadProgress = null;
+            }
+        }
 
         private string url;
 
@@ -64,56 +86,19 @@ namespace osu.Framework.IO.Network
         }
 
         /// <summary>
-        /// The request has been aborted by the user or due to an exception.
-        /// </summary>
-        public bool Aborted { get; private set; }
-
-        /// <summary>
-        /// The request has been executed and successfully completed.
-        /// </summary>
-        public bool Completed { get; private set; }
-
-        /// <summary>
-        /// Monitor upload progress.
-        /// </summary>
-        public event RequestUpdateHandler UploadProgress;
-
-        /// <summary>
-        /// Monitor download progress.
-        /// </summary>
-        public event RequestUpdateHandler DownloadProgress;
-
-        /// <summary>
-        /// Request has finished with success or failure. Check exception == null for success.
-        /// </summary>
-        public event RequestCompleteHandler Finished;
-
-        /// <summary>
-        /// Request has started.
-        /// </summary>
-        public event RequestStartedHandler Started;
-
-        /// <summary>
-        /// To avoid memory leaks due to delegates being bound to events, on request completion events are removed by default.
-        /// This controls whether they should be kept to allow for further requests.
-        /// </summary>
-        public bool KeepEventsBound;
-
-        /// <summary>
         /// POST parameters.
         /// </summary>
-        public Dictionary<string, string> Parameters = new Dictionary<string, string>();
+        private readonly Dictionary<string, string> parameters = new Dictionary<string, string>();
 
         /// <summary>
         /// FILE parameters.
         /// </summary>
-        public Dictionary<string, byte[]> Files = new Dictionary<string, byte[]>();
+        private readonly IDictionary<string, byte[]> files = new Dictionary<string, byte[]>();
 
         /// <summary>
         /// The request headers.
         /// </summary>
-        // ReSharper disable once CollectionNeverUpdated.Global
-        public Dictionary<string, string> Headers = new Dictionary<string, string>();
+        private readonly IDictionary<string, string> headers = new Dictionary<string, string>();
 
         public const int DEFAULT_TIMEOUT = 10000;
 
@@ -129,16 +114,20 @@ namespace osu.Framework.IO.Network
         /// </summary>
         protected virtual string Accept => string.Empty;
 
+        internal int RetryCount { get; private set; }
+
+        /// <summary>
+        /// Whether this request should internally retry (up to <see cref="MAX_RETRIES"/> times) on a timeout before throwing an exception.
+        /// </summary>
+        public bool AllowRetryOnTimeout { get; set; } = true;
+
         private static readonly Logger logger;
 
-        private static readonly HttpClient client;
+        private static HttpClient client;
 
         static WebRequest()
         {
-            client = new HttpClient(new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate });
-            client.DefaultRequestHeaders.UserAgent.ParseAdd("osu!");
-            client.DefaultRequestHeaders.ExpectContinue = true;
-            client.Timeout = System.Threading.Timeout.InfiniteTimeSpan;
+            createHttpClient();
 
             logger = Logger.GetLogger(LoggingTarget.Network);
         }
@@ -207,9 +196,9 @@ namespace osu.Framework.IO.Network
 
         public HttpResponseHeaders ResponseHeaders => response.Headers;
 
-        private bool canPerform = true;
+        private CancellationTokenSource abortToken;
+        private CancellationTokenSource timeoutToken;
 
-        private CancellationTokenSource cancellationToken;
         private LengthTrackingStream requestStream;
         private HttpResponseMessage response;
 
@@ -222,24 +211,29 @@ namespace osu.Framework.IO.Network
         /// <summary>
         /// Performs the request asynchronously.
         /// </summary>
-        public Task PerformAsync()
+        public async Task PerformAsync()
         {
-            if (!canPerform)
-                throw new InvalidOperationException("Can not perform a web request multiple times.");
-            canPerform = false;
-
-            Aborted = false;
-            abortRequest();
-            cancellationToken = new CancellationTokenSource();
-
-            return Task.Factory.StartNew(() =>
+            if (Completed)
+                throw new InvalidOperationException($"The {nameof(WebRequest)} has already been run.");
+            try
             {
-                PrePerform();
+                await Task.Factory.StartNew(internalPerform, TaskCreationOptions.LongRunning);
+            }
+            catch (AggregateException ae)
+            {
+                ae.RethrowIfSingular();
+            }
+        }
 
+        private void internalPerform()
+        {
+            using (abortToken = new CancellationTokenSource())
+            using (timeoutToken = new CancellationTokenSource())
+            using (var linkedToken = CancellationTokenSource.CreateLinkedTokenSource(abortToken.Token, timeoutToken.Token))
+            {
                 try
                 {
-                    reportForwardProgress();
-                    ThreadPool.QueueUserWorkItem(checkTimeoutLoop);
+                    PrePerform();
 
                     HttpRequestMessage request;
 
@@ -248,11 +242,11 @@ namespace osu.Framework.IO.Network
                         default:
                             throw new InvalidOperationException($"HTTP method {Method} is currently not supported");
                         case HttpMethod.GET:
-                            if (Files.Count > 0)
+                            if (files.Count > 0)
                                 throw new InvalidOperationException($"Cannot use {nameof(AddFile)} in a GET request. Please set the {nameof(Method)} to POST.");
 
                             StringBuilder requestParameters = new StringBuilder();
-                            foreach (var p in Parameters)
+                            foreach (var p in parameters)
                                 requestParameters.Append($@"{p.Key}={p.Value}&");
                             string requestString = requestParameters.ToString().TrimEnd('&');
 
@@ -265,9 +259,9 @@ namespace osu.Framework.IO.Network
 
                             if (rawContent != null)
                             {
-                                if (Parameters.Count > 0)
+                                if (parameters.Count > 0)
                                     throw new InvalidOperationException($"Cannot use {nameof(AddRaw)} in conjunction with {nameof(AddParameter)}");
-                                if (Files.Count > 0)
+                                if (files.Count > 0)
                                     throw new InvalidOperationException($"Cannot use {nameof(AddRaw)} in conjunction with {nameof(AddFile)}");
 
                                 postContent = new MemoryStream();
@@ -284,10 +278,10 @@ namespace osu.Framework.IO.Network
 
                                 var formData = new MultipartFormDataContent(form_boundary);
 
-                                foreach (var p in Parameters)
+                                foreach (var p in parameters)
                                     formData.Add(new StringContent(p.Value), p.Key);
 
-                                foreach (var p in Files)
+                                foreach (var p in files)
                                 {
                                     var byteContent = new ByteArrayContent(p.Value);
                                     byteContent.Headers.Add("Content-Type", "application/octet-stream");
@@ -298,11 +292,10 @@ namespace osu.Framework.IO.Network
                             }
 
                             requestStream = new LengthTrackingStream(postContent);
-
                             requestStream.BytesRead.ValueChanged += v =>
                             {
                                 reportForwardProgress();
-                                UploadProgress?.Invoke(this, v, contentLength);
+                                UploadProgress?.Invoke(v, contentLength);
                             };
 
                             request.Content = new StreamContent(requestStream);
@@ -314,10 +307,12 @@ namespace osu.Framework.IO.Network
                     if (!string.IsNullOrEmpty(Accept))
                         request.Headers.Accept.TryParseAdd(Accept);
 
-                    foreach (var kvp in Headers)
+                    foreach (var kvp in headers)
                         request.Headers.Add(kvp.Key, kvp.Value);
 
-                    response = client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken.Token).Result;
+                    reportForwardProgress();
+                    using (request)
+                        response = client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, linkedToken.Token).Result;
 
                     ResponseStream = CreateOutputStream();
 
@@ -325,28 +320,46 @@ namespace osu.Framework.IO.Network
                     {
                         case HttpMethod.GET:
                             //GETs are easy
-                            beginResponse();
+                            beginResponse(linkedToken.Token);
                             break;
                         case HttpMethod.POST:
                             reportForwardProgress();
-                            UploadProgress?.Invoke(this, 0, contentLength);
+                            UploadProgress?.Invoke(0, contentLength);
 
-                            beginResponse();
+                            beginResponse(linkedToken.Token);
                             break;
                     }
+                }
+                catch (Exception) when (timeoutToken.IsCancellationRequested)
+                {
+                    Complete(new WebException($"Request to {Url} timed out after {timeSinceLastAction / 1000} seconds idle (read {responseBytesRead} bytes).", WebExceptionStatus.Timeout));
+                }
+                catch (Exception) when (abortToken.IsCancellationRequested)
+                {
+                    Complete(new WebException($"Request to {Url} aborted by user.", WebExceptionStatus.RequestCanceled));
                 }
                 catch (Exception e)
                 {
                     Complete(e);
                     throw;
                 }
-            }, cancellationToken.Token, TaskCreationOptions.LongRunning, TaskScheduler.Current);
+            }
         }
 
         /// <summary>
         /// Performs the request synchronously.
         /// </summary>
-        public void Perform() => PerformAsync().Wait();
+        public void Perform()
+        {
+            try
+            {
+                PerformAsync().Wait();
+            }
+            catch (AggregateException ae)
+            {
+                ae.RethrowIfSingular();
+            }
+        }
 
         /// <summary>
         /// Task to run direct before performing the request.
@@ -355,68 +368,58 @@ namespace osu.Framework.IO.Network
         {
         }
 
-        private void beginResponse()
+        private void beginResponse(CancellationToken cancellationToken)
         {
-            try
+            using (var responseStream = response.Content.ReadAsStreamAsync().Result)
             {
-                using (var responseStream = response.Content.ReadAsStreamAsync().Result)
+                reportForwardProgress();
+                Started?.Invoke();
+
+                buffer = new byte[buffer_size];
+
+                while (true)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    int read = responseStream.Read(buffer, 0, buffer_size);
+
                     reportForwardProgress();
-                    Started?.Invoke(this);
 
-                    buffer = new byte[buffer_size];
-
-                    while (true)
+                    if (read > 0)
                     {
-                        cancellationToken.Token.ThrowIfCancellationRequested();
-
-                        int read = responseStream.Read(buffer, 0, buffer_size);
-
-                        reportForwardProgress();
-
-                        if (read > 0)
-                        {
-                            ResponseStream.Write(buffer, 0, read);
-                            responseBytesRead += read;
-                            DownloadProgress?.Invoke(this, responseBytesRead, response.Content.Headers.ContentLength ?? responseBytesRead);
-                        }
-                        else
-                        {
-                            ResponseStream.Seek(0, SeekOrigin.Begin);
-                            Complete();
-                            break;
-                        }
+                        ResponseStream.Write(buffer, 0, read);
+                        responseBytesRead += read;
+                        DownloadProgress?.Invoke(responseBytesRead, response.Content.Headers.ContentLength ?? responseBytesRead);
+                    }
+                    else
+                    {
+                        ResponseStream.Seek(0, SeekOrigin.Begin);
+                        Complete();
+                        break;
                     }
                 }
             }
-            catch (Exception e)
-            {
-                Complete(e);
-            }
         }
-
 
         protected virtual void Complete(Exception e = null)
         {
             if (Aborted)
                 return;
 
+            var we = e as WebException;
+
+            bool allowRetry = AllowRetryOnTimeout;
+
             if (e != null)
-                logger.Add($"Request to {Url} failed with {e.Message} (FAILED).");
-            else if (response.IsSuccessStatusCode)
-                logger.Add($@"Request to {Url} successfully completed!");
-            else
+                allowRetry &= we?.Status == WebExceptionStatus.Timeout;
+            else if (!response.IsSuccessStatusCode)
             {
-                bool allowRetry = true;
+                e = new WebException(response.StatusCode.ToString());
 
                 switch (response.StatusCode)
                 {
+                    case HttpStatusCode.GatewayTimeout:
                     case HttpStatusCode.RequestTimeout:
-                        if (hasExceededTimeout)
-                        {
-                            logger.Add($@"Timeout exceeded ({timeSinceLastAction} > {DEFAULT_TIMEOUT})");
-                            e = new WebException($"Timeout to {Url} after {timeSinceLastAction / 1000} seconds idle (read {responseBytesRead} bytes).", WebExceptionStatus.Timeout);
-                        }
                         break;
                     case HttpStatusCode.NotFound:
                     case HttpStatusCode.MethodNotAllowed:
@@ -427,35 +430,49 @@ namespace osu.Framework.IO.Network
                         allowRetry = false;
                         break;
                 }
+            }
 
-                if (allowRetry && retriesRemaining-- > 0 && responseBytesRead == 0)
+            if (e != null)
+            {
+                if (allowRetry && RetryCount < MAX_RETRIES && responseBytesRead == 0)
                 {
-                    logger.Add($@"Request to {Url} failed with {response.StatusCode} (retrying {default_retry_count - retriesRemaining}/{default_retry_count}).");
+                    RetryCount++;
+
+                    logger.Add($@"Request to {Url} failed with {e} (retrying {RetryCount}/{MAX_RETRIES}).");
+
+                    // For now, a client is created for each request due to the following bug in mono: https://bugzilla.xamarin.com/show_bug.cgi?id=60396
+                    // Todo: This must not be done, and is dangerous to do, see: https://aspnetmonsters.com/2016/08/2016-08-27-httpclientwrong/
+                    createHttpClient();
 
                     //do a retry
-                    PerformAsync();
+                    internalPerform();
                     return;
                 }
 
-                logger.Add($@"Request to {Url} failed with {response.StatusCode} (FAILED).");
+                logger.Add($"Request to {Url} failed with {e} (FAILED).");
             }
+            else
+                logger.Add($@"Request to {Url} successfully completed!");
 
-            Finished?.Invoke(this, e);
+            try
+            {
+                ProcessResponse();
+            }
+            catch (Exception se) { e = e == null ? se : new AggregateException(e, se); }
 
-            if (!KeepEventsBound)
-                unbindEvents();
+            Finished?.Invoke(e);
 
             if (e != null)
                 Aborted = true;
-            else
-                Completed = true;
+            Completed = true;
         }
 
-        private void abortRequest()
+        /// <summary>
+        /// Performs any post-processing of the response.
+        /// Exceptions thrown in this method will be passed to <see cref="Finished"/>.
+        /// </summary>
+        protected virtual void ProcessResponse()
         {
-            cancellationToken?.Cancel();
-            cancellationToken?.Dispose();
-            cancellationToken = null;
         }
 
         /// <summary>
@@ -463,31 +480,47 @@ namespace osu.Framework.IO.Network
         /// </summary>
         public void Abort()
         {
-            if (Aborted) return;
             Aborted = true;
+            Completed = true;
 
-            abortRequest();
-            canPerform = true;
-
-            if (!KeepEventsBound)
-                unbindEvents();
+            try
+            {
+                abortToken?.Cancel();
+            }
+            catch (ObjectDisposedException)
+            {
+            }
         }
 
         /// <summary>
         /// Adds a raw POST body to this request.
+        /// This may not be used in conjunction with <see cref="AddFile"/> and <see cref="AddParameter"/>.
         /// </summary>
-        public void AddRaw(string text) => AddRaw(Encoding.UTF8.GetBytes(text));
+        /// <param name="text">The text.</param>
+        public void AddRaw(string text)
+        {
+            AddRaw(Encoding.UTF8.GetBytes(text));
+        }
 
         /// <summary>
         /// Adds a raw POST body to this request.
+        /// This may not be used in conjunction with <see cref="AddFile"/> and <see cref="AddParameter"/>.
         /// </summary>
-        public void AddRaw(byte[] bytes) => AddRaw(new MemoryStream(bytes));
+        /// <param name="bytes">The raw data.</param>
+        public void AddRaw(byte[] bytes)
+        {
+            AddRaw(new MemoryStream(bytes));
+        }
 
         /// <summary>
         /// Adds a raw POST body to this request.
+        /// This may not be used in conjunction with <see cref="AddFile"/> and <see cref="AddParameter"/>.
         /// </summary>
+        /// <param name="stream">The stream containing the raw data. This stream will _not_ be finalized by this request.</param>
         public void AddRaw(Stream stream)
         {
+            if (stream == null) throw new ArgumentNullException(nameof(stream));
+
             if (rawContent == null)
                 rawContent = new MemoryStream();
 
@@ -495,27 +528,57 @@ namespace osu.Framework.IO.Network
         }
 
         /// <summary>
-        /// Add a new FILE parameter to this request.
+        /// Add a new FILE parameter to this request. Replaces any existing file with the same name.
+        /// This may not be used in conjunction with <see cref="AddRaw(Stream)"/>. GET requests may not contain files.
         /// </summary>
+        /// <param name="name">The name of the file. This becomes the name of the file in a multi-part form POST content.</param>
+        /// <param name="data">The file data.</param>
         public void AddFile(string name, byte[] data)
         {
-            Files.Add(name, data);
+            if (name == null) throw new ArgumentNullException(nameof(name));
+            if (data == null) throw new ArgumentNullException(nameof(data));
+
+            files[name] = data;
         }
 
         /// <summary>
-        /// Add a new POST parameter to this request.
+        /// Add a new POST parameter to this request. Replaces any existing parameter with the same name.
+        /// This may not be used in conjunction with <see cref="AddRaw(Stream)"/>.
         /// </summary>
+        /// <param name="name">The name of the parameter.</param>
+        /// <param name="value">The parameter value.</param>
         public void AddParameter(string name, string value)
         {
-            Parameters.Add(name, value);
+            if (name == null) throw new ArgumentNullException(nameof(name));
+            if (value == null) throw new ArgumentNullException(nameof(value));
+
+            parameters[name] = value;
         }
 
-        private void unbindEvents()
+        /// <summary>
+        /// Adds a new header to this request. Replaces any existing header with the same name.
+        /// </summary>
+        /// <param name="name">The name of the header.</param>
+        /// <param name="value">The header value.</param>
+        public void AddHeader(string name, string value)
         {
-            UploadProgress = null;
-            DownloadProgress = null;
-            Finished = null;
-            Started = null;
+            if (name == null) throw new ArgumentNullException(nameof(name));
+            if (value == null) throw new ArgumentNullException(nameof(value));
+
+            headers[name] = value;
+        }
+
+        private static void createHttpClient()
+        {
+            client?.Dispose();
+
+            client = new HttpClient(new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate });
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("osu!");
+            client.DefaultRequestHeaders.ExpectContinue = true;
+
+            // Timeout is controlled manually through cancellation tokens because
+            // HttpClient does not properly timeout while reading chunked data
+            client.Timeout = System.Threading.Timeout.InfiniteTimeSpan;
         }
 
         #region Timeout Handling
@@ -524,20 +587,10 @@ namespace osu.Framework.IO.Network
 
         private long timeSinceLastAction => (DateTime.Now.Ticks - lastAction) / TimeSpan.TicksPerMillisecond;
 
-        private bool hasExceededTimeout => timeSinceLastAction > Timeout;
-
-        private void checkTimeoutLoop(object state)
-        {
-            while (!Aborted && !Completed)
-            {
-                if (hasExceededTimeout) abortRequest();
-                Thread.Sleep(500);
-            }
-        }
-
         private void reportForwardProgress()
         {
             lastAction = DateTime.Now.Ticks;
+            timeoutToken.CancelAfter(Timeout);
         }
 
         #endregion
@@ -551,14 +604,13 @@ namespace osu.Framework.IO.Network
             if (isDisposed) return;
             isDisposed = true;
 
-            abortRequest();
+            Abort();
 
             requestStream?.Dispose();
+            response?.Dispose();
 
             if (!(ResponseStream is MemoryStream))
                 ResponseStream?.Dispose();
-
-            unbindEvents();
         }
 
         public void Dispose()
@@ -566,22 +618,6 @@ namespace osu.Framework.IO.Network
             Dispose(true);
             GC.SuppressFinalize(this);
         }
-
-        #endregion
-
-        #region Retry Logic
-
-        private const int default_retry_count = 2;
-
-        private int retryCount = default_retry_count;
-
-        public int RetryCount
-        {
-            get { return retryCount; }
-            set { retriesRemaining = retryCount = value; }
-        }
-
-        private int retriesRemaining = default_retry_count;
 
         #endregion
 

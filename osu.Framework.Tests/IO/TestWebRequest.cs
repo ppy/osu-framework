@@ -3,9 +3,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Net;
+using System.Net.Http;
+using System.Reflection;
 using Newtonsoft.Json;
 using NUnit.Framework;
 using osu.Framework.IO.Network;
+using HttpMethod = osu.Framework.IO.Network.HttpMethod;
+using WebRequest = osu.Framework.IO.Network.WebRequest;
 
 namespace osu.Framework.Tests.IO
 {
@@ -25,12 +30,15 @@ namespace osu.Framework.Tests.IO
             var request = new JsonWebRequest<HttpBinGetResponse>(url) { Method = HttpMethod.GET };
 
             bool hasThrown = false;
-            request.Finished += (webRequest, exception) => hasThrown = exception != null;
+            request.Finished += exception => hasThrown = exception != null;
 
             if (async)
                 Assert.DoesNotThrowAsync(request.PerformAsync);
             else
                 Assert.DoesNotThrow(request.Perform);
+
+            Assert.IsTrue(request.Completed);
+            Assert.IsFalse(request.Aborted);
 
             var responseObject = request.ResponseObject;
 
@@ -38,8 +46,6 @@ namespace osu.Framework.Tests.IO
             Assert.IsTrue(responseObject.Headers.UserAgent == "osu!");
             Assert.IsTrue(responseObject.Url == url);
 
-            Assert.IsFalse(request.Aborted);
-            Assert.IsTrue(request.Completed);
             Assert.IsFalse(hasThrown);
         }
 
@@ -52,18 +58,17 @@ namespace osu.Framework.Tests.IO
             var request = new WebRequest($"{protocol}://{invalid_get_url}") { Method = HttpMethod.GET };
 
             Exception finishedException = null;
-            request.Finished += (webRequest, exception) => finishedException = exception;
+            request.Finished += exception => finishedException = exception;
 
             if (async)
-                Assert.ThrowsAsync<AggregateException>(request.PerformAsync);
+                Assert.ThrowsAsync<HttpRequestException>(request.PerformAsync);
             else
-                Assert.Throws<AggregateException>(request.Perform);
+                Assert.Throws<HttpRequestException>(request.Perform);
+
+            Assert.IsTrue(request.Completed);
+            Assert.IsTrue(request.Aborted);
 
             Assert.IsTrue(request.ResponseString == null);
-
-            Assert.IsTrue(request.Aborted);
-            Assert.IsFalse(request.Completed);
-
             Assert.IsNotNull(finishedException);
         }
 
@@ -74,40 +79,205 @@ namespace osu.Framework.Tests.IO
             var request = new WebRequest("https://httpbin.org/hidden-basic-auth/user/passwd");
 
             bool hasThrown = false;
-            request.Finished += (webRequest, exception) => hasThrown = exception != null;
+            request.Finished += exception => hasThrown = exception != null;
 
             if (async)
                 Assert.DoesNotThrowAsync(request.PerformAsync);
             else
                 Assert.DoesNotThrow(request.Perform);
 
+            Assert.IsTrue(request.Completed);
+            Assert.IsTrue(request.Aborted);
+
             Assert.IsEmpty(request.ResponseString);
 
-            Assert.IsFalse(request.Aborted);
-            Assert.IsTrue(request.Completed);
-            Assert.IsFalse(hasThrown);
+            Assert.IsTrue(hasThrown);
         }
 
+        /// <summary>
+        /// Tests aborting the <see cref="WebRequest"/> after response has been received from the server
+        /// but before data has been read.
+        /// </summary>
         [TestCase(false)]
         [TestCase(true)]
-        public void TestAbortGet(bool async)
+        public void TestAbortReceive(bool async)
         {
             var request = new JsonWebRequest<HttpBinGetResponse>("https://httpbin.org/get") { Method = HttpMethod.GET };
 
             bool hasThrown = false;
-            request.Finished += (webRequest, exception) => hasThrown = exception != null;
-            request.Started += webRequest => request.Abort();
+            request.Finished += exception => hasThrown = exception != null;
+            request.Started += () => request.Abort();
 
             if (async)
                 Assert.DoesNotThrowAsync(request.PerformAsync);
             else
                 Assert.DoesNotThrow(request.Perform);
 
+            Assert.IsTrue(request.Completed);
+            Assert.IsTrue(request.Aborted);
+
             Assert.IsTrue(request.ResponseObject == null);
 
-            Assert.IsTrue(request.Aborted);
-            Assert.IsFalse(request.Completed);
             Assert.IsFalse(hasThrown);
+        }
+
+        /// <summary>
+        /// Tests aborting the <see cref="WebRequest"/> before the request is sent to the server.
+        /// </summary>
+        [Test]
+        public void TestAbortRequest()
+        {
+            var request = new JsonWebRequest<HttpBinGetResponse>("https://httpbin.org/get") { Method = HttpMethod.GET };
+
+            bool hasThrown = false;
+            request.Finished += exception => hasThrown = exception != null;
+
+#pragma warning disable 4014
+            request.PerformAsync();
+#pragma warning restore 4014
+
+            Assert.DoesNotThrow(request.Abort);
+
+            Assert.IsTrue(request.Completed);
+            Assert.IsTrue(request.Aborted);
+
+            Assert.IsTrue(request.ResponseObject == null);
+
+            Assert.IsFalse(hasThrown);
+        }
+
+        /// <summary>
+        /// Tests being able to abort + restart a request.
+        /// </summary>
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestRestartAfterAbort(bool async)
+        {
+            var request = new JsonWebRequest<HttpBinGetResponse>("https://httpbin.org/get") { Method = HttpMethod.GET };
+
+            bool hasThrown = false;
+            request.Finished += exception => hasThrown = exception != null;
+
+#pragma warning disable 4014
+            request.PerformAsync();
+#pragma warning restore 4014
+
+            Assert.DoesNotThrow(request.Abort);
+
+            if (async)
+                Assert.ThrowsAsync<InvalidOperationException>(request.PerformAsync);
+            else
+                Assert.Throws<InvalidOperationException>(request.Perform);
+
+            Assert.IsTrue(request.Completed);
+            Assert.IsTrue(request.Aborted);
+
+            var responseObject = request.ResponseObject;
+
+            Assert.IsTrue(responseObject == null);
+            Assert.IsFalse(hasThrown);
+        }
+
+        /// <summary>
+        /// Tests that specifically-crafted <see cref="WebRequest"/> is completed after one timeout.
+        /// </summary>
+        [Test]
+        public void TestOneTimeout()
+        {
+            var request = new DelayedWebRequest
+            {
+                Method = HttpMethod.GET,
+                Timeout = 1000,
+                Delay = 2
+            };
+
+            Exception thrownException = null;
+            request.Finished += e => thrownException = e;
+            request.CompleteInvoked = () => request.Delay = 0;
+
+            Assert.DoesNotThrow(request.Perform);
+
+            Assert.IsTrue(request.Completed);
+            Assert.IsFalse(request.Aborted);
+
+            Assert.IsTrue(thrownException == null);
+            Assert.AreEqual(WebRequest.MAX_RETRIES, request.RetryCount);
+        }
+
+        /// <summary>
+        /// Tests that a <see cref="WebRequest"/> will only timeout a maximum of <see cref="WebRequest.MAX_RETRIES"/> times before being aborted.
+        /// </summary>
+        [Test]
+        public void TestFailTimeout()
+        {
+            var request = new WebRequest("https://httpbin.org/delay/4")
+            {
+                Method = HttpMethod.GET,
+                Timeout = 1000
+            };
+
+            Exception thrownException = null;
+            request.Finished += e => thrownException = e;
+
+            Assert.DoesNotThrow(request.Perform);
+
+            Assert.IsTrue(request.Completed);
+            Assert.IsTrue(request.Aborted);
+
+            Assert.IsTrue(thrownException != null);
+            Assert.AreEqual(WebRequest.MAX_RETRIES, request.RetryCount);
+            Assert.AreEqual(typeof(WebException), thrownException.GetType());
+        }
+
+        /// <summary>
+        /// Tests being able to abort + restart a request.
+        /// </summary>
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestEventUnbindOnCompletion(bool async)
+        {
+            var request = new JsonWebRequest<HttpBinGetResponse>("https://httpbin.org/get") { Method = HttpMethod.GET };
+
+            request.Started += () => { };
+            request.Finished += e => { };
+            request.DownloadProgress += (l1, l2) => { };
+            request.UploadProgress += (l1, l2) => { };
+
+            Assert.DoesNotThrow(request.Perform);
+
+            var events = request.GetType().GetEvents(BindingFlags.Instance | BindingFlags.Public);
+            foreach (var e in events)
+            {
+                var field = request.GetType().GetField(e.Name, BindingFlags.Instance | BindingFlags.Public);
+                Assert.IsFalse(((Delegate)field?.GetValue(request))?.GetInvocationList().Length > 0);
+            }
+        }
+
+        /// <summary>
+        /// Tests being able to abort + restart a request.
+        /// </summary>
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestUnbindOnDispose(bool async)
+        {
+            WebRequest request;
+            using (request = new JsonWebRequest<HttpBinGetResponse>("https://httpbin.org/get") { Method = HttpMethod.GET })
+            {
+
+                request.Started += () => { };
+                request.Finished += e => { };
+                request.DownloadProgress += (l1, l2) => { };
+                request.UploadProgress += (l1, l2) => { };
+
+                Assert.DoesNotThrow(request.Perform);
+            }
+
+            var events = request.GetType().GetEvents(BindingFlags.Instance | BindingFlags.Public);
+            foreach (var e in events)
+            {
+                var field = request.GetType().GetField(e.Name, BindingFlags.Instance | BindingFlags.Public);
+                Assert.IsFalse(((Delegate)field?.GetValue(request))?.GetInvocationList().Length > 0);
+            }
         }
 
         [TestCase(false)]
@@ -126,8 +296,8 @@ namespace osu.Framework.Tests.IO
 
             var responseObject = request.ResponseObject;
 
-            Assert.IsFalse(request.Aborted);
             Assert.IsTrue(request.Completed);
+            Assert.IsFalse(request.Aborted);
 
             Assert.IsTrue(responseObject.Form != null);
             Assert.IsTrue(responseObject.Form.Count == 2);
@@ -159,14 +329,40 @@ namespace osu.Framework.Tests.IO
 
             var responseObject = request.ResponseObject;
 
-            Assert.IsFalse(request.Aborted);
             Assert.IsTrue(request.Completed);
+            Assert.IsFalse(request.Aborted);
 
             Assert.IsTrue(responseObject.Headers.ContentLength > 0);
             Assert.IsTrue(responseObject.Json != null);
             Assert.AreEqual(testObject.TestString, responseObject.Json.TestString);
 
             Assert.IsTrue(responseObject.Headers.ContentType == null);
+        }
+
+        [TestCase(false, false)]
+        [TestCase(false, true)]
+        [TestCase(true, false)]
+        [TestCase(true, true)]
+        public void TestGetBinaryData(bool async, bool chunked)
+        {
+            const int bytes_count = 65536;
+            const int chunk_size = 1024;
+
+            string endpoint = chunked ? "stream-bytes" : "bytes";
+
+            WebRequest request = new WebRequest($"http://httpbin.org/{endpoint}/{bytes_count}") { Method = HttpMethod.GET };
+            if (chunked)
+                request.AddParameter("chunk_size", chunk_size.ToString());
+
+            if (async)
+                Assert.DoesNotThrowAsync(request.PerformAsync);
+            else
+                Assert.DoesNotThrow(request.Perform);
+
+            Assert.IsTrue(request.Completed);
+            Assert.IsFalse(request.Aborted);
+
+            Assert.AreEqual(bytes_count, request.ResponseStream.Length);
         }
 
         [Serializable]
@@ -213,6 +409,33 @@ namespace osu.Framework.Tests.IO
         public class TestObject
         {
             public string TestString = "readable";
+        }
+
+        private class DelayedWebRequest : WebRequest
+        {
+            public Action CompleteInvoked;
+
+            private int delay;
+            public int Delay
+            {
+                get { return delay; }
+                set
+                {
+                    delay = value;
+                    Url = $"http://httpbin.org/delay/{delay}";
+                }
+            }
+
+            public DelayedWebRequest()
+                : base("http://httpbin.org/delay/0")
+            {
+            }
+
+            protected override void Complete(Exception e = null)
+            {
+                CompleteInvoked?.Invoke();
+                base.Complete(e);
+            }
         }
     }
 }
