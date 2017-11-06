@@ -88,6 +88,7 @@
     <Compile Include="Visual\TestCaseNestedMenus.cs" />
     <Compile Include="Visual\TestCasePadding.cs" />
     <Compile Include="Visual\TestCasePropertyBoundaries.cs" />
+    <Compile Include="Visual\TestCaseTransformRewinding.cs" />
     <Compile Include="Visual\TestCaseRigidBody.cs" />
     <Compile Include="Visual\TestCaseScreen.cs" />
     <Compile Include="Visual\TestCaseScrollableFlow.cs" />
