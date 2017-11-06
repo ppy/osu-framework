@@ -35,6 +35,8 @@ namespace osu.Framework.Tests.Visual
             AddStep("4 -> 1 | 3 sec", () => counter.CountTo(4).CountTo(1, 3000));
             AddStep("1 -> 4 -> 1 | 6 sec", () => counter.CountTo(1).CountTo(4, 3000).Then().CountTo(1, 3000));
             AddStep("1 -> 4 -> 1 | 2 sec", () => counter.CountTo(1).CountTo(4, 1000).Then().CountTo(1, 1000));
+
+            AddStep("1 -> 100 | 5 sec | OutQuint", () => counter.CountTo(1).CountTo(100, 5000, Easing.OutQuint));
         }
 
         private string createResult(double value)
@@ -90,7 +92,15 @@ namespace osu.Framework.Tests.Visual
         private class TransformCount : Transform<double, Counter>
         {
             public override string TargetMember => "Current.Value";
-            protected override void Apply(Counter d, double time) => d.Current.Value = Interpolation.ValueAt(time, StartValue, EndValue, StartTime, EndTime, Easing);
+            protected override void Apply(Counter d, double time)
+            {
+                if (time < StartTime)
+                    d.Current.Value = StartValue;
+                else if (time >= EndTime)
+                    d.Current.Value = EndValue;
+                else
+                    d.Current.Value = Interpolation.ValueAt(time, StartValue, EndValue, StartTime, EndTime, Easing);
+            }
             protected override void ReadIntoStartValue(Counter d) => StartValue = d.Current;
         }
     }
