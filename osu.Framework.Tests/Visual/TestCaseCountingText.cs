@@ -21,7 +21,7 @@ namespace osu.Framework.Tests.Visual
         public TestCaseCountingText()
         {
             Counter counter;
-            Add(counter = new Counter(() => new SpriteText { TextSize = 36 }, createResult));
+            Add(counter = new TestTextCounter(createResult));
 
             AddStep("Integer", () => countType = CountType.AsInteger);
             AddStep("Ceiled-integer", () => countType = CountType.AsIntegerCeiling);
@@ -67,42 +67,46 @@ namespace osu.Framework.Tests.Visual
         }
     }
 
-    public class Counter : CompositeDrawable, IHasCurrentValue<double>
+    public class TestTextCounter : Counter
     {
-        public Bindable<double> Current { get; } = new Bindable<double>();
-
         private readonly Func<double, string> resultFunction;
         private readonly SpriteText text;
 
-        public Counter(Func<SpriteText> creationFunction, Func<double, string> resultFunction = null)
+        public TestTextCounter(Func<double, string> resultFunction)
         {
-            this.resultFunction = resultFunction ?? new Func<double, string>(v => v.ToString("n2"));
-
-            text = creationFunction?.Invoke() ?? new SpriteText();
-            AddInternal(text);
-
-            Current.ValueChanged += currentValueChanged;
+            this.resultFunction = resultFunction;
+            AddInternal(text = new SpriteText { TextSize = 24 });
         }
 
-        private void currentValueChanged(double newValue) => text.Text = resultFunction(newValue);
+        protected override void OnCountChanged() => text.Text = resultFunction(Count);
+    }
+
+    public class Counter : CompositeDrawable
+    {
+        private double count;
+        /// <summary>
+        /// The current count.
+        /// </summary>
+        protected double Count
+        {
+            get { return count; }
+            private set
+            {
+                if (count == value)
+                    return;
+                count = value;
+
+                OnCountChanged();
+            }
+        }
+
+        /// <summary>
+        /// Invoked when <see cref="Count"/> has changed.
+        /// </summary>
+        protected virtual void OnCountChanged() { }
 
         public TransformSequence<Counter> CountTo(double endCount, double duration = 0, Easing easing = Easing.None)
-            => this.TransformTo(this.PopulateTransform(new TransformCount(), endCount, duration, easing));
-
-        private class TransformCount : Transform<double, Counter>
-        {
-            public override string TargetMember => "Current.Value";
-            protected override void Apply(Counter d, double time)
-            {
-                if (time < StartTime)
-                    d.Current.Value = StartValue;
-                else if (time >= EndTime)
-                    d.Current.Value = EndValue;
-                else
-                    d.Current.Value = Interpolation.ValueAt(time, StartValue, EndValue, StartTime, EndTime, Easing);
-            }
-            protected override void ReadIntoStartValue(Counter d) => StartValue = d.Current;
-        }
+            => this.TransformTo(nameof(Count), endCount, duration, easing);
     }
 
     public static class CounterTransformSequenceExtensions
