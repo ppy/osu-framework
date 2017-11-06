@@ -11,6 +11,11 @@ namespace osu.Framework.Graphics.Transforms
     {
         internal ulong TransformID;
 
+        /// <summary>
+        /// Whether this <see cref="Transform"/> has been applied to an <see cref="ITransformable"/>.
+        /// </summary>
+        internal bool Applied;
+
         public Easing Easing;
 
         public abstract ITransformable TargetTransformable { get; }
@@ -65,7 +70,11 @@ namespace osu.Framework.Graphics.Transforms
 
         public T Target { get; internal set; }
 
-        public sealed override void Apply(double time) => Apply(Target, time);
+        public sealed override void Apply(double time)
+        {
+            Apply(Target, time);
+            Applied = true;
+        }
 
         public sealed override void ReadIntoStartValue() => ReadIntoStartValue(Target);
 
