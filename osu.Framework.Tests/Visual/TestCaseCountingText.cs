@@ -2,7 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using OpenTK;
+using System.Globalization;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
@@ -41,15 +41,15 @@ namespace osu.Framework.Tests.Visual
             {
                 default:
                 case CountType.AsDouble:
-                    return value.ToString();
+                    return value.ToString(CultureInfo.InvariantCulture);
                 case CountType.AsInteger:
                     return ((int)value).ToString();
                 case CountType.AsIntegerCeiling:
                     return ((int)Math.Ceiling(value)).ToString();
                 case CountType.AsDouble2:
-                    return Math.Round(value, 2).ToString();
+                    return Math.Round(value, 2).ToString(CultureInfo.InvariantCulture);
                 case CountType.AsDouble4:
-                    return Math.Round(value, 4).ToString();
+                    return Math.Round(value, 4).ToString(CultureInfo.InvariantCulture);
             }
         }
 
