@@ -139,9 +139,9 @@ namespace osu.Framework.Graphics.Containers
                             cells[r, d.Index].Width = d.Size * DrawWidth;
                         else
                             cells[r, d.Index].Width = d.Size;
-
-                        definedWidth += cells[r, d.Index].Width;
                     }
+
+                    definedWidth += d.Size;
                 }
             }
 
@@ -158,9 +158,9 @@ namespace osu.Framework.Graphics.Containers
                             cells[d.Index, c].Height = d.Size * DrawHeight;
                         else
                             cells[d.Index, c].Height = d.Size;
-
-                        definedHeight += cells[d.Index, c].Height;
                     }
+
+                    definedHeight += d.Size;
                 }
             }
 
