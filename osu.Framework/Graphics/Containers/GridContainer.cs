@@ -22,7 +22,8 @@ namespace osu.Framework.Graphics.Containers
                     return;
                 definition = value;
 
-                layout.Invalidate();
+                cellLayout.Invalidate();
+                cellContent.Invalidate();
             }
         }
 
@@ -36,51 +37,99 @@ namespace osu.Framework.Graphics.Containers
                     return;
                 content = value;
 
-                layout.Invalidate();
+                cellContent.Invalidate();
             }
         }
 
-        private Cached layout = new Cached();
+
+        private Cached cellContent = new Cached();
+        private Cached cellLayout = new Cached();
+
+        private CellContainer[,] cells = new CellContainer[0, 0];
+
+        private int totalColumns => Content.Max(c => c.Length);
+        private int totalRows => Content.Length;
 
         protected override void Update()
         {
             base.Update();
 
-            if (!layout.IsValid)
-            {
-                computeLayout();
-                layout.Validate();
-            }
+            layoutContent();
+            layoutCells();
         }
 
-        private void computeLayout()
+        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
-            if (Content == null)
+            if ((invalidation & Invalidation.DrawSize) > 0)
+                cellLayout.Invalidate();
+
+            return base.Invalidate(invalidation, source, shallPropagate);
+        }
+
+        /// <summary>
+        /// Moves content from <see cref="Content"/> into cells.
+        /// </summary>
+        private void layoutContent()
+        {
+            if (cellContent.IsValid)
                 return;
 
+            // Clear cell containers without disposing, as the content might be reused
+            foreach (var cell in cells)
+                cell.Clear(false);
+
+            // It's easier to just re-construct the cell containers instead of resizing
+            // If this becomes a bottleneck we can transition to using lists...
             ClearInternal();
 
-            int totalColumns = Content.Max(c => c.Length);
-            int totalRows = Content.Length;
+            // Create the new cell containers
+            cells = new CellContainer[totalRows, totalColumns];
+            for (int r = 0; r < cells.GetLength(0); r++)
+                for (int c = 0; c < cells.GetLength(1); c++)
+                    AddInternal(cells[r, c] = new CellContainer());
 
-            var columns = new ColumnInfo[totalColumns];
-            var rows = new RowInfo[totalRows];
+            // Transfer content into the new cell containers
+            for (int r = 0; r < Content.Length; r++)
+                for (int c = 0; c < Content[r].Length; c++)
+                    cells[r, c].Add(Content[r][c]);
 
-            float totalWidth = 0;
-            float totalHeight = 0;
+            cellLayout.Invalidate();
+            cellContent.Validate();
+        }
+
+        /// <summary>
+        /// Repositions/resizes cells.
+        /// </summary>
+        private void layoutCells()
+        {
+            if (cellLayout.IsValid)
+                return;
+
+            foreach (var cell in cells)
+            {
+                cell.IsWidthDefined = false;
+                cell.IsHeightDefined = false;
+            }
+
+            float definedWidth = 0;
+            float definedHeight = 0;
 
             // Compute the width of explicitly-defined columns
             if (Definition.Columns?.Count > 0)
             {
                 foreach (var d in Definition.Columns)
                 {
-                    columns[d.Index] = new ColumnInfo();
+                    for (int r = 0; r < cells.GetLength(0); r++)
+                    {
+                        cells[r, d.Index].IsWidthDefined = true;
 
-                    if (d.IsRelative)
-                        columns[d.Index].Width = d.Width * DrawWidth;
-                    else
-                        columns[d.Index].Width = d.Width;
-                    totalWidth += columns[d.Index].Width;
+                        if (d.IsRelative)
+                            cells[r, d.Index].Width = d.Width * DrawWidth;
+                        else
+                            cells[r, d.Index].Width = d.Width;
+
+                        definedWidth += cells[r, d.Index].Width;
+                    }
                 }
             }
 
@@ -89,71 +138,49 @@ namespace osu.Framework.Graphics.Containers
             {
                 foreach (var d in Definition.Rows)
                 {
-                    rows[d.Index] = new RowInfo();
+                    for (int c = 0; c < cells.GetLength(1); c++)
+                    {
+                        cells[d.Index, c].IsHeightDefined = true;
 
-                    if (d.IsRelative)
-                        rows[d.Index].Height = d.Height * DrawHeight;
-                    else
-                        rows[d.Index].Height = d.Height;
-                    totalHeight += rows[d.Index].Height;
+                        if (d.IsRelative)
+                            cells[d.Index, c].Height = d.Height * DrawHeight;
+                        else
+                            cells[d.Index, c].Height = d.Height;
+
+                        definedHeight += cells[d.Index, c].Height;
+                    }
                 }
             }
 
             // Compute the dimensions for non-explicitly-defined columns/rows
             var autoSize = new Vector2
             (
-                (DrawWidth - totalWidth) / totalColumns,
-                (DrawHeight - totalHeight) / totalRows
+                (DrawWidth - definedWidth) / totalColumns,
+                (DrawHeight - definedHeight) / totalRows
             );
 
-            // Add dimensions to non-explicitly-defined columns/rows and add positional offsets
-            if (columns[0] == null)
-                columns[0] = new ColumnInfo { Width = autoSize.X };
-            if (rows[0] == null)
-                rows[0] = new RowInfo { Height = autoSize.Y };
-
-            for (int i = 1; i < columns.Length; i++)
-            {
-                if (columns[i] == null)
-                    columns[i] = new ColumnInfo { Width = autoSize.X };
-                columns[i].X = columns[i - 1].X + columns[i - 1].Width;
-            }
-
-            for (int i = 1; i < rows.Length; i++)
-            {
-                if (rows[i] == null)
-                    rows[i] = new RowInfo { Height = autoSize.Y };
-                rows[i].Y = rows[i - 1].Y + rows[i - 1].Height;
-            }
-
-            // Build the cells
-            for (int rI = 0; rI < Content.Length; rI++)
-            {
-                for (int cI = 0; cI < Content[rI].Length; cI++)
+            // Add dimensions to non-explicitly-defined columns and add positional offsets
+            for (int r = 0; r < cells.GetLength(0); r++)
+                for (int c = 0; c < cells.GetLength(1); c++)
                 {
-                    Vector2 position = new Vector2(columns[cI].X, rows[rI].Y);
-                    Vector2 size = new Vector2(columns[cI].Width, rows[rI].Height);
+                    if (!cells[r, c].IsWidthDefined)
+                        cells[r, c].Width = autoSize.X;
+                    if (!cells[r, c].IsHeightDefined)
+                        cells[r, c].Height = autoSize.Y;
 
-                    AddInternal(new Container
-                    {
-                        Child = Content[rI][cI],
-                        Position = position,
-                        Size = size
-                    });
+                    if (c > 0)
+                        cells[r, c].X = cells[r, c - 1].X + cells[r, c - 1].Width;
+                    if (r > 0)
+                        cells[r, c].Y = cells[r - 1, c].Y + cells[r - 1, c].Height;
                 }
-            }
+
+            cellLayout.Validate();
         }
 
-        private class ColumnInfo
+        private class CellContainer : Container
         {
-            public float X;
-            public float Width;
-        }
-
-        private class RowInfo
-        {
-            public float Y;
-            public float Height;
+            public bool IsWidthDefined;
+            public bool IsHeightDefined;
         }
     }
 
