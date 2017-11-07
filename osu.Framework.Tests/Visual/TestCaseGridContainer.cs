@@ -23,16 +23,13 @@ namespace osu.Framework.Tests.Visual
                     new Drawable[] { new FillBox(), new FillBox(), new FillBox() },
                     new Drawable[] { new FillBox(), new FillBox(), new FillBox() }
                 },
-                Definition = new GridDefinition
+                RowDimensions = new[]
                 {
-                    Rows = new[]
-                    {
-                        new RowDefinition(1) { Height = 50 }
-                    },
-                    Columns = new[]
-                    {
-                        new ColumnDefinition(1) { Width = 50 }
-                    }
+                    new Dimension(1) { Size = 50 },
+                },
+                ColumnDimensions = new[]
+                {
+                    new Dimension(1) { Size = 50 }
                 }
             });
         }

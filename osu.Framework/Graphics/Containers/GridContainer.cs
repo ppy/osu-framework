@@ -12,18 +12,31 @@ namespace osu.Framework.Graphics.Containers
 {
     public class GridContainer : CompositeDrawable
     {
-        private GridDefinition definition;
-        public GridDefinition Definition
+        private IReadOnlyList<Dimension> rowDimensions;
+        public IReadOnlyList<Dimension> RowDimensions
         {
-            get { return definition; }
+            get { return rowDimensions; }
             set
             {
-                if (definition == value)
+                if (rowDimensions == value)
                     return;
-                definition = value;
+                rowDimensions = value;
 
                 cellLayout.Invalidate();
-                cellContent.Invalidate();
+            }
+        }
+
+        private IReadOnlyList<Dimension> columnDimensions;
+        public IReadOnlyList<Dimension> ColumnDimensions
+        {
+            get { return columnDimensions; }
+            set
+            {
+                if (columnDimensions == value)
+                    return;
+                columnDimensions = value;
+
+                cellLayout.Invalidate();
             }
         }
 
@@ -41,15 +54,6 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-
-        private Cached cellContent = new Cached();
-        private Cached cellLayout = new Cached();
-
-        private CellContainer[,] cells = new CellContainer[0, 0];
-
-        private int totalColumns => Content.Max(c => c.Length);
-        private int totalRows => Content.Length;
-
         protected override void Update()
         {
             base.Update();
@@ -65,6 +69,14 @@ namespace osu.Framework.Graphics.Containers
 
             return base.Invalidate(invalidation, source, shallPropagate);
         }
+
+        private Cached cellContent = new Cached();
+        private Cached cellLayout = new Cached();
+
+        private CellContainer[,] cells = new CellContainer[0, 0];
+
+        private int totalColumns => Content.Max(c => c.Length);
+        private int totalRows => Content.Length;
 
         /// <summary>
         /// Moves content from <see cref="Content"/> into cells.
@@ -115,18 +127,18 @@ namespace osu.Framework.Graphics.Containers
             float definedHeight = 0;
 
             // Compute the width of explicitly-defined columns
-            if (Definition.Columns?.Count > 0)
+            if (ColumnDimensions?.Count > 0)
             {
-                foreach (var d in Definition.Columns)
+                foreach (var d in ColumnDimensions)
                 {
                     for (int r = 0; r < cells.GetLength(0); r++)
                     {
                         cells[r, d.Index].IsWidthDefined = true;
 
-                        if (d.IsRelative)
-                            cells[r, d.Index].Width = d.Width * DrawWidth;
+                        if (d.Relative)
+                            cells[r, d.Index].Width = d.Size * DrawWidth;
                         else
-                            cells[r, d.Index].Width = d.Width;
+                            cells[r, d.Index].Width = d.Size;
 
                         definedWidth += cells[r, d.Index].Width;
                     }
@@ -134,18 +146,18 @@ namespace osu.Framework.Graphics.Containers
             }
 
             // Compute the height of explicitly-defined rows
-            if (Definition.Rows?.Count > 0)
+            if (RowDimensions?.Count > 0)
             {
-                foreach (var d in Definition.Rows)
+                foreach (var d in RowDimensions)
                 {
                     for (int c = 0; c < cells.GetLength(1); c++)
                     {
                         cells[d.Index, c].IsHeightDefined = true;
 
-                        if (d.IsRelative)
-                            cells[d.Index, c].Height = d.Height * DrawHeight;
+                        if (d.Relative)
+                            cells[d.Index, c].Height = d.Size * DrawHeight;
                         else
-                            cells[d.Index, c].Height = d.Height;
+                            cells[d.Index, c].Height = d.Size;
 
                         definedHeight += cells[d.Index, c].Height;
                     }
@@ -185,68 +197,34 @@ namespace osu.Framework.Graphics.Containers
     }
 
     /// <summary>
-    /// Defines the characteristics of a row in a <see cref="GridContainer"/>.
+    /// Defines the size of a row or column in a <see cref="GridContainer"/>.
     /// </summary>
-    public class RowDefinition
+    public struct Dimension
     {
         /// <summary>
-        /// The height of this row.
+        /// The index of the row or column in the <see cref="GridContainer"/> which this <see cref="Dimension"/> applies to.
         /// </summary>
-        public float Height;
+        public int Index;
 
         /// <summary>
-        /// Whether <see cref="Height"/> is relative to the height of the <see cref="GridContainer"/>.
+        /// The size of the row or column which this <see cref="Dimension"/> applies to.
         /// </summary>
-        public bool IsRelative;
+        public float Size;
 
         /// <summary>
-        /// The index of the row which this definition affects.
+        /// Whether <see cref="Size"/> is relative to <see cref="GridContainer.Size"/>.
         /// </summary>
-        public readonly int Index;
+        public bool Relative;
 
         /// <summary>
-        /// Constructs a <see cref="RowDefinition"/>.
+        /// Constructs a new <see cref="Dimension"/>.
         /// </summary>
-        /// <param name="rowIndex">The index of the row which this definition affects.</param>
-        public RowDefinition(int rowIndex)
+        /// <param name="index">The index of the row or column in the <see cref="GridContainer"/> which this <see cref="Dimension"/> applies to.</param>
+        public Dimension(int index)
         {
-            Index = rowIndex;
+            Index = index;
+            Size = 0;
+            Relative = false;
         }
-    }
-
-    /// <summary>
-    /// Defines the characteristics of a column in a <see cref="GridContainer"/>.
-    /// </summary>
-    public class ColumnDefinition
-    {
-        /// <summary>
-        /// The width of this column.
-        /// </summary>
-        public float Width;
-
-        /// <summary>
-        /// Whether <see cref="Width"/> is relative to the width of the <see cref="GridContainer"/>.
-        /// </summary>
-        public bool IsRelative;
-
-        /// <summary>
-        /// The index of the column which this definition affects.
-        /// </summary>
-        public readonly int Index;
-
-        /// <summary>
-        /// Constructs a <see cref="ColumnDefinition"/>.
-        /// </summary>
-        /// <param name="columnIndex">The index of the column which this definition affects.</param>
-        public ColumnDefinition(int columnIndex)
-        {
-            Index = columnIndex;
-        }
-    }
-
-    public class GridDefinition
-    {
-        public IReadOnlyList<RowDefinition> Rows { get; set; }
-        public IReadOnlyList<ColumnDefinition> Columns { get; set; }
     }
 }
