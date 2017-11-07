@@ -79,6 +79,7 @@
     <Compile Include="Visual\TestCaseEffects.cs" />
     <Compile Include="Visual\TestCaseFillModes.cs" />
     <Compile Include="Visual\TestCaseFlow.cs" />
+    <Compile Include="Visual\TestCaseGridContainer.cs" />
     <Compile Include="Visual\TestCaseHollowEdgeEffect.cs" />
     <Compile Include="Visual\TestCaseInputResampler.cs" />
     <Compile Include="Visual\TestCaseKeyBindings.cs" />

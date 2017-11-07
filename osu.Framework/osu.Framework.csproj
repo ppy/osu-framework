@@ -262,6 +262,7 @@
     <Compile Include="Graphics\Containers\CircularContainer.cs" />
     <Compile Include="Graphics\Containers\ClickableContainer.cs" />
     <Compile Include="Graphics\Containers\FocusedOverlayContainer.cs" />
+    <Compile Include="Graphics\Containers\GridContainer.cs" />
     <Compile Include="Graphics\Containers\IContainer.cs" />
     <Compile Include="Graphics\Containers\OverlayContainer.cs" />
     <Compile Include="Graphics\Containers\ScrollContainer.cs" />
