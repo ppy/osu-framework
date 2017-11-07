@@ -17,36 +17,21 @@ namespace osu.Framework.Tests.Visual
             Add(new GridContainer
             {
                 RelativeSizeAxes = Axes.Both,
+                Content = new Drawable[][]
+                {
+                    new Drawable[] { new FillBox(), new FillBox(), new FillBox() },
+                    new Drawable[] { new FillBox(), new FillBox(), new FillBox() },
+                    new Drawable[] { new FillBox(), new FillBox(), new FillBox() }
+                },
                 Definition = new GridDefinition
                 {
-                    Cells = new[]
-                    {
-                        new CellDefinition
-                        {
-                            ColumnSpan = 2,
-                            Content = new FillBox()
-                        },
-                        new CellDefinition
-                        {
-                            Row = 1,
-                            Content = new FillBox()
-                        },
-                        new CellDefinition
-                        {
-                            Column = 1,
-                            Row = 1,
-                            Content = new FillBox()
-                        },
-                        new CellDefinition
-                        {
-                            Column = 2,
-                            RowSpan = 2,
-                            Content = new FillBox()
-                        }
-                    },
                     Rows = new[]
                     {
-                        new RowDefinition(0) { Height = 50 }
+                        new RowDefinition(1) { Height = 50 }
+                    },
+                    Columns = new[]
+                    {
+                        new ColumnDefinition(1) { Width = 50 }
                     }
                 }
             });

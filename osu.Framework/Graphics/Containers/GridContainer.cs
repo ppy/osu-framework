@@ -26,6 +26,20 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        private Drawable[][] content;
+        public Drawable[][] Content
+        {
+            get { return content; }
+            set
+            {
+                if (content == value)
+                    return;
+                content = value;
+
+                layout.Invalidate();
+            }
+        }
+
         private Cached layout = new Cached();
 
         protected override void Update()
@@ -41,13 +55,13 @@ namespace osu.Framework.Graphics.Containers
 
         private void computeLayout()
         {
-            if (Definition.Cells == null)
+            if (Content == null)
                 return;
 
             ClearInternal();
 
-            int totalColumns = Definition.Cells.Max(c => c.Column + c.ColumnSpan);
-            int totalRows = Definition.Cells.Max(c => c.Row + c.RowSpan);
+            int totalColumns = Content.Max(c => c.Length);
+            int totalRows = Content.Length;
 
             var columns = new ColumnInfo[totalColumns];
             var rows = new RowInfo[totalRows];
@@ -113,22 +127,20 @@ namespace osu.Framework.Graphics.Containers
             }
 
             // Build the cells
-            foreach (var cell in Definition.Cells)
+            for (int rI = 0; rI < Content.Length; rI++)
             {
-                Vector2 position = new Vector2(columns[cell.Column].X, rows[cell.Row].Y);
-                Vector2 size = Vector2.Zero;
-
-                for (int o = 0; o < cell.ColumnSpan; o++)
-                    size += new Vector2(columns[cell.Column + o].Width, 0);
-                for (int o = 0; o < cell.RowSpan; o++)
-                    size += new Vector2(0, rows[cell.Row + o].Height);
-
-                AddInternal(new Container
+                for (int cI = 0; cI < Content[rI].Length; cI++)
                 {
-                    Child = cell.Content,
-                    Position = position,
-                    Size = size
-                });
+                    Vector2 position = new Vector2(columns[cI].X, rows[rI].Y);
+                    Vector2 size = new Vector2(columns[cI].Width, rows[rI].Height);
+
+                    AddInternal(new Container
+                    {
+                        Child = Content[rI][cI],
+                        Position = position,
+                        Size = size
+                    });
+                }
             }
         }
 
@@ -143,41 +155,6 @@ namespace osu.Framework.Graphics.Containers
             public float Y;
             public float Height;
         }
-    }
-
-    /// <summary>
-    /// A cell of a grid that can contain content.
-    /// </summary>
-    public class CellDefinition
-    {
-        /// <summary>
-        /// The 0-indexed row at which this cell is placed.
-        /// May not overlap with other cells in the same grid.
-        /// </summary>
-        public int Row { get; set; }
-
-        /// <summary>
-        /// The 0-indexed column at which this cell is placed.
-        /// May not overlap with other cells in the same grid.
-        /// </summary>
-        public int Column { get; set; }
-
-        /// <summary>
-        /// The number of rows spanned by this cell.
-        /// May not overlap with other cells in the same grid.
-        /// </summary>
-        public int RowSpan { get; set; } = 1;
-
-        /// <summary>
-        /// The number of columns spanned by this cell.
-        /// May not overlap with other cells in the same grid.
-        /// </summary>
-        public int ColumnSpan { get; set; } = 1;
-
-        /// <summary>
-        /// The <see cref="Drawable"/> content that will fill this cell.
-        /// </summary>
-        public Drawable Content;
     }
 
     /// <summary>
@@ -242,7 +219,6 @@ namespace osu.Framework.Graphics.Containers
 
     public class GridDefinition
     {
-        public IReadOnlyList<CellDefinition> Cells { get; set; }
         public IReadOnlyList<RowDefinition> Rows { get; set; }
         public IReadOnlyList<ColumnDefinition> Columns { get; set; }
     }
