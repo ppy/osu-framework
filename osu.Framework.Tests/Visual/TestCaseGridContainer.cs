@@ -49,29 +49,29 @@ namespace osu.Framework.Tests.Visual
             {
                 reset();
                 grid.Content = new Drawable[][] { new[] { new FillBox() } };
-                grid.RowDimensions = grid.ColumnDimensions = new[] { new Dimension(0) { Size = 100 } };
+                grid.RowDimensions = grid.ColumnDimensions = new[] { new Dimension(GridSizeMode.Absolute, 100) };
             });
 
             AddStep("1-cell (relative)", () =>
             {
                 reset();
                 grid.Content = new Drawable[][] { new[] { new FillBox() } };
-                grid.RowDimensions = grid.ColumnDimensions = new[] { new Dimension(0) { Size = 0.5f, Relative = true } };
+                grid.RowDimensions = grid.ColumnDimensions = new[] { new Dimension(GridSizeMode.Relative, 0.5f) };
             });
 
             AddStep("1-cell (mixed)", () =>
             {
                 reset();
                 grid.Content = new Drawable[][] { new[] { new FillBox() } };
-                grid.RowDimensions = new[] { new Dimension(0) { Size = 100 } };
-                grid.ColumnDimensions = new[] { new Dimension(0) { Size = 0.5f, Relative = true } };
+                grid.RowDimensions = new[] { new Dimension(GridSizeMode.Absolute, 100) };
+                grid.ColumnDimensions = new[] { new Dimension(GridSizeMode.Relative, 0.5f) };
             });
 
             AddStep("1-cell (mixed) 2", () =>
             {
                 reset();
                 grid.Content = new Drawable[][] { new[] { new FillBox() } };
-                grid.RowDimensions = new[] { new Dimension(0) { Size = 0.5f, Relative = true } };
+                grid.RowDimensions = new[] { new Dimension(GridSizeMode.Relative, 0.5f) };
             });
 
             AddStep("3-cell row (auto)", () =>
@@ -86,9 +86,9 @@ namespace osu.Framework.Tests.Visual
                 grid.Content = new Drawable[][] { new[] { new FillBox(), new FillBox(), new FillBox() } };
                 grid.RowDimensions = grid.ColumnDimensions = new[]
                 {
-                    new Dimension(0) { Size = 50 },
-                    new Dimension(1) { Size = 100 },
-                    new Dimension(2) { Size = 150 }
+                    new Dimension(GridSizeMode.Absolute, 50),
+                    new Dimension(GridSizeMode.Absolute, 100),
+                    new Dimension(GridSizeMode.Absolute, 150)
                 };
             });
 
@@ -98,9 +98,9 @@ namespace osu.Framework.Tests.Visual
                 grid.Content = new Drawable[][] { new[] { new FillBox(), new FillBox(), new FillBox() } };
                 grid.RowDimensions = grid.ColumnDimensions = new[]
                 {
-                    new Dimension(0) { Size = 0.1f, Relative = true },
-                    new Dimension(1) { Size = 0.2f, Relative = true },
-                    new Dimension(2) { Size = 0.3f, Relative = true }
+                    new Dimension(GridSizeMode.Relative, 0.1f),
+                    new Dimension(GridSizeMode.Relative, 0.2f),
+                    new Dimension(GridSizeMode.Relative, 0.3f)
                 };
             });
 
@@ -110,8 +110,8 @@ namespace osu.Framework.Tests.Visual
                 grid.Content = new Drawable[][] { new[] { new FillBox(), new FillBox(), new FillBox() } };
                 grid.RowDimensions = grid.ColumnDimensions = new[]
                 {
-                    new Dimension(0) { Size = 50 },
-                    new Dimension(1) { Size = 0.2f, Relative = true },
+                    new Dimension(GridSizeMode.Absolute, 50),
+                    new Dimension(GridSizeMode.Relative, 0.2f)
                 };
             });
 
@@ -138,9 +138,9 @@ namespace osu.Framework.Tests.Visual
 
                 grid.RowDimensions = grid.ColumnDimensions = new[]
                 {
-                    new Dimension(0) { Size = 50 },
-                    new Dimension(1) { Size = 100 },
-                    new Dimension(2) { Size = 150 }
+                    new Dimension(GridSizeMode.Absolute, 50),
+                    new Dimension(GridSizeMode.Absolute, 100),
+                    new Dimension(GridSizeMode.Absolute, 150)
                 };
             });
 
@@ -156,9 +156,9 @@ namespace osu.Framework.Tests.Visual
 
                 grid.RowDimensions = grid.ColumnDimensions = new[]
                 {
-                    new Dimension(0) { Size = 0.1f, Relative = true },
-                    new Dimension(1) { Size = 0.2f, Relative = true },
-                    new Dimension(2) { Size = 0.3f, Relative = true }
+                    new Dimension(GridSizeMode.Relative, 0.1f),
+                    new Dimension(GridSizeMode.Relative, 0.2f),
+                    new Dimension(GridSizeMode.Relative, 0.3f)
                 };
             });
 
@@ -174,8 +174,8 @@ namespace osu.Framework.Tests.Visual
 
                 grid.RowDimensions = grid.ColumnDimensions = new[]
                 {
-                    new Dimension(0) { Size = 50 },
-                    new Dimension(1) { Size = 0.2f, Relative = true },
+                    new Dimension(GridSizeMode.Absolute, 50),
+                    new Dimension(GridSizeMode.Relative, 0.2f)
                 };
             });
 
@@ -202,9 +202,9 @@ namespace osu.Framework.Tests.Visual
 
                 grid.RowDimensions = grid.ColumnDimensions = new[]
                 {
-                    new Dimension(0) { Size = 50 },
-                    new Dimension(1) { Size = 100 },
-                    new Dimension(2) { Size = 150 }
+                    new Dimension(GridSizeMode.Absolute, 50),
+                    new Dimension(GridSizeMode.Absolute, 100),
+                    new Dimension(GridSizeMode.Absolute, 150)
                 };
             });
 
@@ -220,9 +220,9 @@ namespace osu.Framework.Tests.Visual
 
                 grid.RowDimensions = grid.ColumnDimensions = new[]
                 {
-                    new Dimension(0) { Size = 0.1f, Relative = true },
-                    new Dimension(1) { Size = 0.2f, Relative = true },
-                    new Dimension(2) { Size = 0.3f, Relative = true }
+                    new Dimension(GridSizeMode.Relative, 0.1f),
+                    new Dimension(GridSizeMode.Relative, 0.2f),
+                    new Dimension(GridSizeMode.Relative, 0.3f)
                 };
             });
 
@@ -238,8 +238,8 @@ namespace osu.Framework.Tests.Visual
 
                 grid.RowDimensions = grid.ColumnDimensions = new[]
                 {
-                    new Dimension(0) { Size = 50 },
-                    new Dimension(1) { Size = 0.2f, Relative = true },
+                    new Dimension(GridSizeMode.Absolute, 50),
+                    new Dimension(GridSizeMode.Relative, 0.2f)
                 };
             });
 

@@ -36,7 +36,7 @@ namespace osu.Framework.Graphics.Containers
 
         private Dimension[] rowDimensions;
         /// <summary>
-        /// Explicit dimensions for rows. This is only required for rows where absolute/relative sizing is desired.
+        /// Explicit dimensions for rows. Each index of this array applies to the respective row index inside <see cref="Content"/>.
         /// </summary>
         public Dimension[] RowDimensions
         {
@@ -44,18 +44,15 @@ namespace osu.Framework.Graphics.Containers
             {
                 if (rowDimensions == value)
                     return;
-
-                if (value.GroupBy(v => v.Index).Any(g => g.Count() > 1))
-                    throw new ArgumentException($"Indices defined by {nameof(RowDimensions)} must be unique.", nameof(value));
-
                 rowDimensions = value;
+
                 cellLayout.Invalidate();
             }
         }
 
         private Dimension[] columnDimensions;
         /// <summary>
-        /// Explicit dimensions for columns. This is only required for columns where absolute/relative sizing is desired.
+        /// Explicit dimensions for columns. Each index of this array applies to the respective column index inside <see cref="Content"/>.
         /// </summary>
         public Dimension[] ColumnDimensions
         {
@@ -63,11 +60,8 @@ namespace osu.Framework.Graphics.Containers
             {
                 if (columnDimensions == value)
                     return;
-
-                if (value.GroupBy(v => v.Index).Any(g => g.Count() > 1))
-                    throw new ArgumentException($"Indices defined by {nameof(ColumnDimensions)} must be unique.", nameof(value));
-
                 columnDimensions = value;
+
                 cellLayout.Invalidate();
             }
         }
@@ -168,19 +162,23 @@ namespace osu.Framework.Graphics.Containers
             // Compute the width of explicitly-defined columns
             if (columnDimensions?.Length > 0)
             {
-                foreach (var d in columnDimensions)
+                for (int i = 0; i < columnDimensions.Length; i++)
                 {
-                    if (d.Index >= cellColumns)
+                    if (i >= cellColumns)
+                        continue;
+
+                    var d = columnDimensions[i];
+                    if (d.Mode == GridSizeMode.Auto)
                         continue;
 
                     for (int r = 0; r < cellRows; r++)
                     {
-                        cells[r, d.Index].IsWidthDefined = true;
+                        cells[r, i].IsWidthDefined = true;
 
-                        if (d.Relative)
-                            cells[r, d.Index].Width = d.Size * DrawWidth;
+                        if (d.Mode == GridSizeMode.Relative)
+                            cells[r, i].Width = d.Size * DrawWidth;
                         else
-                            cells[r, d.Index].Width = d.Size;
+                            cells[r, i].Width = d.Size;
                     }
 
                     definedWidth += d.Size;
@@ -191,19 +189,23 @@ namespace osu.Framework.Graphics.Containers
             // Compute the height of explicitly-defined rows
             if (rowDimensions?.Length > 0)
             {
-                foreach (var d in rowDimensions)
+                for (int i = 0; i < rowDimensions.Length; i++)
                 {
-                    if (d.Index >= cellRows)
+                    if (i >= cellRows)
+                        continue;
+
+                    var d = rowDimensions[i];
+                    if (d.Mode == GridSizeMode.Auto)
                         continue;
 
                     for (int c = 0; c < cellColumns; c++)
                     {
-                        cells[d.Index, c].IsHeightDefined = true;
+                        cells[i, c].IsHeightDefined = true;
 
-                        if (d.Relative)
-                            cells[d.Index, c].Height = d.Size * DrawHeight;
+                        if (d.Mode == GridSizeMode.Relative)
+                            cells[i, c].Height = d.Size * DrawHeight;
                         else
-                            cells[d.Index, c].Height = d.Size;
+                            cells[i, c].Height = d.Size;
                     }
 
                     definedHeight += d.Size;
@@ -259,31 +261,41 @@ namespace osu.Framework.Graphics.Containers
     public struct Dimension
     {
         /// <summary>
-        /// The index of the row or column in the <see cref="GridContainer"/> which this <see cref="Dimension"/> applies to.
+        /// The mode in which this row or column <see cref="GridContainer"/> is sized.
         /// </summary>
-        public int Index;
+        public GridSizeMode Mode { get; private set; }
 
         /// <summary>
         /// The size of the row or column which this <see cref="Dimension"/> applies to.
+        /// This only has an effect if <see cref="Mode"/> is not <see cref="GridSizeMode.Auto"/>.
         /// </summary>
-        public float Size;
-
-        /// <summary>
-        /// Whether <see cref="Size"/> is relative to <see cref="GridContainer.Size"/>.
-        /// </summary>
-        public bool Relative;
+        public float Size { get; private set; }
 
         /// <summary>
         /// Constructs a new <see cref="Dimension"/>.
         /// </summary>
-        /// <param name="index">The index of the row or column in the <see cref="GridContainer"/> which this <see cref="Dimension"/> applies to.</param>
-        public Dimension(int index)
+        /// <param name="mode"/>The sizing mode to use.</param>
+        public Dimension(GridSizeMode mode = GridSizeMode.Auto, float size = 0)
         {
-            if (index < 0) throw new ArgumentOutOfRangeException(nameof(index));
-
-            Index = index;
-            Size = 0;
-            Relative = false;
+            Mode = mode;
+            Size = size;
         }
+    }
+
+    public enum GridSizeMode
+    {
+        /// <summary>
+        /// Any remaining area of the <see cref="GridContainer"/> will be divided amongst this and all
+        /// other elements which use <see cref="GridSizeMode.Auto"/>.
+        /// </summary>
+        Auto,
+        /// <summary>
+        /// This element should be sized relative to the dimensions of the <see cref="GridContainer"/>.
+        /// </summary>
+        Relative,
+        /// <summary>
+        /// This element has a size independent of the <see cref="GridContainer"/>.
+        /// </summary>
+        Absolute
     }
 }
