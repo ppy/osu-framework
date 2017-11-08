@@ -148,6 +148,9 @@ namespace osu.Framework.Graphics.Containers
             {
                 foreach (var d in columnDimensions)
                 {
+                    if (d.Index >= cells.GetLength(1))
+                        continue;
+
                     for (int r = 0; r < cells.GetLength(0); r++)
                     {
                         cells[r, d.Index].IsWidthDefined = true;
@@ -168,6 +171,9 @@ namespace osu.Framework.Graphics.Containers
             {
                 foreach (var d in rowDimensions)
                 {
+                    if (d.Index >= cells.GetLength(0))
+                        continue;
+
                     for (int c = 0; c < cells.GetLength(1); c++)
                     {
                         cells[d.Index, c].IsHeightDefined = true;
