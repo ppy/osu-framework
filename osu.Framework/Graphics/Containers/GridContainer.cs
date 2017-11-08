@@ -13,6 +13,10 @@ namespace osu.Framework.Graphics.Containers
     public class GridContainer : CompositeDrawable
     {
         private Drawable[][] content;
+        /// <summary>
+        /// The content of this <see cref="GridContainer"/>, arranged in a 2D grid array, where each array
+        /// of <see cref="Drawable"/>s represents a row and each element of that array represents a column.
+        /// </summary>
         public Drawable[][] Content
         {
             get { return content; }
@@ -27,6 +31,9 @@ namespace osu.Framework.Graphics.Containers
         }
 
         private Dimension[] rowDimensions;
+        /// <summary>
+        /// Explicit dimensions for rows. This is only required for rows where absolute/relative sizing is desired.
+        /// </summary>
         public Dimension[] RowDimensions
         {
             set
@@ -40,6 +47,9 @@ namespace osu.Framework.Graphics.Containers
         }
 
         private Dimension[] columnDimensions;
+        /// <summary>
+        /// Explicit dimensions for columns. This is only required for columns where absolute/relative sizing is desired.
+        /// </summary>
         public Dimension[] ColumnDimensions
         {
             set
@@ -89,8 +99,9 @@ namespace osu.Framework.Graphics.Containers
                 cell.Clear(false);
 
             // It's easier to just re-construct the cell containers instead of resizing
-            // If this becomes a bottleneck we can transition to using lists...
+            // If this becomes a bottleneck we can transition to using lists, but this keeps the structure clean...
             ClearInternal();
+            cellLayout.Invalidate();
 
             // Create the new cell containers
             cells = new CellContainer[totalRows, totalColumns];
@@ -103,7 +114,6 @@ namespace osu.Framework.Graphics.Containers
                 for (int c = 0; c < Content[r].Length; c++)
                     cells[r, c].Add(Content[r][c]);
 
-            cellLayout.Invalidate();
             cellContent.Validate();
         }
 
@@ -174,7 +184,7 @@ namespace osu.Framework.Graphics.Containers
                 (DrawHeight - definedHeight) / autoSizedRows
             );
 
-            // Add dimensions to non-explicitly-defined columns and add positional offsets
+            // Add sizing to non-explicitly-defined columns and add positional offsets
             for (int r = 0; r < cells.GetLength(0); r++)
                 for (int c = 0; c < cells.GetLength(1); c++)
                 {
@@ -192,9 +202,19 @@ namespace osu.Framework.Graphics.Containers
             cellLayout.Validate();
         }
 
+        /// <summary>
+        /// Represents one cell of the <see cref="GridArray"/>.
+        /// </summary>
         private class CellContainer : Container
         {
+            /// <summary>
+            /// Whether this <see cref="CellContainer"/> has an explicitly-defined width.
+            /// </summary>
             public bool IsWidthDefined;
+
+            /// <summary>
+            /// Whether this <see cref="CellContainer"/> has an explicitly-defined height.
+            /// </summary>
             public bool IsHeightDefined;
         }
     }
