@@ -121,13 +121,16 @@ namespace osu.Framework.Graphics.Containers
                 cell.IsHeightDefined = false;
             }
 
+            int autoSizedRows = totalRows;
+            int autoSizedColumns = totalColumns;
+
             float definedWidth = 0;
             float definedHeight = 0;
 
             // Compute the width of explicitly-defined columns
-            if (ColumnDimensions?.Count > 0)
+            if (columnDimensions?.Count > 0)
             {
-                foreach (var d in ColumnDimensions)
+                foreach (var d in columnDimensions)
                 {
                     for (int r = 0; r < cells.GetLength(0); r++)
                     {
@@ -140,13 +143,14 @@ namespace osu.Framework.Graphics.Containers
                     }
 
                     definedWidth += d.Size;
+                    autoSizedColumns--;
                 }
             }
 
             // Compute the height of explicitly-defined rows
-            if (RowDimensions?.Count > 0)
+            if (rowDimensions?.Count > 0)
             {
-                foreach (var d in RowDimensions)
+                foreach (var d in rowDimensions)
                 {
                     for (int c = 0; c < cells.GetLength(1); c++)
                     {
@@ -159,14 +163,15 @@ namespace osu.Framework.Graphics.Containers
                     }
 
                     definedHeight += d.Size;
+                    autoSizedRows--;
                 }
             }
 
-            // Compute the dimensions for non-explicitly-defined columns/rows
+            // Compute the size of non-explicitly defined rows/columns that should fill the remaining area
             var autoSize = new Vector2
             (
-                (DrawWidth - definedWidth) / totalColumns,
-                (DrawHeight - definedHeight) / totalRows
+                (DrawWidth - definedWidth) / autoSizedColumns,
+                (DrawHeight - definedHeight) / autoSizedRows
             );
 
             // Add dimensions to non-explicitly-defined columns and add positional offsets
