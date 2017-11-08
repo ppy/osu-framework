@@ -15,7 +15,6 @@ namespace osu.Framework.Graphics.Containers
         private IReadOnlyList<Dimension> rowDimensions;
         public IReadOnlyList<Dimension> RowDimensions
         {
-            get { return rowDimensions; }
             set
             {
                 if (rowDimensions == value)
@@ -29,7 +28,6 @@ namespace osu.Framework.Graphics.Containers
         private IReadOnlyList<Dimension> columnDimensions;
         public IReadOnlyList<Dimension> ColumnDimensions
         {
-            get { return columnDimensions; }
             set
             {
                 if (columnDimensions == value)
