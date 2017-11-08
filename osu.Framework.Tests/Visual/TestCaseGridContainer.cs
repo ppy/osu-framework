@@ -80,7 +80,7 @@ namespace osu.Framework.Tests.Visual
                 grid.Content = new Drawable[][] { new[] { new FillBox(), new FillBox(), new FillBox() } };
             });
 
-            AddStep("3-cell row (absolute", () =>
+            AddStep("3-cell row (absolute)", () =>
             {
                 reset();
                 grid.Content = new Drawable[][] { new[] { new FillBox(), new FillBox(), new FillBox() } };
@@ -126,7 +126,7 @@ namespace osu.Framework.Tests.Visual
                 };
             });
 
-            AddStep("3-cell column (absolute", () =>
+            AddStep("3-cell column (absolute)", () =>
             {
                 reset();
                 grid.Content = new Drawable[][]
@@ -190,7 +190,7 @@ namespace osu.Framework.Tests.Visual
                 };
             });
 
-            AddStep("3x3-cell (absolute", () =>
+            AddStep("3x3-cell (absolute)", () =>
             {
                 reset();
                 grid.Content = new Drawable[][]
