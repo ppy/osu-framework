@@ -243,6 +243,24 @@ namespace osu.Framework.Tests.Visual
                 };
             });
 
+            AddStep("Larger sides", () =>
+            {
+                reset();
+                grid.Content = new Drawable[][]
+                {
+                    new[] { new FillBox(), new FillBox(), new FillBox() },
+                    new[] { new FillBox(), new FillBox(), new FillBox() },
+                    new[] { new FillBox(), new FillBox(), new FillBox() }
+                };
+
+                grid.ColumnDimensions = grid.RowDimensions = new[]
+                {
+                    new Dimension(GridSizeMode.Relative, 0.4f),
+                    new Dimension(),
+                    new Dimension(GridSizeMode.Relative, 0.4f)
+                };
+            });
+
             AddStep("Separated", () =>
             {
                 reset();

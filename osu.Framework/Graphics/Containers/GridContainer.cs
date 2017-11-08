@@ -171,17 +171,15 @@ namespace osu.Framework.Graphics.Containers
                     if (d.Mode == GridSizeMode.Auto)
                         continue;
 
+                    float cellWidth = d.Mode == GridSizeMode.Relative ? d.Size * DrawWidth : d.Size;
+
                     for (int r = 0; r < cellRows; r++)
                     {
+                        cells[r, i].Width = cellWidth;
                         cells[r, i].IsWidthDefined = true;
-
-                        if (d.Mode == GridSizeMode.Relative)
-                            cells[r, i].Width = d.Size * DrawWidth;
-                        else
-                            cells[r, i].Width = d.Size;
                     }
 
-                    definedWidth += d.Size;
+                    definedWidth += cellWidth;
                     autoSizedColumns--;
                 }
             }
@@ -198,17 +196,15 @@ namespace osu.Framework.Graphics.Containers
                     if (d.Mode == GridSizeMode.Auto)
                         continue;
 
+                    float cellHeight = d.Mode == GridSizeMode.Relative ? d.Size * DrawHeight : d.Size;
+
                     for (int c = 0; c < cellColumns; c++)
                     {
                         cells[i, c].IsHeightDefined = true;
-
-                        if (d.Mode == GridSizeMode.Relative)
-                            cells[i, c].Height = d.Size * DrawHeight;
-                        else
-                            cells[i, c].Height = d.Size;
+                        cells[i, c].Height = cellHeight;
                     }
 
-                    definedHeight += d.Size;
+                    definedHeight += cellHeight;
                     autoSizedRows--;
                 }
             }
