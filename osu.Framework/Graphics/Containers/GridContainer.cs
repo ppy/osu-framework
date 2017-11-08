@@ -40,6 +40,10 @@ namespace osu.Framework.Graphics.Containers
             {
                 if (rowDimensions == value)
                     return;
+
+                if (value.GroupBy(v => v.Index).Any(g => g.Count() > 1))
+                    throw new ArgumentException($"Indices defined by {nameof(RowDimensions)} must be unique.", nameof(value));
+
                 rowDimensions = value;
 
                 cellLayout.Invalidate();
@@ -57,6 +61,9 @@ namespace osu.Framework.Graphics.Containers
                 if (columnDimensions == value)
                     return;
                 columnDimensions = value;
+
+                if (value.GroupBy(v => v.Index).Any(g => g.Count() > 1))
+                    throw new ArgumentException($"Indices defined by {nameof(ColumnDimensions)} must be unique.", nameof(value));
 
                 cellLayout.Invalidate();
             }
