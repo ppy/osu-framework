@@ -121,7 +121,7 @@ namespace osu.Framework.Graphics.Containers
                 for (int c = 0; c < cellColumns; c++)
                 {
                     // Add cell
-                    AddInternal(cells[r, c] = new CellContainer());
+                    cells[r, c] = new CellContainer();
 
                     // Allow empty rows
                     if (Content[r] == null)
@@ -137,6 +137,8 @@ namespace osu.Framework.Graphics.Containers
 
                     // Add content
                     cells[r, c].Add(Content[r][c]);
+
+                    AddInternal(cells[r, c]);
                 }
 
             cellContent.Validate();
