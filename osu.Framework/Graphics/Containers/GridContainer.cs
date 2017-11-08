@@ -137,6 +137,7 @@ namespace osu.Framework.Graphics.Containers
 
                     // Add content
                     cells[r, c].Add(Content[r][c]);
+                    cells[r, c].Depth = Content[r][c].Depth;
 
                     AddInternal(cells[r, c]);
                 }
