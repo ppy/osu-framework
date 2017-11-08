@@ -90,10 +90,10 @@ namespace osu.Framework.Tests.Visual
                     grid.RowDimensions = new[] { new Dimension(0) { Size = 0.5f, Relative = true } };
                     break;
                 case 6:
-                    grid.Content = new Drawable[][] { new Drawable[] { new FillBox(), new FillBox(), new FillBox() } };
+                    grid.Content = new Drawable[][] { new[] { new FillBox(), new FillBox(), new FillBox() } };
                     break;
                 case 7:
-                    grid.Content = new Drawable[][] { new Drawable[] { new FillBox(), new FillBox(), new FillBox() } };
+                    grid.Content = new Drawable[][] { new[] { new FillBox(), new FillBox(), new FillBox() } };
                     grid.RowDimensions = grid.ColumnDimensions = new[]
                     {
                         new Dimension(0) { Size = 50 },
@@ -102,7 +102,7 @@ namespace osu.Framework.Tests.Visual
                     };
                     break;
                 case 8:
-                    grid.Content = new Drawable[][] { new Drawable[] { new FillBox(), new FillBox(), new FillBox() } };
+                    grid.Content = new Drawable[][] { new[] { new FillBox(), new FillBox(), new FillBox() } };
                     grid.RowDimensions = grid.ColumnDimensions = new[]
                     {
                         new Dimension(0) { Size = 0.1f, Relative = true },
@@ -111,7 +111,7 @@ namespace osu.Framework.Tests.Visual
                     };
                     break;
                 case 9:
-                    grid.Content = new Drawable[][] { new Drawable[] { new FillBox(), new FillBox(), new FillBox() } };
+                    grid.Content = new Drawable[][] { new[] { new FillBox(), new FillBox(), new FillBox() } };
                     grid.RowDimensions = grid.ColumnDimensions = new[]
                     {
                         new Dimension(0) { Size = 50 },
