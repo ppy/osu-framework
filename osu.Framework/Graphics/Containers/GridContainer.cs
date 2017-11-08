@@ -45,7 +45,6 @@ namespace osu.Framework.Graphics.Containers
                     throw new ArgumentException($"Indices defined by {nameof(RowDimensions)} must be unique.", nameof(value));
 
                 rowDimensions = value;
-
                 cellLayout.Invalidate();
             }
         }
@@ -60,11 +59,11 @@ namespace osu.Framework.Graphics.Containers
             {
                 if (columnDimensions == value)
                     return;
-                columnDimensions = value;
 
                 if (value.GroupBy(v => v.Index).Any(g => g.Count() > 1))
                     throw new ArgumentException($"Indices defined by {nameof(ColumnDimensions)} must be unique.", nameof(value));
 
+                columnDimensions = value;
                 cellLayout.Invalidate();
             }
         }
@@ -252,6 +251,8 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="index">The index of the row or column in the <see cref="GridContainer"/> which this <see cref="Dimension"/> applies to.</param>
         public Dimension(int index)
         {
+            if (index < 0) throw new ArgumentOutOfRangeException(nameof(index));
+
             Index = index;
             Size = 0;
             Relative = false;
