@@ -2,7 +2,11 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
+using OpenTK;
+using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
@@ -12,32 +16,49 @@ namespace osu.Framework.Tests.Visual
 {
     public class TestCaseCountingText : TestCase
     {
-        private CountType countType;
+        private readonly Bindable<CountType> countType = new Bindable<CountType>();
 
         public TestCaseCountingText()
         {
             Counter counter;
-            Add(counter = new TestTextCounter(createResult));
 
-            AddStep("Integer", () => countType = CountType.AsInteger);
-            AddStep("Ceiled-integer", () => countType = CountType.AsIntegerCeiling);
-            AddStep("Unrounded", () => countType = CountType.AsDouble);
-            AddStep("2 d.p. rounded", () => countType = CountType.AsDouble2);
-            AddStep("4 d.p. rounded", () => countType = CountType.AsDouble4);
+            BasicDropdown<CountType> typeDropdown;
+            Children = new Drawable[]
+            {
+                typeDropdown = new BasicDropdown<CountType>
+                {
+                    Position = new Vector2(10),
+                    Width = 150,
+                },
+                counter = new TestTextCounter(createResult)
+                {
+                    Position = new Vector2(180)
+                }
+            };
 
-            AddStep("1 -> 4 | 1 sec", () => counter.CountTo(1).CountTo(4, 1000));
-            AddStep("1 -> 4 | 3 sec", () => counter.CountTo(1).CountTo(4, 3000));
-            AddStep("4 -> 1 | 1 sec", () => counter.CountTo(4).CountTo(1, 1000));
-            AddStep("4 -> 1 | 3 sec", () => counter.CountTo(4).CountTo(1, 3000));
-            AddStep("1 -> 4 -> 1 | 6 sec", () => counter.CountTo(1).CountTo(4, 3000).Then().CountTo(1, 3000));
-            AddStep("1 -> 4 -> 1 | 2 sec", () => counter.CountTo(1).CountTo(4, 1000).Then().CountTo(1, 1000));
+            typeDropdown.Items = Enum.GetNames(typeof(CountType)).Select(n => new KeyValuePair<string, CountType>(n, (CountType)Enum.Parse(typeof(CountType), n)));
+            countType.BindTo(typeDropdown.Current);
+            countType.ValueChanged += v => beginStep(lastStep)();
 
-            AddStep("1 -> 100 | 5 sec | OutQuint", () => counter.CountTo(1).CountTo(100, 5000, Easing.OutQuint));
+            AddStep("1 -> 4 | 1 sec", beginStep(() => counter.CountTo(1).CountTo(4, 1000)));
+            AddStep("1 -> 4 | 3 sec", beginStep(() => counter.CountTo(1).CountTo(4, 3000)));
+            AddStep("4 -> 1 | 1 sec", beginStep(() => counter.CountTo(4).CountTo(1, 1000)));
+            AddStep("4 -> 1 | 3 sec", beginStep(() => counter.CountTo(4).CountTo(1, 3000)));
+            AddStep("1 -> 4 -> 1 | 6 sec", beginStep(() => counter.CountTo(1).CountTo(4, 3000).Then().CountTo(1, 3000)));
+            AddStep("1 -> 4 -> 1 | 2 sec", beginStep(() => counter.CountTo(1).CountTo(4, 1000).Then().CountTo(1, 1000)));
+            AddStep("1 -> 100 | 5 sec | OutQuint", beginStep(() => counter.CountTo(1).CountTo(100, 5000, Easing.OutQuint)));
         }
+
+        private Action lastStep;
+        private Action beginStep(Action stepAction) => () =>
+        {
+            lastStep = stepAction;
+            stepAction?.Invoke();
+        };
 
         private string createResult(double value)
         {
-            switch (countType)
+            switch (countType.Value)
             {
                 default:
                 case CountType.AsDouble:
