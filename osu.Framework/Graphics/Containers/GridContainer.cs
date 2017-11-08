@@ -12,32 +12,6 @@ namespace osu.Framework.Graphics.Containers
 {
     public class GridContainer : CompositeDrawable
     {
-        private IReadOnlyList<Dimension> rowDimensions;
-        public IReadOnlyList<Dimension> RowDimensions
-        {
-            set
-            {
-                if (rowDimensions == value)
-                    return;
-                rowDimensions = value;
-
-                cellLayout.Invalidate();
-            }
-        }
-
-        private IReadOnlyList<Dimension> columnDimensions;
-        public IReadOnlyList<Dimension> ColumnDimensions
-        {
-            set
-            {
-                if (columnDimensions == value)
-                    return;
-                columnDimensions = value;
-
-                cellLayout.Invalidate();
-            }
-        }
-
         private Drawable[][] content;
         public Drawable[][] Content
         {
@@ -49,6 +23,32 @@ namespace osu.Framework.Graphics.Containers
                 content = value;
 
                 cellContent.Invalidate();
+            }
+        }
+
+        private Dimension[] rowDimensions;
+        public Dimension[] RowDimensions
+        {
+            set
+            {
+                if (rowDimensions == value)
+                    return;
+                rowDimensions = value;
+
+                cellLayout.Invalidate();
+            }
+        }
+
+        private Dimension[] columnDimensions;
+        public Dimension[] ColumnDimensions
+        {
+            set
+            {
+                if (columnDimensions == value)
+                    return;
+                columnDimensions = value;
+
+                cellLayout.Invalidate();
             }
         }
 
@@ -128,7 +128,7 @@ namespace osu.Framework.Graphics.Containers
             float definedHeight = 0;
 
             // Compute the width of explicitly-defined columns
-            if (columnDimensions?.Count > 0)
+            if (columnDimensions?.Length > 0)
             {
                 foreach (var d in columnDimensions)
                 {
@@ -148,7 +148,7 @@ namespace osu.Framework.Graphics.Containers
             }
 
             // Compute the height of explicitly-defined rows
-            if (rowDimensions?.Count > 0)
+            if (rowDimensions?.Length > 0)
             {
                 foreach (var d in rowDimensions)
                 {
