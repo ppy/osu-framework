@@ -241,7 +241,7 @@ namespace osu.Framework.Tests.Visual
                     };
                     break;
                 case 20:
-                    grid.Content = new Drawable[][]
+                    grid.Content = new[]
                     {
                         new Drawable[]
                         {
@@ -249,9 +249,9 @@ namespace osu.Framework.Tests.Visual
                             new GridContainer
                             {
                                 RelativeSizeAxes = Axes.Both,
-                                Content = new Drawable[][]
+                                Content = new[]
                                 {
-                                    new[] { new FillBox(), new FillBox() },
+                                    new Drawable[] { new FillBox(), new FillBox() },
                                     new Drawable[]
                                     {
                                         new FillBox(),
