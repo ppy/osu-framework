@@ -16,6 +16,9 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// The content of this <see cref="GridContainer"/>, arranged in a 2D grid array, where each array
         /// of <see cref="Drawable"/>s represents a row and each element of that array represents a column.
+        /// <para>
+        /// Null elements are allowed to represent blank rows/cells.
+        /// </para>
         /// </summary>
         public Drawable[][] Content
         {
@@ -88,9 +91,8 @@ namespace osu.Framework.Graphics.Containers
         private Cached cellLayout = new Cached();
 
         private CellContainer[,] cells = new CellContainer[0, 0];
-
-        private int totalColumns => Content.Max(c => c.Length);
-        private int totalRows => Content.Length;
+        private int cellRows => cells.GetLength(0);
+        private int cellColumns => cells.GetLength(1);
 
         /// <summary>
         /// Moves content from <see cref="Content"/> into cells.
@@ -99,6 +101,9 @@ namespace osu.Framework.Graphics.Containers
         {
             if (cellContent.IsValid)
                 return;
+
+            int requiredRows = Content?.Length ?? 0;
+            int requiredColumns = requiredRows == 0 ? 0 : Content.Max(c => c?.Length ?? 0);
 
             // Clear cell containers without disposing, as the content might be reused
             foreach (var cell in cells)
@@ -109,16 +114,29 @@ namespace osu.Framework.Graphics.Containers
             ClearInternal();
             cellLayout.Invalidate();
 
-            // Create the new cell containers
-            cells = new CellContainer[totalRows, totalColumns];
-            for (int r = 0; r < cells.GetLength(0); r++)
-                for (int c = 0; c < cells.GetLength(1); c++)
+            // Create the new cell containers and add content
+            cells = new CellContainer[requiredRows, requiredColumns];
+            for (int r = 0; r < cellRows; r++)
+                for (int c = 0; c < cellColumns; c++)
+                {
+                    // Add cell
                     AddInternal(cells[r, c] = new CellContainer());
 
-            // Transfer content into the new cell containers
-            for (int r = 0; r < Content.Length; r++)
-                for (int c = 0; c < Content[r].Length; c++)
+                    // Allow empty rows
+                    if (Content[r] == null)
+                        continue;
+
+                    // Allow non-square grids
+                    if (c >= Content[r].Length)
+                        continue;
+
+                    // Allow empty cells
+                    if (Content[r][c] == null)
+                        continue;
+
+                    // Add content
                     cells[r, c].Add(Content[r][c]);
+                }
 
             cellContent.Validate();
         }
@@ -137,8 +155,8 @@ namespace osu.Framework.Graphics.Containers
                 cell.IsHeightDefined = false;
             }
 
-            int autoSizedRows = totalRows;
-            int autoSizedColumns = totalColumns;
+            int autoSizedRows = cellRows;
+            int autoSizedColumns = cellColumns;
 
             float definedWidth = 0;
             float definedHeight = 0;
@@ -148,10 +166,10 @@ namespace osu.Framework.Graphics.Containers
             {
                 foreach (var d in columnDimensions)
                 {
-                    if (d.Index >= cells.GetLength(1))
+                    if (d.Index >= cellColumns)
                         continue;
 
-                    for (int r = 0; r < cells.GetLength(0); r++)
+                    for (int r = 0; r < cellRows; r++)
                     {
                         cells[r, d.Index].IsWidthDefined = true;
 
@@ -171,10 +189,10 @@ namespace osu.Framework.Graphics.Containers
             {
                 foreach (var d in rowDimensions)
                 {
-                    if (d.Index >= cells.GetLength(0))
+                    if (d.Index >= cellRows)
                         continue;
 
-                    for (int c = 0; c < cells.GetLength(1); c++)
+                    for (int c = 0; c < cellColumns; c++)
                     {
                         cells[d.Index, c].IsHeightDefined = true;
 
@@ -197,8 +215,8 @@ namespace osu.Framework.Graphics.Containers
             );
 
             // Add sizing to non-explicitly-defined columns and add positional offsets
-            for (int r = 0; r < cells.GetLength(0); r++)
-                for (int c = 0; c < cells.GetLength(1); c++)
+            for (int r = 0; r < cellRows; r++)
+                for (int c = 0; c < cellColumns; c++)
                 {
                     if (!cells[r, c].IsWidthDefined)
                         cells[r, c].Width = autoSize.X;
