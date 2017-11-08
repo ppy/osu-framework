@@ -86,10 +86,10 @@ namespace osu.Framework.Tests.Visual
                 grid.Content = new Drawable[][] { new[] { new FillBox(), new FillBox(), new FillBox() } };
                 grid.RowDimensions = grid.ColumnDimensions = new[]
                 {
-                        new Dimension(0) { Size = 50 },
-                        new Dimension(1) { Size = 100 },
-                        new Dimension(2) { Size = 150 }
-                    };
+                    new Dimension(0) { Size = 50 },
+                    new Dimension(1) { Size = 100 },
+                    new Dimension(2) { Size = 150 }
+                };
             });
 
             AddStep("3-cell row (relative)", () =>
@@ -98,10 +98,10 @@ namespace osu.Framework.Tests.Visual
                 grid.Content = new Drawable[][] { new[] { new FillBox(), new FillBox(), new FillBox() } };
                 grid.RowDimensions = grid.ColumnDimensions = new[]
                 {
-                        new Dimension(0) { Size = 0.1f, Relative = true },
-                        new Dimension(1) { Size = 0.2f, Relative = true },
-                        new Dimension(2) { Size = 0.3f, Relative = true }
-                    };
+                    new Dimension(0) { Size = 0.1f, Relative = true },
+                    new Dimension(1) { Size = 0.2f, Relative = true },
+                    new Dimension(2) { Size = 0.3f, Relative = true }
+                };
             });
 
             AddStep("3-cell row (mixed)", () =>
@@ -110,9 +110,9 @@ namespace osu.Framework.Tests.Visual
                 grid.Content = new Drawable[][] { new[] { new FillBox(), new FillBox(), new FillBox() } };
                 grid.RowDimensions = grid.ColumnDimensions = new[]
                 {
-                        new Dimension(0) { Size = 50 },
-                        new Dimension(1) { Size = 0.2f, Relative = true },
-                    };
+                    new Dimension(0) { Size = 50 },
+                    new Dimension(1) { Size = 0.2f, Relative = true },
+                };
             });
 
             AddStep("3-cell column (auto)", () =>
