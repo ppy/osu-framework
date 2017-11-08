@@ -1,7 +1,6 @@
 // Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System;
 using System.Linq;
 using OpenTK;
 using osu.Framework.Caching;
@@ -263,14 +262,14 @@ namespace osu.Framework.Graphics.Containers
 
         /// <summary>
         /// The size of the row or column which this <see cref="Dimension"/> applies to.
-        /// This only has an effect if <see cref="Mode"/> is not <see cref="GridSizeMode.Auto"/>.
         /// </summary>
         public float Size { get; private set; }
 
         /// <summary>
         /// Constructs a new <see cref="Dimension"/>.
         /// </summary>
-        /// <param name="mode"/>The sizing mode to use.</param>
+        /// <param name="mode">The sizing mode to use.</param>
+        /// <param name="size">The size of this row or column. This only has an effect if <paramref name="mode"/> is not <see cref="GridSizeMode.Auto"/>.</param>
         public Dimension(GridSizeMode mode = GridSizeMode.Auto, float size = 0)
         {
             Mode = mode;
