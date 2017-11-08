@@ -10,6 +10,9 @@ using osu.Framework.Extensions.IEnumerableExtensions;
 
 namespace osu.Framework.Graphics.Containers
 {
+    /// <summary>
+    /// A container which allows laying out <see cref="Drawable"/>s in a grid.
+    /// </summary>
     public class GridContainer : CompositeDrawable
     {
         private Drawable[][] content;
