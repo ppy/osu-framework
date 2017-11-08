@@ -58,6 +58,7 @@ namespace osu.Framework.Tests.Visual
             AddStep("3x3-cell (mixed)", () => loadGrid(17));
             AddStep("Separated", () => loadGrid(18));
             AddStep("Separated 2", () => loadGrid(19));
+            AddStep("Nested grids", () => loadGrid(20));
         }
 
         private void loadGrid(int testCase)
@@ -237,6 +238,37 @@ namespace osu.Framework.Tests.Visual
                         null,
                         new[] { new FillBox(), null, new FillBox(), null },
                         null
+                    };
+                    break;
+                case 20:
+                    grid.Content = new Drawable[][]
+                    {
+                        new Drawable[]
+                        {
+                            new FillBox(),
+                            new GridContainer
+                            {
+                                RelativeSizeAxes = Axes.Both,
+                                Content = new Drawable[][]
+                                {
+                                    new[] { new FillBox(), new FillBox() },
+                                    new Drawable[]
+                                    {
+                                        new FillBox(),
+                                        new GridContainer
+                                        {
+                                            RelativeSizeAxes = Axes.Both,
+                                            Content = new Drawable[][]
+                                            {
+                                                new[] { new FillBox(), new FillBox() },
+                                                new[] { new FillBox(), new FillBox() }
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            new FillBox()
+                        }
                     };
                     break;
             }
