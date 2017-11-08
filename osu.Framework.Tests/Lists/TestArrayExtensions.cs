@@ -1,4 +1,3 @@
-using System.Runtime;
 using NUnit.Framework;
 using osu.Framework.Extensions;
 

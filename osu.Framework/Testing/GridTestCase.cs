@@ -1,8 +1,6 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System.Collections.Generic;
-using OpenTK;
 using osu.Framework.Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -15,9 +13,7 @@ namespace osu.Framework.Testing
     /// </summary>
     public abstract class GridTestCase : TestCase
     {
-        private readonly GridContainer testContainer;
-
-        private readonly Container[,] cells;
+        private readonly Drawable[,] cells;
 
         /// <summary>
         /// The amount of rows in the grid.
@@ -37,9 +33,10 @@ namespace osu.Framework.Testing
             Rows = rows;
             Cols = cols;
 
+            GridContainer testContainer;
             Add(testContainer = new GridContainer { RelativeSizeAxes = Axes.Both });
 
-            cells = new Container[rows, cols];
+            cells = new Drawable[rows, cols];
             for (int r = 0; r < rows; r++)
                 for (int c = 0; c < cols; c++)
                     cells[r, c] = new Container { RelativeSizeAxes = Axes.Both };
@@ -47,7 +44,7 @@ namespace osu.Framework.Testing
             testContainer.Content = cells.ToJagged();
         }
 
-        protected Container Cell(int index) => cells[index / Cols, index % Cols];
-        protected Container Cell(int row, int col) => cells[row, col];
+        protected Container Cell(int index) => (Container)cells[index / Cols, index % Cols];
+        protected Container Cell(int row, int col) => (Container)cells[row, col];
     }
 }
