@@ -71,6 +71,7 @@
     <Compile Include="Visual\TestCaseContainerState.cs" />
     <Compile Include="Visual\TestCaseContextMenu.cs" />
     <Compile Include="Visual\TestCaseCoordinateSpaces.cs" />
+    <Compile Include="Visual\TestCaseCountingText.cs" />
     <Compile Include="Visual\TestCaseDelayedLoad.cs" />
     <Compile Include="Visual\TestCaseDrawablePath.cs" />
     <Compile Include="Visual\TestCaseDspfContainer.cs" />
