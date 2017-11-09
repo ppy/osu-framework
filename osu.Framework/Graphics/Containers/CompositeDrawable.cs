@@ -708,9 +708,9 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        public override void TransformStateTo(double time, bool propagateChildren = false)
+        public override void RewindTransformsTo(double time, bool propagateChildren = false)
         {
-            base.TransformStateTo(time, propagateChildren);
+            base.RewindTransformsTo(time, propagateChildren);
 
             if (!propagateChildren)
                 return;
@@ -719,7 +719,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 if (!c.AllowStateTransformByParent)
                     continue;
-                c.TransformStateTo(time, true);
+                c.RewindTransformsTo(time, true);
             }
         }
 

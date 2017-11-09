@@ -46,7 +46,7 @@ namespace osu.Framework.Graphics.Transforms
         protected internal virtual bool AllowTransformClearByParent => true;
 
         /// <summary>
-        /// Whether a parent is allowed to transform the state of this <see cref="Transformable"/> through <see cref="TransformStateTo(double, bool)"/>.
+        /// Whether a parent is allowed to transform the state of this <see cref="Transformable"/> through <see cref="RewindTransformsTo(double, bool)"/>.
         /// </summary>
         protected internal virtual bool AllowStateTransformByParent => true;
 
@@ -252,15 +252,21 @@ namespace osu.Framework.Graphics.Transforms
         }
 
         /// <summary>
-        /// Transforms the state of this <see cref="Transformable"/> to a point in time, based on the existing <see cref="Transform"/>s.
+        /// Rewinds all <see cref="Transform"/>s to a point in the past. This may only be called if <see cref="RemoveCompletedTransforms"/> is set to false.
         /// <para>
-        /// If <see cref="RemoveCompletedTransforms"/> is set to true, then all <see cref="Transform"/>s until <paramref name="time"/> will be removed.
-        /// If <see cref="RemoveCompletedTransforms"/> is set to false, then no <see cref="Transform"/>s will be removed.
+        /// This does not change the clock time.
         /// </para>
         /// </summary>
         /// <param name="time">The time to transform the state to.</param>
         /// <param name="propagateChildren">Whether to also transform the state of children to <paramref name="time"/>.</param>
-        public virtual void TransformStateTo(double time, bool propagateChildren = false) => updateTransforms(time);
+        public virtual void RewindTransformsTo(double time, bool propagateChildren = false)
+        {
+            if (time == Time.Current) return; // NOP
+            if (time > Time.Current) throw new ArgumentOutOfRangeException(nameof(time), "Time value must be in the past.");
+            if (RemoveCompletedTransforms) throw new InvalidOperationException($"Cannot rewind transforms with {nameof(RemoveCompletedTransforms)} active.");
+
+            updateTransforms(time);
+        }
 
         /// <summary>
         /// Finishes specified <see cref="Transform"/>s, using their <see cref="Transform{TValue}.EndValue"/>.
