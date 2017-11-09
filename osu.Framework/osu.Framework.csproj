@@ -472,6 +472,7 @@
     <Compile Include="Allocation\BackgroundDependencyLoader.cs" />
     <Compile Include="Configuration\BindableNumber.cs" />
     <Compile Include="Graphics\UserInterface\CircularProgressDrawNode.cs" />
+    <Compile Include="Graphics\UserInterface\Counter.cs" />
     <Compile Include="Graphics\Containers\TextFlowContainer.cs" />
     <Compile Include="Graphics\UserInterface\CircularProgress.cs" />
     <Compile Include="Threading\AudioThread.cs" />
