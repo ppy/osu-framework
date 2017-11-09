@@ -39,6 +39,17 @@ namespace osu.Framework.Graphics.Transforms
         /// </summary>
         protected double TransformDelay { get; private set; }
 
+        /// <summary>
+        /// Whether a parent is allowed to clear this <see cref="Transformable"/>'s <see cref="Transform"/>s
+        /// through <see cref="ClearTransforms(bool, string)"/> and <see cref="ClearTransformsAfter(double, bool)"/>.
+        /// </summary>
+        protected internal virtual bool AllowTransformClearByParent => true;
+
+        /// <summary>
+        /// Whether a parent is allowed to transform the state of this <see cref="Transformable"/> through <see cref="TransformStateTo(double, bool)"/>.
+        /// </summary>
+        protected internal virtual bool AllowStateTransformByParent => true;
+
         private SortedList<Transform> transformsLazy;
 
         private SortedList<Transform> transforms => transformsLazy ?? (transformsLazy = new SortedList<Transform>(Transform.COMPARER));
@@ -76,7 +87,7 @@ namespace osu.Framework.Graphics.Transforms
         protected void UpdateTransforms()
         {
             TransformDelay = 0;
-            updateTransforms();
+            updateTransforms(Time.Current);
         }
 
         private List<Action> removalActionsLazy;
@@ -86,7 +97,7 @@ namespace osu.Framework.Graphics.Transforms
         /// Process updates to this class based on loaded <see cref="Transform"/>s. This does not reset <see cref="TransformDelay"/>.
         /// This is used for performing extra updates on <see cref="Transform"/>s when new <see cref="Transform"/>s are added.
         /// </summary>
-        private void updateTransforms()
+        private void updateTransforms(double time)
         {
             if (transformsLazy == null)
                 return;
@@ -100,14 +111,14 @@ namespace osu.Framework.Graphics.Transforms
                 {
                     var t = transformsLazy[i];
 
-                    if (t.StartTime <= Time.Current)
+                    if (t.StartTime <= time)
                         break;
 
                     if (!t.Applied)
                         continue;
 
                     // Revert the transform's target to the transform's starting value, and mark that it hasn't been applied yet for future iterations
-                    t.Apply(Time.Current);
+                    t.Apply(time);
                     t.Applied = false;
                 }
             }
@@ -116,7 +127,7 @@ namespace osu.Framework.Graphics.Transforms
             {
                 var t = transformsLazy[i];
 
-                if (t.StartTime > Time.Current)
+                if (t.StartTime > time)
                     break;
 
                 if (!t.HasStartValue)
@@ -146,9 +157,9 @@ namespace osu.Framework.Graphics.Transforms
                     }
                 }
 
-                t.Apply(Time.Current);
+                t.Apply(time);
 
-                if (t.EndTime <= Time.Current)
+                if (t.EndTime <= time)
                 {
                     if (RemoveCompletedTransforms)
                         transformsLazy.RemoveAt(i--);
@@ -224,6 +235,31 @@ namespace osu.Framework.Graphics.Transforms
             foreach (var t in toAbort)
                 t.OnAbort?.Invoke();
         }
+
+        /// <summary>
+        /// Removes all <see cref="Transform"/>s that start after <paramref name="time"/>.
+        /// </summary>
+        /// <param name="time">The time to clear <see cref="Transform"/>s after.</param>
+        /// <param name="propagateChildren">Whether to also clear such <see cref="Transform"/>s of children.</param>
+        public virtual void ClearTransformsAfter(double time, bool propagateChildren = false)
+        {
+            for (int i = transforms.Count - 1; i >= 0; i--)
+            {
+                if (transforms[i].StartTime < time)
+                    break;
+                transforms.RemoveAt(i);
+            }
+        }
+
+        /// <summary>
+        /// Transforms the state of this <see cref="Transformable"/> to a point in time, based on the existing <see cref="Transform"/>s.
+        /// <para>
+        /// If <see cref="RemoveCompletedTransforms"/> is set to true, then all <see cref="Transform"/>s until <paramref name="time"/> will be removed.
+        /// If <see cref="RemoveCompletedTransforms"/> is set to false, then no <see cref="Transform"/>s will be removed.
+        /// </para>
+        /// <param name="time">The time to transform the state to.</param>
+        /// <param name="propagateChildren">Whether to also transform the state of children to <paramref name="time"/>.</param>
+        public virtual void TransformStateTo(double time, bool propagateChildren = false) => updateTransforms(time);
 
         /// <summary>
         /// Finishes specified <see cref="Transform"/>s, using their <see cref="Transform{TValue}.EndValue"/>.
@@ -369,7 +405,7 @@ namespace osu.Framework.Graphics.Transforms
             // If our newly added transform could have an immediate effect, then let's
             // make this effect happen immediately.
             if (transform.StartTime < Time.Current || transform.EndTime <= Time.Current)
-                updateTransforms();
+                updateTransforms(Time.Current);
         }
     }
 }

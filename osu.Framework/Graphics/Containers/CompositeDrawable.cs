@@ -697,9 +697,46 @@ namespace osu.Framework.Graphics.Containers
         {
             base.ClearTransforms(propagateChildren, targetMember);
 
-            if (propagateChildren)
-                foreach (var c in internalChildren)
-                    c.ClearTransforms(true, targetMember);
+            if (!propagateChildren)
+                return;
+
+            foreach (var c in internalChildren)
+            {
+                if (c.AllowTransformClearByParent)
+                    continue;
+                c.ClearTransforms(true, targetMember);
+            }
+        }
+
+        public override void TransformStateTo(double time, bool propagateChildren = false)
+        {
+            base.TransformStateTo(time, propagateChildren);
+
+            if (!propagateChildren)
+                return;
+
+            foreach (var c in internalChildren)
+            {
+                if (!c.AllowStateTransformByParent)
+                    continue;
+                c.TransformStateTo(time, propagateChildren);
+            }
+        }
+
+        public override void ClearTransformsAfter(double time, bool propagateChildren = false)
+        {
+            base.ClearTransformsAfter(time, propagateChildren);
+
+            if (!propagateChildren)
+                return;
+
+            foreach (var c in internalChildren)
+            {
+                if (!c.AllowTransformClearByParent)
+                    continue;
+
+                c.ClearTransformsAfter(time, propagateChildren);
+            }
         }
 
         internal override void AddDelay(double duration, bool propagateChildren = false)
