@@ -269,6 +269,7 @@
     <Compile Include="Graphics\Containers\CircularContainer.cs" />
     <Compile Include="Graphics\Containers\ClickableContainer.cs" />
     <Compile Include="Graphics\Containers\FocusedOverlayContainer.cs" />
+    <Compile Include="Graphics\Containers\GridContainer.cs" />
     <Compile Include="Graphics\Containers\IContainer.cs" />
     <Compile Include="Graphics\Containers\OverlayContainer.cs" />
     <Compile Include="Graphics\Containers\ScrollContainer.cs" />
@@ -479,6 +480,7 @@
     <Compile Include="Allocation\BackgroundDependencyLoader.cs" />
     <Compile Include="Configuration\BindableNumber.cs" />
     <Compile Include="Graphics\UserInterface\CircularProgressDrawNode.cs" />
+    <Compile Include="Graphics\UserInterface\Counter.cs" />
     <Compile Include="Graphics\Containers\TextFlowContainer.cs" />
     <Compile Include="Graphics\UserInterface\CircularProgress.cs" />
     <Compile Include="Threading\AudioThread.cs" />

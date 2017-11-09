@@ -14,7 +14,6 @@ using osu.Framework.IO.Stores;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using osu.Framework.Graphics.Transforms;
 
 namespace osu.Framework.Graphics.Sprites
 {
@@ -385,24 +384,5 @@ namespace osu.Framework.Graphics.Sprites
         {
             return $@"""{Text}"" " + base.ToString();
         }
-    }
-
-    public static class SpriteTextTransformExtensions
-    {
-        /// <summary>
-        /// Sets <see cref="SpriteText.Text"/> to a new value after a duration.
-        /// </summary>
-        /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public static TransformSequence<T> TransformTextTo<T>(this T spriteText, string newText, double duration = 0, Easing easing = Easing.None)
-            where T : SpriteText
-            => spriteText.TransformTo(nameof(SpriteText.Text), newText, duration, easing);
-
-        /// <summary>
-        /// Sets <see cref="SpriteText.Text"/> to a new value after a duration.
-        /// </summary>
-        /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public static TransformSequence<T> TransformTextTo<T>(this TransformSequence<T> t, string newText, double duration = 0, Easing easing = Easing.None)
-            where T : SpriteText
-            => t.Append(o => o.TransformTextTo(newText, duration, easing));
     }
 }

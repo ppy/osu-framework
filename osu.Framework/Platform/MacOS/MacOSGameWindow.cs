@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Reflection;
+using osu.Framework.Logging;
 using osu.Framework.Platform.MacOS.Native;
 
 namespace osu.Framework.Platform.MacOS
@@ -34,19 +35,27 @@ namespace osu.Framework.Platform.MacOS
 
         protected override void OnLoad(EventArgs e)
         {
-            flagsChangedHandler = flagsChanged;
+            try
+            {
+                flagsChangedHandler = flagsChanged;
 
-            var fieldImplementation = typeof(OpenTK.NativeWindow).GetRuntimeFields().Single(x => x.Name == "implementation");
-            var typeCocoaNativeWindow = typeof(OpenTK.NativeWindow).Assembly.GetTypes().Single(x => x.Name == "CocoaNativeWindow");
-            var fieldWindowClass = typeCocoaNativeWindow.GetRuntimeFields().Single(x => x.Name == "windowClass");
+                var fieldImplementation = typeof(OpenTK.NativeWindow).GetRuntimeFields().Single(x => x.Name == "implementation");
+                var typeCocoaNativeWindow = typeof(OpenTK.NativeWindow).Assembly.GetTypes().Single(x => x.Name == "CocoaNativeWindow");
+                var fieldWindowClass = typeCocoaNativeWindow.GetRuntimeFields().Single(x => x.Name == "windowClass");
 
-            nativeWindow = fieldImplementation.GetValue(this);
-            var windowClass = (IntPtr)fieldWindowClass.GetValue(nativeWindow);
+                nativeWindow = fieldImplementation.GetValue(this);
+                var windowClass = (IntPtr)fieldWindowClass.GetValue(nativeWindow);
 
-            Class.RegisterMethod(windowClass, flagsChangedHandler, "flagsChanged:", "v@:@");
+                Class.RegisterMethod(windowClass, flagsChangedHandler, "flagsChanged:", "v@:@");
 
-            methodKeyDown = nativeWindow.GetType().GetRuntimeMethods().Single(x => x.Name == "OnKeyDown");
-            methodKeyUp = nativeWindow.GetType().GetRuntimeMethods().Single(x => x.Name == "OnKeyUp");
+                methodKeyDown = nativeWindow.GetType().GetRuntimeMethods().Single(x => x.Name == "OnKeyDown");
+                methodKeyUp = nativeWindow.GetType().GetRuntimeMethods().Single(x => x.Name == "OnKeyUp");
+            }
+            catch
+            {
+                Logger.Log("Window initialisation couldn't complete, likely due to the SDL backend being enabled.", LoggingTarget.Runtime, LogLevel.Important);
+                Logger.Log("Execution will continue but keyboard functionality may be limited.", LoggingTarget.Runtime, LogLevel.Important);
+            }
 
             base.OnLoad(e);
         }
