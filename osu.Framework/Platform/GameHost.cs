@@ -84,8 +84,6 @@ namespace osu.Framework.Platform
 
         public Storage Storage { get; protected set; }
 
-        public PlatformInputManager PlatformInputManager { get; private set; }
-
         /// <summary>
         /// If capslock is enabled on the system, false if not overwritten by a subclass
         /// </summary>
@@ -408,14 +406,7 @@ namespace osu.Framework.Platform
 
         private void bootstrapSceneGraph(Game game)
         {
-            var root = new UserInputManager(game)
-            {
-                Child = PlatformInputManager = new PlatformInputManager
-                {
-                    Child = game,
-                    RelativeSizeAxes = Axes.Both
-                }
-            };
+            var root = new UserInputManager { Child = game };
 
             Dependencies.Cache(root);
             Dependencies.Cache(game);
