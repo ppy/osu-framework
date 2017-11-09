@@ -215,7 +215,18 @@ namespace osu.Framework.Graphics.Transforms
         /// An optional <see cref="Transform.TargetMember"/> name of <see cref="Transform"/>s to clear.
         /// Null for clearing all <see cref="Transform"/>s.
         /// </param>
-        public virtual void ClearTransforms(bool propagateChildren = false, string targetMember = null)
+        public virtual void ClearTransforms(bool propagateChildren = false, string targetMember = null) => ClearTransformsAfter(double.NegativeInfinity, propagateChildren, targetMember);
+
+        /// <summary>
+        /// Removes <see cref="Transform"/>s that start after <paramref name="time"/>.
+        /// </summary>
+        /// <param name="time">The time to clear <see cref="Transform"/>s after.</param>
+        /// <param name="propagateChildren">Whether to also clear such <see cref="Transform"/>s of children.</param>
+        /// <param name="targetMember">
+        /// An optional <see cref="Transform.TargetMember"/> name of <see cref="Transform"/>s to clear.
+        /// Null for clearing all <see cref="Transform"/>s.
+        /// </param>
+        public virtual void ClearTransformsAfter(double time, bool propagateChildren = false, string targetMember = null)
         {
             if (transformsLazy == null)
                 return;
@@ -223,32 +234,17 @@ namespace osu.Framework.Graphics.Transforms
             Transform[] toAbort;
             if (targetMember == null)
             {
-                toAbort = transformsLazy.ToArray();
-                transformsLazy.Clear();
+                toAbort = transformsLazy.Where(t => t.StartTime >= time).ToArray();
+                transformsLazy.RemoveAll(t => t.StartTime >= time);
             }
             else
             {
-                toAbort = transformsLazy.Where(t => t.TargetMember == targetMember).ToArray();
-                transformsLazy.RemoveAll(t => t.TargetMember == targetMember);
+                toAbort = transformsLazy.Where(t => t.StartTime >= time && t.TargetMember == targetMember).ToArray();
+                transformsLazy.RemoveAll(t => t.StartTime >= time && t.TargetMember == targetMember);
             }
 
             foreach (var t in toAbort)
                 t.OnAbort?.Invoke();
-        }
-
-        /// <summary>
-        /// Removes all <see cref="Transform"/>s that start after <paramref name="time"/>.
-        /// </summary>
-        /// <param name="time">The time to clear <see cref="Transform"/>s after.</param>
-        /// <param name="propagateChildren">Whether to also clear such <see cref="Transform"/>s of children.</param>
-        public virtual void ClearTransformsAfter(double time, bool propagateChildren = false)
-        {
-            for (int i = transforms.Count - 1; i >= 0; i--)
-            {
-                if (transforms[i].StartTime < time)
-                    break;
-                transforms.RemoveAt(i);
-            }
         }
 
         /// <summary>

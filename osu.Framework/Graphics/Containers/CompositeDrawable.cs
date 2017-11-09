@@ -693,21 +693,6 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        public override void ClearTransforms(bool propagateChildren = false, string targetMember = null)
-        {
-            base.ClearTransforms(propagateChildren, targetMember);
-
-            if (!propagateChildren)
-                return;
-
-            foreach (var c in internalChildren)
-            {
-                if (c.AllowTransformClearByParent)
-                    continue;
-                c.ClearTransforms(true, targetMember);
-            }
-        }
-
         public override void RewindTransformsTo(double time, bool propagateChildren = false)
         {
             base.RewindTransformsTo(time, propagateChildren);
@@ -723,9 +708,9 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        public override void ClearTransformsAfter(double time, bool propagateChildren = false)
+        public override void ClearTransformsAfter(double time, bool propagateChildren = false, string targetMember = null)
         {
-            base.ClearTransformsAfter(time, propagateChildren);
+            base.ClearTransformsAfter(time, propagateChildren, targetMember);
 
             if (!propagateChildren)
                 return;
@@ -735,7 +720,7 @@ namespace osu.Framework.Graphics.Containers
                 if (!c.AllowTransformClearByParent)
                     continue;
 
-                c.ClearTransformsAfter(time, true);
+                c.ClearTransformsAfter(time, true, targetMember);
             }
         }
 
