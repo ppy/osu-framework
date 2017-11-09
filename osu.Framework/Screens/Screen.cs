@@ -134,6 +134,9 @@ namespace osu.Framework.Screens
         /// <param name="screen">The new Screen.</param>
         public virtual bool Push(Screen screen)
         {
+            if (!IsCurrentScreen)
+                throw new InvalidOperationException("Cannot push a child screen to a non-current screen");
+
             if (ChildScreen != null)
                 throw new InvalidOperationException("Can not push more than one child screen.");
 
