@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Reflection;
+using osu.Framework.Logging;
 using osu.Framework.Platform.MacOS.Native;
 
 namespace osu.Framework.Platform.MacOS
@@ -52,9 +53,10 @@ namespace osu.Framework.Platform.MacOS
             }
             catch
             {
-                // This reflection may fail if we're using the SDL backend, so we'll just ignore it.
-                // The result will be that modifier keys and possibly the clipboard may not work correctly.
+                Logger.Log("Window initialisation couldn't complete, likely due to the SDL backend being enabled.", LoggingTarget.Runtime, LogLevel.Important);
+                Logger.Log("Execution will continue but keyboard functionality may be limited.", LoggingTarget.Runtime, LogLevel.Important);
             }
+
             base.OnLoad(e);
         }
 
