@@ -177,7 +177,7 @@ namespace osu.Framework.Tests.Visual
 
         public override string Description => @"Add fixed padding via a PaddingContainer";
 
-        private class PaddedBox : Container, IHandleOnDrag, IHandleOnDragEnd, IHandleOnDragStart
+        private class PaddedBox : Container, IHandleDrag
         {
             private readonly SpriteText t1;
             private readonly SpriteText t2;

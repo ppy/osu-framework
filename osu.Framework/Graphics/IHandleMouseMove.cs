@@ -5,14 +5,14 @@ using osu.Framework.Input;
 
 namespace osu.Framework.Graphics
 {
-    public interface IHandleOnWheel
+    public interface IHandleMouseMove
     {
         /// <summary>
-        /// Triggered whenever the mouse wheel was turned over this Drawable.
+        /// Triggered whenever the mouse moved over this Drawable.
         /// </summary>
-        /// <param name="state">The state after the wheel was turned.</param>
+        /// <param name="state">The state after the mouse moved.</param>
         /// <returns>True if this Drawable handled the event. If false, then the event
         /// is propagated up the scene graph to the next eligible Drawable.</returns>
-        bool OnWheel(InputState state);
+        bool OnMouseMove(InputState state);
     }
 }

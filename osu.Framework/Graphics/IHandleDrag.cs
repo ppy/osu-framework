@@ -5,7 +5,7 @@ using osu.Framework.Input;
 
 namespace osu.Framework.Graphics
 {
-    public interface IHandleOnDragStart
+    public interface IHandleDrag
     {
         /// <summary>
         /// Triggered whenever this Drawable is initially dragged by a held mouse click
@@ -17,5 +17,22 @@ namespace osu.Framework.Graphics
         /// events will be received. Otherwise, the event is propagated up the scene
         /// graph to the next eligible Drawable.</returns>
         bool OnDragStart(InputState state);
+
+        /// <summary>
+        /// Triggered whenever the mouse is moved while dragging.
+        /// Only is received if a drag was previously initiated by returning true
+        /// from <see cref="IHandleOnDragStart.OnDragStart(InputState)"/>.
+        /// </summary>
+        /// <param name="state">The state after the mouse was moved.</param>
+        /// <returns>Currently unused.</returns>
+        bool OnDrag(InputState state);
+
+        /// <summary>
+        /// Triggered whenever a drag ended. Only is received if a drag was previously
+        /// initiated by returning true from <see cref="IHandleOnDragStart.OnDragStart(InputState)"/>.
+        /// </summary>
+        /// <param name="state">The state after the drag ended.</param>
+        /// <returns>Currently unused.</returns>
+        bool OnDragEnd(InputState state);
     }
 }

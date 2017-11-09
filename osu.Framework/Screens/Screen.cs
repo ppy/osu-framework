@@ -10,7 +10,7 @@ using OpenTK.Input;
 
 namespace osu.Framework.Screens
 {
-    public class Screen : Container,IHandleOnKeyDown
+    public class Screen : Container, IHandleKeys
     {
         protected Screen ParentScreen;
         public Screen ChildScreen;
@@ -127,6 +127,8 @@ namespace osu.Framework.Screens
 
             return false;
         }
+
+        public bool OnKeyUp(InputState state, KeyUpEventArgs args) => false;
 
         /// <summary>
         /// Changes to a new Screen.

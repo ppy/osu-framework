@@ -13,7 +13,7 @@ using osu.Framework.Graphics.Shapes;
 
 namespace osu.Framework.Graphics.Visualisation
 {
-    internal class VisualisedDrawable : Container, IHandleOnHover, IHandleOnHoverLost, IHandleOnMouseDown, IHandleOnClick, IHandleOnDoubleClick
+    internal class VisualisedDrawable : Container, IHandleHover, IHandleMouseButtons
     {
         public Drawable Target { get; }
 
@@ -189,6 +189,8 @@ namespace osu.Framework.Graphics.Visualisation
             }
             return false;
         }
+
+        public bool OnMouseUp(InputState state, MouseUpEventArgs args) => false;
 
         public virtual bool OnClick(InputState state)
         {

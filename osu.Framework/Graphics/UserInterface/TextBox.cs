@@ -23,7 +23,7 @@ using osu.Framework.Timing;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class TextBox : TabbableContainer, IHasCurrentValue<string>, IHandleOnDrag, IHandleOnDragStart, IHandleOnDoubleClick, IHandleOnMouseDown, IHandleOnMouseUp, IHandleOnFocusLost, IHandleOnClick, IHandleOnFocus
+    public class TextBox : TabbableContainer, IHasCurrentValue<string>, IHandleDrag, IHandleMouseButtons, IHandleFocus
     {
         protected FillFlowContainer TextFlow;
         protected Box Background;
@@ -695,6 +695,8 @@ namespace osu.Framework.Graphics.UserInterface
             }
             return true;
         }
+
+        public bool OnDragEnd(InputState state) => false;
 
         public virtual bool OnDragStart(InputState state)
         {

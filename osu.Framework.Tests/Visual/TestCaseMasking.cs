@@ -445,7 +445,7 @@ namespace osu.Framework.Tests.Visual
 #endif
         }
 
-        private class CircularContainerWithInput : CircularContainer, IHandleOnHover, IHandleOnHoverLost
+        private class CircularContainerWithInput : CircularContainer, IHandleHover
         {
             public virtual bool OnHover(InputState state)
             {

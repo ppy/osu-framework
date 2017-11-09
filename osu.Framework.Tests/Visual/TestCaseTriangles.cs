@@ -171,7 +171,7 @@ namespace osu.Framework.Tests.Visual
         }
     }
 
-    internal class DraggableTriangle : Triangle, IHandleOnDrag, IHandleOnDragEnd, IHandleOnDragStart
+    internal class DraggableTriangle : Triangle, IHandleDrag
     {
         public bool AllowDrag = true;
         public override bool HandleInput => true;

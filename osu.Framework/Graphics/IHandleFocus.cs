@@ -5,8 +5,16 @@ using osu.Framework.Input;
 
 namespace osu.Framework.Graphics
 {
-    public interface IHandleOnFocusLost
+    public interface IHandleFocus
     {
+        /// <summary>
+        /// Triggered whenever this Drawable gains focus.
+        /// Focused Drawables receive keyboard input before all other Drawables,
+        /// and thus handle it first.
+        /// </summary>
+        /// <param name="state">The state after focus when focus can be gained.</param>
+        void OnFocus(InputState state);
+
         /// <summary>
         /// Triggered whenever this Drawable lost focus.
         /// </summary>

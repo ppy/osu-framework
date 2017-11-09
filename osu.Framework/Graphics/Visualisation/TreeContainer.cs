@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics.Visualisation
         Offscreen
     }
 
-    internal class TreeContainer : Container, IStateful<TreeContainerStatus>, IHandleOnHover, IHandleOnHoverLost, IHandleOnDragStart, IHandleOnDrag, IHandleOnMouseDown, IHandleOnClick
+    internal class TreeContainer : Container, IStateful<TreeContainerStatus>, IHandleHover, IHandleDrag, IHandleMouseButtons
     {
         private readonly ScrollContainer scroll;
 
@@ -216,9 +216,13 @@ namespace osu.Framework.Graphics.Visualisation
             return false;
         }
 
+        public virtual bool OnDragEnd(InputState state) => false;
+
         public virtual bool OnMouseDown(InputState state, MouseDownEventArgs args) => true;
+        public virtual bool OnMouseUp(InputState state, MouseUpEventArgs args) => false;
 
         public virtual bool OnClick(InputState state) => true;
+        public virtual bool OnDoubleClick(InputState state) => false;
 
         protected override void LoadComplete()
         {

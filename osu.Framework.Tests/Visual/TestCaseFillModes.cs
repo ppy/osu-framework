@@ -86,7 +86,7 @@ namespace osu.Framework.Tests.Visual
             texture = store.Get(@"sample-texture");
         }
 
-        private class PaddedBox : Container, IHandleOnDrag, IHandleOnDragEnd, IHandleOnDragStart
+        private class PaddedBox : Container, IHandleDrag
         {
             private readonly SpriteText t1;
             private readonly SpriteText t2;

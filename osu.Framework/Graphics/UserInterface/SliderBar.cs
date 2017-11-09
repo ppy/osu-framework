@@ -11,7 +11,7 @@ using System.Diagnostics;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public abstract class SliderBar<T> : Container, IHasCurrentValue<T>, IHandleOnClick, IHandleOnDrag, IHandleOnDragStart, IHandleOnDragEnd, IHandleOnKeyDown
+    public abstract class SliderBar<T> : Container, IHasCurrentValue<T>, IHandleDrag, IHandleMouseButtons, IHandleKeys
         where T : struct
     {
         /// <summary>
@@ -84,11 +84,17 @@ namespace osu.Framework.Graphics.UserInterface
             UpdateValue(NormalizedValue);
         }
 
+        public virtual bool OnMouseDown(InputState state, MouseDownEventArgs args) => false;
+
+        public virtual bool OnMouseUp(InputState state, MouseUpEventArgs args) => false;
+
         public virtual bool OnClick(InputState state)
         {
             handleMouseInput(state);
             return true;
         }
+
+        public virtual bool OnDoubleClick(InputState state) => false;
 
         public virtual bool OnDrag(InputState state)
         {
@@ -130,6 +136,8 @@ namespace osu.Framework.Graphics.UserInterface
                     return false;
             }
         }
+
+        public virtual bool OnKeyUp(InputState state, KeyUpEventArgs args) => false;
 
         private void handleMouseInput(InputState state)
         {

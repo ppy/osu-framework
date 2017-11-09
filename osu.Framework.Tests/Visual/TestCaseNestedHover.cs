@@ -45,7 +45,7 @@ namespace osu.Framework.Tests.Visual
             });
         }
 
-        private class HoverBox : Container, IHandleOnHover, IHandleOnHoverLost
+        private class HoverBox : Container, IHandleHover
         {
             private readonly Color4 normalColour;
             private readonly Color4 hoveredColour;

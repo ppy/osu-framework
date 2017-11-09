@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics.Containers
     {
     }
 
-    public class TabbableContainer<T> : Container<T>, ITabbableContainer, IHandleOnKeyDown
+    public class TabbableContainer<T> : Container<T>, ITabbableContainer, IHandleKeys
         where T : Drawable
     {
         /// <summary>
@@ -36,6 +36,8 @@ namespace osu.Framework.Graphics.Containers
             if (nextTab != null) GetContainingInputManager().ChangeFocus(nextTab);
             return true;
         }
+
+        public bool OnKeyUp(InputState state, KeyUpEventArgs args) => false;
 
         private Drawable nextTabStop(Container<Drawable> target, bool reverse)
         {

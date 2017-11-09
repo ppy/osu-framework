@@ -1582,141 +1582,81 @@ namespace osu.Framework.Graphics
         #region Interaction / Input
 
         /// <summary>
-        /// Triggers <see cref="IHandleOnHover.OnHover(InputState)"/> with a local version of the given <see cref="InputState"/>.
+        /// Triggers <see cref="IHandleHover.OnHover(InputState)"/> with a local version of the given <see cref="InputState"/>.
         /// </summary>
-        public bool TriggerOnHover(InputState screenSpaceState)
-        {
-            var handler = this as IHandleOnHover;
-            return handler != null && handler.OnHover(createCloneInParentSpace(screenSpaceState));
-        }
+        public bool TriggerOnHover(InputState screenSpaceState) => (this as IHandleHover)?.OnHover(createCloneInParentSpace(screenSpaceState)) ?? false;
 
         /// <summary>
-        /// Triggers <see cref="IHandleOnHoverLost.OnHoverLost(InputState)"/> with a local version of the given <see cref="InputState"/>.
+        /// Triggers <see cref="IHandleHover.OnHoverLost(InputState)"/> with a local version of the given <see cref="InputState"/>.
         /// </summary>
-        public void TriggerOnHoverLost(InputState screenSpaceState)
-        {
-            var handler = this as IHandleOnHoverLost;
-            handler?.OnHoverLost(createCloneInParentSpace(screenSpaceState));
-        }
+        public void TriggerOnHoverLost(InputState screenSpaceState) => (this as IHandleHover)?.OnHoverLost(createCloneInParentSpace(screenSpaceState));
 
         /// <summary>
-        /// Triggers <see cref="IHandleOnMouseDown.OnMouseDown(InputState, MouseDownEventArgs)"/> with a local version of the given <see cref="InputState"/>.
+        /// Triggers <see cref="IHandleMouseButtons.OnMouseDown(InputState, MouseDownEventArgs)"/> with a local version of the given <see cref="InputState"/>.
         /// </summary>
-        public bool TriggerOnMouseDown(InputState screenSpaceState = null, MouseDownEventArgs args = null)
-        {
-            var handler = this as IHandleOnMouseDown;
-            return handler != null && handler.OnMouseDown(createCloneInParentSpace(screenSpaceState), args);
-        }
+        public bool TriggerOnMouseDown(InputState screenSpaceState = null, MouseDownEventArgs args = null) => (this as IHandleMouseButtons)?.OnMouseDown(createCloneInParentSpace(screenSpaceState), args) ?? false;
 
         /// <summary>
-        /// Triggers <see cref="IHandleOnMouseUp.OnMouseUp(InputState, MouseUpEventArgs)"/> with a local version of the given <see cref="InputState"/>.
+        /// Triggers <see cref="IHandleMouseButtons.OnMouseUp(InputState, MouseUpEventArgs)"/> with a local version of the given <see cref="InputState"/>.
         /// </summary>
-        public bool TriggerOnMouseUp(InputState screenSpaceState = null, MouseUpEventArgs args = null)
-        {
-            var handler = this as IHandleOnMouseUp;
-            return handler != null && handler.OnMouseUp(createCloneInParentSpace(screenSpaceState), args);
-        }
+        public bool TriggerOnMouseUp(InputState screenSpaceState = null, MouseUpEventArgs args = null) => (this as IHandleMouseButtons)?.OnMouseUp(createCloneInParentSpace(screenSpaceState), args) ?? false;
 
         /// <summary>
-        /// Triggers <see cref="IHandleOnClick.OnClick(InputState)"/> with a local version of the given <see cref="InputState"/>.
+        /// Triggers <see cref="IHandleMouseButtons.OnClick(InputState)"/> with a local version of the given <see cref="InputState"/>.
         /// </summary>
-        public bool TriggerOnClick(InputState screenSpaceState = null)
-        {
-            var handler = this as IHandleOnClick;
-            return handler != null && handler.OnClick(createCloneInParentSpace(screenSpaceState));
-        }
+        public bool TriggerOnClick(InputState screenSpaceState = null) => (this as IHandleMouseButtons)?.OnClick(createCloneInParentSpace(screenSpaceState)) ?? false;
 
         /// <summary>
-        /// Triggers <see cref="IHandleOnDoubleClick.OnDoubleClick(InputState)"/> with a local version of the given <see cref="InputState"/>.
+        /// Triggers <see cref="IHandleMouseButtons.OnDoubleClick(InputState)"/> with a local version of the given <see cref="InputState"/>.
         /// </summary>
-        public bool TriggerOnDoubleClick(InputState screenSpaceState)
-        {
-            var handler = this as IHandleOnDoubleClick;
-            return handler != null && handler.OnDoubleClick(createCloneInParentSpace(screenSpaceState));
-        }
+        public bool TriggerOnDoubleClick(InputState screenSpaceState) => (this as IHandleMouseButtons)?.OnDoubleClick(createCloneInParentSpace(screenSpaceState)) ?? false;
 
         /// <summary>
-        /// Triggers <see cref="IHandleOnDragStart.OnDragStart(InputState)"/> with a local version of the given <see cref="InputState"/>.
+        /// Triggers <see cref="IHandleDrag.OnDragStart(InputState)"/> with a local version of the given <see cref="InputState"/>.
         /// </summary>
-        public bool TriggerOnDragStart(InputState screenSpaceState)
-        {
-            var handler = this as IHandleOnDragStart;
-            return handler != null && handler.OnDragStart(createCloneInParentSpace(screenSpaceState));
-        }
+        public bool TriggerOnDragStart(InputState screenSpaceState) => (this as IHandleDrag)?.OnDragStart(createCloneInParentSpace(screenSpaceState)) ?? false;
 
         /// <summary>
-        /// Triggers <see cref="IHandleOnDrag.OnDrag(InputState)"/> with a local version of the given <see cref="InputState"/>.
+        /// Triggers <see cref="IHandleDrag.OnDrag(InputState)"/> with a local version of the given <see cref="InputState"/>.
         /// </summary>
-        public bool TriggerOnDrag(InputState screenSpaceState)
-        {
-            var handler = this as IHandleOnDrag;
-            return handler != null && handler.OnDrag(createCloneInParentSpace(screenSpaceState));
-        }
+        public bool TriggerOnDrag(InputState screenSpaceState) => (this as IHandleDrag)?.OnDrag(createCloneInParentSpace(screenSpaceState)) ?? false;
 
         /// <summary>
-        /// Triggers <see cref="IHandleOnDragEnd.OnDragEnd(InputState)"/> with a local version of the given <see cref="InputState"/>.
+        /// Triggers <see cref="IHandleDrag.OnDragEnd(InputState)"/> with a local version of the given <see cref="InputState"/>.
         /// </summary>
-        public bool TriggerOnDragEnd(InputState screenSpaceState)
-        {
-            var handler = this as IHandleOnDragEnd;
-            return handler != null && handler.OnDragEnd(createCloneInParentSpace(screenSpaceState));
-        }
+        public bool TriggerOnDragEnd(InputState screenSpaceState) => (this as IHandleDrag)?.OnDragEnd(createCloneInParentSpace(screenSpaceState)) ?? false;
 
         /// <summary>
-        /// Triggers <see cref="IHandleOnWheel.OnWheel(InputState)"/> with a local version of the given <see cref="InputState"/>.
+        /// Triggers <see cref="IHandleWheel.OnWheel(InputState)"/> with a local version of the given <see cref="InputState"/>.
         /// </summary>
-        public bool TriggerOnWheel(InputState screenSpaceState)
-        {
-            var handler = this as IHandleOnWheel;
-            return handler != null && handler.OnWheel(createCloneInParentSpace(screenSpaceState));
-        }
+        public bool TriggerOnWheel(InputState screenSpaceState) => (this as IHandleWheel)?.OnWheel(createCloneInParentSpace(screenSpaceState)) ?? false;
 
         /// <summary>
-        /// Triggers <see cref="IHandleOnFocus.OnFocus(InputState)"/> with a local version of the given <see cref="InputState"/>
+        /// Triggers <see cref="IHandleFocus.OnFocus(InputState)"/> with a local version of the given <see cref="InputState"/>
         /// </summary>
         /// <param name="screenSpaceState">The input state.</param>
-        public void TriggerOnFocus(InputState screenSpaceState = null)
-        {
-            var handler = this as IHandleOnFocus;
-            handler?.OnFocus(createCloneInParentSpace(screenSpaceState));
-        }
+        public void TriggerOnFocus(InputState screenSpaceState = null) => (this as IHandleFocus)?.OnFocus(createCloneInParentSpace(screenSpaceState));
 
         /// <summary>
-        /// Triggers <see cref="IHandleOnFocusLost.OnFocusLost(InputState)"/> with a local version of the given <see cref="InputState"/>
+        /// Triggers <see cref="IHandleFocus.OnFocusLost(InputState)"/> with a local version of the given <see cref="InputState"/>
         /// </summary>
         /// <param name="screenSpaceState">The input state.</param>
-        public void TriggerOnFocusLost(InputState screenSpaceState = null)
-        {
-            var handler = this as IHandleOnFocusLost;
-            handler?.OnFocusLost(createCloneInParentSpace(screenSpaceState));
-        }
+        public void TriggerOnFocusLost(InputState screenSpaceState = null) => (this as IHandleFocus)?.OnFocusLost(createCloneInParentSpace(screenSpaceState));
 
         /// <summary>
-        /// Triggers <see cref="IHandleOnKeyDown.OnKeyDown(InputState, KeyDownEventArgs)"/> with a local version of the given <see cref="InputState"/>.
+        /// Triggers <see cref="IHandleKeys.OnKeyDown(InputState, KeyDownEventArgs)"/> with a local version of the given <see cref="InputState"/>.
         /// </summary>
-        public bool TriggerOnKeyDown(InputState screenSpaceState, KeyDownEventArgs args)
-        {
-            var handler = this as IHandleOnKeyDown;
-            return handler != null && handler.OnKeyDown(createCloneInParentSpace(screenSpaceState), args);
-        }
+        public bool TriggerOnKeyDown(InputState screenSpaceState, KeyDownEventArgs args) => (this as IHandleKeys)?.OnKeyDown(createCloneInParentSpace(screenSpaceState), args) ?? false;
 
         /// <summary>
-        /// Triggers <see cref="IHandleOnKeyUp.OnKeyUp(InputState, KeyUpEventArgs)"/> with a local version of the given <see cref="InputState"/>.
+        /// Triggers <see cref="IHandleKeys.OnKeyUp(InputState, KeyUpEventArgs)"/> with a local version of the given <see cref="InputState"/>.
         /// </summary>
-        public bool TriggerOnKeyUp(InputState screenSpaceState, KeyUpEventArgs args)
-        {
-            var handler = this as IHandleOnKeyUp;
-            return handler != null && handler.OnKeyUp(createCloneInParentSpace(screenSpaceState), args);
-        }
+        public bool TriggerOnKeyUp(InputState screenSpaceState, KeyUpEventArgs args) => (this as IHandleKeys)?.OnKeyUp(createCloneInParentSpace(screenSpaceState), args) ?? false;
 
         /// <summary>
-        /// Triggers <see cref="IHandleOnMouseMove.OnMouseMove(InputState)"/> with a local version of the given <see cref="InputState"/>.
+        /// Triggers <see cref="IHandleMouseMove.OnMouseMove(InputState)"/> with a local version of the given <see cref="InputState"/>.
         /// </summary>
-        public bool TriggerOnMouseMove(InputState screenSpaceState)
-        {
-            var handler = this as IHandleOnMouseMove;
-            return handler != null && handler.OnMouseMove(createCloneInParentSpace(screenSpaceState));
-        }
+        public bool TriggerOnMouseMove(InputState screenSpaceState) => (this as IHandleMouseMove)?.OnMouseMove(createCloneInParentSpace(screenSpaceState)) ?? false;
 
         /// <summary>
         /// This drawable only receives input events if HandleInput is true.

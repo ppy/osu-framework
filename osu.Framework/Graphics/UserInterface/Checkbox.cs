@@ -7,9 +7,13 @@ using osu.Framework.Input;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public abstract class Checkbox : Container, IHasCurrentValue<bool>, IHandleOnClick
+    public abstract class Checkbox : Container, IHasCurrentValue<bool>, IHandleMouseButtons
     {
         public Bindable<bool> Current { get; } = new Bindable<bool>();
+
+        public virtual bool OnMouseDown(InputState state, MouseDownEventArgs args) => false;
+
+        public virtual bool OnMouseUp(InputState state, MouseUpEventArgs args) => false;
 
         public virtual bool OnClick(InputState state)
         {
@@ -18,5 +22,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             return true;
         }
+
+        public virtual bool OnDoubleClick(InputState state) => false;
     }
 }

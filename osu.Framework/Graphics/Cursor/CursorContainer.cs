@@ -9,7 +9,7 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Graphics.Cursor
 {
-    public class CursorContainer : OverlayContainer, IRequireHighFrequencyMousePosition, IHandleOnMouseMove
+    public class CursorContainer : OverlayContainer, IRequireHighFrequencyMousePosition, IHandleMouseMove
     {
         public Drawable ActiveCursor { get; protected set; }
 

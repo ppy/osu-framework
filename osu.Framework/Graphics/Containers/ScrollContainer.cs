@@ -23,7 +23,7 @@ namespace osu.Framework.Graphics.Containers
         }
     }
 
-    public class ScrollContainer<T> : Container<T>, DelayedLoadWrapper.IOnScreenOptimisingContainer, IHandleOnDragStart, IHandleOnMouseDown, IHandleOnDrag, IHandleOnDragEnd, IHandleOnWheel
+    public class ScrollContainer<T> : Container<T>, DelayedLoadWrapper.IOnScreenOptimisingContainer, IHandleMouseButtons, IHandleDrag, IHandleWheel
         where T : Drawable
     {
         /// <summary>
@@ -257,6 +257,12 @@ namespace osu.Framework.Graphics.Containers
             return true;
         }
 
+        public virtual bool OnMouseUp(InputState state, MouseUpEventArgs args) => false;
+
+        public virtual bool OnClick(InputState state) => false;
+
+        public virtual bool OnDoubleClick(InputState state) => false;
+
         // We keep track of this because input events may happen at different intervals than update frames
         // and we are interested in the time difference between drag _input_ events.
         private double lastDragTime;
@@ -466,7 +472,7 @@ namespace osu.Framework.Graphics.Containers
             content.MoveTo(ScrollDirection, -Current);
         }
 
-        protected internal class ScrollbarContainer : Container, IHandleOnClick, IHandleOnHover, IHandleOnHoverLost, IHandleOnDragStart, IHandleOnMouseDown, IHandleOnMouseUp, IHandleOnDrag
+        protected internal class ScrollbarContainer : Container, IHandleHover, IHandleDrag, IHandleMouseButtons
         {
             public Action<float> Dragged;
 
@@ -517,6 +523,7 @@ namespace osu.Framework.Graphics.Containers
             }
 
             public virtual bool OnClick(InputState state) => true;
+            public virtual bool OnDoubleClick(InputState state) => false;
 
             public virtual bool OnHover(InputState state)
             {
@@ -561,6 +568,8 @@ namespace osu.Framework.Graphics.Containers
                 Dragged?.Invoke(state.Mouse.Position[scrollDim] - dragOffset);
                 return true;
             }
+
+            public virtual bool OnDragEnd(InputState state) => false;
         }
     }
 }

@@ -1043,7 +1043,7 @@ namespace osu.Framework.Tests.Visual
         }
     }
 
-    internal class InfofulBoxAutoSize : Container, IHandleOnDrag, IHandleOnDragEnd, IHandleOnDragStart
+    internal class InfofulBoxAutoSize : Container, IHandleDrag
     {
         protected override Container<Drawable> Content => content;
 
@@ -1087,7 +1087,7 @@ namespace osu.Framework.Tests.Visual
         public virtual bool OnDragStart(InputState state) => AllowDrag;
     }
 
-    internal class InfofulBox : Container, IHandleOnDrag, IHandleOnDragEnd, IHandleOnDragStart
+    internal class InfofulBox : Container, IHandleDrag
     {
         public bool Chameleon = false;
         public bool AllowDrag = true;

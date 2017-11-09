@@ -105,7 +105,7 @@ namespace osu.Framework.Tests.Visual
 
         public override string Description => @"Various cases of drawable paths.";
 
-        private class UserDrawnPath : Path, IHandleOnDragStart, IHandleOnDrag
+        private class UserDrawnPath : Path, IHandleDrag
         {
             public override bool HandleInput => true;
 
@@ -129,6 +129,8 @@ namespace osu.Framework.Tests.Visual
 
                 return false;
             }
+
+            public bool OnDragEnd(InputState state) => false;
         }
     }
 }

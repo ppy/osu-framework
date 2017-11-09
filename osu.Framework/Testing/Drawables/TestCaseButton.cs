@@ -12,7 +12,7 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Testing.Drawables
 {
-    internal class TestCaseButton : ClickableContainer, IHandleOnHover, IHandleOnHoverLost
+    internal class TestCaseButton : ClickableContainer, IHandleHover
     {
         private readonly Box box;
         private readonly Container text;

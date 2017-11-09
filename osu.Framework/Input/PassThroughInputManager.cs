@@ -7,7 +7,7 @@ using OpenTK;
 
 namespace osu.Framework.Input
 {
-    public class PassThroughInputManager : CustomInputManager, IHandleOnMouseMove, IHandleOnMouseDown, IHandleOnMouseUp, IHandleOnKeyDown, IHandleOnKeyUp
+    public class PassThroughInputManager : CustomInputManager, IHandleMouseMove, IHandleMouseButtons, IHandleKeys
     {
         /// <summary>
         /// If there's an InputManager above us, decide whether we should use their available state.
@@ -64,6 +64,9 @@ namespace osu.Framework.Input
         public virtual bool OnMouseDown(InputState state, MouseDownEventArgs args) => acceptState(state);
 
         public virtual bool OnMouseUp(InputState state, MouseUpEventArgs args) => acceptState(state);
+        public virtual bool OnClick(InputState state) => false;
+
+        public virtual bool OnDoubleClick(InputState state) => false;
 
         public virtual bool OnKeyDown(InputState state, KeyDownEventArgs args) => acceptState(state);
 

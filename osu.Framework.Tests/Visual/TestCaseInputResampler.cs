@@ -182,7 +182,7 @@ namespace osu.Framework.Tests.Visual
             }
         }
 
-        private class UserDrawnPath : SmoothedPath, IHandleOnDragStart, IHandleOnDrag
+        private class UserDrawnPath : SmoothedPath, IHandleDrag
         {
             public override bool HandleInput => true;
 
@@ -203,6 +203,8 @@ namespace osu.Framework.Tests.Visual
                 DrawText.Text = "Custom Smoothed Drawn: Smoothed=" + NumVertices + ", Raw=" + NumRaw;
                 return false;
             }
+
+            public bool OnDragEnd(InputState state) => false;
         }
 
         private class SmoothedUserDrawnPath : UserDrawnPath

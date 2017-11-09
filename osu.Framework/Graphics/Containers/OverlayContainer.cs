@@ -8,7 +8,7 @@ namespace osu.Framework.Graphics.Containers
     /// <summary>
     /// An element which starts hidden and can be toggled to visible.
     /// </summary>
-    public abstract class OverlayContainer : VisibilityContainer, IHandleOnHover, IHandleOnMouseDown, IHandleOnClick, IHandleOnDragStart, IHandleOnWheel, IHandleOnKeyDown, IHandleOnKeyUp
+    public abstract class OverlayContainer : VisibilityContainer, IHandleHover, IHandleMouseButtons, IHandleDrag, IHandleKeys, IHandleWheel
     {
         /// <summary>
         /// Whether we should block any mouse input from interacting with things behind us.
@@ -21,12 +21,20 @@ namespace osu.Framework.Graphics.Containers
         protected virtual bool BlockPassThroughKeyboard => false;
 
         public virtual bool OnHover(InputState state) => BlockPassThroughMouse;
+        public virtual void OnHoverLost(InputState state)
+        {
+        }
 
         public virtual bool OnMouseDown(InputState state, MouseDownEventArgs args) => BlockPassThroughMouse;
+        public virtual bool OnMouseUp(InputState state, MouseUpEventArgs args) => false;
 
         public virtual bool OnClick(InputState state) => BlockPassThroughMouse;
+        public virtual bool OnDoubleClick(InputState state) => false;
 
         public virtual bool OnDragStart(InputState state) => BlockPassThroughMouse;
+        public virtual bool OnDrag(InputState state) => false;
+
+        public virtual bool OnDragEnd(InputState state) => false;
 
         public virtual bool OnWheel(InputState state) => BlockPassThroughMouse;
 

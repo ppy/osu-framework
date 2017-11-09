@@ -22,7 +22,7 @@ using System.Linq;
 
 namespace osu.Framework.Graphics.Performance
 {
-    internal class FrameStatisticsDisplay : Container, IStateful<FrameStatisticsMode>, IHandleOnKeyDown, IHandleOnKeyUp
+    internal class FrameStatisticsDisplay : Container, IStateful<FrameStatisticsMode>, IHandleKeys
     {
         protected const int WIDTH = 800;
         protected const int HEIGHT = 100;

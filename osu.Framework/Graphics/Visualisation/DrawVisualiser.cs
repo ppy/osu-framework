@@ -10,7 +10,7 @@ using osu.Framework.Threading;
 
 namespace osu.Framework.Graphics.Visualisation
 {
-    public class DrawVisualiser : OverlayContainer, IHandleOnMouseMove
+    public class DrawVisualiser : OverlayContainer, IHandleMouseMove
     {
         private readonly TreeContainer treeContainer;
         private VisualisedDrawable highlightedTarget;

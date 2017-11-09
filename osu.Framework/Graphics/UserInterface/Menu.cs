@@ -19,7 +19,7 @@ using OpenTK.Input;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class Menu : CompositeDrawable, IStateful<MenuState>, IHandleOnKeyDown, IHandleOnClick, IHandleOnHover, IHandleOnFocusLost
+    public class Menu : CompositeDrawable, IStateful<MenuState>, IHandleHover, IHandleFocus, IHandleMouseButtons, IHandleKeys
     {
         /// <summary>
         /// Invoked when this <see cref="Menu"/>'s <see cref="State"/> changes.
@@ -477,12 +477,27 @@ namespace osu.Framework.Graphics.UserInterface
             return false;
         }
 
+        public virtual bool OnKeyUp(InputState state, KeyUpEventArgs args) => false;
+
+        public virtual bool OnMouseDown(InputState state, MouseDownEventArgs args) => false;
+
+        public virtual bool OnMouseUp(InputState state, MouseUpEventArgs args) => false;
+
         public virtual bool OnClick(InputState state) => true;
+        public virtual bool OnDoubleClick(InputState state) => false;
+
         public virtual bool OnHover(InputState state) => true;
+        public virtual void OnHoverLost(InputState state)
+        {
+        }
 
         public override bool AcceptsFocus => !TopLevelMenu;
 
         public override bool RequestsFocus => !TopLevelMenu && State == MenuState.Open;
+
+        public virtual void OnFocus(InputState state)
+        {
+        }
 
         public virtual void OnFocusLost(InputState state)
         {
@@ -535,7 +550,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         #region DrawableMenuItem
         // must be public due to mono bug(?) https://github.com/ppy/osu/issues/1204
-        public class DrawableMenuItem : CompositeDrawable, IStateful<MenuItemState>, IHandleOnHover, IHandleOnHoverLost, IHandleOnClick
+        public class DrawableMenuItem : CompositeDrawable, IStateful<MenuItemState>, IHandleHover, IHandleMouseButtons
         {
             /// <summary>
             /// Invoked when this <see cref="DrawableMenuItem"/>'s <see cref="State"/> changes.
@@ -734,6 +749,10 @@ namespace osu.Framework.Graphics.UserInterface
 
             private bool hasSubmenu => Item.Items?.Count > 0;
 
+            public virtual bool OnMouseDown(InputState state, MouseDownEventArgs args) => false;
+
+            public virtual bool OnMouseUp(InputState state, MouseUpEventArgs args) => false;
+
             public virtual bool OnClick(InputState state)
             {
                 if (Item.Action.Disabled)
@@ -746,6 +765,8 @@ namespace osu.Framework.Graphics.UserInterface
 
                 return true;
             }
+
+            public virtual bool OnDoubleClick(InputState state) => false;
 
             /// <summary>
             /// Creates the background of this <see cref="DrawableMenuItem"/>.
