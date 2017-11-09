@@ -39,17 +39,6 @@ namespace osu.Framework.Graphics.Transforms
         /// </summary>
         protected double TransformDelay { get; private set; }
 
-        /// <summary>
-        /// Whether a parent is allowed to clear this <see cref="Transformable"/>'s <see cref="Transform"/>s
-        /// through <see cref="ClearTransforms(bool, string)"/> and <see cref="ClearTransformsAfter(double, bool)"/>.
-        /// </summary>
-        protected internal virtual bool AllowTransformClearByParent => true;
-
-        /// <summary>
-        /// Whether a parent is allowed to transform the state of this <see cref="Transformable"/> through <see cref="ApplyTransformsAt(double, bool)"/>.
-        /// </summary>
-        protected internal virtual bool AllowStateTransformByParent => true;
-
         private SortedList<Transform> transformsLazy;
 
         private SortedList<Transform> transforms => transformsLazy ?? (transformsLazy = new SortedList<Transform>(Transform.COMPARER));

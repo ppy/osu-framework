@@ -701,11 +701,7 @@ namespace osu.Framework.Graphics.Containers
                 return;
 
             foreach (var c in internalChildren)
-            {
-                if (!c.AllowStateTransformByParent)
-                    continue;
                 c.ApplyTransformsAt(time, true);
-            }
         }
 
         public override void ClearTransformsAfter(double time, bool propagateChildren = false, string targetMember = null)
@@ -716,12 +712,7 @@ namespace osu.Framework.Graphics.Containers
                 return;
 
             foreach (var c in internalChildren)
-            {
-                if (!c.AllowTransformClearByParent)
-                    continue;
-
                 c.ClearTransformsAfter(time, true, targetMember);
-            }
         }
 
         internal override void AddDelay(double duration, bool propagateChildren = false)
