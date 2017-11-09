@@ -97,6 +97,62 @@ namespace osu.Framework.Extensions
             return !list.Where((t, i) => !EqualityComparer<T>.Default.Equals(t, list2[i])).Any();
         }
 
+        /// <summary>
+        /// Converts a rectangular array to a jagged array.
+        /// <para>
+        /// The jagged array will contain empty arrays if there are no columns in the rectangular array.
+        /// </para>
+        /// </summary>
+        /// <param name="rectangular">The rectangular array.</param>
+        /// <returns>The jagged array.</returns>
+        public static T[][] ToJagged<T>(this T[,] rectangular)
+        {
+            if (rectangular == null)
+                return null;
+
+            var jagged = new T[rectangular.GetLength(0)][];
+            for (int r = 0; r < rectangular.GetLength(0); r++)
+            {
+                jagged[r] = new T[rectangular.GetLength(1)];
+                for (int c = 0; c < rectangular.GetLength(1); c++)
+                    jagged[r][c] = rectangular[r, c];
+            }
+
+            return jagged;
+        }
+
+        /// <summary>
+        /// Converts a jagged array to a rectangular array.
+        /// <para>
+        /// All elements that did not exist in the original jagged array are initialized to their default values.
+        /// </para>
+        /// </summary>
+        /// <param name="jagged">The jagged array.</param>
+        /// <returns>The rectangular array.</returns>
+        public static T[,] ToRectangular<T>(this T[][] jagged)
+        {
+            if (jagged == null)
+                return null;
+
+            var rows = jagged.Length;
+            var cols = rows == 0 ? 0 : jagged.Max(c => c?.Length ?? 0);
+
+            var rectangular = new T[rows, cols];
+            for (int r = 0; r < rows; r++)
+                for (int c = 0; c < cols; c++)
+                {
+                    if (jagged[r] == null)
+                        continue;
+
+                    if (c >= jagged[r].Length)
+                        continue;
+
+                    rectangular[r, c] = jagged[r][c];
+                }
+
+            return rectangular;
+        }
+
         public static string ToResolutionString(this Size size)
         {
             return size.Width.ToString() + 'x' + size.Height;
