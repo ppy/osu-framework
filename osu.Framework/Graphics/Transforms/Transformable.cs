@@ -46,7 +46,7 @@ namespace osu.Framework.Graphics.Transforms
         protected internal virtual bool AllowTransformClearByParent => true;
 
         /// <summary>
-        /// Whether a parent is allowed to transform the state of this <see cref="Transformable"/> through <see cref="RewindTransformsTo(double, bool)"/>.
+        /// Whether a parent is allowed to transform the state of this <see cref="Transformable"/> through <see cref="ApplyTransformsAt(double, bool)"/>.
         /// </summary>
         protected internal virtual bool AllowStateTransformByParent => true;
 
@@ -248,19 +248,16 @@ namespace osu.Framework.Graphics.Transforms
         }
 
         /// <summary>
-        /// Rewinds all <see cref="Transform"/>s to a point in the past. This may only be called if <see cref="RemoveCompletedTransforms"/> is set to false.
+        /// Applies <see cref="Transform"/>s at a point in time. This may only be called if <see cref="RemoveCompletedTransforms"/> is set to false.
         /// <para>
         /// This does not change the clock time.
         /// </para>
         /// </summary>
-        /// <param name="time">The time to transform the state to.</param>
-        /// <param name="propagateChildren">Whether to also transform the state of children to <paramref name="time"/>.</param>
-        public virtual void RewindTransformsTo(double time, bool propagateChildren = false)
+        /// <param name="time">The time to apply <see cref="Transform"/>s at.</param>
+        /// <param name="propagateChildren">Whether to also apply children's <see cref="Transform"/>s at <paramref name="time"/>.</param>
+        public virtual void ApplyTransformsAt(double time, bool propagateChildren = false)
         {
-            if (time == Time.Current) return; // NOP
-            if (time > Time.Current) throw new ArgumentOutOfRangeException(nameof(time), "Time value must be in the past.");
-            if (RemoveCompletedTransforms) throw new InvalidOperationException($"Cannot rewind transforms with {nameof(RemoveCompletedTransforms)} active.");
-
+            if (RemoveCompletedTransforms) throw new InvalidOperationException($"Cannot arbitrarily apply transforms with {nameof(RemoveCompletedTransforms)} active.");
             updateTransforms(time);
         }
 
