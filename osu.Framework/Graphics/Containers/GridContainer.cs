@@ -1,7 +1,6 @@
 // Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System;
 using System.Linq;
 using OpenTK;
 using osu.Framework.Caching;
@@ -36,7 +35,7 @@ namespace osu.Framework.Graphics.Containers
 
         private Dimension[] rowDimensions;
         /// <summary>
-        /// Explicit dimensions for rows. This is only required for rows where absolute/relative sizing is desired.
+        /// Explicit dimensions for rows. Each index of this array applies to the respective row index inside <see cref="Content"/>.
         /// </summary>
         public Dimension[] RowDimensions
         {
@@ -44,18 +43,15 @@ namespace osu.Framework.Graphics.Containers
             {
                 if (rowDimensions == value)
                     return;
-
-                if (value.GroupBy(v => v.Index).Any(g => g.Count() > 1))
-                    throw new ArgumentException($"Indices defined by {nameof(RowDimensions)} must be unique.", nameof(value));
-
                 rowDimensions = value;
+
                 cellLayout.Invalidate();
             }
         }
 
         private Dimension[] columnDimensions;
         /// <summary>
-        /// Explicit dimensions for columns. This is only required for columns where absolute/relative sizing is desired.
+        /// Explicit dimensions for columns. Each index of this array applies to the respective column index inside <see cref="Content"/>.
         /// </summary>
         public Dimension[] ColumnDimensions
         {
@@ -63,11 +59,8 @@ namespace osu.Framework.Graphics.Containers
             {
                 if (columnDimensions == value)
                     return;
-
-                if (value.GroupBy(v => v.Index).Any(g => g.Count() > 1))
-                    throw new ArgumentException($"Indices defined by {nameof(ColumnDimensions)} must be unique.", nameof(value));
-
                 columnDimensions = value;
+
                 cellLayout.Invalidate();
             }
         }
@@ -82,7 +75,7 @@ namespace osu.Framework.Graphics.Containers
 
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
-            if ((invalidation & Invalidation.DrawSize) > 0)
+            if ((invalidation & (Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit)) > 0)
                 cellLayout.Invalidate();
 
             return base.Invalidate(invalidation, source, shallPropagate);
@@ -121,7 +114,7 @@ namespace osu.Framework.Graphics.Containers
                 for (int c = 0; c < cellColumns; c++)
                 {
                     // Add cell
-                    AddInternal(cells[r, c] = new CellContainer());
+                    cells[r, c] = new CellContainer();
 
                     // Allow empty rows
                     if (Content[r] == null)
@@ -137,6 +130,9 @@ namespace osu.Framework.Graphics.Containers
 
                     // Add content
                     cells[r, c].Add(Content[r][c]);
+                    cells[r, c].Depth = Content[r][c].Depth;
+
+                    AddInternal(cells[r, c]);
                 }
 
             cellContent.Validate();
@@ -165,22 +161,24 @@ namespace osu.Framework.Graphics.Containers
             // Compute the width of explicitly-defined columns
             if (columnDimensions?.Length > 0)
             {
-                foreach (var d in columnDimensions)
+                for (int i = 0; i < columnDimensions.Length; i++)
                 {
-                    if (d.Index >= cellColumns)
+                    if (i >= cellColumns)
                         continue;
+
+                    var d = columnDimensions[i];
+                    if (d.Mode == GridSizeMode.Auto)
+                        continue;
+
+                    float cellWidth = d.Mode == GridSizeMode.Relative ? d.Size * DrawWidth : d.Size;
 
                     for (int r = 0; r < cellRows; r++)
                     {
-                        cells[r, d.Index].IsWidthDefined = true;
-
-                        if (d.Relative)
-                            cells[r, d.Index].Width = d.Size * DrawWidth;
-                        else
-                            cells[r, d.Index].Width = d.Size;
+                        cells[r, i].Width = cellWidth;
+                        cells[r, i].IsWidthDefined = true;
                     }
 
-                    definedWidth += d.Size;
+                    definedWidth += cellWidth;
                     autoSizedColumns--;
                 }
             }
@@ -188,22 +186,24 @@ namespace osu.Framework.Graphics.Containers
             // Compute the height of explicitly-defined rows
             if (rowDimensions?.Length > 0)
             {
-                foreach (var d in rowDimensions)
+                for (int i = 0; i < rowDimensions.Length; i++)
                 {
-                    if (d.Index >= cellRows)
+                    if (i >= cellRows)
                         continue;
+
+                    var d = rowDimensions[i];
+                    if (d.Mode == GridSizeMode.Auto)
+                        continue;
+
+                    float cellHeight = d.Mode == GridSizeMode.Relative ? d.Size * DrawHeight : d.Size;
 
                     for (int c = 0; c < cellColumns; c++)
                     {
-                        cells[d.Index, c].IsHeightDefined = true;
-
-                        if (d.Relative)
-                            cells[d.Index, c].Height = d.Size * DrawHeight;
-                        else
-                            cells[d.Index, c].Height = d.Size;
+                        cells[i, c].IsHeightDefined = true;
+                        cells[i, c].Height = cellHeight;
                     }
 
-                    definedHeight += d.Size;
+                    definedHeight += cellHeight;
                     autoSizedRows--;
                 }
             }
@@ -256,31 +256,41 @@ namespace osu.Framework.Graphics.Containers
     public struct Dimension
     {
         /// <summary>
-        /// The index of the row or column in the <see cref="GridContainer"/> which this <see cref="Dimension"/> applies to.
+        /// The mode in which this row or column <see cref="GridContainer"/> is sized.
         /// </summary>
-        public int Index;
+        public GridSizeMode Mode { get; private set; }
 
         /// <summary>
         /// The size of the row or column which this <see cref="Dimension"/> applies to.
         /// </summary>
-        public float Size;
-
-        /// <summary>
-        /// Whether <see cref="Size"/> is relative to <see cref="GridContainer.Size"/>.
-        /// </summary>
-        public bool Relative;
+        public float Size { get; private set; }
 
         /// <summary>
         /// Constructs a new <see cref="Dimension"/>.
         /// </summary>
-        /// <param name="index">The index of the row or column in the <see cref="GridContainer"/> which this <see cref="Dimension"/> applies to.</param>
-        public Dimension(int index)
+        /// <param name="mode">The sizing mode to use.</param>
+        /// <param name="size">The size of this row or column. This only has an effect if <paramref name="mode"/> is not <see cref="GridSizeMode.Auto"/>.</param>
+        public Dimension(GridSizeMode mode = GridSizeMode.Auto, float size = 0)
         {
-            if (index < 0) throw new ArgumentOutOfRangeException(nameof(index));
-
-            Index = index;
-            Size = 0;
-            Relative = false;
+            Mode = mode;
+            Size = size;
         }
+    }
+
+    public enum GridSizeMode
+    {
+        /// <summary>
+        /// Any remaining area of the <see cref="GridContainer"/> will be divided amongst this and all
+        /// other elements which use <see cref="GridSizeMode.Auto"/>.
+        /// </summary>
+        Auto,
+        /// <summary>
+        /// This element should be sized relative to the dimensions of the <see cref="GridContainer"/>.
+        /// </summary>
+        Relative,
+        /// <summary>
+        /// This element has a size independent of the <see cref="GridContainer"/>.
+        /// </summary>
+        Absolute
     }
 }
