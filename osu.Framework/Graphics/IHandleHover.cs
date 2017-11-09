@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics
         /// <param name="state">The state at which the Drawable becomes hovered.</param>
         /// <returns>True if this Drawable would like to handle the hover. If so, then
         /// no further Drawables up the scene graph will receive hovering events. If
-        /// false, however, then <see cref="IHandleOnHoverLost.OnHoverLost(InputState)"/> will still be
+        /// false, however, then <see cref="OnHoverLost(InputState)"/> will still be
         /// received once hover is lost.</returns>
         bool OnHover(InputState state);
 

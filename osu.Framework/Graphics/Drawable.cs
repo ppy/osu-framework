@@ -1674,7 +1674,7 @@ namespace osu.Framework.Graphics
         public virtual bool RequestsFocus => false;
 
         /// <summary>
-        /// If true, we will gain focus (receiving priority on keybaord input) (and receive an <see cref="IHandleOnFocus.OnFocus"/> event) on returning true in <see cref="IHandleOnClick.OnClick(InputState)"/>.
+        /// If true, we will gain focus (receiving priority on keybaord input) (and receive an <see cref="IHandleFocus.OnFocus"/> event) on returning true in <see cref="IHandleMouseButtons.OnClick(InputState)"/>.
         /// </summary>
         public virtual bool AcceptsFocus => false;
 

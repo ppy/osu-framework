@@ -90,7 +90,7 @@ namespace osu.Framework.Input
 
         /// <summary>
         /// Contains all hovered <see cref="Drawable"/>s in top-down order up to the first
-        /// which returned true in its <see cref="IHandleOnHover.OnHover(InputState)"/> method.
+        /// which returned true in its <see cref="IHandleHover.OnHover(InputState)"/> method.
         /// Top-down in this case means reverse draw order, i.e. the front-most visible
         /// <see cref="Drawable"/> first, and <see cref="Container"/>s after their children.
         /// </summary>
@@ -98,13 +98,13 @@ namespace osu.Framework.Input
 
         /// <summary>
         /// The <see cref="Drawable"/> which returned true in its
-        /// <see cref="IHandleOnHover.OnHover(InputState)"/> method, or null if none did so.
+        /// <see cref="IHandleHover.OnHover(InputState)"/> method, or null if none did so.
         /// </summary>
         private Drawable hoverHandledDrawable;
 
         /// <summary>
         /// Contains all hovered <see cref="Drawable"/>s in top-down order up to the first
-        /// which returned true in its <see cref="IHandleOnHover.OnHover(InputState)"/> method.
+        /// which returned true in its <see cref="IHandleHover.OnHover(InputState)"/> method.
         /// Top-down in this case means reverse draw order, i.e. the front-most visible
         /// <see cref="Drawable"/> first, and <see cref="Container"/>s after their children.
         /// </summary>
@@ -113,7 +113,7 @@ namespace osu.Framework.Input
         /// <summary>
         /// Contains all <see cref="Drawable"/>s in top-down order which are considered
         /// for positional input. This list is the same as <see cref="HoveredDrawables"/>, only
-        /// that the return value of <see cref="IHandleOnHover.OnHover(InputState)"/> is not taken
+        /// that the return value of <see cref="IHandleHover.OnHover(InputState)"/> is not taken
         /// into account.
         /// </summary>
         public IReadOnlyList<Drawable> PositionalInputQueue => positionalInputQueue;

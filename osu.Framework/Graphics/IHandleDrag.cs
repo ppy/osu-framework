@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="state">The state after the mouse was moved.</param>
         /// <returns>True if this Drawable accepts being dragged. If so, then future
-        /// <see cref="IHandleOnDrag.OnDrag(InputState)"/> and <see cref="IHandleOnDragEnd.OnDragEnd(InputState)"/>
+        /// <see cref="OnDrag(InputState)"/> and <see cref="OnDragEnd(InputState)"/>
         /// events will be received. Otherwise, the event is propagated up the scene
         /// graph to the next eligible Drawable.</returns>
         bool OnDragStart(InputState state);
@@ -21,7 +21,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Triggered whenever the mouse is moved while dragging.
         /// Only is received if a drag was previously initiated by returning true
-        /// from <see cref="IHandleOnDragStart.OnDragStart(InputState)"/>.
+        /// from <see cref="OnDragStart(InputState)"/>.
         /// </summary>
         /// <param name="state">The state after the mouse was moved.</param>
         /// <returns>Currently unused.</returns>
@@ -29,7 +29,7 @@ namespace osu.Framework.Graphics
 
         /// <summary>
         /// Triggered whenever a drag ended. Only is received if a drag was previously
-        /// initiated by returning true from <see cref="IHandleOnDragStart.OnDragStart(InputState)"/>.
+        /// initiated by returning true from <see cref="OnDragStart(InputState)"/>.
         /// </summary>
         /// <param name="state">The state after the drag ended.</param>
         /// <returns>Currently unused.</returns>
