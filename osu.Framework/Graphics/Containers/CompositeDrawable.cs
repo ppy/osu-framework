@@ -719,7 +719,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 if (!c.AllowStateTransformByParent)
                     continue;
-                c.TransformStateTo(time, propagateChildren);
+                c.TransformStateTo(time, true);
             }
         }
 
@@ -735,7 +735,7 @@ namespace osu.Framework.Graphics.Containers
                 if (!c.AllowTransformClearByParent)
                     continue;
 
-                c.ClearTransformsAfter(time, propagateChildren);
+                c.ClearTransformsAfter(time, true);
             }
         }
 

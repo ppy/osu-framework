@@ -257,6 +257,7 @@ namespace osu.Framework.Graphics.Transforms
         /// If <see cref="RemoveCompletedTransforms"/> is set to true, then all <see cref="Transform"/>s until <paramref name="time"/> will be removed.
         /// If <see cref="RemoveCompletedTransforms"/> is set to false, then no <see cref="Transform"/>s will be removed.
         /// </para>
+        /// </summary>
         /// <param name="time">The time to transform the state to.</param>
         /// <param name="propagateChildren">Whether to also transform the state of children to <paramref name="time"/>.</param>
         public virtual void TransformStateTo(double time, bool propagateChildren = false) => updateTransforms(time);
