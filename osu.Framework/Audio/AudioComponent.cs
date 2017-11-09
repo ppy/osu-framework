@@ -21,9 +21,16 @@ namespace osu.Framework.Audio
         }
 
         /// <summary>
+        /// Run each loop of the audio thread after queued actions to allow components to update anything they need to.
+        /// </summary>
+        protected virtual void UpdateState()
+        {
+        }
+
+        /// <summary>
         /// Updates this audio component. Always runs on the audio thread.
         /// </summary>
-        public virtual void Update()
+        public void Update()
         {
             ThreadSafety.EnsureNotUpdateThread();
             if (IsDisposed)
@@ -35,6 +42,9 @@ namespace osu.Framework.Audio
             Action action;
             while (!IsDisposed && PendingActions.TryDequeue(out action))
                 action();
+
+            if (!IsDisposed)
+                UpdateState();
         }
 
         public virtual bool HasCompleted => IsDisposed;

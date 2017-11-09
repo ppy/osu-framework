@@ -52,9 +52,9 @@ namespace osu.Framework.Audio
                 item.UpdateDevice(deviceIndex);
         }
 
-        public override void Update()
+        protected override void UpdateState()
         {
-            base.Update();
+            base.UpdateState();
 
             for (int i = 0; i < Items.Count; i++)
             {

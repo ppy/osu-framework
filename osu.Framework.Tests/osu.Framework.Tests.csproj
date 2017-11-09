@@ -7,6 +7,7 @@
     <OutputType>WinExe</OutputType>
     <RootNamespace>osu.Framework.Tests</RootNamespace>
     <AssemblyName>osu.Framework.Tests</AssemblyName>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -35,6 +36,9 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed">
+      <HintPath>$(SolutionDir)\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="nunit.framework, Version=3.8.1.0, Culture=neutral, PublicKeyToken=2638cd05610744eb, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)\packages\NUnit.3.8.1\lib\net45\nunit.framework.dll</HintPath>
       <Private>True</Private>
@@ -45,9 +49,11 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Net.Http" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AutomatedVisualTestGame.cs" />
+    <Compile Include="IO\TestWebRequest.cs" />
     <Compile Include="Lists\TestSortedList.cs" />
     <Compile Include="MathUtils\TestInterpolation.cs" />
     <Compile Include="Platform\HeadlessGameHostTest.cs" />
@@ -65,6 +71,7 @@
     <Compile Include="Visual\TestCaseContainerState.cs" />
     <Compile Include="Visual\TestCaseContextMenu.cs" />
     <Compile Include="Visual\TestCaseCoordinateSpaces.cs" />
+    <Compile Include="Visual\TestCaseCountingText.cs" />
     <Compile Include="Visual\TestCaseDelayedLoad.cs" />
     <Compile Include="Visual\TestCaseDrawablePath.cs" />
     <Compile Include="Visual\TestCaseDspfContainer.cs" />
@@ -82,6 +89,7 @@
     <Compile Include="Visual\TestCaseNestedMenus.cs" />
     <Compile Include="Visual\TestCasePadding.cs" />
     <Compile Include="Visual\TestCasePropertyBoundaries.cs" />
+    <Compile Include="Visual\TestCaseTransformRewinding.cs" />
     <Compile Include="Visual\TestCaseRigidBody.cs" />
     <Compile Include="Visual\TestCaseScreen.cs" />
     <Compile Include="Visual\TestCaseScrollableFlow.cs" />

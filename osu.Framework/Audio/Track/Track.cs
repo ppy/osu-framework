@@ -95,7 +95,7 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         public virtual TrackAmplitudes CurrentAmplitudes => new TrackAmplitudes();
 
-        public override void Update()
+        protected override void UpdateState()
         {
             FrameStatistics.Increment(StatisticsCounterType.Tracks);
 
@@ -105,7 +105,7 @@ namespace osu.Framework.Audio.Track
                 Start();
             }
 
-            base.Update();
+            base.UpdateState();
         }
     }
 }

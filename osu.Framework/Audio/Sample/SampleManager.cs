@@ -51,10 +51,10 @@ namespace osu.Framework.Audio.Sample
             base.UpdateDevice(deviceIndex);
         }
 
-        public override void Update()
+        protected override void UpdateState()
         {
             FrameStatistics.Add(StatisticsCounterType.Samples, sampleCache.Count);
-            base.Update();
+            base.UpdateState();
         }
 
         public Stream GetStream(string name)

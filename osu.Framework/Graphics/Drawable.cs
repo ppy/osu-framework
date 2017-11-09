@@ -135,12 +135,13 @@ namespace osu.Framework.Graphics
 
             loadState = LoadState.Loading;
 
-            return loadTask = Task.Run(() => Load(target.Clock, target.Dependencies)).ContinueWith(task => game.Schedule(() =>
-            {
-                task.ThrowIfFaulted();
-                onLoaded?.Invoke();
-                loadTask = null;
-            }));
+            return loadTask = Task.Factory.StartNew(() => Load(target.Clock, target.Dependencies), TaskCreationOptions.LongRunning)
+                                  .ContinueWith(task => game.Schedule(() =>
+                                  {
+                                      task.ThrowIfFaulted();
+                                      onLoaded?.Invoke();
+                                      loadTask = null;
+                                  }));
         }
 
         private static readonly StopwatchClock perf = new StopwatchClock(true);
@@ -449,7 +450,7 @@ namespace osu.Framework.Graphics
 
                 if ((value & Axes.Y) > (relativePositionAxes & Axes.Y))
                     Y = conversion.Y == 0 ? 0 : Y / conversion.Y;
-                else if ((relativePositionAxes & Axes.X) > (value & Axes.X))
+                else if ((relativePositionAxes & Axes.Y) > (value & Axes.Y))
                     Y *= conversion.Y;
 
                 relativePositionAxes = value;
@@ -1951,11 +1952,7 @@ namespace osu.Framework.Graphics
                 return;
             }
 
-            //expiry should happen either at the end of the last transform or using the current sequence delay (whichever is highest).
-            double max = TransformStartTime;
-            foreach (Transform t in Transforms)
-                if (t.EndTime > max) max = t.EndTime + 1; //adding 1ms here ensures we can expire on the current frame without issue.
-            LifetimeEnd = max;
+            LifetimeEnd = LatestTransformEndTime;
 
             if (calculateLifetimeStart)
             {

@@ -43,10 +43,10 @@ namespace osu.Framework.Audio.Sample
             base.Dispose(disposing);
         }
 
-        public override void Update()
+        protected override void UpdateState()
         {
             FrameStatistics.Increment(StatisticsCounterType.SChannels);
-            base.Update();
+            base.UpdateState();
         }
 
         public abstract bool Playing { get; }

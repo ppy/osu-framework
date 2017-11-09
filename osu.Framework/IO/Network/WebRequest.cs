@@ -3,48 +3,69 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Net;
-using System.Net.Sockets;
-using System.Reflection;
-using System.Security.Cryptography.X509Certificates;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading;
-using osu.Framework.Extensions;
+using System.Threading.Tasks;
+using osu.Framework.Configuration;
+using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Logging;
 
 namespace osu.Framework.IO.Network
 {
     public class WebRequest : IDisposable
     {
-        /// <summary>
-        /// Update has progressed.
-        /// </summary>
-        /// <param name="request">The request.</param>
-        /// <param name="current">Total bytes processed.</param>
-        /// <param name="total">Total bytes required.</param>
-        public delegate void RequestUpdateHandler(WebRequest request, long current, long total);
+        internal const int MAX_RETRIES = 1;
 
         /// <summary>
-        /// Request has completed.
+        /// Invoked when a response has been received, but not data has been received.
         /// </summary>
-        /// <param name="request">The request.</param>
-        /// <param name="e">An error, if an error occurred, else null.</param>
-        public delegate void RequestCompleteHandler(WebRequest request, Exception e);
+        public event Action Started;
 
         /// <summary>
-        /// Request has completed.
+        /// Invoked when the <see cref="WebRequest"/> has finished.
+        /// An unsuccessful completion is indicated by the presence of an exception.
         /// </summary>
-        /// <param name="request">The request.</param>
-        /// <param name="e">An error, if an error occurred, else null.</param>
-        public delegate void RequestCompleteHandler<T>(JsonWebRequest<T> request, Exception e);
+        public event Action<Exception> Finished;
 
         /// <summary>
-        /// Request has started.
+        /// Invoked when the download progress has changed.
         /// </summary>
-        /// <param name="request">The request.</param>
-        public delegate void RequestStartedHandler(WebRequest request);
+        public event Action<long, long> DownloadProgress;
+
+        /// <summary>
+        /// Invoked when the upload progress has changed.
+        /// </summary>
+        public event Action<long, long> UploadProgress;
+
+        /// <summary>
+        /// Whether the <see cref="WebRequest"/> was aborted due to an exception or a user abort request.
+        /// </summary>
+        public bool Aborted { get; private set; }
+
+        private bool completed;
+        /// <summary>
+        /// Whether the <see cref="WebRequest"/> has been run.
+        /// </summary>
+        public bool Completed
+        {
+            get { return completed; }
+            private set
+            {
+                completed = value;
+                if (!completed) return;
+
+                // WebRequests can only be used once - no need to keep events bound
+                // This helps with disposal in PerformAsync usages
+                Started = null;
+                Finished = null;
+                DownloadProgress = null;
+                UploadProgress = null;
+            }
+        }
 
         private string url;
 
@@ -65,55 +86,19 @@ namespace osu.Framework.IO.Network
         }
 
         /// <summary>
-        /// The request has been aborted by the user or due to an exception.
-        /// </summary>
-        public bool Aborted { get; private set; }
-
-        /// <summary>
-        /// The request has been executed and successfully completed.
-        /// </summary>
-        public bool Completed { get; private set; }
-
-        /// <summary>
-        /// Monitor upload progress.
-        /// </summary>
-        public event RequestUpdateHandler UploadProgress;
-
-        /// <summary>
-        /// Monitor download progress.
-        /// </summary>
-        public event RequestUpdateHandler DownloadProgress;
-
-        /// <summary>
-        /// Request has finished with success or failure. Check exception == null for success.
-        /// </summary>
-        public event RequestCompleteHandler Finished;
-
-        /// <summary>
-        /// Request has started.
-        /// </summary>
-        public event RequestStartedHandler Started;
-
-        /// <summary>
-        /// To avoid memory leaks due to delegates being bound to events, on request completion events are removed by default.
-        /// This controls whether they should be kept to allow for further requests.
-        /// </summary>
-        public bool KeepEventsBound;
-
-        /// <summary>
         /// POST parameters.
         /// </summary>
-        public Dictionary<string, string> Parameters = new Dictionary<string, string>();
+        private readonly Dictionary<string, string> parameters = new Dictionary<string, string>();
 
         /// <summary>
         /// FILE parameters.
         /// </summary>
-        public Dictionary<string, byte[]> Files = new Dictionary<string, byte[]>();
+        private readonly IDictionary<string, byte[]> files = new Dictionary<string, byte[]>();
 
         /// <summary>
-        /// Headers.
+        /// The request headers.
         /// </summary>
-        public Dictionary<string, string> Headers = new Dictionary<string, string>();
+        private readonly IDictionary<string, string> headers = new Dictionary<string, string>();
 
         public const int DEFAULT_TIMEOUT = 10000;
 
@@ -124,22 +109,27 @@ namespace osu.Framework.IO.Network
         /// </summary>
         public int Timeout = DEFAULT_TIMEOUT;
 
-        private static readonly Logger logger;
+        /// <summary>
+        /// The type of content expected by this web request.
+        /// </summary>
+        protected virtual string Accept => string.Empty;
+
+        internal int RetryCount { get; private set; }
 
         /// <summary>
-        /// The remote IP address used for this connection.
+        /// Whether this request should internally retry (up to <see cref="MAX_RETRIES"/> times) on a timeout before throwing an exception.
         /// </summary>
-        private string address;
+        public bool AllowRetryOnTimeout { get; set; } = true;
+
+        private static readonly Logger logger;
+
+        private static HttpClient client;
 
         static WebRequest()
         {
-            //set some sane defaults for ServicePoints
-            ServicePointManager.Expect100Continue = false;
-            ServicePointManager.DefaultConnectionLimit = 12;
-            ServicePointManager.CheckCertificateRevocationList = false;
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls;
+            createHttpClient();
 
-            logger = Logger.GetLogger(LoggingTarget.Network, true);
+            logger = Logger.GetLogger(LoggingTarget.Network);
         }
 
         public WebRequest(string url = null, params object[] args)
@@ -153,91 +143,10 @@ namespace osu.Framework.IO.Network
             Dispose(false);
         }
 
-        private HttpWebRequest request;
-        private HttpWebResponse response;
-
-        private Stream internalResponseStream;
-
-        private static readonly AddressFamily? preferred_network = AddressFamily.InterNetwork;
-
-        /// <summary>
-        /// Does a manual DNS lookup and forcefully uses IPv4 by shoving IP addresses where the host normally is.
-        /// Unreliable for HTTPS+Cloudflare? Only use when necessary.
-        /// </summary>
-        public static bool UseExplicitIPv4Requests;
-
-        private static bool? useFallbackPath;
-        private bool didGetIPv6IP;
-
-        protected virtual HttpWebRequest CreateWebRequest(string requestString = null)
-        {
-            HttpWebRequest req;
-
-            string requestUrl = string.IsNullOrEmpty(requestString) ? Url : $@"{Url}?{requestString}";
-
-            if (useFallbackPath != true && !UseExplicitIPv4Requests)
-            {
-                req = (HttpWebRequest)System.Net.WebRequest.Create(requestUrl);
-                req.ServicePoint.BindIPEndPointDelegate += bindEndPoint;
-            }
-            else
-            {
-                string baseHost = requestUrl.Split('/', ':')[3];
-
-                var addresses = Dns.GetHostAddresses(baseHost);
-
-                address = null;
-
-                foreach (var ip in addresses)
-                {
-                    bool preferred = ip.AddressFamily == preferred_network;
-
-                    if (!preferred && address != null)
-                        continue;
-
-                    switch (ip.AddressFamily)
-                    {
-                        case AddressFamily.InterNetwork:
-                            address = $@"{ip}";
-                            break;
-                        case AddressFamily.InterNetworkV6:
-                            address = $@"[{ip}]";
-                            break;
-                    }
-
-                    if (preferred)
-                        //always use first preferred network address for now.
-                        break;
-                }
-
-                req = System.Net.WebRequest.Create(requestUrl.Replace(baseHost, $"{address}:443")) as HttpWebRequest;
-            }
-
-            if (req == null)
-                throw new InvalidOperationException(@"request could not be created");
-
-            req.UserAgent = @"osu!";
-            req.KeepAlive = useFallbackPath != true;
-            req.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
-            req.Host = requestUrl.Split('/')[2];
-            req.ReadWriteTimeout = System.Threading.Timeout.Infinite;
-            req.Timeout = System.Threading.Timeout.Infinite;
-
-            return req;
-        }
-
-        private IPEndPoint bindEndPoint(ServicePoint servicePoint, IPEndPoint remoteEndPoint, int retries)
-        {
-            didGetIPv6IP |= remoteEndPoint.AddressFamily == AddressFamily.InterNetworkV6;
-            return null;
-        }
-
         private int responseBytesRead;
 
         private const int buffer_size = 32768;
         private byte[] buffer;
-
-        private MemoryStream requestBody;
 
         private MemoryStream rawContent;
 
@@ -285,125 +194,170 @@ namespace osu.Framework.IO.Network
             }
         }
 
-        public WebHeaderCollection ResponseHeaders => response?.Headers;
+        public HttpResponseHeaders ResponseHeaders => response.Headers;
 
-        private bool canPerform = true;
+        private CancellationTokenSource abortToken;
+        private CancellationTokenSource timeoutToken;
+
+        private LengthTrackingStream requestStream;
+        private HttpResponseMessage response;
+
+        private long contentLength => requestStream?.Length ?? 0;
+
+        private const string form_boundary = "-----------------------------28947758029299";
+
+        private const string form_content_type = "multipart/form-data; boundary=" + form_boundary;
 
         /// <summary>
-        /// Start the request asynchronously.
+        /// Performs the request asynchronously.
+        /// </summary>
+        public async Task PerformAsync()
+        {
+            if (Completed)
+                throw new InvalidOperationException($"The {nameof(WebRequest)} has already been run.");
+            try
+            {
+                await Task.Factory.StartNew(internalPerform, TaskCreationOptions.LongRunning);
+            }
+            catch (AggregateException ae)
+            {
+                ae.RethrowIfSingular();
+            }
+        }
+
+        private void internalPerform()
+        {
+            using (abortToken = new CancellationTokenSource())
+            using (timeoutToken = new CancellationTokenSource())
+            using (var linkedToken = CancellationTokenSource.CreateLinkedTokenSource(abortToken.Token, timeoutToken.Token))
+            {
+                try
+                {
+                    PrePerform();
+
+                    HttpRequestMessage request;
+
+                    switch (Method)
+                    {
+                        default:
+                            throw new InvalidOperationException($"HTTP method {Method} is currently not supported");
+                        case HttpMethod.GET:
+                            if (files.Count > 0)
+                                throw new InvalidOperationException($"Cannot use {nameof(AddFile)} in a GET request. Please set the {nameof(Method)} to POST.");
+
+                            StringBuilder requestParameters = new StringBuilder();
+                            foreach (var p in parameters)
+                                requestParameters.Append($@"{p.Key}={p.Value}&");
+                            string requestString = requestParameters.ToString().TrimEnd('&');
+
+                            request = new HttpRequestMessage(System.Net.Http.HttpMethod.Get, string.IsNullOrEmpty(requestString) ? Url : $"{Url}?{requestString}");
+                            break;
+                        case HttpMethod.POST:
+                            request = new HttpRequestMessage(System.Net.Http.HttpMethod.Post, Url);
+
+                            Stream postContent;
+
+                            if (rawContent != null)
+                            {
+                                if (parameters.Count > 0)
+                                    throw new InvalidOperationException($"Cannot use {nameof(AddRaw)} in conjunction with {nameof(AddParameter)}");
+                                if (files.Count > 0)
+                                    throw new InvalidOperationException($"Cannot use {nameof(AddRaw)} in conjunction with {nameof(AddFile)}");
+
+                                postContent = new MemoryStream();
+                                rawContent.Position = 0;
+                                rawContent.CopyTo(postContent);
+                                postContent.Position = 0;
+                            }
+                            else
+                            {
+                                if (!string.IsNullOrEmpty(ContentType) && ContentType != form_content_type)
+                                    throw new InvalidOperationException($"Cannot use custom {nameof(ContentType)} in a POST request.");
+
+                                ContentType = form_content_type;
+
+                                var formData = new MultipartFormDataContent(form_boundary);
+
+                                foreach (var p in parameters)
+                                    formData.Add(new StringContent(p.Value), p.Key);
+
+                                foreach (var p in files)
+                                {
+                                    var byteContent = new ByteArrayContent(p.Value);
+                                    byteContent.Headers.Add("Content-Type", "application/octet-stream");
+                                    formData.Add(byteContent, p.Key, p.Key);
+                                }
+
+                                postContent = formData.ReadAsStreamAsync().Result;
+                            }
+
+                            requestStream = new LengthTrackingStream(postContent);
+                            requestStream.BytesRead.ValueChanged += v =>
+                            {
+                                reportForwardProgress();
+                                UploadProgress?.Invoke(v, contentLength);
+                            };
+
+                            request.Content = new StreamContent(requestStream);
+                            if (!string.IsNullOrEmpty(ContentType))
+                                request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse(ContentType);
+                            break;
+                    }
+
+                    if (!string.IsNullOrEmpty(Accept))
+                        request.Headers.Accept.TryParseAdd(Accept);
+
+                    foreach (var kvp in headers)
+                        request.Headers.Add(kvp.Key, kvp.Value);
+
+                    reportForwardProgress();
+                    using (request)
+                        response = client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, linkedToken.Token).Result;
+
+                    ResponseStream = CreateOutputStream();
+
+                    switch (Method)
+                    {
+                        case HttpMethod.GET:
+                            //GETs are easy
+                            beginResponse(linkedToken.Token);
+                            break;
+                        case HttpMethod.POST:
+                            reportForwardProgress();
+                            UploadProgress?.Invoke(0, contentLength);
+
+                            beginResponse(linkedToken.Token);
+                            break;
+                    }
+                }
+                catch (Exception) when (timeoutToken.IsCancellationRequested)
+                {
+                    Complete(new WebException($"Request to {Url} timed out after {timeSinceLastAction / 1000} seconds idle (read {responseBytesRead} bytes).", WebExceptionStatus.Timeout));
+                }
+                catch (Exception) when (abortToken.IsCancellationRequested)
+                {
+                    Complete(new WebException($"Request to {Url} aborted by user.", WebExceptionStatus.RequestCanceled));
+                }
+                catch (Exception e)
+                {
+                    Complete(e);
+                    throw;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Performs the request synchronously.
         /// </summary>
         public void Perform()
         {
-            if (!canPerform)
-                throw new InvalidOperationException("Can not perform a web request multiple times.");
-
-            canPerform = false;
-
-            ThreadPool.QueueUserWorkItem(_ => perform());
-
-            int workerThreads, completionPortThreads;
-            ThreadPool.GetAvailableThreads(out workerThreads, out completionPortThreads);
-            if (workerThreads == 0)
-                logger.Add(@"WARNING: ThreadPool is saturated!", LogLevel.Error);
-        }
-
-        private void perform()
-        {
-            Aborted = false;
-            abortRequest();
-
-            PrePerform();
-
             try
             {
-                reportForwardProgress();
-                ThreadPool.QueueUserWorkItem(checkTimeoutLoop);
-
-                requestBody = new MemoryStream();
-
-                switch (Method)
-                {
-                    case HttpMethod.GET:
-                        Debug.Assert(Files.Count == 0);
-
-                        StringBuilder requestParameters = new StringBuilder();
-                        foreach (var p in Parameters)
-                            requestParameters.Append($@"{p.Key}={p.Value}&");
-
-                        request = CreateWebRequest(requestParameters.ToString().TrimEnd('&'));
-                        request.Method = @"GET";
-                        break;
-                    case HttpMethod.POST:
-                        request = CreateWebRequest();
-                        request.Method = @"POST";
-
-                        if (Parameters.Count + Files.Count == 0)
-                        {
-                            rawContent?.WriteTo(requestBody);
-                            request.ContentType = ContentType;
-                            requestBody.Flush();
-                            break;
-                        }
-
-                        const string boundary = @"-----------------------------28947758029299";
-
-                        request.ContentType = $@"multipart/form-data; boundary={boundary}";
-
-                        foreach (KeyValuePair<string, string> p in Parameters)
-                        {
-                            requestBody.WriteLineExplicit($@"--{boundary}");
-                            requestBody.WriteLineExplicit($@"Content-Disposition: form-data; name=""{p.Key}""");
-                            requestBody.WriteLineExplicit();
-                            requestBody.WriteLineExplicit(p.Value);
-                        }
-
-                        foreach (KeyValuePair<string, byte[]> p in Files)
-                        {
-                            requestBody.WriteLineExplicit($@"--{boundary}");
-
-                            requestBody.WriteLineExplicit($@"Content-Disposition: form-data; name=""{p.Key}""; filename=""{p.Key}""");
-                            requestBody.WriteLineExplicit(@"Content-Type: application/octet-stream");
-                            requestBody.WriteLineExplicit();
-                            requestBody.Write(p.Value, 0, p.Value.Length);
-                            requestBody.WriteLineExplicit();
-                        }
-
-                        requestBody.WriteLineExplicit($@"--{boundary}--");
-                        requestBody.Flush();
-                        break;
-                }
-
-                request.UserAgent = @"osu!";
-                request.KeepAlive = useFallbackPath != true;
-                request.Host = Url.Split('/')[2];
-                request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
-                request.ReadWriteTimeout = System.Threading.Timeout.Infinite;
-                request.Timeout = Timeout; //todo: make sure this works correctly for long-lasting transfers.
-
-                foreach (KeyValuePair<string, string> h in Headers)
-                    request.Headers.Add(h.Key, h.Value);
-
-                ResponseStream = CreateOutputStream();
-
-                switch (Method)
-                {
-                    case HttpMethod.GET:
-                        //GETs are easy
-                        beginResponse();
-                        break;
-                    case HttpMethod.POST:
-                        request.ContentLength = requestBody.Length;
-
-                        UploadProgress?.Invoke(this, 0, request.ContentLength);
-                        reportForwardProgress();
-
-                        beginRequestOutput();
-                        break;
-                }
+                PerformAsync().Wait();
             }
-            catch (Exception e)
+            catch (AggregateException ae)
             {
-                Complete(e);
+                ae.RethrowIfSingular();
             }
         }
 
@@ -414,59 +368,20 @@ namespace osu.Framework.IO.Network
         {
         }
 
-        private void beginRequestOutput()
+        private void beginResponse(CancellationToken cancellationToken)
         {
-            try
+            using (var responseStream = response.Content.ReadAsStreamAsync().Result)
             {
-                using (Stream requestStream = request.GetRequestStream())
-                {
-                    reportForwardProgress();
-                    requestBody.Position = 0;
-                    byte[] buff = new byte[buffer_size];
-                    int read;
-                    int totalRead = 0;
-                    while ((read = requestBody.Read(buff, 0, buffer_size)) > 0)
-                    {
-                        reportForwardProgress();
-                        requestStream.Write(buff, 0, read);
-                        requestStream.Flush();
-
-                        totalRead += read;
-                        UploadProgress?.Invoke(this, totalRead, request.ContentLength);
-                    }
-                }
-
-                beginResponse();
-            }
-            catch (Exception e)
-            {
-                Complete(e);
-            }
-        }
-
-        private void beginResponse()
-        {
-            try
-            {
-                response = request.GetResponse() as HttpWebResponse;
-                Trace.Assert(response != null);
-
-                Started?.Invoke(this);
-
-                internalResponseStream = response.GetResponseStream();
-                Trace.Assert(internalResponseStream != null);
-
-#if !DEBUG
-                checkCertificate();
-#endif
+                reportForwardProgress();
+                Started?.Invoke();
 
                 buffer = new byte[buffer_size];
 
-                reportForwardProgress();
-
                 while (true)
                 {
-                    int read = internalResponseStream.Read(buffer, 0, buffer_size);
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    int read = responseStream.Read(buffer, 0, buffer_size);
 
                     reportForwardProgress();
 
@@ -474,7 +389,7 @@ namespace osu.Framework.IO.Network
                     {
                         ResponseStream.Write(buffer, 0, read);
                         responseBytesRead += read;
-                        DownloadProgress?.Invoke(this, responseBytesRead, response.ContentLength);
+                        DownloadProgress?.Invoke(responseBytesRead, response.Content.Headers.ContentLength ?? responseBytesRead);
                     }
                     else
                     {
@@ -484,50 +399,6 @@ namespace osu.Framework.IO.Network
                     }
                 }
             }
-            catch (Exception e)
-            {
-                Complete(e);
-            }
-        }
-
-        [Obfuscation(Feature = @"virtualization", Exclude = false)]
-        private void checkCertificate()
-        {
-            if (request.ServicePoint.Certificate == null && request.RequestUri.Host != request.Address.Host && request.Address.Host.EndsWith(@".ppy.sh", StringComparison.Ordinal))
-                //osu!direct downloads happen over http at the moment. we should probably move them across to https.
-                return;
-
-            //if it's null at this point we don't mind throwing an exception.
-            Trace.Assert(request.ServicePoint.Certificate != null);
-
-            //this is enough for now to assume we have a valid certificate.
-            if (new X509Certificate2(request.ServicePoint.Certificate).Subject.Contains(@"CN=*.ppy.sh"))
-                return;
-
-            //else we should just destroy the response and no.
-            response?.Close();
-            response = null;
-            throw new WebException(@"SSL failures");
-        }
-
-        public virtual void BlockingPerform()
-        {
-            Exception exc = null;
-            bool completed = false;
-
-            Finished += delegate(WebRequest r, Exception e)
-            {
-                exc = e;
-                completed = true;
-            };
-
-            perform();
-
-            while (!completed && !Aborted)
-                Thread.Sleep(10);
-
-            if (exc != null)
-                throw exc;
         }
 
         protected virtual void Complete(Exception e = null)
@@ -535,21 +406,20 @@ namespace osu.Framework.IO.Network
             if (Aborted)
                 return;
 
-            WebException we = e as WebException;
-            if (we != null)
+            var we = e as WebException;
+
+            bool allowRetry = AllowRetryOnTimeout;
+
+            if (e != null)
+                allowRetry &= we?.Status == WebExceptionStatus.Timeout;
+            else if (!response.IsSuccessStatusCode)
             {
-                bool allowRetry = true;
+                e = new WebException(response.StatusCode.ToString());
 
-                HttpStatusCode? statusCode = (we.Response as HttpWebResponse)?.StatusCode ?? HttpStatusCode.RequestTimeout;
-
-                switch (statusCode)
+                switch (response.StatusCode)
                 {
+                    case HttpStatusCode.GatewayTimeout:
                     case HttpStatusCode.RequestTimeout:
-                        if (hasExceededTimeout)
-                        {
-                            logger.Add($@"Timeout exceeded ({timeSinceLastAction} > {DEFAULT_TIMEOUT})");
-                            e = new WebException($"Timeout to {Url} ({address}) after {timeSinceLastAction / 1000} seconds idle (read {responseBytesRead} bytes).", WebExceptionStatus.Timeout);
-                        }
                         break;
                     case HttpStatusCode.NotFound:
                     case HttpStatusCode.MethodNotAllowed:
@@ -560,54 +430,49 @@ namespace osu.Framework.IO.Network
                         allowRetry = false;
                         break;
                 }
+            }
 
-                if (allowRetry && retriesRemaining-- > 0 && responseBytesRead == 0)
+            if (e != null)
+            {
+                if (allowRetry && RetryCount < MAX_RETRIES && responseBytesRead == 0)
                 {
-                    logger.Add($@"Request to {Url} ({address}) failed with {statusCode} (retrying {default_retry_count - retriesRemaining}/{default_retry_count}).");
+                    RetryCount++;
+
+                    logger.Add($@"Request to {Url} failed with {e} (retrying {RetryCount}/{MAX_RETRIES}).");
+
+                    // For now, a client is created for each request due to the following bug in mono: https://bugzilla.xamarin.com/show_bug.cgi?id=60396
+                    // Todo: This must not be done, and is dangerous to do, see: https://aspnetmonsters.com/2016/08/2016-08-27-httpclientwrong/
+                    createHttpClient();
 
                     //do a retry
-                    perform();
+                    internalPerform();
                     return;
                 }
-                if (useFallbackPath == null && allowRetry && didGetIPv6IP)
-                {
-                    useFallbackPath = true;
-                    logger.Add(@"---------------------- USING FALLBACK PATH! ---------------------");
-                }
 
-                logger.Add($@"Request to {Url} ({address}) failed with {statusCode} (FAILED).");
+                logger.Add($"Request to {Url} failed with {e} (FAILED).");
             }
-            else if (e == null)
+            else
+                logger.Add($@"Request to {Url} successfully completed!");
+
+            try
             {
-                if (useFallbackPath == null)
-                    useFallbackPath = false;
-                logger.Add($@"Request to {Url} ({address}) successfully completed!");
+                ProcessResponse();
             }
+            catch (Exception se) { e = e == null ? se : new AggregateException(e, se); }
 
-            response?.Close();
-
-            Finished?.Invoke(this, e);
-
-            if (!KeepEventsBound)
-                unbindEvents();
+            Finished?.Invoke(e);
 
             if (e != null)
                 Aborted = true;
-            else
-                Completed = true;
+            Completed = true;
         }
 
-        private void abortRequest()
+        /// <summary>
+        /// Performs any post-processing of the response.
+        /// Exceptions thrown in this method will be passed to <see cref="Finished"/>.
+        /// </summary>
+        protected virtual void ProcessResponse()
         {
-            try
-            {
-                request?.Abort();
-                response?.Close();
-            }
-            catch
-            {
-                //This *can* throw random exceptions internally from inside ServicePointManager.
-            }
         }
 
         /// <summary>
@@ -615,39 +480,47 @@ namespace osu.Framework.IO.Network
         /// </summary>
         public void Abort()
         {
-            if (Aborted) return;
             Aborted = true;
+            Completed = true;
 
-            abortRequest();
-            canPerform = true;
-
-            if (!KeepEventsBound)
-                unbindEvents();
+            try
+            {
+                abortToken?.Cancel();
+            }
+            catch (ObjectDisposedException)
+            {
+            }
         }
 
         /// <summary>
-        /// Add a header to this request.
+        /// Adds a raw POST body to this request.
+        /// This may not be used in conjunction with <see cref="AddFile"/> and <see cref="AddParameter"/>.
         /// </summary>
-        public void AddHeader(string key, string val)
+        /// <param name="text">The text.</param>
+        public void AddRaw(string text)
         {
-            Headers.Add(key, val);
+            AddRaw(Encoding.UTF8.GetBytes(text));
         }
 
         /// <summary>
         /// Adds a raw POST body to this request.
+        /// This may not be used in conjunction with <see cref="AddFile"/> and <see cref="AddParameter"/>.
         /// </summary>
-        public void AddRaw(string text) => AddRaw(Encoding.UTF8.GetBytes(text));
+        /// <param name="bytes">The raw data.</param>
+        public void AddRaw(byte[] bytes)
+        {
+            AddRaw(new MemoryStream(bytes));
+        }
 
         /// <summary>
         /// Adds a raw POST body to this request.
+        /// This may not be used in conjunction with <see cref="AddFile"/> and <see cref="AddParameter"/>.
         /// </summary>
-        public void AddRaw(byte[] bytes) => AddRaw(new MemoryStream(bytes));
-
-        /// <summary>
-        /// Adds a raw POST body to this request.
-        /// </summary>
+        /// <param name="stream">The stream containing the raw data. This stream will _not_ be finalized by this request.</param>
         public void AddRaw(Stream stream)
         {
+            if (stream == null) throw new ArgumentNullException(nameof(stream));
+
             if (rawContent == null)
                 rawContent = new MemoryStream();
 
@@ -655,37 +528,57 @@ namespace osu.Framework.IO.Network
         }
 
         /// <summary>
-        /// Add a new FILE parameter to this request.
+        /// Add a new FILE parameter to this request. Replaces any existing file with the same name.
+        /// This may not be used in conjunction with <see cref="AddRaw(Stream)"/>. GET requests may not contain files.
         /// </summary>
+        /// <param name="name">The name of the file. This becomes the name of the file in a multi-part form POST content.</param>
+        /// <param name="data">The file data.</param>
         public void AddFile(string name, byte[] data)
         {
-            Files.Add(name, data);
+            if (name == null) throw new ArgumentNullException(nameof(name));
+            if (data == null) throw new ArgumentNullException(nameof(data));
+
+            files[name] = data;
         }
 
         /// <summary>
-        /// Add a new POST parameter to this request.
+        /// Add a new POST parameter to this request. Replaces any existing parameter with the same name.
+        /// This may not be used in conjunction with <see cref="AddRaw(Stream)"/>.
         /// </summary>
+        /// <param name="name">The name of the parameter.</param>
+        /// <param name="value">The parameter value.</param>
         public void AddParameter(string name, string value)
         {
-            Parameters.Add(name, value);
+            if (name == null) throw new ArgumentNullException(nameof(name));
+            if (value == null) throw new ArgumentNullException(nameof(value));
+
+            parameters[name] = value;
         }
 
-        private void unbindEvents()
+        /// <summary>
+        /// Adds a new header to this request. Replaces any existing header with the same name.
+        /// </summary>
+        /// <param name="name">The name of the header.</param>
+        /// <param name="value">The header value.</param>
+        public void AddHeader(string name, string value)
         {
-            UploadProgress = null;
-            DownloadProgress = null;
-            Finished = null;
-            Started = null;
+            if (name == null) throw new ArgumentNullException(nameof(name));
+            if (value == null) throw new ArgumentNullException(nameof(value));
 
-            try
-            {
-                if (request?.ServicePoint.BindIPEndPointDelegate != null)
-                    // ReSharper disable once DelegateSubtraction
-                    request.ServicePoint.BindIPEndPointDelegate -= bindEndPoint;
-            }
-            catch
-            {
-            }
+            headers[name] = value;
+        }
+
+        private static void createHttpClient()
+        {
+            client?.Dispose();
+
+            client = new HttpClient(new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate });
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("osu!");
+            client.DefaultRequestHeaders.ExpectContinue = true;
+
+            // Timeout is controlled manually through cancellation tokens because
+            // HttpClient does not properly timeout while reading chunked data
+            client.Timeout = System.Threading.Timeout.InfiniteTimeSpan;
         }
 
         #region Timeout Handling
@@ -694,20 +587,10 @@ namespace osu.Framework.IO.Network
 
         private long timeSinceLastAction => (DateTime.Now.Ticks - lastAction) / TimeSpan.TicksPerMillisecond;
 
-        private bool hasExceededTimeout => timeSinceLastAction > Timeout;
-
-        private void checkTimeoutLoop(object state)
-        {
-            while (!Aborted && !Completed)
-            {
-                if (hasExceededTimeout) abortRequest();
-                Thread.Sleep(500);
-            }
-        }
-
         private void reportForwardProgress()
         {
             lastAction = DateTime.Now.Ticks;
+            timeoutToken.CancelAfter(Timeout);
         }
 
         #endregion
@@ -721,12 +604,13 @@ namespace osu.Framework.IO.Network
             if (isDisposed) return;
             isDisposed = true;
 
+            Abort();
+
+            requestStream?.Dispose();
+            response?.Dispose();
+
             if (!(ResponseStream is MemoryStream))
                 ResponseStream?.Dispose();
-
-            internalResponseStream?.Dispose();
-            response?.Close();
-            unbindEvents();
         }
 
         public void Dispose()
@@ -737,20 +621,60 @@ namespace osu.Framework.IO.Network
 
         #endregion
 
-        #region Retry Logic
-
-        private const int default_retry_count = 2;
-
-        private int retryCount = default_retry_count;
-
-        public int RetryCount
+        private class LengthTrackingStream : Stream
         {
-            get { return retryCount; }
-            set { retriesRemaining = retryCount = value; }
+            public readonly BindableLong BytesRead = new BindableLong();
+
+            private readonly Stream baseStream;
+
+            public LengthTrackingStream(Stream baseStream)
+            {
+                this.baseStream = baseStream;
+            }
+
+            public override void Flush()
+            {
+                baseStream.Flush();
+            }
+
+            public override int Read(byte[] buffer, int offset, int count)
+            {
+                int read = baseStream.Read(buffer, offset, count);
+                BytesRead.Value += read;
+                return read;
+            }
+
+            public override long Seek(long offset, SeekOrigin origin)
+            {
+                return baseStream.Seek(offset, origin);
+            }
+
+            public override void SetLength(long value)
+            {
+                baseStream.SetLength(value);
+            }
+
+            public override void Write(byte[] buffer, int offset, int count)
+            {
+                baseStream.Write(buffer, offset, count);
+            }
+
+            public override bool CanRead => baseStream.CanRead;
+            public override bool CanSeek => baseStream.CanSeek;
+            public override bool CanWrite => baseStream.CanWrite;
+            public override long Length => baseStream.Length;
+
+            public override long Position
+            {
+                get { return baseStream.Position; }
+                set { baseStream.Position = value; }
+            }
+
+            protected override void Dispose(bool disposing)
+            {
+                base.Dispose(disposing);
+                baseStream.Dispose();
+            }
         }
-
-        private int retriesRemaining = default_retry_count;
-
-        #endregion
     }
 }

@@ -93,7 +93,7 @@ namespace osu.Framework.Audio.Track
             Trace.Assert(Bass.LastError == Errors.OK);
         }
 
-        public override void Update()
+        protected override void UpdateState()
         {
             isRunning = Bass.ChannelIsActive(activeStream) == PlaybackState.Playing;
 
@@ -119,7 +119,7 @@ namespace osu.Framework.Audio.Track
                 currentAmplitudes.FrequencyAmplitudes = new float[256];
             }
 
-            base.Update();
+            base.UpdateState();
         }
 
         public override void Reset()
@@ -155,7 +155,7 @@ namespace osu.Framework.Audio.Track
 
             PendingActions.Enqueue(() =>
             {
-                if (IsRunning)
+                if (Bass.ChannelIsActive(activeStream) == PlaybackState.Playing)
                     Bass.ChannelPause(activeStream);
 
                 isPlayed = false;
