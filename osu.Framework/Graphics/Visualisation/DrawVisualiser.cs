@@ -4,9 +4,7 @@
 using System.Linq;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
-using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
-using osu.Framework.Threading;
 
 namespace osu.Framework.Graphics.Visualisation
 {

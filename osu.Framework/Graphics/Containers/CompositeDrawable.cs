@@ -104,7 +104,14 @@ namespace osu.Framework.Graphics.Containers
 
         #region Children management
 
+        /// <summary>
+        /// Invoked when a child has entered <see cref="AliveInternalChildren"/>.
+        /// </summary>
         internal event Action<Drawable> ChildBecameAlive;
+
+        /// <summary>
+        /// Invoked when a child has left <see cref="AliveInternalChildren"/>.
+        /// </summary>
         internal event Action<Drawable> ChildDied;
 
         /// <summary>

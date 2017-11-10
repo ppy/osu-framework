@@ -12,7 +12,6 @@ using OpenTK.Input;
 using osu.Framework.Graphics.Shapes;
 using System.Collections.Generic;
 using osu.Framework.Extensions.IEnumerableExtensions;
-using System.Linq;
 
 namespace osu.Framework.Graphics.Visualisation
 {
@@ -57,7 +56,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         private const int line_height = 12;
 
-        private FillFlowContainer<VisualisedDrawable> flow;
+        private readonly FillFlowContainer<VisualisedDrawable> flow;
         private readonly TreeContainer tree;
 
         public VisualisedDrawable(Drawable d, TreeContainer tree)
@@ -141,8 +140,7 @@ namespace osu.Framework.Graphics.Visualisation
             previewBox.Size = new Vector2(line_height, line_height);
 
             var compositeTarget = Target as CompositeDrawable;
-            if (compositeTarget != null)
-                compositeTarget.AliveInternalChildren.ForEach(c => addChild(c));
+            compositeTarget?.AliveInternalChildren.ForEach(addChild);
 
             updateSpecifics();
         }
@@ -185,7 +183,7 @@ namespace osu.Framework.Graphics.Visualisation
             // Make sure to never add the DrawVisualiser (recursive scenario)
             if (drawable is DrawVisualiser) return;
 
-            /// Don't add individual characters of SpriteText
+            // Don't add individual characters of SpriteText
             if (Target is SpriteText) return;
 
             VisualisedDrawable vis;
