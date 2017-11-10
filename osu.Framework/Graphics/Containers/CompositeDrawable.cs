@@ -711,13 +711,26 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        public override void ClearTransforms(bool propagateChildren = false, string targetMember = null)
+        public override void ApplyTransformsAt(double time, bool propagateChildren = false)
         {
-            base.ClearTransforms(propagateChildren, targetMember);
+            base.ApplyTransformsAt(time, propagateChildren);
 
-            if (propagateChildren)
-                foreach (var c in internalChildren)
-                    c.ClearTransforms(true, targetMember);
+            if (!propagateChildren)
+                return;
+
+            foreach (var c in internalChildren)
+                c.ApplyTransformsAt(time, true);
+        }
+
+        public override void ClearTransformsAfter(double time, bool propagateChildren = false, string targetMember = null)
+        {
+            base.ClearTransformsAfter(time, propagateChildren, targetMember);
+
+            if (!propagateChildren)
+                return;
+
+            foreach (var c in internalChildren)
+                c.ClearTransformsAfter(time, true, targetMember);
         }
 
         internal override void AddDelay(double duration, bool propagateChildren = false)
