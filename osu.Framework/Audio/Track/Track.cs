@@ -32,6 +32,8 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         public virtual void Reset()
         {
+            Volume.Value = 1;
+
             ResetSpeedAdjustments();
 
             Stop();
