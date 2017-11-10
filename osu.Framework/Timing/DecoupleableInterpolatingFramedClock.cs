@@ -9,6 +9,9 @@ namespace osu.Framework.Timing
     /// On failure to seek, we take over with an internal clock until control can be returned to the actual source.
     ///
     /// This clock type removes the requirement of having a source set.
+    ///
+    /// If a <see cref="InterpolatingFramedClock.SourceClock"/> is set, it is presumed that we have exclusive control over operations on it.
+    /// This is used to our advantage to allow correct <see cref="IsRunning"/> state tracking in the event of cross-thread communication delays (with an audio thread, for instance).
     /// </summary>
     public class DecoupleableInterpolatingFramedClock : InterpolatingFramedClock, IAdjustableClock
     {
@@ -29,7 +32,7 @@ namespace osu.Framework.Timing
 
         public override double CurrentTime => useDecoupledClock ? decoupledClock.CurrentTime : base.CurrentTime;
 
-        public override bool IsRunning => useDecoupledClock ? decoupledClock.IsRunning : base.IsRunning;
+        public override bool IsRunning => useDecoupledClock ? decoupledClock.IsRunning : decoupledClock.IsRunning && base.IsRunning;
 
         public override double ElapsedFrameTime => useDecoupledClock ? decoupledClock.ElapsedFrameTime : base.ElapsedFrameTime;
 
@@ -102,6 +105,7 @@ namespace osu.Framework.Timing
                     //this handles the case where we seeked to an unsupported value and the source clock is out of sync.
                     adjustableSource?.Start();
             }
+
             decoupledStopwatch.Start();
         }
 
