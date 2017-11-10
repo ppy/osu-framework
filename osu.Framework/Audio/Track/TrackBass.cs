@@ -164,8 +164,6 @@ namespace osu.Framework.Audio.Track
 
         public override void Start()
         {
-            isRunning = true;
-
             base.Start();
             PendingActions.Enqueue(() =>
             {
