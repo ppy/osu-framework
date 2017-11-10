@@ -10,6 +10,8 @@ using OpenTK.Graphics;
 using osu.Framework.Extensions.Color4Extensions;
 using OpenTK.Input;
 using osu.Framework.Graphics.Shapes;
+using System.Collections.Generic;
+using osu.Framework.Extensions.IEnumerableExtensions;
 
 namespace osu.Framework.Graphics.Visualisation
 {
@@ -49,8 +51,8 @@ namespace osu.Framework.Graphics.Visualisation
         private readonly Drawable activityAutosize;
         private readonly Drawable activityLayout;
 
-        public Action RequestTarget;
-        public Action HighlightTarget;
+        public Action<Drawable> RequestTarget;
+        public Action<VisualisedDrawable> HighlightTarget;
 
         private const int line_height = 12;
 
@@ -136,6 +138,11 @@ namespace osu.Framework.Graphics.Visualisation
 
             previewBox.Position = new Vector2(9, 0);
             previewBox.Size = new Vector2(line_height, line_height);
+
+            var compositeTarget = Target as CompositeDrawable;
+            if (compositeTarget != null)
+                compositeTarget.AliveInternalChildren.ForEach(c => addChild(c));
+
             updateSpecifics();
         }
 
@@ -144,7 +151,12 @@ namespace osu.Framework.Graphics.Visualisation
             Target.OnInvalidate += onInvalidate;
 
             var da = Target as Container<Drawable>;
-            if (da != null) da.OnAutoSize += onAutoSize;
+            if (da != null)
+            {
+                da.OnAutoSize += onAutoSize;
+                da.ChildBecameAlive += addChild;
+                da.ChildDied += removeChild;
+            }
 
             var df = Target as FlowContainer<Drawable>;
             if (df != null) df.OnLayout += onLayout;
@@ -155,13 +167,45 @@ namespace osu.Framework.Graphics.Visualisation
             Target.OnInvalidate -= onInvalidate;
 
             var da = Target as Container<Drawable>;
-            if (da != null) da.OnAutoSize -= onAutoSize;
+            if (da != null)
+            {
+                da.OnAutoSize -= onAutoSize;
+                da.ChildBecameAlive -= addChild;
+                da.ChildDied -= removeChild;
+            }
 
             var df = Target as FlowContainer<Drawable>;
             if (df != null) df.OnLayout -= onLayout;
         }
 
-        public override bool DisposeOnDeathRemoval => true;
+        private readonly Dictionary<Drawable, VisualisedDrawable> visCache = new Dictionary<Drawable, VisualisedDrawable>();
+        private void addChild(Drawable drawable)
+        {
+            // Make sure to never add the DrawVisualiser (recursive scenario)
+            if (drawable is DrawVisualiser) return;
+
+            /// Don't add individual characters of SpriteText
+            if (Target is SpriteText) return;
+
+            VisualisedDrawable vis;
+            if (!visCache.TryGetValue(drawable, out vis))
+            {
+                vis = visCache[drawable] = new VisualisedDrawable(drawable, tree)
+                {
+                    RequestTarget = d => RequestTarget?.Invoke(d),
+                    HighlightTarget = d => HighlightTarget?.Invoke(d)
+                };
+            }
+
+            Flow.Add(vis);
+        }
+
+        private void removeChild(Drawable drawable)
+        {
+            if (!visCache.ContainsKey(drawable))
+                return;
+            Flow.Remove(visCache[drawable]);
+        }
 
         protected override void Dispose(bool isDisposing)
         {
@@ -185,7 +229,7 @@ namespace osu.Framework.Graphics.Visualisation
         {
             if (args.Button == MouseButton.Right)
             {
-                HighlightTarget?.Invoke();
+                HighlightTarget?.Invoke(this);
                 return true;
             }
             return false;
@@ -202,7 +246,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         protected override bool OnDoubleClick(InputState state)
         {
-            RequestTarget?.Invoke();
+            RequestTarget?.Invoke(Target);
             return true;
         }
 
@@ -255,26 +299,14 @@ namespace osu.Framework.Graphics.Visualisation
 
             text.Text = Target + (!isExpanded && childCount > 0 ? $@" ({childCount} children)" : string.Empty);
             text.Colour = !isExpanded && childCount > 0 ? Color4.LightBlue : Color4.White;
+
+            Alpha = Target.IsPresent ? 1 : 0.3f;
         }
 
         protected override void Update()
         {
             updateSpecifics();
             base.Update();
-        }
-
-        public bool CheckExpiry()
-        {
-            if (!ShouldBeAlive) return false;
-
-            if (!Target.IsAlive || Target.Parent == null)
-            {
-                Expire();
-                return false;
-            }
-
-            Alpha = Target.IsPresent ? 1 : 0.3f;
-            return true;
         }
     }
 }
