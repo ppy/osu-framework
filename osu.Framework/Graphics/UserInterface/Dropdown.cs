@@ -192,7 +192,7 @@ namespace osu.Framework.Graphics.UserInterface
         private void updateHeaderVisibility() => Header.Alpha = Menu.AnyPresent ? 1 : 0;
 
         public virtual bool OnHover(InputState state) => true;
-        public void OnHoverLost(InputState state)
+        public virtual void OnHoverLost(InputState state)
         {
         }
 

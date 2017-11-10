@@ -12,15 +12,9 @@ namespace osu.Framework.Graphics.Containers
         public Action Action;
         public readonly BindableBool Enabled = new BindableBool(true);
 
-        public virtual bool OnMouseDown(InputState state, MouseDownEventArgs args)
-        {
-            return false;
-        }
+        public virtual bool OnMouseDown(InputState state, MouseDownEventArgs args) => false;
 
-        public virtual bool OnMouseUp(InputState state, MouseUpEventArgs args)
-        {
-            return false;
-        }
+        public virtual bool OnMouseUp(InputState state, MouseUpEventArgs args) => false;
 
         public virtual bool OnClick(InputState state)
         {
@@ -29,9 +23,6 @@ namespace osu.Framework.Graphics.Containers
             return true;
         }
 
-        public virtual bool OnDoubleClick(InputState state)
-        {
-            return false;
-        }
+        public virtual bool OnDoubleClick(InputState state) => false;
     }
 }
