@@ -57,7 +57,10 @@ namespace osu.Framework.Platform
 
         protected override void OnResize(EventArgs e)
         {
+            if (ClientSize.IsEmpty) return;
+
             base.OnResize(e);
+
             switch (WindowMode.Value)
             {
                 case Configuration.WindowMode.Windowed:
