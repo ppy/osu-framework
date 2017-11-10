@@ -41,7 +41,7 @@ namespace osu.Framework.Graphics.Visualisation
                         // Rehighlight the last highlight
                         if (lastHighlight != null)
                         {
-                            VisualisedDrawable visualised = findVisualised(lastHighlight, targetDrawable);
+                            VisualisedDrawable visualised = targetDrawable.FindVisualisedDrawable(lastHighlight);
                             if (visualised != null)
                             {
                                 propertyDisplay.State = Visibility.Visible;
@@ -81,21 +81,6 @@ namespace osu.Framework.Graphics.Visualisation
         {
             base.LoadComplete();
             inputManager = GetContainingInputManager();
-        }
-
-        private VisualisedDrawable findVisualised(Drawable d, VisualisedDrawable root)
-        {
-            foreach (VisualisedDrawable child in root.Flow.InternalChildren.OfType<VisualisedDrawable>())
-            {
-                if (child.Target == d)
-                    return child;
-
-                VisualisedDrawable found = findVisualised(d, child);
-                if (found != null)
-                    return found;
-            }
-
-            return null;
         }
 
         protected override bool BlockPassThroughMouse => false;

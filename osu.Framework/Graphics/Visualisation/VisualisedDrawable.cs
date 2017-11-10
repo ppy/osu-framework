@@ -12,6 +12,7 @@ using OpenTK.Input;
 using osu.Framework.Graphics.Shapes;
 using System.Collections.Generic;
 using osu.Framework.Extensions.IEnumerableExtensions;
+using System.Linq;
 
 namespace osu.Framework.Graphics.Visualisation
 {
@@ -56,7 +57,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         private const int line_height = 12;
 
-        public FillFlowContainer<VisualisedDrawable> Flow;
+        private FillFlowContainer<VisualisedDrawable> flow;
         private readonly TreeContainer tree;
 
         public VisualisedDrawable(Drawable d, TreeContainer tree)
@@ -127,7 +128,7 @@ namespace osu.Framework.Graphics.Visualisation
                         text = new SpriteText()
                     }
                 },
-                Flow = new FillFlowContainer<VisualisedDrawable>
+                flow = new FillFlowContainer<VisualisedDrawable>
                 {
                     Direction = FillDirection.Vertical,
                     RelativeSizeAxes = Axes.X,
@@ -197,14 +198,29 @@ namespace osu.Framework.Graphics.Visualisation
                 };
             }
 
-            Flow.Add(vis);
+            flow.Add(vis);
         }
 
         private void removeChild(Drawable drawable)
         {
             if (!visCache.ContainsKey(drawable))
                 return;
-            Flow.Remove(visCache[drawable]);
+            flow.Remove(visCache[drawable]);
+        }
+
+        public VisualisedDrawable FindVisualisedDrawable(Drawable drawable)
+        {
+            if (drawable == Target)
+                return this;
+
+            foreach (var child in flow)
+            {
+                var vis = child.FindVisualisedDrawable(drawable);
+                if (vis != null)
+                    return vis;
+            }
+
+            return null;
         }
 
         protected override void Dispose(bool isDisposing)
@@ -254,7 +270,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         public void Expand()
         {
-            Flow.FadeIn();
+            flow.FadeIn();
             updateSpecifics();
 
             isExpanded = true;
@@ -262,7 +278,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         public void Collapse()
         {
-            Flow.FadeOut();
+            flow.FadeOut();
             updateSpecifics();
 
             isExpanded = false;
