@@ -49,7 +49,7 @@ namespace osu.Framework.Input.Handlers.Mouse
                 {
                     host.InputThread.Scheduler.Add(scheduled = new ScheduledDelegate(delegate
                     {
-                        if (!host.Window.Visible)
+                        if (!host.Window.Visible || host.Window.WindowState == WindowState.Minimized)
                             return;
 
                         bool useRawInput = mouseInWindow && host.Window.Focused;
