@@ -51,7 +51,7 @@ namespace osu.Framework.Graphics.Containers
                 if (!started)
                     started = ReferenceEquals(drawable, this);
                 else if (drawable is ITabbableContainer)
-                    return drawable as Drawable;
+                    return drawable;
 
                 var composite = drawable as CompositeDrawable;
                 if (composite != null)
