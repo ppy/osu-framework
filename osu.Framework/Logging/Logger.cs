@@ -62,7 +62,7 @@ namespace osu.Framework.Logging
         {
             if (string.IsNullOrEmpty(text)) return;
 
-            lock(static_sync_lock)
+            lock (static_sync_lock)
                 filters.Add(text);
         }
 
@@ -339,7 +339,7 @@ namespace osu.Framework.Logging
         /// </summary>
         private void clear()
         {
-            lock(flush_sync_lock)
+            lock (flush_sync_lock)
                 backgroundScheduler.Add(() => Storage?.Delete(Filename));
             addHeader();
         }
