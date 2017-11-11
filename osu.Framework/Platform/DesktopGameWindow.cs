@@ -70,6 +70,20 @@ namespace osu.Framework.Platform
             }
         }
 
+        protected override void OnMove(EventArgs e)
+        {
+            base.OnMove(e);
+
+            // The game is windowed and the whole window is on the screen (it is not minimized or moved outside of the screen)
+            if (WindowMode.Value == Configuration.WindowMode.Windowed
+                && Position.X > 0 && Position.X < 1
+                && Position.Y > 0 && Position.Y < 1)
+            {
+                windowPositionX.Value = Position.X;
+                windowPositionY.Value = Position.Y;
+            }
+        }
+
         private void confineMouseMode_ValueChanged(ConfineMouseMode newValue)
         {
             bool confine = false;
@@ -131,10 +145,6 @@ namespace osu.Framework.Platform
                 case Configuration.WindowMode.Fullscreen:
                     widthFullscreen.Value = ClientSize.Width;
                     heightFullscreen.Value = ClientSize.Height;
-                    break;
-                case Configuration.WindowMode.Windowed:
-                    windowPositionX.Value = Position.X;
-                    windowPositionY.Value = Position.Y;
                     break;
             }
 
