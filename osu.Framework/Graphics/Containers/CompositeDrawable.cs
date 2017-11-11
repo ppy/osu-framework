@@ -105,6 +105,16 @@ namespace osu.Framework.Graphics.Containers
         #region Children management
 
         /// <summary>
+        /// Invoked when a child has entered <see cref="AliveInternalChildren"/>.
+        /// </summary>
+        internal event Action<Drawable> ChildBecameAlive;
+
+        /// <summary>
+        /// Invoked when a child has left <see cref="AliveInternalChildren"/>.
+        /// </summary>
+        internal event Action<Drawable> ChildDied;
+
+        /// <summary>
         /// Gets or sets the only child in <see cref="InternalChildren"/>.
         /// </summary>
         protected internal Drawable InternalChild
@@ -222,7 +232,10 @@ namespace osu.Framework.Graphics.Containers
 
             internalChildren.RemoveAt(index);
             if (drawable.IsAlive)
+            {
                 aliveInternalChildren.Remove(drawable);
+                ChildDied?.Invoke(drawable);
+            }
 
             if (drawable.LoadState >= LoadState.Ready)
             {
@@ -250,6 +263,9 @@ namespace osu.Framework.Graphics.Containers
         {
             foreach (Drawable t in internalChildren)
             {
+                if (t.IsAlive)
+                    ChildDied?.Invoke(t);
+
                 t.IsAlive = false;
 
                 if (disposeChildren)
@@ -387,6 +403,7 @@ namespace osu.Framework.Graphics.Containers
                     if (child.LoadState >= LoadState.Ready)
                     {
                         aliveInternalChildren.Add(child);
+                        ChildBecameAlive?.Invoke(child);
                         child.IsAlive = true;
                         changed = true;
                     }
@@ -397,6 +414,7 @@ namespace osu.Framework.Graphics.Containers
                 if (child.IsAlive)
                 {
                     aliveInternalChildren.Remove(child);
+                    ChildDied?.Invoke(child);
                     child.IsAlive = false;
                     changed = true;
                 }
