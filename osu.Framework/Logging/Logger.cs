@@ -17,11 +17,11 @@ namespace osu.Framework.Logging
     /// </summary>
     public class Logger
     {
-        private static readonly object staticSyncLock = new object();
+        private static readonly object static_sync_lock = new object();
         // separate locking object for flushing so that we don't lock too long on the staticSyncLock object, since we have to
         // hold this lock for the entire duration of the flush (waiting for I/O etc) before we can resume scheduling logs
         // but other operations like GetLogger(), ApplyFilters() etc. can still be executed while a flush is happening.
-        private static readonly object flushSyncLock = new object();
+        private static readonly object flush_sync_lock = new object();
 
         /// <summary>
         /// Whether logging is enabled. Setting this to false will disable all logging.
@@ -62,7 +62,7 @@ namespace osu.Framework.Logging
         {
             if (string.IsNullOrEmpty(text)) return;
 
-            lock(staticSyncLock)
+            lock(static_sync_lock)
                 filters.Add(text);
         }
 
@@ -73,7 +73,7 @@ namespace osu.Framework.Logging
         /// </summary>
         public static string ApplyFilters(string message)
         {
-            lock (staticSyncLock)
+            lock (static_sync_lock)
             {
                 foreach (string f in filters)
                     message = message.Replace(f, string.Empty.PadRight(f.Length, '*'));
@@ -197,7 +197,7 @@ namespace osu.Framework.Logging
         /// <returns>The logger responsible for the given logging target.</returns>
         public static Logger GetLogger(string name)
         {
-            lock (staticSyncLock)
+            lock (static_sync_lock)
             {
                 var nameLower = name.ToLower();
                 Logger l;
@@ -232,12 +232,12 @@ namespace osu.Framework.Logging
             Target = target;
         }
 
-        private static readonly HashSet<string> reservedNames = new HashSet<string>(Enum.GetNames(typeof(LoggingTarget)).Select(n => n.ToLower()));
+        private static readonly HashSet<string> reserved_names = new HashSet<string>(Enum.GetNames(typeof(LoggingTarget)).Select(n => n.ToLower()));
         private Logger(string name)
         {
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentException("The name of a logger must be non-null and may not contain only white space.", nameof(name));
-            if (reservedNames.Contains(name.ToLower()))
+            if (reserved_names.Contains(name.ToLower()))
                 throw new ArgumentException($"The name \"{name}\" is reserved. Please use the {nameof(LoggingTarget)}-value corresponding to the name instead.");
             Name = name;
         }
@@ -263,7 +263,7 @@ namespace osu.Framework.Logging
                 return;
 
 #if DEBUG
-            var debugLine = $"[{Target?.ToString()?.ToLower() ?? Name}:{level.ToString().ToLower()}] {message}";
+            var debugLine = $"[{Target?.ToString().ToLower() ?? Name}:{level.ToString().ToLower()}] {message}";
             // fire to all debug listeners (like visual studio's output window)
             System.Diagnostics.Debug.Print(debugLine);
             // fire for console displays (appveyor/CI).
@@ -302,7 +302,7 @@ namespace osu.Framework.Logging
                 // don't want to log this to a file
                 return;
 
-            lock (flushSyncLock)
+            lock (flush_sync_lock)
             {
                 // we need to check if the logger is still enabled here, since we may have been waiting for a
                 // flush and while the flush was happening, the logger might have been disabled. In that case
@@ -310,7 +310,7 @@ namespace osu.Framework.Logging
                 if (!Enabled)
                     return;
 
-                background_scheduler.Add(delegate
+                backgroundScheduler.Add(delegate
                 {
                     if (Storage == null)
                         return;
@@ -339,7 +339,8 @@ namespace osu.Framework.Logging
         /// </summary>
         private void clear()
         {
-            background_scheduler.Add(() => Storage?.Delete(Filename));
+            lock(flush_sync_lock)
+                backgroundScheduler.Add(() => Storage?.Delete(Filename));
             addHeader();
         }
 
@@ -354,17 +355,17 @@ namespace osu.Framework.Logging
 
         private static readonly List<string> filters = new List<string>();
         private static readonly Dictionary<string, Logger> static_loggers = new Dictionary<string, Logger>();
-        private static ThreadedScheduler background_scheduler = new ThreadedScheduler(@"Logger");
+        private static ThreadedScheduler backgroundScheduler = new ThreadedScheduler(@"Logger");
 
         /// <summary>
         /// Pause execution until all logger writes have completed and file handles have been closed.
         /// </summary>
         public static void Flush()
         {
-            lock (flushSyncLock)
+            lock (flush_sync_lock)
             {
-                background_scheduler.Dispose();
-                background_scheduler = new ThreadedScheduler(@"Logger");
+                backgroundScheduler.Dispose();
+                backgroundScheduler = new ThreadedScheduler(@"Logger");
             }
         }
     }
