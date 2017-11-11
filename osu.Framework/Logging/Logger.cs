@@ -93,6 +93,7 @@ namespace osu.Framework.Logging
         {
             error(e, description, target, null, recursive);
         }
+
         /// <summary>
         /// Logs the given exception with the given description to the logger with the given name.
         /// </summary>
@@ -104,6 +105,7 @@ namespace osu.Framework.Logging
         {
             error(e, description, null, name, recursive);
         }
+
         private static void error(Exception e, string description, LoggingTarget? target, string name, bool recursive)
         {
             log($@"ERROR: {description}", target, name, LogLevel.Error);
@@ -134,6 +136,7 @@ namespace osu.Framework.Logging
         {
             log(message, null, name, level);
         }
+
         private static void log(string message, LoggingTarget? target, string loggerName, LogLevel level)
         {
             try
@@ -233,12 +236,15 @@ namespace osu.Framework.Logging
         }
 
         private static readonly HashSet<string> reserved_names = new HashSet<string>(Enum.GetNames(typeof(LoggingTarget)).Select(n => n.ToLower()));
+
         private Logger(string name)
         {
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentException("The name of a logger must be non-null and may not contain only white space.", nameof(name));
+
             if (reserved_names.Contains(name.ToLower()))
                 throw new ArgumentException($"The name \"{name}\" is reserved. Please use the {nameof(LoggingTarget)}-value corresponding to the name instead.");
+
             Name = name;
         }
 
