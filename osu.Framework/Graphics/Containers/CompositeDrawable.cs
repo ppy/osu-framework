@@ -237,11 +237,8 @@ namespace osu.Framework.Graphics.Containers
                 ChildDied?.Invoke(drawable);
             }
 
-            if (drawable.LoadState >= LoadState.Ready)
-            {
-                // The string construction is quite expensive, so we are using Debug.Assert here.
-                Debug.Assert(drawable.Parent == this, $@"Removed a drawable ({drawable}) whose parent was not this ({this}), but {drawable.Parent}.");
-            }
+            if (drawable.LoadState >= LoadState.Ready && drawable.Parent != this)
+                throw new InvalidOperationException($@"Removed a drawable ({drawable}) whose parent was not this ({this}), but {drawable.Parent}.");
 
             drawable.Parent = null;
             drawable.IsAlive = false;
