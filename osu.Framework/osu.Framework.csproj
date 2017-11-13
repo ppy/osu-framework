@@ -436,6 +436,7 @@
     <Compile Include="IUpdateable.cs" />
     <Compile Include="Platform\Clipboard.cs" />
     <Compile Include="Platform\IIpcHost.cs" />
+    <Compile Include="Statistics\BackgroundStackTraceCollector.cs" />
     <Compile Include="Testing\Drawables\Steps\AssertButton.cs" />
     <Compile Include="Testing\Drawables\Steps\RepeatStepButton.cs" />
     <Compile Include="Testing\Drawables\Steps\SingleStepButton.cs" />
