@@ -50,13 +50,16 @@ namespace osu.Framework.Logging
 
         private static Storage storage;
 
-        private static Storage getStorage() => storage;
-
         /// <summary>
         /// The storage to place logs inside.
         /// </summary>
         public static Storage Storage
         {
+            private get
+            {
+                return storage;
+            }
+
             set
             {
                 if (value == null) throw new ArgumentNullException(nameof(value));
@@ -334,7 +337,7 @@ namespace osu.Framework.Logging
                 {
                     try
                     {
-                        using (var stream = getStorage().GetStream(Filename, FileAccess.Write, FileMode.Append))
+                        using (var stream = Storage.GetStream(Filename, FileAccess.Write, FileMode.Append))
                         using (var writer = new StreamWriter(stream))
                             foreach (var line in lines)
                                 writer.WriteLine(line);
@@ -357,7 +360,7 @@ namespace osu.Framework.Logging
         private void clear()
         {
             lock (flush_sync_lock)
-                backgroundScheduler.Add(() => getStorage().Delete(Filename));
+                backgroundScheduler.Add(() => Storage.Delete(Filename));
             addHeader();
         }
 
