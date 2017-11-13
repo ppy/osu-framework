@@ -86,10 +86,6 @@ namespace osu.Framework.Graphics.Cursor
 
         public virtual bool OnMouseUp(InputState state, MouseUpEventArgs args) => false;
 
-        public virtual bool OnClick(InputState state) => false;
-
-        public virtual bool OnDoubleClick(InputState state) => false;
-
         protected override void UpdateAfterChildren()
         {
             base.UpdateAfterChildren();

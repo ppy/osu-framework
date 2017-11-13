@@ -7,7 +7,7 @@ using osu.Framework.Input;
 
 namespace osu.Framework.Graphics.Containers
 {
-    public class ClickableContainer : Container, IHandleMouseButtons
+    public class ClickableContainer : Container, IHandleMouseButtons, IHandleClicks
     {
         public Action Action;
         public readonly BindableBool Enabled = new BindableBool(true);
@@ -22,7 +22,5 @@ namespace osu.Framework.Graphics.Containers
                 Action?.Invoke();
             return true;
         }
-
-        public virtual bool OnDoubleClick(InputState state) => false;
     }
 }

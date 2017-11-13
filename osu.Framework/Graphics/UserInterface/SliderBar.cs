@@ -11,7 +11,7 @@ using System.Diagnostics;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public abstract class SliderBar<T> : Container, IHasCurrentValue<T>, IHandleDrag, IHandleMouseButtons, IHandleKeys
+    public abstract class SliderBar<T> : Container, IHasCurrentValue<T>, IHandleDrag, IHandleMouseButtons, IHandleClicks, IHandleKeys
         where T : struct
     {
         /// <summary>

@@ -19,7 +19,7 @@ using OpenTK.Input;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class Menu : CompositeDrawable, IStateful<MenuState>, IHandleHover, IHandleFocus, IHandleMouseButtons, IHandleKeys
+    public class Menu : CompositeDrawable, IStateful<MenuState>, IHandleHover, IHandleFocus, IHandleMouseButtons, IHandleClicks, IHandleKeys
     {
         /// <summary>
         /// Invoked when this <see cref="Menu"/>'s <see cref="State"/> changes.
@@ -550,7 +550,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         #region DrawableMenuItem
         // must be public due to mono bug(?) https://github.com/ppy/osu/issues/1204
-        public class DrawableMenuItem : CompositeDrawable, IStateful<MenuItemState>, IHandleHover, IHandleMouseButtons
+        public class DrawableMenuItem : CompositeDrawable, IStateful<MenuItemState>, IHandleHover, IHandleMouseButtons, IHandleClicks
         {
             /// <summary>
             /// Invoked when this <see cref="DrawableMenuItem"/>'s <see cref="State"/> changes.

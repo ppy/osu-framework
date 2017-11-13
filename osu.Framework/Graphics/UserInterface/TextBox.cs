@@ -23,7 +23,7 @@ using osu.Framework.Timing;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class TextBox : TabbableContainer, IHasCurrentValue<string>, IHandleDrag, IHandleMouseButtons, IHandleFocus
+    public class TextBox : TabbableContainer, IHasCurrentValue<string>, IHandleDrag, IHandleMouseButtons, IHandleClicks, IHandleDoubleClicks, IHandleFocus
     {
         protected FillFlowContainer TextFlow;
         protected Box Background;

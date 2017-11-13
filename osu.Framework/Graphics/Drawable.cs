@@ -1608,14 +1608,14 @@ namespace osu.Framework.Graphics
         public bool TriggerOnMouseUp(InputState screenSpaceState = null, MouseUpEventArgs args = null) => (this as IHandleMouseButtons)?.OnMouseUp(createCloneInParentSpace(screenSpaceState), args) ?? false;
 
         /// <summary>
-        /// Triggers <see cref="IHandleMouseButtons.OnClick(InputState)"/> with a local version of the given <see cref="InputState"/>.
+        /// Triggers <see cref="IHandleClicks.OnClick(InputState)"/> with a local version of the given <see cref="InputState"/>.
         /// </summary>
-        public bool TriggerOnClick(InputState screenSpaceState = null) => (this as IHandleMouseButtons)?.OnClick(createCloneInParentSpace(screenSpaceState)) ?? false;
+        public bool TriggerOnClick(InputState screenSpaceState = null) => (this as IHandleClicks)?.OnClick(createCloneInParentSpace(screenSpaceState)) ?? false;
 
         /// <summary>
-        /// Triggers <see cref="IHandleMouseButtons.OnDoubleClick(InputState)"/> with a local version of the given <see cref="InputState"/>.
+        /// Triggers <see cref="IHandleDoubleClicks.OnDoubleClick(InputState)"/> with a local version of the given <see cref="InputState"/>.
         /// </summary>
-        public bool TriggerOnDoubleClick(InputState screenSpaceState) => (this as IHandleMouseButtons)?.OnDoubleClick(createCloneInParentSpace(screenSpaceState)) ?? false;
+        public bool TriggerOnDoubleClick(InputState screenSpaceState) => (this as IHandleDoubleClicks)?.OnDoubleClick(createCloneInParentSpace(screenSpaceState)) ?? false;
 
         /// <summary>
         /// Triggers <see cref="IHandleDrag.OnDragStart(InputState)"/> with a local version of the given <see cref="InputState"/>.
@@ -1680,7 +1680,7 @@ namespace osu.Framework.Graphics
         public virtual bool RequestsFocus => false;
 
         /// <summary>
-        /// If true, we will gain focus (receiving priority on keybaord input) (and receive an <see cref="IHandleFocus.OnFocus"/> event) on returning true in <see cref="IHandleMouseButtons.OnClick(InputState)"/>.
+        /// If true, we will gain focus (receiving priority on keybaord input) (and receive an <see cref="IHandleFocus.OnFocus"/> event) on returning true in <see cref="IHandleClicks.OnClick(InputState)"/>.
         /// </summary>
         public virtual bool AcceptsFocus => false;
 

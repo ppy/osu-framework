@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics.Visualisation
         Offscreen
     }
 
-    internal class TreeContainer : Container, IStateful<TreeContainerStatus>, IHandleHover, IHandleDrag, IHandleMouseButtons
+    internal class TreeContainer : Container, IStateful<TreeContainerStatus>, IHandleHover, IHandleDrag, IHandleMouseButtons, IHandleClicks
     {
         private readonly ScrollContainer scroll;
 

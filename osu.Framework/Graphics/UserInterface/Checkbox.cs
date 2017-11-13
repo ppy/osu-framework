@@ -7,7 +7,7 @@ using osu.Framework.Input;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public abstract class Checkbox : Container, IHasCurrentValue<bool>, IHandleMouseButtons
+    public abstract class Checkbox : Container, IHasCurrentValue<bool>, IHandleMouseButtons, IHandleClicks
     {
         public Bindable<bool> Current { get; } = new Bindable<bool>();
 

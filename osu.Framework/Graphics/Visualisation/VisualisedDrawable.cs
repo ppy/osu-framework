@@ -15,7 +15,7 @@ using osu.Framework.Extensions.IEnumerableExtensions;
 
 namespace osu.Framework.Graphics.Visualisation
 {
-    internal class VisualisedDrawable : Container, IHandleHover, IHandleMouseButtons
+    internal class VisualisedDrawable : Container, IHandleHover, IHandleMouseButtons, IHandleClicks, IHandleDoubleClicks
     {
         public Drawable Target { get; }
 

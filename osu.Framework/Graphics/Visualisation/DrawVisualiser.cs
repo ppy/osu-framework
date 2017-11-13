@@ -230,10 +230,7 @@ namespace osu.Framework.Graphics.Visualisation
             }
         }
 
-        protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
-        {
-            return targetSearching;
-        }
+        public override bool OnMouseDown(InputState state, MouseDownEventArgs args) => targetSearching;
 
         private Drawable findTarget(InputState state)
         {

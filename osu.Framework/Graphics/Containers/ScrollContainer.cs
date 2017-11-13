@@ -259,10 +259,6 @@ namespace osu.Framework.Graphics.Containers
 
         public virtual bool OnMouseUp(InputState state, MouseUpEventArgs args) => false;
 
-        public virtual bool OnClick(InputState state) => false;
-
-        public virtual bool OnDoubleClick(InputState state) => false;
-
         // We keep track of this because input events may happen at different intervals than update frames
         // and we are interested in the time difference between drag _input_ events.
         private double lastDragTime;
@@ -472,7 +468,7 @@ namespace osu.Framework.Graphics.Containers
             content.MoveTo(ScrollDirection, -Current);
         }
 
-        protected internal class ScrollbarContainer : Container, IHandleHover, IHandleDrag, IHandleMouseButtons
+        protected internal class ScrollbarContainer : Container, IHandleClicks, IHandleHover, IHandleDrag, IHandleMouseButtons
         {
             public Action<float> Dragged;
 
@@ -523,7 +519,6 @@ namespace osu.Framework.Graphics.Containers
             }
 
             public virtual bool OnClick(InputState state) => true;
-            public virtual bool OnDoubleClick(InputState state) => false;
 
             public virtual bool OnHover(InputState state)
             {
