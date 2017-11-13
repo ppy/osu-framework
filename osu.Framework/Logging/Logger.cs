@@ -48,10 +48,24 @@ namespace osu.Framework.Logging
         /// </summary>
         public static string VersionIdentifier = @"unknown";
 
+        private static Storage storage;
+
+        private static Storage getStorage() => storage;
+
         /// <summary>
         /// The storage to place logs inside.
         /// </summary>
-        public static Storage Storage;
+        public static Storage Storage
+        {
+            set
+            {
+                if (value == null) throw new ArgumentNullException(nameof(value));
+
+                storage = value;
+                lock (flush_sync_lock)
+                    backgroundScheduler.Enabled = true;
+            }
+        }
 
         /// <summary>
         /// Add a plain-text phrase which should always be filtered from logs. The filtered phrase will be replaced with asterisks (*).
@@ -318,12 +332,9 @@ namespace osu.Framework.Logging
 
                 backgroundScheduler.Add(delegate
                 {
-                    if (Storage == null)
-                        return;
-
                     try
                     {
-                        using (var stream = Storage.GetStream(Filename, FileAccess.Write, FileMode.Append))
+                        using (var stream = getStorage().GetStream(Filename, FileAccess.Write, FileMode.Append))
                         using (var writer = new StreamWriter(stream))
                             foreach (var line in lines)
                                 writer.WriteLine(line);
@@ -346,7 +357,7 @@ namespace osu.Framework.Logging
         private void clear()
         {
             lock (flush_sync_lock)
-                backgroundScheduler.Add(() => Storage?.Delete(Filename));
+                backgroundScheduler.Add(() => getStorage().Delete(Filename));
             addHeader();
         }
 
@@ -361,7 +372,7 @@ namespace osu.Framework.Logging
 
         private static readonly List<string> filters = new List<string>();
         private static readonly Dictionary<string, Logger> static_loggers = new Dictionary<string, Logger>();
-        private static ThreadedScheduler backgroundScheduler = new ThreadedScheduler(@"Logger");
+        private static ThreadedScheduler backgroundScheduler = new ThreadedScheduler(@"Logger") { Enabled = false };
 
         /// <summary>
         /// Pause execution until all logger writes have completed and file handles have been closed.
@@ -371,7 +382,7 @@ namespace osu.Framework.Logging
             lock (flush_sync_lock)
             {
                 backgroundScheduler.Dispose();
-                backgroundScheduler = new ThreadedScheduler(@"Logger");
+                backgroundScheduler = new ThreadedScheduler(@"Logger") { Enabled = storage != null };
             }
         }
     }
