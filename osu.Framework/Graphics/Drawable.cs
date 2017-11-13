@@ -320,7 +320,7 @@ namespace osu.Framework.Graphics
             if (isDisposed)
                 throw new ObjectDisposedException(ToString(), "Disposed Drawables may never be in the scene graph.");
 
-            if (ShouldUpdateCustomClock)
+            if (ShouldProcessClock)
                 customClock?.ProcessFrame();
 
             if (loadState < LoadState.Ready)
@@ -1156,7 +1156,7 @@ namespace osu.Framework.Graphics
         /// Whether <see cref="IFrameBasedClock.ProcessFrame"/> should be automatically invoked on this <see cref="Drawable"/>'s <see cref="Clock"/>
         /// in <see cref="UpdateSubTree"/>. This should only be used in scenarios where <see cref="UpdateSubTree"/> is overridden to perform the functionality itself.
         /// </summary>
-        protected virtual bool ShouldUpdateCustomClock => Parent != null; //we don't want to update our clock if we are at the top of the stack. it's handled elsewhere for us.
+        protected virtual bool ShouldProcessClock => Parent != null; //we don't want to update our clock if we are at the top of the stack. it's handled elsewhere for us.
 
         /// <summary>
         /// The time at which this drawable becomes valid (and is considered for drawing).
