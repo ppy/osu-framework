@@ -180,7 +180,7 @@ namespace osu.Framework.Graphics.Visualisation
                             ShadowColour = Color4.Black,
                             Margin = new MarginPadding { Left = 5, Right = 5 },
                             TextSize = font_size,
-                            Text = entry.Target.ToString(),
+                            Text = entry.Target?.ToString() ?? entry.LoggerName,
                         }
                     }
                 },
@@ -210,8 +210,6 @@ namespace osu.Framework.Graphics.Visualisation
                     return Color4.YellowGreen;
                 case LoggingTarget.Network:
                     return Color4.BlueViolet;
-                case LoggingTarget.Tournament:
-                    return Color4.Yellow;
                 case LoggingTarget.Performance:
                     return Color4.HotPink;
                 case LoggingTarget.Debug:

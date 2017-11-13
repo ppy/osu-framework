@@ -57,13 +57,30 @@ namespace osu.Framework.Platform
 
         protected override void OnResize(EventArgs e)
         {
+            if (ClientSize.IsEmpty) return;
+
             base.OnResize(e);
+
             switch (WindowMode.Value)
             {
                 case Configuration.WindowMode.Windowed:
                     width.Value = ClientSize.Width;
                     height.Value = ClientSize.Height;
                     break;
+            }
+        }
+
+        protected override void OnMove(EventArgs e)
+        {
+            base.OnMove(e);
+
+            // The game is windowed and the whole window is on the screen (it is not minimized or moved outside of the screen)
+            if (WindowMode.Value == Configuration.WindowMode.Windowed
+                && Position.X > 0 && Position.X < 1
+                && Position.Y > 0 && Position.Y < 1)
+            {
+                windowPositionX.Value = Position.X;
+                windowPositionY.Value = Position.Y;
             }
         }
 
@@ -128,10 +145,6 @@ namespace osu.Framework.Platform
                 case Configuration.WindowMode.Fullscreen:
                     widthFullscreen.Value = ClientSize.Width;
                     heightFullscreen.Value = ClientSize.Height;
-                    break;
-                case Configuration.WindowMode.Windowed:
-                    windowPositionX.Value = Position.X;
-                    windowPositionY.Value = Position.Y;
                     break;
             }
 

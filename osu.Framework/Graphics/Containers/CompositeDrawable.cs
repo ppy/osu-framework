@@ -105,6 +105,16 @@ namespace osu.Framework.Graphics.Containers
         #region Children management
 
         /// <summary>
+        /// Invoked when a child has entered <see cref="AliveInternalChildren"/>.
+        /// </summary>
+        internal event Action<Drawable> ChildBecameAlive;
+
+        /// <summary>
+        /// Invoked when a child has left <see cref="AliveInternalChildren"/>.
+        /// </summary>
+        internal event Action<Drawable> ChildDied;
+
+        /// <summary>
         /// Gets or sets the only child in <see cref="InternalChildren"/>.
         /// </summary>
         protected internal Drawable InternalChild
@@ -222,13 +232,13 @@ namespace osu.Framework.Graphics.Containers
 
             internalChildren.RemoveAt(index);
             if (drawable.IsAlive)
-                aliveInternalChildren.Remove(drawable);
-
-            if (drawable.LoadState >= LoadState.Ready)
             {
-                // The string construction is quite expensive, so we are using Debug.Assert here.
-                Debug.Assert(drawable.Parent == this, $@"Removed a drawable ({drawable}) whose parent was not this ({this}), but {drawable.Parent}.");
+                aliveInternalChildren.Remove(drawable);
+                ChildDied?.Invoke(drawable);
             }
+
+            if (drawable.LoadState >= LoadState.Ready && drawable.Parent != this)
+                throw new InvalidOperationException($@"Removed a drawable ({drawable}) whose parent was not this ({this}), but {drawable.Parent}.");
 
             drawable.Parent = null;
             drawable.IsAlive = false;
@@ -250,6 +260,9 @@ namespace osu.Framework.Graphics.Containers
         {
             foreach (Drawable t in internalChildren)
             {
+                if (t.IsAlive)
+                    ChildDied?.Invoke(t);
+
                 t.IsAlive = false;
 
                 if (disposeChildren)
@@ -387,6 +400,7 @@ namespace osu.Framework.Graphics.Containers
                     if (child.LoadState >= LoadState.Ready)
                     {
                         aliveInternalChildren.Add(child);
+                        ChildBecameAlive?.Invoke(child);
                         child.IsAlive = true;
                         changed = true;
                     }
@@ -397,6 +411,7 @@ namespace osu.Framework.Graphics.Containers
                 if (child.IsAlive)
                 {
                     aliveInternalChildren.Remove(child);
+                    ChildDied?.Invoke(child);
                     child.IsAlive = false;
                     changed = true;
                 }
@@ -693,13 +708,26 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        public override void ClearTransforms(bool propagateChildren = false, string targetMember = null)
+        public override void ApplyTransformsAt(double time, bool propagateChildren = false)
         {
-            base.ClearTransforms(propagateChildren, targetMember);
+            base.ApplyTransformsAt(time, propagateChildren);
 
-            if (propagateChildren)
-                foreach (var c in internalChildren)
-                    c.ClearTransforms(true, targetMember);
+            if (!propagateChildren)
+                return;
+
+            foreach (var c in internalChildren)
+                c.ApplyTransformsAt(time, true);
+        }
+
+        public override void ClearTransformsAfter(double time, bool propagateChildren = false, string targetMember = null)
+        {
+            base.ClearTransformsAfter(time, propagateChildren, targetMember);
+
+            if (!propagateChildren)
+                return;
+
+            foreach (var c in internalChildren)
+                c.ClearTransformsAfter(time, true, targetMember);
         }
 
         internal override void AddDelay(double duration, bool propagateChildren = false)
