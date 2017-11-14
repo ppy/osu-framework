@@ -40,7 +40,7 @@ namespace osu.Framework.Input.Handlers.Mouse
                     host.InputThread.Scheduler.Add(scheduled = new ScheduledDelegate(delegate
                     {
                         // we should be getting events if the mouse is inside the window.
-                        if (mouseInWindow || !host.Window.Visible) return;
+                        if (mouseInWindow || !host.Window.Visible || host.Window.WindowState == WindowState.Minimized) return;
 
                         var state = OpenTK.Input.Mouse.GetCursorState();
 

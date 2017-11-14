@@ -20,19 +20,19 @@ namespace osu.Framework.Configuration
             Set(FrameworkSetting.WindowedPositionX, 0.5, -0.1, 1.1);
             Set(FrameworkSetting.WindowedPositionY, 0.5, -0.1, 1.1);
             Set(FrameworkSetting.AudioDevice, string.Empty);
-            Set(FrameworkSetting.VolumeUniversal, 1.0, 0.0, 1.0);
-            Set(FrameworkSetting.VolumeMusic, 1.0, 0.0, 1.0);
-            Set(FrameworkSetting.VolumeEffect, 1.0, 0.0, 1.0);
+            Set(FrameworkSetting.VolumeUniversal, 1.0, 0.0, 1.0, 0.01);
+            Set(FrameworkSetting.VolumeMusic, 1.0, 0.0, 1.0, 0.01);
+            Set(FrameworkSetting.VolumeEffect, 1.0, 0.0, 1.0, 0.01);
             Set(FrameworkSetting.WidthFullscreen, 9999, 320, 9999);
             Set(FrameworkSetting.HeightFullscreen, 9999, 240, 9999);
             Set(FrameworkSetting.Letterboxing, true);
-            Set(FrameworkSetting.LetterboxPositionX, 0.0, -1.0, 1.0);
-            Set(FrameworkSetting.LetterboxPositionY, 0.0, -1.0, 1.0);
+            Set(FrameworkSetting.LetterboxPositionX, 0.0, -1.0, 1.0, 0.01);
+            Set(FrameworkSetting.LetterboxPositionY, 0.0, -1.0, 1.0, 0.01);
             Set(FrameworkSetting.FrameSync, FrameSync.Limit2x);
             Set(FrameworkSetting.WindowMode, WindowMode.Windowed);
             Set(FrameworkSetting.ShowUnicode, false);
             Set(FrameworkSetting.ActiveInputHandlers, string.Empty);
-            Set(FrameworkSetting.CursorSensitivity, 1.0, 0.1, 6);
+            Set(FrameworkSetting.CursorSensitivity, 1.0, 0.1, 6, 0.01);
             Set(FrameworkSetting.Locale, string.Empty);
         }
 

@@ -42,7 +42,7 @@ namespace osu.Framework.Testing
         {
             var di = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory);
 
-            var basePath = di.Parent?.Parent?.Parent?.Parent?.FullName;
+            var basePath = di.Parent?.Parent?.Parent?.FullName;
 
             if (!Directory.Exists(basePath))
                 return;

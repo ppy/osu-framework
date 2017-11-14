@@ -36,7 +36,7 @@ namespace osu.Framework.Configuration
         {
         }
 
-        public BindableDouble Set(T lookup, double value, double? min = null, double? max = null)
+        public BindableDouble Set(T lookup, double value, double? min = null, double? max = null, double? precision = null)
         {
             BindableDouble bindable = GetOriginalBindable<double>(lookup) as BindableDouble;
 
@@ -53,11 +53,12 @@ namespace osu.Framework.Configuration
             bindable.Default = value;
             if (min.HasValue) bindable.MinValue = min.Value;
             if (max.HasValue) bindable.MaxValue = max.Value;
+            if (precision.HasValue) bindable.Precision = precision.Value;
 
             return bindable;
         }
 
-        public BindableFloat Set(T lookup, float value, float? min = null, float? max = null)
+        public BindableFloat Set(T lookup, float value, float? min = null, float? max = null, float? precision = null)
         {
             BindableFloat bindable = GetOriginalBindable<float>(lookup) as BindableFloat;
 
@@ -74,6 +75,7 @@ namespace osu.Framework.Configuration
             bindable.Default = value;
             if (min.HasValue) bindable.MinValue = min.Value;
             if (max.HasValue) bindable.MaxValue = max.Value;
+            if (precision.HasValue) bindable.Precision = precision.Value;
 
             return bindable;
         }

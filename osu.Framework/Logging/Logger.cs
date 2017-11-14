@@ -8,15 +8,30 @@ using System.Globalization;
 using System.IO;
 using osu.Framework.Platform;
 using osu.Framework.Threading;
+using System.Linq;
 
 namespace osu.Framework.Logging
 {
+    /// <summary>
+    /// This class allows statically (globally) configuring and using logging functionality.
+    /// </summary>
     public class Logger
     {
+        private static readonly object static_sync_lock = new object();
+        // separate locking object for flushing so that we don't lock too long on the staticSyncLock object, since we have to
+        // hold this lock for the entire duration of the flush (waiting for I/O etc) before we can resume scheduling logs
+        // but other operations like GetLogger(), ApplyFilters() etc. can still be executed while a flush is happening.
+        private static readonly object flush_sync_lock = new object();
+
         /// <summary>
-        /// Global control over logging.
+        /// Whether logging is enabled. Setting this to false will disable all logging.
         /// </summary>
         public static bool Enabled = true;
+
+        /// <summary>
+        /// The minimum log-level a logged message needs to have to be logged. Default is <see cref="LogLevel.Verbose"/>. Please note that setting this to <see cref="LogLevel.Debug"/>  will log input events, including keypresses when entering a password.
+        /// </summary>
+        public static LogLevel Level = LogLevel.Verbose;
 
         /// <summary>
         /// An identifier used in log file headers to figure where the log file came from.
@@ -24,64 +39,129 @@ namespace osu.Framework.Logging
         public static string UserIdentifier = Environment.UserName;
 
         /// <summary>
-        /// An identifier for game used in log file headers to figure where the log file came from.
+        /// An identifier for the game written to log file headers to indicate where the log file came from.
         /// </summary>
         public static string GameIdentifier = @"game";
 
         /// <summary>
-        /// An identifier for version used in log file headers to figure where the log file came from.
+        /// An identifier for the version written to log file headers to indicate where the log file came from.
         /// </summary>
         public static string VersionIdentifier = @"unknown";
+
+        private static Storage storage;
 
         /// <summary>
         /// The storage to place logs inside.
         /// </summary>
-        public static Storage Storage;
+        public static Storage Storage
+        {
+            private get
+            {
+                return storage;
+            }
+
+            set
+            {
+                if (value == null) throw new ArgumentNullException(nameof(value));
+
+                storage = value;
+                lock (flush_sync_lock)
+                    backgroundScheduler.Enabled = true;
+            }
+        }
 
         /// <summary>
-        /// Add a plain-text phrase which should always be filtered from logs.
+        /// Add a plain-text phrase which should always be filtered from logs. The filtered phrase will be replaced with asterisks (*).
         /// Useful for avoiding logging of credentials.
+        /// See also <seealso cref="ApplyFilters(string)"/>.
         /// </summary>
         public static void AddFilteredText(string text)
         {
             if (string.IsNullOrEmpty(text)) return;
 
-            filters.Add(text);
+            lock (static_sync_lock)
+                filters.Add(text);
         }
 
         /// <summary>
         /// Removes phrases which should be filtered from logs.
         /// Useful for avoiding logging of credentials.
+        /// See also <seealso cref="AddFilteredText(string)"/>.
         /// </summary>
         public static string ApplyFilters(string message)
         {
-            foreach (string f in filters)
-                message = message.Replace(f, string.Empty.PadRight(f.Length, '*'));
+            lock (static_sync_lock)
+            {
+                foreach (string f in filters)
+                    message = message.Replace(f, string.Empty.PadRight(f.Length, '*'));
+            }
 
             return message;
         }
 
+        /// <summary>
+        /// Logs the given exception with the given description to the specified logging target.
+        /// </summary>
+        /// <param name="e">The exception that should be logged.</param>
+        /// <param name="description">The description of the error that should be logged with the exception.</param>
+        /// <param name="target">The logging target (file).</param>
+        /// <param name="recursive">Whether the inner exceptions of the given exception <paramref name="e"/> should be logged recursively.</param>
         public static void Error(Exception e, string description, LoggingTarget target = LoggingTarget.Runtime, bool recursive = false)
         {
-            Log($@"ERROR: {description}", target, LogLevel.Error);
-            Log(e.ToString(), target, LogLevel.Error);
-
-            if (recursive)
-                for (Exception inner = e.InnerException; inner != null; inner = inner.InnerException)
-                    Log(inner.ToString(), target, LogLevel.Error);
+            error(e, description, target, null, recursive);
         }
 
         /// <summary>
-        /// Log an arbitrary string to a specific log target.
+        /// Logs the given exception with the given description to the logger with the given name.
+        /// </summary>
+        /// <param name="e">The exception that should be logged.</param>
+        /// <param name="description">The description of the error that should be logged with the exception.</param>
+        /// <param name="name">The logger name (file).</param>
+        /// <param name="recursive">Whether the inner exceptions of the given exception <paramref name="e"/> should be logged recursively.</param>
+        public static void Error(Exception e, string description, string name, bool recursive = false)
+        {
+            error(e, description, null, name, recursive);
+        }
+
+        private static void error(Exception e, string description, LoggingTarget? target, string name, bool recursive)
+        {
+            log($@"ERROR: {description}", target, name, LogLevel.Error);
+            log(e.ToString(), target, name, LogLevel.Error);
+
+            if (recursive)
+                for (Exception inner = e.InnerException; inner != null; inner = inner.InnerException)
+                    log(inner.ToString(), target, name, LogLevel.Error);
+        }
+
+        /// <summary>
+        /// Log an arbitrary string to the specified logging target.
         /// </summary>
         /// <param name="message">The message to log. Can include newline (\n) characters to split into multiple lines.</param>
         /// <param name="target">The logging target (file).</param>
         /// <param name="level">The verbosity level.</param>
         public static void Log(string message, LoggingTarget target = LoggingTarget.Runtime, LogLevel level = LogLevel.Verbose)
         {
+            log(message, target, null, level);
+        }
+        /// <summary>
+        /// Log an arbitrary string to the logger with the given name.
+        /// </summary>
+        /// <param name="message">The message to log. Can include newline (\n) characters to split into multiple lines.</param>
+        /// <param name="name">The logger name (file).</param>
+        /// <param name="level">The verbosity level.</param>
+        public static void Log(string message, string name, LogLevel level = LogLevel.Verbose)
+        {
+            log(message, null, name, level);
+        }
+
+        private static void log(string message, LoggingTarget? target, string loggerName, LogLevel level)
+        {
             try
             {
-                GetLogger(target).Add(message, level);
+                if (target.HasValue)
+                    GetLogger(target.Value).Add(message, level);
+                else
+                    GetLogger(loggerName).Add(message, level);
             }
             catch
             {
@@ -89,7 +169,7 @@ namespace osu.Framework.Logging
         }
 
         /// <summary>
-        /// Logs a message to the given log target and also displays a print statement.
+        /// Logs a message to the specified logging target and also displays a print statement.
         /// </summary>
         /// <param name="message">The message to log. Can include newline (\n) characters to split into multiple lines.</param>
         /// <param name="target">The logging target (file).</param>
@@ -97,41 +177,102 @@ namespace osu.Framework.Logging
         public static void LogPrint(string message, LoggingTarget target = LoggingTarget.Runtime, LogLevel level = LogLevel.Verbose)
         {
 #if DEBUG
-            System.Diagnostics.Debug.Print(message);
+            if (Enabled)
+                System.Diagnostics.Debug.Print(message);
 #endif
             Log(message, target, level);
+        }
+
+        /// <summary>
+        /// Logs a message to the logger with the given name and also displays a print statement.
+        /// </summary>
+        /// <param name="message">The message to log. Can include newline (\n) characters to split into multiple lines.</param>
+        /// <param name="name">The logger name (file).</param>
+        /// <param name="level">The verbosity level.</param>
+        public static void LogPrint(string message, string name, LogLevel level = LogLevel.Verbose)
+        {
+#if DEBUG
+            if (Enabled)
+                System.Diagnostics.Debug.Print(message);
+#endif
+            Log(message, name, level);
         }
 
         /// <summary>
         /// For classes that regularly log to the same target, this method may be preferred over the static Log method.
         /// </summary>
         /// <param name="target">The logging target.</param>
-        /// <returns></returns>
+        /// <returns>The logger responsible for the given logging target.</returns>
         public static Logger GetLogger(LoggingTarget target = LoggingTarget.Runtime)
         {
-            Logger l;
-            if (!static_loggers.TryGetValue(target, out l))
-            {
-                static_loggers[target] = l = new Logger(target);
-                l.Clear();
-            }
-
-            return l;
+            // there can be no name conflicts between LoggingTarget-based Loggers and named loggers because
+            // every name that would coincide with a LoggingTarget-value is reserved and cannot be used (see ctor).
+            return GetLogger(target.ToString());
         }
 
-        public LoggingTarget Target { get; }
+        /// <summary>
+        /// For classes that regularly log to the same target, this method may be preferred over the static Log method.
+        /// </summary>
+        /// <param name="name">The name of the custom logger.</param>
+        /// <returns>The logger responsible for the given logging target.</returns>
+        public static Logger GetLogger(string name)
+        {
+            lock (static_sync_lock)
+            {
+                var nameLower = name.ToLower();
+                Logger l;
+                if (!static_loggers.TryGetValue(nameLower, out l))
+                {
+                    LoggingTarget target;
+                    static_loggers[nameLower] = l = Enum.TryParse(name, true, out target) ? new Logger(target) : new Logger(name);
+                    l.clear();
+                }
 
-        public string Filename => $@"{Target.ToString().ToLower()}.log";
+                return l;
+            }
+        }
+
+        /// <summary>
+        /// The target for which this logger logs information. This will only be null if the logger has a name.
+        /// </summary>
+        public LoggingTarget? Target { get; }
+
+        /// <summary>
+        /// The name of the logger. This will only have a value if <see cref="Target"/> is null.
+        /// </summary>
+        public string Name { get; }
+
+        /// <summary>
+        /// Gets the name of the file that this logger is logging to.
+        /// </summary>
+        public string Filename => $@"{(Target?.ToString() ?? Name).ToLower()}.log";
 
         private Logger(LoggingTarget target = LoggingTarget.Runtime)
         {
             Target = target;
         }
 
+        private static readonly HashSet<string> reserved_names = new HashSet<string>(Enum.GetNames(typeof(LoggingTarget)).Select(n => n.ToLower()));
+
+        private Logger(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                throw new ArgumentException("The name of a logger must be non-null and may not contain only white space.", nameof(name));
+
+            if (reserved_names.Contains(name.ToLower()))
+                throw new ArgumentException($"The name \"{name}\" is reserved. Please use the {nameof(LoggingTarget)}-value corresponding to the name instead.");
+
+            Name = name;
+        }
+
+        /// <summary>
+        /// Logs a new message with the <see cref="LogLevel.Debug"/> and will only be logged if your project is built in the Debug configuration. Please note that the default setting for <see cref="Level"/> is <see cref="LogLevel.Verbose"/> so unless you increase the <see cref="Level"/> to <see cref="LogLevel.Debug"/> messages printed with this method will not appear in the output.
+        /// </summary>
+        /// <param name="message">The message that should be logged.</param>
         [Conditional("DEBUG")]
         public void Debug(string message = @"")
         {
-            Add(message);
+            Add(message, LogLevel.Debug);
         }
 
         /// <summary>
@@ -141,8 +282,11 @@ namespace osu.Framework.Logging
         /// <param name="level">The verbosity level.</param>
         public void Add(string message = @"", LogLevel level = LogLevel.Verbose)
         {
+            if (!Enabled || level < Level)
+                return;
+
 #if DEBUG
-            var debugLine = $"[{Target.ToString().ToLower()}:{level.ToString().ToLower()}] {message}";
+            var debugLine = $"[{Target?.ToString().ToLower() ?? Name}:{level.ToString().ToLower()}] {message}";
             // fire to all debug listeners (like visual studio's output window)
             System.Diagnostics.Debug.Print(debugLine);
             // fire for console displays (appveyor/CI).
@@ -156,8 +300,6 @@ namespace osu.Framework.Logging
 #if !DEBUG
             if (level <= LogLevel.Debug) return;
 #endif
-
-            if (!Enabled) return;
 
             message = ApplyFilters(message);
 
@@ -173,6 +315,7 @@ namespace osu.Framework.Logging
             {
                 Level = level,
                 Target = Target,
+                LoggerName = Name,
                 Message = message
             };
 
@@ -182,32 +325,42 @@ namespace osu.Framework.Logging
                 // don't want to log this to a file
                 return;
 
-            background_scheduler.Add(delegate
+            lock (flush_sync_lock)
             {
-                if (Storage == null)
+                // we need to check if the logger is still enabled here, since we may have been waiting for a
+                // flush and while the flush was happening, the logger might have been disabled. In that case
+                // we want to make sure that we don't accidentally write anything to a file after that flush.
+                if (!Enabled)
                     return;
 
-                try
+                backgroundScheduler.Add(delegate
                 {
-                    using (var stream = Storage.GetStream(Filename, FileAccess.Write, FileMode.Append))
-                    using (var writer = new StreamWriter(stream))
-                        foreach (var line in lines)
-                            writer.WriteLine(line);
-                }
-                catch
-                {
-                }
-            });
+                    try
+                    {
+                        using (var stream = Storage.GetStream(Filename, FileAccess.Write, FileMode.Append))
+                        using (var writer = new StreamWriter(stream))
+                            foreach (var line in lines)
+                                writer.WriteLine(line);
+                    }
+                    catch
+                    {
+                    }
+                });
+            }
         }
 
+        /// <summary>
+        /// Fires whenever any logger tries to log a new entry, but before the entry is actually written to the logfile.
+        /// </summary>
         public static event Action<LogEntry> NewEntry;
 
         /// <summary>
         /// Deletes log file from disk.
         /// </summary>
-        public void Clear()
+        private void clear()
         {
-            background_scheduler.Add(() => Storage?.Delete(Filename));
+            lock (flush_sync_lock)
+                backgroundScheduler.Add(() => Storage.Delete(Filename));
             addHeader();
         }
 
@@ -221,41 +374,96 @@ namespace osu.Framework.Logging
         }
 
         private static readonly List<string> filters = new List<string>();
-        private static readonly Dictionary<LoggingTarget, Logger> static_loggers = new Dictionary<LoggingTarget, Logger>();
-        private static readonly ThreadedScheduler background_scheduler = new ThreadedScheduler(@"Logger");
+        private static readonly Dictionary<string, Logger> static_loggers = new Dictionary<string, Logger>();
+        private static ThreadedScheduler backgroundScheduler = new ThreadedScheduler(@"Logger") { Enabled = false };
 
         /// <summary>
         /// Pause execution until all logger writes have completed and file handles have been closed.
         /// </summary>
-        public static void WaitForCompletion()
+        public static void Flush()
         {
-            background_scheduler.Dispose();
+            lock (flush_sync_lock)
+            {
+                backgroundScheduler.Dispose();
+                backgroundScheduler = new ThreadedScheduler(@"Logger") { Enabled = storage != null };
+            }
         }
     }
 
+    /// <summary>
+    /// Captures information about a logged message.
+    /// </summary>
     public class LogEntry
     {
+        /// <summary>
+        /// The level for which the message was logged.
+        /// </summary>
         public LogLevel Level;
-        public LoggingTarget Target;
+        /// <summary>
+        /// The target to which this message is being logged, or null if it is being logged to a custom named logger.
+        /// </summary>
+        public LoggingTarget? Target;
+        /// <summary>
+        /// The name of the logger to which this message is being logged, or null if it is being logged to a specific <see cref="LoggingTarget"/>.
+        /// </summary>
+        public string LoggerName;
+        /// <summary>
+        /// The message that was logged.
+        /// </summary>
         public string Message;
     }
 
+    /// <summary>
+    /// The level on which a log-message is logged.
+    /// </summary>
     public enum LogLevel
     {
+        /// <summary>
+        /// Log-level for debugging-related log-messages. This is the lowest level (highest verbosity). Please note that this will log input events, including keypresses when entering a password.
+        /// </summary>
         Debug,
+        /// <summary>
+        /// Log-level for most log-messages. This is the second-lowest level (second-highest verbosity).
+        /// </summary>
         Verbose,
+        /// <summary>
+        /// Log-level for important log-messages. This is the second-highest level (second-lowest verbosity).
+        /// </summary>
         Important,
+        /// <summary>
+        /// Log-level for error messages. This is the highest level (lowest verbosity).
+        /// </summary>
         Error
     }
 
+    /// <summary>
+    /// The target for logging. Different targets can have different logfiles, are displayed differently in the LogOverlay and are generally useful for organizing logs into groups.
+    /// </summary>
     public enum LoggingTarget
     {
+        /// <summary>
+        /// Logging target for general information. Everything logged with this target will not be written to a logfile.
+        /// </summary>
         Information,
+        /// <summary>
+        /// Logging target for information about the runtime.
+        /// </summary>
         Runtime,
+        /// <summary>
+        /// Logging target for network-related events.
+        /// </summary>
         Network,
-        Tournament,
+        /// <summary>
+        /// Logging target for performance-related information.
+        /// </summary>
         Performance,
+        /// <summary>
+        /// Logging target for information relevant to debugging.
+        /// </summary>
         Debug,
+        /// <summary>
+        /// Logging target for database-related events.
+        /// </summary>
         Database
     }
 }

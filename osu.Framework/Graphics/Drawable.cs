@@ -320,7 +320,7 @@ namespace osu.Framework.Graphics
             if (isDisposed)
                 throw new ObjectDisposedException(ToString(), "Disposed Drawables may never be in the scene graph.");
 
-            if (Parent != null) //we don't want to update our clock if we are at the top of the stack. it's handled elsewhere for us.
+            if (ShouldProcessClock)
                 customClock?.ProcessFrame();
 
             if (loadState < LoadState.Ready)
@@ -1153,6 +1153,12 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
+        /// Whether <see cref="IFrameBasedClock.ProcessFrame"/> should be automatically invoked on this <see cref="Drawable"/>'s <see cref="Clock"/>
+        /// in <see cref="UpdateSubTree"/>. This should only be used in scenarios where <see cref="UpdateSubTree"/> is overridden to perform the functionality itself.
+        /// </summary>
+        protected virtual bool ShouldProcessClock => Parent != null; //we don't want to update our clock if we are at the top of the stack. it's handled elsewhere for us.
+
+        /// <summary>
         /// The time at which this drawable becomes valid (and is considered for drawing).
         /// </summary>
         public virtual double LifetimeStart { get; set; } = double.MinValue;
@@ -1952,11 +1958,7 @@ namespace osu.Framework.Graphics
                 return;
             }
 
-            //expiry should happen either at the end of the last transform or using the current sequence delay (whichever is highest).
-            double max = TransformStartTime;
-            foreach (Transform t in Transforms)
-                if (t.EndTime > max) max = t.EndTime + 1; //adding 1ms here ensures we can expire on the current frame without issue.
-            LifetimeEnd = max;
+            LifetimeEnd = LatestTransformEndTime;
 
             if (calculateLifetimeStart)
             {

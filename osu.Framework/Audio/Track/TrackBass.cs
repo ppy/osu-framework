@@ -122,14 +122,6 @@ namespace osu.Framework.Audio.Track
             base.UpdateState();
         }
 
-        public override void Reset()
-        {
-            Stop();
-            Seek(0);
-            Volume.Value = 1;
-            base.Reset();
-        }
-
         protected override void Dispose(bool disposing)
         {
             if (activeStream != 0)
@@ -172,8 +164,6 @@ namespace osu.Framework.Audio.Track
 
         public override void Start()
         {
-            isRunning = true;
-
             base.Start();
             PendingActions.Enqueue(() =>
             {

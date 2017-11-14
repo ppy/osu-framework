@@ -39,39 +39,43 @@ namespace osu.Framework.Graphics.Containers
 
         private Drawable nextTabStop(Container<Drawable> target, bool reverse)
         {
-            Stack<IContainerEnumerable<Drawable>> stack = new Stack<IContainerEnumerable<Drawable>>();
+            Stack<Drawable> stack = new Stack<Drawable>();
             stack.Push(target); // Extra push for circular tabbing
             stack.Push(target);
 
             bool started = false;
             while (stack.Count > 0)
             {
-                var container = stack.Pop();
+                var drawable = stack.Pop();
 
                 if (!started)
-                    started = ReferenceEquals(container, this);
-                else if (container is ITabbableContainer)
-                    return container as Drawable;
+                    started = ReferenceEquals(drawable, this);
+                else if (drawable is ITabbableContainer)
+                    return drawable;
 
-                var filtered = container.Children.OfType<IContainerEnumerable<Drawable>>().ToList();
-                int bound = reverse ? filtered.Count : 0;
-                if (!started)
+                var composite = drawable as CompositeDrawable;
+                if (composite != null)
                 {
-                    // Find self, to know starting point
-                    int index = filtered.IndexOf(this);
-                    if (index != -1)
-                        bound = reverse ? index + 1 : index;
-                }
+                    var newChildren = composite.InternalChildren.ToList();
+                    int bound = reverse ? newChildren.Count : 0;
+                    if (!started)
+                    {
+                        // Find self, to know starting point
+                        int index = newChildren.IndexOf(this);
+                        if (index != -1)
+                            bound = reverse ? index + 1 : index;
+                    }
 
-                if (reverse)
-                {
-                    for (int i = 0; i < bound; i++)
-                        stack.Push(filtered[i]);
-                }
-                else
-                {
-                    for (int i = filtered.Count - 1; i >= bound; i--)
-                        stack.Push(filtered[i]);
+                    if (reverse)
+                    {
+                        for (int i = 0; i < bound; i++)
+                            stack.Push(newChildren[i]);
+                    }
+                    else
+                    {
+                        for (int i = newChildren.Count - 1; i >= bound; i--)
+                            stack.Push(newChildren[i]);
+                    }
                 }
             }
 
