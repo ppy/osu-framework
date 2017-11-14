@@ -20,7 +20,8 @@ namespace osu.Framework.Tests.Visual
 
         private readonly Container[] boxes;
 
-        public TestCaseTransformSequence() : base(3, 3)
+        public TestCaseTransformSequence()
+            : base(3, 3)
         {
             boxes = new Container[Rows * Cols];
         }

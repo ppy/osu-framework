@@ -327,13 +327,18 @@ namespace osu.Framework.Threading
         private bool isDisposed;
         private readonly Thread workerThread;
 
+        /// <summary>
+        /// Whether scheduled tasks should be run. Disabling temporarily pauses all execution.
+        /// </summary>
+        public bool Enabled = true;
+
         public ThreadedScheduler(string threadName = null, int runInterval = 50)
         {
             workerThread = new Thread(() =>
             {
                 while (!isDisposed)
                 {
-                    Update();
+                    if (Enabled) Update();
                     Thread.Sleep(runInterval);
                 }
             })
