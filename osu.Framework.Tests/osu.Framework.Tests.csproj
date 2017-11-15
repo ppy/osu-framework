@@ -8,13 +8,10 @@
     <TargetFrameworks>netcoreapp2.0;net461</TargetFrameworks>
     <OutputType>Exe</OutputType>
     <PlatformTarget>AnyCPU</PlatformTarget>
+    <AssemblyName>osu.Framework.Tests</AssemblyName>
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
     <Version>1.0.0.0</Version>
     <Copyright>Copyright © ppy Pty Ltd 2017</Copyright>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <AssemblyName>osu.Framework.Tests</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup Label="Project References">
