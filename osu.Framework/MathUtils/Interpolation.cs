@@ -149,7 +149,7 @@ namespace osu.Framework.MathUtils
 
             if (duration == 0 || current == 0)
                 return val1;
-            
+
             float t = (float)ApplyEasing(easing, current / duration);
 
             return new RectangleF(
@@ -197,8 +197,6 @@ namespace osu.Framework.MathUtils
                     return time * time * time * time * time;
                 case Easing.OutQuint:
                     return --time * time * time * time * time + 1;
-                case Easing.OutPow10:
-                    return --time * Math.Pow(time, 10) + 1;
                 case Easing.InOutQuint:
                     if (time < .5) return time * time * time * time * time * 16;
                     return --time * time * time * time * time * 16 + 1;
@@ -286,6 +284,9 @@ namespace osu.Framework.MathUtils
                 case Easing.InOutBounce:
                     if (time < .5) return .5 - .5 * ApplyEasing(Easing.OutBounce, 1 - time * 2);
                     return ApplyEasing(Easing.OutBounce, (time - .5) * 2) * .5 + .5;
+
+                case Easing.OutPow10:
+                    return --time * Math.Pow(time, 10) + 1;
             }
         }
     }
