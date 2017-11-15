@@ -302,6 +302,7 @@
     <Compile Include="Input\IKeyboardState.cs" />
     <Compile Include="Input\IMouseState.cs" />
     <Compile Include="Input\ITextInputSource.cs" />
+    <Compile Include="Input\PlatformInputManager.cs" />
     <Compile Include="IO\File\FileSafety.cs" />
     <Compile Include="IO\Network\FileWebRequest.cs" />
     <Compile Include="IO\Network\HttpMethod.cs" />

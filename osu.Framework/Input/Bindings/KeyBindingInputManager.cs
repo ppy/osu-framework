@@ -45,6 +45,12 @@ namespace osu.Framework.Input.Bindings
         /// </summary>
         protected virtual IEnumerable<Drawable> KeyBindingInputQueue => InputQueue;
 
+        /// <summary>
+        /// Override to enable or disable sending of repeated actions (disabled by default).
+        /// Each repeated action will have its own pressed/released event pair.
+        /// </summary>
+        protected virtual bool SendRepeats => false;
+
         protected override bool PropagateWheel(IEnumerable<Drawable> drawables, InputState state)
         {
             if (base.PropagateWheel(drawables, state)) return true;
@@ -59,18 +65,18 @@ namespace osu.Framework.Input.Bindings
 
             InputKey key = state.Mouse.WheelDelta > 0 ? InputKey.MouseWheelUp : InputKey.MouseWheelDown;
 
-            return handleNewPressed(state, key) | handleNewReleased(clonedState, key);
+            return handleNewPressed(state, key, false) | handleNewReleased(clonedState, key);
         }
 
         protected override bool PropagateMouseDown(IEnumerable<Drawable> drawables, InputState state, MouseDownEventArgs args) =>
-            base.PropagateMouseDown(drawables, state, args) || handleNewPressed(state, KeyCombination.FromMouseButton(args.Button));
+            base.PropagateMouseDown(drawables, state, args) || handleNewPressed(state, KeyCombination.FromMouseButton(args.Button), false);
 
         protected override bool PropagateMouseUp(IEnumerable<Drawable> drawables, InputState state, MouseUpEventArgs args) =>
             base.PropagateMouseUp(drawables, state, args) || handleNewReleased(state, KeyCombination.FromMouseButton(args.Button));
 
         protected override bool PropagateKeyDown(IEnumerable<Drawable> drawables, InputState state, KeyDownEventArgs args)
         {
-            if (args.Repeat)
+            if (args.Repeat && !SendRepeats)
             {
                 if (pressedBindings.Count > 0)
                     return true;
@@ -78,19 +84,19 @@ namespace osu.Framework.Input.Bindings
                 return base.PropagateKeyDown(drawables, state, args);
             }
 
-            return base.PropagateKeyDown(drawables, state, args) || handleNewPressed(state, KeyCombination.FromKey(args.Key));
+            return base.PropagateKeyDown(drawables, state, args) || handleNewPressed(state, KeyCombination.FromKey(args.Key), args.Repeat);
         }
 
         protected override bool PropagateKeyUp(IEnumerable<Drawable> drawables, InputState state, KeyUpEventArgs args) =>
             base.PropagateKeyUp(drawables, state, args) || handleNewReleased(state, KeyCombination.FromKey(args.Key));
 
-        private bool handleNewPressed(InputState state, InputKey newKey)
+        private bool handleNewPressed(InputState state, InputKey newKey, bool repeat)
         {
             var pressedCombination = KeyCombination.FromInputState(state);
 
             bool handled = false;
-
-            var newlyPressed = KeyBindings.Except(pressedBindings).Where(m =>
+            var bindings = repeat ? KeyBindings : KeyBindings.Except(pressedBindings);
+            var newlyPressed = bindings.Where(m =>
                 m.KeyCombination.Keys.Contains(newKey) // only handle bindings matching current key (not required for correct logic)
                 && m.KeyCombination.IsPressed(pressedCombination));
 
@@ -101,7 +107,8 @@ namespace osu.Framework.Input.Bindings
             // we want to always handle bindings with more keys before bindings with less.
             newlyPressed = newlyPressed.OrderByDescending(b => b.KeyCombination.Keys.Count()).ToList();
 
-            pressedBindings.AddRange(newlyPressed);
+            if (!repeat)
+                pressedBindings.AddRange(newlyPressed);
 
             foreach (var newBinding in newlyPressed)
             {
