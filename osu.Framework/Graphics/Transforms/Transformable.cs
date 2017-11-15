@@ -76,7 +76,7 @@ namespace osu.Framework.Graphics.Transforms
         protected void UpdateTransforms()
         {
             TransformDelay = 0;
-            updateTransforms();
+            updateTransforms(Time.Current);
         }
 
         private List<Action> removalActionsLazy;
@@ -86,7 +86,7 @@ namespace osu.Framework.Graphics.Transforms
         /// Process updates to this class based on loaded <see cref="Transform"/>s. This does not reset <see cref="TransformDelay"/>.
         /// This is used for performing extra updates on <see cref="Transform"/>s when new <see cref="Transform"/>s are added.
         /// </summary>
-        private void updateTransforms()
+        private void updateTransforms(double time)
         {
             if (transformsLazy == null)
                 return;
@@ -100,14 +100,14 @@ namespace osu.Framework.Graphics.Transforms
                 {
                     var t = transformsLazy[i];
 
-                    if (t.StartTime <= Time.Current)
+                    if (t.StartTime <= time)
                         break;
 
                     if (!t.Applied)
                         continue;
 
                     // Revert the transform's target to the transform's starting value, and mark that it hasn't been applied yet for future iterations
-                    t.Apply(Time.Current);
+                    t.Apply(time);
                     t.Applied = false;
                 }
             }
@@ -116,7 +116,7 @@ namespace osu.Framework.Graphics.Transforms
             {
                 var t = transformsLazy[i];
 
-                if (t.StartTime > Time.Current)
+                if (t.StartTime > time)
                     break;
 
                 if (!t.HasStartValue)
@@ -146,9 +146,9 @@ namespace osu.Framework.Graphics.Transforms
                     }
                 }
 
-                t.Apply(Time.Current);
+                t.Apply(time);
 
-                if (t.EndTime <= Time.Current)
+                if (t.EndTime <= time)
                 {
                     if (RemoveCompletedTransforms)
                         transformsLazy.RemoveAt(i--);
@@ -204,7 +204,18 @@ namespace osu.Framework.Graphics.Transforms
         /// An optional <see cref="Transform.TargetMember"/> name of <see cref="Transform"/>s to clear.
         /// Null for clearing all <see cref="Transform"/>s.
         /// </param>
-        public virtual void ClearTransforms(bool propagateChildren = false, string targetMember = null)
+        public virtual void ClearTransforms(bool propagateChildren = false, string targetMember = null) => ClearTransformsAfter(double.NegativeInfinity, propagateChildren, targetMember);
+
+        /// <summary>
+        /// Removes <see cref="Transform"/>s that start after <paramref name="time"/>.
+        /// </summary>
+        /// <param name="time">The time to clear <see cref="Transform"/>s after.</param>
+        /// <param name="propagateChildren">Whether to also clear such <see cref="Transform"/>s of children.</param>
+        /// <param name="targetMember">
+        /// An optional <see cref="Transform.TargetMember"/> name of <see cref="Transform"/>s to clear.
+        /// Null for clearing all <see cref="Transform"/>s.
+        /// </param>
+        public virtual void ClearTransformsAfter(double time, bool propagateChildren = false, string targetMember = null)
         {
             if (transformsLazy == null)
                 return;
@@ -212,17 +223,31 @@ namespace osu.Framework.Graphics.Transforms
             Transform[] toAbort;
             if (targetMember == null)
             {
-                toAbort = transformsLazy.ToArray();
-                transformsLazy.Clear();
+                toAbort = transformsLazy.Where(t => t.StartTime >= time).ToArray();
+                transformsLazy.RemoveAll(t => t.StartTime >= time);
             }
             else
             {
-                toAbort = transformsLazy.Where(t => t.TargetMember == targetMember).ToArray();
-                transformsLazy.RemoveAll(t => t.TargetMember == targetMember);
+                toAbort = transformsLazy.Where(t => t.StartTime >= time && t.TargetMember == targetMember).ToArray();
+                transformsLazy.RemoveAll(t => t.StartTime >= time && t.TargetMember == targetMember);
             }
 
             foreach (var t in toAbort)
                 t.OnAbort?.Invoke();
+        }
+
+        /// <summary>
+        /// Applies <see cref="Transform"/>s at a point in time. This may only be called if <see cref="RemoveCompletedTransforms"/> is set to false.
+        /// <para>
+        /// This does not change the clock time.
+        /// </para>
+        /// </summary>
+        /// <param name="time">The time to apply <see cref="Transform"/>s at.</param>
+        /// <param name="propagateChildren">Whether to also apply children's <see cref="Transform"/>s at <paramref name="time"/>.</param>
+        public virtual void ApplyTransformsAt(double time, bool propagateChildren = false)
+        {
+            if (RemoveCompletedTransforms) throw new InvalidOperationException($"Cannot arbitrarily apply transforms with {nameof(RemoveCompletedTransforms)} active.");
+            updateTransforms(time);
         }
 
         /// <summary>
@@ -369,7 +394,7 @@ namespace osu.Framework.Graphics.Transforms
             // If our newly added transform could have an immediate effect, then let's
             // make this effect happen immediately.
             if (transform.StartTime < Time.Current || transform.EndTime <= Time.Current)
-                updateTransforms();
+                updateTransforms(Time.Current);
         }
     }
 }

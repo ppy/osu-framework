@@ -54,6 +54,7 @@
   <ItemGroup>
     <Compile Include="AutomatedVisualTestGame.cs" />
     <Compile Include="IO\TestWebRequest.cs" />
+    <Compile Include="Lists\TestArrayExtensions.cs" />
     <Compile Include="Lists\TestSortedList.cs" />
     <Compile Include="MathUtils\TestInterpolation.cs" />
     <Compile Include="Platform\HeadlessGameHostTest.cs" />
@@ -80,6 +81,7 @@
     <Compile Include="Visual\TestCaseEffects.cs" />
     <Compile Include="Visual\TestCaseFillModes.cs" />
     <Compile Include="Visual\TestCaseFlow.cs" />
+    <Compile Include="Visual\TestCaseGridContainer.cs" />
     <Compile Include="Visual\TestCaseHollowEdgeEffect.cs" />
     <Compile Include="Visual\TestCaseInputResampler.cs" />
     <Compile Include="Visual\TestCaseKeyBindings.cs" />

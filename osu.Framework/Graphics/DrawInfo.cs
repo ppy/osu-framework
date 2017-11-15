@@ -88,8 +88,10 @@ namespace osu.Framework.Graphics
 
         private void checkComponentValid(Vector2 component, string name)
         {
-            checkComponentValid(component.X, name + ".X");
-            checkComponentValid(component.Y, name + ".Y");
+            if (float.IsNaN(component.X) || float.IsInfinity(component.X))
+                throw new ArgumentException($"Invalid value ({component}) provided for component {name}.X.");
+            if (float.IsNaN(component.Y) || float.IsInfinity(component.Y))
+                throw new ArgumentException($"Invalid value ({component}) provided for component {name}.Y.");
         }
 
         public bool Equals(DrawInfo other)

@@ -4,9 +4,7 @@
 using System.Linq;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
-using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
-using osu.Framework.Threading;
 
 namespace osu.Framework.Graphics.Visualisation
 {
@@ -18,7 +16,6 @@ namespace osu.Framework.Graphics.Visualisation
         private readonly PropertyDisplay propertyDisplay;
 
         private readonly InfoOverlay overlay;
-        private ScheduledDelegate task;
 
         private InputManager inputManager;
 
@@ -42,7 +39,7 @@ namespace osu.Framework.Graphics.Visualisation
                         // Rehighlight the last highlight
                         if (lastHighlight != null)
                         {
-                            VisualisedDrawable visualised = findVisualised(lastHighlight, targetDrawable);
+                            VisualisedDrawable visualised = targetDrawable.FindVisualisedDrawable(lastHighlight);
                             if (visualised != null)
                             {
                                 propertyDisplay.State = Visibility.Visible;
@@ -84,21 +81,6 @@ namespace osu.Framework.Graphics.Visualisation
             inputManager = GetContainingInputManager();
         }
 
-        private VisualisedDrawable findVisualised(Drawable d, VisualisedDrawable root)
-        {
-            foreach (VisualisedDrawable child in root.Flow.InternalChildren.OfType<VisualisedDrawable>())
-            {
-                if (child.Target == d)
-                    return child;
-
-                VisualisedDrawable found = findVisualised(d, child);
-                if (found != null)
-                    return found;
-            }
-
-            return null;
-        }
-
         protected override bool BlockPassThroughMouse => false;
 
         protected override void PopIn()
@@ -108,14 +90,10 @@ namespace osu.Framework.Graphics.Visualisation
                 chooseTarget();
             else
                 createRootVisualisedDrawable();
-
-            task?.Cancel();
-            task = Scheduler.AddDelayed(runUpdate, 200, true);
         }
 
         protected override void PopOut()
         {
-            task?.Cancel();
             this.FadeOut(100);
 
             // Don't keep resources for visualizing the target
@@ -195,16 +173,24 @@ namespace osu.Framework.Graphics.Visualisation
         {
             removeRootVisualisedDrawable(target == null);
 
-            if (target != null)
+            if (target == null)
+                return;
+
+            targetDrawable = new VisualisedDrawable(target, treeContainer)
             {
-                targetDrawable = createVisualisedDrawable(target);
-                treeContainer.Add(targetDrawable);
+                RequestTarget = d => Target = d,
+                HighlightTarget = d =>
+                {
+                    propertyDisplay.State = Visibility.Visible;
 
-                runUpdate(); // run an initial update to immediately show the selected hierarchy.
+                    // Either highlight or dehighlight the target, depending on whether
+                    // it is currently highlighted
+                    setHighlight(d);
 
-                // Set highlight and update
-                setHighlight(targetDrawable);
-            }
+                }
+            };
+
+            treeContainer.Add(targetDrawable);
         }
 
         private Drawable target;
@@ -217,32 +203,6 @@ namespace osu.Framework.Graphics.Visualisation
                 target = value;
                 createRootVisualisedDrawable();
             }
-        }
-
-        private void runUpdate()
-        {
-            if (Target == null) return;
-
-            visualise(Target, targetDrawable);
-        }
-
-        private VisualisedDrawable createVisualisedDrawable(Drawable target)
-        {
-            var vis = new VisualisedDrawable(target, treeContainer)
-            {
-                RequestTarget = delegate { Target = target; }
-            };
-
-            vis.HighlightTarget = delegate
-            {
-                propertyDisplay.State = Visibility.Visible;
-
-                // Either highlight or dehighlight the target, depending on whether
-                // it is currently highlighted
-                setHighlight(vis);
-            };
-
-            return vis;
         }
 
         private void setHighlight(VisualisedDrawable newHighlight)
@@ -267,37 +227,6 @@ namespace osu.Framework.Graphics.Visualisation
                 newHighlight.IsHighlighted = true;
 
                 propertyDisplay.UpdateFrom(newHighlight.Target);
-            }
-        }
-
-        private void visualise(IDrawable d, VisualisedDrawable vis)
-        {
-            if (d == this) return;
-
-            vis.CheckExpiry();
-
-            foreach (var dd in vis.Flow.Children)
-                if (!dd.CheckExpiry())
-                    visualise(dd.Target, dd);
-
-            var dContainer = d as CompositeDrawable;
-
-            if (d is SpriteText) return;
-
-            if (dContainer == null) return;
-
-            foreach (var c in dContainer.InternalChildren)
-            {
-                var dr = vis.Flow.Children.FirstOrDefault(x => x.Target == c);
-
-                if (dr == null)
-                {
-                    var cLocal = c;
-                    dr = createVisualisedDrawable(cLocal);
-                    vis.Flow.Add(dr);
-                }
-
-                visualise(c, dr);
             }
         }
 
