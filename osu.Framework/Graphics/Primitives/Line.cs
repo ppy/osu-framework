@@ -9,7 +9,7 @@ namespace osu.Framework.Graphics.Primitives
     /// <summary>
     /// Represents a single line segment.  Drawing is handled by the LineManager class.
     /// </summary>
-    public class Line : ICloneable
+    public class Line
     {
         /// <summary>
         /// Begin point of the line.

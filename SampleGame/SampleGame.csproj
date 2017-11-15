@@ -1,24 +1,16 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\LangVer.props" />
-  <PropertyGroup>
-    <TargetFramework>net461</TargetFramework>
-    <OutputType>WinExe</OutputType>
+  <Import Project="..\OpenTK.props" />
+  <Import Project="..\System.Drawing.props" />
+  <Import Project="..\osu.framework.props" />
+
+  <PropertyGroup Label="Project">
+    <TargetFrameworks>netcoreapp2.0;net461</TargetFrameworks>
+    <OutputType>Exe</OutputType>
     <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
-  <ItemGroup>
-    <Content Include="OpenTK.dll.config">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
+
+  <ItemGroup Label="Project References">
     <ProjectReference Include="..\osu.Framework\osu.Framework.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="OpenTK" Version="3.0.0-git00009" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\osu-framework.licenseheader">
-      <Link>osu-framework.licenseheader</Link>
-    </None>
   </ItemGroup>
 </Project>

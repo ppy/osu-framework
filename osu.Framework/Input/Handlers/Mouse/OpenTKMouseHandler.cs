@@ -6,6 +6,7 @@ using osu.Framework.Platform;
 using osu.Framework.Statistics;
 using osu.Framework.Threading;
 using OpenTK;
+using Point = OpenTK.Point;
 
 namespace osu.Framework.Input.Handlers.Mouse
 {

@@ -6,6 +6,8 @@ using System.Drawing;
 using osu.Framework.Configuration;
 using osu.Framework.Input;
 using OpenTK;
+using Size = OpenTK.Size;
+using Point = OpenTK.Point;
 
 namespace osu.Framework.Platform
 {
