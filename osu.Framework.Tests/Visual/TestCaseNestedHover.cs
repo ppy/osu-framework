@@ -69,13 +69,13 @@ namespace osu.Framework.Tests.Visual
                 };
             }
 
-            public virtual bool OnHover(InputState state)
+            public bool OnHover(InputState state)
             {
                 box.Colour = hoveredColour;
                 return !propagateHover;
             }
 
-            public virtual void OnHoverLost(InputState state)
+            public void OnHoverLost(InputState state)
             {
                 box.Colour = normalColour;
             }

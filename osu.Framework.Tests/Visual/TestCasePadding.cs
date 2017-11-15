@@ -238,15 +238,15 @@ namespace osu.Framework.Tests.Visual
                 return base.Invalidate(invalidation, source, shallPropagate);
             }
 
-            public virtual bool OnDrag(InputState state)
+            public bool OnDrag(InputState state)
             {
                 Position += state.Mouse.Delta;
                 return true;
             }
 
-            public virtual bool OnDragEnd(InputState state) => true;
+            public bool OnDragEnd(InputState state) => true;
 
-            public virtual bool OnDragStart(InputState state) => true;
+            public bool OnDragStart(InputState state) => true;
         }
     }
 }

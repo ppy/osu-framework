@@ -111,14 +111,14 @@ namespace osu.Framework.Tests.Visual
 
             private Vector2 oldPos;
 
-            public virtual bool OnDragStart(InputState state)
+            public bool OnDragStart(InputState state)
             {
                 AddVertex(state.Mouse.Position);
                 oldPos = state.Mouse.Position;
                 return true;
             }
 
-            public virtual bool OnDrag(InputState state)
+            public bool OnDrag(InputState state)
             {
                 Vector2 pos = state.Mouse.Position;
                 if ((pos - oldPos).Length > 10)
