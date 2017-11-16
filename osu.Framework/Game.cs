@@ -39,6 +39,8 @@ namespace osu.Framework
 
         public AudioManager Audio;
 
+        private double lastVolume;
+
         public ShaderManager Shaders;
 
         public FontStore Fonts;
@@ -225,10 +227,12 @@ namespace osu.Framework
 
         protected virtual void OnActivated()
         {
+            Audio.Volume.Value = lastVolume;
         }
 
         protected virtual void OnDeactivated()
         {
+            lastVolume = Audio.Volume.Value;
         }
 
         protected virtual bool OnExiting()
