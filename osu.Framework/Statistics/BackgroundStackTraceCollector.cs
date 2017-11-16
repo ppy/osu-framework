@@ -24,15 +24,15 @@ namespace osu.Framework.Statistics
 
         public BackgroundStackTraceCollector(Thread targetThread, StopwatchClock clock)
         {
+            // we can't run under mono.
+            if (Type.GetType("Mono.Runtime") != null) return;
+
             if (Debugger.IsAttached) return;
 
             logger = Logger.GetLogger(LoggingTarget.Performance);
 
             this.clock = clock;
             this.targetThread = targetThread;
-
-            // we can't run under mono.
-            if (Type.GetType("Mono.Runtime") != null) return;
 
             var backgroundMonitorThread = new Thread(() =>
             {
