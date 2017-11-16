@@ -5,6 +5,7 @@ using osu.Framework.Logging;
 using osu.Framework.Timing;
 using System;
 using System.Diagnostics;
+using System.Text;
 using System.Threading;
 
 namespace osu.Framework.Statistics
@@ -52,26 +53,36 @@ namespace osu.Framework.Statistics
 
         internal void LogFrame(double elapsedFrameTime)
         {
+            if (targetThread == null) return;
+
             StackTrace trace = backgroundMonitorStackTrace;
             backgroundMonitorStackTrace = null;
 
-            logger.Add();
-            logger.Add($@"---------- Slow Frame Detected on {targetThread.Name} at {clock.CurrentTime / 1000:#0.00}s ----------");
+            StringBuilder logMessage = new StringBuilder();
 
-            logger.Add();
+            logMessage.AppendLine($@"---------- Slow Frame Detected on {targetThread.Name} at {clock.CurrentTime / 1000:#0.00}s ----------");
+
+            logMessage.AppendLine();
+
+            logMessage.AppendLine($@"Frame length: {elapsedFrameTime:#0,#}ms");
 
             var frames = trace?.GetFrames();
 
             if (frames != null)
             {
-                logger.Add(@"Call stack follows:");
-                logger.Add();
+                logMessage.AppendLine(@"Call stack follows:");
+                logMessage.AppendLine();
 
                 foreach (StackFrame f in frames)
-                    logger.Add($@"- {f.GetMethod()} @ {f.GetNativeOffset()}");
+                    logMessage.AppendLine($@"- {f.GetMethod().DeclaringType} {f.GetMethod()} @ {f.GetNativeOffset()}");
             }
             else
-                logger.Add(@"Call stack was not recorded.");
+                logMessage.AppendLine(@"Call stack was not recorded.");
+
+            logMessage.AppendLine($@"------------------------------------------------------------------------------------------------------");
+
+            logger.Add(logMessage.ToString());
+        }
 
         internal void NewFrame()
         {
