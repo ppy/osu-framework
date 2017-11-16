@@ -50,7 +50,7 @@ namespace osu.Framework.Statistics
             backgroundMonitorThread.Start();
         }
 
-        internal void LogFrame()
+        internal void LogFrame(double elapsedFrameTime)
         {
             StackTrace trace = backgroundMonitorStackTrace;
             backgroundMonitorStackTrace = null;
