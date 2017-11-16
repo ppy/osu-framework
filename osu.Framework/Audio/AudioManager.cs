@@ -203,10 +203,11 @@ namespace osu.Framework.Audio
             if (string.IsNullOrEmpty(newDevice))
             {
                 newDevice = audioDevices.Find(df => df.IsDefault).Name;
+
                 //fallback if this can't find an audio device to assign.
-                if (newDevice == null)
-                    newDevice = Bass.GetDeviceInfo(Bass.NoSoundDevice).Name;
                 //if there is no audio device fallback to the default Bass no sound device.
+                if (string.IsNullOrEmpty(newDevice))
+                    newDevice = Bass.GetDeviceInfo(Bass.NoSoundDevice).Name;
             }
 
             bool oldDeviceValid = Bass.CurrentDevice >= 0;
