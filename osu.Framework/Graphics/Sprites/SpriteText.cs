@@ -157,12 +157,7 @@ namespace osu.Framework.Graphics.Sprites
 
             spaceWidth = CreateCharacterDrawable('.')?.DrawWidth * 2 ?? default_text_size;
 
-            if (!string.IsNullOrEmpty(text))
-            {
-                //this is used to prepare the initial string (useful for intial preloading).
-                foreach (char c in text)
-                    if (!char.IsWhiteSpace(c)) CreateCharacterDrawable(c);
-            }
+            validateLayout();
         }
 
         private Bindable<string> current;
@@ -222,7 +217,11 @@ namespace osu.Framework.Graphics.Sprites
         protected override void Update()
         {
             base.Update();
+            validateLayout();
+        }
 
+        private void validateLayout()
+        {
             if (!layout.IsValid)
             {
                 computeLayout();
@@ -244,12 +243,6 @@ namespace osu.Framework.Graphics.Sprites
 
         private void computeLayout()
         {
-            if (FixedWidth && !constantWidth.HasValue)
-                constantWidth = CreateCharacterDrawable('D').DrawWidth;
-
-            //keep sprites which haven't changed since last layout.
-            List<Drawable> keepDrawables = new List<Drawable>();
-
             bool allowKeepingExistingDrawables = true;
 
             //adjust shadow alpha based on highest component intensity to avoid muddy display of darker text.
@@ -264,8 +257,14 @@ namespace osu.Framework.Graphics.Sprites
             lastShadowAlpha = shadowAlpha;
             lastFont = font;
 
+            //keep sprites which haven't changed since last layout.
+            List<Drawable> keepDrawables = new List<Drawable>();
+
             if (allowKeepingExistingDrawables)
             {
+                if (lastText == text)
+                    return;
+
                 int length = Math.Min(lastText?.Length ?? 0, text.Length);
                 keepDrawables.AddRange(Children.TakeWhile((n, i) => i < length && lastText[i] == text[i]));
                 RemoveRange(keepDrawables); //doesn't dispose
@@ -275,6 +274,9 @@ namespace osu.Framework.Graphics.Sprites
 
             if (text.Length == 0)
                 return;
+
+            if (FixedWidth && !constantWidth.HasValue)
+                constantWidth = CreateCharacterDrawable('D').DrawWidth;
 
             foreach (var k in keepDrawables)
                 Add(k);
