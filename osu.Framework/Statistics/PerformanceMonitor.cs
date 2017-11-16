@@ -130,9 +130,10 @@ namespace osu.Framework.Statistics
 
             traceCollector.SpikeRecordDuration = Math.Max(10, Math.Max(1000 / Clock.MaximumUpdateHz, AverageFrameTime) * 2);
 
+            traceCollector.NewFrame();
+
             //reset frame totals
             currentCollectionTypeStack.Clear();
-            //backgroundMonitorStackTrace = null;
             consumeStopwatchElapsedTime();
         }
 

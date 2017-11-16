@@ -72,6 +72,10 @@ namespace osu.Framework.Statistics
             }
             else
                 logger.Add(@"Call stack was not recorded.");
+
+        internal void NewFrame()
+        {
+            backgroundMonitorStackTrace = null;
         }
 
 #pragma warning disable 0618
