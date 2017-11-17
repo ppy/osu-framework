@@ -286,69 +286,64 @@ namespace osu.Framework.Input
         /// <returns>Processed states such that at most one button change occurs between any two consecutive states.</returns>
         private IEnumerable<InputState> createDistinctInputStates(List<InputState> states)
         {
-            InputState last = CurrentState;
+            IKeyboardState lastKeyboard = CurrentState.Keyboard;
+            IMouseState lastMouse = CurrentState.Mouse;
 
             foreach (var i in states)
             {
-                //first we want to create a copy of ourselves without any button changes
-                //we do this by updating our buttons to the state of the last frame.
-                var iWithoutButtons = i.Clone();
+                var iHasMouse = i.Mouse != null;
+                var iHasKeyboard = i.Keyboard != null;
 
-                var iHasMouse = iWithoutButtons.Mouse != null;
-                var iHasKeyboard = iWithoutButtons.Keyboard != null;
-
-                if (iHasMouse)
-                    for (MouseButton b = 0; b < MouseButton.LastButton; b++)
-                        iWithoutButtons.Mouse.SetPressed(b, last.Mouse?.IsPressed(b) ?? false);
-
-                if (iHasKeyboard)
-                    iWithoutButtons.Keyboard.Keys = last.Keyboard?.Keys ?? new Key[] { };
-
-                //we start by adding this state to the processed list...
-                yield return iWithoutButtons;
-                last = iWithoutButtons;
-
-                //and then iterate over each button/key change, adding intermediate states along the way.
                 if (iHasMouse)
                 {
+                    // first we want to create a copy of ourselves without any button changes
+                    // this is done only for mouse handlers, as they have positional data we want to handle in a separate pass.
+                    var iWithoutButtons = i.Mouse.Clone();
+
+                    for (MouseButton b = 0; b < MouseButton.LastButton; b++)
+                        iWithoutButtons.SetPressed(b, lastMouse?.IsPressed(b) ?? false);
+
+                    //we start by adding this state to the processed list...
+                    yield return new InputState { Mouse = iWithoutButtons };
+
+                    lastMouse = iWithoutButtons;
+
+                    //and then iterate over each button/key change, adding intermediate states along the way.
                     for (MouseButton b = 0; b < MouseButton.LastButton; b++)
                     {
-                        if (i.Mouse.IsPressed(b) != (last.Mouse?.IsPressed(b) ?? false))
+                        if (i.Mouse.IsPressed(b) != (lastMouse?.IsPressed(b) ?? false))
                         {
-                            var intermediateState = last.Clone();
-                            if (intermediateState.Mouse == null) intermediateState.Mouse = new MouseState();
+                            var intermediateState = lastMouse?.Clone() ?? new MouseState();
 
                             //add our single local change
-                            intermediateState.Mouse.SetPressed(b, i.Mouse.IsPressed(b));
+                            intermediateState.SetPressed(b, i.Mouse.IsPressed(b));
 
-                            last = intermediateState;
-                            yield return intermediateState;
+                            lastMouse = intermediateState;
+                            yield return new InputState { Mouse = intermediateState };
                         }
                     }
                 }
 
                 if (iHasKeyboard)
                 {
-                    foreach (var releasedKey in last.Keyboard?.Keys.Except(i.Keyboard.Keys) ?? new Key[] { })
+                    foreach (var releasedKey in lastKeyboard?.Keys.Except(i.Keyboard.Keys) ?? new Key[] { })
                     {
-                        var intermediateState = last.Clone();
-                        if (intermediateState.Keyboard == null) intermediateState.Keyboard = new KeyboardState();
+                        var intermediateState = lastKeyboard?.Clone() ?? new KeyboardState();
 
-                        intermediateState.Keyboard.Keys = intermediateState.Keyboard.Keys.Where(d => d != releasedKey);
+                        intermediateState.Keys = intermediateState.Keys.Where(d => d != releasedKey);
 
-                        last = intermediateState;
-                        yield return intermediateState;
+                        lastKeyboard = intermediateState;
+                        yield return new InputState { Keyboard = intermediateState };
                     }
 
-                    foreach (var pressedKey in i.Keyboard.Keys.Except(last.Keyboard?.Keys ?? new Key[] { }))
+                    foreach (var pressedKey in i.Keyboard.Keys.Except(lastKeyboard?.Keys ?? new Key[] { }))
                     {
-                        var intermediateState = last.Clone();
-                        if (intermediateState.Keyboard == null) intermediateState.Keyboard = new KeyboardState();
+                        var intermediateState = lastKeyboard?.Clone() ?? new KeyboardState();
 
-                        intermediateState.Keyboard.Keys = intermediateState.Keyboard.Keys.Union(new[] { pressedKey });
+                        intermediateState.Keys = intermediateState.Keys.Union(new[] { pressedKey });
 
-                        last = intermediateState;
-                        yield return intermediateState;
+                        lastKeyboard = intermediateState;
+                        yield return new InputState { Keyboard = intermediateState };
                     }
                 }
             }
