@@ -161,9 +161,16 @@ namespace osu.Framework.MathUtils
 
         public static double ApplyEasing(Easing easing, double time)
         {
+            const double elastic_const = 2 * Math.PI / .3;
+            const double elastic_const2 = .3 / 4;
+
+            const double back_const = 1.70158;
+            const double back_const2 = back_const * 1.525;
+
+            const double bounce_const = 1 / 2.75;
+
             switch (easing)
             {
-                case Easing.None:
                 default:
                     return time;
 
@@ -225,62 +232,43 @@ namespace osu.Framework.MathUtils
                     return .5 * Math.Sqrt(1 - (time -= 2) * time) + .5;
 
                 case Easing.InElastic:
-                    const double ELASTIC_CONST = 2 * Math.PI / .3;
-                    const double ELASTIC_CONST2 = .3 / 4;
-                    return -Math.Pow(2, -10 + 10 * time) * Math.Sin((1 - ELASTIC_CONST2 - time) * ELASTIC_CONST);
+                    return -Math.Pow(2, -10 + 10 * time) * Math.Sin((1 - elastic_const2 - time) * elastic_const);
                 case Easing.OutElastic:
-                    return Math.Pow(2, -10 * time) * Math.Sin((time - ELASTIC_CONST2) * ELASTIC_CONST) + 1;
+                    return Math.Pow(2, -10 * time) * Math.Sin((time - elastic_const2) * elastic_const) + 1;
                 case Easing.OutElasticHalf:
-                    return Math.Pow(2, -10 * time) * Math.Sin((.5 * time - ELASTIC_CONST2) * ELASTIC_CONST) + 1;
+                    return Math.Pow(2, -10 * time) * Math.Sin((.5 * time - elastic_const2) * elastic_const) + 1;
                 case Easing.OutElasticQuarter:
-                    return Math.Pow(2, -10 * time) * Math.Sin((.25 * time - ELASTIC_CONST2) * ELASTIC_CONST) + 1;
+                    return Math.Pow(2, -10 * time) * Math.Sin((.25 * time - elastic_const2) * elastic_const) + 1;
                 case Easing.InOutElastic:
                     if ((time *= 2) < 1)
-                    {
-                        return -.5 * Math.Pow(2, -10 + 10 * time) * Math.Sin(((1 - ELASTIC_CONST2 * 1.5) - time) * ELASTIC_CONST / 1.5);
-                    }
-                    return .5 * Math.Pow(2, -10 * --time) * Math.Sin((time - ELASTIC_CONST2 * 1.5) * ELASTIC_CONST / 1.5) + 1;
+                        return -.5 * Math.Pow(2, -10 + 10 * time) * Math.Sin((1 - elastic_const2 * 1.5 - time) * elastic_const / 1.5);
+                    return .5 * Math.Pow(2, -10 * --time) * Math.Sin((time - elastic_const2 * 1.5) * elastic_const / 1.5) + 1;
 
                 case Easing.InBack:
-                    const double BACK_CONST = 1.70158;
-                    return time * time * ((BACK_CONST + 1) * time - BACK_CONST);
+                    return time * time * ((back_const + 1) * time - back_const);
                 case Easing.OutBack:
-                    return --time * time * ((BACK_CONST + 1) * time + BACK_CONST) + 1;
+                    return --time * time * ((back_const + 1) * time + back_const) + 1;
                 case Easing.InOutBack:
-                    const double BACK_CONST2 = BACK_CONST * 1.525;
-                    if ((time *= 2) < 1) return .5 * time * time * ((BACK_CONST2 + 1) * time - BACK_CONST2);
-                    return .5 * ((time -= 2) * time * ((BACK_CONST2 + 1) * time + BACK_CONST2) + 2);
+                    if ((time *= 2) < 1) return .5 * time * time * ((back_const2 + 1) * time - back_const2);
+                    return .5 * ((time -= 2) * time * ((back_const2 + 1) * time + back_const2) + 2);
 
                 case Easing.InBounce:
-                    const double BOUNCE_CONST = 1 / 2.75;
                     time = 1 - time;
-                    if (time < BOUNCE_CONST)
-                    {
-                        return 1 - (7.5625 * time * time);
-                    }
-                    if (time < 2 * BOUNCE_CONST)
-                    {
-                        return 1 - (7.5625 * (time -= 1.5 * BOUNCE_CONST) * time + .75);
-                    }
-                    if (time < 2.5 * BOUNCE_CONST)
-                    {
-                        return 1 - (7.5625 * (time -= 2.25 * BOUNCE_CONST) * time + .9375);
-                    }
-                    return 1 - (7.5625 * (time -= 2.625 * BOUNCE_CONST) * time + .984375);
+                    if (time < bounce_const)
+                        return 1 - 7.5625 * time * time;
+                    if (time < 2 * bounce_const)
+                        return 1 - (7.5625 * (time -= 1.5 * bounce_const) * time + .75);
+                    if (time < 2.5 * bounce_const)
+                        return 1 - (7.5625 * (time -= 2.25 * bounce_const) * time + .9375);
+                    return 1 - (7.5625 * (time -= 2.625 * bounce_const) * time + .984375);
                 case Easing.OutBounce:
-                    if (time < BOUNCE_CONST)
-                    {
-                        return (7.5625 * time * time);
-                    }
-                    if (time < 2 * BOUNCE_CONST)
-                    {
-                        return (7.5625 * (time -= 1.5 * BOUNCE_CONST) * time + .75);
-                    }
-                    if (time < 2.5 * BOUNCE_CONST)
-                    {
-                        return (7.5625 * (time -= 2.25 * BOUNCE_CONST) * time + .9375);
-                    }
-                    return (7.5625 * (time -= 2.625 * BOUNCE_CONST) * time + .984375);
+                    if (time < bounce_const)
+                        return 7.5625 * time * time;
+                    if (time < 2 * bounce_const)
+                        return 7.5625 * (time -= 1.5 * bounce_const) * time + .75;
+                    if (time < 2.5 * bounce_const)
+                        return 7.5625 * (time -= 2.25 * bounce_const) * time + .9375;
+                    return 7.5625 * (time -= 2.625 * bounce_const) * time + .984375;
                 case Easing.InOutBounce:
                     if (time < .5) return .5 - .5 * ApplyEasing(Easing.OutBounce, 1 - time * 2);
                     return ApplyEasing(Easing.OutBounce, (time - .5) * 2) * .5 + .5;
