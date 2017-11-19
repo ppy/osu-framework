@@ -252,17 +252,25 @@ namespace osu.Framework.Audio
 
         protected void AvailableDeviceChangeListener()
         {
-            var newAudioDevices = getAllDevices().Where(d => d.IsEnabled).ToList();
-            var newAudioDevicesNames = getDeviceNames(newAudioDevices).ToList();
+            var currentDeviceList = getAllDevices().Where(d => d.IsEnabled).ToList();
+            var currentDeviceNames = getDeviceNames(currentDeviceList).ToList();
 
-            if (newAudioDevices.Count != audioDevices.Count)
+            var newDevices = currentDeviceNames.Except(audioDeviceNames).ToList();
+            var lostDevices = audioDeviceNames.Except(currentDeviceNames).ToList();
+
+            if (newDevices.Count > 0 || lostDevices.Count > 0)
             {
-                audioDevices.Clear();
-                audioDeviceNames.Clear();
-                audioDevices = newAudioDevices;
-                audioDeviceNames = newAudioDevicesNames;
-
+                eventScheduler.Add(delegate
+                {
+                    foreach (var d in newDevices)
+                        OnNewDevice?.Invoke(d);
+                    foreach (var d in lostDevices)
+                        OnLostDevice?.Invoke(d);
+                });
             }
+
+            audioDevices = currentDeviceList;
+            audioDeviceNames = currentDeviceNames;
         }
     }
 }
