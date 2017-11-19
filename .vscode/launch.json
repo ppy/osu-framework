@@ -1,12 +1,18 @@
 {
     "version": "0.2.0",
     "configurations": [{
-            "name": "VisualTests (Debug)",
+            "name": "VisualTests (Debug, .NETFramework)",
             "request": "launch",
-            "windows": {
-                "type": "clr",
-                "program": "${workspaceRoot}/osu.Framework.Tests/bin/Debug/net461/osu.Framework.Tests.exe"
-            },
+            "type": "clr",
+            "program": "${workspaceRoot}/osu.Framework.Tests/bin/Debug/net461/osu.Framework.Tests.exe",
+            "cwd": "${workspaceRoot}",
+            "preLaunchTask": "Build (Debug)",
+            "env": {},
+            "console": "internalConsole"
+        },
+        {
+            "name": "VisualTests (Debug, .NETCore)",
+            "request": "launch",
             "type": "coreclr",
             "program": "${workspaceRoot}/osu.Framework.Tests/bin/Debug/netcoreapp2.0/osu.Framework.Tests.dll",
             "cwd": "${workspaceRoot}",
@@ -15,12 +21,18 @@
             "console": "internalConsole"
         },
         {
-            "name": "VisualTests (Release)",
+            "name": "VisualTests (Release, .NETFramework)",
             "request": "launch",
-            "windows": {
-                "type": "clr",
-                "program": "${workspaceRoot}/osu.Framework.Tests/bin/Release/net461/osu.Framework.Tests.exe"
-            },
+            "type": "clr",
+            "program": "${workspaceRoot}/osu.Framework.Tests/bin/Release/net461/osu.Framework.Tests.exe",
+            "cwd": "${workspaceRoot}",
+            "preLaunchTask": "Build (Release)",
+            "env": {},
+            "console": "internalConsole"
+        },
+        {
+            "name": "VisualTests (Release, .NETCore)",
+            "request": "launch",
             "type": "coreclr",
             "program": "${workspaceRoot}/osu.Framework.Tests/bin/Release/netcoreapp2.0/osu.Framework.Tests.dll",
             "cwd": "${workspaceRoot}",
