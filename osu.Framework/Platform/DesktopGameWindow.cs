@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Drawing;
 using osu.Framework.Configuration;
 using osu.Framework.Input;
 using OpenTK;

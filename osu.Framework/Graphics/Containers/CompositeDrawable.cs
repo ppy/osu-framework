@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System;
 using System.Diagnostics;
 using OpenTK;
-using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.OpenGL;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Shaders;

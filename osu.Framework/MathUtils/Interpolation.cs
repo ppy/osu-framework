@@ -3,7 +3,6 @@
 
 using System;
 using osu.Framework.Graphics;
-using osu.Framework.Graphics.Primitives;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Colour;
