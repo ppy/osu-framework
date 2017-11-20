@@ -56,6 +56,8 @@ namespace osu.Framework.Audio
         public readonly Bindable<string> AudioDevice = new Bindable<string>();
 
         private string currentAudioDevice;
+        private string currentDefaultAudioDevice;
+        private bool isDefaultOptionSelected = false;
 
         /// <summary>
         /// Volume of all samples played game-wide.
@@ -114,7 +116,7 @@ namespace osu.Framework.Audio
             scheduler.AddDelayed(delegate
             {
                 AvailableDeviceChangeListener();
-                DefaultDeviceChanged();
+                DefaultAudioDeviceChangedListener();
             }, 1000, true);
         }
 
@@ -174,7 +176,22 @@ namespace osu.Framework.Audio
         private void onDeviceChanged(string newDevice)
         {
             if (!string.IsNullOrEmpty(newDevice))
+            {
+                isDefaultOptionSelected = false;
                 scheduler.Add(() => changeDevice(newDevice));
+            }
+            else
+            {
+                scheduler.Add(() =>
+                {
+                    if (currentDefaultAudioDevice != currentAudioDevice)
+                    {
+                        initDevice(getDeviceIndexFromName(currentDefaultAudioDevice), currentDefaultAudioDevice);
+                        isDefaultOptionSelected = true;
+                    }
+                    else isDefaultOptionSelected = true;
+                });
+            }
         }
 
         private List<DeviceInfo> getAllDevices()
@@ -194,22 +211,17 @@ namespace osu.Framework.Audio
 
         private void initDefaultAudioDevice()
         {
-            audioDevices = getAllDevices().Where(d => d.IsEnabled).ToList();
-            audioDeviceNames = getDeviceNames(audioDevices).ToList();
+            AvailableDeviceChangeListener();
+            DefaultAudioDeviceChangedListener();
 
-            foreach (var device in audioDevices)
-            {
-                if (device.IsEnabled && device.IsDefault)
-                {
-                    var deviceIndex = getDeviceIndex(device);
-                    UpdateDevice(deviceIndex);
-                    Bass.Init(deviceIndex);
-                    Bass.CurrentDevice = deviceIndex;
-                    Bass.PlaybackBufferLength = 100;
-                    Bass.UpdatePeriod = 5;
-                    currentAudioDevice = device.Name;
-                }
-            }
+            var deviceIndex = getDeviceIndexFromName(currentDefaultAudioDevice);
+            Bass.Init(deviceIndex);
+            Bass.CurrentDevice = deviceIndex;
+            Bass.PlaybackBufferLength = 100;
+            Bass.UpdatePeriod = 5;
+            UpdateDevice(deviceIndex);
+            currentAudioDevice = string.Empty;
+            isDefaultOptionSelected = true;
         }
 
         private void changeDevice(string deviceName)
@@ -294,10 +306,17 @@ namespace osu.Framework.Audio
             audioDevices = currentDeviceList;
             audioDeviceNames = currentDeviceNames;
         }
-
-        protected void DefaultDeviceChanged()
+        protected void DefaultAudioDeviceChangedListener()
         {
-            //todo
+            foreach (var d in audioDevices)
+            {
+                if (d.IsDefault && d.Name != currentDefaultAudioDevice)
+                {
+                    currentDefaultAudioDevice = d.Name;
+                    initDevice(getDeviceIndexFromName(d.Name), d.Name);
+                    break;
+                }
+            }
         }
     }
 }
