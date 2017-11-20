@@ -71,14 +71,14 @@ namespace osu.Framework.Graphics.UserInterface
 
         public TextBox()
         {
+            Masking = true;
+            CornerRadius = 3;
             // TextBoxes currently require their own top-level PlatformInputManager, as InputManagers
             // will not propagate events through other InputManagers.
             // Once this restriction has been addressed, we can utilise a single instance of PlatformInputManager
             // at the Game level, and TextBoxes need only implement IKeyBindingHandler<PlatformAction>.
             Child = new PlatformInputManager
             {
-                Masking = true,
-                CornerRadius = 3,
                 RelativeSizeAxes = Axes.Both,
                 Children = new Drawable[]
                 {
