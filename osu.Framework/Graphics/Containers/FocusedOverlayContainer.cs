@@ -17,7 +17,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
-            if (HasFocus && State == Visibility.Visible)
+            if (HasFocus && State == Visibility.Visible && !args.Repeat)
             {
                 switch (args.Key)
                 {
