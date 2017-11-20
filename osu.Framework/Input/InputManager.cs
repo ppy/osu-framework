@@ -326,7 +326,7 @@ namespace osu.Framework.Input
             hoveredDrawables.Clear();
 
             //New drawables shouldn't be hovered if the cursor isn't even in the window
-            if (Host.Window.CursorInWindow)
+            if (Host.Window?.CursorInWindow ?? true)
             {
                 // First, we need to construct hoveredDrawables for the current frame
                 foreach (Drawable d in positionalInputQueue)
