@@ -114,6 +114,7 @@ namespace osu.Framework.Audio
             scheduler.AddDelayed(delegate
             {
                 AvailableDeviceChangeListener();
+                DefaultDeviceChanged();
             }, 1000, true);
         }
 
@@ -201,8 +202,11 @@ namespace osu.Framework.Audio
                 if (device.IsEnabled && device.IsDefault)
                 {
                     var deviceIndex = getDeviceIndex(device);
-                    Bass.Init(deviceIndex);
                     UpdateDevice(deviceIndex);
+                    Bass.Init(deviceIndex);
+                    Bass.CurrentDevice = deviceIndex;
+                    Bass.PlaybackBufferLength = 100;
+                    Bass.UpdatePeriod = 5;
                     currentAudioDevice = device.Name;
                 }
             }
@@ -216,17 +220,35 @@ namespace osu.Framework.Audio
                 if (deviceIndex != -1)
                 {
                     var info = Bass.GetDeviceInfo(deviceIndex);
-                    if (info.IsEnabled)
-                        initDevice(deviceIndex, info.Name);
+                    initDevice(deviceIndex, info.Name);
                 }
             }
         }
 
         private void initDevice(int deviceIndex, string deviceName)
         {
-            Bass.Init(deviceIndex);
-            UpdateDevice(deviceIndex);
-            currentAudioDevice = deviceName;
+            if (Bass.Init(deviceIndex) && Bass.LastError != Errors.OK && Bass.LastError != Errors.Already)
+            {
+                currentAudioDevice = null;
+                initDefaultAudioDevice();
+            }
+            else if (Bass.LastError == Errors.Already)
+            {
+                UpdateDevice(deviceIndex);
+                currentAudioDevice = deviceName;
+                Bass.CurrentDevice = deviceIndex;
+                Bass.PlaybackBufferLength = 100;
+                Bass.UpdatePeriod = 5;
+            }
+            else
+            {
+                UpdateDevice(deviceIndex);
+                currentAudioDevice = deviceName;
+                Bass.CurrentDevice = deviceIndex;
+                Bass.PlaybackBufferLength = 100;
+                Bass.UpdatePeriod = 5;
+            }
+
         }
 
         private int getDeviceIndex(DeviceInfo device)
@@ -271,6 +293,11 @@ namespace osu.Framework.Audio
 
             audioDevices = currentDeviceList;
             audioDeviceNames = currentDeviceNames;
+        }
+
+        protected void DefaultDeviceChanged()
+        {
+            //todo
         }
     }
 }
