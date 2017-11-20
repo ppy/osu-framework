@@ -529,6 +529,7 @@ namespace osu.Framework.Graphics.Containers
                 childInvalidation &= ~Invalidation.MiscGeometry;
 
                 // Relative positioning can however affect child geometry
+                // ReSharper disable once PossibleNullReferenceException
                 if (c.RelativePositionAxes != Axes.None && (invalidation & Invalidation.DrawSize) > 0)
                     childInvalidation |= Invalidation.MiscGeometry;
 

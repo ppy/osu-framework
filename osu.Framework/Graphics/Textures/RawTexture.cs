@@ -45,6 +45,7 @@ namespace osu.Framework.Graphics.Textures
                         for (int i = 0; i < length; i++)
                         {
                             //BGRA -> RGBA
+                            // ReSharper disable once PossibleNullReferenceException
                             dest[0] = src[2];
                             dest[1] = src[1];
                             dest[2] = src[0];

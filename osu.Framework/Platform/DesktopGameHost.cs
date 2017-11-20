@@ -60,6 +60,7 @@ namespace osu.Framework.Platform
 
             Debug.Assert(exe != null);
 
+            // ReSharper disable once PossibleNullReferenceException
             if (exe.Contains(@"_shadow"))
             {
                 //we are already running a shadow copy. monitor the original executable path for changes.

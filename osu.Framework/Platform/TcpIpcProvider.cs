@@ -73,6 +73,7 @@ namespace osu.Framework.Platform
                             Trace.Assert(type != null);
                             var msg = new IpcMessage
                             {
+                                // ReSharper disable once PossibleNullReferenceException
                                 Type = type.AssemblyQualifiedName,
                                 Value = JsonConvert.DeserializeObject(
                                     json["Value"].ToString(), type),

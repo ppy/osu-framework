@@ -101,6 +101,7 @@ namespace osu.Framework.Graphics.UserInterface
             Trace.Assert(state.Mouse.PositionMouseDown.HasValue,
                 $@"Can not start a {nameof(SliderBar<T>)} drag without knowing the mouse down position.");
 
+            // ReSharper disable once PossibleInvalidOperationException
             Vector2 posDiff = state.Mouse.PositionMouseDown.Value - state.Mouse.Position;
 
             return Math.Abs(posDiff.X) > Math.Abs(posDiff.Y);

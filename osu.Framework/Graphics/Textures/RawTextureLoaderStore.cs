@@ -46,6 +46,7 @@ namespace osu.Framework.Graphics.Textures
                             {
                                 int desti = i * 4;
                                 int srci = y * pixels.Stride + x * 3;
+                                // ReSharper disable once PossibleNullReferenceException
                                 t.Pixels[desti] = p[srci + 2];
                                 t.Pixels[desti + 1] = p[srci + 1];
                                 t.Pixels[desti + 2] = p[srci + 0];
