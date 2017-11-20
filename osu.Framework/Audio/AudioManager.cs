@@ -57,7 +57,6 @@ namespace osu.Framework.Audio
 
         private string currentAudioDevice;
         private string currentDefaultAudioDevice;
-        private bool isDefaultOptionSelected = false;
 
         /// <summary>
         /// Volume of all samples played game-wide.
@@ -176,20 +175,13 @@ namespace osu.Framework.Audio
         private void onDeviceChanged(string newDevice)
         {
             if (!string.IsNullOrEmpty(newDevice))
-            {
-                isDefaultOptionSelected = false;
                 scheduler.Add(() => changeDevice(newDevice));
-            }
             else
             {
                 scheduler.Add(() =>
                 {
                     if (currentDefaultAudioDevice != currentAudioDevice)
-                    {
                         initDevice(getDeviceIndexFromName(currentDefaultAudioDevice), currentDefaultAudioDevice);
-                        isDefaultOptionSelected = true;
-                    }
-                    else isDefaultOptionSelected = true;
                 });
             }
         }
@@ -221,7 +213,6 @@ namespace osu.Framework.Audio
             Bass.UpdatePeriod = 5;
             UpdateDevice(deviceIndex);
             currentAudioDevice = string.Empty;
-            isDefaultOptionSelected = true;
         }
 
         private void changeDevice(string deviceName)
