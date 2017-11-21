@@ -325,29 +325,33 @@ namespace osu.Framework.Input
             lastHoveredDrawables.AddRange(hoveredDrawables);
             hoveredDrawables.Clear();
 
-            // First, we need to construct hoveredDrawables for the current frame
-            foreach (Drawable d in positionalInputQueue)
+            // New drawables shouldn't be hovered if the cursor isn't in the window
+            if (Host.Window?.CursorInWindow ?? true)
             {
-                hoveredDrawables.Add(d);
-
-                // Don't need to re-hover those that are already hovered
-                if (d.IsHovered)
+                // First, we need to construct hoveredDrawables for the current frame
+                foreach (Drawable d in positionalInputQueue)
                 {
-                    // Check if this drawable previously handled hover, and assume it would once more
-                    if (d == lastHoverHandledDrawable)
+                    hoveredDrawables.Add(d);
+
+                    // Don't need to re-hover those that are already hovered
+                    if (d.IsHovered)
                     {
-                        hoverHandledDrawable = lastHoverHandledDrawable;
-                        break;
+                        // Check if this drawable previously handled hover, and assume it would once more
+                        if (d == lastHoverHandledDrawable)
+                        {
+                            hoverHandledDrawable = lastHoverHandledDrawable;
+                            break;
+                        }
+
+                        continue;
                     }
 
-                    continue;
-                }
-
-                d.IsHovered = true;
-                if (d.TriggerOnHover(state))
-                {
-                    hoverHandledDrawable = d;
-                    break;
+                    d.IsHovered = true;
+                    if (d.TriggerOnHover(state))
+                    {
+                        hoverHandledDrawable = d;
+                        break;
+                    }
                 }
             }
 
