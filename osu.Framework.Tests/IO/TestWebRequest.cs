@@ -30,7 +30,7 @@ namespace osu.Framework.Tests.IO
             var request = new JsonWebRequest<HttpBinGetResponse>(url) { Method = HttpMethod.GET };
 
             bool hasThrown = false;
-            request.Finished += exception => hasThrown = exception != null;
+            request.Failed += exception => hasThrown = exception != null;
 
             if (async)
                 Assert.DoesNotThrowAsync(request.PerformAsync);
@@ -58,7 +58,7 @@ namespace osu.Framework.Tests.IO
             var request = new WebRequest($"{protocol}://{invalid_get_url}") { Method = HttpMethod.GET };
 
             Exception finishedException = null;
-            request.Finished += exception => finishedException = exception;
+            request.Failed += exception => finishedException = exception;
 
             if (async)
                 Assert.ThrowsAsync<HttpRequestException>(request.PerformAsync);
@@ -79,12 +79,12 @@ namespace osu.Framework.Tests.IO
             var request = new WebRequest("https://httpbin.org/hidden-basic-auth/user/passwd");
 
             bool hasThrown = false;
-            request.Finished += exception => hasThrown = exception != null;
+            request.Failed += exception => hasThrown = exception != null;
 
             if (async)
-                Assert.DoesNotThrowAsync(request.PerformAsync);
+                Assert.ThrowsAsync<WebException>(request.PerformAsync);
             else
-                Assert.DoesNotThrow(request.Perform);
+                Assert.Throws<WebException>(request.Perform);
 
             Assert.IsTrue(request.Completed);
             Assert.IsTrue(request.Aborted);
@@ -105,7 +105,7 @@ namespace osu.Framework.Tests.IO
             var request = new JsonWebRequest<HttpBinGetResponse>("https://httpbin.org/get") { Method = HttpMethod.GET };
 
             bool hasThrown = false;
-            request.Finished += exception => hasThrown = exception != null;
+            request.Failed += exception => hasThrown = exception != null;
             request.Started += () => request.Abort();
 
             if (async)
@@ -130,7 +130,7 @@ namespace osu.Framework.Tests.IO
             var request = new JsonWebRequest<HttpBinGetResponse>("https://httpbin.org/get") { Method = HttpMethod.GET };
 
             bool hasThrown = false;
-            request.Finished += exception => hasThrown = exception != null;
+            request.Failed += exception => hasThrown = exception != null;
 
 #pragma warning disable 4014
             request.PerformAsync();
@@ -156,7 +156,7 @@ namespace osu.Framework.Tests.IO
             var request = new JsonWebRequest<HttpBinGetResponse>("https://httpbin.org/get") { Method = HttpMethod.GET };
 
             bool hasThrown = false;
-            request.Finished += exception => hasThrown = exception != null;
+            request.Failed += exception => hasThrown = exception != null;
 
 #pragma warning disable 4014
             request.PerformAsync();
@@ -192,7 +192,7 @@ namespace osu.Framework.Tests.IO
             };
 
             Exception thrownException = null;
-            request.Finished += e => thrownException = e;
+            request.Failed += e => thrownException = e;
             request.CompleteInvoked = () => request.Delay = 0;
 
             Assert.DoesNotThrow(request.Perform);
@@ -217,9 +217,9 @@ namespace osu.Framework.Tests.IO
             };
 
             Exception thrownException = null;
-            request.Finished += e => thrownException = e;
+            request.Failed += e => thrownException = e;
 
-            Assert.DoesNotThrow(request.Perform);
+            Assert.Throws<WebException>(request.Perform);
 
             Assert.IsTrue(request.Completed);
             Assert.IsTrue(request.Aborted);
@@ -239,7 +239,7 @@ namespace osu.Framework.Tests.IO
             var request = new JsonWebRequest<HttpBinGetResponse>("https://httpbin.org/get") { Method = HttpMethod.GET };
 
             request.Started += () => { };
-            request.Finished += e => { };
+            request.Failed += e => { };
             request.DownloadProgress += (l1, l2) => { };
             request.UploadProgress += (l1, l2) => { };
 
@@ -263,9 +263,8 @@ namespace osu.Framework.Tests.IO
             WebRequest request;
             using (request = new JsonWebRequest<HttpBinGetResponse>("https://httpbin.org/get") { Method = HttpMethod.GET })
             {
-
                 request.Started += () => { };
-                request.Finished += e => { };
+                request.Failed += e => { };
                 request.DownloadProgress += (l1, l2) => { };
                 request.UploadProgress += (l1, l2) => { };
 
