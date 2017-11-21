@@ -25,6 +25,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Development;
 using osu.Framework.MathUtils;
+using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Graphics
 {
@@ -1330,6 +1331,7 @@ namespace osu.Framework.Graphics
                     $"The {nameof(di)} of null parents should always have the single colour white, and therefore this branch should never be hit.");
 
                 // Cannot use ToParentSpace here, because ToParentSpace depends on DrawInfo to be completed
+                // ReSharper disable once PossibleNullReferenceException
                 Quad interp = Quad.FromRectangle(DrawRectangle) * (di.Matrix * Parent.DrawInfo.MatrixInverse);
                 Vector2 parentSize = Parent.DrawSize;
 

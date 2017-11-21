@@ -78,24 +78,24 @@ namespace osu.Framework.Platform
             set
             {
                 cursorState = value;
-                switch (cursorState)
-                {
-                    case CursorState.Default:
-                        base.CursorVisible = true;
-                        base.Cursor = MouseCursor.Default;
-                        break;
-                    case CursorState.Hidden:
-                        base.CursorVisible = true;
-                        base.Cursor = MouseCursor.Empty;
-                        break;
-                    case CursorState.Confined:
-                        //TODO: support this (https://github.com/ppy/osu-framework/issues/686)
-                        break;
-                    case CursorState.HiddenAndConfined:
-                        base.CursorVisible = false;
-                        base.Cursor = MouseCursor.Empty;
-                        break;
-                }
+                // switch (cursorState)
+                // {
+                //     case CursorState.Default:
+                //         base.CursorVisible = true;
+                //         base.Cursor = MouseCursor.Default;
+                //         break;
+                //     case CursorState.Hidden:
+                //         base.CursorVisible = true;
+                //         base.Cursor = MouseCursor.Empty;
+                //         break;
+                //     case CursorState.Confined:
+                //         //TODO: support this (https://github.com/ppy/osu-framework/issues/686)
+                //         break;
+                //     case CursorState.HiddenAndConfined:
+                //         base.CursorVisible = false;
+                //         base.Cursor = MouseCursor.Empty;
+                //         break;
+                // }
             }
         }
 

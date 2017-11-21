@@ -1,42 +1,30 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\LangVer.props" />
-  <PropertyGroup>
-    <TargetFramework>net461</TargetFramework>
-    <OutputType>WinExe</OutputType>
+  <Import Project="..\OpenTK.props" />
+  <Import Project="..\System.Drawing.props" />
+  <Import Project="..\osu.framework.props" />
+
+  <PropertyGroup Label="Project">
+    <TargetFrameworks>net461;netcoreapp2.0</TargetFrameworks>
+    <OutputType>Exe</OutputType>
     <PlatformTarget>AnyCPU</PlatformTarget>
+    <AssemblyName>osu.Framework.Tests</AssemblyName>
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
-    <Company>
-    </Company>
-    <Authors />
     <Version>1.0.0.0</Version>
     <Copyright>Copyright © ppy Pty Ltd 2017</Copyright>
   </PropertyGroup>
-  <ItemGroup>
+
+  <ItemGroup Label="Project References">
     <ProjectReference Include="..\osu.Framework\osu.Framework.csproj" />
   </ItemGroup>
-  <ItemGroup>
+
+  <ItemGroup Label="Package References">
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
     <PackageReference Include="NUnit" Version="3.8.1" />
-    <PackageReference Include="OpenTK" Version="3.0.0-git00009" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="..\osu-framework.licenseheader">
-      <Link>osu-framework.licenseheader</Link>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
-  </ItemGroup>
-  <ItemGroup>
+
+  <ItemGroup Label="Content">
     <EmbeddedResource Include="Resources\Tracks\sample-track.mp3" />
     <EmbeddedResource Include="Resources\Textures\sample-texture.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="OpenTK.dll.config">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="System.Net.Http" />
   </ItemGroup>
 </Project>

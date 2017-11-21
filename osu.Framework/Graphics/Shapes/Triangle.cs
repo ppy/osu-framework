@@ -7,6 +7,7 @@ using osu.Framework.Graphics.Textures;
 using OpenTK;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
+using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Graphics.Shapes
 {

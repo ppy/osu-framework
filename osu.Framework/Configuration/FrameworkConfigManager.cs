@@ -12,7 +12,7 @@ namespace osu.Framework.Configuration
 
         protected override void InitialiseDefaults()
         {
-            Set(FrameworkSetting.ShowLogOverlay, true);
+            Set(FrameworkSetting.ShowLogOverlay, false);
 
             Set(FrameworkSetting.Width, 1366, 640);
             Set(FrameworkSetting.Height, 768, 480);

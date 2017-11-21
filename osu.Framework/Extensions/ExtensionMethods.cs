@@ -203,6 +203,7 @@ namespace osu.Framework.Extensions
 
                 Debug.Assert(e != null);
 
+                // ReSharper disable once PossibleNullReferenceException
                 while (e.InnerException != null)
                     e = e.InnerException;
 
