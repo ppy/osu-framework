@@ -304,7 +304,7 @@ namespace osu.Framework.Logging
             message = ApplyFilters(message);
 
             //split each line up.
-            string[] lines = message.TrimEnd().Replace(@"\r\n", @"\n").Split('\n');
+            string[] lines = message.Replace(@"\r\n", @"\n").Split('\n');
             for (int i = 0; i < lines.Length; i++)
             {
                 string s = lines[i];
