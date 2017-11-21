@@ -344,8 +344,11 @@ namespace osu.Framework.IO.Network
                 }
                 catch (Exception e)
                 {
+                    if (Completed)
+                        // we may be coming from one of the exception blocks handled above (as Complete will rethrow all exceptions).
+                        throw;
+
                     Complete(e);
-                    throw;
                 }
             }
         }
@@ -464,6 +467,8 @@ namespace osu.Framework.IO.Network
             }
             catch (Exception se) { e = e == null ? se : new AggregateException(e, se); }
 
+            Completed = true;
+
             if (e == null)
             {
                 Finished?.Invoke();
@@ -472,9 +477,8 @@ namespace osu.Framework.IO.Network
             {
                 Failed?.Invoke(e);
                 Aborted = true;
+                throw e;
             }
-
-            Completed = true;
         }
 
         /// <summary>
