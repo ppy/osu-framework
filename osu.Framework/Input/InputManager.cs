@@ -325,7 +325,7 @@ namespace osu.Framework.Input
             lastHoveredDrawables.AddRange(hoveredDrawables);
             hoveredDrawables.Clear();
 
-            //New drawables shouldn't be hovered if the cursor isn't even in the window
+            // New drawables shouldn't be hovered if the cursor isn't in the window
             if (Host.Window?.CursorInWindow ?? true)
             {
                 // First, we need to construct hoveredDrawables for the current frame
