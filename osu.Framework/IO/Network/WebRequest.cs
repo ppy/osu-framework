@@ -26,10 +26,14 @@ namespace osu.Framework.IO.Network
         public event Action Started;
 
         /// <summary>
-        /// Invoked when the <see cref="WebRequest"/> has finished.
-        /// An unsuccessful completion is indicated by the presence of an exception.
+        /// Invoked when the <see cref="WebRequest"/> has finished successfully.
         /// </summary>
-        public event Action<Exception> Finished;
+        public event Action Finished;
+
+        /// <summary>
+        /// Invoked when the <see cref="WebRequest"/> has failed.
+        /// </summary>
+        public event Action<Exception> Failed;
 
         /// <summary>
         /// Invoked when the download progress has changed.
@@ -460,10 +464,16 @@ namespace osu.Framework.IO.Network
             }
             catch (Exception se) { e = e == null ? se : new AggregateException(e, se); }
 
-            Finished?.Invoke(e);
-
-            if (e != null)
+            if (e == null)
+            {
+                Finished?.Invoke();
+            }
+            else
+            {
+                Failed?.Invoke(e);
                 Aborted = true;
+            }
+
             Completed = true;
         }
 
