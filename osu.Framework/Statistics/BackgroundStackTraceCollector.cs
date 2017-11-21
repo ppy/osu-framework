@@ -72,9 +72,8 @@ namespace osu.Framework.Statistics
 
             logMessage.AppendLine($@"| Slow frame on thread ""{targetThread.Name}""");
             logMessage.AppendLine(@"|");
-
-            logMessage.AppendLine($@"| * Thread time: {clock.CurrentTime:#0,#}ms");
-            logMessage.AppendLine($@"| * Frame length: {elapsedFrameTime:#0,#}ms (allowable: {spikeRecordThreshold:#0,#})");
+            logMessage.AppendLine($@"| * Thread time  : {clock.CurrentTime:#0,#}ms");
+            logMessage.AppendLine($@"| * Frame length : {elapsedFrameTime:#0,#}ms (allowable: {currentThreshold:#0,#}ms)");
 
             logMessage.AppendLine(@"|");
 
