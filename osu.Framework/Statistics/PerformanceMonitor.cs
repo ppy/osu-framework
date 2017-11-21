@@ -125,12 +125,7 @@ namespace osu.Framework.Statistics
             }
 
             //check for dropped (stutter) frames
-            if (Clock.ElapsedFrameTime > traceCollector.SpikeRecordDuration * 2)
-                traceCollector.LogFrame(Clock.ElapsedFrameTime);
-
-            traceCollector.SpikeRecordDuration = Math.Max(10, Math.Max(1000 / Clock.MaximumUpdateHz, AverageFrameTime) * 2);
-
-            traceCollector.NewFrame();
+            traceCollector.NewFrame(Clock.ElapsedFrameTime, Math.Max(10, Math.Max(1000 / Clock.MaximumUpdateHz, AverageFrameTime) * 4));
 
             //reset frame totals
             currentCollectionTypeStack.Clear();

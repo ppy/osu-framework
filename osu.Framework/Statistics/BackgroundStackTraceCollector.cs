@@ -13,6 +13,9 @@ using Microsoft.Diagnostics.Runtime;
 
 namespace osu.Framework.Statistics
 {
+    /// <summary>
+    /// Spwan a thread to collect real-time stack traces of the targeted thread.
+    /// </summary>
     internal class BackgroundStackTraceCollector
     {
         private IList<ClrStackFrame> backgroundMonitorStackTrace;
@@ -24,13 +27,13 @@ namespace osu.Framework.Statistics
 
         internal double LastConsumptionTime;
 
-        internal double SpikeRecordDuration;
+        private double spikeRecordThreshold;
 
         public BackgroundStackTraceCollector(Thread targetThread, StopwatchClock clock)
         {
             if (Debugger.IsAttached) return;
 
-            logger = Logger.GetLogger(LoggingTarget.Performance);
+            logger = Logger.GetLogger($"performance-{targetThread.Name?.ToLower() ?? "unknown"}");
 
             this.clock = clock;
             this.targetThread = targetThread;
@@ -39,7 +42,7 @@ namespace osu.Framework.Statistics
             {
                 while (true)
                 {
-                    if (targetThread.IsAlive && clock.ElapsedMilliseconds - LastConsumptionTime > SpikeRecordDuration && backgroundMonitorStackTrace == null)
+                    if (targetThread.IsAlive && clock.ElapsedMilliseconds - LastConsumptionTime > spikeRecordThreshold / 2 && backgroundMonitorStackTrace == null)
                         backgroundMonitorStackTrace = getStackTrace(targetThread);
 
                     Thread.Sleep(1);
@@ -51,40 +54,41 @@ namespace osu.Framework.Statistics
             backgroundMonitorThread.Start();
         }
 
-        internal void LogFrame(double elapsedFrameTime)
+        internal void NewFrame(double elapsedFrameTime, double newSpikeThreshold)
         {
             if (targetThread == null) return;
 
             var frames = backgroundMonitorStackTrace;
             backgroundMonitorStackTrace = null;
 
+            var currentThreshold = spikeRecordThreshold;
+
+            spikeRecordThreshold = newSpikeThreshold;
+
+            if (elapsedFrameTime < currentThreshold || currentThreshold == 0)
+                return;
+
             StringBuilder logMessage = new StringBuilder();
 
-            logMessage.AppendLine($@"---------- Slow Frame Detected on {targetThread.Name} at {clock.CurrentTime / 1000:#0.00}s ----------");
+            logMessage.AppendLine($@"| Slow frame on thread ""{targetThread.Name}""");
+            logMessage.AppendLine($@"|");
 
-            logMessage.AppendLine();
+            logMessage.AppendLine($@"| * Thread time: {clock.CurrentTime:#0,#}ms");
+            logMessage.AppendLine($@"| * Frame length: {elapsedFrameTime:#0,#}ms (allowable: {spikeRecordThreshold:#0,#})");
 
-            logMessage.AppendLine($@"Frame length: {elapsedFrameTime:#0,#}ms");
+            logMessage.AppendLine($@"|");
 
             if (frames != null)
             {
-                logMessage.AppendLine(@"Call stack follows:");
-                logMessage.AppendLine();
+                logMessage.AppendLine(@"| Stack trace:");
 
                 foreach (var f in frames)
-                    logMessage.AppendLine($@"- {f.DisplayString}");
+                    logMessage.AppendLine($@"|- {f.DisplayString}");
             }
             else
-                logMessage.AppendLine(@"Call stack was not recorded.");
-
-            logMessage.AppendLine(@"------------------------------------------------------------------------------------------------------");
+                logMessage.AppendLine(@"| Call stack was not recorded.");
 
             logger.Add(logMessage.ToString());
-        }
-
-        internal void NewFrame()
-        {
-            backgroundMonitorStackTrace = null;
         }
 
         private static readonly Lazy<ClrInfo> clr_info = new Lazy<ClrInfo>(delegate
