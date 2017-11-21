@@ -60,6 +60,9 @@ namespace osu.Framework.Graphics.Containers
             }
 
             base.Update();
+
+            if (!LoadTriggered && ShouldLoadContent)
+                loadContentAsync();
         }
 
         [BackgroundDependencyLoader]
