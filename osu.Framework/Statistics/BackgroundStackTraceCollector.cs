@@ -71,12 +71,12 @@ namespace osu.Framework.Statistics
             StringBuilder logMessage = new StringBuilder();
 
             logMessage.AppendLine($@"| Slow frame on thread ""{targetThread.Name}""");
-            logMessage.AppendLine($@"|");
+            logMessage.AppendLine(@"|");
 
             logMessage.AppendLine($@"| * Thread time: {clock.CurrentTime:#0,#}ms");
             logMessage.AppendLine($@"| * Frame length: {elapsedFrameTime:#0,#}ms (allowable: {spikeRecordThreshold:#0,#})");
 
-            logMessage.AppendLine($@"|");
+            logMessage.AppendLine(@"|");
 
             if (frames != null)
             {
