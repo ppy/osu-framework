@@ -23,7 +23,7 @@ namespace osu.Framework.Graphics.Containers
         }
     }
 
-    public class ScrollContainer<T> : Container<T>, DelayedLoadWrapper.IOnScreenOptimisingContainer
+    public class ScrollContainer<T> : Container<T>, LoadWrapper.IOnScreenOptimisingContainer
         where T : Drawable
     {
         /// <summary>
