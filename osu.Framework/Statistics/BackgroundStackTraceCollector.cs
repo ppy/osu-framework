@@ -4,15 +4,18 @@
 using osu.Framework.Logging;
 using osu.Framework.Timing;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using System.Threading;
+using Microsoft.Diagnostics.Runtime;
 
 namespace osu.Framework.Statistics
 {
     internal class BackgroundStackTraceCollector
     {
-        private StackTrace backgroundMonitorStackTrace;
+        private IList<ClrStackFrame> backgroundMonitorStackTrace;
 
         private readonly StopwatchClock clock;
 
@@ -25,9 +28,6 @@ namespace osu.Framework.Statistics
 
         public BackgroundStackTraceCollector(Thread targetThread, StopwatchClock clock)
         {
-            // we can't run under mono.
-            if (Type.GetType("Mono.Runtime") != null) return;
-
             if (Debugger.IsAttached) return;
 
             logger = Logger.GetLogger(LoggingTarget.Performance);
@@ -40,7 +40,7 @@ namespace osu.Framework.Statistics
                 while (true)
                 {
                     if (targetThread.IsAlive && clock.ElapsedMilliseconds - LastConsumptionTime > SpikeRecordDuration && backgroundMonitorStackTrace == null)
-                        backgroundMonitorStackTrace = safelyGetStackTrace(targetThread);
+                        backgroundMonitorStackTrace = getStackTrace(targetThread);
 
                     Thread.Sleep(1);
                 }
@@ -55,7 +55,7 @@ namespace osu.Framework.Statistics
         {
             if (targetThread == null) return;
 
-            StackTrace trace = backgroundMonitorStackTrace;
+            var frames = backgroundMonitorStackTrace;
             backgroundMonitorStackTrace = null;
 
             StringBuilder logMessage = new StringBuilder();
@@ -66,20 +66,18 @@ namespace osu.Framework.Statistics
 
             logMessage.AppendLine($@"Frame length: {elapsedFrameTime:#0,#}ms");
 
-            var frames = trace?.GetFrames();
-
             if (frames != null)
             {
                 logMessage.AppendLine(@"Call stack follows:");
                 logMessage.AppendLine();
 
-                foreach (StackFrame f in frames)
-                    logMessage.AppendLine($@"- {f.GetMethod().DeclaringType} {f.GetMethod()} @ {f.GetNativeOffset()}");
+                foreach (var f in frames)
+                    logMessage.AppendLine($@"- {f.DisplayString}");
             }
             else
                 logMessage.AppendLine(@"Call stack was not recorded.");
 
-            logMessage.AppendLine($@"------------------------------------------------------------------------------------------------------");
+            logMessage.AppendLine(@"------------------------------------------------------------------------------------------------------");
 
             logger.Add(logMessage.ToString());
         }
@@ -89,75 +87,18 @@ namespace osu.Framework.Statistics
             backgroundMonitorStackTrace = null;
         }
 
-#pragma warning disable 0618
-        private static StackTrace safelyGetStackTrace(Thread targetThread)
+        private static readonly Lazy<ClrInfo> clr_info = new Lazy<ClrInfo>(delegate
         {
-            //code lifted from http://stackoverflow.com/a/14935378.
-            //avoids deadlocks.
-
-            using (ManualResetEvent fallbackThreadReady = new ManualResetEvent(false))
-            using (ManualResetEvent exitedSafely = new ManualResetEvent(false))
+            try
             {
-                Thread fallbackThread = new Thread(() =>
-                {
-                    // ReSharper disable AccessToDisposedClosure
-                    fallbackThreadReady.Set();
-                    while (!exitedSafely.WaitOne(200))
-                    {
-                        try
-                        {
-                            targetThread.Resume();
-                        }
-                        catch (Exception)
-                        {
-                            /*Whatever happens, do never stop to resume the target-thread regularly until the main-thread has exited safely.*/
-                        }
-                    }
-                    // ReSharper restore AccessToDisposedClosure
-                }) { Name = @"GetStackFallbackThread" };
-
-                try
-                {
-                    fallbackThread.Start();
-                    fallbackThreadReady.WaitOne();
-                    //From here, you have about 200ms to get the stack-trace.
-                    targetThread.Suspend();
-                    StackTrace trace = null;
-                    try
-                    {
-#pragma warning disable 612
-                        trace = new StackTrace(targetThread, false);
-#pragma warning restore 612
-                    }
-                    catch (ThreadStateException)
-                    {
-                        //failed to get stack trace, since the fallback-thread resumed the thread
-                        //possible reasons:
-                        //1.) This thread was just too slow (not very likely)
-                        //2.) The deadlock ocurred and the fallbackThread rescued the situation.
-                        //In both cases just return null.
-                    }
-
-                    try
-                    {
-                        targetThread.Resume();
-                    }
-                    catch (ThreadStateException)
-                    {
-                        /*Thread is running again already*/
-                    }
-
-                    return trace;
-                }
-                finally
-                {
-                    //Just signal the backup-thread to stop.
-                    exitedSafely.Set();
-                    //Join the thread to avoid disposing "exited safely" too early. And also make sure that no leftover threads are cluttering iis by accident.
-                    fallbackThread.Join();
-                }
+                return DataTarget.AttachToProcess(Process.GetCurrentProcess().Id, 200, AttachFlag.Passive).ClrVersions[0];
             }
-        }
-#pragma warning restore 0618
+            catch
+            {
+                return null;
+            }
+        });
+
+        private static IList<ClrStackFrame> getStackTrace(Thread targetThread) => clr_info.Value?.CreateRuntime().Threads.FirstOrDefault(t => t.ManagedThreadId == targetThread.ManagedThreadId)?.StackTrace;
     }
 }
