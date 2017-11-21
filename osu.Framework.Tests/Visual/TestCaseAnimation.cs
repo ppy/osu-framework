@@ -29,12 +29,15 @@ namespace osu.Framework.Tests.Visual
                 RelativeSizeAxes = Axes.Both,
                 Children = new Drawable[]
                 {
-                    new DelayedLoadWrapper(new AvatarAnimation
+                    new LoadWrapper(new AvatarAnimation
                     {
                         AutoSizeAxes = Axes.None,
                         RelativeSizeAxes = Axes.Both,
                         Size = new Vector2(0.25f)
-                    }),
+                    })
+                    {
+                        TimeBeforeLoad = 500
+                    },
                     drawableAnimation = new DrawableAnimation
                     {
                         RelativePositionAxes = Axes.Both,

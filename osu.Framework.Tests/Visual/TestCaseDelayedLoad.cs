@@ -45,19 +45,22 @@ namespace osu.Framework.Tests.Visual
                     Size = new Vector2(128),
                     Children = new Drawable[]
                     {
-                        new DelayedLoadWrapper(new Container
+                        new LoadWrapper(new Container
                         {
                             RelativeSizeAxes = Axes.Both,
                             Children = new Drawable[]
                             {
                                 new TestBox{ RelativeSizeAxes = Axes.Both }
                             }
-                        }),
+                        })
+                        {
+                            TimeBeforeLoad = 500
+                        },
                         new SpriteText { Text = i.ToString() },
                     }
                 });
 
-            var childrenWithAvatarsLoaded = flow.Children.Where(c => c.Children.OfType<DelayedLoadWrapper>().First().Children.FirstOrDefault()?.IsLoaded ?? false);
+            var childrenWithAvatarsLoaded = flow.Children.Where(c => c.Children.OfType<LoadWrapper>().First().Children.FirstOrDefault()?.IsLoaded ?? false);
 
             AddWaitStep(10);
             AddStep("scroll down", () => scroll.ScrollToEnd());
