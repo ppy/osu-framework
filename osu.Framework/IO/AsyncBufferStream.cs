@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using OpenTK;
 
 namespace osu.Framework.IO
@@ -32,7 +33,7 @@ namespace osu.Framework.IO
 
         private readonly Stream underlyingStream;
 
-        private readonly Thread loadThread;
+        private CancellationTokenSource cancellationToken;
 
         /// <summary>
         /// A stream that buffers the underlying stream to contiguous memory, reading until the whole file is eventually memory-backed.
@@ -63,13 +64,8 @@ namespace osu.Framework.IO
                 isLoaded = shared.isLoaded;
             }
 
-
-            loadThread = new Thread(loadRequiredBlocks)
-            {
-                Name = @"AsyncBufferStream_Load",
-                IsBackground = true
-            };
-            loadThread.Start();
+            cancellationToken = new CancellationTokenSource();
+            Task.Factory.StartNew(loadRequiredBlocks, cancellationToken.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
         }
 
         ~AsyncBufferStream()
@@ -79,48 +75,44 @@ namespace osu.Framework.IO
 
         private void loadRequiredBlocks()
         {
-            try
+            if (isLoaded)
+                return;
+
+            int last = -1;
+            while (!isLoaded && !isClosed)
             {
-                if (isLoaded)
-                    return;
+                cancellationToken.Token.ThrowIfCancellationRequested();
 
-                int last = -1;
-                while (!isLoaded && !isClosed)
+                int curr = nextBlockToLoad;
+                if (curr < 0)
                 {
-                    int curr = nextBlockToLoad;
-                    if (curr < 0)
-                    {
-                        Thread.Sleep(1);
-                        continue;
-                    }
-
-                    int readStart = curr * block_size;
-
-                    if (last + 1 != curr)
-                    {
-                        //follow along with a seek.
-                        Debug.Assert(underlyingStream.CanSeek);
-                        underlyingStream.Seek(readStart, SeekOrigin.Begin);
-                    }
-
-                    Trace.Assert(underlyingStream.Position == readStart);
-
-                    int readSize = Math.Min(data.Length - readStart, block_size);
-                    int read = underlyingStream.Read(data, readStart, readSize);
-
-                    Trace.Assert(read == readSize);
-
-                    blockLoadedStatus[curr] = true;
-                    last = curr;
-
-                    isLoaded |= blockLoadedStatus.All(loaded => loaded);
+                    Thread.Sleep(1);
+                    continue;
                 }
 
-                if (!isClosed) underlyingStream?.Close();
+                int readStart = curr * block_size;
+
+                if (last + 1 != curr)
+                {
+                    //follow along with a seek.
+                    Debug.Assert(underlyingStream.CanSeek);
+                    underlyingStream.Seek(readStart, SeekOrigin.Begin);
+                }
+
+                Trace.Assert(underlyingStream.Position == readStart);
+
+                int readSize = Math.Min(data.Length - readStart, block_size);
+                int read = underlyingStream.Read(data, readStart, readSize);
+
+                Trace.Assert(read == readSize);
+
+                blockLoadedStatus[curr] = true;
+                last = curr;
+
+                isLoaded |= blockLoadedStatus.All(loaded => loaded);
             }
-            catch (ThreadAbortException)
-            {
-            }
+
+            if (!isClosed) underlyingStream?.Close();
         }
 
         private int nextBlockToLoad
@@ -148,7 +140,9 @@ namespace osu.Framework.IO
         {
             isDisposed = true;
 
-            loadThread?.Abort();
+            cancellationToken?.Cancel();
+            cancellationToken?.Dispose();
+            cancellationToken = null;
 
             if (!isClosed) Close();
             base.Dispose(disposing);
