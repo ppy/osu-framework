@@ -67,7 +67,7 @@ namespace osu.Framework.Testing.Drawables.Steps
             currentNumber.SetDefault();
         }
 
-        protected override bool OnDragEnd(InputState state)
+        public override bool OnDragEnd(InputState state)
         {
             var flash = new Box
             {

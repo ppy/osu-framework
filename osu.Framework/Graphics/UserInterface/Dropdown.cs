@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics.UserInterface
     /// A drop-down menu to select from a group of values.
     /// </summary>
     /// <typeparam name="T">Type of value to select.</typeparam>
-    public abstract class Dropdown<T> : FillFlowContainer, IHasCurrentValue<T>
+    public abstract class Dropdown<T> : FillFlowContainer, IHasCurrentValue<T>, IHandleHover
     {
         protected internal DropdownHeader Header;
         protected internal DropdownMenu Menu;
@@ -191,7 +191,10 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void updateHeaderVisibility() => Header.Alpha = Menu.AnyPresent ? 1 : 0;
 
-        protected override bool OnHover(InputState state) => true;
+        public virtual bool OnHover(InputState state) => true;
+        public virtual void OnHoverLost(InputState state)
+        {
+        }
 
         /// <summary>
         /// Creates the menu body.

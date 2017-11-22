@@ -1588,213 +1588,81 @@ namespace osu.Framework.Graphics
         #region Interaction / Input
 
         /// <summary>
-        /// Triggers <see cref="OnHover(InputState)"/> with a local version of the given <see cref="InputState"/>.
+        /// Triggers <see cref="IHandleHover.OnHover(InputState)"/> with a local version of the given <see cref="InputState"/>.
         /// </summary>
-        public bool TriggerOnHover(InputState screenSpaceState) => OnHover(createCloneInParentSpace(screenSpaceState));
+        public bool TriggerOnHover(InputState screenSpaceState) => (this as IHandleHover)?.OnHover(createCloneInParentSpace(screenSpaceState)) ?? false;
 
         /// <summary>
-        /// Triggered once when this Drawable becomes hovered.
+        /// Triggers <see cref="IHandleHover.OnHoverLost(InputState)"/> with a local version of the given <see cref="InputState"/>.
         /// </summary>
-        /// <param name="state">The state at which the Drawable becomes hovered.</param>
-        /// <returns>True if this Drawable would like to handle the hover. If so, then
-        /// no further Drawables up the scene graph will receive hovering events. If
-        /// false, however, then <see cref="OnHoverLost(InputState)"/> will still be
-        /// received once hover is lost.</returns>
-        protected virtual bool OnHover(InputState state) => false;
+        public void TriggerOnHoverLost(InputState screenSpaceState) => (this as IHandleHover)?.OnHoverLost(createCloneInParentSpace(screenSpaceState));
 
         /// <summary>
-        /// Triggers <see cref="OnHoverLost(InputState)"/> with a local version of the given <see cref="InputState"/>.
+        /// Triggers <see cref="IHandleMouseButtons.OnMouseDown(InputState, MouseDownEventArgs)"/> with a local version of the given <see cref="InputState"/>.
         /// </summary>
-        public void TriggerOnHoverLost(InputState screenSpaceState) => OnHoverLost(createCloneInParentSpace(screenSpaceState));
+        public bool TriggerOnMouseDown(InputState screenSpaceState = null, MouseDownEventArgs args = null) => (this as IHandleMouseButtons)?.OnMouseDown(createCloneInParentSpace(screenSpaceState), args) ?? false;
 
         /// <summary>
-        /// Triggered whenever this drawable is no longer hovered.
+        /// Triggers <see cref="IHandleMouseButtons.OnMouseUp(InputState, MouseUpEventArgs)"/> with a local version of the given <see cref="InputState"/>.
         /// </summary>
-        /// <param name="state">The state at which hover is lost.</param>
-        protected virtual void OnHoverLost(InputState state)
-        {
-        }
+        public bool TriggerOnMouseUp(InputState screenSpaceState = null, MouseUpEventArgs args = null) => (this as IHandleMouseButtons)?.OnMouseUp(createCloneInParentSpace(screenSpaceState), args) ?? false;
 
         /// <summary>
-        /// Triggers <see cref="OnMouseDown(InputState, MouseDownEventArgs)"/> with a local version of the given <see cref="InputState"/>.
+        /// Triggers <see cref="IHandleClicks.OnClick(InputState)"/> with a local version of the given <see cref="InputState"/>.
         /// </summary>
-        public bool TriggerOnMouseDown(InputState screenSpaceState = null, MouseDownEventArgs args = null) => OnMouseDown(createCloneInParentSpace(screenSpaceState), args);
+        public bool TriggerOnClick(InputState screenSpaceState = null) => (this as IHandleClicks)?.OnClick(createCloneInParentSpace(screenSpaceState)) ?? false;
 
         /// <summary>
-        /// Triggered whenever a mouse button is pressed on top of this Drawable.
+        /// Triggers <see cref="IHandleDoubleClicks.OnDoubleClick(InputState)"/> with a local version of the given <see cref="InputState"/>.
         /// </summary>
-        /// <param name="state">The state after the press.</param>
-        /// <param name="args">Specific arguments for mouse down event.</param>
-        /// <returns>True if this Drawable handled the event. If false, then the event
-        /// is propagated up the scene graph to the next eligible Drawable.</returns>
-        protected virtual bool OnMouseDown(InputState state, MouseDownEventArgs args) => false;
+        public bool TriggerOnDoubleClick(InputState screenSpaceState) => (this as IHandleDoubleClicks)?.OnDoubleClick(createCloneInParentSpace(screenSpaceState)) ?? false;
 
         /// <summary>
-        /// Triggers <see cref="OnMouseUp(InputState, MouseUpEventArgs)"/> with a local version of the given <see cref="InputState"/>.
+        /// Triggers <see cref="IHandleDrag.OnDragStart(InputState)"/> with a local version of the given <see cref="InputState"/>.
         /// </summary>
-        public bool TriggerOnMouseUp(InputState screenSpaceState = null, MouseUpEventArgs args = null) => OnMouseUp(createCloneInParentSpace(screenSpaceState), args);
+        public bool TriggerOnDragStart(InputState screenSpaceState) => (this as IHandleDrag)?.OnDragStart(createCloneInParentSpace(screenSpaceState)) ?? false;
 
         /// <summary>
-        /// Triggered whenever a mouse button is released on top of this Drawable.
+        /// Triggers <see cref="IHandleDrag.OnDrag(InputState)"/> with a local version of the given <see cref="InputState"/>.
         /// </summary>
-        /// <param name="state">The state after the release.</param>
-        /// <param name="args">Specific arguments for mouse up event.</param>
-        /// <returns>True if this Drawable handled the event. If false, then the event
-        /// is propagated up the scene graph to the next eligible Drawable.</returns>
-        protected virtual bool OnMouseUp(InputState state, MouseUpEventArgs args) => false;
+        public bool TriggerOnDrag(InputState screenSpaceState) => (this as IHandleDrag)?.OnDrag(createCloneInParentSpace(screenSpaceState)) ?? false;
 
         /// <summary>
-        /// Triggers <see cref="OnClick(InputState)"/> with a local version of the given <see cref="InputState"/>.
+        /// Triggers <see cref="IHandleDrag.OnDragEnd(InputState)"/> with a local version of the given <see cref="InputState"/>.
         /// </summary>
-        public bool TriggerOnClick(InputState screenSpaceState = null) => OnClick(createCloneInParentSpace(screenSpaceState));
+        public bool TriggerOnDragEnd(InputState screenSpaceState) => (this as IHandleDrag)?.OnDragEnd(createCloneInParentSpace(screenSpaceState)) ?? false;
 
         /// <summary>
-        /// Triggered whenever a mouse click occurs on top of this Drawable.
+        /// Triggers <see cref="IHandleWheel.OnWheel(InputState)"/> with a local version of the given <see cref="InputState"/>.
         /// </summary>
-        /// <param name="state">The state after the click.</param>
-        /// <returns>True if this Drawable handled the event. If false, then the event
-        /// is propagated up the scene graph to the next eligible Drawable.</returns>
-        protected virtual bool OnClick(InputState state) => false;
+        public bool TriggerOnWheel(InputState screenSpaceState) => (this as IHandleWheel)?.OnWheel(createCloneInParentSpace(screenSpaceState)) ?? false;
 
         /// <summary>
-        /// Triggers <see cref="OnMouseDown(InputState, MouseDownEventArgs)"/> with a local version of the given <see cref="InputState"/>.
-        /// </summary>
-        public bool TriggerOnDoubleClick(InputState screenSpaceState) => OnDoubleClick(createCloneInParentSpace(screenSpaceState));
-
-        /// <summary>
-        /// Triggered whenever a mouse double click occurs on top of this Drawable.
-        /// </summary>
-        /// <param name="state">The state after the double click.</param>
-        /// <returns>True if this Drawable handled the event. If false, then the event
-        /// is propagated up the scene graph to the next eligible Drawable.</returns>
-        protected virtual bool OnDoubleClick(InputState state) => false;
-
-        /// <summary>
-        /// Triggers <see cref="OnDragStart(InputState)"/> with a local version of the given <see cref="InputState"/>.
-        /// </summary>
-        public bool TriggerOnDragStart(InputState screenSpaceState) => OnDragStart(createCloneInParentSpace(screenSpaceState));
-
-        /// <summary>
-        /// Triggered whenever this Drawable is initially dragged by a held mouse click
-        /// and subsequent movement.
-        /// </summary>
-        /// <param name="state">The state after the mouse was moved.</param>
-        /// <returns>True if this Drawable accepts being dragged. If so, then future
-        /// <see cref="OnDrag(InputState)"/> and <see cref="OnDragEnd(InputState)"/>
-        /// events will be received. Otherwise, the event is propagated up the scene
-        /// graph to the next eligible Drawable.</returns>
-        protected virtual bool OnDragStart(InputState state) => false;
-
-        /// <summary>
-        /// Triggers <see cref="OnDrag(InputState)"/> with a local version of the given <see cref="InputState"/>.
-        /// </summary>
-        public bool TriggerOnDrag(InputState screenSpaceState) => OnDrag(createCloneInParentSpace(screenSpaceState));
-
-        /// <summary>
-        /// Triggered whenever the mouse is moved while dragging.
-        /// Only is received if a drag was previously initiated by returning true
-        /// from <see cref="OnDragStart(InputState)"/>.
-        /// </summary>
-        /// <param name="state">The state after the mouse was moved.</param>
-        /// <returns>Currently unused.</returns>
-        protected virtual bool OnDrag(InputState state) => false;
-
-        /// <summary>
-        /// Triggers <see cref="OnDragEnd(InputState)"/> with a local version of the given <see cref="InputState"/>.
-        /// </summary>
-        public bool TriggerOnDragEnd(InputState screenSpaceState) => OnDragEnd(createCloneInParentSpace(screenSpaceState));
-
-        /// <summary>
-        /// Triggered whenever a drag ended. Only is received if a drag was previously
-        /// initiated by returning true from <see cref="OnDragStart(InputState)"/>.
-        /// </summary>
-        /// <param name="state">The state after the drag ended.</param>
-        /// <returns>Currently unused.</returns>
-        protected virtual bool OnDragEnd(InputState state) => false;
-
-        /// <summary>
-        /// Triggers <see cref="OnWheel(InputState)"/> with a local version of the given <see cref="InputState"/>.
-        /// </summary>
-        public bool TriggerOnWheel(InputState screenSpaceState) => OnWheel(createCloneInParentSpace(screenSpaceState));
-
-        /// <summary>
-        /// Triggered whenever the mouse wheel was turned over this Drawable.
-        /// </summary>
-        /// <param name="state">The state after the wheel was turned.</param>
-        /// <returns>True if this Drawable handled the event. If false, then the event
-        /// is propagated up the scene graph to the next eligible Drawable.</returns>
-        protected virtual bool OnWheel(InputState state) => false;
-
-        /// <summary>
-        /// Triggers <see cref="OnFocus(InputState)"/> with a local version of the given <see cref="InputState"/>
+        /// Triggers <see cref="IHandleFocus.OnFocus(InputState)"/> with a local version of the given <see cref="InputState"/>
         /// </summary>
         /// <param name="screenSpaceState">The input state.</param>
-        public void TriggerOnFocus(InputState screenSpaceState = null) => OnFocus(createCloneInParentSpace(screenSpaceState));
+        public void TriggerOnFocus(InputState screenSpaceState = null) => (this as IHandleFocus)?.OnFocus(createCloneInParentSpace(screenSpaceState));
 
         /// <summary>
-        /// Triggered whenever this Drawable gains focus.
-        /// Focused Drawables receive keyboard input before all other Drawables,
-        /// and thus handle it first.
-        /// </summary>
-        /// <param name="state">The state after focus when focus can be gained.</param>
-        protected virtual void OnFocus(InputState state)
-        {
-        }
-
-        /// <summary>
-        /// Triggers <see cref="OnFocusLost(InputState)"/> with a local version of the given <see cref="InputState"/>
+        /// Triggers <see cref="IHandleFocus.OnFocusLost(InputState)"/> with a local version of the given <see cref="InputState"/>
         /// </summary>
         /// <param name="screenSpaceState">The input state.</param>
-        public void TriggerOnFocusLost(InputState screenSpaceState = null) => OnFocusLost(createCloneInParentSpace(screenSpaceState));
+        public void TriggerOnFocusLost(InputState screenSpaceState = null) => (this as IHandleFocus)?.OnFocusLost(createCloneInParentSpace(screenSpaceState));
 
         /// <summary>
-        /// Triggered whenever this Drawable lost focus.
+        /// Triggers <see cref="IHandleKeys.OnKeyDown(InputState, KeyDownEventArgs)"/> with a local version of the given <see cref="InputState"/>.
         /// </summary>
-        /// <param name="state">The state after focus was lost.</param>
-        protected virtual void OnFocusLost(InputState state)
-        {
-        }
+        public bool TriggerOnKeyDown(InputState screenSpaceState, KeyDownEventArgs args) => (this as IHandleKeys)?.OnKeyDown(createCloneInParentSpace(screenSpaceState), args) ?? false;
 
         /// <summary>
-        /// Triggers <see cref="OnKeyDown(InputState, KeyDownEventArgs)"/> with a local version of the given <see cref="InputState"/>.
+        /// Triggers <see cref="IHandleKeys.OnKeyUp(InputState, KeyUpEventArgs)"/> with a local version of the given <see cref="InputState"/>.
         /// </summary>
-        public bool TriggerOnKeyDown(InputState screenSpaceState, KeyDownEventArgs args) => OnKeyDown(createCloneInParentSpace(screenSpaceState), args);
+        public bool TriggerOnKeyUp(InputState screenSpaceState, KeyUpEventArgs args) => (this as IHandleKeys)?.OnKeyUp(createCloneInParentSpace(screenSpaceState), args) ?? false;
 
         /// <summary>
-        /// Triggered whenever a key was pressed.
+        /// Triggers <see cref="IHandleMouseMove.OnMouseMove(InputState)"/> with a local version of the given <see cref="InputState"/>.
         /// </summary>
-        /// <param name="state">The state after the key was pressed.</param>
-        /// <param name="args">Specific arguments for key down event.</param>
-        /// <returns>True if this Drawable handled the event. If false, then the event
-        /// is propagated up the scene graph to the next eligible Drawable.</returns>
-        protected virtual bool OnKeyDown(InputState state, KeyDownEventArgs args) => false;
-
-        /// <summary>
-        /// Triggers <see cref="OnKeyUp(InputState, KeyUpEventArgs)"/> with a local version of the given <see cref="InputState"/>.
-        /// </summary>
-        public bool TriggerOnKeyUp(InputState screenSpaceState, KeyUpEventArgs args) => OnKeyUp(createCloneInParentSpace(screenSpaceState), args);
-
-        /// <summary>
-        /// Triggered whenever a key was released.
-        /// </summary>
-        /// <param name="state">The state after the key was released.</param>
-        /// <param name="args">Specific arguments for key up event.</param>
-        /// <returns>True if this Drawable handled the event. If false, then the event
-        /// is propagated up the scene graph to the next eligible Drawable.</returns>
-        protected virtual bool OnKeyUp(InputState state, KeyUpEventArgs args) => false;
-
-        /// <summary>
-        /// Triggers <see cref="OnMouseMove(InputState)"/> with a local version of the given <see cref="InputState"/>.
-        /// </summary>
-        public bool TriggerOnMouseMove(InputState screenSpaceState) => OnMouseMove(createCloneInParentSpace(screenSpaceState));
-
-        /// <summary>
-        /// Triggered whenever the mouse moved over this Drawable.
-        /// </summary>
-        /// <param name="state">The state after the mouse moved.</param>
-        /// <returns>True if this Drawable handled the event. If false, then the event
-        /// is propagated up the scene graph to the next eligible Drawable.</returns>
-        protected virtual bool OnMouseMove(InputState state) => false;
+        public bool TriggerOnMouseMove(InputState screenSpaceState) => (this as IHandleMouseMove)?.OnMouseMove(createCloneInParentSpace(screenSpaceState)) ?? false;
 
         /// <summary>
         /// This drawable only receives input events if HandleInput is true.
@@ -1812,7 +1680,7 @@ namespace osu.Framework.Graphics
         public virtual bool RequestsFocus => false;
 
         /// <summary>
-        /// If true, we will gain focus (receiving priority on keybaord input) (and receive an <see cref="OnFocus"/> event) on returning true in <see cref="OnClick(InputState)"/>.
+        /// If true, we will gain focus (receiving priority on keybaord input) (and receive an <see cref="IHandleFocus.OnFocus"/> event) on returning true in <see cref="IHandleClicks.OnClick(InputState)"/>.
         /// </summary>
         public virtual bool AcceptsFocus => false;
 

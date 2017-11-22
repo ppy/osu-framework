@@ -61,7 +61,7 @@ namespace osu.Framework.Graphics.UserInterface
             Anchor = Anchor.Centre,
         };
 
-        protected override bool OnClick(InputState state)
+        public override bool OnClick(InputState state)
         {
             if (Enabled.Value)
             {

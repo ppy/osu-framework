@@ -189,6 +189,15 @@
     <Compile Include="Graphics\Cursor\CursorEffectContainer.cs" />
     <Compile Include="Graphics\Cursor\IHasCustomTooltip.cs" />
     <Compile Include="Graphics\Cursor\ITooltip.cs" />
+    <Compile Include="Graphics\IHandleClicks.cs" />
+    <Compile Include="Graphics\IHandleDoubleClicks.cs" />
+    <Compile Include="Graphics\IHandleDrag.cs" />
+    <Compile Include="Graphics\IHandleFocus.cs" />
+    <Compile Include="Graphics\IHandleHover.cs" />
+    <Compile Include="Graphics\IHandleKeys.cs" />
+    <Compile Include="Graphics\IHandleMouseButtons.cs" />
+    <Compile Include="Graphics\IHandleMouseMove.cs" />
+    <Compile Include="Graphics\IHandleWheel.cs" />
     <Compile Include="Graphics\Primitives\RectangleI.cs" />
     <Compile Include="Graphics\Primitives\Vector2I.cs" />
     <Compile Include="Graphics\Shapes\Circle.cs" />

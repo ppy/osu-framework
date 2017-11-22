@@ -8,7 +8,7 @@ using osu.Framework.Input;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public abstract class DropdownHeader : ClickableContainer
+    public abstract class DropdownHeader : ClickableContainer, IHandleHover
     {
         protected Container Background;
         protected Container Foreground;
@@ -61,16 +61,15 @@ namespace osu.Framework.Graphics.UserInterface
             };
         }
 
-        protected override bool OnHover(InputState state)
+        public virtual bool OnHover(InputState state)
         {
             Background.Colour = BackgroundColourHover;
-            return base.OnHover(state);
+            return false;
         }
 
-        protected override void OnHoverLost(InputState state)
+        public virtual void OnHoverLost(InputState state)
         {
             Background.Colour = BackgroundColour;
-            base.OnHoverLost(state);
         }
     }
 }

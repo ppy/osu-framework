@@ -23,7 +23,7 @@ namespace osu.Framework.Graphics.Containers
         }
     }
 
-    public class ScrollContainer<T> : Container<T>, DelayedLoadWrapper.IOnScreenOptimisingContainer
+    public class ScrollContainer<T> : Container<T>, DelayedLoadWrapper.IOnScreenOptimisingContainer, IHandleMouseButtons, IHandleDrag, IHandleWheel
         where T : Drawable
     {
         /// <summary>
@@ -236,7 +236,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        protected override bool OnDragStart(InputState state)
+        public virtual bool OnDragStart(InputState state)
         {
             if (IsDragging || !state.Mouse.IsPressed(MouseButton.Left)) return false;
 
@@ -247,7 +247,7 @@ namespace osu.Framework.Graphics.Containers
             return true;
         }
 
-        protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
+        public virtual bool OnMouseDown(InputState state, MouseDownEventArgs args)
         {
             if (IsDragging || args.Button != MouseButton.Left) return false;
 
@@ -256,6 +256,8 @@ namespace osu.Framework.Graphics.Containers
 
             return true;
         }
+
+        public virtual bool OnMouseUp(InputState state, MouseUpEventArgs args) => false;
 
         // We keep track of this because input events may happen at different intervals than update frames
         // and we are interested in the time difference between drag _input_ events.
@@ -269,7 +271,7 @@ namespace osu.Framework.Graphics.Containers
         private double averageDragTime;
         private double averageDragDelta;
 
-        protected override bool OnDrag(InputState state)
+        public virtual bool OnDrag(InputState state)
         {
             Trace.Assert(IsDragging, "We should never receive OnDrag if we are not dragging.");
 
@@ -297,7 +299,7 @@ namespace osu.Framework.Graphics.Containers
             return true;
         }
 
-        protected override bool OnDragEnd(InputState state)
+        public virtual bool OnDragEnd(InputState state)
         {
             Trace.Assert(IsDragging, "We should never receive OnDragEnd if we are not dragging.");
 
@@ -323,7 +325,7 @@ namespace osu.Framework.Graphics.Containers
             return true;
         }
 
-        protected override bool OnWheel(InputState state)
+        public virtual bool OnWheel(InputState state)
         {
             offset(-MouseWheelScrollDistance * state.Mouse.WheelDelta, true, DistanceDecayWheel);
             return true;
@@ -466,7 +468,7 @@ namespace osu.Framework.Graphics.Containers
             content.MoveTo(ScrollDirection, -Current);
         }
 
-        protected internal class ScrollbarContainer : Container
+        protected internal class ScrollbarContainer : Container, IHandleClicks, IHandleHover, IHandleDrag, IHandleMouseButtons
         {
             public Action<float> Dragged;
 
@@ -516,26 +518,26 @@ namespace osu.Framework.Graphics.Containers
                 this.ResizeTo(size, duration, easing);
             }
 
-            protected override bool OnClick(InputState state) => true;
+            public virtual bool OnClick(InputState state) => true;
 
-            protected override bool OnHover(InputState state)
+            public virtual bool OnHover(InputState state)
             {
                 this.FadeColour(hoverColour, 100);
                 return true;
             }
 
-            protected override void OnHoverLost(InputState state)
+            public virtual void OnHoverLost(InputState state)
             {
                 this.FadeColour(defaultColour, 100);
             }
 
-            protected override bool OnDragStart(InputState state)
+            public virtual bool OnDragStart(InputState state)
             {
                 dragOffset = state.Mouse.Position[scrollDim] - Position[scrollDim];
                 return true;
             }
 
-            protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
+            public virtual bool OnMouseDown(InputState state, MouseDownEventArgs args)
             {
                 if (args.Button != MouseButton.Left) return false;
 
@@ -547,20 +549,22 @@ namespace osu.Framework.Graphics.Containers
                 return true;
             }
 
-            protected override bool OnMouseUp(InputState state, MouseUpEventArgs args)
+            public virtual bool OnMouseUp(InputState state, MouseUpEventArgs args)
             {
                 if (args.Button != MouseButton.Left) return false;
 
                 box.FadeColour(Color4.White, 100);
 
-                return base.OnMouseUp(state, args);
+                return false;
             }
 
-            protected override bool OnDrag(InputState state)
+            public virtual bool OnDrag(InputState state)
             {
                 Dragged?.Invoke(state.Mouse.Position[scrollDim] - dragOffset);
                 return true;
             }
+
+            public virtual bool OnDragEnd(InputState state) => false;
         }
     }
 }

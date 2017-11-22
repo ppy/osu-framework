@@ -94,7 +94,7 @@ namespace osu.Framework.Graphics.Visualisation
             });
         }
 
-        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
+        public override bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
             if (!args.Repeat)
                 setHoldState(args.Key == Key.ControlLeft || args.Key == Key.ControlRight);
@@ -102,7 +102,7 @@ namespace osu.Framework.Graphics.Visualisation
             return base.OnKeyDown(state, args);
         }
 
-        protected override bool OnKeyUp(InputState state, KeyUpEventArgs args)
+        public override bool OnKeyUp(InputState state, KeyUpEventArgs args)
         {
             if (!state.Keyboard.ControlPressed)
                 setHoldState(false);

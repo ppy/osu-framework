@@ -171,12 +171,12 @@ namespace osu.Framework.Tests.Visual
         }
     }
 
-    internal class DraggableTriangle : Triangle
+    internal class DraggableTriangle : Triangle, IHandleDrag
     {
         public bool AllowDrag = true;
         public override bool HandleInput => true;
 
-        protected override bool OnDrag(InputState state)
+        public virtual bool OnDrag(InputState state)
         {
             if (!AllowDrag) return false;
 
@@ -184,11 +184,11 @@ namespace osu.Framework.Tests.Visual
             return true;
         }
 
-        protected override bool OnDragEnd(InputState state)
+        public virtual bool OnDragEnd(InputState state)
         {
             return true;
         }
 
-        protected override bool OnDragStart(InputState state) => AllowDrag;
+        public virtual bool OnDragStart(InputState state) => AllowDrag;
     }
 }

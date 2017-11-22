@@ -12,7 +12,7 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Testing.Drawables
 {
-    internal class TestCaseButton : ClickableContainer
+    internal class TestCaseButton : ClickableContainer, IHandleHover
     {
         private readonly Box box;
         private readonly Container text;
@@ -89,16 +89,15 @@ namespace osu.Framework.Testing.Drawables
             });
         }
 
-        protected override bool OnHover(InputState state)
+        public virtual bool OnHover(InputState state)
         {
             box.FadeTo(1, 150);
             return true;
         }
 
-        protected override void OnHoverLost(InputState state)
+        public virtual void OnHoverLost(InputState state)
         {
             box.FadeTo(0.7f, 150);
-            base.OnHoverLost(state);
         }
     }
 }

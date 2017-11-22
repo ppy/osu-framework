@@ -7,12 +7,16 @@ using osu.Framework.Input;
 
 namespace osu.Framework.Graphics.Containers
 {
-    public class ClickableContainer : Container
+    public class ClickableContainer : Container, IHandleMouseButtons, IHandleClicks
     {
         public Action Action;
         public readonly BindableBool Enabled = new BindableBool(true);
 
-        protected override bool OnClick(InputState state)
+        public virtual bool OnMouseDown(InputState state, MouseDownEventArgs args) => false;
+
+        public virtual bool OnMouseUp(InputState state, MouseUpEventArgs args) => false;
+
+        public virtual bool OnClick(InputState state)
         {
             if (Enabled.Value)
                 Action?.Invoke();

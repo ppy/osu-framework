@@ -45,7 +45,7 @@ namespace osu.Framework.Tests.Visual
             });
         }
 
-        private class HoverBox : Container
+        private class HoverBox : Container, IHandleHover
         {
             private readonly Color4 normalColour;
             private readonly Color4 hoveredColour;
@@ -69,13 +69,13 @@ namespace osu.Framework.Tests.Visual
                 };
             }
 
-            protected override bool OnHover(InputState state)
+            public bool OnHover(InputState state)
             {
                 box.Colour = hoveredColour;
                 return !propagateHover;
             }
 
-            protected override void OnHoverLost(InputState state)
+            public void OnHoverLost(InputState state)
             {
                 box.Colour = normalColour;
             }

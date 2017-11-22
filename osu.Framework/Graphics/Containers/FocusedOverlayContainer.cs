@@ -15,7 +15,7 @@ namespace osu.Framework.Graphics.Containers
 
         public override bool AcceptsFocus => true;
 
-        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
+        public override bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
             if (HasFocus && State == Visibility.Visible && !args.Repeat)
             {

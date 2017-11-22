@@ -7,17 +7,22 @@ using osu.Framework.Input;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public abstract class Checkbox : Container, IHasCurrentValue<bool>
+    public abstract class Checkbox : Container, IHasCurrentValue<bool>, IHandleMouseButtons, IHandleClicks
     {
         public Bindable<bool> Current { get; } = new Bindable<bool>();
 
-        protected override bool OnClick(InputState state)
+        public virtual bool OnMouseDown(InputState state, MouseDownEventArgs args) => false;
+
+        public virtual bool OnMouseUp(InputState state, MouseUpEventArgs args) => false;
+
+        public virtual bool OnClick(InputState state)
         {
             if (!Current.Disabled)
                 Current.Value = !Current;
 
-            base.OnClick(state);
             return true;
         }
+
+        public virtual bool OnDoubleClick(InputState state) => false;
     }
 }

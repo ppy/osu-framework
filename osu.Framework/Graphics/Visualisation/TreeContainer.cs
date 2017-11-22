@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics.Visualisation
         Offscreen
     }
 
-    internal class TreeContainer : Container, IStateful<TreeContainerStatus>
+    internal class TreeContainer : Container, IStateful<TreeContainerStatus>, IHandleHover, IHandleDrag, IHandleMouseButtons, IHandleClicks
     {
         private readonly ScrollContainer scroll;
 
@@ -197,29 +197,32 @@ namespace osu.Framework.Graphics.Visualisation
             base.Update();
         }
 
-        protected override bool OnHover(InputState state)
+        public virtual bool OnHover(InputState state)
         {
             State = TreeContainerStatus.Onscreen;
             return true;
         }
 
-        protected override void OnHoverLost(InputState state)
+        public virtual void OnHoverLost(InputState state)
         {
             State = TreeContainerStatus.Offscreen;
-            base.OnHoverLost(state);
         }
 
-        protected override bool OnDragStart(InputState state) => titleBar.ReceiveMouseInputAt(state.Mouse.NativeState.Position);
+        public virtual bool OnDragStart(InputState state) => titleBar.ReceiveMouseInputAt(state.Mouse.NativeState.Position);
 
-        protected override bool OnDrag(InputState state)
+        public virtual bool OnDrag(InputState state)
         {
             Position += state.Mouse.Delta;
-            return base.OnDrag(state);
+            return false;
         }
 
-        protected override bool OnMouseDown(InputState state, MouseDownEventArgs args) => true;
+        public virtual bool OnDragEnd(InputState state) => false;
 
-        protected override bool OnClick(InputState state) => true;
+        public virtual bool OnMouseDown(InputState state, MouseDownEventArgs args) => true;
+        public virtual bool OnMouseUp(InputState state, MouseUpEventArgs args) => false;
+
+        public virtual bool OnClick(InputState state) => true;
+        public virtual bool OnDoubleClick(InputState state) => false;
 
         protected override void LoadComplete()
         {

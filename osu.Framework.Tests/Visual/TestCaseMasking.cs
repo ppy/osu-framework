@@ -445,15 +445,15 @@ namespace osu.Framework.Tests.Visual
 #endif
         }
 
-        private class CircularContainerWithInput : CircularContainer
+        private class CircularContainerWithInput : CircularContainer, IHandleHover
         {
-            protected override bool OnHover(InputState state)
+            public bool OnHover(InputState state)
             {
                 this.ScaleTo(1.2f, 100);
                 return true;
             }
 
-            protected override void OnHoverLost(InputState state)
+            public void OnHoverLost(InputState state)
             {
                 this.ScaleTo(1f, 100);
             }

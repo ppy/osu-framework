@@ -9,7 +9,7 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Graphics.Cursor
 {
-    public class CursorContainer : OverlayContainer, IRequireHighFrequencyMousePosition
+    public class CursorContainer : OverlayContainer, IRequireHighFrequencyMousePosition, IHandleMouseMove
     {
         public Drawable ActiveCursor { get; protected set; }
 
@@ -32,10 +32,10 @@ namespace osu.Framework.Graphics.Cursor
 
         public override bool ReceiveMouseInputAt(Vector2 screenSpacePos) => true;
 
-        protected override bool OnMouseMove(InputState state)
+        public virtual bool OnMouseMove(InputState state)
         {
             ActiveCursor.Position = state.Mouse.Position;
-            return base.OnMouseMove(state);
+            return false;
         }
 
         protected override void PopIn()
