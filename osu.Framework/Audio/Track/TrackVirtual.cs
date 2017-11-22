@@ -59,7 +59,7 @@ namespace osu.Framework.Audio.Track
         {
             get
             {
-                lock (clock) return base.HasCompleted || base.HasReachedEnd;
+                lock (clock) return base.HasCompleted || HasReachedEnd;
             }
         }
 
