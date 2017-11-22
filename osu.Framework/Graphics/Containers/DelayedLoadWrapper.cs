@@ -45,12 +45,12 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// The amount of time on-screen in milliseconds before we begin a load of children.
         /// </summary>
-        private double timeBeforeLoad;
+        private readonly double timeBeforeLoad;
 
         private double timeVisible;
 
         // If timeBeforeLoad is zero, loading will start immediately.
-        protected bool ShouldLoadContent => timeBeforeLoad != 0 ? timeVisible > timeBeforeLoad : true;
+        protected bool ShouldLoadContent => timeBeforeLoad == 0 || timeVisible > timeBeforeLoad;
 
         protected override void Update()
         {
