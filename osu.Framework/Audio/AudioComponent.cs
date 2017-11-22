@@ -47,6 +47,9 @@ namespace osu.Framework.Audio
                 UpdateState();
         }
 
+        /// <summary>
+        /// The component completed its task and is potentially no longer needed.
+        /// </summary>
         public virtual bool HasCompleted => IsDisposed;
 
         public virtual bool IsLoaded => true;
