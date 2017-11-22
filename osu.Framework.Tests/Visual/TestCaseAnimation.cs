@@ -29,7 +29,7 @@ namespace osu.Framework.Tests.Visual
                 RelativeSizeAxes = Axes.Both,
                 Children = new Drawable[]
                 {
-                    new LoadWrapper(new AvatarAnimation
+                    new DelayedLoadWrapper(new AvatarAnimation
                     {
                         AutoSizeAxes = Axes.None,
                         RelativeSizeAxes = Axes.Both,

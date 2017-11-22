@@ -14,7 +14,7 @@ namespace osu.Framework.Graphics.Containers
     /// Has the ability to delay the loading until it has been visible on-screen for a specified duration.
     /// In order to benefit from delayed load, we must be inside a <see cref="ScrollContainer"/>.
     /// </summary>
-    public class LoadWrapper : Container
+    public class DelayedLoadWrapper : Container
     {
         /// <summary>
         /// Creates a <see cref="Container"/> that will asynchronously load the given <see cref="Drawable"/>.
@@ -22,10 +22,10 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         /// <remarks>If <see cref="TimeBeforeLoad"/> remains unchanged (at 0), the loading process will not be delayed.</remarks>
         /// <param name="content">The <see cref="Drawable"/> to be loaded.</param>
-        public LoadWrapper(Drawable content)
+        public DelayedLoadWrapper(Drawable content)
         {
             if (content == null)
-                throw new ArgumentNullException(nameof(content), $@"{nameof(LoadWrapper)} required non-null {nameof(content)}.");
+                throw new ArgumentNullException(nameof(content), $@"{nameof(DelayedLoadWrapper)} required non-null {nameof(content)}.");
 
             this.content = content;
 
