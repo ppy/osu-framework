@@ -17,17 +17,18 @@ namespace osu.Framework.Graphics.Containers
     public class DelayedLoadWrapper : Container
     {
         /// <summary>
-        /// Creates a <see cref="Container"/> that will asynchronously load the given <see cref="Drawable"/>.
-        /// The loading process can be delayed by changing the <see cref="TimeBeforeLoad"/> field.
+        /// Creates a <see cref="Container"/> that will asynchronously load the given <see cref="Drawable"/> with an optional delay.
         /// </summary>
-        /// <remarks>If <see cref="TimeBeforeLoad"/> remains unchanged (at 0), the loading process will not be delayed.</remarks>
+        /// <remarks>If <see cref="timeBeforeLoad"/> remains unchanged (at 0), the loading process will not be delayed.</remarks>
         /// <param name="content">The <see cref="Drawable"/> to be loaded.</param>
-        public DelayedLoadWrapper(Drawable content)
+        /// <param name="timeBeforeLoad">The delay in milliseconds before loading begins. Zero means immediate loading.</param>
+        public DelayedLoadWrapper(Drawable content, double timeBeforeLoad = 0)
         {
             if (content == null)
                 throw new ArgumentNullException(nameof(content), $@"{nameof(DelayedLoadWrapper)} required non-null {nameof(content)}.");
 
             this.content = content;
+            this.timeBeforeLoad = timeBeforeLoad;
 
             RelativeSizeAxes = content.RelativeSizeAxes;
             AutoSizeAxes = (content as CompositeDrawable)?.AutoSizeAxes ?? AutoSizeAxes;
@@ -44,12 +45,12 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// The amount of time on-screen in milliseconds before we begin a load of children.
         /// </summary>
-        public double TimeBeforeLoad = 0;
+        private double timeBeforeLoad;
 
         private double timeVisible;
 
-        // If TimeBeforeLoad is zero (unchanged from default), loading will start immediately.
-        protected bool ShouldLoadContent => TimeBeforeLoad != 0 ? timeVisible > TimeBeforeLoad : true;
+        // If timeBeforeLoad is zero, loading will start immediately.
+        protected bool ShouldLoadContent => timeBeforeLoad != 0 ? timeVisible > timeBeforeLoad : true;
 
         protected override void Update()
         {
