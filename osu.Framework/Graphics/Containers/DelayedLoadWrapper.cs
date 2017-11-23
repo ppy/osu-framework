@@ -19,10 +19,10 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Creates a <see cref="Container"/> that will asynchronously load the given <see cref="Drawable"/> with an optional delay.
         /// </summary>
-        /// <remarks>If <see cref="timeBeforeLoad"/> remains unchanged (at 0), the loading process will not be delayed.</remarks>
+        /// <remarks>If <see cref="timeBeforeLoad"/> is set to 0, the loading process will not be delayed.</remarks>
         /// <param name="content">The <see cref="Drawable"/> to be loaded.</param>
         /// <param name="timeBeforeLoad">The delay in milliseconds before loading begins. Zero means immediate loading.</param>
-        public DelayedLoadWrapper(Drawable content, double timeBeforeLoad = 0)
+        public DelayedLoadWrapper(Drawable content, double timeBeforeLoad = 500)
         {
             if (content == null)
                 throw new ArgumentNullException(nameof(content), $@"{nameof(DelayedLoadWrapper)} required non-null {nameof(content)}.");

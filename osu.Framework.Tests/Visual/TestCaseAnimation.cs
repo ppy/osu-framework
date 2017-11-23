@@ -33,8 +33,7 @@ namespace osu.Framework.Tests.Visual
                         AutoSizeAxes = Axes.None,
                         RelativeSizeAxes = Axes.Both,
                         Size = new Vector2(0.25f)
-                    },
-                    500),
+                    }, 500),
                     drawableAnimation = new DrawableAnimation
                     {
                         RelativePositionAxes = Axes.Both,

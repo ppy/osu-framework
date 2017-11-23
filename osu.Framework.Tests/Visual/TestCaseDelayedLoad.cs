@@ -52,8 +52,7 @@ namespace osu.Framework.Tests.Visual
                             {
                                 new TestBox{ RelativeSizeAxes = Axes.Both }
                             }
-                        },
-                        500),
+                        }, 500),
                         new SpriteText { Text = i.ToString() },
                     }
                 });
