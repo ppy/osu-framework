@@ -178,11 +178,10 @@
     <Compile Include="Graphics\Animations\TextureAnimation.cs" />
     <Compile Include="Graphics\Audio\WaveformGraph.cs" />
     <Compile Include="Graphics\BlendingParameters.cs" />
-    <Compile Include="Graphics\Containers\AsyncLoadWrapper.cs" />
     <Compile Include="Graphics\Containers\CompositeDrawable.cs" />
     <Compile Include="Graphics\Containers\CustomizableTextContainer.cs" />
-    <Compile Include="Graphics\Containers\DelayedLoadWrapper.cs" />
     <Compile Include="Graphics\Containers\IFillFlowContainer.cs" />
+    <Compile Include="Graphics\Containers\DelayedLoadWrapper.cs" />
     <Compile Include="Graphics\Effects\GlowEffect.cs" />
     <Compile Include="Graphics\Effects\OutlineEffect.cs" />
     <Compile Include="Graphics\Containers\IBufferedContainer.cs" />
