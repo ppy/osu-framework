@@ -10,15 +10,11 @@ namespace osu.Framework.Tests.Visual
 {
     class TestCaseCircularContainer : TestCase
     {
-        private ThrottledFrameClock throttledClock;
-
         public override string Description => "Checking for bugged corner radius (LOW FPS)";
 
         public TestCaseCircularContainer()
         {
             CircularContainer circularContainer;
-
-            throttledClock = new ThrottledFrameClock() { MaximumUpdateHz = 15 };
 
             Add(circularContainer = new TestCircularContainer()
             {
