@@ -4,19 +4,17 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Testing;
-using osu.Framework.Timing;
 
 namespace osu.Framework.Tests.Visual
 {
     class TestCaseCircularContainer : TestCase
     {
-        public override string Description => "Checking for bugged corner radius (LOW FPS)";
+
+        public override string Description => "Checking for bugged corner radius (dependent on FPS)";
 
         public TestCaseCircularContainer()
         {
-            CircularContainer circularContainer;
-
-            Add(circularContainer = new TestCircularContainer()
+            var circularContainer = new TestCircularContainer
             {
                 Masking = true,
                 AutoSizeAxes = Axes.Both,
@@ -34,13 +32,19 @@ namespace osu.Framework.Tests.Visual
                         Width = 128f,
                         Height = 128f,
                         Colour = Color4.Green,
-                    }
+                    },
                 },
-            });
+            };
+
+            AddToggleStep("Fade box in and out", clicked => circularContainer.DoFadeOnBox = clicked);
+
+            Add(circularContainer);
         }
 
         private class TestCircularContainer : CircularContainer
         {
+            public bool DoFadeOnBox = false;
+
             private int i = 0;
             private bool isExpanded = false;
             public bool IsExpanded
@@ -51,7 +55,8 @@ namespace osu.Framework.Tests.Visual
                     isExpanded = value;
 
                     this.ScaleTo(isExpanded ? 2f : 1, 0);
-                    Child.FadeTo(isExpanded ? 1f : 0, 0);
+                    if (DoFadeOnBox) Child.FadeTo(isExpanded ? 1f : 0, 0);
+                    else Child.FadeIn();
                 }
             }
 
@@ -59,7 +64,9 @@ namespace osu.Framework.Tests.Visual
             {
                 base.Update();
 
-                if (i++ % 10 == 0)
+                // Change the 250 here if you want it to scale and fade more often:
+                // smaller number -> more actions and vice versa
+                if (i++ % 250 == 0)
                     IsExpanded = !IsExpanded;
             }
         }
