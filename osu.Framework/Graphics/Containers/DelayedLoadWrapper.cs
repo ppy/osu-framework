@@ -1,34 +1,58 @@
-// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
+using System.Threading.Tasks;
 using osu.Framework.Caching;
 using osu.Framework.Graphics.Primitives;
 
 namespace osu.Framework.Graphics.Containers
 {
     /// <summary>
-    /// A wrapper which delays the loading of children until we have been on-screen for a specified duration.
+    /// A container which asynchronously loads specified content.
+    /// Has the ability to delay the loading until it has been visible on-screen for a specified duration.
     /// In order to benefit from delayed load, we must be inside a <see cref="ScrollContainer"/>.
     /// </summary>
-    public class DelayedLoadWrapper : AsyncLoadWrapper
+    public class DelayedLoadWrapper : CompositeDrawable
     {
-        public DelayedLoadWrapper(Drawable content)
-            : base(content)
+        /// <summary>
+        /// Creates a <see cref="Container"/> that will asynchronously load the given <see cref="Drawable"/> with a delay.
+        /// </summary>
+        /// <remarks>If <see cref="timeBeforeLoad"/> is set to 0, the loading process will begin on the next Update call.</remarks>
+        /// <param name="content">The <see cref="Drawable"/> to be loaded.</param>
+        /// <param name="timeBeforeLoad">The delay in milliseconds before loading can begin.</param>
+        public DelayedLoadWrapper(Drawable content, double timeBeforeLoad = 500)
         {
+            if (content == null)
+                throw new ArgumentNullException(nameof(content), $@"{nameof(DelayedLoadWrapper)} required non-null {nameof(content)}.");
+
+            Content = content;
+            this.timeBeforeLoad = timeBeforeLoad;
+
+            RelativeSizeAxes = content.RelativeSizeAxes;
+            AutoSizeAxes = (content as CompositeDrawable)?.AutoSizeAxes ?? AutoSizeAxes;
         }
 
+        public override double LifetimeStart => Content.LifetimeStart;
+
+        public override double LifetimeEnd => Content.LifetimeEnd;
+
+        internal readonly Drawable Content;
+
         /// <summary>
-        /// The amount of time on-screen before we begin a load of children.
+        /// The amount of time on-screen in milliseconds before we begin a load of children.
         /// </summary>
-        public double TimeBeforeLoad = 500;
+        private readonly double timeBeforeLoad;
 
         private double timeVisible;
 
-        protected override bool ShouldLoadContent => timeVisible > TimeBeforeLoad;
+        protected bool ShouldLoadContent => timeBeforeLoad == 0 || timeVisible > timeBeforeLoad;
+
+        private Task loadTask;
 
         protected override void Update()
         {
-            //this code can be expensive, so only run if we haven't yet loaded.
+            // This code can be expensive, so only run if we haven't yet loaded.
             if (!LoadTriggered)
             {
                 if (!isIntersecting)
@@ -38,7 +62,16 @@ namespace osu.Framework.Graphics.Containers
             }
 
             base.Update();
+
+            if (!LoadTriggered && ShouldLoadContent)
+                loadTask = LoadComponentAsync(Content, AddInternal);
         }
+
+        /// <summary>
+        /// True if the load task for our content has been started.
+        /// Will remain true even after load is completed.
+        /// </summary>
+        protected bool LoadTriggered => loadTask != null;
 
         private Cached<bool> isIntersectingBacking;
 
