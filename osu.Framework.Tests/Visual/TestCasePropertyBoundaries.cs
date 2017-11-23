@@ -11,10 +11,9 @@ using OpenTK;
 namespace osu.Framework.Tests.Visual
 {
     [TestFixture]
+    [System.ComponentModel.Description("ensure validity of drawables when receiving certain values")]
     internal class TestCasePropertyBoundaries : TestCase
     {
-        public override string Description => "Testing the validity of drawables after being passed certain values.";
-
         [BackgroundDependencyLoader]
         private void load()
         {

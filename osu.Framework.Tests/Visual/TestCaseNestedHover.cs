@@ -15,8 +15,6 @@ namespace osu.Framework.Tests.Visual
     [TestFixture]
     internal class TestCaseNestedHover : TestCase
     {
-        public override string Description => @"Hovering multiple nested elements";
-
         public TestCaseNestedHover()
         {
             HoverBox box1;

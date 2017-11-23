@@ -17,8 +17,6 @@ namespace osu.Framework.Tests.Visual
     [TestFixture]
     internal class TestCaseTooltip : TestCase
     {
-        public override string Description => "Tooltip that shows when hovering a drawable";
-
         private readonly Container testContainer;
 
         public TestCaseTooltip()
