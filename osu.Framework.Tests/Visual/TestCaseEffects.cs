@@ -15,7 +15,7 @@ using OpenTK.Graphics;
 namespace osu.Framework.Tests.Visual
 {
     [TestFixture]
-    [Description("implementing the IEffect interface")]
+    [System.ComponentModel.Description("implementing the IEffect interface")]
     internal class TestCaseEffects : TestCase
     {
         public TestCaseEffects()

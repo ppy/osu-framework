@@ -14,7 +14,7 @@ using OpenTK.Graphics;
 namespace osu.Framework.Tests.Visual
 {
     [TestFixture]
-    [Description("word-wrap and paragraphs")]
+    [System.ComponentModel.Description("word-wrap and paragraphs")]
     internal class TestCaseTextFlow : TestCase
     {
         public TestCaseTextFlow()
