@@ -15,8 +15,6 @@ namespace osu.Framework.Tests.Visual
     [TestFixture]
     internal class TestCaseCircularProgress : TestCase
     {
-        public override string Description => @"Circular progress bar";
-
         private readonly CircularProgress clock;
 
         private int rotateMode;

@@ -16,6 +16,7 @@ using OpenTK.Graphics;
 namespace osu.Framework.Tests.Visual
 {
     [TestFixture]
+    [System.ComponentModel.Description("live path optimiastion")]
     internal class TestCaseInputResampler : GridTestCase
     {
         public TestCaseInputResampler() : base(3, 3)
@@ -120,8 +121,6 @@ namespace osu.Framework.Tests.Visual
             TextSize = 14,
             Colour = Color4.White,
         };
-
-        public override string Description => @"Live optimizing paths to relevant nodes.";
 
         private class SmoothedPath : Path
         {

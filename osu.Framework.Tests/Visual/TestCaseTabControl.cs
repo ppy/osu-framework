@@ -20,8 +20,6 @@ namespace osu.Framework.Tests.Visual
     [TestFixture]
     internal class TestCaseTabControl : TestCase
     {
-        public override string Description => @"Tab control";
-
         public TestCaseTabControl()
         {
             List<KeyValuePair<string, TestEnum>> items = new List<KeyValuePair<string, TestEnum>>();

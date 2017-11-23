@@ -15,10 +15,9 @@ using OpenTK.Graphics;
 namespace osu.Framework.Tests.Visual
 {
     [TestFixture]
+    [Description("implementing the IEffect interface")]
     internal class TestCaseEffects : TestCase
     {
-        public override string Description => "Tests classes implement the IEffect interface.";
-
         public TestCaseEffects()
         {
             var effect = new EdgeEffect

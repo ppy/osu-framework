@@ -20,10 +20,8 @@ using OpenTK.Graphics;
 namespace osu.Framework.Tests.Visual
 {
     [TestFixture]
-    internal class TestCaseFlow : TestCase
+    internal class TestCaseFillFlowContainer : TestCase
     {
-        public override string Description => "Test lots of different settings for Flow Containers";
-
         private FillDirectionDropdown selectionDropdown;
 
         private Anchor childAnchor = Anchor.TopLeft;
@@ -36,7 +34,7 @@ namespace osu.Framework.Tests.Visual
         private ScheduledDelegate scheduledAdder;
         private bool doNotAddChildren;
 
-        public TestCaseFlow()
+        public TestCaseFillFlowContainer()
         {
             reset();
         }

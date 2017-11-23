@@ -16,8 +16,6 @@ namespace osu.Framework.Tests.Visual
     [TestFixture]
     internal class TestCaseTransformSequence : GridTestCase
     {
-        public override string Description => @"Sequences (potentially looping) of transforms";
-
         private readonly Container[] boxes;
 
         public TestCaseTransformSequence()

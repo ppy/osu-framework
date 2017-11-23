@@ -14,8 +14,6 @@ namespace osu.Framework.Tests.Visual
     [TestFixture]
     public class TestCaseSliderbar : TestCase
     {
-        public override string Description => @"Sliderbar tests.";
-
         // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
         private readonly BindableDouble sliderBarValue; //keep a reference to avoid GC of the bindable
         private readonly SpriteText sliderbarText;
