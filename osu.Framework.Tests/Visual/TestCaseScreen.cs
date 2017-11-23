@@ -19,8 +19,6 @@ namespace osu.Framework.Tests.Visual
     [TestFixture]
     internal class TestCaseScreen : TestCase
     {
-        public override string Description => @"Test stackable game screens";
-
         public TestCaseScreen()
         {
             Add(new TestScreen());

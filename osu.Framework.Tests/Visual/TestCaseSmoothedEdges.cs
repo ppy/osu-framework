@@ -46,8 +46,6 @@ namespace osu.Framework.Tests.Visual
             }
         }
 
-        public override string Description => @"Boxes with automatically smoothed edges (no anti-aliasing).";
-
         private readonly Box[] boxes = new Box[4];
 
         protected override void Update()

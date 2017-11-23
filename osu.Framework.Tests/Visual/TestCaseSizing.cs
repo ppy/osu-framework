@@ -14,10 +14,9 @@ using OpenTK.Graphics;
 namespace osu.Framework.Tests.Visual
 {
     [TestFixture]
+    [Description("potentially challenging size calculations")]
     internal class TestCaseSizing : TestCase
     {
-        public override string Description => @"Various scenarios which potentially challenge size calculations.";
-
         private readonly Container testContainer;
 
         public TestCaseSizing()

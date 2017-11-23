@@ -16,8 +16,6 @@ namespace osu.Framework.Tests.Visual
     [TestFixture]
     internal class TestCaseContextMenu : TestCase
     {
-        public override string Description => @"Menu visible on right click";
-
         private const int start_time = 0;
         private const int duration = 1000;
 

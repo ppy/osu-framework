@@ -20,8 +20,6 @@ namespace osu.Framework.Tests.Visual
     [TestFixture]
     internal class TestCaseLocalisation : TestCase
     {
-        public override string Description => "Localisation engine";
-
         // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
         private readonly LocalisationEngine engine; //keep a reference to avoid GC of the engine
 
