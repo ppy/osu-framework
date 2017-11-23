@@ -13,8 +13,6 @@ namespace osu.Framework.Tests.Visual
     [TestFixture]
     internal class TestCaseCheckboxes : TestCase
     {
-        public override string Description => @"Checkboxes with clickable labels";
-
         public TestCaseCheckboxes()
         {
             Children = new Drawable[]
