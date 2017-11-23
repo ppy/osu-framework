@@ -17,11 +17,11 @@ namespace osu.Framework.Graphics.Containers
     public class DelayedLoadWrapper : Container
     {
         /// <summary>
-        /// Creates a <see cref="Container"/> that will asynchronously load the given <see cref="Drawable"/> with an optional delay.
+        /// Creates a <see cref="Container"/> that will asynchronously load the given <see cref="Drawable"/> with a delay.
         /// </summary>
-        /// <remarks>If <see cref="timeBeforeLoad"/> is set to 0, the loading process will not be delayed.</remarks>
+        /// <remarks>If <see cref="timeBeforeLoad"/> is set to 0, the loading process will begin on the next Update call.</remarks>
         /// <param name="content">The <see cref="Drawable"/> to be loaded.</param>
-        /// <param name="timeBeforeLoad">The delay in milliseconds before loading begins. Zero means immediate loading.</param>
+        /// <param name="timeBeforeLoad">The delay in milliseconds before loading can begin.</param>
         public DelayedLoadWrapper(Drawable content, double timeBeforeLoad = 500)
         {
             if (content == null)
@@ -49,8 +49,9 @@ namespace osu.Framework.Graphics.Containers
 
         private double timeVisible;
 
-        // If timeBeforeLoad is zero, loading will start immediately.
         protected bool ShouldLoadContent => timeBeforeLoad == 0 || timeVisible > timeBeforeLoad;
+
+        private Task loadTask;
 
         protected override void Update()
         {
@@ -66,21 +67,7 @@ namespace osu.Framework.Graphics.Containers
             base.Update();
 
             if (!LoadTriggered && ShouldLoadContent)
-                loadContentAsync();
-        }
-
-        [BackgroundDependencyLoader]
-        private void load()
-        {
-            if (ShouldLoadContent)
-                loadContentAsync();
-        }
-
-        private Task loadTask;
-
-        private void loadContentAsync()
-        {
-            loadTask = LoadComponentAsync(content, AddInternal);
+                loadTask = LoadComponentAsync(content, AddInternal);
         }
 
         /// <summary>
