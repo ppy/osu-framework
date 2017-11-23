@@ -9,11 +9,9 @@ using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual
 {
-
+    [System.ComponentModel.Description(@"Checking for bugged corner radius (dependent on FPS)")]
     internal class TestCaseCircularContainer : TestCase
     {
-        public override string Description => "Checking for bugged corner radius (dependent on FPS)";
-
         public TestCaseCircularContainer()
         {
             var circularContainer = new TestCircularContainer
