@@ -67,6 +67,7 @@
     <Compile Include="Visual\TestCaseBlending.cs" />
     <Compile Include="Visual\TestCaseBufferedContainer.cs" />
     <Compile Include="Visual\TestCaseCheckboxes.cs" />
+    <Compile Include="Visual\TestCaseCircularContainer.cs" />
     <Compile Include="Visual\TestCaseCircularProgress.cs" />
     <Compile Include="Visual\TestCaseColourGradient.cs" />
     <Compile Include="Visual\TestCaseContainerState.cs" />
