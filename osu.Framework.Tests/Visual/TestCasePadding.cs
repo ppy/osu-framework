@@ -175,8 +175,6 @@ namespace osu.Framework.Tests.Visual
             });
         }
 
-        public override string Description => @"Add fixed padding via a PaddingContainer";
-
         private class PaddedBox : Container
         {
             private readonly SpriteText t1;

@@ -21,8 +21,6 @@ namespace osu.Framework.Testing
     [TestFixture]
     public abstract class TestCase : Container, IDynamicallyCompile
     {
-        public virtual string Description => @"The base class for a test case";
-
         public readonly FillFlowContainer<Drawable> StepsContainer;
         private readonly Container content;
 

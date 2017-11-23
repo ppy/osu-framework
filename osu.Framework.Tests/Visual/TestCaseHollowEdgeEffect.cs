@@ -85,7 +85,5 @@ namespace osu.Framework.Tests.Visual
                 });
             }
         }
-
-        public override string Description => @"Hollow Container with EdgeEffect";
     }
 }
