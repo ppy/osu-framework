@@ -22,7 +22,7 @@ namespace osu.Framework.Tests.Visual
                 Origin = Anchor.Centre,
                 Anchor = Anchor.Centre,
                 BorderThickness = 5,
-                BorderColour = Color4.White,
+                BorderColour = new Color4(45, 45, 45, 255),
                 Children = new[]
                 {
                     new Box
@@ -31,7 +31,7 @@ namespace osu.Framework.Tests.Visual
                         Anchor = Anchor.Centre,
                         Width = 128f,
                         Height = 128f,
-                        Colour = Color4.Green,
+                        Colour = Color4.DimGray,
                     },
                 },
             };
