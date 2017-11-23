@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics.Containers
     /// Has the ability to delay the loading until it has been visible on-screen for a specified duration.
     /// In order to benefit from delayed load, we must be inside a <see cref="ScrollContainer"/>.
     /// </summary>
-    public class DelayedLoadWrapper : Container
+    public class DelayedLoadWrapper : CompositeDrawable
     {
         /// <summary>
         /// Creates a <see cref="Container"/> that will asynchronously load the given <see cref="Drawable"/> with a delay.
@@ -26,20 +26,18 @@ namespace osu.Framework.Graphics.Containers
             if (content == null)
                 throw new ArgumentNullException(nameof(content), $@"{nameof(DelayedLoadWrapper)} required non-null {nameof(content)}.");
 
-            this.content = content;
+            Content = content;
             this.timeBeforeLoad = timeBeforeLoad;
 
             RelativeSizeAxes = content.RelativeSizeAxes;
             AutoSizeAxes = (content as CompositeDrawable)?.AutoSizeAxes ?? AutoSizeAxes;
         }
 
-        public override double LifetimeStart => content.LifetimeStart;
+        public override double LifetimeStart => Content.LifetimeStart;
 
-        public override double LifetimeEnd => content.LifetimeEnd;
+        public override double LifetimeEnd => Content.LifetimeEnd;
 
-        protected sealed override Container<Drawable> Content => base.Content;
-
-        private readonly Drawable content;
+        internal readonly Drawable Content;
 
         /// <summary>
         /// The amount of time on-screen in milliseconds before we begin a load of children.
@@ -66,7 +64,7 @@ namespace osu.Framework.Graphics.Containers
             base.Update();
 
             if (!LoadTriggered && ShouldLoadContent)
-                loadTask = LoadComponentAsync(content, AddInternal);
+                loadTask = LoadComponentAsync(Content, AddInternal);
         }
 
         /// <summary>
