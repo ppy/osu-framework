@@ -1,7 +1,6 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -10,9 +9,9 @@ using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual
 {
-    class TestCaseCircularContainer : TestCase
-    {
 
+    internal class TestCaseCircularContainer : TestCase
+    {
         public override string Description => "Checking for bugged corner radius (dependent on FPS)";
 
         public TestCaseCircularContainer()
@@ -46,10 +45,10 @@ namespace osu.Framework.Tests.Visual
 
         private class TestCircularContainer : CircularContainer
         {
-            public bool DoFadeOnBox = false;
+            public bool DoFadeOnBox;
 
-            private int i = 0;
-            private bool isExpanded = false;
+            private int i;
+            private bool isExpanded;
             public bool IsExpanded
             {
                 get { return isExpanded; }
@@ -57,8 +56,8 @@ namespace osu.Framework.Tests.Visual
                 {
                     isExpanded = value;
 
-                    this.ScaleTo(isExpanded ? 2f : 1, 0);
-                    if (DoFadeOnBox) Child.FadeTo(isExpanded ? 1f : 0, 0);
+                    this.ScaleTo(isExpanded ? 2f : 1);
+                    if (DoFadeOnBox) Child.FadeTo(isExpanded ? 1f : 0);
                     else Child.FadeIn();
                 }
             }
