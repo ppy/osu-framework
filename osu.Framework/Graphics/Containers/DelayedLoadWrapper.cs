@@ -3,7 +3,6 @@
 
 using System;
 using System.Threading.Tasks;
-using osu.Framework.Allocation;
 using osu.Framework.Caching;
 using osu.Framework.Graphics.Primitives;
 
