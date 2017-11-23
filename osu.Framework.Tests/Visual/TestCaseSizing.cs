@@ -14,7 +14,7 @@ using OpenTK.Graphics;
 namespace osu.Framework.Tests.Visual
 {
     [TestFixture]
-    [Description("potentially challenging size calculations")]
+    [System.ComponentModel.Description("potentially challenging size calculations")]
     internal class TestCaseSizing : TestCase
     {
         private readonly Container testContainer;
