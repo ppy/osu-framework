@@ -96,7 +96,7 @@ namespace osu.Framework.Graphics
 
         // Takes the bits from value, interprets them as an int and then shifts them so that we get the exponent (bit 2 to 8) back.
         // Returns as byte because it's a smaller data type and enough for the exponent
-        private unsafe byte singleToExponentAsByte(float value) => (byte)((*(int*)(&value)) >> 23);
+        private unsafe byte singleToExponentAsByte(float value) => (byte)(*(int*)&value >> 23);
 
         // If exponent is 255, float is either ±Infinity or NaN (by definition)
         private bool isInvalidFloat(float toCheck) => singleToExponentAsByte(toCheck) == byte.MaxValue;
