@@ -465,8 +465,6 @@ namespace osu.Framework.Input
                             if (handleMouseDoubleClick(state))
                                 //when we handle a double-click we want to block a normal click from firing.
                                 isValidClick = false;
-
-                            lastClickTime = 0;
                         }
 
                         lastClickTime = Time.Current;
