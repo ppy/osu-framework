@@ -27,7 +27,8 @@ namespace osu.Framework.Testing
     {
         public TestCase CurrentTest { get; private set; }
 
-        private FillFlowContainer<TestCaseButton> leftFlowContainer;
+        private TextBox searchTextBox;
+        private SearchContainer<TestCaseButton> leftFlowContainer;
         private Container testContentContainer;
         private Container compilingNotice;
 
@@ -105,17 +106,32 @@ namespace osu.Framework.Testing
                             Colour = Color4.DimGray,
                             RelativeSizeAxes = Axes.Both
                         },
-                        new ScrollContainer
+                        new FillFlowContainer
                         {
+                            Direction = FillDirection.Vertical,
                             RelativeSizeAxes = Axes.Both,
-                            ScrollbarOverlapsContent = false,
-                            Child = leftFlowContainer = new FillFlowContainer<TestCaseButton>
+                            Children = new Drawable[]
                             {
-                                Padding = new MarginPadding(3),
-                                Direction = FillDirection.Vertical,
-                                Spacing = new Vector2(0, 5),
-                                AutoSizeAxes = Axes.Y,
-                                RelativeSizeAxes = Axes.X,
+                                searchTextBox = new TextBox
+                                {
+                                    Height = 25,
+                                    RelativeSizeAxes = Axes.X,
+                                    PlaceholderText = "search here"
+                                },
+                                new ScrollContainer
+                                {
+                                    Padding = new MarginPadding{ Top = 3 },
+                                    RelativeSizeAxes = Axes.Both,
+                                    ScrollbarOverlapsContent = false,
+                                    Child = leftFlowContainer = new SearchContainer<TestCaseButton>
+                                    {
+                                        Padding = new MarginPadding(3),
+                                        Direction = FillDirection.Vertical,
+                                        Spacing = new Vector2(0, 5),
+                                        AutoSizeAxes = Axes.Y,
+                                        RelativeSizeAxes = Axes.X,
+                                    }
+                                }
                             }
                         }
                     }
@@ -200,6 +216,8 @@ namespace osu.Framework.Testing
                     }
                 }
             };
+
+            searchTextBox.Current.ValueChanged += newValue => leftFlowContainer.SearchTerm = newValue;
 
             backgroundCompiler = new DynamicClassCompiler<TestCase>
             {

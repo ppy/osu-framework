@@ -9,11 +9,25 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input;
 using OpenTK.Graphics;
+using System.Collections.Generic;
 
 namespace osu.Framework.Testing.Drawables
 {
-    internal class TestCaseButton : ClickableContainer
+    internal class TestCaseButton : ClickableContainer, IFilterable
     {
+        public IEnumerable<string> FilterTerms => new[] { TestType.Name.Replace("TestCase", "") };
+
+        public bool MatchingFilter
+        {
+            set
+            {
+                if (value)
+                    Show();
+                else
+                    Hide();
+            }
+        }
+
         private readonly Box box;
         private readonly TextFlowContainer text;
 
