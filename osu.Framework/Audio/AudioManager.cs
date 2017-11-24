@@ -96,7 +96,6 @@ namespace osu.Framework.Audio
         /// <param name="sampleStore">The sample store containing all audio samples to be used in the future.</param>
         public AudioManager(ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore)
         {
-            AudioDevice.ValueChanged += onDeviceChanged;
             trackStore.AddExtension(@"mp3");
 
             sampleStore.AddExtension(@"wav");
@@ -109,7 +108,9 @@ namespace osu.Framework.Audio
             {
                 globalTrackManager = GetTrackManager(trackStore);
                 globalSampleManager = GetSampleManager(sampleStore);
+                DefaultAudioDeviceChangedListener();
                 initDefaultAudioDevice();
+                AudioDevice.ValueChanged += onDeviceChanged;
             });
 
             scheduler.AddDelayed(delegate
@@ -205,16 +206,27 @@ namespace osu.Framework.Audio
         {
             AvailableDeviceChangeListener();
             DefaultAudioDeviceChangedListener();
+            if (!string.IsNullOrEmpty(currentDefaultAudioDevice))
+            {
+                var deviceIndex = getDeviceIndexFromName(currentDefaultAudioDevice);
+                Bass.Init(deviceIndex);
+                Bass.CurrentDevice = deviceIndex;
+                Bass.PlaybackBufferLength = 100;
+                Bass.UpdatePeriod = 5;
+                UpdateDevice(deviceIndex);
+                currentAudioDevice = string.Empty;
+            }
+            else initNoSoundDevice();
 
-            var deviceIndex = getDeviceIndexFromName(currentDefaultAudioDevice);
-            Bass.Init(deviceIndex);
-            Bass.CurrentDevice = deviceIndex;
+        }
+        private void initNoSoundDevice()
+        {
+            Bass.Init(Bass.NoSoundDevice);
+            UpdateDevice(Bass.NoSoundDevice);
+            currentAudioDevice = string.Empty;
             Bass.PlaybackBufferLength = 100;
             Bass.UpdatePeriod = 5;
-            UpdateDevice(deviceIndex);
-            currentAudioDevice = string.Empty;
         }
-
         private void changeDevice(string deviceName)
         {
             if (string.Equals(deviceName, currentAudioDevice) != true)
