@@ -103,8 +103,6 @@ namespace osu.Framework.Tests.Visual
             Colour = Color4.White,
         };
 
-        public override string Description => @"Various cases of drawable paths.";
-
         private class UserDrawnPath : Path
         {
             public override bool HandleInput => true;

@@ -16,8 +16,6 @@ namespace osu.Framework.Tests.Visual
     [TestFixture]
     internal class TestCaseDropdownBox : TestCase
     {
-        public override string Description => @"Drop-down boxes";
-
         private const int items_to_add = 10;
 
         public TestCaseDropdownBox()

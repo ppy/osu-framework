@@ -2,12 +2,12 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.ComponentModel;
+using System.Reflection;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
-using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
-using OpenTK;
 using OpenTK.Graphics;
 
 namespace osu.Framework.Testing.Drawables
@@ -15,7 +15,7 @@ namespace osu.Framework.Testing.Drawables
     internal class TestCaseButton : ClickableContainer
     {
         private readonly Box box;
-        private readonly Container text;
+        private readonly TextFlowContainer text;
 
         public readonly Type TestType;
 
@@ -46,9 +46,7 @@ namespace osu.Framework.Testing.Drawables
 
             CornerRadius = 5;
             RelativeSizeAxes = Axes.X;
-            Size = new Vector2(1, 60);
-
-            TestCase tempTestCase = (TestCase)Activator.CreateInstance(test);
+            AutoSizeAxes = Axes.Y;
 
             AddRange(new Drawable[]
             {
@@ -58,35 +56,27 @@ namespace osu.Framework.Testing.Drawables
                     Colour = new Color4(140, 140, 140, 255),
                     Alpha = 0.7f
                 },
-                text = new Container
+                text = new TextFlowContainer
                 {
-                    RelativeSizeAxes = Axes.Both,
+                    RelativeSizeAxes = Axes.X,
+                    AutoSizeAxes = Axes.Y,
                     Padding = new MarginPadding
                     {
                         Left = 4,
                         Right = 4,
                         Bottom = 2,
                     },
-                    Children = new[]
-                    {
-                        new SpriteText
-                        {
-                            Anchor = Anchor.TopCentre,
-                            Origin = Anchor.TopCentre,
-                            Text = tempTestCase.Name,
-                        },
-                        new SpriteText
-                        {
-                            Anchor = Anchor.BottomLeft,
-                            Origin = Anchor.BottomLeft,
-                            Text = tempTestCase.Description,
-                            TextSize = 15,
-                            AutoSizeAxes = Axes.Y,
-                            RelativeSizeAxes = Axes.X,
-                        }
-                    }
                 }
             });
+
+            text.AddText(test.Name.Replace("TestCase", ""));
+
+            var description = test.GetCustomAttribute<DescriptionAttribute>()?.Description;
+            if (description != null)
+            {
+                text.NewLine();
+                text.AddText(description, t => t.TextSize = 15);
+            }
         }
 
         protected override bool OnHover(InputState state)

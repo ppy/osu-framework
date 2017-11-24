@@ -12,6 +12,7 @@ This framework is intended to take steps beyond what you would normally expect f
 
 - Anywhere we implement graphical components, they will be displayed with a generic design and will be derivable for further customisation.
 - Common elements used by games (texture caching, font loading) will be automatically initialised at runtime.
+- Allow for isolated development of components via a solid testing environment (`VisualTests` and `TestCases`). Check the [wiki](https://github.com/ppy/osu-framework/wiki/Development-and-Testing) for more information on how these can be used to streamline development.
 
 # Contributing
 

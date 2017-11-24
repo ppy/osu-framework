@@ -16,6 +16,7 @@ using OpenTK.Graphics;
 namespace osu.Framework.Tests.Visual
 {
     [TestFixture]
+    [System.ComponentModel.Description("sprite stretching")]
     internal class TestCaseFillModes : GridTestCase
     {
         public TestCaseFillModes() : base(3, 3)
@@ -75,8 +76,6 @@ namespace osu.Framework.Tests.Visual
                 }
             }
         }
-
-        public override string Description => @"Test sprite display and fill modes";
 
         private Texture texture;
 

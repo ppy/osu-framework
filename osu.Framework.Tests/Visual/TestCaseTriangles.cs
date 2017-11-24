@@ -15,8 +15,6 @@ namespace osu.Framework.Tests.Visual
     [TestFixture]
     internal class TestCaseTriangles : TestCase
     {
-        public override string Description => @"Various scenarios which potentially challenge triangles.";
-
         private readonly Container testContainer;
 
         public TestCaseTriangles()

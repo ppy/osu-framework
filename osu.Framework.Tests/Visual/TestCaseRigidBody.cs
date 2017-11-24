@@ -17,8 +17,6 @@ namespace osu.Framework.Tests.Visual
     [TestFixture]
     internal class TestCaseRigidBody : TestCase
     {
-        public override string Description => @"Rigid body simulation scenarios.";
-
         private readonly TestRigidBodySimulation sim;
 
         private float restitutionBacking;
