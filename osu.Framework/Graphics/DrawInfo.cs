@@ -82,17 +82,24 @@ namespace osu.Framework.Graphics
 
         private void checkComponentValid(float component, string name)
         {
-            if (float.IsNaN(component) || float.IsInfinity(component))
+            if (isInvalidFloat(component))
                 throw new ArgumentException($"Invalid value ({component}) provided for component {name}.");
         }
 
         private void checkComponentValid(Vector2 component, string name)
         {
-            if (float.IsNaN(component.X) || float.IsInfinity(component.X))
+            if (isInvalidFloat(component.X))
                 throw new ArgumentException($"Invalid value ({component}) provided for component {name}.X.");
-            if (float.IsNaN(component.Y) || float.IsInfinity(component.Y))
+            if (isInvalidFloat(component.Y))
                 throw new ArgumentException($"Invalid value ({component}) provided for component {name}.Y.");
         }
+
+        // Takes the bits from value, interprets them as an int and then shifts them so that we get the exponent (bit 2 to 8) back.
+        // Returns as byte because it's a smaller data type and enough for the exponent
+        private unsafe byte singleToExponentAsByte(float value) => (byte)((*(int*)(&value)) >> 23);
+
+        // If exponent is 255, float is either ±Infinity or NaN (by definition)
+        private bool isInvalidFloat(float toCheck) => singleToExponentAsByte(toCheck) == byte.MaxValue;
 
         public bool Equals(DrawInfo other)
         {
