@@ -34,6 +34,7 @@ namespace osu.Framework.Statistics
             if (Debugger.IsAttached) return;
 
             logger = Logger.GetLogger($"performance-{targetThread.Name?.ToLower() ?? "unknown"}");
+            logger.OutputToListeners = false;
 
             this.clock = clock;
             this.targetThread = targetThread;
