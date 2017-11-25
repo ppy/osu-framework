@@ -1323,7 +1323,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="toCheck">The <see cref="Vector2"/> to check.</param>
         /// <returns>false if X or Y are Infinity or NaN, true otherwise. </returns>
-        private bool isFinite(Vector2 toCheck) => isFinite(toCheck.X) || isFinite(toCheck.Y);
+        private bool isFinite(Vector2 toCheck) => isFinite(toCheck.X) && isFinite(toCheck.Y);
 
         private DrawInfo computeDrawInfo()
         {
