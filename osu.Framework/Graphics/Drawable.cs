@@ -1315,7 +1315,7 @@ namespace osu.Framework.Graphics
         /// <param name="toCheck"></param>
         /// <remarks>Is equivalent to (<see cref="float.IsNaN(float)"/> || <see cref="float.IsInfinity(float)"/>), but with less overhead.</remarks>
         /// <returns>Whether the float is valid in our conditions.</returns>
-        private bool isFinite(float toCheck) => !(singleToExponentAsByte(toCheck) == byte.MaxValue);
+        private bool isFinite(float toCheck) => singleToExponentAsByte(toCheck) != byte.MaxValue;
 
         /// <summary>
         /// Returns whether the two coordinates of a vector are not infinite or NaN.
