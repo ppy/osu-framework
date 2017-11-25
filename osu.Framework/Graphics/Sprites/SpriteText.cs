@@ -22,7 +22,7 @@ namespace osu.Framework.Graphics.Sprites
     /// </summary>
     public class SpriteText : FillFlowContainer, IHasCurrentValue<string>, IHasLineBaseHeight, IHasText, IHasFilterTerms
     {
-        public IEnumerable<string> FilterTerms => new string[] { Text };
+        public IEnumerable<string> FilterTerms => new [] { Text };
 
         private static readonly char[] default_fixed_width_exceptions = { '.', ':', ',' };
 
