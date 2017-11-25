@@ -998,6 +998,8 @@ namespace osu.Framework.Graphics
 
             set
             {
+                if (!isFinite(value)) throw new ArgumentException($@"{nameof(RelativeAnchorPosition)} must be finite, but is {value}");
+
                 customRelativeAnchorPosition = value;
                 Anchor = Anchor.Custom;
             }
