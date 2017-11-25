@@ -757,6 +757,9 @@ namespace osu.Framework.Graphics
 
                 if (scale == value)
                     return;
+
+                if (!isFinite(value)) throw new ArgumentException($@"{nameof(Scale)} must be finite, but is {value}");
+
                 scale = value;
 
                 Invalidate(Invalidation.MiscGeometry);
@@ -822,6 +825,8 @@ namespace osu.Framework.Graphics
             set
             {
                 if (shear == value) return;
+                if (!isFinite(value)) throw new ArgumentException($@"{nameof(Shear)} must be finite, but is {value}");
+
                 shear = value;
 
                 Invalidate(Invalidation.MiscGeometry);
@@ -840,6 +845,8 @@ namespace osu.Framework.Graphics
             set
             {
                 if (value == rotation) return;
+                if (!isFinite(value)) throw new ArgumentException($@"{nameof(Rotation)} must be finite, but is {value}");
+
                 rotation = value;
 
                 Invalidate(Invalidation.MiscGeometry);
@@ -925,6 +932,8 @@ namespace osu.Framework.Graphics
 
             set
             {
+                if (!isFinite(value)) throw new ArgumentException($@"{nameof(OriginPosition)} must be finite, but is {value}");
+
                 customOrigin = value;
                 Origin = Anchor.Custom;
             }
@@ -1290,14 +1299,39 @@ namespace osu.Framework.Graphics
         /// </summary>
         public virtual Quad ScreenSpaceDrawQuad => screenSpaceDrawQuadBacking.IsValid ? screenSpaceDrawQuadBacking : (screenSpaceDrawQuadBacking.Value = ComputeScreenSpaceDrawQuad());
 
-
         private Cached<DrawInfo> drawInfoBacking;
+
+        /// <summary>
+        /// Returns the exponent of a (single-precision) <see cref="float"/> as byte.
+        /// </summary>
+        /// <param name="value">The <see cref="float"/> to get the exponent from.</param>
+        /// <remarks>Returns a <see cref="byte"/> so it's a smaller data type (and faster to pass around).</remarks>
+        /// <returns>The exponent (bit 2 to 8) of the single-point <see cref="float"/>.</returns>
+        private unsafe byte singleToExponentAsByte(float value) => (byte)(*(int*)&value >> 23);
+
+        /// <summary>
+        /// Returns whether a value is not <see cref="float.NegativeInfinity"/>, <see cref="float.PositiveInfinity"/> or <see cref="float.NaN"/>.
+        /// </summary>
+        /// <param name="toCheck"></param>
+        /// <remarks>Is equivalent to (<see cref="float.IsNaN(float)"/> || <see cref="float.IsInfinity(float)"/>), but with less overhead.</remarks>
+        /// <returns>Whether the float is valid in our conditions.</returns>
+        private bool isFinite(float toCheck) => !(singleToExponentAsByte(toCheck) == byte.MaxValue);
+
+        /// <summary>
+        /// Returns whether the two coordinates of a vector are not infinite or NaN.
+        /// <para>For further information, see <seealso cref="isFinite(float)"/>.</para>
+        /// </summary>
+        /// <param name="toCheck">The <see cref="Vector2"/> to check.</param>
+        /// <returns>false if X or Y are Infinity or NaN, true otherwise. </returns>
+        private bool isFinite(Vector2 toCheck) => isFinite(toCheck.X) || isFinite(toCheck.Y);
 
         private DrawInfo computeDrawInfo()
         {
             DrawInfo di = Parent?.DrawInfo ?? new DrawInfo(null);
 
             Vector2 pos = DrawPosition + AnchorPosition;
+            if (!isFinite(pos)) throw new ArgumentException($@"{nameof(pos)} must be finite, but is {pos}");
+
             Vector2 drawScale = DrawScale;
             BlendingParameters localBlending = Blending;
 

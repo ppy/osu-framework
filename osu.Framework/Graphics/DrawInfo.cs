@@ -35,12 +35,6 @@ namespace osu.Framework.Graphics
         /// <param name="origin">The center of rotation and scale.</param>
         public void ApplyTransform(Vector2 translation, Vector2 scale, float rotation, Vector2 shear, Vector2 origin)
         {
-            checkComponentValid(translation, nameof(translation));
-            checkComponentValid(scale, nameof(scale));
-            checkComponentValid(rotation, nameof(rotation));
-            checkComponentValid(shear, nameof(shear));
-            checkComponentValid(origin, nameof(origin));
-
             if (translation != Vector2.Zero)
             {
                 MatrixExtensions.TranslateFromLeft(ref Matrix, translation);
@@ -79,27 +73,6 @@ namespace osu.Framework.Graphics
             //target.MatrixInverse = target.Matrix;
             //MatrixExtensions.FastInvert(ref target.MatrixInverse);
         }
-
-        private void checkComponentValid(float component, string name)
-        {
-            if (isInvalidFloat(component))
-                throw new ArgumentException($"Invalid value ({component}) provided for component {name}.");
-        }
-
-        private void checkComponentValid(Vector2 component, string name)
-        {
-            if (isInvalidFloat(component.X))
-                throw new ArgumentException($"Invalid value ({component}) provided for component {name}.X.");
-            if (isInvalidFloat(component.Y))
-                throw new ArgumentException($"Invalid value ({component}) provided for component {name}.Y.");
-        }
-
-        // Takes the bits from value, interprets them as an int and then shifts them so that we get the exponent (bit 2 to 8) back.
-        // Returns as byte because it's a smaller data type and enough for the exponent
-        private unsafe byte singleToExponentAsByte(float value) => (byte)(*(int*)&value >> 23);
-
-        // If exponent is 255, float is either ±Infinity or NaN (by definition)
-        private bool isInvalidFloat(float toCheck) => singleToExponentAsByte(toCheck) == byte.MaxValue;
 
         public bool Equals(DrawInfo other)
         {
