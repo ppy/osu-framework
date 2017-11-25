@@ -10,12 +10,13 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input;
 using OpenTK.Graphics;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace osu.Framework.Testing.Drawables
 {
     internal class TestCaseButton : ClickableContainer, IFilterable
     {
-        public IEnumerable<string> FilterTerms => new[] { TestType.Name.Replace("TestCase", "") };
+        public IEnumerable<string> FilterTerms => text.Children.OfType<IHasFilterTerms>().SelectMany(c => c.FilterTerms);
 
         public bool MatchingFilter
         {
