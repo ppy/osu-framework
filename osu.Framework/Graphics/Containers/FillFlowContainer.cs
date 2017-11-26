@@ -94,10 +94,43 @@ namespace osu.Framework.Graphics.Containers
             return result;
         }
 
+        private Axes maximumSizeFromParentAxes;
+
+        /// <summary>
+        /// Retrieve <see cref="FlowContainer{T}.MaximumSize"/> for layout from our <see cref="Drawable.Parent"/>.
+        /// This allows for centering computed layouts in their parent drawable.
+        /// </summary>
+        public Axes MaximumSizeFromParentAxes
+        {
+            get { return maximumSizeFromParentAxes; }
+            set
+            {
+                if (maximumSizeFromParentAxes == value) return;
+
+                maximumSizeFromParentAxes = value;
+                Invalidate(Invalidation.DrawSize);
+            }
+        }
+
+        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
+        {
+            if (MaximumSizeFromParentAxes != Axes.None && (invalidation & Invalidation.DrawInfo) > 0)
+                InvalidateLayout();
+
+            return base.Invalidate(invalidation, source, shallPropagate);
+        }
+
         protected override IEnumerable<Vector2> ComputeLayoutPositions()
         {
             var max = MaximumSize;
-            if (max == Vector2.Zero)
+
+            if (maximumSizeFromParentAxes != Axes.None)
+            {
+                var s = Parent.ChildSize;
+                if ((maximumSizeFromParentAxes & Axes.X) > 0) max.X = s.X;
+                if ((maximumSizeFromParentAxes & Axes.Y) > 0) max.Y = s.Y;
+            }
+            else if (max == Vector2.Zero)
             {
                 var s = ChildSize;
 
