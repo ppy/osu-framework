@@ -18,6 +18,7 @@ using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Platform;
 using osu.Framework.Screens;
 using osu.Framework.Testing.Drawables;
+using osu.Framework.Timing;
 using OpenTK;
 using OpenTK.Graphics;
 
@@ -86,11 +87,25 @@ namespace osu.Framework.Testing
 
         private Button runAllButton;
 
+        private BasicSliderBar<double> rateAdjustSlider;
+        private BindableDouble rateBindable;
+
         [BackgroundDependencyLoader]
         private void load(Storage storage, GameHost host)
         {
             interactive = host.Window != null;
             config = new TestBrowserConfig(storage);
+
+            rateBindable = new BindableDouble(1)
+            {
+                MinValue = 0,
+                MaxValue = 1,
+            };
+
+            var rateAdjustClock = new StopwatchClock(true);
+            var framedClock = new FramedClock(rateAdjustClock);
+
+            SpriteText playbackSpeedDisplay;
 
             Children = new Drawable[]
             {
@@ -165,12 +180,29 @@ namespace osu.Framework.Testing
                                             Width = 150,
                                             RelativeSizeAxes = Axes.Y,
                                         },
+                                        new SpriteText
+                                        {
+                                            Padding = new MarginPadding(5),
+                                            Text = "Playback Speed:"
+                                        },
+                                        rateAdjustSlider = new BasicSliderBar<double>
+                                        {
+                                            RelativeSizeAxes = Axes.Y,
+                                            Colour = Color4.MediumPurple,
+                                            SelectionColor = Color4.White,
+                                            Width = 150,
+                                        },
+                                        playbackSpeedDisplay = new SpriteText
+                                        {
+                                            Padding = new MarginPadding(5),
+                                        },
                                     }
                                 }
                             }
                         },
                         testContentContainer = new Container
                         {
+                            Clock = framedClock,
                             RelativeSizeAxes = Axes.Both,
                             Padding = new MarginPadding { Top = 50 },
                             Child = compilingNotice = new Container
@@ -215,6 +247,16 @@ namespace osu.Framework.Testing
             {
                 //it's okay for this to fail for now.
             }
+
+            rateAdjustSlider.Current.BindTo(rateBindable);
+
+            rateBindable.ValueChanged += v =>
+            {
+                rateAdjustClock.Rate = v;
+                playbackSpeedDisplay.Text = v.ToString("0%");
+            };
+
+            rateBindable.TriggerChange();
         }
 
         private void runAllComplete(bool error = false)
