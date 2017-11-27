@@ -7,7 +7,7 @@ namespace osu.Framework.Audio.Sample
     {
         public const int DEFAULT_CONCURRENCY = 2;
 
-        protected int PlaybackConcurrency;
+        protected readonly int PlaybackConcurrency;
 
         /// <summary>
         /// Construct a new sample.
