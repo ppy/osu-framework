@@ -485,14 +485,14 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// An opportunity to update state once-per-frame after <see cref="Drawable.Update"/> has been called
         /// for all <see cref="InternalChildren"/>.
-        /// This is invoked prior to autosize being updated for this <see cref="CompositeDrawable"/>.
+        /// This is invoked prior to any autosize calculations of this <see cref="CompositeDrawable"/>.
         /// </summary>
         protected virtual void UpdateAfterChildren()
         {
         }
 
         /// <summary>
-        /// Invoked after all autosize has taken place on this <see cref="CompositeDrawable"/>.
+        /// Invoked after all autosize calculations have taken place.
         /// </summary>
         protected virtual void UpdateAfterAutoSize()
         {
