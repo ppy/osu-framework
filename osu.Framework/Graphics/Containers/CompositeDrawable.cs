@@ -474,17 +474,27 @@ namespace osu.Framework.Graphics.Containers
                 int amountScheduledTasks = schedulerAfterChildren.Update();
                 FrameStatistics.Add(StatisticsCounterType.ScheduleInvk, amountScheduledTasks);
             }
+
             UpdateAfterChildren();
 
             updateChildrenSizeDependencies();
+            UpdateAfterAutoSize();
             return true;
         }
 
         /// <summary>
         /// An opportunity to update state once-per-frame after <see cref="Drawable.Update"/> has been called
         /// for all <see cref="InternalChildren"/>.
+        /// This is invoked prior to autosize being updated for this <see cref="CompositeDrawable"/>.
         /// </summary>
         protected virtual void UpdateAfterChildren()
+        {
+        }
+
+        /// <summary>
+        /// Invoked after all autosize has taken place on this <see cref="CompositeDrawable"/>.
+        /// </summary>
+        protected virtual void UpdateAfterAutoSize()
         {
         }
 
