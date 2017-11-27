@@ -17,11 +17,11 @@ namespace osu.Framework.Tests.Visual
         public TestCaseCircularContainer()
         {
             AddStep("128x128 box", () => addContainer(new Vector2(128)));
-            AddAssert($"Expect CornerRadius = 64", () => container.CornerRadius == 64);
+            AddAssert("Expect CornerRadius = 64", () => container.CornerRadius == 64);
             AddStep("128x64 box", () => addContainer(new Vector2(128, 64)));
-            AddAssert($"Expect CornerRadius = 32", () => container.CornerRadius == 32);
+            AddAssert("Expect CornerRadius = 32", () => container.CornerRadius == 32);
             AddStep("64x128 box", () => addContainer(new Vector2(64, 128)));
-            AddAssert($"Expect CornerRadius = 32", () => container.CornerRadius == 32);
+            AddAssert("Expect CornerRadius = 32", () => container.CornerRadius == 32);
         }
 
         private void addContainer(Vector2 size)
