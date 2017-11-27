@@ -6,6 +6,7 @@ using osu.Framework.Timing;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace osu.Framework.Statistics
 {
@@ -17,9 +18,9 @@ namespace osu.Framework.Statistics
 
         private readonly InvokeOnDisposal[] endCollectionDelegates = new InvokeOnDisposal[FrameStatistics.NUM_PERFORMANCE_COLLECTION_TYPES];
 
-        private FrameStatistics currentFrame;
+        private readonly BackgroundStackTraceCollector traceCollector;
 
-        private const int spike_time = 100;
+        private FrameStatistics currentFrame;
 
         private const int max_pending_frames = 100;
 
@@ -31,11 +32,11 @@ namespace osu.Framework.Statistics
 
         private double consumptionTime;
 
-        internal IFrameBasedClock Clock;
+        internal ThrottledFrameClock Clock;
 
-        public double FrameAimTime => 1000.0 / (Clock as ThrottledFrameClock)?.MaximumUpdateHz ?? double.MaxValue;
+        public double FrameAimTime => 1000.0 / Clock?.MaximumUpdateHz ?? double.MaxValue;
 
-        internal PerformanceMonitor(IFrameBasedClock clock, IEnumerable<StatisticsCounterType> counters)
+        internal PerformanceMonitor(ThrottledFrameClock clock, Thread thread, IEnumerable<StatisticsCounterType> counters)
         {
             Clock = clock;
             currentFrame = FramesHeap.ReserveObject();
@@ -48,6 +49,8 @@ namespace osu.Framework.Statistics
                 var t = (PerformanceCollectionType)i;
                 endCollectionDelegates[i] = new InvokeOnDisposal(() => endCollecting(t));
             }
+
+            traceCollector = new BackgroundStackTraceCollector(thread, ourClock);
         }
 
         /// <summary>
@@ -122,24 +125,20 @@ namespace osu.Framework.Statistics
             }
 
             //check for dropped (stutter) frames
-            if (Clock.ElapsedFrameTime > spike_time)
-                newDroppedFrame();
+            traceCollector.NewFrame(Clock.ElapsedFrameTime, Math.Max(10, Math.Max(1000 / Clock.MaximumUpdateHz, AverageFrameTime) * 4));
 
             //reset frame totals
             currentCollectionTypeStack.Clear();
-            //backgroundMonitorStackTrace = null;
             consumeStopwatchElapsedTime();
         }
 
         private double consumeStopwatchElapsedTime()
         {
             double last = consumptionTime;
-            consumptionTime = ourClock.CurrentTime;
-            return consumptionTime - last;
-        }
 
-        private void newDroppedFrame()
-        {
+            consumptionTime = traceCollector.LastConsumptionTime = ourClock.CurrentTime;
+
+            return consumptionTime - last;
         }
 
         internal double FramesPerSecond => Clock.FramesPerSecond;
