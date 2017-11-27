@@ -50,7 +50,7 @@ namespace osu.Framework.Testing
         {
             assemblyDropdown = new BasicDropdown<Assembly>
             {
-                Width = 400,
+                Width = 300,
             };
 
             assemblyDropdown.Current.ValueChanged += updateList;
@@ -153,52 +153,87 @@ namespace osu.Framework.Testing
                                     RelativeSizeAxes = Axes.Both,
                                     Colour = Color4.Black,
                                 },
-                                new FillFlowContainer
+                                new Container
                                 {
-                                    Spacing = new Vector2(5),
-                                    Direction = FillDirection.Horizontal,
-                                    RelativeSizeAxes = Axes.Both,
                                     Padding = new MarginPadding(10),
-                                    Children = new Drawable[]
+                                    RelativeSizeAxes = Axes.Both,
+                                    Child = new GridContainer
                                     {
-                                        new SpriteText
+                                        RelativeSizeAxes = Axes.Both,
+                                        ColumnDimensions = new[]
                                         {
-                                            Padding = new MarginPadding(5),
-                                            Text = "Current Assembly:"
+                                            new Dimension(GridSizeMode.Absolute, 600),
+                                            new Dimension(GridSizeMode.Auto),
                                         },
-                                        assemblyDropdown,
-                                        runAllButton = new Button
+                                        Content = new[]
                                         {
-                                            Text = "Run all steps",
-                                            BackgroundColour = Color4.MediumPurple,
-                                            Action = delegate
+                                            new Drawable[]
                                             {
-                                                runAllButton.Enabled.Value = false;
-                                                runAllButton.BackgroundColour = Color4.DimGray;
-                                                CurrentTest.RunAllSteps(() => runAllComplete(), e => runAllComplete(true));
-                                            },
-                                            Width = 150,
-                                            RelativeSizeAxes = Axes.Y,
+                                                new FillFlowContainer
+                                                {
+                                                    Spacing = new Vector2(5),
+                                                    Direction = FillDirection.Horizontal,
+                                                    RelativeSizeAxes = Axes.Y,
+                                                    AutoSizeAxes = Axes.X,
+                                                    Children = new Drawable[]
+                                                    {
+                                                        new SpriteText
+                                                        {
+                                                            Padding = new MarginPadding(5),
+                                                            Text = "Current Assembly:"
+                                                        },
+                                                        assemblyDropdown,
+                                                        runAllButton = new Button
+                                                        {
+                                                            Text = "Run all steps",
+                                                            BackgroundColour = Color4.MediumPurple,
+                                                            Action = delegate
+                                                            {
+                                                                runAllButton.Enabled.Value = false;
+                                                                runAllButton.BackgroundColour = Color4.DimGray;
+                                                                CurrentTest.RunAllSteps(() => runAllComplete(), e => runAllComplete(true));
+                                                            },
+                                                            Width = 140,
+                                                            RelativeSizeAxes = Axes.Y,
+                                                        },
+                                                    }
+                                                },
+                                                new GridContainer
+                                                {
+                                                    RelativeSizeAxes = Axes.Both,
+                                                    ColumnDimensions = new[]
+                                                    {
+                                                        new Dimension(GridSizeMode.Absolute, 140),
+                                                        new Dimension(GridSizeMode.Auto),
+                                                        new Dimension(GridSizeMode.Absolute, 50),
+                                                    },
+                                                    Content = new[]
+                                                    {
+                                                        new Drawable[]
+                                                        {
+                                                            new SpriteText
+                                                            {
+                                                                Padding = new MarginPadding(5),
+                                                                Text = "Playback Speed:"
+                                                            },
+                                                            rateAdjustSlider = new BasicSliderBar<double>
+                                                            {
+                                                                RelativeSizeAxes = Axes.Both,
+                                                                Colour = Color4.MediumPurple,
+                                                                SelectionColor = Color4.White,
+                                                            },
+                                                            playbackSpeedDisplay = new SpriteText
+                                                            {
+                                                                Padding = new MarginPadding(5),
+                                                            },
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         },
-                                        new SpriteText
-                                        {
-                                            Padding = new MarginPadding(5),
-                                            Text = "Playback Speed:"
-                                        },
-                                        rateAdjustSlider = new BasicSliderBar<double>
-                                        {
-                                            RelativeSizeAxes = Axes.Y,
-                                            Colour = Color4.MediumPurple,
-                                            SelectionColor = Color4.White,
-                                            Width = 150,
-                                        },
-                                        playbackSpeedDisplay = new SpriteText
-                                        {
-                                            Padding = new MarginPadding(5),
-                                        },
-                                    }
-                                }
-                            }
+                                    },
+                                },
+                            },
                         },
                         testContentContainer = new Container
                         {
@@ -232,13 +267,11 @@ namespace osu.Framework.Testing
                     }
                 }
             };
-
             backgroundCompiler = new DynamicClassCompiler<TestCase>
             {
                 CompilationStarted = compileStarted,
                 CompilationFinished = compileFinished,
             };
-
             try
             {
                 backgroundCompiler.Start();
@@ -249,13 +282,11 @@ namespace osu.Framework.Testing
             }
 
             rateAdjustSlider.Current.BindTo(rateBindable);
-
             rateBindable.ValueChanged += v =>
             {
                 rateAdjustClock.Rate = v;
                 playbackSpeedDisplay.Text = v.ToString("0%");
             };
-
             rateBindable.TriggerChange();
         }
 
