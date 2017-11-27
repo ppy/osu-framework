@@ -1,8 +1,8 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using OpenTK.Graphics;
 using osu.Framework.Graphics;
+using OpenTK;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Testing;
@@ -12,62 +12,40 @@ namespace osu.Framework.Tests.Visual
     [System.ComponentModel.Description(@"Checking for bugged corner radius (dependent on FPS)")]
     internal class TestCaseCircularContainer : TestCase
     {
+        private SingleUpdateCircularContainer container;
+
         public TestCaseCircularContainer()
         {
-            var circularContainer = new TestCircularContainer
+            AddStep("128x128 box", () => addContainer(new Vector2(128)));
+            AddAssert($"Expect CornerRadius = 64", () => container.CornerRadius == 64);
+            AddStep("128x64 box", () => addContainer(new Vector2(128, 64)));
+            AddAssert($"Expect CornerRadius = 32", () => container.CornerRadius == 32);
+            AddStep("64x128 box", () => addContainer(new Vector2(64, 128)));
+            AddAssert($"Expect CornerRadius = 32", () => container.CornerRadius == 32);
+        }
+
+        private void addContainer(Vector2 size)
+        {
+            Clear();
+            Add(container = new SingleUpdateCircularContainer
             {
                 Masking = true,
                 AutoSizeAxes = Axes.Both,
-                Blending = BlendingMode.Additive,
-                Origin = Anchor.Centre,
-                Anchor = Anchor.Centre,
-                BorderThickness = 5,
-                BorderColour = new Color4(45, 45, 45, 255),
-                Children = new[]
-                {
-                    new Box
-                    {
-                        Origin = Anchor.Centre,
-                        Anchor = Anchor.Centre,
-                        Width = 128f,
-                        Height = 128f,
-                        Colour = Color4.DimGray,
-                    },
-                },
-            };
-
-            AddToggleStep("Fade box in and out", clicked => circularContainer.DoFadeOnBox = clicked);
-
-            Add(circularContainer);
+                Child = new Box { Size = size }
+            });
         }
 
-        private class TestCircularContainer : CircularContainer
+        private class SingleUpdateCircularContainer : CircularContainer
         {
-            public bool DoFadeOnBox;
+            private bool firstUpdate = true;
 
-            private int i;
-            private bool isExpanded;
-            public bool IsExpanded
+            public override bool UpdateSubTree()
             {
-                get { return isExpanded; }
-                set
-                {
-                    isExpanded = value;
+                if (!firstUpdate)
+                    return true;
+                firstUpdate = false;
 
-                    this.ScaleTo(isExpanded ? 2f : 1);
-                    if (DoFadeOnBox) Child.FadeTo(isExpanded ? 1f : 0);
-                    else Child.FadeIn();
-                }
-            }
-
-            protected override void Update()
-            {
-                base.Update();
-
-                // Change the 250 here if you want it to scale and fade more often:
-                // smaller number -> more actions and vice versa
-                if (i++ % 250 == 0)
-                    IsExpanded = !IsExpanded;
+                return base.UpdateSubTree();
             }
         }
     }
