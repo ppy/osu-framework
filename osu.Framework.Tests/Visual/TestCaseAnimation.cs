@@ -15,7 +15,7 @@ using OpenTK.Graphics;
 namespace osu.Framework.Tests.Visual
 {
     [TestFixture]
-    [Description("frame-based animations")]
+    [System.ComponentModel.Description("frame-based animations")]
     internal class TestCaseAnimation : TestCase
     {
         public TestCaseAnimation()
