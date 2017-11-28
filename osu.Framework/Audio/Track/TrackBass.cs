@@ -97,10 +97,6 @@ namespace osu.Framework.Audio.Track
             {
                 Bass.ChannelPlay(activeStream);
                 Bass.ChannelSetDevice(activeStream, deviceIndex);
-                if (Bass.LastError != Errors.Already && Bass.LastError != Errors.OK)
-                {
-                    Trace.Assert(Bass.LastError == Errors.OK);
-                }
             }
         }
 
