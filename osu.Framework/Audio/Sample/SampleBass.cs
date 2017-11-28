@@ -4,7 +4,6 @@
 using ManagedBass;
 using System;
 using System.Collections.Concurrent;
-using System.Diagnostics;
 
 namespace osu.Framework.Audio.Sample
 {
