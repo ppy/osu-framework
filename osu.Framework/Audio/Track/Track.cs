@@ -16,7 +16,7 @@ namespace osu.Framework.Audio.Track
         public virtual bool IsDummyDevice => true;
 
         /// <summary>
-        /// States if this track should loop.
+        /// States if this track should repeat.
         /// </summary>
         public bool Looping { get; set; }
 
