@@ -31,8 +31,13 @@ namespace osu.Framework.Audio
         /// </summary>
         internal readonly AudioThread Thread;
 
-        private List<DeviceInfo> audioDevices = new List<DeviceInfo>();
-        private List<string> audioDeviceNames = new List<string>();
+
+        /// <summary>
+        /// List of all audioDevices.
+        /// </summary>
+        protected List<DeviceInfo> audioDevices = new List<DeviceInfo>();
+
+        protected List<string> audioDeviceNames = new List<string>();
 
         /// <summary>
         /// The names of all available audio devices.
@@ -55,7 +60,14 @@ namespace osu.Framework.Audio
         /// </summary>
         public readonly Bindable<string> AudioDevice = new Bindable<string>();
 
+        /// <summary>
+        /// Name of the current audio device.
+        /// </summary>
         private string currentAudioDevice;
+
+        /// <summary>
+        /// Name of the current default audio device.
+        /// </summary>
         private string currentDefaultAudioDevice;
 
         /// <summary>
@@ -77,7 +89,6 @@ namespace osu.Framework.Audio
         };
 
         private Scheduler scheduler => Thread.Scheduler;
-
         private Scheduler eventScheduler => EventScheduler ?? scheduler;
 
         /// <summary>
@@ -96,6 +107,8 @@ namespace osu.Framework.Audio
         /// <param name="sampleStore">The sample store containing all audio samples to be used in the future.</param>
         public AudioManager(ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore)
         {
+            AudioDevice.ValueChanged += onDeviceChanged;
+
             trackStore.AddExtension(@"mp3");
 
             sampleStore.AddExtension(@"wav");
@@ -108,17 +121,238 @@ namespace osu.Framework.Audio
             {
                 globalTrackManager = GetTrackManager(trackStore);
                 globalSampleManager = GetSampleManager(sampleStore);
-                DefaultAudioDeviceChangedListener();
-                initDefaultAudioDevice();
-                AudioDevice.ValueChanged += onDeviceChanged;
+                changeDevice(string.Empty);
+                Bass.PlaybackBufferLength = 100;
+                Bass.UpdatePeriod = 5;
             });
 
             scheduler.AddDelayed(delegate
             {
+                CurrentDeviceStillWorkingListener();
                 AvailableDeviceChangeListener();
                 DefaultAudioDeviceChangedListener();
             }, 1000, true);
         }
+
+        /// <summary>
+        /// Event fired in case of a device change.
+        /// </summary>
+        /// <param name="newDevice">The name of the new device to be enabled.</param>
+        private void onDeviceChanged(string newDevice)
+        {
+            scheduler.Add(() =>
+            {
+                changeDevice(newDevice);
+            });
+        }
+
+        /// <summary>
+        /// Method that handles the audio device change.
+        /// </summary>
+        /// <param name="newDeviceName">The name of the new device to be enabled.</param>
+        private void changeDevice(string newDeviceName)
+        {
+            //check if we're targetting the default device.
+            if (newDeviceName.Equals(string.Empty))
+            {
+                var newDeviceIndex = getDeviceIndexFromName(currentDefaultAudioDevice);
+                Bass.Init(newDeviceIndex);
+                //try to init the default device and if it's not available it throws a Device error.
+                if (Bass.LastError != Errors.Device)
+                {
+                    //success, new device initialized. Now update the Track and Sample active audio device
+                    UpdateDevice(newDeviceIndex);
+                    currentAudioDevice = string.Empty;
+                }
+                else
+                {
+                    //fallback to no sound device.
+                    Bass.Init(0);
+                    Bass.Stop();
+                    UpdateDevice(0);
+                    currentAudioDevice = "No audio devices";
+                }
+            }
+            else
+            {
+                //we're not targetting the default device.
+                var newDeviceIndex = getDeviceIndexFromName(newDeviceName);
+
+                //check if the device is on our available device list.
+                if (newDeviceIndex != -1)
+                {
+                    //get devices info in order to process the changes.
+                    var newInfo = Bass.GetDeviceInfo(newDeviceIndex);
+                    var currentInfo = Bass.GetDeviceInfo(Bass.CurrentDevice);
+                    //if the type is 0 it means that somehow the no sound device got in there or perhaps a virtual audio device.
+                    if (newInfo.Type == 0)
+                    {
+                        Bass.Init(0);
+                        Bass.Stop();
+                        UpdateDevice(0);
+                        currentAudioDevice = newInfo.Name;
+                    }
+                    else if (!newInfo.Name.Equals(currentInfo.Name))
+                    {
+                        //check if the new device is not the same as the active device.
+                        if (newInfo.IsInitialized != true)
+                        {
+                            //init the device if is not initialized.
+                            Bass.Init(newDeviceIndex);
+                        }
+                        UpdateDevice(newDeviceIndex);
+                        currentAudioDevice = newDeviceName;
+                    }
+                }
+                else
+                {
+                    //fallback to no sound device.
+                    Bass.Init(0);
+                    Bass.Stop();
+                    UpdateDevice(0);
+                    currentAudioDevice = string.Empty;
+                }
+            }
+
+        }
+        /// <summary>
+        /// Event that updates the device of Track and Sample.
+        /// </summary>
+        /// <param name="deviceIndex">Index of the new device.</param>
+        public override void UpdateDevice(int deviceIndex)
+        {
+            Sample.UpdateDevice(deviceIndex);
+            Track.UpdateDevice(deviceIndex);
+        }
+        /// <summary>
+        /// Get all device infos.
+        /// </summary>
+        private List<DeviceInfo> getAllDevices()
+        {
+            int deviceCount = Bass.DeviceCount;
+            List<DeviceInfo> info = new List<DeviceInfo>();
+            for (int i = 0; i < deviceCount; i++)
+                info.Add(Bass.GetDeviceInfo(i));
+            return info;
+        }
+
+        /// <summary>
+        /// Get the device index by providing DeviceInfo object.
+        /// </summary>
+        /// <param name="device"> The DeviceInfo Object of the audio device.</param>
+        private int getDeviceIndex(DeviceInfo device)
+        {
+            for (var i = 0; i < audioDevices.Count; i++)
+            {
+                if (audioDevices[i].Name == device.Name)
+                    return i;
+            }
+            return -1;
+        }
+
+        /// <summary>
+        /// Get the device index by providing the device name.
+        /// </summary>
+        /// <param name="deviceName">Device name.</param>
+        private int getDeviceIndexFromName(string deviceName)
+        {
+            var devices = getAllDevices();
+            foreach (var device in devices)
+            {
+                if (device.Name == deviceName)
+                    return getDeviceIndex(device);
+            }
+            return -1;
+        }
+
+        /// <summary>
+        /// Listen to the global audio devices and updates the lists of devices.
+        /// </summary>
+        protected void AvailableDeviceChangeListener()
+        {
+            var currentDeviceList = getAllDevices().Where(d => d.IsEnabled).ToList();
+            var currentDeviceNames = getDeviceNames(currentDeviceList).ToList();
+
+            var newDevices = currentDeviceNames.Except(audioDeviceNames).ToList();
+            var lostDevices = audioDeviceNames.Except(currentDeviceNames).ToList();
+
+            if (newDevices.Count > 0 || lostDevices.Count > 0)
+            {
+                eventScheduler.Add(delegate
+                {
+                    foreach (var d in newDevices)
+                        OnNewDevice?.Invoke(d);
+                    foreach (var d in lostDevices)
+                        OnLostDevice?.Invoke(d);
+                });
+            }
+
+            audioDevices = currentDeviceList;
+            audioDeviceNames = currentDeviceNames;
+        }
+
+        /// <summary>
+        /// When the default device is selected it checks if the user changed the system default device and targets it.
+        /// </summary>
+        protected void DefaultAudioDeviceChangedListener()
+        {
+            if (currentAudioDevice.Equals(string.Empty))
+            {
+                var old = currentDefaultAudioDevice;
+                foreach (var d in audioDevices)
+                {
+                    if (d.IsDefault && d.Name != currentDefaultAudioDevice)
+                    {
+                        currentDefaultAudioDevice = d.Name;
+                    }
+                }
+                if (old != null && !old.Equals(currentDefaultAudioDevice) && currentAudioDevice.Equals(string.Empty))
+                {
+                    //it means that the default device changed, let's trigger change device
+                    scheduler.Add(() =>
+                    {
+                        changeDevice(string.Empty);
+                    });
+                }
+                else if (currentAudioDevice.Equals(string.Empty) && !Bass.GetDeviceInfo(Bass.CurrentDevice).Name.Equals(currentDefaultAudioDevice))
+                {
+                    var newDeviceIndex = getDeviceIndexFromName(currentDefaultAudioDevice);
+                    Bass.CurrentDevice = newDeviceIndex;
+                    Bass.Free();
+                    Bass.Init(newDeviceIndex);
+                    UpdateDevice(newDeviceIndex);
+                    currentAudioDevice = string.Empty;
+                }
+            }
+
+        }
+
+        /// <summary>
+        /// Check if the active audio device is not broken or force disabled by the user. It falls back to the default device or to the no sound device if there is no other audio device available.
+        /// </summary>
+        protected void CurrentDeviceStillWorkingListener()
+        {
+            if (!currentAudioDevice.Equals(string.Empty))
+            {
+                var active = Bass.GetDeviceInfo(Bass.CurrentDevice);
+                if (active.IsEnabled == false && Bass.CurrentDevice == getDeviceIndexFromName(currentAudioDevice))
+                {
+                    Bass.Free();
+                    //fallback to default device
+                    changeDevice(string.Empty);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns a list of the names of recognized audio devices.
+        /// </summary>
+        /// <remarks>
+        /// The No Sound device that is in the list of Audio Devices that are stored internally is not returned.
+        /// Regarding the .Skip(1) as implementation for removing "No Sound", see http://bass.radio42.com/help/html/e5a666b4-1bdd-d1cb-555e-ce041997d52f.htm.
+        /// </remarks>
+        /// <returns>A list of the names of recognized audio devices.</returns>
+        private IEnumerable<string> getDeviceNames(List<DeviceInfo> devices) => devices.Skip(1).Select(d => d.Name);
 
         /// <summary>
         /// Obtains the <see cref="TrackManager"/> corresponding to a given resource store.
@@ -153,173 +387,13 @@ namespace osu.Framework.Audio
 
             return sm;
         }
-
-        /// <summary>
-        /// Returns a list of the names of recognized audio devices.
-        /// </summary>
-        /// <remarks>
-        /// The No Sound device that is in the list of Audio Devices that are stored internally is not returned.
-        /// Regarding the .Skip(1) as implementation for removing "No Sound", see http://bass.radio42.com/help/html/e5a666b4-1bdd-d1cb-555e-ce041997d52f.htm.
-        /// </remarks>
-        /// <returns>A list of the names of recognized audio devices.</returns>
-        private IEnumerable<string> getDeviceNames(List<DeviceInfo> devices) => devices.Skip(1).Select(d => d.Name);
         public override string ToString() => $@"{GetType().ReadableName()} ({currentAudioDevice})";
-
         protected override void Dispose(bool disposing)
         {
             OnNewDevice = null;
             OnLostDevice = null;
 
             base.Dispose(disposing);
-        }
-
-        private void onDeviceChanged(string newDevice)
-        {
-            if (!string.IsNullOrEmpty(newDevice))
-                scheduler.Add(() => changeDevice(newDevice));
-            else
-            {
-                scheduler.Add(() =>
-                {
-                    if (currentDefaultAudioDevice != currentAudioDevice)
-                        initDevice(getDeviceIndexFromName(currentDefaultAudioDevice), currentDefaultAudioDevice);
-                });
-            }
-        }
-
-        private List<DeviceInfo> getAllDevices()
-        {
-            int deviceCount = Bass.DeviceCount;
-            List<DeviceInfo> info = new List<DeviceInfo>();
-            for (int i = 0; i < deviceCount; i++)
-                info.Add(Bass.GetDeviceInfo(i));
-            return info;
-        }
-
-        public override void UpdateDevice(int deviceIndex)
-        {
-            Sample.UpdateDevice(deviceIndex);
-            Track.UpdateDevice(deviceIndex);
-        }
-
-        private void initDefaultAudioDevice()
-        {
-            AvailableDeviceChangeListener();
-            DefaultAudioDeviceChangedListener();
-            if (!string.IsNullOrEmpty(currentDefaultAudioDevice))
-            {
-                var deviceIndex = getDeviceIndexFromName(currentDefaultAudioDevice);
-                Bass.Init(deviceIndex);
-                Bass.CurrentDevice = deviceIndex;
-                Bass.PlaybackBufferLength = 100;
-                Bass.UpdatePeriod = 5;
-                UpdateDevice(deviceIndex);
-                currentAudioDevice = string.Empty;
-            }
-            else initNoSoundDevice();
-
-        }
-        private void initNoSoundDevice()
-        {
-            Bass.Init(Bass.NoSoundDevice);
-            UpdateDevice(Bass.NoSoundDevice);
-            currentAudioDevice = string.Empty;
-            Bass.PlaybackBufferLength = 100;
-            Bass.UpdatePeriod = 5;
-        }
-        private void changeDevice(string deviceName)
-        {
-            if (string.Equals(deviceName, currentAudioDevice) != true)
-            {
-                var deviceIndex = getDeviceIndexFromName(deviceName);
-                if (deviceIndex != -1)
-                {
-                    var info = Bass.GetDeviceInfo(deviceIndex);
-                    initDevice(deviceIndex, info.Name);
-                }
-            }
-        }
-
-        private void initDevice(int deviceIndex, string deviceName)
-        {
-            if (Bass.Init(deviceIndex) && Bass.LastError != Errors.OK && Bass.LastError != Errors.Already)
-            {
-                currentAudioDevice = null;
-                initDefaultAudioDevice();
-            }
-            else if (Bass.LastError == Errors.Already)
-            {
-                UpdateDevice(deviceIndex);
-                currentAudioDevice = deviceName;
-                Bass.CurrentDevice = deviceIndex;
-                Bass.PlaybackBufferLength = 100;
-                Bass.UpdatePeriod = 5;
-            }
-            else
-            {
-                UpdateDevice(deviceIndex);
-                currentAudioDevice = deviceName;
-                Bass.CurrentDevice = deviceIndex;
-                Bass.PlaybackBufferLength = 100;
-                Bass.UpdatePeriod = 5;
-            }
-
-        }
-
-        private int getDeviceIndex(DeviceInfo device)
-        {
-            for (var i = 0; i < audioDevices.Count; i++)
-            {
-                if (audioDevices[i].Name == device.Name)
-                    return i;
-            }
-            return -1;
-        }
-
-        private int getDeviceIndexFromName(string deviceName)
-        {
-            var devices = getAllDevices();
-            foreach (var device in devices)
-            {
-                if (device.Name == deviceName)
-                    return getDeviceIndex(device);
-            }
-            return -1;
-        }
-
-        protected void AvailableDeviceChangeListener()
-        {
-            var currentDeviceList = getAllDevices().Where(d => d.IsEnabled).ToList();
-            var currentDeviceNames = getDeviceNames(currentDeviceList).ToList();
-
-            var newDevices = currentDeviceNames.Except(audioDeviceNames).ToList();
-            var lostDevices = audioDeviceNames.Except(currentDeviceNames).ToList();
-
-            if (newDevices.Count > 0 || lostDevices.Count > 0)
-            {
-                eventScheduler.Add(delegate
-                {
-                    foreach (var d in newDevices)
-                        OnNewDevice?.Invoke(d);
-                    foreach (var d in lostDevices)
-                        OnLostDevice?.Invoke(d);
-                });
-            }
-
-            audioDevices = currentDeviceList;
-            audioDeviceNames = currentDeviceNames;
-        }
-        protected void DefaultAudioDeviceChangedListener()
-        {
-            foreach (var d in audioDevices)
-            {
-                if (d.IsDefault && d.Name != currentDefaultAudioDevice)
-                {
-                    currentDefaultAudioDevice = d.Name;
-                    initDevice(getDeviceIndexFromName(d.Name), d.Name);
-                    break;
-                }
-            }
         }
     }
 }
