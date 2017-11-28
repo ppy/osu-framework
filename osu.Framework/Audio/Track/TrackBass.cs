@@ -89,8 +89,19 @@ namespace osu.Framework.Audio.Track
 
         void IBassAudio.UpdateDevice(int deviceIndex)
         {
-            Bass.ChannelSetDevice(activeStream, deviceIndex);
-            Trace.Assert(Bass.LastError == Errors.OK);
+            if (deviceIndex == 0)
+            {
+                Bass.ChannelStop(activeStream);
+            }
+            else
+            {
+                Bass.ChannelPlay(activeStream);
+                Bass.ChannelSetDevice(activeStream, deviceIndex);
+                if (Bass.LastError != Errors.Already && Bass.LastError != Errors.OK)
+                {
+                    Trace.Assert(Bass.LastError == Errors.OK);
+                }
+            }
         }
 
         protected override void UpdateState()
