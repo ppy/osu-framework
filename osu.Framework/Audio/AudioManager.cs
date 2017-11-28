@@ -35,7 +35,7 @@ namespace osu.Framework.Audio
         /// <summary>
         /// List of all audioDevices.
         /// </summary>
-        protected List<DeviceInfo> audioDevices = new List<DeviceInfo>();
+        protected List<DeviceInfo> AudioDevices = new List<DeviceInfo>();
 
         protected List<string> audioDeviceNames = new List<string>();
 
@@ -242,9 +242,9 @@ namespace osu.Framework.Audio
         /// <param name="device"> The DeviceInfo Object of the audio device.</param>
         private int getDeviceIndex(DeviceInfo device)
         {
-            for (var i = 0; i < audioDevices.Count; i++)
+            for (var i = 0; i < AudioDevices.Count; i++)
             {
-                if (audioDevices[i].Name == device.Name)
+                if (AudioDevices[i].Name == device.Name)
                     return i;
             }
             return -1;
@@ -287,7 +287,7 @@ namespace osu.Framework.Audio
                 });
             }
 
-            audioDevices = currentDeviceList;
+            AudioDevices = currentDeviceList;
             audioDeviceNames = currentDeviceNames;
         }
 
@@ -299,7 +299,7 @@ namespace osu.Framework.Audio
             if (currentAudioDevice.Equals(string.Empty))
             {
                 var old = currentDefaultAudioDevice;
-                foreach (var d in audioDevices)
+                foreach (var d in AudioDevices)
                 {
                     if (d.IsDefault && d.Name != currentDefaultAudioDevice)
                     {
