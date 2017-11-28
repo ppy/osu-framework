@@ -314,9 +314,13 @@ namespace osu.Framework.Audio
                         changeDevice(string.Empty);
                     });
                 }
-                else if (currentAudioDevice.Equals(string.Empty) && !Bass.GetDeviceInfo(Bass.CurrentDevice).Name.Equals(currentDefaultAudioDevice))
+                else if (currentDefaultAudioDevice != null && currentAudioDevice.Equals(string.Empty) && !Bass.GetDeviceInfo(Bass.CurrentDevice).Name.Equals(currentDefaultAudioDevice))
                 {
                     var newDeviceIndex = getDeviceIndexFromName(currentDefaultAudioDevice);
+                    if (Bass.GetDeviceInfo(newDeviceIndex).IsInitialized != true)
+                    {
+                        Bass.Init(newDeviceIndex);
+                    }
                     Bass.CurrentDevice = newDeviceIndex;
                     Bass.Free();
                     Bass.Init(newDeviceIndex);
