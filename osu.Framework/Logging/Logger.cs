@@ -287,10 +287,15 @@ namespace osu.Framework.Logging
 
 #if DEBUG
             var debugLine = $"[{Target?.ToString().ToLower() ?? Name}:{level.ToString().ToLower()}] {message}";
-            // fire to all debug listeners (like visual studio's output window)
-            System.Diagnostics.Debug.Print(debugLine);
-            // fire for console displays (appveyor/CI).
-            Console.WriteLine(debugLine);
+
+            if (OutputToListeners)
+            {
+                // fire to all debug listeners (like visual studio's output window)
+                System.Diagnostics.Debug.Print(debugLine);
+
+                // fire for console displays (appveyor/CI).
+                Console.WriteLine(debugLine);
+            }
 #endif
 
 #if Public
@@ -304,7 +309,7 @@ namespace osu.Framework.Logging
             message = ApplyFilters(message);
 
             //split each line up.
-            string[] lines = message.TrimEnd().Replace(@"\r\n", @"\n").Split('\n');
+            string[] lines = message.Replace(@"\r\n", @"\n").Split('\n');
             for (int i = 0; i < lines.Length; i++)
             {
                 string s = lines[i];
@@ -348,6 +353,12 @@ namespace osu.Framework.Logging
                 });
             }
         }
+
+        /// <summary>
+        /// Whether the output of this logger should be sent to listeners of <see cref="Debug"/> and <see cref="Console"/>.
+        /// Defaults to true.
+        /// </summary>
+        public bool OutputToListeners { get; set; } = true;
 
         /// <summary>
         /// Fires whenever any logger tries to log a new entry, but before the entry is actually written to the logfile.
