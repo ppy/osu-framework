@@ -103,6 +103,8 @@ namespace osu.Framework.Audio.Track
 
         public bool IsReversed => Rate < 0;
 
+        public override bool HasCompleted => base.HasCompleted || HasReachedEnd && !Looping;
+
         /// <summary>
         /// Stats if this track has reached its end and isn't running.
         /// </summary>
