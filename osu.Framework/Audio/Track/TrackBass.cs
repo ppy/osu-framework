@@ -8,7 +8,6 @@ using ManagedBass;
 using ManagedBass.Fx;
 using OpenTK;
 using osu.Framework.IO;
-using System.Diagnostics;
 
 namespace osu.Framework.Audio.Track
 {
