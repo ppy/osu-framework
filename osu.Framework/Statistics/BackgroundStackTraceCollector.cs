@@ -22,7 +22,7 @@ namespace osu.Framework.Statistics
 
         private readonly StopwatchClock clock;
 
-        private readonly Logger logger;
+        private readonly Lazy<Logger> logger;
         private readonly Thread targetThread;
 
         internal double LastConsumptionTime;
@@ -33,8 +33,12 @@ namespace osu.Framework.Statistics
         {
             if (Debugger.IsAttached) return;
 
-            logger = Logger.GetLogger($"performance-{targetThread.Name?.ToLower() ?? "unknown"}");
-            logger.OutputToListeners = false;
+            logger = new Lazy<Logger>(() =>
+            {
+                var l = Logger.GetLogger($"performance-{targetThread.Name?.ToLower() ?? "unknown"}");
+                l.OutputToListeners = false;
+                return l;
+            });
 
             this.clock = clock;
             this.targetThread = targetThread;
@@ -88,7 +92,7 @@ namespace osu.Framework.Statistics
             else
                 logMessage.AppendLine(@"| Call stack was not recorded.");
 
-            logger.Add(logMessage.ToString());
+            logger.Value.Add(logMessage.ToString());
         }
 
         private static readonly Lazy<ClrInfo> clr_info = new Lazy<ClrInfo>(delegate
