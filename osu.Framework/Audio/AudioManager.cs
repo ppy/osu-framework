@@ -37,7 +37,7 @@ namespace osu.Framework.Audio
         /// </summary>
         protected List<DeviceInfo> AudioDevices = new List<DeviceInfo>();
 
-        protected List<string> audioDeviceNames = new List<string>();
+        private List<string> audioDeviceNames = new List<string>();
 
         /// <summary>
         /// The names of all available audio devices.
