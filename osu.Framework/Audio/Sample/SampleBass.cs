@@ -33,18 +33,15 @@ namespace osu.Framework.Audio.Sample
         {
             if (deviceIndex == 0)
             {
-                Bass.SampleStop(sampleId);
+                Bass.ChannelPause(sampleId);
             }
             else
             {
                 if (IsLoaded)
                 {
                     // counter-intuitively, this is the correct API to use to migrate a sample to a new device.
+                    Bass.ChannelPlay(sampleId);
                     Bass.ChannelSetDevice(sampleId, deviceIndex);
-                    if (Bass.LastError != Errors.Already && Bass.LastError != Errors.OK)
-                    {
-                        Trace.Assert(Bass.LastError == Errors.OK);
-                    }
                 }
             }
         }
