@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\LangVer.props" />
   <Import Project="..\OpenTK.props" />
   <Import Project="..\System.Drawing.props" />
   <Import Project="..\osu.framework.props" />
