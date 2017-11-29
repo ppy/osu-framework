@@ -72,6 +72,7 @@ namespace osu.Framework.Audio.Track
                     Bass.ChannelSetAttribute(activeStream, ChannelAttribute.TempoUseQuickAlgorithm, 1);
                     Bass.ChannelSetAttribute(activeStream, ChannelAttribute.TempoOverlapMilliseconds, 4);
                     Bass.ChannelSetAttribute(activeStream, ChannelAttribute.TempoSequenceMilliseconds, 30);
+                    Bass.ChannelSetAttribute(activeStream, ChannelAttribute.MixerLatency, FIXED_LATENCY);
                 }
 
                 Length = Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetLength(activeStream)) * 1000;
