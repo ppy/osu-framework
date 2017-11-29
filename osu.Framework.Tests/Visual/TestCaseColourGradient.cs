@@ -81,8 +81,6 @@ namespace osu.Framework.Tests.Visual
             }
         }
 
-        public override string Description => @"Various cases of colour gradients.";
-
         private readonly Box[] boxes = new Box[4];
 
         protected override void Update()

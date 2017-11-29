@@ -21,8 +21,6 @@ namespace osu.Framework.Testing
     [TestFixture]
     public abstract class TestCase : Container, IDynamicallyCompile
     {
-        public virtual string Description => @"The base class for a test case";
-
         public readonly FillFlowContainer<Drawable> StepsContainer;
         private readonly Container content;
 
@@ -218,6 +216,15 @@ namespace osu.Framework.Testing
             StepsContainer.Add(new ToggleStepButton(action)
             {
                 Text = description
+            });
+        }
+
+        protected void AddUntilStep(Func<bool> waitUntilTrueDelegate)
+        {
+            StepsContainer.Add(new UntilStepButton(waitUntilTrueDelegate)
+            {
+                Text = @"Until",
+                BackgroundColour = Color4.Gray
             });
         }
 

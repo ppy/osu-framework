@@ -83,7 +83,7 @@ namespace osu.Framework.Threading
             };
 
             Clock = new ThrottledFrameClock();
-            Monitor = new PerformanceMonitor(Clock, StatisticsCounters);
+            Monitor = new PerformanceMonitor(Clock, Thread, StatisticsCounters);
             Scheduler = new Scheduler(null, Clock);
         }
 

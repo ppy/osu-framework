@@ -12,10 +12,9 @@ using osu.Framework.Testing;
 namespace osu.Framework.Tests.Visual
 {
     [TestFixture]
+    [System.ComponentModel.Description("ensure valid container state in various scenarios")]
     public class TestCaseContainerState : TestCase
     {
-        public override string Description => "Ensuring a container's state is consistent in various scenarios.";
-
         private readonly Container container;
 
         public TestCaseContainerState()

@@ -21,7 +21,14 @@ namespace osu.Framework.Audio.Track
             double current = CurrentTime;
 
             seekOffset = seek;
-            lock (clock) clock.Restart();
+
+            lock (clock)
+            {
+                if (IsRunning)
+                    clock.Restart();
+                else
+                    clock.Reset();
+            }
 
             if (Length > 0 && seekOffset > Length)
                 seekOffset = Length;

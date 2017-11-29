@@ -13,8 +13,6 @@ namespace osu.Framework.Tests.Visual
     [TestFixture]
     internal class TestCaseTextBox : TestCase
     {
-        public override string Description => @"Text entry evolved";
-
         public TestCaseTextBox()
         {
             FillFlowContainer textBoxes = new FillFlowContainer

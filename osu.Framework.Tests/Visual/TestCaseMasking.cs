@@ -17,8 +17,6 @@ namespace osu.Framework.Tests.Visual
     [TestFixture]
     internal class TestCaseMasking : TestCase
     {
-        public override string Description => @"Various scenarios which potentially challenge masking calculations.";
-
         protected Container TestContainer;
 
         public TestCaseMasking()

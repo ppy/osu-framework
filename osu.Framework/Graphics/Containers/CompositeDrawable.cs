@@ -474,17 +474,27 @@ namespace osu.Framework.Graphics.Containers
                 int amountScheduledTasks = schedulerAfterChildren.Update();
                 FrameStatistics.Add(StatisticsCounterType.ScheduleInvk, amountScheduledTasks);
             }
+
             UpdateAfterChildren();
 
             updateChildrenSizeDependencies();
+            UpdateAfterAutoSize();
             return true;
         }
 
         /// <summary>
         /// An opportunity to update state once-per-frame after <see cref="Drawable.Update"/> has been called
         /// for all <see cref="InternalChildren"/>.
+        /// This is invoked prior to any autosize calculations of this <see cref="CompositeDrawable"/>.
         /// </summary>
         protected virtual void UpdateAfterChildren()
+        {
+        }
+
+        /// <summary>
+        /// Invoked after all autosize calculations have taken place.
+        /// </summary>
+        protected virtual void UpdateAfterAutoSize()
         {
         }
 
@@ -1118,7 +1128,7 @@ namespace osu.Framework.Graphics.Containers
         /// It is not allowed to manually set <see cref="Size"/> (or <see cref="Width"/> / <see cref="Height"/>)
         /// on any <see cref="Axes"/> which are automatically sized.
         /// </summary>
-        public Axes AutoSizeAxes
+        public virtual Axes AutoSizeAxes
         {
             get { return autoSizeAxes; }
             protected set

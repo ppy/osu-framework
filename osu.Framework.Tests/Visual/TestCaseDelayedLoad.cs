@@ -57,7 +57,7 @@ namespace osu.Framework.Tests.Visual
                     }
                 });
 
-            var childrenWithAvatarsLoaded = flow.Children.Where(c => c.Children.OfType<DelayedLoadWrapper>().First().Children.FirstOrDefault()?.IsLoaded ?? false);
+            var childrenWithAvatarsLoaded = flow.Children.Where(c => c.Children.OfType<DelayedLoadWrapper>().First().Content?.IsLoaded ?? false);
 
             AddWaitStep(10);
             AddStep("scroll down", () => scroll.ScrollToEnd());
