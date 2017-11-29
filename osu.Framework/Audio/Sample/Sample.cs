@@ -6,7 +6,6 @@ namespace osu.Framework.Audio.Sample
     public abstract class Sample : AudioComponent
     {
         public const int DEFAULT_CONCURRENCY = 2;
-        public const int FIXED_LATENCY = 35;
 
         protected readonly int PlaybackConcurrency;
 
