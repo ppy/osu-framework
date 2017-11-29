@@ -6,12 +6,13 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Testing.Drawables.Steps
 {
-    public class RepeatStepButton : StepButton
+    public class UntilStepButton : StepButton
     {
-        private readonly int count;
+        private bool success;
+
         private int invocations;
 
-        public override int RequiredRepetitions => count;
+        public override int RequiredRepetitions => success ? 0 : int.MaxValue;
 
         public new Action Action;
 
@@ -23,22 +24,20 @@ namespace osu.Framework.Testing.Drawables.Steps
             set { base.Text = text = value; }
         }
 
-        public RepeatStepButton(int count = 1)
+        public UntilStepButton(Func<bool> waitUntilTrueDelegate)
         {
-            this.count = count;
-
             updateText();
-
             BackgroundColour = Color4.Sienna;
 
             base.Action = () =>
             {
-                if (invocations == count) return;
-
                 invocations++;
 
-                if (invocations == count)
+                if (waitUntilTrueDelegate())
+                {
+                    success = true;
                     Success();
+                }
 
                 updateText();
 
@@ -46,7 +45,7 @@ namespace osu.Framework.Testing.Drawables.Steps
             };
         }
 
-        private void updateText() => base.Text = $@"{Text} {invocations}/{count}";
+        private void updateText() => base.Text = $@"{Text} {invocations}";
 
         public override string ToString() => "Repeat: " + base.ToString();
     }
