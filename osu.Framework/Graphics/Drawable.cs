@@ -1332,8 +1332,6 @@ namespace osu.Framework.Graphics
             DrawInfo di = Parent?.DrawInfo ?? new DrawInfo(null);
 
             Vector2 pos = DrawPosition + AnchorPosition;
-            if (!Validation.IsFinite(pos)) throw new ArgumentException($@"{nameof(pos)} must be finite, but is {pos}");
-
             Vector2 drawScale = DrawScale;
             BlendingParameters localBlending = Blending;
 
