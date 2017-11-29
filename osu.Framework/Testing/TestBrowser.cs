@@ -271,12 +271,8 @@ namespace osu.Framework.Testing
 
             config.Set(TestBrowserSetting.LastTest, testType?.Name);
 
-            if (CurrentTest != null)
-            {
-                testContentContainer.Remove(CurrentTest);
-                CurrentTest.Clear();
-                CurrentTest = null;
-            }
+            var lastTest = CurrentTest;
+            CurrentTest = null;
 
             if (testType != null)
             {
@@ -288,32 +284,50 @@ namespace osu.Framework.Testing
 
                 assemblyDropdown.Current.Value = testType.Assembly;
 
-                testContentContainer.Add(CurrentTest = (TestCase)Activator.CreateInstance(testType));
-                if (!interactive) CurrentTest.OnLoadComplete = d => ((TestCase)d).RunAllSteps(onCompletion);
+                CurrentTest = (TestCase)Activator.CreateInstance(testType);
 
-                var methods = testType.GetMethods();
+                updateButtons();
 
-                var setUpMethod = methods.FirstOrDefault(m => m.GetCustomAttributes(typeof(SetUpAttribute), false).Length > 0);
-
-                foreach (var m in methods.Where(m => m.Name != "TestConstructor" && m.GetCustomAttributes(typeof(TestAttribute), false).Length > 0))
+                LoadComponentAsync(CurrentTest, loaded =>
                 {
-                    var step = CurrentTest.AddStep(m.Name, () => { setUpMethod?.Invoke(CurrentTest, null); });
-                    step.BackgroundColour = Color4.Teal;
-                    m.Invoke(CurrentTest, null);
-                }
+                    if (lastTest?.Parent != null)
+                    {
+                        testContentContainer.Remove(lastTest);
+                        lastTest.Clear();
+                    }
 
-                backgroundCompiler.Checkpoint(CurrentTest);
+                    if (CurrentTest != loaded) return;
 
-                CurrentTest.RunFirstStep();
+                    testContentContainer.Add(loaded);
+
+                    updateButtons();
+
+                    var methods = testType.GetMethods();
+
+                    var setUpMethod = methods.FirstOrDefault(m => m.GetCustomAttributes(typeof(SetUpAttribute), false).Length > 0);
+
+                    foreach (var m in methods.Where(m => m.Name != "TestConstructor" && m.GetCustomAttributes(typeof(TestAttribute), false).Length > 0))
+                    {
+                        var step = CurrentTest.AddStep(m.Name, () => { setUpMethod?.Invoke(CurrentTest, null); });
+                        step.BackgroundColour = Color4.Teal;
+                        m.Invoke(CurrentTest, null);
+                    }
+
+                    backgroundCompiler.Checkpoint(CurrentTest);
+
+                    if (!interactive)
+                        loaded.RunAllSteps(onCompletion);
+                    else
+                        CurrentTest.RunFirstStep();
+                    updateButtons();
+                });
             }
-
-            updateButtons();
         }
 
         private void updateButtons()
         {
             foreach (var b in leftFlowContainer.Children)
-                b.Current = b.TestType.Name == CurrentTest.GetType().Name;
+                b.Current = b.TestType.Name == CurrentTest?.GetType().Name;
         }
     }
 }
