@@ -1,6 +1,7 @@
 // Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
 using System.Linq;
 using OpenTK;
 using osu.Framework.Caching;
@@ -167,10 +168,23 @@ namespace osu.Framework.Graphics.Containers
                         continue;
 
                     var d = columnDimensions[i];
-                    if (d.Mode == GridSizeMode.Distributed)
-                        continue;
 
-                    float cellWidth = d.Mode == GridSizeMode.Relative ? d.Size * DrawWidth : d.Size;
+                    float cellWidth = 0;
+                    switch (d.Mode)
+                    {
+                        case GridSizeMode.Distributed:
+                            continue;
+                        case GridSizeMode.Relative:
+                            cellWidth = d.Size * DrawWidth;
+                            break;
+                        case GridSizeMode.Absolute:
+                            cellWidth = d.Size;
+                            break;
+                        case GridSizeMode.Auto:
+                            for (int r = 0; r < cellRows; r++)
+                                cellWidth = Math.Max(cellWidth, Content[r]?[i]?.DrawWidth ?? 0);
+                            break;
+                    }
 
                     for (int r = 0; r < cellRows; r++)
                     {
@@ -192,10 +206,23 @@ namespace osu.Framework.Graphics.Containers
                         continue;
 
                     var d = rowDimensions[i];
-                    if (d.Mode == GridSizeMode.Distributed)
-                        continue;
 
-                    float cellHeight = d.Mode == GridSizeMode.Relative ? d.Size * DrawHeight : d.Size;
+                    float cellHeight = 0;
+                    switch (d.Mode)
+                    {
+                        case GridSizeMode.Distributed:
+                            continue;
+                        case GridSizeMode.Relative:
+                            cellHeight = d.Size * DrawHeight;
+                            break;
+                        case GridSizeMode.Absolute:
+                            cellHeight = d.Size;
+                            break;
+                        case GridSizeMode.Auto:
+                            for (int c = 0; c < cellColumns; c++)
+                                cellHeight = Math.Max(cellHeight, Content[i]?[c]?.DrawHeight ?? 0);
+                            break;
+                    }
 
                     for (int c = 0; c < cellColumns; c++)
                     {
@@ -291,6 +318,10 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// This element has a size independent of the <see cref="GridContainer"/>.
         /// </summary>
-        Absolute
+        Absolute,
+        /// <summary>
+        /// This element will be sized to the maximum size along its span.
+        /// </summary>
+        Auto
     }
 }

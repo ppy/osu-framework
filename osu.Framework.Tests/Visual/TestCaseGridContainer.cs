@@ -317,6 +317,20 @@ namespace osu.Framework.Tests.Visual
                     }
                 };
             });
+
+            AddStep("Auto size", () =>
+            {
+                reset();
+                grid.Content = new[]
+                {
+                    new Drawable[] { new Box { Size = new Vector2(30) }, new FillBox(), new FillBox() },
+                    new Drawable[] { new FillBox(), new FillBox(), new FillBox() },
+                    new Drawable[] { new FillBox(), new FillBox(), new FillBox() }
+                };
+
+                grid.RowDimensions = new[] { new Dimension(GridSizeMode.Auto), new Dimension(GridSizeMode.Relative, 0.5f) };
+                grid.ColumnDimensions = new[] { new Dimension(GridSizeMode.Auto), new Dimension(GridSizeMode.Relative, 0.5f) };
+            });
         }
 
         private void reset()
