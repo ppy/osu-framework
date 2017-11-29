@@ -180,7 +180,7 @@ namespace osu.Framework.Graphics.Containers
                         case GridSizeMode.Absolute:
                             cellWidth = d.Size;
                             break;
-                        case GridSizeMode.Auto:
+                        case GridSizeMode.AutoSize:
                             for (int r = 0; r < cellRows; r++)
                                 cellWidth = Math.Max(cellWidth, Content[r]?[i]?.DrawWidth ?? 0);
                             break;
@@ -218,7 +218,7 @@ namespace osu.Framework.Graphics.Containers
                         case GridSizeMode.Absolute:
                             cellHeight = d.Size;
                             break;
-                        case GridSizeMode.Auto:
+                        case GridSizeMode.AutoSize:
                             for (int c = 0; c < cellColumns; c++)
                                 cellHeight = Math.Max(cellHeight, Content[i]?[c]?.DrawHeight ?? 0);
                             break;
@@ -322,6 +322,6 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// This element will be sized to the maximum size along its span.
         /// </summary>
-        Auto
+        AutoSize
     }
 }
