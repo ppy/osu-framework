@@ -328,8 +328,8 @@ namespace osu.Framework.Tests.Visual
                     new Drawable[] { new FillBox(), new FillBox(), new FillBox() }
                 };
 
-                grid.RowDimensions = new[] { new Dimension(GridSizeMode.Auto), new Dimension(GridSizeMode.Relative, 0.5f) };
-                grid.ColumnDimensions = new[] { new Dimension(GridSizeMode.Auto), new Dimension(GridSizeMode.Relative, 0.5f) };
+                grid.RowDimensions = new[] { new Dimension(GridSizeMode.AutoSize), new Dimension(GridSizeMode.Relative, 0.5f) };
+                grid.ColumnDimensions = new[] { new Dimension(GridSizeMode.AutoSize), new Dimension(GridSizeMode.Relative, 0.5f) };
             });
         }
 
