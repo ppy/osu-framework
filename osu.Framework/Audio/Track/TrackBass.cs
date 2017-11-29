@@ -55,7 +55,7 @@ namespace osu.Framework.Audio.Track
 
                 BassFlags flags = Preview ? 0 : BassFlags.Decode | BassFlags.Prescan | BassFlags.Float;
                 activeStream = Bass.CreateStream(StreamSystem.NoBuffer, flags, procs.BassProcedures, IntPtr.Zero);
-
+                Bass.ChannelSetAttribute(activeStream, ChannelAttribute.MixerLatency, FIXED_LATENCY);
                 if (!Preview)
                 {
                     // We assign the BassFlags.Decode streams to the device "bass_nodevice" to prevent them from getting
@@ -72,7 +72,6 @@ namespace osu.Framework.Audio.Track
                     Bass.ChannelSetAttribute(activeStream, ChannelAttribute.TempoUseQuickAlgorithm, 1);
                     Bass.ChannelSetAttribute(activeStream, ChannelAttribute.TempoOverlapMilliseconds, 4);
                     Bass.ChannelSetAttribute(activeStream, ChannelAttribute.TempoSequenceMilliseconds, 30);
-                    Bass.ChannelSetAttribute(activeStream, ChannelAttribute.MixerLatency, FIXED_LATENCY);
                 }
 
                 Length = Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetLength(activeStream)) * 1000;

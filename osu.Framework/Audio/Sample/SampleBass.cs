@@ -18,11 +18,10 @@ namespace osu.Framework.Audio.Sample
         {
             if (customPendingActions != null)
                 PendingActions = customPendingActions;
-
+            Bass.ChannelSetAttribute(sampleId, ChannelAttribute.MixerLatency, FIXED_LATENCY);
             PendingActions.Enqueue(() =>
             {
                 sampleId = Bass.SampleLoad(data, 0, data.Length, PlaybackConcurrency, BassFlags.Default | BassFlags.SampleOverrideLongestPlaying);
-                Bass.ChannelSetAttribute(sampleId, ChannelAttribute.MixerLatency, FIXED_LATENCY);
             });
         }
 
