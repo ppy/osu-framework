@@ -82,6 +82,14 @@ namespace osu.Framework.Graphics.Containers
             return base.Invalidate(invalidation, source, shallPropagate);
         }
 
+        public override void InvalidateFromChild(Invalidation invalidation)
+        {
+            if ((invalidation & Invalidation.RequiredParentSizeToFit) > 0)
+                cellLayout.Invalidate();
+
+            base.InvalidateFromChild(invalidation);
+        }
+
         private Cached cellContent = new Cached();
         private Cached cellLayout = new Cached();
 
