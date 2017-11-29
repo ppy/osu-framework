@@ -238,8 +238,8 @@ namespace osu.Framework.Graphics.Containers
             // Compute the size of non-explicitly defined rows/columns that should fill the remaining area
             var autoSize = new Vector2
             (
-                (DrawWidth - definedWidth) / autoSizedColumns,
-                (DrawHeight - definedHeight) / autoSizedRows
+                Math.Max(0, DrawWidth - definedWidth) / autoSizedColumns,
+                Math.Max(0, DrawHeight - definedHeight) / autoSizedRows
             );
 
             // Add sizing to non-explicitly-defined columns and add positional offsets
