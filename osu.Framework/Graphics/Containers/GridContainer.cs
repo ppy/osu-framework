@@ -167,7 +167,7 @@ namespace osu.Framework.Graphics.Containers
                         continue;
 
                     var d = columnDimensions[i];
-                    if (d.Mode == GridSizeMode.Auto)
+                    if (d.Mode == GridSizeMode.Distributed)
                         continue;
 
                     float cellWidth = d.Mode == GridSizeMode.Relative ? d.Size * DrawWidth : d.Size;
@@ -192,7 +192,7 @@ namespace osu.Framework.Graphics.Containers
                         continue;
 
                     var d = rowDimensions[i];
-                    if (d.Mode == GridSizeMode.Auto)
+                    if (d.Mode == GridSizeMode.Distributed)
                         continue;
 
                     float cellHeight = d.Mode == GridSizeMode.Relative ? d.Size * DrawHeight : d.Size;
@@ -269,8 +269,8 @@ namespace osu.Framework.Graphics.Containers
         /// Constructs a new <see cref="Dimension"/>.
         /// </summary>
         /// <param name="mode">The sizing mode to use.</param>
-        /// <param name="size">The size of this row or column. This only has an effect if <paramref name="mode"/> is not <see cref="GridSizeMode.Auto"/>.</param>
-        public Dimension(GridSizeMode mode = GridSizeMode.Auto, float size = 0)
+        /// <param name="size">The size of this row or column. This only has an effect if <paramref name="mode"/> is not <see cref="GridSizeMode.Distributed"/>.</param>
+        public Dimension(GridSizeMode mode = GridSizeMode.Distributed, float size = 0)
         {
             Mode = mode;
             Size = size;
@@ -281,9 +281,9 @@ namespace osu.Framework.Graphics.Containers
     {
         /// <summary>
         /// Any remaining area of the <see cref="GridContainer"/> will be divided amongst this and all
-        /// other elements which use <see cref="GridSizeMode.Auto"/>.
+        /// other elements which use <see cref="GridSizeMode.Distributed"/>.
         /// </summary>
-        Auto,
+        Distributed,
         /// <summary>
         /// This element should be sized relative to the dimensions of the <see cref="GridContainer"/>.
         /// </summary>
