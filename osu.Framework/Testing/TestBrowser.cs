@@ -342,8 +342,8 @@ namespace osu.Framework.Testing
                             RelativeSizeAxes = Axes.Both,
                             ColumnDimensions = new[]
                             {
-                                new Dimension(GridSizeMode.Absolute, 600),
-                                new Dimension(GridSizeMode.Auto),
+                                new Dimension(GridSizeMode.AutoSize),
+                                new Dimension(GridSizeMode.Distributed),
                             },
                             Content = new[]
                             {
@@ -386,9 +386,9 @@ namespace osu.Framework.Testing
                                         RelativeSizeAxes = Axes.Both,
                                         ColumnDimensions = new[]
                                         {
-                                            new Dimension(GridSizeMode.Absolute, 140),
-                                            new Dimension(GridSizeMode.Auto),
-                                            new Dimension(GridSizeMode.Absolute, 50),
+                                            new Dimension(GridSizeMode.AutoSize),
+                                            new Dimension(GridSizeMode.Distributed),
+                                            new Dimension(GridSizeMode.AutoSize),
                                         },
                                         Content = new[]
                                         {
