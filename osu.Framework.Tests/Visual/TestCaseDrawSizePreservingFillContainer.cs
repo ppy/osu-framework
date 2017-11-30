@@ -56,6 +56,8 @@ namespace osu.Framework.Tests.Visual
 
             AddSliderStep("Width", 50, 650, 500, v => Child.Width = v);
             AddSliderStep("Height", 50, 650, 500, v => Child.Height = v);
+
+            AddStep("Override Size to 1x1", () => Child.Size = Vector2.One);
         }
     }
 }
