@@ -468,8 +468,8 @@ namespace osu.Framework.Input
 
                             lastClickTime = 0;
                         }
-
-                        lastClickTime = Time.Current;
+                        else
+                            lastClickTime = Time.Current;
                     }
                 }
 

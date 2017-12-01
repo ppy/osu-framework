@@ -325,6 +325,7 @@
     <Compile Include="MathUtils\NumberFormatter.cs" />
     <Compile Include="MathUtils\Precision.cs" />
     <Compile Include="MathUtils\RNG.cs" />
+    <Compile Include="MathUtils\Validation.cs" />
     <Compile Include="Configuration\Bindable.cs" />
     <Compile Include="Configuration\BindableBool.cs" />
     <Compile Include="Configuration\BindableDouble.cs" />
