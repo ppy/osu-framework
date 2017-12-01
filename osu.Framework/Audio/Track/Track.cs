@@ -10,6 +10,8 @@ namespace osu.Framework.Audio.Track
 {
     public abstract class Track : AdjustableAudioComponent, IAdjustableClock
     {
+        public const int FIXED_LATENCY = 35;
+
         /// <summary>
         /// Is this track capable of producing audio?
         /// </summary>
