@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\OpenTK.props" />
   <Import Project="..\System.Drawing.props" />
-  <Import Project="..\osu.framework.props" />
+  <Import Project="..\osu.Framework.props" />
 
   <PropertyGroup Label="Project">
     <!-- We need to compile for net461 here for System.Drawing to work under .NET Framework... -->
