@@ -328,13 +328,14 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        protected override bool forceNewRow(Drawable child) => child is NewLineContainer;
+
         internal class NewLineContainer : Container
         {
             public readonly bool IndicatesNewParagraph;
 
             public NewLineContainer(bool newParagraph)
             {
-                RelativeSizeAxes = Axes.X;
                 IndicatesNewParagraph = newParagraph;
             }
         }
