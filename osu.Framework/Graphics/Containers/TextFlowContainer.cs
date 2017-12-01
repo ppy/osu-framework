@@ -333,7 +333,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         /// <param name="child">The child to check.</param>
         /// <returns>True if the given child should be placed on a new row, false otherwise.</returns>
-        protected override bool forceNewRow(Drawable child) => child is NewLineContainer;
+        protected override bool ForceNewRow(Drawable child) => child is NewLineContainer;
 
         internal class NewLineContainer : Container
         {
