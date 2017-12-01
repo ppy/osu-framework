@@ -106,7 +106,7 @@ namespace osu.Framework.Audio.Track
         public override bool HasCompleted => base.HasCompleted || HasReachedEnd && !Looping;
 
         /// <summary>
-        /// Stats if this track has reached its end and isn't running.
+        /// Whether this track has reached its end and isn't running.
         /// </summary>
         public virtual bool HasReachedEnd => IsLoaded && !IsRunning && CurrentTime >= Length;
 
@@ -122,9 +122,7 @@ namespace osu.Framework.Audio.Track
             FrameStatistics.Increment(StatisticsCounterType.Tracks);
 
             if (Looping && HasReachedEnd)
-            {
                 Restart();
-            }
 
             base.UpdateState();
         }
