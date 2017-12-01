@@ -310,6 +310,16 @@ namespace osu.Framework.Graphics.Primitives
         // This could be optimized further in the future, but made for a simple implementation right now.
         public RectangleI AABB => ((Quad)this).AABB;
 
+        /// <summary>
+        /// Constructs a <see cref="RectangleF"/> from left, top, right, and bottom coordinates.
+        /// </summary>
+        /// <param name="left">The left coordinate.</param>
+        /// <param name="top">The top coordinate.</param>
+        /// <param name="right">The right coordinate.</param>
+        /// <param name="bottom">The bottom coordinate.</param>
+        /// <returns>The <see cref="RectangleF"/>.</returns>
+        public static RectangleF FromLTRB(float left, float top, float right, float bottom) => new RectangleF(left, top, right - left, bottom - top);
+
         /// <summary>Converts the specified <see cref="T:System.Drawing.RectangleI"></see> structure to a <see cref="T:System.Drawing.RectangleF"></see> structure.</summary>
         /// <returns>The <see cref="T:System.Drawing.RectangleF"></see> structure that is converted from the specified <see cref="T:System.Drawing.RectangleI"></see> structure.</returns>
         /// <param name="r">The <see cref="T:System.Drawing.RectangleI"></see> structure to convert. </param>
