@@ -26,9 +26,12 @@ namespace osu.Framework
         static RuntimeInfo()
         {
             IsMono = Type.GetType("Mono.Runtime") != null;
-            IsLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
-            IsMacOsx = RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
-            IsWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                IsWindows = true;
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                IsMacOsx = true;
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                IsLinux = true;
             IsUnix = IsMacOsx || IsUnix;
 
             Is32Bit = IntPtr.Size == 4;
