@@ -383,6 +383,9 @@ namespace osu.Framework.Graphics
             set
             {
                 if (position == value) return;
+
+                if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(Position)} must be finite, but is {value}.");
+
                 position = value;
 
                 Invalidate(Invalidation.MiscGeometry);
@@ -401,6 +404,9 @@ namespace osu.Framework.Graphics
             set
             {
                 if (x == value) return;
+
+                if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(X)} must be finite, but is {value}.");
+
                 x = value;
 
                 Invalidate(Invalidation.MiscGeometry);
@@ -416,6 +422,9 @@ namespace osu.Framework.Graphics
             set
             {
                 if (y == value) return;
+
+                if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(Y)} must be finite, but is {value}.");
+
                 y = value;
 
                 Invalidate(Invalidation.MiscGeometry);
@@ -505,6 +514,9 @@ namespace osu.Framework.Graphics
             set
             {
                 if (size == value) return;
+
+                if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(Size)} must be finite, but is {value}.");
+
                 size = value;
 
                 Invalidate(Invalidation.DrawSize);
@@ -523,6 +535,9 @@ namespace osu.Framework.Graphics
             set
             {
                 if (width == value) return;
+
+                if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(Width)} must be finite, but is {value}.");
+
                 width = value;
 
                 Invalidate(Invalidation.DrawSize);
@@ -538,6 +553,9 @@ namespace osu.Framework.Graphics
             set
             {
                 if (height == value) return;
+
+                if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(Height)} must be finite, but is {value}.");
+
                 height = value;
 
                 Invalidate(Invalidation.DrawSize);
@@ -625,6 +643,8 @@ namespace osu.Framework.Graphics
             set
             {
                 if (margin.Equals(value)) return;
+
+                if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(Margin)} must be finite, but is {value}.");
 
                 margin = value;
 
@@ -758,6 +778,9 @@ namespace osu.Framework.Graphics
 
                 if (scale == value)
                     return;
+
+                if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(Scale)} must be finite, but is {value}.");
+
                 scale = value;
 
                 Invalidate(Invalidation.MiscGeometry);
@@ -777,6 +800,10 @@ namespace osu.Framework.Graphics
             set
             {
                 if (fillAspectRatio == value) return;
+
+                if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(FillAspectRatio)} must be finite, but is {value}.");
+                if (value == 0) throw new ArgumentException($@"{nameof(FillAspectRatio)} must be non-zero.");
+
                 fillAspectRatio = value;
 
                 if (fillMode != FillMode.Stretch && RelativeSizeAxes == Axes.Both)
@@ -823,6 +850,8 @@ namespace osu.Framework.Graphics
             set
             {
                 if (shear == value) return;
+                if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(Shear)} must be finite, but is {value}.");
+
                 shear = value;
 
                 Invalidate(Invalidation.MiscGeometry);
@@ -841,6 +870,8 @@ namespace osu.Framework.Graphics
             set
             {
                 if (value == rotation) return;
+                if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(Rotation)} must be finite, but is {value}.");
+
                 rotation = value;
 
                 Invalidate(Invalidation.MiscGeometry);
@@ -926,6 +957,8 @@ namespace osu.Framework.Graphics
 
             set
             {
+                if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(OriginPosition)} must be finite, but is {value}.");
+
                 customOrigin = value;
                 Origin = Anchor.Custom;
             }
@@ -990,6 +1023,8 @@ namespace osu.Framework.Graphics
 
             set
             {
+                if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(RelativeAnchorPosition)} must be finite, but is {value}.");
+
                 customRelativeAnchorPosition = value;
                 Anchor = Anchor.Custom;
             }
@@ -1290,7 +1325,6 @@ namespace osu.Framework.Graphics
         /// The screen-space quad this drawable occupies.
         /// </summary>
         public virtual Quad ScreenSpaceDrawQuad => screenSpaceDrawQuadBacking.IsValid ? screenSpaceDrawQuadBacking : (screenSpaceDrawQuadBacking.Value = ComputeScreenSpaceDrawQuad());
-
 
         private Cached<DrawInfo> drawInfoBacking;
 

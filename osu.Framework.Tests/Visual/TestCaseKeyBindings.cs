@@ -18,8 +18,6 @@ namespace osu.Framework.Tests.Visual
     [TestFixture]
     public class TestCaseKeyBindings : GridTestCase
     {
-        public override string Description => @"Keybindings";
-
         public TestCaseKeyBindings()
             : base(2, 2)
         {

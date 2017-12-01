@@ -12,8 +12,6 @@ namespace osu.Framework.Tests.Visual
     [TestFixture]
     internal class TestCaseSpriteText : TestCase
     {
-        public override string Description => @"Test all sizes of text rendering";
-
         public TestCaseSpriteText()
         {
             FillFlowContainer flow;

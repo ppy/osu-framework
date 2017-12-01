@@ -11,8 +11,6 @@ namespace osu.Framework.Tests.Visual
     [TestFixture]
     internal class TestCaseBufferedContainer : TestCaseMasking
     {
-        public override string Description => @"Buffered containers containing almost all visual effects.";
-
         private readonly BufferedContainer buffer;
 
         public TestCaseBufferedContainer()

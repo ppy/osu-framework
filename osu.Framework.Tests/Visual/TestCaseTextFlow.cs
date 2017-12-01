@@ -14,10 +14,9 @@ using OpenTK.Graphics;
 namespace osu.Framework.Tests.Visual
 {
     [TestFixture]
+    [System.ComponentModel.Description("word-wrap and paragraphs")]
     internal class TestCaseTextFlow : TestCase
     {
-        public override string Description => @"Test word-wrapping and paragraphs";
-
         public TestCaseTextFlow()
         {
             FillFlowContainer flow;

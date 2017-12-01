@@ -16,8 +16,6 @@ namespace osu.Framework.Tests.Visual
     [TestFixture]
     internal class TestCaseSearchContainer : TestCase
     {
-        public override string Description => "Tests the SearchContainer";
-
         public TestCaseSearchContainer()
         {
             SearchContainer<HeaderContainer> search;
