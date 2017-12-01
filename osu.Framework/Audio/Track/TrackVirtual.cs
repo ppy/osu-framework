@@ -62,14 +62,6 @@ namespace osu.Framework.Audio.Track
             }
         }
 
-        public override bool HasCompleted
-        {
-            get
-            {
-                lock (clock) return base.HasCompleted;
-            }
-        }
-
         public override double CurrentTime
         {
             get
