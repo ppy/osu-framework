@@ -285,6 +285,8 @@ namespace osu.Framework.Logging
             if (!Enabled || level < Level)
                 return;
 
+            ensureHeader();
+
 #if DEBUG
             var debugLine = $"[{Target?.ToString().ToLower() ?? Name}:{level.ToString().ToLower()}] {message}";
 
@@ -372,11 +374,15 @@ namespace osu.Framework.Logging
         {
             lock (flush_sync_lock)
                 backgroundScheduler.Add(() => Storage.Delete(Filename));
-            addHeader();
         }
 
-        private void addHeader()
+        private bool headerAdded;
+
+        private void ensureHeader()
         {
+            if (headerAdded) return;
+            headerAdded = true;
+
             Add(@"----------------------------------------------------------");
             Add($@"{Target} Log for {UserIdentifier}");
             Add($@"{GameIdentifier} version {VersionIdentifier}");

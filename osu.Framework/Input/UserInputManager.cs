@@ -21,6 +21,8 @@ namespace osu.Framework.Input
             new KeyBinding(new[] { InputKey.Alt, InputKey.Enter }, FrameworkAction.ToggleFullscreen),
         };
 
+        protected override bool HandleHoverEvents => Host.Window?.CursorInWindow ?? true;
+
         public UserInputManager()
         {
             UseParentState = false;

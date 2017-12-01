@@ -19,6 +19,7 @@ using osu.Framework.Caching;
 using osu.Framework.Threading;
 using osu.Framework.Statistics;
 using System.Threading.Tasks;
+using osu.Framework.MathUtils;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -1023,6 +1024,8 @@ namespace osu.Framework.Graphics.Containers
             {
                 if (padding.Equals(value)) return;
 
+                if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(Padding)} must be finite, but is {value}.");
+
                 padding = value;
 
                 foreach (Drawable c in internalChildren)
@@ -1055,6 +1058,10 @@ namespace osu.Framework.Graphics.Containers
             {
                 if (relativeChildSize == value)
                     return;
+
+                if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(RelativeChildSize)} must be finite, but is {value}.");
+                if (value.X == 0 || value.Y == 0) throw new ArgumentException($@"{nameof(RelativeChildSize)} must be non-zero, but is {value}.");
+
                 relativeChildSize = value;
 
                 foreach (Drawable c in internalChildren)
@@ -1075,6 +1082,9 @@ namespace osu.Framework.Graphics.Containers
             {
                 if (relativeChildOffset == value)
                     return;
+
+                if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(RelativeChildOffset)} must be finite, but is {value}.");
+
                 relativeChildOffset = value;
 
                 foreach (Drawable c in internalChildren)
@@ -1127,7 +1137,7 @@ namespace osu.Framework.Graphics.Containers
         /// It is not allowed to manually set <see cref="Size"/> (or <see cref="Width"/> / <see cref="Height"/>)
         /// on any <see cref="Axes"/> which are automatically sized.
         /// </summary>
-        public Axes AutoSizeAxes
+        public virtual Axes AutoSizeAxes
         {
             get { return autoSizeAxes; }
             protected set

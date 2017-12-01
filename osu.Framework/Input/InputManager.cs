@@ -316,6 +316,8 @@ namespace osu.Framework.Input
             positionalInputQueue.Reverse();
         }
 
+        protected virtual bool HandleHoverEvents => true;
+
         private void updateHoverEvents(InputState state)
         {
             Drawable lastHoverHandledDrawable = hoverHandledDrawable;
@@ -326,7 +328,7 @@ namespace osu.Framework.Input
             hoveredDrawables.Clear();
 
             // New drawables shouldn't be hovered if the cursor isn't in the window
-            if (Host.Window?.CursorInWindow ?? true)
+            if (HandleHoverEvents)
             {
                 // First, we need to construct hoveredDrawables for the current frame
                 foreach (Drawable d in positionalInputQueue)
@@ -468,8 +470,8 @@ namespace osu.Framework.Input
 
                             lastClickTime = 0;
                         }
-
-                        lastClickTime = Time.Current;
+                        else
+                            lastClickTime = Time.Current;
                     }
                 }
 

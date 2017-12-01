@@ -2,8 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Diagnostics;
-using System.IO;
 using System.Runtime.InteropServices;
 
 namespace osu.Framework
@@ -28,38 +26,16 @@ namespace osu.Framework
         static RuntimeInfo()
         {
             IsMono = Type.GetType("Mono.Runtime") != null;
-            int p = (int)Environment.OSVersion.Platform;
-            IsUnix = p == 4 || p == 6 || p == 128;
-            IsWindows = Path.DirectorySeparatorChar == '\\';
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                IsWindows = true;
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                IsMacOsx = true;
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                IsLinux = true;
+            IsUnix = IsMacOsx || IsUnix;
 
             Is32Bit = IntPtr.Size == 4;
             Is64Bit = IntPtr.Size == 8;
-
-            if (IsUnix)
-            {
-                Process uname = Process.Start(new ProcessStartInfo
-                {
-                    FileName = "uname",
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true
-                });
-
-                if (uname != null)
-                {
-                    string output = uname.StandardOutput.ReadToEnd();
-                    uname.WaitForExit();
-
-                    output = output.ToUpper().Replace("\n", "").Trim();
-
-                    IsMacOsx = output == "DARWIN";
-                    IsLinux = output == "LINUX";
-                }
-            }
-            else
-            {
-                IsMacOsx = false;
-                IsLinux = false;
-            }
 
             if (IsWindows)
             {
