@@ -32,7 +32,7 @@ namespace osu.Framework
                 IsMacOsx = true;
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 IsLinux = true;
-            IsUnix = IsMacOsx || IsUnix;
+            IsUnix = IsMacOsx || IsLinux;
 
             Is32Bit = IntPtr.Size == 4;
             Is64Bit = IntPtr.Size == 8;
