@@ -48,9 +48,14 @@ namespace osu.Framework.Audio
         }
 
         /// <summary>
-        /// The component has completed its task and is potentially no longer needed.
+        /// This component has completed playback and is now in a stopped state.
         /// </summary>
-        public virtual bool HasCompleted => IsDisposed;
+        public virtual bool HasCompleted => !IsAlive;
+
+        /// <summary>
+        /// This component has completed all processing and is ready to be removed from its parent.
+        /// </summary>
+        public virtual bool IsAlive => !IsDisposed;
 
         public virtual bool IsLoaded => true;
 
