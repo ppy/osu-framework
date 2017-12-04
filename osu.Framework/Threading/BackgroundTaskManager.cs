@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -10,22 +13,11 @@ namespace osu.Framework.Threading
     /// </summary>
     public class BackgroundTaskManager
     {
-        private static readonly object instance_lock = new object();
-        private static BackgroundTaskManager instance;
         private readonly List<Task> allTasks;
 
-        private BackgroundTaskManager()
+        public BackgroundTaskManager()
         {
             allTasks = new List<Task>();
-        }
-
-        public static BackgroundTaskManager Instance
-        {
-            get
-            {
-                lock (instance_lock)
-                    return instance ?? (instance = new BackgroundTaskManager());
-            }
         }
 
         public IEnumerable<Task> PendingTasks => allTasks.Where(t => t.Status == TaskStatus.Created);
