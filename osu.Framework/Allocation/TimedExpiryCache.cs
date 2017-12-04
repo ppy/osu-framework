@@ -42,9 +42,8 @@ namespace osu.Framework.Allocation
 
             foreach (var v in dictionary)
             {
-                TimedObject<TValue> val;
                 if ((now - v.Value.LastAccessTime).TotalMilliseconds > ExpiryTime)
-                    dictionary.TryRemove(v.Key, out val);
+                    dictionary.TryRemove(v.Key, out _);
             }
         }
 

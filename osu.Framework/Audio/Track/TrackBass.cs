@@ -233,8 +233,6 @@ namespace osu.Framework.Audio.Track
 
         public override int? Bitrate => bitrate;
 
-        public override bool HasCompleted => base.HasCompleted || IsLoaded && !IsRunning && CurrentTime >= Length;
-
         public double PitchAdjust
         {
             get { return Frequency.Value; }

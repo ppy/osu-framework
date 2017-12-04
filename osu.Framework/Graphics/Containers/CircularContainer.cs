@@ -23,9 +23,9 @@ namespace osu.Framework.Graphics.Containers
             return result;
         }
 
-        protected override void Update()
+        protected override void UpdateAfterAutoSize()
         {
-            base.Update();
+            base.UpdateAfterAutoSize();
 
             if (!cornerRadius.IsValid)
             {
