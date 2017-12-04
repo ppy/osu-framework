@@ -328,11 +328,6 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        /// <summary>
-        /// Returns true if the given child should be placed on a new row, false otherwise.
-        /// </summary>
-        /// <param name="child">The child to check.</param>
-        /// <returns>True if the given child should be placed on a new row, false otherwise.</returns>
         protected override bool ForceNewRow(Drawable child) => child is NewLineContainer;
 
         internal class NewLineContainer : Container
