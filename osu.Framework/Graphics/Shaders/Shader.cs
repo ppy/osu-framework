@@ -12,7 +12,12 @@ namespace osu.Framework.Graphics.Shaders
     public class Shader : IDisposable
     {
         internal StringBuilder Log = new StringBuilder();
-        internal bool Loaded;
+
+        /// <summary>
+        /// Whether this shader has been loaded and compiled.
+        /// </summary>
+        public bool Loaded { get; private set; }
+
         internal bool IsBound;
 
         private readonly string name;
