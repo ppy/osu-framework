@@ -17,12 +17,4 @@ namespace osu.Framework.Input
             UseParentState = false;
         }
     }
-
-    public enum FrameworkAction
-    {
-        CycleFrameStatistics,
-        ToggleDrawVisualiser,
-        ToggleLogOverlay,
-        ToggleFullscreen
-    }
 }

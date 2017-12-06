@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+
+using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Graphics;
 using osu.Framework.Input.Bindings;
@@ -16,5 +19,13 @@ namespace osu.Framework.Input
         };
 
         protected override IEnumerable<Drawable> KeyBindingInputQueue => new[] { Child }.Concat(base.KeyBindingInputQueue);
+    }
+
+    public enum FrameworkAction
+    {
+        CycleFrameStatistics,
+        ToggleDrawVisualiser,
+        ToggleLogOverlay,
+        ToggleFullscreen
     }
 }
