@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Logging;
 
 namespace osu.Framework.Input.Bindings
@@ -14,7 +15,7 @@ namespace osu.Framework.Input.Bindings
     /// Maps input actions to custom action data of type <see cref="T"/>. Use in conjunction with <see cref="Drawable"/>s implementing <see cref="IKeyBindingHandler{T}"/>.
     /// </summary>
     /// <typeparam name="T">The type of the custom action.</typeparam>
-    public abstract class KeyBindingInputManager<T> : KeyBindingInputManager
+    public abstract class KeyBindingContainer<T> : KeyBindingContainer
         where T : struct
     {
         private readonly SimultaneousBindingMode simultaneousMode;
@@ -23,8 +24,10 @@ namespace osu.Framework.Input.Bindings
         /// Create a new instance.
         /// </summary>
         /// <param name="simultaneousMode">Specify how to deal with multiple matches of <see cref="KeyCombination"/>s and <see cref="T"/>s.</param>
-        protected KeyBindingInputManager(SimultaneousBindingMode simultaneousMode = SimultaneousBindingMode.None)
+        protected KeyBindingContainer(SimultaneousBindingMode simultaneousMode = SimultaneousBindingMode.None)
         {
+            RelativeSizeAxes = Axes.Both;
+
             this.simultaneousMode = simultaneousMode;
         }
 
@@ -43,7 +46,9 @@ namespace osu.Framework.Input.Bindings
         /// The input queue to be used for processing key bindings. Based on the non-positional <see cref="InputManager.InputQueue"/>.
         /// Can be overridden to change priorities.
         /// </summary>
-        protected virtual IEnumerable<Drawable> KeyBindingInputQueue => InputQueue;
+        protected virtual IEnumerable<Drawable> KeyBindingInputQueue => localQueue;
+
+        private readonly List<Drawable> localQueue = new List<Drawable>();
 
         /// <summary>
         /// Override to enable or disable sending of repeated actions (disabled by default).
@@ -51,10 +56,8 @@ namespace osu.Framework.Input.Bindings
         /// </summary>
         protected virtual bool SendRepeats => false;
 
-        protected override bool PropagateWheel(IEnumerable<Drawable> drawables, InputState state)
+        protected override bool OnWheel(InputState state)
         {
-            if (base.PropagateWheel(drawables, state)) return true;
-
             // we need to create a local cloned state to ensure the underlying code in handleNewReleased thinks we are in a sane state,
             // even though we are pressing and releasing an InputKey in a single frame.
             var clonedState = state.Clone();
@@ -68,27 +71,38 @@ namespace osu.Framework.Input.Bindings
             return handleNewPressed(state, key, false) | handleNewReleased(clonedState, key);
         }
 
-        protected override bool PropagateMouseDown(IEnumerable<Drawable> drawables, InputState state, MouseDownEventArgs args) =>
-            base.PropagateMouseDown(drawables, state, args) || handleNewPressed(state, KeyCombination.FromMouseButton(args.Button), false);
+        internal override bool BuildKeyboardInputQueue(List<Drawable> queue)
+        {
+            localQueue.Clear();
 
-        protected override bool PropagateMouseUp(IEnumerable<Drawable> drawables, InputState state, MouseUpEventArgs args) =>
-            base.PropagateMouseUp(drawables, state, args) || handleNewReleased(state, KeyCombination.FromMouseButton(args.Button));
+            var addedSelf = base.BuildKeyboardInputQueue(localQueue);
 
-        protected override bool PropagateKeyDown(IEnumerable<Drawable> drawables, InputState state, KeyDownEventArgs args)
+            queue.AddRange(localQueue);
+
+            if (addedSelf)
+                localQueue.Remove(this);
+
+            return true;
+        }
+
+        protected override bool OnMouseDown(InputState state, MouseDownEventArgs args) => handleNewPressed(state, KeyCombination.FromMouseButton(args.Button), false);
+
+        protected override bool OnMouseUp(InputState state, MouseUpEventArgs args) => handleNewReleased(state, KeyCombination.FromMouseButton(args.Button));
+
+        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
             if (args.Repeat && !SendRepeats)
             {
                 if (pressedBindings.Count > 0)
                     return true;
 
-                return base.PropagateKeyDown(drawables, state, args);
+                return false;
             }
 
-            return base.PropagateKeyDown(drawables, state, args) || handleNewPressed(state, KeyCombination.FromKey(args.Key), args.Repeat);
+            return handleNewPressed(state, KeyCombination.FromKey(args.Key), args.Repeat);
         }
 
-        protected override bool PropagateKeyUp(IEnumerable<Drawable> drawables, InputState state, KeyUpEventArgs args) =>
-            base.PropagateKeyUp(drawables, state, args) || handleNewReleased(state, KeyCombination.FromKey(args.Key));
+        protected override bool OnKeyUp(InputState state, KeyUpEventArgs args) => handleNewReleased(state, KeyCombination.FromKey(args.Key));
 
         private bool handleNewPressed(InputState state, InputKey newKey, bool repeat)
         {
@@ -188,12 +202,17 @@ namespace osu.Framework.Input.Bindings
 
             return handled != null;
         }
+
+        public void TriggerReleased(T released) => PropagateReleased(KeyBindingInputQueue, released);
+
+        public void TriggerPressed(T pressed) => PropagateReleased(KeyBindingInputQueue, pressed);
+
     }
 
     /// <summary>
     /// Maps input actions to custom action data.
     /// </summary>
-    public abstract class KeyBindingInputManager : PassThroughInputManager
+    public abstract class KeyBindingContainer : Container
     {
         protected IEnumerable<KeyBinding> KeyBindings;
 

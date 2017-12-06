@@ -406,7 +406,16 @@ namespace osu.Framework.Platform
 
         private void bootstrapSceneGraph(Game game)
         {
-            var root = new UserInputManager { Child = game };
+            var root = new UserInputManager
+            {
+                Child = new FrameworkActionContainer
+                {
+                    Child = new PlatformActionContainer
+                    {
+                        Child = game
+                    }
+                }
+            };
 
             Dependencies.Cache(root);
             Dependencies.Cache(game);
@@ -582,7 +591,7 @@ namespace osu.Framework.Platform
         #endregion
 
         /// <summary>
-        /// Defines the platform-specific key bindings that will be used by <see cref="osu.Framework.Input.PlatformInputManager"/>.
+        /// Defines the platform-specific key bindings that will be used by <see cref="PlatformActionContainer"/>.
         /// Should be overridden per-platform to provide native key bindings.
         /// </summary>
         public virtual IEnumerable<KeyBinding> PlatformKeyBindings => new[]
@@ -599,7 +608,7 @@ namespace osu.Framework.Platform
             new KeyBinding(new KeyCombination(new[] { InputKey.Shift, InputKey.Right }), new PlatformAction(PlatformActionType.CharNext, PlatformActionMethod.Select)),
             new KeyBinding(new KeyCombination(new[] { InputKey.Control, InputKey.Left }), new PlatformAction(PlatformActionType.WordPrevious, PlatformActionMethod.Move)),
             new KeyBinding(new KeyCombination(new[] { InputKey.Control, InputKey.Right }), new PlatformAction(PlatformActionType.WordNext, PlatformActionMethod.Move)),
-            new KeyBinding(new KeyCombination(new[] { InputKey.Control, InputKey.BackSpace}), new PlatformAction(PlatformActionType.WordPrevious, PlatformActionMethod.Delete)),
+            new KeyBinding(new KeyCombination(new[] { InputKey.Control, InputKey.BackSpace }), new PlatformAction(PlatformActionType.WordPrevious, PlatformActionMethod.Delete)),
             new KeyBinding(new KeyCombination(new[] { InputKey.Control, InputKey.Delete }), new PlatformAction(PlatformActionType.WordNext, PlatformActionMethod.Delete)),
             new KeyBinding(new KeyCombination(new[] { InputKey.Control, InputKey.Shift, InputKey.Left }), new PlatformAction(PlatformActionType.WordPrevious, PlatformActionMethod.Select)),
             new KeyBinding(new KeyCombination(new[] { InputKey.Control, InputKey.Shift, InputKey.Right }), new PlatformAction(PlatformActionType.WordNext, PlatformActionMethod.Select)),

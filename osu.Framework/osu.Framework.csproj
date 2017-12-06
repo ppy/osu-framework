@@ -239,9 +239,10 @@
     <Compile Include="Input\CustomInputManager.cs" />
     <Compile Include="Input\Bindings\IKeyBindingHandler.cs" />
     <Compile Include="Input\Bindings\KeyBinding.cs" />
-    <Compile Include="Input\Bindings\KeyBindingInputManager.cs" />
+    <Compile Include="Input\Bindings\KeyBindingContainer.cs" />
     <Compile Include="Input\Bindings\KeyCombination.cs" />
     <Compile Include="Graphics\Visualisation\PropertyDisplay.cs" />
+    <Compile Include="Input\FrameworkActionContainer.cs" />
     <Compile Include="Input\GameWindowTextInput.cs" />
     <Compile Include="Input\Handlers\IHasCursorSensitivity.cs" />
     <Compile Include="Input\Handlers\Keyboard\OpenTKKeyboardHandler.cs" />
@@ -305,7 +306,7 @@
     <Compile Include="Input\IKeyboardState.cs" />
     <Compile Include="Input\IMouseState.cs" />
     <Compile Include="Input\ITextInputSource.cs" />
-    <Compile Include="Input\PlatformInputManager.cs" />
+    <Compile Include="Input\PlatformActionContainer.cs" />
     <Compile Include="IO\File\FileSafety.cs" />
     <Compile Include="IO\Network\FileWebRequest.cs" />
     <Compile Include="IO\Network\HttpMethod.cs" />

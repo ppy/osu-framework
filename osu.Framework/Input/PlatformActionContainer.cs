@@ -2,7 +2,9 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Collections.Generic;
+using osu.Framework.Allocation;
 using osu.Framework.Input.Bindings;
+using osu.Framework.Platform;
 
 namespace osu.Framework.Input
 {
@@ -12,9 +14,17 @@ namespace osu.Framework.Input
     /// can be created to handle events that should trigger specifically on a focused drawable.
     /// Will send repeat events by default.
     /// </summary>
-    public class PlatformInputManager : KeyBindingInputManager<PlatformAction>
+    public class PlatformActionContainer : KeyBindingContainer<PlatformAction>
     {
-        public override IEnumerable<KeyBinding> DefaultKeyBindings => Host.PlatformKeyBindings;
+        private GameHost host;
+
+        [BackgroundDependencyLoader]
+        private void load(GameHost host)
+        {
+            this.host = host;
+        }
+
+        public override IEnumerable<KeyBinding> DefaultKeyBindings => host.PlatformKeyBindings;
 
         protected override bool SendRepeats => true;
     }
