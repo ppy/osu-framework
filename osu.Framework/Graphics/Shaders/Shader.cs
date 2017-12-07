@@ -12,7 +12,12 @@ namespace osu.Framework.Graphics.Shaders
     public class Shader : IDisposable
     {
         internal StringBuilder Log = new StringBuilder();
-        internal bool Loaded;
+
+        /// <summary>
+        /// Whether this shader has been loaded and compiled.
+        /// </summary>
+        public bool Loaded { get; private set; }
+
         internal bool IsBound;
 
         private readonly string name;
@@ -29,6 +34,8 @@ namespace osu.Framework.Graphics.Shaders
         {
             this.name = name;
             this.parts = parts;
+
+            GLWrapper.EnqueueShaderCompile(this);
         }
 
         #region Disposal
@@ -129,7 +136,7 @@ namespace osu.Framework.Graphics.Shaders
             }
         }
 
-        private void ensureLoaded()
+        internal void EnsureLoaded()
         {
             if (!Loaded)
                 Compile();
@@ -140,7 +147,7 @@ namespace osu.Framework.Graphics.Shaders
             if (IsBound)
                 return;
 
-            ensureLoaded();
+            EnsureLoaded();
 
             GLWrapper.UseProgram(this);
 
@@ -170,7 +177,7 @@ namespace osu.Framework.Graphics.Shaders
         /// <returns>Returns a base uniform.</returns>
         public Uniform<T> GetUniform<T>(string name)
         {
-            ensureLoaded();
+            EnsureLoaded();
             if (!uniforms.ContainsKey(name))
                 throw new ArgumentException($"Uniform {name} does not exist in shader {this.name}.", nameof(name));
             return new Uniform<T>(uniforms[name]);
@@ -188,7 +195,7 @@ namespace osu.Framework.Graphics.Shaders
 
             foreach (Shader shader in all_shaders)
             {
-                shader.ensureLoaded();
+                shader.EnsureLoaded();
                 if (shader.uniforms.ContainsKey(name))
                     shader.uniforms[name].Value = value;
             }
