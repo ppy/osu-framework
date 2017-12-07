@@ -81,7 +81,7 @@ namespace osu.Framework.Graphics.UserInterface
                     Colour = BackgroundUnfocused,
                     RelativeSizeAxes = Axes.Both,
                 },
-                TextContainer = new KeyBindingContainer(this)
+                TextContainer = new TextBoxPlatformBindingHandler(this)
                 {
                     AutoSizeAxes = Axes.X,
                     RelativeSizeAxes = Axes.Y,
@@ -871,11 +871,11 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        private class KeyBindingContainer : Container, IKeyBindingHandler<PlatformAction>
+        private class TextBoxPlatformBindingHandler : Container, IKeyBindingHandler<PlatformAction>
         {
             private readonly TextBox textBox;
 
-            public KeyBindingContainer(TextBox textBox)
+            public TextBoxPlatformBindingHandler(TextBox textBox)
             {
                 this.textBox = textBox;
             }
