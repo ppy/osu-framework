@@ -80,6 +80,8 @@ namespace osu.Framework.Input.Bindings
             if (addedSelf)
                 localQueue.Remove(this);
 
+            localQueue.Reverse();
+
             return true;
         }
 
