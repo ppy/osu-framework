@@ -58,15 +58,13 @@ namespace osu.Framework.Input.Bindings
 
         protected override bool OnWheel(InputState state)
         {
+            InputKey key = state.Mouse.WheelDelta > 0 ? InputKey.MouseWheelUp : InputKey.MouseWheelDown;
+
             // we need to create a local cloned state to ensure the underlying code in handleNewReleased thinks we are in a sane state,
             // even though we are pressing and releasing an InputKey in a single frame.
+            // the important part of this cloned state is the value of Wheel reset to zero.
             var clonedState = state.Clone();
-            var clonedMouseState = (MouseState)clonedState.Mouse;
-
-            clonedMouseState.Wheel = 0;
-            clonedMouseState.LastState = null;
-
-            InputKey key = state.Mouse.WheelDelta > 0 ? InputKey.MouseWheelUp : InputKey.MouseWheelDown;
+            clonedState.Mouse = new MouseState { Buttons = clonedState.Mouse.Buttons };
 
             return handleNewPressed(state, key, false) | handleNewReleased(clonedState, key);
         }
@@ -206,7 +204,6 @@ namespace osu.Framework.Input.Bindings
         public void TriggerReleased(T released) => PropagateReleased(KeyBindingInputQueue, released);
 
         public void TriggerPressed(T pressed) => PropagateReleased(KeyBindingInputQueue, pressed);
-
     }
 
     /// <summary>
@@ -236,12 +233,14 @@ namespace osu.Framework.Input.Bindings
         /// One action can be in a pressed state at once. If a new matching binding is encountered, any existing binding is first released.
         /// </summary>
         None,
+
         /// <summary>
         /// Unique actions are allowed to be pressed at the same time. There may therefore be more than one action in an actuated state at once.
         /// If one action has multiple bindings, only the first will trigger an <see cref="IKeyBindingHandler{T}.OnPressed"/>.
         /// The last binding to be released will trigger an <see cref="IKeyBindingHandler{T}.OnReleased(T)"/>.
         /// </summary>
         Unique,
+
         /// <summary>
         /// Unique actions are allowed to be pressed at the same time, as well as multiple times from different bindings. There may therefore be
         /// more than one action in an pressed state at once, as well as multiple consecutive <see cref="IKeyBindingHandler{T}.OnPressed"/> events
