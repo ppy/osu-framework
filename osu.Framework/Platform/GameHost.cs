@@ -408,9 +408,9 @@ namespace osu.Framework.Platform
         {
             var root = new UserInputManager
             {
-                Child = new FrameworkActionContainer
+                Child = new PlatformActionContainer
                 {
-                    Child = new PlatformActionContainer
+                    Child = new FrameworkActionContainer
                     {
                         Child = game
                     }
