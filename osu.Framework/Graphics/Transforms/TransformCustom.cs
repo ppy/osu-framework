@@ -40,7 +40,7 @@ namespace osu.Framework.Graphics.Transforms
                     nameof(Interpolation.ValueAt),
                     typeof(InterpolationFunc<TValue>)
                         .GetMethod(nameof(InterpolationFunc<TValue>.Invoke))
-                        .GetParameters().Select(p => p.ParameterType).ToArray()
+                        ?.GetParameters().Select(p => p.ParameterType).ToArray()
                 )?.CreateDelegate(typeof(InterpolationFunc<TValue>));
         }
 
