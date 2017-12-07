@@ -103,12 +103,7 @@ namespace osu.Framework.Audio.Track
 
         public bool IsReversed => Rate < 0;
 
-        public override bool HasCompleted => base.HasCompleted || HasReachedEnd && !Looping;
-
-        /// <summary>
-        /// Whether this track has reached its end and isn't running.
-        /// </summary>
-        public virtual bool HasReachedEnd => IsLoaded && !IsRunning && CurrentTime >= Length;
+        public override bool HasCompleted => IsLoaded && !IsRunning && CurrentTime >= Length;
 
         /// <summary>
         /// Current amplitude of stereo channels where 1 is full volume and 0 is silent.
@@ -121,7 +116,7 @@ namespace osu.Framework.Audio.Track
         {
             FrameStatistics.Increment(StatisticsCounterType.Tracks);
 
-            if (Looping && HasReachedEnd)
+            if (Looping && HasCompleted)
                 Restart();
 
             base.UpdateState();
