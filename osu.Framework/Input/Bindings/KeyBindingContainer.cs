@@ -203,7 +203,7 @@ namespace osu.Framework.Input.Bindings
 
         public void TriggerReleased(T released) => PropagateReleased(KeyBindingInputQueue, released);
 
-        public void TriggerPressed(T pressed) => PropagateReleased(KeyBindingInputQueue, pressed);
+        public void TriggerPressed(T pressed) => PropagatePressed(KeyBindingInputQueue, pressed);
     }
 
     /// <summary>
