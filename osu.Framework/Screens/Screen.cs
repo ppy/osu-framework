@@ -5,8 +5,6 @@ using System;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Input;
-using OpenTK.Input;
 
 namespace osu.Framework.Screens
 {
@@ -112,20 +110,6 @@ namespace osu.Framework.Screens
             //for the case where we are at the top of the mode stack, we still want to run our OnEntering method.
             if (ParentScreen == null)
                 OnEntering(null);
-        }
-
-        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
-        {
-            if (args.Repeat || !IsCurrentScreen) return false;
-
-            switch (args.Key)
-            {
-                case Key.Escape:
-                    Exit();
-                    return true;
-            }
-
-            return base.OnKeyDown(state, args);
         }
 
         /// <summary>

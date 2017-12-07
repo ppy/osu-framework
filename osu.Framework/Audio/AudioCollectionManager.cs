@@ -60,7 +60,7 @@ namespace osu.Framework.Audio
             {
                 var item = Items[i];
 
-                if (item.HasCompleted)
+                if (!item.IsAlive)
                 {
                     Items.RemoveAt(i--);
                     continue;

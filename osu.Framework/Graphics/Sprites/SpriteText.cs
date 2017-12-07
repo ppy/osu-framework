@@ -20,8 +20,10 @@ namespace osu.Framework.Graphics.Sprites
     /// <summary>
     /// A container for simple text rendering purposes. If more complex text rendering is required, use <see cref="TextFlowContainer"/> instead.
     /// </summary>
-    public class SpriteText : FillFlowContainer, IHasCurrentValue<string>, IHasLineBaseHeight, IHasText
+    public class SpriteText : FillFlowContainer, IHasCurrentValue<string>, IHasLineBaseHeight, IHasText, IHasFilterTerms
     {
+        public IEnumerable<string> FilterTerms => new [] { Text };
+
         private static readonly char[] default_fixed_width_exceptions = { '.', ':', ',' };
 
         /// <summary>
