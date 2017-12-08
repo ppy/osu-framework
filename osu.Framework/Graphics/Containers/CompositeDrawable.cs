@@ -344,8 +344,9 @@ namespace osu.Framework.Graphics.Containers
 
 
             internalChildren.RemoveAt(IndexOfInternal(child));
-            if (child.IsAlive)
-                aliveInternalChildren.Remove(child);
+            var aliveIndex = aliveInternalChildren.IndexOf(child);
+            if (aliveIndex >= 0) // remove if found
+                aliveInternalChildren.RemoveAt(aliveIndex);
 
             var chId = child.ChildID;
             child.ChildID = 0; // ensure Depth-change does not throw an exception
@@ -353,7 +354,7 @@ namespace osu.Framework.Graphics.Containers
             child.ChildID = chId;
 
             internalChildren.Add(child);
-            if (child.IsAlive)
+            if (aliveIndex >= 0) // re-add if it used to be in aliveInternalChildren
                 aliveInternalChildren.Add(child);
         }
 
