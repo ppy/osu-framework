@@ -103,5 +103,20 @@ namespace osu.Framework.Graphics.Cursor
 
             return result;
         }
+
+        protected List<TTarget> FindTargets()
+        {
+            findTargetChildren();
+
+            List<TTarget> result = new List<TTarget>(targetChildren);
+
+            // Clean up
+            childDrawables.Clear();
+            nestedTtcChildDrawables.Clear();
+            newChildDrawables.Clear();
+            targetChildren.Clear();
+
+            return result;
+        }
     }
 }
