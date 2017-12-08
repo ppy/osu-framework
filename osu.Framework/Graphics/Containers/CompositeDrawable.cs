@@ -339,11 +339,11 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="newDepth">The new depth value to be set.</param>
         protected internal void ChangeInternalChildDepth(Drawable child, float newDepth)
         {
-            if (!ContainsInternal(child))
+            var index = IndexOfInternal(child);
+            if (index < 0)
                 throw new InvalidOperationException($"Can not change depth of drawable which is not contained within this {nameof(CompositeDrawable)}.");
 
-
-            internalChildren.RemoveAt(IndexOfInternal(child));
+            internalChildren.RemoveAt(index);
             var aliveIndex = aliveInternalChildren.IndexOf(child);
             if (aliveIndex >= 0) // remove if found
                 aliveInternalChildren.RemoveAt(aliveIndex);
