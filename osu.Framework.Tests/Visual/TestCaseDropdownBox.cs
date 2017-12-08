@@ -20,7 +20,7 @@ namespace osu.Framework.Tests.Visual
 
         public TestCaseDropdownBox()
         {
-            StyledDropdown styledDropdown, styledDropdownMenu2;
+            StyledDropdown styledDropdown, styledDropdownMenu2, styledDropdownMenu3;
 
             var testItems = new string[10];
             int i = 0;
@@ -38,6 +38,13 @@ namespace osu.Framework.Tests.Visual
             {
                 Width = 150,
                 Position = new Vector2(400, 70),
+                Items = testItems.Select(item => new KeyValuePair<string, string>(item, item)),
+            });
+
+            Add(styledDropdownMenu3 = new StyledDropdown
+            {
+                Width = 150,
+                Position = new Vector2(170, 90),
                 Items = testItems.Select(item => new KeyValuePair<string, string>(item, item)),
             });
 
