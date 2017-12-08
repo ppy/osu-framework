@@ -342,9 +342,19 @@ namespace osu.Framework.Graphics.Containers
             if (!ContainsInternal(child))
                 throw new InvalidOperationException($"Can not change depth of drawable which is not contained within this {nameof(CompositeDrawable)}.");
 
-            RemoveInternal(child);
+
+            internalChildren.RemoveAt(IndexOfInternal(child));
+            if (child.IsAlive)
+                aliveInternalChildren.Remove(child);
+
+            var chId = child.ChildID;
+            child.ChildID = 0; // ensure Depth-change does not throw an exception
             child.Depth = newDepth;
-            AddInternal(child);
+            child.ChildID = chId;
+
+            internalChildren.Add(child);
+            if (child.IsAlive)
+                aliveInternalChildren.Add(child);
         }
 
         #endregion
