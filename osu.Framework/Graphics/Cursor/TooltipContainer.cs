@@ -196,12 +196,13 @@ namespace osu.Framework.Graphics.Cursor
 
             if (relevantPositions.All(t => Vector2Extensions.DistanceSquared(t.Position, first) < appearRadiusSq))
             {
-
                 var targets = base.FindTargets();
+                // The top items are at the end of the list
+                targets.Reverse();
 
                 // Go through each item until we find a tooltip
                 foreach (var target in targets) {
-                    if (hasValidTooltip(target)) {
+                    if (hasValidTooltip(target) && !target.IgnoreTooltip) {
                         return target;
                     }
                 }
