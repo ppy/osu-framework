@@ -482,8 +482,6 @@ namespace osu.Framework.Graphics.Performance
 
                 Sprite.Texture = atlas.Add(WIDTH, HEIGHT);
             }
-
-            public override bool HandleInput => false;
         }
 
         private class CounterBar : Container

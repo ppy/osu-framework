@@ -206,6 +206,12 @@ namespace osu.Framework.Graphics
             }
         }
 
+        [BackgroundDependencyLoader]
+        private void load(HandleInputCache handleInputCache)
+        {
+            this.handleInputCache = handleInputCache;
+        }
+
         /// <summary>
         /// Runs once on the update thread after loading has finished.
         /// </summary>
@@ -1830,10 +1836,12 @@ namespace osu.Framework.Graphics
         /// is propagated up the scene graph to the next eligible Drawable.</returns>
         protected virtual bool OnMouseMove(InputState state) => false;
 
+        private HandleInputCache handleInputCache;
+
         /// <summary>
         /// This drawable only receives input events if HandleInput is true.
         /// </summary>
-        public virtual bool HandleInput => false;
+        public virtual bool HandleInput => handleInputCache.Get(GetType());
 
         /// <summary>
         /// Check whether we have active focus.

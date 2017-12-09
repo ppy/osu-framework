@@ -14,6 +14,7 @@ using OpenTK.Graphics;
 using OpenTK.Graphics.ES30;
 using OpenTK.Input;
 using osu.Framework.Allocation;
+using osu.Framework.Caching;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
@@ -157,6 +158,7 @@ namespace osu.Framework.Platform
 
             Dependencies.Cache(this);
             Dependencies.Cache(Storage = GetStorage(gameName));
+            prepareHandleInputCache();
 
             Name = gameName;
             Logger.GameIdentifier = gameName;
@@ -178,6 +180,18 @@ namespace osu.Framework.Platform
             var path = System.IO.Path.GetDirectoryName(FullPath);
             if (path != null)
                 Environment.CurrentDirectory = path;
+        }
+
+        private void prepareHandleInputCache()
+        {
+            var handleInputCache = new HandleInputCache();
+
+            foreach (var type in AppDomain.CurrentDomain.GetAssemblies().SelectMany(a => a.GetTypes()).Where(t => t.IsSubclassOf(typeof(Drawable))))
+            {
+                handleInputCache.Get(type);
+            }
+
+            Dependencies.Cache(handleInputCache);
         }
 
         private void exceptionHandler(object sender, UnhandledExceptionEventArgs e)

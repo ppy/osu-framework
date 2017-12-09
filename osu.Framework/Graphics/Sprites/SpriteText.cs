@@ -22,7 +22,7 @@ namespace osu.Framework.Graphics.Sprites
     /// </summary>
     public class SpriteText : FillFlowContainer, IHasCurrentValue<string>, IHasLineBaseHeight, IHasText, IHasFilterTerms
     {
-        public IEnumerable<string> FilterTerms => new [] { Text };
+        public IEnumerable<string> FilterTerms => new[] { Text };
 
         private static readonly char[] default_fixed_width_exceptions = { '.', ':', ',' };
 
@@ -120,8 +120,6 @@ namespace osu.Framework.Graphics.Sprites
         private float spaceWidth;
 
         private FontStore store;
-
-        public override bool HandleInput => false;
 
         /// <summary>
         /// Creates a new sprite text. <see cref="Container{T}.AutoSizeAxes"/> is set to <see cref="Axes.Both"/> by default.
