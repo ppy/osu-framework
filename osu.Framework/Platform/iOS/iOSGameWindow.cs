@@ -3,7 +3,7 @@ using OpenTK.Platform.iPhoneOS;
 using osu.Framework.Configuration;
 using osu.Framework.Platform;
 
-namespace SampleGame.iOS
+namespace osu.Framework.Platform.iOS
 {
     public class iOSGameWindow : GameWindow
     {

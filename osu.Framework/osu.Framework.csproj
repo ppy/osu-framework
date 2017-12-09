@@ -5,7 +5,6 @@
 
   <PropertyGroup Label="Project">
     <!-- We need to compile for net461 here for System.Drawing to work under .NET Framework... -->
-    <TargetFramework>xamarinios10</TargetFramework>
     <OutputType>Library</OutputType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Company>ppy Pty Ltd</Company>
@@ -14,17 +13,6 @@
     <AssemblyTitle>osu!framework</AssemblyTitle>
     <Description>Framework to support osu!</Description>
     <Product>osu!framework</Product>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <CodesignKey>iPhone Developer</CodesignKey>
-    <MtouchDebug>true</MtouchDebug>
-    <MtouchNoSymbolStrip>true</MtouchNoSymbolStrip>
-    <MtouchFastDev>true</MtouchFastDev>
-    <IOSDebuggerPort>60677</IOSDebuggerPort>
-    <DeviceSpecificBuild>false</DeviceSpecificBuild>
-    <MtouchLink></MtouchLink>
-    <MtouchHttpClientHandler></MtouchHttpClientHandler>
   </PropertyGroup>
 
   <ItemGroup Label="Package References">
@@ -37,7 +25,6 @@
     <PackageReference Include="NUnit" Version="3.8.1" />
     <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.3.0" />
     <PackageReference Include="System.Reflection.Emit.ILGeneration" Version="4.3.0" />
-    <PackageReference Include="MSBuild.Sdk.Extras" Version="1.1.0" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup Label="Content">
@@ -68,11 +55,5 @@
     </Content>
   </ItemGroup>
 
-  <Import Project="$(MSBuildSDKExtrasTargets)" Condition="Exists('$(MSBuildSDKExtrasTargets)')" />
-
-  <ItemGroup>
-    <Reference Include="Xamarin.iOS">
-      <Aliases>IOS</Aliases>
-    </Reference>
-  </ItemGroup>
+  <Import Project="..\iOS.props" />
 </Project>

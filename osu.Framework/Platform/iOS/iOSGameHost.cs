@@ -6,7 +6,7 @@ using osu.Framework.Input.Handlers;
 using osu.Framework.Platform;
 using osu.Framework.Platform.Windows;
 
-namespace SampleGame.iOS
+namespace osu.Framework.Platform.iOS
 {
     public class iOSGameHost : GameHost
     {

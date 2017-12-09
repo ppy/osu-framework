@@ -83,12 +83,10 @@
     <Reference Include="Xamarin.iOS">
       <Aliases>IOS</Aliases>
     </Reference>
-    <Reference Include="osu.Framework">
-      <HintPath>..\osu.Framework\bin\Debug\xamarinios10\osu.Framework.dll</HintPath>
-    </Reference>
     <Reference Include="OpenTK">
       <HintPath>..\Libraries\OpenTK.dll</HintPath>
     </Reference>
+    <ProjectReference Include="..\osu.Framework\osu.Framework.csproj" />
   </ItemGroup>
   <ItemGroup>
     <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Contents.json" />
@@ -108,9 +106,6 @@
     <Compile Include="Main.cs" />
     <Compile Include="AppDelegate.cs" />
     <Compile Include="GameView.cs" />
-    <Compile Include="iOSPlatformGameWindow.cs" />
-    <Compile Include="iOSGameWindow.cs" />
-    <Compile Include="iOSGameHost.cs" />
     <Compile Include="SampleGame.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />

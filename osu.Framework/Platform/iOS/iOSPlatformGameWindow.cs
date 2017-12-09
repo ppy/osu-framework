@@ -8,7 +8,7 @@ using OpenTK.Platform;
 using IOS::System.Drawing;
 using OpenTK.Platform.iPhoneOS;
 
-namespace SampleGame.iOS
+namespace osu.Framework.Platform.iOS
 {
     public class iOSPlatformGameWindow : IGameWindow
     {
