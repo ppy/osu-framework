@@ -1,12 +1,14 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+extern alias IOS;
+
 using System;
 using osu.Framework.Configuration;
 using osu.Framework.Input;
 using OpenTK;
-using Size = OpenTK.Size;
-using Point = OpenTK.Point;
+using Size = IOS::System.Drawing.Size;
+using Point = IOS::System.Drawing.Point;
 
 namespace osu.Framework.Platform
 {
@@ -27,9 +29,13 @@ namespace osu.Framework.Platform
 
         public readonly Bindable<ConfineMouseMode> ConfineMouseMode = new Bindable<ConfineMouseMode>();
 
+        protected new OpenTK.GameWindow Implementation => (OpenTK.GameWindow)base.Implementation;
+
         public DesktopGameWindow()
             : base(default_width, default_height)
         {
+            Implementation.Resize += OnResize;
+            Implementation.Move += OnMove;
         }
 
         public override void SetupWindow(FrameworkConfigManager config)
@@ -56,25 +62,21 @@ namespace osu.Framework.Platform
             Exited += onExit;
         }
 
-        protected override void OnResize(EventArgs e)
+        protected void OnResize(object sender, EventArgs e)
         {
-            if (ClientSize.IsEmpty) return;
-
-            base.OnResize(e);
+            if (Implementation.ClientSize.IsEmpty) return;
 
             switch (WindowMode.Value)
             {
                 case Configuration.WindowMode.Windowed:
-                    width.Value = ClientSize.Width;
-                    height.Value = ClientSize.Height;
+                    width.Value = Implementation.ClientSize.Width;
+                    height.Value = Implementation.ClientSize.Height;
                     break;
             }
         }
 
-        protected override void OnMove(EventArgs e)
+        protected void OnMove(object sender, EventArgs e)
         {
-            base.OnMove(e);
-
             // The game is windowed and the whole window is on the screen (it is not minimized or moved outside of the screen)
             if (WindowMode.Value == Configuration.WindowMode.Windowed
                 && Position.X > 0 && Position.X < 1
@@ -113,25 +115,25 @@ namespace osu.Framework.Platform
                     DisplayResolution newResolution = DisplayDevice.Default.SelectResolution(widthFullscreen, heightFullscreen, 0, DisplayDevice.Default.RefreshRate);
                     DisplayDevice.Default.ChangeResolution(newResolution);
 
-                    WindowState = WindowState.Fullscreen;
+                    Implementation.WindowState = WindowState.Fullscreen;
                     break;
                 case Configuration.WindowMode.Borderless:
                     DisplayDevice.Default.RestoreResolution();
 
-                    WindowState = WindowState.Maximized;
-                    WindowBorder = WindowBorder.Hidden;
+                    Implementation.WindowState = WindowState.Maximized;
+                    Implementation.WindowBorder = WindowBorder.Hidden;
 
                     //must add 1 to enter borderless
-                    ClientSize = new Size(DisplayDevice.Default.Bounds.Width + 1, DisplayDevice.Default.Bounds.Height + 1);
+                    Implementation.ClientSize = new Size(DisplayDevice.Default.Bounds.Width + 1, DisplayDevice.Default.Bounds.Height + 1);
                     Position = Vector2.Zero;
                     break;
                 default:
                     DisplayDevice.Default.RestoreResolution();
 
-                    WindowState = WindowState.Normal;
-                    WindowBorder = WindowBorder.Resizable;
+                    Implementation.WindowState = WindowState.Normal;
+                    Implementation.WindowBorder = WindowBorder.Resizable;
 
-                    ClientSize = new Size(width, height);
+                    Implementation.ClientSize = new Size(width, height);
                     Position = new Vector2((float)windowPositionX, (float)windowPositionY);
                     break;
             }
@@ -144,8 +146,8 @@ namespace osu.Framework.Platform
             switch (WindowMode.Value)
             {
                 case Configuration.WindowMode.Fullscreen:
-                    widthFullscreen.Value = ClientSize.Width;
-                    heightFullscreen.Value = ClientSize.Height;
+                    widthFullscreen.Value = Implementation.ClientSize.Width;
+                    heightFullscreen.Value = Implementation.ClientSize.Height;
                     break;
             }
 
@@ -156,15 +158,15 @@ namespace osu.Framework.Platform
         {
             get
             {
-                return new Vector2((float)Location.X / (DisplayDevice.Default.Width - Size.Width),
-                    (float)Location.Y / (DisplayDevice.Default.Height - Size.Height));
+                return new Vector2((float)Implementation.Location.X / (DisplayDevice.Default.Width - Implementation.Size.Width),
+                                   (float)Implementation.Location.Y / (DisplayDevice.Default.Height - Implementation.Size.Height));
             }
 
             set
             {
-                Location = new Point(
-                    (int)Math.Round((DisplayDevice.Default.Width - Size.Width) * value.X),
-                    (int)Math.Round((DisplayDevice.Default.Height - Size.Height) * value.Y));
+                Implementation.Location = new Point(
+                    (int)Math.Round((DisplayDevice.Default.Width - Implementation.Size.Width) * value.X),
+                    (int)Math.Round((DisplayDevice.Default.Height - Implementation.Size.Height) * value.Y));
             }
         }
 

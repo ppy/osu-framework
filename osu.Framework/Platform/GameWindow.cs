@@ -8,10 +8,11 @@ using osu.Framework.Logging;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.ES30;
+using OpenTK.Platform;
 
 namespace osu.Framework.Platform
 {
-    public abstract class GameWindow : OpenTK.GameWindow
+    public abstract class GameWindow
     {
         internal Version GLVersion;
         internal Version GLSLVersion;
@@ -21,16 +22,13 @@ namespace osu.Framework.Platform
         /// </summary>
         public bool CursorInWindow { get; private set; }
 
-        protected GameWindow(int width, int height)
-            : base(width, height, new GraphicsMode(GraphicsMode.Default.ColorFormat, GraphicsMode.Default.Depth, GraphicsMode.Default.Stencil, GraphicsMode.Default.Samples, GraphicsMode.Default.AccumulatorFormat, 3))
+        public readonly IGameWindow Implementation;
+
+        protected GameWindow(IGameWindow implementation)
         {
-            Closing += (sender, e) => e.Cancel = ExitRequested?.Invoke() ?? false;
-            Closed += (sender, e) => Exited?.Invoke();
+            this.Implementation = implementation;
 
-            MouseEnter += (sender, args) => CursorInWindow = true;
-            MouseLeave += (sender, args) => CursorInWindow = false;
-
-            MakeCurrent();
+            implementation.MakeCurrent();
 
             string version = GL.GetString(StringName.Version);
             string versionNumberSubstring = getVersionNumberSubstring(version);
@@ -63,8 +61,18 @@ namespace osu.Framework.Platform
                         GL Shader Language version: {GL.GetString(StringName.ShadingLanguageVersion)}
                         GL Vendor:                  {GL.GetString(StringName.Vendor)}
                         GL Extensions:              {GL.GetString(StringName.Extensions)}", LoggingTarget.Runtime, LogLevel.Important);
+        }
 
-            Context.MakeCurrent(null);
+        protected GameWindow(int width, int height)
+            : this(new OpenTK.GameWindow(width, height, new GraphicsMode(GraphicsMode.Default.ColorFormat, GraphicsMode.Default.Depth, GraphicsMode.Default.Stencil, GraphicsMode.Default.Samples, GraphicsMode.Default.AccumulatorFormat, 3)))
+        {
+            var gw = (OpenTK.GameWindow)Implementation;
+
+            gw.Closing += (sender, e) => e.Cancel = ExitRequested?.Invoke() ?? false;
+            gw.Closed += (sender, e) => Exited?.Invoke();
+
+            gw.MouseEnter += (sender, args) => CursorInWindow = true;
+            gw.MouseLeave += (sender, args) => CursorInWindow = false;
         }
 
         private CursorState cursorState = CursorState.Default;
@@ -99,36 +107,11 @@ namespace osu.Framework.Platform
             }
         }
 
-        /// <summary>
-        /// We do not support directly using <see cref="Cursor"/>.
-        /// It is controlled internally. Use <see cref="CursorState"/> instead.
-        /// </summary>
-        public new bool Cursor
-        {
-            get { throw new InvalidOperationException($@"{nameof(Cursor)} is not supported. Use {nameof(CursorState)}."); }
-            set { throw new InvalidOperationException($@"{nameof(Cursor)} is not supported. Use {nameof(CursorState)}."); }
-        }
-
-        /// <summary>
-        /// We do not support directly using <see cref="CursorVisible"/>.
-        /// It is controlled internally. Use <see cref="CursorState"/> instead.
-        /// </summary>
-        public new bool CursorVisible
-        {
-            get { throw new InvalidOperationException($@"{nameof(CursorVisible)} is not supported. Use {nameof(CursorState)}."); }
-            set { throw new InvalidOperationException($@"{nameof(CursorVisible)} is not supported. Use {nameof(CursorState)}."); }
-        }
-
         private string getVersionNumberSubstring(string version)
         {
             string result = version.Split(' ').FirstOrDefault(s => char.IsDigit(s, 0));
             if (result != null) return result;
             throw new ArgumentException(nameof(version));
-        }
-
-        public void SetTitle(string title)
-        {
-            Title = title;
         }
 
         public abstract void SetupWindow(FrameworkConfigManager config);

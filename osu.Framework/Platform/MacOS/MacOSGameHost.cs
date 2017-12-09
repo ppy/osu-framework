@@ -13,9 +13,9 @@ namespace osu.Framework.Platform.MacOS
             : base(gameName, bindIPC)
         {
             Window = new MacOSGameWindow();
-            Window.WindowStateChanged += (sender, e) =>
+            Window.Implementation.WindowStateChanged += (sender, e) =>
             {
-                if (Window.WindowState != OpenTK.WindowState.Minimized)
+                if (Window.Implementation.WindowState != OpenTK.WindowState.Minimized)
                     OnActivated();
                 else
                     OnDeactivated();

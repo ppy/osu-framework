@@ -33,7 +33,12 @@ namespace osu.Framework.Platform.MacOS
 
         private object nativeWindow;
 
-        protected override void OnLoad(EventArgs e)
+        public MacOSGameWindow()
+        {
+            Implementation.Load += OnLoad;
+        }
+
+        protected void OnLoad(object sender, EventArgs e)
         {
             try
             {
@@ -56,8 +61,6 @@ namespace osu.Framework.Platform.MacOS
                 Logger.Log("Window initialisation couldn't complete, likely due to the SDL backend being enabled.", LoggingTarget.Runtime, LogLevel.Important);
                 Logger.Log("Execution will continue but keyboard functionality may be limited.", LoggingTarget.Runtime, LogLevel.Important);
             }
-
-            base.OnLoad(e);
         }
 
         private void flagsChanged(IntPtr self, IntPtr cmd, IntPtr sender)

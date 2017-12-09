@@ -24,13 +24,13 @@ namespace osu.Framework.Input.Handlers.Keyboard
             {
                 if (enabled)
                 {
-                    host.Window.KeyDown += handleState;
-                    host.Window.KeyUp += handleState;
+                    host.Window.Implementation.KeyDown += handleState;
+                    host.Window.Implementation.KeyUp += handleState;
                 }
                 else
                 {
-                    host.Window.KeyDown -= handleState;
-                    host.Window.KeyUp -= handleState;
+                    host.Window.Implementation.KeyDown -= handleState;
+                    host.Window.Implementation.KeyUp -= handleState;
                 }
             };
             Enabled.TriggerChange();

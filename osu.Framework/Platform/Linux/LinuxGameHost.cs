@@ -9,9 +9,9 @@ namespace osu.Framework.Platform.Linux
             : base(gameName, bindIPC)
         {
             Window = new DesktopGameWindow();
-            Window.WindowStateChanged += (sender, e) =>
+            Window.Implementation.WindowStateChanged += (sender, e) =>
             {
-                if (Window.WindowState != OpenTK.WindowState.Minimized)
+                if (Window.Implementation.WindowState != OpenTK.WindowState.Minimized)
                     OnActivated();
                 else
                     OnDeactivated();

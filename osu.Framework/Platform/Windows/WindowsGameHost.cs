@@ -25,9 +25,9 @@ namespace osu.Framework.Platform.Windows
             timePeriod = new TimePeriod(1) { Active = true };
 
             Window = new WindowsGameWindow();
-            Window.WindowStateChanged += (sender, e) =>
+            Window.Implementation.WindowStateChanged += (sender, e) =>
             {
-                if (Window.WindowState != OpenTK.WindowState.Minimized)
+                if (Window.Implementation.WindowState != OpenTK.WindowState.Minimized)
                     OnActivated();
                 else
                     OnDeactivated();

@@ -240,8 +240,8 @@ namespace osu.Framework.Platform
         {
             if (Root == null) return;
 
-            if (Window?.WindowState != WindowState.Minimized)
-                Root.Size = Window != null ? new Vector2(Window.ClientSize.Width, Window.ClientSize.Height) :
+            if (Window.Implementation?.WindowState != WindowState.Minimized)
+                Root.Size = Window != null ? new Vector2(Window.Implementation.ClientSize.Width, Window.Implementation.ClientSize.Height) :
                     new Vector2(config.Get<int>(FrameworkSetting.Width), config.Get<int>(FrameworkSetting.Height));
 
             // Ensure we maintain a valid size for any children immediately scaling by the window size
@@ -254,12 +254,12 @@ namespace osu.Framework.Platform
 
         protected virtual void DrawInitialize()
         {
-            Window.MakeCurrent();
+            Window.Implementation.MakeCurrent();
             GLWrapper.Initialize(this);
 
             setVSyncMode();
 
-            GLWrapper.Reset(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
+            GLWrapper.Reset(new Vector2(Window.Implementation.ClientSize.Width, Window.Implementation.ClientSize.Height));
             GLWrapper.ClearColour(Color4.Black);
         }
 
@@ -282,7 +282,7 @@ namespace osu.Framework.Platform
 
                     using (drawMonitor.BeginCollecting(PerformanceCollectionType.GLReset))
                     {
-                        GLWrapper.Reset(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
+                        GLWrapper.Reset(new Vector2(Window.Implementation.ClientSize.Width, Window.Implementation.ClientSize.Height));
                         GLWrapper.ClearColour(Color4.Black);
                     }
 
@@ -296,12 +296,12 @@ namespace osu.Framework.Platform
 
             using (drawMonitor.BeginCollecting(PerformanceCollectionType.SwapBuffer))
             {
-                Window.SwapBuffers();
+                Window.Implementation.SwapBuffers();
 
-                if (Window.VSync == VSyncMode.On)
-                    // without glFinish, vsync is basically unplayable due to the extra latency introduced.
-                    // we will likely want to give the user control over this in the future as an advanced setting.
-                    GL.Finish();
+                //if (Window.VSync == VSyncMode.On)
+                    //// without glFinish, vsync is basically unplayable due to the extra latency introduced.
+                    //// we will likely want to give the user control over this in the future as an advanced setting.
+                    //GL.Finish();
             }
         }
 
@@ -315,7 +315,7 @@ namespace osu.Framework.Platform
 
             InputThread.Scheduler.Add(delegate
             {
-                Window?.Close();
+                Window.Implementation?.Close();
                 stopAllThreads();
                 exitCompleted = true;
             }, false);
@@ -328,7 +328,7 @@ namespace osu.Framework.Platform
             if (Window != null)
             {
                 Window.SetupWindow(config);
-                Window.Title = $@"osu!framework (running ""{Name}"")";
+                Window.Implementation.Title = $@"osu!framework (running ""{Name}"")";
             }
 
             resetInputHandlers();
@@ -346,28 +346,28 @@ namespace osu.Framework.Platform
             {
                 if (Window != null)
                 {
-                    setActive(Window.Focused);
+                    setActive(Window.Implementation.Focused);
 
-                    Window.KeyDown += window_KeyDown;
+                    Window.Implementation.KeyDown += window_KeyDown;
 
                     Window.ExitRequested += OnExitRequested;
                     Window.Exited += OnExited;
-                    Window.FocusedChanged += delegate { setActive(Window.Focused); };
+                    Window.Implementation.FocusedChanged += delegate { setActive(Window.Implementation.Focused); };
 
-                    Window.UpdateFrame += delegate
+                    Window.Implementation.UpdateFrame += delegate
                     {
                         inputPerformanceCollectionPeriod?.Dispose();
                         InputThread.RunUpdate();
                         inputPerformanceCollectionPeriod = inputMonitor.BeginCollecting(PerformanceCollectionType.WndProc);
                     };
-                    Window.Closed += delegate
+                    Window.Implementation.Closed += delegate
                     {
                         //we need to ensure all threads have stopped before the window is closed (mainly the draw thread
                         //to avoid GL operations running post-cleanup).
                         stopAllThreads();
                     };
 
-                    Window.Run();
+                    Window.Implementation.Run();
                 }
                 else
                 {
@@ -540,7 +540,7 @@ namespace osu.Framework.Platform
         {
             if (Window == null) return;
 
-            DrawThread.Scheduler.Add(() => Window.VSync = frameSyncMode == FrameSync.VSync ? VSyncMode.On : VSyncMode.Off);
+            //DrawThread.Scheduler.Add(() => Window.Implementation.VSync = frameSyncMode == FrameSync.VSync ? VSyncMode.On : VSyncMode.Off);
         }
 
         protected abstract IEnumerable<InputHandler> CreateAvailableInputHandlers();

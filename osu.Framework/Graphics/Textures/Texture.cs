@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.Primitives;
@@ -11,8 +10,6 @@ using OpenTK.Graphics.ES30;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
-using Rectangle = System.Drawing.Rectangle;
-using Bitmap = System.Drawing.Bitmap;
 
 namespace osu.Framework.Graphics.Textures
 {
@@ -129,45 +126,6 @@ namespace osu.Framework.Graphics.Textures
         public void SetData(TextureUpload upload)
         {
             TextureGL?.SetData(upload);
-        }
-
-        public unsafe void SetData(Bitmap bitmap, int level = 0)
-        {
-            if (TextureGL == null)
-                return;
-
-            int width = Math.Min(bitmap.Width, Width);
-            int height = Math.Min(bitmap.Height, Height);
-
-            BitmapData bData = bitmap.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-
-            TextureUpload upload = new TextureUpload(width * height * 4)
-            {
-                Level = level,
-                Bounds = new RectangleI(0, 0, width, height)
-            };
-
-            byte[] data = upload.Data;
-
-            const int bytes_per_pixel = 4;
-            byte* bDataPointer = (byte*)bData.Scan0;
-
-            for (var y = 0; y < height; y++)
-            {
-                // This is why real scan-width is important to have!
-                IntPtr row = new IntPtr(bDataPointer + y * bData.Stride);
-                Marshal.Copy(row, data, width * bytes_per_pixel * y, width * bytes_per_pixel);
-            }
-
-            bitmap.UnlockBits(bData);
-
-            bool isTransparent = bgraToRgba(data, width * height * 4);
-            TextureGL.IsTransparent = isTransparent;
-
-            if (!isTransparent)
-                SetData(upload);
-            else
-                upload.Dispose();
         }
 
         protected virtual RectangleF TextureBounds(RectangleF? textureRect = null)

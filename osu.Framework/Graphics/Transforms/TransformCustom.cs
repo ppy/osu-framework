@@ -21,13 +21,22 @@ namespace osu.Framework.Graphics.Transforms
     /// <typeparam name="T">The type of the target to operate upon.</typeparam>
     internal class TransformCustom<TValue, T> : Transform<TValue, T> where T : ITransformable
     {
-        private delegate TValue ReadFunc(T transformable);
-        private delegate void WriteFunc(T transformable, TValue value);
-
         private struct Accessor
         {
-            public ReadFunc Read;
-            public WriteFunc Write;
+            public FieldInfo Field;
+            public PropertyInfo Property;
+
+            public void Write(T d, TValue value)
+            {
+                if (Field != null) Field.SetValue(d, value);
+                if (Property != null) Property.SetValue(d, value);
+            }
+
+            public TValue Read(T d)
+            {
+                if (Field != null) return (TValue)Field.GetValue(d);
+                return (TValue)Property.GetValue(d);
+            }
         }
 
         private static readonly Dictionary<string, Accessor> accessors = new Dictionary<string, Accessor>();
@@ -42,29 +51,6 @@ namespace osu.Framework.Graphics.Transforms
                         .GetMethod(nameof(InterpolationFunc<TValue>.Invoke))
                         .GetParameters().Select(p => p.ParameterType).ToArray()
                 )?.CreateDelegate(typeof(InterpolationFunc<TValue>));
-        }
-
-        private static ReadFunc createFieldGetter(FieldInfo field)
-        {
-            string methodName = $"{typeof(T).ReadableName()}.{field.Name}.get_{Guid.NewGuid():N}";
-            DynamicMethod setterMethod = new DynamicMethod(methodName, typeof(TValue), new[] { typeof(T) }, true);
-            ILGenerator gen = setterMethod.GetILGenerator();
-            gen.Emit(OpCodes.Ldarg_0);
-            gen.Emit(OpCodes.Ldfld, field);
-            gen.Emit(OpCodes.Ret);
-            return (ReadFunc)setterMethod.CreateDelegate(typeof(ReadFunc));
-        }
-
-        private static WriteFunc createFieldSetter(FieldInfo field)
-        {
-            string methodName = $"{typeof(T).ReadableName()}.{field.Name}.set_{Guid.NewGuid():N}";
-            DynamicMethod setterMethod = new DynamicMethod(methodName, null, new[] { typeof(T), typeof(TValue) }, true);
-            ILGenerator gen = setterMethod.GetILGenerator();
-            gen.Emit(OpCodes.Ldarg_0);
-            gen.Emit(OpCodes.Ldarg_1);
-            gen.Emit(OpCodes.Stfld, field);
-            gen.Emit(OpCodes.Ret);
-            return (WriteFunc)setterMethod.CreateDelegate(typeof(WriteFunc));
         }
 
         private static Accessor findAccessor(Type type, string propertyOrFieldName)
@@ -91,8 +77,7 @@ namespace osu.Framework.Graphics.Transforms
 
                 return new Accessor
                 {
-                    Read = (ReadFunc)getter.CreateDelegate(typeof(ReadFunc)),
-                    Write = (WriteFunc)setter.CreateDelegate(typeof(WriteFunc)),
+                    Property = property
                 };
             }
 
@@ -110,8 +95,7 @@ namespace osu.Framework.Graphics.Transforms
 
                 return new Accessor
                 {
-                    Read = createFieldGetter(field),
-                    Write = createFieldSetter(field),
+                    Field = field
                 };
             }
 
@@ -159,7 +143,7 @@ namespace osu.Framework.Graphics.Transforms
             TargetMember = propertyOrFieldName;
 
             accessor = getAccessor(propertyOrFieldName);
-            Trace.Assert(accessor.Read != null && accessor.Write != null, $"Failed to populate {nameof(accessor)}.");
+            Trace.Assert(accessor.Field != null || accessor.Property != null, $"Failed to populate {nameof(accessor)}.");
 
             this.interpolationFunc = interpolationFunc ?? interpolation_func;
 
@@ -179,7 +163,6 @@ namespace osu.Framework.Graphics.Transforms
         public override string TargetMember { get; }
 
         protected override void Apply(T d, double time) => accessor.Write(d, valueAt(time));
-
         protected override void ReadIntoStartValue(T d) => StartValue = accessor.Read(d);
     }
 }

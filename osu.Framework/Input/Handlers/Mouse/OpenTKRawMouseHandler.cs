@@ -1,12 +1,14 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+extern alias IOS;
+
 using osu.Framework.Configuration;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
 using osu.Framework.Threading;
 using OpenTK;
-using Point = OpenTK.Point;
+using Point = IOS::System.Drawing.Point;
 
 namespace osu.Framework.Input.Handlers.Mouse
 {
@@ -30,8 +32,8 @@ namespace osu.Framework.Input.Handlers.Mouse
 
         public override bool Initialize(GameHost host)
         {
-            host.Window.MouseEnter += window_MouseEnter;
-            host.Window.MouseLeave += window_MouseLeave;
+            host.Window.Implementation.MouseEnter += window_MouseEnter;
+            host.Window.Implementation.MouseLeave += window_MouseLeave;
 
             mouseInWindow = host.Window.CursorInWindow;
 
@@ -49,10 +51,10 @@ namespace osu.Framework.Input.Handlers.Mouse
                 {
                     host.InputThread.Scheduler.Add(scheduled = new ScheduledDelegate(delegate
                     {
-                        if (!host.Window.Visible || host.Window.WindowState == WindowState.Minimized)
+                        if (!host.Window.Implementation.Visible || host.Window.Implementation.WindowState == WindowState.Minimized)
                             return;
 
-                        bool useRawInput = mouseInWindow && host.Window.Focused;
+                        bool useRawInput = mouseInWindow && host.Window.Implementation.Focused;
 
                         var state = useRawInput ? OpenTK.Input.Mouse.GetState() : OpenTK.Input.Mouse.GetCursorState();
 
@@ -66,7 +68,7 @@ namespace osu.Framework.Input.Handlers.Mouse
                                 // when we return from being outside of the window, we want to set the new position of our game cursor
                                 // to where the OS cursor is, just once.
                                 var cursorState = OpenTK.Input.Mouse.GetCursorState();
-                                var screenPoint = host.Window.PointToClient(new Point(cursorState.X, cursorState.Y));
+                                var screenPoint = host.Window.Implementation.PointToClient(new Point(cursorState.X, cursorState.Y));
                                 currentPosition = new Vector2(screenPoint.X, screenPoint.Y);
                             }
                             else
@@ -75,17 +77,17 @@ namespace osu.Framework.Input.Handlers.Mouse
 
                                 // When confining, clamp to the window size.
                                 if (confineMode.Value == ConfineMouseMode.Always || confineMode.Value == ConfineMouseMode.Fullscreen && windowMode.Value == WindowMode.Fullscreen)
-                                    currentPosition = Vector2.Clamp(currentPosition, Vector2.Zero, new Vector2(host.Window.Width, host.Window.Height));
+                                    currentPosition = Vector2.Clamp(currentPosition, Vector2.Zero, new Vector2(host.Window.Implementation.Width, host.Window.Implementation.Height));
 
                                 // update the windows cursor to match our raw cursor position.
                                 // this is important when sensitivity is decreased below 1.0, where we need to ensure the cursor stays withing the window.
-                                var screenPoint = host.Window.PointToScreen(new Point((int)currentPosition.X, (int)currentPosition.Y));
+                                var screenPoint = host.Window.Implementation.PointToScreen(new Point((int)currentPosition.X, (int)currentPosition.Y));
                                 OpenTK.Input.Mouse.SetPosition(screenPoint.X, screenPoint.Y);
                             }
                         }
                         else
                         {
-                            var screenPoint = host.Window.PointToClient(new Point(state.X, state.Y));
+                            var screenPoint = host.Window.Implementation.PointToClient(new Point(state.X, state.Y));
                             currentPosition = new Vector2(screenPoint.X, screenPoint.Y);
                         }
 

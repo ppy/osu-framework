@@ -1,10 +1,13 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+extern alias IOS;
+
 using System;
+using System.Drawing;
 using System.Runtime.InteropServices;
 using OpenTK;
-using Point = OpenTK.Point;
+using Point = IOS::System.Drawing.Point;
 
 namespace osu.Framework.Platform.Windows.Native
 {
