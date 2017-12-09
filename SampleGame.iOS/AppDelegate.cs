@@ -1,5 +1,6 @@
 ﻿extern alias IOS;
 
+using osu.Framework.Platform.iOS;
 using IOS::Foundation;
 using IOS::UIKit;
 using OpenTK;
