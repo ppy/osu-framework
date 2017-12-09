@@ -44,11 +44,13 @@ namespace osu.Framework.Caching
                     var isOverridden = type.GetMethod(inputMethod, BindingFlags.Instance | BindingFlags.NonPublic).DeclaringType != typeof(Drawable);
                     if (isOverridden)
                     {
-                        cachedValues.TryAdd(type, value = true);
-                        break;
+                        cachedValues.TryAdd(type, true);
+                        return true;
                     }
                 }
+                cachedValues.TryAdd(type, value = false);
             }
+
             return value;
         }
     }
