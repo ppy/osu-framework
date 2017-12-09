@@ -122,7 +122,7 @@ namespace osu.Framework
                 EventScheduler = Scheduler
             });
 
-            Host.RegisterThread(Audio.Thread);
+            // Host.RegisterThread(Audio.Thread);
 
             //attach our bindables to the audio subsystem.
             config.BindWith(FrameworkSetting.AudioDevice, Audio.AudioDevice);

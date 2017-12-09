@@ -1,4 +1,8 @@
-﻿#define GAMMA 2.4
+﻿#ifdef GL_ES
+	precision mediump float;
+#endif
+
+#define GAMMA 2.4
 
 float toLinear(float color)
 {
