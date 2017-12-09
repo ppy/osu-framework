@@ -92,8 +92,6 @@ namespace osu.Framework.Audio
         /// <param name="sampleStore">The sample store containing all audio samples to be used in the future.</param>
         public AudioManager(ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore)
         {
-            return;
-
             AudioDevice.ValueChanged += onDeviceChanged;
 
             trackStore.AddExtension(@"mp3");
@@ -197,6 +195,8 @@ namespace osu.Framework.Audio
 
         private bool setAudioDevice(string preferredDevice = null)
         {
+            return false;
+
             updateAvailableAudioDevices();
 
             string oldDevice = currentAudioDevice;
@@ -289,6 +289,8 @@ namespace osu.Framework.Audio
 
         private void updateAvailableAudioDevices()
         {
+            return;
+
             var currentDeviceList = getAllDevices().Where(d => d.IsEnabled).ToList();
             var currentDeviceNames = getDeviceNames(currentDeviceList).ToList();
 
@@ -312,6 +314,8 @@ namespace osu.Framework.Audio
 
         private void checkAudioDeviceChanged()
         {
+            return;
+
             try
             {
                 if (AudioDevice.Value == string.Empty)

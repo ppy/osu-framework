@@ -32,6 +32,8 @@ namespace osu.Framework.Audio
         /// </summary>
         public void Update()
         {
+            return;
+
             ThreadSafety.EnsureNotUpdateThread();
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString(), "Can not update disposed audio components.");
