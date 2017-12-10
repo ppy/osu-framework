@@ -17,6 +17,17 @@ namespace osu.Framework.Platform.iOS
         public iOSPlatformGameWindow(iPhoneOSGameView gameView)
         {
             this.gameView = gameView;
+
+            gameView.Load += Load;
+            gameView.Unload += Unload;
+            gameView.UpdateFrame += UpdateFrame;
+            gameView.RenderFrame += RenderFrame;
+            gameView.Resize += Resize;
+            gameView.Closed += Closed;
+            gameView.Disposed += Disposed;
+            gameView.TitleChanged += TitleChanged;
+            gameView.VisibleChanged += VisibleChanged;
+            gameView.WindowStateChanged += WindowStateChanged;
         }
 
         public Icon Icon { get; set; }
