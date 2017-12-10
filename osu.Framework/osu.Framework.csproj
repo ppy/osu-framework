@@ -192,7 +192,6 @@
     <Compile Include="Graphics\Cursor\CursorEffectContainer.cs" />
     <Compile Include="Graphics\Cursor\IHasCustomTooltip.cs" />
     <Compile Include="Graphics\Cursor\ITooltip.cs" />
-    <Compile Include="Caching\HandleInputCache.cs" />
     <Compile Include="Graphics\Primitives\RectangleI.cs" />
     <Compile Include="Graphics\Primitives\Vector2I.cs" />
     <Compile Include="Graphics\Shapes\Circle.cs" />

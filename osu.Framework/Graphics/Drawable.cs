@@ -19,8 +19,10 @@ using osu.Framework.Statistics;
 using osu.Framework.Threading;
 using osu.Framework.Timing;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Development;
@@ -204,12 +206,6 @@ namespace osu.Framework.Graphics
                     Logger.Log($@"Drawable [{ToString()}] took {loadDuration:0.00}ms to load and was not async!", LoggingTarget.Performance);
                 loadState = LoadState.Ready;
             }
-        }
-
-        [BackgroundDependencyLoader]
-        private void load(HandleInputCache handleInputCache)
-        {
-            this.handleInputCache = handleInputCache;
         }
 
         /// <summary>
@@ -1836,31 +1832,59 @@ namespace osu.Framework.Graphics
         /// is propagated up the scene graph to the next eligible Drawable.</returns>
         protected virtual bool OnMouseMove(InputState state) => false;
 
-        private HandleInputCache handleInputCache;
-
-        public string[] InputMethods => new[]
-        {
-            nameof(OnHover),
-            nameof(OnHoverLost),
-            nameof(OnMouseDown),
-            nameof(OnMouseUp),
-            nameof(OnClick),
-            nameof(OnDoubleClick),
-            nameof(OnDragStart),
-            nameof(OnDrag),
-            nameof(OnDragEnd),
-            nameof(OnWheel),
-            nameof(OnFocus),
-            nameof(OnFocusLost),
-            nameof(OnKeyDown),
-            nameof(OnKeyUp),
-            nameof(OnMouseMove),
-        };
-
         /// <summary>
         /// This drawable only receives input events if HandleInput is true.
         /// </summary>
-        public virtual bool HandleInput => handleInputCache.Get(this);
+        public virtual bool HandleInput => HandleInputCache.Get(this);
+
+        /// <summary>
+        /// Nested class which is used for caching HandleInput values obtained via reflection
+        /// </summary>
+        private static class HandleInputCache
+        {
+            private static readonly ConcurrentDictionary<Type, bool> cached_values = new ConcurrentDictionary<Type, bool>();
+
+            private static string[] inputMethods => new[]
+            {
+                nameof(OnHover),
+                nameof(OnHoverLost),
+                nameof(OnMouseDown),
+                nameof(OnMouseUp),
+                nameof(OnClick),
+                nameof(OnDoubleClick),
+                nameof(OnDragStart),
+                nameof(OnDrag),
+                nameof(OnDragEnd),
+                nameof(OnWheel),
+                nameof(OnFocus),
+                nameof(OnFocusLost),
+                nameof(OnKeyDown),
+                nameof(OnKeyUp),
+                nameof(OnMouseMove),
+            };
+
+            public static bool Get(Drawable drawable)
+            {
+                var type = drawable.GetType();
+                var cached = cached_values.TryGetValue(type, out var value);
+
+                if (!cached)
+                {
+                    foreach (var inputMethod in inputMethods)
+                    {
+                        var isOverridden = type.GetMethod(inputMethod, BindingFlags.Instance | BindingFlags.NonPublic).DeclaringType != typeof(Drawable);
+                        if (isOverridden)
+                        {
+                            cached_values.TryAdd(type, true);
+                            return true;
+                        }
+                    }
+                    cached_values.TryAdd(type, value = false);
+                }
+
+                return value;
+            }
+        }
 
         /// <summary>
         /// Check whether we have active focus.

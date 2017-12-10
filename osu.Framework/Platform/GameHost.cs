@@ -14,7 +14,6 @@ using OpenTK.Graphics;
 using OpenTK.Graphics.ES30;
 using OpenTK.Input;
 using osu.Framework.Allocation;
-using osu.Framework.Caching;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
@@ -158,7 +157,6 @@ namespace osu.Framework.Platform
 
             Dependencies.Cache(this);
             Dependencies.Cache(Storage = GetStorage(gameName));
-            Dependencies.Cache(new HandleInputCache());
 
             Name = gameName;
             Logger.GameIdentifier = gameName;
