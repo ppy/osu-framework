@@ -7,7 +7,7 @@ namespace osu.Framework.Platform.iOS
 {
     public class iOSGameWindow : GameWindow
     {
-        public iOSGameWindow(iPhoneOSGameView gameView)
+        public iOSGameWindow(iOSPlatformGameView gameView)
             : base(new iOSPlatformGameWindow(gameView))
         {
         }

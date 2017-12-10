@@ -12,22 +12,22 @@ namespace osu.Framework.Platform.iOS
 {
     public class iOSPlatformGameWindow : IGameWindow
     {
-        private readonly iPhoneOSGameView gameView;
+        private readonly iOSPlatformGameView gameView;
 
-        public iOSPlatformGameWindow(iPhoneOSGameView gameView)
+        public iOSPlatformGameWindow(iOSPlatformGameView gameView)
         {
             this.gameView = gameView;
 
-            gameView.Load += Load;
-            gameView.Unload += Unload;
-            gameView.UpdateFrame += UpdateFrame;
-            gameView.RenderFrame += RenderFrame;
-            gameView.Resize += Resize;
-            gameView.Closed += Closed;
-            gameView.Disposed += Disposed;
-            gameView.TitleChanged += TitleChanged;
-            gameView.VisibleChanged += VisibleChanged;
-            gameView.WindowStateChanged += WindowStateChanged;
+            gameView.Load += (o, e) => Load?.Invoke(o, e);
+            gameView.Unload += (o, e) => Unload?.Invoke(o, e);
+            gameView.UpdateFrame += (o, e) => UpdateFrame?.Invoke(o, e);
+            gameView.RenderFrame += (o, e) => RenderFrame?.Invoke(o, e);
+            gameView.Resize += (o, e) => Resize?.Invoke(o, e);
+            gameView.Closed += (o, e) => Closed?.Invoke(o, e);
+            gameView.Disposed += (o, e) => Disposed?.Invoke(o, e);
+            gameView.TitleChanged += (o, e) => TitleChanged?.Invoke(o, e);
+            gameView.VisibleChanged += (o, e) => VisibleChanged?.Invoke(o, e);
+            gameView.WindowStateChanged += (o, e) => WindowStateChanged?.Invoke(o, e);
         }
 
         public Icon Icon { get; set; }
