@@ -12,34 +12,14 @@ namespace osu.Framework.Caching
     {
         private readonly ConcurrentDictionary<Type, bool> cachedValues = new ConcurrentDictionary<Type, bool>();
 
-        private readonly string[] inputMethods = {
-            "OnHover",
-            "OnHoverLost",
-            "OnMouseDown",
-            "OnMouseUp",
-            "OnClick",
-            "OnDoubleClick",
-            "OnDragStart",
-            "OnDrag",
-            "OnDragEnd",
-            "OnWheel",
-            "OnFocus",
-            "OnFocusLost",
-            "OnKeyDown",
-            "OnKeyUp",
-            "OnMouseMove"
-        };
-
-        public bool Get(Type type)
+        public bool Get(Drawable drawable)
         {
-            if (!type.IsSubclassOf(typeof(Drawable)))
-                throw new ArgumentException();
-
+            var type = drawable.GetType();
             var cached = cachedValues.TryGetValue(type, out var value);
 
             if (!cached)
             {
-                foreach (var inputMethod in inputMethods)
+                foreach (var inputMethod in drawable.InputMethods)
                 {
                     var isOverridden = type.GetMethod(inputMethod, BindingFlags.Instance | BindingFlags.NonPublic).DeclaringType != typeof(Drawable);
                     if (isOverridden)

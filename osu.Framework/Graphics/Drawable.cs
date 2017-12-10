@@ -1838,10 +1838,29 @@ namespace osu.Framework.Graphics
 
         private HandleInputCache handleInputCache;
 
+        public string[] InputMethods => new[]
+        {
+            nameof(OnHover),
+            nameof(OnHoverLost),
+            nameof(OnMouseDown),
+            nameof(OnMouseUp),
+            nameof(OnClick),
+            nameof(OnDoubleClick),
+            nameof(OnDragStart),
+            nameof(OnDrag),
+            nameof(OnDragEnd),
+            nameof(OnWheel),
+            nameof(OnFocus),
+            nameof(OnFocusLost),
+            nameof(OnKeyDown),
+            nameof(OnKeyUp),
+            nameof(OnMouseMove),
+        };
+
         /// <summary>
         /// This drawable only receives input events if HandleInput is true.
         /// </summary>
-        public virtual bool HandleInput => handleInputCache.Get(GetType());
+        public virtual bool HandleInput => handleInputCache.Get(this);
 
         /// <summary>
         /// Check whether we have active focus.
