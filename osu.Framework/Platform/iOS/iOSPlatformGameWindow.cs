@@ -41,7 +41,7 @@ namespace osu.Framework.Platform.iOS
         public bool Visible
         {
             get => gameView.Visible;
-            set => gameView.Visible = value;
+            set { }
         }
 
         public bool Exists => true;
@@ -62,7 +62,7 @@ namespace osu.Framework.Platform.iOS
         public Rectangle Bounds
         {
             get => new Rectangle(0, 0, Width, Height);
-            set => gameView.Bounds = value;
+            set { }
         }
 
         public Point Location
@@ -74,7 +74,7 @@ namespace osu.Framework.Platform.iOS
         public Size Size
         {
             get => gameView.Size;
-            set => gameView.Size = value;
+            set { }
         }
 
         public int X
@@ -92,25 +92,25 @@ namespace osu.Framework.Platform.iOS
         public int Width
         {
             get => Size.Width;
-            set => Size = new Size(value, Size.Height);
+            set { }
         }
 
         public int Height
         {
             get => Size.Height;
-            set => Size = new Size(Size.Width, value);
+            set { }
         }
 
         public Rectangle ClientRectangle
         {
             get => new Rectangle(0, 0, Width, Height);
-            set => Size = value.Size;
+            set { }
         }
 
         public Size ClientSize
         {
             get => Size;
-            set => Size = value;
+            set { }
         }
 
         public IInputDriver InputDriver => gameView.InputDriver;
