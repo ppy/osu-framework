@@ -15,12 +15,14 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Input;
 using osu.Framework.Platform;
 using osu.Framework.Screens;
 using osu.Framework.Testing.Drawables;
 using osu.Framework.Timing;
 using OpenTK;
 using OpenTK.Graphics;
+using OpenTK.Input;
 
 namespace osu.Framework.Testing
 {
@@ -127,7 +129,7 @@ namespace osu.Framework.Testing
                                 },
                                 new ScrollContainer
                                 {
-                                    Padding = new MarginPadding{ Top = 3 },
+                                    Padding = new MarginPadding { Top = 3 },
                                     RelativeSizeAxes = Axes.Both,
                                     ScrollbarOverlapsContent = false,
                                     Child = leftFlowContainer = new SearchContainer<TestCaseButton>
@@ -250,6 +252,18 @@ namespace osu.Framework.Testing
                 Game?.Exit();
 
             return base.OnExiting(next);
+        }
+
+        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
+        {
+            switch (args.Key)
+            {
+                case Key.Escape:
+                    Exit();
+                    return true;
+            }
+
+            return base.OnKeyDown(state, args);
         }
 
         public void LoadTest(int testIndex) => LoadTest(TestTypes[testIndex]);
@@ -437,7 +451,6 @@ namespace osu.Framework.Testing
                 };
 
                 RateAdjustSlider.Current.ValueChanged += v => playbackSpeedDisplay.Text = v.ToString("0%");
-
             }
         }
     }
