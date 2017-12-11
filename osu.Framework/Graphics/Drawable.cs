@@ -1886,8 +1886,8 @@ namespace osu.Framework.Graphics
                     }
                 }
 
-                cached_values.TryAdd(type, value = false);
-                return value;
+                cached_values.TryAdd(type, false);
+                return false;
             }
         }
 
