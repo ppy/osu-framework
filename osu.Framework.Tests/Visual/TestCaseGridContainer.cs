@@ -42,27 +42,27 @@ namespace osu.Framework.Tests.Visual
             AddStep("1-cell (auto)", () =>
             {
                 reset();
-                grid.Content = new Drawable[][] { new[] { new FillBox() } };
+                grid.Content = new[] { new Drawable[] { new FillBox() } };
             });
 
             AddStep("1-cell (absolute)", () =>
             {
                 reset();
-                grid.Content = new Drawable[][] { new[] { new FillBox() } };
+                grid.Content = new[] { new Drawable[] { new FillBox() } };
                 grid.RowDimensions = grid.ColumnDimensions = new[] { new Dimension(GridSizeMode.Absolute, 100) };
             });
 
             AddStep("1-cell (relative)", () =>
             {
                 reset();
-                grid.Content = new Drawable[][] { new[] { new FillBox() } };
+                grid.Content = new [] { new Drawable[] { new FillBox() } };
                 grid.RowDimensions = grid.ColumnDimensions = new[] { new Dimension(GridSizeMode.Relative, 0.5f) };
             });
 
             AddStep("1-cell (mixed)", () =>
             {
                 reset();
-                grid.Content = new Drawable[][] { new[] { new FillBox() } };
+                grid.Content = new [] { new Drawable[] { new FillBox() } };
                 grid.RowDimensions = new[] { new Dimension(GridSizeMode.Absolute, 100) };
                 grid.ColumnDimensions = new[] { new Dimension(GridSizeMode.Relative, 0.5f) };
             });
@@ -70,20 +70,20 @@ namespace osu.Framework.Tests.Visual
             AddStep("1-cell (mixed) 2", () =>
             {
                 reset();
-                grid.Content = new Drawable[][] { new[] { new FillBox() } };
-                grid.RowDimensions = new[] { new Dimension(GridSizeMode.Relative, 0.5f) };
+                grid.Content = new [] { new Drawable[] { new FillBox() } };
+                grid.RowDimensions = new [] { new Dimension(GridSizeMode.Relative, 0.5f) };
             });
 
             AddStep("3-cell row (auto)", () =>
             {
                 reset();
-                grid.Content = new Drawable[][] { new[] { new FillBox(), new FillBox(), new FillBox() } };
+                grid.Content = new [] { new Drawable[] { new FillBox(), new FillBox(), new FillBox() } };
             });
 
             AddStep("3-cell row (absolute)", () =>
             {
                 reset();
-                grid.Content = new Drawable[][] { new[] { new FillBox(), new FillBox(), new FillBox() } };
+                grid.Content = new [] { new Drawable[] { new FillBox(), new FillBox(), new FillBox() } };
                 grid.RowDimensions = grid.ColumnDimensions = new[]
                 {
                     new Dimension(GridSizeMode.Absolute, 50),
@@ -95,7 +95,7 @@ namespace osu.Framework.Tests.Visual
             AddStep("3-cell row (relative)", () =>
             {
                 reset();
-                grid.Content = new Drawable[][] { new[] { new FillBox(), new FillBox(), new FillBox() } };
+                grid.Content = new [] { new Drawable[] { new FillBox(), new FillBox(), new FillBox() } };
                 grid.RowDimensions = grid.ColumnDimensions = new[]
                 {
                     new Dimension(GridSizeMode.Relative, 0.1f),
@@ -107,7 +107,7 @@ namespace osu.Framework.Tests.Visual
             AddStep("3-cell row (mixed)", () =>
             {
                 reset();
-                grid.Content = new Drawable[][] { new[] { new FillBox(), new FillBox(), new FillBox() } };
+                grid.Content = new [] { new Drawable[] { new FillBox(), new FillBox(), new FillBox() } };
                 grid.RowDimensions = grid.ColumnDimensions = new[]
                 {
                     new Dimension(GridSizeMode.Absolute, 50),
@@ -118,22 +118,22 @@ namespace osu.Framework.Tests.Visual
             AddStep("3-cell column (auto)", () =>
             {
                 reset();
-                grid.Content = new Drawable[][]
+                grid.Content = new[]
                 {
-                    new[] { new FillBox() },
-                    new[] { new FillBox() },
-                    new[] { new FillBox() }
+                    new Drawable[] { new FillBox() },
+                    new Drawable[] { new FillBox() },
+                    new Drawable[] { new FillBox() }
                 };
             });
 
             AddStep("3-cell column (absolute)", () =>
             {
                 reset();
-                grid.Content = new Drawable[][]
+                grid.Content = new[]
                 {
-                    new[] { new FillBox() },
-                    new[] { new FillBox() },
-                    new[] { new FillBox() }
+                    new Drawable[] { new FillBox() },
+                    new Drawable[] { new FillBox() },
+                    new Drawable[] { new FillBox() }
                 };
 
                 grid.RowDimensions = grid.ColumnDimensions = new[]
@@ -147,11 +147,11 @@ namespace osu.Framework.Tests.Visual
             AddStep("3-cell column (relative)", () =>
             {
                 reset();
-                grid.Content = new Drawable[][]
+                grid.Content = new[]
                 {
-                    new[] { new FillBox() },
-                    new[] { new FillBox() },
-                    new[] { new FillBox() }
+                    new Drawable[] { new FillBox() },
+                    new Drawable[] { new FillBox() },
+                    new Drawable[] { new FillBox() }
                 };
 
                 grid.RowDimensions = grid.ColumnDimensions = new[]
@@ -165,11 +165,11 @@ namespace osu.Framework.Tests.Visual
             AddStep("3-cell column (mixed)", () =>
             {
                 reset();
-                grid.Content = new Drawable[][]
+                grid.Content = new[]
                 {
-                    new[] { new FillBox() },
-                    new[] { new FillBox() },
-                    new[] { new FillBox() }
+                    new Drawable[] { new FillBox() },
+                    new Drawable[] { new FillBox() },
+                    new Drawable[] { new FillBox() }
                 };
 
                 grid.RowDimensions = grid.ColumnDimensions = new[]
@@ -182,22 +182,22 @@ namespace osu.Framework.Tests.Visual
             AddStep("3x3-cell (auto)", () =>
             {
                 reset();
-                grid.Content = new Drawable[][]
+                grid.Content = new[]
                 {
-                    new[] { new FillBox(), new FillBox(), new FillBox() },
-                    new[] { new FillBox(), new FillBox(), new FillBox() },
-                    new[] { new FillBox(), new FillBox(), new FillBox() }
+                    new Drawable[] { new FillBox(), new FillBox(), new FillBox() },
+                    new Drawable[] { new FillBox(), new FillBox(), new FillBox() },
+                    new Drawable[] { new FillBox(), new FillBox(), new FillBox() }
                 };
             });
 
             AddStep("3x3-cell (absolute)", () =>
             {
                 reset();
-                grid.Content = new Drawable[][]
+                grid.Content = new[]
                 {
-                    new[] { new FillBox(), new FillBox(), new FillBox() },
-                    new[] { new FillBox(), new FillBox(), new FillBox() },
-                    new[] { new FillBox(), new FillBox(), new FillBox() }
+                    new Drawable[] { new FillBox(), new FillBox(), new FillBox() },
+                    new Drawable[] { new FillBox(), new FillBox(), new FillBox() },
+                    new Drawable[] { new FillBox(), new FillBox(), new FillBox() }
                 };
 
                 grid.RowDimensions = grid.ColumnDimensions = new[]
@@ -211,11 +211,11 @@ namespace osu.Framework.Tests.Visual
             AddStep("3x3-cell (relative)", () =>
             {
                 reset();
-                grid.Content = new Drawable[][]
+                grid.Content = new[]
                 {
-                    new[] { new FillBox(), new FillBox(), new FillBox() },
-                    new[] { new FillBox(), new FillBox(), new FillBox() },
-                    new[] { new FillBox(), new FillBox(), new FillBox() }
+                    new Drawable[] { new FillBox(), new FillBox(), new FillBox() },
+                    new Drawable[] { new FillBox(), new FillBox(), new FillBox() },
+                    new Drawable[] { new FillBox(), new FillBox(), new FillBox() }
                 };
 
                 grid.RowDimensions = grid.ColumnDimensions = new[]
@@ -229,11 +229,11 @@ namespace osu.Framework.Tests.Visual
             AddStep("3x3-cell (mixed)", () =>
             {
                 reset();
-                grid.Content = new Drawable[][]
+                grid.Content = new[]
                 {
-                    new[] { new FillBox(), new FillBox(), new FillBox() },
-                    new[] { new FillBox(), new FillBox(), new FillBox() },
-                    new[] { new FillBox(), new FillBox(), new FillBox() }
+                    new Drawable[] { new FillBox(), new FillBox(), new FillBox() },
+                    new Drawable[] { new FillBox(), new FillBox(), new FillBox() },
+                    new Drawable[] { new FillBox(), new FillBox(), new FillBox() }
                 };
 
                 grid.RowDimensions = grid.ColumnDimensions = new[]
@@ -246,11 +246,11 @@ namespace osu.Framework.Tests.Visual
             AddStep("Larger sides", () =>
             {
                 reset();
-                grid.Content = new Drawable[][]
+                grid.Content = new[]
                 {
-                    new[] { new FillBox(), new FillBox(), new FillBox() },
-                    new[] { new FillBox(), new FillBox(), new FillBox() },
-                    new[] { new FillBox(), new FillBox(), new FillBox() }
+                    new Drawable[] { new FillBox(), new FillBox(), new FillBox() },
+                    new Drawable[] { new FillBox(), new FillBox(), new FillBox() },
+                    new Drawable[] { new FillBox(), new FillBox(), new FillBox() }
                 };
 
                 grid.ColumnDimensions = grid.RowDimensions = new[]
@@ -264,22 +264,22 @@ namespace osu.Framework.Tests.Visual
             AddStep("Separated", () =>
             {
                 reset();
-                grid.Content = new Drawable[][]
+                grid.Content = new[]
                 {
-                    new[] { new FillBox(), null, new FillBox() },
+                    new Drawable[] { new FillBox(), null, new FillBox() },
                     null,
-                    new[] { new FillBox(), null, new FillBox() }
+                    new Drawable[] { new FillBox(), null, new FillBox() }
                 };
             });
 
             AddStep("Separated 2", () =>
             {
                 reset();
-                grid.Content = new Drawable[][]
+                grid.Content = new[]
                 {
-                    new[] { new FillBox(), null, new FillBox(), null },
+                    new Drawable[] { new FillBox(), null, new FillBox(), null },
                     null,
-                    new[] { new FillBox(), null, new FillBox(), null },
+                    new Drawable[] { new FillBox(), null, new FillBox(), null },
                     null
                 };
             });
@@ -304,10 +304,10 @@ namespace osu.Framework.Tests.Visual
                                     new GridContainer
                                     {
                                         RelativeSizeAxes = Axes.Both,
-                                        Content = new Drawable[][]
+                                        Content = new[]
                                         {
-                                            new[] { new FillBox(), new FillBox() },
-                                            new[] { new FillBox(), new FillBox() }
+                                            new Drawable[] { new FillBox(), new FillBox() },
+                                            new Drawable[] { new FillBox(), new FillBox() }
                                         }
                                     }
                                 }
