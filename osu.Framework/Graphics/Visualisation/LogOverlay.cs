@@ -145,6 +145,8 @@ namespace osu.Framework.Graphics.Visualisation
 
         private const float font_size = 14;
 
+        public override bool HandleInput => false;
+
         public DrawableLogEntry(LogEntry entry)
         {
             RelativeSizeAxes = Axes.X;
