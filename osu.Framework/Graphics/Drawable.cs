@@ -46,7 +46,7 @@ namespace osu.Framework.Graphics
     {
         #region Construction and disposal
 
-        public Drawable()
+        protected Drawable()
         {
             handleInput = HandleInputCache.Get(this);
         }
@@ -1837,7 +1837,7 @@ namespace osu.Framework.Graphics
         /// is propagated up the scene graph to the next eligible Drawable.</returns>
         protected virtual bool OnMouseMove(InputState state) => false;
 
-        private bool handleInput;
+        private readonly bool handleInput;
         /// <summary>
         /// Whether this <see cref="Drawable"/> handles input.
         /// This value is true by default if any "On-" input methods are overridden.
