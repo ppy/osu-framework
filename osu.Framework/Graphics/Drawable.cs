@@ -1833,12 +1833,13 @@ namespace osu.Framework.Graphics
         protected virtual bool OnMouseMove(InputState state) => false;
 
         /// <summary>
-        /// This drawable only receives input events if HandleInput is true.
+        /// Whether this <see cref="Drawable"/> handles input.
+        /// This value is true by default if any "On-" input methods are overridden.
         /// </summary>
         public virtual bool HandleInput => HandleInputCache.Get(this);
 
         /// <summary>
-        /// Nested class which is used for caching HandleInput values obtained via reflection
+        /// Nested class which is used for caching <see cref="HandleInput"/> values obtained via reflection.
         /// </summary>
         private static class HandleInputCache
         {
