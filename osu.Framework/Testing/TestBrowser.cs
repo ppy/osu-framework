@@ -256,11 +256,14 @@ namespace osu.Framework.Testing
 
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
-            switch (args.Key)
+            if (!args.Repeat)
             {
-                case Key.Escape:
-                    Exit();
-                    return true;
+                switch (args.Key)
+                {
+                    case Key.Escape:
+                        Exit();
+                        return true;
+                }
             }
 
             return base.OnKeyDown(state, args);
