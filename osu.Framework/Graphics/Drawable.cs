@@ -1873,22 +1873,20 @@ namespace osu.Framework.Graphics
             public static bool Get(Drawable drawable)
             {
                 var type = drawable.GetType();
-                var cached = cached_values.TryGetValue(type, out var value);
+                if (cached_values.TryGetValue(type, out var value))
+                    return value;
 
-                if (!cached)
+                foreach (var inputMethod in inputMethods)
                 {
-                    foreach (var inputMethod in inputMethods)
+                    var isOverridden = type.GetMethod(inputMethod, BindingFlags.Instance | BindingFlags.NonPublic).DeclaringType != typeof(Drawable);
+                    if (isOverridden)
                     {
-                        var isOverridden = type.GetMethod(inputMethod, BindingFlags.Instance | BindingFlags.NonPublic).DeclaringType != typeof(Drawable);
-                        if (isOverridden)
-                        {
-                            cached_values.TryAdd(type, true);
-                            return true;
-                        }
+                        cached_values.TryAdd(type, true);
+                        return true;
                     }
-                    cached_values.TryAdd(type, value = false);
                 }
 
+                cached_values.TryAdd(type, value = false);
                 return value;
             }
         }
