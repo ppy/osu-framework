@@ -1878,8 +1878,12 @@ namespace osu.Framework.Graphics
 
                 foreach (var inputMethod in inputMethods)
                 {
-                    var isOverridden = type.GetMethod(inputMethod, BindingFlags.Instance | BindingFlags.NonPublic).DeclaringType != typeof(Drawable);
-                    if (isOverridden)
+                    // check for any input method overrides which are at a higher level than drawable.
+                    var method = type.GetMethod(inputMethod, BindingFlags.Instance | BindingFlags.NonPublic);
+
+                    Debug.Assert(method != null);
+
+                    if (method.DeclaringType != typeof(Drawable))
                     {
                         cached_values.TryAdd(type, true);
                         return true;
