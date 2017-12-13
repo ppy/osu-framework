@@ -190,8 +190,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             tab.PinnedChanged += t =>
             {
-                // Todo: This schedule is a temporary fix for https://github.com/ppy/osu-framework/issues/821
-                Schedule(() => performTabSort(t));
+                performTabSort(t);
             };
 
             tab.ActivationRequested += SelectTab;
