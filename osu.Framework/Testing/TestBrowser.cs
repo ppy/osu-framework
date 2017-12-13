@@ -96,7 +96,7 @@ namespace osu.Framework.Testing
             rateBindable = new BindableDouble(1)
             {
                 MinValue = 0,
-                MaxValue = 1,
+                MaxValue = 2,
             };
 
             var rateAdjustClock = new StopwatchClock(true);
@@ -424,7 +424,7 @@ namespace osu.Framework.Testing
                                                 new SpriteText
                                                 {
                                                     Padding = new MarginPadding(5),
-                                                    Text = "Playback Speed:"
+                                                    Text = "Rate:"
                                                 },
                                                 RateAdjustSlider = new BasicSliderBar<double>
                                                 {
