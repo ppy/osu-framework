@@ -12,7 +12,9 @@ namespace osu.Framework.Testing.Drawables.Steps
 
         private int invocations;
 
-        public override int RequiredRepetitions => success ? 0 : int.MaxValue;
+        private const int max_tries = 50;
+
+        public override int RequiredRepetitions => success ? 0 : max_tries;
 
         public new Action Action;
 
@@ -33,19 +35,33 @@ namespace osu.Framework.Testing.Drawables.Steps
             {
                 invocations++;
 
+                updateText();
+
                 if (waitUntilTrueDelegate())
                 {
                     success = true;
                     Success();
                 }
-
-                updateText();
+                else if (invocations == max_tries)
+                    throw new TimeoutException();
 
                 Action?.Invoke();
             };
         }
 
-        private void updateText() => base.Text = $@"{Text} {invocations}";
+        protected override void Success()
+        {
+            base.Success();
+            BackgroundColour = Color4.YellowGreen;
+        }
+
+        protected override void Failure()
+        {
+            base.Failure();
+            BackgroundColour = Color4.Red;
+        }
+
+        private void updateText() => base.Text = $@"{Text} ({invocations} tries)";
 
         public override string ToString() => "Repeat: " + base.ToString();
     }

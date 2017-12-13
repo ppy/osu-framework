@@ -95,12 +95,12 @@ namespace osu.Framework.Testing.Drawables.Steps
             return true;
         }
 
-        protected void Failure()
+        protected virtual void Failure()
         {
             Background.DelayUntilTransformsFinished().FadeColour(new Color4(0.3f, 0.15f, 0.15f, 1), 1000, Easing.OutQuint);
         }
 
-        protected void Success()
+        protected virtual void Success()
         {
             Background.DelayUntilTransformsFinished().FadeColour(idleColour, 1000, Easing.OutQuint);
             SpriteText.Alpha = 0.8f;
