@@ -227,20 +227,20 @@ namespace osu.Framework.Testing
             });
         }
 
-        protected void AddUntilStep(Func<bool> waitUntilTrueDelegate)
+        protected void AddUntilStep(Func<bool> waitUntilTrueDelegate, string description = null)
         {
             StepsContainer.Add(new UntilStepButton(waitUntilTrueDelegate)
             {
-                Text = @"Until",
+                Text = description ?? @"Until",
                 BackgroundColour = Color4.Gray
             });
         }
 
-        protected void AddWaitStep(int waitCount)
+        protected void AddWaitStep(int waitCount, string description = null)
         {
             StepsContainer.Add(new RepeatStepButton(waitCount)
             {
-                Text = @"Wait",
+                Text = description ?? @"Wait",
                 BackgroundColour = Color4.Gray
             });
         }
