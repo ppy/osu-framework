@@ -253,17 +253,11 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void performTabSort(TabItem<T> tab)
         {
-            if (IsLoaded)
-                TabContainer.Remove(tab);
-
-            tab.Depth = getTabDepth(tab);
+            TabContainer.SetLayoutPosition(tab, getTabDepth(tab));
 
             // IsPresent of TabItems is based on Y position.
             // We reset it here to allow tabs to get a correct initial position.
             tab.Y = 0;
-
-            if (IsLoaded)
-                TabContainer.Add(tab);
         }
 
         private float getTabDepth(TabItem<T> tab) => tab.Pinned ? float.MinValue : --depthCounter;
@@ -271,10 +265,6 @@ namespace osu.Framework.Graphics.UserInterface
         public class TabFillFlowContainer<U> : FillFlowContainer<U> where U : TabItem
         {
             public Action<U, bool> TabVisibilityChanged;
-
-            protected override int Compare(Drawable x, Drawable y) => CompareReverseChildID(x, y);
-
-            protected override IEnumerable<Drawable> FlowingChildren => base.FlowingChildren.Reverse();
 
             protected override IEnumerable<Vector2> ComputeLayoutPositions()
             {
