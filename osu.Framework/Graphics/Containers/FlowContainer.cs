@@ -3,7 +3,6 @@
 
 using OpenTK;
 using osu.Framework.Caching;
-using osu.Framework.Lists;
 using System;
 using System.Collections.Generic;
 using System.Linq;
