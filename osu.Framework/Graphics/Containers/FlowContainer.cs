@@ -3,6 +3,7 @@
 
 using OpenTK;
 using osu.Framework.Caching;
+using osu.Framework.Lists;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -72,6 +73,35 @@ namespace osu.Framework.Graphics.Containers
             return base.Invalidate(invalidation, source, shallPropagate);
         }
 
+        private Dictionary<Drawable, float> layoutChildren = new Dictionary<Drawable, float>();
+
+        protected internal override void AddInternal(Drawable drawable)
+        {
+            layoutChildren.Add(drawable, 0f);
+            base.AddInternal(drawable);
+        }
+        protected internal override bool RemoveInternal(Drawable drawable)
+        {
+            layoutChildren.Remove(drawable);
+            return base.RemoveInternal(drawable);
+        }
+        protected internal override void ClearInternal(bool disposeChildren = true)
+        {
+            layoutChildren.Clear();
+            base.ClearInternal(disposeChildren);
+        }
+
+        /// <summary>
+        /// Changes the position of the drawable in the layout. A higher position value means the drawable will be processed later (that is, the drawables with the lowest position appear first, and the drawable with the highest position appear last).
+        /// For example, the drawable with the lowest position value will be the left-most drawable in a horizontal <see cref="FillFlowContainer{T}"/> and the drawable with the highest position value will be the right-most drawable in a horizontal <see cref="FillFlowContainer{T}"/>.
+        /// </summary>
+        /// <param name="drawable">The drawable whose position should be changed, must be a child of this container.</param>
+        /// <param name="newPosition">The new position in the layout the drawable should have.</param>
+        public void SetLayoutPosition(Drawable drawable, float newPosition)
+        {
+            layoutChildren[drawable] = newPosition;
+        }
+
         protected override bool UpdateChildrenLife()
         {
             bool changed = base.UpdateChildrenLife();
@@ -92,7 +122,7 @@ namespace osu.Framework.Graphics.Containers
             base.InvalidateFromChild(invalidation);
         }
 
-        protected virtual IEnumerable<Drawable> FlowingChildren => AliveInternalChildren.Where(d => d.IsPresent);
+        protected virtual IEnumerable<Drawable> FlowingChildren => AliveInternalChildren.Where(d => d.IsPresent).OrderBy(d => layoutChildren[d]).ThenBy(d => d.ChildID);
 
         protected abstract IEnumerable<Vector2> ComputeLayoutPositions();
 
