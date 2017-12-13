@@ -139,9 +139,19 @@ namespace osu.Framework.Testing
             runNextStep(onCompletion, onError);
         }
 
-        public void RunFirstStep() => loadableStep?.TriggerOnClick();
+        public void RunFirstStep()
+        {
+            actionIndex = 0;
+            try
+            {
+                loadableStep?.TriggerOnClick();
+            }
+            catch (Exception)
+            {
+            }
+        }
 
-        private Drawable loadableStep => actionIndex >= 0 ? StepsContainer.Children.ElementAtOrDefault(actionIndex) : null;
+        private StepButton loadableStep => actionIndex >= 0 ? StepsContainer.Children.ElementAtOrDefault(actionIndex) as StepButton : null;
 
         protected virtual double TimePerAction => 200;
 
@@ -159,6 +169,7 @@ namespace osu.Framework.Testing
             catch (Exception e)
             {
                 onError?.Invoke(e);
+                return;
             }
 
             string text = ".";
@@ -180,7 +191,7 @@ namespace osu.Framework.Testing
 
             actionRepetition++;
 
-            if (actionRepetition > ((loadableStep as StepButton)?.RequiredRepetitions ?? 1) - 1)
+            if (actionRepetition > (loadableStep?.RequiredRepetitions ?? 1) - 1)
             {
                 Console.WriteLine();
                 actionIndex++;

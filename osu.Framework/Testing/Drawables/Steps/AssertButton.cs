@@ -3,8 +3,6 @@
 
 using System;
 using System.Diagnostics;
-using osu.Framework.Allocation;
-using osu.Framework.Platform;
 using OpenTK.Graphics;
 
 namespace osu.Framework.Testing.Drawables.Steps
@@ -15,18 +13,10 @@ namespace osu.Framework.Testing.Drawables.Steps
         public string ExtendedDescription;
         public StackTrace CallStack;
 
-        private bool interactive;
-
         public AssertButton()
         {
             BackgroundColour = Color4.OrangeRed;
             Action += checkAssert;
-        }
-
-        [BackgroundDependencyLoader]
-        private void load(GameHost host)
-        {
-            interactive = !(host is HeadlessGameHost);
         }
 
         private void checkAssert()
@@ -38,10 +28,8 @@ namespace osu.Framework.Testing.Drawables.Steps
             }
             else
             {
-                if (interactive)
-                    BackgroundColour = Color4.Red;
-                else
-                    throw new TracedException($"{Text} {ExtendedDescription}", CallStack);
+                BackgroundColour = Color4.Red;
+                throw new TracedException($"{Text} {ExtendedDescription}", CallStack);
             }
         }
 
