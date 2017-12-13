@@ -11,7 +11,7 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Testing.Drawables.Steps
 {
-    public abstract class StepButton : Container
+    public abstract class StepButton : CompositeDrawable
     {
         public virtual int RequiredRepetitions => 1;
 
@@ -38,7 +38,7 @@ namespace osu.Framework.Testing.Drawables.Steps
 
         protected StepButton()
         {
-            Children = new Drawable[]
+            InternalChildren = new Drawable[]
             {
                 Background = new Box
                 {
