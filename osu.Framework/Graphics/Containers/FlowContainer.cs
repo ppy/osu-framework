@@ -99,6 +99,8 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="newPosition">The new position in the layout the drawable should have.</param>
         public void SetLayoutPosition(Drawable drawable, float newPosition)
         {
+            if (!layoutChildren.ContainsKey(drawable))
+                throw new InvalidOperationException($"Cannot change layout position of drawable which is not contained within this {nameof(FlowContainer<T>)}.");
             layoutChildren[drawable] = newPosition;
         }
 
