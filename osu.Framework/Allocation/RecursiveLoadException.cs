@@ -29,19 +29,37 @@ namespace osu.Framework.Allocation
         private readonly StringBuilder traceBuilder;
 
         public RecursiveLoadException(Exception inner, MethodInfo loaderMethod)
-            : base(string.Empty, (inner as RecursiveLoadException)?.InnerException ?? inner)
+            : base(inner.Message, (inner as RecursiveLoadException)?.InnerException ?? inner)
         {
             traceBuilder = inner is RecursiveLoadException recursiveException ? recursiveException.traceBuilder : new StringBuilder();
 
-            if (!blacklist.Contains(loaderMethod.DeclaringType))
-                traceBuilder.AppendLine($"  at {loaderMethod.DeclaringType}.{loaderMethod.Name} ()");
+            var loaderLocation = $"{loaderMethod.DeclaringType}.{loaderMethod.Name}";
+
+            if (!(inner is RecursiveLoadException))
+            {
+                var lines = inner.StackTrace.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+
+                foreach (var o in lines)
+                {
+                    traceBuilder.AppendLine(o);
+                    if (o.Contains($"{loaderLocation}"))
+                        break;
+                }
+            }
+            else if (!blacklist.Contains(loaderMethod.DeclaringType))
+                traceBuilder.AppendLine($"  at {loaderLocation} ()");
+
+            stackTrace = traceBuilder.ToString();
         }
+
+        private readonly string stackTrace;
+        public override string StackTrace => stackTrace;
 
         public override string ToString()
         {
             var builder = new StringBuilder();
-            builder.AppendLine(InnerException?.ToString() ?? string.Empty);
-            builder.AppendLine(traceBuilder.ToString());
+            builder.AppendLine(Message);
+            builder.AppendLine(stackTrace);
 
             return builder.ToString();
         }
