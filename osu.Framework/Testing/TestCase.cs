@@ -146,8 +146,9 @@ namespace osu.Framework.Testing
             {
                 loadableStep?.TriggerOnClick();
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                Logging.Logger.Log($"Error on running first step: {e}");
             }
         }
 
