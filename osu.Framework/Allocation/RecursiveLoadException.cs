@@ -40,7 +40,7 @@ namespace osu.Framework.Allocation
         public override string ToString()
         {
             var builder = new StringBuilder();
-            builder.Append(InnerException?.ToString() ?? string.Empty);
+            builder.AppendLine(InnerException?.ToString() ?? string.Empty);
             builder.AppendLine(traceBuilder.ToString());
 
             return builder.ToString();
