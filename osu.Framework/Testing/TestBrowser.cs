@@ -123,13 +123,13 @@ namespace osu.Framework.Testing
                             {
                                 searchTextBox = new TextBox
                                 {
-                                    Height = 25,
+                                    Height = 20,
                                     RelativeSizeAxes = Axes.X,
-                                    PlaceholderText = "search here"
+                                    PlaceholderText = "type to search"
                                 },
                                 new ScrollContainer
                                 {
-                                    Padding = new MarginPadding { Top = 3 },
+                                    Padding = new MarginPadding { Top = 3, Bottom = 20 },
                                     RelativeSizeAxes = Axes.Both,
                                     ScrollbarOverlapsContent = false,
                                     Child = leftFlowContainer = new SearchContainer<TestCaseButton>
