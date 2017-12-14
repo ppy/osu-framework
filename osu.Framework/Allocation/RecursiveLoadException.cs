@@ -27,18 +27,23 @@ namespace osu.Framework.Allocation
         };
 
         private readonly StringBuilder traceBuilder;
+        private readonly Exception original;
 
-        public RecursiveLoadException(Exception inner, MethodInfo loaderMethod)
-            : base(inner.Message, (inner as RecursiveLoadException)?.InnerException ?? inner)
+        public RecursiveLoadException(Exception original, MethodInfo loaderMethod)
         {
-            traceBuilder = inner is RecursiveLoadException recursiveException ? recursiveException.traceBuilder : new StringBuilder();
+            var recursive = original as RecursiveLoadException;
 
+            this.original = recursive?.original ?? original;
+            traceBuilder = recursive?.traceBuilder ?? new StringBuilder();
+
+            // Find the location of the load method
             var loaderLocation = $"{loaderMethod.DeclaringType}.{loaderMethod.Name}";
 
-            if (!(inner is RecursiveLoadException))
+            if (recursive == null)
             {
-                var lines = inner.StackTrace.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+                var lines = original.StackTrace.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
 
+                // Write all lines from the original exception until the loader method is hit
                 foreach (var o in lines)
                 {
                     traceBuilder.AppendLine(o);
@@ -58,7 +63,7 @@ namespace osu.Framework.Allocation
         public override string ToString()
         {
             var builder = new StringBuilder();
-            builder.AppendLine(Message);
+            builder.AppendLine($"{original.GetType()}: {original.Message}");
             builder.AppendLine(stackTrace);
 
             return builder.ToString();
