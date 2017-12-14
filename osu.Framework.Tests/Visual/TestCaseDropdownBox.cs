@@ -41,13 +41,6 @@ namespace osu.Framework.Tests.Visual
                 Items = testItems.Select(item => new KeyValuePair<string, string>(item, item)),
             });
 
-            Add(new StyledDropdown
-            {
-                Width = 150,
-                Position = new Vector2(170, 90),
-                Items = testItems.Select(item => new KeyValuePair<string, string>(item, item)),
-            });
-
             AddStep("click dropdown1", () => toggleDropdownViaClick(styledDropdown));
             AddAssert("dropdown is open", () => styledDropdown.Menu.State == MenuState.Open);
 
