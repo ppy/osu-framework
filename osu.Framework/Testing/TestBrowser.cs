@@ -295,11 +295,15 @@ namespace osu.Framework.Testing
 
                 dropdown.Current.Value = testType.Assembly;
 
-                CurrentTest = (TestCase)Activator.CreateInstance(testType);
+                var newTest = (TestCase)Activator.CreateInstance(testType);
+
+                CurrentTest = newTest;
 
                 updateButtons();
 
-                LoadComponentAsync(CurrentTest, loaded =>
+                testContentContainer.Add(new DelayedLoadWrapper(CurrentTest, 0));
+
+                newTest.OnLoadComplete = d =>
                 {
                     if (lastTest?.Parent != null)
                     {
@@ -307,9 +311,11 @@ namespace osu.Framework.Testing
                         lastTest.Clear();
                     }
 
-                    if (CurrentTest != loaded) return;
-
-                    testContentContainer.Add(loaded);
+                    if (CurrentTest != newTest)
+                    {
+                        testContentContainer.Remove(newTest);
+                        return;
+                    }
 
                     updateButtons();
 
@@ -327,11 +333,11 @@ namespace osu.Framework.Testing
                     backgroundCompiler.Checkpoint(CurrentTest);
 
                     if (!interactive)
-                        loaded.RunAllSteps(onCompletion);
+                        newTest.RunAllSteps(onCompletion);
                     else
                         CurrentTest.RunFirstStep();
                     updateButtons();
-                });
+                };
             }
         }
 
