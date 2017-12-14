@@ -5,7 +5,6 @@ using System;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics.Containers;
 
 namespace osu.Framework.Allocation
