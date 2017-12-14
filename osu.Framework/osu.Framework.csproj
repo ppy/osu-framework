@@ -459,6 +459,7 @@
     <Compile Include="Testing\TestCase.cs" />
     <Compile Include="Testing\TestCaseTestRunner.cs" />
     <Compile Include="Testing\Tests\TestTestCase.cs" />
+    <Compile Include="Threading\BackgroundTaskManager.cs" />
     <Compile Include="Threading\GameThread.cs" />
     <Compile Include="Threading\DrawThread.cs" />
     <Compile Include="Threading\UpdateThread.cs" />
