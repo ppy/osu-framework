@@ -41,7 +41,7 @@ namespace osu.Framework.Allocation
         public override string ToString()
         {
             var builder = new StringBuilder();
-            builder.Append(nameof(RecursiveLoadException));
+            builder.Append(InnerException?.ToString() ?? string.Empty);
             builder.AppendLine(traceBuilder.ToString());
 
             return builder.ToString();
