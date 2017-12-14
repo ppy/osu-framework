@@ -462,6 +462,8 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         protected virtual bool RequiresChildrenUpdate => !IsMaskedAway || !childrenSizeDependencies.IsValid;
 
+        internal int CurrentUpdateIndex { get; private set; } = -1;
+
         public override bool UpdateSubTree()
         {
             if (!base.UpdateSubTree()) return false;
@@ -477,12 +479,14 @@ namespace osu.Framework.Graphics.Containers
 
             // We iterate by index to gain performance
             // ReSharper disable once ForCanBeConvertedToForeach
-            for (int i = 0; i < aliveInternalChildren.Count; ++i)
+            for (CurrentUpdateIndex = 0; CurrentUpdateIndex < aliveInternalChildren.Count; ++CurrentUpdateIndex)
             {
-                Drawable c = aliveInternalChildren[i];
+                Drawable c = aliveInternalChildren[CurrentUpdateIndex];
                 Debug.Assert(c.LoadState >= LoadState.Ready);
                 c.UpdateSubTree();
             }
+
+            CurrentUpdateIndex = -1;
 
             if (schedulerAfterChildren != null)
             {

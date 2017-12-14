@@ -224,6 +224,7 @@
     <Compile Include="Graphics\TransformableExtensions.cs" />
     <Compile Include="Graphics\Transforms\TransformSequence.cs" />
     <Compile Include="Graphics\Transforms\TransformCustom.cs" />
+    <Compile Include="Graphics\UpdateSubTreeException.cs" />
     <Compile Include="Graphics\UserInterface\BasicCheckbox.cs" />
     <Compile Include="Graphics\UserInterface\BasicDropdown.cs" />
     <Compile Include="Graphics\UserInterface\Checkbox.cs" />
