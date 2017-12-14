@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Diagnostics;
 using OpenTK.Graphics;
 
 namespace osu.Framework.Testing.Drawables.Steps
@@ -12,9 +13,9 @@ namespace osu.Framework.Testing.Drawables.Steps
 
         private int invocations;
 
-        private const int max_tries = 50;
+        private const int max_attempt_milliseconds = 10000;
 
-        public override int RequiredRepetitions => success ? 0 : max_tries;
+        public override int RequiredRepetitions => success ? 0 : int.MaxValue;
 
         public new Action Action;
 
@@ -26,6 +27,8 @@ namespace osu.Framework.Testing.Drawables.Steps
             set { base.Text = text = value; }
         }
 
+        private Stopwatch elapsedTime;
+
         public UntilStepButton(Func<bool> waitUntilTrueDelegate)
         {
             updateText();
@@ -35,14 +38,18 @@ namespace osu.Framework.Testing.Drawables.Steps
             {
                 invocations++;
 
+                if (elapsedTime == null)
+                    elapsedTime = Stopwatch.StartNew();
+
                 updateText();
 
                 if (waitUntilTrueDelegate())
                 {
+                    elapsedTime = null;
                     success = true;
                     Success();
                 }
-                else if (invocations == max_tries)
+                else if (elapsedTime.ElapsedMilliseconds >= max_attempt_milliseconds)
                     throw new TimeoutException();
 
                 Action?.Invoke();
