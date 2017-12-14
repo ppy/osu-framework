@@ -181,10 +181,7 @@ namespace osu.Framework.Testing
                 if (actionIndex < 0)
                     text += $"{GetType().ReadableName()}";
                 else
-                {
-                    text += $"step {actionIndex + 1}";
-                    text = text.PadRight(16) + $"{loadableStep?.ToString() ?? string.Empty}";
-                }
+                    text += $"step {actionIndex + 1} {loadableStep?.ToString() ?? string.Empty}";
             }
 
             Console.Write(text);

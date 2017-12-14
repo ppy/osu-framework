@@ -306,7 +306,7 @@ namespace osu.Framework.Testing
                 {
                     if (lastTest?.Parent != null)
                     {
-                        testContentContainer.Remove(lastTest);
+                        testContentContainer.Remove(lastTest.Parent);
                         lastTest.Clear();
                     }
 
