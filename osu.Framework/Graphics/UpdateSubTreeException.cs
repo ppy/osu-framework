@@ -21,13 +21,16 @@ namespace osu.Framework.Graphics
             typeof(CompositeDrawable)
         };
 
-        public UpdateSubTreeException(Exception originalException, CompositeDrawable root)
-            : base(originalException.Message)
+        private readonly Exception original;
+
+        public UpdateSubTreeException(Exception original, CompositeDrawable root)
+            : base(original.Message)
         {
-            var originType = originalException.TargetSite.DeclaringType;
+            this.original = original;
+
+            var originType = original.TargetSite.DeclaringType;
 
             var recursiveTypes = new List<Type>();
-
             Drawable current = root;
             while (current != null)
             {
@@ -43,7 +46,8 @@ namespace osu.Framework.Graphics
 
             var traceBuilder = new StringBuilder();
 
-            var lines = originalException.StackTrace.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+            // Write all lines from the original exception until the first UpdateSubTree is hit
+            var lines = original.StackTrace.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
             foreach (var o in lines)
             {
                 traceBuilder.AppendLine(o);
@@ -51,7 +55,7 @@ namespace osu.Framework.Graphics
                     break;
             }
 
-            // Skip the first type, since that's going to be handled by the foreach above
+            // Skip the first UpdateSubTree, since that's going to be handled by the foreach above with more complete details
             for (int i = recursiveTypes.Count - 2; i >= 0; i--)
                 traceBuilder.AppendLine($"  at {recursiveTypes[i]}.{nameof(Drawable.UpdateSubTree)} ()");
             stackTrace = traceBuilder.ToString();
@@ -63,7 +67,7 @@ namespace osu.Framework.Graphics
         public override string ToString()
         {
             var builder = new StringBuilder();
-            builder.AppendLine(Message);
+            builder.AppendLine($"{original.GetType()}: {original.Message}");
             builder.AppendLine(stackTrace);
 
             return builder.ToString();
