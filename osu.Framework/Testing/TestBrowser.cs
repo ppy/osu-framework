@@ -312,7 +312,8 @@ namespace osu.Framework.Testing
 
                     if (CurrentTest != newTest)
                     {
-                        testContentContainer.Remove(newTest);
+                        // There could have been multiple loads fired after us. In such a case we want to silently remove ourselves.
+                        testContentContainer.Remove(newTest.Parent);
                         return;
                     }
 
