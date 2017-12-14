@@ -35,7 +35,7 @@ namespace osu.Framework.Allocation
             traceBuilder = inner is RecursiveLoadException recursiveException ? recursiveException.traceBuilder : new StringBuilder();
 
             if (!blacklist.Contains(loaderMethod.DeclaringType))
-                traceBuilder.AppendLine($"  at {loaderMethod.DeclaringType?.ReadableName() ?? string.Empty}.{loaderMethod.Name} ()");
+                traceBuilder.AppendLine($"  at {loaderMethod.DeclaringType}.{loaderMethod.Name} ()");
         }
 
         public override string ToString()
