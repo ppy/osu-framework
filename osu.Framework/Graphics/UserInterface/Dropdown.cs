@@ -113,8 +113,6 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        private float depthCache;
-
         protected Dropdown()
         {
             AutoSizeAxes = Axes.Y;
@@ -125,25 +123,11 @@ namespace osu.Framework.Graphics.UserInterface
                 Header = CreateHeader(),
                 Menu = CreateMenu()
             };
-            Menu.StateChanged += onMenuStateChanged;
 
             Menu.RelativeSizeAxes = Axes.X;
 
             Header.Action = Menu.Toggle;
             Current.ValueChanged += selectionChanged;
-        }
-
-        private void onMenuStateChanged(MenuState state)
-        {
-            if (state == MenuState.Open)
-            {
-                depthCache = Depth;
-                Parent.ChangeInternalChildDepth(this, float.MinValue);
-            }
-            else
-            {
-                Parent.ChangeInternalChildDepth(this, depthCache);
-            }
         }
 
         protected override void LoadComplete()

@@ -48,6 +48,9 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Loads a future child or grand-child of this <see cref="CompositeDrawable"/> asyncronously. <see cref="Drawable.Dependencies"/>
         /// and <see cref="Drawable.Clock"/> are inherited from this <see cref="CompositeDrawable"/>.
+        ///
+        /// Note that this will always use the dependencies and clock from this instance. If you must load to a nested container level,
+        /// consider using <see cref="DelayedLoadWrapper"/>
         /// </summary>
         /// <typeparam name="TLoadable">The type of the future future child or grand-child to be loaded.</typeparam>
         /// <param name="component">The type of the future future child or grand-child to be loaded.</param>
