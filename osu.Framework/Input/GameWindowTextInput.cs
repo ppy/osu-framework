@@ -22,7 +22,7 @@ namespace osu.Framework.Input
             // Drop any keypresses if the control, alt, or windows/command key are being held.
             // This is a workaround for an issue on macOS where OpenTK will fire KeyPress events even
             // if modifier keys are held.  This can be reverted when it is fixed on OpenTK's side.
-            if (RuntimeInfo.IsMacOsx)
+            if (RuntimeInfo.OS == RuntimeInfo.Platform.MacOsx)
             {
                 var state = OpenTK.Input.Keyboard.GetState();
                 if (state.IsKeyDown(OpenTK.Input.Key.LControl)
