@@ -24,9 +24,9 @@ namespace osu.Framework.Graphics.UserInterface
         public Bindable<T> Current { get; } = new Bindable<T>();
 
         /// <summary>
-        /// A list of items currently in the tab control in the other they are dispalyed.
+        /// A list of items currently in the tab control in the order they are dispalyed.
         /// </summary>
-        public IEnumerable<T> Items => TabContainer.Children.Select(tab => tab.Value);
+        public IEnumerable<T> Items => TabContainer.TabItems.Select(t => t.Value).Concat(Dropdown.Items.Select(kvp => kvp.Value)).Distinct();
 
         /// <summary>
         /// When true, tabs selected from the overflow dropdown will be moved to the front of the list (after pinned items).
@@ -55,7 +55,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected abstract TabItem<T> CreateTabItem(T value);
 
         /// <summary>
-        /// Incremented each time a tab needs to be inserted at the start of the list.
+        /// Decremented each time a tab needs to be inserted at the start of the list.
         /// </summary>
         private int depthCounter;
 
@@ -219,9 +219,6 @@ namespace osu.Framework.Graphics.UserInterface
                 Dropdown?.RemoveDropdownItem(tab.Value);
 
             TabContainer.Remove(tab);
-
-            if (TabContainer.Count > 0)
-                performTabSort(TabContainer.Last());
         }
 
         /// <summary>
@@ -264,7 +261,15 @@ namespace osu.Framework.Graphics.UserInterface
 
         public class TabFillFlowContainer<U> : FillFlowContainer<U> where U : TabItem
         {
+            /// <summary>
+            /// Gets called whenever the visibility of a tab in this container changes. Gets invoked with the <see cref="TabItem"/> whose visibility changed and the new visibility state (true = visible, false = hidden).
+            /// </summary>
             public Action<U, bool> TabVisibilityChanged;
+
+            /// <summary>
+            /// The list of tabs currently displayed by this container.
+            /// </summary>
+            public IEnumerable<U> TabItems => FlowingChildren.OfType<U>();
 
             protected override IEnumerable<Vector2> ComputeLayoutPositions()
             {
