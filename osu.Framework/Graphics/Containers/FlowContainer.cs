@@ -77,16 +77,25 @@ namespace osu.Framework.Graphics.Containers
         protected internal override void AddInternal(Drawable drawable)
         {
             layoutChildren.Add(drawable, 0f);
+            // we have to ensure that the layout gets invalidated since Adding or Removing a child will affect the layout. The base class will not invalidate
+            // if we are set to AutoSizeAxes.None, but even in that situation, the layout can and often does change when children are added/removed.
+            InvalidateLayout();
             base.AddInternal(drawable);
         }
         protected internal override bool RemoveInternal(Drawable drawable)
         {
             layoutChildren.Remove(drawable);
+            // we have to ensure that the layout gets invalidated since Adding or Removing a child will affect the layout. The base class will not invalidate
+            // if we are set to AutoSizeAxes.None, but even in that situation, the layout can and often does change when children are added/removed.
+            InvalidateLayout();
             return base.RemoveInternal(drawable);
         }
         protected internal override void ClearInternal(bool disposeChildren = true)
         {
             layoutChildren.Clear();
+            // we have to ensure that the layout gets invalidated since Adding or Removing a child will affect the layout. The base class will not invalidate
+            // if we are set to AutoSizeAxes.None, but even in that situation, the layout can and often does change when children are added/removed.
+            InvalidateLayout();
             base.ClearInternal(disposeChildren);
         }
 
@@ -101,6 +110,7 @@ namespace osu.Framework.Graphics.Containers
             if (!layoutChildren.ContainsKey(drawable))
                 throw new InvalidOperationException($"Cannot change layout position of drawable which is not contained within this {nameof(FlowContainer<T>)}.");
             layoutChildren[drawable] = newPosition;
+            InvalidateLayout();
         }
 
         protected override bool UpdateChildrenLife()
