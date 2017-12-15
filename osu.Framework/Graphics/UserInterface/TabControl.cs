@@ -188,10 +188,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <param name="addToDropdown">Whether the tab should be added to the Dropdown if supported by the <see cref="TabControl{T}"/> implementation.</param>
         protected virtual void AddTabItem(TabItem<T> tab, bool addToDropdown = true)
         {
-            tab.PinnedChanged += t =>
-            {
-                performTabSort(t);
-            };
+            tab.PinnedChanged += performTabSort;
 
             tab.ActivationRequested += SelectTab;
 

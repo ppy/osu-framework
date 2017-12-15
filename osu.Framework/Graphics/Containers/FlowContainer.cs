@@ -72,7 +72,7 @@ namespace osu.Framework.Graphics.Containers
             return base.Invalidate(invalidation, source, shallPropagate);
         }
 
-        private Dictionary<Drawable, float> layoutChildren = new Dictionary<Drawable, float>();
+        private readonly Dictionary<Drawable, float> layoutChildren = new Dictionary<Drawable, float>();
 
         protected internal override void AddInternal(Drawable drawable)
         {
