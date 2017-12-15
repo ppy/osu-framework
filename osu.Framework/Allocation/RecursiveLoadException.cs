@@ -47,7 +47,7 @@ namespace osu.Framework.Allocation
                 foreach (var o in lines)
                 {
                     traceBuilder.AppendLine(o);
-                    if (o.Contains($"{loaderLocation}"))
+                    if (o.Contains(loaderLocation))
                         break;
                 }
             }
