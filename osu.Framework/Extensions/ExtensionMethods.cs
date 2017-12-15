@@ -195,19 +195,18 @@ namespace osu.Framework.Extensions
             => value.GetType().GetField(value.ToString())
                     .GetCustomAttribute<DescriptionAttribute>()?.Description ?? value.ToString();
 
-        public static void ThrowIfFaulted(this Task task)
+        public static void ThrowIfFaulted(this Task task, Type expectedBaseType = null)
         {
-            if (task.IsFaulted)
-            {
-                Exception e = task.Exception;
+            if (!task.IsFaulted) return;
 
-                Debug.Assert(e != null);
+            Exception e = task.Exception;
 
-                while (e.InnerException != null)
-                    e = e.InnerException;
+            Debug.Assert(e != null);
 
-                ExceptionDispatchInfo.Capture(e).Throw();
-            }
+            while (e.InnerException != null && e.GetType() != expectedBaseType)
+                e = e.InnerException;
+
+            ExceptionDispatchInfo.Capture(e).Throw();
         }
 
         /// <summary>

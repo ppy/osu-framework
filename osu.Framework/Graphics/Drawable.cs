@@ -145,7 +145,7 @@ namespace osu.Framework.Graphics
             return loadTask = Task.Factory.StartNew(() => Load(target.Clock, target.Dependencies), TaskCreationOptions.LongRunning)
                                   .ContinueWith(task => game.Schedule(() =>
                                   {
-                                      task.ThrowIfFaulted();
+                                      task.ThrowIfFaulted(typeof(RecursiveLoadException));
                                       onLoaded?.Invoke();
                                       loadTask = null;
                                   }));
