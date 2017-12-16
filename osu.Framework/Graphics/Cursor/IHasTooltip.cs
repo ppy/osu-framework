@@ -14,10 +14,5 @@ namespace osu.Framework.Graphics.Cursor
         /// Tooltip that shows when hovering the drawable.
         /// </summary>
         string TooltipText { get; }
-
-        /// <summary>
-        /// Whether or not the tooltip should be ignored and the tooltip below is fetched.
-        /// </summary>
-        bool IgnoreTooltip { get; }
     }
 }
