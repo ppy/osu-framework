@@ -109,6 +109,7 @@ namespace osu.Framework.Graphics.Cursor
             findTargetChildren();
 
             List<TTarget> result = new List<TTarget>(targetChildren);
+            result.Reverse();
 
             // Clean up
             childDrawables.Clear();
