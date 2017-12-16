@@ -13,7 +13,7 @@ namespace osu.Framework.Screens
         protected Screen ParentScreen;
         public Screen ChildScreen;
 
-        public bool IsCurrentScreen => !hasExited && ChildScreen == null;
+        public bool IsCurrentScreen => !hasExited && hasEntered && ChildScreen == null;
 
         private readonly Container content;
         private readonly Container childModeContainer;
@@ -27,6 +27,7 @@ namespace osu.Framework.Screens
         public event Action<Screen> Exited;
 
         private bool hasExited;
+        private bool hasEntered;
 
         /// <summary>
         /// Make this Screen directly exited when resuming from a child.
@@ -109,7 +110,7 @@ namespace osu.Framework.Screens
 
             //for the case where we are at the top of the mode stack, we still want to run our OnEntering method.
             if (ParentScreen == null)
-                OnEntering(null);
+                enter(null);
         }
 
         /// <summary>
@@ -135,7 +136,7 @@ namespace osu.Framework.Screens
 
             startSuspend(screen);
 
-            screen.OnEntering(this);
+            screen.enter(this);
 
             ModePushed?.Invoke(screen);
 
@@ -156,6 +157,12 @@ namespace osu.Framework.Screens
         /// Exits this Screen.
         /// </summary>
         public void Exit() => ExitFrom(this);
+
+        private void enter(Screen source)
+        {
+            hasEntered = true;
+            OnEntering(source);
+        }
 
         /// <summary>
         /// Exits this Screen.
