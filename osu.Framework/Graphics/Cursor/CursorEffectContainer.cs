@@ -87,23 +87,6 @@ namespace osu.Framework.Graphics.Cursor
             }
         }
 
-        protected TTarget FindTarget()
-        {
-            findTargetChildren();
-
-            // If we found any valid effect targets, pick the _last_ one as it
-            // represents the front-most drawn one.
-            TTarget result = targetChildren.LastOrDefault();
-
-            // Clean up
-            childDrawables.Clear();
-            nestedTtcChildDrawables.Clear();
-            newChildDrawables.Clear();
-            targetChildren.Clear();
-
-            return result;
-        }
-
         protected List<TTarget> FindTargets()
         {
             findTargetChildren();
