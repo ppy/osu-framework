@@ -63,7 +63,17 @@ namespace osu.Framework.Graphics.Cursor
             switch (args.Button)
             {
                 case MouseButton.Right:
-                    menuTarget = FindTarget();
+                    menuTarget = null;
+
+                    var targets = FindTargets();
+                    foreach (var target in targets) 
+                    {
+                        if (target != null) 
+                        {
+                            menuTarget = target;
+                            break;
+                        }
+                    }
 
                     if (menuTarget == null)
                     {
