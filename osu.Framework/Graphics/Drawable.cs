@@ -223,8 +223,8 @@ namespace osu.Framework.Graphics
             MainThread = Thread.CurrentThread;
             scheduler?.SetCurrentThread(MainThread);
 
-            Invalidate();
             loadState = LoadState.Loaded;
+            Invalidate();
             LoadComplete();
             OnLoadComplete?.Invoke(this);
             return true;
@@ -1454,7 +1454,7 @@ namespace osu.Framework.Graphics
         /// <returns>If the invalidate was actually necessary.</returns>
         public virtual bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
-            if (invalidation == Invalidation.None)
+            if (invalidation == Invalidation.None || !IsLoaded)
                 return false;
 
             if (shallPropagate && Parent != null && source != Parent)
