@@ -494,6 +494,8 @@ namespace osu.Framework.IO.Network
         /// </summary>
         public void Abort()
         {
+            if (Aborted || Completed) return;
+
             Aborted = true;
             Completed = true;
 

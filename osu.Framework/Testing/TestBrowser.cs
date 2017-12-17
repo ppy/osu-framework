@@ -16,6 +16,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input;
+using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Screens;
 using osu.Framework.Testing.Drawables;
@@ -340,7 +341,7 @@ namespace osu.Framework.Testing
         private void runTests(Action onCompletion)
         {
             if (!interactive || toolbar.RunAllSteps.Current)
-                CurrentTest.RunAllSteps(onCompletion);
+                CurrentTest.RunAllSteps(onCompletion, e => Logger.Log($@"Error on step: {e}"));
             else
                 CurrentTest.RunFirstStep();
         }

@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Reflection;
 using System.Runtime.ExceptionServices;
 
 namespace osu.Framework.Extensions.ExceptionExtensions
@@ -47,6 +48,19 @@ namespace osu.Framework.Extensions.ExceptionExtensions
             }
 
             return aggregateException;
+        }
+
+        /// <summary>
+        /// Retrieves the last exception from a recursive <see cref="TargetInvocationException"/>.
+        /// </summary>
+        /// <param name="exception">The exception to retrieve the exception from.</param>
+        /// <returns>The exception at the point of invocation.</returns>
+        public static Exception GetLastInvocation(this TargetInvocationException exception)
+        {
+            var inner = exception.InnerException;
+            while (inner is TargetInvocationException)
+                inner = inner.InnerException;
+            return inner;
         }
     }
 }
