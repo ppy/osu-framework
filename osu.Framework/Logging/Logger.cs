@@ -288,10 +288,10 @@ namespace osu.Framework.Logging
             ensureHeader();
 
 #if DEBUG
-            var debugLine = $"[{Target?.ToString().ToLower() ?? Name}:{level.ToString().ToLower()}] {message}";
-
             if (OutputToListeners)
             {
+                var debugLine = $"[{Target?.ToString().ToLower() ?? Name}:{level.ToString().ToLower()}] {message}";
+
                 // fire to all debug listeners (like visual studio's output window)
                 System.Diagnostics.Debug.Print(debugLine);
 
@@ -318,15 +318,14 @@ namespace osu.Framework.Logging
                 lines[i] = $@"{DateTime.UtcNow.ToString(NumberFormatInfo.InvariantInfo)}: {s.Trim()}";
             }
 
-            LogEntry entry = new LogEntry
-            {
-                Level = level,
-                Target = Target,
-                LoggerName = Name,
-                Message = message
-            };
-
-            NewEntry?.Invoke(entry);
+            if (OutputToListeners)
+                NewEntry?.Invoke(new LogEntry
+                {
+                    Level = level,
+                    Target = Target,
+                    LoggerName = Name,
+                    Message = message
+                });
 
             if (Target == LoggingTarget.Information)
                 // don't want to log this to a file
