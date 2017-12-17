@@ -16,7 +16,7 @@ namespace osu.Framework.Screens
         public bool IsCurrentScreen => !hasExited && hasEntered && ChildScreen == null;
 
         private readonly Container content;
-        private readonly Container childModeContainer;
+        private Container childModeContainer;
 
         protected Game Game;
 
@@ -47,12 +47,6 @@ namespace osu.Framework.Screens
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre
                 },
-                childModeContainer = new Container
-                {
-                    Anchor = Anchor.Centre,
-                    Origin = Anchor.Centre,
-                    RelativeSizeAxes = Axes.Both,
-                },
             });
         }
 
@@ -65,7 +59,10 @@ namespace osu.Framework.Screens
 
         public override bool DisposeOnDeathRemoval => true;
 
-        public override bool HandleInput => !hasExited;
+        // in the case we don't have a parent screen, we still want to handle input as we are also responsible for
+        // children inside childScreenContainer.
+        // this means the root screen always received input.
+        public override bool HandleInput => IsCurrentScreen || !hasExited && ParentScreen == null;
 
         /// <summary>
         /// Called when this Screen is being entered. Only happens once, ever.
@@ -110,7 +107,20 @@ namespace osu.Framework.Screens
 
             //for the case where we are at the top of the mode stack, we still want to run our OnEntering method.
             if (ParentScreen == null)
+            {
                 enter(null);
+
+                AddInternal(childModeContainer = new Container
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    RelativeSizeAxes = Axes.Both,
+                });
+            }
+            else
+            {
+                childModeContainer = ParentScreen.childModeContainer;
+            }
         }
 
         /// <summary>
