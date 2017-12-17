@@ -26,7 +26,7 @@ namespace osu.Framework.Localisation
             preferUnicode = config.GetBindable<bool>(FrameworkSetting.ShowUnicode);
             preferUnicode.ValueChanged += newValue =>
             {
-                lock (this)
+                lock (unicodeBindings)
                     unicodeBindings.ForEachAlive(b => b.PreferUnicode = newValue);
             };
 
@@ -51,7 +51,7 @@ namespace osu.Framework.Localisation
                 PreferUnicode = preferUnicode.Value
             };
 
-            lock (this)
+            lock (unicodeBindings)
                 unicodeBindings.Add(bindable);
 
             return bindable;
@@ -64,7 +64,7 @@ namespace osu.Framework.Localisation
                 Value = GetLocalised(key)
             };
 
-            lock (this)
+            lock (localisedBindings)
                 localisedBindings.Add(bindable);
 
             return bindable;
@@ -74,7 +74,7 @@ namespace osu.Framework.Localisation
         {
             var bindable = new FormatString(formattable);
 
-            lock (this)
+            lock (formattableBindings)
                 formattableBindings.Add(bindable);
 
             return bindable;
@@ -84,7 +84,7 @@ namespace osu.Framework.Localisation
         {
             var bindable = new FormatString(new LocalisedFormatString(GetLocalisedString(formatKey), objects));
 
-            lock (this)
+            lock (formattableBindings)
                 formattableBindings.Add(bindable);
 
             return bindable;
@@ -123,11 +123,8 @@ namespace osu.Framework.Localisation
                 CultureInfo.DefaultThreadCurrentUICulture = culture;
                 ChangeLocale(validLocale);
 
-                lock (this)
-                {
-                    localisedBindings.ForEachAlive(b => b.Value = GetLocalised(b.Key));
-                    formattableBindings.ForEachAlive(b => b.Update());
-                }
+                lock (localisedBindings) localisedBindings.ForEachAlive(b => b.Value = GetLocalised(b.Key));
+                lock (formattableBindings) formattableBindings.ForEachAlive(b => b.Update());
             }
         }
 
