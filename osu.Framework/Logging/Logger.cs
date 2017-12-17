@@ -280,7 +280,10 @@ namespace osu.Framework.Logging
         /// </summary>
         /// <param name="message">The message to log. Can include newline (\n) characters to split into multiple lines.</param>
         /// <param name="level">The verbosity level.</param>
-        public void Add(string message = @"", LogLevel level = LogLevel.Verbose)
+        public void Add(string message = @"", LogLevel level = LogLevel.Verbose) =>
+            add(message, level, OutputToListeners);
+
+        private void add(string message = @"", LogLevel level = LogLevel.Verbose, bool outputToListeners = true)
         {
             if (!Enabled || level < Level)
                 return;
@@ -288,10 +291,10 @@ namespace osu.Framework.Logging
             ensureHeader();
 
 #if DEBUG
-            var debugLine = $"[{Target?.ToString().ToLower() ?? Name}:{level.ToString().ToLower()}] {message}";
-
-            if (OutputToListeners)
+            if (outputToListeners)
             {
+                var debugLine = $"[{Target?.ToString().ToLower() ?? Name}:{level.ToString().ToLower()}] {message}";
+
                 // fire to all debug listeners (like visual studio's output window)
                 System.Diagnostics.Debug.Print(debugLine);
 
@@ -318,15 +321,14 @@ namespace osu.Framework.Logging
                 lines[i] = $@"{DateTime.UtcNow.ToString(NumberFormatInfo.InvariantInfo)}: {s.Trim()}";
             }
 
-            LogEntry entry = new LogEntry
-            {
-                Level = level,
-                Target = Target,
-                LoggerName = Name,
-                Message = message
-            };
-
-            NewEntry?.Invoke(entry);
+            if (outputToListeners)
+                NewEntry?.Invoke(new LogEntry
+                {
+                    Level = level,
+                    Target = Target,
+                    LoggerName = Name,
+                    Message = message
+                });
 
             if (Target == LoggingTarget.Information)
                 // don't want to log this to a file
@@ -383,11 +385,11 @@ namespace osu.Framework.Logging
             if (headerAdded) return;
             headerAdded = true;
 
-            Add(@"----------------------------------------------------------");
-            Add($@"{Target} Log for {UserIdentifier}");
-            Add($@"{GameIdentifier} version {VersionIdentifier}");
-            Add($@"Running on {Environment.OSVersion}, {Environment.ProcessorCount} cores");
-            Add(@"----------------------------------------------------------");
+            add("----------------------------------------------------------", outputToListeners: false);
+            add($"{Target} Log for {UserIdentifier}", outputToListeners: false);
+            add($"{GameIdentifier} version {VersionIdentifier}", outputToListeners: false);
+            add($"Running on {Environment.OSVersion}, {Environment.ProcessorCount} cores", outputToListeners: false);
+            add("----------------------------------------------------------", outputToListeners: false);
         }
 
         private static readonly List<string> filters = new List<string>();
