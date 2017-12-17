@@ -15,6 +15,7 @@ using OpenTK.Graphics.ES30;
 using OpenTK.Input;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
+using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -247,7 +248,15 @@ namespace osu.Framework.Platform
             // Ensure we maintain a valid size for any children immediately scaling by the window size
             Root.Size = Vector2.ComponentMax(Vector2.One, Root.Size);
 
-            Root.UpdateSubTree();
+            try
+            {
+                Root.UpdateSubTree();
+            }
+            catch (Exception e)
+            {
+                new UpdateSubTreeException(e, Root).Rethrow();
+            }
+
             using (var buffer = DrawRoots.Get(UsageType.Write))
                 buffer.Object = Root.GenerateDrawNodeSubtree(buffer.Index, Root.ScreenSpaceDrawQuad.AABBFloat);
         }
