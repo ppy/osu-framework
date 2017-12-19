@@ -48,9 +48,13 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         public virtual void Restart()
         {
+            WaitingAvailable = true;
+            ShouldSetEvent = false;
             Stop();
             Seek(0);
             Start();
+            ShouldSetEvent = true;
+            SetEventIfNeeded();
         }
 
         public virtual void ResetSpeedAdjustments()

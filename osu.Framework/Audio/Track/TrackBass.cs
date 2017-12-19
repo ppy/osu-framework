@@ -143,6 +143,7 @@ namespace osu.Framework.Audio.Track
 
         public override void Stop()
         {
+            WaitingAvailable = true;
             base.Stop();
 
             PendingActions.Enqueue(() =>
@@ -152,6 +153,7 @@ namespace osu.Framework.Audio.Track
 
                 isPlayed = false;
             });
+            SetEventIfNeeded();
         }
 
         private int direction;
@@ -164,6 +166,7 @@ namespace osu.Framework.Audio.Track
 
         public override void Start()
         {
+            WaitingAvailable = true;
             base.Start();
             PendingActions.Enqueue(() =>
             {
@@ -172,6 +175,7 @@ namespace osu.Framework.Audio.Track
                 else
                     isRunning = false;
             });
+            SetEventIfNeeded();
         }
 
         private Action seekAction;
