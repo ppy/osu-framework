@@ -143,6 +143,7 @@ namespace osu.Framework.Audio.Track
 
         public override void Stop()
         {
+            WaitingAvailable = true;
             base.Stop();
 
             PendingActions.Enqueue(() =>
@@ -165,6 +166,7 @@ namespace osu.Framework.Audio.Track
 
         public override void Start()
         {
+            WaitingAvailable = true;
             base.Start();
             PendingActions.Enqueue(() =>
             {

@@ -16,14 +16,26 @@ namespace osu.Framework.Audio
         private readonly HashSet<BindableDouble> frequencyAdjustments = new HashSet<BindableDouble>();
 
         protected bool ShouldSetEvent;
+        protected bool WaitingAvailable;
         protected readonly AutoResetEvent AutoResetEvent;
 
         protected void SetEventIfNeeded()
         {
             if (ShouldSetEvent)
-                PendingActions.Enqueue(() => AutoResetEvent.Set());
+                PendingActions.Enqueue(() =>
+                {
+                    AutoResetEvent.Set();
+                    WaitingAvailable = false;
+                });
         }
-        public void Wait() => AutoResetEvent.WaitOne();
+        /// <summary>
+        /// Block current thread until actions which were scheduled on the Audio thread by this object are finished
+        /// </summary>
+        public void Wait()
+        {
+            if (WaitingAvailable)
+                AutoResetEvent.WaitOne();
+        }
 
 
         /// <summary>
@@ -69,6 +81,7 @@ namespace osu.Framework.Audio
             Balance.ValueChanged += InvalidateState;
             Frequency.ValueChanged += InvalidateState;
 
+            WaitingAvailable = false;
             ShouldSetEvent = true;
             AutoResetEvent = new AutoResetEvent(false);
         }
