@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using osu.Framework.Configuration;
 
 namespace osu.Framework.Audio
@@ -13,6 +14,17 @@ namespace osu.Framework.Audio
         private readonly HashSet<BindableDouble> volumeAdjustments = new HashSet<BindableDouble>();
         private readonly HashSet<BindableDouble> balanceAdjustments = new HashSet<BindableDouble>();
         private readonly HashSet<BindableDouble> frequencyAdjustments = new HashSet<BindableDouble>();
+
+        protected bool ShouldSetEvent;
+        protected readonly AutoResetEvent AutoResetEvent;
+
+        protected void SetEventIfNeeded()
+        {
+            if (ShouldSetEvent)
+                PendingActions.Enqueue(() => AutoResetEvent.Set());
+        }
+        public void Wait() => AutoResetEvent.WaitOne();
+
 
         /// <summary>
         /// Global volume of this component.
@@ -56,6 +68,9 @@ namespace osu.Framework.Audio
             Volume.ValueChanged += InvalidateState;
             Balance.ValueChanged += InvalidateState;
             Frequency.ValueChanged += InvalidateState;
+
+            ShouldSetEvent = true;
+            AutoResetEvent = new AutoResetEvent(false);
         }
 
         internal void InvalidateState(double newValue = 0)

@@ -152,6 +152,7 @@ namespace osu.Framework.Audio.Track
 
                 isPlayed = false;
             });
+            SetEventIfNeeded();
         }
 
         private int direction;
@@ -172,6 +173,7 @@ namespace osu.Framework.Audio.Track
                 else
                     isRunning = false;
             });
+            SetEventIfNeeded();
         }
 
         private Action seekAction;
