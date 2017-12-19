@@ -73,40 +73,33 @@ namespace osu.Framework.Graphics.UserInterface
         {
             Masking = true;
             CornerRadius = 3;
-            // TextBoxes currently require their own top-level PlatformInputManager, as InputManagers
-            // will not propagate events through other InputManagers.
-            // Once this restriction has been addressed, we can utilise a single instance of PlatformInputManager
-            // at the Game level, and TextBoxes need only implement IKeyBindingHandler<PlatformAction>.
-            Child = new PlatformInputManager
+
+            Children = new Drawable[]
             {
-                RelativeSizeAxes = Axes.Both,
-                Children = new Drawable[]
+                Background = new Box
                 {
-                    Background = new Box
+                    Colour = BackgroundUnfocused,
+                    RelativeSizeAxes = Axes.Both,
+                },
+                TextContainer = new TextBoxPlatformBindingHandler(this)
+                {
+                    AutoSizeAxes = Axes.X,
+                    RelativeSizeAxes = Axes.Y,
+                    Anchor = Anchor.CentreLeft,
+                    Origin = Anchor.CentreLeft,
+                    Position = new Vector2(LeftRightPadding, 0),
+                    Children = new[]
                     {
-                        Colour = BackgroundUnfocused,
-                        RelativeSizeAxes = Axes.Both,
-                    },
-                    TextContainer = new KeyBindingContainer(this)
-                    {
-                        AutoSizeAxes = Axes.X,
-                        RelativeSizeAxes = Axes.Y,
-                        Anchor = Anchor.CentreLeft,
-                        Origin = Anchor.CentreLeft,
-                        Position = new Vector2(LeftRightPadding, 0),
-                        Children = new[]
+                        Placeholder = CreatePlaceholder(),
+                        Caret = new DrawableCaret(),
+                        TextFlow = new FillFlowContainer
                         {
-                            Placeholder = CreatePlaceholder(),
-                            Caret = new DrawableCaret(),
-                            TextFlow = new FillFlowContainer
-                            {
-                                Direction = FillDirection.Horizontal,
-                                AutoSizeAxes = Axes.X,
-                                RelativeSizeAxes = Axes.Y,
-                            },
+                            Direction = FillDirection.Horizontal,
+                            AutoSizeAxes = Axes.X,
+                            RelativeSizeAxes = Axes.Y,
                         },
                     },
-                }
+                },
             };
 
             Current.ValueChanged += newValue => { Text = newValue; };
@@ -878,11 +871,11 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        private class KeyBindingContainer : Container, IKeyBindingHandler<PlatformAction>
+        private class TextBoxPlatformBindingHandler : Container, IKeyBindingHandler<PlatformAction>
         {
             private readonly TextBox textBox;
 
-            public KeyBindingContainer(TextBox textBox)
+            public TextBoxPlatformBindingHandler(TextBox textBox)
             {
                 this.textBox = textBox;
             }

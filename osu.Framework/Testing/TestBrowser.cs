@@ -15,12 +15,15 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Input;
+using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Screens;
 using osu.Framework.Testing.Drawables;
 using osu.Framework.Timing;
 using OpenTK;
 using OpenTK.Graphics;
+using OpenTK.Input;
 
 namespace osu.Framework.Testing
 {
@@ -28,7 +31,8 @@ namespace osu.Framework.Testing
     {
         public TestCase CurrentTest { get; private set; }
 
-        private FillFlowContainer<TestCaseButton> leftFlowContainer;
+        private TextBox searchTextBox;
+        private SearchContainer<TestCaseButton> leftFlowContainer;
         private Container testContentContainer;
         private Container compilingNotice;
 
@@ -93,7 +97,7 @@ namespace osu.Framework.Testing
             rateBindable = new BindableDouble(1)
             {
                 MinValue = 0,
-                MaxValue = 1,
+                MaxValue = 2,
             };
 
             var rateAdjustClock = new StopwatchClock(true);
@@ -112,17 +116,32 @@ namespace osu.Framework.Testing
                             Colour = Color4.DimGray,
                             RelativeSizeAxes = Axes.Both
                         },
-                        new ScrollContainer
+                        new FillFlowContainer
                         {
+                            Direction = FillDirection.Vertical,
                             RelativeSizeAxes = Axes.Both,
-                            ScrollbarOverlapsContent = false,
-                            Child = leftFlowContainer = new FillFlowContainer<TestCaseButton>
+                            Children = new Drawable[]
                             {
-                                Padding = new MarginPadding(3),
-                                Direction = FillDirection.Vertical,
-                                Spacing = new Vector2(0, 5),
-                                AutoSizeAxes = Axes.Y,
-                                RelativeSizeAxes = Axes.X,
+                                searchTextBox = new TextBox
+                                {
+                                    Height = 20,
+                                    RelativeSizeAxes = Axes.X,
+                                    PlaceholderText = "type to search"
+                                },
+                                new ScrollContainer
+                                {
+                                    Padding = new MarginPadding { Top = 3, Bottom = 20 },
+                                    RelativeSizeAxes = Axes.Both,
+                                    ScrollbarOverlapsContent = false,
+                                    Child = leftFlowContainer = new SearchContainer<TestCaseButton>
+                                    {
+                                        Padding = new MarginPadding(3),
+                                        Direction = FillDirection.Vertical,
+                                        Spacing = new Vector2(0, 5),
+                                        AutoSizeAxes = Axes.Y,
+                                        RelativeSizeAxes = Axes.X,
+                                    }
+                                }
                             }
                         }
                     }
@@ -138,7 +157,6 @@ namespace osu.Framework.Testing
                             RelativeSizeAxes = Axes.X,
                             Height = 50,
                             Depth = -1,
-                            RunAllSteps = () => CurrentTest.RunAllSteps(() => toolbar.RunComplete(), toolbar.RunComplete),
                         },
                         testContentContainer = new Container
                         {
@@ -173,6 +191,8 @@ namespace osu.Framework.Testing
                 }
             };
 
+            searchTextBox.Current.ValueChanged += newValue => leftFlowContainer.SearchTerm = newValue;
+
             backgroundCompiler = new DynamicClassCompiler<TestCase>
             {
                 CompilationStarted = compileStarted,
@@ -191,6 +211,7 @@ namespace osu.Framework.Testing
                 toolbar.AssemblyDropdown.AddDropdownItem(asm.GetName().Name, asm);
 
             toolbar.AssemblyDropdown.Current.ValueChanged += updateList;
+            toolbar.RunAllSteps.Current.ValueChanged += v => runTests(null);
             toolbar.RateAdjustSlider.Current.BindTo(rateBindable);
 
             rateBindable.ValueChanged += v => rateAdjustClock.Rate = v;
@@ -234,12 +255,26 @@ namespace osu.Framework.Testing
             return base.OnExiting(next);
         }
 
+        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
+        {
+            if (!args.Repeat)
+            {
+                switch (args.Key)
+                {
+                    case Key.Escape:
+                        Exit();
+                        return true;
+                }
+            }
+
+            return base.OnKeyDown(state, args);
+        }
+
         public void LoadTest(int testIndex) => LoadTest(TestTypes[testIndex]);
+
 
         public void LoadTest(Type testType = null, Action onCompletion = null)
         {
-            toolbar.RunComplete();
-
             if (testType == null && TestTypes.Count > 0)
                 testType = TestTypes[0];
 
@@ -260,21 +295,28 @@ namespace osu.Framework.Testing
 
                 dropdown.Current.Value = testType.Assembly;
 
-                CurrentTest = (TestCase)Activator.CreateInstance(testType);
+                var newTest = (TestCase)Activator.CreateInstance(testType);
+
+                CurrentTest = newTest;
 
                 updateButtons();
 
-                LoadComponentAsync(CurrentTest, loaded =>
+                testContentContainer.Add(new DelayedLoadWrapper(CurrentTest, 0));
+
+                newTest.OnLoadComplete = d =>
                 {
                     if (lastTest?.Parent != null)
                     {
-                        testContentContainer.Remove(lastTest);
+                        testContentContainer.Remove(lastTest.Parent);
                         lastTest.Clear();
                     }
 
-                    if (CurrentTest != loaded) return;
-
-                    testContentContainer.Add(loaded);
+                    if (CurrentTest != newTest)
+                    {
+                        // There could have been multiple loads fired after us. In such a case we want to silently remove ourselves.
+                        testContentContainer.Remove(newTest.Parent);
+                        return;
+                    }
 
                     updateButtons();
 
@@ -290,14 +332,18 @@ namespace osu.Framework.Testing
                     }
 
                     backgroundCompiler.Checkpoint(CurrentTest);
-
-                    if (!interactive)
-                        loaded.RunAllSteps(onCompletion);
-                    else
-                        CurrentTest.RunFirstStep();
+                    runTests(onCompletion);
                     updateButtons();
-                });
+                };
             }
+        }
+
+        private void runTests(Action onCompletion)
+        {
+            if (!interactive || toolbar.RunAllSteps.Current)
+                CurrentTest.RunAllSteps(onCompletion, e => Logger.Log($@"Error on step: {e}"));
+            else
+                CurrentTest.RunFirstStep();
         }
 
         private void updateButtons()
@@ -312,15 +358,7 @@ namespace osu.Framework.Testing
 
             public BasicDropdown<Assembly> AssemblyDropdown;
 
-            private Button runAllButton;
-
-            public Action RunAllSteps;
-
-            public void RunComplete(Exception error = null)
-            {
-                runAllButton.Enabled.Value = true;
-                runAllButton.BackgroundColour = error != null ? Color4.Red : Color4.MediumPurple;
-            }
+            public BasicCheckbox RunAllSteps;
 
             [BackgroundDependencyLoader]
             private void load()
@@ -366,18 +404,13 @@ namespace osu.Framework.Testing
                                             {
                                                 Width = 300,
                                             },
-                                            runAllButton = new Button
+                                            RunAllSteps = new BasicCheckbox
                                             {
-                                                Text = "Run all steps",
-                                                BackgroundColour = Color4.MediumPurple,
-                                                Action = delegate
-                                                {
-                                                    runAllButton.Enabled.Value = false;
-                                                    runAllButton.BackgroundColour = Color4.DimGray;
-                                                    RunAllSteps?.Invoke();
-                                                },
+                                                LabelText = "Run all steps",
+                                                AutoSizeAxes = Axes.Y,
                                                 Width = 140,
-                                                RelativeSizeAxes = Axes.Y,
+                                                Anchor = Anchor.CentreLeft,
+                                                Origin = Anchor.CentreLeft,
                                             },
                                         }
                                     },
@@ -397,7 +430,7 @@ namespace osu.Framework.Testing
                                                 new SpriteText
                                                 {
                                                     Padding = new MarginPadding(5),
-                                                    Text = "Playback Speed:"
+                                                    Text = "Rate:"
                                                 },
                                                 RateAdjustSlider = new BasicSliderBar<double>
                                                 {
@@ -419,7 +452,6 @@ namespace osu.Framework.Testing
                 };
 
                 RateAdjustSlider.Current.ValueChanged += v => playbackSpeedDisplay.Text = v.ToString("0%");
-
             }
         }
     }

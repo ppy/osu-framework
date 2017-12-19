@@ -5,8 +5,6 @@ using System;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Input;
-using OpenTK.Input;
 
 namespace osu.Framework.Screens
 {
@@ -15,10 +13,10 @@ namespace osu.Framework.Screens
         protected Screen ParentScreen;
         public Screen ChildScreen;
 
-        public bool IsCurrentScreen => !hasExited && ChildScreen == null;
+        public bool IsCurrentScreen => !hasExited && hasEntered && ChildScreen == null;
 
         private readonly Container content;
-        private readonly Container childModeContainer;
+        private Container childModeContainer;
 
         protected Game Game;
 
@@ -29,6 +27,7 @@ namespace osu.Framework.Screens
         public event Action<Screen> Exited;
 
         private bool hasExited;
+        private bool hasEntered;
 
         /// <summary>
         /// Make this Screen directly exited when resuming from a child.
@@ -48,12 +47,6 @@ namespace osu.Framework.Screens
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre
                 },
-                childModeContainer = new Container
-                {
-                    Anchor = Anchor.Centre,
-                    Origin = Anchor.Centre,
-                    RelativeSizeAxes = Axes.Both,
-                },
             });
         }
 
@@ -66,7 +59,10 @@ namespace osu.Framework.Screens
 
         public override bool DisposeOnDeathRemoval => true;
 
-        public override bool HandleInput => !hasExited;
+        // in the case we don't have a parent screen, we still want to handle input as we are also responsible for
+        // children inside childScreenContainer.
+        // this means the root screen always received input.
+        public override bool HandleInput => IsCurrentScreen || !hasExited && ParentScreen == null;
 
         /// <summary>
         /// Called when this Screen is being entered. Only happens once, ever.
@@ -111,21 +107,20 @@ namespace osu.Framework.Screens
 
             //for the case where we are at the top of the mode stack, we still want to run our OnEntering method.
             if (ParentScreen == null)
-                OnEntering(null);
-        }
-
-        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
-        {
-            if (args.Repeat || !IsCurrentScreen) return false;
-
-            switch (args.Key)
             {
-                case Key.Escape:
-                    Exit();
-                    return true;
-            }
+                enter(null);
 
-            return base.OnKeyDown(state, args);
+                AddInternal(childModeContainer = new Container
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    RelativeSizeAxes = Axes.Both,
+                });
+            }
+            else
+            {
+                childModeContainer = ParentScreen.childModeContainer;
+            }
         }
 
         /// <summary>
@@ -151,7 +146,7 @@ namespace osu.Framework.Screens
 
             startSuspend(screen);
 
-            screen.OnEntering(this);
+            screen.enter(this);
 
             ModePushed?.Invoke(screen);
 
@@ -172,6 +167,12 @@ namespace osu.Framework.Screens
         /// Exits this Screen.
         /// </summary>
         public void Exit() => ExitFrom(this);
+
+        private void enter(Screen source)
+        {
+            hasEntered = true;
+            OnEntering(source);
+        }
 
         /// <summary>
         /// Exits this Screen.

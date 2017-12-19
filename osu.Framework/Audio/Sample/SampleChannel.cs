@@ -53,6 +53,6 @@ namespace osu.Framework.Audio.Sample
 
         public virtual bool Played => WasStarted && !Playing;
 
-        public override bool HasCompleted => base.HasCompleted || Played;
+        public override bool IsAlive => base.IsAlive && !Played;
     }
 }

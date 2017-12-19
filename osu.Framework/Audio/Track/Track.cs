@@ -15,6 +15,9 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         public virtual bool IsDummyDevice => true;
 
+        /// <summary>
+        /// States if this track should repeat.
+        /// </summary>
         public bool Looping { get; set; }
 
         /// <summary>
@@ -38,6 +41,16 @@ namespace osu.Framework.Audio.Track
 
             Stop();
             Seek(0);
+        }
+
+        /// <summary>
+        /// Restarts this track from the beginning while retaining adjustments.
+        /// </summary>
+        public virtual void Restart()
+        {
+            Stop();
+            Seek(0);
+            Start();
         }
 
         public virtual void ResetSpeedAdjustments()
@@ -90,6 +103,8 @@ namespace osu.Framework.Audio.Track
 
         public bool IsReversed => Rate < 0;
 
+        public override bool HasCompleted => IsLoaded && !IsRunning && CurrentTime >= Length;
+
         /// <summary>
         /// Current amplitude of stereo channels where 1 is full volume and 0 is silent.
         /// LeftChannel and RightChannel represent the maximum current amplitude of all of the left and right channels respectively.
@@ -102,10 +117,7 @@ namespace osu.Framework.Audio.Track
             FrameStatistics.Increment(StatisticsCounterType.Tracks);
 
             if (Looping && HasCompleted)
-            {
-                Reset();
-                Start();
-            }
+                Restart();
 
             base.UpdateState();
         }

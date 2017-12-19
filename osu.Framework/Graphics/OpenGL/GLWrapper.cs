@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using osu.Framework.Development;
@@ -39,6 +40,11 @@ namespace osu.Framework.Graphics.OpenGL
 
         private static readonly Scheduler reset_scheduler = new Scheduler(null); //force no thread set until we are actually on the draw thread.
 
+        /// <summary>
+        /// A queue from which a maximum of one operation is invoked per draw frame.
+        /// </summary>
+        private static readonly ConcurrentQueue<Action> expensive_operations_queue = new ConcurrentQueue<Action>();
+
         public static bool IsInitialized { get; private set; }
 
         private static GameHost host;
@@ -70,6 +76,9 @@ namespace osu.Framework.Graphics.OpenGL
             Trace.Assert(shader_stack.Count == 0);
 
             reset_scheduler.Update();
+
+            if (expensive_operations_queue.TryDequeue(out Action action))
+                action.Invoke();
 
             lastBoundTexture = null;
 
@@ -126,11 +135,13 @@ namespace osu.Framework.Graphics.OpenGL
         /// Enqueues a texture to be uploaded in the next frame.
         /// </summary>
         /// <param name="texture">The texture to be uploaded.</param>
-        public static void EnqueueTextureUpload(TextureGL texture)
-        {
-            //todo: don't use scheduler
-            reset_scheduler.Add(() => texture.Upload());
-        }
+        public static void EnqueueTextureUpload(TextureGL texture) => expensive_operations_queue.Enqueue(() => texture.Upload());
+
+        /// <summary>
+        /// Enqueues the compile of a shader.
+        /// </summary>
+        /// <param name="shader">The shader to compile.</param>
+        public static void EnqueueShaderCompile(Shader shader) => expensive_operations_queue.Enqueue(shader.EnsureLoaded);
 
         private static readonly int[] last_bound_buffers = new int[2];
 
