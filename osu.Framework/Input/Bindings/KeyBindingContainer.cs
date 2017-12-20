@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
@@ -170,7 +169,10 @@ namespace osu.Framework.Input.Bindings
 
             var newlyReleased = pressedBindings.Where(b => !b.KeyCombination.IsPressed(pressedCombination)).ToList();
 
-            Trace.Assert(newlyReleased.All(b => b.KeyCombination.Keys.Contains(releasedKey)));
+            // TODO: we probably still want to check for this, but currently it triggers too often.
+            // basically if something is displayed in the OnKeyDown operation (or OnPressed) it may start handling input,
+            // blocking the Up events from the KeyBindingContainer it was handled in.
+            // Trace.Assert(newlyReleased.All(b => b.KeyCombination.Keys.Contains(releasedKey)));
 
             foreach (var binding in newlyReleased)
             {
