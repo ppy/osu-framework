@@ -147,8 +147,7 @@ namespace osu.Framework.Graphics.Sprites
 
                 textSize = value;
 
-                foreach (Drawable d in Children)
-                    d.Scale = new Vector2(textSize);
+                layout.Invalidate();
             }
         }
 
