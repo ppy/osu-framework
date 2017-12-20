@@ -142,7 +142,7 @@ namespace osu.Framework.Graphics.Containers
                 float rowWidth = rowBeginOffset + current.X + (1 - spacingFactor(c).X) * size.X;
 
                 //We've exceeded our allowed width, move to a new row
-                if (direction != FillDirection.Horizontal && (Precision.DefinitelyBigger(rowWidth, max.X) || direction == FillDirection.Vertical))
+                if (direction != FillDirection.Horizontal && (Precision.DefinitelyBigger(rowWidth, max.X) || direction == FillDirection.Vertical || ForceNewRow(c)))
                 {
                     current.X = 0;
                     current.Y += rowHeight;
@@ -234,6 +234,13 @@ namespace osu.Framework.Graphics.Containers
 
             return result;
         }
+
+        /// <summary>
+        /// Returns true if the given child should be placed on a new row, false otherwise. This will be called automatically for each child in this FillFlowContainers FlowingChildren-List.
+        /// </summary>
+        /// <param name="child">The child to check.</param>
+        /// <returns>True if the given child should be placed on a new row, false otherwise.</returns>
+        protected virtual bool ForceNewRow(Drawable child) => false;
     }
 
     /// <summary>

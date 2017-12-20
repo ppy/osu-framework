@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using osu.Framework.Extensions.ExceptionExtensions;
 
 namespace osu.Framework.Allocation
 {
@@ -83,7 +84,15 @@ namespace osu.Framework.Allocation
                 return new Action<object>(instance =>
                 {
                     var p = parameters.Select(pa => pa()).ToArray();
-                    initializer.Invoke(instance, p);
+
+                    try
+                    {
+                        initializer.Invoke(instance, p);
+                    }
+                    catch (TargetInvocationException e)
+                    {
+                        new RecursiveLoadException(e.GetLastInvocation(), initializer).Rethrow();
+                    }
                 });
             }).ToList();
 

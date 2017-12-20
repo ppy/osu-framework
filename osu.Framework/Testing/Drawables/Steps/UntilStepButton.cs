@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Diagnostics;
 using OpenTK.Graphics;
 
 namespace osu.Framework.Testing.Drawables.Steps
@@ -11,6 +12,8 @@ namespace osu.Framework.Testing.Drawables.Steps
         private bool success;
 
         private int invocations;
+
+        private const int max_attempt_milliseconds = 10000;
 
         public override int RequiredRepetitions => success ? 0 : int.MaxValue;
 
@@ -24,6 +27,8 @@ namespace osu.Framework.Testing.Drawables.Steps
             set { base.Text = text = value; }
         }
 
+        private Stopwatch elapsedTime;
+
         public UntilStepButton(Func<bool> waitUntilTrueDelegate)
         {
             updateText();
@@ -33,19 +38,37 @@ namespace osu.Framework.Testing.Drawables.Steps
             {
                 invocations++;
 
+                if (elapsedTime == null)
+                    elapsedTime = Stopwatch.StartNew();
+
+                updateText();
+
                 if (waitUntilTrueDelegate())
                 {
+                    elapsedTime = null;
                     success = true;
                     Success();
                 }
-
-                updateText();
+                else if (elapsedTime.ElapsedMilliseconds >= max_attempt_milliseconds)
+                    throw new TimeoutException();
 
                 Action?.Invoke();
             };
         }
 
-        private void updateText() => base.Text = $@"{Text} {invocations}";
+        protected override void Success()
+        {
+            base.Success();
+            BackgroundColour = Color4.YellowGreen;
+        }
+
+        protected override void Failure()
+        {
+            base.Failure();
+            BackgroundColour = Color4.Red;
+        }
+
+        private void updateText() => base.Text = $@"{Text} ({invocations} tries)";
 
         public override string ToString() => "Repeat: " + base.ToString();
     }
