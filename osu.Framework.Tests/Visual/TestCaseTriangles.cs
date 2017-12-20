@@ -13,7 +13,7 @@ using OpenTK.Graphics;
 namespace osu.Framework.Tests.Visual
 {
     [TestFixture]
-    internal class TestCaseTriangles : TestCase
+    public class TestCaseTriangles : TestCase
     {
         private readonly Container testContainer;
 
