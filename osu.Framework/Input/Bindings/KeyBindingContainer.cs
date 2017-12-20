@@ -65,7 +65,7 @@ namespace osu.Framework.Input.Bindings
             var clonedState = state.Clone();
             clonedState.Mouse = new MouseState { Buttons = clonedState.Mouse.Buttons };
 
-            return handleNewPressed(state, key, false) | handleNewReleased(clonedState, key);
+            return handleNewPressed(state, key, false) | handleNewReleased(clonedState);
         }
 
         internal override bool BuildKeyboardInputQueue(List<Drawable> queue)
@@ -86,7 +86,7 @@ namespace osu.Framework.Input.Bindings
 
         protected override bool OnMouseDown(InputState state, MouseDownEventArgs args) => handleNewPressed(state, KeyCombination.FromMouseButton(args.Button), false);
 
-        protected override bool OnMouseUp(InputState state, MouseUpEventArgs args) => handleNewReleased(state, KeyCombination.FromMouseButton(args.Button));
+        protected override bool OnMouseUp(InputState state, MouseUpEventArgs args) => handleNewReleased(state);
 
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
@@ -101,7 +101,7 @@ namespace osu.Framework.Input.Bindings
             return handleNewPressed(state, KeyCombination.FromKey(args.Key), args.Repeat);
         }
 
-        protected override bool OnKeyUp(InputState state, KeyUpEventArgs args) => handleNewReleased(state, KeyCombination.FromKey(args.Key));
+        protected override bool OnKeyUp(InputState state, KeyUpEventArgs args) => handleNewReleased(state);
 
         private bool handleNewPressed(InputState state, InputKey newKey, bool repeat)
         {
@@ -161,7 +161,7 @@ namespace osu.Framework.Input.Bindings
             return handled != null;
         }
 
-        private bool handleNewReleased(InputState state, InputKey releasedKey)
+        private bool handleNewReleased(InputState state)
         {
             var pressedCombination = KeyCombination.FromInputState(state);
 
