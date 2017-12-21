@@ -22,12 +22,21 @@ namespace osu.Framework.Testing.Drawables.Steps
         private void checkAssert()
         {
             if (Assertion())
-            {
                 Success();
-                BackgroundColour = Color4.YellowGreen;
-            }
             else
                 throw new TracedException($"{Text} {ExtendedDescription}", CallStack);
+        }
+
+        protected override void Success()
+        {
+            base.Success();
+            BackgroundColour = Color4.YellowGreen;
+        }
+
+        protected override void Failure()
+        {
+            base.Failure();
+            BackgroundColour = Color4.Red;
         }
 
         public override string ToString() => "Assert: " + base.ToString();

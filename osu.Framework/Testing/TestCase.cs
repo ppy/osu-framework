@@ -139,9 +139,20 @@ namespace osu.Framework.Testing
             runNextStep(onCompletion, onError);
         }
 
-        public void RunFirstStep() => loadableStep?.TriggerOnClick();
+        public void RunFirstStep()
+        {
+            actionIndex = 0;
+            try
+            {
+                loadableStep?.TriggerOnClick();
+            }
+            catch (Exception e)
+            {
+                Logging.Logger.Log($"Error on running first step: {e}");
+            }
+        }
 
-        private Drawable loadableStep => actionIndex >= 0 ? StepsContainer.Children.ElementAtOrDefault(actionIndex) : null;
+        private StepButton loadableStep => actionIndex >= 0 ? StepsContainer.Children.ElementAtOrDefault(actionIndex) as StepButton : null;
 
         protected virtual double TimePerAction => 200;
 
@@ -159,6 +170,7 @@ namespace osu.Framework.Testing
             catch (Exception e)
             {
                 onError?.Invoke(e);
+                return;
             }
 
             string text = ".";
@@ -170,17 +182,14 @@ namespace osu.Framework.Testing
                 if (actionIndex < 0)
                     text += $"{GetType().ReadableName()}";
                 else
-                {
-                    text += $"step {actionIndex + 1}";
-                    text = text.PadRight(16) + $"{loadableStep?.ToString() ?? string.Empty}";
-                }
+                    text += $"step {actionIndex + 1} {loadableStep?.ToString() ?? string.Empty}";
             }
 
             Console.Write(text);
 
             actionRepetition++;
 
-            if (actionRepetition > ((loadableStep as StepButton)?.RequiredRepetitions ?? 1) - 1)
+            if (actionRepetition > (loadableStep?.RequiredRepetitions ?? 1) - 1)
             {
                 Console.WriteLine();
                 actionIndex++;
@@ -227,20 +236,20 @@ namespace osu.Framework.Testing
             });
         }
 
-        protected void AddUntilStep(Func<bool> waitUntilTrueDelegate)
+        protected void AddUntilStep(Func<bool> waitUntilTrueDelegate, string description = null)
         {
             StepsContainer.Add(new UntilStepButton(waitUntilTrueDelegate)
             {
-                Text = @"Until",
+                Text = description ?? @"Until",
                 BackgroundColour = Color4.Gray
             });
         }
 
-        protected void AddWaitStep(int waitCount)
+        protected void AddWaitStep(int waitCount, string description = null)
         {
             StepsContainer.Add(new RepeatStepButton(waitCount)
             {
-                Text = @"Wait",
+                Text = description ?? @"Wait",
                 BackgroundColour = Color4.Gray
             });
         }

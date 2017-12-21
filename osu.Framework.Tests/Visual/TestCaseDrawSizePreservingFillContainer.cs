@@ -12,7 +12,7 @@ using osu.Framework.Testing;
 namespace osu.Framework.Tests.Visual
 {
     [TestFixture]
-    internal class TestCaseDrawSizePreservingFillContainer : TestCase
+    public class TestCaseDrawSizePreservingFillContainer : TestCase
     {
         public TestCaseDrawSizePreservingFillContainer()
         {

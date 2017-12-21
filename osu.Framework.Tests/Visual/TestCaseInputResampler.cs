@@ -183,8 +183,6 @@ namespace osu.Framework.Tests.Visual
 
         private class UserDrawnPath : SmoothedPath
         {
-            public override bool HandleInput => true;
-
             public SpriteText DrawText;
 
             protected virtual void AddUserVertex(Vector2 v) => AddRawVertex(v);

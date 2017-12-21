@@ -19,8 +19,10 @@ using osu.Framework.Statistics;
 using osu.Framework.Threading;
 using osu.Framework.Timing;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Development;
@@ -43,6 +45,11 @@ namespace osu.Framework.Graphics
     public abstract class Drawable : Transformable, IDisposable, IDrawable
     {
         #region Construction and disposal
+
+        protected Drawable()
+        {
+            handleInput = HandleInputCache.Get(this);
+        }
 
         ~Drawable()
         {
@@ -138,7 +145,7 @@ namespace osu.Framework.Graphics
             return loadTask = Task.Factory.StartNew(() => Load(target.Clock, target.Dependencies), TaskCreationOptions.LongRunning)
                                   .ContinueWith(task => game.Schedule(() =>
                                   {
-                                      task.ThrowIfFaulted();
+                                      task.ThrowIfFaulted(typeof(RecursiveLoadException));
                                       onLoaded?.Invoke();
                                       loadTask = null;
                                   }));
@@ -216,8 +223,8 @@ namespace osu.Framework.Graphics
             MainThread = Thread.CurrentThread;
             scheduler?.SetCurrentThread(MainThread);
 
-            Invalidate();
             loadState = LoadState.Loaded;
+            Invalidate();
             LoadComplete();
             OnLoadComplete?.Invoke(this);
             return true;
@@ -1447,7 +1454,7 @@ namespace osu.Framework.Graphics
         /// <returns>If the invalidate was actually necessary.</returns>
         public virtual bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
-            if (invalidation == Invalidation.None)
+            if (invalidation == Invalidation.None || !IsLoaded)
                 return false;
 
             if (shallPropagate && Parent != null && source != Parent)
@@ -1830,10 +1837,63 @@ namespace osu.Framework.Graphics
         /// is propagated up the scene graph to the next eligible Drawable.</returns>
         protected virtual bool OnMouseMove(InputState state) => false;
 
+        private readonly bool handleInput;
         /// <summary>
-        /// This drawable only receives input events if HandleInput is true.
+        /// Whether this <see cref="Drawable"/> handles input.
+        /// This value is true by default if any "On-" input methods are overridden.
         /// </summary>
-        public virtual bool HandleInput => false;
+        public virtual bool HandleInput => handleInput;
+
+        /// <summary>
+        /// Nested class which is used for caching <see cref="HandleInput"/> values obtained via reflection.
+        /// </summary>
+        private static class HandleInputCache
+        {
+            private static readonly ConcurrentDictionary<Type, bool> cached_values = new ConcurrentDictionary<Type, bool>();
+
+            private static string[] inputMethods => new[]
+            {
+                nameof(OnHover),
+                nameof(OnHoverLost),
+                nameof(OnMouseDown),
+                nameof(OnMouseUp),
+                nameof(OnClick),
+                nameof(OnDoubleClick),
+                nameof(OnDragStart),
+                nameof(OnDrag),
+                nameof(OnDragEnd),
+                nameof(OnWheel),
+                nameof(OnFocus),
+                nameof(OnFocusLost),
+                nameof(OnKeyDown),
+                nameof(OnKeyUp),
+                nameof(OnMouseMove),
+            };
+
+            public static bool Get(Drawable drawable)
+            {
+                var type = drawable.GetType();
+                if (cached_values.TryGetValue(type, out var value))
+                    return value;
+
+                foreach (var inputMethod in inputMethods)
+                {
+                    // check for any input method overrides which are at a higher level than drawable.
+                    var method = type.GetMethod(inputMethod, BindingFlags.Instance | BindingFlags.NonPublic);
+
+                    Debug.Assert(method != null);
+
+                    if (method.DeclaringType != typeof(Drawable))
+                    {
+                        cached_values.TryAdd(type, true);
+                        return true;
+                    }
+                }
+
+                cached_values.TryAdd(type, false);
+                return false;
+            }
+        }
 
         /// <summary>
         /// Check whether we have active focus.

@@ -141,6 +141,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Allocation\IReadOnlyDependencyContainer.cs" />
+    <Compile Include="Allocation\RecursiveLoadException.cs" />
     <Compile Include="Audio\AudioComponent.cs" />
     <Compile Include="Audio\IBassAudio.cs" />
     <Compile Include="Audio\IHasPitchAdjust.cs" />
@@ -251,6 +252,7 @@
     <Compile Include="Input\Handlers\Mouse\OpenTKMouseState.cs" />
     <Compile Include="Input\Handlers\Mouse\OpenTKPollMouseState.cs" />
     <Compile Include="Input\Handlers\Mouse\OpenTKRawMouseHandler.cs" />
+    <Compile Include="Input\IHandleGlobalInput.cs" />
     <Compile Include="Input\KeyUpEventArgs.cs" />
     <Compile Include="Allocation\TimedExpiryCache.cs" />
     <Compile Include="Input\IRequireHighFrequencyMousePosition.cs" />
@@ -313,6 +315,7 @@
     <Compile Include="IO\Network\JsonWebRequest.cs" />
     <Compile Include="IO\Network\UrlEncoding.cs" />
     <Compile Include="IO\Network\WebRequest.cs" />
+    <Compile Include="IO\Serialization\SortedListConverter.cs" />
     <Compile Include="IO\Stores\OnlineStore.cs" />
     <Compile Include="IO\Stores\StorageBackedResourceStore.cs" />
     <Compile Include="IStateful.cs" />

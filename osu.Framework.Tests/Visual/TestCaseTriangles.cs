@@ -13,7 +13,7 @@ using OpenTK.Graphics;
 namespace osu.Framework.Tests.Visual
 {
     [TestFixture]
-    internal class TestCaseTriangles : TestCase
+    public class TestCaseTriangles : TestCase
     {
         private readonly Container testContainer;
 
@@ -172,7 +172,6 @@ namespace osu.Framework.Tests.Visual
     internal class DraggableTriangle : Triangle
     {
         public bool AllowDrag = true;
-        public override bool HandleInput => true;
 
         protected override bool OnDrag(InputState state)
         {
