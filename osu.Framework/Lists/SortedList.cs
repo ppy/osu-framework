@@ -5,10 +5,12 @@ using osu.Framework.Extensions.TypeExtensions;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Newtonsoft.Json;
+using osu.Framework.IO.Serialization;
 
 namespace osu.Framework.Lists
 {
-    public class SortedList<T> : ICollection<T>, IReadOnlyList<T>
+    public class SortedList<T> : ICollection<T>, IReadOnlyList<T>, ISortedList
     {
         private readonly List<T> list;
 
@@ -133,6 +135,17 @@ namespace osu.Framework.Lists
 
         IEnumerator IEnumerable.GetEnumerator() => list.GetEnumerator();
 
+        public void SerializeTo(JsonWriter writer, JsonSerializer serializer)
+        {
+            serializer.Serialize(writer, list);
+        }
+
+        public void DeserializeFrom(JsonReader reader, JsonSerializer serializer)
+        {
+            serializer.Populate(reader, list);
+            list.Sort(Comparer);
+        }
+
         #endregion
 
         private class ComparisonComparer<TComparison> : IComparer<TComparison>
@@ -153,5 +166,12 @@ namespace osu.Framework.Lists
                 return comparison(x, y);
             }
         }
+    }
+
+    [JsonConverter(typeof(SortedListConverter))]
+    internal interface ISortedList
+    {
+        void SerializeTo(JsonWriter writer, JsonSerializer serializer);
+        void DeserializeFrom(JsonReader reader, JsonSerializer serializer);
     }
 }
