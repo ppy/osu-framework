@@ -54,6 +54,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AutomatedVisualTestGame.cs" />
+    <Compile Include="IO\TestSortedListSerialization.cs" />
     <Compile Include="IO\TestWebRequest.cs" />
     <Compile Include="Lists\TestArrayExtensions.cs" />
     <Compile Include="Lists\TestSortedList.cs" />
@@ -68,7 +69,7 @@
     <Compile Include="Visual\TestCaseBlending.cs" />
     <Compile Include="Visual\TestCaseBufferedContainer.cs" />
     <Compile Include="Visual\TestCaseCheckboxes.cs" />
-	<Compile Include="Visual\TestCaseCircularContainer.cs" />
+    <Compile Include="Visual\TestCaseCircularContainer.cs" />
     <Compile Include="Visual\TestCaseCircularProgress.cs" />
     <Compile Include="Visual\TestCaseColourGradient.cs" />
     <Compile Include="Visual\TestCaseContainerState.cs" />
