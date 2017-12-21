@@ -252,6 +252,7 @@
     <Compile Include="Input\Handlers\Mouse\OpenTKMouseState.cs" />
     <Compile Include="Input\Handlers\Mouse\OpenTKPollMouseState.cs" />
     <Compile Include="Input\Handlers\Mouse\OpenTKRawMouseHandler.cs" />
+    <Compile Include="Input\IHandleGlobalInput.cs" />
     <Compile Include="Input\KeyUpEventArgs.cs" />
     <Compile Include="Allocation\TimedExpiryCache.cs" />
     <Compile Include="Input\IRequireHighFrequencyMousePosition.cs" />

@@ -14,7 +14,7 @@ namespace osu.Framework.Input
     /// can be created to handle events that should trigger specifically on a focused drawable.
     /// Will send repeat events by default.
     /// </summary>
-    public class PlatformActionContainer : KeyBindingContainer<PlatformAction>
+    public class PlatformActionContainer : KeyBindingContainer<PlatformAction>, IHandleGlobalInput
     {
         private GameHost host;
 
