@@ -24,10 +24,27 @@ namespace osu.Framework.Lists
             set { list[index] = value; }
         }
 
-        public SortedList(Func<T, T, int> comparer) : this(new ComparisonComparer<T>(comparer))
+        /// <summary>
+        /// Constructs a new <see cref="SortedList{T}"/> with the default <typeparamref name="T"/> comparer.
+        /// </summary>
+        public SortedList()
+            : this(Comparer<T>.Default)
         {
         }
 
+        /// <summary>
+        /// Constructs a new <see cref="SortedList{T}"/> with a custom comparison function.
+        /// </summary>
+        /// <param name="comparer">The comparison function.</param>
+        public SortedList(Func<T, T, int> comparer)
+            : this(new ComparisonComparer<T>(comparer))
+        {
+        }
+
+        /// <summary>
+        /// Constructs a new <see cref="SortedList{T}"/> with a custom <see cref="IComparer{T}"/>.
+        /// </summary>
+        /// <param name="comparer">The comparer to use.</param>
         public SortedList(IComparer<T> comparer)
         {
             list = new List<T>();
