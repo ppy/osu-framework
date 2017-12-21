@@ -16,7 +16,7 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Tests.Visual
 {
-    internal class TestCaseBlending : TestCase
+    public class TestCaseBlending : TestCase
     {
         private readonly Dropdown<BlendingMode> colourModeDropdown;
         private readonly Dropdown<BlendingEquation> colourEquation;

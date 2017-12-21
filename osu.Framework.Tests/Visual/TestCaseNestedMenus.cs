@@ -19,7 +19,7 @@ using MouseState = osu.Framework.Input.MouseState;
 
 namespace osu.Framework.Tests.Visual
 {
-    internal class TestCaseNestedMenus : TestCase
+    public class TestCaseNestedMenus : TestCase
     {
         private const int max_depth = 5;
         private const int max_count = 5;

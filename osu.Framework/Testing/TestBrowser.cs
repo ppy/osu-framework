@@ -63,12 +63,15 @@ namespace osu.Framework.Testing
             assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(n => n.FullName.StartsWith("osu") || assemblyNamespace != null && n.FullName.StartsWith(assemblyNamespace)).ToList();
 
             //we want to build the lists here because we're interested in the assembly we were *created* on.
-            foreach (Assembly asm in assemblies)
+            foreach (Assembly asm in assemblies.ToList())
             {
-                var tests = asm.GetLoadableTypes().Where(t => t.IsSubclassOf(typeof(TestCase)) && !t.IsAbstract).ToList();
+                var tests = asm.GetLoadableTypes().Where(t => t.IsSubclassOf(typeof(TestCase)) && !t.IsAbstract && t.IsPublic).ToList();
 
                 if (!tests.Any())
+                {
+                    assemblies.Remove(asm);
                     continue;
+                }
 
                 foreach (Type type in tests)
                     TestTypes.Add(type);

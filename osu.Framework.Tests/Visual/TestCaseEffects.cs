@@ -16,7 +16,7 @@ namespace osu.Framework.Tests.Visual
 {
     [TestFixture]
     [System.ComponentModel.Description("implementing the IEffect interface")]
-    internal class TestCaseEffects : TestCase
+    public class TestCaseEffects : TestCase
     {
         public TestCaseEffects()
         {
