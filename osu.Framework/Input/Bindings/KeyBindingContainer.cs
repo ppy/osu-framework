@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
@@ -66,7 +65,7 @@ namespace osu.Framework.Input.Bindings
             var clonedState = state.Clone();
             clonedState.Mouse = new MouseState { Buttons = clonedState.Mouse.Buttons };
 
-            return handleNewPressed(state, key, false) | handleNewReleased(clonedState, key);
+            return handleNewPressed(state, key, false) | handleNewReleased(clonedState);
         }
 
         internal override bool BuildKeyboardInputQueue(List<Drawable> queue)
@@ -87,7 +86,7 @@ namespace osu.Framework.Input.Bindings
 
         protected override bool OnMouseDown(InputState state, MouseDownEventArgs args) => handleNewPressed(state, KeyCombination.FromMouseButton(args.Button), false);
 
-        protected override bool OnMouseUp(InputState state, MouseUpEventArgs args) => handleNewReleased(state, KeyCombination.FromMouseButton(args.Button));
+        protected override bool OnMouseUp(InputState state, MouseUpEventArgs args) => handleNewReleased(state);
 
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
@@ -102,7 +101,7 @@ namespace osu.Framework.Input.Bindings
             return handleNewPressed(state, KeyCombination.FromKey(args.Key), args.Repeat);
         }
 
-        protected override bool OnKeyUp(InputState state, KeyUpEventArgs args) => handleNewReleased(state, KeyCombination.FromKey(args.Key));
+        protected override bool OnKeyUp(InputState state, KeyUpEventArgs args) => handleNewReleased(state);
 
         private bool handleNewPressed(InputState state, InputKey newKey, bool repeat)
         {
@@ -162,7 +161,7 @@ namespace osu.Framework.Input.Bindings
             return handled != null;
         }
 
-        private bool handleNewReleased(InputState state, InputKey releasedKey)
+        private bool handleNewReleased(InputState state)
         {
             var pressedCombination = KeyCombination.FromInputState(state);
 
@@ -170,7 +169,10 @@ namespace osu.Framework.Input.Bindings
 
             var newlyReleased = pressedBindings.Where(b => !b.KeyCombination.IsPressed(pressedCombination)).ToList();
 
-            Trace.Assert(newlyReleased.All(b => b.KeyCombination.Keys.Contains(releasedKey)));
+            // TODO: we probably still want to check for this, but currently it triggers too often.
+            // basically if something is displayed in the OnKeyDown operation (or OnPressed) it may start handling input,
+            // blocking the Up events from the KeyBindingContainer it was handled in.
+            // Trace.Assert(newlyReleased.All(b => b.KeyCombination.Keys.Contains(releasedKey)));
 
             foreach (var binding in newlyReleased)
             {
