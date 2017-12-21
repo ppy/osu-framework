@@ -119,7 +119,7 @@ namespace osu.Framework.Screens
         public virtual bool Push(Screen screen)
         {
             if (hasExited)
-                throw new InvalidOperationException("Cannot push to an already existed screen.");
+                throw new InvalidOperationException("Cannot push to an already exited screen.");
 
             if (!IsCurrentScreen)
                 throw new InvalidOperationException("Cannot push a child screen to a non-current screen.");
