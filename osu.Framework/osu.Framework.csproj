@@ -315,6 +315,7 @@
     <Compile Include="IO\Network\JsonWebRequest.cs" />
     <Compile Include="IO\Network\UrlEncoding.cs" />
     <Compile Include="IO\Network\WebRequest.cs" />
+    <Compile Include="IO\Serialization\SortedListConverter.cs" />
     <Compile Include="IO\Stores\OnlineStore.cs" />
     <Compile Include="IO\Stores\StorageBackedResourceStore.cs" />
     <Compile Include="IStateful.cs" />
