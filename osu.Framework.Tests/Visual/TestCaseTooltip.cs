@@ -15,7 +15,7 @@ using OpenTK.Graphics;
 namespace osu.Framework.Tests.Visual
 {
     [TestFixture]
-    internal class TestCaseTooltip : TestCase
+    public class TestCaseTooltip : TestCase
     {
         private readonly Container testContainer;
 
