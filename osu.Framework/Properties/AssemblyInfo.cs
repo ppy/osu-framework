@@ -23,6 +23,7 @@ using System.Runtime.InteropServices;
 // behavior "in the wild".
 
 [assembly: InternalsVisibleTo("osu.Framework.Tests")]
+[assembly: InternalsVisibleTo("osu.DynamicTestAssembly")]
 
 // Setting ComVisible to false makes the types in this assembly not visible
 // to COM components.  If you need to access a type in this assembly from

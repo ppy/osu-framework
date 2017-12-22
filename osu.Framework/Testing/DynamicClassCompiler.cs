@@ -112,7 +112,7 @@ namespace osu.Framework.Testing
             CompilationStarted?.Invoke();
 
             var compilation = CSharpCompilation.Create(
-                "DotNetCompiler_" + Guid.NewGuid().ToString("D"),
+                "osu.DynamicTestAssembly",
                 requiredFiles.Select(f => CSharpSyntaxTree.ParseText(File.ReadAllText(f))),
                 references,
                 options
