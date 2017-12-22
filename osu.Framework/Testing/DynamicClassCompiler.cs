@@ -15,9 +15,15 @@ using osu.Framework.Development;
 
 namespace osu.Framework.Testing
 {
-    public class DynamicClassCompiler<T>
+    public class DynamicClassCompiler
+    {
+        public const string DYNAMIC_ASSEMBLY_NAME = "osu.DynamicTestAssembly";
+    }
+
+    public class DynamicClassCompiler<T> : DynamicClassCompiler
         where T : IDynamicallyCompile
     {
+
         public Action CompilationStarted;
 
         public Action<Type> CompilationFinished;
@@ -86,8 +92,9 @@ namespace osu.Framework.Testing
             };
         }
 
-        private bool isCompiling;
+        private int currentVersion;
 
+        private bool isCompiling;
         private void recompile()
         {
             if (isCompiling)
@@ -112,8 +119,11 @@ namespace osu.Framework.Testing
             CompilationStarted?.Invoke();
 
             var compilation = CSharpCompilation.Create(
-                "osu.DynamicTestAssembly",
-                requiredFiles.Select(f => CSharpSyntaxTree.ParseText(File.ReadAllText(f))),
+                DYNAMIC_ASSEMBLY_NAME,
+                requiredFiles.Select(File.ReadAllText)
+                    // Compile the assembly with a new version so that it replaces the existing one
+                    .Concat(new[] { $"using System.Reflection; [assembly: AssemblyVersion(\"1.1.{currentVersion++}\")]" })
+                    .Select(f => CSharpSyntaxTree.ParseText(f)),
                 references,
                 options
             );
