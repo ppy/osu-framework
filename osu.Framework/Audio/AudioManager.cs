@@ -32,6 +32,11 @@ namespace osu.Framework.Audio
         /// </summary>
         internal readonly AudioThread Thread;
 
+        /// <summary>
+        /// Used exclusively to perform thread checking.
+        /// </summary>
+        internal static AudioManager Instance;
+
         private List<DeviceInfo> audioDevices = new List<DeviceInfo>();
         private List<string> audioDeviceNames = new List<string>();
 
@@ -93,6 +98,8 @@ namespace osu.Framework.Audio
         public AudioManager(ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore)
         {
             AudioDevice.ValueChanged += onDeviceChanged;
+
+            Instance = this;
 
             trackStore.AddExtension(@"mp3");
 

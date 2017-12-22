@@ -20,6 +20,12 @@ namespace osu.Framework.Audio
         {
             var task = new Task(action);
 
+            if (ThreadSafety.IsAudioThread)
+            {
+                task.RunSynchronously();
+                return task;
+            }
+
             PendingActions.Enqueue(task);
             return task;
         }
