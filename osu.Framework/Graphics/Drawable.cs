@@ -226,7 +226,9 @@ namespace osu.Framework.Graphics
             loadState = LoadState.Loaded;
             Invalidate();
             LoadComplete();
+
             OnLoadComplete?.Invoke(this);
+            OnLoadComplete = null;
             return true;
         }
 
