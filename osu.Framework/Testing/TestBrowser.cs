@@ -90,6 +90,10 @@ namespace osu.Framework.Testing
         private BindableDouble rateBindable;
 
         private Toolbar toolbar;
+        private Container leftContainer;
+        private Container mainContainer;
+
+        private const float test_list_width = 200;
 
         [BackgroundDependencyLoader]
         private void load(Storage storage, GameHost host)
@@ -108,10 +112,10 @@ namespace osu.Framework.Testing
 
             Children = new Drawable[]
             {
-                new Container
+                leftContainer = new Container
                 {
                     RelativeSizeAxes = Axes.Y,
-                    Size = new Vector2(200, 1),
+                    Size = new Vector2(test_list_width, 1),
                     Children = new Drawable[]
                     {
                         new Box
@@ -149,10 +153,10 @@ namespace osu.Framework.Testing
                         }
                     }
                 },
-                new Container
+                mainContainer = new Container
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Padding = new MarginPadding { Left = 200 },
+                    Padding = new MarginPadding { Left = test_list_width },
                     Children = new Drawable[]
                     {
                         toolbar = new Toolbar
@@ -264,6 +268,22 @@ namespace osu.Framework.Testing
             {
                 switch (args.Key)
                 {
+                    case Key.H:
+                        if (!state.Keyboard.ControlPressed)
+                            return false;
+
+                        if (leftContainer.Width > 0)
+                        {
+                            leftContainer.Width = 0;
+                            mainContainer.Padding = new MarginPadding();
+                        }
+                        else
+                        {
+                            leftContainer.Width = test_list_width;
+                            mainContainer.Padding = new MarginPadding { Left = test_list_width };
+                        }
+
+                        return true;
                     case Key.Escape:
                         Exit();
                         return true;
