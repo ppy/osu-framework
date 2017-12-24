@@ -135,6 +135,12 @@ namespace osu.Framework.Testing
                             {
                                 searchTextBox = new TextBox
                                 {
+                                    OnCommit = delegate
+                                    {
+                                        var firstVisible = leftFlowContainer.FirstOrDefault(b => b.IsPresent);
+                                        if (firstVisible != null)
+                                            LoadTest(firstVisible.TestType);
+                                    },
                                     Height = 20,
                                     RelativeSizeAxes = Axes.X,
                                     PlaceholderText = "type to search"
