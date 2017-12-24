@@ -250,13 +250,6 @@ namespace osu.Framework.Testing
             });
         }
 
-        public override IEnumerable<KeyBinding> DefaultKeyBindings => new[]
-        {
-            new KeyBinding(new [] {InputKey.Control, InputKey.F},TestBrowserAction.Search),
-            new KeyBinding(new [] {InputKey.Super, InputKey.F},TestBrowserAction.Search), // for macOS
-            new KeyBinding(new [] {InputKey.Control, InputKey.H},TestBrowserAction.ToggleTestList),
-        };
-
         protected override void LoadComplete()
         {
             base.LoadComplete();
@@ -294,6 +287,17 @@ namespace osu.Framework.Testing
             return base.OnKeyDown(state, args);
         }
 
+        public override IEnumerable<KeyBinding> DefaultKeyBindings => new[]
+        {
+            new KeyBinding(new [] {InputKey.Control, InputKey.F},TestBrowserAction.Search),
+            new KeyBinding(new [] {InputKey.Control, InputKey.R},TestBrowserAction.Reload), // for macOS
+
+            new KeyBinding(new [] {InputKey.Super, InputKey.F},TestBrowserAction.Search), // for macOS
+            new KeyBinding(new [] {InputKey.Super, InputKey.R},TestBrowserAction.Reload), // for macOS
+
+            new KeyBinding(new [] {InputKey.Control, InputKey.H},TestBrowserAction.ToggleTestList),
+        };
+
         public bool OnPressed(TestBrowserAction action)
         {
             switch (action)
@@ -301,6 +305,9 @@ namespace osu.Framework.Testing
                 case TestBrowserAction.Search:
                     if (leftContainer.Width == 0) toggleTestList();
                     GetContainingInputManager().ChangeFocus(searchTextBox);
+                    return true;
+                case TestBrowserAction.Reload:
+                    LoadTest(CurrentTest.GetType());
                     return true;
                 case TestBrowserAction.ToggleTestList:
                     toggleTestList();
@@ -500,6 +507,7 @@ namespace osu.Framework.Testing
     public enum TestBrowserAction
     {
         ToggleTestList,
+        Reload,
         Search
     }
 }
