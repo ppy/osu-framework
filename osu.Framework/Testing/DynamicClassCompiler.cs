@@ -118,11 +118,13 @@ namespace osu.Framework.Testing
 
             CompilationStarted?.Invoke();
 
+            string assemblyVersion = $"{++currentVersion}.0.*";
+
             var compilation = CSharpCompilation.Create(
                 DYNAMIC_ASSEMBLY_NAME,
                 requiredFiles.Select(File.ReadAllText)
                     // Compile the assembly with a new version so that it replaces the existing one
-                    .Concat(new[] { $"using System.Reflection; [assembly: AssemblyVersion(\"1.1.{currentVersion++}\")]" })
+                    .Concat(new[] { $"using System.Reflection; [assembly: AssemblyVersion(\"{assemblyVersion}\")]" })
                     .Select(f => CSharpSyntaxTree.ParseText(f)),
                 references,
                 options
