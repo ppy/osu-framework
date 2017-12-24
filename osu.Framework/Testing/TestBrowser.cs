@@ -16,9 +16,9 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input;
+using osu.Framework.Input.Bindings;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
-using osu.Framework.Screens;
 using osu.Framework.Testing.Drawables;
 using osu.Framework.Timing;
 using OpenTK;
@@ -27,7 +27,7 @@ using OpenTK.Input;
 
 namespace osu.Framework.Testing
 {
-    public class TestBrowser : Screen
+    public class TestBrowser : KeyBindingContainer<TestBrowserAction>, IKeyBindingHandler<TestBrowserAction>
     {
         public TestCase CurrentTest { get; private set; }
 
@@ -95,11 +95,15 @@ namespace osu.Framework.Testing
 
         private const float test_list_width = 200;
 
+        private Action exit;
+
         [BackgroundDependencyLoader]
         private void load(Storage storage, GameHost host)
         {
             interactive = host.Window != null;
             config = new TestBrowserConfig(storage);
+
+            exit = host.Exit;
 
             rateBindable = new BindableDouble(1)
             {
@@ -246,6 +250,13 @@ namespace osu.Framework.Testing
             });
         }
 
+        public override IEnumerable<KeyBinding> DefaultKeyBindings => new[]
+        {
+            new KeyBinding(new [] {InputKey.Control, InputKey.F},TestBrowserAction.Search),
+            new KeyBinding(new [] {InputKey.Super, InputKey.F},TestBrowserAction.Search), // for macOS
+            new KeyBinding(new [] {InputKey.Control, InputKey.H},TestBrowserAction.ToggleTestList),
+        };
+
         protected override void LoadComplete()
         {
             base.LoadComplete();
@@ -254,12 +265,18 @@ namespace osu.Framework.Testing
                 LoadTest(TestTypes.Find(t => t.Name == config.Get<string>(TestBrowserSetting.LastTest)));
         }
 
-        protected override bool OnExiting(Screen next)
+        private void toggleTestList()
         {
-            if (next == null)
-                Game?.Exit();
-
-            return base.OnExiting(next);
+            if (leftContainer.Width > 0)
+            {
+                leftContainer.Width = 0;
+                mainContainer.Padding = new MarginPadding();
+            }
+            else
+            {
+                leftContainer.Width = test_list_width;
+                mainContainer.Padding = new MarginPadding { Left = test_list_width };
+            }
         }
 
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
@@ -268,24 +285,8 @@ namespace osu.Framework.Testing
             {
                 switch (args.Key)
                 {
-                    case Key.H:
-                        if (!state.Keyboard.ControlPressed)
-                            return false;
-
-                        if (leftContainer.Width > 0)
-                        {
-                            leftContainer.Width = 0;
-                            mainContainer.Padding = new MarginPadding();
-                        }
-                        else
-                        {
-                            leftContainer.Width = test_list_width;
-                            mainContainer.Padding = new MarginPadding { Left = test_list_width };
-                        }
-
-                        return true;
                     case Key.Escape:
-                        Exit();
+                        exit();
                         return true;
                 }
             }
@@ -293,8 +294,25 @@ namespace osu.Framework.Testing
             return base.OnKeyDown(state, args);
         }
 
-        public void LoadTest(int testIndex) => LoadTest(TestTypes[testIndex]);
+        public bool OnPressed(TestBrowserAction action)
+        {
+            switch (action)
+            {
+                case TestBrowserAction.Search:
+                    if (leftContainer.Width == 0) toggleTestList();
+                    GetContainingInputManager().ChangeFocus(searchTextBox);
+                    return true;
+                case TestBrowserAction.ToggleTestList:
+                    toggleTestList();
+                    return true;
+            }
 
+            return false;
+        }
+
+        public bool OnReleased(TestBrowserAction action) => false;
+
+        public void LoadTest(int testIndex) => LoadTest(TestTypes[testIndex]);
 
         public void LoadTest(Type testType = null, Action onCompletion = null)
         {
@@ -477,5 +495,11 @@ namespace osu.Framework.Testing
                 RateAdjustSlider.Current.ValueChanged += v => playbackSpeedDisplay.Text = v.ToString("0%");
             }
         }
+    }
+
+    public enum TestBrowserAction
+    {
+        ToggleTestList,
+        Search
     }
 }
