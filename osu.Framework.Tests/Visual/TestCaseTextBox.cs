@@ -11,7 +11,7 @@ using OpenTK;
 namespace osu.Framework.Tests.Visual
 {
     [TestFixture]
-    internal class TestCaseTextBox : TestCase
+    public class TestCaseTextBox : TestCase
     {
         public TestCaseTextBox()
         {

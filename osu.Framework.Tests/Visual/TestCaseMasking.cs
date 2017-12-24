@@ -15,7 +15,7 @@ using OpenTK.Graphics;
 namespace osu.Framework.Tests.Visual
 {
     [TestFixture]
-    internal class TestCaseMasking : TestCase
+    public class TestCaseMasking : TestCase
     {
         protected Container TestContainer;
 

@@ -57,6 +57,8 @@ namespace osu.Framework.Allocation
             stackTrace = traceBuilder.ToString();
         }
 
+        public override string Message => original.Message;
+
         private readonly string stackTrace;
         public override string StackTrace => stackTrace;
 

@@ -5,10 +5,12 @@ using osu.Framework.Extensions.TypeExtensions;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Newtonsoft.Json;
+using osu.Framework.IO.Serialization;
 
 namespace osu.Framework.Lists
 {
-    public class SortedList<T> : ICollection<T>, IReadOnlyList<T>
+    public class SortedList<T> : ICollection<T>, IReadOnlyList<T>, ISortedList
     {
         private readonly List<T> list;
 
@@ -24,10 +26,27 @@ namespace osu.Framework.Lists
             set { list[index] = value; }
         }
 
-        public SortedList(Func<T, T, int> comparer) : this(new ComparisonComparer<T>(comparer))
+        /// <summary>
+        /// Constructs a new <see cref="SortedList{T}"/> with the default <typeparamref name="T"/> comparer.
+        /// </summary>
+        public SortedList()
+            : this(Comparer<T>.Default)
         {
         }
 
+        /// <summary>
+        /// Constructs a new <see cref="SortedList{T}"/> with a custom comparison function.
+        /// </summary>
+        /// <param name="comparer">The comparison function.</param>
+        public SortedList(Func<T, T, int> comparer)
+            : this(new ComparisonComparer<T>(comparer))
+        {
+        }
+
+        /// <summary>
+        /// Constructs a new <see cref="SortedList{T}"/> with a custom <see cref="IComparer{T}"/>.
+        /// </summary>
+        /// <param name="comparer">The comparer to use.</param>
         public SortedList(IComparer<T> comparer)
         {
             list = new List<T>();
@@ -116,6 +135,17 @@ namespace osu.Framework.Lists
 
         IEnumerator IEnumerable.GetEnumerator() => list.GetEnumerator();
 
+        public void SerializeTo(JsonWriter writer, JsonSerializer serializer)
+        {
+            serializer.Serialize(writer, list);
+        }
+
+        public void DeserializeFrom(JsonReader reader, JsonSerializer serializer)
+        {
+            serializer.Populate(reader, list);
+            list.Sort(Comparer);
+        }
+
         #endregion
 
         private class ComparisonComparer<TComparison> : IComparer<TComparison>
@@ -136,5 +166,12 @@ namespace osu.Framework.Lists
                 return comparison(x, y);
             }
         }
+    }
+
+    [JsonConverter(typeof(SortedListConverter))]
+    internal interface ISortedList
+    {
+        void SerializeTo(JsonWriter writer, JsonSerializer serializer);
+        void DeserializeFrom(JsonReader reader, JsonSerializer serializer);
     }
 }

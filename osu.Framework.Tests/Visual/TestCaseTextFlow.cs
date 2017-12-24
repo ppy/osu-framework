@@ -15,7 +15,7 @@ namespace osu.Framework.Tests.Visual
 {
     [TestFixture]
     [System.ComponentModel.Description("word-wrap and paragraphs")]
-    internal class TestCaseTextFlow : TestCase
+    public class TestCaseTextFlow : TestCase
     {
         public TestCaseTextFlow()
         {

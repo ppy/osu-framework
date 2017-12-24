@@ -14,7 +14,7 @@ using OpenTK.Graphics;
 namespace osu.Framework.Tests.Visual
 {
     [TestFixture]
-    internal class TestCaseContextMenu : TestCase
+    public class TestCaseContextMenu : TestCase
     {
         private const int start_time = 0;
         private const int duration = 1000;
