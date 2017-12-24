@@ -14,7 +14,7 @@ using OpenTK;
 namespace osu.Framework.Tests.Visual
 {
     [TestFixture]
-    internal class TestCaseSearchContainer : TestCase
+    public class TestCaseSearchContainer : TestCase
     {
         public TestCaseSearchContainer()
         {

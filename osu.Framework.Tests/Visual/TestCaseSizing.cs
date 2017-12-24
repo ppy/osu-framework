@@ -15,7 +15,7 @@ namespace osu.Framework.Tests.Visual
 {
     [TestFixture]
     [System.ComponentModel.Description("potentially challenging size calculations")]
-    internal class TestCaseSizing : TestCase
+    public class TestCaseSizing : TestCase
     {
         private readonly Container testContainer;
 
