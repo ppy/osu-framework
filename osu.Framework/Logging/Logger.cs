@@ -125,12 +125,12 @@ namespace osu.Framework.Logging
 
         private static void error(Exception e, string description, LoggingTarget? target, string name, bool recursive)
         {
-            log($@"ERROR: {description}", target, name, LogLevel.Error);
-            log(e.ToString(), target, name, LogLevel.Error);
+            log($@"{description}", target, name, LogLevel.Error);
+            log(e.ToString(), target, name, LogLevel.Important);
 
             if (recursive)
                 for (Exception inner = e.InnerException; inner != null; inner = inner.InnerException)
-                    log(inner.ToString(), target, name, LogLevel.Error);
+                    log(inner.ToString(), target, name, LogLevel.Important);
         }
 
         /// <summary>
