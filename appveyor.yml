@@ -15,6 +15,7 @@ install:
   - cmd: choco install nvika -y
   - cmd: appveyor DownloadFile https://github.com/peppy/CodeFileSanity/releases/download/v0.2.2/CodeFileSanity.exe
   - cmd: pip install -I httpbin==0.5.0
+  - cmd: pip install gunicorn
 before_build:
   - cmd: CodeFileSanity.exe
   - cmd: nuget restore
