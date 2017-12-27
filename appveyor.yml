@@ -2,6 +2,8 @@
 clone_depth: 1
 version: '{build}'
 configuration: Debug
+hosts:
+  httpbin.org: 127.0.0.1
 cache:
   - C:\ProgramData\chocolatey\bin -> appveyor.yml
   - C:\ProgramData\chocolatey\lib -> appveyor.yml
@@ -12,9 +14,11 @@ install:
   - cmd: choco install resharper-clt -y
   - cmd: choco install nvika -y
   - cmd: appveyor DownloadFile https://github.com/peppy/CodeFileSanity/releases/download/v0.2.2/CodeFileSanity.exe
+  - cmd: pip install httpbin
 before_build:
   - cmd: CodeFileSanity.exe
   - cmd: nuget restore
+  - cmd: gunicorn httpbin:app
 build:
   project: osu-framework.sln
   parallel: true
