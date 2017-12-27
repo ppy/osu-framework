@@ -475,7 +475,7 @@ namespace osu.Framework.Graphics.Containers
 
             // If we are not present then there is never a reason to check
             // for children, as they should never affect our present status.
-            if (!IsPresent || !RequiresChildrenUpdate) return false;
+            if (!IsPresent && !RequiresChildrenUpdate) return false;
 
             // We iterate by index to gain performance
             // ReSharper disable once ForCanBeConvertedToForeach
