@@ -394,7 +394,7 @@ namespace osu.Framework.Logging
 
         private static readonly List<string> filters = new List<string>();
         private static readonly Dictionary<string, Logger> static_loggers = new Dictionary<string, Logger>();
-        private static ThreadedScheduler backgroundScheduler = new ThreadedScheduler(@"Logger") { Enabled = false };
+        private static ThreadedScheduler backgroundScheduler = new ThreadedScheduler(@"Logger", startEnabled: false);
 
         /// <summary>
         /// Pause execution until all logger writes have completed and file handles have been closed.
