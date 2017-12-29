@@ -153,14 +153,29 @@ namespace osu.Framework.Configuration
         }
 
         /// <summary>
-        /// Unbind any events bound to <see cref="ValueChanged"/> and <see cref="DisabledChanged"/>, along with
-        /// removing all bound <see cref="Bindable{T}"/>s via <see cref="GetBoundCopy"/> or <see cref="BindTo"/>.
+        /// Unbind any events bound to <see cref="ValueChanged"/> and <see cref="DisabledChanged"/>.
         /// </summary>
-        public void UnbindAll()
+        public void UnbindEvents()
         {
             ValueChanged = null;
             DisabledChanged = null;
+        }
+
+        /// <summary>
+        /// Remove all bound <see cref="Bindable{T}"/>s via <see cref="GetBoundCopy"/> or <see cref="BindTo"/>.
+        /// </summary>
+        public void UnbindBindings()
+        {
             bindings.Clear();
+        }
+
+        /// <summary>
+        /// Calls <see cref="UnbindEvents"/> and <see cref="UnbindBindings"/>
+        /// </summary>
+        public void UnbindAll()
+        {
+            UnbindEvents();
+            UnbindBindings();
         }
 
         public string Description { get; set; }
