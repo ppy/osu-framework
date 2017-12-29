@@ -166,7 +166,7 @@ namespace osu.Framework.Configuration
         /// </summary>
         public void UnbindBindings()
         {
-            bindings.Clear();
+            bindings?.Clear();
         }
 
         /// <summary>
