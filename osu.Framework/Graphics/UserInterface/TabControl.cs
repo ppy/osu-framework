@@ -24,9 +24,9 @@ namespace osu.Framework.Graphics.UserInterface
         public Bindable<T> Current { get; } = new Bindable<T>();
 
         /// <summary>
-        /// A list of items currently in the tab control in the other they are dispalyed.
+        /// A list of items currently in the tab control in the order they are dispalyed.
         /// </summary>
-        public IEnumerable<T> Items => TabContainer.Children.Select(tab => tab.Value);
+        public IEnumerable<T> Items => TabContainer.TabItems.Select(t => t.Value).Concat(Dropdown.Items.Select(kvp => kvp.Value)).Distinct();
 
         /// <summary>
         /// When true, tabs selected from the overflow dropdown will be moved to the front of the list (after pinned items).
@@ -55,7 +55,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected abstract TabItem<T> CreateTabItem(T value);
 
         /// <summary>
-        /// Incremented each time a tab needs to be inserted at the start of the list.
+        /// Decremented each time a tab needs to be inserted at the start of the list.
         /// </summary>
         private int depthCounter;
 
@@ -188,11 +188,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <param name="addToDropdown">Whether the tab should be added to the Dropdown if supported by the <see cref="TabControl{T}"/> implementation.</param>
         protected virtual void AddTabItem(TabItem<T> tab, bool addToDropdown = true)
         {
-            tab.PinnedChanged += t =>
-            {
-                // Todo: This schedule is a temporary fix for https://github.com/ppy/osu-framework/issues/821
-                Schedule(() => performTabSort(t));
-            };
+            tab.PinnedChanged += performTabSort;
 
             tab.ActivationRequested += SelectTab;
 
@@ -220,9 +216,6 @@ namespace osu.Framework.Graphics.UserInterface
                 Dropdown?.RemoveDropdownItem(tab.Value);
 
             TabContainer.Remove(tab);
-
-            if (TabContainer.Count > 0)
-                performTabSort(TabContainer.Last());
         }
 
         /// <summary>
@@ -254,28 +247,26 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void performTabSort(TabItem<T> tab)
         {
-            if (IsLoaded)
-                TabContainer.Remove(tab);
-
-            tab.Depth = getTabDepth(tab);
+            TabContainer.SetLayoutPosition(tab, getTabDepth(tab));
 
             // IsPresent of TabItems is based on Y position.
             // We reset it here to allow tabs to get a correct initial position.
             tab.Y = 0;
-
-            if (IsLoaded)
-                TabContainer.Add(tab);
         }
 
         private float getTabDepth(TabItem<T> tab) => tab.Pinned ? float.MinValue : --depthCounter;
 
         public class TabFillFlowContainer<U> : FillFlowContainer<U> where U : TabItem
         {
+            /// <summary>
+            /// Gets called whenever the visibility of a tab in this container changes. Gets invoked with the <see cref="TabItem"/> whose visibility changed and the new visibility state (true = visible, false = hidden).
+            /// </summary>
             public Action<U, bool> TabVisibilityChanged;
 
-            protected override int Compare(Drawable x, Drawable y) => CompareReverseChildID(x, y);
-
-            protected override IEnumerable<Drawable> FlowingChildren => base.FlowingChildren.Reverse();
+            /// <summary>
+            /// The list of tabs currently displayed by this container.
+            /// </summary>
+            public IEnumerable<U> TabItems => FlowingChildren.OfType<U>();
 
             protected override IEnumerable<Vector2> ComputeLayoutPositions()
             {
