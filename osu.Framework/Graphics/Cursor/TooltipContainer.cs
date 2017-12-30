@@ -195,7 +195,7 @@ namespace osu.Framework.Graphics.Cursor
             float appearRadiusSq = AppearRadius * AppearRadius;
 
             if (relevantPositions.All(t => Vector2Extensions.DistanceSquared(t.Position, first) < appearRadiusSq))
-                return FindTargets().FirstOrDefault(t => t != null);
+                return FindTargets().FirstOrDefault(t => t.TooltipText != null);
 
             return null;
         }
