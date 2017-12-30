@@ -148,7 +148,7 @@ namespace osu.Framework.Testing
             }
             catch (Exception e)
             {
-                Logging.Logger.Log($"Error on running first step: {e}");
+                Logging.Logger.Error(e, "Error on running first step");
             }
         }
 
@@ -182,10 +182,7 @@ namespace osu.Framework.Testing
                 if (actionIndex < 0)
                     text += $"{GetType().ReadableName()}";
                 else
-                {
-                    text += $"step {actionIndex + 1}";
-                    text = text.PadRight(16) + $"{loadableStep?.ToString() ?? string.Empty}";
-                }
+                    text += $"step {actionIndex + 1} {loadableStep?.ToString() ?? string.Empty}";
             }
 
             Console.Write(text);

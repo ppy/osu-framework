@@ -262,6 +262,8 @@ namespace osu.Framework.Graphics.Containers
         /// </param>
         protected internal virtual void ClearInternal(bool disposeChildren = true)
         {
+            if (internalChildren.Count == 0) return;
+
             foreach (Drawable t in internalChildren)
             {
                 if (t.IsAlive)
