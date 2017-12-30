@@ -60,9 +60,9 @@ namespace osu.Framework.Tests.Visual
 
             AddStep("RemoveItem", () =>
             {
-                if (pinnedAndAutoSort.Items.Any())
+                if (pinnedAndAutoSort.Any())
                 {
-                    pinnedAndAutoSort.RemoveItem(pinnedAndAutoSort.Items.First());
+                    pinnedAndAutoSort.RemoveItem(pinnedAndAutoSort.Items.Last());
                 }
             });
 
