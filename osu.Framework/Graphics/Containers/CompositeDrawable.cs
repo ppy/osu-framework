@@ -48,6 +48,9 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Loads a future child or grand-child of this <see cref="CompositeDrawable"/> asyncronously. <see cref="Drawable.Dependencies"/>
         /// and <see cref="Drawable.Clock"/> are inherited from this <see cref="CompositeDrawable"/>.
+        ///
+        /// Note that this will always use the dependencies and clock from this instance. If you must load to a nested container level,
+        /// consider using <see cref="DelayedLoadWrapper"/>
         /// </summary>
         /// <typeparam name="TLoadable">The type of the future future child or grand-child to be loaded.</typeparam>
         /// <param name="component">The type of the future future child or grand-child to be loaded.</param>
@@ -222,7 +225,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         /// <param name="drawable">The <see cref="Drawable"/> to be removed.</param>
         /// <returns>False if <paramref name="drawable"/> was not a child of this <see cref="CompositeDrawable"/> and true otherwise.</returns>
-        protected internal bool RemoveInternal(Drawable drawable)
+        protected internal virtual bool RemoveInternal(Drawable drawable)
         {
             if (drawable == null)
                 throw new ArgumentNullException(nameof(drawable));
@@ -257,8 +260,10 @@ namespace osu.Framework.Graphics.Containers
         /// Whether removed children should also get disposed.
         /// Disposal will be recursive.
         /// </param>
-        protected internal void ClearInternal(bool disposeChildren = true)
+        protected internal virtual void ClearInternal(bool disposeChildren = true)
         {
+            if (internalChildren.Count == 0) return;
+
             foreach (Drawable t in internalChildren)
             {
                 if (t.IsAlive)
@@ -339,12 +344,23 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="newDepth">The new depth value to be set.</param>
         protected internal void ChangeInternalChildDepth(Drawable child, float newDepth)
         {
-            if (!ContainsInternal(child))
+            var index = IndexOfInternal(child);
+            if (index < 0)
                 throw new InvalidOperationException($"Can not change depth of drawable which is not contained within this {nameof(CompositeDrawable)}.");
 
-            RemoveInternal(child);
+            internalChildren.RemoveAt(index);
+            var aliveIndex = aliveInternalChildren.IndexOf(child);
+            if (aliveIndex >= 0) // remove if found
+                aliveInternalChildren.RemoveAt(aliveIndex);
+
+            var chId = child.ChildID;
+            child.ChildID = 0; // ensure Depth-change does not throw an exception
             child.Depth = newDepth;
-            AddInternal(child);
+            child.ChildID = chId;
+
+            internalChildren.Add(child);
+            if (aliveIndex >= 0) // re-add if it used to be in aliveInternalChildren
+                aliveInternalChildren.Add(child);
         }
 
         #endregion

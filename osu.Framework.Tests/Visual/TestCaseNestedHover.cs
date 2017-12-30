@@ -13,7 +13,7 @@ using OpenTK.Graphics;
 namespace osu.Framework.Tests.Visual
 {
     [TestFixture]
-    internal class TestCaseNestedHover : TestCase
+    public class TestCaseNestedHover : TestCase
     {
         public TestCaseNestedHover()
         {

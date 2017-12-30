@@ -26,6 +26,9 @@ namespace osu.Framework.Graphics.UserInterface
 
         public BasicSliderBar()
         {
+            CornerRadius = 4;
+            Masking = true;
+
             Children = new Drawable[]
             {
                 Box = new Box

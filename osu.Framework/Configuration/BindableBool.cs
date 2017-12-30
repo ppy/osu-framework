@@ -12,7 +12,7 @@ namespace osu.Framework.Configuration
         {
         }
 
-        public static implicit operator bool(BindableBool value) => value != null && value.Value;
+        public static implicit operator bool(BindableBool value) => value?.Value ?? throw new InvalidCastException($"Casting a null {nameof(BindableBool)} to a bool is likely a mistake");
 
         public override string ToString() => Value.ToString();
 

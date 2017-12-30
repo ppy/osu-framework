@@ -73,15 +73,10 @@ namespace osu.Framework.Input.Bindings
         {
             localQueue.Clear();
 
-            var addedSelf = base.BuildKeyboardInputQueue(localQueue);
-
+            base.BuildKeyboardInputQueue(localQueue);
             queue.AddRange(localQueue);
 
-            if (addedSelf)
-                localQueue.Remove(this);
-
             localQueue.Reverse();
-
             return true;
         }
 

@@ -80,5 +80,13 @@ namespace osu.Framework.Audio.Track
                     Stop();
             }
         }
+
+        internal override void OnStateChanged()
+        {
+            base.OnStateChanged();
+
+            lock (clock)
+                clock.Rate = Tempo;
+        }
     }
 }

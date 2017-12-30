@@ -105,8 +105,6 @@ namespace osu.Framework.Tests.Visual
 
         private class UserDrawnPath : Path
         {
-            public override bool HandleInput => true;
-
             private Vector2 oldPos;
 
             protected override bool OnDragStart(InputState state)

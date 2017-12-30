@@ -18,7 +18,7 @@ using OpenTK.Graphics;
 namespace osu.Framework.Tests.Visual
 {
     [TestFixture]
-    internal class TestCaseTabControl : TestCase
+    public class TestCaseTabControl : TestCase
     {
         public TestCaseTabControl()
         {
@@ -60,9 +60,9 @@ namespace osu.Framework.Tests.Visual
 
             AddStep("RemoveItem", () =>
             {
-                if (pinnedAndAutoSort.Any())
+                if (pinnedAndAutoSort.Items.Any())
                 {
-                    pinnedAndAutoSort.RemoveItem(pinnedAndAutoSort.Items.Last());
+                    pinnedAndAutoSort.RemoveItem(pinnedAndAutoSort.Items.First());
                 }
             });
 

@@ -5,6 +5,7 @@ using osu.Framework.Platform;
 using osu.Framework.Platform.Linux;
 using osu.Framework.Platform.MacOS;
 using osu.Framework.Platform.Windows;
+using System;
 
 namespace osu.Framework
 {
@@ -12,13 +13,17 @@ namespace osu.Framework
     {
         public static DesktopGameHost GetSuitableHost(string gameName, bool bindIPC = false)
         {
-            if (RuntimeInfo.IsMacOsx)
-                return new MacOSGameHost(gameName, bindIPC);
-
-            if (RuntimeInfo.IsUnix)
-                return new LinuxGameHost(gameName, bindIPC);
-
-            return new WindowsGameHost(gameName, bindIPC);
+            switch (RuntimeInfo.OS)
+            {
+                case RuntimeInfo.Platform.MacOsx:
+                    return new MacOSGameHost(gameName, bindIPC);
+                case RuntimeInfo.Platform.Linux:
+                    return new LinuxGameHost(gameName, bindIPC);
+                case RuntimeInfo.Platform.Windows:
+                    return new WindowsGameHost(gameName, bindIPC);
+                default:
+                    throw new InvalidOperationException($"Could not find a suitable host for the selected operating system ({Enum.GetName(typeof(RuntimeInfo.Platform), RuntimeInfo.OS)}).");
+            }
         }
     }
 }

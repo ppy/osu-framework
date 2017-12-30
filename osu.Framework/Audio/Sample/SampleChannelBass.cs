@@ -43,7 +43,7 @@ namespace osu.Framework.Audio.Sample
 
         public override void Play(bool restart = true)
         {
-            PendingActions.Enqueue(() =>
+            EnqueueAction(() =>
             {
                 if (!IsLoaded)
                 {
@@ -59,7 +59,7 @@ namespace osu.Framework.Audio.Sample
 
             InvalidateState();
 
-            PendingActions.Enqueue(() =>
+            EnqueueAction(() =>
             {
                 if (channel != 0)
                     Bass.ChannelPlay(channel, restart);
@@ -84,7 +84,7 @@ namespace osu.Framework.Audio.Sample
 
             base.Stop();
 
-            PendingActions.Enqueue(() =>
+            EnqueueAction(() =>
             {
                 Bass.ChannelStop(channel);
                 // ChannelStop frees the channel.
