@@ -122,10 +122,10 @@ namespace osu.Framework.Testing
 
             var compilation = CSharpCompilation.Create(
                 DYNAMIC_ASSEMBLY_NAME,
-                requiredFiles.Select(File.ReadAllText)
-                    // Compile the assembly with a new version so that it replaces the existing one
-                    .Concat(new[] { $"using System.Reflection; [assembly: AssemblyVersion(\"{assemblyVersion}\")]" })
-                    .Select(f => CSharpSyntaxTree.ParseText(f)),
+                requiredFiles.Select(file => CSharpSyntaxTree.ParseText(File.ReadAllText(file), null, file))
+                             // Compile the assembly with a new version so that it replaces the existing one
+                             .Concat(new[] { CSharpSyntaxTree.ParseText($"using System.Reflection; [assembly: AssemblyVersion(\"{assemblyVersion}\")]") })
+                ,
                 references,
                 options
             );
