@@ -152,6 +152,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\MatrixExtensions\MatrixExtensions.cs" />
     <Compile Include="Configuration\BindableLong.cs" />
     <Compile Include="Configuration\BindableFloat.cs" />
+    <Compile Include="Configuration\BindableNumberWithPrecision.cs" />
     <Compile Include="Configuration\ConfigManager.cs" />
     <Compile Include="Configuration\FrameSync.cs" />
     <Compile Include="Configuration\FrameworkConfigManager.cs" />
