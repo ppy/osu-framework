@@ -79,7 +79,7 @@ namespace osu.Framework.Testing
 
                 if (!reqTypes.SequenceEqual(requiredTypeNames))
                 {
-                    requiredTypeNames = reqTypes;
+                    requiredTypeNames = new List<string>(reqTypes);
                     requiredFiles = Directory
                         .EnumerateFiles(DebugUtils.GetSolutionPath(), "*.cs", SearchOption.AllDirectories)
                         .Where(fw => requiredTypeNames.Contains(Path.GetFileNameWithoutExtension(fw)))
