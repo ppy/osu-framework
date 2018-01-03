@@ -133,8 +133,11 @@ namespace osu.Framework.Testing
         public void RunAllSteps(Action onCompletion = null, Action<Exception> onError = null)
         {
             stepRunner?.Cancel();
-            foreach (RepeatStepButton rsb in StepsContainer.Where(s => s is RepeatStepButton))
+            foreach (RepeatStepButton rsb in StepsContainer.OfType<RepeatStepButton>())
                 rsb.ResetInvocations();
+
+
+
 
             actionIndex = -1;
             actionRepetition = 0;
