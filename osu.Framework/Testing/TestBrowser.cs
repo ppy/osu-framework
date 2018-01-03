@@ -235,26 +235,23 @@ namespace osu.Framework.Testing
             rateBindable.TriggerChange();
         }
 
-        private void compileStarted()
+        private void compileStarted() => Schedule(() =>
         {
             compilingNotice.Show();
             compilingNotice.FadeColour(Color4.White);
-        }
+        });
 
-        private void compileFinished(Type newType)
+        private void compileFinished(Type newType) => Schedule(() =>
         {
-            Schedule(() =>
-            {
-                compilingNotice.FadeOut(800, Easing.InQuint);
-                compilingNotice.FadeColour(newType == null ? Color4.Red : Color4.YellowGreen, 100);
+            compilingNotice.FadeOut(800, Easing.InQuint);
+            compilingNotice.FadeColour(newType == null ? Color4.Red : Color4.YellowGreen, 100);
 
-                if (newType == null) return;
+            if (newType == null) return;
 
-                int i = TestTypes.FindIndex(t => t.Name == newType.Name);
-                TestTypes[i] = newType;
-                LoadTest(i);
-            });
-        }
+            int i = TestTypes.FindIndex(t => t.Name == newType.Name);
+            TestTypes[i] = newType;
+            LoadTest(i);
+        });
 
         protected override void LoadComplete()
         {
