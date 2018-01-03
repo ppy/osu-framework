@@ -47,7 +47,11 @@ namespace osu.Framework.Configuration
         protected void TriggerPrecisionChange(bool propagateToBindings = true)
         {
             PrecisionChanged?.Invoke(MinValue);
-            if (propagateToBindings) Bindings?.ForEachAlive(b =>
+
+            if (!propagateToBindings)
+                return;
+            
+            Bindings?.ForEachAlive(b =>
             {
                 if (b is BindableNumberWithPrecision<T> other)
                     other.Precision = Precision;
