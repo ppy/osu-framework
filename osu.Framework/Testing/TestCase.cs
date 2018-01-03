@@ -135,10 +135,7 @@ namespace osu.Framework.Testing
             stepRunner?.Cancel();
             foreach (RepeatStepButton rsb in StepsContainer.OfType<RepeatStepButton>())
                 rsb.ResetInvocations();
-
-
-
-
+            
             actionIndex = -1;
             actionRepetition = 0;
             runNextStep(onCompletion, onError);

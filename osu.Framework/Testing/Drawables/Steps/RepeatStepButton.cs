@@ -33,11 +33,10 @@ namespace osu.Framework.Testing.Drawables.Steps
 
             base.Action = () =>
             {
-
                 if (invocations == count && StateOnClick == null) return;
 
                 invocations++;
-                
+
                 if (invocations >= count) // Allows for manual execution
                     Success();
 
