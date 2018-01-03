@@ -133,6 +133,8 @@ namespace osu.Framework.Testing
         public void RunAllSteps(Action onCompletion = null, Action<Exception> onError = null)
         {
             stepRunner?.Cancel();
+            foreach (RepeatStepButton rsb in StepsContainer.Where(s => s is RepeatStepButton))
+                rsb.ResetInvocations();
 
             actionIndex = -1;
             actionRepetition = 0;
@@ -141,6 +143,7 @@ namespace osu.Framework.Testing
 
         public void RunFirstStep()
         {
+            stepRunner?.Cancel(); // Fixes RunAllSteps not working when toggled off
             actionIndex = 0;
             try
             {

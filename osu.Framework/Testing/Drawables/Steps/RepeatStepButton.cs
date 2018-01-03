@@ -33,17 +33,24 @@ namespace osu.Framework.Testing.Drawables.Steps
 
             base.Action = () =>
             {
-                if (invocations == count) return;
+
+                if (invocations == count && base.StateOnClick == null) return;
 
                 invocations++;
 
-                if (invocations == count)
+                if (invocations >= count) // Allows for manual execution
                     Success();
 
                 updateText();
 
                 Action?.Invoke();
             };
+        }
+
+        public void ResetInvocations()
+        {
+            invocations = 0;
+            updateText();
         }
 
         private void updateText() => base.Text = $@"{Text} {invocations}/{count}";

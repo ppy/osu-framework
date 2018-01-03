@@ -20,6 +20,7 @@ namespace osu.Framework.Testing.Drawables.Steps
         protected SpriteText SpriteText;
 
         public Action Action { get; protected set; }
+        protected InputState StateOnClick;
 
         public string Text
         {
@@ -79,6 +80,7 @@ namespace osu.Framework.Testing.Drawables.Steps
             Background.ClearTransforms();
             Background.FadeColour(runningColour, 40, Easing.OutQuint);
 
+            StateOnClick = state;
             try
             {
                 Action?.Invoke();
