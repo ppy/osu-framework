@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Runtime.CompilerServices;
+using osu.Framework.Testing;
 
 // We publish our internal attributes to other sub-projects of the framework.
 // Note, that we omit visual tests as they are meant to test the framework
