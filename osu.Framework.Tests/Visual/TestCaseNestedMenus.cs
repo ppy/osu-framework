@@ -24,6 +24,8 @@ namespace osu.Framework.Tests.Visual
         private const int max_depth = 5;
         private const int max_count = 5;
 
+        public override IReadOnlyList<Type> RequiredTypes => new[] { typeof(Menu) };
+
         private Random rng;
 
         private ManualInputManager inputManager;

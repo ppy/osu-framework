@@ -148,7 +148,7 @@ namespace osu.Framework.Testing
             }
             catch (Exception e)
             {
-                Logging.Logger.Log($"Error on running first step: {e}");
+                Logging.Logger.Error(e, "Error on running first step");
             }
         }
 

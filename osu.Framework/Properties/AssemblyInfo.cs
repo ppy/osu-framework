@@ -8,3 +8,4 @@ using System.Runtime.CompilerServices;
 // behavior "in the wild".
 
 [assembly: InternalsVisibleTo("osu.Framework.Tests")]
+[assembly: InternalsVisibleTo(DynamicClassCompiler.DYNAMIC_ASSEMBLY_NAME)]
