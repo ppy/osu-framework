@@ -125,12 +125,12 @@ namespace osu.Framework.Logging
 
         private static void error(Exception e, string description, LoggingTarget? target, string name, bool recursive)
         {
-            log($@"ERROR: {description}", target, name, LogLevel.Error);
-            log(e.ToString(), target, name, LogLevel.Error);
+            log($@"{description}", target, name, LogLevel.Error);
+            log(e.ToString(), target, name, LogLevel.Important);
 
             if (recursive)
                 for (Exception inner = e.InnerException; inner != null; inner = inner.InnerException)
-                    log(inner.ToString(), target, name, LogLevel.Error);
+                    log(inner.ToString(), target, name, LogLevel.Important);
         }
 
         /// <summary>
@@ -394,7 +394,7 @@ namespace osu.Framework.Logging
 
         private static readonly List<string> filters = new List<string>();
         private static readonly Dictionary<string, Logger> static_loggers = new Dictionary<string, Logger>();
-        private static ThreadedScheduler backgroundScheduler = new ThreadedScheduler(@"Logger") { Enabled = false };
+        private static ThreadedScheduler backgroundScheduler = new ThreadedScheduler(@"Logger", startEnabled: false);
 
         /// <summary>
         /// Pause execution until all logger writes have completed and file handles have been closed.
