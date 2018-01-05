@@ -36,7 +36,7 @@ namespace osu.Framework.Testing.Drawables.Steps
 
             if (!base.PerformStep(userTriggered)) return false;
 
-            if (invocations >= count) // Allows for manual execution
+            if (invocations >= count) // Allows for manual execution beyond the invocation limit.
                 Success();
 
             updateText();

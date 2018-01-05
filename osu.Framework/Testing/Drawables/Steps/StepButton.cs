@@ -22,7 +22,6 @@ namespace osu.Framework.Testing.Drawables.Steps
         protected SpriteText SpriteText;
 
         public Action Action { get; protected set; }
-        protected InputState StateOnClick;
 
         public string Text
         {
