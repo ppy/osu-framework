@@ -13,8 +13,6 @@ namespace osu.Framework.Testing.Drawables.Steps
 
         public override int RequiredRepetitions => count;
 
-        public new Action Action;
-
         private string text;
 
         public new string Text
@@ -23,27 +21,28 @@ namespace osu.Framework.Testing.Drawables.Steps
             set { base.Text = text = value; }
         }
 
-        public RepeatStepButton(int count = 1)
+        public RepeatStepButton(Action action, int count = 1)
         {
             this.count = count;
+            Action = action;
 
             updateText();
 
             BackgroundColour = Color4.Sienna;
+        }
 
-            base.Action = () =>
-            {
-                if (invocations == count && StateOnClick == null) return;
+        public override bool PerformStep(bool userTriggered = false)
+        {
+            if (invocations == count && !userTriggered) return false;
 
-                invocations++;
+            invocations++;
 
-                if (invocations >= count) // Allows for manual execution
-                    Success();
+            if (invocations >= count) // Allows for manual execution
+                Success();
 
-                updateText();
+            updateText();
 
-                Action?.Invoke();
-            };
+            return base.PerformStep(userTriggered);
         }
 
         public void ResetInvocations()

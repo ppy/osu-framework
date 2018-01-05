@@ -147,7 +147,7 @@ namespace osu.Framework.Testing
             actionIndex = 0;
             try
             {
-                loadableStep?.TriggerOnClick();
+                loadableStep?.PerformStep();
             }
             catch (Exception e)
             {
@@ -167,7 +167,7 @@ namespace osu.Framework.Testing
                 {
                     if (loadableStep.IsMaskedAway)
                         scroll.ScrollTo(loadableStep);
-                    loadableStep.TriggerOnClick();
+                    loadableStep.PerformStep();
                 }
             }
             catch (Exception e)
@@ -224,10 +224,9 @@ namespace osu.Framework.Testing
 
         protected void AddRepeatStep(string description, Action action, int invocationCount)
         {
-            StepsContainer.Add(new RepeatStepButton(invocationCount)
+            StepsContainer.Add(new RepeatStepButton(action, invocationCount)
             {
                 Text = description,
-                Action = action
             });
         }
 
@@ -250,7 +249,7 @@ namespace osu.Framework.Testing
 
         protected void AddWaitStep(int waitCount, string description = null)
         {
-            StepsContainer.Add(new RepeatStepButton(waitCount)
+            StepsContainer.Add(new RepeatStepButton(() => { }, waitCount)
             {
                 Text = description ?? @"Wait",
                 BackgroundColour = Color4.Gray

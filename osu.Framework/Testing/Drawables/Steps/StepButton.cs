@@ -2,11 +2,13 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
+using osu.Framework.Platform;
 using OpenTK.Graphics;
 
 namespace osu.Framework.Testing.Drawables.Steps
@@ -75,12 +77,25 @@ namespace osu.Framework.Testing.Drawables.Steps
             Masking = true;
         }
 
+        private bool interactive;
+
+        [BackgroundDependencyLoader]
+        private void load(GameHost host)
+        {
+            interactive = host.Window != null;
+        }
+
         protected override bool OnClick(InputState state)
+        {
+            PerformStep(true);
+            return true;
+        }
+
+        public virtual bool PerformStep(bool userTriggered = false)
         {
             Background.ClearTransforms();
             Background.FadeColour(runningColour, 40, Easing.OutQuint);
 
-            StateOnClick = state;
             try
             {
                 Action?.Invoke();
@@ -89,9 +104,11 @@ namespace osu.Framework.Testing.Drawables.Steps
             {
                 Failure();
 
-                // if our state is null, we were triggered programmatically and want to handle the exception in the outer scope.
-                if (state == null)
+                // only hard crash on a non-interactive run.
+                if (!interactive)
                     throw;
+
+                return false;
             }
 
             return true;
