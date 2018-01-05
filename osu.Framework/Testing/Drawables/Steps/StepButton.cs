@@ -86,7 +86,7 @@ namespace osu.Framework.Testing.Drawables.Steps
             }
             catch (Exception e)
             {
-                Logging.Logger.Error(e, "Step {this} triggered an error");
+                Logging.Logger.Error(e, $"Step {this} triggered an error");
             }
 
             return true;
