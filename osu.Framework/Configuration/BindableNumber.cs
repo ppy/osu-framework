@@ -31,12 +31,38 @@ namespace osu.Framework.Configuration
                     $"{nameof(BindableNumber<T>)} only accepts the primitive numeric types (except for {typeof(decimal).FullName}) as type arguments. You provided {typeof(T).FullName}.");
         }
 
+        /// <summary>
+        /// An event which is raised when <see cref="Precision"/> has changed (or manually via <see cref="TriggerPrecisionChange"/>).
+        /// </summary>
+        public event Action<T> PrecisionChanged;
+
         protected BindableNumber(T value = default(T))
             : base(value)
         {
             MinValue = DefaultMinValue;
             MaxValue = DefaultMaxValue;
+            precision = DefaultPrecision;
         }
+
+
+        private T precision;
+
+        /// <summary>
+        /// The precision up to which the value of this bindable should be rounded.
+        /// </summary>
+        public T Precision
+        {
+            get => precision;
+            set
+            {
+                if (precision.Equals(value))
+                    return;
+                precision = value;
+
+                TriggerPrecisionChange();
+            }
+        }
+
 
         /// <summary>
         /// The minimum value of this bindable. <see cref="Bindable{T}.Value"/> will never go below this value.
@@ -54,9 +80,35 @@ namespace osu.Framework.Configuration
         protected abstract T DefaultMinValue { get; }
 
         /// <summary>
-        /// /// The default <see cref="MaxValue"/>. This should be equal to the maximum value of type <see cref="T"/>.
+        /// The default <see cref="MaxValue"/>. This should be equal to the maximum value of type <see cref="T"/>.
         /// </summary>
         protected abstract T DefaultMaxValue { get; }
+
+        /// <summary>
+        /// The default <see cref="Precision"/>.
+        /// </summary>
+        protected abstract T DefaultPrecision { get; }
+
+        public override void TriggerChange()
+        {
+            base.TriggerChange();
+
+            TriggerPrecisionChange(false);
+        }
+
+        protected void TriggerPrecisionChange(bool propagateToBindings = true)
+        {
+            PrecisionChanged?.Invoke(MinValue);
+
+            if (!propagateToBindings)
+                return;
+
+            Bindings?.ForEachAlive(b =>
+            {
+                if (b is BindableNumber<T> other)
+                    other.Precision = Precision;
+            });
+        }
 
         /// <summary>
         /// Whether this bindable has a user-defined range that is not the full range of the <see cref="T"/> type.
