@@ -91,6 +91,13 @@ namespace osu.Framework.Testing.Drawables.Steps
             return true;
         }
 
+        /// <summary>
+        /// Reset this step to a default state.
+        /// </summary>
+        public virtual void Reset()
+        {
+        }
+
         public virtual bool PerformStep(bool userTriggered = false)
         {
             Background.ClearTransforms();

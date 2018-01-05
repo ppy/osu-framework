@@ -45,10 +45,12 @@ namespace osu.Framework.Testing.Drawables.Steps
             return base.PerformStep(userTriggered);
         }
 
-        public void ResetInvocations()
+        public override void Reset()
         {
             invocations = 0;
             updateText();
+
+            base.Reset();
         }
 
         private void updateText() => base.Text = $@"{Text} {invocations}/{count}";
