@@ -19,9 +19,13 @@ namespace osu.Framework.Testing.Drawables.Steps
         public ToggleStepButton(Action<bool> reloadCallback)
         {
             this.reloadCallback = reloadCallback;
-
-            BackgroundColour = off_colour;
             Action = clickAction;
+        }
+
+        public override void Reset()
+        {
+            base.Reset();
+            BackgroundColour = off_colour;
         }
 
         private void clickAction()
