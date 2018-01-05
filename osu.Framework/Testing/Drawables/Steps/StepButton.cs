@@ -2,13 +2,11 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
-using osu.Framework.Platform;
 using OpenTK.Graphics;
 
 namespace osu.Framework.Testing.Drawables.Steps
@@ -72,14 +70,6 @@ namespace osu.Framework.Testing.Drawables.Steps
 
             CornerRadius = 2;
             Masking = true;
-        }
-
-        private bool interactive;
-
-        [BackgroundDependencyLoader]
-        private void load(GameHost host)
-        {
-            interactive = host.Window != null;
         }
 
         protected override void LoadComplete()
