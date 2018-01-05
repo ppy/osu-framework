@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Graphics.Primitives;
@@ -8,7 +8,7 @@ namespace osu.Framework.Extensions.PolygonExtensions
 {
     /// <summary>
     /// Todo: Support segment containment and circles.
-    /// Todo: Might be overkill, but possibly support convex decomposition? 
+    /// Todo: Might be overkill, but possibly support convex decomposition?
     /// </summary>
     public static class ConvexPolygonExtensions
     {
