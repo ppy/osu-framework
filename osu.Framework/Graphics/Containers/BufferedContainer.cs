@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using OpenTK;
@@ -163,7 +163,7 @@ namespace osu.Framework.Graphics.Containers
         private EffectPlacement effectPlacement;
 
         /// <summary>
-        /// Whether the buffered effect should be drawn behind or in front of the original. 
+        /// Whether the buffered effect should be drawn behind or in front of the original.
         /// Behind by default. Does not have any effect if <see cref="DrawOriginal"/> is false.
         /// </summary>
         public EffectPlacement EffectPlacement
