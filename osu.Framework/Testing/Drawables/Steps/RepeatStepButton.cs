@@ -28,20 +28,18 @@ namespace osu.Framework.Testing.Drawables.Steps
             updateText();
         }
 
-        public override bool PerformStep(bool userTriggered = false)
+        public override void PerformStep(bool userTriggered = false)
         {
-            if (invocations == count && !userTriggered) return false;
+            if (invocations == count && !userTriggered) throw new InvalidOperationException("Repeat step was invoked too many times");
 
             invocations++;
 
-            if (!base.PerformStep(userTriggered)) return false;
+            base.PerformStep(userTriggered);
 
             if (invocations >= count) // Allows for manual execution beyond the invocation limit.
                 Success();
 
             updateText();
-
-            return true;
         }
 
         public override void Reset()

@@ -90,7 +90,15 @@ namespace osu.Framework.Testing.Drawables.Steps
 
         protected override bool OnClick(InputState state)
         {
-            PerformStep(true);
+            try
+            {
+                PerformStep(true);
+            }
+            catch (Exception e)
+            {
+                Logging.Logger.Error(e, "Step {this} triggered an error");
+            }
+
             return true;
         }
 
@@ -103,7 +111,7 @@ namespace osu.Framework.Testing.Drawables.Steps
             BackgroundColour = Color4.BlueViolet;
         }
 
-        public virtual bool PerformStep(bool userTriggered = false)
+        public virtual void PerformStep(bool userTriggered = false)
         {
             Background.ClearTransforms();
             Background.FadeColour(runningColour, 400, Easing.OutQuint);
@@ -115,15 +123,8 @@ namespace osu.Framework.Testing.Drawables.Steps
             catch (Exception)
             {
                 Failure();
-
-                // only hard crash on a non-interactive run.
-                if (!interactive)
-                    throw;
-
-                return false;
+                throw;
             }
-
-            return true;
         }
 
         protected virtual void Failure()
