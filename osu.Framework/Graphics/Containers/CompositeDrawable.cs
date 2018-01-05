@@ -477,6 +477,8 @@ namespace osu.Framework.Graphics.Containers
             // for children, as they should never affect our present status.
             if (!IsPresent || !RequiresChildrenUpdate) return false;
 
+            UpdateAfterChildrenLife();
+
             // We iterate by index to gain performance
             // ReSharper disable once ForCanBeConvertedToForeach
             for (int i = 0; i < aliveInternalChildren.Count; ++i)
@@ -497,6 +499,15 @@ namespace osu.Framework.Graphics.Containers
             updateChildrenSizeDependencies();
             UpdateAfterAutoSize();
             return true;
+        }
+
+        /// <summary>
+        /// Invoked after <see cref="UpdateChildrenLife"/> and <see cref="Drawable.IsPresent"/> state checks have taken place,
+        /// but before <see cref="Drawable.UpdateSubTree"/> is invoked for all <see cref="InternalChildren"/>.
+        /// This occurs after <see cref="Drawable.Update"/> has been invoked on this <see cref="CompositeDrawable"/>
+        /// </summary>
+        protected virtual void UpdateAfterChildrenLife()
+        {
         }
 
         /// <summary>
