@@ -68,8 +68,6 @@ namespace osu.Framework.Testing.Drawables.Steps
             Height = 20;
             RelativeSizeAxes = Axes.X;
 
-            BackgroundColour = Color4.BlueViolet;
-
             BorderThickness = 1.5f;
             BorderColour = new Color4(0.15f, 0.15f, 0.15f, 1);
 
@@ -85,6 +83,12 @@ namespace osu.Framework.Testing.Drawables.Steps
             interactive = host.Window != null;
         }
 
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+            Reset();
+        }
+
         protected override bool OnClick(InputState state)
         {
             PerformStep(true);
@@ -96,12 +100,14 @@ namespace osu.Framework.Testing.Drawables.Steps
         /// </summary>
         public virtual void Reset()
         {
+            Background.DelayUntilTransformsFinished().FadeColour(idleColour, 1000, Easing.OutQuint);
+            BackgroundColour = Color4.BlueViolet;
         }
 
         public virtual bool PerformStep(bool userTriggered = false)
         {
             Background.ClearTransforms();
-            Background.FadeColour(runningColour, 40, Easing.OutQuint);
+            Background.FadeColour(runningColour, 400, Easing.OutQuint);
 
             try
             {
@@ -124,11 +130,15 @@ namespace osu.Framework.Testing.Drawables.Steps
         protected virtual void Failure()
         {
             Background.DelayUntilTransformsFinished().FadeColour(new Color4(0.3f, 0.15f, 0.15f, 1), 1000, Easing.OutQuint);
+            BackgroundColour = Color4.Red;
         }
 
         protected virtual void Success()
         {
-            Background.DelayUntilTransformsFinished().FadeColour(idleColour, 1000, Easing.OutQuint);
+            Background.FinishTransforms();
+            Background.FadeColour(idleColour, 1000, Easing.OutQuint);
+
+            BackgroundColour = Color4.YellowGreen;
             SpriteText.Alpha = 0.8f;
         }
 

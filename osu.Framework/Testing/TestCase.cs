@@ -243,7 +243,6 @@ namespace osu.Framework.Testing
             StepsContainer.Add(new UntilStepButton(waitUntilTrueDelegate)
             {
                 Text = description ?? @"Until",
-                BackgroundColour = Color4.Gray
             });
         }
 
@@ -252,7 +251,6 @@ namespace osu.Framework.Testing
             StepsContainer.Add(new RepeatStepButton(() => { }, waitCount)
             {
                 Text = description ?? @"Wait",
-                BackgroundColour = Color4.Gray
             });
         }
 

@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using OpenTK.Graphics;
 
 namespace osu.Framework.Testing.Drawables.Steps
 {
@@ -27,8 +26,6 @@ namespace osu.Framework.Testing.Drawables.Steps
             Action = action;
 
             updateText();
-
-            BackgroundColour = Color4.Sienna;
         }
 
         public override bool PerformStep(bool userTriggered = false)
@@ -37,20 +34,22 @@ namespace osu.Framework.Testing.Drawables.Steps
 
             invocations++;
 
+            if (!base.PerformStep(userTriggered)) return false;
+
             if (invocations >= count) // Allows for manual execution
                 Success();
 
             updateText();
 
-            return base.PerformStep(userTriggered);
+            return true;
         }
 
         public override void Reset()
         {
+            base.Reset();
+
             invocations = 0;
             updateText();
-
-            base.Reset();
         }
 
         private void updateText() => base.Text = $@"{Text} {invocations}/{count}";

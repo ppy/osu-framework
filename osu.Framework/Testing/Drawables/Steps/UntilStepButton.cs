@@ -56,6 +56,15 @@ namespace osu.Framework.Testing.Drawables.Steps
             };
         }
 
+        public override void Reset()
+        {
+            base.Reset();
+
+            invocations = 0;
+            elapsedTime = null;
+            success = false;
+        }
+
         protected override void Success()
         {
             base.Success();

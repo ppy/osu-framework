@@ -15,8 +15,13 @@ namespace osu.Framework.Testing.Drawables.Steps
 
         public AssertButton()
         {
-            BackgroundColour = Color4.OrangeRed;
             Action += checkAssert;
+        }
+
+        public override void Reset()
+        {
+            base.Reset();
+            BackgroundColour = Color4.OrangeRed;
         }
 
         private void checkAssert()
@@ -25,18 +30,6 @@ namespace osu.Framework.Testing.Drawables.Steps
                 Success();
             else
                 throw new TracedException($"{Text} {ExtendedDescription}", CallStack);
-        }
-
-        protected override void Success()
-        {
-            base.Success();
-            BackgroundColour = Color4.YellowGreen;
-        }
-
-        protected override void Failure()
-        {
-            base.Failure();
-            BackgroundColour = Color4.Red;
         }
 
         public override string ToString() => "Assert: " + base.ToString();
