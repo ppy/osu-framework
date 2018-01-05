@@ -16,6 +16,7 @@ namespace osu.Framework.Configuration
 
         protected override long DefaultMinValue => long.MinValue;
         protected override long DefaultMaxValue => long.MaxValue;
+        protected override long DefaultPrecision => 1;
 
         public BindableLong(long value = 0)
             : base(value)

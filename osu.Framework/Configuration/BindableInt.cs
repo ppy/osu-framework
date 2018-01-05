@@ -17,6 +17,7 @@ namespace osu.Framework.Configuration
 
         protected override int DefaultMinValue => int.MinValue;
         protected override int DefaultMaxValue => int.MaxValue;
+        protected override int DefaultPrecision => 1;
 
         public BindableInt(int value = 0)
             : base(value)

@@ -7,7 +7,7 @@ using OpenTK;
 
 namespace osu.Framework.Configuration
 {
-    public class BindableDouble : BindableNumberWithPrecision<double>
+    public class BindableDouble : BindableNumber<double>
     {
         public override bool IsDefault => Math.Abs(Value - Default) < Precision;
 

@@ -7,7 +7,7 @@ using System.Globalization;
 
 namespace osu.Framework.Configuration
 {
-    public class BindableFloat : BindableNumberWithPrecision<float>
+    public class BindableFloat : BindableNumber<float>
     {
         public override bool IsDefault => Math.Abs(Value - Default) < Precision;
 
