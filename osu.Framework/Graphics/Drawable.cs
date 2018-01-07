@@ -48,7 +48,9 @@ namespace osu.Framework.Graphics
 
         protected Drawable()
         {
-            handleInput = HandleInputCache.Get(this);
+            handleKeyboardInput = HandleInputCache.HandleKeyboardInput(this);
+            handleMouseInput = HandleInputCache.HandleMouseInput(this);
+            handleInput = HandleInputCache.HandleInput(this);
         }
 
         ~Drawable()
@@ -1839,7 +1841,7 @@ namespace osu.Framework.Graphics
         /// is propagated up the scene graph to the next eligible Drawable.</returns>
         protected virtual bool OnMouseMove(InputState state) => false;
 
-        private readonly bool handleInput;
+        private readonly bool handleInput, handleKeyboardInput, handleMouseInput;
         /// <summary>
         /// Whether this <see cref="Drawable"/> handles input.
         /// This value is true by default if any "On-" input methods are overridden.
@@ -1847,14 +1849,26 @@ namespace osu.Framework.Graphics
         public virtual bool HandleInput => handleInput;
 
         /// <summary>
-        /// Nested class which is used for caching <see cref="HandleInput"/> values obtained via reflection.
+        /// Whether this <see cref="Drawable"/> handles keyboard input.
+        /// This value is true by default if any keyboard specific "On-" input methods are overridden.
+        /// </summary>
+        public virtual bool HandleKeyboardInput => handleKeyboardInput;
+
+        /// <summary>
+        /// Whether this <see cref="Drawable"/> handles mouse input.
+        /// This value is true by default if any mouse specific "On-" input methods are overridden.
+        /// </summary>
+        public virtual bool HandleMouseInput => handleMouseInput;
+
+        /// <summary>
+        /// Nested class which is used for caching <see cref="HandleInput"/>, <see cref="HandleKeyboardInput"/>, <see cref="HandleMouseInput"/> values obtained via reflection.
         /// </summary>
         private static class HandleInputCache
         {
-            private static readonly ConcurrentDictionary<Type, bool> cached_values = new ConcurrentDictionary<Type, bool>();
+            private static readonly ConcurrentDictionary<Type, bool> mouse_cached_values = new ConcurrentDictionary<Type, bool>();
+            private static readonly ConcurrentDictionary<Type, bool> keyboard_cached_values = new ConcurrentDictionary<Type, bool>();
 
-            private static string[] inputMethods => new[]
-            {
+            private static readonly string[] mouse_input_methods = {
                 nameof(OnHover),
                 nameof(OnHoverLost),
                 nameof(OnMouseDown),
@@ -1867,15 +1881,26 @@ namespace osu.Framework.Graphics
                 nameof(OnWheel),
                 nameof(OnFocus),
                 nameof(OnFocusLost),
-                nameof(OnKeyDown),
-                nameof(OnKeyUp),
-                nameof(OnMouseMove),
+                nameof(OnMouseMove)
             };
 
-            public static bool Get(Drawable drawable)
+            private static readonly string[] keyboard_input_methods = {
+                nameof(OnFocus),
+                nameof(OnFocusLost),
+                nameof(OnKeyDown),
+                nameof(OnKeyUp)
+            };
+
+            public static bool HandleInput(Drawable drawable) => HandleKeyboardInput(drawable) || HandleMouseInput(drawable);
+
+            public static bool HandleKeyboardInput(Drawable drawable) => get(drawable, keyboard_cached_values, keyboard_input_methods);
+
+            public static bool HandleMouseInput(Drawable drawable) => get(drawable, mouse_cached_values, mouse_input_methods);
+
+            private static bool get(Drawable drawable, ConcurrentDictionary<Type, bool> cache, string[] inputMethods)
             {
                 var type = drawable.GetType();
-                if (cached_values.TryGetValue(type, out var value))
+                if (cache.TryGetValue(type, out var value))
                     return value;
 
                 foreach (var inputMethod in inputMethods)
@@ -1887,12 +1912,12 @@ namespace osu.Framework.Graphics
 
                     if (method.DeclaringType != typeof(Drawable))
                     {
-                        cached_values.TryAdd(type, true);
+                        cache.TryAdd(type, true);
                         return true;
                     }
                 }
 
-                cached_values.TryAdd(type, false);
+                cache.TryAdd(type, false);
                 return false;
             }
         }
