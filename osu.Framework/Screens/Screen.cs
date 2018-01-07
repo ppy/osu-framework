@@ -63,6 +63,8 @@ namespace osu.Framework.Screens
         // children inside childScreenContainer.
         // this means the root screen always received input.
         public override bool HandleInput => IsCurrentScreen || !hasExited && ParentScreen == null;
+        public override bool HandleKeyboardInput => HandleInput;
+        public override bool HandleMouseInput => HandleInput;
 
         /// <summary>
         /// Called when this Screen is being entered. Only happens once, ever.
@@ -236,6 +238,8 @@ namespace osu.Framework.Screens
         protected class ContentContainer : Container
         {
             public override bool HandleInput => LifetimeEnd == double.MaxValue;
+            public override bool HandleKeyboardInput => HandleInput;
+            public override bool HandleMouseInput => HandleInput;
             public override bool RemoveWhenNotAlive => false;
 
             public ContentContainer()

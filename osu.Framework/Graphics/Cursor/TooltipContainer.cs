@@ -260,6 +260,8 @@ namespace osu.Framework.Graphics.Cursor
             }
 
             public override bool HandleInput => false;
+            public override bool HandleKeyboardInput => false;
+            public override bool HandleMouseInput => false;
 
             private const float text_size = 16;
 

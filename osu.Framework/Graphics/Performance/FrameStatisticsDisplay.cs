@@ -484,6 +484,8 @@ namespace osu.Framework.Graphics.Performance
             }
 
             public override bool HandleInput => false;
+            public override bool HandleKeyboardInput => false;
+            public override bool HandleMouseInput => false;
         }
 
         private class CounterBar : Container
