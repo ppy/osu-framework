@@ -1991,7 +1991,7 @@ namespace osu.Framework.Graphics
         /// <returns>Whether we have added ourself to the queue.</returns>
         internal virtual bool BuildKeyboardInputQueue(List<Drawable> queue)
         {
-            if (!CanReceiveInput)
+            if (!CanReceiveInput || !HandleKeyboardInput)
                 return false;
 
             queue.Add(this);
@@ -2008,7 +2008,7 @@ namespace osu.Framework.Graphics
         /// <returns>Whether we have added ourself to the queue.</returns>
         internal virtual bool BuildMouseInputQueue(Vector2 screenSpaceMousePos, List<Drawable> queue)
         {
-            if (!CanReceiveInput || !ReceiveMouseInputAt(screenSpaceMousePos))
+            if (!CanReceiveInput || !HandleMouseInput || !ReceiveMouseInputAt(screenSpaceMousePos))
                 return false;
 
             queue.Add(this);
