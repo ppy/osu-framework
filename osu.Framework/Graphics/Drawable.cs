@@ -50,7 +50,6 @@ namespace osu.Framework.Graphics
         {
             handleKeyboardInput = HandleInputCache.HandleKeyboardInput(this);
             handleMouseInput = HandleInputCache.HandleMouseInput(this);
-            handleInput = HandleInputCache.HandleInput(this);
         }
 
         ~Drawable()
@@ -1841,27 +1840,22 @@ namespace osu.Framework.Graphics
         /// is propagated up the scene graph to the next eligible Drawable.</returns>
         protected virtual bool OnMouseMove(InputState state) => false;
 
-        private readonly bool handleInput, handleKeyboardInput, handleMouseInput;
-        /// <summary>
-        /// Whether this <see cref="Drawable"/> handles input.
-        /// This value is true by default if any "On-" input methods are overridden.
-        /// </summary>
-        public virtual bool HandleInput => handleInput;
+        private readonly bool handleKeyboardInput, handleMouseInput;
 
         /// <summary>
         /// Whether this <see cref="Drawable"/> handles keyboard input.
-        /// This value is true by default if any keyboard specific "On-" input methods are overridden.
+        /// This value is true by default if any keyboard related "On-" input methods are overridden.
         /// </summary>
         public virtual bool HandleKeyboardInput => handleKeyboardInput;
 
         /// <summary>
         /// Whether this <see cref="Drawable"/> handles mouse input.
-        /// This value is true by default if any mouse specific "On-" input methods are overridden.
+        /// This value is true by default if any mouse related "On-" input methods are overridden.
         /// </summary>
         public virtual bool HandleMouseInput => handleMouseInput;
 
         /// <summary>
-        /// Nested class which is used for caching <see cref="HandleInput"/>, <see cref="HandleKeyboardInput"/>, <see cref="HandleMouseInput"/> values obtained via reflection.
+        /// Nested class which is used for caching <see cref="HandleKeyboardInput"/>, <see cref="HandleMouseInput"/> values obtained via reflection.
         /// </summary>
         private static class HandleInputCache
         {
@@ -1890,8 +1884,6 @@ namespace osu.Framework.Graphics
                 nameof(OnKeyDown),
                 nameof(OnKeyUp)
             };
-
-            public static bool HandleInput(Drawable drawable) => HandleKeyboardInput(drawable) || HandleMouseInput(drawable);
 
             public static bool HandleKeyboardInput(Drawable drawable) => get(drawable, keyboard_cached_values, keyboard_input_methods);
 
@@ -1964,9 +1956,14 @@ namespace osu.Framework.Graphics
         public virtual bool Contains(Vector2 screenSpacePos) => DrawRectangle.Contains(ToLocalSpace(screenSpacePos));
 
         /// <summary>
-        /// Whether this Drawable can receive input, taking into account all optimizations and masking.
+        /// Whether this Drawable can keyboard receive input, taking into account all optimizations and masking.
         /// </summary>
-        public bool CanReceiveInput => HandleInput && IsPresent && !IsMaskedAway;
+        public bool CanReceiveKeyboardInput => HandleKeyboardInput && IsPresent && !IsMaskedAway;
+
+        /// <summary>
+        /// Whether this Drawable can mouse receive input, taking into account all optimizations and masking.
+        /// </summary>
+        public bool CanReceiveMouseInput => HandleMouseInput && IsPresent && !IsMaskedAway;
 
         /// <summary>
         /// Creates a new InputState with mouse coodinates converted to the coordinate space of our parent.
@@ -1991,7 +1988,7 @@ namespace osu.Framework.Graphics
         /// <returns>Whether we have added ourself to the queue.</returns>
         internal virtual bool BuildKeyboardInputQueue(List<Drawable> queue)
         {
-            if (!CanReceiveInput || !HandleKeyboardInput)
+            if (!CanReceiveKeyboardInput)
                 return false;
 
             queue.Add(this);
@@ -2008,7 +2005,7 @@ namespace osu.Framework.Graphics
         /// <returns>Whether we have added ourself to the queue.</returns>
         internal virtual bool BuildMouseInputQueue(Vector2 screenSpaceMousePos, List<Drawable> queue)
         {
-            if (!CanReceiveInput || !HandleMouseInput || !ReceiveMouseInputAt(screenSpaceMousePos))
+            if (!CanReceiveMouseInput || !ReceiveMouseInputAt(screenSpaceMousePos))
                 return false;
 
             queue.Add(this);

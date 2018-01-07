@@ -121,7 +121,6 @@ namespace osu.Framework.Graphics.Sprites
 
         private FontStore store;
 
-        public override bool HandleInput => false;
         public override bool HandleKeyboardInput => false;
         public override bool HandleMouseInput => false;
 

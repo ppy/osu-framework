@@ -16,9 +16,8 @@ namespace osu.Framework.Graphics.Cursor
         protected override bool BlockPassThroughMouse => false;
 
         //OverlayContainer tried to be smart about this, but we don't want none of that.
-        public override bool HandleInput => IsPresent;
-        public override bool HandleKeyboardInput => HandleInput;
-        public override bool HandleMouseInput => HandleInput;
+        public override bool HandleKeyboardInput => IsPresent;
+        public override bool HandleMouseInput => IsPresent;
 
         public CursorContainer()
         {

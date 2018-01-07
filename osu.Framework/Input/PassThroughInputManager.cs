@@ -16,7 +16,7 @@ namespace osu.Framework.Input
 
         internal override bool BuildKeyboardInputQueue(List<Drawable> queue)
         {
-            if (!CanReceiveInput) return false;
+            if (!CanReceiveKeyboardInput) return false;
 
             if (UseParentState)
                 queue.Add(this);
@@ -25,7 +25,7 @@ namespace osu.Framework.Input
 
         internal override bool BuildMouseInputQueue(Vector2 screenSpaceMousePos, List<Drawable> queue)
         {
-            if (!CanReceiveInput) return false;
+            if (!CanReceiveMouseInput) return false;
 
             if (UseParentState)
                 queue.Add(this);

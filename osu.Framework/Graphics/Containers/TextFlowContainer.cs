@@ -118,7 +118,6 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        public override bool HandleInput => false;
         public override bool HandleKeyboardInput => false;
         public override bool HandleMouseInput => false;
 

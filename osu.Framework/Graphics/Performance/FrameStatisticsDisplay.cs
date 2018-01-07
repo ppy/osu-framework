@@ -483,7 +483,6 @@ namespace osu.Framework.Graphics.Performance
                 Sprite.Texture = atlas.Add(WIDTH, HEIGHT);
             }
 
-            public override bool HandleInput => false;
             public override bool HandleKeyboardInput => false;
             public override bool HandleMouseInput => false;
         }

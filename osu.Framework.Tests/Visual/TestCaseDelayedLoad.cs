@@ -68,7 +68,6 @@ namespace osu.Framework.Tests.Visual
 
         private class FillFlowContainerNoInput : FillFlowContainer<Container>
         {
-            public override bool HandleInput => false;
             public override bool HandleKeyboardInput => false;
             public override bool HandleMouseInput => false;
         }
