@@ -62,9 +62,7 @@ namespace osu.Framework.Logging
 
             set
             {
-                if (value == null) throw new ArgumentNullException(nameof(value));
-
-                storage = value;
+                storage = value ?? throw new ArgumentNullException(nameof(value));
                 lock (flush_sync_lock)
                     backgroundScheduler.Enabled = true;
             }

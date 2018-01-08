@@ -23,10 +23,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="timeBeforeLoad">The delay in milliseconds before loading can begin.</param>
         public DelayedLoadWrapper(Drawable content, double timeBeforeLoad = 500)
         {
-            if (content == null)
-                throw new ArgumentNullException(nameof(content), $@"{nameof(DelayedLoadWrapper)} required non-null {nameof(content)}.");
-
-            Content = content;
+            Content = content ?? throw new ArgumentNullException(nameof(content), $@"{nameof(DelayedLoadWrapper)} required non-null {nameof(content)}.");
             this.timeBeforeLoad = timeBeforeLoad;
 
             RelativeSizeAxes = content.RelativeSizeAxes;
