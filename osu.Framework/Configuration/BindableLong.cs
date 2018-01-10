@@ -3,6 +3,7 @@
 
 using System;
 using System.Globalization;
+using OpenTK;
 
 namespace osu.Framework.Configuration
 {
@@ -11,7 +12,11 @@ namespace osu.Framework.Configuration
         public override long Value
         {
             get { return base.Value; }
-            set { base.Value = Math.Max(MinValue, Math.Min(MaxValue, value)); }
+            set
+            {
+                double doubleValue = MathHelper.Clamp(value, MinValue, MaxValue);
+                base.Value = (long)Math.Round(doubleValue / Precision) * Precision;
+            }
         }
 
         protected override long DefaultMinValue => long.MinValue;

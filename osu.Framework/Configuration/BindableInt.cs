@@ -12,7 +12,11 @@ namespace osu.Framework.Configuration
         public override int Value
         {
             get { return base.Value; }
-            set { base.Value = MathHelper.Clamp(value, MinValue, MaxValue); }
+            set
+            {
+                double doubleValue = MathHelper.Clamp(value, MinValue, MaxValue);
+                base.Value = (int)Math.Round(doubleValue / Precision) * Precision;
+            }
         }
 
         protected override int DefaultMinValue => int.MinValue;
