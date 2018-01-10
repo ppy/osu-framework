@@ -3,9 +3,6 @@
 
 using System;
 using System.Globalization;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -29,22 +26,15 @@ namespace osu.Framework.Tests.Visual
                 setPrecision(1);
             });
 
-            AddStep("Value = 10", () => setValue(10));
-            AddAssert("Check = 10", () => checkExact(10));
+            testBasic();
+            testPrecision3();
+            testPrecision10();
+            testMinMaxWithoutPrecision();
+            testMinMaxWithPrecision();
 
-            AddStep("Precision = 3", () => setPrecision(3));
-            AddStep("Value = 4", () => setValue(3));
-            AddAssert("Check = 3", () => checkExact(3));
-            AddStep("Value = 5", () => setValue(5));
-            AddAssert("Check = 6", () => checkExact(6));
-            AddStep("Value = 59", () => setValue(59));
-            AddAssert("Check 60", () => checkExact(60));
-
-            AddStep("Precision = 10", () => setPrecision(10));
-            AddStep("Value = 6", () => setValue(6));
-            AddAssert("Check = 10", () => checkExact(10));
-
-            AddSliderStep("Value", -1000.0, 1000.0, 0.0, setValue);
+            AddSliderStep("Min value", -100, 100, -100, setMin);
+            AddSliderStep("Max value", -100, 100, 100, setMax);
+            AddSliderStep("Value", -100, 100, 0, setValue);
             AddSliderStep("Precision", 1, 10, 1, setPrecision);
 
             Child = new GridContainer
@@ -66,25 +56,103 @@ namespace osu.Framework.Tests.Visual
             };
         }
 
+        /// <summary>
+        /// Tests basic setting of values.
+        /// </summary>
+        private void testBasic()
+        {
+            AddStep("Value = 10", () => setValue(10));
+            AddAssert("Check = 10", () => checkExact(10));
+        }
+
+        /// <summary>
+        /// Tests that midpoint values are correctly rounded with a precision of 3.
+        /// </summary>
+        private void testPrecision3()
+        {
+            AddStep("Precision = 3", () => setPrecision(3));
+            AddStep("Value = 4", () => setValue(3));
+            AddAssert("Check = 3", () => checkExact(3));
+            AddStep("Value = 5", () => setValue(5));
+            AddAssert("Check = 6", () => checkExact(6));
+            AddStep("Value = 59", () => setValue(59));
+            AddAssert("Check = 60", () => checkExact(60));
+        }
+
+        /// <summary>
+        /// Tests that midpoint values are correctly rounded with a precision of 10.
+        /// </summary>
+        private void testPrecision10()
+        {
+            AddStep("Precision = 10", () => setPrecision(10));
+            AddStep("Value = 6", () => setValue(6));
+            AddAssert("Check = 10", () => checkExact(10));
+        }
+
+        /// <summary>
+        /// Tests that values are correctly clamped to min/max values.
+        /// </summary>
+        private void testMinMaxWithoutPrecision()
+        {
+            AddStep("Precision = 1", () => setPrecision(1));
+            AddStep("Min = -30", () => setMin(-30));
+            AddStep("Max = 30", () => setMax(30));
+            AddStep("Value = -50", () => setValue(-50));
+            AddAssert("Check = -30", () => checkExact(-30));
+            AddStep("Value = 50", () => setValue(50));
+            AddAssert("Check = 30", () => checkExact(30));
+        }
+
+        /// <summary>
+        /// Tests that values are correctly clamped to min/max values when precision is involved.
+        /// In this case, precision is preferred over min/max values.
+        /// </summary>
+        private void testMinMaxWithPrecision()
+        {
+            AddStep("Precision = 5", () => setPrecision(5));
+            AddStep("Min = -27", () => setMin(-27));
+            AddStep("Max = 27", () => setMax(27));
+            AddStep("Value = -30", () => setValue(-30));
+            AddAssert("Check = -25", () => checkExact(-25));
+            AddStep("Value = 30", () => setValue(30));
+            AddAssert("Check = 25", () => checkExact(25));
+        }
+
         private bool checkExact(decimal value)
             => bindableInt.Value == value && bindableLong.Value == value
             && bindableFloat.Value.ToString(CultureInfo.InvariantCulture) == value.ToString(CultureInfo.InvariantCulture)
             && bindableDouble.Value.ToString(CultureInfo.InvariantCulture) == value.ToString(CultureInfo.InvariantCulture);
 
+        private void setMin<T>(T value)
+        {
+            bindableInt.MinValue = Convert.ToInt32(value);
+            bindableLong.MinValue = Convert.ToInt64(value);
+            bindableFloat.MinValue = Convert.ToSingle(value);
+            bindableDouble.MinValue = Convert.ToDouble(value);
+        }
+
+        private void setMax<T>(T value)
+        {
+            bindableInt.MaxValue = Convert.ToInt32(value);
+            bindableLong.MaxValue = Convert.ToInt64(value);
+            bindableFloat.MaxValue = Convert.ToSingle(value);
+            bindableDouble.MaxValue = Convert.ToDouble(value);
+        }
+
         private void setValue<T>(T value)
         {
             bindableInt.Value = Convert.ToInt32(value);
             bindableLong.Value = Convert.ToInt64(value);
-            bindableDouble.Value = Convert.ToDouble(value);
             bindableFloat.Value = Convert.ToSingle(value);
+            bindableDouble.Value = Convert.ToDouble(value);
         }
 
         private void setPrecision<T>(T precision)
         {
             bindableInt.Precision = Convert.ToInt32(precision);
             bindableLong.Precision = Convert.ToInt64(precision);
-            bindableDouble.Precision = Convert.ToDouble(precision);
             bindableFloat.Precision = Convert.ToSingle(precision);
+            bindableDouble.Precision = Convert.ToDouble(precision);
         }
 
         private class BindableDisplayContainer<T> : CompositeDrawable
