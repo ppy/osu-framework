@@ -32,6 +32,7 @@ namespace osu.Framework.Tests.Visual
             testMinMaxWithoutPrecision();
             testMinMaxWithPrecision();
             testInvalidPrecision();
+            testFractionalPrecision();
 
             AddSliderStep("Min value", -100, 100, -100, setMin);
             AddSliderStep("Max value", -100, 100, 100, setMax);
@@ -151,10 +152,26 @@ namespace osu.Framework.Tests.Visual
             });
         }
 
-        private bool checkExact(decimal value)
-            => bindableInt.Value == value && bindableLong.Value == value
-            && bindableFloat.Value.ToString(CultureInfo.InvariantCulture) == value.ToString(CultureInfo.InvariantCulture)
-            && bindableDouble.Value.ToString(CultureInfo.InvariantCulture) == value.ToString(CultureInfo.InvariantCulture);
+        /// <summary>
+        /// Tests that fractional precisions are obeyed.
+        /// Note that int bindables are assigned int precisions/values, so their results will differ.
+        /// </summary>
+        private void testFractionalPrecision()
+        {
+            AddStep("Precision = 2.25/2", () => setPrecision(2.25));
+            AddStep("Value = 3.3/3", () => setValue(3.3));
+            AddAssert("Check = 2.25/4", () => checkExact(2.25m, 4));
+            AddStep("Value = 4.17/4", () => setValue(4.17));
+            AddAssert("Check = 4.5/4", () => checkExact(4.5m, 4));
+        }
+
+        private bool checkExact(decimal value) => checkExact(value, value);
+
+        private bool checkExact(decimal floatValue, decimal intValue)
+            => bindableInt.Value == Convert.ToInt32(intValue)
+               && bindableLong.Value == Convert.ToInt64(intValue)
+               && bindableFloat.Value == Convert.ToSingle(floatValue)
+               && bindableDouble.Value == Convert.ToDouble(floatValue);
 
         private void setMin<T>(T value)
         {
@@ -189,7 +206,7 @@ namespace osu.Framework.Tests.Visual
         }
 
         private class BindableDisplayContainer<T> : CompositeDrawable
-            where T : struct, IComparable
+            where T : struct, IComparable, IConvertible
         {
             public BindableDisplayContainer(BindableNumber<T> bindable)
             {
@@ -204,11 +221,11 @@ namespace osu.Framework.Tests.Visual
                     Children = new Drawable[]
                     {
                         new SpriteText { Text = $"{typeof(T).Name} value:" },
-                        valueText = new SpriteText { Text = bindable.Value.ToString() }
+                        valueText = new SpriteText { Text = bindable.Value.ToString(CultureInfo.InvariantCulture) }
                     }
                 };
 
-                bindable.ValueChanged += v => valueText.Text = v.ToString();
+                bindable.ValueChanged += v => valueText.Text = v.ToString(CultureInfo.InvariantCulture);
             }
         }
     }

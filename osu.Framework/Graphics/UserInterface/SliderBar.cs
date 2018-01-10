@@ -12,7 +12,7 @@ using System.Diagnostics;
 namespace osu.Framework.Graphics.UserInterface
 {
     public abstract class SliderBar<T> : Container, IHasCurrentValue<T>
-        where T : struct, IComparable
+        where T : struct, IComparable, IConvertible
     {
         /// <summary>
         /// Range padding reduces the range of movement a slider bar is allowed to have

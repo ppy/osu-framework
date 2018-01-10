@@ -3,22 +3,11 @@
 
 using System;
 using System.Globalization;
-using OpenTK;
 
 namespace osu.Framework.Configuration
 {
     public class BindableLong : BindableNumber<long>
     {
-        public override long Value
-        {
-            get { return base.Value; }
-            set
-            {
-                double doubleValue = MathHelper.Clamp(value, MinValue, MaxValue);
-                base.Value = (long)Math.Round(doubleValue / Precision) * Precision;
-            }
-        }
-
         protected override long DefaultMinValue => long.MinValue;
         protected override long DefaultMaxValue => long.MaxValue;
         protected override long DefaultPrecision => 1;

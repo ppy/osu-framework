@@ -3,27 +3,12 @@
 
 using System;
 using System.Globalization;
-using OpenTK;
 
 namespace osu.Framework.Configuration
 {
     public class BindableDouble : BindableNumber<double>
     {
         public override bool IsDefault => Math.Abs(Value - Default) < Precision;
-
-        public override double Value
-        {
-            get { return base.Value; }
-            set
-            {
-                double boundValue = MathHelper.Clamp(value, MinValue, MaxValue);
-
-                if (Precision > double.Epsilon)
-                    boundValue = Math.Round(boundValue / Precision) * Precision;
-
-                base.Value = boundValue;
-            }
-        }
 
         protected override double DefaultMinValue => double.MinValue;
         protected override double DefaultMaxValue => double.MaxValue;

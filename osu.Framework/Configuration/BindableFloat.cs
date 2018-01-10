@@ -1,7 +1,6 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using OpenTK;
 using System;
 using System.Globalization;
 
@@ -10,20 +9,6 @@ namespace osu.Framework.Configuration
     public class BindableFloat : BindableNumber<float>
     {
         public override bool IsDefault => Math.Abs(Value - Default) < Precision;
-
-        public override float Value
-        {
-            get { return base.Value; }
-            set
-            {
-                float boundValue = MathHelper.Clamp(value, MinValue, MaxValue);
-
-                if (Precision > float.Epsilon)
-                    boundValue = (float)Math.Round(boundValue / Precision) * Precision;
-
-                base.Value = boundValue;
-            }
-        }
 
         protected override float DefaultMinValue => float.MinValue;
         protected override float DefaultMaxValue => float.MaxValue;

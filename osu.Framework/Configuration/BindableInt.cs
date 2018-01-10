@@ -3,22 +3,11 @@
 
 using System;
 using System.Globalization;
-using OpenTK;
 
 namespace osu.Framework.Configuration
 {
     public class BindableInt : BindableNumber<int>
     {
-        public override int Value
-        {
-            get { return base.Value; }
-            set
-            {
-                double doubleValue = MathHelper.Clamp(value, MinValue, MaxValue);
-                base.Value = (int)Math.Round(doubleValue / Precision) * Precision;
-            }
-        }
-
         protected override int DefaultMinValue => int.MinValue;
         protected override int DefaultMaxValue => int.MaxValue;
         protected override int DefaultPrecision => 1;

@@ -9,7 +9,7 @@ using osu.Framework.Graphics.Shapes;
 namespace osu.Framework.Graphics.UserInterface
 {
     public class BasicSliderBar<T> : SliderBar<T>
-        where T : struct, IComparable
+        where T : struct, IComparable, IConvertible
     {
         public Color4 Color
         {

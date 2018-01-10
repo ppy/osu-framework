@@ -8,7 +8,7 @@ using OpenTK;
 namespace osu.Framework.Configuration
 {
     public abstract class BindableNumber<T> : Bindable<T>
-        where T : struct, IComparable
+        where T : struct, IComparable, IConvertible
     {
         static BindableNumber()
         {
@@ -59,7 +59,7 @@ namespace osu.Framework.Configuration
                 if (precision.Equals(value))
                     return;
 
-                if (value.CompareTo(Convert.ChangeType(0, typeof(T))) <= 0)
+                if (Convert.ToDouble(value) <= 0)
                     throw new ArgumentOutOfRangeException(nameof(Precision), "Must be greater than 0.");
 
                 precision = value;
@@ -68,6 +68,21 @@ namespace osu.Framework.Configuration
             }
         }
 
+        public override T Value
+        {
+            get { return base.Value; }
+            set
+            {
+                double doubleValue = Convert.ToDouble(clamp(value, MinValue, MaxValue));
+
+                if (Precision.CompareTo(DefaultPrecision) > 0)
+                    doubleValue = Math.Round(doubleValue / Convert.ToDouble(Precision)) * Convert.ToDouble(Precision);
+
+                // ReSharper disable once PossibleNullReferenceException
+                // https://youtrack.jetbrains.com/issue/RIDER-12652
+                base.Value = (T)Convert.ChangeType(doubleValue, typeof(T));
+            }
+        }
 
         /// <summary>
         /// The minimum value of this bindable. <see cref="Bindable{T}.Value"/> will never go below this value.
