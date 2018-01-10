@@ -19,8 +19,7 @@ namespace osu.Framework.Configuration
 
         public override void Parse(object s)
         {
-            string str = s as string;
-            if (str == null)
+            if (!(s is string str))
                 throw new InvalidCastException($@"Input type {s.GetType()} could not be cast to a string for parsing");
 
             var parsed = int.Parse(str, NumberFormatInfo.InvariantInfo);

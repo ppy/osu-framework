@@ -27,8 +27,7 @@ namespace osu.Framework.Configuration
         /// <param name="input">The input which is to be parsed.</param>
         public override void Parse(object input)
         {
-            string str = input as string;
-            if (str == null)
+            if (!(input is string str))
                 throw new InvalidCastException($@"Input type {input.GetType()} could not be cast to a string for parsing");
 
             var parsed = double.Parse(str, NumberFormatInfo.InvariantInfo);
