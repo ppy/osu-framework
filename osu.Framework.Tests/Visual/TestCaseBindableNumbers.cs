@@ -31,6 +31,7 @@ namespace osu.Framework.Tests.Visual
             testPrecision10();
             testMinMaxWithoutPrecision();
             testMinMaxWithPrecision();
+            testInvalidPrecision();
 
             AddSliderStep("Min value", -100, 100, -100, setMin);
             AddSliderStep("Max value", -100, 100, 100, setMax);
@@ -118,6 +119,38 @@ namespace osu.Framework.Tests.Visual
             AddAssert("Check = 25", () => checkExact(25));
         }
 
+        /// <summary>
+        /// Tests that invalid precisions cause exceptions.
+        /// </summary>
+        private void testInvalidPrecision()
+        {
+            AddAssert("Precision = 0 throws", () =>
+            {
+                try
+                {
+                    setPrecision(0);
+                    return false;
+                }
+                catch (Exception)
+                {
+                    return true;
+                }
+            });
+
+            AddAssert("Precision = -1 throws", () =>
+            {
+                try
+                {
+                    setPrecision(-1);
+                    return false;
+                }
+                catch (Exception)
+                {
+                    return true;
+                }
+            });
+        }
+
         private bool checkExact(decimal value)
             => bindableInt.Value == value && bindableLong.Value == value
             && bindableFloat.Value.ToString(CultureInfo.InvariantCulture) == value.ToString(CultureInfo.InvariantCulture)
@@ -156,7 +189,7 @@ namespace osu.Framework.Tests.Visual
         }
 
         private class BindableDisplayContainer<T> : CompositeDrawable
-            where T : struct
+            where T : struct, IComparable
         {
             public BindableDisplayContainer(BindableNumber<T> bindable)
             {

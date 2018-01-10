@@ -7,7 +7,8 @@ using OpenTK;
 
 namespace osu.Framework.Configuration
 {
-    public abstract class BindableNumber<T> : Bindable<T> where T : struct
+    public abstract class BindableNumber<T> : Bindable<T>
+        where T : struct, IComparable
     {
         static BindableNumber()
         {
@@ -57,6 +58,10 @@ namespace osu.Framework.Configuration
             {
                 if (precision.Equals(value))
                     return;
+
+                if (value.CompareTo(Convert.ChangeType(0, typeof(T))) <= 0)
+                    throw new ArgumentOutOfRangeException(nameof(Precision), "Must be greater than 0.");
+
                 precision = value;
 
                 TriggerPrecisionChange();
@@ -108,6 +113,22 @@ namespace osu.Framework.Configuration
                 if (b is BindableNumber<T> other)
                     other.Precision = Precision;
             });
+        }
+
+        public override void BindTo(Bindable<T> them)
+        {
+            if (them is BindableNumber<T> other)
+            {
+                Precision = max(Precision, other.Precision);
+                MinValue = max(MinValue, other.MinValue);
+                MaxValue = min(MaxValue, other.MaxValue);
+
+                if (MinValue.CompareTo(MaxValue) > 0)
+                    throw new ArgumentOutOfRangeException(
+                        $"Can not weld bindable longs with non-overlapping min/max-ranges. The ranges were [{MinValue} - {MaxValue}] and [{other.MinValue} - {other.MaxValue}].", nameof(them));
+            }
+
+            base.BindTo(them);
         }
 
         /// <summary>
@@ -271,5 +292,20 @@ namespace osu.Framework.Configuration
             }
             Set(value);
         }
+
+        private static T max(T value1, T value2)
+        {
+            var comparison = value1.CompareTo(value2);
+            return comparison > 0 ? value1 : value2;
+        }
+
+        private static T min(T value1, T value2)
+        {
+            var comparison = value1.CompareTo(value2);
+            return comparison > 0 ? value2 : value1;
+        }
+
+        private static T clamp(T value, T minValue, T maxValue)
+            => max(minValue, min(maxValue, value));
     }
 }

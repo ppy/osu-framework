@@ -255,7 +255,7 @@ namespace osu.Framework.Testing
         }
 
         protected void AddSliderStep<T>(string description, T min, T max, T start, Action<T> valueChanged)
-            where T : struct
+            where T : struct, IComparable
         {
             StepsContainer.Add(new StepSlider<T>(description, min, max, start)
             {

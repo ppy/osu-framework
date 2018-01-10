@@ -34,26 +34,6 @@ namespace osu.Framework.Configuration
         {
         }
 
-        /// <summary>
-        /// Binds outselves to another bindable such that they receive bi-directional updates.
-        /// We will take on any value limitations of the bindable we bind width.
-        /// </summary>
-        /// <param name="them">The foreign bindable. This should always be the most permanent end of the bind (ie. a ConfigManager)</param>
-        public override void BindTo(Bindable<double> them)
-        {
-            if (them is BindableDouble other)
-            {
-                Precision = Math.Max(Precision, other.Precision);
-                MinValue = Math.Max(MinValue, other.MinValue);
-                MaxValue = Math.Min(MaxValue, other.MaxValue);
-                if (MinValue > MaxValue)
-                    throw new ArgumentOutOfRangeException(
-                        $"Can not weld bindable doubles with non-overlapping min/max-ranges. The ranges were [{MinValue} - {MaxValue}] and [{other.MinValue} - {other.MaxValue}].", nameof(them));
-            }
-
-            base.BindTo(them);
-        }
-
         public override string ToString() => Value.ToString("0.0###", NumberFormatInfo.InvariantInfo);
 
         /// <summary>

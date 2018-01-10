@@ -28,21 +28,6 @@ namespace osu.Framework.Configuration
         {
         }
 
-        public override void BindTo(Bindable<long> them)
-        {
-            if (them is BindableLong other)
-            {
-                Precision = Math.Max(Precision, other.Precision);
-                MinValue = Math.Max(MinValue, other.MinValue);
-                MaxValue = Math.Min(MaxValue, other.MaxValue);
-                if (MinValue > MaxValue)
-                    throw new ArgumentOutOfRangeException(
-                        $"Can not weld bindable longs with non-overlapping min/max-ranges. The ranges were [{MinValue} - {MaxValue}] and [{other.MinValue} - {other.MaxValue}].", nameof(them));
-            }
-
-            base.BindTo(them);
-        }
-
         public override void Parse(object s)
         {
             string str = s as string;
