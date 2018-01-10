@@ -30,14 +30,14 @@ namespace osu.Framework.Configuration
 
         public override void BindTo(Bindable<int> them)
         {
-            var i = them as BindableInt;
-            if (i != null)
+            if (them is BindableInt other)
             {
-                MinValue = Math.Max(MinValue, i.MinValue);
-                MaxValue = Math.Min(MaxValue, i.MaxValue);
+                Precision = Math.Max(Precision, other.Precision);
+                MinValue = Math.Max(MinValue, other.MinValue);
+                MaxValue = Math.Min(MaxValue, other.MaxValue);
                 if (MinValue > MaxValue)
                     throw new ArgumentOutOfRangeException(
-                        $"Can not weld bindable ints with non-overlapping min/max-ranges. The ranges were [{MinValue} - {MaxValue}] and [{i.MinValue} - {i.MaxValue}].", nameof(them));
+                        $"Can not weld bindable ints with non-overlapping min/max-ranges. The ranges were [{MinValue} - {MaxValue}] and [{other.MinValue} - {other.MaxValue}].", nameof(them));
             }
 
             base.BindTo(them);
