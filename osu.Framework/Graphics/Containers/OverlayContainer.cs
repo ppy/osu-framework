@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using osu.Framework.Input;
+using OpenTK;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -21,16 +22,6 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         protected virtual bool BlockPassThroughKeyboard => false;
 
-        protected override bool OnHover(InputState state) => BlockPassThroughMouse;
-
-        protected override bool OnMouseDown(InputState state, MouseDownEventArgs args) => BlockPassThroughMouse;
-
-        protected override bool OnClick(InputState state) => BlockPassThroughMouse;
-
-        protected override bool OnDragStart(InputState state) => BlockPassThroughMouse;
-
-        protected override bool OnWheel(InputState state) => BlockPassThroughMouse;
-
         internal override bool BuildKeyboardInputQueue(List<Drawable> queue)
         {
             if (CanReceiveInput && BlockPassThroughKeyboard)
@@ -41,6 +32,18 @@ namespace osu.Framework.Graphics.Containers
             }
 
             return base.BuildKeyboardInputQueue(queue);
+        }
+
+        internal override bool BuildMouseInputQueue(Vector2 screenSpaceMousePos, List<Drawable> queue)
+        {
+            if (CanReceiveInput && BlockPassThroughMouse && ReceiveMouseInputAt(screenSpaceMousePos))
+            {
+                // when blocking mouse input behind us, we still want to make sure the global handlers receive events
+                // but we don't want other drawables behind us handling them.
+                queue.RemoveAll(d => !(d is IHandleGlobalInput));
+            }
+
+            return base.BuildMouseInputQueue(screenSpaceMousePos, queue);
         }
     }
 
