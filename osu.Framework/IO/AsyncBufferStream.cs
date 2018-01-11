@@ -43,8 +43,8 @@ namespace osu.Framework.IO
         /// <param name="shared">Another AsyncBufferStream which is backing the same underlying stream. Allows shared usage of memory-backing.</param>
         public AsyncBufferStream(Stream stream, int blocksToReadAhead, AsyncBufferStream shared = null)
         {
-            this.blocksToReadAhead = blocksToReadAhead;
             underlyingStream = stream ?? throw new ArgumentNullException(nameof(stream));
+            this.blocksToReadAhead = blocksToReadAhead;
 
             if (underlyingStream.CanSeek)
                 underlyingStream.Seek(0, SeekOrigin.Begin);

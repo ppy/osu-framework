@@ -552,8 +552,9 @@ namespace osu.Framework.IO.Network
         public void AddFile(string name, byte[] data)
         {
             if (name == null) throw new ArgumentNullException(nameof(name));
+            if (data == null) throw new ArgumentNullException(nameof(data));
 
-            files[name] = data ?? throw new ArgumentNullException(nameof(data));
+            files[name] = data;
         }
 
         /// <summary>
@@ -565,8 +566,9 @@ namespace osu.Framework.IO.Network
         public void AddParameter(string name, string value)
         {
             if (name == null) throw new ArgumentNullException(nameof(name));
+            if (value == null) throw new ArgumentNullException(nameof(value));
 
-            parameters[name] = value ?? throw new ArgumentNullException(nameof(value));
+            parameters[name] = value;
         }
 
         /// <summary>
@@ -577,8 +579,9 @@ namespace osu.Framework.IO.Network
         public void AddHeader(string name, string value)
         {
             if (name == null) throw new ArgumentNullException(nameof(name));
+            if (value == null) throw new ArgumentNullException(nameof(value));
 
-            headers[name] = value ?? throw new ArgumentNullException(nameof(value));
+            headers[name] = value;
         }
 
         private static void createHttpClient()
