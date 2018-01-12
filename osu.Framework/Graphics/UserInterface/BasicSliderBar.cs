@@ -1,13 +1,15 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Shapes;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class BasicSliderBar<T> : SliderBar<T> where T : struct
+    public class BasicSliderBar<T> : SliderBar<T>
+        where T : struct, IComparable, IConvertible
     {
         public Color4 Color
         {
