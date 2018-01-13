@@ -1,9 +1,9 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System;
 using System.Diagnostics;
 using System.IO;
+using Guards;
 using osu.Framework.IO.File;
 
 namespace osu.Framework.Platform
@@ -43,8 +43,7 @@ namespace osu.Framework.Platform
         {
             path = GetUsablePathFor(path, access != FileAccess.Read);
 
-            if (string.IsNullOrEmpty(path))
-                throw new ArgumentNullException(nameof(path));
+            Guard.ArgumentNotNullOrEmpty(path, nameof(path));
 
             switch (access)
             {

@@ -4,6 +4,7 @@
 using osu.Framework.Extensions.TypeExtensions;
 using System;
 using System.Collections.Generic;
+using Guards;
 
 namespace osu.Framework.Graphics.Transforms
 {
@@ -46,8 +47,8 @@ namespace osu.Framework.Graphics.Transforms
         {
             public int Compare(Transform x, Transform y)
             {
-                if (x == null) throw new ArgumentNullException(nameof(x));
-                if (y == null) throw new ArgumentNullException(nameof(y));
+                Guard.ArgumentNotNull(x, nameof(x));
+                Guard.ArgumentNotNull(y, nameof(y));
 
                 int compare = x.StartTime.CompareTo(y.StartTime);
                 if (compare != 0) return compare;

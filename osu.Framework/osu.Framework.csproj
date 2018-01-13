@@ -40,6 +40,9 @@
     <Reference Include="Cyotek.Drawing.BitmapFont, Version=1.0.0.0, Culture=neutral, PublicKeyToken=58daa28b0b2de221">
       <HintPath>$(SolutionDir)\packages\Cyotek.Drawing.BitmapFont.1.3.4-beta1\lib\net46\Cyotek.Drawing.BitmapFont.dll</HintPath>
     </Reference>
+    <Reference Include="Guards, Version=1.0.14.0, Culture=neutral, PublicKeyToken=ac6aedb73a72f46e, processorArchitecture=MSIL">
+      <HintPath>..\packages\Guards.1.0.14\lib\net45\Guards.dll</HintPath>
+    </Reference>
     <Reference Include="ManagedBass, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)\packages\ManagedBass.2.0.3\lib\net45\ManagedBass.dll</HintPath>
     </Reference>

@@ -10,6 +10,7 @@ using OpenTK;
 using osu.Framework.IO;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Guards;
 
 namespace osu.Framework.Audio.Track
 {
@@ -47,8 +48,7 @@ namespace osu.Framework.Audio.Track
             {
                 Preview = quick;
 
-                if (data == null)
-                    throw new ArgumentNullException(nameof(data));
+                Guard.ArgumentNotNull(data, nameof(data));
                 //encapsulate incoming stream with async buffer if it isn't already.
                 dataStream = data as AsyncBufferStream ?? new AsyncBufferStream(data, quick ? 8 : -1);
 

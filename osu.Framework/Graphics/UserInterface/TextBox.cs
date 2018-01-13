@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Guards;
 using osu.Framework.Caching;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
@@ -669,8 +670,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (HasFocus) return true;
 
-            if (!state.Mouse.PositionMouseDown.HasValue)
-                throw new ArgumentNullException(nameof(state.Mouse.PositionMouseDown));
+            Guard.ArgumentNotNull(state.Mouse.PositionMouseDown, nameof(state.Mouse.PositionMouseDown));
 
             Vector2 posDiff = state.Mouse.PositionMouseDown.Value - state.Mouse.Position;
 

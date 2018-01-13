@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using Guards;
 
 namespace osu.Framework.Configuration
 {
@@ -9,11 +10,10 @@ namespace osu.Framework.Configuration
     {
         public NonNullableBindable(T defaultValue)
         {
-            if (defaultValue == null)
-                throw new ArgumentNullException(nameof(defaultValue));
-
+            Guard.ArgumentNotNull(defaultValue, nameof(defaultValue));
             Value = Default = defaultValue;
         }
+
         public override T Value
         {
             get

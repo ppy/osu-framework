@@ -4,6 +4,7 @@
 using osu.Framework.Graphics.Sprites;
 using System;
 using System.Collections.Generic;
+using Guards;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -19,8 +20,7 @@ namespace osu.Framework.Graphics.Containers
         {
             set
             {
-                if (value == null)
-                    throw new ArgumentNullException(nameof(value));
+                Guard.ArgumentNotNull(value, nameof(value));
 
                 placeholders.Clear();
                 placeholders.AddRange(value);
