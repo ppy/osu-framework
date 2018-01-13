@@ -8,6 +8,7 @@ using System.Linq;
 using osu.Framework.Allocation;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Guards;
 using osu.Framework.MathUtils;
 
 namespace osu.Framework.Graphics.Transforms
@@ -353,8 +354,7 @@ namespace osu.Framework.Graphics.Transforms
         /// <param name="transform">The <see cref="Transform"/> to be added.</param>
         public void AddTransform(Transform transform)
         {
-            if (transform == null)
-                throw new ArgumentNullException(nameof(transform));
+            Guard.ArgumentNotNull(transform, nameof(transform));
 
             if (!ReferenceEquals(transform.TargetTransformable, this))
                 throw new InvalidOperationException(

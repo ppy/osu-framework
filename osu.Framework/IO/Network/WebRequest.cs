@@ -10,6 +10,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Guards;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Logging;
@@ -535,7 +536,7 @@ namespace osu.Framework.IO.Network
         /// <param name="stream">The stream containing the raw data. This stream will _not_ be finalized by this request.</param>
         public void AddRaw(Stream stream)
         {
-            if (stream == null) throw new ArgumentNullException(nameof(stream));
+            Guard.ArgumentNotNull(stream, nameof(stream));
 
             if (rawContent == null)
                 rawContent = new MemoryStream();
@@ -551,8 +552,8 @@ namespace osu.Framework.IO.Network
         /// <param name="data">The file data.</param>
         public void AddFile(string name, byte[] data)
         {
-            if (name == null) throw new ArgumentNullException(nameof(name));
-            if (data == null) throw new ArgumentNullException(nameof(data));
+            Guard.ArgumentNotNull(name, nameof(name));
+            Guard.ArgumentNotNull(data, nameof(data));
 
             files[name] = data;
         }
@@ -565,8 +566,8 @@ namespace osu.Framework.IO.Network
         /// <param name="value">The parameter value.</param>
         public void AddParameter(string name, string value)
         {
-            if (name == null) throw new ArgumentNullException(nameof(name));
-            if (value == null) throw new ArgumentNullException(nameof(value));
+            Guard.ArgumentNotNull(name, nameof(name));
+            Guard.ArgumentNotNull(value, nameof(value));
 
             parameters[name] = value;
         }
@@ -578,8 +579,8 @@ namespace osu.Framework.IO.Network
         /// <param name="value">The header value.</param>
         public void AddHeader(string name, string value)
         {
-            if (name == null) throw new ArgumentNullException(nameof(name));
-            if (value == null) throw new ArgumentNullException(nameof(value));
+            Guard.ArgumentNotNull(name, nameof(name));
+            Guard.ArgumentNotNull(value, nameof(value));
 
             headers[name] = value;
         }

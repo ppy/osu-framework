@@ -5,6 +5,7 @@ using System;
 using System.Collections.Concurrent;
 using osu.Framework.Platform;
 using System.Collections.Generic;
+using Guards;
 using osu.Framework.Configuration;
 
 namespace osu.Framework.Input.Handlers
@@ -86,8 +87,8 @@ namespace osu.Framework.Input.Handlers
     {
         public int Compare(InputHandler h1, InputHandler h2)
         {
-            if (h1 == null) throw new ArgumentNullException(nameof(h1));
-            if (h2 == null) throw new ArgumentNullException(nameof(h2));
+            Guard.ArgumentNotNull(h1, nameof(h1));
+            Guard.ArgumentNotNull(h2, nameof(h2));
 
             return h2.Priority.CompareTo(h1.Priority);
         }

@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using Guards;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -12,16 +13,14 @@ namespace osu.Framework.Graphics.UserInterface
         public DropdownMenuItem(string text, T value)
             : base(text)
         {
-            if (value == null) throw new ArgumentNullException(nameof(value));
-
+            Guard.ArgumentNotNull(value, nameof(value));
             Value = value;
         }
 
         public DropdownMenuItem(string text, T value, Action action)
             : base(text, action)
         {
-            if (value == null) throw new ArgumentNullException(nameof(value));
-
+            Guard.ArgumentNotNull(value, nameof(value));
             Value = value;
         }
     }

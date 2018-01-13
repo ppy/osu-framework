@@ -5,6 +5,7 @@ using osu.Framework.Extensions.TypeExtensions;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Guards;
 using Newtonsoft.Json;
 using osu.Framework.IO.Serialization;
 
@@ -70,8 +71,7 @@ namespace osu.Framework.Lists
         /// <returns>The index of the item within this list.</returns>
         private int addInternal(T value)
         {
-            if (value == null)
-                throw new ArgumentNullException(nameof(value));
+            Guard.ArgumentNotNull(value, nameof(value));
 
             int index = list.BinarySearch(value, Comparer);
             if (index < 0)
@@ -154,10 +154,7 @@ namespace osu.Framework.Lists
 
             public ComparisonComparer(Func<TComparison, TComparison, int> compare)
             {
-                if (compare == null)
-                {
-                    throw new ArgumentNullException(nameof(compare));
-                }
+                Guard.ArgumentNotNull(compare, nameof(compare));
                 comparison = new Comparison<TComparison>(compare);
             }
 

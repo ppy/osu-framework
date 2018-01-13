@@ -15,6 +15,7 @@ using System.Security;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using Guards;
 
 // this is an abusive thing to do, but it increases the visibility of Extension Methods to virtually every file.
 
@@ -180,7 +181,7 @@ namespace osu.Framework.Extensions
 
         public static IEnumerable<Type> GetLoadableTypes(this Assembly assembly)
         {
-            if (assembly == null) throw new ArgumentNullException(nameof(assembly));
+            Guard.ArgumentNotNull(assembly, nameof(assembly));
             try
             {
                 return assembly.GetTypes();

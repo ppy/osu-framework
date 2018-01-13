@@ -19,6 +19,7 @@ using osu.Framework.Caching;
 using osu.Framework.Threading;
 using osu.Framework.Statistics;
 using System.Threading.Tasks;
+using Guards;
 using osu.Framework.MathUtils;
 
 namespace osu.Framework.Graphics.Containers
@@ -157,8 +158,8 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>-1 if <paramref name="x"/> comes before <paramref name="y"/>, and 1 otherwise.</returns>
         protected virtual int Compare(Drawable x, Drawable y)
         {
-            if (x == null) throw new ArgumentNullException(nameof(x));
-            if (y == null) throw new ArgumentNullException(nameof(y));
+            Guard.ArgumentNotNull(x, nameof(x));
+            Guard.ArgumentNotNull(y, nameof(y));
 
             int i = y.Depth.CompareTo(x.Depth);
             if (i != 0) return i;
@@ -173,8 +174,8 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>-1 if <paramref name="x"/> comes before <paramref name="y"/>, and 1 otherwise.</returns>
         protected int CompareReverseChildID(Drawable x, Drawable y)
         {
-            if (x == null) throw new ArgumentNullException(nameof(x));
-            if (y == null) throw new ArgumentNullException(nameof(y));
+            Guard.ArgumentNotNull(x, nameof(x));
+            Guard.ArgumentNotNull(y, nameof(y));
 
             int i = y.Depth.CompareTo(x.Depth);
             if (i != 0) return i;
@@ -227,8 +228,7 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>False if <paramref name="drawable"/> was not a child of this <see cref="CompositeDrawable"/> and true otherwise.</returns>
         protected internal bool RemoveInternal(Drawable drawable)
         {
-            if (drawable == null)
-                throw new ArgumentNullException(nameof(drawable));
+            Guard.ArgumentNotNull(drawable, nameof(drawable));
 
             int index = IndexOfInternal(drawable);
             if (index < 0)
