@@ -49,12 +49,7 @@ namespace osu.Framework.Graphics.Textures
         public float DisplayWidth => Width / ScaleAdjust;
         public float DisplayHeight => Height / ScaleAdjust;
 
-        public Texture(TextureGL textureGl)
-        {
-            if (textureGl == null)
-                throw new ArgumentNullException(nameof(textureGl));
-            TextureGL = textureGl;
-        }
+        public Texture(TextureGL textureGl) => TextureGL = textureGl ?? throw new ArgumentNullException(nameof(textureGl));
 
         public Texture(int width, int height, bool manualMipmaps = false, All filteringMode = All.Linear)
             : this(new TextureGLSingle(width, height, manualMipmaps, filteringMode))

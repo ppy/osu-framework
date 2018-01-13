@@ -71,7 +71,6 @@ namespace osu.Framework.Graphics.Containers
         private void load()
         {
             layoutContent();
-            layoutCells();
         }
 
         protected override void Update()
