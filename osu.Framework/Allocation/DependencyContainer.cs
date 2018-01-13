@@ -39,10 +39,9 @@ namespace osu.Framework.Allocation
                 mi => mi.GetCustomAttribute<BackgroundDependencyLoader>() != null).ToArray();
             if (loaderMethods.Length == 0)
                 return null;
-            else if (loaderMethods.Length == 1)
+            if (loaderMethods.Length == 1)
                 return loaderMethods[0];
-            else
-                throw new InvalidOperationException($"The type {type.ReadableName()} has more than one method marked with the {nameof(BackgroundDependencyLoader)}-Attribute. Any given type can only have one such method.");
+            throw new InvalidOperationException($"The type {type.ReadableName()} has more than one method marked with the {nameof(BackgroundDependencyLoader)}-Attribute. Any given type can only have one such method.");
         }
 
         private void register(Type type, bool lazy)
