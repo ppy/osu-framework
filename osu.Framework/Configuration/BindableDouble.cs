@@ -3,27 +3,12 @@
 
 using System;
 using System.Globalization;
-using OpenTK;
 
 namespace osu.Framework.Configuration
 {
     public class BindableDouble : BindableNumber<double>
     {
         public override bool IsDefault => Math.Abs(Value - Default) < Precision;
-
-        public override double Value
-        {
-            get { return base.Value; }
-            set
-            {
-                double boundValue = MathHelper.Clamp(value, MinValue, MaxValue);
-
-                if (Precision > double.Epsilon)
-                    boundValue = Math.Round(boundValue / Precision) * Precision;
-
-                base.Value = boundValue;
-            }
-        }
 
         protected override double DefaultMinValue => double.MinValue;
         protected override double DefaultMaxValue => double.MaxValue;
@@ -34,26 +19,6 @@ namespace osu.Framework.Configuration
         {
         }
 
-        /// <summary>
-        /// Binds outselves to another bindable such that they receive bi-directional updates.
-        /// We will take on any value limitations of the bindable we bind width.
-        /// </summary>
-        /// <param name="them">The foreign bindable. This should always be the most permanent end of the bind (ie. a ConfigManager)</param>
-        public override void BindTo(Bindable<double> them)
-        {
-            if (them is BindableDouble other)
-            {
-                Precision = Math.Max(Precision, other.Precision);
-                MinValue = Math.Max(MinValue, other.MinValue);
-                MaxValue = Math.Min(MaxValue, other.MaxValue);
-                if (MinValue > MaxValue)
-                    throw new ArgumentOutOfRangeException(
-                        $"Can not weld bindable doubles with non-overlapping min/max-ranges. The ranges were [{MinValue} - {MaxValue}] and [{other.MinValue} - {other.MaxValue}].", nameof(them));
-            }
-
-            base.BindTo(them);
-        }
-
         public override string ToString() => Value.ToString("0.0###", NumberFormatInfo.InvariantInfo);
 
         /// <summary>
@@ -62,8 +27,7 @@ namespace osu.Framework.Configuration
         /// <param name="input">The input which is to be parsed.</param>
         public override void Parse(object input)
         {
-            string str = input as string;
-            if (str == null)
+            if (!(input is string str))
                 throw new InvalidCastException($@"Input type {input.GetType()} could not be cast to a string for parsing");
 
             var parsed = double.Parse(str, NumberFormatInfo.InvariantInfo);
