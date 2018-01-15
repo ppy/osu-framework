@@ -5,6 +5,7 @@ using System;
 using System.Globalization;
 using System.IO;
 using NUnit.Framework;
+using osu.Framework.Allocation;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -14,7 +15,6 @@ using osu.Framework.Localisation;
 using osu.Framework.Testing;
 using OpenTK;
 using OpenTK.Graphics;
-using osu.Framework.Allocation;
 
 namespace osu.Framework.Tests.Visual
 {

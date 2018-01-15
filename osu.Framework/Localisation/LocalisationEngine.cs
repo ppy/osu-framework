@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using osu.Framework.Configuration;
 using osu.Framework.IO.Stores;
 using osu.Framework.Lists;
@@ -81,17 +80,7 @@ namespace osu.Framework.Localisation
             return bindable;
         }
 
-        public FormatString Format(string formatKey, params object[] objects)
-        {
-            var bindable = new FormatString(FormattableStringFactory.Create(formatKey, objects));
-
-            lock (formattableBindings)
-                formattableBindings.Add(bindable);
-
-            return bindable;
-        }
-
-        public FormatString FormatLocalised(string formatKey, params object[] objects)
+        public FormatString FormatVariant(string formatKey, params object[] objects)
         {
             var bindable = new FormatString(new LocalisedFormatString(GetLocalisedString(formatKey), objects));
 

@@ -9,7 +9,6 @@ using osu.Framework.Configuration;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.Graphics.UserInterface;
 using osu.Framework.IO.Stores;
 using osu.Framework.Localisation;
 using System;
@@ -254,10 +253,10 @@ namespace osu.Framework.Graphics.Sprites
                         updateBindable(localisationEngine.GetLocalisedString(text));
                         break;
                     case LocalisationType.Formatted:
-                        updateBindable(localisationEngine.Format(text, formatObjects));
+                        updateBindable(localisationEngine.FormatVariant(text, formatObjects));
                         break;
                     case LocalisationType.FormattedLocalised:
-                        updateBindable(localisationEngine.FormatLocalised(text, formatObjects));
+                        updateBindable(localisationEngine.FormatVariant(text, formatObjects));
                         break;
                     default:
                         throw new ArgumentOutOfRangeException(nameof(Localisation));
