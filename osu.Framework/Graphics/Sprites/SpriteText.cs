@@ -14,6 +14,7 @@ using osu.Framework.Localisation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace osu.Framework.Graphics.Sprites
 {
@@ -253,7 +254,8 @@ namespace osu.Framework.Graphics.Sprites
                         updateBindable(localisationEngine.GetLocalisedString(text));
                         break;
                     case LocalisationType.Formatted:
-                        updateBindable(localisationEngine.FormatVariant(text, formatObjects));
+                        var formattable = FormattableStringFactory.Create(text, formatObjects);
+                        updateBindable(localisationEngine.Format(formattable));
                         break;
                     case LocalisationType.FormattedLocalised:
                         updateBindable(localisationEngine.FormatVariant(text, formatObjects));
@@ -262,6 +264,7 @@ namespace osu.Framework.Graphics.Sprites
                         throw new ArgumentOutOfRangeException(nameof(Localisation));
                 }
             }
+            // we don't want to crash if a localised string fails the formatting
             catch (FormatException)
             {
                 setText(null);
