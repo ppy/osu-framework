@@ -11,6 +11,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.IO.Stores;
+using osu.Framework.Localisation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,7 +21,7 @@ namespace osu.Framework.Graphics.Sprites
     /// <summary>
     /// A container for simple text rendering purposes. If more complex text rendering is required, use <see cref="TextFlowContainer"/> instead.
     /// </summary>
-    public class SpriteText : FillFlowContainer, IHasCurrentValue<string>, IHasLineBaseHeight, IHasText, IHasFilterTerms
+    public class SpriteText : FillFlowContainer, IHasLineBaseHeight, IHasText, IHasFilterTerms
     {
         public IEnumerable<string> FilterTerms => new[] { Text };
 
@@ -152,34 +153,34 @@ namespace osu.Framework.Graphics.Sprites
         }
 
         [BackgroundDependencyLoader]
-        private void load(FontStore store)
+        private void load(FontStore store, LocalisationEngine localisation)
         {
             this.store = store;
+            localisationEngine = localisation;
+
+            updateLocalisation();
 
             spaceWidth = CreateCharacterDrawable('.')?.DrawWidth * 2 ?? default_text_size;
 
             validateLayout();
         }
 
-        private Bindable<string> current;
+        private LocalisationEngine localisationEngine;
+        private Bindable<string> textBindable;
+        private string text = string.Empty;
+        private string unicodeFallback;
+        private object[] formatObjects;
+        private LocalisationType localisation;
 
-        /// <summary>
-        /// Implements the <see cref="IHasCurrentValue{T}"/> interface.
-        /// </summary>
-        public Bindable<string> Current
+        public string Text
         {
-            get { return current; }
+            get => text;
             set
             {
-                if (current != null)
-                    current.ValueChanged -= setText;
-                if (value != null)
-                {
-                    value.ValueChanged += setText;
-                    value.TriggerChange();
-                }
+                setText(value);
 
-                current = value;
+                if (IsLoaded)
+                    updateLocalisation();
             }
         }
 
@@ -192,21 +193,95 @@ namespace osu.Framework.Graphics.Sprites
             layout.Invalidate();
         }
 
-        private string text = string.Empty;
-
-        /// <summary>
-        /// Gets or sets the text to be displayed.
-        /// </summary>
-        public string Text
+        public string UnicodeFallback
         {
-            get { return text; }
+            get => unicodeFallback;
             set
             {
-                if (current != null)
-                    throw new InvalidOperationException($@"property {nameof(Text)} cannot be set manually if {nameof(Current)} set");
+                if (unicodeFallback == value)
+                    return;
 
-                setText(value);
+                unicodeFallback = value;
+
+                if (IsLoaded)
+                    updateLocalisation();
             }
+        }
+
+        public object[] FormatObjects
+        {
+            get => formatObjects;
+            set
+            {
+                if (formatObjects?.SequenceEqual(value) == true)
+                    return;
+
+                formatObjects = value;
+
+                if (IsLoaded)
+                    updateLocalisation();
+            }
+        }
+
+        public LocalisationType Localisation
+        {
+            get => localisation;
+            set
+            {
+                if (localisation == value)
+                    return;
+
+                localisation = value;
+
+                if (IsLoaded)
+                    updateLocalisation();
+            }
+        }
+
+        private void updateLocalisation()
+        {
+            try
+            {
+                switch (Localisation)
+                {
+                    case LocalisationType.None:
+                        setText(text);
+                        break;
+                    case LocalisationType.UnicodePreference:
+                        updateBindable(localisationEngine.GetUnicodePreference(text, unicodeFallback));
+                        break;
+                    case LocalisationType.Localised:
+                        updateBindable(localisationEngine.GetLocalisedString(text));
+                        break;
+                    case LocalisationType.Formatted:
+                        updateBindable(localisationEngine.Format(text, formatObjects));
+                        break;
+                    case LocalisationType.FormattedLocalised:
+                        updateBindable(localisationEngine.FormatLocalised(text, formatObjects));
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(Localisation));
+                }
+            }
+            catch (FormatException)
+            {
+                setText(null);
+                updateBindable(null);
+            }
+        }
+
+        private void updateBindable(Bindable<string> newBindable)
+        {
+            if (textBindable != null)
+                textBindable.ValueChanged -= setText;
+
+            if (newBindable != null)
+            {
+                newBindable.ValueChanged += setText;
+                newBindable.TriggerChange();
+            }
+
+            textBindable = newBindable;
         }
 
         private float? constantWidth;

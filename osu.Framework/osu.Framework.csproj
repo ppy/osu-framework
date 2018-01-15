@@ -324,6 +324,7 @@
     <Compile Include="Lists\WeakList.cs" />
     <Compile Include="Localisation\FormatString.cs" />
     <Compile Include="Localisation\LocalisationEngine.cs" />
+    <Compile Include="Localisation\LocalisationType.cs" />
     <Compile Include="Localisation\LocalisedString.cs" />
     <Compile Include="Localisation\UnicodeBindableString.cs" />
     <Compile Include="Localisation\LocalisedFormatString.cs" />

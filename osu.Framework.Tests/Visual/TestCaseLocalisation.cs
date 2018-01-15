@@ -14,14 +14,17 @@ using osu.Framework.Localisation;
 using osu.Framework.Testing;
 using OpenTK;
 using OpenTK.Graphics;
+using osu.Framework.Allocation;
 
 namespace osu.Framework.Tests.Visual
 {
     [TestFixture]
     public class TestCaseLocalisation : TestCase
     {
-        // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
-        private readonly LocalisationEngine engine; //keep a reference to avoid GC of the engine
+        private DependencyContainer dependencies;
+        protected override IReadOnlyDependencyContainer CreateLocalDependencies(IReadOnlyDependencyContainer parent) => dependencies = new DependencyContainer(parent);
+
+        private readonly LocalisationEngine engine;
 
         public TestCaseLocalisation()
         {
@@ -31,6 +34,17 @@ namespace osu.Framework.Tests.Visual
             engine.AddLanguage("en", new FakeStorage());
             engine.AddLanguage("zh-CHS", new FakeStorage());
             engine.AddLanguage("ja", new FakeStorage());
+
+            AddStep("English", () => config.Set(FrameworkSetting.Locale, "en"));
+            AddStep("Japanese", () => config.Set(FrameworkSetting.Locale, "ja"));
+            AddStep("Simplified Chinese", () => config.Set(FrameworkSetting.Locale, "zh-CHS"));
+            AddToggleStep("ShowUnicode", b => config.Set(FrameworkSetting.ShowUnicode, b));
+        }
+
+        [BackgroundDependencyLoader]
+        private void load()
+        {
+            dependencies.Cache(engine, true);
 
             Add(new FillFlowContainer<SpriteText>
             {
@@ -50,35 +64,44 @@ namespace osu.Framework.Tests.Visual
                     },
                     new SpriteText
                     {
-                        Current = engine.GetLocalisedString("localisable"),
+                        Localisation = LocalisationType.Localised,
+                        Text = "localisable",
                         TextSize = 48,
                         Colour = Color4.White
                     },
                     new SpriteText
                     {
-                        Current = engine.GetUnicodePreference("Unicode on", "Unicode off"),
+                        Localisation = LocalisationType.FormattedLocalised,
+                        Text = "localisableformat",
+                        FormatObjects = new object[] { "localisable & formattable" },
                         TextSize = 48,
                         Colour = Color4.White
                     },
                     new SpriteText
                     {
-                        Current = engine.GetUnicodePreference(null, "I miss unicode"),
+                        Localisation = LocalisationType.UnicodePreference,
+                        Text = "Unicode on",
+                        UnicodeFallback = "Unicode off",
                         TextSize = 48,
                         Colour = Color4.White
                     },
                     new SpriteText
                     {
-                        Current = engine.Format($"{DateTime.Now}"),
+                        Localisation = LocalisationType.UnicodePreference,
+                        UnicodeFallback = "I miss unicode",
+                        TextSize = 48,
+                        Colour = Color4.White
+                    },
+                    new SpriteText
+                    {
+                        Localisation = LocalisationType.Formatted,
+                        Text = "{0}",
+                        FormatObjects = new object[] { DateTime.Now },
                         TextSize = 48,
                         Colour = Color4.White
                     },
                 }
             });
-
-            AddStep("English", () => config.Set(FrameworkSetting.Locale, "en"));
-            AddStep("Japanese", () => config.Set(FrameworkSetting.Locale, "ja"));
-            AddStep("Simplified Chinese", () => config.Set(FrameworkSetting.Locale, "zh-CHS"));
-            AddToggleStep("ShowUnicode", b => config.Set(FrameworkSetting.ShowUnicode, b));
         }
 
         private class FakeFrameworkConfigManager : FrameworkConfigManager
@@ -96,7 +119,15 @@ namespace osu.Framework.Tests.Visual
 
         private class FakeStorage : IResourceStore<string>
         {
-            public string Get(string name) => $"{name} in {CultureInfo.CurrentCulture.EnglishName}";
+            public string Get(string name)
+            {
+                if (name == "localisable")
+                    return $"{name} in {CultureInfo.CurrentCulture.EnglishName}";
+                else if (name == "localisableformat")
+                    return $"{{0}} in locale {CultureInfo.CurrentCulture.Name}";
+                else
+                    throw new ArgumentException();
+            }
             public Stream GetStream(string name)
             {
                 throw new NotSupportedException();
