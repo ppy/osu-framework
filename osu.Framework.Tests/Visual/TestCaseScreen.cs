@@ -16,7 +16,6 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Tests.Visual
 {
-    [TestFixture]
     public class TestCaseScreen : TestCase
     {
         public TestCaseScreen()

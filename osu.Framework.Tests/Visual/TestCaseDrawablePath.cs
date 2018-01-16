@@ -15,8 +15,7 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Tests.Visual
 {
-    [TestFixture]
-    internal class TestCaseDrawablePath : GridTestCase
+    public class TestCaseDrawablePath : GridTestCase
     {
         public TestCaseDrawablePath() : base(2, 2)
         {

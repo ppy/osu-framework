@@ -10,7 +10,6 @@ using OpenTK;
 
 namespace osu.Framework.Tests.Visual
 {
-    [TestFixture]
     [System.ComponentModel.Description("ensure validity of drawables when receiving certain values")]
     public class TestCasePropertyBoundaries : TestCase
     {

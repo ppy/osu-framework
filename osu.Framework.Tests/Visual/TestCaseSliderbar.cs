@@ -11,7 +11,6 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Tests.Visual
 {
-    [TestFixture]
     public class TestCaseSliderbar : TestCase
     {
         // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable

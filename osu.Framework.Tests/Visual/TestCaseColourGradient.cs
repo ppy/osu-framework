@@ -12,8 +12,7 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Tests.Visual
 {
-    [TestFixture]
-    internal class TestCaseColourGradient : GridTestCase
+    public class TestCaseColourGradient : GridTestCase
     {
         public TestCaseColourGradient() : base(2, 2)
         {

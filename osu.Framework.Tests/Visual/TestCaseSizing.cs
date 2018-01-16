@@ -13,7 +13,6 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Tests.Visual
 {
-    [TestFixture]
     [System.ComponentModel.Description("potentially challenging size calculations")]
     public class TestCaseSizing : TestCase
     {

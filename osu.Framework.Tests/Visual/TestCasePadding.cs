@@ -13,8 +13,7 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Tests.Visual
 {
-    [TestFixture]
-    internal class TestCasePadding : GridTestCase
+    public class TestCasePadding : GridTestCase
     {
         public TestCasePadding() : base(2, 2)
         {

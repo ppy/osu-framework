@@ -13,7 +13,6 @@ using OpenTK;
 
 namespace osu.Framework.Tests.Visual
 {
-    [TestFixture]
     public class TestCaseSearchContainer : TestCase
     {
         public TestCaseSearchContainer()

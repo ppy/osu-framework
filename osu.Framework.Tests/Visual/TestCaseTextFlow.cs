@@ -13,7 +13,6 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Tests.Visual
 {
-    [TestFixture]
     [System.ComponentModel.Description("word-wrap and paragraphs")]
     public class TestCaseTextFlow : TestCase
     {

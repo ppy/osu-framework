@@ -13,8 +13,7 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Tests.Visual
 {
-    [TestFixture]
-    internal class TestCaseTransformSequence : GridTestCase
+    public class TestCaseTransformSequence : GridTestCase
     {
         private readonly Container[] boxes;
 

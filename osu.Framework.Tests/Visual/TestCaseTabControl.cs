@@ -17,7 +17,6 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Tests.Visual
 {
-    [TestFixture]
     public class TestCaseTabControl : TestCase
     {
         public TestCaseTabControl()

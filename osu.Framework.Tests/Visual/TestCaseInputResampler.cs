@@ -15,9 +15,8 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Tests.Visual
 {
-    [TestFixture]
     [System.ComponentModel.Description("live path optimiastion")]
-    internal class TestCaseInputResampler : GridTestCase
+    public class TestCaseInputResampler : GridTestCase
     {
         public TestCaseInputResampler() : base(3, 3)
         {

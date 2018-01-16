@@ -15,7 +15,6 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Tests.Visual
 {
-    [TestFixture]
     public class TestCaseKeyBindings : GridTestCase
     {
         public TestCaseKeyBindings()

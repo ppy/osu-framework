@@ -12,7 +12,6 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Tests.Visual
 {
-    [TestFixture]
     [System.ComponentModel.Description("changing depth of child dynamically")]
     public class TestCaseDynamicDepth : TestCase
     {

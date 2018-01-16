@@ -12,7 +12,6 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Tests.Visual
 {
-    [TestFixture]
     public class TestCaseHollowEdgeEffect : GridTestCase
     {
         public TestCaseHollowEdgeEffect() : base(2, 2)

@@ -9,7 +9,6 @@ using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual
 {
-    [TestFixture]
     public class TestCaseSpriteText : TestCase
     {
         public TestCaseSpriteText()

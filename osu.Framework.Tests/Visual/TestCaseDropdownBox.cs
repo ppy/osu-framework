@@ -13,7 +13,6 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Tests.Visual
 {
-    [TestFixture]
     public class TestCaseDropdownBox : TestCase
     {
         private const int items_to_add = 10;

@@ -13,7 +13,6 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Tests.Visual
 {
-    [TestFixture]
     public class TestCaseCoordinateSpaces : TestCase
     {
         public TestCaseCoordinateSpaces()

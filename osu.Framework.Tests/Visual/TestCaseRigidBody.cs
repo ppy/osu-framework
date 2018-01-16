@@ -14,7 +14,6 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Tests.Visual
 {
-    [TestFixture]
     public class TestCaseRigidBody : TestCase
     {
         private readonly TestRigidBodySimulation sim;

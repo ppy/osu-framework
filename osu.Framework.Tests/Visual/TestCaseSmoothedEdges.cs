@@ -11,8 +11,7 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Tests.Visual
 {
-    [TestFixture]
-    internal class TestCaseSmoothedEdges : GridTestCase
+    public class TestCaseSmoothedEdges : GridTestCase
     {
         public TestCaseSmoothedEdges() : base(2, 2)
         {

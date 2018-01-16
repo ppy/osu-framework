@@ -10,7 +10,6 @@ using OpenTK;
 
 namespace osu.Framework.Tests.Visual
 {
-    [TestFixture]
     public class TestCaseTextBox : TestCase
     {
         public TestCaseTextBox()

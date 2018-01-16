@@ -13,7 +13,6 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Tests.Visual
 {
-    [TestFixture]
     public class TestCaseDelayedLoad : TestCase
     {
         private const int panel_count = 2048;

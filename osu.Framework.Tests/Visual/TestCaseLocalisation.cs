@@ -17,7 +17,6 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Tests.Visual
 {
-    [TestFixture]
     public class TestCaseLocalisation : TestCase
     {
         // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable

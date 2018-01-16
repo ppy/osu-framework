@@ -19,7 +19,6 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Tests.Visual
 {
-    [TestFixture]
     public class TestCaseFillFlowContainer : TestCase
     {
         private FillDirectionDropdown selectionDropdown;

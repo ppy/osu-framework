@@ -13,7 +13,6 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Tests.Visual
 {
-    [TestFixture]
     public class TestCaseScrollableFlow : TestCase
     {
         private readonly ScheduledDelegate boxCreator;
