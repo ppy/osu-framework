@@ -3,6 +3,7 @@
 
 using System;
 using System.Linq;
+using osu.Framework.Allocation;
 using OpenTK;
 using osu.Framework.Caching;
 
@@ -64,6 +65,12 @@ namespace osu.Framework.Graphics.Containers
 
                 cellLayout.Invalidate();
             }
+        }
+
+        [BackgroundDependencyLoader]
+        private void load()
+        {
+            layoutContent();
         }
 
         protected override void Update()

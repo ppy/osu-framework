@@ -14,7 +14,7 @@ using osu.Framework.Extensions.Color4Extensions;
 namespace osu.Framework.Testing.Drawables.Steps
 {
     public class StepSlider<T> : SliderBar<T>
-        where T : struct
+        where T : struct, IComparable, IConvertible
     {
         private readonly Box selection;
         private readonly Box background;

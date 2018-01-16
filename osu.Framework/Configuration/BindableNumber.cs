@@ -7,7 +7,8 @@ using OpenTK;
 
 namespace osu.Framework.Configuration
 {
-    public abstract class BindableNumber<T> : Bindable<T> where T : struct
+    public abstract class BindableNumber<T> : Bindable<T>
+        where T : struct, IComparable, IConvertible
     {
         static BindableNumber()
         {
@@ -57,12 +58,31 @@ namespace osu.Framework.Configuration
             {
                 if (precision.Equals(value))
                     return;
+
+                if (Convert.ToDouble(value) <= 0)
+                    throw new ArgumentOutOfRangeException(nameof(Precision), "Must be greater than 0.");
+
                 precision = value;
 
                 TriggerPrecisionChange();
             }
         }
 
+        public override T Value
+        {
+            get { return base.Value; }
+            set
+            {
+                double doubleValue = Convert.ToDouble(clamp(value, MinValue, MaxValue));
+
+                if (Precision.CompareTo(DefaultPrecision) > 0)
+                    doubleValue = Math.Round(doubleValue / Convert.ToDouble(Precision)) * Convert.ToDouble(Precision);
+
+                // ReSharper disable once PossibleNullReferenceException
+                // https://youtrack.jetbrains.com/issue/RIDER-12652
+                base.Value = (T)Convert.ChangeType(doubleValue, typeof(T));
+            }
+        }
 
         /// <summary>
         /// The minimum value of this bindable. <see cref="Bindable{T}.Value"/> will never go below this value.
@@ -108,6 +128,22 @@ namespace osu.Framework.Configuration
                 if (b is BindableNumber<T> other)
                     other.Precision = Precision;
             });
+        }
+
+        public override void BindTo(Bindable<T> them)
+        {
+            if (them is BindableNumber<T> other)
+            {
+                Precision = max(Precision, other.Precision);
+                MinValue = max(MinValue, other.MinValue);
+                MaxValue = min(MaxValue, other.MaxValue);
+
+                if (MinValue.CompareTo(MaxValue) > 0)
+                    throw new ArgumentOutOfRangeException(
+                        $"Can not weld bindable longs with non-overlapping min/max-ranges. The ranges were [{MinValue} - {MaxValue}] and [{other.MinValue} - {other.MaxValue}].", nameof(them));
+            }
+
+            base.BindTo(them);
         }
 
         /// <summary>
@@ -271,5 +307,20 @@ namespace osu.Framework.Configuration
             }
             Set(value);
         }
+
+        private static T max(T value1, T value2)
+        {
+            var comparison = value1.CompareTo(value2);
+            return comparison > 0 ? value1 : value2;
+        }
+
+        private static T min(T value1, T value2)
+        {
+            var comparison = value1.CompareTo(value2);
+            return comparison > 0 ? value2 : value1;
+        }
+
+        private static T clamp(T value, T minValue, T maxValue)
+            => max(minValue, min(maxValue, value));
     }
 }
