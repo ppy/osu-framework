@@ -456,6 +456,7 @@
     <Compile Include="Testing\DynamicClassCompiler.cs" />
     <Compile Include="Testing\GridTestCase.cs" />
     <Compile Include="Testing\IDynamicallyCompile.cs" />
+    <Compile Include="Testing\Input\ManualInputManager.cs" />
     <Compile Include="Testing\TestBrowser.cs" />
     <Compile Include="Testing\TestBrowserConfig.cs" />
     <Compile Include="Testing\TestBrowserTestRunner.cs" />
