@@ -46,10 +46,4 @@ namespace osu.Framework.Graphics.Containers
             return base.BuildMouseInputQueue(screenSpaceMousePos, queue);
         }
     }
-
-    public enum Visibility
-    {
-        Hidden,
-        Visible
-    }
 }
