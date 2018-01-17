@@ -4,7 +4,6 @@
 using System;
 using System.Globalization;
 using System.IO;
-
 using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
