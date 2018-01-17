@@ -244,7 +244,7 @@ namespace osu.Framework.Graphics.Cursor
         /// <summary>
         /// The default tooltip. Simply displays its text on a gray background and performs no easing.
         /// </summary>
-        public class Tooltip : OverlayContainer, ITooltip
+        public class Tooltip : VisibilityContainer, ITooltip
         {
             private readonly SpriteText text;
 
