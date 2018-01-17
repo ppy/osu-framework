@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Collections.Generic;
-using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Lines;
 using osu.Framework.Graphics.OpenGL.Textures;
@@ -15,8 +14,7 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Tests.Visual
 {
-    [TestFixture]
-    internal class TestCaseDrawablePath : GridTestCase
+    public class TestCaseDrawablePath : GridTestCase
     {
         public TestCaseDrawablePath() : base(2, 2)
         {
