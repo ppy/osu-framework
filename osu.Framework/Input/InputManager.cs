@@ -417,7 +417,7 @@ namespace osu.Framework.Input
             }
         }
 
-        private List<Drawable> mouseDownInputQueue;
+        private IEnumerable<Drawable> mouseDownInputQueue;
 
         private void updateMouseEvents(InputState state)
         {
@@ -505,9 +505,12 @@ namespace osu.Framework.Input
                 Button = button
             };
 
-            mouseDownInputQueue = new List<Drawable>(positionalInputQueue);
+            Drawable handledBy;
+            var result = PropagateMouseDown(positionalInputQueue, state, args, out handledBy);
 
-            return PropagateMouseDown(positionalInputQueue, state, args);
+            mouseDownInputQueue = result ? positionalInputQueue.Take(positionalInputQueue.IndexOf(handledBy) + 1) : new List<Drawable>(positionalInputQueue);
+
+            return result;
         }
 
         private bool handleMouseUp(InputState state, MouseButton button)
@@ -546,15 +549,16 @@ namespace osu.Framework.Input
         /// <param name="drawables">The drawables in the queue.</param>
         /// <param name="state">The input state.</param>
         /// <param name="args">The args.</param>
+        /// <param name="handledBy"></param>
         /// <returns>Whether the mouse down event was handled.</returns>
-        protected virtual bool PropagateMouseDown(IEnumerable<Drawable> drawables, InputState state, MouseDownEventArgs args)
+        protected virtual bool PropagateMouseDown(IEnumerable<Drawable> drawables, InputState state, MouseDownEventArgs args, out Drawable handledBy)
         {
-            var handled = drawables.FirstOrDefault(target => target.TriggerOnMouseDown(state, args));
+            handledBy = drawables.FirstOrDefault(target => target.TriggerOnMouseDown(state, args));
 
-            if (handled != null)
-                Logger.Log($"MouseDown ({args.Button}) handled by {handled}.", LoggingTarget.Runtime, LogLevel.Debug);
+            if (handledBy != null)
+                Logger.Log($"MouseDown ({args.Button}) handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
 
-            return handled != null;
+            return handledBy != null;
         }
 
         private bool handleMouseMove(InputState state)
