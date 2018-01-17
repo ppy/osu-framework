@@ -131,9 +131,16 @@ namespace osu.Framework.Allocation
         {
             if (!overwrite && cache.ContainsKey(typeof(T)))
                 throw new InvalidOperationException($@"Type {typeof(T).FullName} is already cached");
+
             if (instance == null)
                 instance = this.Get<T>();
-            cache[typeof(T)] = instance;
+
+            var baseType = typeof(T);
+            var declaringType = instance.GetType();
+
+            cache[baseType] = instance;
+            cache[declaringType] = instance;
+
             return instance;
         }
 
