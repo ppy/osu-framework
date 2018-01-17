@@ -20,7 +20,6 @@ namespace osu.Framework.Allocation
 
         private readonly ConcurrentDictionary<Type, ObjectActivator> activators = new ConcurrentDictionary<Type, ObjectActivator>();
         private readonly ConcurrentDictionary<Type, object> cache = new ConcurrentDictionary<Type, object>();
-        private readonly HashSet<Type> cacheable = new HashSet<Type>();
 
         private readonly IReadOnlyDependencyContainer parentContainer;
 
@@ -134,7 +133,6 @@ namespace osu.Framework.Allocation
                 throw new InvalidOperationException($@"Type {typeof(T).FullName} is already cached");
             if (instance == null)
                 instance = this.Get<T>();
-            cacheable.Add(typeof(T));
             cache[typeof(T)] = instance;
             return instance;
         }
