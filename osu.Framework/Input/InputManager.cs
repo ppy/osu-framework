@@ -535,12 +535,12 @@ namespace osu.Framework.Input
         /// <returns>Whether the mouse up event was handled.</returns>
         protected virtual bool PropagateMouseUp(IEnumerable<Drawable> drawables, InputState state, MouseUpEventArgs args)
         {
-            var handled = drawables.FirstOrDefault(target => target.TriggerOnMouseUp(state, args));
+            var handledBy = drawables.FirstOrDefault(target => target.TriggerOnMouseUp(state, args));
 
-            if (handled != null)
-                Logger.Log($"MouseUp ({args.Button}) handled by {handled}.", LoggingTarget.Runtime, LogLevel.Debug);
+            if (handledBy != null)
+                Logger.Log($"MouseUp ({args.Button}) handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
 
-            return handled != null;
+            return handledBy != null;
         }
 
         /// <summary>
@@ -663,12 +663,12 @@ namespace osu.Framework.Input
         /// <returns></returns>
         protected virtual bool PropagateWheel(IEnumerable<Drawable> drawables, InputState state)
         {
-            var handled = drawables.FirstOrDefault(target => target.TriggerOnWheel(state));
+            var handledBy = drawables.FirstOrDefault(target => target.TriggerOnWheel(state));
 
-            if (handled != null)
-                Logger.Log($"Wheel ({state.Mouse.WheelDelta}) handled by {handled}.", LoggingTarget.Runtime, LogLevel.Debug);
+            if (handledBy != null)
+                Logger.Log($"Wheel ({state.Mouse.WheelDelta}) handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
 
-            return handled != null;
+            return handledBy != null;
         }
 
         private bool handleKeyDown(InputState state, Key key, bool repeat)
@@ -689,12 +689,12 @@ namespace osu.Framework.Input
         /// <returns>Whether the key down event was handled.</returns>
         protected virtual bool PropagateKeyDown(IEnumerable<Drawable> drawables, InputState state, KeyDownEventArgs args)
         {
-            var handled = drawables.FirstOrDefault(target => target.TriggerOnKeyDown(state, args));
+            var handledBy = drawables.FirstOrDefault(target => target.TriggerOnKeyDown(state, args));
 
-            if (handled != null)
-                Logger.Log($"KeyDown ({args.Key}) handled by {handled}.", LoggingTarget.Runtime, LogLevel.Debug);
+            if (handledBy != null)
+                Logger.Log($"KeyDown ({args.Key}) handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
 
-            return handled != null;
+            return handledBy != null;
         }
 
         private bool handleKeyUp(InputState state, Key key)
@@ -715,12 +715,12 @@ namespace osu.Framework.Input
         /// <returns>Whether the key up event was handled.</returns>
         protected virtual bool PropagateKeyUp(IEnumerable<Drawable> drawables, InputState state, KeyUpEventArgs args)
         {
-            var handled = drawables.FirstOrDefault(target => target.TriggerOnKeyUp(state, args));
+            var handledBy = drawables.FirstOrDefault(target => target.TriggerOnKeyUp(state, args));
 
-            if (handled != null)
-                Logger.Log($"KeyUp ({args.Key}) handled by {handled}.", LoggingTarget.Runtime, LogLevel.Debug);
+            if (handledBy != null)
+                Logger.Log($"KeyUp ({args.Key}) handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
 
-            return handled != null;
+            return handledBy != null;
         }
 
         /// <summary>
