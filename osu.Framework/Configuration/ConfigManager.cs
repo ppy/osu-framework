@@ -6,10 +6,11 @@ using osu.Framework.Platform;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using osu.Framework.Configuration.Tracking;
 
 namespace osu.Framework.Configuration
 {
-    public class ConfigManager<T> : IDisposable
+    public class ConfigManager<T> : ITrackableConfigManager, IConfigManager, IDisposable
         where T : struct
     {
         /// <summary>
@@ -271,127 +272,18 @@ namespace osu.Framework.Configuration
 
         #endregion
 
-        /// <summary>
-        /// Retrieves all the settings of this <see cref="ConfigManager{T}"/> that are to be tracked for changes.
-        /// </summary>
-        /// <returns>A list of <see cref="TrackedSetting"/>.</returns>
         public virtual TrackedSettings CreateTrackedSettings() => null;
 
-        public class TrackedSettings : List<TrackedSetting>, ITrackedSettings
+        public void LoadInto(TrackedSettings settings) => settings.LoadFrom(this);
+
+        public void EndTracking(TrackedSettings settings) => settings.Unload();
+
+        public class TrackedSetting<U> : Tracking.TrackedSetting<U>
         {
-            public event Action<SettingDescription> SettingChanged;
-
-            /// <summary>
-            /// Begins tracking all the contained settings.
-            /// </summary>
-            /// <param name="configManager">The <see cref="ConfigManager{T}"/> to track from.</param>
-            public void LoadFrom(ConfigManager<T> configManager)
-            {
-                foreach (var value in this)
-                {
-                    value.LoadFrom(configManager);
-                    value.SettingChanged = d => SettingChanged?.Invoke(d);
-                }
-            }
-
-            public void Unload()
-            {
-                foreach (var value in this)
-                    value.Unload();
-            }
-        }
-
-        public abstract class TrackedSetting
-        {
-            /// <summary>
-            /// Invoked when this setting has changed.
-            /// </summary>
-            internal Action<SettingDescription> SettingChanged;
-
-            internal abstract void LoadFrom(ConfigManager<T> configManager);
-            internal abstract void Unload();
-        }
-
-        public class TrackedSetting<U> : TrackedSetting
-        {
-            private readonly T setting;
-            private readonly Func<U, SettingDescription> generateDescription;
-
-            private Bindable<U> bindable;
-
             public TrackedSetting(T setting, Func<U, SettingDescription> generateDescription)
+                : base(setting, generateDescription)
             {
-                this.setting = setting;
-                this.generateDescription = generateDescription;
             }
-
-            internal override void LoadFrom(ConfigManager<T> configManager)
-            {
-                bindable = configManager.GetBindable<U>(setting);
-                bindable.ValueChanged += displaySetting;
-            }
-
-            internal override void Unload()
-            {
-                bindable.ValueChanged -= displaySetting;
-                bindable = null;
-            }
-
-            private void displaySetting(U value) => SettingChanged?.Invoke(generateDescription(value));
-        }
-    }
-
-    public interface ITrackedSettings
-    {
-        /// <summary>
-        /// Invoked when the value of any tracked setting has changed.
-        /// </summary>
-        event Action<SettingDescription> SettingChanged;
-
-        /// <summary>
-        /// Stops tracking all contained settings.
-        /// </summary>
-        void Unload();
-    }
-
-    /// <summary>
-    /// Contains information that may be displayed when tracked settings change.
-    /// </summary>
-    public class SettingDescription
-    {
-        /// <summary>
-        /// The raw setting value.
-        /// </summary>
-        public readonly object RawValue;
-
-        /// <summary>
-        /// The readable setting name.
-        /// </summary>
-        public readonly string Name;
-
-        /// <summary>
-        /// The readable setting value.
-        /// </summary>
-        public readonly string Value;
-
-        /// <summary>
-        /// The shortcut keys that cause this setting to change.
-        /// </summary>
-        public readonly string Shortcut;
-
-        /// <summary>
-        /// Constructs a new <see cref="SettingDescription"/>.
-        /// </summary>
-        /// <param name="rawValue">The raw setting value.</param>
-        /// <param name="name">The readable setting name.</param>
-        /// <param name="value">The readable setting value.</param>
-        /// <param name="shortcut">The shortcut keys that cause this setting to change.</param>
-        public SettingDescription(object rawValue, string name, string value, string shortcut = @"")
-        {
-            RawValue = rawValue;
-            Name = name;
-            Value = value;
-            Shortcut = shortcut;
         }
     }
 }
