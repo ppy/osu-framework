@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using osu.Framework.Extensions;
 using osu.Framework.Input;
 using osu.Framework.Platform;
 
@@ -40,6 +41,24 @@ namespace osu.Framework.Configuration
             : base(storage)
         {
         }
+
+        public override TrackedSettings CreateTrackedSettings() => new TrackedSettings
+        {
+            new TrackedSetting<FrameSync>(FrameworkSetting.FrameSync, v => new SettingDescription(v, "Frame Limiter", v.GetDescription(), "Ctrl+F7")),
+            new TrackedSetting<string>(FrameworkSetting.AudioDevice, v => new SettingDescription(v, "Audio Device", string.IsNullOrEmpty(v) ? "Default" : v, v)),
+            new TrackedSetting<bool>(FrameworkSetting.ShowLogOverlay, v => new SettingDescription(v, "Debug Logs", v ? "visible" : "hidden", "Ctrl+F10")),
+            new TrackedSetting<int>(FrameworkSetting.Width, v => createResolutionDescription()),
+            new TrackedSetting<int>(FrameworkSetting.Height, v => createResolutionDescription()),
+            new TrackedSetting<double>(FrameworkSetting.CursorSensitivity, v => new SettingDescription(v, "Cursor Sensitivity", v.ToString(@"0.##x"), "Ctrl+Alt+R to reset")),
+            new TrackedSetting<string>(FrameworkSetting.ActiveInputHandlers, v =>
+            {
+                bool raw = v.Contains("Raw");
+                return new SettingDescription(raw, "Raw Input", raw ? "enabled" : "disabled", "Ctrl+Alt+R to reset");
+            }),
+            new TrackedSetting<WindowMode>(FrameworkSetting.WindowMode, v => new SettingDescription(v, "Screen Mode", v.ToString(), "Alt+Enter"))
+        };
+
+        private SettingDescription createResolutionDescription() => new SettingDescription(null, "Screen Resolution", Get<int>(FrameworkSetting.Width) + "x" + Get<int>(FrameworkSetting.Height));
     }
 
     public enum FrameworkSetting
