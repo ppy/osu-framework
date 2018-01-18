@@ -160,7 +160,6 @@
     <Compile Include="Configuration\NonNullableBindable.cs" />
     <Compile Include="Configuration\Tracking\ITrackableConfigManager.cs" />
     <Compile Include="Configuration\Tracking\ITrackedSetting.cs" />
-    <Compile Include="Configuration\Tracking\ITrackedSettings.cs" />
     <Compile Include="Configuration\Tracking\SettingDescription.cs" />
     <Compile Include="Configuration\Tracking\TrackedSetting.cs" />
     <Compile Include="Configuration\Tracking\TrackedSettings.cs" />

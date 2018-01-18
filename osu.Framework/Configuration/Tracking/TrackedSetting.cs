@@ -5,6 +5,10 @@ using System;
 
 namespace osu.Framework.Configuration.Tracking
 {
+    /// <summary>
+    /// A singular tracked setting.
+    /// </summary>
+    /// <typeparam name="U">The type of the tracked value.</typeparam>
     public abstract class TrackedSetting<U> : ITrackedSetting
     {
         public event Action<SettingDescription> SettingChanged;
@@ -14,6 +18,11 @@ namespace osu.Framework.Configuration.Tracking
 
         private Bindable<U> bindable;
 
+        /// <summary>
+        /// Constructs a new <see cref="TrackedSetting{U}"/>.
+        /// </summary>
+        /// <param name="setting">The config setting to be tracked.</param>
+        /// <param name="generateDescription">A function that generates the description for the setting, invoked every time the value changes.</param>
         protected TrackedSetting(object setting, Func<U, SettingDescription> generateDescription)
         {
             this.setting = setting;

@@ -5,6 +5,9 @@ using System;
 
 namespace osu.Framework.Configuration.Tracking
 {
+    /// <summary>
+    /// A singular tracked setting.
+    /// </summary>
     public interface ITrackedSetting
     {
         /// <summary>
@@ -13,14 +16,14 @@ namespace osu.Framework.Configuration.Tracking
         event Action<SettingDescription> SettingChanged;
 
         /// <summary>
-        /// Begins tracking this setting.
+        /// Loads a <see cref="Bindable{T}"/> into this tracked setting, binding to <see cref="SettingChanged"/>.
         /// </summary>
-        /// <param name="configManager">The <see cref="ConfigManager{T}"/> to track from.</param>
+        /// <param name="configManager">The <see cref="ConfigManager{T}"/> to load from.</param>
         void LoadFrom<T>(ConfigManager<T> configManager)
             where T : struct;
 
         /// <summary>
-        /// Stops tracking this setting.
+        /// Unloads the <see cref="Bindable{T}"/> from this tracked setting, unbinding from <see cref="SettingChanged"/>.
         /// </summary>
         void Unload();
     }

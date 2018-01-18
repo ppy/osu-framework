@@ -10,7 +10,7 @@ using osu.Framework.Configuration.Tracking;
 
 namespace osu.Framework.Configuration
 {
-    public class ConfigManager<T> : ITrackableConfigManager, IConfigManager, IDisposable
+    public class ConfigManager<T> : ITrackableConfigManager, IDisposable
         where T : struct
     {
         /// <summary>
@@ -276,10 +276,13 @@ namespace osu.Framework.Configuration
 
         public void LoadInto(TrackedSettings settings) => settings.LoadFrom(this);
 
-        public void EndTracking(TrackedSettings settings) => settings.Unload();
-
         public class TrackedSetting<U> : Tracking.TrackedSetting<U>
         {
+            /// <summary>
+            /// Constructs a new <see cref="TrackedSetting{U}"/>.
+            /// </summary>
+            /// <param name="setting">The config setting to be tracked.</param>
+            /// <param name="generateDescription">A function that generates the description for the setting, invoked every time the value changes.</param>
             public TrackedSetting(T setting, Func<U, SettingDescription> generateDescription)
                 : base(setting, generateDescription)
             {

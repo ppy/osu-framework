@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace osu.Framework.Configuration.Tracking
 {
-    public class TrackedSettings : List<ITrackedSetting>, ITrackedSettings
+    public class TrackedSettings : List<ITrackedSetting>
     {
         public event Action<SettingDescription> SettingChanged;
 

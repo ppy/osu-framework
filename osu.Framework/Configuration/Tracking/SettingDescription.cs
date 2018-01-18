@@ -4,7 +4,7 @@
 namespace osu.Framework.Configuration.Tracking
 {
     /// <summary>
-    /// Contains information that may be displayed when tracked settings change.
+    /// Contains information that can be displayed when tracked settings change.
     /// </summary>
     public class SettingDescription
     {
