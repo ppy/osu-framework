@@ -122,7 +122,8 @@ namespace osu.Framework.Graphics.Sprites
 
         private FontStore store;
 
-        public override bool HandleInput => false;
+        public override bool HandleKeyboardInput => false;
+        public override bool HandleMouseInput => false;
 
         /// <summary>
         /// Creates a new sprite text. <see cref="Container{T}.AutoSizeAxes"/> is set to <see cref="Axes.Both"/> by default.
