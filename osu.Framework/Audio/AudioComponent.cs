@@ -28,7 +28,7 @@ namespace osu.Framework.Audio
 
             if (!acceptingActions)
                 // we don't want consumers to block on operations after we are disposed.
-                return Task.Run(() => { });
+                return Task.CompletedTask;
 
             PendingActions.Enqueue(task);
             return task;
