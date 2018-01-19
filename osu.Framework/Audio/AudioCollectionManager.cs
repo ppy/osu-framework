@@ -52,9 +52,9 @@ namespace osu.Framework.Audio
                 item.UpdateDevice(deviceIndex);
         }
 
-        protected override void UpdateState()
+        protected override void UpdateChildren()
         {
-            base.UpdateState();
+            base.UpdateChildren();
 
             for (int i = 0; i < Items.Count; i++)
             {
@@ -70,13 +70,13 @@ namespace osu.Framework.Audio
             }
         }
 
-        protected override void Dispose(bool disposing)
+        public override void Dispose()
         {
             // we need to queue disposal of our Items before enqueueing the main dispose.
             foreach (var i in Items)
                 i.Dispose();
 
-            base.Dispose(disposing);
+            base.Dispose();
         }
     }
 }
