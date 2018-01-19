@@ -265,16 +265,17 @@ namespace osu.Framework.Graphics.Transforms
             if (transformsLazy == null)
                 return;
 
-            Func<Transform, bool> toFlushPredicate;
-            if (targetMember == null)
-                toFlushPredicate = t => !t.IsLooping;
-            else
-                toFlushPredicate = t => !t.IsLooping && t.TargetMember == targetMember;
+            bool matchingTransform(Transform transform)
+            {
+                if (transform.IsLooping)
+                    return false;
+                return targetMember == null || transform.TargetMember == targetMember;
+            }
 
             // Flush is undefined for endlessly looping transforms
-            var toFlush = transformsLazy.Where(toFlushPredicate).ToArray();
+            var toFlush = transformsLazy.Where(matchingTransform).ToArray();
 
-            transformsLazy.RemoveAll(t => toFlushPredicate(t));
+            transformsLazy.RemoveAll(t => matchingTransform(t));
 
             foreach (Transform t in toFlush)
             {
