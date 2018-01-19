@@ -153,7 +153,7 @@ namespace osu.Framework.Graphics.Containers
         private class FlowTransform : TransformCustom<Vector2, Drawable>, IProtectedTransform
         {
             public FlowTransform()
-                : base(nameof(Drawable.Position))
+                : base(nameof(Position))
             {
             }
         }

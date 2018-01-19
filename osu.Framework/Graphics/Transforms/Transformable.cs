@@ -275,7 +275,7 @@ namespace osu.Framework.Graphics.Transforms
             // Flush is undefined for endlessly looping transforms
             var toFlush = transformsLazy.Where(matchingTransform).ToArray();
 
-            transformsLazy.RemoveAll(t => matchingTransform(t));
+            transformsLazy.RemoveAll(matchingTransform);
 
             foreach (Transform t in toFlush)
             {
