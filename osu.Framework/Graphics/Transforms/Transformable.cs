@@ -201,10 +201,12 @@ namespace osu.Framework.Graphics.Transforms
         /// </summary>
         /// <param name="propagateChildren">Whether we also clear the <see cref="Transform"/>s of children.</param>
         /// <param name="targetMember">
-        /// An optional <see cref="Transform.TargetMember"/> name of <see cref="Transform"/>s to clear.
-        /// Null for clearing all <see cref="Transform"/>s.
+        ///     An optional <see cref="Transform.TargetMember"/> name of <see cref="Transform"/>s to clear.
+        ///     Null for clearing all <see cref="Transform"/>s.
         /// </param>
-        public virtual void ClearTransforms(bool propagateChildren = false, string targetMember = null) => ClearTransformsAfter(double.NegativeInfinity, propagateChildren, targetMember);
+        /// <param name="excludeTypes">Any types of <see cref="Transform"/>s to exclude from the clearing operation.</param>
+        public virtual void ClearTransforms(bool propagateChildren = false, string targetMember = null, IEnumerable<Type> excludeTypes = null)
+            => ClearTransformsAfter(double.NegativeInfinity, propagateChildren, targetMember, excludeTypes);
 
         /// <summary>
         /// Removes <see cref="Transform"/>s that start after <paramref name="time"/>.
@@ -212,10 +214,11 @@ namespace osu.Framework.Graphics.Transforms
         /// <param name="time">The time to clear <see cref="Transform"/>s after.</param>
         /// <param name="propagateChildren">Whether to also clear such <see cref="Transform"/>s of children.</param>
         /// <param name="targetMember">
-        /// An optional <see cref="Transform.TargetMember"/> name of <see cref="Transform"/>s to clear.
-        /// Null for clearing all <see cref="Transform"/>s.
+        ///     An optional <see cref="Transform.TargetMember"/> name of <see cref="Transform"/>s to clear.
+        ///     Null for clearing all <see cref="Transform"/>s.
         /// </param>
-        public virtual void ClearTransformsAfter(double time, bool propagateChildren = false, string targetMember = null)
+        /// <param name="excludeTypes">Any types of <see cref="Transform"/>s to exclude from the clearing operation.</param>
+        public virtual void ClearTransformsAfter(double time, bool propagateChildren = false, string targetMember = null, IEnumerable<Type> excludeTypes = null)
         {
             if (transformsLazy == null)
                 return;
@@ -225,7 +228,7 @@ namespace osu.Framework.Graphics.Transforms
                 if (transform.StartTime < time)
                     return false;
 
-                if (transform is IProtectedTransform)
+                if (excludeTypes?.Contains(transform.GetType()) ?? false)
                     return false;
 
                 return targetMember == null || transform.TargetMember == targetMember;

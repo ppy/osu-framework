@@ -93,6 +93,15 @@ namespace osu.Framework.Graphics.Containers
             base.InvalidateFromChild(invalidation);
         }
 
+        private static readonly Type[] local_transform_excludes = { typeof(FlowTransform) };
+
+        public override void ClearTransformsAfter(double time, bool propagateChildren = false, string targetMember = null, IEnumerable<Type> excludeTypes = null)
+        {
+            var localExcludes = excludeTypes != null ? local_transform_excludes.Concat(excludeTypes) : local_transform_excludes;
+
+            base.ClearTransformsAfter(time, propagateChildren, targetMember, localExcludes);
+        }
+
         protected virtual IEnumerable<Drawable> FlowingChildren => AliveInternalChildren.Where(d => d.IsPresent);
 
         protected abstract IEnumerable<Vector2> ComputeLayoutPositions();
@@ -150,7 +159,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private class FlowTransform : TransformCustom<Vector2, Drawable>, IProtectedTransform
+        private class FlowTransform : TransformCustom<Vector2, Drawable>
         {
             public FlowTransform()
                 : base(nameof(Position))
