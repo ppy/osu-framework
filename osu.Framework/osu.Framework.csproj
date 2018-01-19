@@ -220,6 +220,7 @@
     <Compile Include="Graphics\Sprites\IHasLineBaseHeight.cs" />
     <Compile Include="Graphics\Sprites\IHasText.cs" />
     <Compile Include="Graphics\Textures\TextureWhitePixel.cs" />
+    <Compile Include="Graphics\Transforms\IProtectedTransform.cs" />
     <Compile Include="Graphics\Transforms\ITransformable.cs" />
     <Compile Include="Graphics\TransformSequenceExtensions.cs" />
     <Compile Include="Graphics\TransformableExtensions.cs" />

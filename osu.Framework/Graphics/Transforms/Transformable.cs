@@ -220,17 +220,19 @@ namespace osu.Framework.Graphics.Transforms
             if (transformsLazy == null)
                 return;
 
-            Transform[] toAbort;
-            if (targetMember == null)
+            bool matchingTransform(Transform transform)
             {
-                toAbort = transformsLazy.Where(t => t.StartTime >= time).ToArray();
-                transformsLazy.RemoveAll(t => t.StartTime >= time);
+                if (transform.StartTime < time)
+                    return false;
+
+                if (transform is IProtectedTransform)
+                    return false;
+
+                return targetMember == null || transform.TargetMember == targetMember;
             }
-            else
-            {
-                toAbort = transformsLazy.Where(t => t.StartTime >= time && t.TargetMember == targetMember).ToArray();
-                transformsLazy.RemoveAll(t => t.StartTime >= time && t.TargetMember == targetMember);
-            }
+
+            var toAbort = transformsLazy.Where(matchingTransform).ToArray();
+            transformsLazy.RemoveAll(matchingTransform);
 
             foreach (var t in toAbort)
                 t.OnAbort?.Invoke();

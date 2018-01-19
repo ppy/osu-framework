@@ -1334,7 +1334,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         private void autoSizeResizeTo(Vector2 newSize, double duration = 0, Easing easing = Easing.None) =>
-            this.TransformTo(nameof(baseSize), newSize, duration, easing);
+            this.TransformTo(this.PopulateTransform(new AutoSizeTransform(), newSize, duration, easing));
 
         /// <summary>
         /// A helper property for <see cref="autoSizeResizeTo(Vector2, double, Easing)"/> to change the size of <see cref="CompositeDrawable"/>s with <see cref="AutoSizeAxes"/>.
@@ -1347,6 +1347,14 @@ namespace osu.Framework.Graphics.Containers
             {
                 base.Width = value.X;
                 base.Height = value.Y;
+            }
+        }
+
+        private class AutoSizeTransform : TransformCustom<Vector2, CompositeDrawable>, IProtectedTransform
+        {
+            public AutoSizeTransform()
+                : base(nameof(baseSize))
+            {
             }
         }
 
