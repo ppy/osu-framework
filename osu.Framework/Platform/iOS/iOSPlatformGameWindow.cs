@@ -113,8 +113,6 @@ namespace osu.Framework.Platform.iOS
             set { }
         }
 
-        public IInputDriver InputDriver => gameView.InputDriver;
-
         public MouseCursor Cursor
         {
             get => MouseCursor.Default;
@@ -151,6 +149,7 @@ namespace osu.Framework.Platform.iOS
         public event EventHandler<MouseButtonEventArgs> MouseUp;
         public event EventHandler<MouseMoveEventArgs> MouseMove;
         public event EventHandler<MouseWheelEventArgs> MouseWheel;
+        public event EventHandler<FileDropEventArgs> FileDrop;
 
         public void Close()
         {

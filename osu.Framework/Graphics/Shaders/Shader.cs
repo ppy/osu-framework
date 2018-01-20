@@ -118,8 +118,7 @@ namespace osu.Framework.Graphics.Shaders
                 for (int i = 0; i < uniformCount; i++)
                 {
                     ActiveUniformType type;
-                    StringBuilder uniformName = new StringBuilder();
-                    GL.GetActiveUniform(this, i, 100, out _, out _, out type, uniformName);
+                    GL.GetActiveUniform(this, i, 100, out _, out _, out type, out var uniformName);
 
                     uniformsArray[i] = new UniformBase(this, uniformName.ToString(), GL.GetUniformLocation(this, uniformName.ToString()), type);
                     uniforms.Add(uniformName.ToString(), uniformsArray[i]);
