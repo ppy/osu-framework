@@ -18,7 +18,7 @@
   <PropertyGroup Label="Defines">
    <DefineConstants Condition="'$(TargetFramework)' == 'net461'">$(DefineConstants);NET_FRAMEWORK</DefineConstants>
   </PropertyGroup>
-  
+
   <ItemGroup Label="References">
     <Reference Include="System.Runtime.InteropServices.RuntimeInformation"/>
   </ItemGroup>
