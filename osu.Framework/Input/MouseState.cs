@@ -10,7 +10,15 @@ namespace osu.Framework.Input
 {
     public class MouseState : IMouseState
     {
-        public IReadOnlyList<MouseButton> Buttons => buttons;
+        public IReadOnlyList<MouseButton> Buttons
+        {
+            get { return buttons; }
+            set
+            {
+                buttons.Clear();
+                buttons.AddRange(value);
+            }
+        }
 
         private List<MouseButton> buttons { get; set; } = new List<MouseButton>();
 

@@ -2,8 +2,8 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using ManagedBass;
-using System;
 using System.Collections.Concurrent;
+using System.Threading.Tasks;
 
 namespace osu.Framework.Audio.Sample
 {
@@ -13,13 +13,13 @@ namespace osu.Framework.Audio.Sample
 
         public override bool IsLoaded => sampleId != 0;
 
-        public SampleBass(byte[] data, ConcurrentQueue<Action> customPendingActions = null, int concurrency = DEFAULT_CONCURRENCY)
+        public SampleBass(byte[] data, ConcurrentQueue<Task> customPendingActions = null, int concurrency = DEFAULT_CONCURRENCY)
             : base(concurrency)
         {
             if (customPendingActions != null)
                 PendingActions = customPendingActions;
 
-            PendingActions.Enqueue(() => { sampleId = Bass.SampleLoad(data, 0, data.Length, PlaybackConcurrency, BassFlags.Default | BassFlags.SampleOverrideLongestPlaying); });
+            EnqueueAction(() => { sampleId = Bass.SampleLoad(data, 0, data.Length, PlaybackConcurrency, BassFlags.Default | BassFlags.SampleOverrideLongestPlaying); });
         }
 
         protected override void Dispose(bool disposing)

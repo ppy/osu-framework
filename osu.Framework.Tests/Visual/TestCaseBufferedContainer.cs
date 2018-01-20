@@ -9,7 +9,7 @@ using OpenTK;
 namespace osu.Framework.Tests.Visual
 {
     [TestFixture]
-    internal class TestCaseBufferedContainer : TestCaseMasking
+    public class TestCaseBufferedContainer : TestCaseMasking
     {
         private readonly BufferedContainer buffer;
 

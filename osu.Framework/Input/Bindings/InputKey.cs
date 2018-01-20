@@ -27,7 +27,7 @@ namespace osu.Framework.Input.Bindings
         /// <summary>
         /// The win key.
         /// </summary>
-        Win = 7,
+        Super = 7,
         /// <summary>
         /// The menu key.
         /// </summary>

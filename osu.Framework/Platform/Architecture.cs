@@ -19,7 +19,7 @@ namespace osu.Framework.Platform
 
         internal static void SetIncludePath()
         {
-            if (RuntimeInfo.IsWindows)
+            if (RuntimeInfo.OS == RuntimeInfo.Platform.Windows)
                 SetDllDirectory(NativeIncludePath);
         }
     }

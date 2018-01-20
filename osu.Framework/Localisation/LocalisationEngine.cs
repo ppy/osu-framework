@@ -24,7 +24,11 @@ namespace osu.Framework.Localisation
         public LocalisationEngine(FrameworkConfigManager config)
         {
             preferUnicode = config.GetBindable<bool>(FrameworkSetting.ShowUnicode);
-            preferUnicode.ValueChanged += newValue => unicodeBindings.ForEachAlive(b => b.PreferUnicode = newValue);
+            preferUnicode.ValueChanged += newValue =>
+            {
+                lock (unicodeBindings)
+                    unicodeBindings.ForEachAlive(b => b.PreferUnicode = newValue);
+            };
 
             locale = config.GetBindable<string>(FrameworkSetting.Locale);
             locale.ValueChanged += checkLocale;
@@ -46,7 +50,9 @@ namespace osu.Framework.Localisation
             {
                 PreferUnicode = preferUnicode.Value
             };
-            unicodeBindings.Add(bindable);
+
+            lock (unicodeBindings)
+                unicodeBindings.Add(bindable);
 
             return bindable;
         }
@@ -57,7 +63,9 @@ namespace osu.Framework.Localisation
             {
                 Value = GetLocalised(key)
             };
-            localisedBindings.Add(bindable);
+
+            lock (localisedBindings)
+                localisedBindings.Add(bindable);
 
             return bindable;
         }
@@ -65,7 +73,9 @@ namespace osu.Framework.Localisation
         public FormatString Format(FormattableString formattable)
         {
             var bindable = new FormatString(formattable);
-            formattableBindings.Add(bindable);
+
+            lock (formattableBindings)
+                formattableBindings.Add(bindable);
 
             return bindable;
         }
@@ -73,7 +83,9 @@ namespace osu.Framework.Localisation
         public FormatString FormatVariant(string formatKey, params object[] objects)
         {
             var bindable = new FormatString(new LocalisedFormatString(GetLocalisedString(formatKey), objects));
-            formattableBindings.Add(bindable);
+
+            lock (formattableBindings)
+                formattableBindings.Add(bindable);
 
             return bindable;
         }
@@ -89,9 +101,7 @@ namespace osu.Framework.Localisation
                 validLocale = newValue;
             else
             {
-                var culture = string.IsNullOrEmpty(newValue) ?
-                    CultureInfo.CurrentCulture :
-                    new CultureInfo(newValue);
+                var culture = string.IsNullOrEmpty(newValue) ? CultureInfo.CurrentCulture : new CultureInfo(newValue);
 
                 for (var c = culture; !c.Equals(CultureInfo.InvariantCulture); c = c.Parent)
                     if (locales.Contains(c.Name))
@@ -113,8 +123,8 @@ namespace osu.Framework.Localisation
                 CultureInfo.DefaultThreadCurrentUICulture = culture;
                 ChangeLocale(validLocale);
 
-                localisedBindings.ForEachAlive(b => b.Value = GetLocalised(b.Key));
-                formattableBindings.ForEachAlive(b => b.Update());
+                lock (localisedBindings) localisedBindings.ForEachAlive(b => b.Value = GetLocalised(b.Key));
+                lock (formattableBindings) formattableBindings.ForEachAlive(b => b.Update());
             }
         }
 
