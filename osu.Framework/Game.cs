@@ -156,8 +156,6 @@ namespace osu.Framework
                 Depth = float.MinValue
             }, AddInternal);
 
-            Schedule(() => FrameStatisticsMode = FrameStatisticsMode.Full);
-
             addDebugTools();
         }
 
