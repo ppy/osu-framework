@@ -13,7 +13,7 @@ using OpenTK.Graphics;
 namespace osu.Framework.Tests.Visual
 {
     [TestFixture]
-    internal class TestCaseCircularProgress : TestCase
+    public class TestCaseCircularProgress : TestCase
     {
         private readonly CircularProgress clock;
 

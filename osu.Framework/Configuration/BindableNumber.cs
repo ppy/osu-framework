@@ -63,7 +63,7 @@ namespace osu.Framework.Configuration
         /// </summary>
         public bool HasDefinedRange => !MinValue.Equals(DefaultMinValue) || !MaxValue.Equals(DefaultMaxValue);
 
-        public static implicit operator T(BindableNumber<T> value) => value?.Value ?? default(T);
+        public static implicit operator T(BindableNumber<T> value) => value?.Value ?? throw new InvalidCastException($"Casting a null {nameof(BindableNumber<T>)} to a {nameof(T)} is likely a mistake");
 
         public bool IsInteger
         {

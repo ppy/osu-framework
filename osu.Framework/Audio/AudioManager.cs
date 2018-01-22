@@ -32,6 +32,11 @@ namespace osu.Framework.Audio
         /// </summary>
         internal readonly AudioThread Thread;
 
+        /// <summary>
+        /// Used exclusively to perform thread checking.
+        /// </summary>
+        internal static AudioManager Instance;
+
         private List<DeviceInfo> audioDevices = new List<DeviceInfo>();
         private List<string> audioDeviceNames = new List<string>();
 
@@ -85,6 +90,9 @@ namespace osu.Framework.Audio
         /// </summary>
         public Scheduler EventScheduler;
 
+        private readonly Lazy<TrackManager> globalTrackManager;
+        private readonly Lazy<SampleManager> globalSampleManager;
+
         /// <summary>
         /// Constructs an AudioManager given a track resource store, and a sample resource store.
         /// </summary>
@@ -94,6 +102,8 @@ namespace osu.Framework.Audio
         {
             AudioDevice.ValueChanged += onDeviceChanged;
 
+            Instance = this;
+
             trackStore.AddExtension(@"mp3");
 
             sampleStore.AddExtension(@"wav");
@@ -102,11 +112,11 @@ namespace osu.Framework.Audio
             Thread = new AudioThread(Update, @"Audio");
             Thread.Start();
 
+            globalTrackManager = new Lazy<TrackManager>(() => GetTrackManager(trackStore));
+            globalSampleManager = new Lazy<SampleManager>(() => GetSampleManager(sampleStore));
+
             scheduler.Add(() =>
             {
-                globalTrackManager = GetTrackManager(trackStore);
-                globalSampleManager = GetSampleManager(sampleStore);
-
                 try
                 {
                     setAudioDevice();
@@ -136,9 +146,6 @@ namespace osu.Framework.Audio
             scheduler.Add(() => setAudioDevice(string.IsNullOrEmpty(newDevice) ? null : newDevice));
         }
 
-        private TrackManager globalTrackManager;
-        private SampleManager globalSampleManager;
-
         /// <summary>
         /// Returns a list of the names of recognized audio devices.
         /// </summary>
@@ -156,7 +163,7 @@ namespace osu.Framework.Audio
         /// <param name="store">The <see cref="T:ResourceStore"/> of which to retrieve the <see cref="TrackManager"/>.</param>
         public TrackManager GetTrackManager(ResourceStore<byte[]> store = null)
         {
-            if (store == null) return globalTrackManager;
+            if (store == null) return globalTrackManager.Value;
 
             TrackManager tm = new TrackManager(store);
             AddItem(tm);
@@ -173,7 +180,7 @@ namespace osu.Framework.Audio
         /// <param name="store">The <see cref="T:ResourceStore"/> of which to retrieve the <see cref="SampleManager"/>.</param>
         public SampleManager GetSampleManager(ResourceStore<byte[]> store = null)
         {
-            if (store == null) return globalSampleManager;
+            if (store == null) return globalSampleManager.Value;
 
             SampleManager sm = new SampleManager(store);
             AddItem(sm);

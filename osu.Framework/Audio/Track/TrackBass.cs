@@ -9,6 +9,7 @@ using ManagedBass.Fx;
 using OpenTK;
 using osu.Framework.IO;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace osu.Framework.Audio.Track
 {
@@ -42,7 +43,7 @@ namespace osu.Framework.Audio.Track
 
         public TrackBass(Stream data, bool quick = false)
         {
-            PendingActions.Enqueue(() =>
+            EnqueueAction(() =>
             {
                 Preview = quick;
 
@@ -144,8 +145,12 @@ namespace osu.Framework.Audio.Track
         public override void Stop()
         {
             base.Stop();
+            StopAsync().Wait();
+        }
 
-            PendingActions.Enqueue(() =>
+        public async Task StopAsync()
+        {
+            await EnqueueAction(() =>
             {
                 if (Bass.ChannelIsActive(activeStream) == PlaybackState.Playing)
                     Bass.ChannelPause(activeStream);
@@ -165,7 +170,13 @@ namespace osu.Framework.Audio.Track
         public override void Start()
         {
             base.Start();
-            PendingActions.Enqueue(() =>
+
+            StartAsync().Wait();
+        }
+
+        public async Task StartAsync()
+        {
+            await EnqueueAction(() =>
             {
                 if (Bass.ChannelPlay(activeStream))
                     isPlayed = true;
@@ -174,22 +185,17 @@ namespace osu.Framework.Audio.Track
             });
         }
 
-        private Action seekAction;
+        public override bool Seek(double seek) => SeekAsync(seek).Result;
 
-        public override bool Seek(double seek)
+        public async Task<bool> SeekAsync(double seek)
         {
             // At this point the track may not yet be loaded which is indicated by a 0 length.
             // In that case we still want to return true, hence the conservative length.
             double conservativeLength = Length == 0 ? double.MaxValue : Length;
             double conservativeClamped = MathHelper.Clamp(seek, 0, conservativeLength);
 
-            Action action = null;
-
-            action = () =>
+            await EnqueueAction(() =>
             {
-                // we only want to run the most fresh seek event, else we may fall behind (seeks can be relatively expensive).
-                if (action != seekAction) return;
-
                 double clamped = MathHelper.Clamp(seek, 0, Length);
 
                 if (clamped != CurrentTime)
@@ -197,10 +203,7 @@ namespace osu.Framework.Audio.Track
                     long pos = Bass.ChannelSeconds2Bytes(activeStream, clamped / 1000d);
                     Bass.ChannelSetPosition(activeStream, pos);
                 }
-            };
-
-            seekAction = action;
-            PendingActions.Enqueue(action);
+            });
 
             return conservativeClamped == seek;
         }
@@ -232,8 +235,6 @@ namespace osu.Framework.Audio.Track
         private volatile int bitrate;
 
         public override int? Bitrate => bitrate;
-
-        public override bool HasCompleted => base.HasCompleted || IsLoaded && !IsRunning && CurrentTime >= Length;
 
         public double PitchAdjust
         {

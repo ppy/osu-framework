@@ -62,14 +62,6 @@ namespace osu.Framework.Audio.Track
             }
         }
 
-        public override bool HasCompleted
-        {
-            get
-            {
-                lock (clock) return base.HasCompleted || IsLoaded && !IsRunning && CurrentTime >= Length;
-            }
-        }
-
         public override double CurrentTime
         {
             get
@@ -87,6 +79,14 @@ namespace osu.Framework.Audio.Track
                 if (CurrentTime >= Length)
                     Stop();
             }
+        }
+
+        internal override void OnStateChanged()
+        {
+            base.OnStateChanged();
+
+            lock (clock)
+                clock.Rate = Tempo;
         }
     }
 }

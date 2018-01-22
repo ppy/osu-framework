@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Threading.Tasks;
 using osu.Framework.Development;
 using osu.Framework.Statistics;
 
@@ -13,7 +14,21 @@ namespace osu.Framework.Audio
         /// <summary>
         /// Audio operations will be run on a separate dedicated thread, so we need to schedule any audio API calls using this queue.
         /// </summary>
-        protected ConcurrentQueue<Action> PendingActions = new ConcurrentQueue<Action>();
+        protected ConcurrentQueue<Task> PendingActions = new ConcurrentQueue<Task>();
+
+        protected Task EnqueueAction(Action action)
+        {
+            var task = new Task(action);
+
+            if (ThreadSafety.IsAudioThread)
+            {
+                task.RunSynchronously();
+                return task;
+            }
+
+            PendingActions.Enqueue(task);
+            return task;
+        }
 
         ~AudioComponent()
         {
@@ -41,15 +56,23 @@ namespace osu.Framework.Audio
             FrameStatistics.Add(StatisticsCounterType.TasksRun, PendingActions.Count);
             FrameStatistics.Increment(StatisticsCounterType.Components);
 
-            Action action;
-            while (!IsDisposed && PendingActions.TryDequeue(out action))
-                action();
+            Task task;
+            while (!IsDisposed && PendingActions.TryDequeue(out task))
+                task.RunSynchronously();
 
             if (!IsDisposed)
                 UpdateState();
         }
 
-        public virtual bool HasCompleted => IsDisposed;
+        /// <summary>
+        /// This component has completed playback and is now in a stopped state.
+        /// </summary>
+        public virtual bool HasCompleted => !IsAlive;
+
+        /// <summary>
+        /// This component has completed all processing and is ready to be removed from its parent.
+        /// </summary>
+        public virtual bool IsAlive => !IsDisposed;
 
         public virtual bool IsLoaded => true;
 
@@ -65,7 +88,7 @@ namespace osu.Framework.Audio
         // This code added to correctly implement the disposable pattern.
         public void Dispose()
         {
-            PendingActions.Enqueue(() => Dispose(true));
+            EnqueueAction(() => Dispose(true));
         }
 
         #endregion

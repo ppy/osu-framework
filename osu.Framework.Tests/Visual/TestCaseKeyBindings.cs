@@ -55,7 +55,7 @@ namespace osu.Framework.Tests.Visual
             RightMouse
         }
 
-        private class TestInputManager : KeyBindingInputManager<TestAction>
+        private class TestInputManager : KeyBindingContainer<TestAction>
         {
             public TestInputManager(SimultaneousBindingMode concurrencyMode = SimultaneousBindingMode.None) : base(concurrencyMode)
             {
@@ -121,7 +121,6 @@ namespace osu.Framework.Tests.Visual
                 {
                     alphaTarget += 0.2f;
                     Background.FadeTo(alphaTarget, 100, Easing.OutQuint);
-                    return true;
                 }
 
                 return false;
@@ -133,7 +132,6 @@ namespace osu.Framework.Tests.Visual
                 {
                     alphaTarget -= 0.2f;
                     Background.FadeTo(alphaTarget, 100, Easing.OutQuint);
-                    return true;
                 }
 
                 return false;

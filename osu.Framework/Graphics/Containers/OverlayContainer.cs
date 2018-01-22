@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System.Collections.Generic;
 using osu.Framework.Input;
 
 namespace osu.Framework.Graphics.Containers
@@ -30,9 +31,17 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnWheel(InputState state) => BlockPassThroughMouse;
 
-        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args) => BlockPassThroughKeyboard;
+        internal override bool BuildKeyboardInputQueue(List<Drawable> queue)
+        {
+            if (CanReceiveInput && BlockPassThroughKeyboard)
+            {
+                // when blocking keyboard input behind us, we still want to make sure the global handlers receive events
+                // but we don't want other drawables behind us handling them.
+                queue.RemoveAll(d => !(d is IHandleGlobalInput));
+            }
 
-        protected override bool OnKeyUp(InputState state, KeyUpEventArgs args) => BlockPassThroughKeyboard;
+            return base.BuildKeyboardInputQueue(queue);
+        }
     }
 
     public enum Visibility

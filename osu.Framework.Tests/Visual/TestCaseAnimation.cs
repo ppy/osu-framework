@@ -16,7 +16,7 @@ namespace osu.Framework.Tests.Visual
 {
     [TestFixture]
     [System.ComponentModel.Description("frame-based animations")]
-    internal class TestCaseAnimation : TestCase
+    public class TestCaseAnimation : TestCase
     {
         public TestCaseAnimation()
         {

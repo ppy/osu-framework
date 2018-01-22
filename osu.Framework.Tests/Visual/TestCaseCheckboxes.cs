@@ -11,7 +11,7 @@ using OpenTK;
 namespace osu.Framework.Tests.Visual
 {
     [TestFixture]
-    internal class TestCaseCheckboxes : TestCase
+    public class TestCaseCheckboxes : TestCase
     {
         public TestCaseCheckboxes()
         {

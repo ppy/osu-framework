@@ -12,7 +12,7 @@ namespace osu.Framework.Tests.Visual
 {
     [TestFixture]
     [System.ComponentModel.Description("ensure validity of drawables when receiving certain values")]
-    internal class TestCasePropertyBoundaries : TestCase
+    public class TestCasePropertyBoundaries : TestCase
     {
         [BackgroundDependencyLoader]
         private void load()
