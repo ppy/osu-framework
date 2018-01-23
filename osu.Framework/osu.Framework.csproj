@@ -156,7 +156,13 @@
     <Compile Include="Configuration\FrameSync.cs" />
     <Compile Include="Configuration\FrameworkConfigManager.cs" />
     <Compile Include="Configuration\FrameworkDebugConfig.cs" />
+    <Compile Include="Configuration\IConfigManager.cs" />
     <Compile Include="Configuration\NonNullableBindable.cs" />
+    <Compile Include="Configuration\Tracking\ITrackableConfigManager.cs" />
+    <Compile Include="Configuration\Tracking\ITrackedSetting.cs" />
+    <Compile Include="Configuration\Tracking\SettingDescription.cs" />
+    <Compile Include="Configuration\Tracking\TrackedSetting.cs" />
+    <Compile Include="Configuration\Tracking\TrackedSettings.cs" />
     <Compile Include="Configuration\WindowMode.cs" />
     <Compile Include="Development\DebugUtils.cs" />
     <Compile Include="Extensions\Color4Extensions\Color4Extensions.cs" />
