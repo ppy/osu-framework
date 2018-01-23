@@ -127,6 +127,7 @@ namespace osu.Framework.Allocation
         /// <summary>
         /// Caches an instance of a type as its most derived type. This instance will be returned each time you <see cref="Get(Type)"/>.
         /// </summary>
+        /// <param name="instance">The instance to cache.</param>
         public void Cache<T>(T instance)
             where T : class
         {
@@ -136,8 +137,9 @@ namespace osu.Framework.Allocation
         }
 
         /// <summary>
-        /// Caches an instance of a type as its most derived type. This instance will be returned each time you <see cref="Get(Type)"/>.
+        /// Caches an instance of a type as a type of <typeparamref name="T"/>. This instance will be returned each time you <see cref="Get(Type)"/>.
         /// </summary>
+        /// <param name="instance">The instance to cache. Must be or derive from <typeparamref name="T"/>.</param>
         public void CacheAs<T>(object instance)
             where T : class
         {
