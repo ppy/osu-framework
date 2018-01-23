@@ -86,8 +86,6 @@ namespace osu.Framework.Audio.Track
 
         public virtual void Stop()
         {
-            if (IsDisposed)
-                throw new ObjectDisposedException(ToString(), "Can not stop disposed tracks.");
         }
 
         public abstract bool IsRunning { get; }
