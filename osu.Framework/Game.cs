@@ -115,12 +115,8 @@ namespace osu.Framework
             samples.AddStore(new NamespacedResourceStore<byte[]>(Resources, @"Samples"));
             samples.AddStore(new OnlineStore());
 
-            Audio = dependencies.Cache(new AudioManager(
-                tracks,
-                samples)
-            {
-                EventScheduler = Scheduler
-            });
+            Audio = new AudioManager(tracks, samples) { EventScheduler = Scheduler };
+            dependencies.Cache(Audio);
 
             Host.RegisterThread(Audio.Thread);
 
