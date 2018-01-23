@@ -1,16 +1,16 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Platform;
-using osu.Framework.Screens;
 
 namespace osu.Framework.Testing
 {
-    public class TestBrowserTestRunner : Screen
+    public class TestBrowserTestRunner : CompositeDrawable
     {
         private const double time_between_tests = 200;
 
@@ -46,7 +46,7 @@ namespace osu.Framework.Testing
             host.MaximumUpdateHz = int.MaxValue;
             host.MaximumInactiveHz = int.MaxValue;
 
-            Push(browser);
+            AddInternal(browser);
 
             Console.WriteLine($@"{(int)Time.Current}: Running {browser.TestTypes.Count} visual test cases...");
 

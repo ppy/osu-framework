@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -62,9 +62,7 @@ namespace osu.Framework.Logging
 
             set
             {
-                if (value == null) throw new ArgumentNullException(nameof(value));
-
-                storage = value;
+                storage = value ?? throw new ArgumentNullException(nameof(value));
                 lock (flush_sync_lock)
                     backgroundScheduler.Enabled = true;
             }
@@ -125,12 +123,12 @@ namespace osu.Framework.Logging
 
         private static void error(Exception e, string description, LoggingTarget? target, string name, bool recursive)
         {
-            log($@"ERROR: {description}", target, name, LogLevel.Error);
-            log(e.ToString(), target, name, LogLevel.Error);
+            log($@"{description}", target, name, LogLevel.Error);
+            log(e.ToString(), target, name, LogLevel.Important);
 
             if (recursive)
                 for (Exception inner = e.InnerException; inner != null; inner = inner.InnerException)
-                    log(inner.ToString(), target, name, LogLevel.Error);
+                    log(inner.ToString(), target, name, LogLevel.Important);
         }
 
         /// <summary>
@@ -394,7 +392,7 @@ namespace osu.Framework.Logging
 
         private static readonly List<string> filters = new List<string>();
         private static readonly Dictionary<string, Logger> static_loggers = new Dictionary<string, Logger>();
-        private static ThreadedScheduler backgroundScheduler = new ThreadedScheduler(@"Logger") { Enabled = false };
+        private static ThreadedScheduler backgroundScheduler = new ThreadedScheduler(@"Logger", startEnabled: false);
 
         /// <summary>
         /// Pause execution until all logger writes have completed and file handles have been closed.

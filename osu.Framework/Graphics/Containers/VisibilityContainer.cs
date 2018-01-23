@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -67,7 +67,8 @@ namespace osu.Framework.Graphics.Containers
 
         public override void Show() => State = Visibility.Visible;
 
-        public override bool HandleInput => State == Visibility.Visible;
+        public override bool HandleKeyboardInput => State == Visibility.Visible;
+        public override bool HandleMouseInput => State == Visibility.Visible;
 
         public event Action<Visibility> StateChanged;
 
@@ -76,5 +77,11 @@ namespace osu.Framework.Graphics.Containers
         protected abstract void PopOut();
 
         public void ToggleVisibility() => State = State == Visibility.Visible ? Visibility.Hidden : Visibility.Visible;
+    }
+
+    public enum Visibility
+    {
+        Hidden,
+        Visible
     }
 }

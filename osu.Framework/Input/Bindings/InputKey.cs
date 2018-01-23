@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 namespace osu.Framework.Input.Bindings
@@ -27,7 +27,7 @@ namespace osu.Framework.Input.Bindings
         /// <summary>
         /// The win key.
         /// </summary>
-        Win = 7,
+        Super = 7,
         /// <summary>
         /// The menu key.
         /// </summary>

@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -82,7 +82,7 @@ namespace osu.Framework.Input.Bindings
                     return "Ctrl";
                 case InputKey.Alt:
                     return "Alt";
-                case InputKey.Win:
+                case InputKey.Super:
                     return "Win";
                 case InputKey.Escape:
                     return "Esc";
@@ -195,7 +195,7 @@ namespace osu.Framework.Input.Bindings
                 case Key.RControl:
                     return InputKey.Control;
                 case Key.RWin:
-                    return InputKey.Win;
+                    return InputKey.Super;
             }
 
             return (InputKey)key;

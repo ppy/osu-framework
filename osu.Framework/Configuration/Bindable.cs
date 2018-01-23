@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -51,12 +51,12 @@ namespace osu.Framework.Configuration
         /// <summary>
         /// An event which is raised when <see cref="Value"/> has changed (or manually via <see cref="TriggerValueChange"/>).
         /// </summary>
-        public event BindableValueChanged<T> ValueChanged;
+        public event Action<T> ValueChanged;
 
         /// <summary>
         /// An event which is raised when <see cref="Disabled"/>'s state has changed (or manually via <see cref="TriggerDisabledChange"/>).
         /// </summary>
-        public event BindableDisabledChanged DisabledChanged;
+        public event Action<bool> DisabledChanged;
 
         /// <summary>
         /// The current value of this bindable.
@@ -88,7 +88,7 @@ namespace osu.Framework.Configuration
 
         public static implicit operator T(Bindable<T> value) => value.Value;
 
-        private WeakList<Bindable<T>> bindings;
+        protected WeakList<Bindable<T>> Bindings;
 
         private WeakReference<Bindable<T>> weakReference => new WeakReference<Bindable<T>>(this);
 
@@ -109,10 +109,10 @@ namespace osu.Framework.Configuration
 
         protected void AddWeakReference(WeakReference<Bindable<T>> weakReference)
         {
-            if (bindings == null)
-                bindings = new WeakList<Bindable<T>>();
+            if (Bindings == null)
+                Bindings = new WeakList<Bindable<T>>();
 
-            bindings.Add(weakReference);
+            Bindings.Add(weakReference);
         }
 
         /// <summary>
@@ -134,7 +134,7 @@ namespace osu.Framework.Configuration
         /// Raise <see cref="ValueChanged"/> and <see cref="DisabledChanged"/> once, without any changes actually occurring.
         /// This does not propagate to any outward bound bindables.
         /// </summary>
-        public void TriggerChange()
+        public virtual void TriggerChange()
         {
             TriggerValueChange(false);
             TriggerDisabledChange(false);
@@ -143,24 +143,39 @@ namespace osu.Framework.Configuration
         protected void TriggerValueChange(bool propagateToBindings = true)
         {
             ValueChanged?.Invoke(value);
-            if (propagateToBindings) bindings?.ForEachAlive(b => b.Value = value);
+            if (propagateToBindings) Bindings?.ForEachAlive(b => b.Value = value);
         }
 
         protected void TriggerDisabledChange(bool propagateToBindings = true)
         {
             DisabledChanged?.Invoke(disabled);
-            if (propagateToBindings) bindings?.ForEachAlive(b => b.Disabled = disabled);
+            if (propagateToBindings) Bindings?.ForEachAlive(b => b.Disabled = disabled);
         }
 
         /// <summary>
-        /// Unbind any events bound to <see cref="ValueChanged"/> and <see cref="DisabledChanged"/>, along with
-        /// removing all bound <see cref="Bindable{T}"/>s via <see cref="GetBoundCopy"/> or <see cref="BindTo"/>.
+        /// Unbind any events bound to <see cref="ValueChanged"/> and <see cref="DisabledChanged"/>.
         /// </summary>
-        public void UnbindAll()
+        public void UnbindEvents()
         {
             ValueChanged = null;
             DisabledChanged = null;
-            bindings.Clear();
+        }
+
+        /// <summary>
+        /// Remove all bound <see cref="Bindable{T}"/>s via <see cref="GetBoundCopy"/> or <see cref="BindTo"/>.
+        /// </summary>
+        public void UnbindBindings()
+        {
+            Bindings?.Clear();
+        }
+
+        /// <summary>
+        /// Calls <see cref="UnbindEvents"/> and <see cref="UnbindBindings"/>
+        /// </summary>
+        public void UnbindAll()
+        {
+            UnbindEvents();
+            UnbindBindings();
         }
 
         public string Description { get; set; }
@@ -189,14 +204,10 @@ namespace osu.Framework.Configuration
         {
             var copy = (Bindable<T>)MemberwiseClone();
 
-            copy.bindings = new WeakList<Bindable<T>>();
+            copy.Bindings = new WeakList<Bindable<T>>();
             copy.BindTo(this);
 
             return copy;
         }
-
-        public delegate void BindableValueChanged<in TValue>(TValue newValue);
-
-        public delegate void BindableDisabledChanged(bool isDisabled);
     }
 }

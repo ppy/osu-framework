@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Collections.Generic;
@@ -73,15 +73,10 @@ namespace osu.Framework.Input.Bindings
         {
             localQueue.Clear();
 
-            var addedSelf = base.BuildKeyboardInputQueue(localQueue);
-
+            base.BuildKeyboardInputQueue(localQueue);
             queue.AddRange(localQueue);
 
-            if (addedSelf)
-                localQueue.Remove(this);
-
             localQueue.Reverse();
-
             return true;
         }
 
@@ -191,7 +186,7 @@ namespace osu.Framework.Input.Bindings
             // we either want multiple release events due to the simultaneous mode, or we only want one when we
             // - were pressed (as an action)
             // - are the last pressed binding with this action
-            if (simultaneousMode == SimultaneousBindingMode.All || pressedActions.Contains(released) && pressedBindings.All(b => !b.Action.Equals(released)))
+            if (simultaneousMode == SimultaneousBindingMode.All || pressedActions.Contains(released) && pressedBindings.All(b => !b.GetAction<T>().Equals(released)))
             {
                 handled = drawables.OfType<IKeyBindingHandler<T>>().FirstOrDefault(d => d.OnReleased(released));
                 pressedActions.Remove(released);

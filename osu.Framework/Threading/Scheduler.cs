@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -330,10 +330,12 @@ namespace osu.Framework.Threading
         /// <summary>
         /// Whether scheduled tasks should be run. Disabling temporarily pauses all execution.
         /// </summary>
-        public bool Enabled = true;
+        public bool Enabled;
 
-        public ThreadedScheduler(string threadName = null, int runInterval = 50)
+        public ThreadedScheduler(string threadName = null, int runInterval = 50, bool startEnabled = true)
         {
+            Enabled = startEnabled;
+
             workerThread = new Thread(() =>
             {
                 while (!isDisposed)

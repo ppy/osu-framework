@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Graphics.Containers;
@@ -87,13 +87,12 @@ namespace osu.Framework.Graphics.Cursor
             }
         }
 
-        protected TTarget FindTarget()
+        protected List<TTarget> FindTargets()
         {
             findTargetChildren();
 
-            // If we found any valid effect targets, pick the _last_ one as it
-            // represents the front-most drawn one.
-            TTarget result = targetChildren.LastOrDefault();
+            List<TTarget> result = new List<TTarget>(targetChildren);
+            result.Reverse();
 
             // Clean up
             childDrawables.Clear();

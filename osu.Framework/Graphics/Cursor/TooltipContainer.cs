@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using OpenTK;
@@ -15,9 +15,9 @@ using System.Linq;
 namespace osu.Framework.Graphics.Cursor
 {
     /// <summary>
-    /// Displays Tooltips for all its children that inherit from the <see cref="IHasTooltip"/> or <see cref="IHasCustomTooltip"/> interfaces. Keep in mind that only children with <see cref="Drawable.HandleInput"/> set to true will be checked for their tooltips.
+    /// Displays Tooltips for all its children that inherit from the <see cref="IHasTooltip"/> or <see cref="IHasCustomTooltip"/> interfaces. Keep in mind that only children with <see cref="Drawable.HandleMouseInput"/> set to true will be checked for their tooltips.
     /// </summary>
-    public class TooltipContainer : CursorEffectContainer<TooltipContainer, IHasTooltip>
+    public class TooltipContainer : CursorEffectContainer<TooltipContainer, IHasTooltip>, IHandleGlobalInput
     {
         private readonly CursorContainer cursorContainer;
         private readonly ITooltip defaultTooltip;
@@ -195,12 +195,7 @@ namespace osu.Framework.Graphics.Cursor
             float appearRadiusSq = AppearRadius * AppearRadius;
 
             if (relevantPositions.All(t => Vector2Extensions.DistanceSquared(t.Position, first) < appearRadiusSq))
-            {
-                // Only return the target if it has a valid tooltip
-                IHasTooltip target = FindTarget();
-                if (hasValidTooltip(target))
-                    return target;
-            }
+                return FindTargets().FirstOrDefault(t => t.TooltipText != null);
 
             return null;
         }
@@ -249,7 +244,7 @@ namespace osu.Framework.Graphics.Cursor
         /// <summary>
         /// The default tooltip. Simply displays its text on a gray background and performs no easing.
         /// </summary>
-        public class Tooltip : OverlayContainer, ITooltip
+        public class Tooltip : VisibilityContainer, ITooltip
         {
             private readonly SpriteText text;
 
@@ -264,7 +259,8 @@ namespace osu.Framework.Graphics.Cursor
                 }
             }
 
-            public override bool HandleInput => false;
+            public override bool HandleKeyboardInput => false;
+            public override bool HandleMouseInput => false;
 
             private const float text_size = 16;
 

@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Lists;
@@ -477,6 +477,8 @@ namespace osu.Framework.Graphics.Containers
             // for children, as they should never affect our present status.
             if (!IsPresent || !RequiresChildrenUpdate) return false;
 
+            UpdateAfterChildrenLife();
+
             // We iterate by index to gain performance
             // ReSharper disable once ForCanBeConvertedToForeach
             for (int i = 0; i < aliveInternalChildren.Count; ++i)
@@ -497,6 +499,15 @@ namespace osu.Framework.Graphics.Containers
             updateChildrenSizeDependencies();
             UpdateAfterAutoSize();
             return true;
+        }
+
+        /// <summary>
+        /// Invoked after <see cref="UpdateChildrenLife"/> and <see cref="Drawable.IsPresent"/> state checks have taken place,
+        /// but before <see cref="Drawable.UpdateSubTree"/> is invoked for all <see cref="InternalChildren"/>.
+        /// This occurs after <see cref="Drawable.Update"/> has been invoked on this <see cref="CompositeDrawable"/>
+        /// </summary>
+        protected virtual void UpdateAfterChildrenLife()
+        {
         }
 
         /// <summary>
@@ -829,7 +840,8 @@ namespace osu.Framework.Graphics.Containers
 
         // Required to pass through input to children by default.
         // TODO: Evaluate effects of this on performance and address.
-        public override bool HandleInput => true;
+        public override bool HandleKeyboardInput => true;
+        public override bool HandleMouseInput => true;
 
         public override bool Contains(Vector2 screenSpacePos)
         {
@@ -856,7 +868,7 @@ namespace osu.Framework.Graphics.Containers
 
         internal override bool BuildMouseInputQueue(Vector2 screenSpaceMousePos, List<Drawable> queue)
         {
-            if (!base.BuildMouseInputQueue(screenSpaceMousePos, queue) && (!CanReceiveInput || Masking))
+            if (!base.BuildMouseInputQueue(screenSpaceMousePos, queue) && (!CanReceiveMouseInput || Masking))
                 return false;
 
             // We iterate by index to gain performance
@@ -1293,16 +1305,10 @@ namespace osu.Framework.Graphics.Containers
 
             Vector2 b = computeAutoSize() + Padding.Total;
 
-            if (AutoSizeDuration > 0)
-                autoSizeResizeTo(new Vector2(
-                    (AutoSizeAxes & Axes.X) > 0 ? b.X : base.Width,
-                    (AutoSizeAxes & Axes.Y) > 0 ? b.Y : base.Height
-                ), AutoSizeDuration, AutoSizeEasing);
-            else
-            {
-                if ((AutoSizeAxes & Axes.X) > 0) base.Width = b.X;
-                if ((AutoSizeAxes & Axes.Y) > 0) base.Height = b.Y;
-            }
+            autoSizeResizeTo(new Vector2(
+                (AutoSizeAxes & Axes.X) > 0 ? b.X : base.Width,
+                (AutoSizeAxes & Axes.Y) > 0 ? b.Y : base.Height
+            ), AutoSizeDuration, AutoSizeEasing);
 
             //note that this is called before autoSize becomes valid. may be something to consider down the line.
             //might work better to add an OnRefresh event in Cached<> and invoke there.

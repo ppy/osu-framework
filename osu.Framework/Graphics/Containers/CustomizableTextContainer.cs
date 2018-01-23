@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Graphics.Sprites;
@@ -116,7 +116,7 @@ namespace osu.Framework.Graphics.Containers
                         {
                             if (placeholderIndex >= placeholders.Count)
                                 throw new ArgumentException($"This text has {placeholders.Count} placeholders. But placeholder with index {placeholderIndex} was used.");
-                            else if (placeholderIndex < 0)
+                            if (placeholderIndex < 0)
                                 throw new ArgumentException($"Negative placeholder indices are invalid. Index {placeholderIndex} was used.");
 
                             placeholderDrawable = placeholders[placeholderIndex];

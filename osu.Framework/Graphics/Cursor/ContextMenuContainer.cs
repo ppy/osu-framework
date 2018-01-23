@@ -1,6 +1,7 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System.Linq;
 using OpenTK;
 using OpenTK.Input;
 using osu.Framework.Graphics.Containers;
@@ -63,7 +64,7 @@ namespace osu.Framework.Graphics.Cursor
             switch (args.Button)
             {
                 case MouseButton.Right:
-                    menuTarget = FindTarget();
+                    menuTarget = FindTargets().FirstOrDefault();
 
                     if (menuTarget == null)
                     {

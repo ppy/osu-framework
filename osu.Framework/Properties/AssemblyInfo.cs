@@ -1,9 +1,10 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using osu.Framework.Testing;
 
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
@@ -23,6 +24,7 @@ using System.Runtime.InteropServices;
 // behavior "in the wild".
 
 [assembly: InternalsVisibleTo("osu.Framework.Tests")]
+[assembly: InternalsVisibleTo(DynamicClassCompiler.DYNAMIC_ASSEMBLY_NAME)]
 
 // Setting ComVisible to false makes the types in this assembly not visible
 // to COM components.  If you need to access a type in this assembly from

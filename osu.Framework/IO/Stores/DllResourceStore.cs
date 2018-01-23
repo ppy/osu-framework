@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.IO;
@@ -32,7 +32,11 @@ namespace osu.Framework.IO.Stores
 
         public Stream GetStream(string name)
         {
-            return assembly?.GetManifestResourceStream($@"{space}.{name.Replace('/', '.')}");
+            var split = name.Split('/');
+            for (int i = 0; i < split.Length - 1; i++)
+                split[i] = split[i].Replace('-', '_');
+
+            return assembly?.GetManifestResourceStream($@"{space}.{string.Join(".", split)}");
         }
     }
 }
