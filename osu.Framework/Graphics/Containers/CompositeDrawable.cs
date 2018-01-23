@@ -1352,7 +1352,7 @@ namespace osu.Framework.Graphics.Containers
 
         private class AutoSizeTransform : TransformCustom<Vector2, CompositeDrawable>
         {
-            internal override bool Rewindable => false;
+            internal override bool Rewindable => EndTime > StartTime;
 
             public AutoSizeTransform()
                 : base(nameof(baseSize))
