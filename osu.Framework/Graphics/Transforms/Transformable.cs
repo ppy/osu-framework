@@ -201,10 +201,12 @@ namespace osu.Framework.Graphics.Transforms
         /// </summary>
         /// <param name="propagateChildren">Whether we also clear the <see cref="Transform"/>s of children.</param>
         /// <param name="targetMember">
-        /// An optional <see cref="Transform.TargetMember"/> name of <see cref="Transform"/>s to clear.
-        /// Null for clearing all <see cref="Transform"/>s.
+        ///     An optional <see cref="Transform.TargetMember"/> name of <see cref="Transform"/>s to clear.
+        ///     Null for clearing all <see cref="Transform"/>s.
         /// </param>
-        public virtual void ClearTransforms(bool propagateChildren = false, string targetMember = null) => ClearTransformsAfter(double.NegativeInfinity, propagateChildren, targetMember);
+        /// <param name="excludeTypes">Any types of <see cref="Transform"/>s to exclude from the clearing operation.</param>
+        public virtual void ClearTransforms(bool propagateChildren = false, string targetMember = null, IEnumerable<Type> excludeTypes = null)
+            => ClearTransformsAfter(double.NegativeInfinity, propagateChildren, targetMember, excludeTypes);
 
         /// <summary>
         /// Removes <see cref="Transform"/>s that start after <paramref name="time"/>.
@@ -212,25 +214,28 @@ namespace osu.Framework.Graphics.Transforms
         /// <param name="time">The time to clear <see cref="Transform"/>s after.</param>
         /// <param name="propagateChildren">Whether to also clear such <see cref="Transform"/>s of children.</param>
         /// <param name="targetMember">
-        /// An optional <see cref="Transform.TargetMember"/> name of <see cref="Transform"/>s to clear.
-        /// Null for clearing all <see cref="Transform"/>s.
+        ///     An optional <see cref="Transform.TargetMember"/> name of <see cref="Transform"/>s to clear.
+        ///     Null for clearing all <see cref="Transform"/>s.
         /// </param>
-        public virtual void ClearTransformsAfter(double time, bool propagateChildren = false, string targetMember = null)
+        /// <param name="excludeTypes">Any types of <see cref="Transform"/>s to exclude from the clearing operation.</param>
+        public virtual void ClearTransformsAfter(double time, bool propagateChildren = false, string targetMember = null, IEnumerable<Type> excludeTypes = null)
         {
             if (transformsLazy == null)
                 return;
 
-            Transform[] toAbort;
-            if (targetMember == null)
+            bool matchingTransform(Transform transform)
             {
-                toAbort = transformsLazy.Where(t => t.StartTime >= time).ToArray();
-                transformsLazy.RemoveAll(t => t.StartTime >= time);
+                if (transform.StartTime < time)
+                    return false;
+
+                if (excludeTypes?.Contains(transform.GetType()) ?? false)
+                    return false;
+
+                return targetMember == null || transform.TargetMember == targetMember;
             }
-            else
-            {
-                toAbort = transformsLazy.Where(t => t.StartTime >= time && t.TargetMember == targetMember).ToArray();
-                transformsLazy.RemoveAll(t => t.StartTime >= time && t.TargetMember == targetMember);
-            }
+
+            var toAbort = transformsLazy.Where(matchingTransform).ToArray();
+            transformsLazy.RemoveAll(matchingTransform);
 
             foreach (var t in toAbort)
                 t.OnAbort?.Invoke();
@@ -263,16 +268,17 @@ namespace osu.Framework.Graphics.Transforms
             if (transformsLazy == null)
                 return;
 
-            Func<Transform, bool> toFlushPredicate;
-            if (targetMember == null)
-                toFlushPredicate = t => !t.IsLooping;
-            else
-                toFlushPredicate = t => !t.IsLooping && t.TargetMember == targetMember;
+            bool matchingTransform(Transform transform)
+            {
+                if (transform.IsLooping)
+                    return false;
+                return targetMember == null || transform.TargetMember == targetMember;
+            }
 
             // Flush is undefined for endlessly looping transforms
-            var toFlush = transformsLazy.Where(toFlushPredicate).ToArray();
+            var toFlush = transformsLazy.Where(matchingTransform).ToArray();
 
-            transformsLazy.RemoveAll(t => toFlushPredicate(t));
+            transformsLazy.RemoveAll(matchingTransform);
 
             foreach (Transform t in toFlush)
             {

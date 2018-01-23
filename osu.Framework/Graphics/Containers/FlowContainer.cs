@@ -6,6 +6,7 @@ using osu.Framework.Caching;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Graphics.Transforms;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -92,6 +93,15 @@ namespace osu.Framework.Graphics.Containers
             base.InvalidateFromChild(invalidation);
         }
 
+        private static readonly Type[] local_transform_excludes = { typeof(FlowTransform) };
+
+        public override void ClearTransformsAfter(double time, bool propagateChildren = false, string targetMember = null, IEnumerable<Type> excludeTypes = null)
+        {
+            var localExcludes = excludeTypes != null ? local_transform_excludes.Concat(excludeTypes) : local_transform_excludes;
+
+            base.ClearTransformsAfter(time, propagateChildren, targetMember, localExcludes);
+        }
+
         protected virtual IEnumerable<Drawable> FlowingChildren => AliveInternalChildren.Where(d => d.IsPresent);
 
         protected abstract IEnumerable<Vector2> ComputeLayoutPositions();
@@ -128,7 +138,7 @@ namespace osu.Framework.Graphics.Containers
 
                 var finalPos = positions[i];
                 if (d.Position != finalPos)
-                    d.MoveTo(finalPos, LayoutDuration, LayoutEasing);
+                    d.TransformTo(d.PopulateTransform(new FlowTransform(), finalPos, LayoutDuration, LayoutEasing));
 
                 ++i;
             }
@@ -146,6 +156,14 @@ namespace osu.Framework.Graphics.Containers
             {
                 performLayout();
                 layout.Validate();
+            }
+        }
+
+        private class FlowTransform : TransformCustom<Vector2, Drawable>
+        {
+            public FlowTransform()
+                : base(nameof(Position))
+            {
             }
         }
     }

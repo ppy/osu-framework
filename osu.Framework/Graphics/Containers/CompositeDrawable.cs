@@ -5,6 +5,7 @@ using osu.Framework.Lists;
 using System.Collections.Generic;
 using System;
 using System.Diagnostics;
+using System.Linq;
 using OpenTK;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.OpenGL;
@@ -757,15 +758,19 @@ namespace osu.Framework.Graphics.Containers
                 c.ApplyTransformsAt(time, true);
         }
 
-        public override void ClearTransformsAfter(double time, bool propagateChildren = false, string targetMember = null)
+        private static readonly Type[] local_transform_excludes = { typeof(AutoSizeTransform) };
+
+        public override void ClearTransformsAfter(double time, bool propagateChildren = false, string targetMember = null, IEnumerable<Type> excludeTypes = null)
         {
-            base.ClearTransformsAfter(time, propagateChildren, targetMember);
+            var localExcludes = excludeTypes != null ? local_transform_excludes.Concat(excludeTypes) : local_transform_excludes;
+
+            base.ClearTransformsAfter(time, propagateChildren, targetMember, localExcludes);
 
             if (!propagateChildren)
                 return;
 
             foreach (var c in internalChildren)
-                c.ClearTransformsAfter(time, true, targetMember);
+                c.ClearTransformsAfter(time, true, targetMember, excludeTypes);
         }
 
         internal override void AddDelay(double duration, bool propagateChildren = false)
@@ -1334,7 +1339,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         private void autoSizeResizeTo(Vector2 newSize, double duration = 0, Easing easing = Easing.None) =>
-            this.TransformTo(nameof(baseSize), newSize, duration, easing);
+            this.TransformTo(this.PopulateTransform(new AutoSizeTransform(), newSize, duration, easing));
 
         /// <summary>
         /// A helper property for <see cref="autoSizeResizeTo(Vector2, double, Easing)"/> to change the size of <see cref="CompositeDrawable"/>s with <see cref="AutoSizeAxes"/>.
@@ -1347,6 +1352,14 @@ namespace osu.Framework.Graphics.Containers
             {
                 base.Width = value.X;
                 base.Height = value.Y;
+            }
+        }
+
+        private class AutoSizeTransform : TransformCustom<Vector2, CompositeDrawable>
+        {
+            public AutoSizeTransform()
+                : base(nameof(baseSize))
+            {
             }
         }
 
