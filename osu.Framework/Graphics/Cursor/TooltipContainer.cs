@@ -15,7 +15,7 @@ using System.Linq;
 namespace osu.Framework.Graphics.Cursor
 {
     /// <summary>
-    /// Displays Tooltips for all its children that inherit from the <see cref="IHasTooltip"/> or <see cref="IHasCustomTooltip"/> interfaces. Keep in mind that only children with <see cref="Drawable.HandleInput"/> set to true will be checked for their tooltips.
+    /// Displays Tooltips for all its children that inherit from the <see cref="IHasTooltip"/> or <see cref="IHasCustomTooltip"/> interfaces. Keep in mind that only children with <see cref="Drawable.HandleMouseInput"/> set to true will be checked for their tooltips.
     /// </summary>
     public class TooltipContainer : CursorEffectContainer<TooltipContainer, IHasTooltip>, IHandleGlobalInput
     {
@@ -244,7 +244,7 @@ namespace osu.Framework.Graphics.Cursor
         /// <summary>
         /// The default tooltip. Simply displays its text on a gray background and performs no easing.
         /// </summary>
-        public class Tooltip : OverlayContainer, ITooltip
+        public class Tooltip : VisibilityContainer, ITooltip
         {
             private readonly SpriteText text;
 
@@ -259,7 +259,8 @@ namespace osu.Framework.Graphics.Cursor
                 }
             }
 
-            public override bool HandleInput => false;
+            public override bool HandleKeyboardInput => false;
+            public override bool HandleMouseInput => false;
 
             private const float text_size = 16;
 

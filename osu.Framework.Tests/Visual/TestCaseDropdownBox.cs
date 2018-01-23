@@ -3,7 +3,6 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
@@ -13,7 +12,6 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Tests.Visual
 {
-    [TestFixture]
     public class TestCaseDropdownBox : TestCase
     {
         private const int items_to_add = 10;

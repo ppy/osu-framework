@@ -15,7 +15,7 @@ using System;
 
 namespace osu.Framework.Tests.Visual
 {
-    internal class TestCaseWaveform : FrameworkTestCase
+    public class TestCaseWaveform : FrameworkTestCase
     {
         private readonly List<WaveformGraph> waveforms = new List<WaveformGraph>();
 
