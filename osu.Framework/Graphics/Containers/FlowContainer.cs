@@ -6,6 +6,7 @@ using osu.Framework.Caching;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Graphics.Transforms;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -128,7 +129,7 @@ namespace osu.Framework.Graphics.Containers
 
                 var finalPos = positions[i];
                 if (d.Position != finalPos)
-                    d.MoveTo(finalPos, LayoutDuration, LayoutEasing);
+                    d.TransformTo(d.PopulateTransform(new FlowTransform(), finalPos, LayoutDuration, LayoutEasing));
 
                 ++i;
             }
@@ -146,6 +147,16 @@ namespace osu.Framework.Graphics.Containers
             {
                 performLayout();
                 layout.Validate();
+            }
+        }
+
+        private class FlowTransform : TransformCustom<Vector2, Drawable>
+        {
+            internal override bool Rewindable => EndTime > StartTime;
+
+            public FlowTransform()
+                : base(nameof(Position))
+            {
             }
         }
     }
