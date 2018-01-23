@@ -8,6 +8,7 @@ using osu.Framework.IO.Stores;
 using System;
 using System.Threading;
 using osu.Framework.Graphics.Primitives;
+using OpenTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Textures
 {
@@ -15,6 +16,7 @@ namespace osu.Framework.Graphics.Textures
     {
         private readonly ConcurrentDictionary<string, Lazy<TextureGL>> textureCache = new ConcurrentDictionary<string, Lazy<TextureGL>>();
 
+        private readonly All filteringMode;
         private readonly TextureAtlas atlas;
 
         /// <summary>
@@ -23,14 +25,15 @@ namespace osu.Framework.Graphics.Textures
         /// </summary>
         public float ScaleAdjust = 2;
 
-        public TextureStore(IResourceStore<RawTexture> store = null, bool useAtlas = true)
+        public TextureStore(IResourceStore<RawTexture> store = null, bool useAtlas = true, All filteringMode = All.Linear)
             : base(store)
         {
+            this.filteringMode = filteringMode;
             AddExtension(@"png");
             AddExtension(@"jpg");
 
             if (useAtlas)
-                atlas = new TextureAtlas(GLWrapper.MaxTextureSize, GLWrapper.MaxTextureSize);
+                atlas = new TextureAtlas(GLWrapper.MaxTextureSize, GLWrapper.MaxTextureSize, filteringMode: filteringMode);
         }
 
         private Texture getTexture(string name)
@@ -38,7 +41,7 @@ namespace osu.Framework.Graphics.Textures
             RawTexture raw = base.Get($@"{name}");
             if (raw == null) return null;
 
-            Texture tex = atlas != null ? atlas.Add(raw.Width, raw.Height) : new Texture(raw.Width, raw.Height);
+            Texture tex = atlas != null ? atlas.Add(raw.Width, raw.Height) : new Texture(raw.Width, raw.Height, filteringMode: filteringMode);
             tex.SetData(new TextureUpload(raw.Pixels)
             {
                 Bounds = new RectangleI(0, 0, raw.Width, raw.Height),
