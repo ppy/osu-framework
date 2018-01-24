@@ -32,7 +32,11 @@ namespace osu.Framework.IO.Stores
 
         public Stream GetStream(string name)
         {
-            return assembly?.GetManifestResourceStream($@"{space}.{name.Replace('/', '.')}");
+            var split = name.Split('/');
+            for (int i = 0; i < split.Length - 1; i++)
+                split[i] = split[i].Replace('-', '_');
+
+            return assembly?.GetManifestResourceStream($@"{space}.{string.Join(".", split)}");
         }
     }
 }
