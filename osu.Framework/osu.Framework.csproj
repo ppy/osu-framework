@@ -157,6 +157,7 @@
     <Compile Include="Configuration\FrameworkConfigManager.cs" />
     <Compile Include="Configuration\FrameworkDebugConfig.cs" />
     <Compile Include="Configuration\IConfigManager.cs" />
+    <Compile Include="Configuration\IniConfigManager.cs" />
     <Compile Include="Configuration\NonNullableBindable.cs" />
     <Compile Include="Configuration\Tracking\ITrackableConfigManager.cs" />
     <Compile Include="Configuration\Tracking\ITrackedSetting.cs" />
