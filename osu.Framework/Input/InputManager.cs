@@ -1,18 +1,18 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using OpenTK;
-using OpenTK.Input;
-using osu.Framework.Allocation;
-using osu.Framework.Graphics;
-using osu.Framework.Graphics.Containers;
-using osu.Framework.Input.Handlers;
-using osu.Framework.Platform;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using osu.Framework.Allocation;
+using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
+using osu.Framework.Input.Handlers;
 using osu.Framework.Logging;
+using osu.Framework.Platform;
+using OpenTK;
+using OpenTK.Input;
 
 namespace osu.Framework.Input
 {
@@ -220,7 +220,8 @@ namespace osu.Framework.Input
             {
                 foreach (var d in positionalInputQueue)
                     if (d is IRequireHighFrequencyMousePosition)
-                        if (d.TriggerOnMouseMove(CurrentState)) break;
+                        if (d.TriggerOnMouseMove(CurrentState))
+                            break;
             }
 
             keyboardRepeatTime -= Time.Elapsed;
@@ -385,9 +386,9 @@ namespace osu.Framework.Input
             foreach (Key k in keyboard.Keys.Distinct())
             {
                 bool isModifier = k == Key.LControl || k == Key.RControl
-                                  || k == Key.LAlt || k == Key.RAlt
-                                  || k == Key.LShift || k == Key.RShift
-                                  || k == Key.LWin || k == Key.RWin;
+                                                    || k == Key.LAlt || k == Key.RAlt
+                                                    || k == Key.LShift || k == Key.RShift
+                                                    || k == Key.LWin || k == Key.RWin;
 
                 LastActionTime = Time.Current;
 
@@ -417,7 +418,7 @@ namespace osu.Framework.Input
             }
         }
 
-        private IEnumerable<Drawable> mouseDownInputQueue;
+        private List<Drawable> mouseDownInputQueue;
 
         private void updateMouseEvents(InputState state)
         {
@@ -508,7 +509,7 @@ namespace osu.Framework.Input
             Drawable handledBy;
             var result = PropagateMouseDown(positionalInputQueue, state, args, out handledBy);
 
-            mouseDownInputQueue = result ? positionalInputQueue.Take(positionalInputQueue.IndexOf(handledBy) + 1) : new List<Drawable>(positionalInputQueue);
+            mouseDownInputQueue = new List<Drawable>(result ? positionalInputQueue.Take(positionalInputQueue.IndexOf(handledBy) + 1) : positionalInputQueue);
 
             return result;
         }
@@ -635,6 +636,7 @@ namespace osu.Framework.Input
                 DraggedDrawable.IsDragged = true;
                 Logger.Log($"MouseDragStart handled by {DraggedDrawable}.", LoggingTarget.Runtime, LogLevel.Debug);
             }
+
             return DraggedDrawable != null;
         }
 
@@ -744,6 +746,7 @@ namespace osu.Framework.Input
                         stillValid = false;
                         break;
                     }
+
                     d = d.Parent;
                 }
             }
