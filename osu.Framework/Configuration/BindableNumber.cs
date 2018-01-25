@@ -84,7 +84,7 @@ namespace osu.Framework.Configuration
                     base.Value = (T)Convert.ChangeType(doubleValue, typeof(T), CultureInfo.InvariantCulture);
                 }
                 else
-                    base.Value = value;
+                    base.Value = clamp(value, MinValue, MaxValue);
             }
         }
 
