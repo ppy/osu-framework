@@ -129,19 +129,14 @@ namespace osu.Framework.Configuration
             return bindable;
         }
 
-        public U Get<U>(T lookup)
-        {
-            return GetOriginalBindable<U>(lookup).Value;
-        }
+        public U Get<U>(T lookup) => GetOriginalBindable<U>(lookup).Value;
 
         protected Bindable<U> GetOriginalBindable<U>(T lookup)
         {
-            IBindable obj;
-
-            if (ConfigStore.TryGetValue(lookup, out obj))
+            if (ConfigStore.TryGetValue(lookup, out IBindable obj))
                 return obj as Bindable<U>;
 
-            return set(lookup, default(U));
+            return null;
         }
 
         /// <summary>
