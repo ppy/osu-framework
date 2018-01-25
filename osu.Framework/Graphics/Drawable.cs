@@ -1958,12 +1958,17 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Whether this Drawable can keyboard receive input, taking into account all optimizations and masking.
         /// </summary>
-        public bool CanReceiveKeyboardInput => HandleKeyboardInput && IsPresent && !IsMaskedAway;
+        public bool CanReceiveKeyboardInput => HandleKeyboardInput && IsPresent && (!MaskingAffectsInput || !IsMaskedAway);
 
         /// <summary>
         /// Whether this Drawable can mouse receive input, taking into account all optimizations and masking.
         /// </summary>
-        public bool CanReceiveMouseInput => HandleMouseInput && IsPresent && !IsMaskedAway;
+        public bool CanReceiveMouseInput => HandleMouseInput && IsPresent && (!MaskingAffectsInput || !IsMaskedAway);
+
+        /// <summary>
+        /// Whether masking checks affect if this <see cref="Drawable"/> receives mouse and keyboard input.
+        /// </summary>
+        public virtual bool MaskingAffectsInput => true;
 
         /// <summary>
         /// Creates a new InputState with mouse coodinates converted to the coordinate space of our parent.
