@@ -15,7 +15,7 @@ namespace osu.Framework.Tests.Bindables
         [TestCase(-105)]
         [TestCase(105)]
         [TestCase(long.MinValue)]
-        [TestCase(long.MaxValue - 1)] // This will overflow a double - this is probably an issue
+        [TestCase(long.MaxValue)]
         public void TestSet(long value)
         {
             var bindable = new BindableLong { Value = value };
