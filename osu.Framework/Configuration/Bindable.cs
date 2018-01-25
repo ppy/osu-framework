@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using osu.Framework.Lists;
 
 namespace osu.Framework.Configuration
@@ -130,7 +131,7 @@ namespace osu.Framework.Configuration
                 case string s:
                     Value = typeof(T).IsEnum
                         ? (T)Enum.Parse(typeof(T), s)
-                        : (T)Convert.ChangeType(s, typeof(T));
+                        : (T)Convert.ChangeType(s, typeof(T), NumberFormatInfo.InvariantInfo);
                     break;
                 default:
                     throw new ArgumentException($@"Could not parse provided {input.GetType()} ({input}) to {typeof(T)}.");
