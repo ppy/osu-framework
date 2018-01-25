@@ -131,7 +131,7 @@ namespace osu.Framework.Configuration
                 case string s:
                     Value = typeof(T).IsEnum
                         ? (T)Enum.Parse(typeof(T), s)
-                        : (T)Convert.ChangeType(s, typeof(T), NumberFormatInfo.InvariantInfo);
+                        : (T)Convert.ChangeType(s, typeof(T), CultureInfo.InvariantCulture);
                     break;
                 default:
                     throw new ArgumentException($@"Could not parse provided {input.GetType()} ({input}) to {typeof(T)}.");
