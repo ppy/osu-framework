@@ -311,8 +311,6 @@ namespace osu.Framework.Graphics.Containers
             n.DrawInfo.Colour = base.DrawInfo.Colour;
         }
 
-        protected override RectangleF ComputeChildMaskingRectangle() => ScreenSpaceDrawQuad.AABBFloat; // Make sure no children get masked away
-
         /// <summary>
         /// Attach an additional component to the framebuffer. Such a component can e.g.
         /// be a depth component, such that the framebuffer can hold fragment depth information.
@@ -341,6 +339,8 @@ namespace osu.Framework.Graphics.Containers
         }
 
         protected override bool RequiresChildrenUpdate => base.RequiresChildrenUpdate && childrenUpdateVersion != updateVersion;
+
+        protected override RectangleF ComputeChildMaskingRectangle() => ScreenSpaceDrawQuad.AABBFloat; // Make sure no children get masked away
 
         public override DrawInfo DrawInfo
         {

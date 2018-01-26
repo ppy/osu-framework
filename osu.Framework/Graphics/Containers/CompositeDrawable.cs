@@ -687,40 +687,6 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        internal override bool ComputeIsMaskedAway(RectangleF maskingBounds)
-        {
-            if (!CanBeFlattened)
-                return base.ComputeIsMaskedAway(maskingBounds);
-
-            // This masking check is overly expensive (requires creation of ScreenSpaceDrawQuad) when only few children exist
-            return AliveInternalChildren.Count >= amount_children_required_for_masking_check && base.ComputeIsMaskedAway(maskingBounds);
-        }
-
-        private Cached<RectangleF> childMaskingRectangleBacking;
-
-        /// <summary>
-        /// The screen-space <see cref="RectangleF"/> which child <see cref="Drawable"/>s perform masking checks against.
-        /// </summary>
-        internal RectangleF ChildMaskingRectangle =>
-            childMaskingRectangleBacking.IsValid
-                ? childMaskingRectangleBacking.Value
-                : (childMaskingRectangleBacking.Value = ComputeChildMaskingRectangle());
-
-        /// <summary>
-        /// Compute the screen-space <see cref="RectangleF"/> for child <see cref="Drawable"/>s to perform masking checks against.
-        /// </summary>
-        protected virtual RectangleF ComputeChildMaskingRectangle()
-        {
-            if (Parent == null)
-                return ScreenSpaceDrawQuad.AABBFloat;
-
-            var localRectangle = Parent.ChildMaskingRectangle;
-            if (Masking)
-                localRectangle.Intersect(ScreenSpaceDrawQuad.AABBFloat);
-
-            return localRectangle;
-        }
-
         internal sealed override DrawNode GenerateDrawNodeSubtree(int treeIndex)
         {
             // No need for a draw node at all if there are no children and we are not glowing.
@@ -905,6 +871,40 @@ namespace osu.Framework.Graphics.Containers
         #endregion
 
         #region Masking and related effects (e.g. round corners)
+
+        internal override bool ComputeIsMaskedAway(RectangleF maskingBounds)
+        {
+            if (!CanBeFlattened)
+                return base.ComputeIsMaskedAway(maskingBounds);
+
+            // This masking check is overly expensive (requires creation of ScreenSpaceDrawQuad) when only few children exist
+            return AliveInternalChildren.Count >= amount_children_required_for_masking_check && base.ComputeIsMaskedAway(maskingBounds);
+        }
+
+        private Cached<RectangleF> childMaskingRectangleBacking;
+
+        /// <summary>
+        /// The screen-space <see cref="RectangleF"/> which child <see cref="Drawable"/>s perform masking checks against.
+        /// </summary>
+        internal RectangleF ChildMaskingRectangle =>
+            childMaskingRectangleBacking.IsValid
+                ? childMaskingRectangleBacking.Value
+                : (childMaskingRectangleBacking.Value = ComputeChildMaskingRectangle());
+
+        /// <summary>
+        /// Compute the screen-space <see cref="RectangleF"/> for child <see cref="Drawable"/>s to perform masking checks against.
+        /// </summary>
+        protected virtual RectangleF ComputeChildMaskingRectangle()
+        {
+            if (Parent == null)
+                return ScreenSpaceDrawQuad.AABBFloat;
+
+            var localRectangle = Parent.ChildMaskingRectangle;
+            if (Masking)
+                localRectangle.Intersect(ScreenSpaceDrawQuad.AABBFloat);
+
+            return localRectangle;
+        }
 
         private bool masking;
 

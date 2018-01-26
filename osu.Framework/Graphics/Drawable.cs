@@ -357,24 +357,6 @@ namespace osu.Framework.Graphics
             return true;
         }
 
-        private Cached<bool> isMaskedAwayBacking;
-
-        /// <summary>
-        /// Whether this <see cref="Drawable"/> is currently masked away.
-        /// This is measured conservatively based on the AABB of this <see cref="Drawable"/>
-        /// and may be false even if it is visually fully masked away.
-        /// </summary>
-        internal bool IsMaskedAway =>
-            isMaskedAwayBacking.IsValid
-                ? isMaskedAwayBacking.Value
-                : (isMaskedAwayBacking.Value = Parent != null && ComputeIsMaskedAway(Parent.ChildMaskingRectangle));
-
-        /// <summary>
-        /// Computes whether this <see cref="Drawable"/> is currently masked away, based on the <see cref="Parent"/>'s <see cref="CompositeDrawable.ChildMaskingRectangle"/>.
-        /// </summary>
-        /// <param name="maskingRectangle">The current masking rectangle.</param>
-        internal virtual bool ComputeIsMaskedAway(RectangleF maskingRectangle) => !maskingRectangle.IntersectsWith(ScreenSpaceDrawQuad.AABBFloat);
-
         /// <summary>
         /// Performs a once-per-frame update specific to this Drawable. A more elegant alternative to
         /// <see cref="OnUpdate"/> when deriving from <see cref="Drawable"/>. Note, that this
@@ -1336,6 +1318,24 @@ namespace osu.Framework.Graphics
         #endregion
 
         #region Caching & invalidation (for things too expensive to compute every frame)
+
+        private Cached<bool> isMaskedAwayBacking;
+
+        /// <summary>
+        /// Whether this <see cref="Drawable"/> is currently masked away.
+        /// This is measured conservatively based on the AABB of this <see cref="Drawable"/>
+        /// and may be false even if it is visually fully masked away.
+        /// </summary>
+        internal bool IsMaskedAway =>
+            isMaskedAwayBacking.IsValid
+                ? isMaskedAwayBacking.Value
+                : (isMaskedAwayBacking.Value = Parent != null && ComputeIsMaskedAway(Parent.ChildMaskingRectangle));
+
+        /// <summary>
+        /// Computes whether this <see cref="Drawable"/> is currently masked away, based on the <see cref="Parent"/>'s <see cref="CompositeDrawable.ChildMaskingRectangle"/>.
+        /// </summary>
+        /// <param name="maskingRectangle">The current masking rectangle.</param>
+        internal virtual bool ComputeIsMaskedAway(RectangleF maskingRectangle) => !maskingRectangle.IntersectsWith(ScreenSpaceDrawQuad.AABBFloat);
 
         private Cached<Quad> screenSpaceDrawQuadBacking;
 
