@@ -1476,8 +1476,6 @@ namespace osu.Framework.Graphics
 
             bool alreadyInvalidated = true;
 
-            isMaskedAwayBacking.Invalidate();
-
             // Either ScreenSize OR ScreenPosition OR Colour
             if ((invalidation & (Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.Colour)) > 0)
             {
@@ -1487,6 +1485,7 @@ namespace osu.Framework.Graphics
                 alreadyInvalidated &= !screenSpaceDrawQuadBacking.Invalidate();
                 alreadyInvalidated &= !drawInfoBacking.Invalidate();
                 alreadyInvalidated &= !drawSizeBacking.Invalidate();
+                alreadyInvalidated &= !isMaskedAwayBacking.Invalidate();
             }
 
             if (!alreadyInvalidated || (invalidation & Invalidation.DrawNode) > 0)

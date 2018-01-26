@@ -544,10 +544,12 @@ namespace osu.Framework.Graphics.Containers
 
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
-            childMaskingRectangleBacking.Invalidate();
-
             if (!base.Invalidate(invalidation, source, shallPropagate))
                 return false;
+
+            // Either ScreenSize OR ScreenPosition OR Colour
+            if ((invalidation & (Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.Colour)) > 0)
+                childMaskingRectangleBacking.Invalidate();
 
             if (!shallPropagate) return true;
 
