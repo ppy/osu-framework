@@ -357,6 +357,24 @@ namespace osu.Framework.Graphics
             return true;
         }
 
+        private Cached<bool> isMaskedAwayBacking;
+
+        /// <summary>
+        /// Whether this <see cref="Drawable"/> is currently masked away.
+        /// This is measured conservatively based on the AABB of this <see cref="Drawable"/>
+        /// and may be false even if it is visually fully masked away.
+        /// </summary>
+        internal bool IsMaskedAway =>
+            isMaskedAwayBacking.IsValid
+                ? isMaskedAwayBacking.Value
+                : (isMaskedAwayBacking.Value = Parent != null && ComputeIsMaskedAway(Parent.ChildMaskingRectangle));
+
+        /// <summary>
+        /// Computes whether this <see cref="Drawable"/> is currently masked away, based on the <see cref="Parent"/>'s <see cref="CompositeDrawable.ChildMaskingRectangle"/>.
+        /// </summary>
+        /// <param name="maskingRectangle">The current masking rectangle.</param>
+        internal virtual bool ComputeIsMaskedAway(RectangleF maskingRectangle) => !maskingRectangle.IntersectsWith(ScreenSpaceDrawQuad.AABBFloat);
+
         /// <summary>
         /// Performs a once-per-frame update specific to this Drawable. A more elegant alternative to
         /// <see cref="OnUpdate"/> when deriving from <see cref="Drawable"/>. Note, that this
@@ -1319,13 +1337,6 @@ namespace osu.Framework.Graphics
 
         #region Caching & invalidation (for things too expensive to compute every frame)
 
-        /// <summary>
-        /// Was this Drawable masked away completely during the last frame?
-        /// This is measured conservatively, i.e. it is only true when the Drawable was
-        /// actually masked away, but it may be false, even if the Drawable was masked away.
-        /// </summary>
-        internal bool IsMaskedAway;
-
         private Cached<Quad> screenSpaceDrawQuadBacking;
 
         protected virtual Quad ComputeScreenSpaceDrawQuad() => ToScreenSpace(DrawRectangle);
@@ -1465,6 +1476,8 @@ namespace osu.Framework.Graphics
 
             bool alreadyInvalidated = true;
 
+            isMaskedAwayBacking.Invalidate();
+
             // Either ScreenSize OR ScreenPosition OR Colour
             if ((invalidation & (Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.Colour)) > 0)
             {
@@ -1507,7 +1520,7 @@ namespace osu.Framework.Graphics
         /// Generates the DrawNode for ourselves.
         /// </summary>
         /// <returns>A complete and updated DrawNode, or null if the DrawNode would be invisible.</returns>
-        internal virtual DrawNode GenerateDrawNodeSubtree(int treeIndex, RectangleF bounds)
+        internal virtual DrawNode GenerateDrawNodeSubtree(int treeIndex)
         {
             DrawNode node = drawNodes[treeIndex];
             if (node == null)
