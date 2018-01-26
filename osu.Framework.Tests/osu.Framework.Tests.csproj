@@ -54,6 +54,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AutomatedVisualTestGame.cs" />
+    <Compile Include="Bindables\BindableBoolTest.cs" />
+    <Compile Include="Bindables\BindableDoubleTest.cs" />
+    <Compile Include="Bindables\BindableEnumTest.cs" />
+    <Compile Include="Bindables\BindableFloatTest.cs" />
+    <Compile Include="Bindables\BindableIntTest.cs" />
+    <Compile Include="Bindables\BindableLongTest.cs" />
+    <Compile Include="Bindables\BindableStringTest.cs" />
     <Compile Include="IO\TestSortedListSerialization.cs" />
     <Compile Include="IO\TestWebRequest.cs" />
     <Compile Include="Lists\TestArrayExtensions.cs" />

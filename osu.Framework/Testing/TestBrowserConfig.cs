@@ -6,7 +6,7 @@ using osu.Framework.Platform;
 
 namespace osu.Framework.Testing
 {
-    internal class TestBrowserConfig : ConfigManager<TestBrowserSetting>
+    internal class TestBrowserConfig : IniConfigManager<TestBrowserSetting>
     {
         protected override string Filename => @"visualtests.cfg";
 
