@@ -311,7 +311,7 @@ namespace osu.Framework.Graphics.Containers
             n.DrawInfo.Colour = base.DrawInfo.Colour;
         }
 
-        protected override RectangleF ComputeChildMaskingRectangle() => ScreenSpaceDrawQuad.AABBFloat;
+        protected override RectangleF ComputeChildMaskingRectangle() => ScreenSpaceDrawQuad.AABBFloat; // Make sure no children get masked away
 
         /// <summary>
         /// Attach an additional component to the framebuffer. Such a component can e.g.
