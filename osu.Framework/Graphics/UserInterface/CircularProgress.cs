@@ -54,6 +54,7 @@ namespace osu.Framework.Graphics.UserInterface
             n.Shared = pathDrawNodeSharedData;
 
             n.Angle = (float)Current.Value * MathHelper.TwoPi;
+            n.Fill = fill;
 
             base.ApplyDrawNode(node);
         }
@@ -80,6 +81,25 @@ namespace osu.Framework.Graphics.UserInterface
 
                 texture = value;
                 Invalidate(Invalidation.DrawNode);
+            }
+        }
+
+        private float fill = 1;
+
+        /// <summary>
+        /// Change the fill of the disk, values range from 0 to 1 where 0 is invisible and 1 is completely filled.
+        /// This changes the fill inside, for changes outside use <see cref="Drawable.Size"/> or <see cref="Drawable.Scale"/>.
+        /// The entire texture still fills the disk without cropping it.
+        /// </summary>
+        public float Fill
+        {
+            get => fill;
+            set
+            {
+                if (value == fill)
+                    return;
+
+                fill = MathHelper.Clamp(value, 0, 1);
             }
         }
     }
