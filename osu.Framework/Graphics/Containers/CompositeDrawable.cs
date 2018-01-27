@@ -840,7 +840,8 @@ namespace osu.Framework.Graphics.Containers
 
         // Required to pass through input to children by default.
         // TODO: Evaluate effects of this on performance and address.
-        public override bool HandleInput => true;
+        public override bool HandleKeyboardInput => true;
+        public override bool HandleMouseInput => true;
 
         public override bool Contains(Vector2 screenSpacePos)
         {
@@ -867,7 +868,7 @@ namespace osu.Framework.Graphics.Containers
 
         internal override bool BuildMouseInputQueue(Vector2 screenSpaceMousePos, List<Drawable> queue)
         {
-            if (!base.BuildMouseInputQueue(screenSpaceMousePos, queue) && (!CanReceiveInput || Masking))
+            if (!base.BuildMouseInputQueue(screenSpaceMousePos, queue) && (!CanReceiveMouseInput || Masking))
                 return false;
 
             // We iterate by index to gain performance
@@ -1304,16 +1305,10 @@ namespace osu.Framework.Graphics.Containers
 
             Vector2 b = computeAutoSize() + Padding.Total;
 
-            if (AutoSizeDuration > 0)
-                autoSizeResizeTo(new Vector2(
-                    (AutoSizeAxes & Axes.X) > 0 ? b.X : base.Width,
-                    (AutoSizeAxes & Axes.Y) > 0 ? b.Y : base.Height
-                ), AutoSizeDuration, AutoSizeEasing);
-            else
-            {
-                if ((AutoSizeAxes & Axes.X) > 0) base.Width = b.X;
-                if ((AutoSizeAxes & Axes.Y) > 0) base.Height = b.Y;
-            }
+            autoSizeResizeTo(new Vector2(
+                (AutoSizeAxes & Axes.X) > 0 ? b.X : base.Width,
+                (AutoSizeAxes & Axes.Y) > 0 ? b.Y : base.Height
+            ), AutoSizeDuration, AutoSizeEasing);
 
             //note that this is called before autoSize becomes valid. may be something to consider down the line.
             //might work better to add an OnRefresh event in Cached<> and invoke there.

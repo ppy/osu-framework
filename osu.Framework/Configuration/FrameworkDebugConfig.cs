@@ -6,7 +6,7 @@ using osu.Framework.Caching;
 
 namespace osu.Framework.Configuration
 {
-    public class FrameworkDebugConfigManager : ConfigManager<DebugSetting>
+    public class FrameworkDebugConfigManager : IniConfigManager<DebugSetting>
     {
         protected override string Filename => null;
 

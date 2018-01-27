@@ -1,7 +1,6 @@
 // Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using NUnit.Framework;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics;
@@ -11,7 +10,6 @@ using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual
 {
-    [TestFixture]
     public class TestCaseDrawSizePreservingFillContainer : TestCase
     {
         public TestCaseDrawSizePreservingFillContainer()

@@ -155,8 +155,8 @@ namespace osu.Framework.Platform
 
             FileSafety.DeleteCleanupDirectory();
 
-            Dependencies.Cache(this);
-            Dependencies.Cache(Storage = GetStorage(gameName));
+            Dependencies.CacheAs<GameHost>(this);
+            Dependencies.CacheAs<Storage>(Storage = GetStorage(gameName));
 
             Name = gameName;
             Logger.GameIdentifier = gameName;
@@ -418,7 +418,7 @@ namespace osu.Framework.Platform
             };
 
             Dependencies.Cache(root);
-            Dependencies.Cache(game);
+            Dependencies.CacheAs<Game>(game);
 
             game.SetHost(this);
 

@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Lines;
 using osu.Framework.Graphics.OpenGL.Textures;
@@ -15,9 +14,8 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Tests.Visual
 {
-    [TestFixture]
     [System.ComponentModel.Description("live path optimiastion")]
-    internal class TestCaseInputResampler : GridTestCase
+    public class TestCaseInputResampler : GridTestCase
     {
         public TestCaseInputResampler() : base(3, 3)
         {

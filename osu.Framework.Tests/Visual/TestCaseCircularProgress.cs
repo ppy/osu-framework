@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Textures;
@@ -14,7 +13,6 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Tests.Visual
 {
-    [TestFixture]
     public class TestCaseCircularProgress : TestCase
     {
         public override IReadOnlyList<Type> RequiredTypes => new[] { typeof(CircularProgress), typeof(CircularProgressDrawNode), typeof(CircularProgressDrawNodeSharedData) };
