@@ -96,10 +96,8 @@ namespace osu.Framework.Graphics.UserInterface
             get => fill;
             set
             {
-                if (value == fill)
-                    return;
-
                 fill = MathHelper.Clamp(value, 0, 1);
+                Invalidate(Invalidation.DrawNode);
             }
         }
     }

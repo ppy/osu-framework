@@ -17,7 +17,7 @@ namespace osu.Framework.Graphics.UserInterface
     public class CircularProgressDrawNodeSharedData
     {
         // We multiply the size param by 3 such that the amount of vertices is a multiple of the amount of vertices
-        // per primitive (triangles in this case). Otherwise overflowing the batch will result in wrong
+        // per primitive (quads in this case). Otherwise overflowing the batch will result in wrong
         // grouping of vertices into primitives.
         public LinearBatch<TexturedVertex2D> HalfCircleBatch = new LinearBatch<TexturedVertex2D>(CircularProgressDrawNode.MAXRES * 100 * 4, 10, PrimitiveType.Quads);
     }
