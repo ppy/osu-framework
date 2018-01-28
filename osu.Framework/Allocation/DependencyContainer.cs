@@ -128,10 +128,10 @@ namespace osu.Framework.Allocation
         /// Caches an instance of a type as its most derived type. This instance will be returned each time you <see cref="Get(Type)"/>.
         /// </summary>
         /// <param name="instance">The instance to cache.</param>
-        public void Cache<T>(T instance)
-            where T : class
+        public void Cache(object instance)
         {
             if (instance == null)　throw new ArgumentNullException(nameof(instance));
+            if (!instance.GetType().IsClass) throw new ArgumentException(instance.GetType() + " cannot be cached because it's not a class", nameof(instance));
 
             cache[instance.GetType()] = instance;
         }
@@ -140,13 +140,10 @@ namespace osu.Framework.Allocation
         /// Caches an instance of a type as a type of <typeparamref name="T"/>. This instance will be returned each time you <see cref="Get(Type)"/>.
         /// </summary>
         /// <param name="instance">The instance to cache. Must be or derive from <typeparamref name="T"/>.</param>
-        public void CacheAs<T>(object instance)
+        public void CacheAs<T>(T instance)
             where T : class
         {
-            if (instance == null)　throw new ArgumentNullException(nameof(instance));
-            if (!(instance is T))　throw new InvalidCastException($"{instance} must be {typeof(T)}.");
-
-            cache[typeof(T)] = instance;
+            cache[typeof(T)] = instance ?? throw new ArgumentNullException(nameof(instance));
         }
 
         /// <summary>
