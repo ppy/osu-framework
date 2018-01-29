@@ -340,6 +340,8 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool RequiresChildrenUpdate => base.RequiresChildrenUpdate && childrenUpdateVersion != updateVersion;
 
+        protected override RectangleF ComputeChildMaskingRectangle() => ScreenSpaceDrawQuad.AABBFloat; // Make sure no children get masked away
+
         public override DrawInfo DrawInfo
         {
             get

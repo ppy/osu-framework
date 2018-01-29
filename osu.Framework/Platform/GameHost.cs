@@ -249,7 +249,7 @@ namespace osu.Framework.Platform
 
             Root.UpdateSubTree();
             using (var buffer = DrawRoots.Get(UsageType.Write))
-                buffer.Object = Root.GenerateDrawNodeSubtree(buffer.Index, Root.ScreenSpaceDrawQuad.AABBFloat);
+                buffer.Object = Root.GenerateDrawNodeSubtree(buffer.Index);
         }
 
         protected virtual void DrawInitialize()
