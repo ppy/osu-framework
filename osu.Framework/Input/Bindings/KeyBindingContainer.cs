@@ -43,7 +43,7 @@ namespace osu.Framework.Input.Bindings
         private bool isModifier(InputKey k) => k < InputKey.F1;
 
         /// <summary>
-        /// The input queue to be used for processing key bindings. Based on the non-positional <see cref="InputManager.InputQueue"/>.
+        /// The input queue to be used for processing key bindings. Based on the non-positional <see cref="InputContainer.InputQueue"/>.
         /// Can be overridden to change priorities.
         /// </summary>
         protected virtual IEnumerable<Drawable> KeyBindingInputQueue => localQueue;

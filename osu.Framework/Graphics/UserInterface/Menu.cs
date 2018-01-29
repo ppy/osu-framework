@@ -237,7 +237,7 @@ namespace osu.Framework.Graphics.UserInterface
                         // We may not be present at this point, so must run on the next frame.
                         Schedule(delegate
                         {
-                            if (State == MenuState.Open) GetContainingInputManager().ChangeFocus(this);
+                            if (State == MenuState.Open) GetContainingInputContainer().ChangeFocus(this);
                         });
                     break;
             }
@@ -424,7 +424,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (item.Item.Items.Count > 0)
             {
                 if (submenu.State == MenuState.Open)
-                    Schedule(delegate { GetContainingInputManager().ChangeFocus(submenu); });
+                    Schedule(delegate { GetContainingInputContainer().ChangeFocus(submenu); });
                 else
                     submenu.Open();
             }

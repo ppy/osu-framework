@@ -13,12 +13,12 @@ namespace osu.Framework.Graphics.Cursor
         where TSelf : CursorEffectContainer<TSelf, TTarget>
         where TTarget : class, IDrawable
     {
-        private InputManager inputManager;
+        private InputContainer inputContainer;
 
         protected override void LoadComplete()
         {
             base.LoadComplete();
-            inputManager = GetContainingInputManager();
+            inputContainer = GetContainingInputContainer();
         }
 
         private readonly HashSet<IDrawable> childDrawables = new HashSet<IDrawable>();
@@ -34,7 +34,7 @@ namespace osu.Framework.Graphics.Cursor
             Debug.Assert(targetChildren.Count == 0, $"{nameof(targetChildren)} should be empty but has {targetChildren.Count} elements.");
 
             // Skip all drawables in the hierarchy prior to (and including) ourself.
-            var targetCandidates = inputManager.PositionalInputQueue.Reverse().SkipWhile(d => d != this).Skip(1);
+            var targetCandidates = inputContainer.PositionalInputQueue.Reverse().SkipWhile(d => d != this).Skip(1);
 
             childDrawables.Add(this);
 

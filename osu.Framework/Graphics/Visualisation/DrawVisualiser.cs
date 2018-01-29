@@ -17,7 +17,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         private readonly InfoOverlay overlay;
 
-        private InputManager inputManager;
+        private InputContainer inputContainer;
 
         public DrawVisualiser()
         {
@@ -78,7 +78,7 @@ namespace osu.Framework.Graphics.Visualisation
         protected override void LoadComplete()
         {
             base.LoadComplete();
-            inputManager = GetContainingInputManager();
+            inputContainer = GetContainingInputContainer();
         }
 
         protected override bool BlockPassThroughMouse => false;
@@ -259,7 +259,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         protected override bool OnMouseMove(InputState state)
         {
-            overlay.Target = targetSearching ? findTarget(state) : inputManager.HoveredDrawables.OfType<VisualisedDrawable>().FirstOrDefault()?.Target;
+            overlay.Target = targetSearching ? findTarget(state) : inputContainer.HoveredDrawables.OfType<VisualisedDrawable>().FirstOrDefault()?.Target;
             return base.OnMouseMove(state);
         }
     }

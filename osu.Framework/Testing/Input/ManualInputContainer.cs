@@ -11,11 +11,11 @@ using MouseState = osu.Framework.Input.MouseState;
 
 namespace osu.Framework.Testing.Input
 {
-    public class ManualInputManager : PassThroughInputManager
+    public class ManualInputContainer : PassThroughInputContainer
     {
         private readonly ManualInputHandler handler;
 
-        public ManualInputManager()
+        public ManualInputContainer()
         {
             UseParentState = true;
             AddHandler(handler = new ManualInputHandler());

@@ -24,7 +24,7 @@ namespace osu.Framework.Graphics.Cursor
 
         private ITooltip currentTooltip;
 
-        private InputManager inputManager;
+        private InputContainer inputContainer;
 
         /// <summary>
         /// Duration the cursor has to stay in a circular region of <see cref="AppearRadius"/>
@@ -86,7 +86,7 @@ namespace osu.Framework.Graphics.Cursor
         protected override void LoadComplete()
         {
             base.LoadComplete();
-            inputManager = GetContainingInputManager();
+            inputContainer = GetContainingInputContainer();
         }
 
         private Vector2 computeTooltipPosition()
@@ -99,7 +99,7 @@ namespace osu.Framework.Graphics.Cursor
 
             if (cursorContainer == null)
             {
-                cursorCentre = ToLocalSpace(inputManager.CurrentState.Mouse.Position);
+                cursorCentre = ToLocalSpace(inputContainer.CurrentState.Mouse.Position);
                 boundingRadius = 14f;
             }
             else
@@ -164,7 +164,7 @@ namespace osu.Framework.Graphics.Cursor
         private IHasTooltip findTooltipTarget()
         {
             // While we are dragging a tooltipped drawable we should show a tooltip for it.
-            IHasTooltip draggedTarget = inputManager.DraggedDrawable as IHasTooltip;
+            IHasTooltip draggedTarget = inputContainer.DraggedDrawable as IHasTooltip;
             if (draggedTarget != null)
                 return hasValidTooltip(draggedTarget) ? draggedTarget : null;
 
@@ -176,7 +176,7 @@ namespace osu.Framework.Graphics.Cursor
                 recentMousePositions.Add(new TimedPosition
                 {
                     Time = Time.Current,
-                    Position = ToLocalSpace(inputManager.CurrentState.Mouse.Position)
+                    Position = ToLocalSpace(inputContainer.CurrentState.Mouse.Position)
                 });
             }
 

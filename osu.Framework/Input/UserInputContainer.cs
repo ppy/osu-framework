@@ -6,13 +6,13 @@ using osu.Framework.Input.Handlers;
 
 namespace osu.Framework.Input
 {
-    public class UserInputManager : PassThroughInputManager
+    public class UserInputContainer : PassThroughInputContainer
     {
         protected override IEnumerable<InputHandler> InputHandlers => Host.AvailableInputHandlers;
 
         protected override bool HandleHoverEvents => Host.Window?.CursorInWindow ?? true;
 
-        public UserInputManager()
+        public UserInputContainer()
         {
             UseParentState = false;
         }

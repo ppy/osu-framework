@@ -33,7 +33,7 @@ namespace osu.Framework.Graphics.Containers
                 return false;
 
             var nextTab = nextTabStop(TabbableContentContainer, state.Keyboard.ShiftPressed);
-            if (nextTab != null) GetContainingInputManager().ChangeFocus(nextTab);
+            if (nextTab != null) GetContainingInputContainer().ChangeFocus(nextTab);
             return true;
         }
 

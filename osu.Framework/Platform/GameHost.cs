@@ -406,7 +406,7 @@ namespace osu.Framework.Platform
 
         private void bootstrapSceneGraph(Game game)
         {
-            var root = new UserInputManager
+            var root = new UserInputContainer
             {
                 Child = new PlatformActionContainer
                 {

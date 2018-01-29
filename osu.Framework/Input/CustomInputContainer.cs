@@ -7,9 +7,9 @@ using osu.Framework.Input.Handlers;
 namespace osu.Framework.Input
 {
     /// <summary>
-    /// An <see cref="InputManager"/> implementation which allows managing of <see cref="InputHandler"/>s manually.
+    /// An <see cref="InputContainer"/> implementation which allows managing of <see cref="InputHandler"/>s manually.
     /// </summary>
-    public class CustomInputManager : InputManager
+    public class CustomInputContainer : InputContainer
     {
         protected override IEnumerable<InputHandler> InputHandlers => inputHandlers;
 

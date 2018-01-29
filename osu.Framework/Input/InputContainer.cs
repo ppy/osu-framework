@@ -16,7 +16,7 @@ using osu.Framework.Logging;
 
 namespace osu.Framework.Input
 {
-    public abstract class InputManager : Container, IRequireHighFrequencyMousePosition
+    public abstract class InputContainer : Container, IRequireHighFrequencyMousePosition
     {
         /// <summary>
         /// The initial delay before key repeat begins.
@@ -124,7 +124,7 @@ namespace osu.Framework.Input
         /// </summary>
         public IReadOnlyList<Drawable> InputQueue => inputQueue;
 
-        protected InputManager()
+        protected InputContainer()
         {
             RelativeSizeAxes = Axes.Both;
         }
@@ -755,7 +755,7 @@ namespace osu.Framework.Input
 
         /// <summary>
         /// In order to provide a reliable event system to drawables, we want to ensure that we reprocess input queues (via the
-        /// main loop in <see cref="InputManager"/> after each and every button or key change. This allows
+        /// main loop in <see cref="InputContainer"/> after each and every button or key change. This allows
         /// correct behaviour in a case where the input queues change based on triggered by a button or key.
         /// </summary>
         /// <param name="newStates">One ore more states which are to be converted to distinct states.</param>

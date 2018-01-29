@@ -1238,16 +1238,16 @@ namespace osu.Framework.Graphics
         #region Parenting (scene graph operations, including ProxyDrawable)
 
         /// <summary>
-        /// Retrieve the first parent in the tree which derives from <see cref="InputManager"/>.
+        /// Retrieve the first parent in the tree which derives from <see cref="InputContainer"/>.
         /// As this is performing an upward tree traversal, avoid calling every frame.
         /// </summary>
-        /// <returns>The first parent <see cref="InputManager"/>.</returns>
-        protected InputManager GetContainingInputManager()
+        /// <returns>The first parent <see cref="InputContainer"/>.</returns>
+        protected InputContainer GetContainingInputContainer()
         {
             Drawable search = Parent;
             while (search != null)
             {
-                var test = search as InputManager;
+                var test = search as InputContainer;
                 if (test != null) return test;
 
                 search = search.Parent;

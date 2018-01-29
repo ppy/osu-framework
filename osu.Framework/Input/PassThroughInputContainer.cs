@@ -7,10 +7,10 @@ using OpenTK;
 
 namespace osu.Framework.Input
 {
-    public class PassThroughInputManager : CustomInputManager
+    public class PassThroughInputContainer : CustomInputContainer
     {
         /// <summary>
-        /// If there's an InputManager above us, decide whether we should use their available state.
+        /// If there's a <see cref="InputContainer"/> above us, decide whether we should use their available state.
         /// </summary>
         public bool UseParentState = true;
 
