@@ -155,8 +155,8 @@ namespace osu.Framework.Platform
 
             FileSafety.DeleteCleanupDirectory();
 
-            Dependencies.CacheAs<GameHost>(this);
-            Dependencies.CacheAs<Storage>(Storage = GetStorage(gameName));
+            Dependencies.CacheAs(this);
+            Dependencies.CacheAs(Storage = GetStorage(gameName));
 
             Name = gameName;
             Logger.GameIdentifier = gameName;
@@ -249,7 +249,7 @@ namespace osu.Framework.Platform
 
             Root.UpdateSubTree();
             using (var buffer = DrawRoots.Get(UsageType.Write))
-                buffer.Object = Root.GenerateDrawNodeSubtree(buffer.Index, Root.ScreenSpaceDrawQuad.AABBFloat);
+                buffer.Object = Root.GenerateDrawNodeSubtree(buffer.Index);
         }
 
         protected virtual void DrawInitialize()
@@ -418,7 +418,7 @@ namespace osu.Framework.Platform
             };
 
             Dependencies.Cache(root);
-            Dependencies.CacheAs<Game>(game);
+            Dependencies.CacheAs(game);
 
             game.SetHost(this);
 
