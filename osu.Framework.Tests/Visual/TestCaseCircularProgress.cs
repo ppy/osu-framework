@@ -103,7 +103,7 @@ namespace osu.Framework.Tests.Visual
             AddStep("2D Gradient Colour", delegate { setColour(4); });
             AddStep("White Colour", delegate { setColour(0); });
 
-            AddSliderStep("Fill", 0, 10, 10, fill => clock.Fill = fill / 10f);
+            AddSliderStep("Fill", 0, 10, 10, fill => clock.InnerRadius = fill / 10f);
         }
 
         protected override void Update()

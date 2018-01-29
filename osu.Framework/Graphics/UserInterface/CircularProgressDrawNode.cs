@@ -26,7 +26,7 @@ namespace osu.Framework.Graphics.UserInterface
     {
         public const int MAXRES = 24;
         public float Angle;
-        public float Fill = 1;
+        public float InnerRadius = 1;
 
         public Vector2 DrawSize;
         public Texture Texture;
@@ -81,7 +81,7 @@ namespace osu.Framework.Graphics.UserInterface
                 // First center point
                 Shared.HalfCircleBatch.Add(new TexturedVertex2D
                 {
-                    Position = Vector2.Lerp(current, screenOrigin, Fill),
+                    Position = Vector2.Lerp(current, screenOrigin, InnerRadius),
                     TexturePosition = new Vector2((normalisedStartAngle + normalisedEndAngle) / 2, 0),
                     Colour = originColour
                 });
@@ -110,7 +110,7 @@ namespace osu.Framework.Graphics.UserInterface
                 // Second center point
                 Shared.HalfCircleBatch.Add(new TexturedVertex2D
                 {
-                    Position = Vector2.Lerp(current, screenOrigin, Fill),
+                    Position = Vector2.Lerp(current, screenOrigin, InnerRadius),
                     TexturePosition = new Vector2((normalisedStartAngle + normalisedEndAngle) / 2, 0),
                     Colour = originColour
                 });
