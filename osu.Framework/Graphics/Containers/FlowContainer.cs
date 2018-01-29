@@ -129,7 +129,7 @@ namespace osu.Framework.Graphics.Containers
 
                 var finalPos = positions[i];
                 if (d.Position != finalPos)
-                    d.TransformTo(d.PopulateTransform(new FlowTransform(), finalPos, LayoutDuration, LayoutEasing));
+                    d.TransformTo(d.PopulateTransform(new FlowTransform { Rewindable = false }, finalPos, LayoutDuration, LayoutEasing));
 
                 ++i;
             }
@@ -152,8 +152,6 @@ namespace osu.Framework.Graphics.Containers
 
         private class FlowTransform : TransformCustom<Vector2, Drawable>
         {
-            internal override bool Rewindable => EndTime > StartTime;
-
             public FlowTransform()
                 : base(nameof(Position))
             {

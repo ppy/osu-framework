@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics.Transforms
         /// <summary>
         /// Whether this <see cref="Transform"/> can be rewound.
         /// </summary>
-        internal virtual bool Rewindable => true;
+        public bool Rewindable = true;
 
         public Easing Easing;
 
