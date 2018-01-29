@@ -306,7 +306,7 @@ namespace osu.Framework.Testing
             {
                 case TestBrowserAction.Search:
                     if (leftContainer.Width == 0) toggleTestList();
-                    GetContainingInputManager().ChangeFocus(searchTextBox);
+                    GetContainingInputContainer().ChangeFocus(searchTextBox);
                     return true;
                 case TestBrowserAction.Reload:
                     LoadTest(CurrentTest.GetType());

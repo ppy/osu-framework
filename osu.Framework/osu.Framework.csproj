@@ -248,7 +248,7 @@
     <Compile Include="Graphics\Vector2Extensions.cs" />
     <Compile Include="Host.cs" />
     <Compile Include="Input\Bindings\InputKey.cs" />
-    <Compile Include="Input\CustomInputManager.cs" />
+    <Compile Include="Input\CustomInputContainer.cs" />
     <Compile Include="Input\Bindings\IKeyBindingHandler.cs" />
     <Compile Include="Input\Bindings\KeyBinding.cs" />
     <Compile Include="Input\Bindings\KeyBindingContainer.cs" />
@@ -271,7 +271,7 @@
     <Compile Include="Input\MouseDownEventArgs.cs" />
     <Compile Include="Input\MouseEventArgs.cs" />
     <Compile Include="Input\MouseUpEventArgs.cs" />
-    <Compile Include="Input\PassThroughInputManager.cs" />
+    <Compile Include="Input\PassThroughInputContainer.cs" />
     <Compile Include="Graphics\BlendingInfo.cs" />
     <Compile Include="Graphics\Colour\ColourInfo.cs" />
     <Compile Include="Graphics\Colour\SRGBColour.cs" />
@@ -446,11 +446,11 @@
     <Compile Include="Graphics\Textures\TextureAtlas.cs" />
     <Compile Include="Graphics\Textures\TextureLoader.cs" />
     <Compile Include="Input\Handlers\InputHandler.cs" />
-    <Compile Include="Input\InputManager.cs" />
+    <Compile Include="Input\InputContainer.cs" />
     <Compile Include="Input\InputState.cs" />
     <Compile Include="Input\KeyboardState.cs" />
     <Compile Include="Input\MouseState.cs" />
-    <Compile Include="Input\UserInputManager.cs" />
+    <Compile Include="Input\UserInputContainer.cs" />
     <Compile Include="Input\InputResampler.cs" />
     <Compile Include="IUpdateable.cs" />
     <Compile Include="Platform\Clipboard.cs" />
@@ -467,7 +467,7 @@
     <Compile Include="Testing\DynamicClassCompiler.cs" />
     <Compile Include="Testing\GridTestCase.cs" />
     <Compile Include="Testing\IDynamicallyCompile.cs" />
-    <Compile Include="Testing\Input\ManualInputManager.cs" />
+    <Compile Include="Testing\Input\ManualInputContainer.cs" />
     <Compile Include="Testing\TestBrowser.cs" />
     <Compile Include="Testing\TestBrowserConfig.cs" />
     <Compile Include="Testing\TestBrowserTestRunner.cs" />

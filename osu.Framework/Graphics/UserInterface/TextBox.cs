@@ -599,7 +599,7 @@ namespace osu.Framework.Graphics.UserInterface
                     return false;
 
                 case Key.Escape:
-                    GetContainingInputManager().ChangeFocus(null);
+                    GetContainingInputContainer().ChangeFocus(null);
                     return true;
 
                 case Key.Tab:
@@ -610,7 +610,7 @@ namespace osu.Framework.Graphics.UserInterface
                     if (HasFocus)
                     {
                         if (ReleaseFocusOnCommit)
-                            GetContainingInputManager().ChangeFocus(null);
+                            GetContainingInputContainer().ChangeFocus(null);
 
                         Background.Colour = ReleaseFocusOnCommit ? BackgroundUnfocused : BackgroundFocused;
                         Background.ClearTransforms();
@@ -658,7 +658,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 selectionEnd = getCharacterClosestTo(state.Mouse.Position);
                 if (selectionLength > 0)
-                    GetContainingInputManager().ChangeFocus(this);
+                    GetContainingInputContainer().ChangeFocus(this);
 
                 cursorAndLayout.Invalidate();
             }
