@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Linq;
 using osu.Framework.Input;
 using osu.Framework.MathUtils;
 using OpenTK;
@@ -247,6 +248,32 @@ namespace osu.Framework.Graphics.Containers
             return true;
         }
 
+        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
+        {
+            var pageUpPressed = state.Keyboard.Keys.Contains(Key.PageUp);
+            var pageDownPressed = state.Keyboard.Keys.Contains(Key.PageDown);
+            var homePressed = state.Keyboard.Keys.Contains(Key.Home);
+            var endPressed = state.Keyboard.Keys.Contains(Key.End);
+
+            if (IsDragging
+                || !pageUpPressed
+                && !pageDownPressed
+                && !homePressed
+                && !endPressed)
+                return base.OnKeyDown(state, args);
+
+            if (pageUpPressed)
+                ScrollTo(Current - displayableContent);
+            else if (pageDownPressed)
+                ScrollTo(Current + displayableContent);
+            else if (homePressed)
+                ScrollToTop();
+            else
+                ScrollToEnd();
+
+            return true;
+        }
+
         protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
         {
             if (IsDragging || args.Button != MouseButton.Left) return false;
@@ -342,6 +369,17 @@ namespace osu.Framework.Graphics.Containers
         }
 
         private void offset(float value, bool animated, double distanceDecay = float.PositiveInfinity) => scrollTo(target + value, animated, distanceDecay);
+
+        /// <summary>
+        /// Scroll to the top of available content.
+        /// </summary>
+        /// <param name="animated">Whether to animate the movement.</param>
+        /// <param name="allowDuringDrag">Whether we should interrupt a user's active drag.</param>
+        public void ScrollToTop(bool animated = true, bool allowDuringDrag = false)
+        {
+            if (!IsDragging || allowDuringDrag)
+                scrollTo(0, animated, DistanceDecayJump);
+        }
 
         /// <summary>
         /// Scroll to the end of available content.
