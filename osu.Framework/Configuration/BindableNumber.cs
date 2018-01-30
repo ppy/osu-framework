@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using OpenTK;
 
 namespace osu.Framework.Configuration
@@ -73,14 +74,17 @@ namespace osu.Framework.Configuration
             get { return base.Value; }
             set
             {
-                double doubleValue = Convert.ToDouble(clamp(value, MinValue, MaxValue));
-
                 if (Precision.CompareTo(DefaultPrecision) > 0)
+                {
+                    double doubleValue = Convert.ToDouble(clamp(value, MinValue, MaxValue));
                     doubleValue = Math.Round(doubleValue / Convert.ToDouble(Precision)) * Convert.ToDouble(Precision);
 
-                // ReSharper disable once PossibleNullReferenceException
-                // https://youtrack.jetbrains.com/issue/RIDER-12652
-                base.Value = (T)Convert.ChangeType(doubleValue, typeof(T));
+                    // ReSharper disable once PossibleNullReferenceException
+                    // https://youtrack.jetbrains.com/issue/RIDER-12652
+                    base.Value = (T)Convert.ChangeType(doubleValue, typeof(T), CultureInfo.InvariantCulture);
+                }
+                else
+                    base.Value = clamp(value, MinValue, MaxValue);
             }
         }
 

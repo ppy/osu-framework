@@ -20,21 +20,5 @@ namespace osu.Framework.Configuration
         }
 
         public override string ToString() => Value.ToString("0.0###", NumberFormatInfo.InvariantInfo);
-
-        /// <summary>
-        /// Parse an input into this instance.
-        /// </summary>
-        /// <param name="input">The input which is to be parsed.</param>
-        public override void Parse(object input)
-        {
-            if (!(input is string str))
-                throw new InvalidCastException($@"Input type {input.GetType()} could not be cast to a string for parsing");
-
-            var parsed = double.Parse(str, NumberFormatInfo.InvariantInfo);
-            if (parsed < MinValue || parsed > MaxValue)
-                throw new ArgumentOutOfRangeException($"Parsed number ({parsed}) is outside the valid range ({MinValue} - {MaxValue})");
-
-            Value = parsed;
-        }
     }
 }

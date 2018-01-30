@@ -37,6 +37,10 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="JetBrains.Annotations, Version=11.1.0.0, Culture=neutral, PublicKeyToken=1010a0d8d6380325, processorArchitecture=MSIL">
+      <HintPath>$(SolutionDir)\packages\JetBrains.Annotations.11.1.0\lib\net20\JetBrains.Annotations.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed">
       <HintPath>$(SolutionDir)\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
@@ -54,6 +58,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AutomatedVisualTestGame.cs" />
+    <Compile Include="Bindables\BindableBoolTest.cs" />
+    <Compile Include="Bindables\BindableDoubleTest.cs" />
+    <Compile Include="Bindables\BindableEnumTest.cs" />
+    <Compile Include="Bindables\BindableFloatTest.cs" />
+    <Compile Include="Bindables\BindableIntTest.cs" />
+    <Compile Include="Bindables\BindableLongTest.cs" />
+    <Compile Include="Bindables\BindableStringTest.cs" />
     <Compile Include="IO\TestSortedListSerialization.cs" />
     <Compile Include="IO\TestWebRequest.cs" />
     <Compile Include="Lists\TestArrayExtensions.cs" />
@@ -89,6 +100,7 @@
     <Compile Include="Visual\TestCaseHollowEdgeEffect.cs" />
     <Compile Include="Visual\TestCaseInputResampler.cs" />
     <Compile Include="Visual\TestCaseKeyBindings.cs" />
+    <Compile Include="Visual\TestCaseLayoutTransformRewinding.cs" />
     <Compile Include="Visual\TestCaseLocalisation.cs" />
     <Compile Include="Visual\TestCaseMasking.cs" />
     <Compile Include="Visual\TestCaseNestedHover.cs" />

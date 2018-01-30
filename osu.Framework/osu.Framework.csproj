@@ -40,6 +40,10 @@
     <Reference Include="Cyotek.Drawing.BitmapFont, Version=1.0.0.0, Culture=neutral, PublicKeyToken=58daa28b0b2de221">
       <HintPath>$(SolutionDir)\packages\Cyotek.Drawing.BitmapFont.1.3.4-beta1\lib\net46\Cyotek.Drawing.BitmapFont.dll</HintPath>
     </Reference>
+    <Reference Include="JetBrains.Annotations, Version=11.1.0.0, Culture=neutral, PublicKeyToken=1010a0d8d6380325, processorArchitecture=MSIL">
+      <HintPath>$(SolutionDir)\packages\JetBrains.Annotations.11.1.0\lib\net20\JetBrains.Annotations.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="ManagedBass, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)\packages\ManagedBass.2.0.3\lib\net45\ManagedBass.dll</HintPath>
     </Reference>
@@ -157,6 +161,7 @@
     <Compile Include="Configuration\FrameworkConfigManager.cs" />
     <Compile Include="Configuration\FrameworkDebugConfig.cs" />
     <Compile Include="Configuration\IConfigManager.cs" />
+    <Compile Include="Configuration\IniConfigManager.cs" />
     <Compile Include="Configuration\NonNullableBindable.cs" />
     <Compile Include="Configuration\Tracking\ITrackableConfigManager.cs" />
     <Compile Include="Configuration\Tracking\ITrackedSetting.cs" />

@@ -56,6 +56,11 @@ namespace osu.Framework.Input.Bindings
         /// </summary>
         protected virtual bool SendRepeats => false;
 
+        /// <summary>
+        /// Whether this <see cref="KeyBindingContainer"/> should attempt to handle input before any of its children.
+        /// </summary>
+        protected virtual bool Prioritised => false;
+
         protected override bool OnWheel(InputState state)
         {
             InputKey key = state.Mouse.WheelDelta > 0 ? InputKey.MouseWheelUp : InputKey.MouseWheelDown;
@@ -73,7 +78,15 @@ namespace osu.Framework.Input.Bindings
         {
             localQueue.Clear();
 
-            base.BuildKeyboardInputQueue(localQueue);
+            if (!base.BuildKeyboardInputQueue(localQueue))
+                return false;
+
+            if (Prioritised)
+            {
+                localQueue.Remove(this);
+                localQueue.Add(this);
+            }
+
             queue.AddRange(localQueue);
 
             localQueue.Reverse();

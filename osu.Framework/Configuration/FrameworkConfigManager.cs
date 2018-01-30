@@ -8,7 +8,7 @@ using osu.Framework.Platform;
 
 namespace osu.Framework.Configuration
 {
-    public class FrameworkConfigManager : ConfigManager<FrameworkSetting>
+    public class FrameworkConfigManager : IniConfigManager<FrameworkSetting>
     {
         protected override string Filename => @"framework.ini";
 

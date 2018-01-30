@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using osu.Framework.Lists;
 
 namespace osu.Framework.Configuration
@@ -122,12 +123,19 @@ namespace osu.Framework.Configuration
         /// <param name="input">The input which is to be parsed.</param>
         public virtual void Parse(object input)
         {
-            if (input is T)
-                Value = (T)input;
-            else if (typeof(T).IsEnum && input is string)
-                Value = (T)Enum.Parse(typeof(T), (string)input);
-            else
-                throw new ArgumentException($@"Could not parse provided {input.GetType()} ({input}) to {typeof(T)}.");
+            switch (input)
+            {
+                case T t:
+                    Value = t;
+                    break;
+                case string s:
+                    Value = typeof(T).IsEnum
+                        ? (T)Enum.Parse(typeof(T), s)
+                        : (T)Convert.ChangeType(s, typeof(T), CultureInfo.InvariantCulture);
+                    break;
+                default:
+                    throw new ArgumentException($@"Could not parse provided {input.GetType()} ({input}) to {typeof(T)}.");
+            }
         }
 
         /// <summary>

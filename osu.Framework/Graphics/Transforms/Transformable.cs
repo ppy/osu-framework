@@ -106,6 +106,9 @@ namespace osu.Framework.Graphics.Transforms
                     if (!t.Applied)
                         continue;
 
+                    if (!t.Rewindable)
+                        continue;
+
                     // Revert the transform's target to the transform's starting value, and mark that it hasn't been applied yet for future iterations
                     t.Apply(time);
                     t.Applied = false;
@@ -124,7 +127,7 @@ namespace osu.Framework.Graphics.Transforms
                     t.ReadIntoStartValue();
                     t.HasStartValue = true;
 
-                    if (RemoveCompletedTransforms)
+                    if (RemoveCompletedTransforms || !t.Rewindable)
                     {
                         // This is the first time we are updating this transform.
                         // We will find other still active transforms which act on the same target member and remove them.
@@ -150,7 +153,7 @@ namespace osu.Framework.Graphics.Transforms
 
                 if (t.EndTime <= time)
                 {
-                    if (RemoveCompletedTransforms)
+                    if (RemoveCompletedTransforms || !t.Rewindable)
                         transformsLazy.RemoveAt(i--);
 
                     if (t.IsLooping)
