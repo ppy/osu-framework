@@ -547,6 +547,10 @@ namespace osu.Framework.Graphics.Containers
             if (!base.Invalidate(invalidation, source, shallPropagate))
                 return false;
 
+            // Either ScreenSize OR ScreenPosition OR Colour
+            if ((invalidation & (Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.Colour)) > 0)
+                childMaskingRectangleBacking.Invalidate();
+
             if (!shallPropagate) return true;
 
             // This way of looping turns out to be slightly faster than a foreach
@@ -637,8 +641,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="j">The running index into the target List.</param>
         /// <param name="parentComposite">The <see cref="CompositeDrawable"/> whose children's DrawNodes to add.</param>
         /// <param name="target">The target list to fill with DrawNodes.</param>
-        /// <param name="maskingBounds">The masking bounds. Children lying outside of them should be ignored.</param>
-        private static void addFromComposite(int treeIndex, ref int j, CompositeDrawable parentComposite, List<DrawNode> target, RectangleF maskingBounds)
+        private static void addFromComposite(int treeIndex, ref int j, CompositeDrawable parentComposite, List<DrawNode> target)
         {
             SortedList<Drawable> current = parentComposite.aliveInternalChildren;
             // ReSharper disable once ForCanBeConvertedToForeach
@@ -662,22 +665,16 @@ namespace osu.Framework.Graphics.Containers
                 CompositeDrawable composite = drawable as CompositeDrawable;
                 if (composite?.CanBeFlattened == true)
                 {
-                    // The masking check is overly expensive (requires creation of ScreenSpaceDrawQuad)
-                    // when only few children exist.
-                    composite.IsMaskedAway = composite.AliveInternalChildren.Count >= amount_children_required_for_masking_check &&
-                                             !maskingBounds.IntersectsWith(drawable.ScreenSpaceDrawQuad.AABBFloat);
-
                     if (!composite.IsMaskedAway)
-                        addFromComposite(treeIndex, ref j, composite, target, maskingBounds);
+                        addFromComposite(treeIndex, ref j, composite, target);
 
                     continue;
                 }
 
-                drawable.IsMaskedAway = !maskingBounds.IntersectsWith(drawable.ScreenSpaceDrawQuad.AABBFloat);
                 if (drawable.IsMaskedAway)
                     continue;
 
-                DrawNode next = drawable.GenerateDrawNodeSubtree(treeIndex, maskingBounds);
+                DrawNode next = drawable.GenerateDrawNodeSubtree(treeIndex);
                 if (next == null)
                     continue;
 
@@ -690,23 +687,15 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        internal sealed override DrawNode GenerateDrawNodeSubtree(int treeIndex, RectangleF bounds)
+        internal sealed override DrawNode GenerateDrawNodeSubtree(int treeIndex)
         {
             // No need for a draw node at all if there are no children and we are not glowing.
             if (aliveInternalChildren.Count == 0 && CanBeFlattened)
                 return null;
 
-            CompositeDrawNode cNode = base.GenerateDrawNodeSubtree(treeIndex, bounds) as CompositeDrawNode;
+            CompositeDrawNode cNode = base.GenerateDrawNodeSubtree(treeIndex) as CompositeDrawNode;
             if (cNode == null)
                 return null;
-
-            RectangleF childBounds = bounds;
-            // If we are going to render a buffered container we need to make sure no children get masked away,
-            // even if they are off-screen.
-            if (this is IBufferedContainer)
-                childBounds = ScreenSpaceDrawQuad.AABBFloat;
-            else if (Masking)
-                childBounds.Intersect(ScreenSpaceDrawQuad.AABBFloat);
 
             if (cNode.Children == null)
                 cNode.Children = new List<DrawNode>(aliveInternalChildren.Count);
@@ -714,7 +703,7 @@ namespace osu.Framework.Graphics.Containers
             List<DrawNode> target = cNode.Children;
 
             int j = 0;
-            addFromComposite(treeIndex, ref j, this, target, childBounds);
+            addFromComposite(treeIndex, ref j, this, target);
 
             if (j < target.Count)
                 target.RemoveRange(j, target.Count - j);
@@ -882,6 +871,40 @@ namespace osu.Framework.Graphics.Containers
         #endregion
 
         #region Masking and related effects (e.g. round corners)
+
+        internal override bool ComputeIsMaskedAway(RectangleF maskingBounds)
+        {
+            if (!CanBeFlattened)
+                return base.ComputeIsMaskedAway(maskingBounds);
+
+            // This masking check is overly expensive (requires creation of ScreenSpaceDrawQuad) when only few children exist
+            return AliveInternalChildren.Count >= amount_children_required_for_masking_check && base.ComputeIsMaskedAway(maskingBounds);
+        }
+
+        private Cached<RectangleF> childMaskingRectangleBacking;
+
+        /// <summary>
+        /// The screen-space <see cref="RectangleF"/> which child <see cref="Drawable"/>s perform masking checks against.
+        /// </summary>
+        internal RectangleF ChildMaskingRectangle =>
+            childMaskingRectangleBacking.IsValid
+                ? childMaskingRectangleBacking.Value
+                : (childMaskingRectangleBacking.Value = ComputeChildMaskingRectangle());
+
+        /// <summary>
+        /// Compute the screen-space <see cref="RectangleF"/> for child <see cref="Drawable"/>s to perform masking checks against.
+        /// </summary>
+        protected virtual RectangleF ComputeChildMaskingRectangle()
+        {
+            if (Parent == null)
+                return ScreenSpaceDrawQuad.AABBFloat;
+
+            var localRectangle = Parent.ChildMaskingRectangle;
+            if (Masking)
+                localRectangle.Intersect(ScreenSpaceDrawQuad.AABBFloat);
+
+            return localRectangle;
+        }
 
         private bool masking;
 
@@ -1334,7 +1357,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         private void autoSizeResizeTo(Vector2 newSize, double duration = 0, Easing easing = Easing.None) =>
-            this.TransformTo(nameof(baseSize), newSize, duration, easing);
+            this.TransformTo(this.PopulateTransform(new AutoSizeTransform { Rewindable = false }, newSize, duration, easing));
 
         /// <summary>
         /// A helper property for <see cref="autoSizeResizeTo(Vector2, double, Easing)"/> to change the size of <see cref="CompositeDrawable"/>s with <see cref="AutoSizeAxes"/>.
@@ -1347,6 +1370,14 @@ namespace osu.Framework.Graphics.Containers
             {
                 base.Width = value.X;
                 base.Height = value.Y;
+            }
+        }
+
+        private class AutoSizeTransform : TransformCustom<Vector2, CompositeDrawable>
+        {
+            public AutoSizeTransform()
+                : base(nameof(baseSize))
+            {
             }
         }
 
