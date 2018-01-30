@@ -18,6 +18,8 @@ namespace osu.Framework.Input
             new KeyBinding(new[] { InputKey.Alt, InputKey.Enter }, FrameworkAction.ToggleFullscreen),
         };
 
+        protected override bool Prioritised => true;
+
         protected override IEnumerable<Drawable> KeyBindingInputQueue => new[] { Child }.Concat(base.KeyBindingInputQueue);
     }
 
