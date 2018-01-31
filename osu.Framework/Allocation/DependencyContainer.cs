@@ -20,7 +20,6 @@ namespace osu.Framework.Allocation
 
         private readonly ConcurrentDictionary<Type, ObjectActivator> activators = new ConcurrentDictionary<Type, ObjectActivator>();
         private readonly ConcurrentDictionary<Type, object> cache = new ConcurrentDictionary<Type, object>();
-        private readonly HashSet<Type> cacheable = new HashSet<Type>();
 
         private readonly IReadOnlyDependencyContainer parentContainer;
 
@@ -126,17 +125,25 @@ namespace osu.Framework.Allocation
         }
 
         /// <summary>
-        /// Caches an instance of a type. This instance will be returned each time you <see cref="Get(Type)"/>.
+        /// Caches an instance of a type as its most derived type. This instance will be returned each time you <see cref="Get(Type)"/>.
         /// </summary>
-        public T Cache<T>(T instance = null, bool overwrite = false) where T : class
+        /// <param name="instance">The instance to cache.</param>
+        public void Cache<T>(T instance)
+            where T : class
         {
-            if (!overwrite && cache.ContainsKey(typeof(T)))
-                throw new InvalidOperationException($@"Type {typeof(T).FullName} is already cached");
-            if (instance == null)
-                instance = this.Get<T>();
-            cacheable.Add(typeof(T));
-            cache[typeof(T)] = instance;
-            return instance;
+            if (instance == null)　throw new ArgumentNullException(nameof(instance));
+
+            cache[instance.GetType()] = instance;
+        }
+
+        /// <summary>
+        /// Caches an instance of a type as a type of <typeparamref name="T"/>. This instance will be returned each time you <see cref="Get(Type)"/>.
+        /// </summary>
+        /// <param name="instance">The instance to cache. Must be or derive from <typeparamref name="T"/>.</param>
+        public void CacheAs<T>(T instance)
+            where T : class
+        {
+            cache[typeof(T)] = instance ?? throw new ArgumentNullException(nameof(instance));
         }
 
         /// <summary>

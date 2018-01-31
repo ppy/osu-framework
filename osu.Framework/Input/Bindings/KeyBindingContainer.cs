@@ -56,6 +56,11 @@ namespace osu.Framework.Input.Bindings
         /// </summary>
         protected virtual bool SendRepeats => false;
 
+        /// <summary>
+        /// Whether this <see cref="KeyBindingContainer"/> should attempt to handle input before any of its children.
+        /// </summary>
+        protected virtual bool Prioritised => false;
+
         protected override bool OnWheel(InputState state)
         {
             InputKey key = state.Mouse.WheelDelta > 0 ? InputKey.MouseWheelUp : InputKey.MouseWheelDown;
@@ -73,7 +78,15 @@ namespace osu.Framework.Input.Bindings
         {
             localQueue.Clear();
 
-            base.BuildKeyboardInputQueue(localQueue);
+            if (!base.BuildKeyboardInputQueue(localQueue))
+                return false;
+
+            if (Prioritised)
+            {
+                localQueue.Remove(this);
+                localQueue.Add(this);
+            }
+
             queue.AddRange(localQueue);
 
             localQueue.Reverse();
@@ -186,7 +199,7 @@ namespace osu.Framework.Input.Bindings
             // we either want multiple release events due to the simultaneous mode, or we only want one when we
             // - were pressed (as an action)
             // - are the last pressed binding with this action
-            if (simultaneousMode == SimultaneousBindingMode.All || pressedActions.Contains(released) && pressedBindings.All(b => !b.Action.Equals(released)))
+            if (simultaneousMode == SimultaneousBindingMode.All || pressedActions.Contains(released) && pressedBindings.All(b => !b.GetAction<T>().Equals(released)))
             {
                 handled = drawables.OfType<IKeyBindingHandler<T>>().FirstOrDefault(d => d.OnReleased(released));
                 pressedActions.Remove(released);

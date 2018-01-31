@@ -2,8 +2,8 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.MathUtils;
-using System.Collections.Generic;
 using System;
+using System.Collections.Concurrent;
 using System.Reflection.Emit;
 using osu.Framework.Extensions.TypeExtensions;
 using System.Reflection;
@@ -30,7 +30,7 @@ namespace osu.Framework.Graphics.Transforms
             public WriteFunc Write;
         }
 
-        private static readonly Dictionary<string, Accessor> accessors = new Dictionary<string, Accessor>();
+        private static readonly ConcurrentDictionary<string, Accessor> accessors = new ConcurrentDictionary<string, Accessor>();
         private static readonly InterpolationFunc<TValue> interpolation_func;
 
         static TransformCustom()
@@ -122,16 +122,7 @@ namespace osu.Framework.Graphics.Transforms
             return findAccessor(type.BaseType, propertyOrFieldName);
         }
 
-        private static Accessor getAccessor(string propertyOrFieldName)
-        {
-            Accessor result;
-            if (accessors.TryGetValue(propertyOrFieldName, out result))
-                return result;
-
-            result = findAccessor(typeof(T), propertyOrFieldName);
-            accessors.Add(propertyOrFieldName, result);
-            return result;
-        }
+        private static Accessor getAccessor(string propertyOrFieldName) => accessors.GetOrAdd(propertyOrFieldName, _ => findAccessor(typeof(T), propertyOrFieldName));
 
         private readonly Accessor accessor;
         private readonly InterpolationFunc<TValue> interpolationFunc;

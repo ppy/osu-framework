@@ -164,7 +164,7 @@ namespace osu.Framework.Graphics
 
         /// <summary>
         /// Contains all dependencies that can be injected into this Drawable using <see cref="BackgroundDependencyLoader"/>.
-        /// Add or override dependencies by calling <see cref="DependencyContainer.Cache{T}(T, bool)"/>.
+        /// Add or override dependencies by calling <see cref="DependencyContainer.Cache{T}(T)"/>.
         /// </summary>
         public IReadOnlyDependencyContainer Dependencies { get; private set; }
 
@@ -1319,12 +1319,23 @@ namespace osu.Framework.Graphics
 
         #region Caching & invalidation (for things too expensive to compute every frame)
 
+        private Cached<bool> isMaskedAwayBacking;
+
         /// <summary>
-        /// Was this Drawable masked away completely during the last frame?
-        /// This is measured conservatively, i.e. it is only true when the Drawable was
-        /// actually masked away, but it may be false, even if the Drawable was masked away.
+        /// Whether this <see cref="Drawable"/> is currently masked away.
+        /// This is measured conservatively based on the AABB of this <see cref="Drawable"/>
+        /// and may be false even if it is visually fully masked away.
         /// </summary>
-        internal bool IsMaskedAway;
+        internal bool IsMaskedAway =>
+            isMaskedAwayBacking.IsValid
+                ? isMaskedAwayBacking.Value
+                : (isMaskedAwayBacking.Value = Parent != null && ComputeIsMaskedAway(Parent.ChildMaskingRectangle));
+
+        /// <summary>
+        /// Computes whether this <see cref="Drawable"/> is currently masked away, based on the <see cref="Parent"/>'s <see cref="CompositeDrawable.ChildMaskingRectangle"/>.
+        /// </summary>
+        /// <param name="maskingRectangle">The current masking rectangle.</param>
+        internal virtual bool ComputeIsMaskedAway(RectangleF maskingRectangle) => !maskingRectangle.IntersectsWith(ScreenSpaceDrawQuad.AABBFloat);
 
         private Cached<Quad> screenSpaceDrawQuadBacking;
 
@@ -1474,6 +1485,7 @@ namespace osu.Framework.Graphics
                 alreadyInvalidated &= !screenSpaceDrawQuadBacking.Invalidate();
                 alreadyInvalidated &= !drawInfoBacking.Invalidate();
                 alreadyInvalidated &= !drawSizeBacking.Invalidate();
+                alreadyInvalidated &= !isMaskedAwayBacking.Invalidate();
             }
 
             if (!alreadyInvalidated || (invalidation & Invalidation.DrawNode) > 0)
@@ -1507,7 +1519,7 @@ namespace osu.Framework.Graphics
         /// Generates the DrawNode for ourselves.
         /// </summary>
         /// <returns>A complete and updated DrawNode, or null if the DrawNode would be invisible.</returns>
-        internal virtual DrawNode GenerateDrawNodeSubtree(int treeIndex, RectangleF bounds)
+        internal virtual DrawNode GenerateDrawNodeSubtree(int treeIndex)
         {
             DrawNode node = drawNodes[treeIndex];
             if (node == null)
