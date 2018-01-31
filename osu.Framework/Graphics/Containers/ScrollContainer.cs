@@ -250,28 +250,27 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
-            var pageUpPressed = state.Keyboard.Keys.Contains(Key.PageUp);
-            var pageDownPressed = state.Keyboard.Keys.Contains(Key.PageDown);
-            var homePressed = state.Keyboard.Keys.Contains(Key.Home);
-            var endPressed = state.Keyboard.Keys.Contains(Key.End);
-
-            if (IsDragging
-                || !pageUpPressed
-                && !pageDownPressed
-                && !homePressed
-                && !endPressed)
+            if (IsDragging)
                 return base.OnKeyDown(state, args);
 
-            if (pageUpPressed)
-                ScrollTo(target - displayableContent);
-            else if (pageDownPressed)
-                ScrollTo(target + displayableContent);
-            else if (homePressed)
-                ScrollToTop();
-            else
-                ScrollToEnd();
-
-            return true;
+            var key = state.Keyboard.Keys.Last();
+            switch (key)
+            {
+                case Key.PageUp:
+                    ScrollTo(target - displayableContent);
+                    return true;
+                case Key.PageDown:
+                    ScrollTo(target + displayableContent);
+                    return true;
+                case Key.Home:
+                    ScrollToTop();
+                    return true;
+                case Key.End:
+                    ScrollToEnd();
+                    return true;
+                default:
+                    return base.OnKeyDown(state, args);
+            }
         }
 
         protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
