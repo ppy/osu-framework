@@ -90,6 +90,30 @@ namespace osu.Framework.Localisation
             return bindable;
         }
 
+        public Bindable<string> GetBindableFor(LocalisableString localisable)
+        {
+            var bindable = new Bindable<string>(localisable.Text);
+
+            localisable.Args.ValueChanged += argsChanged;
+            localisable.Text.ValueChanged += textChanged;
+            localisable.Type.ValueChanged += typeChanged;
+
+            if ((localisable.Type & LocalisationType.UnicodePreference) > 0)
+            {
+                
+            }
+
+            if ((localisable.Type & LocalisationType.Localised) > 0)
+            {
+
+            }
+
+            if ((localisable.Type & LocalisationType.Formatted) > 0)
+            {
+
+            }
+        }
+
         protected virtual string GetLocalised(string key) => current.Get(key);
 
         private void checkLocale(string newValue)

@@ -14,7 +14,6 @@ using osu.Framework.Localisation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 
 namespace osu.Framework.Graphics.Sprites
 {
@@ -159,31 +158,15 @@ namespace osu.Framework.Graphics.Sprites
             this.store = store;
             localisationEngine = localisation;
 
-            updateLocalisation();
-
             spaceWidth = CreateCharacterDrawable('.')?.DrawWidth * 2 ?? default_text_size;
 
             validateLayout();
         }
 
+        private string text;
         private LocalisationEngine localisationEngine;
-        private Bindable<string> textBindable;
-        private string text = string.Empty;
-        private string unicodeFallback;
-        private object[] formatObjects;
-        private LocalisationType localisation;
 
-        public string Text
-        {
-            get => text;
-            set
-            {
-                setText(value);
-
-                if (IsLoaded)
-                    updateLocalisation();
-            }
-        }
+        public LocalisableString Text { get; set; }
 
         private void setText(string newText)
         {
@@ -192,99 +175,6 @@ namespace osu.Framework.Graphics.Sprites
 
             text = newText ?? string.Empty;
             layout.Invalidate();
-        }
-
-        public string UnicodeFallback
-        {
-            get => unicodeFallback;
-            set
-            {
-                if (unicodeFallback == value)
-                    return;
-
-                unicodeFallback = value;
-
-                if (IsLoaded)
-                    updateLocalisation();
-            }
-        }
-
-        public object[] FormatObjects
-        {
-            get => formatObjects;
-            set
-            {
-                if (formatObjects?.SequenceEqual(value) == true)
-                    return;
-
-                formatObjects = value;
-
-                if (IsLoaded)
-                    updateLocalisation();
-            }
-        }
-
-        public LocalisationType Localisation
-        {
-            get => localisation;
-            set
-            {
-                if (localisation == value)
-                    return;
-
-                localisation = value;
-
-                if (IsLoaded)
-                    updateLocalisation();
-            }
-        }
-
-        private void updateLocalisation()
-        {
-            try
-            {
-                switch (Localisation)
-                {
-                    case LocalisationType.None:
-                        setText(text);
-                        break;
-                    case LocalisationType.UnicodePreference:
-                        updateBindable(localisationEngine.GetUnicodePreference(text, unicodeFallback));
-                        break;
-                    case LocalisationType.Localised:
-                        updateBindable(localisationEngine.GetLocalisedString(text));
-                        break;
-                    case LocalisationType.Formatted:
-                        var formattable = FormattableStringFactory.Create(text, formatObjects);
-                        updateBindable(localisationEngine.Format(formattable));
-                        break;
-                    case LocalisationType.FormattedLocalised:
-                        updateBindable(localisationEngine.FormatVariant(text, formatObjects));
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException(nameof(Localisation));
-                }
-            }
-            // we don't want to crash if a localised string fails the formatting
-            catch (FormatException)
-            {
-                setText(null);
-                updateBindable(null);
-            }
-        }
-
-        private void updateBindable(Bindable<string> newBindable)
-        {
-            if (textBindable != null)
-                textBindable.ValueChanged -= setText;
-
-            if (newBindable != null)
-            {
-                newBindable.ValueChanged += setText;
-                newBindable.TriggerChange();
-            }
-
-            textBindable = newBindable;
         }
 
         private float? constantWidth;
