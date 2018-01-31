@@ -263,9 +263,9 @@ namespace osu.Framework.Graphics.Containers
                 return base.OnKeyDown(state, args);
 
             if (pageUpPressed)
-                ScrollTo(Current - displayableContent);
+                ScrollTo(target - displayableContent);
             else if (pageDownPressed)
-                ScrollTo(Current + displayableContent);
+                ScrollTo(target + displayableContent);
             else if (homePressed)
                 ScrollToTop();
             else
