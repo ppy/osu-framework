@@ -24,10 +24,28 @@ namespace osu.Framework.Graphics.UserInterface
 
         public float UsableWidth => DrawWidth - 2 * RangePadding;
 
+
+        private float smallKeyboardStep;
+        private float defaultSmallKeyboardStep => (Convert.ToSingle(CurrentNumber.MaxValue) - Convert.ToSingle(CurrentNumber.MinValue)) / 20;
         /// <summary>
-        /// A custom step value for each key press which actuates a change on this control.
+        /// A custom step value for each Left/Right key press which actuates a change on this control.
         /// </summary>
-        public float KeyboardStep;
+        public float SmallKeyboardStep
+        {
+            get => smallKeyboardStep != default(float) ? smallKeyboardStep : defaultSmallKeyboardStep;
+            set => smallKeyboardStep = value;
+        }
+
+        private float largeKeyboardStep;
+        private float defaultLargeKeyboardStep => (Convert.ToSingle(CurrentNumber.MaxValue) - Convert.ToSingle(CurrentNumber.MinValue)) / 4;
+        /// <summary>
+        /// A custom step value for each PgUp/PgDn key press which actuates a change on this control.
+        /// </summary>
+        public float LargeKeyboardStep
+        {
+            get => largeKeyboardStep != default(float) ? largeKeyboardStep : defaultLargeKeyboardStep;
+            set => largeKeyboardStep = value;
+        }
 
         protected readonly BindableNumber<T> CurrentNumber;
 
@@ -113,7 +131,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (!IsHovered || CurrentNumber.Disabled)
                 return false;
 
-            var step = KeyboardStep != 0 ? KeyboardStep : (Convert.ToSingle(CurrentNumber.MaxValue) - Convert.ToSingle(CurrentNumber.MinValue)) / 20;
+            var step = SmallKeyboardStep;
             if (CurrentNumber.IsInteger) step = (float)Math.Ceiling(step);
 
             switch (args.Key)
@@ -136,7 +154,7 @@ namespace osu.Framework.Graphics.UserInterface
             var xPosition = ToLocalSpace(state?.Mouse.NativeState.Position ?? Vector2.Zero).X - RangePadding;
 
             if (!CurrentNumber.Disabled)
-                CurrentNumber.SetProportional(xPosition / UsableWidth, state != null && state.Keyboard.ShiftPressed ? KeyboardStep : 0);
+                CurrentNumber.SetProportional(xPosition / UsableWidth, state != null && state.Keyboard.ShiftPressed ? SmallKeyboardStep : 0);
 
             OnUserChange();
         }
