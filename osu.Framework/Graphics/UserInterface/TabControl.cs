@@ -252,6 +252,31 @@ namespace osu.Framework.Graphics.UserInterface
             Current.Value = SelectedTab.Value;
         }
 
+        public virtual void SwitchTab(int offset, bool wrap = true)
+        {
+            TabItem<T>[] switchableTabs = TabContainer.Children.Where(tab => tab.IsSwitchable).ToArray();
+            int tabCount = switchableTabs.Count();
+
+            if (tabCount == 0)
+                return;
+            
+            if (tabCount == 1 || SelectedTab == null)
+            {
+                SelectTab(switchableTabs[0]);
+                return;
+            }
+
+            int selectedIndex = Array.IndexOf(switchableTabs, SelectedTab);
+            int targetIndex = selectedIndex - offset;
+
+            if (wrap)
+                targetIndex = targetIndex < 0 ? (tabCount - (-targetIndex % tabCount)) : targetIndex % tabCount;
+
+            targetIndex = Math.Min(tabCount - 1, Math.Max(0, targetIndex));
+
+            SelectTab(switchableTabs[targetIndex]);
+        }
+
         private void performTabSort(TabItem<T> tab)
         {
             if (IsLoaded)

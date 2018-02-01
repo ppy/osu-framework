@@ -26,6 +26,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         public override bool IsRemovable => false;
 
+        public virtual bool IsSwitchable => true;
+
         public readonly T Value;
 
         protected TabItem(T value)
