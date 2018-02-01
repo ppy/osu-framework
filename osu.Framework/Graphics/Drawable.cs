@@ -1338,7 +1338,7 @@ namespace osu.Framework.Graphics
         /// This is measured conservatively, i.e. it is only true when the Drawable was
         /// actually masked away, but it may be false, even if the Drawable was masked away.
         /// </summary>
-        internal bool IsMaskedAway;
+        internal bool IsMaskedAway { get; private set; }
 
         private Cached<Quad> screenSpaceDrawQuadBacking;
 
