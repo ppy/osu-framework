@@ -24,7 +24,6 @@ namespace osu.Framework.Graphics.UserInterface
 
         public float UsableWidth => DrawWidth - 2 * RangePadding;
 
-
         private float smallKeyboardStep;
         private float defaultSmallKeyboardStep => (Convert.ToSingle(CurrentNumber.MaxValue) - Convert.ToSingle(CurrentNumber.MinValue)) / 20;
         /// <summary>
@@ -131,21 +130,34 @@ namespace osu.Framework.Graphics.UserInterface
             if (!IsHovered || CurrentNumber.Disabled)
                 return false;
 
-            var step = SmallKeyboardStep;
-            if (CurrentNumber.IsInteger) step = (float)Math.Ceiling(step);
-
             switch (args.Key)
             {
                 case Key.Right:
-                    CurrentNumber.Add(step);
-                    OnUserChange();
-                    return true;
+                    CurrentNumber.Add(CurrentNumber.IsInteger ? (float)Math.Ceiling(SmallKeyboardStep) : SmallKeyboardStep);
+                    return OnInputHandled();
                 case Key.Left:
-                    CurrentNumber.Add(-step);
-                    OnUserChange();
-                    return true;
+                    CurrentNumber.Add(CurrentNumber.IsInteger ? -(float)Math.Ceiling(SmallKeyboardStep) : -SmallKeyboardStep);
+                    return OnInputHandled();
+                case Key.PageUp:
+                    CurrentNumber.Add(CurrentNumber.IsInteger ? (float)Math.Ceiling(LargeKeyboardStep) : LargeKeyboardStep);
+                    return OnInputHandled();
+                case Key.PageDown:
+                    CurrentNumber.Add(CurrentNumber.IsInteger ? -(float)Math.Ceiling(LargeKeyboardStep) : -LargeKeyboardStep);
+                    return OnInputHandled();
+                case Key.Home:
+                    CurrentNumber.Value = CurrentNumber.MinValue;
+                    return OnInputHandled();
+                case Key.End:
+                    CurrentNumber.Value = CurrentNumber.MaxValue;
+                    return OnInputHandled();
                 default:
                     return false;
+            }
+
+            bool OnInputHandled()
+            {
+                OnUserChange();
+                return true;
             }
         }
 
