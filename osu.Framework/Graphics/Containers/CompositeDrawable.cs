@@ -502,6 +502,46 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
+        /// Updates all masking calculations for this <see cref="CompositeDrawable"/> and its <see cref="AliveInternalChildren"/>.
+        /// This occurs post-<see cref="UpdateSubTree"/> to ensure that all <see cref="Drawable"/> updates have taken place.
+        /// </summary>
+        /// <param name="maskingBounds">The <see cref="RectangleF"/> that defines the masking bounds.</param>
+        public override void UpdateSubTreeMasking(RectangleF maskingBounds)
+        {
+            base.UpdateSubTreeMasking(maskingBounds);
+
+            if (IsMaskedAway)
+                return;
+
+            if (aliveInternalChildren.Count == 0)
+                return;
+
+            var childMaskingBounds = ComputeChildMaskingBounds(maskingBounds);
+
+            // We iterate by index to gain performance
+            // ReSharper disable once ForCanBeConvertedToForeach
+            for (int i = 0; i < aliveInternalChildren.Count; i++)
+                aliveInternalChildren[i].UpdateSubTreeMasking(childMaskingBounds);
+        }
+
+        protected override bool ComputeIsMaskedAway(RectangleF maskingBounds)
+        {
+            if (!CanBeFlattened)
+                return base.ComputeIsMaskedAway(maskingBounds);
+
+            // The masking check is overly expensive (requires creation of ScreenSpaceDrawQuad)
+            // when only few children exist.
+            return aliveInternalChildren.Count >= amount_children_required_for_masking_check && base.ComputeIsMaskedAway(maskingBounds);
+        }
+
+        /// <summary>
+        /// Computes the <see cref="RectangleF"/> to be used as the masking bounds for all <see cref="AliveInternalChildren"/>.
+        /// </summary>
+        /// <param name="maskingBounds">The <see cref="RectangleF"/> that defines the masking bounds for this <see cref="CompositeDrawable"/>.</param>
+        /// <returns>The <see cref="RectangleF"/> to be used as the masking bounds for <see cref="AliveInternalChildren"/>.</returns>
+        protected virtual RectangleF ComputeChildMaskingBounds(RectangleF maskingBounds) => Masking ? RectangleF.Intersect(maskingBounds, ScreenSpaceDrawQuad.AABBFloat) : maskingBounds;
+
+        /// <summary>
         /// Invoked after <see cref="UpdateChildrenLife"/> and <see cref="Drawable.IsPresent"/> state checks have taken place,
         /// but before <see cref="Drawable.UpdateSubTree"/> is invoked for all <see cref="InternalChildren"/>.
         /// This occurs after <see cref="Drawable.Update"/> has been invoked on this <see cref="CompositeDrawable"/>
@@ -637,8 +677,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="j">The running index into the target List.</param>
         /// <param name="parentComposite">The <see cref="CompositeDrawable"/> whose children's DrawNodes to add.</param>
         /// <param name="target">The target list to fill with DrawNodes.</param>
-        /// <param name="maskingBounds">The masking bounds. Children lying outside of them should be ignored.</param>
-        private static void addFromComposite(int treeIndex, ref int j, CompositeDrawable parentComposite, List<DrawNode> target, RectangleF maskingBounds)
+        private static void addFromComposite(int treeIndex, ref int j, CompositeDrawable parentComposite, List<DrawNode> target)
         {
             SortedList<Drawable> current = parentComposite.aliveInternalChildren;
             // ReSharper disable once ForCanBeConvertedToForeach
@@ -662,22 +701,16 @@ namespace osu.Framework.Graphics.Containers
                 CompositeDrawable composite = drawable as CompositeDrawable;
                 if (composite?.CanBeFlattened == true)
                 {
-                    // The masking check is overly expensive (requires creation of ScreenSpaceDrawQuad)
-                    // when only few children exist.
-                    composite.IsMaskedAway = composite.AliveInternalChildren.Count >= amount_children_required_for_masking_check &&
-                                             !maskingBounds.IntersectsWith(drawable.ScreenSpaceDrawQuad.AABBFloat);
-
                     if (!composite.IsMaskedAway)
-                        addFromComposite(treeIndex, ref j, composite, target, maskingBounds);
+                        addFromComposite(treeIndex, ref j, composite, target);
 
                     continue;
                 }
 
-                drawable.IsMaskedAway = !maskingBounds.IntersectsWith(drawable.ScreenSpaceDrawQuad.AABBFloat);
                 if (drawable.IsMaskedAway)
                     continue;
 
-                DrawNode next = drawable.GenerateDrawNodeSubtree(treeIndex, maskingBounds);
+                DrawNode next = drawable.GenerateDrawNodeSubtree(treeIndex);
                 if (next == null)
                     continue;
 
@@ -690,23 +723,15 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        internal sealed override DrawNode GenerateDrawNodeSubtree(int treeIndex, RectangleF bounds)
+        internal sealed override DrawNode GenerateDrawNodeSubtree(int treeIndex)
         {
             // No need for a draw node at all if there are no children and we are not glowing.
             if (aliveInternalChildren.Count == 0 && CanBeFlattened)
                 return null;
 
-            CompositeDrawNode cNode = base.GenerateDrawNodeSubtree(treeIndex, bounds) as CompositeDrawNode;
+            CompositeDrawNode cNode = base.GenerateDrawNodeSubtree(treeIndex) as CompositeDrawNode;
             if (cNode == null)
                 return null;
-
-            RectangleF childBounds = bounds;
-            // If we are going to render a buffered container we need to make sure no children get masked away,
-            // even if they are off-screen.
-            if (this is IBufferedContainer)
-                childBounds = ScreenSpaceDrawQuad.AABBFloat;
-            else if (Masking)
-                childBounds.Intersect(ScreenSpaceDrawQuad.AABBFloat);
 
             if (cNode.Children == null)
                 cNode.Children = new List<DrawNode>(aliveInternalChildren.Count);
@@ -714,7 +739,7 @@ namespace osu.Framework.Graphics.Containers
             List<DrawNode> target = cNode.Children;
 
             int j = 0;
-            addFromComposite(treeIndex, ref j, this, target, childBounds);
+            addFromComposite(treeIndex, ref j, this, target);
 
             if (j < target.Count)
                 target.RemoveRange(j, target.Count - j);

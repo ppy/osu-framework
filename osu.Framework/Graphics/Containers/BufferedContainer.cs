@@ -323,6 +323,8 @@ namespace osu.Framework.Graphics.Containers
             attachedFormats.Add(format);
         }
 
+        protected override RectangleF ComputeChildMaskingBounds(RectangleF maskingBounds) => ScreenSpaceDrawQuad.AABBFloat; // Make sure children never get masked away
+
         protected override void Update()
         {
             // Invalidate drawn frame buffer every frame.

@@ -358,6 +358,20 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
+        /// Updates all masking calculations for this <see cref="Drawable"/>.
+        /// This occurs post-<see cref="UpdateSubTree"/> to ensure that all <see cref="Drawable"/> updates have taken place.
+        /// </summary>
+        /// <param name="maskingBounds">The <see cref="RectangleF"/> that defines the masking bounds.</param>
+        public virtual void UpdateSubTreeMasking(RectangleF maskingBounds) => IsMaskedAway = ComputeIsMaskedAway(maskingBounds);
+
+        /// <summary>
+        /// Computes whether this <see cref="Drawable"/> is masked away.
+        /// </summary>
+        /// <param name="maskingBounds">The <see cref="RectangleF"/> that defines the masking bounds.</param>
+        /// <returns>Whether this <see cref="Drawable"/> is currently masked away.</returns>
+        protected virtual bool ComputeIsMaskedAway(RectangleF maskingBounds) => !maskingBounds.IntersectsWith(ScreenSpaceDrawQuad.AABBFloat);
+
+        /// <summary>
         /// Performs a once-per-frame update specific to this Drawable. A more elegant alternative to
         /// <see cref="OnUpdate"/> when deriving from <see cref="Drawable"/>. Note, that this
         /// method is always called before Drawables further down the scene graph are updated.
@@ -1507,7 +1521,7 @@ namespace osu.Framework.Graphics
         /// Generates the DrawNode for ourselves.
         /// </summary>
         /// <returns>A complete and updated DrawNode, or null if the DrawNode would be invisible.</returns>
-        internal virtual DrawNode GenerateDrawNodeSubtree(int treeIndex, RectangleF bounds)
+        internal virtual DrawNode GenerateDrawNodeSubtree(int treeIndex)
         {
             DrawNode node = drawNodes[treeIndex];
             if (node == null)
