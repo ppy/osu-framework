@@ -616,6 +616,8 @@ namespace osu.Framework.Platform
             new KeyBinding(InputKey.End, new PlatformAction(PlatformActionType.LineEnd, PlatformActionMethod.Move)),
             new KeyBinding(new KeyCombination(new[] { InputKey.Shift, InputKey.Home }), new PlatformAction(PlatformActionType.LineStart, PlatformActionMethod.Select)),
             new KeyBinding(new KeyCombination(new[] { InputKey.Shift, InputKey.End }), new PlatformAction(PlatformActionType.LineEnd, PlatformActionMethod.Select)),
+            new KeyBinding(new KeyCombination(new[] { InputKey.Control, InputKey.PageUp }), new PlatformAction(PlatformActionType.DocumentPrevious)),
+            new KeyBinding(new KeyCombination(new[] { InputKey.Control, InputKey.PageDown }), new PlatformAction(PlatformActionType.DocumentNext)),
         };
     }
 }
