@@ -270,7 +270,11 @@ namespace osu.Framework.Graphics.UserInterface
             int targetIndex = selectedIndex - offset;
 
             if (wrap)
-                targetIndex = targetIndex < 0 ? tabCount - (-targetIndex % tabCount) : targetIndex % tabCount;
+            {
+                targetIndex = targetIndex % tabCount;
+                if (targetIndex < 0)
+                    targetIndex += tabCount;
+            }
 
             targetIndex = Math.Min(tabCount - 1, Math.Max(0, targetIndex));
 
