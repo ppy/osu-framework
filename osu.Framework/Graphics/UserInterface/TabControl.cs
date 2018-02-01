@@ -259,7 +259,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (tabCount == 0)
                 return;
-            
+
             if (tabCount == 1 || SelectedTab == null)
             {
                 SelectTab(switchableTabs[0]);
