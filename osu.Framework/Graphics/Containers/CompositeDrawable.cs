@@ -505,23 +505,27 @@ namespace osu.Framework.Graphics.Containers
         /// Updates all masking calculations for this <see cref="CompositeDrawable"/> and its <see cref="AliveInternalChildren"/>.
         /// This occurs post-<see cref="UpdateSubTree"/> to ensure that all <see cref="Drawable"/> updates have taken place.
         /// </summary>
+        /// <param name="source">The parent that triggered this update on this <see cref="Drawable"/>.</param>
         /// <param name="maskingBounds">The <see cref="RectangleF"/> that defines the masking bounds.</param>
-        public override void UpdateSubTreeMasking(RectangleF maskingBounds)
+        public override bool UpdateSubTreeMasking(Drawable source, RectangleF maskingBounds)
         {
-            base.UpdateSubTreeMasking(maskingBounds);
+            if (!base.UpdateSubTreeMasking(source, maskingBounds))
+                return false;
 
             if (IsMaskedAway)
-                return;
+                return true;
 
             if (aliveInternalChildren.Count == 0)
-                return;
+                return true;
 
             var childMaskingBounds = ComputeChildMaskingBounds(maskingBounds);
 
             // We iterate by index to gain performance
             // ReSharper disable once ForCanBeConvertedToForeach
             for (int i = 0; i < aliveInternalChildren.Count; i++)
-                aliveInternalChildren[i].UpdateSubTreeMasking(childMaskingBounds);
+                aliveInternalChildren[i].UpdateSubTreeMasking(this, childMaskingBounds);
+
+            return true;
         }
 
         protected override bool ComputeIsMaskedAway(RectangleF maskingBounds)

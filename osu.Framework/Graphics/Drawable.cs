@@ -361,8 +361,17 @@ namespace osu.Framework.Graphics
         /// Updates all masking calculations for this <see cref="Drawable"/>.
         /// This occurs post-<see cref="UpdateSubTree"/> to ensure that all <see cref="Drawable"/> updates have taken place.
         /// </summary>
+        /// <param name="source">The parent that triggered this update on this <see cref="Drawable"/>.</param>
         /// <param name="maskingBounds">The <see cref="RectangleF"/> that defines the masking bounds.</param>
-        public virtual void UpdateSubTreeMasking(RectangleF maskingBounds) => IsMaskedAway = ComputeIsMaskedAway(maskingBounds);
+        /// <returns>Whether masking calculations have been updated.</returns>
+        public virtual bool UpdateSubTreeMasking(Drawable source, RectangleF maskingBounds)
+        {
+            if (HasProxy && source != proxy)
+                return false;
+
+            IsMaskedAway = ComputeIsMaskedAway(maskingBounds);
+            return true;
+        }
 
         /// <summary>
         /// Computes whether this <see cref="Drawable"/> is masked away.
