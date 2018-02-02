@@ -9,6 +9,7 @@ using osu.Framework.MathUtils;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Input.Bindings;
 using OpenTK.Input;
 
 namespace osu.Framework.Graphics.Containers
@@ -24,8 +25,7 @@ namespace osu.Framework.Graphics.Containers
         }
     }
 
-    public class ScrollContainer<T> : Container<T>, DelayedLoadWrapper.IOnScreenOptimisingContainer
-        where T : Drawable
+    public class ScrollContainer<T> : Container<T>, DelayedLoadWrapper.IOnScreenOptimisingContainer, IKeyBindingHandler<PlatformAction> where T : Drawable
     {
         /// <summary>
         /// Determines whether the scroll dragger appears on the left side. If not, then it always appears on the right side.
@@ -253,20 +253,13 @@ namespace osu.Framework.Graphics.Containers
             if (IsDragging)
                 return base.OnKeyDown(state, args);
 
-            var key = state.Keyboard.Keys.Last();
-            switch (key)
+            switch (args.Key)
             {
                 case Key.PageUp:
                     ScrollTo(target - displayableContent);
                     return true;
                 case Key.PageDown:
                     ScrollTo(target + displayableContent);
-                    return true;
-                case Key.Home:
-                    ScrollToTop();
-                    return true;
-                case Key.End:
-                    ScrollToEnd();
                     return true;
                 default:
                     return base.OnKeyDown(state, args);
@@ -374,7 +367,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         /// <param name="animated">Whether to animate the movement.</param>
         /// <param name="allowDuringDrag">Whether we should interrupt a user's active drag.</param>
-        public void ScrollToTop(bool animated = true, bool allowDuringDrag = false)
+        public void ScrollToStart(bool animated = true, bool allowDuringDrag = false)
         {
             if (!IsDragging || allowDuringDrag)
                 scrollTo(0, animated, DistanceDecayJump);
@@ -597,6 +590,33 @@ namespace osu.Framework.Graphics.Containers
             {
                 Dragged?.Invoke(state.Mouse.Position[scrollDim] - dragOffset);
                 return true;
+            }
+        }
+
+        public bool OnPressed(PlatformAction action)
+        {
+            switch (action.ActionType)
+            {
+                case PlatformActionType.LineStart:
+                    ScrollToStart();
+                    return true;
+                case PlatformActionType.LineEnd:
+                    ScrollToEnd();
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        public bool OnReleased(PlatformAction action)
+        {
+            switch (action.ActionType)
+            {
+                case PlatformActionType.LineStart:
+                case PlatformActionType.LineEnd:
+                    return true;
+                default:
+                    return false;
             }
         }
     }
