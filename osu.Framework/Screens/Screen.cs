@@ -2,9 +2,11 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using OpenTK.Graphics;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Shapes;
 
 namespace osu.Framework.Screens
 {
@@ -17,6 +19,9 @@ namespace osu.Framework.Screens
 
         private readonly Container content;
         private Container childModeContainer;
+        private Box tintOverlay;
+
+        public virtual Drawable TintOverlay => tintOverlay ?? ParentScreen?.TintOverlay;
 
         protected Game Game;
 
@@ -111,11 +116,22 @@ namespace osu.Framework.Screens
             {
                 enter(null);
 
-                AddInternal(childModeContainer = new Container
+                AddRangeInternal(new Drawable[]
                 {
-                    Anchor = Anchor.Centre,
-                    Origin = Anchor.Centre,
-                    RelativeSizeAxes = Axes.Both,
+                    childModeContainer = new Container
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        RelativeSizeAxes = Axes.Both,
+                    },
+                    tintOverlay = new Box
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        RelativeSizeAxes = Axes.Both,
+                        Colour = Color4.Black,
+                        Alpha = 0f
+                    }
                 });
             }
             else
