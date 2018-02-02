@@ -5,13 +5,13 @@ using System;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
-using OpenTK.Input;
 using OpenTK;
 using System.Diagnostics;
+using osu.Framework.Input.Bindings;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public abstract class SliderBar<T> : Container, IHasCurrentValue<T>
+    public abstract class SliderBar<T> : Container, IHasCurrentValue<T>, IKeyBindingHandler<PlatformAction>
         where T : struct, IComparable, IConvertible
     {
         /// <summary>
@@ -125,39 +125,56 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnDragEnd(InputState state) => true;
 
-        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
+        public bool OnPressed(PlatformAction action)
         {
             if (!IsHovered || CurrentNumber.Disabled)
                 return false;
 
-            switch (args.Key)
+            switch (action.ActionType)
             {
-                case Key.Right:
-                    CurrentNumber.Add(CurrentNumber.IsInteger ? (float)Math.Ceiling(SmallKeyboardStep) : SmallKeyboardStep);
-                    return OnInputHandled();
-                case Key.Left:
+                case PlatformActionType.CharPrevious:
                     CurrentNumber.Add(CurrentNumber.IsInteger ? -(float)Math.Ceiling(SmallKeyboardStep) : -SmallKeyboardStep);
                     return OnInputHandled();
-                case Key.PageUp:
-                    CurrentNumber.Add(CurrentNumber.IsInteger ? (float)Math.Ceiling(LargeKeyboardStep) : LargeKeyboardStep);
+                case PlatformActionType.CharNext:
+                    CurrentNumber.Add(CurrentNumber.IsInteger ? (float)Math.Ceiling(SmallKeyboardStep) : SmallKeyboardStep);
                     return OnInputHandled();
-                case Key.PageDown:
+                case PlatformActionType.WordPrevious:
                     CurrentNumber.Add(CurrentNumber.IsInteger ? -(float)Math.Ceiling(LargeKeyboardStep) : -LargeKeyboardStep);
                     return OnInputHandled();
-                case Key.Home:
+                case PlatformActionType.WordNext:
+                    CurrentNumber.Add(CurrentNumber.IsInteger ? (float)Math.Ceiling(LargeKeyboardStep) : LargeKeyboardStep);
+                    return OnInputHandled();
+                case PlatformActionType.LineStart:
                     CurrentNumber.Value = CurrentNumber.MinValue;
                     return OnInputHandled();
-                case Key.End:
+                case PlatformActionType.LineEnd:
                     CurrentNumber.Value = CurrentNumber.MaxValue;
                     return OnInputHandled();
-                default:
-                    return false;
+                default: return false;
             }
 
             bool OnInputHandled()
             {
                 OnUserChange();
                 return true;
+            }
+        }
+
+        public bool OnReleased(PlatformAction action)
+        {
+            if (!IsHovered || CurrentNumber.Disabled)
+                return false;
+
+            switch (action.ActionType)
+            {
+                case PlatformActionType.CharPrevious:
+                case PlatformActionType.CharNext:
+                case PlatformActionType.WordPrevious:
+                case PlatformActionType.WordNext:
+                case PlatformActionType.LineStart:
+                case PlatformActionType.LineEnd:
+                    return true;
+                default: return false;
             }
         }
 
