@@ -18,7 +18,7 @@ namespace osu.Framework.Configuration
         public void Parse(object input)
         {
             if (input is IEnumerable <T> enumerable)
-                OverrideItems(enumerable);          
+                OverrideItems(enumerable);
 
             throw new ArgumentException($@"Could not parse provided {input.GetType()} ({input}) to {typeof(T)}.");
         }
