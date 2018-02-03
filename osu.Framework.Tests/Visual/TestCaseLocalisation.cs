@@ -42,7 +42,7 @@ namespace osu.Framework.Tests.Visual
         [BackgroundDependencyLoader]
         private void load()
         {
-            dependencies.Cache(engine, true);
+            dependencies.Cache(engine);
 
             Add(new FillFlowContainer<SpriteText>
             {
@@ -62,39 +62,31 @@ namespace osu.Framework.Tests.Visual
                     },
                     new SpriteText
                     {
-                        Localisation = LocalisationType.Localised,
-                        Text = "localisable",
+                        LocalisableText = new LocalisableString("localisable", LocalisationType.Localised),
                         TextSize = 48,
                         Colour = Color4.White
                     },
                     new SpriteText
                     {
-                        Localisation = LocalisationType.FormattedLocalised,
-                        Text = "localisableformat",
-                        FormatObjects = new object[] { "localisable & formattable" },
+                        LocalisableText = new LocalisableString("localisableformat", LocalisationType.Localised | LocalisationType.Formatted, args: "localisable & formattable"),
                         TextSize = 48,
                         Colour = Color4.White
                     },
                     new SpriteText
                     {
-                        Localisation = LocalisationType.UnicodePreference,
-                        Text = "Unicode on",
-                        UnicodeFallback = "Unicode off",
+                        LocalisableText = new LocalisableString("Unicode on", LocalisationType.UnicodePreference, "Unicode off"),
                         TextSize = 48,
                         Colour = Color4.White
                     },
                     new SpriteText
                     {
-                        Localisation = LocalisationType.UnicodePreference,
-                        UnicodeFallback = "I miss unicode",
+                        LocalisableText = new LocalisableString(null, LocalisationType.UnicodePreference, "I miss unicode"),
                         TextSize = 48,
                         Colour = Color4.White
                     },
                     new SpriteText
                     {
-                        Localisation = LocalisationType.Formatted,
-                        Text = "{0}",
-                        FormatObjects = new object[] { DateTime.Now },
+                        LocalisableText = new LocalisableString("{0}", LocalisationType.Formatted, args: DateTime.Now),
                         TextSize = 48,
                         Colour = Color4.White
                     },
@@ -119,17 +111,17 @@ namespace osu.Framework.Tests.Visual
         {
             public string Get(string name)
             {
-                if (name == "localisable")
-                    return $"{name} in {CultureInfo.CurrentCulture.EnglishName}";
-                else if (name == "localisableformat")
-                    return $"{{0}} in locale {CultureInfo.CurrentCulture.Name}";
-                else
-                    throw new ArgumentException();
+                switch (name)
+                {
+                    case "localisable":
+                        return $"{name} in {CultureInfo.CurrentCulture.EnglishName}";
+                    case "localisableformat":
+                        return $"{{0}} in locale {CultureInfo.CurrentCulture.Name}";
+                    default:
+                        throw new ArgumentException();
+                }
             }
-            public Stream GetStream(string name)
-            {
-                throw new NotSupportedException();
-            }
+            public Stream GetStream(string name) => throw new NotSupportedException();
         }
     }
 }

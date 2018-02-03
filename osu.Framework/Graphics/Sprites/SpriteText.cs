@@ -1,6 +1,9 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Allocation;
@@ -11,9 +14,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
 using osu.Framework.Localisation;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using JetBrains.Annotations;
 
 namespace osu.Framework.Graphics.Sprites
 {
@@ -22,7 +23,7 @@ namespace osu.Framework.Graphics.Sprites
     /// </summary>
     public class SpriteText : FillFlowContainer, IHasLineBaseHeight, IHasText, IHasFilterTerms
     {
-        public IEnumerable<string> FilterTerms => new[] { Text };
+        public IEnumerable<string> FilterTerms => new[] { displayText };
 
         private static readonly char[] default_fixed_width_exceptions = { '.', ':', ',' };
 
@@ -37,7 +38,7 @@ namespace osu.Framework.Graphics.Sprites
         /// </summary>
         public bool UseFullGlyphHeight = true;
 
-        public override bool IsPresent => base.IsPresent && !string.IsNullOrEmpty(text);
+        public override bool IsPresent => base.IsPresent && !string.IsNullOrEmpty(displayText);
 
         /// <summary>
         /// True if the text should be wrapped if it gets too wide. Note that \n does NOT cause a line break. If you need explicit line breaks, use <see cref="TextFlowContainer"/> instead.
@@ -108,10 +109,10 @@ namespace osu.Framework.Graphics.Sprites
                 if (baseHeight.HasValue)
                     return baseHeight.Value * TextSize;
 
-                if (string.IsNullOrEmpty(Text))
+                if (string.IsNullOrEmpty(displayText))
                     return 0;
 
-                return store.GetBaseHeight(Text[0]).GetValueOrDefault() * TextSize;
+                return store.GetBaseHeight(displayText[0]).GetValueOrDefault() * TextSize;
             }
         }
 
@@ -157,23 +158,61 @@ namespace osu.Framework.Graphics.Sprites
         {
             this.store = store;
             localisationEngine = localisation;
+            updateLocalisedBindable();
 
             spaceWidth = CreateCharacterDrawable('.')?.DrawWidth * 2 ?? default_text_size;
 
             validateLayout();
         }
 
-        private string text;
         private LocalisationEngine localisationEngine;
 
-        public LocalisableString Text { get; set; }
+        [NotNull]
+        private string displayText = string.Empty;
+
+        private LocalisableString localisableText;
+
+        [NotNull]
+        public LocalisableString LocalisableText
+        {
+            get => localisableText;
+            set
+            {
+                localisableText = value;
+
+                if (IsLoaded)
+                    updateLocalisedBindable();
+            }
+        }
+
+        [CanBeNull]
+        public string Text
+        {
+            get => displayText;
+            set => LocalisableText = value;
+        }
+
+        private Bindable<string> displayTextBindable;
+
+        private void updateLocalisedBindable()
+        {
+            if (displayTextBindable != null)
+                displayTextBindable.ValueChanged -= setText;
+
+            if (localisableText == null)
+                return;
+
+            displayTextBindable = localisationEngine.GetBindableFor(localisableText);
+            displayTextBindable.ValueChanged += setText;
+            displayTextBindable.TriggerChange();
+        }
 
         private void setText(string newText)
         {
-            if (text == newText)
+            if (displayText == newText)
                 return;
 
-            text = newText ?? string.Empty;
+            displayText = newText ?? string.Empty;
             layout.Invalidate();
         }
 
@@ -231,17 +270,17 @@ namespace osu.Framework.Graphics.Sprites
 
             if (allowKeepingExistingDrawables)
             {
-                if (lastText == text)
+                if (lastText == displayText)
                     return;
 
-                int length = Math.Min(lastText?.Length ?? 0, text.Length);
-                keepDrawables.AddRange(Children.TakeWhile((n, i) => i < length && lastText[i] == text[i]));
+                int length = Math.Min(lastText?.Length ?? 0, displayText.Length);
+                keepDrawables.AddRange(Children.TakeWhile((n, i) => i < length && lastText[i] == displayText[i]));
                 RemoveRange(keepDrawables); //doesn't dispose
             }
 
             Clear();
 
-            if (text.Length == 0)
+            if (displayText.Length == 0)
                 return;
 
             if (FixedWidth && !constantWidth.HasValue)
@@ -250,9 +289,9 @@ namespace osu.Framework.Graphics.Sprites
             foreach (var k in keepDrawables)
                 Add(k);
 
-            for (int index = keepDrawables.Count; index < text.Length; index++)
+            for (int index = keepDrawables.Count; index < displayText.Length; index++)
             {
-                char c = text[index];
+                char c = displayText[index];
 
                 bool fixedWidth = FixedWidth && !FixedWidthExceptionCharacters.Contains(c);
 
@@ -311,7 +350,7 @@ namespace osu.Framework.Graphics.Sprites
                 Add(d);
             }
 
-            lastText = text;
+            lastText = displayText;
         }
 
         /// <summary>

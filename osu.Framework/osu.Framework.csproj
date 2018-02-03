@@ -333,13 +333,9 @@
     <Compile Include="Lists\LazyList.cs" />
     <Compile Include="Lists\SortedList.cs" />
     <Compile Include="Lists\WeakList.cs" />
-    <Compile Include="Localisation\FormatString.cs" />
     <Compile Include="Localisation\LocalisationEngine.cs" />
-    <Compile Include="Localisation\LocalisationString.cs" />
+    <Compile Include="Localisation\LocalisableString.cs" />
     <Compile Include="Localisation\LocalisationType.cs" />
-    <Compile Include="Localisation\LocalisedString.cs" />
-    <Compile Include="Localisation\UnicodeBindableString.cs" />
-    <Compile Include="Localisation\LocalisedFormatString.cs" />
     <Compile Include="Logging\Logger.cs" />
     <Compile Include="MathUtils\Blur.cs" />
     <Compile Include="MathUtils\NumberFormatter.cs" />

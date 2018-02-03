@@ -8,6 +8,7 @@ using System.Linq;
 using osu.Framework.Configuration;
 using osu.Framework.IO.Stores;
 using osu.Framework.Lists;
+using JetBrains.Annotations;
 
 namespace osu.Framework.Localisation
 {
@@ -24,19 +25,17 @@ namespace osu.Framework.Localisation
         public LocalisationEngine(FrameworkConfigManager config)
         {
             preferUnicode = config.GetBindable<bool>(FrameworkSetting.ShowUnicode);
-            preferUnicode.ValueChanged += newValue =>
+            preferUnicode.ValueChanged += _ =>
             {
-                lock (unicodeBindings)
-                    unicodeBindings.ForEachAlive(b => b.PreferUnicode = newValue);
+                lock (allBindings)
+                    allBindings.ForEachAlive(updateLocalisation);
             };
 
             locale = config.GetBindable<string>(FrameworkSetting.Locale);
             locale.ValueChanged += checkLocale;
         }
 
-        private readonly WeakList<UnicodeBindableString> unicodeBindings = new WeakList<UnicodeBindableString>();
-        private readonly WeakList<LocalisedString> localisedBindings = new WeakList<LocalisedString>();
-        private readonly WeakList<FormatString> formattableBindings = new WeakList<FormatString>();
+        private readonly WeakList<LocalisedBindable> allBindings = new WeakList<LocalisedBindable>();
 
         public void AddLanguage(string language, IResourceStore<string> storage)
         {
@@ -44,74 +43,47 @@ namespace osu.Framework.Localisation
             locale.TriggerChange();
         }
 
-        public UnicodeBindableString GetUnicodePreference(string unicode, string nonUnicode)
+        /// <summary>
+        /// Get a localised <see cref="Bindable{String}"/> for a <see cref="LocalisableString"/>.
+        /// </summary>
+        /// <param name="localisable">The <see cref="LocalisableString"/> to get a bindable for. 
+        /// <para>Changing any of its bindables' values will also trigger a localisation update.</para></param>
+        [NotNull]
+        public Bindable<string> GetBindableFor([NotNull] LocalisableString localisable)
         {
-            var bindable = new UnicodeBindableString(unicode, nonUnicode)
-            {
-                PreferUnicode = preferUnicode.Value
-            };
+            var bindable = new LocalisedBindable(localisable);
+            lock (allBindings)
+                allBindings.Add(bindable);
 
-            lock (unicodeBindings)
-                unicodeBindings.Add(bindable);
+            bindable.Localisable.Type.ValueChanged += _ => updateLocalisation(bindable);
+            bindable.Localisable.Text.ValueChanged += _ => updateLocalisation(bindable);
+            bindable.Localisable.NonUnicode.ValueChanged += _ => updateLocalisation(bindable);
+            bindable.Localisable.Args.ValueChanged += _ => updateLocalisation(bindable);
+
+            updateLocalisation(bindable);
 
             return bindable;
         }
 
-        public LocalisedString GetLocalisedString(string key)
+        /// <summary>
+        /// Updates the localisation for a specific <see cref="LocalisedBindable"/>, optionally only for specific <see cref="LocalisationType"/>s.
+        /// </summary>
+        /// <param name="bindable">The bindable to update.</param>
+        private void updateLocalisation(LocalisedBindable bindable)
         {
-            var bindable = new LocalisedString(key)
-            {
-                Value = GetLocalised(key)
-            };
+            var localisable = bindable.Localisable;
+            string newText = localisable.Text.Value;
 
-            lock (localisedBindings)
-                localisedBindings.Add(bindable);
-
-            return bindable;
-        }
-
-        public FormatString Format(FormattableString formattable)
-        {
-            var bindable = new FormatString(formattable);
-
-            lock (formattableBindings)
-                formattableBindings.Add(bindable);
-
-            return bindable;
-        }
-
-        public FormatString FormatVariant(string formatKey, params object[] objects)
-        {
-            var bindable = new FormatString(new LocalisedFormatString(GetLocalisedString(formatKey), objects));
-
-            lock (formattableBindings)
-                formattableBindings.Add(bindable);
-
-            return bindable;
-        }
-
-        public Bindable<string> GetBindableFor(LocalisableString localisable)
-        {
-            var bindable = new Bindable<string>(localisable.Text);
-
-            localisable.Args.ValueChanged += argsChanged;
-            localisable.Text.ValueChanged += textChanged;
-            localisable.Type.ValueChanged += typeChanged;
-
-            if ((localisable.Type & LocalisationType.UnicodePreference) > 0)
-            {
-                
-            }
+            if ((localisable.Type & LocalisationType.UnicodePreference) > 0 && !preferUnicode.Value && localisable.NonUnicode != null)
+                newText = localisable.NonUnicode;
 
             if ((localisable.Type & LocalisationType.Localised) > 0)
-            {
-
-            }
+                newText = GetLocalised(newText);
 
             if ((localisable.Type & LocalisationType.Formatted) > 0)
-            {
+                newText = string.Format(newText, localisable.Args);
 
-            }
+            bindable.Value = newText;
         }
 
         protected virtual string GetLocalised(string key) => current.Get(key);
@@ -147,11 +119,23 @@ namespace osu.Framework.Localisation
                 CultureInfo.DefaultThreadCurrentUICulture = culture;
                 ChangeLocale(validLocale);
 
-                lock (localisedBindings) localisedBindings.ForEachAlive(b => b.Value = GetLocalised(b.Key));
-                lock (formattableBindings) formattableBindings.ForEachAlive(b => b.Update());
+                lock (allBindings)
+                    allBindings.ForEachAlive(updateLocalisation);
             }
         }
 
         protected virtual void ChangeLocale(string locale) => current = storages[locale];
+    }
+
+    internal class LocalisedBindable : Bindable<string>
+    {
+        private readonly WeakReference<LocalisableString> localisable;
+        public LocalisableString Localisable => localisable.TryGetTarget(out var t) ? t : throw new ObjectDisposedException(nameof(localisable));
+
+        public LocalisedBindable(LocalisableString localisable)
+            : base(localisable.Text)
+        {
+            this.localisable = new WeakReference<LocalisableString>(localisable);
+        }
     }
 }

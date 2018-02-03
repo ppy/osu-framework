@@ -1,18 +1,16 @@
-﻿using osu.Framework.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+
+using osu.Framework.Configuration;
 
 namespace osu.Framework.Localisation
 {
     public class LocalisableString
     {
-        public Bindable<string> Text { get; }
-        public Bindable<string> NonUnicode { get; }
-        public Bindable<LocalisationType> Type { get; }
-        public Bindable<object[]> Args { get; }
+        public Bindable<string> Text { get; set; }
+        public Bindable<string> NonUnicode { get; set; }
+        public Bindable<LocalisationType> Type { get; set; }
+        public Bindable<object[]> Args { get; set; }
 
         public LocalisableString(string text, LocalisationType type, string nonUnicode = null, params object[] args)
         {

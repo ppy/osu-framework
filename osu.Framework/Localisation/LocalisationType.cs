@@ -33,5 +33,10 @@ namespace osu.Framework.Localisation
         /// <para>This is useful for e.g. date and time strings which differ from country to country.</para>
         /// </summary>
         Formatted = 1 << 2,
+
+        /// <summary>
+        /// The string will be changed based on Unicode preference, then localised, then formatted.
+        /// </summary>
+        All = UnicodePreference | Localised | Formatted
     }
 }
