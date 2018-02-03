@@ -31,7 +31,7 @@ namespace osu.Framework.Configuration
             => underlyingList.GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator()
-            => GetEnumerator();     
+            => GetEnumerator();
 
         public void Add(T item)
         {
