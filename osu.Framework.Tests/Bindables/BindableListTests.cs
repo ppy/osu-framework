@@ -123,18 +123,18 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestOverride(int index)
         {
-            string newString = "new text";
+            const string new_string = "new text";
             string[] strings = {
                 "str1", "str2", "str3", "str4", "str5", "str6", "str7", "str8",
             };
             var list = new BindableList<string>();
             list.AddAll(strings);
 
-            list[index] = newString;
+            list[index] = new_string;
 
             for (int i = 0; i < strings.Length; i++)
             {
-                Assert.AreEqual(i == index ? newString : strings[i], list[i]);
+                Assert.AreEqual(i == index ? new_string : strings[i], list[i]);
             }
         }
 
