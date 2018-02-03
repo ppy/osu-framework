@@ -17,10 +17,8 @@ namespace osu.Framework.Configuration
 
         public void Parse(object input)
         {
-            if (!(input is IEnumerable<T>))
-                throw new ArgumentException($@"Could not parse provided {input.GetType()} ({input}) to {typeof(T)}.");
-            Clear();
-            underlyingList.AddRange((IList<T>)input);
+            if (input is IEnumerable <T> enumerable)
+                OverrideItems(enumerable);          
 
             throw new ArgumentException($@"Could not parse provided {input.GetType()} ({input}) to {typeof(T)}.");
         }
@@ -105,7 +103,7 @@ namespace osu.Framework.Configuration
         public IReadOnlyList<T> AsReadOnlyList()
             => underlyingList.AsReadOnly();
 
-        protected void OverrideItems(IReadOnlyList<T> newItems, bool propagateToBindings = true)
+        protected void OverrideItems(IEnumerable<T> newItems, bool propagateToBindings = true)
         {
             if (Disabled)
                 throw createDisabledException();
