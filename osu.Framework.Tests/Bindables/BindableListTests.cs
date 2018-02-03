@@ -14,10 +14,8 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestAdd()
         {
-            string expected = "string";
-            var list = new BindableList<string>();
-
-            list.Add(expected);
+            const string expected = "string";
+            var list = new BindableList<string> { expected };
 
             Assert.AreEqual(expected, list[0]);
         }
@@ -40,23 +38,23 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestRemoveRemovesTheGivenItem()
         {
-            string itemSupposedToBeRemoved = "removeMe";
-            var list = new BindableList<string> {  "str1", "str2", itemSupposedToBeRemoved };
+            const string item_supposed_to_be_removed = "removeMe";
+            var list = new BindableList<string> {  "str1", "str2", item_supposed_to_be_removed };
 
-            bool gotRemoved = list.Remove(itemSupposedToBeRemoved);
+            bool gotRemoved = list.Remove(item_supposed_to_be_removed);
 
             Assert.IsTrue(gotRemoved);
             Assert.AreEqual(2, list.Count);
-            Assert.IsFalse(list.Contains(itemSupposedToBeRemoved));
+            Assert.IsFalse(list.Contains(item_supposed_to_be_removed));
         }
 
         [Test]
         public void TestRemoveReturnsFalseWhenItemIsNotInList()
         {
-            string itemSupposedToBeRemoved = "removeMe";
+            const string item_supposed_to_be_removed = "removeMe";
             var list = new BindableList<string> { "str1", "str2", "str3" };
 
-            bool gotRemoved = list.Remove(itemSupposedToBeRemoved);
+            bool gotRemoved = list.Remove(item_supposed_to_be_removed);
 
             Assert.IsFalse(gotRemoved);
             Assert.AreEqual(3, list.Count);
@@ -69,16 +67,16 @@ namespace osu.Framework.Tests.Bindables
         [TestCase(4)]
         public void TestInsertAt(int index)
         {
-            string insertString = "This string is going to be inserted";
+            const string insert_string = "This string is going to be inserted";
 
             var list = new BindableList<string>
             {
                 "str1", "str2", "str3", "str4", "str5", "str6", "str7", "str8",
             };
 
-            list.Insert(index, insertString);
+            list.Insert(index, insert_string);
 
-            Assert.AreEqual(insertString, list[index]);
+            Assert.AreEqual(insert_string, list[index]);
             Assert.AreEqual(9, list.Count);
         }
 
@@ -136,10 +134,7 @@ namespace osu.Framework.Tests.Bindables
 
             for (int i = 0; i < strings.Length; i++)
             {
-                if (i == index)
-                    Assert.AreEqual(newString, list[i]);
-                else
-                    Assert.AreEqual(strings[i], list[i]);
+                Assert.AreEqual(i == index ? newString : strings[i], list[i]);
             }
         }
 
@@ -174,6 +169,7 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestAddThrowsDisabledExceptionWhenDisabled()
         {
+            // ReSharper disable once CollectionNeverQueried.Local
             var list = new BindableList<string> { Disabled = true };
 
             Assert.Throws<InvalidOperationException>(
@@ -183,6 +179,7 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestInsertThrowsDisabledExceptionWhenDisabled()
         {
+            // ReSharper disable once CollectionNeverQueried.Local
             var list = new BindableList<string> { Disabled = true };
 
             Assert.Throws<InvalidOperationException>(
@@ -192,6 +189,7 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestRemoveAtThrowsDisabledExceptionWhenDisabled()
         {
+            // ReSharper disable once CollectionNeverQueried.Local
             var list = new BindableList<string> { Disabled = true };
 
             Assert.Throws<InvalidOperationException>(
@@ -203,7 +201,6 @@ namespace osu.Framework.Tests.Bindables
         {
             var list = new BindableList<string> { "asdf"};
             list.Disabled = true;
-
 
             Assert.Throws<InvalidOperationException>(
                 () => list[0] = "");
@@ -232,6 +229,7 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestIsReadOnlyDefaultsToFalse()
         {
+            // ReSharper disable once CollectionNeverUpdated.Local
             var list = new BindableList<string>();
 
             Assert.IsFalse(list.IsReadOnly);
@@ -276,7 +274,7 @@ namespace osu.Framework.Tests.Bindables
                 "str1", "str2", "str3", "str4", "str5", "str6", "str7", "str8",
             };
 
-            IReadOnlyList<string> readOnlyList = list.AsReadOnlyList();
+            var readOnlyList = list.AsReadOnlyList();
 
             Assert.AreEqual(list.Count, readOnlyList.Count);
             for (int i = 0; i < list.Count; i++)
@@ -288,6 +286,7 @@ namespace osu.Framework.Tests.Bindables
         {
             var list1 = new BindableList<string> { "str1", "str2", "str3" };
             var list2 = new BindableList<string>();
+
             list2.BindTo(list1);
 
             Assert.AreEqual(list1.Count, list2.Count);
@@ -303,6 +302,7 @@ namespace osu.Framework.Tests.Bindables
             var list1 = new BindableList<string> { "str1", "str2", "str3" };
             list1.Disabled = disabled;
             var list2 = new BindableList<string>();
+
             list2.BindTo(list1);
 
             Assert.AreEqual(list1.Count, list2.Count);
@@ -311,14 +311,14 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestAddSyncsAddedValue()
         {
-            string newString1 = "a";
-            string newString2 = "b";
+            const string new_string1 = "a";
+            const string new_string2 = "b";
             var list1 = new BindableList<string> { "str1", "str2", "str3" };
             var list2 = new BindableList<string>();
             list2.BindTo(list1);
 
-            list1.Add(newString1);
-            list2.Add(newString2);
+            list1.Add(new_string1);
+            list2.Add(new_string2);
 
             Assert.AreEqual(list1.Count, list2.Count);
             for (int i = 0; i < list1.Count; i++)

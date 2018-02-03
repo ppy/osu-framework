@@ -187,7 +187,7 @@ namespace osu.Framework.Configuration
         }
 
         /// <summary>
-        /// Remove all bound <see cref="Bindable{T}"/>s via <see cref="GetBoundCopy"/> or <see cref="BindTo"/>.
+        /// Remove all bound <see cref="Bindable{T}"/> or <see cref="BindTo"/>.
         /// </summary>
         public void UnbindBindings()
         {
