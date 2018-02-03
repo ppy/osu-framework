@@ -17,11 +17,10 @@ namespace osu.Framework.Configuration
 
         public void Parse(object input)
         {
-            if (input is IList<T>)
-            {
-                Clear();
-                underlyingList.AddRange(input as IList<T>);
-            }
+            if (!(input is IEnumerable<T>))
+                throw new ArgumentException($@"Could not parse provided {input.GetType()} ({input}) to {typeof(T)}.");
+            Clear();
+            underlyingList.AddRange((IList<T>)input);
 
             throw new ArgumentException($@"Could not parse provided {input.GetType()} ({input}) to {typeof(T)}.");
         }
