@@ -154,6 +154,7 @@
     <Compile Include="Audio\Track\DataStreamFileProcedures.cs" />
     <Compile Include="Caching\Cached.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\MatrixExtensions\MatrixExtensions.cs" />
+    <Compile Include="Configuration\BindableList.cs" />
     <Compile Include="Configuration\BindableLong.cs" />
     <Compile Include="Configuration\BindableFloat.cs" />
     <Compile Include="Configuration\ConfigManager.cs" />
