@@ -281,7 +281,7 @@ namespace osu.Framework.Tests.Bindables
             Assert.AreEqual(list.Count, readOnlyList.Count);
             for (int i = 0; i < list.Count; i++)
                 Assert.AreEqual(list[i], readOnlyList[i]);
-        }      
+        }
 
         [Test]
         public void TestBindToSyncsItems()

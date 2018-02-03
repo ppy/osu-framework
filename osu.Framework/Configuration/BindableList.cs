@@ -23,10 +23,6 @@ namespace osu.Framework.Configuration
             throw new ArgumentException($@"Could not parse provided {input.GetType()} ({input}) to {typeof(T)}.");
         }
 
-        
-
-
-
         #region IList
         public IEnumerator<T> GetEnumerator()
             => underlyingList.GetEnumerator();
