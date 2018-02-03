@@ -10,7 +10,7 @@ namespace osu.Framework.Configuration
 {
     public class BindableList<T> : IBindable, IList<T>, IReadOnlyList<T>
     {
-        private static InvalidOperationException createDisabledExeption()
+        private static InvalidOperationException createDisabledException()
             => new InvalidOperationException("Can not modify values as bindable list is disabled");
 
         private readonly List<T> underlyingList = new List<T>();
@@ -35,7 +35,7 @@ namespace osu.Framework.Configuration
         public void Add(T item)
         {
             if (Disabled)
-                throw createDisabledExeption();
+                throw createDisabledException();
             underlyingList.Add(item);
             TriggerValueChange();
         }
@@ -49,7 +49,7 @@ namespace osu.Framework.Configuration
         public void Clear()
         {
             if (Disabled)
-                throw createDisabledExeption();
+                throw createDisabledException();
             underlyingList.Clear();
             TriggerValueChange();
         }
@@ -57,7 +57,7 @@ namespace osu.Framework.Configuration
         public bool Remove(T item)
         {
             if (Disabled)
-                throw createDisabledExeption();
+                throw createDisabledException();
             bool removed = underlyingList.Remove(item);
             if (removed)
                 TriggerValueChange();
@@ -67,7 +67,7 @@ namespace osu.Framework.Configuration
         public void Insert(int index, T item)
         {
             if (Disabled)
-                throw createDisabledExeption();
+                throw createDisabledException();
             underlyingList.Insert(index, item);
             TriggerValueChange();
         }
@@ -75,7 +75,7 @@ namespace osu.Framework.Configuration
         public void RemoveAt(int index)
         {
             if (Disabled)
-                throw createDisabledExeption();
+                throw createDisabledException();
             underlyingList.RemoveAt(index);
             TriggerValueChange();
         }
@@ -84,7 +84,7 @@ namespace osu.Framework.Configuration
             get => underlyingList[index];
             set {
                 if (Disabled)
-                    throw createDisabledExeption();
+                    throw createDisabledException();
                 underlyingList[index] = value;
                 TriggerValueChange();
             }
@@ -108,7 +108,7 @@ namespace osu.Framework.Configuration
         protected void OverrideItems(IReadOnlyList<T> newItems, bool propagateToBindings = true)
         {
             if (Disabled)
-                throw createDisabledExeption();
+                throw createDisabledException();
             underlyingList.Clear();
             underlyingList.AddRange(newItems);
             TriggerValueChange(propagateToBindings);
