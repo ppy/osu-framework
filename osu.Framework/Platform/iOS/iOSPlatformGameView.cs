@@ -42,7 +42,13 @@ namespace osu.Framework.Platform.iOS
             LayerRetainsBacking = false;
             LayerColorFormat = EAGLColorFormat.RGBA8;
             ContextRenderingApi = EAGLRenderingAPI.OpenGLES3;
+
+            Scale = (float)UIScreen.MainScreen.Scale;
+            ContentScaleFactor = UIScreen.MainScreen.Scale;
+
         }
+
+        public float Scale { get; private set; }
 
         public override void TouchesBegan(NSSet touches, UIEvent evt) => HandleTouches?.Invoke(touches);
         public override void TouchesCancelled(NSSet touches, UIEvent evt) => HandleTouches?.Invoke(touches);

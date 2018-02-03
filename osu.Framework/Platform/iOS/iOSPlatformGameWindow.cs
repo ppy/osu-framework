@@ -73,7 +73,7 @@ namespace osu.Framework.Platform.iOS
 
         public Size Size
         {
-            get => gameView.Size;
+            get => new Size((int)(gameView.Size.Width * gameView.Scale), (int)(gameView.Size.Height * gameView.Scale));
             set { }
         }
 
