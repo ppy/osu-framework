@@ -38,7 +38,7 @@ namespace osu.Framework.Configuration
             TriggerValueChange();
         }
 
-        public void AddAll(IEnumerable<T> enumerable)
+        public void AddRange(IEnumerable<T> enumerable)
         {
             foreach (var item in enumerable)
                 Add(item);
