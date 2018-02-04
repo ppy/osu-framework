@@ -91,7 +91,7 @@ namespace osu.Framework.Tests.Bindables
                 "str1", "str2", "str3", "str4", "str5", "str6", "str7", "str8",
             };
             var list = new BindableList<string>();
-            list.AddAll(strings);
+            list.AddRange(strings);
 
             list.RemoveAt(index);
 
@@ -106,7 +106,7 @@ namespace osu.Framework.Tests.Bindables
                 "str1", "str2", "str3", "str4", "str5", "str6", "str7", "str8",
             };
             var list = new BindableList<string>();
-            list.AddAll(strings);
+            list.AddRange(strings);
 
             for (int i = 0; i < list.Count; i++)
             {
@@ -128,7 +128,7 @@ namespace osu.Framework.Tests.Bindables
                 "str1", "str2", "str3", "str4", "str5", "str6", "str7", "str8",
             };
             var list = new BindableList<string>();
-            list.AddAll(strings);
+            list.AddRange(strings);
 
             list[index] = new_string;
 
@@ -142,7 +142,7 @@ namespace osu.Framework.Tests.Bindables
         public void TestClearThrowsDisabledExceptionWhenDisabled()
         {
             var list = new BindableList<string>();
-            list.AddAll(new List<string>{
+            list.AddRange(new List<string>{
                 "test1", "test2"
             });
 
@@ -156,7 +156,7 @@ namespace osu.Framework.Tests.Bindables
         public void TestRemoveThrowsDisabledExceptionWhenDisabled()
         {
             var list = new BindableList<string>();
-            list.AddAll(new List<string>{
+            list.AddRange(new List<string>{
                 "test1", "test2"
             });
 
@@ -242,7 +242,7 @@ namespace osu.Framework.Tests.Bindables
                 "str1", "str2", "str3", "str4", "str5", "str6", "str7", "str8",
             };
             var list = new BindableList<string>();
-            list.AddAll(strings);
+            list.AddRange(strings);
 
             for (int i = 0; i < strings.Length; i++)
             {
@@ -323,6 +323,27 @@ namespace osu.Framework.Tests.Bindables
             Assert.AreEqual(list1.Count, list2.Count);
             for (int i = 0; i < list1.Count; i++)
                 Assert.AreEqual(list1[i], list2[i]);
+        }
+
+        [Test]
+        public void TestParseThrowArgumentExceptionWhenArgumentHasWrongType()
+        {
+            var list = new BindableList<string> { "str1", "str2", "str3" };
+
+            Assert.Throws<ArgumentException>(() => list.Parse("string is not valid"));
+        }
+
+        [Test]
+        public void TestParseOverridesItems()
+        {
+            string[] strings = { "abc", "cba" };
+            var list = new BindableList<string> { "str1", "str2", "str3" };
+
+            list.Parse(strings);
+
+            Assert.AreEqual(strings.Length, list.Count);
+            for (int i = 0; i < strings.Length; i++)
+                Assert.AreEqual(strings[i], list[i]);
         }
     }
 }
