@@ -58,8 +58,7 @@ namespace osu.Framework.Input.Handlers.Mouse
                         {
                             var newStates = new List<OpenTK.Input.MouseState?>();
 
-                            int i = 0;
-                            while (i <= mostSeenStates + 1)
+                            for (int i = 0; i <= mostSeenStates + 1; i++)
                             {
                                 var s = OpenTK.Input.Mouse.GetState(i);
                                 if (s.IsConnected || i < mostSeenStates)
@@ -67,14 +66,12 @@ namespace osu.Framework.Input.Handlers.Mouse
                                     newStates.Add(s);
                                     mostSeenStates = i;
                                 }
-
-                                i++;
                             }
 
                             while (lastStates.Count < newStates.Count)
                                 lastStates.Add(null);
 
-                            for (i = 0; i < newStates.Count; i++)
+                            for (int i = 0; i < newStates.Count; i++)
                             {
                                 if (newStates[i]?.IsConnected != true)
                                 {
