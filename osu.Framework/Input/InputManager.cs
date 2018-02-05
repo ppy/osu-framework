@@ -258,11 +258,9 @@ namespace osu.Framework.Input
             // state potentially from a different input source.
             if (last.Mouse != null && state.Mouse != null)
             {
-                if (last.Mouse.GetType() == state.Mouse.GetType())
-                {
-                    last.Mouse.LastState = null;
+                last.Mouse.LastState = null;
+                if (state.Mouse.LastState == null && last.Mouse.GetType() == state.Mouse.GetType())
                     state.Mouse.LastState = last.Mouse;
-                }
 
                 if (last.Mouse.HasAnyButtonPressed)
                     state.Mouse.PositionMouseDown = last.Mouse.PositionMouseDown;

@@ -16,8 +16,6 @@ namespace osu.Framework.Input.Handlers.Mouse
     {
         private ScheduledDelegate scheduled;
 
-        private Vector2 currentPosition;
-
         private bool mouseInWindow;
 
         private readonly BindableDouble sensitivity = new BindableDouble(1) { MinValue = 0.1, MaxValue = 10 };
@@ -29,7 +27,7 @@ namespace osu.Framework.Input.Handlers.Mouse
         private readonly BindableBool mapAbsoluteInputToWindow = new BindableBool();
 
         private int mostSeenStates;
-        private readonly List<OpenTK.Input.MouseState?> lastStates = new List<OpenTK.Input.MouseState?>();
+        private readonly List<OpenTKMouseState> lastStates = new List<OpenTKMouseState>();
 
         public override bool Initialize(GameHost host)
         {
@@ -56,109 +54,110 @@ namespace osu.Framework.Input.Handlers.Mouse
                         if (!host.Window.Visible || host.Window.WindowState == WindowState.Minimized)
                             return;
 
-                        var newStates = new List<OpenTK.Input.MouseState?>();
-
-                        int i = 0;
-                        while (i <= mostSeenStates + 1)
+                        if (mouseInWindow && host.Window.Focused)
                         {
-                            var s = OpenTK.Input.Mouse.GetState(i);
-                            if (s.IsConnected || i < mostSeenStates)
+                            var newStates = new List<OpenTK.Input.MouseState?>();
+
+                            int i = 0;
+                            while (i <= mostSeenStates + 1)
                             {
-                                newStates.Add(s);
-                                mostSeenStates = i;
+                                var s = OpenTK.Input.Mouse.GetState(i);
+                                if (s.IsConnected || i < mostSeenStates)
+                                {
+                                    newStates.Add(s);
+                                    mostSeenStates = i;
+                                }
+
+                                i++;
                             }
 
-                            i++;
-                        }
+                            while (lastStates.Count < newStates.Count)
+                                lastStates.Add(null);
 
-                        while (lastStates.Count < newStates.Count)
-                            lastStates.Add(null);
-
-                        var shouldHandle = mouseInWindow && host.Window.Focused;
-
-                        for (i = 0; i < newStates.Count; i++)
-                        {
-                            if (newStates[i]?.IsConnected != true)
+                            for (i = 0; i < newStates.Count; i++)
                             {
-                                lastStates[i] = null;
-                                continue;
-                            }
-
-                            var state = newStates[i].Value;
-                            var lastState = lastStates[i];
-
-                            if (lastState.HasValue && state.Equals(lastState.Value))
-                                continue;
-
-                            if (state.IsAbsolute)
-                            {
-                                const int raw_input_resolution = 65536;
-
-                                if (mapAbsoluteInputToWindow)
+                                if (newStates[i]?.IsConnected != true)
                                 {
-                                    // map directly to local window
-                                    currentPosition.X = ((float)((state.X - raw_input_resolution / 2f) * sensitivity.Value) + raw_input_resolution / 2f) / raw_input_resolution * host.Window.Width;
-                                    currentPosition.Y = ((float)((state.Y - raw_input_resolution / 2f) * sensitivity.Value) + raw_input_resolution / 2f) / raw_input_resolution * host.Window.Height;
+                                    lastStates[i] = null;
+                                    continue;
                                 }
-                                else
+
+                                var state = newStates[i].Value;
+                                var lastState = lastStates[i];
+
+                                Vector2 currentPosition;
+
+                                if (lastState != null && state.Equals(lastState.RawState))
+                                    continue;
+
+                                if (state.IsAbsolute)
                                 {
-                                    // map to full screen space
-                                    currentPosition.X = (float)state.X / raw_input_resolution * DisplayDevice.Default.Width;
-                                    currentPosition.Y = (float)state.Y / raw_input_resolution * DisplayDevice.Default.Height;
+                                    const int raw_input_resolution = 65536;
 
-                                    // find local window coordinates
-                                    var clientPos = host.Window.PointToClient(new Point((int)Math.Round(currentPosition.X), (int)Math.Round(currentPosition.Y)));
-
-                                    // apply sensitivity from window's centre
-                                    currentPosition.X = (float)((clientPos.X - host.Window.Width / 2f) * sensitivity.Value + host.Window.Width / 2f);
-                                    currentPosition.Y = (float)((clientPos.Y - host.Window.Height / 2f) * sensitivity.Value + host.Window.Height / 2f);
-                                }
-                            }
-                            else
-                            {
-                                if (!lastState.HasValue)
-                                {
-                                    // when we return from being outside of the window, we want to set the new position of our game cursor
-                                    // to where the OS cursor is, just once.
-                                    var cursorState = OpenTK.Input.Mouse.GetCursorState();
-                                    var screenPoint = host.Window.PointToClient(new Point(cursorState.X, cursorState.Y));
-                                    currentPosition = new Vector2(screenPoint.X, screenPoint.Y);
-                                }
-                                else
-                                {
-                                    currentPosition += new Vector2(state.X - lastState.Value.X, state.Y - lastState.Value.Y) * (float)sensitivity.Value;
-
-                                    // When confining, clamp to the window size.
-                                    if (confineMode.Value == ConfineMouseMode.Always || confineMode.Value == ConfineMouseMode.Fullscreen && windowMode.Value == WindowMode.Fullscreen)
-                                        currentPosition = Vector2.Clamp(currentPosition, Vector2.Zero, new Vector2(host.Window.Width, host.Window.Height));
-
-
-                                    if (shouldHandle)
+                                    if (mapAbsoluteInputToWindow)
                                     {
+                                        // map directly to local window
+                                        currentPosition.X = ((float)((state.X - raw_input_resolution / 2f) * sensitivity.Value) + raw_input_resolution / 2f) / raw_input_resolution * host.Window.Width;
+                                        currentPosition.Y = ((float)((state.Y - raw_input_resolution / 2f) * sensitivity.Value) + raw_input_resolution / 2f) / raw_input_resolution
+                                                            * host.Window.Height;
+                                    }
+                                    else
+                                    {
+                                        // map to full screen space
+                                        currentPosition.X = (float)state.X / raw_input_resolution * DisplayDevice.Default.Width;
+                                        currentPosition.Y = (float)state.Y / raw_input_resolution * DisplayDevice.Default.Height;
+
+                                        // find local window coordinates
+                                        var clientPos = host.Window.PointToClient(new Point((int)Math.Round(currentPosition.X), (int)Math.Round(currentPosition.Y)));
+
+                                        // apply sensitivity from window's centre
+                                        currentPosition.X = (float)((clientPos.X - host.Window.Width / 2f) * sensitivity.Value + host.Window.Width / 2f);
+                                        currentPosition.Y = (float)((clientPos.Y - host.Window.Height / 2f) * sensitivity.Value + host.Window.Height / 2f);
+                                    }
+                                }
+                                else
+                                {
+                                    if (lastState == null)
+                                    {
+                                        // when we return from being outside of the window, we want to set the new position of our game cursor
+                                        // to where the OS cursor is, just once.
+                                        var cursorState = OpenTK.Input.Mouse.GetCursorState();
+                                        var screenPoint = host.Window.PointToClient(new Point(cursorState.X, cursorState.Y));
+                                        currentPosition = new Vector2(screenPoint.X, screenPoint.Y);
+                                    }
+                                    else
+                                    {
+                                        currentPosition = lastState.Position + new Vector2(state.X - lastState.RawState.X, state.Y - lastState.RawState.Y) * (float)sensitivity.Value;
+
+                                        // When confining, clamp to the window size.
+                                        if (confineMode.Value == ConfineMouseMode.Always || confineMode.Value == ConfineMouseMode.Fullscreen && windowMode.Value == WindowMode.Fullscreen)
+                                            currentPosition = Vector2.Clamp(currentPosition, Vector2.Zero, new Vector2(host.Window.Width, host.Window.Height));
+
                                         // update the windows cursor to match our raw cursor position.
                                         // this is important when sensitivity is decreased below 1.0, where we need to ensure the cursor stays within the window.
                                         var screenPoint = host.Window.PointToScreen(new Point((int)currentPosition.X, (int)currentPosition.Y));
                                         OpenTK.Input.Mouse.SetPosition(screenPoint.X, screenPoint.Y);
                                     }
                                 }
-                            }
 
-                            lastStates[i] = state;
+                                var newState = new OpenTKPollMouseState(state, host.IsActive, currentPosition);
+                                lastStates[i] = newState;
 
-                            if (shouldHandle && lastState != null) // ignore the first retrieved state as it can sometimes contain incorrect data).
-                            {
-                                PendingStates.Enqueue(new InputState { Mouse = new OpenTKPollMouseState(state, host.IsActive, currentPosition) });
-                                FrameStatistics.Increment(StatisticsCounterType.MouseEvents);
+                                if (lastState != null)
+                                {
+                                    PendingStates.Enqueue(new InputState { Mouse = newState });
+                                    FrameStatistics.Increment(StatisticsCounterType.MouseEvents);
+                                }
                             }
                         }
-
-                        if (!shouldHandle)
+                        else
                         {
                             var state = OpenTK.Input.Mouse.GetCursorState();
                             var screenPoint = host.Window.PointToClient(new Point(state.X, state.Y));
-                            currentPosition = new Vector2(screenPoint.X, screenPoint.Y);
-                            PendingStates.Enqueue(new InputState { Mouse = new UnfocusedMouseState(new OpenTK.Input.MouseState(), host.IsActive, currentPosition) });
+                            PendingStates.Enqueue(new InputState { Mouse = new UnfocusedMouseState(new OpenTK.Input.MouseState(), host.IsActive, new Vector2(screenPoint.X, screenPoint.Y)) });
                             FrameStatistics.Increment(StatisticsCounterType.MouseEvents);
+
+                            lastStates.Clear();
                         }
                     }, 0, 0));
                 }

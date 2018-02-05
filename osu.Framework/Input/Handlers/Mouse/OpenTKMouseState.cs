@@ -10,11 +10,15 @@ namespace osu.Framework.Input.Handlers.Mouse
     {
         public readonly bool WasActive;
 
+        public OpenTK.Input.MouseState RawState;
+
         public override int WheelDelta => WasActive ? base.WheelDelta : 0;
 
         protected OpenTKMouseState(OpenTK.Input.MouseState tkState, bool active, Vector2? mappedPosition)
         {
             WasActive = active;
+
+            RawState = tkState;
 
             // While not focused, let's silently ignore everything but position.
             if (active && tkState.IsAnyButtonDown)
