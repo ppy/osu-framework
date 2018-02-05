@@ -65,23 +65,28 @@ namespace osu.Framework.Localisation
             return bindable;
         }
 
-        /// <summary>
-        /// Updates the localisation for a specific <see cref="LocalisedBindable"/>, optionally only for specific <see cref="LocalisationType"/>s.
-        /// </summary>
-        /// <param name="bindable">The bindable to update.</param>
         private void updateLocalisation(LocalisedBindable bindable)
         {
             var localisable = bindable.Localisable;
-            string newText = localisable.Text.Value;
+            string newText = localisable.Text;
 
-            if ((localisable.Type & LocalisationType.UnicodePreference) > 0 && !preferUnicode.Value && localisable.NonUnicode != null)
+            if ((localisable.Type & LocalisationType.UnicodePreference) > 0 && !preferUnicode && localisable.NonUnicode.Value != null)
                 newText = localisable.NonUnicode;
 
             if ((localisable.Type & LocalisationType.Localised) > 0)
                 newText = GetLocalised(newText);
 
-            if ((localisable.Type & LocalisationType.Formatted) > 0)
-                newText = string.Format(newText, localisable.Args);
+            if ((localisable.Type & LocalisationType.Formatted) > 0 && localisable.Args.Value != null && newText != null)
+            {
+                try
+                {
+                    newText = string.Format(newText, localisable.Args.Value);
+                }
+                catch (FormatException)
+                {
+                    // let's catch this here to prevent crashes. the string will be in its non-formatted state
+                }
+            }
 
             bindable.Value = newText;
         }
@@ -129,13 +134,12 @@ namespace osu.Framework.Localisation
 
     internal class LocalisedBindable : Bindable<string>
     {
-        private readonly WeakReference<LocalisableString> localisable;
-        public LocalisableString Localisable => localisable.TryGetTarget(out var t) ? t : throw new ObjectDisposedException(nameof(localisable));
+        public LocalisableString Localisable { get; }
 
         public LocalisedBindable(LocalisableString localisable)
             : base(localisable.Text)
         {
-            this.localisable = new WeakReference<LocalisableString>(localisable);
+            Localisable = localisable;
         }
     }
 }
