@@ -507,6 +507,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         /// <param name="source">The parent that triggered this update on this <see cref="Drawable"/>.</param>
         /// <param name="maskingBounds">The <see cref="RectangleF"/> that defines the masking bounds.</param>
+        /// <returns>Whether masking calculations have taken place.</returns>
         public override bool UpdateSubTreeMasking(Drawable source, RectangleF maskingBounds)
         {
             if (!base.UpdateSubTreeMasking(source, maskingBounds))
