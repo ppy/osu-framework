@@ -140,7 +140,7 @@ namespace osu.Framework.Input.Handlers.Mouse
                                     }
                                 }
 
-                                var newState = new OpenTKPollMouseState(state, host.IsActive, currentPosition);
+                                var newState = new OpenTKPollMouseState(state, host.IsActive, currentPosition) { LastState = lastState };
                                 lastStates[i] = newState;
 
                                 if (lastState != null)

@@ -46,7 +46,7 @@ namespace osu.Framework.Input
         {
             var clone = (MouseState)MemberwiseClone();
             clone.buttons = new List<MouseButton>(buttons);
-            clone.LastState = null;
+            clone.LastState = LastState;
             return clone;
         }
 
