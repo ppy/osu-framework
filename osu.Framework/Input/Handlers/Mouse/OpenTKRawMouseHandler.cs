@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using osu.Framework.Configuration;
@@ -90,9 +91,24 @@ namespace osu.Framework.Input.Handlers.Mouse
 
                             if (state.IsAbsolute)
                             {
+                                const bool map_raw_input_to_window = false;
                                 const int range = 65536;
-                                currentPosition.X = ((float)((state.X - range / 2f) * sensitivity.Value) + range / 2f) / range * host.Window.Width;
-                                currentPosition.Y = ((float)((state.Y - range / 2f) * sensitivity.Value) + range / 2f) / range * host.Window.Height;
+
+                                if (map_raw_input_to_window)
+                                {
+                                    currentPosition.X = ((float)((state.X - range / 2f) * sensitivity.Value) + range / 2f) / range * host.Window.Width;
+                                    currentPosition.Y = ((float)((state.Y - range / 2f) * sensitivity.Value) + range / 2f) / range * host.Window.Height;
+                                }
+                                else
+                                {
+                                    currentPosition.X = (float)state.X / range * DisplayDevice.Default.Width;
+                                    currentPosition.Y = (float)state.Y / range * DisplayDevice.Default.Height;
+
+                                    var clientPos = host.Window.PointToClient(new Point((int)Math.Round(currentPosition.X), (int)Math.Round(currentPosition.Y)));
+
+                                    currentPosition.X = (float)((clientPos.X - host.Window.Width / 2f) * sensitivity.Value + host.Window.Width / 2f);
+                                    currentPosition.Y = (float)((clientPos.Y - host.Window.Height / 2f) * sensitivity.Value + host.Window.Height / 2f);
+                                }
                             }
                             else
                             {
@@ -152,8 +168,8 @@ namespace osu.Framework.Input.Handlers.Mouse
             return true;
         }
 
-        private void window_MouseLeave(object sender, System.EventArgs e) => mouseInWindow = false;
-        private void window_MouseEnter(object sender, System.EventArgs e) => mouseInWindow = true;
+        private void window_MouseLeave(object sender, EventArgs e) => mouseInWindow = false;
+        private void window_MouseEnter(object sender, EventArgs e) => mouseInWindow = true;
 
         /// <summary>
         /// This input handler is always active, handling the cursor position if no other input handler does.
