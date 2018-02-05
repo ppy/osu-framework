@@ -145,7 +145,7 @@ namespace osu.Framework.Input.Handlers.Mouse
 
                             lastStates[i] = state;
 
-                            if (shouldHandle)
+                            if (shouldHandle && lastState != null) // ignore the first retrieved state as it can sometimes contain incorrect data).
                             {
                                 PendingStates.Enqueue(new InputState { Mouse = new OpenTKPollMouseState(state, host.IsActive, currentPosition) });
                                 FrameStatistics.Increment(StatisticsCounterType.MouseEvents);
@@ -168,6 +168,7 @@ namespace osu.Framework.Input.Handlers.Mouse
                     lastStates.Clear();
                 }
             };
+
             Enabled.TriggerChange();
             return true;
         }
