@@ -74,7 +74,6 @@ namespace osu.Framework.Input.Handlers.Mouse
 
                         var shouldHandle = mouseInWindow && host.Window.Focused;
 
-                        bool handled = false;
                         for (i = 0; i < newStates.Count; i++)
                         {
                             if (newStates[i]?.IsConnected != true)
@@ -85,11 +84,6 @@ namespace osu.Framework.Input.Handlers.Mouse
 
                             var state = newStates[i].Value;
                             var lastState = lastStates[i];
-
-                            if (!shouldHandle)
-                                continue;
-
-                            handled = true;
 
                             if (lastState.HasValue && state.Equals(lastState.Value))
                                 continue;
@@ -118,19 +112,27 @@ namespace osu.Framework.Input.Handlers.Mouse
                                     if (confineMode.Value == ConfineMouseMode.Always || confineMode.Value == ConfineMouseMode.Fullscreen && windowMode.Value == WindowMode.Fullscreen)
                                         currentPosition = Vector2.Clamp(currentPosition, Vector2.Zero, new Vector2(host.Window.Width, host.Window.Height));
 
-                                    // update the windows cursor to match our raw cursor position.
-                                    // this is important when sensitivity is decreased below 1.0, where we need to ensure the cursor stays within the window.
-                                    var screenPoint = host.Window.PointToScreen(new Point((int)currentPosition.X, (int)currentPosition.Y));
-                                    OpenTK.Input.Mouse.SetPosition(screenPoint.X, screenPoint.Y);
+
+                                    if (shouldHandle)
+                                    {
+                                        // update the windows cursor to match our raw cursor position.
+                                        // this is important when sensitivity is decreased below 1.0, where we need to ensure the cursor stays within the window.
+                                        var screenPoint = host.Window.PointToScreen(new Point((int)currentPosition.X, (int)currentPosition.Y));
+                                        OpenTK.Input.Mouse.SetPosition(screenPoint.X, screenPoint.Y);
+                                    }
                                 }
                             }
 
                             lastStates[i] = state;
-                            PendingStates.Enqueue(new InputState { Mouse = new OpenTKPollMouseState(state, host.IsActive, currentPosition) });
-                            FrameStatistics.Increment(StatisticsCounterType.MouseEvents);
+
+                            if (shouldHandle)
+                            {
+                                PendingStates.Enqueue(new InputState { Mouse = new OpenTKPollMouseState(state, host.IsActive, currentPosition) });
+                                FrameStatistics.Increment(StatisticsCounterType.MouseEvents);
+                            }
                         }
 
-                        if (!handled)
+                        if (!shouldHandle)
                         {
                             var state = OpenTK.Input.Mouse.GetCursorState();
                             var screenPoint = host.Window.PointToClient(new Point(state.X, state.Y));
@@ -151,12 +153,7 @@ namespace osu.Framework.Input.Handlers.Mouse
         }
 
         private void window_MouseLeave(object sender, System.EventArgs e) => mouseInWindow = false;
-
-        private void window_MouseEnter(object sender, System.EventArgs e)
-        {
-            lastStates.Clear();
-            mouseInWindow = true;
-        }
+        private void window_MouseEnter(object sender, System.EventArgs e) => mouseInWindow = true;
 
         /// <summary>
         /// This input handler is always active, handling the cursor position if no other input handler does.
