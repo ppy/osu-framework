@@ -65,6 +65,7 @@
     <Compile Include="Bindables\BindableIntTest.cs" />
     <Compile Include="Bindables\BindableLongTest.cs" />
     <Compile Include="Bindables\BindableStringTest.cs" />
+    <Compile Include="Bindables\BindableListTests.cs" />
     <Compile Include="IO\TestSortedListSerialization.cs" />
     <Compile Include="IO\TestWebRequest.cs" />
     <Compile Include="Lists\TestArrayExtensions.cs" />
