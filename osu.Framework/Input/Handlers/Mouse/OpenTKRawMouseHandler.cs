@@ -25,8 +25,8 @@ namespace osu.Framework.Input.Handlers.Mouse
         public BindableDouble Sensitivity => sensitivity;
 
         private readonly Bindable<ConfineMouseMode> confineMode = new Bindable<ConfineMouseMode>();
-
         private readonly Bindable<WindowMode> windowMode = new Bindable<WindowMode>();
+        private readonly BindableBool mapAbsoluteInputToWindow = new BindableBool();
 
         private int mostSeenStates;
         private readonly List<OpenTK.Input.MouseState?> lastStates = new List<OpenTK.Input.MouseState?>();
@@ -44,6 +44,7 @@ namespace osu.Framework.Input.Handlers.Mouse
             {
                 confineMode.BindTo(desktopWindow.ConfineMouseMode);
                 windowMode.BindTo(desktopWindow.WindowMode);
+                mapAbsoluteInputToWindow.BindTo(desktopWindow.MapAbsoluteInputToWindow);
             }
 
             Enabled.ValueChanged += enabled =>
@@ -91,21 +92,24 @@ namespace osu.Framework.Input.Handlers.Mouse
 
                             if (state.IsAbsolute)
                             {
-                                const bool map_raw_input_to_window = false;
-                                const int range = 65536;
+                                const int raw_input_resolution = 65536;
 
-                                if (map_raw_input_to_window)
+                                if (mapAbsoluteInputToWindow)
                                 {
-                                    currentPosition.X = ((float)((state.X - range / 2f) * sensitivity.Value) + range / 2f) / range * host.Window.Width;
-                                    currentPosition.Y = ((float)((state.Y - range / 2f) * sensitivity.Value) + range / 2f) / range * host.Window.Height;
+                                    // map directly to local window
+                                    currentPosition.X = ((float)((state.X - raw_input_resolution / 2f) * sensitivity.Value) + raw_input_resolution / 2f) / raw_input_resolution * host.Window.Width;
+                                    currentPosition.Y = ((float)((state.Y - raw_input_resolution / 2f) * sensitivity.Value) + raw_input_resolution / 2f) / raw_input_resolution * host.Window.Height;
                                 }
                                 else
                                 {
-                                    currentPosition.X = (float)state.X / range * DisplayDevice.Default.Width;
-                                    currentPosition.Y = (float)state.Y / range * DisplayDevice.Default.Height;
+                                    // map to full screen space
+                                    currentPosition.X = (float)state.X / raw_input_resolution * DisplayDevice.Default.Width;
+                                    currentPosition.Y = (float)state.Y / raw_input_resolution * DisplayDevice.Default.Height;
 
+                                    // find local window coordinates
                                     var clientPos = host.Window.PointToClient(new Point((int)Math.Round(currentPosition.X), (int)Math.Round(currentPosition.Y)));
 
+                                    // apply sensitivity from window's centre
                                     currentPosition.X = (float)((clientPos.X - host.Window.Width / 2f) * sensitivity.Value + host.Window.Width / 2f);
                                     currentPosition.Y = (float)((clientPos.Y - host.Window.Height / 2f) * sensitivity.Value + host.Window.Height / 2f);
                                 }
