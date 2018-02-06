@@ -10,6 +10,8 @@ namespace osu.Framework.Input
 {
     public class MouseState : IMouseState
     {
+        private IMouseState lastState;
+
         public IReadOnlyList<MouseButton> Buttons
         {
             get { return buttons; }
@@ -24,7 +26,15 @@ namespace osu.Framework.Input
 
         public IMouseState NativeState => this;
 
-        public IMouseState LastState { get; set; }
+        public IMouseState LastState
+        {
+            get { return lastState; }
+            set
+            {
+                lastState = value;
+                if (lastState != null) lastState.LastState = null;
+            }
+        }
 
         public virtual int WheelDelta => Wheel - LastState?.Wheel ?? 0;
 
