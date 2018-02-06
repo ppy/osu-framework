@@ -4,6 +4,7 @@
 using System;
 using System.Globalization;
 using System.IO;
+using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics;
@@ -23,11 +24,12 @@ namespace osu.Framework.Tests.Visual
         protected override IReadOnlyDependencyContainer CreateLocalDependencies(IReadOnlyDependencyContainer parent) => dependencies = new DependencyContainer(parent);
 
         private readonly LocalisationEngine engine;
+        private readonly FrameworkConfigManager config;
         private SpriteText sprite;
 
         public TestCaseLocalisation()
         {
-            var config = new FakeFrameworkConfigManager();
+            config = new FakeFrameworkConfigManager();
             engine = new LocalisationEngine(config);
 
             engine.AddLanguage("en", new FakeStorage());
@@ -38,20 +40,38 @@ namespace osu.Framework.Tests.Visual
             AddStep("make not localisable", () => sprite.Text = basic_text);
             AddAssert("text correct", () => sprite.Text == basic_text);
 
+            // this should never actually be done (recreate the LocalisableString instead of changing 2+ properties)
+            // this just makes sure nothing crashes even if you do
+            AddStep("change existing", () =>
+            {
+                sprite.LocalisableText.Text.Value = "new {0} {1}";
+                sprite.LocalisableText.Type.Value = LocalisationType.All;
+                sprite.LocalisableText.Args.Value = new object[] { "string value! Time:", DateTime.Now };
+            });
+        }
+
+        [Test]
+        [SetCulture("en")]
+        public void TestLocalised()
+        {
             AddStep("make localisable", () =>
             {
-                sprite.LocalisableText.Text.Value = "localisable";
-                sprite.LocalisableText.Type.Value = LocalisationType.Localised;
+                sprite.LocalisableText = new LocalisableString("localisable", LocalisationType.Localised);
             });
-            AddStep("language: english", () => config.Set(FrameworkSetting.Locale, "en"));
+            changeLanguage("english", "en");
             AddAssert("text localised", () => sprite.Text == "localisable in English");
+        }
 
+        [Test]
+        [SetCulture("ja")]
+        public void TestFormatted()
+        {
             var formattedDate = DateTime.Now;
             AddStep("make formattable", () =>
             {
                 sprite.LocalisableText = new LocalisableString("{0}", LocalisationType.Formatted, args: formattedDate);
             });
-            AddStep("language: japanese", () => config.Set(FrameworkSetting.Locale, "ja"));
+            changeLanguage("japanese", "ja");
             AddAssert("text formatted correctly", () => sprite.Text == formattedDate.ToString("yyyy/MM/dd HH:mm:ss"));
 
             const string formattable_string = "{0}";
@@ -61,24 +81,26 @@ namespace osu.Framework.Tests.Visual
                 sprite.LocalisableText = new LocalisableString(formattable_string, LocalisationType.Formatted);
             });
             AddAssert("text reverted", () => sprite.Text == formattable_string);
+        }
 
+        [Test]
+        [SetCulture("zh-CHS")]
+        public void TestFormattedLocalised()
+        {
             AddStep("Make localisable & formattable", () =>
             {
                 sprite.LocalisableText = new LocalisableString("localisableformat", LocalisationType.Localised | LocalisationType.Formatted, args: "formatted");
             });
-            AddStep("language: simplified chinese", () => config.Set(FrameworkSetting.Locale, "zh-CHS"));
+            changeLanguage("simplified chinese", "zh-CHS");
             AddAssert("text localised & formatted", () => sprite.Text == "formatted in locale zh-CHS");
+        }
 
-            AddStep("change existing", () =>
-            {
-                sprite.LocalisableText.Text.Value = "new {0} {1}";
-                sprite.LocalisableText.Type.Value = LocalisationType.All;
-                sprite.LocalisableText.Args.Value = new object[] { "string value! Time:", DateTime.Now };
-            });
-
+        [Test]
+        public void TestUnicodePreference()
+        {
             AddStep("create unicode preference & 'localise'", () =>
             {
-                // LocalisationType is 'too much' on purpose here - formatting shouldnt break anything (?)
+                // LocalisationType is 'too much' on purpose here - formatting shouldnt break anything
                 sprite.LocalisableText = new LocalisableString("yes Unicode", LocalisationType.All, "no Unicode");
             });
             AddStep("activate unicode", () => config.Set(FrameworkSetting.ShowUnicode, true));
@@ -90,6 +112,11 @@ namespace osu.Framework.Tests.Visual
             AddAssert("text disappeared", () => sprite.Text == string.Empty);
             AddStep("set non-unicode to null", () => sprite.LocalisableText.NonUnicode.Value = null);
             AddAssert("text reverted", () => sprite.Text == "Unicode localised!");
+        }
+
+        private void changeLanguage(string language, string locale)
+        {
+            AddStep($"language: {language}", () => config.Set(FrameworkSetting.Locale, locale));
         }
 
         [BackgroundDependencyLoader]
