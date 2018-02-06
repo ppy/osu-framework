@@ -571,11 +571,8 @@ namespace osu.Framework.Platform
             isDisposed = true;
 
             Exit();
-            while (isRunning)
-            {
-                // Wait for game to exit Run()
-                Thread.Sleep(10);
-            }
+            while (!exitCompleted && isRunning)
+                InputThread.RunUpdate();
 
             Root?.Dispose();
 
