@@ -99,6 +99,7 @@
     <Compile Include="Visual\TestCaseGridContainer.cs" />
     <Compile Include="Visual\TestCaseHollowEdgeEffect.cs" />
     <Compile Include="Visual\TestCaseInputResampler.cs" />
+    <Compile Include="Visual\TestCaseIsMaskedAway.cs" />
     <Compile Include="Visual\TestCaseKeyBindings.cs" />
     <Compile Include="Visual\TestCaseLayoutTransformRewinding.cs" />
     <Compile Include="Visual\TestCaseLocalisation.cs" />
