@@ -172,6 +172,10 @@ namespace osu.Framework.Graphics.Sprites
 
         private LocalisableString localisableText;
 
+        /// <summary>
+        /// Get or set a <see cref="LocalisableString"/> providing all necessary information to apply localisation to a text sequence.
+        /// <para>Changing the bindable values is allowed, although you should create a new <see cref="LocalisableString"/> when changing two or more values.</para>
+        /// </summary>
         [NotNull]
         public LocalisableString LocalisableText
         {
@@ -185,11 +189,15 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        [CanBeNull]
+        /// <summary>
+        /// Get the currently displayed text or set an unlocalised text to be displayed.
+        /// </summary>
         public string Text
         {
+            [NotNull]
             get => displayText;
-            set => LocalisableText = value;
+            [CanBeNull]
+            set => LocalisableText = value ?? string.Empty;
         }
 
         private Bindable<string> displayTextBindable;

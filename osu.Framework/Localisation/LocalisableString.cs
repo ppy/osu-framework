@@ -6,10 +6,15 @@ using osu.Framework.Configuration;
 
 namespace osu.Framework.Localisation
 {
+    /// <summary>
+    /// A class containing all necessary information to apply any (or any amount) of these changes to a string: Unicode preference, Localisation, Formatting (in this order).
+    /// <para>Instead of setting the <see cref="Type"/> to <see cref="LocalisationType.None"/> it is recommended to just use a string instead.</para>
+    /// </summary>
     public class LocalisableString
     {
         /// <summary>
         /// The text to be used for localisation and/or formatting. This will only be used if <see cref="FrameworkSetting.ShowUnicode"/> is set to true and/or <see cref="NonUnicode"/> is null.
+        /// <para>Null values here mean an empty string (unless <see cref="NonUnicode"/> is used).</para>
         /// </summary>
         public Bindable<string> Text { get; }
 
