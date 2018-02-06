@@ -308,8 +308,8 @@ namespace osu.Framework.Platform
         }
 
         private volatile bool exitInitiated;
-
         private volatile bool exitCompleted;
+        private volatile bool isRunning;
 
         public void Exit()
         {
@@ -325,6 +325,8 @@ namespace osu.Framework.Platform
 
         public void Run(Game game)
         {
+            isRunning = true;
+
             setupConfig();
 
             if (Window != null)
@@ -380,6 +382,8 @@ namespace osu.Framework.Platform
             catch (OutOfMemoryException)
             {
             }
+
+            isRunning = false;
         }
 
         private void resetInputHandlers()
@@ -568,9 +572,15 @@ namespace osu.Framework.Platform
         {
             if (isDisposed)
                 return;
-
             isDisposed = true;
-            stopAllThreads();
+
+            Exit();
+            while (isRunning)
+            {
+                // Wait for game to exit Run()
+                Thread.Sleep(10);
+            }
+
             Root?.Dispose();
 
             config?.Dispose();
