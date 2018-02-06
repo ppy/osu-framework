@@ -9,6 +9,7 @@ using osu.Framework.Platform;
 using osu.Framework.Statistics;
 using osu.Framework.Threading;
 using OpenTK;
+using OpenTK.Platform.Windows;
 
 namespace osu.Framework.Input.Handlers.Mouse
 {
@@ -129,7 +130,7 @@ namespace osu.Framework.Input.Handlers.Mouse
         {
             Vector2 currentPosition;
 
-            if (state.IsAbsolute)
+            if ((state.RawFlags & RawMouseFlags.MOUSE_MOVE_ABSOLUTE) > 0)
             {
                 const int raw_input_resolution = 65536;
 
@@ -142,9 +143,13 @@ namespace osu.Framework.Input.Handlers.Mouse
                 }
                 else
                 {
+                    Rectangle screenRect = (state.RawFlags & RawMouseFlags.MOUSE_VIRTUAL_DESKTOP) > 0
+                        ? Platform.Windows.Native.Input.GetVirtualScreenRect()
+                        : new Rectangle(0, 0, DisplayDevice.Default.Width, DisplayDevice.Default.Height);
+
                     // map to full screen space
-                    currentPosition.X = (float)state.X / raw_input_resolution * DisplayDevice.Default.Width;
-                    currentPosition.Y = (float)state.Y / raw_input_resolution * DisplayDevice.Default.Height;
+                    currentPosition.X = (float)state.X / raw_input_resolution * screenRect.Width + screenRect.X;
+                    currentPosition.Y = (float)state.Y / raw_input_resolution * screenRect.Height + screenRect.Y;
 
                     // find local window coordinates
                     var clientPos = host.Window.PointToClient(new Point((int)Math.Round(currentPosition.X), (int)Math.Round(currentPosition.Y)));
