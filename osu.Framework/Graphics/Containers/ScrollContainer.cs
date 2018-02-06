@@ -362,7 +362,7 @@ namespace osu.Framework.Graphics.Containers
         private void offset(float value, bool animated, double distanceDecay = float.PositiveInfinity) => scrollTo(target + value, animated, distanceDecay);
 
         /// <summary>
-        /// Scroll to the top of available content.
+        /// Scroll to the start of available content.
         /// </summary>
         /// <param name="animated">Whether to animate the movement.</param>
         /// <param name="allowDuringDrag">Whether we should interrupt a user's active drag.</param>
