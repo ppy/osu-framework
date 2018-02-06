@@ -9,7 +9,10 @@ namespace osu.Framework.Threading
 {
     public class UpdateThread : GameThread
     {
-        public UpdateThread(Action onNewFrame, string threadName) : base(onNewFrame, threadName)
+        internal const string THREAD_NAME = "Framework.Update.Thread";
+
+        public UpdateThread(Action onNewFrame)
+            : base(onNewFrame, THREAD_NAME)
         {
         }
 

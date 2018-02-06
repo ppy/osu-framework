@@ -33,8 +33,6 @@ namespace osu.Framework.Platform
 {
     public abstract class GameHost : IIpcHost, IDisposable
     {
-        public static GameHost Instance;
-
         public GameWindow Window;
 
         private FrameworkDebugConfigManager debugConfig;
@@ -149,8 +147,6 @@ namespace osu.Framework.Platform
 
         protected GameHost(string gameName = @"")
         {
-            Instance = this;
-
             AppDomain.CurrentDomain.UnhandledException += exceptionHandler;
 
             FileSafety.DeleteCleanupDirectory();
@@ -163,16 +159,16 @@ namespace osu.Framework.Platform
 
             threads = new List<GameThread>
             {
-                (DrawThread = new DrawThread(DrawFrame, @"Draw")
+                (DrawThread = new DrawThread(DrawFrame)
                 {
                     OnThreadStart = DrawInitialize,
                 }),
-                (UpdateThread = new UpdateThread(UpdateFrame, @"Update")
+                (UpdateThread = new UpdateThread(UpdateFrame)
                 {
                     OnThreadStart = UpdateInitialize,
                     Monitor = { HandleGC = true },
                 }),
-                (InputThread = new InputThread(null, @"Input")), //never gets started.
+                (InputThread = new InputThread(null)), //never gets started.
             };
 
             var path = System.IO.Path.GetDirectoryName(FullPath);
