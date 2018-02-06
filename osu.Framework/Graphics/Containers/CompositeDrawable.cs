@@ -502,6 +502,51 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
+        /// Updates all masking calculations for this <see cref="CompositeDrawable"/> and its <see cref="AliveInternalChildren"/>.
+        /// This occurs post-<see cref="UpdateSubTree"/> to ensure that all <see cref="Drawable"/> updates have taken place.
+        /// </summary>
+        /// <param name="source">The parent that triggered this update on this <see cref="Drawable"/>.</param>
+        /// <param name="maskingBounds">The <see cref="RectangleF"/> that defines the masking bounds.</param>
+        /// <returns>Whether masking calculations have taken place.</returns>
+        public override bool UpdateSubTreeMasking(Drawable source, RectangleF maskingBounds)
+        {
+            if (!base.UpdateSubTreeMasking(source, maskingBounds))
+                return false;
+
+            if (IsMaskedAway)
+                return true;
+
+            if (aliveInternalChildren.Count == 0)
+                return true;
+
+            var childMaskingBounds = ComputeChildMaskingBounds(maskingBounds);
+
+            // We iterate by index to gain performance
+            // ReSharper disable once ForCanBeConvertedToForeach
+            for (int i = 0; i < aliveInternalChildren.Count; i++)
+                aliveInternalChildren[i].UpdateSubTreeMasking(this, childMaskingBounds);
+
+            return true;
+        }
+
+        protected override bool ComputeIsMaskedAway(RectangleF maskingBounds)
+        {
+            if (!CanBeFlattened)
+                return base.ComputeIsMaskedAway(maskingBounds);
+
+            // The masking check is overly expensive (requires creation of ScreenSpaceDrawQuad)
+            // when only few children exist.
+            return aliveInternalChildren.Count >= amount_children_required_for_masking_check && base.ComputeIsMaskedAway(maskingBounds);
+        }
+
+        /// <summary>
+        /// Computes the <see cref="RectangleF"/> to be used as the masking bounds for all <see cref="AliveInternalChildren"/>.
+        /// </summary>
+        /// <param name="maskingBounds">The <see cref="RectangleF"/> that defines the masking bounds for this <see cref="CompositeDrawable"/>.</param>
+        /// <returns>The <see cref="RectangleF"/> to be used as the masking bounds for <see cref="AliveInternalChildren"/>.</returns>
+        protected virtual RectangleF ComputeChildMaskingBounds(RectangleF maskingBounds) => Masking ? RectangleF.Intersect(maskingBounds, ScreenSpaceDrawQuad.AABBFloat) : maskingBounds;
+
+        /// <summary>
         /// Invoked after <see cref="UpdateChildrenLife"/> and <see cref="Drawable.IsPresent"/> state checks have taken place,
         /// but before <see cref="Drawable.UpdateSubTree"/> is invoked for all <see cref="InternalChildren"/>.
         /// This occurs after <see cref="Drawable.Update"/> has been invoked on this <see cref="CompositeDrawable"/>
@@ -546,10 +591,6 @@ namespace osu.Framework.Graphics.Containers
         {
             if (!base.Invalidate(invalidation, source, shallPropagate))
                 return false;
-
-            // Either ScreenSize OR ScreenPosition OR Colour
-            if ((invalidation & (Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.Colour)) > 0)
-                childMaskingRectangleBacking.Invalidate();
 
             if (!shallPropagate) return true;
 
@@ -871,40 +912,6 @@ namespace osu.Framework.Graphics.Containers
         #endregion
 
         #region Masking and related effects (e.g. round corners)
-
-        internal override bool ComputeIsMaskedAway(RectangleF maskingBounds)
-        {
-            if (!CanBeFlattened)
-                return base.ComputeIsMaskedAway(maskingBounds);
-
-            // This masking check is overly expensive (requires creation of ScreenSpaceDrawQuad) when only few children exist
-            return AliveInternalChildren.Count >= amount_children_required_for_masking_check && base.ComputeIsMaskedAway(maskingBounds);
-        }
-
-        private Cached<RectangleF> childMaskingRectangleBacking;
-
-        /// <summary>
-        /// The screen-space <see cref="RectangleF"/> which child <see cref="Drawable"/>s perform masking checks against.
-        /// </summary>
-        internal RectangleF ChildMaskingRectangle =>
-            childMaskingRectangleBacking.IsValid
-                ? childMaskingRectangleBacking.Value
-                : (childMaskingRectangleBacking.Value = ComputeChildMaskingRectangle());
-
-        /// <summary>
-        /// Compute the screen-space <see cref="RectangleF"/> for child <see cref="Drawable"/>s to perform masking checks against.
-        /// </summary>
-        protected virtual RectangleF ComputeChildMaskingRectangle()
-        {
-            if (Parent == null)
-                return ScreenSpaceDrawQuad.AABBFloat;
-
-            var localRectangle = Parent.ChildMaskingRectangle;
-            if (Masking)
-                localRectangle.Intersect(ScreenSpaceDrawQuad.AABBFloat);
-
-            return localRectangle;
-        }
 
         private bool masking;
 
