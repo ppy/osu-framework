@@ -61,7 +61,7 @@ namespace osu.Framework.Input.Handlers.Mouse
 
                         if (mouseInWindow && host.Window.Focused)
                         {
-                            var newStates = new List<OpenTK.Input.MouseState?>();
+                            var newStates = new List<OpenTK.Input.MouseState>();
 
                             for (int i = 0; i <= mostSeenStates + 1; i++)
                             {
@@ -78,13 +78,13 @@ namespace osu.Framework.Input.Handlers.Mouse
 
                             for (int i = 0; i < newStates.Count; i++)
                             {
-                                if (newStates[i]?.IsConnected != true)
+                                if (newStates[i].IsConnected != true)
                                 {
                                     lastStates[i] = null;
                                     continue;
                                 }
 
-                                var state = newStates[i].Value;
+                                var state = newStates[i];
                                 var lastState = lastStates[i];
 
                                 if (lastState != null && state.Equals(lastState.RawState))
