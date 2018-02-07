@@ -588,6 +588,9 @@ namespace osu.Framework.Platform
                 return;
             isDisposed = true;
 
+            if (hasRun && !exitInitiated)
+                throw new InvalidOperationException($"{nameof(Exit)} must be called before the {nameof(GameHost)} is disposed.");
+
             // Delay disposal until the game has exited
             while (hasRun && !exitCompleted)
                 Thread.Sleep(10);
