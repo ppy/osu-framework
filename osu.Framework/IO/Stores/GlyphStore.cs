@@ -52,7 +52,7 @@ namespace osu.Framework.IO.Stores
                         for (int i = 0; i < font.Pages.Length; i++)
                             getTexturePage(i);
                 }
-                catch (Exception e)
+                catch
                 {
                     Logger.Log("Couldn't load font asset from {assetName}.");
                     throw;
