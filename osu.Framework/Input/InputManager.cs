@@ -258,11 +258,10 @@ namespace osu.Framework.Input
             // state potentially from a different input source.
             if (last.Mouse != null && state.Mouse != null)
             {
-                if (last.Mouse.GetType() == state.Mouse.GetType())
-                {
-                    last.Mouse.LastState = null;
+                // only set the last state if one hasn't already been set (in addition to being the same type of state).
+                // a smarter InputHandler may do this internally, if they are handling input from multiple distinct devices.
+                if (state.Mouse.LastState == null && last.Mouse.GetType() == state.Mouse.GetType())
                     state.Mouse.LastState = last.Mouse;
-                }
 
                 if (last.Mouse.HasAnyButtonPressed)
                     state.Mouse.PositionMouseDown = last.Mouse.PositionMouseDown;

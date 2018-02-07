@@ -26,6 +26,8 @@ namespace osu.Framework.Platform
 
         public readonly Bindable<ConfineMouseMode> ConfineMouseMode = new Bindable<ConfineMouseMode>();
 
+        public readonly BindableBool MapAbsoluteInputToWindow = new BindableBool();
+
         public DesktopGameWindow()
             : base(default_width, default_height)
         {
@@ -43,6 +45,8 @@ namespace osu.Framework.Platform
             config.BindWith(FrameworkSetting.WindowedPositionY, windowPositionY);
 
             config.BindWith(FrameworkSetting.ConfineMouseMode, ConfineMouseMode);
+
+            config.BindWith(FrameworkSetting.MapAbsoluteInputToWindow, MapAbsoluteInputToWindow);
 
             ConfineMouseMode.ValueChanged += confineMouseMode_ValueChanged;
             ConfineMouseMode.TriggerChange();
