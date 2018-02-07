@@ -305,81 +305,99 @@ namespace osu.Framework.Platform
 
         private volatile bool exitInitiated;
         private volatile bool exitCompleted;
-        private volatile bool isRunning;
+        private volatile bool hasRun;
 
+        /// <summary>
+        /// Schedules the game to exit in the next frame.
+        /// </summary>
         public void Exit()
         {
             exitInitiated = true;
+            InputThread.Scheduler.Add(exit, false);
+        }
 
-            InputThread.Scheduler.Add(delegate
-            {
-                Window?.Close();
-                stopAllThreads();
-                exitCompleted = true;
-            }, false);
+        /// <summary>
+        /// Exits the game. This must always be called from <see cref="InputThread"/>.
+        /// </summary>
+        private void exit()
+        {
+            // exit() may be called without having been scheduled from Exit(), so ensure the correct exiting state
+            exitInitiated = true;
+            Window?.Close();
+            stopAllThreads();
+            exitCompleted = true;
         }
 
         public void Run(Game game)
         {
-            isRunning = true;
-
-            setupConfig();
-
-            if (Window != null)
-            {
-                Window.SetupWindow(config);
-                Window.Title = $@"osu!framework (running ""{Name}"")";
-            }
-
-            resetInputHandlers();
-
-            DrawThread.Start();
-            UpdateThread.Start();
-
-            DrawThread.WaitUntilInitialized();
-            bootstrapSceneGraph(game);
-
-            frameSyncMode.TriggerChange();
-            enabledInputHandlers.TriggerChange();
+            if (hasRun)
+                throw new InvalidOperationException("A game that has already been run cannot be restarted.");
 
             try
             {
+                hasRun = true;
+
+                setupConfig();
+
                 if (Window != null)
                 {
-                    setActive(Window.Focused);
-
-                    Window.KeyDown += window_KeyDown;
-
-                    Window.ExitRequested += OnExitRequested;
-                    Window.Exited += OnExited;
-                    Window.FocusedChanged += delegate { setActive(Window.Focused); };
-
-                    Window.UpdateFrame += delegate
-                    {
-                        inputPerformanceCollectionPeriod?.Dispose();
-                        InputThread.RunUpdate();
-                        inputPerformanceCollectionPeriod = inputMonitor.BeginCollecting(PerformanceCollectionType.WndProc);
-                    };
-                    Window.Closed += delegate
-                    {
-                        //we need to ensure all threads have stopped before the window is closed (mainly the draw thread
-                        //to avoid GL operations running post-cleanup).
-                        stopAllThreads();
-                    };
-
-                    Window.Run();
+                    Window.SetupWindow(config);
+                    Window.Title = $@"osu!framework (running ""{Name}"")";
                 }
-                else
+
+                resetInputHandlers();
+
+                DrawThread.Start();
+                UpdateThread.Start();
+
+                DrawThread.WaitUntilInitialized();
+                bootstrapSceneGraph(game);
+
+                frameSyncMode.TriggerChange();
+                enabledInputHandlers.TriggerChange();
+
+                try
                 {
-                    while (!exitCompleted)
-                        InputThread.RunUpdate();
+                    if (Window != null)
+                    {
+                        setActive(Window.Focused);
+
+                        Window.KeyDown += window_KeyDown;
+
+                        Window.ExitRequested += OnExitRequested;
+                        Window.Exited += OnExited;
+                        Window.FocusedChanged += delegate { setActive(Window.Focused); };
+
+                        Window.UpdateFrame += delegate
+                        {
+                            inputPerformanceCollectionPeriod?.Dispose();
+                            InputThread.RunUpdate();
+                            inputPerformanceCollectionPeriod = inputMonitor.BeginCollecting(PerformanceCollectionType.WndProc);
+                        };
+                        Window.Closed += delegate
+                        {
+                            //we need to ensure all threads have stopped before the window is closed (mainly the draw thread
+                            //to avoid GL operations running post-cleanup).
+                            stopAllThreads();
+                        };
+
+                        Window.Run();
+                    }
+                    else
+                    {
+                        while (!exitCompleted)
+                            InputThread.RunUpdate();
+                    }
+                }
+                catch (OutOfMemoryException)
+                {
                 }
             }
-            catch (OutOfMemoryException)
+            finally
             {
+                // Close the window and stop all threads
+                exit();
             }
-
-            isRunning = false;
         }
 
         private void resetInputHandlers()
@@ -570,9 +588,9 @@ namespace osu.Framework.Platform
                 return;
             isDisposed = true;
 
-            Exit();
-            while (!exitCompleted && isRunning)
-                InputThread.RunUpdate();
+            // Delay disposal until the game has exited
+            while (hasRun && !exitCompleted)
+                Thread.Sleep(10);
 
             Root?.Dispose();
 
