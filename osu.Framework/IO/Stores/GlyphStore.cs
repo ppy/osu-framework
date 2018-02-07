@@ -88,7 +88,7 @@ namespace osu.Framework.IO.Stores
 
             Character c;
 
-            if (font.Characters.TryGetValue(name.Last(), out c))
+            if (!font.Characters.TryGetValue(name.Last(), out c))
                 return null;
 
             RawTexture page = getTexturePage(c.TexturePage);
