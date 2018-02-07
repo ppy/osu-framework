@@ -200,7 +200,7 @@ namespace osu.Framework.Platform
         /// <returns>true to cancel</returns>
         protected virtual bool OnExitRequested()
         {
-            if (exitInitiated) return false;
+            if (executionState <= ExecutionState.Stopping) return false;
 
             bool? response = null;
 
@@ -268,7 +268,7 @@ namespace osu.Framework.Platform
             if (Root == null)
                 return;
 
-            while (!exitInitiated)
+            while (executionState > ExecutionState.Stopping)
             {
                 using (var buffer = DrawRoots.Get(UsageType.Read))
                 {
@@ -303,16 +303,14 @@ namespace osu.Framework.Platform
             }
         }
 
-        private volatile bool exitInitiated;
-        private volatile bool exitCompleted;
-        private volatile bool hasRun;
+        private volatile ExecutionState executionState;
 
         /// <summary>
         /// Schedules the game to exit in the next frame.
         /// </summary>
         public void Exit()
         {
-            exitInitiated = true;
+            executionState = ExecutionState.Stopping;
             InputThread.Scheduler.Add(exit, false);
         }
 
@@ -322,20 +320,20 @@ namespace osu.Framework.Platform
         private void exit()
         {
             // exit() may be called without having been scheduled from Exit(), so ensure the correct exiting state
-            exitInitiated = true;
+            executionState = ExecutionState.Stopping;
             Window?.Close();
             stopAllThreads();
-            exitCompleted = true;
+            executionState = ExecutionState.Stopped;
         }
 
         public void Run(Game game)
         {
-            if (hasRun)
+            if (executionState != ExecutionState.Idle)
                 throw new InvalidOperationException("A game that has already been run cannot be restarted.");
 
             try
             {
-                hasRun = true;
+                executionState = ExecutionState.Running;
 
                 setupConfig();
 
@@ -385,7 +383,7 @@ namespace osu.Framework.Platform
                     }
                     else
                     {
-                        while (!exitCompleted)
+                        while (executionState != ExecutionState.Stopped)
                             InputThread.RunUpdate();
                     }
                 }
@@ -588,11 +586,11 @@ namespace osu.Framework.Platform
                 return;
             isDisposed = true;
 
-            if (hasRun && !exitInitiated)
+            if (executionState > ExecutionState.Stopping)
                 throw new InvalidOperationException($"{nameof(Exit)} must be called before the {nameof(GameHost)} is disposed.");
 
             // Delay disposal until the game has exited
-            while (hasRun && !exitCompleted)
+            while (executionState > ExecutionState.Stopped)
                 Thread.Sleep(10);
 
             Root?.Dispose();
@@ -643,5 +641,30 @@ namespace osu.Framework.Platform
             new KeyBinding(new KeyCombination(new[] { InputKey.Shift, InputKey.Home }), new PlatformAction(PlatformActionType.LineStart, PlatformActionMethod.Select)),
             new KeyBinding(new KeyCombination(new[] { InputKey.Shift, InputKey.End }), new PlatformAction(PlatformActionType.LineEnd, PlatformActionMethod.Select)),
         };
+
+        /// <summary>
+        /// The game's execution states. All of these states can only be present once per <see cref="GameHost"/>.
+        /// Note: The order of values in this enum matters.
+        /// </summary>
+        private enum ExecutionState
+        {
+            /// <summary>
+            /// <see cref="Run"/> has not been invoked yet.
+            /// </summary>
+            Idle = 0,
+            /// <summary>
+            /// The game's execution has completely stopped.
+            /// </summary>
+            Stopped = 1,
+            /// <summary>
+            /// The user has invoked <see cref="Exit"/>, or the window has been called.
+            /// The game is currently awaiting to stop all execution on the correct thread.
+            /// </summary>
+            Stopping = 2,
+            /// <summary>
+            /// <see cref="Run"/> has been invoked.
+            /// </summary>
+            Running = 3
+        }
     }
 }
