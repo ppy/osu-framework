@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using osu.Framework.Logging;
 
 namespace osu.Framework.IO.Stores
 {
@@ -51,9 +52,10 @@ namespace osu.Framework.IO.Stores
                         for (int i = 0; i < font.Pages.Length; i++)
                             getTexturePage(i);
                 }
-                catch
+                catch (Exception e)
                 {
-                    throw new IOException($@"Couldn't load font asset from {assetName}.");
+                    Logger.Log("Couldn't load font asset from {assetName}.");
+                    throw;
                 }
             });
 
@@ -75,11 +77,18 @@ namespace osu.Framework.IO.Stores
             if (name.Length > 1 && !name.StartsWith($@"{fontName}/", StringComparison.Ordinal))
                 return null;
 
-            fontLoadTask?.Wait();
+            try
+            {
+                fontLoadTask?.Wait();
+            }
+            catch
+            {
+                return null;
+            }
 
             Character c;
 
-            if (!font.Characters.TryGetValue(name.Last(), out c))
+            if (font.Characters.TryGetValue(name.Last(), out c))
                 return null;
 
             RawTexture page = getTexturePage(c.TexturePage);
