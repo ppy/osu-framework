@@ -140,7 +140,7 @@ namespace osu.Framework.Testing
                 {
                     ms.Seek(0, SeekOrigin.Begin);
                     var assembly = Assembly.Load(ms.ToArray());
-                    compiledType = assembly.GetModules()[0]?.GetTypes().LastOrDefault(t => t.Name == checkpointObject.GetType().Name);
+                    compiledType = assembly.GetModules()[0]?.GetTypes().LastOrDefault(t => t.FullName == checkpointObject.GetType().FullName);
                 }
                 else
                 {
