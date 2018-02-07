@@ -114,6 +114,20 @@ namespace osu.Framework.Graphics.Containers
             InvalidateLayout();
         }
 
+        /// <summary>
+        /// Gets the position of the drawable in the layout. A higher position value means the drawable will be processed later (that is, the drawables with the lowest position appear first, and the drawable with the highest position appear last).
+        /// For example, the drawable with the lowest position value will be the left-most drawable in a horizontal <see cref="FillFlowContainer{T}"/> and the drawable with the highest position value will be the right-most drawable in a horizontal <see cref="FillFlowContainer{T}"/>.
+        /// </summary>
+        /// <param name="drawable">The drawable whose position should be retrieved, must be a child of this container.</param>
+        /// <returns>The position of the drawable in the layout. A higher position value means the drawable will be processed later (that is, the drawables with the lowest position appear first, and the drawable with the highest position appear last).</returns>
+        public float GetLayoutPosition(Drawable drawable)
+        {
+            if (!layoutChildren.ContainsKey(drawable))
+                throw new InvalidOperationException($"Cannot get layout position of drawable which is not contained within this {nameof(FlowContainer<T>)}.");
+
+            return layoutChildren[drawable];
+        }
+
         protected override bool UpdateChildrenLife()
         {
             bool changed = base.UpdateChildrenLife();
@@ -134,7 +148,10 @@ namespace osu.Framework.Graphics.Containers
             base.InvalidateFromChild(invalidation);
         }
 
-        protected virtual IEnumerable<Drawable> FlowingChildren => AliveInternalChildren.Where(d => d.IsPresent).OrderBy(d => layoutChildren[d]).ThenBy(d => d.ChildID);
+        /// <summary>
+        /// Gets the children that appear in the flow of this FlowContainer in the order in which they are processed within the flowing layout.
+        /// </summary>
+        public virtual IEnumerable<Drawable> FlowingChildren => AliveInternalChildren.Where(d => d.IsPresent).OrderBy(d => layoutChildren[d]).ThenBy(d => d.ChildID);
 
         protected abstract IEnumerable<Vector2> ComputeLayoutPositions();
 
