@@ -40,7 +40,7 @@ namespace osu.Framework.Tests.Visual
             AddStep("make not localisable", () => sprite.Text = basic_text);
             AddAssert("text correct", () => sprite.Text == basic_text);
 
-            // this should never actually be done (recreate the LocalisableString instead of changing 2+ properties)
+            // this should never actually be done (recreate the LocalisableString when changing 2+ properties)
             // this just makes sure nothing crashes even if you do
             AddStep("change existing", () =>
             {
@@ -72,10 +72,10 @@ namespace osu.Framework.Tests.Visual
                 sprite.LocalisableText = new LocalisableString("{0}", LocalisationType.Formatted, args: formattedDate);
             });
             changeLanguage("japanese", "ja");
-            AddAssert("text formatted correctly", () => sprite.Text == formattedDate.ToString("yyyy/MM/dd HH:mm:ss"));
+            AddAssert("text formatted correctly", () => sprite.Text == formattedDate.ToString(new CultureInfo("ja")));
 
             const string formattable_string = "{0}";
-            AddStep("Fail formatting on purpose", () =>
+            AddStep("fail formatting on purpose", () =>
             {
                 // no args for formatting, this will throw internally but should not crash / fail the test
                 sprite.LocalisableText = new LocalisableString(formattable_string, LocalisationType.Formatted);
