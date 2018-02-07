@@ -353,7 +353,7 @@ namespace osu.Framework.Testing
 
                 testContentContainer.Add(new DelayedLoadWrapper(CurrentTest, 0));
 
-                newTest.OnLoadComplete = d =>
+                newTest.OnLoadComplete = d => Schedule(() =>
                 {
                     if (lastTest?.Parent != null)
                     {
@@ -384,7 +384,7 @@ namespace osu.Framework.Testing
                     backgroundCompiler.Checkpoint(CurrentTest);
                     runTests(onCompletion);
                     updateButtons();
-                };
+                });
             }
         }
 
