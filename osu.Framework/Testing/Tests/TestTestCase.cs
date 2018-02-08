@@ -8,5 +8,7 @@ namespace osu.Framework.Testing.Tests
     [TestFixture]
     internal class TestTestCase : TestCase
     {
+        // This TestCase is required for nunit to not throw errors
+        // See: https://github.com/nunit/nunit/issues/1118
     }
 }
