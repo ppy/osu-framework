@@ -3,14 +3,14 @@
 
 using osu.Framework.Logging;
 using osu.Framework.Timing;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Text;
 using System.Threading;
 
 #if NET_FRAMEWORK
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Diagnostics.Runtime;
 #endif
 
