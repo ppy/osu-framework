@@ -11,6 +11,7 @@ using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Platform.Windows;
 using Point = OpenTK.Point;
+using Rectangle = OpenTK.Rectangle;
 
 namespace osu.Framework.Input.Handlers.Mouse
 {
