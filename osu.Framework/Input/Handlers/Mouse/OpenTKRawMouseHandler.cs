@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using osu.Framework.Configuration;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
