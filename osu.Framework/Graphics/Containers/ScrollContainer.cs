@@ -24,7 +24,8 @@ namespace osu.Framework.Graphics.Containers
         }
     }
 
-    public class ScrollContainer<T> : Container<T>, DelayedLoadWrapper.IOnScreenOptimisingContainer, IKeyBindingHandler<PlatformAction> where T : Drawable
+    public class ScrollContainer<T> : Container<T>, DelayedLoadWrapper.IOnScreenOptimisingContainer, IKeyBindingHandler<PlatformAction>
+        where T : Drawable
     {
         /// <summary>
         /// Determines whether the scroll dragger appears on the left side. If not, then it always appears on the right side.
@@ -249,16 +250,15 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
-            if (IsDragging)
-                return base.OnKeyDown(state, args);
-
             switch (args.Key)
             {
                 case Key.PageUp:
-                    ScrollTo(target - displayableContent);
+                    if (!IsDragging)
+                        ScrollTo(target - displayableContent);
                     return true;
                 case Key.PageDown:
-                    ScrollTo(target + displayableContent);
+                    if (!IsDragging)
+                        ScrollTo(target + displayableContent);
                     return true;
                 default:
                     return base.OnKeyDown(state, args);
