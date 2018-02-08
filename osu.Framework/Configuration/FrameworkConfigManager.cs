@@ -19,6 +19,7 @@ namespace osu.Framework.Configuration
             Set(FrameworkSetting.Width, 1366, 640);
             Set(FrameworkSetting.Height, 768, 480);
             Set(FrameworkSetting.ConfineMouseMode, ConfineMouseMode.Fullscreen);
+            Set(FrameworkSetting.MapAbsoluteInputToWindow, false);
             Set(FrameworkSetting.WindowedPositionX, 0.5, -0.1, 1.1);
             Set(FrameworkSetting.WindowedPositionY, 0.5, -0.1, 1.1);
             Set(FrameworkSetting.AudioDevice, string.Empty);
@@ -89,6 +90,7 @@ namespace osu.Framework.Configuration
         ShowUnicode,
         Locale,
         ActiveInputHandlers,
-        CursorSensitivity
+        CursorSensitivity,
+        MapAbsoluteInputToWindow
     }
 }
