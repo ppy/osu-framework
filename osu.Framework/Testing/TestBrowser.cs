@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -58,7 +58,6 @@ namespace osu.Framework.Testing
             var referencedPaths = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*Test*.dll");
             var toLoad = referencedPaths.Where(r => !loadedPaths.Contains(r, StringComparer.InvariantCultureIgnoreCase)).ToList();
             toLoad.ForEach(path => loadedAssemblies.Add(AppDomain.CurrentDomain.Load(AssemblyName.GetAssemblyName(path))));
-
 
             assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(n => n.FullName.StartsWith("osu") || assemblyNamespace != null && n.FullName.StartsWith(assemblyNamespace)).ToList();
 
@@ -354,7 +353,7 @@ namespace osu.Framework.Testing
 
                 testContentContainer.Add(new DelayedLoadWrapper(CurrentTest, 0));
 
-                newTest.OnLoadComplete = d =>
+                newTest.OnLoadComplete = d => Schedule(() =>
                 {
                     if (lastTest?.Parent != null)
                     {
@@ -385,7 +384,7 @@ namespace osu.Framework.Testing
                     backgroundCompiler.Checkpoint(CurrentTest);
                     runTests(onCompletion);
                     updateButtons();
-                };
+                });
             }
         }
 

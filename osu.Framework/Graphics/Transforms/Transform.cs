@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Extensions.TypeExtensions;
@@ -15,6 +15,11 @@ namespace osu.Framework.Graphics.Transforms
         /// Whether this <see cref="Transform"/> has been applied to an <see cref="ITransformable"/>.
         /// </summary>
         internal bool Applied;
+
+        /// <summary>
+        /// Whether this <see cref="Transform"/> can be rewound.
+        /// </summary>
+        public bool Rewindable = true;
 
         public Easing Easing;
 

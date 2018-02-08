@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -27,6 +27,8 @@ namespace osu.Framework.Platform
 
         public readonly Bindable<ConfineMouseMode> ConfineMouseMode = new Bindable<ConfineMouseMode>();
 
+        public readonly BindableBool MapAbsoluteInputToWindow = new BindableBool();
+
         public DesktopGameWindow()
             : base(default_width, default_height)
         {
@@ -44,6 +46,8 @@ namespace osu.Framework.Platform
             config.BindWith(FrameworkSetting.WindowedPositionY, windowPositionY);
 
             config.BindWith(FrameworkSetting.ConfineMouseMode, ConfineMouseMode);
+
+            config.BindWith(FrameworkSetting.MapAbsoluteInputToWindow, MapAbsoluteInputToWindow);
 
             ConfineMouseMode.ValueChanged += confineMouseMode_ValueChanged;
             ConfineMouseMode.TriggerChange();

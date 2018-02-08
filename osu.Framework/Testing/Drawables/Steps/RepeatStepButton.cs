@@ -1,8 +1,7 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using OpenTK.Graphics;
 
 namespace osu.Framework.Testing.Drawables.Steps
 {
@@ -13,8 +12,6 @@ namespace osu.Framework.Testing.Drawables.Steps
 
         public override int RequiredRepetitions => count;
 
-        public new Action Action;
-
         private string text;
 
         public new string Text
@@ -23,27 +20,34 @@ namespace osu.Framework.Testing.Drawables.Steps
             set { base.Text = text = value; }
         }
 
-        public RepeatStepButton(int count = 1)
+        public RepeatStepButton(Action action, int count = 1)
         {
             this.count = count;
+            Action = action;
 
             updateText();
+        }
 
-            BackgroundColour = Color4.Sienna;
+        public override void PerformStep(bool userTriggered = false)
+        {
+            if (invocations == count && !userTriggered) throw new InvalidOperationException("Repeat step was invoked too many times");
 
-            base.Action = () =>
-            {
-                if (invocations == count) return;
+            invocations++;
 
-                invocations++;
+            base.PerformStep(userTriggered);
 
-                if (invocations == count)
-                    Success();
+            if (invocations >= count) // Allows for manual execution beyond the invocation limit.
+                Success();
 
-                updateText();
+            updateText();
+        }
 
-                Action?.Invoke();
-            };
+        public override void Reset()
+        {
+            base.Reset();
+
+            invocations = 0;
+            updateText();
         }
 
         private void updateText() => base.Text = $@"{Text} {invocations}/{count}";

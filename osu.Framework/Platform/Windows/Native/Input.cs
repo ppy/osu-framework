@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -24,7 +24,8 @@ namespace osu.Framework.Platform.Windows.Native
 
         [DllImport("user32.dll")]
         public static extern bool RegisterRawInputDevices(
-            [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)] RawInputDevice[] pRawInputDevices,
+            [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)]
+            RawInputDevice[] pRawInputDevices,
             int uiNumDevices,
             int cbSize);
 
@@ -32,7 +33,8 @@ namespace osu.Framework.Platform.Windows.Native
         public static extern bool GetTouchInputInfo(
             IntPtr hTouchInput,
             int uiNumDevices,
-            [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1), Out] RawTouchInput[] pRawTouchInputs,
+            [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1), Out]
+            RawTouchInput[] pRawTouchInputs,
             int cbSize);
 
         [DllImport("user32.dll")]
@@ -43,6 +45,13 @@ namespace osu.Framework.Platform.Windows.Native
 
         [DllImport("user32.dll")]
         public static extern bool GetPointerInfo(int pointerID, out RawPointerInput type);
+
+        internal static Rectangle GetVirtualScreenRect() => new Rectangle(
+            GetSystemMetrics(SM_XVIRTUALSCREEN),
+            GetSystemMetrics(SM_YVIRTUALSCREEN),
+            GetSystemMetrics(SM_CXVIRTUALSCREEN),
+            GetSystemMetrics(SM_CYVIRTUALSCREEN)
+        );
 
         public const int SM_XVIRTUALSCREEN = 76;
         public const int SM_YVIRTUALSCREEN = 77;

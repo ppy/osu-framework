@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -15,8 +15,13 @@ namespace osu.Framework.Testing.Drawables.Steps
 
         public AssertButton()
         {
-            BackgroundColour = Color4.OrangeRed;
             Action += checkAssert;
+        }
+
+        public override void Reset()
+        {
+            base.Reset();
+            BackgroundColour = Color4.OrangeRed;
         }
 
         private void checkAssert()
@@ -25,18 +30,6 @@ namespace osu.Framework.Testing.Drawables.Steps
                 Success();
             else
                 throw new TracedException($"{Text} {ExtendedDescription}", CallStack);
-        }
-
-        protected override void Success()
-        {
-            base.Success();
-            BackgroundColour = Color4.YellowGreen;
-        }
-
-        protected override void Failure()
-        {
-            base.Failure();
-            BackgroundColour = Color4.Red;
         }
 
         public override string ToString() => "Assert: " + base.ToString();

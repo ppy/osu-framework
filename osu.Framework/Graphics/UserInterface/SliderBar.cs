@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -12,7 +12,7 @@ using System.Diagnostics;
 namespace osu.Framework.Graphics.UserInterface
 {
     public abstract class SliderBar<T> : Container, IHasCurrentValue<T>
-        where T : struct
+        where T : struct, IComparable, IConvertible
     {
         /// <summary>
         /// Range padding reduces the range of movement a slider bar is allowed to have

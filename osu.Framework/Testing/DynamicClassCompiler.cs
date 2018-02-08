@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -140,7 +140,7 @@ namespace osu.Framework.Testing
                 {
                     ms.Seek(0, SeekOrigin.Begin);
                     var assembly = Assembly.Load(ms.ToArray());
-                    compiledType = assembly.GetModules()[0]?.GetTypes().LastOrDefault(t => t.Name == checkpointObject.GetType().Name);
+                    compiledType = assembly.GetModules()[0]?.GetTypes().LastOrDefault(t => t.FullName == checkpointObject.GetType().FullName);
                 }
                 else
                 {
