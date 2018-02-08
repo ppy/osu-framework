@@ -9,7 +9,10 @@ namespace osu.Framework.Threading
 {
     public class AudioThread : GameThread
     {
-        public AudioThread(Action onNewFrame, string threadName) : base(onNewFrame, threadName)
+        internal const string THREAD_NAME = "Framework.Audio.Thread";
+
+        public AudioThread(Action onNewFrame)
+            : base(onNewFrame, THREAD_NAME)
         {
         }
 
