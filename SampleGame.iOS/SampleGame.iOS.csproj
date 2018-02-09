@@ -77,7 +77,6 @@
     <MtouchHttpClientHandler>HttpClientHandler</MtouchHttpClientHandler>
     <PlatformTarget>x86</PlatformTarget>
     <MtouchExtraArgs>--nolinkaway -gcc_flags "-lstdc++ -framework AudioToolbox -framework SystemConfiguration -framework CFNetwork -framework Accelerate -force_load ../Libraries/libbass.a -force_load ../Libraries/libbass_fx.a"</MtouchExtraArgs>
-    <CodesignProvision>VS: ppy.SampleGame.iOS Development</CodesignProvision>
     <MtouchEnableSGenConc>true</MtouchEnableSGenConc>
   </PropertyGroup>
   <ItemGroup>
