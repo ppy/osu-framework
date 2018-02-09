@@ -20,7 +20,7 @@
   </PropertyGroup>
 
   <ItemGroup Label="References">
-    <Reference Include="System.Runtime.InteropServices.RuntimeInformation"/>
+    <Reference Include="System.Runtime.InteropServices.RuntimeInformation" />
   </ItemGroup>
 
   <ItemGroup Label="Package References">
