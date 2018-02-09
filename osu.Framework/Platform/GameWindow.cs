@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -78,24 +78,18 @@ namespace osu.Framework.Platform
             set
             {
                 cursorState = value;
-                // switch (cursorState)
-                // {
-                //     case CursorState.Default:
-                //         base.CursorVisible = true;
-                //         base.Cursor = MouseCursor.Default;
-                //         break;
-                //     case CursorState.Hidden:
-                //         base.CursorVisible = true;
-                //         base.Cursor = MouseCursor.Empty;
-                //         break;
-                //     case CursorState.Confined:
-                //         //TODO: support this (https://github.com/ppy/osu-framework/issues/686)
-                //         break;
-                //     case CursorState.HiddenAndConfined:
-                //         base.CursorVisible = false;
-                //         base.Cursor = MouseCursor.Empty;
-                //         break;
-                // }
+
+                base.Cursor = (cursorState & CursorState.Hidden) > 0 ? MouseCursor.Empty : MouseCursor.Default;
+
+                try
+                {
+                    CursorGrabbed = (cursorState & CursorState.Confined) > 0;
+                }
+                catch
+                {
+                    // may not be supported by platform.
+                }
+
             }
         }
 

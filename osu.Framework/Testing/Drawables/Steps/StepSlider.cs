@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using OpenTK.Graphics;
@@ -14,7 +14,7 @@ using osu.Framework.Extensions.Color4Extensions;
 namespace osu.Framework.Testing.Drawables.Steps
 {
     public class StepSlider<T> : SliderBar<T>
-        where T : struct
+        where T : struct, IComparable, IConvertible
     {
         private readonly Box selection;
         private readonly Box background;

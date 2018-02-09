@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using OpenTK;
@@ -15,6 +15,7 @@ using osu.Framework.MathUtils;
 using osu.Framework.Threading;
 using System;
 using System.Collections.Generic;
+using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -163,7 +164,7 @@ namespace osu.Framework.Graphics.Containers
         private EffectPlacement effectPlacement;
 
         /// <summary>
-        /// Whether the buffered effect should be drawn behind or in front of the original. 
+        /// Whether the buffered effect should be drawn behind or in front of the original.
         /// Behind by default. Does not have any effect if <see cref="DrawOriginal"/> is false.
         /// </summary>
         public EffectPlacement EffectPlacement
@@ -322,6 +323,8 @@ namespace osu.Framework.Graphics.Containers
 
             attachedFormats.Add(format);
         }
+
+        protected override RectangleF ComputeChildMaskingBounds(RectangleF maskingBounds) => ScreenSpaceDrawQuad.AABBFloat; // Make sure children never get masked away
 
         protected override void Update()
         {

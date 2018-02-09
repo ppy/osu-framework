@@ -1,8 +1,9 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using osu.Framework.Lists;
 
 namespace osu.Framework.Configuration
@@ -51,12 +52,12 @@ namespace osu.Framework.Configuration
         /// <summary>
         /// An event which is raised when <see cref="Value"/> has changed (or manually via <see cref="TriggerValueChange"/>).
         /// </summary>
-        public event BindableValueChanged<T> ValueChanged;
+        public event Action<T> ValueChanged;
 
         /// <summary>
         /// An event which is raised when <see cref="Disabled"/>'s state has changed (or manually via <see cref="TriggerDisabledChange"/>).
         /// </summary>
-        public event BindableDisabledChanged DisabledChanged;
+        public event Action<bool> DisabledChanged;
 
         /// <summary>
         /// The current value of this bindable.
@@ -88,7 +89,7 @@ namespace osu.Framework.Configuration
 
         public static implicit operator T(Bindable<T> value) => value.Value;
 
-        private WeakList<Bindable<T>> bindings;
+        protected WeakList<Bindable<T>> Bindings;
 
         private WeakReference<Bindable<T>> weakReference => new WeakReference<Bindable<T>>(this);
 
@@ -109,10 +110,10 @@ namespace osu.Framework.Configuration
 
         protected void AddWeakReference(WeakReference<Bindable<T>> weakReference)
         {
-            if (bindings == null)
-                bindings = new WeakList<Bindable<T>>();
+            if (Bindings == null)
+                Bindings = new WeakList<Bindable<T>>();
 
-            bindings.Add(weakReference);
+            Bindings.Add(weakReference);
         }
 
         /// <summary>
@@ -122,19 +123,26 @@ namespace osu.Framework.Configuration
         /// <param name="input">The input which is to be parsed.</param>
         public virtual void Parse(object input)
         {
-            if (input is T)
-                Value = (T)input;
-            else if (typeof(T).IsEnum && input is string)
-                Value = (T)Enum.Parse(typeof(T), (string)input);
-            else
-                throw new ArgumentException($@"Could not parse provided {input.GetType()} ({input}) to {typeof(T)}.");
+            switch (input)
+            {
+                case T t:
+                    Value = t;
+                    break;
+                case string s:
+                    Value = typeof(T).IsEnum
+                        ? (T)Enum.Parse(typeof(T), s)
+                        : (T)Convert.ChangeType(s, typeof(T), CultureInfo.InvariantCulture);
+                    break;
+                default:
+                    throw new ArgumentException($@"Could not parse provided {input.GetType()} ({input}) to {typeof(T)}.");
+            }
         }
 
         /// <summary>
         /// Raise <see cref="ValueChanged"/> and <see cref="DisabledChanged"/> once, without any changes actually occurring.
         /// This does not propagate to any outward bound bindables.
         /// </summary>
-        public void TriggerChange()
+        public virtual void TriggerChange()
         {
             TriggerValueChange(false);
             TriggerDisabledChange(false);
@@ -143,13 +151,13 @@ namespace osu.Framework.Configuration
         protected void TriggerValueChange(bool propagateToBindings = true)
         {
             ValueChanged?.Invoke(value);
-            if (propagateToBindings) bindings?.ForEachAlive(b => b.Value = value);
+            if (propagateToBindings) Bindings?.ForEachAlive(b => b.Value = value);
         }
 
         protected void TriggerDisabledChange(bool propagateToBindings = true)
         {
             DisabledChanged?.Invoke(disabled);
-            if (propagateToBindings) bindings?.ForEachAlive(b => b.Disabled = disabled);
+            if (propagateToBindings) Bindings?.ForEachAlive(b => b.Disabled = disabled);
         }
 
         /// <summary>
@@ -166,7 +174,7 @@ namespace osu.Framework.Configuration
         /// </summary>
         public void UnbindBindings()
         {
-            bindings?.Clear();
+            Bindings?.Clear();
         }
 
         /// <summary>
@@ -204,14 +212,10 @@ namespace osu.Framework.Configuration
         {
             var copy = (Bindable<T>)MemberwiseClone();
 
-            copy.bindings = new WeakList<Bindable<T>>();
+            copy.Bindings = new WeakList<Bindable<T>>();
             copy.BindTo(this);
 
             return copy;
         }
-
-        public delegate void BindableValueChanged<in TValue>(TValue newValue);
-
-        public delegate void BindableDisabledChanged(bool isDisabled);
     }
 }

@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -62,7 +62,8 @@ namespace osu.Framework.Screens
         // in the case we don't have a parent screen, we still want to handle input as we are also responsible for
         // children inside childScreenContainer.
         // this means the root screen always received input.
-        public override bool HandleInput => IsCurrentScreen || !hasExited && ParentScreen == null;
+        public override bool HandleKeyboardInput => IsCurrentScreen || !hasExited && ParentScreen == null;
+        public override bool HandleMouseInput => IsCurrentScreen || !hasExited && ParentScreen == null;
 
         /// <summary>
         /// Called when this Screen is being entered. Only happens once, ever.
@@ -235,7 +236,8 @@ namespace osu.Framework.Screens
 
         protected class ContentContainer : Container
         {
-            public override bool HandleInput => LifetimeEnd == double.MaxValue;
+            public override bool HandleKeyboardInput => LifetimeEnd == double.MaxValue;
+            public override bool HandleMouseInput => LifetimeEnd == double.MaxValue;
             public override bool RemoveWhenNotAlive => false;
 
             public ContentContainer()

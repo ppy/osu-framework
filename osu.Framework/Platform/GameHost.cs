@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -33,8 +33,6 @@ namespace osu.Framework.Platform
 {
     public abstract class GameHost : IIpcHost, IDisposable
     {
-        public static GameHost Instance;
-
         public GameWindow Window;
 
         private FrameworkDebugConfigManager debugConfig;
@@ -149,30 +147,28 @@ namespace osu.Framework.Platform
 
         protected GameHost(string gameName = @"")
         {
-            Instance = this;
-
             AppDomain.CurrentDomain.UnhandledException += exceptionHandler;
 
             FileSafety.DeleteCleanupDirectory();
 
-            Dependencies.Cache(this);
-            Dependencies.Cache(Storage = GetStorage(gameName));
+            Dependencies.CacheAs(this);
+            Dependencies.CacheAs(Storage = GetStorage(gameName));
 
             Name = gameName;
             Logger.GameIdentifier = gameName;
 
             threads = new List<GameThread>
             {
-                (DrawThread = new DrawThread(DrawFrame, @"Draw")
+                (DrawThread = new DrawThread(DrawFrame)
                 {
                     OnThreadStart = DrawInitialize,
                 }),
-                (UpdateThread = new UpdateThread(UpdateFrame, @"Update")
+                (UpdateThread = new UpdateThread(UpdateFrame)
                 {
                     OnThreadStart = UpdateInitialize,
                     Monitor = { HandleGC = true },
                 }),
-                (InputThread = new InputThread(null, @"Input")), //never gets started.
+                (InputThread = new InputThread(null)), //never gets started.
             };
 
             var path = System.IO.Path.GetDirectoryName(FullPath);
@@ -204,7 +200,7 @@ namespace osu.Framework.Platform
         /// <returns>true to cancel</returns>
         protected virtual bool OnExitRequested()
         {
-            if (exitInitiated) return false;
+            if (executionState <= ExecutionState.Stopping) return false;
 
             bool? response = null;
 
@@ -248,8 +244,10 @@ namespace osu.Framework.Platform
             Root.Size = Vector2.ComponentMax(Vector2.One, Root.Size);
 
             Root.UpdateSubTree();
+            Root.UpdateSubTreeMasking(Root, Root.ScreenSpaceDrawQuad.AABBFloat);
+
             using (var buffer = DrawRoots.Get(UsageType.Write))
-                buffer.Object = Root.GenerateDrawNodeSubtree(buffer.Index, Root.ScreenSpaceDrawQuad.AABBFloat);
+                buffer.Object = Root.GenerateDrawNodeSubtree(buffer.Index);
         }
 
         protected virtual void DrawInitialize()
@@ -270,7 +268,7 @@ namespace osu.Framework.Platform
             if (Root == null)
                 return;
 
-            while (!exitInitiated)
+            while (executionState > ExecutionState.Stopping)
             {
                 using (var buffer = DrawRoots.Get(UsageType.Read))
                 {
@@ -305,78 +303,98 @@ namespace osu.Framework.Platform
             }
         }
 
-        private volatile bool exitInitiated;
+        private volatile ExecutionState executionState;
 
-        private volatile bool exitCompleted;
-
+        /// <summary>
+        /// Schedules the game to exit in the next frame.
+        /// </summary>
         public void Exit()
         {
-            exitInitiated = true;
+            executionState = ExecutionState.Stopping;
+            InputThread.Scheduler.Add(exit, false);
+        }
 
-            InputThread.Scheduler.Add(delegate
-            {
-                Window?.Close();
-                stopAllThreads();
-                exitCompleted = true;
-            }, false);
+        /// <summary>
+        /// Exits the game. This must always be called from <see cref="InputThread"/>.
+        /// </summary>
+        private void exit()
+        {
+            // exit() may be called without having been scheduled from Exit(), so ensure the correct exiting state
+            executionState = ExecutionState.Stopping;
+            Window?.Close();
+            stopAllThreads();
+            executionState = ExecutionState.Stopped;
         }
 
         public void Run(Game game)
         {
-            setupConfig();
-
-            if (Window != null)
-            {
-                Window.SetupWindow(config);
-                Window.Title = $@"osu!framework (running ""{Name}"")";
-            }
-
-            resetInputHandlers();
-
-            DrawThread.Start();
-            UpdateThread.Start();
-
-            DrawThread.WaitUntilInitialized();
-            bootstrapSceneGraph(game);
-
-            frameSyncMode.TriggerChange();
-            enabledInputHandlers.TriggerChange();
+            if (executionState != ExecutionState.Idle)
+                throw new InvalidOperationException("A game that has already been run cannot be restarted.");
 
             try
             {
+                executionState = ExecutionState.Running;
+
+                setupConfig();
+
                 if (Window != null)
                 {
-                    setActive(Window.Focused);
-
-                    Window.KeyDown += window_KeyDown;
-
-                    Window.ExitRequested += OnExitRequested;
-                    Window.Exited += OnExited;
-                    Window.FocusedChanged += delegate { setActive(Window.Focused); };
-
-                    Window.UpdateFrame += delegate
-                    {
-                        inputPerformanceCollectionPeriod?.Dispose();
-                        InputThread.RunUpdate();
-                        inputPerformanceCollectionPeriod = inputMonitor.BeginCollecting(PerformanceCollectionType.WndProc);
-                    };
-                    Window.Closed += delegate
-                    {
-                        //we need to ensure all threads have stopped before the window is closed (mainly the draw thread
-                        //to avoid GL operations running post-cleanup).
-                        stopAllThreads();
-                    };
-
-                    Window.Run();
+                    Window.SetupWindow(config);
+                    Window.Title = $@"osu!framework (running ""{Name}"")";
                 }
-                else
+
+                resetInputHandlers();
+
+                DrawThread.Start();
+                UpdateThread.Start();
+
+                DrawThread.WaitUntilInitialized();
+                bootstrapSceneGraph(game);
+
+                frameSyncMode.TriggerChange();
+                enabledInputHandlers.TriggerChange();
+
+                try
                 {
-                    while (!exitCompleted)
-                        InputThread.RunUpdate();
+                    if (Window != null)
+                    {
+                        setActive(Window.Focused);
+
+                        Window.KeyDown += window_KeyDown;
+
+                        Window.ExitRequested += OnExitRequested;
+                        Window.Exited += OnExited;
+                        Window.FocusedChanged += delegate { setActive(Window.Focused); };
+
+                        Window.UpdateFrame += delegate
+                        {
+                            inputPerformanceCollectionPeriod?.Dispose();
+                            InputThread.RunUpdate();
+                            inputPerformanceCollectionPeriod = inputMonitor.BeginCollecting(PerformanceCollectionType.WndProc);
+                        };
+                        Window.Closed += delegate
+                        {
+                            //we need to ensure all threads have stopped before the window is closed (mainly the draw thread
+                            //to avoid GL operations running post-cleanup).
+                            stopAllThreads();
+                        };
+
+                        Window.Run();
+                    }
+                    else
+                    {
+                        while (executionState != ExecutionState.Stopped)
+                            InputThread.RunUpdate();
+                    }
+                }
+                catch (OutOfMemoryException)
+                {
                 }
             }
-            catch (OutOfMemoryException)
+            finally
             {
+                // Close the window and stop all threads
+                exit();
             }
         }
 
@@ -418,7 +436,7 @@ namespace osu.Framework.Platform
             };
 
             Dependencies.Cache(root);
-            Dependencies.Cache(game);
+            Dependencies.CacheAs(game);
 
             game.SetHost(this);
 
@@ -566,9 +584,15 @@ namespace osu.Framework.Platform
         {
             if (isDisposed)
                 return;
-
             isDisposed = true;
-            stopAllThreads();
+
+            if (executionState > ExecutionState.Stopping)
+                throw new InvalidOperationException($"{nameof(Exit)} must be called before the {nameof(GameHost)} is disposed.");
+
+            // Delay disposal until the game has exited
+            while (executionState > ExecutionState.Stopped)
+                Thread.Sleep(10);
+
             Root?.Dispose();
 
             config?.Dispose();
@@ -617,5 +641,30 @@ namespace osu.Framework.Platform
             new KeyBinding(new KeyCombination(new[] { InputKey.Shift, InputKey.Home }), new PlatformAction(PlatformActionType.LineStart, PlatformActionMethod.Select)),
             new KeyBinding(new KeyCombination(new[] { InputKey.Shift, InputKey.End }), new PlatformAction(PlatformActionType.LineEnd, PlatformActionMethod.Select)),
         };
+
+        /// <summary>
+        /// The game's execution states. All of these states can only be present once per <see cref="GameHost"/>.
+        /// Note: The order of values in this enum matters.
+        /// </summary>
+        private enum ExecutionState
+        {
+            /// <summary>
+            /// <see cref="Run"/> has not been invoked yet.
+            /// </summary>
+            Idle = 0,
+            /// <summary>
+            /// The game's execution has completely stopped.
+            /// </summary>
+            Stopped = 1,
+            /// <summary>
+            /// The user has invoked <see cref="Exit"/>, or the window has been called.
+            /// The game is currently awaiting to stop all execution on the correct thread.
+            /// </summary>
+            Stopping = 2,
+            /// <summary>
+            /// <see cref="Run"/> has been invoked.
+            /// </summary>
+            Running = 3
+        }
     }
 }

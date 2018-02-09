@@ -1,10 +1,9 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Diagnostics;
 using System.Threading;
-using osu.Framework.Audio;
-using osu.Framework.Platform;
+using osu.Framework.Threading;
 
 namespace osu.Framework.Development
 {
@@ -37,10 +36,10 @@ namespace osu.Framework.Development
             Debug.Assert(IsDrawThread);
         }
 
-        public static bool IsUpdateThread => Thread.CurrentThread == GameHost.Instance.UpdateThread.Thread;
+        public static bool IsUpdateThread => Thread.CurrentThread.Name == UpdateThread.THREAD_NAME;
 
-        public static bool IsDrawThread => Thread.CurrentThread == GameHost.Instance.DrawThread.Thread;
+        public static bool IsDrawThread => Thread.CurrentThread.Name == DrawThread.THREAD_NAME;
 
-        public static bool IsAudioThread => Thread.CurrentThread == AudioManager.Instance.Thread.Thread;
+        public static bool IsAudioThread => Thread.CurrentThread.Name == AudioThread.THREAD_NAME;
     }
 }

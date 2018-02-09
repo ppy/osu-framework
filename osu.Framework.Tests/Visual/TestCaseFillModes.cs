@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using NUnit.Framework;
@@ -15,9 +15,8 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Tests.Visual
 {
-    [TestFixture]
     [System.ComponentModel.Description("sprite stretching")]
-    internal class TestCaseFillModes : GridTestCase
+    public class TestCaseFillModes : GridTestCase
     {
         public TestCaseFillModes() : base(3, 3)
         {

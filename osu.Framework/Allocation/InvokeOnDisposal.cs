@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -21,12 +21,7 @@ namespace osu.Framework.Allocation
         /// Constructs a new instance, capturing the given action to be run during disposal.
         /// </summary>
         /// <param name="action">The action to invoke during disposal.</param>
-        public InvokeOnDisposal(Action action)
-        {
-            if (action == null)
-                throw new ArgumentNullException(nameof(action));
-            this.action = action;
-        }
+        public InvokeOnDisposal(Action action) => this.action = action ?? throw new ArgumentNullException(nameof(action));
 
         #region IDisposable Support
 

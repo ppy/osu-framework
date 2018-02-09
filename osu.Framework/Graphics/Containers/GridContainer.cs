@@ -1,8 +1,9 @@
-// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using System.Linq;
+using osu.Framework.Allocation;
 using OpenTK;
 using osu.Framework.Caching;
 
@@ -64,6 +65,12 @@ namespace osu.Framework.Graphics.Containers
 
                 cellLayout.Invalidate();
             }
+        }
+
+        [BackgroundDependencyLoader]
+        private void load()
+        {
+            layoutContent();
         }
 
         protected override void Update()

@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Graphics.Shaders;
@@ -17,15 +17,16 @@ namespace osu.Framework.Graphics.UserInterface
     public class CircularProgressDrawNodeSharedData
     {
         // We multiply the size param by 3 such that the amount of vertices is a multiple of the amount of vertices
-        // per primitive (triangles in this case). Otherwise overflowing the batch will result in wrong
+        // per primitive (quads in this case). Otherwise overflowing the batch will result in wrong
         // grouping of vertices into primitives.
-        public LinearBatch<TexturedVertex2D> HalfCircleBatch = new LinearBatch<TexturedVertex2D>(CircularProgressDrawNode.MAXRES * 100 * 3, 10, PrimitiveType.Triangles);
+        public LinearBatch<TexturedVertex2D> HalfCircleBatch = new LinearBatch<TexturedVertex2D>(CircularProgressDrawNode.MAXRES * 100 * 4, 10, PrimitiveType.Quads);
     }
 
     public class CircularProgressDrawNode : DrawNode
     {
         public const int MAXRES = 24;
         public float Angle;
+        public float InnerRadius = 1;
 
         public Vector2 DrawSize;
         public Texture Texture;
@@ -77,10 +78,10 @@ namespace osu.Framework.Graphics.UserInterface
                     ? (1 - 1 / Texture.Width) * ((float)i / amountPoints * Angle / MathHelper.TwoPi + (dir > 0 ? 0 : 1))
                     : 0;
 
-                // Center point
+                // First center point
                 Shared.HalfCircleBatch.Add(new TexturedVertex2D
                 {
-                    Position = new Vector2(screenOrigin.X, screenOrigin.Y),
+                    Position = Vector2.Lerp(current, screenOrigin, InnerRadius),
                     TexturePosition = new Vector2((normalisedStartAngle + normalisedEndAngle) / 2, 0),
                     Colour = originColour
                 });
@@ -104,6 +105,14 @@ namespace osu.Framework.Graphics.UserInterface
                     Position = new Vector2(current.X, current.Y),
                     TexturePosition = new Vector2(normalisedEndAngle, 1 - 1 / Texture.Height),
                     Colour = currentColour
+                });
+
+                // Second center point
+                Shared.HalfCircleBatch.Add(new TexturedVertex2D
+                {
+                    Position = Vector2.Lerp(current, screenOrigin, InnerRadius),
+                    TexturePosition = new Vector2((normalisedStartAngle + normalisedEndAngle) / 2, 0),
+                    Colour = originColour
                 });
             }
         }

@@ -1,16 +1,16 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Logging;
 using osu.Framework.Timing;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Text;
 using System.Threading;
 
 #if NET_FRAMEWORK
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Diagnostics.Runtime;
 #endif
 

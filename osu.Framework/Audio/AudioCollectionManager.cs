@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Collections.Generic;
@@ -52,9 +52,9 @@ namespace osu.Framework.Audio
                 item.UpdateDevice(deviceIndex);
         }
 
-        protected override void UpdateState()
+        protected override void UpdateChildren()
         {
-            base.UpdateState();
+            base.UpdateChildren();
 
             for (int i = 0; i < Items.Count; i++)
             {
@@ -68,6 +68,15 @@ namespace osu.Framework.Audio
 
                 item.Update();
             }
+        }
+
+        public override void Dispose()
+        {
+            // we need to queue disposal of our Items before enqueueing the main dispose.
+            foreach (var i in Items)
+                i.Dispose();
+
+            base.Dispose();
         }
     }
 }

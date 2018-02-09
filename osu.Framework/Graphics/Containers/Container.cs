@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Lists;
@@ -202,13 +202,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Removes a given child from this container.
         /// </summary>
-        public virtual bool Remove(T drawable)
-        {
-            if (Content != this)
-                return Content.Remove(drawable);
-            else
-                return RemoveInternal(drawable);
-        }
+        public virtual bool Remove(T drawable) => Content != this ? Content.Remove(drawable) : RemoveInternal(drawable);
 
         /// <summary>
         /// Removes all children which match the given predicate.

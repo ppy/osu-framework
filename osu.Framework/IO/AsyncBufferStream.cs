@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -43,11 +43,8 @@ namespace osu.Framework.IO
         /// <param name="shared">Another AsyncBufferStream which is backing the same underlying stream. Allows shared usage of memory-backing.</param>
         public AsyncBufferStream(Stream stream, int blocksToReadAhead, AsyncBufferStream shared = null)
         {
-            if (stream == null)
-                throw new ArgumentNullException(nameof(stream));
-
+            underlyingStream = stream ?? throw new ArgumentNullException(nameof(stream));
             this.blocksToReadAhead = blocksToReadAhead;
-            underlyingStream = stream;
 
             if (underlyingStream.CanSeek)
                 underlyingStream.Seek(0, SeekOrigin.Begin);

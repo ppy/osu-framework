@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -200,13 +200,10 @@ namespace osu.Framework.Graphics.Colour
             }
         }
 
-        public override string ToString()
-        {
-            if (HasSingleColour)
-                return $@"{TopLeft} (Single)";
-
-            else return $@"{TopLeft}, {TopRight}, {BottomLeft}, {BottomRight}";
-        }
+        public override string ToString() =>
+            HasSingleColour ?
+            $@"{TopLeft} (Single)" :
+            $@"{TopLeft}, {TopRight}, {BottomLeft}, {BottomRight}";
 
         public static implicit operator ColourInfo(SRGBColour colour) => SingleColour(colour);
         public static implicit operator SRGBColour(ColourInfo colour) => colour.singleColour;
