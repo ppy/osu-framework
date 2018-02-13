@@ -107,6 +107,7 @@
     <Compile Include="Visual\TestCaseNestedHover.cs" />
     <Compile Include="Visual\TestCaseNestedMenus.cs" />
     <Compile Include="Visual\TestCasePadding.cs" />
+    <Compile Include="Visual\TestCasePathInput.cs" />
     <Compile Include="Visual\TestCasePropertyBoundaries.cs" />
     <Compile Include="Visual\TestCaseTransformRewinding.cs" />
     <Compile Include="Visual\TestCaseRigidBody.cs" />
