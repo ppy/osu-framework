@@ -61,6 +61,8 @@ namespace osu.Framework.Threading
             }
         }
 
+        public static string PrefixedThreadNameFor(string name) => $"{nameof(GameThread)}.{name}";
+
         public bool Running => Thread.IsAlive;
 
         public virtual void Exit() => exitRequested = true;
@@ -73,15 +75,19 @@ namespace osu.Framework.Threading
 
         internal virtual IEnumerable<StatisticsCounterType> StatisticsCounters => Array.Empty<StatisticsCounterType>();
 
-        public GameThread(Action onNewFrame, string threadName)
+        public readonly string Name;
+
+        internal GameThread(Action onNewFrame, string name)
         {
             this.onNewFrame = onNewFrame;
+
             Thread = new Thread(runWork)
             {
-                Name = threadName,
+                Name = PrefixedThreadNameFor(name),
                 IsBackground = true,
             };
 
+            Name = name;
             Clock = new ThrottledFrameClock();
             Monitor = new PerformanceMonitor(Clock, Thread, StatisticsCounters);
             Scheduler = new Scheduler(null, Clock);
