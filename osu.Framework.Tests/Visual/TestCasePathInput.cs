@@ -84,7 +84,7 @@ namespace osu.Framework.Tests.Visual
             // Intersection in
             test(new Vector2(300, 240), true);
             // Bottom cap out
-            test(new Vector2(300, 350), false);
+            test(new Vector2(300, 355), false);
             // Bottom cap in
             test(new Vector2(300, 340), true);
         }
