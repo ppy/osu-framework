@@ -27,7 +27,7 @@ namespace osu.Framework.Graphics.Lines
     public class PathDrawNode : DrawNode
     {
         public const int MAXRES = 24;
-        public List<Line> Segments = new List<Line>();
+        public List<Line> Segments;
 
         public Vector2 DrawSize;
         public float Width;
