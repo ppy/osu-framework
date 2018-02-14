@@ -23,9 +23,9 @@ namespace osu.Framework.Threading
             StatisticsCounterType.Components,
         };
 
-        public override void Exit()
+        protected override void PerformExit()
         {
-            base.Exit();
+            base.PerformExit();
 
             ManagedBass.Bass.Free();
         }

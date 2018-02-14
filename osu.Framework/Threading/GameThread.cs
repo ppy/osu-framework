@@ -65,10 +65,6 @@ namespace osu.Framework.Threading
 
         public bool Running => Thread.IsAlive;
 
-        public virtual void Exit() => exitRequested = true;
-
-        private volatile bool exitRequested;
-
         private readonly ManualResetEvent initializedEvent = new ManualResetEvent(false);
 
         public Action OnThreadStart;
@@ -106,12 +102,22 @@ namespace osu.Framework.Threading
 
             initializedEvent.Set();
 
-            while (!exitRequested)
+            while (!exitCompleted)
                 ProcessFrame();
         }
 
         protected void ProcessFrame()
         {
+            if (exitCompleted)
+                return;
+
+            if (exitRequested)
+            {
+                PerformExit();
+                exitCompleted = true;
+                return;
+            }
+
             Monitor.NewFrame();
 
             using (Monitor.BeginCollecting(PerformanceCollectionType.Scheduler))
@@ -124,9 +130,12 @@ namespace osu.Framework.Threading
                 Clock.ProcessFrame();
         }
 
-        public void Start()
-        {
-            Thread?.Start();
-        }
+        private volatile bool exitRequested;
+        private volatile bool exitCompleted;
+
+        public void Exit() => exitRequested = true;
+        public void Start() => Thread?.Start();
+
+        protected virtual void PerformExit() { }
     }
 }
