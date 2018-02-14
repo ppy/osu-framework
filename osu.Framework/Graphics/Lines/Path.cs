@@ -167,7 +167,7 @@ namespace osu.Framework.Graphics.Lines
 
             n.Shared = pathDrawNodeSharedData;
 
-            n.Segments = segments;
+            n.Segments = segments.ToList();
 
             base.ApplyDrawNode(node);
         }
