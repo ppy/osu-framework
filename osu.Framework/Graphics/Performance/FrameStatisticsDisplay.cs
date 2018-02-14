@@ -103,7 +103,7 @@ namespace osu.Framework.Graphics.Performance
 
         public FrameStatisticsDisplay(GameThread thread, TextureAtlas atlas)
         {
-            Name = thread.Thread.Name;
+            Name = thread.Name;
             monitor = thread.Monitor;
 
             Origin = Anchor.TopRight;
