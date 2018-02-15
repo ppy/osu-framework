@@ -17,11 +17,20 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     internal interface ITabbableContainer
     {
+        /// <summary>
+        /// Whether this <see cref="ITabbableContainer"/> can be tabbed to.
+        /// </summary>
+        bool CanBeTabbedTo { get; }
     }
 
     public class TabbableContainer<T> : Container<T>, ITabbableContainer
         where T : Drawable
     {
+        /// <summary>
+        /// Whether this <see cref="TabbableContainer{T}"/> can be tabbed to.
+        /// </summary>
+        public virtual bool CanBeTabbedTo => true;
+
         /// <summary>
         /// Allows for tabbing between multiple levels within the TabbableContentContainer.
         /// </summary>
@@ -50,7 +59,7 @@ namespace osu.Framework.Graphics.Containers
 
                 if (!started)
                     started = ReferenceEquals(drawable, this);
-                else if (drawable is ITabbableContainer)
+                else if (drawable is ITabbableContainer tabbable && tabbable.CanBeTabbedTo)
                     return drawable;
 
                 var composite = drawable as CompositeDrawable;

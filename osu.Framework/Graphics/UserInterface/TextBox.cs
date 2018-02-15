@@ -48,9 +48,9 @@ namespace osu.Framework.Graphics.UserInterface
         private AudioManager audio;
 
         /// <summary>
-        /// Should this TextBox accept arrow keys for navigation?
+        /// Whether this TextBox should accept left and right arrow keys for navigation.
         /// </summary>
-        public bool HandleLeftRightArrows = true;
+        public virtual bool HandleLeftRightArrows => true;
 
         protected virtual Color4 BackgroundCommit => new Color4(249, 90, 255, 200);
         protected virtual Color4 BackgroundFocused => new Color4(100, 100, 100, 255);
@@ -59,6 +59,8 @@ namespace osu.Framework.Graphics.UserInterface
         public bool ReadOnly;
 
         public bool ReleaseFocusOnCommit = true;
+
+        public override bool CanBeTabbedTo => !ReadOnly;
 
         private ITextInputSource textInput;
         private Clipboard clipboard;
@@ -590,14 +592,6 @@ namespace osu.Framework.Graphics.UserInterface
 
             switch (args.Key)
             {
-                case Key.Left:
-                case Key.Right:
-                case Key.Delete:
-                case Key.BackSpace:
-                case Key.Home:
-                case Key.End:
-                    return false;
-
                 case Key.Escape:
                     GetContainingInputManager().ChangeFocus(null);
                     return true;
@@ -622,7 +616,7 @@ namespace osu.Framework.Graphics.UserInterface
                     return true;
             }
 
-            return true;
+            return false;
         }
 
         protected override bool OnDrag(InputState state)
