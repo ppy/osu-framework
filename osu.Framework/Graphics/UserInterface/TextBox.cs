@@ -590,14 +590,6 @@ namespace osu.Framework.Graphics.UserInterface
 
             switch (args.Key)
             {
-                case Key.Left:
-                case Key.Right:
-                case Key.Delete:
-                case Key.BackSpace:
-                case Key.Home:
-                case Key.End:
-                    return false;
-
                 case Key.Escape:
                     GetContainingInputManager().ChangeFocus(null);
                     return true;
@@ -622,7 +614,7 @@ namespace osu.Framework.Graphics.UserInterface
                     return true;
             }
 
-            return true;
+            return false;
         }
 
         protected override bool OnDrag(InputState state)
