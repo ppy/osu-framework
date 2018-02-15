@@ -60,6 +60,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         public bool ReleaseFocusOnCommit = true;
 
+        public override bool CanBeTabbedTo => !ReadOnly;
+
         private ITextInputSource textInput;
         private Clipboard clipboard;
 
