@@ -48,9 +48,9 @@ namespace osu.Framework.Graphics.UserInterface
         private AudioManager audio;
 
         /// <summary>
-        /// Should this TextBox accept arrow keys for navigation?
+        /// Whether this TextBox should accept left and right arrow keys for navigation.
         /// </summary>
-        public bool HandleLeftRightArrows = true;
+        public virtual bool HandleLeftRightArrows => true;
 
         protected virtual Color4 BackgroundCommit => new Color4(249, 90, 255, 200);
         protected virtual Color4 BackgroundFocused => new Color4(100, 100, 100, 255);
