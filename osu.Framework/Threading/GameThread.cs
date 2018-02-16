@@ -61,11 +61,9 @@ namespace osu.Framework.Threading
             }
         }
 
+        public static string PrefixedThreadNameFor(string name) => $"{nameof(GameThread)}.{name}";
+
         public bool Running => Thread.IsAlive;
-
-        public virtual void Exit() => exitRequested = true;
-
-        private volatile bool exitRequested;
 
         private readonly ManualResetEvent initializedEvent = new ManualResetEvent(false);
 
@@ -73,15 +71,19 @@ namespace osu.Framework.Threading
 
         internal virtual IEnumerable<StatisticsCounterType> StatisticsCounters => Array.Empty<StatisticsCounterType>();
 
-        public GameThread(Action onNewFrame, string threadName)
+        public readonly string Name;
+
+        internal GameThread(Action onNewFrame, string name)
         {
             this.onNewFrame = onNewFrame;
+
             Thread = new Thread(runWork)
             {
-                Name = threadName,
+                Name = PrefixedThreadNameFor(name),
                 IsBackground = true,
             };
 
+            Name = name;
             Clock = new ThrottledFrameClock();
             Monitor = new PerformanceMonitor(Clock, Thread, StatisticsCounters);
             Scheduler = new Scheduler(null, Clock);
@@ -100,12 +102,22 @@ namespace osu.Framework.Threading
 
             initializedEvent.Set();
 
-            while (!exitRequested)
+            while (!exitCompleted)
                 ProcessFrame();
         }
 
         protected void ProcessFrame()
         {
+            if (exitCompleted)
+                return;
+
+            if (exitRequested)
+            {
+                PerformExit();
+                exitCompleted = true;
+                return;
+            }
+
             Monitor.NewFrame();
 
             using (Monitor.BeginCollecting(PerformanceCollectionType.Scheduler))
@@ -118,9 +130,12 @@ namespace osu.Framework.Threading
                 Clock.ProcessFrame();
         }
 
-        public void Start()
-        {
-            Thread?.Start();
-        }
+        private volatile bool exitRequested;
+        private volatile bool exitCompleted;
+
+        public void Exit() => exitRequested = true;
+        public void Start() => Thread?.Start();
+
+        protected virtual void PerformExit() { }
     }
 }
