@@ -117,7 +117,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (textInput != null)
             {
-                textInput.OnNewImeComposition += delegate (string s)
+                textInput.OnNewImeComposition += delegate(string s)
                 {
                     textUpdateScheduler.Add(() => onImeComposition(s));
                     cursorAndLayout.Invalidate();
@@ -237,6 +237,7 @@ namespace osu.Framework.Graphics.UserInterface
                 var d = TextFlow.Children[index - 1];
                 return d.DrawPosition.X + d.DrawSize.X + TextFlow.Spacing.X + TextFlow.DrawPosition.X;
             }
+
             return 0;
         }
 
@@ -269,6 +270,11 @@ namespace osu.Framework.Graphics.UserInterface
         {
             int? amount = null;
 
+            if (!HandleLeftRightArrows &&
+                action.ActionMethod == PlatformActionMethod.Move &&
+                (action.ActionType == PlatformActionType.CharNext || action.ActionType == PlatformActionType.CharPrevious))
+                return false;
+
             switch (action.ActionType)
             {
                 // Clipboard
@@ -299,12 +305,10 @@ namespace osu.Framework.Graphics.UserInterface
 
                 // Cursor Manipulation
                 case PlatformActionType.CharNext:
-                    if (!HandleLeftRightArrows) return false;
                     amount = 1;
                     break;
 
                 case PlatformActionType.CharPrevious:
-                    if (!HandleLeftRightArrows) return false;
                     amount = -1;
                     break;
 
@@ -317,23 +321,19 @@ namespace osu.Framework.Graphics.UserInterface
                     break;
 
                 case PlatformActionType.WordNext:
-                    {
-                        int searchStart = MathHelper.Clamp(selectionEnd, 0, Text.Length - 1);
-                        while (searchStart < Text.Length && text[searchStart] == ' ')
-                            searchStart++;
-                        int nextSpace = text.IndexOf(' ', searchStart);
-                        amount = (nextSpace >= 0 ? nextSpace : text.Length) - selectionEnd;
-                    }
+                    int searchNext = MathHelper.Clamp(selectionEnd, 0, Text.Length - 1);
+                    while (searchNext < Text.Length && text[searchNext] == ' ')
+                        searchNext++;
+                    int nextSpace = text.IndexOf(' ', searchNext);
+                    amount = (nextSpace >= 0 ? nextSpace : text.Length) - selectionEnd;
                     break;
 
                 case PlatformActionType.WordPrevious:
-                    {
-                        int searchStart = MathHelper.Clamp(selectionEnd - 2, 0, Text.Length - 1);
-                        while (searchStart > 0 && text[searchStart] == ' ')
-                            searchStart--;
-                        int lastSpace = text.LastIndexOf(' ', searchStart);
-                        amount = lastSpace > 0 ? -(selectionEnd - lastSpace - 1) : -selectionEnd;
-                    }
+                    int searchPrev = MathHelper.Clamp(selectionEnd - 2, 0, Text.Length - 1);
+                    while (searchPrev > 0 && text[searchPrev] == ' ')
+                        searchPrev--;
+                    int lastSpace = text.LastIndexOf(' ', searchPrev);
+                    amount = lastSpace > 0 ? -(selectionEnd - lastSpace - 1) : -selectionEnd;
                     break;
             }
 
@@ -357,6 +357,7 @@ namespace osu.Framework.Graphics.UserInterface
                             removeCharacterOrSelection();
                         break;
                 }
+
                 return true;
             }
 
@@ -453,8 +454,8 @@ namespace osu.Framework.Graphics.UserInterface
             TextFlow.Add(ch);
 
             ch.FadeColour(Color4.Transparent)
-                .FadeColour(ColourInfo.GradientHorizontal(Color4.White, Color4.Transparent), caret_move_time / 2).Then()
-                .FadeColour(Color4.White, caret_move_time / 2);
+              .FadeColour(ColourInfo.GradientHorizontal(Color4.White, Color4.Transparent), caret_move_time / 2).Then()
+              .FadeColour(Color4.White, caret_move_time / 2);
 
             // Add back all the previously removed characters
             TextFlow.AddRange(charsRight);
@@ -613,6 +614,7 @@ namespace osu.Framework.Graphics.UserInterface
                         audio.Sample.Get(@"Keyboard/key-confirm")?.Play();
                         OnCommit?.Invoke(this, true);
                     }
+
                     return true;
             }
 
@@ -644,6 +646,7 @@ namespace osu.Framework.Graphics.UserInterface
                     selectionStart = doubleClickWord[0];
                     selectionEnd = doubleClickWord[1];
                 }
+
                 cursorAndLayout.Invalidate();
             }
             else
@@ -656,6 +659,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 cursorAndLayout.Invalidate();
             }
+
             return true;
         }
 
