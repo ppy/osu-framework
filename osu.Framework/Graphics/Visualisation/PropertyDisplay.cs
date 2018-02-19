@@ -60,7 +60,7 @@ namespace osu.Framework.Graphics.Visualisation
                                                       .Where(f => f.GetCustomAttribute<CompilerGeneratedAttribute>() == null);
 
             // Upper, then lower-case
-            var allMembers = properties.Concat(fields).OrderBy(m => (int)m.Name[0]);
+            var allMembers = properties.Concat(fields).OrderBy(m => (int)m.Name[0]).ThenBy(m => m.Name);
 
             AddRange(allMembers.Select(member => new PropertyItem(member, source)));
         }
