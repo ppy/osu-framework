@@ -76,6 +76,7 @@
     <Compile Include="TestGame.cs" />
     <Compile Include="VisualTestGame.cs" />
     <Compile Include="Visual\FrameworkTestCase.cs" />
+    <Compile Include="Visual\TestCaseAnchors.cs" />
     <Compile Include="Visual\TestCaseAnimation.cs" />
     <Compile Include="Visual\TestCaseBindableNumbers.cs" />
     <Compile Include="Visual\TestCaseBlending.cs" />

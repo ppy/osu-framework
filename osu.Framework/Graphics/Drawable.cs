@@ -937,9 +937,6 @@ namespace osu.Framework.Graphics
             }
         }
 
-
-        private Vector2 customOrigin;
-
         /// <summary>
         /// The origin of the local coordinate system of this Drawable
         /// in relative coordinates expressed in the coordinate system with origin at the
@@ -967,6 +964,8 @@ namespace osu.Framework.Graphics
             }
         }
 
+        private Vector2 customOrigin;
+
         /// <summary>
         /// The origin of the local coordinate system of this Drawable
         /// in absolute coordinates expressed in the coordinate system with origin at the
@@ -986,7 +985,6 @@ namespace osu.Framework.Graphics
 
                 return result - new Vector2(margin.Left, margin.Top);
             }
-
             set
             {
                 if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(OriginPosition)} must be finite, but is {value}.");
@@ -996,7 +994,6 @@ namespace osu.Framework.Graphics
             }
         }
 
-
         private Anchor anchor = Anchor.TopLeft;
 
         /// <summary>
@@ -1004,7 +1001,7 @@ namespace osu.Framework.Graphics
         /// in the coordinate system with origin at the top left corner of the
         /// <see cref="Parent"/>'s <see cref="DrawRectangle"/>.
         /// Can either be one of 9 relative positions (0, 0.5, and 1 in x and y)
-        /// or a fixed absolute position via <see cref="RelativeAnchorPosition"/>.
+        /// or a fixed absolute position via <see cref="AnchorPosition"/>.
         /// </summary>
         public Anchor Anchor
         {
@@ -1022,9 +1019,6 @@ namespace osu.Framework.Graphics
             }
         }
 
-
-        private Vector2 customRelativeAnchorPosition;
-
         /// <summary>
         /// Specifies in relative coordinates where <see cref="Origin"/> is attached
         /// to the <see cref="Parent"/> in the coordinate system with origin at the top
@@ -1037,7 +1031,7 @@ namespace osu.Framework.Graphics
             get
             {
                 if (Anchor == Anchor.Custom)
-                    return customRelativeAnchorPosition;
+                    throw new InvalidOperationException(@"Can not obtain relative anchor position for custom anchors.");
 
                 Vector2 result = Vector2.Zero;
                 if ((anchor & Anchor.x1) > 0)
@@ -1052,22 +1046,37 @@ namespace osu.Framework.Graphics
 
                 return result;
             }
-
-            set
-            {
-                if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(RelativeAnchorPosition)} must be finite, but is {value}.");
-
-                customRelativeAnchorPosition = value;
-                Anchor = Anchor.Custom;
-            }
         }
+
+        private Vector2 customAnchor;
 
         /// <summary>
         /// Specifies in absolute coordinates where <see cref="Origin"/> is attached
         /// to the <see cref="Parent"/> in the coordinate system with origin at the top
         /// left corner of the <see cref="Parent"/>'s <see cref="DrawRectangle"/>.
         /// </summary>
-        public Vector2 AnchorPosition => RelativeAnchorPosition * Parent?.ChildSize ?? Vector2.Zero;
+        public Vector2 AnchorPosition
+        {
+            get
+            {
+                Vector2 result;
+                if (Anchor == Anchor.Custom)
+                    result = customAnchor;
+                else if (Anchor == Anchor.TopLeft)
+                    result = Vector2.Zero;
+                else
+                    result = computeAnchorPosition(Parent?.ChildSize ?? Vector2.Zero, Anchor);
+
+                return result;
+            }
+            set
+            {
+                if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(AnchorPosition)} must be finite, but is {value}.");
+
+                customAnchor = value;
+                Anchor = Anchor.Custom;
+            }
+        }
 
         /// <summary>
         /// Helper function to compute an absolute position given an absolute size and
