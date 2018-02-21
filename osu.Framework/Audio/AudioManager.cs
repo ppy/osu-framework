@@ -171,7 +171,7 @@ namespace osu.Framework.Audio
         /// Returns the global <see cref="SampleManager"/> if no resource store is passed.
         /// </summary>
         /// <param name="store">The <see cref="T:ResourceStore"/> of which to retrieve the <see cref="SampleManager"/>.</param>
-        public SampleManager GetSampleManager(ResourceStore<byte[]> store = null)
+        public SampleManager GetSampleManager(IResourceStore<byte[]> store = null)
         {
             if (store == null) return globalSampleManager.Value;
 
