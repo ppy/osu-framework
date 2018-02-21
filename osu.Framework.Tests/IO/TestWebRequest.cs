@@ -20,11 +20,8 @@ namespace osu.Framework.Tests.IO
         private const string valid_get_url = "httpbin.org/get";
         private const string invalid_get_url = "a.ppy.shhhhh";
 
-        [TestCase("http", false)]
-        [TestCase("https", false)]
-        [TestCase("http", true)]
-        [TestCase("https", true)]
-        public void TestValidGet(string protocol, bool async)
+        [Test, Retry(5)]
+        public void TestValidGet([Values("http", "https")] string protocol, [Values(true, false)] bool async)
         {
             var url = $"{protocol}://httpbin.org/get";
             var request = new JsonWebRequest<HttpBinGetResponse>(url) { Method = HttpMethod.GET };
@@ -49,11 +46,8 @@ namespace osu.Framework.Tests.IO
             Assert.IsFalse(hasThrown);
         }
 
-        [TestCase("http", false)]
-        [TestCase("https", false)]
-        [TestCase("http", true)]
-        [TestCase("https", true)]
-        public void TestInvalidGetExceptions(string protocol, bool async)
+        [Test, Retry(5)]
+        public void TestInvalidGetExceptions([Values("http", "https")] string protocol, [Values(true, false)] bool async)
         {
             var request = new WebRequest($"{protocol}://{invalid_get_url}") { Method = HttpMethod.GET };
 
@@ -72,9 +66,8 @@ namespace osu.Framework.Tests.IO
             Assert.IsNotNull(finishedException);
         }
 
-        [TestCase(false)]
-        [TestCase(true)]
-        public void TestBadStatusCode(bool async)
+        [Test, Retry(5)]
+        public void TestBadStatusCode([Values(true, false)] bool async)
         {
             var request = new WebRequest("https://httpbin.org/hidden-basic-auth/user/passwd");
 
@@ -98,9 +91,8 @@ namespace osu.Framework.Tests.IO
         /// Tests aborting the <see cref="WebRequest"/> after response has been received from the server
         /// but before data has been read.
         /// </summary>
-        [TestCase(false)]
-        [TestCase(true)]
-        public void TestAbortReceive(bool async)
+        [Test, Retry(5)]
+        public void TestAbortReceive([Values(true, false)] bool async)
         {
             var request = new JsonWebRequest<HttpBinGetResponse>("https://httpbin.org/get") { Method = HttpMethod.GET };
 
@@ -124,7 +116,7 @@ namespace osu.Framework.Tests.IO
         /// <summary>
         /// Tests aborting the <see cref="WebRequest"/> before the request is sent to the server.
         /// </summary>
-        [Test]
+        [Test, Retry(5)]
         public void TestAbortRequest()
         {
             var request = new JsonWebRequest<HttpBinGetResponse>("https://httpbin.org/get") { Method = HttpMethod.GET };
@@ -149,9 +141,8 @@ namespace osu.Framework.Tests.IO
         /// <summary>
         /// Tests being able to abort + restart a request.
         /// </summary>
-        [TestCase(false)]
-        [TestCase(true)]
-        public void TestRestartAfterAbort(bool async)
+        [Test, Retry(5)]
+        public void TestRestartAfterAbort([Values(true, false)] bool async)
         {
             var request = new JsonWebRequest<HttpBinGetResponse>("https://httpbin.org/get") { Method = HttpMethod.GET };
 
@@ -181,7 +172,7 @@ namespace osu.Framework.Tests.IO
         /// <summary>
         /// Tests that specifically-crafted <see cref="WebRequest"/> is completed after one timeout.
         /// </summary>
-        [Test]
+        [Test, Retry(5)]
         public void TestOneTimeout()
         {
             var request = new DelayedWebRequest
@@ -207,7 +198,7 @@ namespace osu.Framework.Tests.IO
         /// <summary>
         /// Tests that a <see cref="WebRequest"/> will only timeout a maximum of <see cref="WebRequest.MAX_RETRIES"/> times before being aborted.
         /// </summary>
-        [Test]
+        [Test, Retry(5)]
         public void TestFailTimeout()
         {
             var request = new WebRequest("https://httpbin.org/delay/4")
@@ -232,9 +223,8 @@ namespace osu.Framework.Tests.IO
         /// <summary>
         /// Tests being able to abort + restart a request.
         /// </summary>
-        [TestCase(false)]
-        [TestCase(true)]
-        public void TestEventUnbindOnCompletion(bool async)
+        [Test, Retry(5)]
+        public void TestEventUnbindOnCompletion([Values(true, false)] bool async)
         {
             var request = new JsonWebRequest<HttpBinGetResponse>("https://httpbin.org/get") { Method = HttpMethod.GET };
 
@@ -256,9 +246,8 @@ namespace osu.Framework.Tests.IO
         /// <summary>
         /// Tests being able to abort + restart a request.
         /// </summary>
-        [TestCase(false)]
-        [TestCase(true)]
-        public void TestUnbindOnDispose(bool async)
+        [Test, Retry(5)]
+        public void TestUnbindOnDispose([Values(true, false)] bool async)
         {
             WebRequest request;
             using (request = new JsonWebRequest<HttpBinGetResponse>("https://httpbin.org/get") { Method = HttpMethod.GET })
@@ -279,9 +268,8 @@ namespace osu.Framework.Tests.IO
             }
         }
 
-        [TestCase(false)]
-        [TestCase(true)]
-        public void TestPostWithJsonResponse(bool async)
+        [Test, Retry(5)]
+        public void TestPostWithJsonResponse([Values(true, false)] bool async)
         {
             var request = new JsonWebRequest<HttpBinPostResponse>("https://httpbin.org/post") { Method = HttpMethod.POST };
 
@@ -312,9 +300,8 @@ namespace osu.Framework.Tests.IO
             Assert.IsTrue(responseObject.Headers.ContentType.StartsWith("multipart/form-data; boundary="));
         }
 
-        [TestCase(false)]
-        [TestCase(true)]
-        public void TestPostWithJsonRequest(bool async)
+        [Test, Retry(5)]
+        public void TestPostWithJsonRequest([Values(true, false)] bool async)
         {
             var request = new JsonWebRequest<HttpBinPostResponse>("https://httpbin.org/post") { Method = HttpMethod.POST };
 
@@ -338,11 +325,8 @@ namespace osu.Framework.Tests.IO
             Assert.IsTrue(responseObject.Headers.ContentType == null);
         }
 
-        [TestCase(false, false)]
-        [TestCase(false, true)]
-        [TestCase(true, false)]
-        [TestCase(true, true)]
-        public void TestGetBinaryData(bool async, bool chunked)
+        [Test, Retry(5)]
+        public void TestGetBinaryData([Values(true, false)] bool async, [Values(true, false)] bool chunked)
         {
             const int bytes_count = 65536;
             const int chunk_size = 1024;
@@ -415,6 +399,7 @@ namespace osu.Framework.Tests.IO
             public Action CompleteInvoked;
 
             private int delay;
+
             public int Delay
             {
                 get { return delay; }
