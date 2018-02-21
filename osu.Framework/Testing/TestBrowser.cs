@@ -247,9 +247,14 @@ namespace osu.Framework.Testing
 
             if (newType == null) return;
 
-            int i = TestTypes.FindIndex(t => t.Name == newType.Name);
-            TestTypes[i] = newType;
-            LoadTest(i);
+            int i = TestTypes.FindIndex(t => t.Name == newType.Name && t.Assembly.GetName().Name == newType.Assembly.GetName().Name);
+
+            if (i < 0)
+                TestTypes.Add(newType);
+            else
+                TestTypes[i] = newType;
+
+            LoadTest(newType);
         });
 
         protected override void LoadComplete()
@@ -342,6 +347,8 @@ namespace osu.Framework.Testing
                 // if we are a dynamically compiled type (via DynamicClassCompiler) we should update the dropdown accordingly.
                 if (testType.Assembly.FullName.Contains(DynamicClassCompiler.DYNAMIC_ASSEMBLY_NAME))
                     dropdown.AddDropdownItem($"dynamic ({testType.Name})", testType.Assembly);
+                else
+                    TestTypes.RemoveAll(t => t.Assembly.FullName.Contains(DynamicClassCompiler.DYNAMIC_ASSEMBLY_NAME));
 
                 dropdown.Current.Value = testType.Assembly;
 
