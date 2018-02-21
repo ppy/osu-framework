@@ -21,6 +21,7 @@ namespace osu.Framework.Tests.IO
         private const string invalid_get_url = "a.ppy.shhhhh";
 
         [Test, Retry(5)]
+        [Ignore("Broken (appveyor or httpbin.org)")]
         public void TestValidGet([Values("http", "https")] string protocol, [Values(true, false)] bool async)
         {
             var url = $"{protocol}://httpbin.org/get";
@@ -47,6 +48,7 @@ namespace osu.Framework.Tests.IO
         }
 
         [Test, Retry(5)]
+        [Ignore("Broken (appveyor or httpbin.org)")]
         public void TestInvalidGetExceptions([Values("http", "https")] string protocol, [Values(true, false)] bool async)
         {
             var request = new WebRequest($"{protocol}://{invalid_get_url}") { Method = HttpMethod.GET };
@@ -67,6 +69,7 @@ namespace osu.Framework.Tests.IO
         }
 
         [Test, Retry(5)]
+        [Ignore("Broken (appveyor or httpbin.org)")]
         public void TestBadStatusCode([Values(true, false)] bool async)
         {
             var request = new WebRequest("https://httpbin.org/hidden-basic-auth/user/passwd");
@@ -92,6 +95,7 @@ namespace osu.Framework.Tests.IO
         /// but before data has been read.
         /// </summary>
         [Test, Retry(5)]
+        [Ignore("Broken (appveyor or httpbin.org)")]
         public void TestAbortReceive([Values(true, false)] bool async)
         {
             var request = new JsonWebRequest<HttpBinGetResponse>("https://httpbin.org/get") { Method = HttpMethod.GET };
@@ -117,6 +121,7 @@ namespace osu.Framework.Tests.IO
         /// Tests aborting the <see cref="WebRequest"/> before the request is sent to the server.
         /// </summary>
         [Test, Retry(5)]
+        [Ignore("Broken (appveyor or httpbin.org)")]
         public void TestAbortRequest()
         {
             var request = new JsonWebRequest<HttpBinGetResponse>("https://httpbin.org/get") { Method = HttpMethod.GET };
@@ -142,6 +147,7 @@ namespace osu.Framework.Tests.IO
         /// Tests being able to abort + restart a request.
         /// </summary>
         [Test, Retry(5)]
+        [Ignore("Broken (appveyor or httpbin.org)")]
         public void TestRestartAfterAbort([Values(true, false)] bool async)
         {
             var request = new JsonWebRequest<HttpBinGetResponse>("https://httpbin.org/get") { Method = HttpMethod.GET };
@@ -173,6 +179,7 @@ namespace osu.Framework.Tests.IO
         /// Tests that specifically-crafted <see cref="WebRequest"/> is completed after one timeout.
         /// </summary>
         [Test, Retry(5)]
+        [Ignore("Broken (appveyor or httpbin.org)")]
         public void TestOneTimeout()
         {
             var request = new DelayedWebRequest
@@ -199,6 +206,7 @@ namespace osu.Framework.Tests.IO
         /// Tests that a <see cref="WebRequest"/> will only timeout a maximum of <see cref="WebRequest.MAX_RETRIES"/> times before being aborted.
         /// </summary>
         [Test, Retry(5)]
+        [Ignore("Broken (appveyor or httpbin.org)")]
         public void TestFailTimeout()
         {
             var request = new WebRequest("https://httpbin.org/delay/4")
@@ -224,6 +232,7 @@ namespace osu.Framework.Tests.IO
         /// Tests being able to abort + restart a request.
         /// </summary>
         [Test, Retry(5)]
+        [Ignore("Broken (appveyor or httpbin.org)")]
         public void TestEventUnbindOnCompletion([Values(true, false)] bool async)
         {
             var request = new JsonWebRequest<HttpBinGetResponse>("https://httpbin.org/get") { Method = HttpMethod.GET };
@@ -247,6 +256,7 @@ namespace osu.Framework.Tests.IO
         /// Tests being able to abort + restart a request.
         /// </summary>
         [Test, Retry(5)]
+        [Ignore("Broken (appveyor or httpbin.org)")]
         public void TestUnbindOnDispose([Values(true, false)] bool async)
         {
             WebRequest request;
@@ -269,6 +279,7 @@ namespace osu.Framework.Tests.IO
         }
 
         [Test, Retry(5)]
+        [Ignore("Broken (appveyor or httpbin.org)")]
         public void TestPostWithJsonResponse([Values(true, false)] bool async)
         {
             var request = new JsonWebRequest<HttpBinPostResponse>("https://httpbin.org/post") { Method = HttpMethod.POST };
@@ -301,6 +312,7 @@ namespace osu.Framework.Tests.IO
         }
 
         [Test, Retry(5)]
+        [Ignore("Broken (appveyor or httpbin.org)")]
         public void TestPostWithJsonRequest([Values(true, false)] bool async)
         {
             var request = new JsonWebRequest<HttpBinPostResponse>("https://httpbin.org/post") { Method = HttpMethod.POST };
@@ -326,6 +338,7 @@ namespace osu.Framework.Tests.IO
         }
 
         [Test, Retry(5)]
+        [Ignore("Broken (appveyor or httpbin.org)")]
         public void TestGetBinaryData([Values(true, false)] bool async, [Values(true, false)] bool chunked)
         {
             const int bytes_count = 65536;
