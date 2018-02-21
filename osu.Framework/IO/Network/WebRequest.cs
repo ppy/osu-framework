@@ -336,7 +336,7 @@ namespace osu.Framework.IO.Network
                 }
                 catch (Exception) when (timeoutToken.IsCancellationRequested)
                 {
-                    Complete(new WebException($"Request to {Url} timed out after {timeSinceLastAction / 1000} seconds idle (read {responseBytesRead} bytes).", WebExceptionStatus.Timeout));
+                    Complete(new WebException($"Request to {Url} timed out after {timeSinceLastAction / 1000} seconds idle (read {responseBytesRead} bytes, retried {RetryCount} times).", WebExceptionStatus.Timeout));
                 }
                 catch (Exception) when (abortToken.IsCancellationRequested)
                 {
