@@ -210,7 +210,7 @@ namespace osu.Framework.Configuration
         /// <returns>A weakly bound copy of the specified bindable.</returns>
         public Bindable<T> GetBoundCopy()
         {
-            var copy = (Bindable<T>)Activator.CreateInstance(GetType(), default(T));
+            var copy = (Bindable<T>)Activator.CreateInstance(GetType(), Value);
             copy.BindTo(this);
             return copy;
         }
