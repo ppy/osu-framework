@@ -54,8 +54,14 @@ namespace osu.Framework.Testing
                 host.Run(new TestCaseTestRunner(this));
             }
 
-            // clean up after each run
-            storage.DeleteDirectory(string.Empty);
+            try
+            {
+                // clean up after each run
+                storage.DeleteDirectory(string.Empty);
+            }
+            catch
+            {
+            }
         }
 
         /// <summary>
