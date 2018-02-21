@@ -250,14 +250,11 @@ namespace osu.Framework.Testing
             int i = TestTypes.FindIndex(t => t.Name == newType.Name && t.Assembly.GetName().Name == newType.Assembly.GetName().Name);
 
             if (i < 0)
-            {
-                i = TestTypes.Count;
                 TestTypes.Add(newType);
-            }
             else
                 TestTypes[i] = newType;
 
-            LoadTest(i);
+            LoadTest(newType);
         });
 
         protected override void LoadComplete()
