@@ -20,13 +20,10 @@ namespace osu.Framework.Tests.IO
         private const string valid_get_url = "httpbin.org/get";
         private const string invalid_get_url = "a.ppy.shhhhh";
 
-        private const int retry_count = 5;
-
         [TestCase("http", false)]
         [TestCase("https", false)]
         [TestCase("http", true)]
         [TestCase("https", true)]
-        [Retry(retry_count)]
         public void TestValidGet(string protocol, bool async)
         {
             var url = $"{protocol}://httpbin.org/get";
@@ -56,7 +53,6 @@ namespace osu.Framework.Tests.IO
         [TestCase("https", false)]
         [TestCase("http", true)]
         [TestCase("https", true)]
-        [Retry(retry_count)]
         public void TestInvalidGetExceptions(string protocol, bool async)
         {
             var request = new WebRequest($"{protocol}://{invalid_get_url}") { Method = HttpMethod.GET };
@@ -78,7 +74,6 @@ namespace osu.Framework.Tests.IO
 
         [TestCase(false)]
         [TestCase(true)]
-        [Retry(retry_count)]
         public void TestBadStatusCode(bool async)
         {
             var request = new WebRequest("https://httpbin.org/hidden-basic-auth/user/passwd");
@@ -105,7 +100,6 @@ namespace osu.Framework.Tests.IO
         /// </summary>
         [TestCase(false)]
         [TestCase(true)]
-        [Retry(retry_count)]
         public void TestAbortReceive(bool async)
         {
             var request = new JsonWebRequest<HttpBinGetResponse>("https://httpbin.org/get") { Method = HttpMethod.GET };
@@ -131,7 +125,6 @@ namespace osu.Framework.Tests.IO
         /// Tests aborting the <see cref="WebRequest"/> before the request is sent to the server.
         /// </summary>
         [Test]
-        [Retry(retry_count)]
         public void TestAbortRequest()
         {
             var request = new JsonWebRequest<HttpBinGetResponse>("https://httpbin.org/get") { Method = HttpMethod.GET };
@@ -158,7 +151,6 @@ namespace osu.Framework.Tests.IO
         /// </summary>
         [TestCase(false)]
         [TestCase(true)]
-        [Retry(retry_count)]
         public void TestRestartAfterAbort(bool async)
         {
             var request = new JsonWebRequest<HttpBinGetResponse>("https://httpbin.org/get") { Method = HttpMethod.GET };
@@ -190,7 +182,6 @@ namespace osu.Framework.Tests.IO
         /// Tests that specifically-crafted <see cref="WebRequest"/> is completed after one timeout.
         /// </summary>
         [Test]
-        [Retry(retry_count)]
         public void TestOneTimeout()
         {
             var request = new DelayedWebRequest
@@ -217,7 +208,6 @@ namespace osu.Framework.Tests.IO
         /// Tests that a <see cref="WebRequest"/> will only timeout a maximum of <see cref="WebRequest.MAX_RETRIES"/> times before being aborted.
         /// </summary>
         [Test]
-        [Retry(retry_count)]
         public void TestFailTimeout()
         {
             var request = new WebRequest("https://httpbin.org/delay/4")
@@ -244,7 +234,6 @@ namespace osu.Framework.Tests.IO
         /// </summary>
         [TestCase(false)]
         [TestCase(true)]
-        [Retry(retry_count)]
         public void TestEventUnbindOnCompletion(bool async)
         {
             var request = new JsonWebRequest<HttpBinGetResponse>("https://httpbin.org/get") { Method = HttpMethod.GET };
@@ -269,7 +258,6 @@ namespace osu.Framework.Tests.IO
         /// </summary>
         [TestCase(false)]
         [TestCase(true)]
-        [Retry(retry_count)]
         public void TestUnbindOnDispose(bool async)
         {
             WebRequest request;
@@ -293,7 +281,6 @@ namespace osu.Framework.Tests.IO
 
         [TestCase(false)]
         [TestCase(true)]
-        [Retry(retry_count)]
         public void TestPostWithJsonResponse(bool async)
         {
             var request = new JsonWebRequest<HttpBinPostResponse>("https://httpbin.org/post") { Method = HttpMethod.POST };
@@ -327,7 +314,6 @@ namespace osu.Framework.Tests.IO
 
         [TestCase(false)]
         [TestCase(true)]
-        [Retry(retry_count)]
         public void TestPostWithJsonRequest(bool async)
         {
             var request = new JsonWebRequest<HttpBinPostResponse>("https://httpbin.org/post") { Method = HttpMethod.POST };
@@ -356,7 +342,6 @@ namespace osu.Framework.Tests.IO
         [TestCase(false, true)]
         [TestCase(true, false)]
         [TestCase(true, true)]
-        [Retry(retry_count)]
         public void TestGetBinaryData(bool async, bool chunked)
         {
             const int bytes_count = 65536;
