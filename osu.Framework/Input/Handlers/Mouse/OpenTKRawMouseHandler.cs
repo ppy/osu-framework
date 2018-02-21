@@ -9,6 +9,7 @@ using osu.Framework.Platform;
 using osu.Framework.Statistics;
 using osu.Framework.Threading;
 using OpenTK;
+using OpenTK.Input;
 using OpenTK.Platform.Windows;
 
 namespace osu.Framework.Input.Handlers.Mouse
@@ -16,8 +17,6 @@ namespace osu.Framework.Input.Handlers.Mouse
     internal class OpenTKRawMouseHandler : InputHandler, IHasCursorSensitivity
     {
         private ScheduledDelegate scheduled;
-
-        private bool mouseInWindow;
 
         private readonly BindableDouble sensitivity = new BindableDouble(1) { MinValue = 0.1, MaxValue = 10 };
 
@@ -34,12 +33,7 @@ namespace osu.Framework.Input.Handlers.Mouse
 
         public override bool Initialize(GameHost host)
         {
-            host.Window.MouseEnter += window_MouseEnter;
-            host.Window.MouseLeave += window_MouseLeave;
-
             this.host = host;
-
-            mouseInWindow = host.Window.CursorInWindow;
 
             // Get the bindables we need to determine whether to confine the mouse to window or not
             DesktopGameWindow desktopWindow = host.Window as DesktopGameWindow;
@@ -59,7 +53,7 @@ namespace osu.Framework.Input.Handlers.Mouse
                         if (!host.Window.Visible || host.Window.WindowState == WindowState.Minimized)
                             return;
 
-                        if (mouseInWindow && host.Window.Focused)
+                        if (host.Window.Focused)
                         {
                             var newStates = new List<OpenTK.Input.MouseState>();
 
@@ -174,7 +168,7 @@ namespace osu.Framework.Input.Handlers.Mouse
                     currentPosition = lastState.Position + new Vector2(state.X - lastState.RawState.X, state.Y - lastState.RawState.Y) * (float)sensitivity.Value;
 
                     // When confining, clamp to the window size.
-                    if (confineMode.Value == ConfineMouseMode.Always || confineMode.Value == ConfineMouseMode.Fullscreen && windowMode.Value == WindowMode.Fullscreen)
+                    if (state.LeftButton == ButtonState.Pressed || confineMode.Value == ConfineMouseMode.Always || confineMode.Value == ConfineMouseMode.Fullscreen && windowMode.Value == WindowMode.Fullscreen)
                         currentPosition = Vector2.Clamp(currentPosition, Vector2.Zero, new Vector2(host.Window.Width, host.Window.Height));
 
                     // update the windows cursor to match our raw cursor position.
@@ -186,9 +180,6 @@ namespace osu.Framework.Input.Handlers.Mouse
 
             return currentPosition;
         }
-
-        private void window_MouseLeave(object sender, EventArgs e) => mouseInWindow = false;
-        private void window_MouseEnter(object sender, EventArgs e) => mouseInWindow = true;
 
         /// <summary>
         /// This input handler is always active, handling the cursor position if no other input handler does.
