@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using osu.Framework.Configuration;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
@@ -17,6 +18,8 @@ namespace osu.Framework.Input.Handlers.Mouse
     internal class OpenTKRawMouseHandler : InputHandler, IHasCursorSensitivity
     {
         private ScheduledDelegate scheduled;
+
+        private bool mouseInWindow;
 
         private readonly BindableDouble sensitivity = new BindableDouble(1) { MinValue = 0.1, MaxValue = 10 };
 
@@ -33,7 +36,12 @@ namespace osu.Framework.Input.Handlers.Mouse
 
         public override bool Initialize(GameHost host)
         {
+            host.Window.MouseEnter += window_MouseEnter;
+            host.Window.MouseLeave += window_MouseLeave;
+
             this.host = host;
+
+            mouseInWindow = host.Window.CursorInWindow;
 
             // Get the bindables we need to determine whether to confine the mouse to window or not
             DesktopGameWindow desktopWindow = host.Window as DesktopGameWindow;
@@ -55,7 +63,7 @@ namespace osu.Framework.Input.Handlers.Mouse
 
                         if (host.Window.Focused)
                         {
-                            var newStates = new List<OpenTK.Input.MouseState>();
+                            var newStates = new List<OpenTK.Input.MouseState>(mostSeenStates + 1);
 
                             for (int i = 0; i <= mostSeenStates + 1; i++)
                             {
@@ -67,45 +75,48 @@ namespace osu.Framework.Input.Handlers.Mouse
                                 }
                             }
 
-                            while (lastStates.Count < newStates.Count)
-                                lastStates.Add(null);
-
-                            for (int i = 0; i < newStates.Count; i++)
+                            if (mouseInWindow || newStates.Any(s => s.LeftButton == ButtonState.Pressed))
                             {
-                                if (newStates[i].IsConnected != true)
+
+                                while (lastStates.Count < newStates.Count)
+                                    lastStates.Add(null);
+
+                                for (int i = 0; i < newStates.Count; i++)
                                 {
-                                    lastStates[i] = null;
-                                    continue;
+                                    if (newStates[i].IsConnected != true)
+                                    {
+                                        lastStates[i] = null;
+                                        continue;
+                                    }
+
+                                    var state = newStates[i];
+                                    var lastState = lastStates[i];
+
+                                    if (lastState != null && state.Equals(lastState.RawState))
+                                        continue;
+
+                                    var newState = new OpenTKPollMouseState(state, host.IsActive, getUpdatedPosition(state, lastState))
+                                    {
+                                        LastState = lastState
+                                    };
+
+                                    lastStates[i] = newState;
+
+                                    if (lastState != null)
+                                    {
+                                        PendingStates.Enqueue(new InputState { Mouse = newState });
+                                        FrameStatistics.Increment(StatisticsCounterType.MouseEvents);
+                                    }
                                 }
-
-                                var state = newStates[i];
-                                var lastState = lastStates[i];
-
-                                if (lastState != null && state.Equals(lastState.RawState))
-                                    continue;
-
-                                var newState = new OpenTKPollMouseState(state, host.IsActive, getUpdatedPosition(state, lastState))
-                                {
-                                    LastState = lastState
-                                };
-
-                                lastStates[i] = newState;
-
-                                if (lastState != null)
-                                {
-                                    PendingStates.Enqueue(new InputState { Mouse = newState });
-                                    FrameStatistics.Increment(StatisticsCounterType.MouseEvents);
-                                }
+                            }
+                            else
+                            {
+                                handleUnfocusedMouseState(host);
                             }
                         }
                         else
                         {
-                            var state = OpenTK.Input.Mouse.GetCursorState();
-                            var screenPoint = host.Window.PointToClient(new Point(state.X, state.Y));
-                            PendingStates.Enqueue(new InputState { Mouse = new UnfocusedMouseState(new OpenTK.Input.MouseState(), host.IsActive, new Vector2(screenPoint.X, screenPoint.Y)) });
-                            FrameStatistics.Increment(StatisticsCounterType.MouseEvents);
-
-                            lastStates.Clear();
+                            handleUnfocusedMouseState(host);
                         }
                     }, 0, 0));
                 }
@@ -118,6 +129,16 @@ namespace osu.Framework.Input.Handlers.Mouse
 
             Enabled.TriggerChange();
             return true;
+        }
+
+        private void handleUnfocusedMouseState(GameHost host)
+        {
+            var state = OpenTK.Input.Mouse.GetCursorState();
+            var screenPoint = host.Window.PointToClient(new Point(state.X, state.Y));
+            PendingStates.Enqueue(new InputState { Mouse = new UnfocusedMouseState(new OpenTK.Input.MouseState(), host.IsActive, new Vector2(screenPoint.X, screenPoint.Y)) });
+            FrameStatistics.Increment(StatisticsCounterType.MouseEvents);
+
+            lastStates.Clear();
         }
 
         private Vector2 getUpdatedPosition(OpenTK.Input.MouseState state, OpenTKMouseState lastState)
@@ -180,6 +201,9 @@ namespace osu.Framework.Input.Handlers.Mouse
 
             return currentPosition;
         }
+
+        private void window_MouseLeave(object sender, EventArgs e) => mouseInWindow = false;
+        private void window_MouseEnter(object sender, EventArgs e) => mouseInWindow = true;
 
         /// <summary>
         /// This input handler is always active, handling the cursor position if no other input handler does.
