@@ -10,7 +10,6 @@ using osu.Framework.Platform;
 using osu.Framework.Statistics;
 using osu.Framework.Threading;
 using OpenTK;
-using OpenTK.Input;
 using OpenTK.Platform.Windows;
 
 namespace osu.Framework.Input.Handlers.Mouse
@@ -75,9 +74,8 @@ namespace osu.Framework.Input.Handlers.Mouse
                                 }
                             }
 
-                            if (mouseInWindow || newStates.Any(s => s.LeftButton == ButtonState.Pressed))
+                            if (mouseInWindow || newStates.Any(s => s.IsAnyButtonDown))
                             {
-
                                 while (lastStates.Count < newStates.Count)
                                     lastStates.Add(null);
 
