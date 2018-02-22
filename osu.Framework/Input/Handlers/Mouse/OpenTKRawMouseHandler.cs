@@ -60,7 +60,7 @@ namespace osu.Framework.Input.Handlers.Mouse
                         if (!host.Window.Visible || host.Window.WindowState == WindowState.Minimized)
                             return;
 
-                        if (host.Window.Focused)
+                        if ((mouseInWindow || lastStates.Any(s => s.HasAnyButtonPressed)) && host.Window.Focused)
                         {
                             var newStates = new List<OpenTK.Input.MouseState>(mostSeenStates + 1);
 
@@ -74,47 +74,45 @@ namespace osu.Framework.Input.Handlers.Mouse
                                 }
                             }
 
-                            if (mouseInWindow || newStates.Any(s => s.IsAnyButtonDown))
-                            {
-                                while (lastStates.Count < newStates.Count)
-                                    lastStates.Add(null);
+                            while (lastStates.Count < newStates.Count)
+                                lastStates.Add(null);
 
-                                for (int i = 0; i < newStates.Count; i++)
+                            for (int i = 0; i < newStates.Count; i++)
+                            {
+                                if (newStates[i].IsConnected != true)
                                 {
-                                    if (newStates[i].IsConnected != true)
-                                    {
-                                        lastStates[i] = null;
-                                        continue;
-                                    }
-
-                                    var state = newStates[i];
-                                    var lastState = lastStates[i];
-
-                                    if (lastState != null && state.Equals(lastState.RawState))
-                                        continue;
-
-                                    var newState = new OpenTKPollMouseState(state, host.IsActive, getUpdatedPosition(state, lastState))
-                                    {
-                                        LastState = lastState
-                                    };
-
-                                    lastStates[i] = newState;
-
-                                    if (lastState != null)
-                                    {
-                                        PendingStates.Enqueue(new InputState { Mouse = newState });
-                                        FrameStatistics.Increment(StatisticsCounterType.MouseEvents);
-                                    }
+                                    lastStates[i] = null;
+                                    continue;
                                 }
-                            }
-                            else
-                            {
-                                handleUnfocusedMouseState(host);
+
+                                var state = newStates[i];
+                                var lastState = lastStates[i];
+
+                                if (lastState != null && state.Equals(lastState.RawState))
+                                    continue;
+
+                                var newState = new OpenTKPollMouseState(state, host.IsActive, getUpdatedPosition(state, lastState))
+                                {
+                                    LastState = lastState
+                                };
+
+                                lastStates[i] = newState;
+
+                                if (lastState != null)
+                                {
+                                    PendingStates.Enqueue(new InputState { Mouse = newState });
+                                    FrameStatistics.Increment(StatisticsCounterType.MouseEvents);
+                                }
                             }
                         }
                         else
                         {
-                            handleUnfocusedMouseState(host);
+                            var state = OpenTK.Input.Mouse.GetCursorState();
+                            var screenPoint = host.Window.PointToClient(new Point(state.X, state.Y));
+                            PendingStates.Enqueue(new InputState { Mouse = new UnfocusedMouseState(new OpenTK.Input.MouseState(), host.IsActive, new Vector2(screenPoint.X, screenPoint.Y)) });
+                            FrameStatistics.Increment(StatisticsCounterType.MouseEvents);
+
+                            lastStates.Clear();
                         }
                     }, 0, 0));
                 }
@@ -127,16 +125,6 @@ namespace osu.Framework.Input.Handlers.Mouse
 
             Enabled.TriggerChange();
             return true;
-        }
-
-        private void handleUnfocusedMouseState(GameHost host)
-        {
-            var state = OpenTK.Input.Mouse.GetCursorState();
-            var screenPoint = host.Window.PointToClient(new Point(state.X, state.Y));
-            PendingStates.Enqueue(new InputState { Mouse = new UnfocusedMouseState(new OpenTK.Input.MouseState(), host.IsActive, new Vector2(screenPoint.X, screenPoint.Y)) });
-            FrameStatistics.Increment(StatisticsCounterType.MouseEvents);
-
-            lastStates.Clear();
         }
 
         private Vector2 getUpdatedPosition(OpenTK.Input.MouseState state, OpenTKMouseState lastState)
