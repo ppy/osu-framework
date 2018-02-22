@@ -189,7 +189,7 @@ namespace osu.Framework.Input.Handlers.Mouse
                     currentPosition = lastState.Position + new Vector2(state.X - lastState.RawState.X, state.Y - lastState.RawState.Y) * (float)sensitivity.Value;
 
                     // When confining, clamp to the window size.
-                    if (state.LeftButton == ButtonState.Pressed || confineMode.Value == ConfineMouseMode.Always || confineMode.Value == ConfineMouseMode.Fullscreen && windowMode.Value == WindowMode.Fullscreen)
+                    if (confineMode.Value == ConfineMouseMode.Always || confineMode.Value == ConfineMouseMode.Fullscreen && windowMode.Value == WindowMode.Fullscreen || lastStates.Any(s => s.HasAnyButtonPressed))
                         currentPosition = Vector2.Clamp(currentPosition, Vector2.Zero, new Vector2(host.Window.Width, host.Window.Height));
 
                     // update the windows cursor to match our raw cursor position.
