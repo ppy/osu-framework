@@ -58,6 +58,8 @@ namespace osu.Framework.Graphics.Textures
         /// <returns>The texture.</returns>
         public new virtual Texture Get(string name)
         {
+            if (string.IsNullOrEmpty(name)) return null;
+
             var cachedTex = textureCache.GetOrAdd(name, n =>
                 //Laziness ensure we are only ever creating the texture once (and blocking on other access until it is done).
                     new Lazy<TextureGL>(() => getTexture(name)?.TextureGL, LazyThreadSafetyMode.ExecutionAndPublication)).Value;
