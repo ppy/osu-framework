@@ -207,6 +207,8 @@ namespace osu.Framework.Graphics
 
                 Dependencies.Inject(this);
 
+                LoadAsyncComplete();
+
                 double loadDuration = perf.CurrentTime - t1;
                 if (perf.CurrentTime > 1000 && loadDuration > 50 && ThreadSafety.IsUpdateThread)
                     Logger.Log($@"Drawable [{ToString()}] took {loadDuration:0.00}ms to load and was not async!", LoggingTarget.Performance);
@@ -231,6 +233,13 @@ namespace osu.Framework.Graphics
             OnLoadComplete?.Invoke(this);
             OnLoadComplete = null;
             return true;
+        }
+
+        /// <summary>
+        /// Called after all async loading has completed.
+        /// </summary>
+        protected virtual void LoadAsyncComplete()
+        {
         }
 
         /// <summary>
