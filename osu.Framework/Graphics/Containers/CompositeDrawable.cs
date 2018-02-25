@@ -730,7 +730,9 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        internal sealed override DrawNode GenerateDrawNodeSubtree(int treeIndex)
+        internal virtual bool AddChildDrawNodes => true;
+
+        internal override DrawNode GenerateDrawNodeSubtree(int treeIndex)
         {
             // No need for a draw node at all if there are no children and we are not glowing.
             if (aliveInternalChildren.Count == 0 && CanBeFlattened)
@@ -740,16 +742,19 @@ namespace osu.Framework.Graphics.Containers
             if (cNode == null)
                 return null;
 
-            if (cNode.Children == null)
-                cNode.Children = new List<DrawNode>(aliveInternalChildren.Count);
+            if (AddChildDrawNodes)
+            {
+                if (cNode.Children == null)
+                    cNode.Children = new List<DrawNode>(aliveInternalChildren.Count);
 
-            List<DrawNode> target = cNode.Children;
+                List<DrawNode> target = cNode.Children;
 
-            int j = 0;
-            addFromComposite(treeIndex, ref j, this, target);
+                int j = 0;
+                addFromComposite(treeIndex, ref j, this, target);
 
-            if (j < target.Count)
-                target.RemoveRange(j, target.Count - j);
+                if (j < target.Count)
+                    target.RemoveRange(j, target.Count - j);
+            }
 
             return cNode;
         }

@@ -334,6 +334,19 @@ namespace osu.Framework.Graphics.Containers
             base.Update();
         }
 
+        private readonly long[] frameBufferVersions = new long[3];
+        private long currentFrameBuffer;
+
+        internal override bool AddChildDrawNodes => frameBufferVersions[currentFrameBuffer] != childrenUpdateVersion;
+
+        internal override DrawNode GenerateDrawNodeSubtree(int treeIndex)
+        {
+            currentFrameBuffer = treeIndex;
+            var node = base.GenerateDrawNodeSubtree(treeIndex);
+            frameBufferVersions[currentFrameBuffer] = childrenUpdateVersion;
+            return node;
+        }
+
         protected override void UpdateAfterChildren()
         {
             base.UpdateAfterChildren();
