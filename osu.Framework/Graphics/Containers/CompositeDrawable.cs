@@ -521,12 +521,16 @@ namespace osu.Framework.Graphics.Containers
             if (aliveInternalChildren.Count == 0)
                 return true;
 
-            var childMaskingBounds = ComputeChildMaskingBounds(maskingBounds);
+            if (RequiresChildrenUpdate)
+            {
+                var childMaskingBounds = ComputeChildMaskingBounds(maskingBounds);
 
-            // We iterate by index to gain performance
-            // ReSharper disable once ForCanBeConvertedToForeach
-            for (int i = 0; i < aliveInternalChildren.Count; i++)
-                aliveInternalChildren[i].UpdateSubTreeMasking(this, childMaskingBounds);
+
+                // We iterate by index to gain performance
+                // ReSharper disable once ForCanBeConvertedToForeach
+                for (int i = 0; i < aliveInternalChildren.Count; i++)
+                    aliveInternalChildren[i].UpdateSubTreeMasking(this, childMaskingBounds);
+            }
 
             return true;
         }
@@ -742,11 +746,11 @@ namespace osu.Framework.Graphics.Containers
             if (cNode == null)
                 return null;
 
+            if (cNode.Children == null)
+                cNode.Children = new List<DrawNode>(aliveInternalChildren.Count);
+
             if (AddChildDrawNodes)
             {
-                if (cNode.Children == null)
-                    cNode.Children = new List<DrawNode>(aliveInternalChildren.Count);
-
                 List<DrawNode> target = cNode.Children;
 
                 int j = 0;
