@@ -17,6 +17,12 @@ namespace osu.Framework.Graphics.Transforms
         internal bool Applied;
 
         /// <summary>
+        /// Whether this <see cref="Transform"/> has been applied completely to an <see cref="ITransformable"/>.
+        /// Used to track whether we still need to apply for targets which allow rewind.
+        /// </summary>
+        internal bool AppliedToEnd;
+
+        /// <summary>
         /// Whether this <see cref="Transform"/> can be rewound.
         /// </summary>
         public bool Rewindable = true;
