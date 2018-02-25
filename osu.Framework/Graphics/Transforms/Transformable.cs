@@ -153,7 +153,9 @@ namespace osu.Framework.Graphics.Transforms
                 {
                     t.Apply(time);
 
-                    if (t.AppliedToEnd = time >= t.EndTime)
+                    t.AppliedToEnd = time >= t.EndTime;
+
+                    if (t.AppliedToEnd)
                     {
                         if (RemoveCompletedTransforms || !t.Rewindable)
                             transformsLazy.RemoveAt(i--);
