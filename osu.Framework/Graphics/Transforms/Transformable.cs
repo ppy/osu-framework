@@ -149,24 +149,29 @@ namespace osu.Framework.Graphics.Transforms
                     }
                 }
 
-                t.Apply(time);
-
-                if (t.EndTime <= time)
+                if (time <= t.EndTime || !t.AppliedToEnd)
                 {
-                    if (RemoveCompletedTransforms || !t.Rewindable)
-                        transformsLazy.RemoveAt(i--);
+                    t.Apply(time);
 
-                    if (t.IsLooping)
+                    t.AppliedToEnd = time >= t.EndTime;
+
+                    if (t.AppliedToEnd)
                     {
-                        t.StartTime += t.LoopDelay;
-                        t.EndTime += t.LoopDelay;
+                        if (RemoveCompletedTransforms || !t.Rewindable)
+                            transformsLazy.RemoveAt(i--);
 
-                        // this could be added back at a lower index than where we are currently iterating, but
-                        // running the same transform twice isn't a huge deal.
-                        transformsLazy.Add(t);
+                        if (t.IsLooping)
+                        {
+                            t.StartTime += t.LoopDelay;
+                            t.EndTime += t.LoopDelay;
+
+                            // this could be added back at a lower index than where we are currently iterating, but
+                            // running the same transform twice isn't a huge deal.
+                            transformsLazy.Add(t);
+                        }
+                        else if (t.OnComplete != null)
+                            removalActions.Add(t.OnComplete);
                     }
-                    else if (t.OnComplete != null)
-                        removalActions.Add(t.OnComplete);
                 }
             }
 
