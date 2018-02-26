@@ -100,7 +100,7 @@ namespace osu.Framework.Graphics.Transforms
                 {
                     var t = transformsLazy[i];
 
-                    if (t.StartTime <= time)
+                    if (time >= t.StartTime)
                         break;
 
                     if (!t.Applied)
@@ -119,7 +119,7 @@ namespace osu.Framework.Graphics.Transforms
             {
                 var t = transformsLazy[i];
 
-                if (t.StartTime > time)
+                if (time < t.StartTime)
                     break;
 
                 if (!t.HasStartValue)
