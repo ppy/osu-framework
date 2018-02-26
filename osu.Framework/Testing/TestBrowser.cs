@@ -96,13 +96,17 @@ namespace osu.Framework.Testing
 
         private Action exit;
 
+        private Bindable<bool> showLogOverlay;
+
         [BackgroundDependencyLoader]
-        private void load(Storage storage, GameHost host)
+        private void load(Storage storage, GameHost host, FrameworkConfigManager frameworkConfig)
         {
             interactive = host.Window != null;
             config = new TestBrowserConfig(storage);
 
             exit = host.Exit;
+
+            showLogOverlay = frameworkConfig.GetBindable<bool>(FrameworkSetting.ShowLogOverlay);
 
             rateBindable = new BindableDouble(1)
             {
@@ -213,6 +217,7 @@ namespace osu.Framework.Testing
             {
                 CompilationStarted = compileStarted,
                 CompilationFinished = compileFinished,
+                CompilationFailed = compileFailed
             };
             try
             {
@@ -240,12 +245,18 @@ namespace osu.Framework.Testing
             compilingNotice.FadeColour(Color4.White);
         });
 
+        private void compileFailed(Exception ex) => Schedule(() => {
+            showLogOverlay.Value = true;
+            Logger.Error(ex, "Eror with dynamic compilation!");
+
+            compilingNotice.FadeIn(100, Easing.OutQuint).Then().FadeOut(800, Easing.InQuint);
+            compilingNotice.FadeColour(Color4.Red, 100);
+        });
+
         private void compileFinished(Type newType) => Schedule(() =>
         {
             compilingNotice.FadeOut(800, Easing.InQuint);
-            compilingNotice.FadeColour(newType == null ? Color4.Red : Color4.YellowGreen, 100);
-
-            if (newType == null) return;
+            compilingNotice.FadeColour(Color4.YellowGreen, 100);
 
             int i = TestTypes.FindIndex(t => t.Name == newType.Name && t.Assembly.GetName().Name == newType.Assembly.GetName().Name);
 
@@ -254,7 +265,7 @@ namespace osu.Framework.Testing
             else
                 TestTypes[i] = newType;
 
-            LoadTest(newType);
+            LoadTest(newType, isDynamicLoad: true);
         });
 
         protected override void LoadComplete()
@@ -328,7 +339,7 @@ namespace osu.Framework.Testing
 
         public void LoadTest(int testIndex) => LoadTest(TestTypes[testIndex]);
 
-        public void LoadTest(Type testType = null, Action onCompletion = null)
+        public void LoadTest(Type testType = null, Action onCompletion = null, bool isDynamicLoad = false)
         {
             if (testType == null && TestTypes.Count > 0)
                 testType = TestTypes[0];
@@ -345,7 +356,7 @@ namespace osu.Framework.Testing
                 dropdown.RemoveDropdownItem(dropdown.Items.LastOrDefault(i => i.Value.FullName.Contains(DynamicClassCompiler.DYNAMIC_ASSEMBLY_NAME)).Value);
 
                 // if we are a dynamically compiled type (via DynamicClassCompiler) we should update the dropdown accordingly.
-                if (testType.Assembly.FullName.Contains(DynamicClassCompiler.DYNAMIC_ASSEMBLY_NAME))
+                if (isDynamicLoad)
                     dropdown.AddDropdownItem($"dynamic ({testType.Name})", testType.Assembly);
                 else
                     TestTypes.RemoveAll(t => t.Assembly.FullName.Contains(DynamicClassCompiler.DYNAMIC_ASSEMBLY_NAME));
@@ -358,7 +369,10 @@ namespace osu.Framework.Testing
 
                 updateButtons();
 
-                testContentContainer.Add(new DelayedLoadWrapper(CurrentTest, 0));
+                testContentContainer.Add(new ErrorCatchingDelayedLoadWrapper(CurrentTest, isDynamicLoad)
+                {
+                    OnCaughtError = compileFailed
+                });
 
                 newTest.OnLoadComplete = d => Schedule(() =>
                 {
@@ -407,6 +421,37 @@ namespace osu.Framework.Testing
         {
             foreach (var b in leftFlowContainer.Children)
                 b.Current = b.TestType.Name == CurrentTest?.GetType().Name;
+        }
+
+        private class ErrorCatchingDelayedLoadWrapper : DelayedLoadWrapper
+        {
+            private readonly bool catchErrors;
+
+            public Action<Exception> OnCaughtError;
+
+            public ErrorCatchingDelayedLoadWrapper(Drawable content, bool catchErrors)
+                : base(content, 0)
+            {
+                this.catchErrors = catchErrors;
+            }
+
+            public override bool UpdateSubTree()
+            {
+                try
+                {
+                    return base.UpdateSubTree();
+                }
+                catch (Exception e)
+                {
+                    if (!catchErrors)
+                        throw;
+
+                    OnCaughtError?.Invoke(e);
+                    RemoveInternal(Content);
+                }
+
+                return false;
+            }
         }
 
         private class Toolbar : CompositeDrawable
