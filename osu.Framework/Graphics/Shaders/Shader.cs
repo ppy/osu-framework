@@ -191,14 +191,14 @@ namespace osu.Framework.Graphics.Shaders
         /// <param name="value">The uniform value.</param>
         public static void SetGlobalProperty(string name, object value)
         {
+            if (global_properties.TryGetValue(name, out object found) && found.Equals(value))
+                return;
+
             global_properties[name] = value;
 
             foreach (Shader shader in all_shaders)
-            {
-                shader.EnsureLoaded();
-                if (shader.uniforms.ContainsKey(name))
-                    shader.uniforms[name].Value = value;
-            }
+                if (shader.Loaded && shader.uniforms.TryGetValue(name, out UniformBase b))
+                    b.Value = value;
         }
 
         public static implicit operator int(Shader shader)
