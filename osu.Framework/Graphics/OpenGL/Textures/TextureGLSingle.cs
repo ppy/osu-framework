@@ -67,8 +67,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// </summary>
         private void unload()
         {
-            TextureUpload u;
-            while (uploadQueue.TryDequeue(out u))
+            while (uploadQueue.TryDequeue(out var u))
                 u.Dispose();
 
             int disposableId = textureId;
@@ -318,10 +317,9 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString(), "Can not upload data to a disposed texture.");
 
-            TextureUpload upload;
             bool didUpload = false;
 
-            while (uploadQueue.TryDequeue(out upload))
+            while (uploadQueue.TryDequeue(out var upload))
             {
                 IntPtr dataPointer;
                 GCHandle? h0;

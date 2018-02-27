@@ -86,9 +86,7 @@ namespace osu.Framework.IO.Stores
                 return null;
             }
 
-            Character c;
-
-            if (!font.Characters.TryGetValue(name.Last(), out c))
+            if (!font.Characters.TryGetValue(name.Last(), out var c))
                 return null;
 
             RawTexture page = getTexturePage(c.TexturePage);
@@ -135,8 +133,7 @@ namespace osu.Framework.IO.Stores
 
         private RawTexture getTexturePage(int texturePage)
         {
-            RawTexture t;
-            if (!texturePages.TryGetValue(texturePage, out t))
+            if (!texturePages.TryGetValue(texturePage, out var t))
             {
                 loadedPageCount++;
                 using (var stream = store.GetStream($@"{assetName}_{texturePage.ToString().PadLeft((font.Pages.Length - 1).ToString().Length, '0')}.png"))

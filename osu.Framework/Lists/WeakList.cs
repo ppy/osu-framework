@@ -23,8 +23,7 @@ namespace osu.Framework.Lists
             int index = 0;
             while (index < Count)
             {
-                T obj;
-                if (this[index].TryGetTarget(out obj))
+                if (this[index].TryGetTarget(out var obj))
                 {
                     action(obj);
                     index++;

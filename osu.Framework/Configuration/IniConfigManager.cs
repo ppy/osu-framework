@@ -48,14 +48,10 @@ namespace osu.Framework.Configuration
                         string key = line.Substring(0, equalsIndex).Trim();
                         string val = line.Remove(0, equalsIndex + 1).Trim();
 
-                        T lookup;
-
-                        if (!Enum.TryParse(key, out lookup))
+                        if (!Enum.TryParse(key, out T lookup))
                             continue;
 
-                        IBindable b;
-
-                        if (ConfigStore.TryGetValue(lookup, out b))
+                        if (ConfigStore.TryGetValue(lookup, out var b))
                             try
                             {
                                 b.Parse(val);
