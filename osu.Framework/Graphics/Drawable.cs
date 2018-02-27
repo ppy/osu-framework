@@ -1223,7 +1223,7 @@ namespace osu.Framework.Graphics
         /// uses a custom clock.
         /// </summary>
         /// <param name="clock">The new clock to be used.</param>
-        public virtual void UpdateClock(IFrameBasedClock clock)
+        internal virtual void UpdateClock(IFrameBasedClock clock)
         {
             this.clock = customClock ?? clock;
             scheduler?.UpdateClock(this.clock);
