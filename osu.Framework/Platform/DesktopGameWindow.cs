@@ -6,6 +6,7 @@ using System.Drawing;
 using osu.Framework.Configuration;
 using osu.Framework.Input;
 using OpenTK;
+using OpenTK.Graphics;
 
 namespace osu.Framework.Platform
 {
@@ -26,11 +27,15 @@ namespace osu.Framework.Platform
 
         public readonly Bindable<ConfineMouseMode> ConfineMouseMode = new Bindable<ConfineMouseMode>();
 
+        protected new OpenTK.GameWindow Implementation => (OpenTK.GameWindow)base.Implementation;
+
         public readonly BindableBool MapAbsoluteInputToWindow = new BindableBool();
 
         public DesktopGameWindow()
             : base(default_width, default_height)
         {
+            Resize += OnResize;
+            Move += OnMove;
         }
 
         public override void SetupWindow(FrameworkConfigManager config)
@@ -59,11 +64,9 @@ namespace osu.Framework.Platform
             Exited += onExit;
         }
 
-        protected override void OnResize(EventArgs e)
+        protected void OnResize(object sender, EventArgs e)
         {
             if (ClientSize.IsEmpty) return;
-
-            base.OnResize(e);
 
             switch (WindowMode.Value)
             {
@@ -74,10 +77,8 @@ namespace osu.Framework.Platform
             }
         }
 
-        protected override void OnMove(EventArgs e)
+        protected void OnMove(object sender, EventArgs e)
         {
-            base.OnMove(e);
-
             // The game is windowed and the whole window is on the screen (it is not minimized or moved outside of the screen)
             if (WindowMode.Value == Configuration.WindowMode.Windowed
                 && Position.X > 0 && Position.X < 1
@@ -184,6 +185,20 @@ namespace osu.Framework.Platform
                 default:
                     WindowMode.Value = Configuration.WindowMode.Windowed;
                     break;
+            }
+        }
+
+        public override IGraphicsContext Context => Implementation.Context;
+
+        public override VSyncMode VSync
+        {
+            get
+            {
+                return Implementation.VSync;
+            }
+            set
+            {
+                Implementation.VSync = value;
             }
         }
     }
