@@ -1231,9 +1231,9 @@ namespace osu.Framework.Graphics
 
         /// <summary>
         /// Whether <see cref="IFrameBasedClock.ProcessFrame"/> should be automatically invoked on this <see cref="Drawable"/>'s <see cref="Clock"/>
-        /// in <see cref="UpdateSubTree"/>. This should only be used in scenarios where <see cref="UpdateSubTree"/> is overridden to perform the functionality itself.
+        /// in <see cref="UpdateSubTree"/>. This should only be set to false in scenarios where the clock is updated elsewhere.
         /// </summary>
-        protected virtual bool ShouldProcessClock => Parent != null; //we don't want to update our clock if we are at the top of the stack. it's handled elsewhere for us.
+        public bool ShouldProcessClock = true;
 
         /// <summary>
         /// The time at which this drawable becomes valid (and is considered for drawing).
