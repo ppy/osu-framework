@@ -27,6 +27,8 @@ namespace osu.Framework.Audio.Sample
 
         public SampleChannel Get(string name)
         {
+            if (string.IsNullOrEmpty(name)) return null;
+
             lock (sampleCache)
             {
                 Sample sample;

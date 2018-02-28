@@ -174,8 +174,11 @@ namespace osu.Framework.Configuration
         /// </summary>
         public void UnbindBindings()
         {
+            Bindings.ForEachAlive(b => b.Unbind(this));
             Bindings?.Clear();
         }
+
+        protected void Unbind(Bindable<T> binding) => Bindings.Remove(binding.weakReference);
 
         /// <summary>
         /// Calls <see cref="UnbindEvents"/> and <see cref="UnbindBindings"/>
@@ -210,11 +213,8 @@ namespace osu.Framework.Configuration
         /// <returns>A weakly bound copy of the specified bindable.</returns>
         public Bindable<T> GetBoundCopy()
         {
-            var copy = (Bindable<T>)MemberwiseClone();
-
-            copy.Bindings = new WeakList<Bindable<T>>();
+            var copy = (Bindable<T>)Activator.CreateInstance(GetType(), Value);
             copy.BindTo(this);
-
             return copy;
         }
     }
