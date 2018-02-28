@@ -174,7 +174,7 @@ namespace osu.Framework.Configuration
         /// </summary>
         public void UnbindBindings()
         {
-            Bindings.ForEachAlive(b => b.Unbind(this));
+            Bindings?.ForEachAlive(b => b.Unbind(this));
             Bindings?.Clear();
         }
 
