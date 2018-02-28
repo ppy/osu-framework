@@ -339,7 +339,7 @@ namespace osu.Framework.Graphics
             if (isDisposed)
                 throw new ObjectDisposedException(ToString(), "Disposed Drawables may never be in the scene graph.");
 
-            if (ShouldProcessClock)
+            if (ProcessCustomClock)
                 customClock?.ProcessFrame();
 
             if (loadState < LoadState.Ready)
@@ -1233,7 +1233,7 @@ namespace osu.Framework.Graphics
         /// Whether <see cref="IFrameBasedClock.ProcessFrame"/> should be automatically invoked on this <see cref="Drawable"/>'s <see cref="Clock"/>
         /// in <see cref="UpdateSubTree"/>. This should only be set to false in scenarios where the clock is updated elsewhere.
         /// </summary>
-        public bool ShouldProcessClock = true;
+        public bool ProcessCustomClock = true;
 
         /// <summary>
         /// The time at which this drawable becomes valid (and is considered for drawing).
