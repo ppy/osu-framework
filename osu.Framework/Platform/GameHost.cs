@@ -426,7 +426,6 @@ namespace osu.Framework.Platform
         {
             var root = new UserInputManager
             {
-                ProcessCustomClock = false,
                 Child = new PlatformActionContainer
                 {
                     Child = new FrameworkActionContainer
