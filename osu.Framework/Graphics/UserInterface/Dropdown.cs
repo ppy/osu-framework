@@ -88,7 +88,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (value == null)
                 return false;
 
-            if (!itemMap.TryGetValue(value, out var item))
+            if (!itemMap.TryGetValue(value, out DropdownMenuItem<T> item))
                 return false;
 
             Menu.Remove(item);
@@ -166,7 +166,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <param name="val">The value to hide.</param>
         internal void HideItem(T val)
         {
-            if (itemMap.TryGetValue(val, out var item))
+            if (itemMap.TryGetValue(val, out DropdownMenuItem<T> item))
             {
                 Menu.HideItem(item);
                 updateHeaderVisibility();
@@ -179,7 +179,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <param name="val">The value to show.</param>
         internal void ShowItem(T val)
         {
-            if (itemMap.TryGetValue(val, out var item))
+            if (itemMap.TryGetValue(val, out DropdownMenuItem<T> item))
             {
                 Menu.ShowItem(item);
                 updateHeaderVisibility();

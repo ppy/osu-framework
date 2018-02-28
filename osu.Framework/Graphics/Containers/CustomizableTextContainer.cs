@@ -111,7 +111,7 @@ namespace osu.Framework.Graphics.Containers
                                 throw new ArgumentException($"Missing ) in placeholder {placeholderStr}.");
                         }
 
-                        if (int.TryParse(placeholderStr, out var placeholderIndex))
+                        if (int.TryParse(placeholderStr, out int placeholderIndex))
                         {
                             if (placeholderIndex >= placeholders.Count)
                                 throw new ArgumentException($"This text has {placeholders.Count} placeholders. But placeholder with index {placeholderIndex} was used.");
@@ -133,14 +133,14 @@ namespace osu.Framework.Graphics.Containers
                                 args = new object[argStrs.Length];
                                 for (int i = 0; i < argStrs.Length; ++i)
                                 {
-                                    if (!int.TryParse(argStrs[i], out var argVal))
+                                    if (!int.TryParse(argStrs[i], out int argVal))
                                         throw new ArgumentException($"The argument \"{argStrs[i]}\" in placeholder {placeholderStr} is not an integer.");
 
                                     args[i] = argVal;
                                 }
                             }
 
-                            if (!iconFactories.TryGetValue(placeholderName, out var cb))
+                            if (!iconFactories.TryGetValue(placeholderName, out Delegate cb))
                                 throw new ArgumentException($"There is no placeholder named {placeholderName}.");
 
                             placeholderDrawable = (Drawable)cb.DynamicInvoke(args);

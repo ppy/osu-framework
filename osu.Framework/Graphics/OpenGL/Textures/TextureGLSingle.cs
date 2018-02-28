@@ -67,7 +67,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// </summary>
         private void unload()
         {
-            while (uploadQueue.TryDequeue(out var u))
+            while (uploadQueue.TryDequeue(out TextureUpload u))
                 u.Dispose();
 
             int disposableId = textureId;
@@ -319,7 +319,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
             bool didUpload = false;
 
-            while (uploadQueue.TryDequeue(out var upload))
+            while (uploadQueue.TryDequeue(out TextureUpload upload))
             {
                 IntPtr dataPointer;
                 GCHandle? h0;

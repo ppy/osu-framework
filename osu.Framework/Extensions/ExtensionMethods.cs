@@ -78,7 +78,7 @@ namespace osu.Framework.Extensions
         /// <returns></returns>
         public static TValue GetOrDefault<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, TKey lookup)
         {
-            return dictionary.TryGetValue(lookup, out var outVal) ? outVal : default(TValue);
+            return dictionary.TryGetValue(lookup, out TValue outVal) ? outVal : default(TValue);
         }
 
         public static bool IsValidIndex<T>(this List<T> list, int index)

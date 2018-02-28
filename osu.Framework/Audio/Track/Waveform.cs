@@ -45,7 +45,7 @@ namespace osu.Framework.Audio.Track
 
                 int decodeStream = Bass.CreateStream(StreamSystem.NoBuffer, BassFlags.Decode | BassFlags.Float, procs.BassProcedures, IntPtr.Zero);
 
-                Bass.ChannelGetInfo(decodeStream, out var info);
+                Bass.ChannelGetInfo(decodeStream, out ChannelInfo info);
 
                 long length = Bass.ChannelGetLength(decodeStream);
 

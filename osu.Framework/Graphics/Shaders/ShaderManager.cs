@@ -54,7 +54,7 @@ namespace osu.Framework.Graphics.Shaders
         {
             name = ensureValidName(name, type);
 
-            if (!bypassCache && partCache.TryGetValue(name, out var part))
+            if (!bypassCache && partCache.TryGetValue(name, out ShaderPart part))
                 return part;
 
             byte[] rawData = LoadRaw(name);
@@ -70,7 +70,7 @@ namespace osu.Framework.Graphics.Shaders
         {
             string name = vertex + '/' + fragment;
 
-            if (!shaderCache.TryGetValue(name, out var shader))
+            if (!shaderCache.TryGetValue(name, out Shader shader))
             {
                 List<ShaderPart> parts = new List<ShaderPart>
                 {

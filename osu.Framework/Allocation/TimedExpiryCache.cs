@@ -49,7 +49,7 @@ namespace osu.Framework.Allocation
 
         public bool TryGetValue(TKey key, out TValue value)
         {
-            if (!dictionary.TryGetValue(key, out var timed))
+            if (!dictionary.TryGetValue(key, out TimedObject<TValue> timed))
             {
                 value = default(TValue);
                 return false;

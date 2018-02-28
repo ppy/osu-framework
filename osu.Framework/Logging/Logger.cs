@@ -218,7 +218,7 @@ namespace osu.Framework.Logging
             lock (static_sync_lock)
             {
                 var nameLower = name.ToLower();
-                if (!static_loggers.TryGetValue(nameLower, out var l))
+                if (!static_loggers.TryGetValue(nameLower, out Logger l))
                 {
                     static_loggers[nameLower] = l = Enum.TryParse(name, true, out LoggingTarget target) ? new Logger(target) : new Logger(name);
                     l.clear();

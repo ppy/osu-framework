@@ -353,7 +353,7 @@ namespace osu.Framework.Graphics.Performance
         {
             base.Update();
 
-            while (monitor.PendingFrames.TryDequeue(out var frame))
+            while (monitor.PendingFrames.TryDequeue(out FrameStatistics frame))
             {
                 if (processFrames)
                     applyFrame(frame);
@@ -432,7 +432,7 @@ namespace osu.Framework.Graphics.Performance
 
             if (!frameTimeType.HasValue)
                 drawHeight = currentHeight;
-            else if (frame.CollectedTimes.TryGetValue(frameTimeType.Value, out var elapsedMilliseconds))
+            else if (frame.CollectedTimes.TryGetValue(frameTimeType.Value, out double elapsedMilliseconds))
             {
                 legendMapping[(int)frameTimeType].Alpha = 1;
                 drawHeight = (int)(elapsedMilliseconds * scale);

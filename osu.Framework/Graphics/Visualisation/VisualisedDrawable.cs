@@ -186,7 +186,7 @@ namespace osu.Framework.Graphics.Visualisation
             // Don't add individual characters of SpriteText
             if (Target is SpriteText) return;
 
-            if (!visCache.TryGetValue(drawable, out var vis))
+            if (!visCache.TryGetValue(drawable, out VisualisedDrawable vis))
             {
                 vis = visCache[drawable] = new VisualisedDrawable(drawable, tree)
                 {

@@ -49,7 +49,7 @@ namespace osu.Framework.IO.Stores
         /// <param name="name">The resource that has changed.</param>
         protected virtual void NotifyChanged(string name)
         {
-            if (!actionList.TryGetValue(name, out var action))
+            if (!actionList.TryGetValue(name, out Action action))
                 return;
 
             action?.Invoke();

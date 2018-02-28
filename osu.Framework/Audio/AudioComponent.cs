@@ -64,7 +64,7 @@ namespace osu.Framework.Audio
             FrameStatistics.Add(StatisticsCounterType.TasksRun, PendingActions.Count);
             FrameStatistics.Increment(StatisticsCounterType.Components);
 
-            while (!IsDisposed && PendingActions.TryDequeue(out var task))
+            while (!IsDisposed && PendingActions.TryDequeue(out Task task))
                 task.RunSynchronously();
 
             if (!IsDisposed)

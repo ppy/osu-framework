@@ -114,7 +114,7 @@ namespace osu.Framework.Graphics.Shaders
             GL.ShaderSource(this, shaderCodes.Count, shaderCodes.ToArray(), codeLengths);
             GL.CompileShader(this);
 
-            GL.GetShader(this, ShaderParameter.CompileStatus, out var compileResult);
+            GL.GetShader(this, ShaderParameter.CompileStatus, out int compileResult);
             Compiled = compileResult == 1;
 
 #if DEBUG

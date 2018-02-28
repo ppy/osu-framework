@@ -103,7 +103,7 @@ namespace osu.Framework.Statistics
             PendingFrames.Enqueue(currentFrame);
             if (PendingFrames.Count >= max_pending_frames)
             {
-                PendingFrames.TryDequeue(out var oldFrame);
+                PendingFrames.TryDequeue(out FrameStatistics oldFrame);
                 FramesHeap.FreeObject(oldFrame);
             }
 

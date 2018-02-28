@@ -51,7 +51,7 @@ namespace osu.Framework.Configuration
                         if (!Enum.TryParse(key, out T lookup))
                             continue;
 
-                        if (ConfigStore.TryGetValue(lookup, out var b))
+                        if (ConfigStore.TryGetValue(lookup, out IBindable b))
                             try
                             {
                                 b.Parse(val);
