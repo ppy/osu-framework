@@ -247,7 +247,7 @@ namespace osu.Framework.Testing
 
         private void compileFailed(Exception ex) => Schedule(() => {
             showLogOverlay.Value = true;
-            Logger.Error(ex, "Eror with dynamic compilation!");
+            Logger.Error(ex, "Error with dynamic compilation!");
 
             compilingNotice.FadeIn(100, Easing.OutQuint).Then().FadeOut(800, Easing.InQuint);
             compilingNotice.FadeColour(Color4.Red, 100);
