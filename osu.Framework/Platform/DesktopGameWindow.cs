@@ -113,7 +113,7 @@ namespace osu.Framework.Platform
             switch (newMode)
             {
                 case Configuration.WindowMode.Fullscreen:
-                    DisplayResolution newResolution = DisplayDevice.Default.SelectResolution(widthFullscreen, heightFullscreen, 0, DisplayDevice.Default.RefreshRate);
+                    DisplayResolution newResolution = DisplayDevice.Default.SelectResolution(widthFullscreen, heightFullscreen, DisplayDevice.Default.BitsPerPixel, DisplayDevice.Default.RefreshRate);
                     DisplayDevice.Default.ChangeResolution(newResolution);
 
                     WindowState = WindowState.Fullscreen;

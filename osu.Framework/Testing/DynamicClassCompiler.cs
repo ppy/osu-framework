@@ -23,10 +23,11 @@ namespace osu.Framework.Testing
     public class DynamicClassCompiler<T> : DynamicClassCompiler
         where T : IDynamicallyCompile
     {
-
         public Action CompilationStarted;
 
         public Action<Type> CompilationFinished;
+
+        public Action<Exception> CompilationFailed;
 
         private FileSystemWatcher fsw;
 
@@ -81,9 +82,9 @@ namespace osu.Framework.Testing
                 {
                     requiredTypeNames = reqTypes;
                     requiredFiles = Directory
-                        .EnumerateFiles(DebugUtils.GetSolutionPath(), "*.cs", SearchOption.AllDirectories)
-                        .Where(fw => requiredTypeNames.Contains(Path.GetFileNameWithoutExtension(fw)))
-                        .ToList();
+                                    .EnumerateFiles(DebugUtils.GetSolutionPath(), "*.cs", SearchOption.AllDirectories)
+                                    .Where(fw => requiredTypeNames.Contains(Path.GetFileNameWithoutExtension(fw)))
+                                    .ToList();
                 }
 
                 lastTouchedFile = e.FullPath;
@@ -95,6 +96,7 @@ namespace osu.Framework.Testing
         private int currentVersion;
 
         private bool isCompiling;
+
         private void recompile()
         {
             if (isCompiling)
@@ -130,8 +132,6 @@ namespace osu.Framework.Testing
                 options
             );
 
-            Type compiledType = null;
-
             using (var ms = new MemoryStream())
             {
                 var compilationResult = compilation.Emit(ms);
@@ -139,8 +139,9 @@ namespace osu.Framework.Testing
                 if (compilationResult.Success)
                 {
                     ms.Seek(0, SeekOrigin.Begin);
-                    var assembly = Assembly.Load(ms.ToArray());
-                    compiledType = assembly.GetModules()[0]?.GetTypes().LastOrDefault(t => t.FullName == checkpointObject.GetType().FullName);
+                    CompilationFinished?.Invoke(
+                        Assembly.Load(ms.ToArray()).GetModules()[0]?.GetTypes().LastOrDefault(t => t.FullName == checkpointObject.GetType().FullName)
+                    );
                 }
                 else
                 {
@@ -148,15 +149,11 @@ namespace osu.Framework.Testing
                     {
                         if (diagnostic.Severity < DiagnosticSeverity.Error)
                             continue;
-                        Logger.Log(diagnostic.ToString(), LoggingTarget.Runtime, LogLevel.Error);
+
+                        CompilationFailed?.Invoke(new Exception(diagnostic.ToString()));
                     }
                 }
             }
-
-            CompilationFinished?.Invoke(compiledType);
-
-            if (compiledType != null)
-                Logger.Log(@"Complete!", LoggingTarget.Runtime, LogLevel.Important);
 
             isCompiling = false;
         }
