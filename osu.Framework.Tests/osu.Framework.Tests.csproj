@@ -80,6 +80,7 @@
     <Compile Include="Visual\TestCaseBindableNumbers.cs" />
     <Compile Include="Visual\TestCaseBlending.cs" />
     <Compile Include="Visual\TestCaseBufferedContainer.cs" />
+    <Compile Include="Visual\TestCaseCachedBufferedContainer.cs" />
     <Compile Include="Visual\TestCaseCheckboxes.cs" />
     <Compile Include="Visual\TestCaseCircularContainer.cs" />
     <Compile Include="Visual\TestCaseCircularProgress.cs" />

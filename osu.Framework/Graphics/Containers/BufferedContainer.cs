@@ -213,11 +213,7 @@ namespace osu.Framework.Graphics.Containers
         /// Forces a redraw of the framebuffer before it is blitted the next time.
         /// Only relevant if <see cref="CacheDrawnFrameBuffer"/> is true.
         /// </summary>
-        public void ForceRedraw()
-        {
-            ++updateVersion;
-            Invalidate(Invalidation.DrawNode);
-        }
+        public void ForceRedraw() => Invalidate(Invalidation.DrawNode);
 
         /// <summary>
         /// We need 2 frame buffers such that we can accumulate post-processing effects in a
@@ -233,8 +229,6 @@ namespace osu.Framework.Graphics.Containers
         /// and the draw thread will realize its drawVersion is lagging behind, thus redrawing.
         /// </summary>
         private long updateVersion;
-
-        private Vector2 updateVersionScreenSpace;
 
         /// <summary>
         /// We also want to keep track of updates to our children, as we can bypass these updates
@@ -275,8 +269,6 @@ namespace osu.Framework.Graphics.Containers
         protected override void ApplyDrawNode(DrawNode node)
         {
             BufferedContainerDrawNode n = (BufferedContainerDrawNode)node;
-
-            updateVersionScreenSpace = new Vector2(ScreenSpaceDrawQuad.Width, ScreenSpaceDrawQuad.Height);
 
             n.ScreenSpaceDrawRectangle = ScreenSpaceDrawQuad.AABBFloat;
             n.Batch = quadBatch;
@@ -329,15 +321,37 @@ namespace osu.Framework.Graphics.Containers
 
         protected override RectangleF ComputeChildMaskingBounds(RectangleF maskingBounds) => ScreenSpaceDrawQuad.AABBFloat; // Make sure children never get masked away
 
+        private Vector2 lastScreenSpacePos;
+        private bool checkScrenSpaceSize;
+
+        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
+        {
+            if ((invalidation & Invalidation.DrawNode) > 0)
+                    ++updateVersion;
+
+            if ((invalidation & (Invalidation.MiscGeometry | Invalidation.DrawInfo)) > 0)
+                checkScrenSpaceSize = true;
+
+            return base.Invalidate(invalidation, source, shallPropagate);
+        }
+
         protected override void Update()
         {
             // Invalidate drawn frame buffer every frame.
             if (!CacheDrawnFrameBuffer)
                 ForceRedraw();
+            else if (checkScrenSpaceSize)
+            {
+                var quad = ScreenSpaceDrawQuad.AABBFloat;
 
-            if (ScreenSpaceDrawQuad.Width != updateVersionScreenSpace.X || ScreenSpaceDrawQuad.Height != updateVersionScreenSpace.Y)
-                ForceRedraw();
+                if (!Precision.AlmostEquals(quad.Width, lastScreenSpacePos.X) || !Precision.AlmostEquals(quad.Height, lastScreenSpacePos.Y))
+                {
+                    ++updateVersion;
+                    lastScreenSpacePos = new Vector2(quad.Width, quad.Height);
+                }
 
+                checkScrenSpaceSize = false;
+            }
 
             base.Update();
         }
