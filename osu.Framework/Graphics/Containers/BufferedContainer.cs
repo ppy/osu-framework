@@ -234,6 +234,8 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         private long updateVersion;
 
+        private Vector2 updateVersionScreenSpace;
+
         /// <summary>
         /// We also want to keep track of updates to our children, as we can bypass these updates
         /// when our output is in a cached state.
@@ -273,6 +275,8 @@ namespace osu.Framework.Graphics.Containers
         protected override void ApplyDrawNode(DrawNode node)
         {
             BufferedContainerDrawNode n = (BufferedContainerDrawNode)node;
+
+            updateVersionScreenSpace = new Vector2(ScreenSpaceDrawQuad.Width, ScreenSpaceDrawQuad.Height);
 
             n.ScreenSpaceDrawRectangle = ScreenSpaceDrawQuad.AABBFloat;
             n.Batch = quadBatch;
@@ -330,6 +334,10 @@ namespace osu.Framework.Graphics.Containers
             // Invalidate drawn frame buffer every frame.
             if (!CacheDrawnFrameBuffer)
                 ForceRedraw();
+
+            if (ScreenSpaceDrawQuad.Width != updateVersionScreenSpace.X || ScreenSpaceDrawQuad.Height != updateVersionScreenSpace.Y)
+                ForceRedraw();
+
 
             base.Update();
         }
