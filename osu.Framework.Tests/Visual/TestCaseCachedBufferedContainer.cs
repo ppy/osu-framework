@@ -22,7 +22,7 @@ namespace osu.Framework.Tests.Visual
         };
 
         public TestCaseCachedBufferedContainer()
-            : base(4, 2)
+            : base(5, 2)
         {
             string[] labels =
             {
@@ -34,6 +34,8 @@ namespace osu.Framework.Tests.Visual
                 "cached with movement",
                 "uncached with parent scale",
                 "cached with parent scale",
+                "uncached with parent scale&fade",
+                "cached with parent scale&fade",
             };
 
             var boxes = new List<ContainingBox>();
@@ -49,11 +51,11 @@ namespace osu.Framework.Tests.Visual
                         Text = labels[i],
                         TextSize = 20,
                     },
-                    box = new ContainingBox(i == 6 || i == 7)
+                    box = new ContainingBox(i >= 6, i >= 8)
                     {
                         Child = new CountingBox(i == 2 || i == 3, i == 4 || i == 5)
                         {
-                            CacheDrawnFrameBuffer = i % 2 == 1
+                            CacheDrawnFrameBuffer = i % 2 == 1,
                         },
                     }
                 });
@@ -82,23 +84,29 @@ namespace osu.Framework.Tests.Visual
 
             // ensure a parent scaling is invalidating cache.
             AddAssert("box 5 count equals box 6 count", () => boxes[5].Count == boxes[6].Count);
+
+            // ensure we don't break on colour invalidations (due to blanket invalidation logic in Drawable.Invalidate).
+            AddAssert("box 7 count equals box 8 count", () => boxes[7].Count == boxes[8].Count);
         }
 
         private class ContainingBox : Container
         {
             private readonly bool scaling;
+            private readonly bool fading;
 
-            public ContainingBox(bool scaling)
+            public ContainingBox(bool scaling, bool fading)
             {
                 this.scaling = scaling;
+                this.fading = fading;
+
                 RelativeSizeAxes = Axes.Both;
             }
 
             protected override void LoadComplete()
             {
                 base.LoadComplete();
-                if (scaling)
-                    this.ScaleTo(1.2f, 1000).Then().ScaleTo(1, 1000).Loop();
+                if (scaling) this.ScaleTo(1.2f, 1000).Then().ScaleTo(1, 1000).Loop();
+                if (fading) this.FadeTo(0.5f, 1000).Then().FadeTo(1, 1000).Loop();
             }
         }
 

@@ -329,7 +329,8 @@ namespace osu.Framework.Graphics.Containers
             if ((invalidation & Invalidation.DrawNode) > 0)
                     ++updateVersion;
 
-            if ((invalidation & (Invalidation.MiscGeometry | Invalidation.DrawInfo)) > 0)
+            // We actually only care about Invalidation.MiscGeometry | Invalidation.DrawInfo, but must match the blanket invalidation logic in Drawable.Invalidate
+            if ((invalidation & (Invalidation.Colour | Invalidation.RequiredParentSizeToFit | Invalidation.DrawInfo)) > 0)
                 checkScrenSpaceSize = true;
 
             return base.Invalidate(invalidation, source, shallPropagate);
