@@ -45,11 +45,11 @@ namespace osu.Framework.Graphics.Transforms
 
         internal bool HasStartValue;
 
-        public Action OnComplete;
+        internal Action OnComplete;
 
-        public Action OnAbort;
+        internal Action OnAbort;
 
-        public void Abort() => OnAbort?.Invoke();
+        internal void Abort() => OnAbort?.Invoke();
 
         public Transform Clone() => (Transform)MemberwiseClone();
 
