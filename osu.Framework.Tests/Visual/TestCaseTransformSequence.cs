@@ -26,9 +26,29 @@ namespace osu.Framework.Tests.Visual
         {
             base.LoadComplete();
 
-            setup();
-            animate();
+            testFinish();
+            testClear();
+        }
 
+        private void testFinish()
+        {
+            AddStep("Animate", delegate
+            {
+                setup();
+                animate();
+            });
+
+            AddStep($"{nameof(FinishTransforms)}", delegate
+            {
+                foreach (var box in boxes)
+                    box.FinishTransforms();
+            });
+
+            AddAssert("finalize triggered", () => finalizeTriggered);
+        }
+
+        private void testClear()
+        {
             AddStep("Animate", delegate
             {
                 setup();
@@ -41,15 +61,13 @@ namespace osu.Framework.Tests.Visual
                     box.ClearTransforms();
             });
 
-            AddStep($"{nameof(FinishTransforms)}", delegate
-            {
-                foreach (var box in boxes)
-                    box.FinishTransforms();
-            });
+            AddAssert("finalize triggered", () => finalizeTriggered);
         }
 
         private void setup()
         {
+            finalizeTriggered = false;
+
             string[] labels =
             {
                 "Spin after 2 seconds",
@@ -94,6 +112,8 @@ namespace osu.Framework.Tests.Visual
             }
         }
 
+        private bool finalizeTriggered;
+
         private void animate()
         {
             boxes[0].Delay(500).Then(500).Then(500).Then(
@@ -118,7 +138,8 @@ namespace osu.Framework.Tests.Visual
             .Then(
                 b => b.Loop(500, 2, d => d.RotateTo(0).RotateTo(360, 1000)).Delay(500).ScaleTo(0.5f, 500)
             )
-            .Then().FadeEdgeEffectTo(Color4.Red, 1000).ScaleTo(2, 500);
+            .Then().FadeEdgeEffectTo(Color4.Red, 1000).ScaleTo(2, 500)
+            .Finally(_ => finalizeTriggered = true);
 
 
             boxes[4].RotateTo(0).ScaleTo(1).RotateTo(360, 500)

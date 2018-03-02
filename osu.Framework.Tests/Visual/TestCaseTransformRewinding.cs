@@ -33,6 +33,7 @@ namespace osu.Framework.Tests.Visual
             AddStep("Basic movement", () => loadTest(2));
             AddStep("Move sequence", () => loadTest(3));
             AddStep("Multiple sequence", () => loadTest(4));
+            AddStep("Same type in type", () => loadTest(5));
         }
 
         private void loadTest(int testCase)
@@ -124,6 +125,23 @@ namespace osu.Framework.Tests.Visual
 
                         break;
                     }
+                case 5:
+                {
+                    Box box;
+                    Add(new AnimationContainer
+                    {
+                        Size = new Vector2(200),
+                        Child = box = new Box
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Scale = new Vector2(1)
+                        }
+                    });
+
+                    box.ScaleTo(0.5f, 1000);
+                    box.Delay(500).ScaleTo(1, 500);
+                    break;
+                }
             }
         }
 
@@ -189,7 +207,7 @@ namespace osu.Framework.Tests.Visual
         private class WrappingTimeContainer : Container
         {
             // Padding, in milliseconds, at each end of maxima of the clock time
-            private const double time_padding = 500;
+            private const double time_padding = 50;
 
             public double MinTime => clock.MinTime;
             public double MaxTime => clock.MaxTime;
@@ -237,7 +255,7 @@ namespace osu.Framework.Tests.Visual
 
                 public void SetSource(IFrameBasedClock trackingClock)
                 {
-                    this.trackingClock = trackingClock;
+                    this.trackingClock = new FramedOffsetClock(trackingClock) { Offset = -trackingClock.CurrentTime };
                 }
 
                 public double CurrentTime { get; private set; }

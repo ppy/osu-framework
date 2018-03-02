@@ -80,7 +80,7 @@ namespace osu.Framework.Graphics.Transforms
             transforms.Add(transform);
 
             transform.OnComplete = null;
-            transform.OnAbort = onTransformAborted;
+            transform.OnAbort = null;
 
             if (transform.IsLooping)
                 onLoopingTransform();
@@ -89,10 +89,14 @@ namespace osu.Framework.Graphics.Transforms
             if (last == null || transform.EndTime > lastEndTime)
             {
                 if (last != null)
+                {
                     last.OnComplete = null;
+                    last.OnAbort = null;
+                }
 
                 last = transform;
                 last.OnComplete = onTransformsComplete;
+                last.OnAbort = onTransformAborted;
                 lastEndTime = last.EndTime;
                 hasCompleted = false;
             }
@@ -173,29 +177,15 @@ namespace osu.Framework.Graphics.Transforms
             return this;
         }
 
-        private void onTransformAborted()
-        {
-            if (transforms.Count == 0)
-                return;
-
-            // No need for OnAbort events to trigger anymore, since
-            // we are already aware of the abortion.
-            foreach (var t in transforms)
-            {
-                t.OnAbort = null;
-                t.TargetTransformable.RemoveTransform(t);
-            }
-
-            transforms.Clear();
-            last = null;
-
-            onAbort?.Invoke();
-        }
-
         private void onTransformsComplete()
         {
             hasCompleted = true;
             onComplete?.Invoke();
+        }
+
+        private void onTransformAborted()
+        {
+            onAbort?.Invoke();
         }
 
         private void subscribeComplete(Action func)

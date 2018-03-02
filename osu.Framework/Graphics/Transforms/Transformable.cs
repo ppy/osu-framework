@@ -59,7 +59,8 @@ namespace osu.Framework.Graphics.Transforms
                 //expiry should happen either at the end of the last transform or using the current sequence delay (whichever is highest).
                 double max = TransformStartTime;
                 foreach (Transform t in Transforms)
-                    if (t.EndTime > max) max = t.EndTime + 1; //adding 1ms here ensures we can expire on the current frame without issue.
+                    if (t.EndTime > max)
+                        max = t.EndTime + 1; //adding 1ms here ensures we can expire on the current frame without issue.
 
                 return max;
             }
@@ -93,6 +94,8 @@ namespace osu.Framework.Graphics.Transforms
 
             if (!RemoveCompletedTransforms)
             {
+                var appliedToEndReverts = new List<string>();
+
                 // Under the case that completed transforms are not removed, reversing the clock is permitted.
                 // We need to first look back through all the transforms and apply the start values of the ones that were previously
                 // applied, but now exist in the future relative to the current time.
@@ -101,7 +104,18 @@ namespace osu.Framework.Graphics.Transforms
                     var t = transformsLazy[i];
 
                     if (time >= t.StartTime)
-                        break;
+                    {
+                        if (time >= t.EndTime)
+                            break;
+
+                        if (!appliedToEndReverts.Contains(t.TargetMember))
+                        {
+                            t.AppliedToEnd = false;
+                            appliedToEndReverts.Add(t.TargetMember);
+                        }
+
+                        continue;
+                    }
 
                     if (!t.Applied)
                         continue;
@@ -112,6 +126,7 @@ namespace osu.Framework.Graphics.Transforms
                     // Revert the transform's target to the transform's starting value, and mark that it hasn't been applied yet for future iterations
                     t.Apply(time);
                     t.Applied = false;
+                    t.AppliedToEnd = false;
                 }
             }
 
@@ -126,30 +141,33 @@ namespace osu.Framework.Graphics.Transforms
                 {
                     t.ReadIntoStartValue();
                     t.HasStartValue = true;
+                }
 
-                    if (RemoveCompletedTransforms || !t.Rewindable)
+                if (!t.Applied)
+                {
+                    // This is the first time we are updating this transform.
+                    // We will find other still active transforms which act on the same target member and remove them.
+                    // Since following transforms acting on the same target member are immediately removed when a
+                    // new one is added, we can be sure that previous transforms were added before this one and can
+                    // be safely removed.
+                    for (int j = 0; j < i; ++j)
                     {
-                        // This is the first time we are updating this transform.
-                        // We will find other still active transforms which act on the same target member and remove them.
-                        // Since following transforms acting on the same target member are immediately removed when a
-                        // new one is added, we can be sure that previous transforms were added before this one and can
-                        // be safely removed.
-                        for (int j = 0; j < i; ++j)
-                        {
-                            var otherTransform = transformsLazy[j];
-                            if (otherTransform.TargetMember == t.TargetMember)
-                            {
-                                transformsLazy.RemoveAt(j--);
-                                i--;
+                        var u = transformsLazy[j];
+                        if (u.TargetMember != t.TargetMember) continue;
 
-                                if (otherTransform.OnAbort != null)
-                                    removalActions.Add(otherTransform.OnAbort);
-                            }
+                        if (RemoveCompletedTransforms || !t.Rewindable)
+                        {
+                            transformsLazy.RemoveAt(j--);
+                            i--;
+
+                            removalActions.Add(u.Abort);
                         }
+                        else
+                            u.AppliedToEnd = true;
                     }
                 }
 
-                if (time <= t.EndTime || !t.AppliedToEnd)
+                if (!t.AppliedToEnd)
                 {
                     t.Apply(time);
 
@@ -162,6 +180,7 @@ namespace osu.Framework.Graphics.Transforms
 
                         if (t.IsLooping)
                         {
+                            t.AppliedToEnd = false;
                             t.StartTime += t.LoopDelay;
                             t.EndTime += t.LoopDelay;
 
@@ -201,7 +220,7 @@ namespace osu.Framework.Graphics.Transforms
             if (transformsLazy == null || !transformsLazy.Remove(toRemove))
                 return;
 
-            toRemove.OnAbort?.Invoke();
+            toRemove.Abort();
         }
 
         /// <summary>
@@ -241,7 +260,7 @@ namespace osu.Framework.Graphics.Transforms
             }
 
             foreach (var t in toAbort)
-                t.OnAbort?.Invoke();
+                t.Abort();
         }
 
         /// <summary>
@@ -385,7 +404,7 @@ namespace osu.Framework.Graphics.Transforms
             transform.TransformID = ++currentTransformID;
             int insertionIndex = transforms.Add(transform);
 
-            // Remove all existing following transforms touching the same property at this one.
+            // Remove all existing following transforms touching the same property as this one.
             for (int i = insertionIndex + 1; i < transformsLazy.Count; ++i)
             {
                 var t = transformsLazy[i];
@@ -393,7 +412,7 @@ namespace osu.Framework.Graphics.Transforms
                 {
                     transformsLazy.RemoveAt(i--);
                     if (t.OnAbort != null)
-                        removalActions.Add(t.OnAbort);
+                        removalActions.Add(t.Abort);
                 }
             }
 

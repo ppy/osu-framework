@@ -49,6 +49,8 @@ namespace osu.Framework.Graphics.Transforms
 
         public Action OnAbort;
 
+        public void Abort() => OnAbort?.Invoke();
+
         public Transform Clone() => (Transform)MemberwiseClone();
 
         public static readonly IComparer<Transform> COMPARER = new TransformTimeComparer();
