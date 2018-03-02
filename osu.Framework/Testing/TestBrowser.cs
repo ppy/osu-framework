@@ -265,7 +265,14 @@ namespace osu.Framework.Testing
             else
                 TestTypes[i] = newType;
 
-            LoadTest(newType, isDynamicLoad: true);
+            try
+            {
+                LoadTest(newType, isDynamicLoad: true);
+            }
+            catch (Exception e)
+            {
+                compileFailed(e);
+            }
         });
 
         protected override void LoadComplete()
@@ -344,69 +351,68 @@ namespace osu.Framework.Testing
             if (testType == null && TestTypes.Count > 0)
                 testType = TestTypes[0];
 
-            config.Set(TestBrowserSetting.LastTest, testType?.Name);
+            config.Set(TestBrowserSetting.LastTest, testType?.Name ?? string.Empty);
 
             var lastTest = CurrentTest;
-            CurrentTest = null;
 
-            if (testType != null)
+            if (testType == null)
+                return;
+
+            var newTest = (TestCase)Activator.CreateInstance(testType);
+
+            var dropdown = toolbar.AssemblyDropdown;
+
+            dropdown.RemoveDropdownItem(dropdown.Items.LastOrDefault(i => i.Value.FullName.Contains(DynamicClassCompiler.DYNAMIC_ASSEMBLY_NAME)).Value);
+
+            // if we are a dynamically compiled type (via DynamicClassCompiler) we should update the dropdown accordingly.
+            if (isDynamicLoad)
+                dropdown.AddDropdownItem($"dynamic ({testType.Name})", testType.Assembly);
+            else
+                TestTypes.RemoveAll(t => t.Assembly.FullName.Contains(DynamicClassCompiler.DYNAMIC_ASSEMBLY_NAME));
+
+            dropdown.Current.Value = testType.Assembly;
+
+            CurrentTest = newTest;
+
+            updateButtons();
+
+            testContentContainer.Add(new ErrorCatchingDelayedLoadWrapper(CurrentTest, isDynamicLoad)
             {
-                var dropdown = toolbar.AssemblyDropdown;
+                OnCaughtError = compileFailed
+            });
 
-                dropdown.RemoveDropdownItem(dropdown.Items.LastOrDefault(i => i.Value.FullName.Contains(DynamicClassCompiler.DYNAMIC_ASSEMBLY_NAME)).Value);
+            newTest.OnLoadComplete = d => Schedule(() =>
+            {
+                if (lastTest?.Parent != null)
+                {
+                    testContentContainer.Remove(lastTest.Parent);
+                    lastTest.Clear();
+                }
 
-                // if we are a dynamically compiled type (via DynamicClassCompiler) we should update the dropdown accordingly.
-                if (isDynamicLoad)
-                    dropdown.AddDropdownItem($"dynamic ({testType.Name})", testType.Assembly);
-                else
-                    TestTypes.RemoveAll(t => t.Assembly.FullName.Contains(DynamicClassCompiler.DYNAMIC_ASSEMBLY_NAME));
-
-                dropdown.Current.Value = testType.Assembly;
-
-                var newTest = (TestCase)Activator.CreateInstance(testType);
-
-                CurrentTest = newTest;
+                if (CurrentTest != newTest)
+                {
+                    // There could have been multiple loads fired after us. In such a case we want to silently remove ourselves.
+                    testContentContainer.Remove(newTest.Parent);
+                    return;
+                }
 
                 updateButtons();
 
-                testContentContainer.Add(new ErrorCatchingDelayedLoadWrapper(CurrentTest, isDynamicLoad)
+                var methods = testType.GetMethods();
+
+                var setUpMethod = methods.FirstOrDefault(m => m.GetCustomAttributes(typeof(SetUpAttribute), false).Length > 0);
+
+                foreach (var m in methods.Where(m => m.Name != "TestConstructor" && m.GetCustomAttributes(typeof(TestAttribute), false).Length > 0))
                 {
-                    OnCaughtError = compileFailed
-                });
+                    var step = CurrentTest.AddStep(m.Name, () => { setUpMethod?.Invoke(CurrentTest, null); });
+                    step.BackgroundColour = Color4.Teal;
+                    m.Invoke(CurrentTest, null);
+                }
 
-                newTest.OnLoadComplete = d => Schedule(() =>
-                {
-                    if (lastTest?.Parent != null)
-                    {
-                        testContentContainer.Remove(lastTest.Parent);
-                        lastTest.Clear();
-                    }
-
-                    if (CurrentTest != newTest)
-                    {
-                        // There could have been multiple loads fired after us. In such a case we want to silently remove ourselves.
-                        testContentContainer.Remove(newTest.Parent);
-                        return;
-                    }
-
-                    updateButtons();
-
-                    var methods = testType.GetMethods();
-
-                    var setUpMethod = methods.FirstOrDefault(m => m.GetCustomAttributes(typeof(SetUpAttribute), false).Length > 0);
-
-                    foreach (var m in methods.Where(m => m.Name != "TestConstructor" && m.GetCustomAttributes(typeof(TestAttribute), false).Length > 0))
-                    {
-                        var step = CurrentTest.AddStep(m.Name, () => { setUpMethod?.Invoke(CurrentTest, null); });
-                        step.BackgroundColour = Color4.Teal;
-                        m.Invoke(CurrentTest, null);
-                    }
-
-                    backgroundCompiler.Checkpoint(CurrentTest);
-                    runTests(onCompletion);
-                    updateButtons();
-                });
-            }
+                backgroundCompiler.Checkpoint(CurrentTest);
+                runTests(onCompletion);
+                updateButtons();
+            });
         }
 
         private void runTests(Action onCompletion)

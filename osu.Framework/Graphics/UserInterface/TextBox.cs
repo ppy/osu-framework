@@ -136,7 +136,7 @@ namespace osu.Framework.Graphics.UserInterface
             textUpdateScheduler.SetCurrentThread(MainThread);
         }
 
-        public override void UpdateClock(IFrameBasedClock clock)
+        internal override void UpdateClock(IFrameBasedClock clock)
         {
             base.UpdateClock(clock);
             textUpdateScheduler.UpdateClock(Clock);
