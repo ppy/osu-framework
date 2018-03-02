@@ -11,7 +11,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using osu.Framework.Development;
 
 namespace osu.Framework.Testing
 {
@@ -40,30 +39,49 @@ namespace osu.Framework.Testing
             checkpointObject = obj;
         }
 
-        private List<string> requiredFiles = new List<string>();
+        private readonly List<string> requiredFiles = new List<string>();
         private List<string> requiredTypeNames = new List<string>();
 
         private HashSet<string> assemblies;
+
+        private readonly List<string> validDirectories = new List<string>();
 
         public void Start()
         {
             var di = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory);
 
-            var basePath = di.Parent?.Parent?.Parent?.FullName;
-
-            if (!Directory.Exists(basePath))
-                return;
-
-            fsw = new FileSystemWatcher(basePath, @"*.cs")
+            Task.Run(() =>
             {
-                EnableRaisingEvents = true,
-                IncludeSubdirectories = true,
-                NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.CreationTime,
-            };
+                var basePath = di.Parent?.Parent?.Parent?.FullName;
 
-            fsw.Changed += (sender, e) =>
+                if (!Directory.Exists(basePath))
+                    return;
+
+                foreach (var dir in Directory.GetDirectories(basePath))
+                {
+                    // only watch directories which house a csproj. this avoids submodules and directories like .git which can contain many files.
+                    if (!Directory.GetFiles(dir, "*.csproj").Any())
+                        continue;
+
+                    validDirectories.Add(dir);
+
+                    fsw = new FileSystemWatcher(dir, @"*.cs")
+                    {
+                        EnableRaisingEvents = true,
+                        IncludeSubdirectories = true,
+                        NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.CreationTime,
+                    };
+
+                    fsw.Changed += onChange;
+                }
+            });
+        }
+
+        private void onChange(object sender, FileSystemEventArgs e)
+        {
+            lock (compileLock)
             {
-                if (checkpointObject == null)
+                if (checkpointObject == null || isCompiling)
                     return;
 
                 var checkpointName = checkpointObject.GetType().Name;
@@ -81,28 +99,30 @@ namespace osu.Framework.Testing
                 if (!reqTypes.SequenceEqual(requiredTypeNames))
                 {
                     requiredTypeNames = reqTypes;
-                    requiredFiles = Directory
-                                    .EnumerateFiles(DebugUtils.GetSolutionPath(), "*.cs", SearchOption.AllDirectories)
-                                    .Where(fw => requiredTypeNames.Contains(Path.GetFileNameWithoutExtension(fw)))
-                                    .ToList();
+
+                    requiredFiles.Clear();
+                    foreach (var d in validDirectories)
+                        requiredFiles.AddRange(Directory
+                                               .EnumerateFiles(d, "*.cs", SearchOption.AllDirectories)
+                                               .Where(fw => requiredTypeNames.Contains(Path.GetFileNameWithoutExtension(fw))));
                 }
 
                 lastTouchedFile = e.FullPath;
 
-                Task.Run((Action)recompile);
-            };
+                isCompiling = true;
+                Task.Run((Action)recompile)
+                    .ContinueWith(_ => isCompiling = false);
+            }
         }
 
         private int currentVersion;
 
         private bool isCompiling;
 
+        private readonly object compileLock = new object();
+
         private void recompile()
         {
-            if (isCompiling)
-                return;
-            isCompiling = true;
-
             if (assemblies == null)
             {
                 assemblies = new HashSet<string>();
@@ -154,8 +174,6 @@ namespace osu.Framework.Testing
                     }
                 }
             }
-
-            isCompiling = false;
         }
 
         /// <summary>
