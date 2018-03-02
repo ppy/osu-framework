@@ -85,12 +85,13 @@ namespace osu.Framework.Graphics.Visualisation
             {
                 const int display_length = 4000;
 
-                var drawEntry = new DrawableLogEntry(entry);
+                LoadComponentAsync(new DrawableLogEntry(entry), drawEntry =>
+                {
+                    flow.Add(drawEntry);
 
-                flow.Add(drawEntry);
-
-                drawEntry.FadeInFromZero(800, Easing.OutQuint).Delay(display_length).FadeOut(800, Easing.InQuint);
-                drawEntry.Expire();
+                    drawEntry.FadeInFromZero(800, Easing.OutQuint).Delay(display_length).FadeOut(800, Easing.InQuint);
+                    drawEntry.Expire();
+                });
             });
         }
 
