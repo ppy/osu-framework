@@ -216,10 +216,10 @@ namespace osu.Framework.Graphics.Containers
         public void ForceRedraw() => Invalidate(Invalidation.DrawNode);
 
         /// <summary>
-        /// We need 2 frame buffers such that we can accumulate post-processing effects in a
+        /// We need 3 frame buffers such that we can accumulate post-processing effects in a
         /// ping-pong fashion going back and forth (reading from one buffer, writing into the other).
         /// </summary>
-        private readonly FrameBuffer[] frameBuffers = new FrameBuffer[2];
+        private readonly FrameBuffer[] frameBuffers = new FrameBuffer[3];
 
         /// <summary>
         /// In order to signal the draw thread to re-draw the buffered container we version it.
