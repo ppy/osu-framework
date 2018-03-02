@@ -134,6 +134,8 @@ namespace osu.Framework.Graphics.Transforms
             {
                 var t = transformsLazy[i];
 
+                var tCanRewind = !RemoveCompletedTransforms && t.Rewindable;
+
                 if (time < t.StartTime)
                     break;
 
@@ -155,7 +157,7 @@ namespace osu.Framework.Graphics.Transforms
                         var u = transformsLazy[j];
                         if (u.TargetMember != t.TargetMember) continue;
 
-                        if (RemoveCompletedTransforms || !t.Rewindable)
+                        if (!tCanRewind)
                         {
                             transformsLazy.RemoveAt(j--);
                             i--;
@@ -175,7 +177,7 @@ namespace osu.Framework.Graphics.Transforms
 
                     if (t.AppliedToEnd)
                     {
-                        if (RemoveCompletedTransforms || !t.Rewindable)
+                        if (!tCanRewind)
                             transformsLazy.RemoveAt(i--);
 
                         if (t.IsLooping)
@@ -184,9 +186,12 @@ namespace osu.Framework.Graphics.Transforms
                             t.StartTime += t.LoopDelay;
                             t.EndTime += t.LoopDelay;
 
-                            // this could be added back at a lower index than where we are currently iterating, but
-                            // running the same transform twice isn't a huge deal.
-                            transformsLazy.Add(t);
+                            if (!tCanRewind)
+                            {
+                                // this could be added back at a lower index than where we are currently iterating, but
+                                // running the same transform twice isn't a huge deal.
+                                transformsLazy.Add(t);
+                            }
                         }
                         else if (t.OnComplete != null)
                             removalActions.Add(t.OnComplete);
