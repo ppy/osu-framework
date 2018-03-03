@@ -63,9 +63,7 @@ namespace osu.Framework.Graphics.Transforms
                 int compare = x.StartTime.CompareTo(y.StartTime);
                 if (compare != 0) return compare;
 
-                // reverse order as we want to insert *before* matching time transforms.
-                // this is because we want to immediately remove all transforms of the same type at the same time (see Transformable.AddTransform).
-                compare = y.TransformID.CompareTo(x.TransformID);
+                compare = x.TransformID.CompareTo(y.TransformID);
 
                 return compare;
             }

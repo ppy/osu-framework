@@ -92,7 +92,7 @@ namespace osu.Framework.Graphics.Transforms
             if (transformsLazy == null)
                 return;
 
-            if (!RemoveCompletedTransforms)
+            if (!RemoveCompletedTransforms) // todo: optimisation -- this only needs to run when rewinding.
             {
                 var appliedToEndReverts = new List<string>();
 
