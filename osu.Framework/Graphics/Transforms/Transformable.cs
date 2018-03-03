@@ -103,6 +103,12 @@ namespace osu.Framework.Graphics.Transforms
                 {
                     var t = transformsLazy[i];
 
+                    if (!t.Applied)
+                        continue;
+
+                    if (!t.Rewindable)
+                        continue;
+
                     if (time >= t.StartTime)
                     {
                         if (time >= t.EndTime)
@@ -116,12 +122,6 @@ namespace osu.Framework.Graphics.Transforms
 
                         continue;
                     }
-
-                    if (!t.Applied)
-                        continue;
-
-                    if (!t.Rewindable)
-                        continue;
 
                     // Revert the transform's target to the transform's starting value, and mark that it hasn't been applied yet for future iterations
                     t.Apply(time);
@@ -139,12 +139,6 @@ namespace osu.Framework.Graphics.Transforms
                 if (time < t.StartTime)
                     break;
 
-                if (!t.HasStartValue)
-                {
-                    t.ReadIntoStartValue();
-                    t.HasStartValue = true;
-                }
-
                 if (!t.Applied)
                 {
                     // This is the first time we are updating this transform.
@@ -157,6 +151,12 @@ namespace osu.Framework.Graphics.Transforms
                         var u = transformsLazy[j];
                         if (u.TargetMember != t.TargetMember) continue;
 
+                        if (!u.AppliedToEnd)
+                            // we may have applied the existing transforms too far into the future.
+                            // we want to prepare to potentially read into the newly activated transform's StartTime,
+                            // so we should re-apply using its StartTime as a basis.
+                            u.Apply(t.StartTime);
+
                         if (!tCanRewind)
                         {
                             transformsLazy.RemoveAt(j--);
@@ -167,6 +167,12 @@ namespace osu.Framework.Graphics.Transforms
                         else
                             u.AppliedToEnd = true;
                     }
+                }
+
+                if (!t.HasStartValue)
+                {
+                    t.ReadIntoStartValue();
+                    t.HasStartValue = true;
                 }
 
                 if (!t.AppliedToEnd)
