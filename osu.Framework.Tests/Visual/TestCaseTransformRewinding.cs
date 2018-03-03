@@ -34,6 +34,7 @@ namespace osu.Framework.Tests.Visual
             AddStep("Move sequence", () => loadTest(3));
             AddStep("Multiple sequence", () => loadTest(4));
             AddStep("Same type in type", () => loadTest(5));
+            AddStep("Start in middle of sequence", () => loadTest(6));
         }
 
         private void loadTest(int testCase)
@@ -142,6 +143,23 @@ namespace osu.Framework.Tests.Visual
                     box.Delay(500).ScaleTo(1, 500);
                     break;
                 }
+                case 6:
+                {
+                    Box box;
+                    Add(new AnimationContainer(750)
+                    {
+                        Size = new Vector2(200),
+                        Child = box = new Box
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Scale = new Vector2(1)
+                        }
+                    });
+
+                    box.ScaleTo(0.5f, 1000);
+                    box.Delay(500).ScaleTo(1, 500);
+                    break;
+                }
             }
         }
 
@@ -156,7 +174,7 @@ namespace osu.Framework.Tests.Visual
             private readonly SpriteText currentTimeText;
             private readonly SpriteText maxTimeText;
 
-            public AnimationContainer()
+            public AnimationContainer(int startTime = 0)
             {
                 InternalChildren = new Drawable[]
                 {
@@ -167,7 +185,7 @@ namespace osu.Framework.Tests.Visual
                         Spacing = new Vector2(0, 5),
                         Children = new Drawable[]
                         {
-                            content = new WrappingTimeContainer
+                            content = new WrappingTimeContainer(startTime)
                             {
                                 Anchor = Anchor.TopCentre,
                                 Origin = Anchor.TopCentre,
@@ -212,8 +230,12 @@ namespace osu.Framework.Tests.Visual
             public double MinTime => clock.MinTime;
             public double MaxTime => clock.MaxTime;
 
-            private readonly ReversibleClock clock = new ReversibleClock();
+            private readonly ReversibleClock clock;
 
+            public WrappingTimeContainer(double startTime)
+            {
+                clock = new ReversibleClock(startTime);
+            }
             [BackgroundDependencyLoader]
             private void load()
             {
@@ -248,14 +270,20 @@ namespace osu.Framework.Tests.Visual
 
             private class ReversibleClock : IFrameBasedClock
             {
+                private readonly double startTime;
                 public double MinTime;
                 public double MaxTime = 1000;
 
                 private IFrameBasedClock trackingClock;
 
+                public ReversibleClock(double startTime)
+                {
+                    this.startTime = startTime;
+                }
+
                 public void SetSource(IFrameBasedClock trackingClock)
                 {
-                    this.trackingClock = new FramedOffsetClock(trackingClock) { Offset = -trackingClock.CurrentTime };
+                    this.trackingClock = new FramedOffsetClock(trackingClock) { Offset = -trackingClock.CurrentTime + startTime };
                 }
 
                 public double CurrentTime { get; private set; }
