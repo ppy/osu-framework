@@ -162,7 +162,7 @@ namespace osu.Framework.Graphics.Transforms
                             transformsLazy.RemoveAt(j--);
                             i--;
 
-                            removalActions.Add(u.Abort);
+                            removalActions.Add(u.OnAbort);
                         }
                         else
                             u.AppliedToEnd = true;
@@ -225,7 +225,7 @@ namespace osu.Framework.Graphics.Transforms
             if (transformsLazy == null || !transformsLazy.Remove(toRemove))
                 return;
 
-            toRemove.Abort();
+            toRemove.OnAbort?.Invoke();
         }
 
         /// <summary>
@@ -265,7 +265,7 @@ namespace osu.Framework.Graphics.Transforms
             }
 
             foreach (var t in toAbort)
-                t.Abort();
+                t.OnAbort?.Invoke();
         }
 
         /// <summary>
@@ -417,7 +417,7 @@ namespace osu.Framework.Graphics.Transforms
                 {
                     transformsLazy.RemoveAt(i--);
                     if (t.OnAbort != null)
-                        removalActions.Add(t.Abort);
+                        removalActions.Add(t.OnAbort);
                 }
             }
 
