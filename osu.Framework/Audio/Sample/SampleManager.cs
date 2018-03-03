@@ -31,9 +31,8 @@ namespace osu.Framework.Audio.Sample
 
             lock (sampleCache)
             {
-                Sample sample;
                 SampleChannel channel = null;
-                if (!sampleCache.TryGetValue(name, out sample))
+                if (!sampleCache.TryGetValue(name, out Sample sample))
                 {
                     byte[] data = store.Get(name);
                     if (data != null)
