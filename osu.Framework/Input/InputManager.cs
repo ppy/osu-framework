@@ -213,10 +213,9 @@ namespace osu.Framework.Input
 
             if (CurrentState.Mouse != null)
             {
-                foreach (var d in positionalInputQueue)
+                foreach (var d in inputQueue)
                     if (d is IRequireHighFrequencyMousePosition)
-                        if (d.TriggerOnMouseMove(CurrentState))
-                            break;
+                        d.TriggerOnMouseMove(CurrentState);
             }
 
             keyboardRepeatTime -= Time.Elapsed;
