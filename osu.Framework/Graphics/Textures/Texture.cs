@@ -184,14 +184,16 @@ namespace osu.Framework.Graphics.Textures
             return TextureGL.GetTextureRect(TextureBounds(textureRect));
         }
 
-        public void DrawTriangle(Triangle vertexTriangle, ColourInfo colour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null)
+        public void DrawTriangle<T>(Triangle vertexTriangle, ColourInfo colour, RectangleF? textureRect = null, Action<T> vertexAction = null, Vector2? inflationPercentage = null)
+            where T : ITexturedVertex2D, IEquatable<T>, new()
         {
             if (TextureGL == null || !TextureGL.Bind()) return;
 
             TextureGL.DrawTriangle(vertexTriangle, TextureBounds(textureRect), colour, vertexAction, inflationPercentage);
         }
 
-        public void DrawQuad(Quad vertexQuad, ColourInfo colour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null)
+        public void DrawQuad<T>(Quad vertexQuad, ColourInfo colour, RectangleF? textureRect = null, Action<T> vertexAction = null, Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null)
+            where T : ITexturedVertex2D, IEquatable<T>, new()
         {
             if (TextureGL == null || !TextureGL.Bind()) return;
 
