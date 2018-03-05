@@ -35,8 +35,7 @@ namespace osu.Framework.Audio.Sample
                 if (!sampleCache.TryGetValue(name, out Sample sample))
                 {
                     byte[] data = store.Get(name);
-                    if (data != null)
-                        sample = sampleCache[name] = new SampleBass(data, PendingActions, PlaybackConcurrency);
+                    sample = sampleCache[name] = data == null ? null : new SampleBass(data, PendingActions, PlaybackConcurrency);
                 }
 
                 if (sample != null)
