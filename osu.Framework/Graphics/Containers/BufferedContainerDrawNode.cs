@@ -93,7 +93,7 @@ namespace osu.Framework.Graphics.Containers
             RectangleF textureRect = new RectangleF(0, frameBuffer.Texture.Height, frameBuffer.Texture.Width, -frameBuffer.Texture.Height);
             if (frameBuffer.Texture.Bind())
                 // Color was already applied by base.Draw(); no need to re-apply. Thus we use White here.
-                frameBuffer.Texture.DrawQuad(drawRectangle, textureRect, colourInfo);
+                frameBuffer.Texture.DrawQuad<TexturedVertex2D>(drawRectangle, textureRect, colourInfo);
         }
 
         private void drawChildren(Action<TexturedVertex2D> vertexAction, Vector2 frameBufferSize)
