@@ -58,13 +58,13 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// Blit a triangle to OpenGL display with specified parameters.
         /// </summary>
         public abstract void DrawTriangle<T>(Triangle vertexTriangle, RectangleF? textureRect, ColourInfo drawColour, Action<T> vertexAction = null, Vector2? inflationPercentage = null)
-            where T : ITexturedVertex2D, new();
+            where T : ITexturedVertex2D, IEquatable<T>, new();
 
         /// <summary>
         /// Blit a quad to OpenGL display with specified parameters.
         /// </summary>
         public abstract void DrawQuad<T>(Quad vertexQuad, RectangleF? textureRect, ColourInfo drawColour, Action<T> vertexAction = null, Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null)
-            where T : ITexturedVertex2D, new();
+            where T : ITexturedVertex2D, IEquatable<T>, new();
 
         /// <summary>
         /// Bind as active texture.
