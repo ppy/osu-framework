@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using OpenTK;
 using OpenTK.Graphics;
@@ -23,43 +24,19 @@ namespace osu.Framework.Graphics.OpenGL.Vertices
         [VertexMember(2, VertexAttribPointerType.Float)]
         private Vector2 blendRange;
 
-        public Vector2 Position
-        {
-            get => position;
-            set => position = value;
-        }
-
-        public Color4 Colour
-        {
-            get => colour;
-            set => colour = value;
-        }
-
-        public Vector2 TexturePosition
-        {
-            get => texturePosition;
-            set => texturePosition = value;
-        }
-
-        public Vector4 TextureRect
-        {
-            get => textureRect;
-            set => textureRect = value;
-        }
-
-        public Vector2 BlendRange
-        {
-            get => blendRange;
-            set => blendRange = value;
-        }
+        public Vector2 Position { [MethodImpl(MethodImplOptions.AggressiveInlining)] set => position = value; }
+        public Color4 Colour { [MethodImpl(MethodImplOptions.AggressiveInlining)] set => colour = value; }
+        public Vector2 TexturePosition { [MethodImpl(MethodImplOptions.AggressiveInlining)] set => texturePosition = value; }
+        public Vector4 TextureRect { [MethodImpl(MethodImplOptions.AggressiveInlining)] set => textureRect = value; }
+        public Vector2 BlendRange { [MethodImpl(MethodImplOptions.AggressiveInlining)] set => blendRange = value; }
 
         public bool Equals(TexturedVertex2D other)
         {
-            return Position.Equals(other.Position)
-                   && TexturePosition.Equals(other.TexturePosition)
-                   && Colour.Equals(other.Colour)
-                   && TextureRect.Equals(other.TextureRect)
-                   && BlendRange.Equals(other.BlendRange);
+            return position.Equals(other.position)
+                   && texturePosition.Equals(other.texturePosition)
+                   && colour.Equals(other.colour)
+                   && textureRect.Equals(other.textureRect)
+                   && blendRange.Equals(other.blendRange);
         }
     }
 }
