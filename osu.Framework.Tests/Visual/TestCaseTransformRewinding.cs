@@ -135,7 +135,6 @@ namespace osu.Framework.Tests.Visual
                         Child = box = new Box
                         {
                             RelativeSizeAxes = Axes.Both,
-                            Scale = new Vector2(1)
                         }
                     });
 
@@ -152,12 +151,28 @@ namespace osu.Framework.Tests.Visual
                         Child = box = new Box
                         {
                             RelativeSizeAxes = Axes.Both,
-                            Scale = new Vector2(1)
                         }
                     });
 
                     box.ScaleTo(0.5f, 1000);
                     box.Delay(500).ScaleTo(1, 500);
+                    break;
+                }
+                case 7:
+                {
+                    Box box;
+                    Add(new AnimationContainer
+                    {
+                        Size = new Vector2(200),
+                        Child = box = new Box
+                        {
+                            Alpha = 1,
+                            RelativeSizeAxes = Axes.Both,
+                        }
+                    });
+
+                    box.Delay(500).FadeInFromZero(500);
+                    box.ScaleTo(0.9f, 1000);
                     break;
                 }
             }
