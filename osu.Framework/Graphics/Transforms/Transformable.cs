@@ -83,16 +83,21 @@ namespace osu.Framework.Graphics.Transforms
         private List<Action> removalActionsLazy;
         private List<Action> removalActions => removalActionsLazy ?? (removalActionsLazy = new List<Action>());
 
+        private double lastTransformAppliedTime;
+
         /// <summary>
         /// Process updates to this class based on loaded <see cref="Transform"/>s. This does not reset <see cref="TransformDelay"/>.
         /// This is used for performing extra updates on <see cref="Transform"/>s when new <see cref="Transform"/>s are added.
         /// </summary>
         private void updateTransforms(double time)
         {
+            bool rewinding = lastTransformAppliedTime > time;
+            lastTransformAppliedTime = time;
+
             if (transformsLazy == null)
                 return;
 
-            if (!RemoveCompletedTransforms) // todo: optimisation -- this only needs to run when rewinding.
+            if (rewinding && !RemoveCompletedTransforms)
             {
                 var appliedToEndReverts = new List<string>();
 
