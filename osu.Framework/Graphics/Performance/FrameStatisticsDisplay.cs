@@ -353,8 +353,7 @@ namespace osu.Framework.Graphics.Performance
         {
             base.Update();
 
-            FrameStatistics frame;
-            while (monitor.PendingFrames.TryDequeue(out frame))
+            while (monitor.PendingFrames.TryDequeue(out FrameStatistics frame))
             {
                 if (processFrames)
                     applyFrame(frame);
@@ -429,12 +428,11 @@ namespace osu.Framework.Graphics.Performance
         {
             Trace.Assert(textureData.Length >= HEIGHT * 4, $"textureData is too small ({textureData.Length}) to hold area data.");
 
-            double elapsedMilliseconds;
             int drawHeight;
 
             if (!frameTimeType.HasValue)
                 drawHeight = currentHeight;
-            else if (frame.CollectedTimes.TryGetValue(frameTimeType.Value, out elapsedMilliseconds))
+            else if (frame.CollectedTimes.TryGetValue(frameTimeType.Value, out double elapsedMilliseconds))
             {
                 legendMapping[(int)frameTimeType].Alpha = 1;
                 drawHeight = (int)(elapsedMilliseconds * scale);

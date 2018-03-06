@@ -500,8 +500,7 @@ namespace osu.Framework.Input
                 Button = button
             };
 
-            Drawable handledBy;
-            var result = PropagateMouseDown(positionalInputQueue, state, args, out handledBy);
+            var result = PropagateMouseDown(positionalInputQueue, state, args, out Drawable handledBy);
 
             mouseDownInputQueue = new List<Drawable>(result ? positionalInputQueue.Take(positionalInputQueue.IndexOf(handledBy) + 1) : positionalInputQueue);
 

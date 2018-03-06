@@ -141,8 +141,7 @@ namespace osu.Framework.Threading
 
             int countRun = 0;
 
-            Action action;
-            while (schedulerQueue.TryDequeue(out action))
+            while (schedulerQueue.TryDequeue(out Action action))
             {
                 //todo: error handling
                 action.Invoke();

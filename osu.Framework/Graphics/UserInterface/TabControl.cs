@@ -131,8 +131,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <param name="item">The item to pin.</param>
         public void PinItem(T item)
         {
-            TabItem<T> tab;
-            if (!tabMap.TryGetValue(item, out tab))
+            if (!tabMap.TryGetValue(item, out TabItem<T> tab))
                 return;
             tab.Pinned = true;
         }
@@ -143,8 +142,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <param name="item">The item to unpin.</param>
         public void UnpinItem(T item)
         {
-            TabItem<T> tab;
-            if (!tabMap.TryGetValue(item, out tab))
+            if (!tabMap.TryGetValue(item, out TabItem<T> tab))
                 return;
             tab.Pinned = false;
         }

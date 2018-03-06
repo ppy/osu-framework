@@ -17,6 +17,12 @@ namespace osu.Framework.Graphics.Transforms
         internal bool Applied;
 
         /// <summary>
+        /// Whether this <see cref="Transform"/> has been applied completely to an <see cref="ITransformable"/>.
+        /// Used to track whether we still need to apply for targets which allow rewind.
+        /// </summary>
+        internal bool AppliedToEnd;
+
+        /// <summary>
         /// Whether this <see cref="Transform"/> can be rewound.
         /// </summary>
         public bool Rewindable = true;
@@ -56,7 +62,11 @@ namespace osu.Framework.Graphics.Transforms
 
                 int compare = x.StartTime.CompareTo(y.StartTime);
                 if (compare != 0) return compare;
-                compare = x.TransformID.CompareTo(y.TransformID);
+
+                // reverse order as we want to insert *before* matching time transforms.
+                // this is because we want to immediately remove all transforms of the same type at the same time (see Transformable.AddTransform).
+                compare = y.TransformID.CompareTo(x.TransformID);
+
                 return compare;
             }
         }

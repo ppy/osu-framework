@@ -462,8 +462,16 @@ namespace osu.Framework.Graphics.Containers
             updateSize();
             updatePosition();
 
-            Scrollbar?.MoveTo(ScrollDirection, Current * Scrollbar.Size[ScrollDim]);
-            content.MoveTo(ScrollDirection, -Current);
+            if (ScrollDirection == Direction.Horizontal)
+            {
+                Scrollbar.X = Current * Scrollbar.Size.X;
+                content.X = -Current;
+            }
+            else
+            {
+                Scrollbar.Y = Current * Scrollbar.Size.Y;
+                content.Y = -Current;
+            }
         }
 
         protected internal class ScrollbarContainer : Container

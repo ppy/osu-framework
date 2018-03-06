@@ -446,10 +446,16 @@ namespace osu.Framework.Platform
             Root = root;
         }
 
+        private const int thread_join_timeout = 30000;
+
         private void stopAllThreads()
         {
             threads.ForEach(t => t.Exit());
-            threads.Where(t => t.Running).ForEach(t => t.Thread.Join());
+            threads.Where(t => t.Running).ForEach(t =>
+            {
+                if (!t.Thread.Join(thread_join_timeout))
+                    Logger.Log($"Thread {t.Name} failed to exit in allocated time ({thread_join_timeout}ms).", LoggingTarget.Runtime, LogLevel.Important);
+            });
         }
 
         private void window_KeyDown(object sender, KeyboardKeyEventArgs e)

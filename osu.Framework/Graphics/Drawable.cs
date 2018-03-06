@@ -207,6 +207,8 @@ namespace osu.Framework.Graphics
 
                 Dependencies.Inject(this);
 
+                LoadAsyncComplete();
+
                 double loadDuration = perf.CurrentTime - t1;
                 if (perf.CurrentTime > 1000 && loadDuration > 50 && ThreadSafety.IsUpdateThread)
                     Logger.Log($@"Drawable [{ToString()}] took {loadDuration:0.00}ms to load and was not async!", LoggingTarget.Performance);
@@ -231,6 +233,13 @@ namespace osu.Framework.Graphics
             OnLoadComplete?.Invoke(this);
             OnLoadComplete = null;
             return true;
+        }
+
+        /// <summary>
+        /// Called after all async loading has completed.
+        /// </summary>
+        protected virtual void LoadAsyncComplete()
+        {
         }
 
         /// <summary>
@@ -330,7 +339,7 @@ namespace osu.Framework.Graphics
             if (isDisposed)
                 throw new ObjectDisposedException(ToString(), "Disposed Drawables may never be in the scene graph.");
 
-            if (ShouldProcessClock)
+            if (ProcessCustomClock)
                 customClock?.ProcessFrame();
 
             if (loadState < LoadState.Ready)
@@ -1214,7 +1223,7 @@ namespace osu.Framework.Graphics
         /// uses a custom clock.
         /// </summary>
         /// <param name="clock">The new clock to be used.</param>
-        public virtual void UpdateClock(IFrameBasedClock clock)
+        internal virtual void UpdateClock(IFrameBasedClock clock)
         {
             this.clock = customClock ?? clock;
             scheduler?.UpdateClock(this.clock);
@@ -1222,9 +1231,9 @@ namespace osu.Framework.Graphics
 
         /// <summary>
         /// Whether <see cref="IFrameBasedClock.ProcessFrame"/> should be automatically invoked on this <see cref="Drawable"/>'s <see cref="Clock"/>
-        /// in <see cref="UpdateSubTree"/>. This should only be used in scenarios where <see cref="UpdateSubTree"/> is overridden to perform the functionality itself.
+        /// in <see cref="UpdateSubTree"/>. This should only be set to false in scenarios where the clock is updated elsewhere.
         /// </summary>
-        protected virtual bool ShouldProcessClock => Parent != null; //we don't want to update our clock if we are at the top of the stack. it's handled elsewhere for us.
+        public bool ProcessCustomClock = true;
 
         /// <summary>
         /// The time at which this drawable becomes valid (and is considered for drawing).
