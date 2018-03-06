@@ -108,30 +108,33 @@ namespace osu.Framework.Graphics.Transforms
                 {
                     var t = transformsLazy[i];
 
+                    // rewind logic needs to only run on transforms which have been applied at least once.
                     if (!t.Applied)
                         continue;
 
+                    // some specific transforms can be marked as non-rewindable.
                     if (!t.Rewindable)
                         continue;
 
                     if (time >= t.StartTime)
                     {
-                        if (time >= t.EndTime)
-                            continue;
-
-                        if (!appliedToEndReverts.Contains(t.TargetMember))
+                        // we are in the middle of this transform, so we want to mark as not-completely-applied.
+                        // note that we should only do this for the last transform of each TargetMemeber to avoid incorrect application order.
+                        // the actual application will be in the main loop below now that AppliedToEnd is false.
+                        if (time < t.EndTime && !appliedToEndReverts.Contains(t.TargetMember))
                         {
                             t.AppliedToEnd = false;
                             appliedToEndReverts.Add(t.TargetMember);
                         }
-
-                        continue;
                     }
-
-                    // Revert the transform's target to the transform's starting value, and mark that it hasn't been applied yet for future iterations
-                    t.Apply(time);
-                    t.Applied = false;
-                    t.AppliedToEnd = false;
+                    else
+                    {
+                        // we are before the start time of this transform, so we want to eagerly apply the value at current time and mark as not-yet-applied.
+                        // this transform will not be applied again unless we play forward in the future.
+                        t.Apply(time);
+                        t.Applied = false;
+                        t.AppliedToEnd = false;
+                    }
                 }
             }
 
