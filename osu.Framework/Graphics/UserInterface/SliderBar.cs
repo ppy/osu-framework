@@ -144,13 +144,8 @@ namespace osu.Framework.Graphics.UserInterface
                 case PlatformActionType.WordNext:
                     CurrentNumber.Add(CurrentNumber.IsInteger ? (float)Math.Ceiling(LargeKeyboardStep) : LargeKeyboardStep);
                     return OnInputHandled();
-                case PlatformActionType.LineStart:
-                    CurrentNumber.Value = CurrentNumber.MinValue;
-                    return OnInputHandled();
-                case PlatformActionType.LineEnd:
-                    CurrentNumber.Value = CurrentNumber.MaxValue;
-                    return OnInputHandled();
-                default: return false;
+                default:
+                    return false;
             }
 
             bool OnInputHandled()
@@ -171,10 +166,9 @@ namespace osu.Framework.Graphics.UserInterface
                 case PlatformActionType.CharNext:
                 case PlatformActionType.WordPrevious:
                 case PlatformActionType.WordNext:
-                case PlatformActionType.LineStart:
-                case PlatformActionType.LineEnd:
                     return true;
-                default: return false;
+                default:
+                    return false;
             }
         }
 
