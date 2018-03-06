@@ -18,6 +18,14 @@ namespace osu.Framework.Graphics.Containers
     {
         internal event Action OnLayout;
 
+        private readonly ChildComparer childComparer;
+
+        protected FlowContainer()
+        {
+            childComparer = new ChildComparer(this);
+        }
+
+
         /// <summary>
         /// The easing that should be used when children are moved to their position in the layout.
         /// </summary>
@@ -153,7 +161,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Gets the children that appear in the flow of this FlowContainer in the order in which they are processed within the flowing layout.
         /// </summary>
-        public virtual IEnumerable<Drawable> FlowingChildren => AliveInternalChildren.Where(d => d.IsPresent).OrderBy(d => layoutChildren[d]).ThenBy(d => d.ChildID);
+        public virtual IEnumerable<Drawable> FlowingChildren => AliveInternalChildren.Where(d => d.IsPresent).OrderBy(d => layoutChildren[d]).ThenBy(d => d, childComparer);
 
         protected abstract IEnumerable<Vector2> ComputeLayoutPositions();
 
