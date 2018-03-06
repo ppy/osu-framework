@@ -2,7 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Linq;
+using System.Text;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Allocation;
@@ -103,7 +103,8 @@ namespace osu.Framework.Tests.Visual
                     RelativeSizeAxes = Axes.Both,
                     RelativePositionAxes = Axes.Both,
                     Scale = new Vector2(0.25f),
-                }
+                },
+                ExaminableDrawable = box,
             });
 
             action(box);
@@ -122,6 +123,10 @@ namespace osu.Framework.Tests.Visual
 
             private readonly Tick seekingTick;
             private readonly WrappingTimeContainer wrapping;
+
+            public Box ExaminableDrawable;
+
+            private readonly TextFlowContainer text;
 
             public AnimationContainer(int startTime = 0)
             {
@@ -151,6 +156,13 @@ namespace osu.Framework.Tests.Visual
                             Origin = Anchor.Centre,
                             Size = new Vector2(0.6f),
                             Masking = true,
+                        },
+                        text = new TextFlowContainer
+                        {
+                            Anchor = Anchor.BottomCentre,
+                            Origin = Anchor.BottomCentre,
+                            RelativeSizeAxes = Axes.Both,
+                            Size = new Vector2(0.8f, 0.18f),
                         },
                         new Container
                         {
@@ -187,6 +199,18 @@ namespace osu.Framework.Tests.Visual
                         }
                     }
                 };
+            }
+
+            protected override void LoadComplete()
+            {
+                base.LoadComplete();
+
+                StringBuilder sb = new StringBuilder();
+
+                foreach (var t in ExaminableDrawable.Transforms)
+                    sb.AppendLine($"{t}");
+
+                text.Text = sb.ToString();
             }
 
             protected override void Update()
