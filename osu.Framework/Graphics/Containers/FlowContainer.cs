@@ -83,6 +83,7 @@ namespace osu.Framework.Graphics.Containers
             InvalidateLayout();
             base.AddInternal(drawable);
         }
+
         protected internal override bool RemoveInternal(Drawable drawable)
         {
             layoutChildren.Remove(drawable);
@@ -91,6 +92,7 @@ namespace osu.Framework.Graphics.Containers
             InvalidateLayout();
             return base.RemoveInternal(drawable);
         }
+
         protected internal override void ClearInternal(bool disposeChildren = true)
         {
             layoutChildren.Clear();
@@ -119,7 +121,7 @@ namespace osu.Framework.Graphics.Containers
         /// For example, the drawable with the lowest position value will be the left-most drawable in a horizontal <see cref="FillFlowContainer{T}"/> and the drawable with the highest position value will be the right-most drawable in a horizontal <see cref="FillFlowContainer{T}"/>.
         /// </summary>
         /// <param name="drawable">The drawable whose position should be retrieved, must be a child of this container.</param>
-        /// <returns>The position of the drawable in the layout. A higher position value means the drawable will be processed later (that is, the drawables with the lowest position appear first, and the drawable with the highest position appear last).</returns>
+        /// <returns>The position of the drawable in the layout.</returns>
         public float GetLayoutPosition(Drawable drawable)
         {
             if (!layoutChildren.ContainsKey(drawable))
