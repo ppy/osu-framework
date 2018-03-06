@@ -35,7 +35,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected Dropdown<T> Dropdown;
 
-        protected TabFillFlowContainer<TabItem<T>> TabContainer;
+        protected readonly TabFillFlowContainer TabContainer;
 
         protected IReadOnlyDictionary<T, TabItem<T>> TabMap => tabMap;
 
@@ -85,15 +85,9 @@ namespace osu.Framework.Graphics.UserInterface
             else
                 tabMap = new Dictionary<T, TabItem<T>>();
 
-            Add(TabContainer = new TabFillFlowContainer<TabItem<T>>
-            {
-                Direction = FillDirection.Full,
-                RelativeSizeAxes = Axes.Both,
-                Depth = -1,
-                Masking = true,
-                TabVisibilityChanged = updateDropdown,
-                ChildrenEnumerable = tabMap.Values
-            });
+            Add(TabContainer = CreateTabFlow());
+            TabContainer.TabVisibilityChanged = updateDropdown;
+            TabContainer.ChildrenEnumerable = tabMap.Values;
 
             Current.ValueChanged += newSelection =>
             {
@@ -254,17 +248,25 @@ namespace osu.Framework.Graphics.UserInterface
 
         private float getTabDepth(TabItem<T> tab) => tab.Pinned ? float.MinValue : --depthCounter;
 
-        public class TabFillFlowContainer<U> : FillFlowContainer<U> where U : TabItem
+        protected virtual TabFillFlowContainer CreateTabFlow() => new TabFillFlowContainer
+        {
+            Direction = FillDirection.Full,
+            RelativeSizeAxes = Axes.Both,
+            Depth = -1,
+            Masking = true
+        };
+
+        public class TabFillFlowContainer : FillFlowContainer<TabItem<T>>
         {
             /// <summary>
             /// Gets called whenever the visibility of a tab in this container changes. Gets invoked with the <see cref="TabItem"/> whose visibility changed and the new visibility state (true = visible, false = hidden).
             /// </summary>
-            public Action<U, bool> TabVisibilityChanged;
+            public Action<TabItem<T>, bool> TabVisibilityChanged;
 
             /// <summary>
             /// The list of tabs currently displayed by this container.
             /// </summary>
-            public IEnumerable<U> TabItems => FlowingChildren.OfType<U>();
+            public IEnumerable<TabItem<T>> TabItems => FlowingChildren.OfType<TabItem<T>>();
 
             protected override IEnumerable<Vector2> ComputeLayoutPositions()
             {
@@ -273,7 +275,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 var result = base.ComputeLayoutPositions().ToArray();
                 int i = 0;
-                foreach (var child in FlowingChildren.OfType<U>())
+                foreach (var child in FlowingChildren.OfType<TabItem<T>>())
                 {
                     updateChildIfNeeded(child, result[i].Y == 0);
                     ++i;
@@ -281,9 +283,9 @@ namespace osu.Framework.Graphics.UserInterface
                 return result;
             }
 
-            private readonly Dictionary<U, bool> tabVisibility = new Dictionary<U, bool>();
+            private readonly Dictionary<TabItem<T>, bool> tabVisibility = new Dictionary<TabItem<T>, bool>();
 
-            private void updateChildIfNeeded(U child, bool isVisible)
+            private void updateChildIfNeeded(TabItem<T> child, bool isVisible)
             {
                 if (!tabVisibility.ContainsKey(child) || tabVisibility[child] != isVisible)
                 {
