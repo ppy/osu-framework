@@ -28,8 +28,8 @@ namespace osu.Framework.Tests.Visual
 
             AddStep("Basic scale", () => boxTest(box =>
             {
-                box.Scale = new Vector2(0.25f);
-                box.ScaleTo(0.75f, interval * 4);
+                box.Scale = Vector2.One;
+                box.ScaleTo(0, interval * 4);
             }));
 
             AddStep("Scale sequence", () => boxTest(box =>
@@ -60,9 +60,9 @@ namespace osu.Framework.Tests.Visual
                 box.Anchor = Anchor.TopLeft;
                 box.Origin = Anchor.TopLeft;
 
-                box.ScaleTo(0.5f, interval).MoveTo(new Vector2(100), interval)
+                box.ScaleTo(0.5f, interval).MoveTo(new Vector2(0.5f), interval)
                    .Then()
-                   .ScaleTo(0.1f, interval).MoveTo(new Vector2(0, 180), interval)
+                   .ScaleTo(0.1f, interval).MoveTo(new Vector2(0, 0.75f), interval)
                    .Then()
                    .ScaleTo(1f, interval).MoveTo(new Vector2(0, 0), interval)
                    .Then()
