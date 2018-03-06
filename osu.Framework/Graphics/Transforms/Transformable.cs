@@ -112,7 +112,7 @@ namespace osu.Framework.Graphics.Transforms
                     if (time >= t.StartTime)
                     {
                         if (time >= t.EndTime)
-                            break;
+                            continue;
 
                         if (!appliedToEndReverts.Contains(t.TargetMember))
                         {
