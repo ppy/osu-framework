@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Text;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Allocation;
@@ -10,6 +9,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.Transforms;
 using osu.Framework.Testing;
 using osu.Framework.Timing;
 
@@ -126,7 +126,7 @@ namespace osu.Framework.Tests.Visual
 
             public Box ExaminableDrawable;
 
-            private readonly TextFlowContainer text;
+            private readonly FlowContainer<DrawableTransform> transforms;
 
             public AnimationContainer(int startTime = 0)
             {
@@ -157,10 +157,11 @@ namespace osu.Framework.Tests.Visual
                             Size = new Vector2(0.6f),
                             Masking = true,
                         },
-                        text = new TextFlowContainer
+                        transforms = new FillFlowContainer<DrawableTransform>
                         {
                             Anchor = Anchor.BottomCentre,
                             Origin = Anchor.BottomCentre,
+                            Spacing = Vector2.One,
                             RelativeSizeAxes = Axes.Both,
                             Size = new Vector2(0.8f, 0.18f),
                         },
@@ -205,12 +206,8 @@ namespace osu.Framework.Tests.Visual
             {
                 base.LoadComplete();
 
-                StringBuilder sb = new StringBuilder();
-
                 foreach (var t in ExaminableDrawable.Transforms)
-                    sb.AppendLine($"{t}");
-
-                text.Text = sb.ToString();
+                    transforms.Add(new DrawableTransform(t));
             }
 
             protected override void Update()
@@ -226,6 +223,40 @@ namespace osu.Framework.Tests.Visual
 
                 maxTimeText.Colour = time > wrapping.MaxTime ? Color4.Gray : (wrapping.Time.Elapsed > 0 ? Color4.Blue : Color4.Red);
                 minTimeText.Colour = time < wrapping.MinTime ? Color4.Gray : (content.Time.Elapsed > 0 ? Color4.Blue : Color4.Red);
+            }
+
+            private class DrawableTransform : CompositeDrawable
+            {
+                private readonly Transform transform;
+                private readonly Box applied;
+                private readonly Box appliedToEnd;
+                private readonly SpriteText text;
+
+                private const float height = 20;
+
+                public DrawableTransform(Transform transform)
+                {
+                    this.transform = transform;
+
+                    RelativeSizeAxes = Axes.X;
+                    Height = height;
+
+                    InternalChildren = new Drawable[]
+                    {
+                        applied = new Box { Size = new Vector2(height) },
+                        appliedToEnd = new Box { X = height + 2, Size = new Vector2(height) },
+                        text = new SpriteText { X = (height + 2) * 2 },
+                    };
+                }
+
+                protected override void Update()
+                {
+                    base.Update();
+
+                    applied.Colour = transform.Applied ? Color4.Green : Color4.Red;
+                    appliedToEnd.Colour = transform.AppliedToEnd ? Color4.Green : Color4.Red;
+                    text.Text = transform.ToString();
+                }
             }
 
             private class Tick : Box
