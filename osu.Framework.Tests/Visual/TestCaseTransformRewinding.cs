@@ -20,6 +20,10 @@ namespace osu.Framework.Tests.Visual
         protected override Container<Drawable> Content => content;
         private readonly FillFlowContainer content;
 
+        private const double interval = 250;
+
+        private double intervalAt(int sequence) => interval * sequence;
+
         public TestCaseTransformRewinding()
         {
             base.Content.Add(content = new FillFlowContainer
@@ -31,13 +35,15 @@ namespace osu.Framework.Tests.Visual
             AddStep("Basic scale", () => boxTest(box =>
             {
                 box.Scale = new Vector2(0.25f);
-                box.ScaleTo(0.75f, 300);
+                box.ScaleTo(0.75f, interval);
             }));
 
             AddStep("Scale sequence", () => boxTest(box =>
             {
                 box.Scale = new Vector2(0.25f);
-                box.ScaleTo(0.75f, 100).Then().ScaleTo(0.5f, 100).Then().ScaleTo(0.25f, 100);
+                box.ScaleTo(0.75f, interval).Then()
+                   .ScaleTo(0.5f, interval).Then()
+                   .ScaleTo(0.25f, interval);
             }));
 
             AddStep("Basic movement", () => boxTest(box =>
@@ -46,10 +52,10 @@ namespace osu.Framework.Tests.Visual
                 box.Anchor = Anchor.TopLeft;
                 box.Origin = Anchor.TopLeft;
 
-                box.MoveTo(new Vector2(150, 0), 100).Then()
-                   .MoveTo(new Vector2(150, 150), 100).Then()
-                   .MoveTo(new Vector2(0, 150), 100).Then()
-                   .MoveTo(new Vector2(0), 100);
+                box.MoveTo(new Vector2(150, 0), interval).Then()
+                   .MoveTo(new Vector2(150, 150), interval).Then()
+                   .MoveTo(new Vector2(0, 150), interval).Then()
+                   .MoveTo(new Vector2(0), interval);
             }));
 
             AddStep("Move sequence", () => boxTest(box =>
@@ -58,31 +64,32 @@ namespace osu.Framework.Tests.Visual
                 box.Anchor = Anchor.TopLeft;
                 box.Origin = Anchor.TopLeft;
 
-                box.ScaleTo(0.5f, 300).MoveTo(new Vector2(100), 300)
+                box.ScaleTo(0.5f, interval).MoveTo(new Vector2(100), interval)
                    .Then()
-                   .ScaleTo(0.1f, 300).MoveTo(new Vector2(0, 180), 300)
+                   .ScaleTo(0.1f, interval).MoveTo(new Vector2(0, 180), interval)
                    .Then()
-                   .ScaleTo(1f, 300).MoveTo(new Vector2(0, 0), 300)
+                   .ScaleTo(1f, interval).MoveTo(new Vector2(0, 0), interval)
                    .Then()
-                   .FadeTo(0, 300);
-            }));
-
-            AddStep("Multiple sequence", () => boxTest(box =>
-            {
-                box.ScaleTo(0.5f, 1000);
-                box.Delay(500).ScaleTo(1, 400);
+                   .FadeTo(0, interval);
             }));
 
             AddStep("Same type in type", () => boxTest(box =>
             {
-                box.ScaleTo(0.5f, 1000);
-                box.Delay(500).ScaleTo(1, 500);
+                box.ScaleTo(0.5f, interval * 4);
+                box.Delay(interval * 2).ScaleTo(1, interval * 2);
+            }));
+
+            AddStep("Same type partial overlap", () => boxTest(box =>
+            {
+                box.ScaleTo(0.5f, interval * 4);
+                box.Delay(interval * 2).ScaleTo(1, interval);
             }));
 
             AddStep("Start in middle of sequence", () => boxTest(box =>
             {
-                box.Delay(500).FadeInFromZero(500);
-                box.ScaleTo(0.9f, 1000);
+                box.Alpha = 0;
+                box.Delay(interval * 2).FadeInFromZero(interval);
+                box.ScaleTo(0.9f, interval * 4);
             }));
         }
 
