@@ -28,154 +28,83 @@ namespace osu.Framework.Tests.Visual
                 Spacing = new Vector2(10, 10)
             });
 
-            AddStep("Basic scale", () => loadTest(0));
-            AddStep("Scale sequence", () => loadTest(1));
-            AddStep("Basic movement", () => loadTest(2));
-            AddStep("Move sequence", () => loadTest(3));
-            AddStep("Multiple sequence", () => loadTest(4));
-            AddStep("Same type in type", () => loadTest(5));
-            AddStep("Start in middle of sequence", () => loadTest(6));
+            AddStep("Basic scale", () => boxTest(box =>
+            {
+                box.Scale = new Vector2(0.25f);
+                box.ScaleTo(0.75f, 300);
+            }));
+
+            AddStep("Scale sequence", () => boxTest(box =>
+            {
+                box.Scale = new Vector2(0.25f);
+                box.ScaleTo(0.75f, 100).Then().ScaleTo(0.5f, 100).Then().ScaleTo(0.25f, 100);
+            }));
+
+            AddStep("Basic movement", () => boxTest(box =>
+            {
+                box.Scale = new Vector2(0.25f);
+                box.Anchor = Anchor.TopLeft;
+                box.Origin = Anchor.TopLeft;
+
+                box.MoveTo(new Vector2(150, 0), 100).Then()
+                   .MoveTo(new Vector2(150, 150), 100).Then()
+                   .MoveTo(new Vector2(0, 150), 100).Then()
+                   .MoveTo(new Vector2(0), 100);
+            }));
+
+            AddStep("Move sequence", () => boxTest(box =>
+            {
+                box.Scale = new Vector2(0.25f);
+                box.Anchor = Anchor.TopLeft;
+                box.Origin = Anchor.TopLeft;
+
+                box.ScaleTo(0.5f, 300).MoveTo(new Vector2(100), 300)
+                   .Then()
+                   .ScaleTo(0.1f, 300).MoveTo(new Vector2(0, 180), 300)
+                   .Then()
+                   .ScaleTo(1f, 300).MoveTo(new Vector2(0, 0), 300)
+                   .Then()
+                   .FadeTo(0, 300);
+            }));
+
+            AddStep("Multiple sequence", () => boxTest(box =>
+            {
+                box.ScaleTo(0.5f, 1000);
+                box.Delay(500).ScaleTo(1, 400);
+            }));
+
+            AddStep("Same type in type", () => boxTest(box =>
+            {
+                box.ScaleTo(0.5f, 1000);
+                box.Delay(500).ScaleTo(1, 500);
+            }));
+
+            AddStep("Start in middle of sequence", () => boxTest(box =>
+            {
+                box.Delay(500).FadeInFromZero(500);
+                box.ScaleTo(0.9f, 1000);
+            }));
         }
 
-        private void loadTest(int testCase)
+        private Box box;
+
+        private void boxTest(Action<Box> action)
         {
             Clear();
 
-            switch (testCase)
+            Add(new AnimationContainer
             {
-                case 0:
-                    {
-                        Box box;
-                        Add(new AnimationContainer
-                        {
-                            Size = new Vector2(200),
-                            Child = box = new Box
-                            {
-                                Anchor = Anchor.Centre,
-                                Origin = Anchor.Centre,
-                                RelativeSizeAxes = Axes.Both,
-                                Scale = new Vector2(0.25f),
-                            }
-                        });
-
-                        box.ScaleTo(0.75f, 300);
-                        break;
-                    }
-                case 1:
-                    {
-                        Box box;
-                        Add(new AnimationContainer
-                        {
-                            Size = new Vector2(200),
-                            Child = box = new Box
-                            {
-                                Anchor = Anchor.Centre,
-                                Origin = Anchor.Centre,
-                                RelativeSizeAxes = Axes.Both,
-                                Scale = new Vector2(0.25f),
-                            }
-                        });
-
-                        box.ScaleTo(0.75f, 100).Then().ScaleTo(0.5f, 100).Then().ScaleTo(0.25f, 100);
-                        break;
-                    }
-                case 2:
-                    {
-                        Box box;
-                        Add(new AnimationContainer
-                        {
-                            Size = new Vector2(200),
-                            Child = box = new Box { Size = new Vector2(50) }
-                        });
-
-                        box.MoveTo(new Vector2(150, 150), 300);
-                        break;
-                    }
-                case 3:
-                    {
-                        Box box;
-                        Add(new AnimationContainer
-                        {
-                            Size = new Vector2(200),
-                            Child = box = new Box { Size = new Vector2(50) }
-                        });
-
-                        box.MoveTo(new Vector2(150, 0), 100).Then().MoveTo(new Vector2(150, 150), 100).Then().MoveTo(new Vector2(0, 150), 100).Then().MoveTo(new Vector2(0), 100);
-                        break;
-                    }
-                case 4:
-                    {
-                        Box box;
-                        Add(new AnimationContainer
-                        {
-                            Size = new Vector2(200),
-                            Child = box = new Box
-                            {
-                                RelativeSizeAxes = Axes.Both,
-                                Scale = new Vector2(0.25f)
-                            }
-                        });
-
-                        box.ScaleTo(0.5f, 300).MoveTo(new Vector2(100), 300)
-                           .Then()
-                           .ScaleTo(0.1f, 300).MoveTo(new Vector2(0, 180), 300)
-                           .Then()
-                           .ScaleTo(1f, 300).MoveTo(new Vector2(0, 0), 300)
-                           .Then()
-                           .FadeTo(0, 300);
-
-                        break;
-                    }
-                case 5:
+                Size = new Vector2(200),
+                Child = box = new Box
                 {
-                    Box box;
-                    Add(new AnimationContainer
-                    {
-                        Size = new Vector2(200),
-                        Child = box = new Box
-                        {
-                            RelativeSizeAxes = Axes.Both,
-                        }
-                    });
-
-                    box.ScaleTo(0.5f, 1000);
-                    box.Delay(500).ScaleTo(1, 500);
-                    break;
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    RelativeSizeAxes = Axes.Both,
+                    Scale = new Vector2(0.25f),
                 }
-                case 6:
-                {
-                    Box box;
-                    Add(new AnimationContainer(750)
-                    {
-                        Size = new Vector2(200),
-                        Child = box = new Box
-                        {
-                            RelativeSizeAxes = Axes.Both,
-                        }
-                    });
+            });
 
-                    box.ScaleTo(0.5f, 1000);
-                    box.Delay(500).ScaleTo(1, 500);
-                    break;
-                }
-                case 7:
-                {
-                    Box box;
-                    Add(new AnimationContainer
-                    {
-                        Size = new Vector2(200),
-                        Child = box = new Box
-                        {
-                            Alpha = 1,
-                            RelativeSizeAxes = Axes.Both,
-                        }
-                    });
-
-                    box.Delay(500).FadeInFromZero(500);
-                    box.ScaleTo(0.9f, 1000);
-                    break;
-                }
-            }
+            action(box);
         }
 
         private class AnimationContainer : Container
@@ -217,7 +146,7 @@ namespace osu.Framework.Tests.Visual
                                 Spacing = new Vector2(5, 0),
                                 Children = new[]
                                 {
-                                    minTimeText = new SpriteText { Colour = Color4.Blue},
+                                    minTimeText = new SpriteText { Colour = Color4.Blue },
                                     currentTimeText = new SpriteText(),
                                     maxTimeText = new SpriteText { Colour = Color4.Blue },
                                 }
@@ -251,6 +180,7 @@ namespace osu.Framework.Tests.Visual
             {
                 clock = new ReversibleClock(startTime);
             }
+
             [BackgroundDependencyLoader]
             private void load()
             {
