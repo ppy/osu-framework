@@ -72,13 +72,13 @@ namespace osu.Framework.Tests.Visual
             AddStep("Same type in type", () => boxTest(box =>
             {
                 box.ScaleTo(0.5f, interval * 4);
-                box.Delay(interval * 2).ScaleTo(1, interval * 2);
+                box.Delay(interval * 2).ScaleTo(1, interval);
             }));
 
             AddStep("Same type partial overlap", () => boxTest(box =>
             {
-                box.ScaleTo(0.5f, interval * 4);
-                box.Delay(interval * 2).ScaleTo(1, interval);
+                box.ScaleTo(0.5f, interval * 2);
+                box.Delay(interval).ScaleTo(1, interval * 2);
             }));
 
             AddStep("Start in middle of sequence", () => boxTest(box =>
