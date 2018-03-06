@@ -1,7 +1,6 @@
 // Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using osu.Framework.Extensions.TypeExtensions;
 using System;
 using System.Collections.Generic;
 
@@ -95,6 +94,6 @@ namespace osu.Framework.Graphics.Transforms
 
         protected abstract void ReadIntoStartValue(T d);
 
-        public override string ToString() => $"{typeof(Transform<TValue, T>).ReadableName()} => {Target} {StartTime}:{StartValue}-{EndTime}:{EndValue}";
+        public override string ToString() => $"{Target.GetType().Name}.{TargetMember} {StartTime}-{EndTime}ms {StartValue} -> {EndValue}";
     }
 }
