@@ -137,7 +137,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private class ChildComparer : IComparer<Drawable>
+        protected class ChildComparer : IComparer<Drawable>
         {
             private readonly CompositeDrawable owner;
 
@@ -225,7 +225,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         /// <param name="drawable">The <see cref="Drawable"/> to be removed.</param>
         /// <returns>False if <paramref name="drawable"/> was not a child of this <see cref="CompositeDrawable"/> and true otherwise.</returns>
-        protected internal bool RemoveInternal(Drawable drawable)
+        protected internal virtual bool RemoveInternal(Drawable drawable)
         {
             if (drawable == null)
                 throw new ArgumentNullException(nameof(drawable));
@@ -260,7 +260,7 @@ namespace osu.Framework.Graphics.Containers
         /// Whether removed children should also get disposed.
         /// Disposal will be recursive.
         /// </param>
-        protected internal void ClearInternal(bool disposeChildren = true)
+        protected internal virtual void ClearInternal(bool disposeChildren = true)
         {
             if (internalChildren.Count == 0) return;
 
