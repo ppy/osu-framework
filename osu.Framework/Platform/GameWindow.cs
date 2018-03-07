@@ -96,13 +96,12 @@ namespace osu.Framework.Platform
 
                 try
                 {
-                    CursorGrabbed = (cursorState & CursorState.Confined) > 0;
+                    Implementation.CursorGrabbed = (cursorState & CursorState.Confined) > 0;
                 }
                 catch
                 {
                     // may not be supported by platform.
                 }
-
             }
         }
 
@@ -110,10 +109,10 @@ namespace osu.Framework.Platform
         /// We do not support directly using <see cref="Cursor"/>.
         /// It is controlled internally. Use <see cref="CursorState"/> instead.
         /// </summary>
-        public bool Cursor
+        public MouseCursor Cursor
         {
-            get { throw new InvalidOperationException($@"{nameof(Cursor)} is not supported. Use {nameof(CursorState)}."); }
-            set { throw new InvalidOperationException($@"{nameof(Cursor)} is not supported. Use {nameof(CursorState)}."); }
+            get => throw new InvalidOperationException($@"{nameof(Cursor)} is not supported. Use {nameof(CursorState)}.");
+            set => throw new InvalidOperationException($@"{nameof(Cursor)} is not supported. Use {nameof(CursorState)}.");
         }
 
         /// <summary>
@@ -122,8 +121,18 @@ namespace osu.Framework.Platform
         /// </summary>
         public bool CursorVisible
         {
-            get { throw new InvalidOperationException($@"{nameof(CursorVisible)} is not supported. Use {nameof(CursorState)}."); }
-            set { throw new InvalidOperationException($@"{nameof(CursorVisible)} is not supported. Use {nameof(CursorState)}."); }
+            get => throw new InvalidOperationException($@"{nameof(CursorVisible)} is not supported. Use {nameof(CursorState)}.");
+            set => throw new InvalidOperationException($@"{nameof(CursorVisible)} is not supported. Use {nameof(CursorState)}.");
+        }
+
+        /// <summary>
+        /// We do not support directly using <see cref="CursorGrabbed"/>.
+        /// It is controlled internally. Use <see cref="CursorState"/> instead.
+        /// </summary>
+        public bool CursorGrabbed
+        {
+            get => throw new InvalidOperationException($@"{nameof(CursorGrabbed)} is not supported. Use {nameof(CursorState)}.");
+            set => throw new InvalidOperationException($@"{nameof(CursorGrabbed)} is not supported. Use {nameof(CursorState)}.");
         }
 
         private string getVersionNumberSubstring(string version)
@@ -178,8 +187,6 @@ namespace osu.Framework.Platform
         public int Height { get => Implementation.Height; set => Implementation.Height = value; }
         public Rectangle ClientRectangle { get => Implementation.ClientRectangle; set => Implementation.ClientRectangle = value; }
         public Size ClientSize { get => Implementation.ClientSize; set => Implementation.ClientSize = value; }
-        MouseCursor INativeWindow.Cursor { get => Implementation.Cursor; set => Implementation.Cursor = value; }
-        public bool CursorGrabbed { get => Implementation.CursorGrabbed; set => Implementation.CursorGrabbed = value; }
 
         public void Close() => Implementation.Close();
         public void ProcessEvents() => Implementation.ProcessEvents();
