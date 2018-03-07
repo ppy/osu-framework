@@ -87,7 +87,7 @@ namespace osu.Framework.Platform
                         GL Vendor:                  {GL.GetString(StringName.Vendor)}
                         GL Extensions:              {GL.GetString(StringName.Extensions)}", LoggingTarget.Runtime, LogLevel.Important);
 
-            Context?.MakeCurrent(null);
+            Implementation.MakeCurrent();
         }
 
         protected GameWindow(int width, int height)
@@ -162,8 +162,6 @@ namespace osu.Framework.Platform
         protected virtual void OnKeyDown(object sender, KeyboardKeyEventArgs e) => KeyDown?.Invoke(sender, e);
 
         public virtual VSyncMode VSync { get; set; }
-
-        public virtual IGraphicsContext Context => null;
 
         public virtual void CycleMode()
         {

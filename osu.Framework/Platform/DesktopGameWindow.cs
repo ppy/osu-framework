@@ -6,7 +6,6 @@ using System.Drawing;
 using osu.Framework.Configuration;
 using osu.Framework.Input;
 using OpenTK;
-using OpenTK.Graphics;
 
 namespace osu.Framework.Platform
 {
@@ -186,8 +185,6 @@ namespace osu.Framework.Platform
                     break;
             }
         }
-
-        public override IGraphicsContext Context => Implementation.Context;
 
         public override VSyncMode VSync
         {
