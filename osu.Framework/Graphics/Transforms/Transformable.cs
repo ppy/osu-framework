@@ -83,7 +83,7 @@ namespace osu.Framework.Graphics.Transforms
         private List<Action> removalActionsLazy;
         private List<Action> removalActions => removalActionsLazy ?? (removalActionsLazy = new List<Action>());
 
-        private double lastTransformAppliedTime;
+        private double lastUpdateTransformsTime;
 
         /// <summary>
         /// Process updates to this class based on loaded <see cref="Transform"/>s. This does not reset <see cref="TransformDelay"/>.
@@ -91,8 +91,8 @@ namespace osu.Framework.Graphics.Transforms
         /// </summary>
         private void updateTransforms(double time)
         {
-            bool rewinding = lastTransformAppliedTime > time;
-            lastTransformAppliedTime = time;
+            bool rewinding = lastUpdateTransformsTime > time;
+            lastUpdateTransformsTime = time;
 
             if (transformsLazy == null)
                 return;
