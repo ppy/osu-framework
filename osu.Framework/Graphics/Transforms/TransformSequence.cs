@@ -235,7 +235,7 @@ namespace osu.Framework.Graphics.Transforms
         /// with <paramref name="pause"/> milliseconds between iterations.
         /// </summary>
         /// <param name="pause">The pause between iterations in milliseconds.</param>
-        /// <param name="numIters">The amount of iterations.</param>
+        /// <param name="numIters">The number of iterations.</param>
         /// <param name="childGenerators">The functions to generate the <see cref="TransformSequence{T}"/>s to be looped.</param>
         /// <returns>This <see cref="TransformSequence{T}"/>.</returns>
         public TransformSequence<T> Loop(double pause, int numIters, params Generator[] childGenerators)
@@ -256,7 +256,7 @@ namespace osu.Framework.Graphics.Transforms
         /// <paramref name="numIters"/> times with <paramref name="pause"/> milliseconds between iterations.
         /// </summary>
         /// <param name="pause">The pause between iterations in milliseconds.</param>
-        /// <param name="numIters">The amount of iterations.</param>
+        /// <param name="numIters">The number of iterations.</param>
         /// <returns>This <see cref="TransformSequence{T}"/>.</returns>
         public TransformSequence<T> Loop(double pause, int numIters)
         {
