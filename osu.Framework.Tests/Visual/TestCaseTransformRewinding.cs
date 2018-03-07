@@ -134,36 +134,41 @@ namespace osu.Framework.Tests.Visual
                 Origin = Anchor.Centre;
 
                 RelativeSizeAxes = Axes.Both;
-                FillMode = FillMode.Fit;
 
                 InternalChild = wrapping = new WrappingTimeContainer(startTime)
                 {
                     RelativeSizeAxes = Axes.Both,
                     Children = new Drawable[]
                     {
-                        new Box
+                        new Container
                         {
+                            FillMode = FillMode.Fit,
                             RelativeSizeAxes = Axes.Both,
                             Anchor = Anchor.Centre,
                             Origin = Anchor.Centre,
                             Size = new Vector2(0.6f),
-                            Colour = Color4.DarkGray,
-                        },
-                        content = new Container
-                        {
-                            RelativeSizeAxes = Axes.Both,
-                            Anchor = Anchor.Centre,
-                            Origin = Anchor.Centre,
-                            Size = new Vector2(0.6f),
-                            Masking = true,
+                            Children = new Drawable[]
+                            {
+                                new Box
+                                {
+                                    RelativeSizeAxes = Axes.Both,
+                                    Colour = Color4.DarkGray,
+                                },
+                                content = new Container
+                                {
+                                    RelativeSizeAxes = Axes.Both,
+                                    Masking = true,
+                                },
+                            }
                         },
                         transforms = new FillFlowContainer<DrawableTransform>
                         {
-                            Anchor = Anchor.BottomCentre,
-                            Origin = Anchor.BottomCentre,
+                            Anchor = Anchor.CentreLeft,
+                            Origin = Anchor.CentreLeft,
                             Spacing = Vector2.One,
-                            RelativeSizeAxes = Axes.Both,
-                            Size = new Vector2(0.8f, 0.18f),
+                            RelativeSizeAxes = Axes.X,
+                            AutoSizeAxes = Axes.Y,
+                            Width = 0.2f,
                         },
                         new Container
                         {
@@ -202,13 +207,7 @@ namespace osu.Framework.Tests.Visual
                 };
             }
 
-            protected override void LoadComplete()
-            {
-                base.LoadComplete();
-
-                foreach (var t in ExaminableDrawable.Transforms)
-                    transforms.Add(new DrawableTransform(t));
-            }
+            private int displayedTransformsCount;
 
             protected override void Update()
             {
@@ -223,6 +222,14 @@ namespace osu.Framework.Tests.Visual
 
                 maxTimeText.Colour = time > wrapping.MaxTime ? Color4.Gray : (wrapping.Time.Elapsed > 0 ? Color4.Blue : Color4.Red);
                 minTimeText.Colour = time < wrapping.MinTime ? Color4.Gray : (content.Time.Elapsed > 0 ? Color4.Blue : Color4.Red);
+
+                if (ExaminableDrawable.Transforms.Count != displayedTransformsCount)
+                {
+                    transforms.Clear();
+                    foreach (var t in ExaminableDrawable.Transforms)
+                        transforms.Add(new DrawableTransform(t));
+                    displayedTransformsCount = ExaminableDrawable.Transforms.Count;
+                }
             }
 
             private class DrawableTransform : CompositeDrawable
@@ -232,7 +239,7 @@ namespace osu.Framework.Tests.Visual
                 private readonly Box appliedToEnd;
                 private readonly SpriteText text;
 
-                private const float height = 20;
+                private const float height = 15;
 
                 public DrawableTransform(Transform transform)
                 {
@@ -245,7 +252,7 @@ namespace osu.Framework.Tests.Visual
                     {
                         applied = new Box { Size = new Vector2(height) },
                         appliedToEnd = new Box { X = height + 2, Size = new Vector2(height) },
-                        text = new SpriteText { X = (height + 2) * 2 },
+                        text = new SpriteText { X = (height + 2) * 2, TextSize = height },
                     };
                 }
 
