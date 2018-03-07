@@ -1,7 +1,6 @@
 // Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using osu.Framework.Extensions.TypeExtensions;
 using System;
 using System.Collections.Generic;
 
@@ -63,9 +62,7 @@ namespace osu.Framework.Graphics.Transforms
                 int compare = x.StartTime.CompareTo(y.StartTime);
                 if (compare != 0) return compare;
 
-                // reverse order as we want to insert *before* matching time transforms.
-                // this is because we want to immediately remove all transforms of the same type at the same time (see Transformable.AddTransform).
-                compare = y.TransformID.CompareTo(x.TransformID);
+                compare = x.TransformID.CompareTo(y.TransformID);
 
                 return compare;
             }
@@ -97,6 +94,6 @@ namespace osu.Framework.Graphics.Transforms
 
         protected abstract void ReadIntoStartValue(T d);
 
-        public override string ToString() => $"{typeof(Transform<TValue, T>).ReadableName()} => {Target} {StartTime}:{StartValue}-{EndTime}:{EndValue}";
+        public override string ToString() => $"{Target.GetType().Name}.{TargetMember} {StartTime}-{EndTime}ms {StartValue} -> {EndValue}";
     }
 }
