@@ -120,7 +120,7 @@ namespace osu.Framework.Tests.Visual
                 b => b.Delay(500).Spin(1000, RotationDirection.CounterClockwise)
             );
 
-            boxes[1].Delay(1000).Loop(5, 1000, b => b.RotateTo(0).RotateTo(340, 1000));
+            boxes[1].Delay(1000).Loop(1000, 10, b => b.RotateTo(0).RotateTo(340, 1000));
 
             boxes[2].RotateTo(0).ScaleTo(1).RotateTo(360, 1000)
             .Then(1000,
