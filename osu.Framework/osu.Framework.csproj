@@ -16,7 +16,7 @@
   </PropertyGroup>
 
   <PropertyGroup Label="Defines">
-   <DefineConstants Condition="'$(TargetFramework)' == 'net461'">$(DefineConstants);NET_FRAMEWORK</DefineConstants>
+    <DefineConstants Condition="'$(TargetFramework)' == 'net461'">$(DefineConstants);NET_FRAMEWORK</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup Label="References">
