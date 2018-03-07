@@ -133,11 +133,6 @@ namespace osu.Framework.Platform
             throw new ArgumentException(nameof(version));
         }
 
-        public void SetTitle(string title)
-        {
-            Title = title;
-        }
-
         public abstract void SetupWindow(FrameworkConfigManager config);
 
         /// <summary>
@@ -147,10 +142,6 @@ namespace osu.Framework.Platform
 
         public event Action Exited;
 
-        protected void OnExited() => Exited?.Invoke();
-
-        protected bool OnExitRequested() => ExitRequested?.Invoke() ?? false;
-
         protected virtual void OnKeyDown(object sender, KeyboardKeyEventArgs e) => KeyDown?.Invoke(sender, e);
 
         public event EventHandler<KeyboardKeyEventArgs> KeyDown;
@@ -158,8 +149,6 @@ namespace osu.Framework.Platform
         public virtual VSyncMode VSync { get; set; }
 
         public virtual IGraphicsContext Context => null;
-
-        public virtual Vector2 Position { get; set; }
 
         public virtual void CycleMode()
         {

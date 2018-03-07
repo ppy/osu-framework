@@ -156,14 +156,13 @@ namespace osu.Framework.Platform
             DisplayDevice.Default.RestoreResolution();
         }
 
-        public override Vector2 Position
+        public Vector2 Position
         {
             get
             {
                 return new Vector2((float)Location.X / (DisplayDevice.Default.Width - Size.Width),
                     (float)Location.Y / (DisplayDevice.Default.Height - Size.Height));
             }
-
             set
             {
                 Location = new Point(
