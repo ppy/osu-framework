@@ -103,12 +103,56 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Changes the position of the drawable in the layout. A higher position value means the drawable will be processed later (that is, the drawables with the lowest position appear first, and the drawable with the highest position appear last).
-        /// For example, the drawable with the lowest position value will be the left-most drawable in a horizontal <see cref="FillFlowContainer{T}"/> and the drawable with the highest position value will be the right-most drawable in a horizontal <see cref="FillFlowContainer{T}"/>.
+        /// Adds a child at a specific layout position within <see cref="FlowContainer{T}.Content"/>.
+        /// This amounts to adding a child to <see cref="FlowContainer{T}.Content"/>'s <see cref="FlowContainer{T}.Children"/>, recursing until <see cref="FlowContainer{T}.Content"/> == this.
         /// </summary>
-        /// <param name="drawable">The drawable whose position should be changed, must be a child of this container.</param>
-        /// <param name="newPosition">The new position in the layout the drawable should have.</param>
+        /// <param name="drawable">The <see cref="Drawable"/> to add.</param>
+        /// <param name="layoutPosition">The position of <paramref name="drawable"/> in the layout of <see cref="Container.Content"/>.</param>
+        public void Add(T drawable, float layoutPosition)
+        {
+            if (Content == this)
+                AddInternal(drawable, layoutPosition);
+            else if (Content is FlowContainer<T> tFlowContent)
+                tFlowContent.Add(drawable, layoutPosition);
+            else
+                Content.Add(drawable);
+        }
+
+        /// <summary>
+        /// Adds a child at a specific layout position within this <see cref="FlowContainer{T}"/>.
+        /// </summary>
+        /// <param name="drawable">The <see cref="Drawable"/> to add.</param>
+        /// <param name="layoutPosition">The position of <paramref name="drawable"/> in the layout of this <see cref="FlowContainer{T}"/>.</param>
+        protected internal void AddInternal(Drawable drawable, float layoutPosition)
+        {
+            AddInternal(drawable);
+            SetInternalLayoutPosition(drawable, layoutPosition);
+        }
+
+        /// <summary>
+        /// Changes the layout position of a <see cref="Drawable"/> within <see cref="FlowContainer{T}.Content"/>.
+        /// This amounts to setting the layout position of <paramref name="drawable"/> in <see cref="FlowContainer{T}.Content"/>, recursing until <see cref="FlowContainer{T}.Content"/> == this.
+        /// A lower layout position indicates that <paramref name="drawable"/> will appear closer to the anchor position of <see cref="FlowContainer{T}.Children"/>.
+        /// A higher layout position indicates that <paramref name="drawable"/> will appear further from the anchor position of <see cref="FlowContainer{T}.Children"/>
+        /// </summary>
+        /// <param name="drawable">The <see cref="Drawable"/> whose layout position should be changed, must be a child of this <see cref="FlowContainer{T}"/>.</param>
+        /// <param name="newPosition">The new layout position <paramref name="drawable"/> should have.</param>
         public void SetLayoutPosition(Drawable drawable, float newPosition)
+        {
+            if (Content == this)
+                SetInternalLayoutPosition(drawable, newPosition);
+            else if (Content is FlowContainer<T> tFlowContent)
+                tFlowContent.SetLayoutPosition(drawable, newPosition);
+        }
+
+        /// <summary>
+        /// Changes the layout position of a <see cref="Drawable"/> in this <see cref="FlowContainer{T}"/>.
+        /// A lower layout position indicates that <paramref name="drawable"/> will appear closer to the anchor position of <see cref="FlowContainer{T}.Children"/>.
+        /// A higher layout position indicates that <paramref name="drawable"/> will appear further from the anchor position of <see cref="FlowContainer{T}.Children"/>
+        /// </summary>
+        /// <param name="drawable">The <see cref="Drawable"/> whose layout position should be changed, must be a child of this <see cref="FlowContainer{T}"/>.</param>
+        /// <param name="newPosition">The new layout position <paramref name="drawable"/> should have.</param>
+        protected internal void SetInternalLayoutPosition(Drawable drawable, float newPosition)
         {
             if (!layoutChildren.ContainsKey(drawable))
                 throw new InvalidOperationException($"Cannot change layout position of drawable which is not contained within this {nameof(FlowContainer<T>)}.");
@@ -117,16 +161,33 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Gets the position of the drawable in the layout. A higher position value means the drawable will be processed later (that is, the drawables with the lowest position appear first, and the drawable with the highest position appear last).
-        /// For example, the drawable with the lowest position value will be the left-most drawable in a horizontal <see cref="FillFlowContainer{T}"/> and the drawable with the highest position value will be the right-most drawable in a horizontal <see cref="FillFlowContainer{T}"/>.
+        /// Gets the layout position of a <see cref="Drawable"/> within <see cref="FlowContainer{T}.Content"/>.
+        /// This amounts to retrieving the layout position of <paramref name="drawable"/> from <see cref="FlowContainer{T}.Content"/>, recursing until <see cref="FlowContainer{T}.Content"/> == this.
+        /// A lower layout position indicates that <paramref name="drawable"/> will appear closer to the anchor position of <see cref="FlowContainer{T}.Children"/>.
+        /// A higher layout position indicates that <paramref name="drawable"/> will appear further from the anchor position of <see cref="FlowContainer{T}.Children"/>
         /// </summary>
-        /// <param name="drawable">The drawable whose position should be retrieved, must be a child of this container.</param>
-        /// <returns>The position of the drawable in the layout.</returns>
+        /// <param name="drawable">The <see cref="Drawable"/> whose layout position should be retrieved.</param>
+        /// <returns>The layout position of <paramref name="drawable"/>.</returns>
         public float GetLayoutPosition(Drawable drawable)
+        {
+            if (Content == this)
+                return GetInternalLayoutPosition(drawable);
+            if (Content is FlowContainer<T> tFlowContent)
+                return tFlowContent.GetLayoutPosition(drawable);
+            return 0;
+        }
+
+        /// <summary>
+        /// Gets the layout position of a <see cref="Drawable"/> in this <see cref="FlowContainer{T}"/>..
+        /// A lower layout position indicates that <paramref name="drawable"/> will appear closer to the anchor position of <see cref="FlowContainer{T}.Children"/>.
+        /// A higher layout position indicates that <paramref name="drawable"/> will appear further from the anchor position of <see cref="FlowContainer{T}.Children"/>
+        /// </summary>
+        /// <param name="drawable">The <see cref="Drawable"/> whose layout position should be retrieved, must be a child of this <see cref="FlowContainer{T}"/>.</param>
+        /// <returns>The layout position of <paramref name="drawable"/>.</returns>
+        protected internal float GetInternalLayoutPosition(Drawable drawable)
         {
             if (!layoutChildren.ContainsKey(drawable))
                 throw new InvalidOperationException($"Cannot get layout position of drawable which is not contained within this {nameof(FlowContainer<T>)}.");
-
             return layoutChildren[drawable];
         }
 
