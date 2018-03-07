@@ -17,6 +17,21 @@ namespace osu.Framework.Platform
 {
     public abstract class GameWindow : IGameWindow
     {
+        /// <summary>
+        /// Return value decides whether we should intercept and cancel this exit (if possible).
+        /// </summary>
+        public event Func<bool> ExitRequested;
+
+        /// <summary>
+        /// Invoked when the <see cref="GameWindow"/> has closed.
+        /// </summary>
+        public event Action Exited;
+
+        /// <summary>
+        /// Invoked when any key has been pressed.
+        /// </summary>
+        public event EventHandler<KeyboardKeyEventArgs> KeyDown;
+
         internal Version GLVersion;
         internal Version GLSLVersion;
 
@@ -30,8 +45,8 @@ namespace osu.Framework.Platform
         protected GameWindow(IGameWindow implementation)
         {
             Implementation = implementation;
-
             Implementation.KeyDown += OnKeyDown;
+
             Closing += (sender, e) => e.Cancel = ExitRequested?.Invoke() ?? false;
             Closed += (sender, e) => Exited?.Invoke();
 
@@ -144,16 +159,7 @@ namespace osu.Framework.Platform
 
         public abstract void SetupWindow(FrameworkConfigManager config);
 
-        /// <summary>
-        /// Return value decides whether we should intercept and cancel this exit (if possible).
-        /// </summary>
-        public event Func<bool> ExitRequested;
-
-        public event Action Exited;
-
         protected virtual void OnKeyDown(object sender, KeyboardKeyEventArgs e) => KeyDown?.Invoke(sender, e);
-
-        public event EventHandler<KeyboardKeyEventArgs> KeyDown;
 
         public virtual VSyncMode VSync { get; set; }
 

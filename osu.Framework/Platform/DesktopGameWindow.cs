@@ -191,14 +191,8 @@ namespace osu.Framework.Platform
 
         public override VSyncMode VSync
         {
-            get
-            {
-                return Implementation.VSync;
-            }
-            set
-            {
-                Implementation.VSync = value;
-            }
+            get => Implementation.VSync;
+            set => Implementation.VSync = value;
         }
     }
 }
