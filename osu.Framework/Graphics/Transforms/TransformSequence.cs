@@ -331,6 +331,7 @@ namespace osu.Framework.Graphics.Transforms
             {
                 t.IsLooping = true;
                 t.LoopDelay = iterDuration;
+                t.AppliedToEnd = false; // we want to force a reprocess of this transform. it may have been applied-to-end in the Add, but not correctly looped as a result.
             }
 
             onLoopingTransform();

@@ -197,16 +197,24 @@ namespace osu.Framework.Graphics.Transforms
 
                         if (t.IsLooping)
                         {
+                            if (tCanRewind)
+                            {
+                                t.IsLooping = false;
+                                t = t.Clone();
+                            }
+
                             t.AppliedToEnd = false;
+                            t.Applied = false;
+                            t.HasStartValue = false;
+
+                            t.IsLooping = true;
+
                             t.StartTime += t.LoopDelay;
                             t.EndTime += t.LoopDelay;
 
-                            if (!tCanRewind)
-                            {
-                                // this could be added back at a lower index than where we are currently iterating, but
-                                // running the same transform twice isn't a huge deal.
-                                transformsLazy.Add(t);
-                            }
+                            // this could be added back at a lower index than where we are currently iterating, but
+                            // running the same transform twice isn't a huge deal.
+                            transformsLazy.Add(t);
                         }
                         else if (t.OnComplete != null)
                             removalActions.Add(t.OnComplete);

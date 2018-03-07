@@ -87,6 +87,10 @@ namespace osu.Framework.Tests.Visual
                 box.Delay(interval * 2).FadeInFromZero(interval);
                 box.ScaleTo(0.9f, interval * 4);
             }, 750));
+
+            AddStep("Loop sequence", () => boxTest(box => { box.RotateTo(0).RotateTo(90, interval).Loop(); }));
+
+            AddStep("Start in middle of loop sequence", () => boxTest(box => { box.RotateTo(0).RotateTo(90, interval).Loop(); }, 750));
         }
 
         private Box box;
