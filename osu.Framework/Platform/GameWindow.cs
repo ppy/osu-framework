@@ -18,6 +18,11 @@ namespace osu.Framework.Platform
     public abstract class GameWindow : IGameWindow
     {
         /// <summary>
+        /// The <see cref="IGraphicsContext"/> associated with this <see cref="GameWindow"/>.
+        /// </summary>
+        internal abstract IGraphicsContext Context { get; }
+
+        /// <summary>
         /// Return value decides whether we should intercept and cancel this exit (if possible).
         /// </summary>
         public event Func<bool> ExitRequested;
@@ -86,8 +91,6 @@ namespace osu.Framework.Platform
                         GL Shader Language version: {GL.GetString(StringName.ShadingLanguageVersion)}
                         GL Vendor:                  {GL.GetString(StringName.Vendor)}
                         GL Extensions:              {GL.GetString(StringName.Extensions)}", LoggingTarget.Runtime, LogLevel.Important);
-
-            Implementation.MakeCurrent();
         }
 
         protected GameWindow(int width, int height)

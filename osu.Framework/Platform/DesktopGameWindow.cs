@@ -6,6 +6,7 @@ using System.Drawing;
 using osu.Framework.Configuration;
 using osu.Framework.Input;
 using OpenTK;
+using OpenTK.Graphics;
 
 namespace osu.Framework.Platform
 {
@@ -26,6 +27,8 @@ namespace osu.Framework.Platform
 
         public readonly Bindable<ConfineMouseMode> ConfineMouseMode = new Bindable<ConfineMouseMode>();
 
+        internal override IGraphicsContext Context => Implementation.Context;
+
         protected new OpenTK.GameWindow Implementation => (OpenTK.GameWindow)base.Implementation;
 
         public readonly BindableBool MapAbsoluteInputToWindow = new BindableBool();
@@ -35,6 +38,8 @@ namespace osu.Framework.Platform
         {
             Resize += OnResize;
             Move += OnMove;
+
+            Context.MakeCurrent(null);
         }
 
         public override void SetupWindow(FrameworkConfigManager config)
