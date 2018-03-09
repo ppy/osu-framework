@@ -7,15 +7,15 @@ namespace osu.Framework.Platform.Windows
 {
     internal class WindowsGameWindow : DesktopGameWindow
     {
-        protected override void OnKeyDown(object sender, KeyboardKeyEventArgs e)
+        protected override void OnKeyDown(KeyboardKeyEventArgs e)
         {
             if (e.Key == Key.F4 && e.Alt)
             {
-                Implementation.Exit();
+                Exit();
                 return;
             }
 
-            base.OnKeyDown(sender, e);
+            base.OnKeyDown(e);
         }
     }
 }
