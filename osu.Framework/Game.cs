@@ -2,15 +2,12 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Drawing;
 using System.Linq;
-using System.Threading;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.Performance;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
