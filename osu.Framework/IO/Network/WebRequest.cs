@@ -458,7 +458,7 @@ namespace osu.Framework.IO.Network
                     return;
                 }
 
-                logger.Add($"Request to {Url} failed with {e} (FAILED).");
+                logger.Add($"Request to {Url} failed with {e}.");
             }
             else
                 logger.Add($@"Request to {Url} successfully completed!");
@@ -467,7 +467,11 @@ namespace osu.Framework.IO.Network
             {
                 ProcessResponse();
             }
-            catch (Exception se) { e = e == null ? se : new AggregateException(e, se); }
+            catch (Exception se)
+            {
+                logger.Add($"Processing response from {Url} failed with {se}.");
+                e = e == null ? se : new AggregateException(e, se);
+            }
 
             Completed = true;
 
