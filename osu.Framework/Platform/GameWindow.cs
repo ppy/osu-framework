@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Drawing;
 using System.Linq;
 using osu.Framework.Configuration;
 using osu.Framework.Logging;
@@ -138,7 +139,11 @@ namespace osu.Framework.Platform
 
         protected bool OnExitRequested() => ExitRequested?.Invoke() ?? false;
 
+        public Action<Bitmap> ScreenshotTakenAction;
+
         public virtual Vector2 Position { get; set; }
+
+        public bool ScreenshotRequested { get; set; }
 
         public virtual void CycleMode()
         {

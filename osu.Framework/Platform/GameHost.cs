@@ -3,16 +3,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime;
 using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
-using OpenTK;
-using OpenTK.Graphics;
-using OpenTK.Graphics.ES30;
-using OpenTK.Input;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions.IEnumerableExtensions;
@@ -22,12 +19,16 @@ using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Handlers;
+using osu.Framework.IO.File;
 using osu.Framework.Localisation;
 using osu.Framework.Logging;
 using osu.Framework.Statistics;
 using osu.Framework.Threading;
 using osu.Framework.Timing;
-using osu.Framework.IO.File;
+using OpenTK;
+using OpenTK.Graphics;
+using OpenTK.Graphics.ES30;
+using OpenTK.Input;
 
 namespace osu.Framework.Platform
 {
@@ -171,7 +172,7 @@ namespace osu.Framework.Platform
                 (InputThread = new InputThread(null)), //never gets started.
             };
 
-            var path = System.IO.Path.GetDirectoryName(FullPath);
+            var path = Path.GetDirectoryName(FullPath);
             if (path != null)
                 Environment.CurrentDirectory = path;
         }
@@ -300,6 +301,12 @@ namespace osu.Framework.Platform
                     // without glFinish, vsync is basically unplayable due to the extra latency introduced.
                     // we will likely want to give the user control over this in the future as an advanced setting.
                     GL.Finish();
+            }
+
+            if (Window.ScreenshotRequested && Window.ScreenshotTakenAction != null)
+            {
+                Window.ScreenshotRequested = false;
+                Window.ScreenshotTakenAction(GLWrapper.TakeScreenshot(Window.ClientRectangle));
             }
         }
 
