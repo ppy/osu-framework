@@ -91,6 +91,8 @@ namespace osu.Framework.Platform
                         GL Shader Language version: {GL.GetString(StringName.ShadingLanguageVersion)}
                         GL Vendor:                  {GL.GetString(StringName.Vendor)}
                         GL Extensions:              {GL.GetString(StringName.Extensions)}", LoggingTarget.Runtime, LogLevel.Important);
+
+            Context.MakeCurrent(null);
         }
 
         protected GameWindow(int width, int height)

@@ -38,8 +38,6 @@ namespace osu.Framework.Platform
         {
             Resize += OnResize;
             Move += OnMove;
-
-            Context.MakeCurrent(null);
         }
 
         public override void SetupWindow(FrameworkConfigManager config)
