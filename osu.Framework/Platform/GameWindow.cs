@@ -12,6 +12,7 @@ using OpenTK.Platform;
 using OpenTK.Input;
 using System.ComponentModel;
 using System.Drawing;
+using JetBrains.Annotations;
 
 namespace osu.Framework.Platform
 {
@@ -20,21 +21,25 @@ namespace osu.Framework.Platform
         /// <summary>
         /// The <see cref="IGraphicsContext"/> associated with this <see cref="GameWindow"/>.
         /// </summary>
+        [NotNull]
         internal abstract IGraphicsContext Context { get; }
 
         /// <summary>
         /// Return value decides whether we should intercept and cancel this exit (if possible).
         /// </summary>
+        [CanBeNull]
         public event Func<bool> ExitRequested;
 
         /// <summary>
         /// Invoked when the <see cref="GameWindow"/> has closed.
         /// </summary>
+        [CanBeNull]
         public event Action Exited;
 
         /// <summary>
         /// Invoked when any key has been pressed.
         /// </summary>
+        [CanBeNull]
         public event EventHandler<KeyboardKeyEventArgs> KeyDown;
 
         internal Version GLVersion;
@@ -47,7 +52,10 @@ namespace osu.Framework.Platform
         /// </summary>
         public bool CursorInWindow { get; private set; }
 
-        protected GameWindow(IGameWindow implementation)
+        /// <summary>
+        /// Creates a <see cref="GameWindow"/> with a given <see cref="IGameWindow"/> implementation.
+        /// </summary>
+        protected GameWindow([NotNull] IGameWindow implementation)
         {
             Implementation = implementation;
             Implementation.KeyDown += OnKeyDown;
@@ -95,6 +103,10 @@ namespace osu.Framework.Platform
             Context.MakeCurrent(null);
         }
 
+        /// <summary>
+        /// Creates a <see cref="GameWindow"/> with given dimensions.
+        /// <para>Note that this will use the default <see cref="OpenTK.GameWindow"/> implementation, which is not compatible with every platform.</para>
+        /// </summary>
         protected GameWindow(int width, int height)
             : this(new OpenTK.GameWindow(width, height, new GraphicsMode(GraphicsMode.Default.ColorFormat, GraphicsMode.Default.Depth, GraphicsMode.Default.Stencil, GraphicsMode.Default.Samples, GraphicsMode.Default.AccumulatorFormat, 3)))
         {
@@ -107,7 +119,7 @@ namespace osu.Framework.Platform
         /// </summary>
         public CursorState CursorState
         {
-            get { return cursorState; }
+            get => cursorState;
             set
             {
                 cursorState = value;
