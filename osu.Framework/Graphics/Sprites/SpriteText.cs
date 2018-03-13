@@ -14,6 +14,7 @@ using osu.Framework.IO.Stores;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Extensions.IEnumerableExtensions;
 
 namespace osu.Framework.Graphics.Sprites
 {
@@ -245,8 +246,6 @@ namespace osu.Framework.Graphics.Sprites
 
         private void computeLayout()
         {
-            bool allowKeepingExistingDrawables = true;
-
             //adjust shadow alpha based on highest component intensity to avoid muddy display of darker text.
             //squared result for quadratic fall-off seems to give the best result.
             var avgColour = (Color4)DrawInfo.Colour.AverageColour;
@@ -254,7 +253,7 @@ namespace osu.Framework.Graphics.Sprites
 
             //we can't keep existing drawabled if our shadow has changed, as the shadow is applied in the add-loop.
             //this could potentially be optimised if necessary.
-            allowKeepingExistingDrawables &= shadowAlpha == lastShadowAlpha && font == lastFont;
+            bool allowKeepingExistingDrawables = shadowAlpha == lastShadowAlpha && font == lastFont;
 
             lastShadowAlpha = shadowAlpha;
             lastFont = font;
@@ -265,7 +264,10 @@ namespace osu.Framework.Graphics.Sprites
             if (allowKeepingExistingDrawables)
             {
                 if (lastText == text)
+                {
+                    Children.ForEach(c => c.Scale = new Vector2(TextSize));
                     return;
+                }
 
                 int length = Math.Min(lastText?.Length ?? 0, text.Length);
                 keepDrawables.AddRange(Children.TakeWhile((n, i) => i < length && lastText[i] == text[i]));
@@ -281,7 +283,10 @@ namespace osu.Framework.Graphics.Sprites
                 constantWidth = CreateCharacterDrawable('D').DrawWidth;
 
             foreach (var k in keepDrawables)
+            {
+                k.Scale = new Vector2(TextSize);
                 Add(k);
+            }
 
             for (int index = keepDrawables.Count; index < text.Length; index++)
             {
