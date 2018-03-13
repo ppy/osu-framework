@@ -6,7 +6,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using osu.Framework.Extensions;
 using osu.Framework.Timing;
 
@@ -17,7 +16,7 @@ namespace osu.Framework.Threading
     /// </summary>
     public class Scheduler : IDisposable
     {
-        private readonly ConcurrentQueue<Task> schedulerQueue = new ConcurrentQueue<Task>();
+        private readonly ConcurrentQueue<Action> schedulerQueue = new ConcurrentQueue<Action>();
         private readonly List<ScheduledDelegate> timedTasks = new List<ScheduledDelegate>();
         private readonly List<ScheduledDelegate> perUpdateTasks = new List<ScheduledDelegate>();
         private int mainThreadId;
@@ -103,7 +102,7 @@ namespace osu.Framework.Threading
 
                             if (sd.Cancelled) continue;
 
-                            schedulerQueue.Enqueue(new Task(sd.RunTask));
+                            schedulerQueue.Enqueue(sd.RunTask);
 
                             if (sd.RepeatInterval >= 0)
                             {
@@ -137,15 +136,15 @@ namespace osu.Framework.Threading
                     continue;
                 }
 
-                schedulerQueue.Enqueue(new Task(task.RunTask));
+                schedulerQueue.Enqueue(task.RunTask);
             }
 
             int countRun = 0;
 
-            while (schedulerQueue.TryDequeue(out Task task))
+            while (schedulerQueue.TryDequeue(out Action action))
             {
                 //todo: error handling
-                task.RunSynchronously();
+                action.Invoke();
                 countRun++;
             }
 
@@ -178,26 +177,15 @@ namespace osu.Framework.Threading
         /// <summary>
         /// Add a task to be scheduled.
         /// </summary>
-        /// <param name="action">The work to be done.</param>
-        /// <param name="forceScheduled">If set to false, the task will be executed immediately if we are on the main thread.</param>
-        /// <returns>Whether we could run without scheduling</returns>
-        public bool Add(Action action, bool forceScheduled = true)
-        {
-            return Add(new Task(action), forceScheduled);
-        }
-
-        /// <summary>
-        /// Add a task to be scheduled.
-        /// </summary>
         /// <param name="task">The work to be done.</param>
         /// <param name="forceScheduled">If set to false, the task will be executed immediately if we are on the main thread.</param>
         /// <returns>Whether we could run without scheduling</returns>
-        public bool Add(Task task, bool forceScheduled = true)
+        public bool Add(Action task, bool forceScheduled = true)
         {
             if (!forceScheduled && IsMainThread)
             {
                 //We are on the main thread already - don't need to schedule.
-                task.RunSynchronously();
+                task.Invoke();
                 return true;
             }
 
@@ -220,21 +208,10 @@ namespace osu.Framework.Threading
         /// <summary>
         /// Add a task which will be run after a specified delay.
         /// </summary>
-        /// <param name="action">The work to be done.</param>
-        /// <param name="timeUntilRun">Milliseconds until run.</param>
-        /// <param name="repeat">Whether this task should repeat.</param>
-        public ScheduledDelegate AddDelayed(Action action, double timeUntilRun, bool repeat = false)
-        {
-            return AddDelayed(new Task(action), timeUntilRun, repeat);
-        }
-
-        /// <summary>
-        /// Add a task which will be run after a specified delay.
-        /// </summary>
         /// <param name="task">The work to be done.</param>
         /// <param name="timeUntilRun">Milliseconds until run.</param>
         /// <param name="repeat">Whether this task should repeat.</param>
-        public ScheduledDelegate AddDelayed(Task task, double timeUntilRun, bool repeat = false)
+        public ScheduledDelegate AddDelayed(Action task, double timeUntilRun, bool repeat = false)
         {
             // We are locking here already to make sure we have no concurrent access to currentTime
             lock (timedTasks)
@@ -248,19 +225,9 @@ namespace osu.Framework.Threading
         /// <summary>
         /// Adds a task which will only be run once per frame, no matter how many times it was scheduled in the previous frame.
         /// </summary>
-        /// <param name="action">The work to be done.</param>
-        /// <returns>Whether this is the first queue attempt of this work.</returns>
-        public bool AddOnce(Action action)
-        {
-            return AddOnce(new Task(action));
-        }
-
-        /// <summary>
-        /// Adds a task which will only be run once per frame, no matter how many times it was scheduled in the previous frame.
-        /// </summary>
         /// <param name="task">The work to be done.</param>
         /// <returns>Whether this is the first queue attempt of this work.</returns>
-        public bool AddOnce(Task task)
+        public bool AddOnce(Action task)
         {
             if (schedulerQueue.Contains(task))
                 return false;
@@ -292,12 +259,7 @@ namespace osu.Framework.Threading
 
     public class ScheduledDelegate : IComparable<ScheduledDelegate>
     {
-        public ScheduledDelegate(Action action, double executionTime, double repeatInterval = -1)
-        : this(new Task(action), executionTime, repeatInterval)
-        {
-        }
-
-        public ScheduledDelegate(Task task, double executionTime, double repeatInterval = -1)
+        public ScheduledDelegate(Action task, double executionTime, double repeatInterval = -1)
         {
             ExecutionTime = executionTime;
             RepeatInterval = repeatInterval;
@@ -307,7 +269,7 @@ namespace osu.Framework.Threading
         /// <summary>
         /// The work task.
         /// </summary>
-        private readonly Task task;
+        private readonly Action task;
 
         /// <summary>
         /// Set to true to skip scheduled executions until we are ready.
@@ -327,7 +289,7 @@ namespace osu.Framework.Threading
         public void RunTask()
         {
             if (!Waiting)
-                task.RunSynchronously();
+                task();
             Completed = true;
         }
 
