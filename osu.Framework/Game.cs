@@ -1,11 +1,8 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System;
 using System.Linq;
-using osu.Framework.Allocation;
 using osu.Framework.Audio;
-using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Performance;
@@ -13,9 +10,11 @@ using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Visualisation;
 using osu.Framework.Input;
-using osu.Framework.Input.Bindings;
 using osu.Framework.IO.Stores;
 using osu.Framework.Platform;
+using osu.Framework.Allocation;
+using osu.Framework.Configuration;
+using osu.Framework.Input.Bindings;
 using OpenTK;
 using GameWindow = osu.Framework.Platform.GameWindow;
 
@@ -253,13 +252,6 @@ namespace osu.Framework
 
             Audio?.Dispose();
             Audio = null;
-        }
-
-        public void RequestScreenshot()
-        {
-            if (Window.ScreenshotTakenAction == null)
-                throw new NullReferenceException(nameof(Window.ScreenshotTakenAction));
-            Window.ScreenshotRequested = true;
         }
     }
 }

@@ -5,22 +5,19 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
-using System.Drawing.Imaging;
 using osu.Framework.Development;
 using osu.Framework.Graphics.Batches;
-using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Textures;
-using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
-using osu.Framework.MathUtils;
-using osu.Framework.Platform;
-using osu.Framework.Statistics;
 using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.ES30;
-using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
+using osu.Framework.Statistics;
+using osu.Framework.MathUtils;
+using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Colour;
+using osu.Framework.Platform;
 
 namespace osu.Framework.Graphics.OpenGL
 {
@@ -649,26 +646,6 @@ namespace osu.Framework.Graphics.OpenGL
                     GL.Uniform1(location, (int)value);
                     break;
             }
-        }
-
-        /// <summary>
-        /// make a System.Drawing.Bitmap object from the current OpenTK screen buffer
-        /// </summary>
-        /// <param name="clientRectangle"></param>
-        /// <returns></returns>
-        public static Bitmap TakeScreenshot(Rectangle clientRectangle)
-        {
-            if (GraphicsContext.CurrentContext == null)
-                throw new GraphicsContextMissingException();
-
-            Bitmap bmp = new Bitmap(clientRectangle.Width, clientRectangle.Height);
-            BitmapData data =
-                bmp.LockBits(clientRectangle, ImageLockMode.WriteOnly, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
-            OpenTK.Graphics.OpenGL.GL.ReadPixels(0, 0, clientRectangle.Width, clientRectangle.Height, OpenTK.Graphics.OpenGL.PixelFormat.Bgr, OpenTK.Graphics.OpenGL.PixelType.UnsignedByte, data.Scan0);
-            bmp.UnlockBits(data);
-
-            bmp.RotateFlip(RotateFlipType.RotateNoneFlipY);
-            return bmp;
         }
     }
 

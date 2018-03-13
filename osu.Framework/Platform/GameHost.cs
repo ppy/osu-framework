@@ -3,13 +3,18 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.Linq;
 using System.Reflection;
 using System.Runtime;
 using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
+using OpenTK;
+using OpenTK.Graphics;
+using OpenTK.Graphics.ES30;
+using OpenTK.Input;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions.IEnumerableExtensions;
@@ -19,16 +24,12 @@ using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Handlers;
-using osu.Framework.IO.File;
 using osu.Framework.Localisation;
 using osu.Framework.Logging;
 using osu.Framework.Statistics;
 using osu.Framework.Threading;
 using osu.Framework.Timing;
-using OpenTK;
-using OpenTK.Graphics;
-using OpenTK.Graphics.ES30;
-using OpenTK.Input;
+using osu.Framework.IO.File;
 
 namespace osu.Framework.Platform
 {
@@ -172,7 +173,7 @@ namespace osu.Framework.Platform
                 (InputThread = new InputThread(null)), //never gets started.
             };
 
-            var path = Path.GetDirectoryName(FullPath);
+            var path = System.IO.Path.GetDirectoryName(FullPath);
             if (path != null)
                 Environment.CurrentDirectory = path;
         }
@@ -302,12 +303,29 @@ namespace osu.Framework.Platform
                     // we will likely want to give the user control over this in the future as an advanced setting.
                     GL.Finish();
             }
+        }
 
-            if (Window.ScreenshotRequested && Window.ScreenshotTakenAction != null)
+        public void TakeScreenshot(Action<Bitmap> onCompletion)
+        {
+            if (Window == null) return;
+
+            var clientRectangle = Window.ClientRectangle;
+
+            DrawThread.Scheduler.Add(() =>
             {
-                Window.ScreenshotRequested = false;
-                Window.ScreenshotTakenAction(GLWrapper.TakeScreenshot(Window.ClientRectangle));
-            }
+                if (GraphicsContext.CurrentContext == null)
+                    throw new GraphicsContextMissingException();
+
+                var b = new Bitmap(clientRectangle.Width, clientRectangle.Height);
+                BitmapData data =
+                    b.LockBits(clientRectangle, ImageLockMode.WriteOnly, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+                OpenTK.Graphics.OpenGL.GL.ReadPixels(0, 0, clientRectangle.Width, clientRectangle.Height, OpenTK.Graphics.OpenGL.PixelFormat.Bgr, OpenTK.Graphics.OpenGL.PixelType.UnsignedByte,
+                    data.Scan0);
+                b.UnlockBits(data);
+                b.RotateFlip(RotateFlipType.RotateNoneFlipY);
+
+                UpdateThread.Scheduler.Add(() => onCompletion.Invoke(b));
+            });
         }
 
         private volatile ExecutionState executionState;
