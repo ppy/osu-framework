@@ -214,7 +214,7 @@ namespace osu.Framework.Graphics.Audio
                     }
 
                     quadToDraw *= DrawInfo.Matrix;
-                    Texture.DrawQuad<TexturedVertex2D>(quadToDraw, colour, null, Shared.VertexBatch.Add, Vector2.Divide(localInflationAmount, quadToDraw.Size));
+                    Texture.DrawQuad<TexturedVertex2D>(quadToDraw, colour, Shared.VertexBatch.Add, null, Vector2.Divide(localInflationAmount, quadToDraw.Size));
                 }
 
                 Shader.Unbind();

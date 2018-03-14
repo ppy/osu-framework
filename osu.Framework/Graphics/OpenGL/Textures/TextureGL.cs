@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using JetBrains.Annotations;
 using osu.Framework.Graphics.Primitives;
 using OpenTK.Graphics.ES30;
 using OpenTK;
@@ -57,14 +58,24 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// <summary>
         /// Blit a triangle to OpenGL display with specified parameters.
         /// </summary>
-        public abstract void DrawTriangle<T>(Triangle vertexTriangle, RectangleF? textureRect, ColourInfo drawColour, Action<T> vertexAction = null, Vector2? inflationPercentage = null)
+        public abstract void DrawTriangle<T>(Triangle vertexTriangle, RectangleF? textureRect, ColourInfo drawColour, [NotNull] Action<T> vertexAction, Vector2? inflationPercentage = null)
+            where T : ITexturedVertex2D, IEquatable<T>, new();
+
+        /// <summary>
+        /// Blit a triangle to OpenGL display with specified parameters.
+        /// </summary>
+        public abstract void DrawTriangle(Triangle vertexTriangle, RectangleF? textureRect, ColourInfo drawColour, Vector2? inflationPercentage = null);
+
+        /// <summary>
+        /// Blit a quad to OpenGL display with specified parameters.
+        /// </summary>
+        public abstract void DrawQuad<T>(Quad vertexQuad, RectangleF? textureRect, ColourInfo drawColour, [NotNull] Action<T> vertexAction, Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null)
             where T : ITexturedVertex2D, IEquatable<T>, new();
 
         /// <summary>
         /// Blit a quad to OpenGL display with specified parameters.
         /// </summary>
-        public abstract void DrawQuad<T>(Quad vertexQuad, RectangleF? textureRect, ColourInfo drawColour, Action<T> vertexAction = null, Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null)
-            where T : ITexturedVertex2D, IEquatable<T>, new();
+        public abstract void DrawQuad(Quad vertexQuad, RectangleF? textureRect, ColourInfo drawColour, Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null);
 
         /// <summary>
         /// Bind as active texture.

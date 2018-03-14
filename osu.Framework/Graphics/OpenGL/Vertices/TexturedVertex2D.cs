@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using OpenTK;
 using OpenTK.Graphics;
@@ -24,11 +23,11 @@ namespace osu.Framework.Graphics.OpenGL.Vertices
         [VertexMember(2, VertexAttribPointerType.Float)]
         private Vector2 blendRange;
 
-        public Vector2 Position { [MethodImpl(MethodImplOptions.AggressiveInlining)] set => position = value; }
-        public Color4 Colour { [MethodImpl(MethodImplOptions.AggressiveInlining)] set => colour = value; }
-        public Vector2 TexturePosition { [MethodImpl(MethodImplOptions.AggressiveInlining)] set => texturePosition = value; }
-        public Vector4 TextureRect { [MethodImpl(MethodImplOptions.AggressiveInlining)] set => textureRect = value; }
-        public Vector2 BlendRange { [MethodImpl(MethodImplOptions.AggressiveInlining)] set => blendRange = value; }
+        public Vector2 Position { set => position = value; }
+        public Color4 Colour { set => colour = value; }
+        public Vector2 TexturePosition { set => texturePosition = value; }
+        public Vector4 TextureRect { set => textureRect = value; }
+        public Vector2 BlendRange { set => blendRange = value; }
 
         public bool Equals(TexturedVertex2D other)
         {

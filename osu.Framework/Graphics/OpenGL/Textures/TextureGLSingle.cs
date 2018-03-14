@@ -138,7 +138,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             return texRect;
         }
 
-        public override void DrawTriangle<T>(Triangle vertexTriangle, RectangleF? textureRect, ColourInfo drawColour, Action<T> vertexAction = null, Vector2? inflationPercentage = null)
+        public override void DrawTriangle<T>(Triangle vertexTriangle, RectangleF? textureRect, ColourInfo drawColour, Action<T> vertexAction, Vector2? inflationPercentage = null)
         {
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString(), "Can not draw a triangle with a disposed texture.");
@@ -155,7 +155,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             SRGBColour bottomColour = (drawColour.BottomLeft + drawColour.BottomRight) / 2;
 
             // Left triangle half
-            addVertex(default_triangle_action, vertexAction,
+            addVertex(vertexAction,
                 vertexTriangle.P0,
                 new Vector2(inflatedTexRect.Left, inflatedTexRect.Top),
                 new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
@@ -163,7 +163,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 topColour.Linear
             );
 
-            addVertex(default_triangle_action, vertexAction,
+            addVertex(vertexAction,
                 vertexTriangle.P1,
                 new Vector2(inflatedTexRect.Left, inflatedTexRect.Bottom),
                 new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
@@ -171,7 +171,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 drawColour.BottomLeft.Linear
             );
 
-            addVertex(default_triangle_action, vertexAction,
+            addVertex(vertexAction,
                 (vertexTriangle.P1 + vertexTriangle.P2) / 2,
                 new Vector2((inflatedTexRect.Left + inflatedTexRect.Right) / 2, inflatedTexRect.Bottom),
                 new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
@@ -180,7 +180,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             );
 
             // Right triangle half
-            addVertex(default_triangle_action, vertexAction,
+            addVertex(vertexAction,
                 vertexTriangle.P0,
                 new Vector2(inflatedTexRect.Right, inflatedTexRect.Top),
                 new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
@@ -188,7 +188,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 topColour.Linear
             );
 
-            addVertex(default_triangle_action, vertexAction,
+            addVertex(vertexAction,
                 (vertexTriangle.P1 + vertexTriangle.P2) / 2,
                 new Vector2((inflatedTexRect.Left + inflatedTexRect.Right) / 2, inflatedTexRect.Bottom),
                 new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
@@ -196,7 +196,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 bottomColour.Linear
             );
 
-            addVertex(default_triangle_action, vertexAction,
+            addVertex(vertexAction,
                 vertexTriangle.P2,
                 new Vector2(inflatedTexRect.Right, inflatedTexRect.Bottom),
                 new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
@@ -207,7 +207,76 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             FrameStatistics.Add(StatisticsCounterType.Pixels, (long)vertexTriangle.ConservativeArea);
         }
 
-        public override void DrawQuad<T>(Quad vertexQuad, RectangleF? textureRect, ColourInfo drawColour, Action<T> vertexAction = null, Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null)
+        public override void DrawTriangle(Triangle vertexTriangle, RectangleF? textureRect, ColourInfo drawColour, Vector2? inflationPercentage = null)
+        {
+            if (IsDisposed)
+                throw new ObjectDisposedException(ToString(), "Can not draw a triangle with a disposed texture.");
+
+            RectangleF texRect = GetTextureRect(textureRect);
+            Vector2 inflationAmount = inflationPercentage.HasValue ? new Vector2(inflationPercentage.Value.X * texRect.Width, inflationPercentage.Value.Y * texRect.Height) : Vector2.Zero;
+            RectangleF inflatedTexRect = texRect.Inflate(inflationAmount);
+
+            // We split the triangle into two, such that we can obtain smooth edges with our
+            // texture coordinate trick. We might want to revert this to drawing a single
+            // triangle in case we ever need proper texturing, or if the additional vertices
+            // end up becoming an overhead (unlikely).
+            SRGBColour topColour = (drawColour.TopLeft + drawColour.TopRight) / 2;
+            SRGBColour bottomColour = (drawColour.BottomLeft + drawColour.BottomRight) / 2;
+
+            // Left triangle half
+            addVertex(default_triangle_action,
+                vertexTriangle.P0,
+                new Vector2(inflatedTexRect.Left, inflatedTexRect.Top),
+                new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
+                inflationAmount,
+                topColour.Linear
+            );
+
+            addVertex(default_triangle_action,
+                vertexTriangle.P1,
+                new Vector2(inflatedTexRect.Left, inflatedTexRect.Bottom),
+                new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
+                inflationAmount,
+                drawColour.BottomLeft.Linear
+            );
+
+            addVertex(default_triangle_action,
+                (vertexTriangle.P1 + vertexTriangle.P2) / 2,
+                new Vector2((inflatedTexRect.Left + inflatedTexRect.Right) / 2, inflatedTexRect.Bottom),
+                new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
+                inflationAmount,
+                bottomColour.Linear
+            );
+
+            // Right triangle half
+            addVertex(default_triangle_action,
+                vertexTriangle.P0,
+                new Vector2(inflatedTexRect.Right, inflatedTexRect.Top),
+                new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
+                inflationAmount,
+                topColour.Linear
+            );
+
+            addVertex(default_triangle_action,
+                (vertexTriangle.P1 + vertexTriangle.P2) / 2,
+                new Vector2((inflatedTexRect.Left + inflatedTexRect.Right) / 2, inflatedTexRect.Bottom),
+                new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
+                inflationAmount,
+                bottomColour.Linear
+            );
+
+            addVertex(default_triangle_action,
+                vertexTriangle.P2,
+                new Vector2(inflatedTexRect.Right, inflatedTexRect.Bottom),
+                new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
+                inflationAmount,
+                drawColour.BottomRight.Linear
+            );
+
+            FrameStatistics.Add(StatisticsCounterType.Pixels, (long)vertexTriangle.ConservativeArea);
+        }
+
+        public override void DrawQuad<T>(Quad vertexQuad, RectangleF? textureRect, ColourInfo drawColour, Action<T> vertexAction, Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null)
         {
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString(), "Can not draw a quad with a disposed texture.");
@@ -217,28 +286,28 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             RectangleF inflatedTexRect = texRect.Inflate(inflationAmount);
             Vector2 blendRange = blendRangeOverride ?? inflationAmount;
 
-            addVertex(default_quad_action, vertexAction,
+            addVertex(vertexAction,
                 vertexQuad.BottomLeft,
                 new Vector2(inflatedTexRect.Left, inflatedTexRect.Bottom),
                 new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
                 blendRange,
                 drawColour.BottomLeft.Linear);
 
-            addVertex(default_quad_action, vertexAction,
+            addVertex(vertexAction,
                 vertexQuad.BottomRight,
                 new Vector2(inflatedTexRect.Right, inflatedTexRect.Bottom),
                 new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
                 blendRange,
                 drawColour.BottomRight.Linear);
 
-            addVertex(default_quad_action, vertexAction,
+            addVertex(vertexAction,
                 vertexQuad.TopRight,
                 new Vector2(inflatedTexRect.Right, inflatedTexRect.Top),
                 new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
                 blendRange,
                 drawColour.TopRight.Linear);
 
-            addVertex(default_quad_action, vertexAction,
+            addVertex(vertexAction,
                 vertexQuad.TopLeft,
                 new Vector2(inflatedTexRect.Left, inflatedTexRect.Top),
                 new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
@@ -248,31 +317,58 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             FrameStatistics.Add(StatisticsCounterType.Pixels, (long)vertexQuad.ConservativeArea);
         }
 
-        private void addVertex<T>(Action<TexturedVertex2D> defaultAction, Action<T> customAction, Vector2 position, Vector2 texturePosition, Vector4 textureRect, Vector2 blendRange, Color4 colour)
+        public override void DrawQuad(Quad vertexQuad, RectangleF? textureRect, ColourInfo drawColour, Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null)
+        {
+            if (IsDisposed)
+                throw new ObjectDisposedException(ToString(), "Can not draw a quad with a disposed texture.");
+
+            RectangleF texRect = GetTextureRect(textureRect);
+            Vector2 inflationAmount = inflationPercentage.HasValue ? new Vector2(inflationPercentage.Value.X * texRect.Width, inflationPercentage.Value.Y * texRect.Height) : Vector2.Zero;
+            RectangleF inflatedTexRect = texRect.Inflate(inflationAmount);
+            Vector2 blendRange = blendRangeOverride ?? inflationAmount;
+
+            addVertex(default_quad_action,
+                vertexQuad.BottomLeft,
+                new Vector2(inflatedTexRect.Left, inflatedTexRect.Bottom),
+                new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
+                blendRange,
+                drawColour.BottomLeft.Linear);
+
+            addVertex(default_quad_action,
+                vertexQuad.BottomRight,
+                new Vector2(inflatedTexRect.Right, inflatedTexRect.Bottom),
+                new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
+                blendRange,
+                drawColour.BottomRight.Linear);
+
+            addVertex(default_quad_action,
+                vertexQuad.TopRight,
+                new Vector2(inflatedTexRect.Right, inflatedTexRect.Top),
+                new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
+                blendRange,
+                drawColour.TopRight.Linear);
+
+            addVertex(default_quad_action,
+                vertexQuad.TopLeft,
+                new Vector2(inflatedTexRect.Left, inflatedTexRect.Top),
+                new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
+                blendRange,
+                drawColour.TopLeft.Linear);
+
+            FrameStatistics.Add(StatisticsCounterType.Pixels, (long)vertexQuad.ConservativeArea);
+        }
+
+        private void addVertex<T>(Action<T> customAction, Vector2 position, Vector2 texturePosition, Vector4 textureRect, Vector2 blendRange, Color4 colour)
             where T : ITexturedVertex2D, new()
         {
-            if (customAction == null)
+            customAction(new T
             {
-                defaultAction(new TexturedVertex2D
-                {
-                    Position = position,
-                    TexturePosition = texturePosition,
-                    TextureRect = textureRect,
-                    BlendRange = blendRange,
-                    Colour = colour
-                });
-            }
-            else
-            {
-                customAction(new T
-                {
-                    Position = position,
-                    TexturePosition = texturePosition,
-                    TextureRect = textureRect,
-                    BlendRange = blendRange,
-                    Colour = colour
-                });
-            }
+                Position = position,
+                TexturePosition = texturePosition,
+                TextureRect = textureRect,
+                BlendRange = blendRange,
+                Colour = colour
+            });
         }
 
         private void updateWrapMode()
