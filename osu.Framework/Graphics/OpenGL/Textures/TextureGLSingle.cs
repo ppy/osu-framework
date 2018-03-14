@@ -207,7 +207,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             FrameStatistics.Add(StatisticsCounterType.Pixels, (long)vertexTriangle.ConservativeArea);
         }
 
-        public override void DrawTriangle(Triangle vertexTriangle, RectangleF? textureRect, ColourInfo drawColour, Vector2? inflationPercentage = null)
+        public override void DrawTriangle(Triangle vertexTriangle, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null)
         {
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString(), "Can not draw a triangle with a disposed texture.");
@@ -223,8 +223,10 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             SRGBColour topColour = (drawColour.TopLeft + drawColour.TopRight) / 2;
             SRGBColour bottomColour = (drawColour.BottomLeft + drawColour.BottomRight) / 2;
 
+            vertexAction = vertexAction ?? default_triangle_action;
+
             // Left triangle half
-            addVertex(default_triangle_action,
+            addVertex(vertexAction,
                 vertexTriangle.P0,
                 new Vector2(inflatedTexRect.Left, inflatedTexRect.Top),
                 new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
@@ -232,7 +234,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 topColour.Linear
             );
 
-            addVertex(default_triangle_action,
+            addVertex(vertexAction,
                 vertexTriangle.P1,
                 new Vector2(inflatedTexRect.Left, inflatedTexRect.Bottom),
                 new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
@@ -240,7 +242,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 drawColour.BottomLeft.Linear
             );
 
-            addVertex(default_triangle_action,
+            addVertex(vertexAction,
                 (vertexTriangle.P1 + vertexTriangle.P2) / 2,
                 new Vector2((inflatedTexRect.Left + inflatedTexRect.Right) / 2, inflatedTexRect.Bottom),
                 new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
@@ -249,7 +251,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             );
 
             // Right triangle half
-            addVertex(default_triangle_action,
+            addVertex(vertexAction,
                 vertexTriangle.P0,
                 new Vector2(inflatedTexRect.Right, inflatedTexRect.Top),
                 new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
@@ -257,7 +259,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 topColour.Linear
             );
 
-            addVertex(default_triangle_action,
+            addVertex(vertexAction,
                 (vertexTriangle.P1 + vertexTriangle.P2) / 2,
                 new Vector2((inflatedTexRect.Left + inflatedTexRect.Right) / 2, inflatedTexRect.Bottom),
                 new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
@@ -265,7 +267,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 bottomColour.Linear
             );
 
-            addVertex(default_triangle_action,
+            addVertex(vertexAction,
                 vertexTriangle.P2,
                 new Vector2(inflatedTexRect.Right, inflatedTexRect.Bottom),
                 new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
@@ -317,7 +319,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             FrameStatistics.Add(StatisticsCounterType.Pixels, (long)vertexQuad.ConservativeArea);
         }
 
-        public override void DrawQuad(Quad vertexQuad, RectangleF? textureRect, ColourInfo drawColour, Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null)
+        public override void DrawQuad(Quad vertexQuad, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null)
         {
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString(), "Can not draw a quad with a disposed texture.");
@@ -327,28 +329,30 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             RectangleF inflatedTexRect = texRect.Inflate(inflationAmount);
             Vector2 blendRange = blendRangeOverride ?? inflationAmount;
 
-            addVertex(default_quad_action,
+            vertexAction = vertexAction ?? default_quad_action;
+
+            addVertex(vertexAction,
                 vertexQuad.BottomLeft,
                 new Vector2(inflatedTexRect.Left, inflatedTexRect.Bottom),
                 new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
                 blendRange,
                 drawColour.BottomLeft.Linear);
 
-            addVertex(default_quad_action,
+            addVertex(vertexAction,
                 vertexQuad.BottomRight,
                 new Vector2(inflatedTexRect.Right, inflatedTexRect.Bottom),
                 new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
                 blendRange,
                 drawColour.BottomRight.Linear);
 
-            addVertex(default_quad_action,
+            addVertex(vertexAction,
                 vertexQuad.TopRight,
                 new Vector2(inflatedTexRect.Right, inflatedTexRect.Top),
                 new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
                 blendRange,
                 drawColour.TopRight.Linear);
 
-            addVertex(default_quad_action,
+            addVertex(vertexAction,
                 vertexQuad.TopLeft,
                 new Vector2(inflatedTexRect.Left, inflatedTexRect.Top),
                 new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
