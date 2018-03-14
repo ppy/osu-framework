@@ -259,7 +259,7 @@ namespace osu.Framework.Graphics
         /// ID is unique within the <see cref="Parent"/> <see cref="CompositeDrawable"/>.
         /// The primary use case of this ID is stable sorting of Drawables with equal <see cref="Depth"/>.
         /// </summary>
-        public ulong ChildID { get; internal set; }
+        internal ulong ChildID { get; set; }
 
         /// <summary>
         /// Whether this drawable has been added to a parent <see cref="CompositeDrawable"/>. Note that this does NOT imply that
