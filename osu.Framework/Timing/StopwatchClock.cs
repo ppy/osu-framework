@@ -52,7 +52,7 @@ namespace osu.Framework.Timing
 
         public bool Seek(double position)
         {
-            seekOffset = position - CurrentTime;
+            seekOffset = position - (CurrentTime - seekOffset);
             return true;
         }
 
