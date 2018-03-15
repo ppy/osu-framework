@@ -305,6 +305,10 @@ namespace osu.Framework.Platform
             }
         }
 
+        /// <summary>
+        /// Make a <see cref="Bitmap"/> object from the current OpenTK screen buffer
+        /// </summary>
+        /// <param name="onCompletion">Function that will process <see cref="Bitmap"/> which was made.</param>
         public void TakeScreenshot(Action<Bitmap> onCompletion)
         {
             if (Window == null) return;
