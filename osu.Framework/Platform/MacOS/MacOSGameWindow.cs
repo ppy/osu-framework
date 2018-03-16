@@ -48,7 +48,7 @@ namespace osu.Framework.Platform.MacOS
                 var typeCocoaNativeWindow = typeof(OpenTK.NativeWindow).Assembly.GetTypes().Single(x => x.Name == "CocoaNativeWindow");
                 var fieldWindowClass = typeCocoaNativeWindow.GetRuntimeFields().Single(x => x.Name == "windowClass");
 
-                nativeWindow = fieldImplementation.GetValue(this);
+                nativeWindow = fieldImplementation.GetValue(Implementation);
                 var windowClass = (IntPtr)fieldWindowClass.GetValue(nativeWindow);
 
                 Class.RegisterMethod(windowClass, flagsChangedHandler, "flagsChanged:", "v@:@");
