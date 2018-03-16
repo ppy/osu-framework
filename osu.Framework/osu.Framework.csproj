@@ -204,6 +204,7 @@
     <Compile Include="Graphics\Cursor\CursorEffectContainer.cs" />
     <Compile Include="Graphics\Cursor\IHasCustomTooltip.cs" />
     <Compile Include="Graphics\Cursor\ITooltip.cs" />
+    <Compile Include="Graphics\OpenGL\Vertices\ITexturedVertex2D.cs" />
     <Compile Include="Graphics\Primitives\RectangleI.cs" />
     <Compile Include="Graphics\Primitives\Vector2I.cs" />
     <Compile Include="Graphics\Shapes\Circle.cs" />
