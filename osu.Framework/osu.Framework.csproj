@@ -193,6 +193,7 @@
     <Compile Include="Graphics\Animations\TextureAnimation.cs" />
     <Compile Include="Graphics\Audio\WaveformGraph.cs" />
     <Compile Include="Graphics\BlendingParameters.cs" />
+    <Compile Include="Graphics\Component.cs" />
     <Compile Include="Graphics\Containers\CompositeDrawable.cs" />
     <Compile Include="Graphics\Containers\CustomizableTextContainer.cs" />
     <Compile Include="Graphics\Containers\IFillFlowContainer.cs" />
