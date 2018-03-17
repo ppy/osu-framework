@@ -26,7 +26,7 @@ namespace osu.Framework.Graphics.Containers
             where U : Drawable
         {
             if (container.Children.Count != 0)
-                throw new InvalidOperationException($"You may not wrap a container that has children.");
+                throw new InvalidOperationException($"You may not wrap a {nameof(Container<U>)} that has children.");
 
             container.RelativeSizeAxes = drawable.RelativeSizeAxes;
             container.AutoSizeAxes = Axes.Both & ~drawable.RelativeSizeAxes;
