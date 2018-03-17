@@ -75,7 +75,7 @@ namespace osu.Framework.Audio.Track
                     Bass.ChannelSetAttribute(activeStream, ChannelAttribute.TempoSequenceMilliseconds, 30);
                 }
 
-                Length = Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetLength(activeStream)) * 1000;
+                Length = calculateStreamLength();
 
                 Bass.ChannelGetAttribute(activeStream, ChannelAttribute.Frequency, out float frequency);
                 initialFrequency = frequency;
@@ -93,11 +93,13 @@ namespace osu.Framework.Audio.Track
             Trace.Assert(Bass.LastError == Errors.OK);
         }
 
+        private double calculateStreamLength() => Math.Max(Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetLength(activeStream)) * 1000, 0);
+
         protected override void UpdateState()
         {
             isRunning = Bass.ChannelIsActive(activeStream) == PlaybackState.Playing;
 
-            double currentTimeLocal = Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetPosition(activeStream)) * 1000;
+            double currentTimeLocal = calculateStreamLength();
             Interlocked.Exchange(ref currentTime, currentTimeLocal == Length && !isPlayed ? 0 : currentTimeLocal);
 
             var leftChannel = isPlayed ? Bass.ChannelGetLevelLeft(activeStream) / 32768f : -1;
