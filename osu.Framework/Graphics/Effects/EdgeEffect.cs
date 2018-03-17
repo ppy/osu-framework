@@ -23,21 +23,12 @@ namespace osu.Framework.Graphics.Effects
 
         public Container ApplyTo(Drawable drawable)
         {
-            Vector2 position = drawable.Position;
-            drawable.Position = Vector2.Zero;
-
             return new Container
             {
                 Masking = true,
                 EdgeEffect = Parameters,
                 CornerRadius = CornerRadius,
-                Anchor = drawable.Anchor,
-                Origin = drawable.Origin,
-                RelativeSizeAxes = drawable.RelativeSizeAxes,
-                AutoSizeAxes = Axes.Both & ~drawable.RelativeSizeAxes,
-                Position = position,
-                Child = drawable
-            };
+            }.Wrap(drawable);
         }
     }
 }

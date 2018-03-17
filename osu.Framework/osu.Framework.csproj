@@ -195,6 +195,7 @@
     <Compile Include="Graphics\BlendingParameters.cs" />
     <Compile Include="Graphics\Component.cs" />
     <Compile Include="Graphics\Containers\CompositeDrawable.cs" />
+    <Compile Include="Graphics\Containers\ContainerExtensions.cs" />
     <Compile Include="Graphics\Containers\CustomizableTextContainer.cs" />
     <Compile Include="Graphics\Containers\IFillFlowContainer.cs" />
     <Compile Include="Graphics\Containers\DelayedLoadWrapper.cs" />
