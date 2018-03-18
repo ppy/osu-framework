@@ -619,6 +619,8 @@ namespace osu.Framework.Platform
 
         public void Dispose()
         {
+            Root = null;
+
             Dispose(true);
             GC.SuppressFinalize(this);
         }
