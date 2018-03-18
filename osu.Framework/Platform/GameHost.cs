@@ -33,7 +33,7 @@ namespace osu.Framework.Platform
 {
     public abstract class GameHost : IIpcHost, IDisposable
     {
-        public GameWindow Window;
+        public GameWindow Window { get; protected set; }
 
         private readonly Toolkit toolkit;
 
