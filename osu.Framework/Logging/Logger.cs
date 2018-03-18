@@ -402,6 +402,8 @@ namespace osu.Framework.Logging
                 backgroundScheduler.Dispose();
                 backgroundScheduler = new ThreadedScheduler(@"Logger") { Enabled = storage != null };
             }
+
+            NewEntry = null;
         }
     }
 

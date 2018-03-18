@@ -599,7 +599,12 @@ namespace osu.Framework.Platform
             while (executionState > ExecutionState.Stopped)
                 Thread.Sleep(10);
 
+            AppDomain.CurrentDomain.UnhandledException -= exceptionHandler;
+
             Root?.Dispose();
+
+            Activated = null;
+            Deactivated = null;
 
             config?.Dispose();
             debugConfig?.Dispose();

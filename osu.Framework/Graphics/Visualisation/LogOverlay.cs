@@ -138,6 +138,12 @@ namespace osu.Framework.Graphics.Visualisation
             enabled.Value = false;
             this.FadeOut(100);
         }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+            Logger.NewEntry -= addEntry;
+        }
     }
 
     internal class DrawableLogEntry : Container
