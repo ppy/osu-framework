@@ -35,6 +35,8 @@ namespace osu.Framework.Platform
     {
         public GameWindow Window;
 
+        private readonly Toolkit toolkit;
+
         private FrameworkDebugConfigManager debugConfig;
 
         private FrameworkConfigManager config;
@@ -147,6 +149,8 @@ namespace osu.Framework.Platform
 
         protected GameHost(string gameName = @"")
         {
+            toolkit = Toolkit.Init();
+
             AppDomain.CurrentDomain.UnhandledException += exceptionHandler;
 
             FileSafety.DeleteCleanupDirectory();
@@ -610,6 +614,8 @@ namespace osu.Framework.Platform
             debugConfig?.Dispose();
 
             Window?.Dispose();
+
+            toolkit?.Dispose();
 
             Logger.Flush();
         }
