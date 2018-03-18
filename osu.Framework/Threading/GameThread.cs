@@ -136,6 +136,9 @@ namespace osu.Framework.Threading
         public void Exit() => exitRequested = true;
         public void Start() => Thread?.Start();
 
-        protected virtual void PerformExit() { }
+        protected virtual void PerformExit()
+        {
+            Monitor?.Dispose();
+        }
     }
 }

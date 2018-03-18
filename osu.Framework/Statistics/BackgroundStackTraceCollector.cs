@@ -16,7 +16,7 @@ namespace osu.Framework.Statistics
     /// <summary>
     /// Spwan a thread to collect real-time stack traces of the targeted thread.
     /// </summary>
-    internal class BackgroundStackTraceCollector
+    internal class BackgroundStackTraceCollector : IDisposable
     {
         private IList<ClrStackFrame> backgroundMonitorStackTrace;
 
@@ -41,16 +41,15 @@ namespace osu.Framework.Statistics
 
             var backgroundMonitorThread = new Thread(() =>
             {
-                while (true)
+                while (!isDisposed)
                 {
                     if (targetThread.IsAlive && clock.ElapsedMilliseconds - LastConsumptionTime > spikeRecordThreshold / 2 && backgroundMonitorStackTrace == null)
                         backgroundMonitorStackTrace = getStackTrace(targetThread);
 
                     Thread.Sleep(1);
                 }
-
-                // ReSharper disable once FunctionNeverReturns
-            }) { IsBackground = true };
+            })
+            { IsBackground = true };
 
             backgroundMonitorThread.Start();
         }
@@ -104,5 +103,26 @@ namespace osu.Framework.Statistics
         });
 
         private static IList<ClrStackFrame> getStackTrace(Thread targetThread) => clr_info.Value?.CreateRuntime().Threads.FirstOrDefault(t => t.ManagedThreadId == targetThread.ManagedThreadId)?.StackTrace;
+
+        #region IDisposable Support
+
+        private bool isDisposed;
+
+        protected virtual void Dispose(bool disposing)
+        {
+            isDisposed = true;
+        }
+
+        ~BackgroundStackTraceCollector()
+        {
+            Dispose(false);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+        #endregion
     }
 }
