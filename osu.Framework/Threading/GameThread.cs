@@ -133,6 +133,8 @@ namespace osu.Framework.Threading
         private volatile bool exitRequested;
         private volatile bool exitCompleted;
 
+        public bool Exited => exitCompleted;
+
         public void Exit() => exitRequested = true;
         public void Start() => Thread?.Start();
 

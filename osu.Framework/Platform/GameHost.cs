@@ -460,6 +460,9 @@ namespace osu.Framework.Platform
                 if (!t.Thread.Join(thread_join_timeout))
                     Logger.Log($"Thread {t.Name} failed to exit in allocated time ({thread_join_timeout}ms).", LoggingTarget.Runtime, LogLevel.Important);
             });
+
+            while (!InputThread.Exited)
+                InputThread.RunUpdate();
         }
 
         private void window_KeyDown(object sender, KeyboardKeyEventArgs e)
