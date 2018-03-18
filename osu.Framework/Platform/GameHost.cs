@@ -609,6 +609,8 @@ namespace osu.Framework.Platform
             config?.Dispose();
             debugConfig?.Dispose();
 
+            Window?.Dispose();
+
             Logger.Flush();
         }
 
