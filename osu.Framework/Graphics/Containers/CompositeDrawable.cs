@@ -98,7 +98,6 @@ namespace osu.Framework.Graphics.Containers
             InternalChildren?.ForEach(c => c.Dispose());
 
             OnAutoSize = null;
-            schedulerAfterChildren?.Dispose();
             schedulerAfterChildren = null;
 
             base.Dispose(isDisposing);

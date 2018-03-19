@@ -87,7 +87,6 @@ namespace osu.Framework.Graphics
 
             Parent = null;
 
-            scheduler?.Dispose();
             scheduler = null;
 
             OnUpdate = null;
