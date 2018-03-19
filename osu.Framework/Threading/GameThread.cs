@@ -141,6 +141,7 @@ namespace osu.Framework.Threading
         protected virtual void PerformExit()
         {
             Monitor?.Dispose();
+            initializedEvent?.Dispose();
         }
     }
 }
