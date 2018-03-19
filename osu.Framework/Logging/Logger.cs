@@ -394,6 +394,7 @@ namespace osu.Framework.Logging
 
         /// <summary>
         /// Pause execution until all logger writes have completed and file handles have been closed.
+        /// This will also unbind all handlers bound to <see cref="NewEntry"/>.
         /// </summary>
         public static void Flush()
         {
