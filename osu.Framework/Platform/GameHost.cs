@@ -610,6 +610,7 @@ namespace osu.Framework.Platform
             AppDomain.CurrentDomain.UnhandledException -= exceptionHandler;
 
             Root?.Dispose();
+            Root = null;
 
             config?.Dispose();
             debugConfig?.Dispose();
@@ -628,8 +629,6 @@ namespace osu.Framework.Platform
 
         public void Dispose()
         {
-            Root = null;
-
             Dispose(true);
             GC.SuppressFinalize(this);
         }
