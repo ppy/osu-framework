@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Diagnostics.Runtime;
 
 namespace osu.Framework.Statistics
@@ -29,6 +30,8 @@ namespace osu.Framework.Statistics
 
         private double spikeRecordThreshold;
 
+        private readonly CancellationTokenSource cancellationToken;
+
         public BackgroundStackTraceCollector(Thread targetThread, StopwatchClock clock)
         {
             if (Debugger.IsAttached) return;
@@ -39,19 +42,16 @@ namespace osu.Framework.Statistics
             this.clock = clock;
             this.targetThread = targetThread;
 
-            var backgroundMonitorThread = new Thread(() =>
+            Task.Factory.StartNew(() =>
             {
-                while (!isDisposed)
+                while (!cancellationToken.IsCancellationRequested)
                 {
                     if (targetThread.IsAlive && clock.ElapsedMilliseconds - LastConsumptionTime > spikeRecordThreshold / 2 && backgroundMonitorStackTrace == null)
                         backgroundMonitorStackTrace = getStackTrace(targetThread);
 
                     Thread.Sleep(1);
                 }
-            })
-            { IsBackground = true };
-
-            backgroundMonitorThread.Start();
+            }, (cancellationToken = new CancellationTokenSource()).Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
         }
 
         internal void NewFrame(double elapsedFrameTime, double newSpikeThreshold)
@@ -106,16 +106,20 @@ namespace osu.Framework.Statistics
 
         #region IDisposable Support
 
+        ~BackgroundStackTraceCollector()
+        {
+            Dispose(false);
+        }
+
         private bool isDisposed;
 
         protected virtual void Dispose(bool disposing)
         {
-            isDisposed = true;
-        }
-
-        ~BackgroundStackTraceCollector()
-        {
-            Dispose(false);
+            if (!isDisposed)
+            {
+                isDisposed = true;
+                cancellationToken.Cancel();
+            }
         }
 
         public void Dispose()
