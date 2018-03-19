@@ -611,9 +611,6 @@ namespace osu.Framework.Platform
 
             Root?.Dispose();
 
-            Activated = null;
-            Deactivated = null;
-
             config?.Dispose();
             debugConfig?.Dispose();
 
