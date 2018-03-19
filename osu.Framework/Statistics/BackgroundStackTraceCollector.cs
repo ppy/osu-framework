@@ -118,7 +118,7 @@ namespace osu.Framework.Statistics
             if (!isDisposed)
             {
                 isDisposed = true;
-                cancellationToken.Cancel();
+                cancellationToken?.Cancel();
             }
         }
 
