@@ -7,8 +7,10 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using osu.Framework.Platform;
-using osu.Framework.Threading;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using osu.Framework.Threading;
 
 namespace osu.Framework.Logging
 {
@@ -55,17 +57,8 @@ namespace osu.Framework.Logging
         /// </summary>
         public static Storage Storage
         {
-            private get
-            {
-                return storage;
-            }
-
-            set
-            {
-                storage = value ?? throw new ArgumentNullException(nameof(value));
-                lock (flush_sync_lock)
-                    backgroundScheduler.Enabled = true;
-            }
+            private get { return storage; }
+            set { storage = value ?? throw new ArgumentNullException(nameof(value)); }
         }
 
         /// <summary>
@@ -338,7 +331,7 @@ namespace osu.Framework.Logging
                 if (!Enabled)
                     return;
 
-                backgroundScheduler.Add(delegate
+                scheduler.Add(delegate
                 {
                     try
                     {
@@ -371,7 +364,7 @@ namespace osu.Framework.Logging
         private void clear()
         {
             lock (flush_sync_lock)
-                backgroundScheduler.Add(() => Storage.Delete(Filename));
+                scheduler.Add(() => Storage.Delete(Filename));
         }
 
         private bool headerAdded;
@@ -390,7 +383,15 @@ namespace osu.Framework.Logging
 
         private static readonly List<string> filters = new List<string>();
         private static readonly Dictionary<string, Logger> static_loggers = new Dictionary<string, Logger>();
-        private static ThreadedScheduler backgroundScheduler = new ThreadedScheduler(@"Logger", startEnabled: false);
+        private static Task writerTask;
+        private static CancellationTokenSource cancellationToken;
+
+        private static readonly Scheduler scheduler = new Scheduler();
+
+        static Logger()
+        {
+            Flush();
+        }
 
         /// <summary>
         /// Pause execution until all logger writes have completed and file handles have been closed.
@@ -400,8 +401,33 @@ namespace osu.Framework.Logging
         {
             lock (flush_sync_lock)
             {
-                backgroundScheduler.Dispose();
-                backgroundScheduler = new ThreadedScheduler(@"Logger") { Enabled = storage != null };
+                if (writerTask != null)
+                {
+                    cancellationToken.Cancel();
+                    writerTask.Wait(500);
+                }
+
+                int performUpdate() => Storage != null ? scheduler.Update() : 0;
+
+                cancellationToken = new CancellationTokenSource();
+                writerTask = Task.Factory.StartNew(() =>
+                {
+                    try
+                    {
+                        while (!cancellationToken.IsCancellationRequested)
+                            performUpdate();
+                    }
+                    catch (TaskCanceledException)
+                    {
+                    }
+                    finally
+                    {
+                        while (performUpdate() > 0)
+                        {
+                            // perform all remaining writes before exiting.
+                        }
+                    }
+                }, cancellationToken.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
             }
 
             NewEntry = null;
