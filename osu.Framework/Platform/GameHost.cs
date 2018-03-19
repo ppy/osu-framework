@@ -461,6 +461,7 @@ namespace osu.Framework.Platform
                     Logger.Log($"Thread {t.Name} failed to exit in allocated time ({thread_join_timeout}ms).", LoggingTarget.Runtime, LogLevel.Important);
             });
 
+            // as the input thread isn't actually handled by a thread, the above join does not necessarily mean it has been completed to an exiting state.
             while (!InputThread.Exited)
                 InputThread.RunUpdate();
         }
