@@ -308,19 +308,21 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Make a <see cref="Bitmap"/> object from the current OpenTK screen buffer
         /// </summary>
-        /// <param name="onCompletion">Function that will process <see cref="Bitmap"/> which was made.</param>
-        public void TakeScreenshot(Action<Bitmap> onCompletion)
+        /// <returns><see cref="Bitmap"/> object</returns>
+        public async Task<Bitmap> TakeScreenshotAsync()
         {
-            if (Window == null) return;
+            if (Window == null) throw new NullReferenceException(nameof(Window));
 
             var clientRectangle = Window.ClientRectangle;
+
+            var b = new Bitmap(clientRectangle.Width, clientRectangle.Height);
+            var autoResetEvent = new AutoResetEvent(false);
 
             DrawThread.Scheduler.Add(() =>
             {
                 if (GraphicsContext.CurrentContext == null)
                     throw new GraphicsContextMissingException();
 
-                var b = new Bitmap(clientRectangle.Width, clientRectangle.Height);
                 BitmapData data =
                     b.LockBits(clientRectangle, ImageLockMode.WriteOnly, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
                 OpenTK.Graphics.OpenGL.GL.ReadPixels(0, 0, clientRectangle.Width, clientRectangle.Height, OpenTK.Graphics.OpenGL.PixelFormat.Bgr, OpenTK.Graphics.OpenGL.PixelType.UnsignedByte,
@@ -328,8 +330,11 @@ namespace osu.Framework.Platform
                 b.UnlockBits(data);
                 b.RotateFlip(RotateFlipType.RotateNoneFlipY);
 
-                UpdateThread.Scheduler.Add(() => onCompletion.Invoke(b));
+                autoResetEvent.Set();
             });
+
+            await Task.Run(() => { autoResetEvent.WaitOne(); });
+            return b;
         }
 
         private volatile ExecutionState executionState;
