@@ -53,11 +53,9 @@ namespace osu.Framework.Platform
                     {
                         await Task.Delay(10, token);
                         if (token.IsCancellationRequested)
-                        {
-                            listener.Stop();
                             return;
-                        }
                     }
+
                     using (var client = await listener.AcceptTcpClientAsync())
                     {
                         using (var stream = client.GetStream())
@@ -84,6 +82,16 @@ namespace osu.Framework.Platform
             }
             catch (TaskCanceledException)
             {
+            }
+            finally
+            {
+                try
+                {
+                    listener.Stop();
+                }
+                catch
+                {
+                }
             }
         }
 
