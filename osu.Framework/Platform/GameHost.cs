@@ -333,7 +333,7 @@ namespace osu.Framework.Platform
                 autoResetEvent.Set();
             });
 
-            await Task.Run(() => { autoResetEvent.WaitOne(); });
+            await Task.Run(() => autoResetEvent.WaitOne()).ContinueWith(_ => autoResetEvent.Dispose());
             return b;
         }
 
