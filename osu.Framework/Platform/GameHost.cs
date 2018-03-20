@@ -323,10 +323,8 @@ namespace osu.Framework.Platform
                 if (GraphicsContext.CurrentContext == null)
                     throw new GraphicsContextMissingException();
 
-                BitmapData data =
-                    b.LockBits(clientRectangle, ImageLockMode.WriteOnly, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
-                OpenTK.Graphics.OpenGL.GL.ReadPixels(0, 0, clientRectangle.Width, clientRectangle.Height, OpenTK.Graphics.OpenGL.PixelFormat.Bgr, OpenTK.Graphics.OpenGL.PixelType.UnsignedByte,
-                    data.Scan0);
+                BitmapData data = b.LockBits(clientRectangle, ImageLockMode.WriteOnly, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+                OpenTK.Graphics.OpenGL.GL.ReadPixels(0, 0, clientRectangle.Width, clientRectangle.Height, OpenTK.Graphics.OpenGL.PixelFormat.Bgr, OpenTK.Graphics.OpenGL.PixelType.UnsignedByte, data.Scan0);
                 b.UnlockBits(data);
                 b.RotateFlip(RotateFlipType.RotateNoneFlipY);
 
