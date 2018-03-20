@@ -75,7 +75,7 @@ namespace osu.Framework.Audio.Track
                     Bass.ChannelSetAttribute(activeStream, ChannelAttribute.TempoSequenceMilliseconds, 30);
                 }
 
-                Length = Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetLength(activeStream)) * 1000;
+                Length = Math.Max(Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetLength(activeStream)) * 1000, 0);
 
                 Bass.ChannelGetAttribute(activeStream, ChannelAttribute.Frequency, out float frequency);
                 initialFrequency = frequency;
