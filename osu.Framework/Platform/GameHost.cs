@@ -314,25 +314,24 @@ namespace osu.Framework.Platform
             if (Window == null) throw new NullReferenceException(nameof(Window));
 
             var clientRectangle = Window.ClientRectangle;
-
-            var b = new Bitmap(clientRectangle.Width, clientRectangle.Height);
-            var autoResetEvent = new AutoResetEvent(false);
+            var tcs = new TaskCompletionSource<Bitmap>();
 
             DrawThread.Scheduler.Add(() =>
             {
                 if (GraphicsContext.CurrentContext == null)
                     throw new GraphicsContextMissingException();
 
+                var b = new Bitmap(clientRectangle.Width, clientRectangle.Height);
+
                 BitmapData data = b.LockBits(clientRectangle, ImageLockMode.WriteOnly, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
                 OpenTK.Graphics.OpenGL.GL.ReadPixels(0, 0, clientRectangle.Width, clientRectangle.Height, OpenTK.Graphics.OpenGL.PixelFormat.Bgr, OpenTK.Graphics.OpenGL.PixelType.UnsignedByte, data.Scan0);
                 b.UnlockBits(data);
                 b.RotateFlip(RotateFlipType.RotateNoneFlipY);
 
-                autoResetEvent.Set();
+                tcs.SetResult(b);
             });
 
-            await Task.Run(() => autoResetEvent.WaitOne()).ContinueWith(_ => autoResetEvent.Dispose());
-            return b;
+            return await tcs.Task;
         }
 
         private volatile ExecutionState executionState;
