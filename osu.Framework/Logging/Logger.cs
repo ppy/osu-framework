@@ -383,14 +383,24 @@ namespace osu.Framework.Logging
 
         private static readonly List<string> filters = new List<string>();
         private static readonly Dictionary<string, Logger> static_loggers = new Dictionary<string, Logger>();
-        private static Task writerTask;
-        private static CancellationTokenSource cancellationToken;
 
         private static readonly Scheduler scheduler = new Scheduler();
 
+        private static readonly ManualResetEvent writer_idle = new ManualResetEvent(true);
+
         static Logger()
         {
-            Flush();
+            Task.Factory.StartNew(() =>
+            {
+                while (true)
+                {
+                    if ((Storage != null ? scheduler.Update() : 0) == 0)
+                        writer_idle.Set();
+                    Thread.Sleep(50);
+                }
+
+                // ReSharper disable once FunctionNeverReturns
+            }, TaskCreationOptions.LongRunning);
         }
 
         /// <summary>
@@ -401,37 +411,10 @@ namespace osu.Framework.Logging
         {
             lock (flush_sync_lock)
             {
-                if (writerTask != null)
-                {
-                    cancellationToken.Cancel();
-                    writerTask.Wait(500);
-                }
-
-                int performUpdate() => Storage != null ? scheduler.Update() : 0;
-
-                cancellationToken = new CancellationTokenSource();
-                writerTask = Task.Factory.StartNew(() =>
-                {
-                    try
-                    {
-                        while (!cancellationToken.IsCancellationRequested)
-                            performUpdate();
-                    }
-                    catch (TaskCanceledException)
-                    {
-                    }
-                    finally
-                    {
-                        while (performUpdate() > 0)
-                        {
-                            // perform all remaining writes before exiting.
-                        }
-                    }
-                }, cancellationToken.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
-            }
-
+                writer_idle.WaitOne(500);
             NewEntry = null;
         }
+    }
     }
 
     /// <summary>
