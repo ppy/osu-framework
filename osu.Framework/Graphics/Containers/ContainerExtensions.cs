@@ -33,8 +33,10 @@ namespace osu.Framework.Graphics.Containers
             container.Anchor = drawable.Anchor;
             container.Origin = drawable.Origin;
             container.Position = drawable.Position;
+            container.Rotation = drawable.Rotation;
 
             drawable.Position = Vector2.Zero;
+            drawable.Rotation = 0;
             drawable.Anchor = Anchor.TopLeft;
             drawable.Origin = Anchor.TopLeft;
 
