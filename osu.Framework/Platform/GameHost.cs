@@ -3,6 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.Linq;
 using System.Reflection;
 using System.Runtime;
@@ -301,6 +303,42 @@ namespace osu.Framework.Platform
                     // we will likely want to give the user control over this in the future as an advanced setting.
                     GL.Finish();
             }
+        }
+
+        /// <summary>
+        /// Make a <see cref="Bitmap"/> object from the current OpenTK screen buffer
+        /// </summary>
+        /// <returns><see cref="Bitmap"/> object</returns>
+        public async Task<Bitmap> TakeScreenshotAsync()
+        {
+            if (Window == null) throw new NullReferenceException(nameof(Window));
+
+            var clientRectangle = Window.ClientRectangle;
+
+            bool complete = false;
+
+            var bitmap = new Bitmap(clientRectangle.Width, clientRectangle.Height);
+            BitmapData data = bitmap.LockBits(clientRectangle, ImageLockMode.WriteOnly, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+
+            DrawThread.Scheduler.Add(() =>
+            {
+                if (GraphicsContext.CurrentContext == null)
+                    throw new GraphicsContextMissingException();
+
+                OpenTK.Graphics.OpenGL.GL.ReadPixels(0, 0, clientRectangle.Width, clientRectangle.Height, OpenTK.Graphics.OpenGL.PixelFormat.Bgr, OpenTK.Graphics.OpenGL.PixelType.UnsignedByte, data.Scan0);
+                complete = true;
+            });
+
+            await Task.Run(() =>
+            {
+                while (!complete)
+                    Thread.Sleep(50);
+            });
+
+            bitmap.UnlockBits(data);
+            bitmap.RotateFlip(RotateFlipType.RotateNoneFlipY);
+
+            return bitmap;
         }
 
         private volatile ExecutionState executionState;
