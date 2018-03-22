@@ -10,7 +10,7 @@ using System.Threading;
 
 namespace osu.Framework.Statistics
 {
-    internal class PerformanceMonitor
+    internal class PerformanceMonitor : IDisposable
     {
         private readonly StopwatchClock ourClock = new StopwatchClock(true);
 
@@ -142,5 +142,30 @@ namespace osu.Framework.Statistics
 
         internal double FramesPerSecond => Clock.FramesPerSecond;
         internal double AverageFrameTime => Clock.AverageFrameTime;
+
+        #region IDisposable Support
+
+        private bool isDisposed;
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!isDisposed)
+            {
+                isDisposed = true;
+                traceCollector.Dispose();
+            }
+        }
+
+        ~PerformanceMonitor()
+        {
+            Dispose(false);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+        #endregion
     }
 }

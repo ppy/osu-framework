@@ -35,7 +35,9 @@ namespace osu.Framework.Platform
 {
     public abstract class GameHost : IIpcHost, IDisposable
     {
-        public GameWindow Window;
+        public GameWindow Window { get; protected set; }
+
+        private readonly Toolkit toolkit;
 
         private FrameworkDebugConfigManager debugConfig;
 
@@ -149,6 +151,8 @@ namespace osu.Framework.Platform
 
         protected GameHost(string gameName = @"")
         {
+            toolkit = Toolkit.Init();
+
             AppDomain.CurrentDomain.UnhandledException += exceptionHandler;
 
             FileSafety.DeleteCleanupDirectory();
@@ -494,6 +498,10 @@ namespace osu.Framework.Platform
                 if (!t.Thread.Join(thread_join_timeout))
                     Logger.Log($"Thread {t.Name} failed to exit in allocated time ({thread_join_timeout}ms).", LoggingTarget.Runtime, LogLevel.Important);
             });
+
+            // as the input thread isn't actually handled by a thread, the above join does not necessarily mean it has been completed to an exiting state.
+            while (!InputThread.Exited)
+                InputThread.RunUpdate();
         }
 
         private void window_KeyDown(object sender, KeyboardKeyEventArgs e)
@@ -637,10 +645,17 @@ namespace osu.Framework.Platform
             while (executionState > ExecutionState.Stopped)
                 Thread.Sleep(10);
 
+            AppDomain.CurrentDomain.UnhandledException -= exceptionHandler;
+
             Root?.Dispose();
+            Root = null;
 
             config?.Dispose();
             debugConfig?.Dispose();
+
+            Window?.Dispose();
+
+            toolkit?.Dispose();
 
             Logger.Flush();
         }

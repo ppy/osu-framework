@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Diagnostics.Runtime;
 
 namespace osu.Framework.Statistics
@@ -16,7 +17,7 @@ namespace osu.Framework.Statistics
     /// <summary>
     /// Spwan a thread to collect real-time stack traces of the targeted thread.
     /// </summary>
-    internal class BackgroundStackTraceCollector
+    internal class BackgroundStackTraceCollector : IDisposable
     {
         private IList<ClrStackFrame> backgroundMonitorStackTrace;
 
@@ -29,6 +30,8 @@ namespace osu.Framework.Statistics
 
         private double spikeRecordThreshold;
 
+        private readonly CancellationTokenSource cancellationToken;
+
         public BackgroundStackTraceCollector(Thread targetThread, StopwatchClock clock)
         {
             if (Debugger.IsAttached) return;
@@ -39,20 +42,16 @@ namespace osu.Framework.Statistics
             this.clock = clock;
             this.targetThread = targetThread;
 
-            var backgroundMonitorThread = new Thread(() =>
+            Task.Factory.StartNew(() =>
             {
-                while (true)
+                while (!cancellationToken.IsCancellationRequested)
                 {
                     if (targetThread.IsAlive && clock.ElapsedMilliseconds - LastConsumptionTime > spikeRecordThreshold / 2 && backgroundMonitorStackTrace == null)
                         backgroundMonitorStackTrace = getStackTrace(targetThread);
 
                     Thread.Sleep(1);
                 }
-
-                // ReSharper disable once FunctionNeverReturns
-            }) { IsBackground = true };
-
-            backgroundMonitorThread.Start();
+            }, (cancellationToken = new CancellationTokenSource()).Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
         }
 
         internal void NewFrame(double elapsedFrameTime, double newSpikeThreshold)
@@ -104,5 +103,30 @@ namespace osu.Framework.Statistics
         });
 
         private static IList<ClrStackFrame> getStackTrace(Thread targetThread) => clr_info.Value?.CreateRuntime().Threads.FirstOrDefault(t => t.ManagedThreadId == targetThread.ManagedThreadId)?.StackTrace;
+
+        #region IDisposable Support
+
+        ~BackgroundStackTraceCollector()
+        {
+            Dispose(false);
+        }
+
+        private bool isDisposed;
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!isDisposed)
+            {
+                isDisposed = true;
+                cancellationToken?.Cancel();
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+        #endregion
     }
 }

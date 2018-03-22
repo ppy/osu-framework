@@ -25,17 +25,21 @@ namespace osu.Framework.Platform.Windows
             timePeriod = new TimePeriod(1) { Active = true };
 
             Window = new WindowsGameWindow();
-            Window.WindowStateChanged += (sender, e) =>
-            {
-                if (Window.WindowState != OpenTK.WindowState.Minimized)
-                    OnActivated();
-                else
-                    OnDeactivated();
-            };
+            Window.WindowStateChanged += onWindowOnWindowStateChanged;
+        }
+
+        private void onWindowOnWindowStateChanged(object sender, EventArgs e)
+        {
+            if (Window.WindowState != OpenTK.WindowState.Minimized)
+                OnActivated();
+            else
+                OnDeactivated();
         }
 
         protected override void Dispose(bool isDisposing)
         {
+            Window.WindowStateChanged -= onWindowOnWindowStateChanged;
+
             timePeriod?.Dispose();
             base.Dispose(isDisposing);
         }

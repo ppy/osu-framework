@@ -14,7 +14,7 @@ namespace osu.Framework.Threading
     /// <summary>
     /// Marshals delegates to run from the Scheduler's base thread in a threadsafe manner
     /// </summary>
-    public class Scheduler : IDisposable
+    public class Scheduler
     {
         private readonly ConcurrentQueue<Action> schedulerQueue = new ConcurrentQueue<Action>();
         private readonly List<ScheduledDelegate> timedTasks = new List<ScheduledDelegate>();
@@ -236,25 +236,6 @@ namespace osu.Framework.Threading
 
             return true;
         }
-
-        #region IDisposable Support
-
-        private bool isDisposed; // To detect redundant calls
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!isDisposed)
-            {
-                isDisposed = true;
-            }
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-        }
-
-        #endregion
     }
 
     public class ScheduledDelegate : IComparable<ScheduledDelegate>
@@ -316,50 +297,5 @@ namespace osu.Framework.Threading
         {
             return ExecutionTime == other.ExecutionTime ? -1 : ExecutionTime.CompareTo(other.ExecutionTime);
         }
-    }
-
-    /// <summary>
-    /// A scheduler which doesn't require manual updates (and never uses the main thread).
-    /// </summary>
-    public class ThreadedScheduler : Scheduler
-    {
-        private bool isDisposed;
-        private readonly Thread workerThread;
-
-        /// <summary>
-        /// Whether scheduled tasks should be run. Disabling temporarily pauses all execution.
-        /// </summary>
-        public bool Enabled;
-
-        public ThreadedScheduler(string threadName = null, int runInterval = 50, bool startEnabled = true)
-        {
-            Enabled = startEnabled;
-
-            workerThread = new Thread(() =>
-            {
-                while (!isDisposed)
-                {
-                    if (Enabled) Update();
-                    Thread.Sleep(runInterval);
-                }
-            })
-            {
-                IsBackground = true,
-                Name = threadName
-            };
-
-            workerThread.Start();
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            isDisposed = true;
-
-            workerThread.Join();
-
-            base.Dispose(disposing);
-        }
-
-        protected override bool IsMainThread => false;
     }
 }

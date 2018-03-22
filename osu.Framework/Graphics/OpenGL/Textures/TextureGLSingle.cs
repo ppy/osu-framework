@@ -59,6 +59,9 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         {
             base.Dispose(isDisposing);
 
+            while (uploadQueue.TryDequeue(out TextureUpload u))
+                u.Dispose();
+
             GLWrapper.ScheduleDisposal(unload);
         }
 
@@ -67,9 +70,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// </summary>
         private void unload()
         {
-            while (uploadQueue.TryDequeue(out TextureUpload u))
-                u.Dispose();
-
             int disposableId = textureId;
 
             if (disposableId <= 0)

@@ -7,8 +7,10 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using osu.Framework.Platform;
-using osu.Framework.Threading;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using osu.Framework.Threading;
 
 namespace osu.Framework.Logging
 {
@@ -18,6 +20,7 @@ namespace osu.Framework.Logging
     public class Logger
     {
         private static readonly object static_sync_lock = new object();
+
         // separate locking object for flushing so that we don't lock too long on the staticSyncLock object, since we have to
         // hold this lock for the entire duration of the flush (waiting for I/O etc) before we can resume scheduling logs
         // but other operations like GetLogger(), ApplyFilters() etc. can still be executed while a flush is happening.
@@ -55,17 +58,8 @@ namespace osu.Framework.Logging
         /// </summary>
         public static Storage Storage
         {
-            private get
-            {
-                return storage;
-            }
-
-            set
-            {
-                storage = value ?? throw new ArgumentNullException(nameof(value));
-                lock (flush_sync_lock)
-                    backgroundScheduler.Enabled = true;
-            }
+            private get { return storage; }
+            set { storage = value ?? throw new ArgumentNullException(nameof(value)); }
         }
 
         /// <summary>
@@ -141,6 +135,7 @@ namespace osu.Framework.Logging
         {
             log(message, target, null, level);
         }
+
         /// <summary>
         /// Log an arbitrary string to the logger with the given name.
         /// </summary>
@@ -338,7 +333,7 @@ namespace osu.Framework.Logging
                 if (!Enabled)
                     return;
 
-                backgroundScheduler.Add(delegate
+                scheduler.Add(delegate
                 {
                     try
                     {
@@ -351,6 +346,8 @@ namespace osu.Framework.Logging
                     {
                     }
                 });
+
+                writer_idle.Reset();
             }
         }
 
@@ -371,7 +368,10 @@ namespace osu.Framework.Logging
         private void clear()
         {
             lock (flush_sync_lock)
-                backgroundScheduler.Add(() => Storage.Delete(Filename));
+            {
+                scheduler.Add(() => Storage.Delete(Filename));
+                writer_idle.Reset();
+            }
         }
 
         private bool headerAdded;
@@ -390,17 +390,36 @@ namespace osu.Framework.Logging
 
         private static readonly List<string> filters = new List<string>();
         private static readonly Dictionary<string, Logger> static_loggers = new Dictionary<string, Logger>();
-        private static ThreadedScheduler backgroundScheduler = new ThreadedScheduler(@"Logger", startEnabled: false);
+
+        private static readonly Scheduler scheduler = new Scheduler();
+
+        private static readonly ManualResetEvent writer_idle = new ManualResetEvent(true);
+
+        static Logger()
+        {
+            Task.Factory.StartNew(() =>
+            {
+                while (true)
+                {
+                    if ((Storage != null ? scheduler.Update() : 0) == 0)
+                        writer_idle.Set();
+                    Thread.Sleep(50);
+                }
+
+                // ReSharper disable once FunctionNeverReturns
+            }, TaskCreationOptions.LongRunning);
+        }
 
         /// <summary>
         /// Pause execution until all logger writes have completed and file handles have been closed.
+        /// This will also unbind all handlers bound to <see cref="NewEntry"/>.
         /// </summary>
         public static void Flush()
         {
             lock (flush_sync_lock)
             {
-                backgroundScheduler.Dispose();
-                backgroundScheduler = new ThreadedScheduler(@"Logger") { Enabled = storage != null };
+                writer_idle.WaitOne(500);
+                NewEntry = null;
             }
         }
     }
@@ -414,14 +433,17 @@ namespace osu.Framework.Logging
         /// The level for which the message was logged.
         /// </summary>
         public LogLevel Level;
+
         /// <summary>
         /// The target to which this message is being logged, or null if it is being logged to a custom named logger.
         /// </summary>
         public LoggingTarget? Target;
+
         /// <summary>
         /// The name of the logger to which this message is being logged, or null if it is being logged to a specific <see cref="LoggingTarget"/>.
         /// </summary>
         public string LoggerName;
+
         /// <summary>
         /// The message that was logged.
         /// </summary>
@@ -437,14 +459,17 @@ namespace osu.Framework.Logging
         /// Log-level for debugging-related log-messages. This is the lowest level (highest verbosity). Please note that this will log input events, including keypresses when entering a password.
         /// </summary>
         Debug,
+
         /// <summary>
         /// Log-level for most log-messages. This is the second-lowest level (second-highest verbosity).
         /// </summary>
         Verbose,
+
         /// <summary>
         /// Log-level for important log-messages. This is the second-highest level (second-lowest verbosity).
         /// </summary>
         Important,
+
         /// <summary>
         /// Log-level for error messages. This is the highest level (lowest verbosity).
         /// </summary>
@@ -460,22 +485,27 @@ namespace osu.Framework.Logging
         /// Logging target for general information. Everything logged with this target will not be written to a logfile.
         /// </summary>
         Information,
+
         /// <summary>
         /// Logging target for information about the runtime.
         /// </summary>
         Runtime,
+
         /// <summary>
         /// Logging target for network-related events.
         /// </summary>
         Network,
+
         /// <summary>
         /// Logging target for performance-related information.
         /// </summary>
         Performance,
+
         /// <summary>
         /// Logging target for information relevant to debugging.
         /// </summary>
         Debug,
+
         /// <summary>
         /// Logging target for database-related events.
         /// </summary>
