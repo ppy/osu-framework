@@ -196,7 +196,7 @@ namespace osu.Framework.Graphics.Containers
 
             // Prefer to use own vertex batch instead of the parent-owned one.
             if (Shared.VertexBatch != null)
-                vertexAction = Shared.VertexBatch.Add;
+                vertexAction = Shared.VertexBatch.AddAction;
 
             base.Draw(vertexAction);
 
