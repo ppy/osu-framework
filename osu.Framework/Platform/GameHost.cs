@@ -318,24 +318,31 @@ namespace osu.Framework.Platform
             if (Window == null) throw new NullReferenceException(nameof(Window));
 
             var clientRectangle = Window.ClientRectangle;
-            var tcs = new TaskCompletionSource<Bitmap>();
+
+            bool complete = false;
+
+            var bitmap = new Bitmap(clientRectangle.Width, clientRectangle.Height);
+            BitmapData data = bitmap.LockBits(clientRectangle, ImageLockMode.WriteOnly, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
 
             DrawThread.Scheduler.Add(() =>
             {
                 if (GraphicsContext.CurrentContext == null)
                     throw new GraphicsContextMissingException();
 
-                var b = new Bitmap(clientRectangle.Width, clientRectangle.Height);
-
-                BitmapData data = b.LockBits(clientRectangle, ImageLockMode.WriteOnly, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
                 OpenTK.Graphics.OpenGL.GL.ReadPixels(0, 0, clientRectangle.Width, clientRectangle.Height, OpenTK.Graphics.OpenGL.PixelFormat.Bgr, OpenTK.Graphics.OpenGL.PixelType.UnsignedByte, data.Scan0);
-                b.UnlockBits(data);
-                b.RotateFlip(RotateFlipType.RotateNoneFlipY);
-
-                tcs.SetResult(b);
+                complete = true;
             });
 
-            return await tcs.Task;
+            await Task.Run(() =>
+            {
+                while (!complete)
+                    Thread.Sleep(50);
+            });
+
+            bitmap.UnlockBits(data);
+            bitmap.RotateFlip(RotateFlipType.RotateNoneFlipY);
+
+            return bitmap;
         }
 
         private volatile ExecutionState executionState;
