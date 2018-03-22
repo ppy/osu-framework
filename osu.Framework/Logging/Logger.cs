@@ -346,6 +346,8 @@ namespace osu.Framework.Logging
                     {
                     }
                 });
+
+                writer_idle.Reset();
             }
         }
 
@@ -366,7 +368,10 @@ namespace osu.Framework.Logging
         private void clear()
         {
             lock (flush_sync_lock)
+            {
                 scheduler.Add(() => Storage.Delete(Filename));
+                writer_idle.Reset();
+            }
         }
 
         private bool headerAdded;
