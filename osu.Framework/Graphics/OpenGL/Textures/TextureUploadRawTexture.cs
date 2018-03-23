@@ -17,7 +17,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         private ITextureLocker locker;
 
-        public override IntPtr GetPointer() => (locker = data.ObtainLock()).DataPointer;
+        public override IntPtr GetPointer() => (locker ?? (locker = data.ObtainLock())).DataPointer;
 
         protected override void Dispose(bool disposing)
         {

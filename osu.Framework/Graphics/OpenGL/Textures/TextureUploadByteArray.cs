@@ -29,6 +29,9 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public override IntPtr GetPointer()
         {
+            if (handle.IsAllocated)
+                return handle.AddrOfPinnedObject();
+
             if (Data == null || Data.Length == 0) return IntPtr.Zero;
 
             handle = GCHandle.Alloc(Data, GCHandleType.Pinned);

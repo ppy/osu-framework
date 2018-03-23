@@ -18,7 +18,7 @@ namespace osu.Framework.Graphics.Textures
         public TextureLockerBitmap(Bitmap bitmap, Rectangle region)
         {
             this.bitmap = bitmap;
-            data = bitmap.LockBits(region, ImageLockMode.ReadWrite, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+            data = bitmap.LockBits(region, ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
         }
 
         public void Dispose()
