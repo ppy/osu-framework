@@ -47,7 +47,7 @@ namespace osu.Framework.Platform
             var token = cancelListener.Token;
             try
             {
-                while (true)
+                while (!token.IsCancellationRequested)
                 {
                     while (!listener.Pending())
                     {
