@@ -31,7 +31,7 @@ namespace osu.Framework.Tests.Visual
                 data[index + 2] = (byte)(brightness * 255);
                 data[index + 3] = 255;
             }
-            gradientTexture.SetData(new TextureUpload(data));
+            gradientTexture.SetData(new TextureUploadByteArray(data));
 
             SpriteText[] text = new SpriteText[6];
 
