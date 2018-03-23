@@ -4,48 +4,12 @@
 using System;
 using System.Diagnostics;
 using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
-using System.Runtime.InteropServices;
 using JetBrains.Annotations;
 using PixelFormat = OpenTK.Graphics.ES30.PixelFormat;
 
 namespace osu.Framework.Graphics.Textures
 {
-    public interface IRawTexture : IDisposable
-    {
-        ITextureLocker ObtainLock();
-
-        int Width { get; }
-        int Height { get; }
-
-        PixelFormat PixelFormat { get; }
-    }
-
-    public class RawTextureBytes : IRawTexture
-    {
-        private readonly byte[] bytes;
-        private readonly Rectangle dimensions;
-
-        public PixelFormat PixelFormat => PixelFormat.Rgba;
-
-        public ITextureLocker ObtainLock() => new TextureLockerByteArray(bytes);
-
-        public int Width => dimensions.Width;
-        public int Height => dimensions.Height;
-
-        public RawTextureBytes(byte[] bytes, Rectangle dimensions)
-        {
-            this.bytes = bytes;
-            this.dimensions = dimensions;
-        }
-
-        public void Dispose()
-        {
-            throw new NotImplementedException();
-        }
-    }
-
     public class RawTextureBitmap : IRawTexture
     {
         public PixelFormat PixelFormat { get; }
@@ -128,47 +92,5 @@ namespace osu.Framework.Graphics.Textures
         }
 
         #endregion
-    }
-
-    public interface ITextureLocker : IDisposable
-    {
-        IntPtr DataPointer { get; }
-    }
-
-    public class TextureLockerByteArray : ITextureLocker
-    {
-        private GCHandle handle;
-
-        public IntPtr DataPointer => handle.AddrOfPinnedObject();
-
-        public TextureLockerByteArray(byte[] bytes)
-        {
-            handle = GCHandle.Alloc(bytes, GCHandleType.Pinned);
-        }
-
-        public void Dispose()
-        {
-            handle.Free();
-        }
-    }
-
-    public class TextureLockerBitmap : ITextureLocker
-    {
-        private readonly Bitmap bitmap;
-
-        private readonly BitmapData data;
-
-        public IntPtr DataPointer => data.Scan0;
-
-        public TextureLockerBitmap(Bitmap bitmap, Rectangle region)
-        {
-            this.bitmap = bitmap;
-            data = bitmap.LockBits(region, ImageLockMode.ReadWrite, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-        }
-
-        public void Dispose()
-        {
-            bitmap.UnlockBits(data);
-        }
     }
 }
