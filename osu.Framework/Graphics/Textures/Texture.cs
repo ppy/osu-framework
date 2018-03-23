@@ -9,9 +9,8 @@ using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.Primitives;
 using OpenTK;
 using OpenTK.Graphics.ES30;
-using osu.Framework.Graphics.Colour;
-using osu.Framework.Graphics.OpenGL.Vertices;
 using Bitmap = System.Drawing.Bitmap;
+using PixelFormat = System.Drawing.Imaging.PixelFormat;
 using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Graphics.Textures
@@ -28,7 +27,7 @@ namespace osu.Framework.Graphics.Textures
                 {
                     TextureAtlas atlas = new TextureAtlas(3, 3, true);
                     whitePixel = atlas.GetWhitePixel();
-                    whitePixel.SetData(new TextureUpload(new byte[] { 255, 255, 255, 255 }));
+                    whitePixel.SetData(new TextureUploadByteArray(new byte[] { 255, 255, 255, 255 }));
                 }
 
                 return whitePixel;
@@ -136,7 +135,7 @@ namespace osu.Framework.Graphics.Textures
 
             BitmapData bData = bitmap.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
 
-            TextureUpload upload = new TextureUpload(width * height * 4)
+            TextureUploadByteArray upload = new TextureUploadByteArray(width * height * 4)
             {
                 Level = level,
                 Bounds = new RectangleI(0, 0, width, height)

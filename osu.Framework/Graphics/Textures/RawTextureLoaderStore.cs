@@ -1,15 +1,11 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System.Diagnostics;
-using System.IO;
-using System.Drawing;
-using System.Drawing.Imaging;
 using osu.Framework.IO.Stores;
 
 namespace osu.Framework.Graphics.Textures
 {
-    public class RawTextureLoaderStore : ResourceStore<RawTexture>
+    public class RawTextureLoaderStore : ResourceStore<RawTextureBitmap>
     {
         private IResourceStore<byte[]> store { get; }
 
@@ -20,9 +16,9 @@ namespace osu.Framework.Graphics.Textures
             (store as ResourceStore<byte[]>)?.AddExtension(@"jpg");
         }
 
-        private RawTexture loadOther(Stream stream)
+/*        private RawTextureBitmap loadOther(Stream stream)
         {
-            RawTexture t = new RawTexture();
+            RawTextureBitmap t = new RawTextureBitmap();
             using (var bmp = (Bitmap)Image.FromStream(stream))
             {
                 t.Pixels = new byte[bmp.Width * bmp.Height * 4];
@@ -61,9 +57,9 @@ namespace osu.Framework.Graphics.Textures
                 }
             }
             return t;
-        }
+        }*/
 
-        public override RawTexture Get(string name)
+        public override RawTextureBitmap Get(string name)
         {
             try
             {
@@ -71,7 +67,7 @@ namespace osu.Framework.Graphics.Textures
                 {
                     if (stream == null) return null;
 
-                    return RawTexture.FromStream(stream);
+                    return new RawTextureBitmap(stream);
                 }
             }
             catch

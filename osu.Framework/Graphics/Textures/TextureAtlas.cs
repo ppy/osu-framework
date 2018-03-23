@@ -60,7 +60,7 @@ namespace osu.Framework.Graphics.Textures
                 byte[] white = new byte[whiteTex.Width * whiteTex.Height * 4];
                 for (int i = 0; i < white.Length; i++)
                     white[i] = 255;
-                whiteTex.SetData(new TextureUpload(white));
+                whiteTex.SetData(new TextureUploadByteArray(white));
             }
         }
 

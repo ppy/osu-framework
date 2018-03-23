@@ -6,6 +6,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Graphics.Textures;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -13,7 +14,7 @@ using osu.Framework.Logging;
 
 namespace osu.Framework.IO.Stores
 {
-    public class GlyphStore : IResourceStore<RawTexture>
+    public class GlyphStore : IResourceStore<IRawTexture>
     {
         private readonly string assetName;
 
@@ -24,7 +25,7 @@ namespace osu.Framework.IO.Stores
         private readonly ResourceStore<byte[]> store;
         private BitmapFont font;
 
-        private readonly TimedExpiryCache<int, RawTexture> texturePages = new TimedExpiryCache<int, RawTexture>();
+        private readonly TimedExpiryCache<int, RawTextureBitmap> texturePages = new TimedExpiryCache<int, RawTextureBitmap>();
 
         private Task fontLoadTask;
 
@@ -72,72 +73,79 @@ namespace osu.Framework.IO.Stores
             return font.BaseHeight;
         }
 
-        public RawTexture Get(string name)
+        public IRawTexture Get(string name)
         {
-            if (name.Length > 1 && !name.StartsWith($@"{fontName}/", StringComparison.Ordinal))
-                return null;
-
-            try
+            lock (this)
             {
-                fontLoadTask?.Wait();
-            }
-            catch
-            {
-                return null;
-            }
 
-            if (!font.Characters.TryGetValue(name.Last(), out Character c))
-                return null;
 
-            RawTexture page = getTexturePage(c.TexturePage);
-            loadedGlyphCount++;
+                if (name.Length > 1 && !name.StartsWith($@"{fontName}/", StringComparison.Ordinal))
+                    return null;
 
-            int width = c.Bounds.Width + c.Offset.X + 1;
-            int height = c.Bounds.Height + c.Offset.Y + 1;
-            int length = width * height * 4;
-            byte[] pixels = new byte[length];
-
-            for (int y = 0; y < height; y++)
-            {
-                for (int x = 0; x < width; x++)
+                try
                 {
-                    int desti = y * width * 4 + x * 4;
-                    if (x >= c.Offset.X && y >= c.Offset.Y
-                        && x - c.Offset.X < c.Bounds.Width && y - c.Offset.Y < c.Bounds.Height)
-                    {
-                        int srci = (c.Bounds.Y + y - c.Offset.Y) * page.Width * 4
-                                   + (c.Bounds.X + x - c.Offset.X) * 4;
-                        pixels[desti] = page.Pixels[srci];
-                        pixels[desti + 1] = page.Pixels[srci + 1];
-                        pixels[desti + 2] = page.Pixels[srci + 2];
-                        pixels[desti + 3] = page.Pixels[srci + 3];
-                    }
-                    else
-                    {
-                        pixels[desti] = 255;
-                        pixels[desti + 1] = 255;
-                        pixels[desti + 2] = 255;
-                        pixels[desti + 3] = 0;
-                    }
+                    fontLoadTask?.Wait();
                 }
-            }
+                catch
+                {
+                    return null;
+                }
 
-            return new RawTexture
-            {
-                Pixels = pixels,
-                PixelFormat = OpenTK.Graphics.ES30.PixelFormat.Rgba,
-                Width = width,
-                Height = height,
-            };
+                if (!font.Characters.TryGetValue(name.Last(), out Character c))
+                    return null;
+
+                RawTextureBitmap page = getTexturePage(c.TexturePage);
+                loadedGlyphCount++;
+
+                int width = c.Bounds.Width + c.Offset.X + 1;
+                int height = c.Bounds.Height + c.Offset.Y + 1;
+
+                int length = width * height * 4;
+                byte[] pixels = new byte[length];
+
+                using (var locker = page.ObtainLock())
+                    unsafe
+                    {
+                        var src = (byte*)locker.DataPointer;
+                        Debug.Assert(src != null);
+
+                        for (int y = 0; y < height; y++)
+                        {
+                            for (int x = 0; x < width; x++)
+                            {
+                                int desti = y * width * 4 + x * 4;
+                                if (x >= c.Offset.X && y >= c.Offset.Y
+                                                    && x - c.Offset.X < c.Bounds.Width && y - c.Offset.Y < c.Bounds.Height)
+                                {
+                                    int srci = (c.Bounds.Y + y - c.Offset.Y) * page.Width * 4 + (c.Bounds.X + x - c.Offset.X) * 4;
+                                    pixels[desti] = src[srci];
+                                    pixels[desti + 1] = src[srci + 1];
+                                    pixels[desti + 2] = src[srci + 2];
+                                    pixels[desti + 3] = src[srci + 3];
+                                }
+                                else
+                                {
+                                    pixels[desti] = 255;
+                                    pixels[desti + 1] = 255;
+                                    pixels[desti + 2] = 255;
+                                    pixels[desti + 3] = 0;
+                                }
+                            }
+                        }
+                    }
+
+                return new RawTextureBytes(pixels, new System.Drawing.Rectangle(0, 0, width, height));
+                // TODO: page?.GetSubregion(new Rectangle(c.Bounds.X - c.Offset.X, c.Bounds.Y - c.Offset.Y, width, height));
+            }
         }
 
-        private RawTexture getTexturePage(int texturePage)
+        private RawTextureBitmap getTexturePage(int texturePage)
         {
-            if (!texturePages.TryGetValue(texturePage, out RawTexture t))
+            if (!texturePages.TryGetValue(texturePage, out RawTextureBitmap t))
             {
                 loadedPageCount++;
                 using (var stream = store.GetStream($@"{assetName}_{texturePage.ToString().PadLeft((font.Pages.Length - 1).ToString().Length, '0')}.png"))
-                    texturePages.Add(texturePage, t = RawTexture.FromStream(stream));
+                    texturePages.Add(texturePage, t = stream != null ? new RawTextureBitmap(stream) : null);
             }
 
             return t;
@@ -167,14 +175,15 @@ namespace osu.Framework.IO.Stores
         {
         }
 
-        public override void AddStore(IResourceStore<RawTexture> store)
+        public override void AddStore(IResourceStore<IRawTexture> store)
         {
             var gs = store as GlyphStore;
             if (gs != null)
                 glyphStores.Add(gs);
             base.AddStore(store);
         }
-        public override void RemoveStore(IResourceStore<RawTexture> store)
+
+        public override void RemoveStore(IResourceStore<IRawTexture> store)
         {
             var gs = store as GlyphStore;
             if (gs != null)
@@ -191,6 +200,7 @@ namespace osu.Framework.IO.Stores
             }
             return null;
         }
+
         public float? GetBaseHeight(string fontName)
         {
             foreach (var store in glyphStores)

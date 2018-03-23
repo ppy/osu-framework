@@ -245,11 +245,11 @@ namespace osu.Framework.Graphics.Performance
 
             addArea(null, null, HEIGHT, column, amount_count_steps);
 
-            counterBarBackground?.Texture.SetData(new TextureUpload(column));
+            counterBarBackground?.Texture.SetData(new TextureUploadByteArray(column));
             Schedule(() =>
             {
                 foreach (var t in timeBars)
-                    t.Sprite.Texture.SetData(new TextureUpload(fullBackground));
+                    t.Sprite.Texture.SetData(new TextureUploadByteArray(fullBackground));
             });
         }
 
@@ -310,7 +310,7 @@ namespace osu.Framework.Graphics.Performance
         private void applyFrameTime(FrameStatistics frame)
         {
             TimeBar timeBar = timeBars[timeBarIndex];
-            TextureUpload upload = new TextureUpload(HEIGHT * 4, textureBufferStack)
+            TextureUploadByteArray upload = new TextureUploadByteArray(HEIGHT * 4, textureBufferStack)
             {
                 Bounds = new RectangleI(timeBarX, 0, 1, HEIGHT)
             };

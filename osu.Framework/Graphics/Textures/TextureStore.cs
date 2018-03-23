@@ -12,7 +12,7 @@ using OpenTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Textures
 {
-    public class TextureStore : ResourceStore<RawTexture>
+    public class TextureStore : ResourceStore<IRawTexture>
     {
         private readonly ConcurrentDictionary<string, Lazy<TextureGL>> textureCache = new ConcurrentDictionary<string, Lazy<TextureGL>>();
 
@@ -25,7 +25,7 @@ namespace osu.Framework.Graphics.Textures
         /// </summary>
         public float ScaleAdjust = 2;
 
-        public TextureStore(IResourceStore<RawTexture> store = null, bool useAtlas = true, All filteringMode = All.Linear)
+        public TextureStore(IResourceStore<IRawTexture> store = null, bool useAtlas = true, All filteringMode = All.Linear)
             : base(store)
         {
             this.filteringMode = filteringMode;
@@ -38,11 +38,11 @@ namespace osu.Framework.Graphics.Textures
 
         private Texture getTexture(string name)
         {
-            RawTexture raw = base.Get($@"{name}");
+            IRawTexture raw = base.Get($@"{name}");
             if (raw == null) return null;
 
             Texture tex = atlas != null ? atlas.Add(raw.Width, raw.Height) : new Texture(raw.Width, raw.Height, filteringMode: filteringMode);
-            tex.SetData(new TextureUpload(raw.Pixels)
+            tex.SetData(new TextureUploadRawTexture(raw)
             {
                 Bounds = new RectangleI(0, 0, raw.Width, raw.Height),
                 Format = raw.PixelFormat,

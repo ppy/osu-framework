@@ -1,66 +1,174 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Runtime.InteropServices;
+using JetBrains.Annotations;
 using PixelFormat = OpenTK.Graphics.ES30.PixelFormat;
 
 namespace osu.Framework.Graphics.Textures
 {
-    public class RawTexture
+    public interface IRawTexture : IDisposable
     {
-        public int Width, Height;
-        public PixelFormat PixelFormat;
-        public byte[] Pixels;
+        ITextureLocker ObtainLock();
 
-        public static RawTexture FromStream(Stream stream)
+        int Width { get; }
+        int Height { get; }
+
+        PixelFormat PixelFormat { get; }
+    }
+
+    public class RawTextureBytes : IRawTexture
+    {
+        private readonly byte[] bytes;
+        private readonly Rectangle dimensions;
+
+        public PixelFormat PixelFormat => PixelFormat.Rgba;
+
+        public ITextureLocker ObtainLock() => new TextureLockerByteArray(bytes);
+
+        public int Width => dimensions.Width;
+        public int Height => dimensions.Height;
+
+        public RawTextureBytes(byte[] bytes, Rectangle dimensions)
         {
-            using (Bitmap bitmap = new Bitmap(stream))
+            this.bytes = bytes;
+            this.dimensions = dimensions;
+        }
+
+        public void Dispose()
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class RawTextureBitmap : IRawTexture
+    {
+        public PixelFormat PixelFormat { get; }
+        public readonly Bitmap Bitmap;
+        public Rectangle Region;
+
+        public int Width => Region.Width;
+        public int Height => Region.Height;
+
+        public ITextureLocker ObtainLock() => new TextureLockerBitmap(Bitmap, Region);
+
+        private readonly bool disposeBitmap;
+
+        public RawTextureBitmap(Stream stream)
+            : this(new Bitmap(stream))
+        {
+            disposeBitmap = true;
+
+            using (var locker = ObtainLock())
             {
-                var data = bitmap.LockBits(new Rectangle(Point.Empty, bitmap.Size), ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-
-                RawTexture t = new RawTexture
-                {
-                    Width = bitmap.Width,
-                    Height = bitmap.Height,
-                    Pixels = new byte[data.Width * data.Height * 4],
-                    PixelFormat = PixelFormat.Rgba
-                };
-
                 unsafe
                 {
                     //convert from BGRA (System.Drawing) to RGBA
                     //don't need to consider stride because we're in a raw format
-                    var src = (byte*)data.Scan0;
+                    var src = (byte*)locker.DataPointer;
 
                     Debug.Assert(src != null);
 
-                    fixed (byte* pixels = t.Pixels)
+                    int length = Region.Width * Region.Height;
+                    for (int i = 0; i < length; i++)
                     {
-                        var dest = pixels;
+                        //BGRA -> RGBA
+                        byte temp = src[2];
+                        src[2] = src[0];
+                        src[0] = temp;
 
-                        int length = t.Pixels.Length / 4;
-                        for (int i = 0; i < length; i++)
-                        {
-                            //BGRA -> RGBA
-                            // ReSharper disable once PossibleNullReferenceException
-                            dest[0] = src[2];
-                            dest[1] = src[1];
-                            dest[2] = src[0];
-                            dest[3] = src[3];
-
-                            src += 4;
-                            dest += 4;
-                        }
+                        src += 4;
                     }
                 }
-
-                bitmap.UnlockBits(data);
-
-                return t;
             }
+        }
+
+        public RawTextureBitmap(Bitmap bitmap)
+            : this(bitmap, new Rectangle(0, 0, bitmap.Width, bitmap.Height))
+        {
+        }
+
+        public RawTextureBitmap([NotNull] Bitmap bitmap, Rectangle region)
+        {
+            Bitmap = bitmap ?? throw new ArgumentNullException(nameof(bitmap));
+
+            Region = region;
+            PixelFormat = PixelFormat.Rgba;
+        }
+
+        public RawTextureBitmap GetSubregion(Rectangle rectangle) => new RawTextureBitmap(Bitmap, rectangle);
+
+        #region IDisposable Support
+
+        private bool isDisposed;
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!isDisposed)
+            {
+                isDisposed = true;
+                if (disposeBitmap) Bitmap?.Dispose();
+            }
+        }
+
+        ~RawTextureBitmap()
+        {
+            Dispose(false);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        #endregion
+    }
+
+    public interface ITextureLocker : IDisposable
+    {
+        IntPtr DataPointer { get; }
+    }
+
+    public class TextureLockerByteArray : ITextureLocker
+    {
+        private GCHandle handle;
+
+        public IntPtr DataPointer => handle.AddrOfPinnedObject();
+
+        public TextureLockerByteArray(byte[] bytes)
+        {
+            handle = GCHandle.Alloc(bytes, GCHandleType.Pinned);
+        }
+
+        public void Dispose()
+        {
+            handle.Free();
+        }
+    }
+
+    public class TextureLockerBitmap : ITextureLocker
+    {
+        private readonly Bitmap bitmap;
+
+        private readonly BitmapData data;
+
+        public IntPtr DataPointer => data.Scan0;
+
+        public TextureLockerBitmap(Bitmap bitmap, Rectangle region)
+        {
+            this.bitmap = bitmap;
+            data = bitmap.LockBits(region, ImageLockMode.ReadWrite, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+        }
+
+        public void Dispose()
+        {
+            bitmap.UnlockBits(data);
         }
     }
 }
