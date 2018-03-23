@@ -32,6 +32,8 @@ namespace osu.Framework.Statistics
 
         private readonly CancellationTokenSource cancellationToken;
 
+        public bool Enabled = true;
+
         public BackgroundStackTraceCollector(Thread targetThread, StopwatchClock clock)
         {
             if (Debugger.IsAttached) return;
@@ -46,7 +48,7 @@ namespace osu.Framework.Statistics
             {
                 while (!cancellationToken.IsCancellationRequested)
                 {
-                    if (targetThread.IsAlive && clock.ElapsedMilliseconds - LastConsumptionTime > spikeRecordThreshold / 2 && backgroundMonitorStackTrace == null)
+                    if (Enabled && targetThread.IsAlive && clock.ElapsedMilliseconds - LastConsumptionTime > spikeRecordThreshold / 2 && backgroundMonitorStackTrace == null)
                         backgroundMonitorStackTrace = getStackTrace(targetThread);
 
                     Thread.Sleep(1);
@@ -65,7 +67,7 @@ namespace osu.Framework.Statistics
 
             spikeRecordThreshold = newSpikeThreshold;
 
-            if (elapsedFrameTime < currentThreshold || currentThreshold == 0)
+            if (!Enabled || elapsedFrameTime < currentThreshold || currentThreshold == 0)
                 return;
 
             StringBuilder logMessage = new StringBuilder();
