@@ -1,14 +1,14 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
 using osu.Framework.Logging;
 using osu.Framework.Timing;
 using System.Diagnostics;
 using System.Text;
 using System.Threading;
-
+using System.Threading.Tasks;
 #if NET_FRAMEWORK
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Diagnostics.Runtime;
@@ -123,6 +123,7 @@ namespace osu.Framework.Statistics
         ~BackgroundStackTraceCollector()
         {
             Dispose(false);
+        }
 
         private bool isDisposed;
 
@@ -141,6 +142,5 @@ namespace osu.Framework.Statistics
             GC.SuppressFinalize(this);
         }
         #endregion
-        }
     }
 }
