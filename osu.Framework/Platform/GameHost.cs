@@ -98,6 +98,7 @@ namespace osu.Framework.Platform
         public void RegisterThread(GameThread t)
         {
             threads.Add(t);
+            t.Monitor.EnablePerformanceProfiling = performanceLogging;
         }
 
         public GameThread DrawThread;
@@ -528,6 +529,7 @@ namespace osu.Framework.Platform
         private Bindable<string> enabledInputHandlers;
 
         private Bindable<double> cursorSensitivity;
+        private Bindable<bool> performanceLogging;
 
         private void setupConfig()
         {
@@ -613,6 +615,10 @@ namespace osu.Framework.Platform
             };
 
             cursorSensitivity = config.GetBindable<double>(FrameworkSetting.CursorSensitivity);
+
+            performanceLogging = config.GetBindable<bool>(FrameworkSetting.PerformanceLogging);
+            performanceLogging.ValueChanged += enabled => threads.ForEach(t => t.Monitor.EnablePerformanceProfiling = enabled);
+            performanceLogging.TriggerChange();
         }
 
         private void setVSyncMode()

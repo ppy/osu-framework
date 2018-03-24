@@ -30,6 +30,12 @@ namespace osu.Framework.Statistics
 
         internal bool[] ActiveCounters => (bool[])activeCounters.Clone();
 
+        public bool EnablePerformanceProfiling
+        {
+            get => traceCollector.Enabled;
+            set => traceCollector.Enabled = value;
+        }
+
         private double consumptionTime;
 
         internal ThrottledFrameClock Clock;
