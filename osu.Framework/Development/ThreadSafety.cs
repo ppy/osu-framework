@@ -36,10 +36,10 @@ namespace osu.Framework.Development
             Debug.Assert(IsDrawThread);
         }
 
-        public static bool IsUpdateThread => Thread.CurrentThread.Name == UpdateThread.THREAD_NAME;
+        public static bool IsUpdateThread => Thread.CurrentThread.Name == GameThread.PrefixedThreadNameFor("Update");
 
-        public static bool IsDrawThread => Thread.CurrentThread.Name == DrawThread.THREAD_NAME;
+        public static bool IsDrawThread => Thread.CurrentThread.Name == GameThread.PrefixedThreadNameFor("Draw");
 
-        public static bool IsAudioThread => Thread.CurrentThread.Name == AudioThread.THREAD_NAME;
+        public static bool IsAudioThread => Thread.CurrentThread.Name == GameThread.PrefixedThreadNameFor("Audio");
     }
 }

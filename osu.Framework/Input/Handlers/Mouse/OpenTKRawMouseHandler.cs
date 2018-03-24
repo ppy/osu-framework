@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using osu.Framework.Configuration;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
@@ -60,9 +61,9 @@ namespace osu.Framework.Input.Handlers.Mouse
                         if (!host.Window.Visible || host.Window.WindowState == WindowState.Minimized)
                             return;
 
-                        if (mouseInWindow && host.Window.Focused)
+                        if ((mouseInWindow || lastStates.Any(s => s.HasAnyButtonPressed)) && host.Window.Focused)
                         {
-                            var newStates = new List<OpenTK.Input.MouseState>();
+                            var newStates = new List<OpenTK.Input.MouseState>(mostSeenStates + 1);
 
                             for (int i = 0; i <= mostSeenStates + 1; i++)
                             {

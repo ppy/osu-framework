@@ -9,10 +9,8 @@ namespace osu.Framework.Threading
 {
     public class AudioThread : GameThread
     {
-        internal const string THREAD_NAME = "Framework.Audio.Thread";
-
         public AudioThread(Action onNewFrame)
-            : base(onNewFrame, THREAD_NAME)
+            : base(onNewFrame, "Audio")
         {
         }
 
@@ -25,9 +23,9 @@ namespace osu.Framework.Threading
             StatisticsCounterType.Components,
         };
 
-        public override void Exit()
+        protected override void PerformExit()
         {
-            base.Exit();
+            base.PerformExit();
 
             ManagedBass.Bass.Free();
         }

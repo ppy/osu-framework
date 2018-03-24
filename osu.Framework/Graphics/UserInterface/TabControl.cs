@@ -24,9 +24,9 @@ namespace osu.Framework.Graphics.UserInterface
         public Bindable<T> Current { get; } = new Bindable<T>();
 
         /// <summary>
-        /// A list of items currently in the tab control in the other they are dispalyed.
+        /// A list of items currently in the tab control in the order they are dispalyed.
         /// </summary>
-        public IEnumerable<T> Items => TabContainer.Children.Select(tab => tab.Value);
+        public IEnumerable<T> Items => TabContainer.TabItems.Select(t => t.Value).Concat(Dropdown.Items.Select(kvp => kvp.Value)).Distinct();
 
         /// <summary>
         /// When true, tabs selected from the overflow dropdown will be moved to the front of the list (after pinned items).
@@ -35,7 +35,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected Dropdown<T> Dropdown;
 
-        protected TabFillFlowContainer<TabItem<T>> TabContainer;
+        protected readonly TabFillFlowContainer TabContainer;
 
         protected IReadOnlyDictionary<T, TabItem<T>> TabMap => tabMap;
 
@@ -55,7 +55,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected abstract TabItem<T> CreateTabItem(T value);
 
         /// <summary>
-        /// Incremented each time a tab needs to be inserted at the start of the list.
+        /// Decremented each time a tab needs to be inserted at the start of the list.
         /// </summary>
         private int depthCounter;
 
@@ -85,15 +85,9 @@ namespace osu.Framework.Graphics.UserInterface
             else
                 tabMap = new Dictionary<T, TabItem<T>>();
 
-            Add(TabContainer = new TabFillFlowContainer<TabItem<T>>
-            {
-                Direction = FillDirection.Full,
-                RelativeSizeAxes = Axes.Both,
-                Depth = -1,
-                Masking = true,
-                TabVisibilityChanged = updateDropdown,
-                ChildrenEnumerable = tabMap.Values
-            });
+            Add(TabContainer = CreateTabFlow());
+            TabContainer.TabVisibilityChanged = updateDropdown;
+            TabContainer.ChildrenEnumerable = tabMap.Values;
 
             Current.ValueChanged += newSelection =>
             {
@@ -131,8 +125,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <param name="item">The item to pin.</param>
         public void PinItem(T item)
         {
-            TabItem<T> tab;
-            if (!tabMap.TryGetValue(item, out tab))
+            if (!tabMap.TryGetValue(item, out TabItem<T> tab))
                 return;
             tab.Pinned = true;
         }
@@ -143,8 +136,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <param name="item">The item to unpin.</param>
         public void UnpinItem(T item)
         {
-            TabItem<T> tab;
-            if (!tabMap.TryGetValue(item, out tab))
+            if (!tabMap.TryGetValue(item, out TabItem<T> tab))
                 return;
             tab.Pinned = false;
         }
@@ -188,11 +180,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <param name="addToDropdown">Whether the tab should be added to the Dropdown if supported by the <see cref="TabControl{T}"/> implementation.</param>
         protected virtual void AddTabItem(TabItem<T> tab, bool addToDropdown = true)
         {
-            tab.PinnedChanged += t =>
-            {
-                // Todo: This schedule is a temporary fix for https://github.com/ppy/osu-framework/issues/821
-                Schedule(() => performTabSort(t));
-            };
+            tab.PinnedChanged += performTabSort;
 
             tab.ActivationRequested += SelectTab;
 
@@ -220,9 +208,6 @@ namespace osu.Framework.Graphics.UserInterface
                 Dropdown?.RemoveDropdownItem(tab.Value);
 
             TabContainer.Remove(tab);
-
-            if (TabContainer.Count > 0)
-                performTabSort(TabContainer.Last());
         }
 
         /// <summary>
@@ -254,28 +239,34 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void performTabSort(TabItem<T> tab)
         {
-            if (IsLoaded)
-                TabContainer.Remove(tab);
-
-            tab.Depth = getTabDepth(tab);
+            TabContainer.SetLayoutPosition(tab, getTabDepth(tab));
 
             // IsPresent of TabItems is based on Y position.
             // We reset it here to allow tabs to get a correct initial position.
             tab.Y = 0;
-
-            if (IsLoaded)
-                TabContainer.Add(tab);
         }
 
         private float getTabDepth(TabItem<T> tab) => tab.Pinned ? float.MinValue : --depthCounter;
 
-        public class TabFillFlowContainer<U> : FillFlowContainer<U> where U : TabItem
+        protected virtual TabFillFlowContainer CreateTabFlow() => new TabFillFlowContainer
         {
-            public Action<U, bool> TabVisibilityChanged;
+            Direction = FillDirection.Full,
+            RelativeSizeAxes = Axes.Both,
+            Depth = -1,
+            Masking = true
+        };
 
-            protected override int Compare(Drawable x, Drawable y) => CompareReverseChildID(x, y);
+        public class TabFillFlowContainer : FillFlowContainer<TabItem<T>>
+        {
+            /// <summary>
+            /// Gets called whenever the visibility of a tab in this container changes. Gets invoked with the <see cref="TabItem"/> whose visibility changed and the new visibility state (true = visible, false = hidden).
+            /// </summary>
+            public Action<TabItem<T>, bool> TabVisibilityChanged;
 
-            protected override IEnumerable<Drawable> FlowingChildren => base.FlowingChildren.Reverse();
+            /// <summary>
+            /// The list of tabs currently displayed by this container.
+            /// </summary>
+            public IEnumerable<TabItem<T>> TabItems => FlowingChildren.OfType<TabItem<T>>();
 
             protected override IEnumerable<Vector2> ComputeLayoutPositions()
             {
@@ -284,7 +275,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 var result = base.ComputeLayoutPositions().ToArray();
                 int i = 0;
-                foreach (var child in FlowingChildren.OfType<U>())
+                foreach (var child in FlowingChildren.OfType<TabItem<T>>())
                 {
                     updateChildIfNeeded(child, result[i].Y == 0);
                     ++i;
@@ -292,9 +283,9 @@ namespace osu.Framework.Graphics.UserInterface
                 return result;
             }
 
-            private readonly Dictionary<U, bool> tabVisibility = new Dictionary<U, bool>();
+            private readonly Dictionary<TabItem<T>, bool> tabVisibility = new Dictionary<TabItem<T>, bool>();
 
-            private void updateChildIfNeeded(U child, bool isVisible)
+            private void updateChildIfNeeded(TabItem<T> child, bool isVisible)
             {
                 if (!tabVisibility.ContainsKey(child) || tabVisibility[child] != isVisible)
                 {

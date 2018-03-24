@@ -127,11 +127,17 @@ namespace osu.Framework.IO.Network
 
         private static readonly Logger logger;
 
-        private static HttpClient client;
+        private static readonly HttpClient client;
 
         static WebRequest()
         {
-            createHttpClient();
+            client = new HttpClient(new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate });
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("osu!");
+            client.DefaultRequestHeaders.ExpectContinue = true;
+
+            // Timeout is controlled manually through cancellation tokens because
+            // HttpClient does not properly timeout while reading chunked data
+            client.Timeout = System.Threading.Timeout.InfiniteTimeSpan;
 
             logger = Logger.GetLogger(LoggingTarget.Network);
         }
@@ -336,7 +342,7 @@ namespace osu.Framework.IO.Network
                 }
                 catch (Exception) when (timeoutToken.IsCancellationRequested)
                 {
-                    Complete(new WebException($"Request to {Url} timed out after {timeSinceLastAction / 1000} seconds idle (read {responseBytesRead} bytes).", WebExceptionStatus.Timeout));
+                    Complete(new WebException($"Request to {Url} timed out after {timeSinceLastAction / 1000} seconds idle (read {responseBytesRead} bytes, retried {RetryCount} times).", WebExceptionStatus.Timeout));
                 }
                 catch (Exception) when (abortToken.IsCancellationRequested)
                 {
@@ -447,16 +453,12 @@ namespace osu.Framework.IO.Network
 
                     logger.Add($@"Request to {Url} failed with {e} (retrying {RetryCount}/{MAX_RETRIES}).");
 
-                    // For now, a client is created for each request due to the following bug in mono: https://bugzilla.xamarin.com/show_bug.cgi?id=60396
-                    // Todo: This must not be done, and is dangerous to do, see: https://aspnetmonsters.com/2016/08/2016-08-27-httpclientwrong/
-                    createHttpClient();
-
                     //do a retry
                     internalPerform();
                     return;
                 }
 
-                logger.Add($"Request to {Url} failed with {e} (FAILED).");
+                logger.Add($"Request to {Url} failed with {e}.");
             }
             else
                 logger.Add($@"Request to {Url} successfully completed!");
@@ -465,7 +467,11 @@ namespace osu.Framework.IO.Network
             {
                 ProcessResponse();
             }
-            catch (Exception se) { e = e == null ? se : new AggregateException(e, se); }
+            catch (Exception se)
+            {
+                logger.Add($"Processing response from {Url} failed with {se}.");
+                e = e == null ? se : new AggregateException(e, se);
+            }
 
             Completed = true;
 
@@ -582,19 +588,6 @@ namespace osu.Framework.IO.Network
             if (value == null) throw new ArgumentNullException(nameof(value));
 
             headers[name] = value;
-        }
-
-        private static void createHttpClient()
-        {
-            client?.Dispose();
-
-            client = new HttpClient(new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate });
-            client.DefaultRequestHeaders.UserAgent.ParseAdd("osu!");
-            client.DefaultRequestHeaders.ExpectContinue = true;
-
-            // Timeout is controlled manually through cancellation tokens because
-            // HttpClient does not properly timeout while reading chunked data
-            client.Timeout = System.Threading.Timeout.InfiniteTimeSpan;
         }
 
         #region Timeout Handling

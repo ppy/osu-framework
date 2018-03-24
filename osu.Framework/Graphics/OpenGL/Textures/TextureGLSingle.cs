@@ -26,13 +26,13 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         static TextureGLSingle()
         {
             QuadBatch<TexturedVertex2D> quadBatch = new QuadBatch<TexturedVertex2D>(512, 128);
-            default_quad_action = quadBatch.Add;
+            default_quad_action = quadBatch.AddAction;
 
             // We multiply the size param by 3 such that the amount of vertices is a multiple of the amount of vertices
             // per primitive (triangles in this case). Otherwise overflowing the batch will result in wrong
             // grouping of vertices into primitives.
             LinearBatch<TexturedVertex2D> triangleBatch = new LinearBatch<TexturedVertex2D>(512 * 3, 128, PrimitiveType.Triangles);
-            default_triangle_action = triangleBatch.Add;
+            default_triangle_action = triangleBatch.AddAction;
         }
 
         private readonly ConcurrentQueue<TextureUpload> uploadQueue = new ConcurrentQueue<TextureUpload>();
@@ -59,6 +59,9 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         {
             base.Dispose(isDisposing);
 
+            while (uploadQueue.TryDequeue(out TextureUpload u))
+                u.Dispose();
+
             GLWrapper.ScheduleDisposal(unload);
         }
 
@@ -67,10 +70,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// </summary>
         private void unload()
         {
-            TextureUpload u;
-            while (uploadQueue.TryDequeue(out u))
-                u.Dispose();
-
             int disposableId = textureId;
 
             if (disposableId <= 0)
@@ -318,10 +317,9 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString(), "Can not upload data to a disposed texture.");
 
-            TextureUpload upload;
             bool didUpload = false;
 
-            while (uploadQueue.TryDequeue(out upload))
+            while (uploadQueue.TryDequeue(out TextureUpload upload))
             {
                 IntPtr dataPointer;
                 GCHandle? h0;

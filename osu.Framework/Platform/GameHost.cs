@@ -3,6 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.Linq;
 using System.Reflection;
 using System.Runtime;
@@ -33,7 +35,9 @@ namespace osu.Framework.Platform
 {
     public abstract class GameHost : IIpcHost, IDisposable
     {
-        public GameWindow Window;
+        public GameWindow Window { get; protected set; }
+
+        private readonly Toolkit toolkit;
 
         private FrameworkDebugConfigManager debugConfig;
 
@@ -94,6 +98,7 @@ namespace osu.Framework.Platform
         public void RegisterThread(GameThread t)
         {
             threads.Add(t);
+            t.Monitor.EnablePerformanceProfiling = performanceLogging;
         }
 
         public GameThread DrawThread;
@@ -147,6 +152,8 @@ namespace osu.Framework.Platform
 
         protected GameHost(string gameName = @"")
         {
+            toolkit = Toolkit.Init();
+
             AppDomain.CurrentDomain.UnhandledException += exceptionHandler;
 
             FileSafety.DeleteCleanupDirectory();
@@ -303,6 +310,42 @@ namespace osu.Framework.Platform
             }
         }
 
+        /// <summary>
+        /// Make a <see cref="Bitmap"/> object from the current OpenTK screen buffer
+        /// </summary>
+        /// <returns><see cref="Bitmap"/> object</returns>
+        public async Task<Bitmap> TakeScreenshotAsync()
+        {
+            if (Window == null) throw new NullReferenceException(nameof(Window));
+
+            var clientRectangle = Window.ClientRectangle;
+
+            bool complete = false;
+
+            var bitmap = new Bitmap(clientRectangle.Width, clientRectangle.Height);
+            BitmapData data = bitmap.LockBits(clientRectangle, ImageLockMode.WriteOnly, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+
+            DrawThread.Scheduler.Add(() =>
+            {
+                if (GraphicsContext.CurrentContext == null)
+                    throw new GraphicsContextMissingException();
+
+                OpenTK.Graphics.OpenGL.GL.ReadPixels(0, 0, clientRectangle.Width, clientRectangle.Height, OpenTK.Graphics.OpenGL.PixelFormat.Bgr, OpenTK.Graphics.OpenGL.PixelType.UnsignedByte, data.Scan0);
+                complete = true;
+            });
+
+            await Task.Run(() =>
+            {
+                while (!complete)
+                    Thread.Sleep(50);
+            });
+
+            bitmap.UnlockBits(data);
+            bitmap.RotateFlip(RotateFlipType.RotateNoneFlipY);
+
+            return bitmap;
+        }
+
         private volatile ExecutionState executionState;
 
         /// <summary>
@@ -446,10 +489,20 @@ namespace osu.Framework.Platform
             Root = root;
         }
 
+        private const int thread_join_timeout = 30000;
+
         private void stopAllThreads()
         {
             threads.ForEach(t => t.Exit());
-            threads.Where(t => t.Running).ForEach(t => t.Thread.Join());
+            threads.Where(t => t.Running).ForEach(t =>
+            {
+                if (!t.Thread.Join(thread_join_timeout))
+                    Logger.Log($"Thread {t.Name} failed to exit in allocated time ({thread_join_timeout}ms).", LoggingTarget.Runtime, LogLevel.Important);
+            });
+
+            // as the input thread isn't actually handled by a thread, the above join does not necessarily mean it has been completed to an exiting state.
+            while (!InputThread.Exited)
+                InputThread.RunUpdate();
         }
 
         private void window_KeyDown(object sender, KeyboardKeyEventArgs e)
@@ -476,6 +529,7 @@ namespace osu.Framework.Platform
         private Bindable<string> enabledInputHandlers;
 
         private Bindable<double> cursorSensitivity;
+        private Bindable<bool> performanceLogging;
 
         private void setupConfig()
         {
@@ -561,6 +615,10 @@ namespace osu.Framework.Platform
             };
 
             cursorSensitivity = config.GetBindable<double>(FrameworkSetting.CursorSensitivity);
+
+            performanceLogging = config.GetBindable<bool>(FrameworkSetting.PerformanceLogging);
+            performanceLogging.ValueChanged += enabled => threads.ForEach(t => t.Monitor.EnablePerformanceProfiling = enabled);
+            performanceLogging.TriggerChange();
         }
 
         private void setVSyncMode()
@@ -593,10 +651,17 @@ namespace osu.Framework.Platform
             while (executionState > ExecutionState.Stopped)
                 Thread.Sleep(10);
 
+            AppDomain.CurrentDomain.UnhandledException -= exceptionHandler;
+
             Root?.Dispose();
+            Root = null;
 
             config?.Dispose();
             debugConfig?.Dispose();
+
+            Window?.Dispose();
+
+            toolkit?.Dispose();
 
             Logger.Flush();
         }

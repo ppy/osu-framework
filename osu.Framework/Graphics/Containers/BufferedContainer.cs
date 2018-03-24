@@ -214,14 +214,10 @@ namespace osu.Framework.Graphics.Containers
         /// Forces a redraw of the framebuffer before it is blitted the next time.
         /// Only relevant if <see cref="CacheDrawnFrameBuffer"/> is true.
         /// </summary>
-        public void ForceRedraw()
-        {
-            ++updateVersion;
-            Invalidate(Invalidation.DrawNode);
-        }
+        public void ForceRedraw() => Invalidate(Invalidation.DrawNode);
 
         /// <summary>
-        /// We need 2 frame buffers such that we can accumulate post-processing effects in a
+        /// We need 3 frame buffers such that we can accumulate post-processing effects in a
         /// ping-pong fashion going back and forth (reading from one buffer, writing into the other).
         /// </summary>
         private readonly FrameBuffer[] frameBuffers = new FrameBuffer[3];
@@ -326,19 +322,53 @@ namespace osu.Framework.Graphics.Containers
 
         protected override RectangleF ComputeChildMaskingBounds(RectangleF maskingBounds) => ScreenSpaceDrawQuad.AABBFloat; // Make sure children never get masked away
 
+        private Vector2 lastScreenSpacePos;
+        private bool checkScrenSpaceSize;
+
+        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
+        {
+            if ((invalidation & Invalidation.DrawNode) > 0)
+                    ++updateVersion;
+
+            // We actually only care about Invalidation.MiscGeometry | Invalidation.DrawInfo, but must match the blanket invalidation logic in Drawable.Invalidate
+            if ((invalidation & (Invalidation.Colour | Invalidation.RequiredParentSizeToFit | Invalidation.DrawInfo)) > 0)
+                checkScrenSpaceSize = true;
+
+            return base.Invalidate(invalidation, source, shallPropagate);
+        }
+
         protected override void Update()
         {
             // Invalidate drawn frame buffer every frame.
             if (!CacheDrawnFrameBuffer)
                 ForceRedraw();
+            else if (checkScrenSpaceSize)
+            {
+                var quad = ScreenSpaceDrawQuad.AABBFloat;
+
+                if (!Precision.AlmostEquals(quad.Width, lastScreenSpacePos.X) || !Precision.AlmostEquals(quad.Height, lastScreenSpacePos.Y))
+                {
+                    ++updateVersion;
+                    lastScreenSpacePos = new Vector2(quad.Width, quad.Height);
+                }
+
+                checkScrenSpaceSize = false;
+            }
 
             base.Update();
         }
 
-        protected override void UpdateAfterChildren()
+        private readonly long[] drawNodeVersions = new long[3];
+        private long currentDrawNode;
+
+        internal override bool AddChildDrawNodes => drawNodeVersions[currentDrawNode] != updateVersion;
+
+        internal override DrawNode GenerateDrawNodeSubtree(int treeIndex)
         {
-            base.UpdateAfterChildren();
-            childrenUpdateVersion = updateVersion;
+            currentDrawNode = treeIndex;
+            var node = base.GenerateDrawNodeSubtree(treeIndex);
+            drawNodeVersions[currentDrawNode] = childrenUpdateVersion = updateVersion;
+            return node;
         }
 
         protected override bool RequiresChildrenUpdate => base.RequiresChildrenUpdate && childrenUpdateVersion != updateVersion;

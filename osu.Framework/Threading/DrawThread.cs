@@ -9,10 +9,8 @@ namespace osu.Framework.Threading
 {
     public class DrawThread : GameThread
     {
-        internal const string THREAD_NAME = "Framework.Draw.Thread";
-
         public DrawThread(Action onNewFrame)
-            : base(onNewFrame, THREAD_NAME)
+            : base(onNewFrame, "Draw")
         {
         }
 

@@ -9,10 +9,8 @@ namespace osu.Framework.Threading
 {
     public class InputThread : GameThread
     {
-        internal const string THREAD_NAME = "Framework.Input.Thread";
-
         public InputThread(Action onNewFrame)
-            : base(onNewFrame, THREAD_NAME)
+            : base(onNewFrame, "Input")
         {
         }
 
