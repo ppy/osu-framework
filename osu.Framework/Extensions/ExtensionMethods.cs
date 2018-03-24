@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -200,9 +199,7 @@ namespace osu.Framework.Extensions
 
             Exception e = task.Exception;
 
-            Debug.Assert(e != null);
-
-            while (e.InnerException != null && e.GetType() != expectedBaseType)
+            while (e?.InnerException != null && e.GetType() != expectedBaseType)
                 e = e.InnerException;
 
             ExceptionDispatchInfo.Capture(e).Throw();

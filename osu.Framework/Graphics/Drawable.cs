@@ -1935,6 +1935,7 @@ namespace osu.Framework.Graphics
 
                     Debug.Assert(method != null);
 
+                    // ReSharper disable once PossibleNullReferenceException
                     if (method.DeclaringType != typeof(Drawable))
                     {
                         cache.TryAdd(type, true);
