@@ -4,8 +4,8 @@
   <Import Project="..\osu.Framework.props" />
 
   <PropertyGroup Label="Project">
-    <!-- We need to compile for net461 here for System.Drawing to work under .NET Framework... -->
-    <TargetFrameworks>net461;netstandard2.0;netcoreapp2.0</TargetFrameworks>
+    <TargetFramework Condition="'$(BuildingInsideVisualStudio)' == 'true'">net461</TargetFramework>
+    <TargetFrameworks Condition="'$(BuildingInsideVisualStudio)' != 'true'">net461;netstandard2.0;netcoreapp2.0</TargetFrameworks>
     <OutputType>Library</OutputType>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -22,7 +22,7 @@
   </PropertyGroup>
 
   <ItemGroup Label="References">
-    <Reference Include="System.Runtime.InteropServices.RuntimeInformation"/>
+    <Reference Include="System.Runtime.InteropServices.RuntimeInformation" />
   </ItemGroup>
 
   <ItemGroup Label="Package References">
