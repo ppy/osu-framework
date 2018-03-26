@@ -9,7 +9,6 @@ using osu.Framework.Graphics.OpenGL;
 using OpenTK;
 using System;
 using osu.Framework.Graphics.OpenGL.Vertices;
-using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Graphics.Sprites
 {

@@ -27,7 +27,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Development;
 using osu.Framework.MathUtils;
-using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Graphics
 {

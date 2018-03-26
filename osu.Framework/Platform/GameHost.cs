@@ -31,8 +31,6 @@ using osu.Framework.Threading;
 using osu.Framework.Timing;
 using osu.Framework.IO.File;
 using Bitmap = System.Drawing.Bitmap;
-using Point = System.Drawing.Point;
-using Rectangle = System.Drawing.Rectangle;
 
 namespace osu.Framework.Platform
 {
@@ -321,7 +319,7 @@ namespace osu.Framework.Platform
         {
             if (Window == null) throw new NullReferenceException(nameof(Window));
 
-            var clientRectangle = new Rectangle(new Point(Window.ClientRectangle.X, Window.ClientRectangle.Y), new System.Drawing.Size(Window.ClientSize.Width, Window.ClientSize.Height));
+            var clientRectangle = new Rectangle(new Point(Window.ClientRectangle.X, Window.ClientRectangle.Y), new Size(Window.ClientSize.Width, Window.ClientSize.Height));
 
             bool complete = false;
 

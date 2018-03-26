@@ -9,7 +9,6 @@ using osu.Framework.Allocation;
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Caching;
-using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Graphics.Lines
 {

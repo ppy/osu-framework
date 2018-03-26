@@ -11,10 +11,8 @@ using OpenTK.Graphics.ES30;
 using OpenTK.Platform;
 using OpenTK.Input;
 using System.ComponentModel;
+using System.Drawing;
 using JetBrains.Annotations;
-using Point = OpenTK.Point;
-using Rectangle = OpenTK.Rectangle;
-using Size = OpenTK.Size;
 using Icon = OpenTK.Icon;
 
 namespace osu.Framework.Platform

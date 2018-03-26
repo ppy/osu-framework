@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using osu.Framework.Graphics.OpenGL.Textures;
@@ -10,9 +11,8 @@ using OpenTK;
 using OpenTK.Graphics.ES30;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Vertices;
-using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
-using Rectangle = System.Drawing.Rectangle;
 using Bitmap = System.Drawing.Bitmap;
+using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Graphics.Textures
 {

@@ -7,7 +7,7 @@ using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
-using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
+using osu.Framework.Graphics.Primitives;
 
 namespace osu.Framework.MathUtils
 {

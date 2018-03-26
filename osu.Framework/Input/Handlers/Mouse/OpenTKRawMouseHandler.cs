@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using osu.Framework.Configuration;
 using osu.Framework.Platform;
@@ -10,8 +11,6 @@ using osu.Framework.Statistics;
 using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Platform.Windows;
-using Point = OpenTK.Point;
-using Rectangle = OpenTK.Rectangle;
 
 namespace osu.Framework.Input.Handlers.Mouse
 {

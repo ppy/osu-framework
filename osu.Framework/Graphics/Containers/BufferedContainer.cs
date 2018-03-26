@@ -15,7 +15,6 @@ using osu.Framework.MathUtils;
 using osu.Framework.Threading;
 using System;
 using System.Collections.Generic;
-using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Graphics.Containers
 {
