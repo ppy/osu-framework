@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\OpenTK.props" />
   <Import Project="..\System.Drawing.props" />
-  <Import Project="..\osu.Framework.props" />
+  <Import Project="..\TestableProject.props" />
   <PropertyGroup Label="Project">
     <TargetFramework Condition="'$(BuildingInsideVisualStudio)' == 'true'">net461</TargetFramework>
     <TargetFrameworks Condition="'$(BuildingInsideVisualStudio)' != 'true'">net461;netstandard2.0;netcoreapp2.0</TargetFrameworks>
@@ -28,7 +28,6 @@
     <PackageReference Include="ManagedBass.Fx" Version="2.0.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="2.4.0" />
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
-    <PackageReference Include="NUnit" Version="3.8.1" />
     <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.3.0" />
     <PackageReference Include="System.Reflection.Emit.ILGeneration" Version="4.3.0" />
     <PackageReference Include="Microsoft.Diagnostics.Runtime" Version="0.9.170809.3" Condition="'$(TargetFramework)' == 'net461'" />
