@@ -2,7 +2,6 @@
   <Import Project="..\OpenTK.props" />
   <Import Project="..\System.Drawing.props" />
   <Import Project="..\osu.Framework.props" />
-
   <PropertyGroup Label="Project">
     <TargetFramework Condition="'$(BuildingInsideVisualStudio)' == 'true'">net461</TargetFramework>
     <TargetFrameworks Condition="'$(BuildingInsideVisualStudio)' != 'true'">net461;netstandard2.0;netcoreapp2.0</TargetFrameworks>
@@ -16,15 +15,12 @@
     <Description>Framework to support osu!</Description>
     <Product>osu!framework</Product>
   </PropertyGroup>
-
   <PropertyGroup Label="Defines">
-   <DefineConstants Condition="'$(TargetFramework)' == 'net461'">$(DefineConstants);NET_FRAMEWORK</DefineConstants>
+    <DefineConstants Condition="'$(TargetFramework)' == 'net461'">$(DefineConstants);NET_FRAMEWORK</DefineConstants>
   </PropertyGroup>
-
   <ItemGroup Label="References">
     <Reference Include="System.Runtime.InteropServices.RuntimeInformation" />
   </ItemGroup>
-
   <ItemGroup Label="Package References">
     <PackageReference Include="System.Net.Http" Version="4.3.3" />
     <PackageReference Include="Cyotek.Drawing.BitmapFont" Version="1.3.4-beta1" />
@@ -38,7 +34,6 @@
     <PackageReference Include="Microsoft.Diagnostics.Runtime" Version="0.9.170809.3" Condition="'$(TargetFramework)' == 'net461'" />
     <PackageReference Include="JetBrains.Annotations" Version="11.1.0" />
   </ItemGroup>
-
   <ItemGroup Label="Content">
     <Content Include="Resources\Fonts\LICENSE.txt" />
     <EmbeddedResource Include="**\*.fs" />
@@ -48,7 +43,6 @@
     <EmbeddedResource Include="Resources\Fonts\OpenSans_1.png" />
     <EmbeddedResource Include="Resources\Fonts\OpenSans_0.png" />
   </ItemGroup>
-
   <ItemGroup Label="Copied Content">
     <Content Include="x86\*.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

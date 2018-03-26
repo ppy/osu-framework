@@ -7,10 +7,11 @@ using osu.Framework.Configuration;
 using osu.Framework.Input;
 using OpenTK;
 using OpenTK.Graphics;
+using Icon = System.Drawing.Icon;
 
 namespace osu.Framework.Platform
 {
-    public class DesktopGameWindow : GameWindow
+    public abstract class DesktopGameWindow : GameWindow
     {
         private const int default_width = 1366;
         private const int default_height = 768;
@@ -39,6 +40,8 @@ namespace osu.Framework.Platform
             Resize += OnResize;
             Move += OnMove;
         }
+
+        public abstract Icon Icon { get; set; }
 
         public override void SetupWindow(FrameworkConfigManager config)
         {
