@@ -34,7 +34,7 @@ namespace osu.Framework.Platform
 
         public readonly BindableBool MapAbsoluteInputToWindow = new BindableBool();
 
-        public DesktopGameWindow()
+        protected DesktopGameWindow()
             : base(default_width, default_height)
         {
             Resize += OnResize;
