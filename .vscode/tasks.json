@@ -4,73 +4,80 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Build (Debug)",
+            "label": "Build (Debug, msbuild)",
             "type": "shell",
-            "command": "dotnet",
+            "command": "msbuild",
             "args": [
-                "build",
-                "/p:GenerateFullPaths=true",
-                "/p:DebugType=portable",
-                "/m",
-                "/v:m"
-            ],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
-            "problemMatcher": "$msCompile"
-        },
-        {
-            "label": "Build (Release)",
-            "type": "shell",
-            "command": "dotnet",
-            "args": [
-                "build",
-                "-c:Release",
-                "/p:DebugType=portable",
+                "/p:TargetFramework=net461",
                 "/p:GenerateFullPaths=true",
                 "/m",
-                "/v:m"
+                "/verbosity:m"
             ],
             "group": "build",
             "problemMatcher": "$msCompile"
         },
         {
-            "label": "Clean (Debug)",
+            "label": "Build (Release, msbuild)",
+            "type": "shell",
+            "command": "msbuild",
+            "args": [
+                "/p:Configuration=Release",
+                "/p:TargetFramework=net461",
+                "/p:GenerateFullPaths=true",
+                "/m",
+                "/verbosity:m"
+            ],
+            "group": "build",
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "Build (Debug, dotnet)",
             "type": "shell",
             "command": "dotnet",
             "args": [
                 "build",
-                "/p:DebugType=portable",
+                "--no-restore",
+                "/p:TargetFramework=netcoreapp2.0",
                 "/p:GenerateFullPaths=true",
                 "/m",
-                "/t:Clean",
-                "/v:m"
+                "/verbosity:m"
             ],
+            "group": "build",
             "problemMatcher": "$msCompile"
         },
         {
-            "label": "Clean (Release)",
+            "label": "Build (Release, dotnet)",
             "type": "shell",
             "command": "dotnet",
             "args": [
                 "build",
-                "-c:Release",
+                "--no-restore",
+                "/p:TargetFramework=netcoreapp2.0",
+                "/p:Configuration=Release",
                 "/p:GenerateFullPaths=true",
-                "/p:DebugType=portable",
                 "/m",
-                "/t:Clean",
-                "/v:m"
+                "/verbosity:m"
             ],
+            "group": "build",
             "problemMatcher": "$msCompile"
         },
         {
-            "label": "Clean All",
-            "dependsOn": [
-                "Clean (Debug)",
-                "Clean (Release)"
+            "label": "Restore (net461)",
+            "type": "shell",
+            "command": "nuget",
+            "args": [
+                "restore"
             ],
-            "problemMatcher": "$msCompile"
+            "problemMatcher": []
+        },
+        {
+            "label": "Restore (netcoreapp2.0)",
+            "type": "shell",
+            "command": "dotnet",
+            "args": [
+                "restore"
+            ],
+            "problemMatcher": []
         }
     ]
 }

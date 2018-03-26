@@ -5,7 +5,7 @@
 
   <PropertyGroup Label="Project">
     <!-- We need to compile for net461 here for System.Drawing to work under .NET Framework... -->
-    <TargetFrameworks>net461;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net461;netstandard2.0;netcoreapp2.0</TargetFrameworks>
     <OutputType>Library</OutputType>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -20,7 +20,7 @@
   <PropertyGroup Label="Defines">
    <DefineConstants Condition="'$(TargetFramework)' == 'net461'">$(DefineConstants);NET_FRAMEWORK</DefineConstants>
   </PropertyGroup>
-  
+
   <ItemGroup Label="References">
     <Reference Include="System.Runtime.InteropServices.RuntimeInformation"/>
   </ItemGroup>

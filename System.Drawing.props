@@ -1,6 +1,6 @@
 <!-- Contains required properties for System.Drawing includes. -->
 <Project>
-  <ItemGroup Label="System.Drawing" Condition="'$(TargetFramework)' == 'netstandard2.0'">
+  <ItemGroup Label="System.Drawing" Condition="'$(TargetFramework)' == 'netstandard2.0' or '$(TargetFramework)' == 'netcoreapp2.0'">
     <PackageReference Include="CoreCompat.System.Drawing" Version="1.0.0-beta006" />
     <PackageReference Include="runtime.linux-x64.CoreCompat.System.Drawing" Version="1.0.0-beta009" />
     <PackageReference Include="runtime.osx.10.10-x64.CoreCompat.System.Drawing" Version="5.4.0-r8" />
