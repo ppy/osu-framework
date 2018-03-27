@@ -10,7 +10,7 @@
     <AssemblyName>osu.Framework.Tests</AssemblyName>
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
     <Version>1.0.0.0</Version>
-    <Copyright>Copyright © ppy Pty Ltd 2017</Copyright>
+    <Copyright>Copyright © ppy Pty Ltd 2018</Copyright>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\osu.Framework\osu.Framework.csproj" />
