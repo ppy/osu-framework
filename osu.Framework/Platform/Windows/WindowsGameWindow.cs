@@ -23,21 +23,21 @@ namespace osu.Framework.Platform.Windows
             base.OnKeyDown(sender, e);
         }
 
-        private Icon icon;
         public override Icon Icon
         {
-            get => icon;
+            get => base.Icon;
             set
             {
-                if (icon == value)
+                if (base.Icon == value)
                     return;
-                icon = value;
+
+                base.Icon = value;
 
                 if (WindowInfo.Handle == IntPtr.Zero)
                     throw new InvalidOperationException("Window must be created before an icon can be set.");
 
-                SendMessage(WindowInfo.Handle, seticon_message, (IntPtr)0, icon?.Handle ?? IntPtr.Zero);
-                SendMessage(WindowInfo.Handle, seticon_message, (IntPtr)1, icon?.Handle ?? IntPtr.Zero);
+                SendMessage(WindowInfo.Handle, seticon_message, (IntPtr)0, base.Icon?.Handle ?? IntPtr.Zero);
+                SendMessage(WindowInfo.Handle, seticon_message, (IntPtr)1, base.Icon?.Handle ?? IntPtr.Zero);
             }
         }
 

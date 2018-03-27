@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Reflection;
@@ -123,8 +122,6 @@ namespace osu.Framework.Platform.MacOS
             else
                 methodKeyUp.Invoke(nativeWindow, new object[] { key });
         }
-
-        public override Icon Icon { get; set; }
     }
 
     internal enum MacOSKeyCodes

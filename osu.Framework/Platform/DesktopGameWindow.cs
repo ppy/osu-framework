@@ -41,7 +41,7 @@ namespace osu.Framework.Platform
             Move += OnMove;
         }
 
-        public abstract Icon Icon { get; set; }
+        public virtual Icon Icon { get; set; }
 
         public override void SetupWindow(FrameworkConfigManager config)
         {
