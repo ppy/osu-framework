@@ -322,7 +322,7 @@ namespace osu.Framework.IO.Network
 
                     reportForwardProgress();
 
-                    try
+                    using (request)
                     {
                         response = client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, linkedToken.Token).Result;
 
@@ -341,10 +341,6 @@ namespace osu.Framework.IO.Network
                                 beginResponse(linkedToken.Token);
                                 break;
                         }
-                    }
-                    finally
-                    {
-                        request.Dispose();
                     }
                 }
                 catch (Exception) when (timeoutToken.IsCancellationRequested)
