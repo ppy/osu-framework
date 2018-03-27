@@ -3,6 +3,7 @@
 
 using System;
 using System.Drawing;
+using System.IO;
 using osu.Framework.Configuration;
 using osu.Framework.Input;
 using OpenTK;
@@ -42,6 +43,8 @@ namespace osu.Framework.Platform
         }
 
         public virtual Icon Icon { get; set; }
+
+        public void SetIconFromStream(Stream stream) => Icon = new Icon(stream);
 
         public override void SetupWindow(FrameworkConfigManager config)
         {

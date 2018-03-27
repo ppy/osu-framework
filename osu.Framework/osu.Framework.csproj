@@ -1,9 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\OpenTK.props" />
-  <Import Project="..\System.Drawing.props" />
   <PropertyGroup Label="Project">
-    <TargetFramework Condition="'$(BuildingInsideVisualStudio)' == 'true'">net461</TargetFramework>
-    <TargetFrameworks Condition="'$(BuildingInsideVisualStudio)' != 'true'">net461;netstandard2.0;netcoreapp2.0</TargetFrameworks>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <OutputType>Library</OutputType>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -20,10 +17,13 @@
   <ItemGroup Label="Service">
     <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
   </ItemGroup>
-  <ItemGroup Label="References">
-    <Reference Include="System.Runtime.InteropServices.RuntimeInformation" />
-  </ItemGroup>
   <ItemGroup Label="Package References">
+    <PackageReference Include="CoreCompat.System.Drawing.v2" Version="5.2.0-preview1-r131" />
+    <PackageReference Include="runtime.linux-x64.CoreCompat.System.Drawing" Version="1.0.0-beta009" />
+    <PackageReference Include="runtime.osx.10.10-x64.CoreCompat.System.Drawing" Version="5.4.0-r8" />
+    <PackageReference Include="ppy.OpenTK.NS20" Version="1.0.3" />
+    <PackageReference Include="System.Runtime.InteropServices" Version="4.3.0" />
+    <PackageReference Include="Microsoft.Diagnostics.Runtime" Version="0.9.180305.1" NoWarn="NU1701" />
     <PackageReference Include="NUnit" Version="3.8.1" />
     <PackageReference Include="System.Net.Http" Version="4.3.3" />
     <PackageReference Include="Cyotek.Drawing.BitmapFont" Version="1.3.4-beta1" />
@@ -33,7 +33,6 @@
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
     <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.3.0" />
     <PackageReference Include="System.Reflection.Emit.ILGeneration" Version="4.3.0" />
-    <PackageReference Include="Microsoft.Diagnostics.Runtime" Version="0.9.170809.3" Condition="'$(TargetFramework)' == 'net461'" />
     <PackageReference Include="JetBrains.Annotations" Version="11.1.0" />
   </ItemGroup>
   <ItemGroup Label="Content">
