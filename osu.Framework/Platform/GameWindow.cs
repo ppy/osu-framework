@@ -13,6 +13,7 @@ using OpenTK.Input;
 using System.ComponentModel;
 using System.Drawing;
 using JetBrains.Annotations;
+using Icon = OpenTK.Icon;
 
 namespace osu.Framework.Platform
 {
@@ -191,7 +192,7 @@ namespace osu.Framework.Platform
         public void MakeCurrent() => Implementation.MakeCurrent();
         public void SwapBuffers() => Implementation.SwapBuffers();
 
-        public Icon Icon { get => Implementation.Icon; set => Implementation.Icon = value; }
+        Icon INativeWindow.Icon { get => Implementation.Icon; set => Implementation.Icon = value; }
         public string Title { get => Implementation.Title; set => Implementation.Title = value; }
         public bool Focused => Implementation.Focused;
         public bool Visible { get => Implementation.Visible; set => Implementation.Visible = value; }

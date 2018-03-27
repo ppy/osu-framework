@@ -3,6 +3,7 @@
 
 using System;
 using System.Drawing;
+using System.IO;
 using osu.Framework.Configuration;
 using osu.Framework.Input;
 using OpenTK;
@@ -10,7 +11,7 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Platform
 {
-    public class DesktopGameWindow : GameWindow
+    public abstract class DesktopGameWindow : GameWindow
     {
         private const int default_width = 1366;
         private const int default_height = 768;
@@ -33,12 +34,14 @@ namespace osu.Framework.Platform
 
         public readonly BindableBool MapAbsoluteInputToWindow = new BindableBool();
 
-        public DesktopGameWindow()
+        protected DesktopGameWindow()
             : base(default_width, default_height)
         {
             Resize += OnResize;
             Move += OnMove;
         }
+
+        public virtual void SetIconFromStream(Stream stream) { }
 
         public override void SetupWindow(FrameworkConfigManager config)
         {

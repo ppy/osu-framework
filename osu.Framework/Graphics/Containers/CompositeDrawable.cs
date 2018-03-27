@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System;
 using System.Diagnostics;
 using OpenTK;
-using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.OpenGL;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Shaders;
@@ -19,6 +18,7 @@ using osu.Framework.Caching;
 using osu.Framework.Threading;
 using osu.Framework.Statistics;
 using System.Threading.Tasks;
+using osu.Framework.Graphics.Primitives;
 using osu.Framework.MathUtils;
 
 namespace osu.Framework.Graphics.Containers
@@ -617,6 +617,7 @@ namespace osu.Framework.Graphics.Containers
                 childInvalidation &= ~Invalidation.MiscGeometry;
 
                 // Relative positioning can however affect child geometry
+                // ReSharper disable once PossibleNullReferenceException
                 if (c.RelativePositionAxes != Axes.None && (invalidation & Invalidation.DrawSize) > 0)
                     childInvalidation |= Invalidation.MiscGeometry;
 
