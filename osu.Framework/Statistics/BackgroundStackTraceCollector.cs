@@ -21,9 +21,7 @@ namespace osu.Framework.Statistics
     /// </summary>
     internal class BackgroundStackTraceCollector : IDisposable
     {
-#if NET_FRAMEWORK
         private IList<ClrStackFrame> backgroundMonitorStackTrace;
-#endif
 
         private readonly StopwatchClock clock;
 
@@ -52,11 +50,9 @@ namespace osu.Framework.Statistics
             {
                 while (!cancellationToken.IsCancellationRequested)
                 {
-#if NET_FRAMEWORK
                     if (Enabled && targetThread.IsAlive && clock.ElapsedMilliseconds - LastConsumptionTime > spikeRecordThreshold / 2 && backgroundMonitorStackTrace == null)
                         backgroundMonitorStackTrace = getStackTrace(targetThread);
 
-#endif
                     Thread.Sleep(1);
                 }
             }, (cancellationToken = new CancellationTokenSource()).Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
@@ -66,10 +62,8 @@ namespace osu.Framework.Statistics
         {
             if (targetThread == null) return;
 
-#if NET_FRAMEWORK
             var frames = backgroundMonitorStackTrace;
             backgroundMonitorStackTrace = null;
-#endif
 
             var currentThreshold = spikeRecordThreshold;
 
@@ -87,7 +81,6 @@ namespace osu.Framework.Statistics
 
             logMessage.AppendLine(@"|");
 
-#if NET_FRAMEWORK
             if (frames != null)
             {
                 logMessage.AppendLine(@"| Stack trace:");
@@ -96,13 +89,11 @@ namespace osu.Framework.Statistics
                     logMessage.AppendLine($@"|- {f.DisplayString}");
             }
             else
-#endif
                 logMessage.AppendLine(@"| Call stack was not recorded.");
 
             logger.Add(logMessage.ToString());
         }
 
-#if NET_FRAMEWORK
         private static readonly Lazy<ClrInfo> clr_info = new Lazy<ClrInfo>(delegate
         {
             try
@@ -116,7 +107,6 @@ namespace osu.Framework.Statistics
         });
 
         private static IList<ClrStackFrame> getStackTrace(Thread targetThread) => clr_info.Value?.CreateRuntime().Threads.FirstOrDefault(t => t.ManagedThreadId == targetThread.ManagedThreadId)?.StackTrace;
-#endif
 
         #region IDisposable Support
 
