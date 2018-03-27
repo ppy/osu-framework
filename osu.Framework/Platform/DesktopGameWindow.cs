@@ -8,7 +8,6 @@ using osu.Framework.Configuration;
 using osu.Framework.Input;
 using OpenTK;
 using OpenTK.Graphics;
-using Icon = System.Drawing.Icon;
 
 namespace osu.Framework.Platform
 {
@@ -42,9 +41,7 @@ namespace osu.Framework.Platform
             Move += OnMove;
         }
 
-        public virtual Icon Icon { get; set; }
-
-        public void SetIconFromStream(Stream stream) => Icon = new Icon(stream);
+        public virtual void SetIconFromStream(Stream stream) { }
 
         public override void SetupWindow(FrameworkConfigManager config)
         {
