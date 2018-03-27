@@ -1,7 +1,7 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System.Windows.Forms;
+// using System.Windows.Forms;
 
 namespace osu.Framework.Platform.Linux
 {
@@ -9,7 +9,8 @@ namespace osu.Framework.Platform.Linux
     {
         public override string GetText()
         {
-            return System.Windows.Forms.Clipboard.GetText(TextDataFormat.UnicodeText);
+            return string.Empty;
+            // return System.Windows.Forms.Clipboard.GetText(TextDataFormat.UnicodeText);
         }
 
         public override void SetText(string selectedText)

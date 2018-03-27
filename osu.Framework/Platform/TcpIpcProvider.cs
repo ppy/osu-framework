@@ -47,17 +47,15 @@ namespace osu.Framework.Platform
             var token = cancelListener.Token;
             try
             {
-                while (true)
+                while (!token.IsCancellationRequested)
                 {
                     while (!listener.Pending())
                     {
                         await Task.Delay(10, token);
                         if (token.IsCancellationRequested)
-                        {
-                            listener.Stop();
                             return;
-                        }
                     }
+
                     using (var client = await listener.AcceptTcpClientAsync())
                     {
                         using (var stream = client.GetStream())
@@ -73,6 +71,7 @@ namespace osu.Framework.Platform
                             Trace.Assert(type != null);
                             var msg = new IpcMessage
                             {
+                                // ReSharper disable once PossibleNullReferenceException
                                 Type = type.AssemblyQualifiedName,
                                 Value = JsonConvert.DeserializeObject(
                                     json["Value"].ToString(), type),
@@ -84,6 +83,16 @@ namespace osu.Framework.Platform
             }
             catch (TaskCanceledException)
             {
+            }
+            finally
+            {
+                try
+                {
+                    listener.Stop();
+                }
+                catch
+                {
+                }
             }
         }
 

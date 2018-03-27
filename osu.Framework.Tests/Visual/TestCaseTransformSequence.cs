@@ -26,9 +26,29 @@ namespace osu.Framework.Tests.Visual
         {
             base.LoadComplete();
 
-            setup();
-            animate();
+            testFinish();
+            testClear();
+        }
 
+        private void testFinish()
+        {
+            AddStep("Animate", delegate
+            {
+                setup();
+                animate();
+            });
+
+            AddStep($"{nameof(FinishTransforms)}", delegate
+            {
+                foreach (var box in boxes)
+                    box.FinishTransforms();
+            });
+
+            AddAssert("finalize triggered", () => finalizeTriggered);
+        }
+
+        private void testClear()
+        {
             AddStep("Animate", delegate
             {
                 setup();
@@ -41,15 +61,13 @@ namespace osu.Framework.Tests.Visual
                     box.ClearTransforms();
             });
 
-            AddStep($"{nameof(FinishTransforms)}", delegate
-            {
-                foreach (var box in boxes)
-                    box.FinishTransforms();
-            });
+            AddAssert("finalize triggered", () => finalizeTriggered);
         }
 
         private void setup()
         {
+            finalizeTriggered = false;
+
             string[] labels =
             {
                 "Spin after 2 seconds",
@@ -94,13 +112,15 @@ namespace osu.Framework.Tests.Visual
             }
         }
 
+        private bool finalizeTriggered;
+
         private void animate()
         {
             boxes[0].Delay(500).Then(500).Then(500).Then(
                 b => b.Delay(500).Spin(1000, RotationDirection.CounterClockwise)
             );
 
-            boxes[1].Delay(1000).Loop(5, 1000, b => b.RotateTo(0).RotateTo(340, 1000));
+            boxes[1].Delay(1000).Loop(1000, 10, b => b.RotateTo(0).RotateTo(340, 1000));
 
             boxes[2].RotateTo(0).ScaleTo(1).RotateTo(360, 1000)
             .Then(1000,
@@ -118,7 +138,8 @@ namespace osu.Framework.Tests.Visual
             .Then(
                 b => b.Loop(500, 2, d => d.RotateTo(0).RotateTo(360, 1000)).Delay(500).ScaleTo(0.5f, 500)
             )
-            .Then().FadeEdgeEffectTo(Color4.Red, 1000).ScaleTo(2, 500);
+            .Then().FadeEdgeEffectTo(Color4.Red, 1000).ScaleTo(2, 500)
+            .Finally(_ => finalizeTriggered = true);
 
 
             boxes[4].RotateTo(0).ScaleTo(1).RotateTo(360, 500)

@@ -77,9 +77,7 @@ namespace osu.Framework.IO.Stores
         /// <returns>The object.</returns>
         public override T Get(string name)
         {
-            T result;
-
-            if (cache.TryGetValue(name, out result))
+            if (cache.TryGetValue(name, out T result))
                 return result;
 
             result = base.Get(name);

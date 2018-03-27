@@ -3,6 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using osu.Framework.Configuration.Tracking;
 
 namespace osu.Framework.Configuration
@@ -119,7 +121,7 @@ namespace osu.Framework.Configuration
         protected virtual void AddBindable<TBindable>(T lookup, Bindable<TBindable> bindable)
         {
             ConfigStore[lookup] = bindable;
-            bindable.ValueChanged += _ => Save();
+            bindable.ValueChanged += _ => backgroundSave();
         }
 
         private Bindable<U> set<U>(T lookup, U value)
@@ -154,15 +156,14 @@ namespace osu.Framework.Configuration
 
         #region IDisposable Support
 
-        private bool disposedValue; // To detect redundant calls
+        private bool isDisposed;
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!disposedValue)
+            if (!isDisposed)
             {
                 Save();
-
-                disposedValue = true;
+                isDisposed = true;
             }
         }
 
@@ -204,10 +205,31 @@ namespace osu.Framework.Configuration
             hasLoaded = true;
         }
 
+        private int lastSave;
+
+        /// <summary>
+        /// Perform a save with debounce.
+        /// </summary>
+        private void backgroundSave()
+        {
+            var current = Interlocked.Increment(ref lastSave);
+            Task.Delay(100).ContinueWith(task =>
+            {
+                if (current == lastSave) Save();
+            });
+        }
+
+        private readonly object saveLock = new object();
+
         public bool Save()
         {
             if (!hasLoaded) return false;
-            return PerformSave();
+
+            lock (saveLock)
+            {
+                Interlocked.Increment(ref lastSave);
+                return PerformSave();
+            }
         }
 
         protected abstract void PerformLoad();

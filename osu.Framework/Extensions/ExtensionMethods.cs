@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -78,8 +77,7 @@ namespace osu.Framework.Extensions
         /// <returns></returns>
         public static TValue GetOrDefault<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, TKey lookup)
         {
-            TValue outVal;
-            return dictionary.TryGetValue(lookup, out outVal) ? outVal : default(TValue);
+            return dictionary.TryGetValue(lookup, out TValue outVal) ? outVal : default(TValue);
         }
 
         public static bool IsValidIndex<T>(this List<T> list, int index)
@@ -201,9 +199,7 @@ namespace osu.Framework.Extensions
 
             Exception e = task.Exception;
 
-            Debug.Assert(e != null);
-
-            while (e.InnerException != null && e.GetType() != expectedBaseType)
+            while (e?.InnerException != null && e.GetType() != expectedBaseType)
                 e = e.InnerException;
 
             ExceptionDispatchInfo.Capture(e).Throw();
