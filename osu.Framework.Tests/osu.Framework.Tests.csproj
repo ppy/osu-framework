@@ -2,7 +2,6 @@
   <Import Project="..\OpenTK.props" />
   <Import Project="..\System.Drawing.props" />
   <Import Project="..\osu.Framework.props" />
-  <Import Project="..\TestableProject.props" />
   <PropertyGroup Label="Project">
     <TargetFramework Condition="'$(BuildingInsideVisualStudio)' == 'true'">net461</TargetFramework>
     <TargetFrameworks Condition="'$(BuildingInsideVisualStudio)' != 'true'">net461;netstandard2.0;netcoreapp2.0</TargetFrameworks>
@@ -18,6 +17,7 @@
   </ItemGroup>
   <ItemGroup Label="Package References">
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
+    <PackageReference Include="NUnit" Version="3.8.1" />
   </ItemGroup>
   <ItemGroup Label="Content">
     <EmbeddedResource Include="Resources\Tracks\sample-track.mp3" />
