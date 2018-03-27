@@ -8,11 +8,9 @@ using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-#if NET_FRAMEWORK
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Diagnostics.Runtime;
-#endif
 
 namespace osu.Framework.Statistics
 {
