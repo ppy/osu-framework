@@ -52,7 +52,7 @@ namespace osu.Framework.Testing
 
             Task.Run(() =>
             {
-                var basePath = di.Parent?.Parent?.Parent?.FullName;
+                var basePath = di.Parent?.Parent?.Parent?.Parent?.FullName;
 
                 if (!Directory.Exists(basePath))
                     return;
