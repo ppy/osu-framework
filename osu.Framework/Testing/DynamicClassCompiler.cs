@@ -28,7 +28,7 @@ namespace osu.Framework.Testing
 
         public Action<Exception> CompilationFailed;
 
-        private FileSystemWatcher fsw;
+        private List<FileSystemWatcher> watchers = new List<FileSystemWatcher>();
 
         private string lastTouchedFile;
 
@@ -65,7 +65,7 @@ namespace osu.Framework.Testing
 
                     validDirectories.Add(dir);
 
-                    fsw = new FileSystemWatcher(dir, @"*.cs")
+                    var fsw = new FileSystemWatcher(dir, @"*.cs")
                     {
                         EnableRaisingEvents = true,
                         IncludeSubdirectories = true,
@@ -73,6 +73,8 @@ namespace osu.Framework.Testing
                     };
 
                     fsw.Changed += onChange;
+
+                    watchers.Add(fsw);
                 }
             });
         }
