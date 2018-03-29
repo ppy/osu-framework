@@ -1,18 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\osu.Framework.props" />
   <PropertyGroup Label="Project">
     <TargetFramework>netstandard2.0</TargetFramework>
     <OutputType>Library</OutputType>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Company>ppy Pty Ltd</Company>
-    <Version>1.0.0.0</Version>
-    <Copyright>Copyright © ppy Pty Ltd 2018</Copyright>
     <AssemblyTitle>osu!framework</AssemblyTitle>
     <Description>Framework to support osu!</Description>
     <Product>osu!framework</Product>
-  </PropertyGroup>
-  <PropertyGroup Label="Defines">
-    <DefineConstants Condition="'$(TargetFramework)' == 'net461'">$(DefineConstants);NET_FRAMEWORK</DefineConstants>
   </PropertyGroup>
   <ItemGroup Label="Service">
     <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
@@ -34,9 +29,6 @@
     <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.3.0" />
     <PackageReference Include="System.Reflection.Emit.ILGeneration" Version="4.3.0" />
     <PackageReference Include="JetBrains.Annotations" Version="11.1.0" />
-  </ItemGroup>
-  <ItemGroup Label="Content">
-    <EmbeddedResource Include="Resources\**\*" />
   </ItemGroup>
   <ItemGroup Label="Copied Content">
     <Content Include="x86\*.dll">
