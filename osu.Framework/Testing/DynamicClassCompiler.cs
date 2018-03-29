@@ -28,7 +28,7 @@ namespace osu.Framework.Testing
 
         public Action<Exception> CompilationFailed;
 
-        private List<FileSystemWatcher> watchers = new List<FileSystemWatcher>();
+        private readonly List<FileSystemWatcher> watchers = new List<FileSystemWatcher>();
 
         private string lastTouchedFile;
 
