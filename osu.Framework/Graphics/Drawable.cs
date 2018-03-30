@@ -138,7 +138,7 @@ namespace osu.Framework.Graphics
         internal Task LoadAsync(Game game, Drawable target, Action onLoaded = null)
         {
             if (loadState != LoadState.NotLoaded)
-                return loadTask;
+                return loadTask ?? Task.CompletedTask;
 
             loadState = LoadState.Loading;
 
