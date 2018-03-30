@@ -126,9 +126,10 @@ namespace osu.Framework.Screens
 
         /// <summary>
         /// Changes to a new Screen.
+        /// This will trigger an async load if the screen is not already loaded, during which the current screen will no longer be current (or accept user input).
         /// </summary>
         /// <param name="screen">The new Screen.</param>
-        public virtual bool Push(Screen screen)
+        public virtual void Push(Screen screen)
         {
             if (hasExited)
                 throw new InvalidOperationException("Cannot push to an already exited screen.");
@@ -140,23 +141,29 @@ namespace osu.Framework.Screens
                 throw new InvalidOperationException("Can not push more than one child screen.");
 
             screen.ParentScreen = this;
-            childModeContainer.Add(screen);
-
-            if (screen.hasExited)
-            {
-                screen.Expire();
-                return false;
-            }
-
             startSuspend(screen);
-
-            screen.enter(this);
-
             ModePushed?.Invoke(screen);
 
-            Content.Expire();
+            void finishLoad()
+            {
+                childModeContainer.Add(screen);
 
-            return true;
+                if (screen.hasExited)
+                {
+                    screen.Expire();
+                    startResume(screen);
+                    return;
+                }
+
+                screen.enter(this);
+
+                Content.Expire();
+            }
+
+            if (screen.LoadState >= LoadState.Ready)
+                finishLoad();
+            else
+                LoadComponentAsync(screen, _ => finishLoad());
         }
 
         private void startSuspend(Screen next)
