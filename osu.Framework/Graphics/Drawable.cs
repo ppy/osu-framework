@@ -138,7 +138,7 @@ namespace osu.Framework.Graphics
         internal Task LoadAsync(Game game, Drawable target, Action onLoaded = null)
         {
             if (loadState != LoadState.NotLoaded)
-                throw new InvalidOperationException($@"{nameof(LoadAsync)} may not be called more than once on the same Drawable.");
+                return loadTask;
 
             loadState = LoadState.Loading;
 
