@@ -146,6 +146,9 @@ namespace osu.Framework.Screens
 
             void finishLoad()
             {
+                if (hasExited)
+                    return;
+
                 childModeContainer.Add(screen);
 
                 if (screen.hasExited)
