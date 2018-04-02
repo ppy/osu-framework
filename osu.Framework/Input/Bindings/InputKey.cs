@@ -610,6 +610,89 @@ namespace osu.Framework.Input.Bindings
         /// <summary>
         /// Mouse wheel rolled down.
         /// </summary>
-        MouseWheelDown = 146
+        MouseWheelDown = 146,
+
+        FirstJoystickButton = 147,
+
+        /// <summary>
+        /// The first joystick button.
+        /// </summary>
+        Joystick1 = 147,
+        /// <summary>
+        /// The second joystick button.
+        /// </summary>
+        Joystick2 = 148,
+        /// <summary>
+        /// The third joystick button.
+        /// </summary>
+        Joystick3 = 149,
+        /// <summary>
+        /// The fourth joystick button.
+        /// </summary>
+        Joystick4 = 150,
+        /// <summary>
+        /// The fifth joystick button.
+        /// </summary>
+        Joystick5 = 151,
+        /// <summary>
+        /// The sixth joystick button.
+        /// </summary>
+        Joystick6 = 152,
+        /// <summary>
+        /// The seventh joystick button.
+        /// </summary>
+        Joystick7 = 153,
+        /// <summary>
+        /// The eigth joystick button.
+        /// </summary>
+        Joystick8 = 154,
+        /// <summary>
+        /// The ninth joystick button.
+        /// </summary>
+        Joystick9 = 155,
+        /// <summary>
+        /// The tenth joystick button.
+        /// </summary>
+        Joystick10 = 156,
+        /// <summary>
+        /// The eleventh joystick button.
+        /// </summary>
+        Joystick11 = 157,
+        /// <summary>
+        /// The twelfth joystick button.
+        /// </summary>
+        Joystick12 = 158,
+        /// <summary>
+        /// The thirteenth joystick button.
+        /// </summary>
+        Joystick13 = 159,
+        /// <summary>
+        /// The fourteenth joystick button.
+        /// </summary>
+        Joystick14 = 160,
+        /// <summary>
+        /// The fifteenth joystick button.
+        /// </summary>
+        Joystick15 = 161,
+        /// <summary>
+        /// The sixteenth joystick button.
+        /// </summary>
+        Joystick16 = 162,
+        /// <summary>
+        /// The seventeenth joystick button.
+        /// </summary>
+        Joystick17 = 163,
+        /// <summary>
+        /// The eighteenth joystick button.
+        /// </summary>
+        Joystick18 = 164,
+        /// <summary>
+        /// The nineteenth joystick button.
+        /// </summary>
+        Joystick19 = 165,
+        /// <summary>
+        /// The twentieth joystick button.
+        /// </summary>
+        Joystick20 = 166,
     }
 }

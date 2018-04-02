@@ -72,6 +72,9 @@ namespace osu.Framework.Input.Bindings
 
         private string getReadableKey(InputKey key)
         {
+            if (key >= InputKey.FirstJoystickButton)
+                return $"Joystick{key - InputKey.FirstJoystickButton}";
+
             switch (key)
             {
                 case InputKey.None:
@@ -201,10 +204,9 @@ namespace osu.Framework.Input.Bindings
             return (InputKey)key;
         }
 
-        public static InputKey FromMouseButton(MouseButton button)
-        {
-            return (InputKey)((int)InputKey.FirstMouseButton + button);
-        }
+        public static InputKey FromMouseButton(MouseButton button) => (InputKey)((int)InputKey.FirstMouseButton + button);
+
+        public static InputKey FromJoystickButton(int button) => (InputKey)((int)InputKey.FirstJoystickButton + button);
 
         public static KeyCombination FromInputState(InputState state)
         {
@@ -224,6 +226,9 @@ namespace osu.Framework.Input.Bindings
                 foreach (var key in state.Keyboard.Keys)
                     keys.Add(FromKey(key));
             }
+
+            if (state.Joystick != null)
+                keys.AddRange(state.Joystick.Buttons.Select(FromJoystickButton));
 
             return new KeyCombination(keys);
         }

@@ -1859,6 +1859,14 @@ namespace osu.Framework.Graphics
         /// is propagated up the scene graph to the next eligible Drawable.</returns>
         protected virtual bool OnKeyUp(InputState state, KeyUpEventArgs args) => false;
 
+        public bool TriggerOnJoystickPress(InputState screenspaceState, JoystickPressEventArgs args) => OnJoystickPress(createCloneInParentSpace(screenspaceState), args);
+
+        protected virtual bool OnJoystickPress(InputState state, JoystickPressEventArgs args) => false;
+
+        public bool TriggerOnJoystickRelease(InputState screenSpaceState, JoystickReleaseEventArgs args) => OnJoystickRelease(createCloneInParentSpace(screenSpaceState), args);
+
+        protected virtual bool OnJoystickRelease(InputState state, JoystickReleaseEventArgs args) => false;
+
         /// <summary>
         /// Triggers <see cref="OnMouseMove(InputState)"/> with a local version of the given <see cref="InputState"/>.
         /// </summary>

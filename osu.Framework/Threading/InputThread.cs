@@ -18,6 +18,7 @@ namespace osu.Framework.Threading
         {
             StatisticsCounterType.MouseEvents,
             StatisticsCounterType.KeyEvents,
+            StatisticsCounterType.JoystickEvents,
         };
 
         public void RunUpdate() => ProcessFrame();

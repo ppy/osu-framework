@@ -231,6 +231,7 @@ namespace osu.Framework.Input
         {
             bool hasNewKeyboard = state.Keyboard != null;
             bool hasNewMouse = state.Mouse != null;
+            bool hasNewJoystick = state.Joystick != null;
 
             var last = CurrentState;
 
@@ -242,6 +243,7 @@ namespace osu.Framework.Input
 
             if (CurrentState.Keyboard == null) CurrentState.Keyboard = last.Keyboard ?? new KeyboardState();
             if (CurrentState.Mouse == null) CurrentState.Mouse = last.Mouse ?? new MouseState();
+            if (CurrentState.Joystick == null) CurrentState.Joystick = last.Joystick ?? new JoystickState();
 
             TransformState(CurrentState);
 
@@ -270,6 +272,9 @@ namespace osu.Framework.Input
 
             if (hasNewKeyboard || CurrentState.Keyboard.Keys.Any())
                 updateKeyboardEvents(CurrentState);
+
+            if (hasNewJoystick || CurrentState.Joystick.Buttons.Any())
+                updateJoystickEvents(CurrentState);
         }
 
         protected virtual List<InputState> GetPendingStates()
@@ -409,6 +414,27 @@ namespace osu.Framework.Input
                     keyboardRepeatTime = repeat_initial_delay;
                     handleKeyDown(state, k, false);
                 }
+            }
+        }
+
+        private void updateJoystickEvents(InputState state)
+        {
+            var joystick = (JoystickState)state.Joystick;
+
+            var last = state.Last?.Joystick;
+            if (last == null)
+                return;
+
+            foreach (var b in last.Buttons)
+            {
+                if (!joystick.Buttons.Contains(b))
+                    handleJoystickRelease(state, b);
+            }
+
+            foreach (int b in joystick.Buttons)
+            {
+                LastActionTime = Time.Current;
+                handleJoystickPress(state, b);
             }
         }
 
@@ -718,6 +744,44 @@ namespace osu.Framework.Input
             return handledBy != null;
         }
 
+        private bool handleJoystickPress(InputState state, int button)
+        {
+            IEnumerable<Drawable> queue = inputQueue;
+            if (!unfocusIfNoLongerValid())
+                queue = new[] { FocusedDrawable }.Concat(queue);
+
+            return PropagateJoystickPress(queue, state, new JoystickPressEventArgs { Button = button });
+        }
+
+        protected virtual bool PropagateJoystickPress(IEnumerable<Drawable> drawables, InputState state, JoystickPressEventArgs args)
+        {
+            var handledBy = drawables.FirstOrDefault(target => target.TriggerOnJoystickPress(state, args));
+
+            if (handledBy != null)
+                Logger.Log($"JoystickPress ({args.Button}) handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
+
+            return handledBy != null;
+        }
+
+        private bool handleJoystickRelease(InputState state, int button)
+        {
+            IEnumerable<Drawable> queue = inputQueue;
+            if (!unfocusIfNoLongerValid())
+                queue = new[] { FocusedDrawable }.Concat(queue);
+
+            return PropagateJoystickRelease(queue, state, new JoystickReleaseEventArgs { Button = button });
+        }
+
+        protected virtual bool PropagateJoystickRelease(IEnumerable<Drawable> drawables, InputState state, JoystickReleaseEventArgs args)
+        {
+            var handledBy = drawables.FirstOrDefault(target => target.TriggerOnJoystickRelease(state, args));
+
+            if (handledBy != null)
+                Logger.Log($"JoystickRelease ({args.Button}) handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
+
+            return handledBy != null;
+        }
+
         /// <summary>
         /// Unfocus the current focused drawable if it is no longer in a valid state.
         /// </summary>
@@ -764,10 +828,11 @@ namespace osu.Framework.Input
         {
             IKeyboardState lastKeyboard = CurrentState.Keyboard;
             IMouseState lastMouse = CurrentState.Mouse;
+            IJoystickState lastJoystick = CurrentState.Joystick;
 
             foreach (var state in newStates)
             {
-                if (state.Mouse == null && state.Keyboard == null)
+                if (state.Mouse == null && state.Keyboard == null && state.Joystick == null)
                 {
                     // we still want to return at least one state change.
                     yield return state;
@@ -818,6 +883,24 @@ namespace osu.Framework.Input
                     {
                         var newState = state.Clone();
                         newState.Keyboard = lastKeyboard = new KeyboardState { Keys = lastKeyboard?.Keys.Union(new[] { pressedKey }) ?? new[] { pressedKey } };
+                        yield return newState;
+                    }
+                }
+
+                if (state.Joystick != null)
+                {
+                    if (lastJoystick != null)
+                        foreach (var releasedButton in lastJoystick.Buttons.Except(state.Joystick.Buttons))
+                        {
+                            var newState = state.Clone();
+                            newState.Joystick = lastJoystick = new JoystickState { Buttons = lastJoystick.Buttons.Where(b => b != releasedButton).ToList() };
+                            yield return newState;
+                        }
+
+                    foreach (var pressedButton in state.Joystick.Buttons.Except(lastJoystick?.Buttons ?? new int[] { }))
+                    {
+                        var newState = state.Clone();
+                        newState.Joystick = lastJoystick = new JoystickState { Buttons = lastJoystick?.Buttons.Union(new[] { pressedButton }) ?? new[] { pressedButton } };
                         yield return newState;
                     }
                 }

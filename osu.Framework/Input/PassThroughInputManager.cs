@@ -78,6 +78,7 @@ namespace osu.Framework.Input
             {
                 Mouse = (state.Mouse.NativeState as MouseState)?.Clone();
                 Keyboard = (state.Keyboard as KeyboardState)?.Clone();
+                Joystick = (state.Joystick as JoystickState)?.Clone();
             }
         }
     }
