@@ -20,6 +20,8 @@ namespace osu.Framework.Input
 
         protected override bool Prioritised => true;
 
+        protected override bool ExactMatch => true;
+
         protected override IEnumerable<Drawable> KeyBindingInputQueue => new[] { Child }.Concat(base.KeyBindingInputQueue);
     }
 

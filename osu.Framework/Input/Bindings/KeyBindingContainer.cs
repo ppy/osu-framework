@@ -61,6 +61,11 @@ namespace osu.Framework.Input.Bindings
         /// </summary>
         protected virtual bool Prioritised => false;
 
+        /// <summary>
+        /// Whether exact combinations are required for keybindings to trigger.
+        /// </summary>
+        protected virtual bool ExactMatch => false;
+
         protected override bool OnWheel(InputState state)
         {
             InputKey key = state.Mouse.WheelDelta > 0 ? InputKey.MouseWheelUp : InputKey.MouseWheelDown;
@@ -120,7 +125,7 @@ namespace osu.Framework.Input.Bindings
             var bindings = repeat ? KeyBindings : KeyBindings.Except(pressedBindings);
             var newlyPressed = bindings.Where(m =>
                 m.KeyCombination.Keys.Contains(newKey) // only handle bindings matching current key (not required for correct logic)
-                && m.KeyCombination.IsPressed(pressedCombination));
+                && m.KeyCombination.IsPressed(pressedCombination, ExactMatch));
 
             if (isModifier(newKey))
                 // if the current key pressed was a modifier, only handle modifier-only bindings.
@@ -176,7 +181,7 @@ namespace osu.Framework.Input.Bindings
 
             bool handled = false;
 
-            var newlyReleased = pressedBindings.Where(b => !b.KeyCombination.IsPressed(pressedCombination)).ToList();
+            var newlyReleased = pressedBindings.Where(b => !b.KeyCombination.IsPressed(pressedCombination, ExactMatch)).ToList();
 
             Trace.Assert(newlyReleased.All(b => b.KeyCombination.Keys.Contains(releasedKey)));
 

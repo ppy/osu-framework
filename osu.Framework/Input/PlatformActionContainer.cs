@@ -28,6 +28,8 @@ namespace osu.Framework.Input
 
         protected override bool Prioritised => true;
 
+        protected override bool ExactMatch => true;
+
         protected override bool SendRepeats => true;
     }
 
