@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -49,8 +49,7 @@ namespace osu.Framework.IO.Stores
         /// <param name="name">The resource that has changed.</param>
         protected virtual void NotifyChanged(string name)
         {
-            Action action;
-            if (!actionList.TryGetValue(name, out action))
+            if (!actionList.TryGetValue(name, out Action action))
                 return;
 
             action?.Invoke();

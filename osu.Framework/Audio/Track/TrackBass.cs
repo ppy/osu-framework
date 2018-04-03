@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -77,8 +77,7 @@ namespace osu.Framework.Audio.Track
 
                 Length = Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetLength(activeStream)) * 1000;
 
-                float frequency;
-                Bass.ChannelGetAttribute(activeStream, ChannelAttribute.Frequency, out frequency);
+                Bass.ChannelGetAttribute(activeStream, ChannelAttribute.Frequency, out float frequency);
                 initialFrequency = frequency;
                 bitrate = (int)Bass.ChannelGetAttribute(activeStream, ChannelAttribute.Bitrate);
 

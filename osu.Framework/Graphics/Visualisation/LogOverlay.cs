@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Graphics.Containers;
@@ -85,12 +85,13 @@ namespace osu.Framework.Graphics.Visualisation
             {
                 const int display_length = 4000;
 
-                var drawEntry = new DrawableLogEntry(entry);
+                LoadComponentAsync(new DrawableLogEntry(entry), drawEntry =>
+                {
+                    flow.Add(drawEntry);
 
-                flow.Add(drawEntry);
-
-                drawEntry.FadeInFromZero(800, Easing.OutQuint).Delay(display_length).FadeOut(800, Easing.InQuint);
-                drawEntry.Expire();
+                    drawEntry.FadeInFromZero(800, Easing.OutQuint).Delay(display_length).FadeOut(800, Easing.InQuint);
+                    drawEntry.Expire();
+                });
             });
         }
 
@@ -137,6 +138,12 @@ namespace osu.Framework.Graphics.Visualisation
             enabled.Value = false;
             this.FadeOut(100);
         }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+            Logger.NewEntry -= addEntry;
+        }
     }
 
     internal class DrawableLogEntry : Container
@@ -145,7 +152,8 @@ namespace osu.Framework.Graphics.Visualisation
 
         private const float font_size = 14;
 
-        public override bool HandleInput => false;
+        public override bool HandleKeyboardInput => false;
+        public override bool HandleMouseInput => false;
 
         public DrawableLogEntry(LogEntry entry)
         {

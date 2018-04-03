@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using OpenTK;
@@ -27,7 +27,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Development;
 using osu.Framework.MathUtils;
-using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Graphics
 {
@@ -49,7 +48,8 @@ namespace osu.Framework.Graphics
 
         protected Drawable()
         {
-            handleInput = HandleInputCache.Get(this);
+            handleKeyboardInput = HandleInputCache.HandleKeyboardInput(this);
+            handleMouseInput = HandleInputCache.HandleMouseInput(this);
         }
 
         ~Drawable()
@@ -87,7 +87,6 @@ namespace osu.Framework.Graphics
 
             Parent = null;
 
-            scheduler?.Dispose();
             scheduler = null;
 
             OnUpdate = null;
@@ -164,7 +163,7 @@ namespace osu.Framework.Graphics
 
         /// <summary>
         /// Contains all dependencies that can be injected into this Drawable using <see cref="BackgroundDependencyLoader"/>.
-        /// Add or override dependencies by calling <see cref="DependencyContainer.Cache{T}(T, bool)"/>.
+        /// Add or override dependencies by calling <see cref="DependencyContainer.Cache{T}(T)"/>.
         /// </summary>
         public IReadOnlyDependencyContainer Dependencies { get; private set; }
 
@@ -207,6 +206,8 @@ namespace osu.Framework.Graphics
 
                 Dependencies.Inject(this);
 
+                LoadAsyncComplete();
+
                 double loadDuration = perf.CurrentTime - t1;
                 if (perf.CurrentTime > 1000 && loadDuration > 50 && ThreadSafety.IsUpdateThread)
                     Logger.Log($@"Drawable [{ToString()}] took {loadDuration:0.00}ms to load and was not async!", LoggingTarget.Performance);
@@ -234,6 +235,13 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
+        /// Called after all async loading has completed.
+        /// </summary>
+        protected virtual void LoadAsyncComplete()
+        {
+        }
+
+        /// <summary>
         /// Play initial animation etc.
         /// </summary>
         protected virtual void LoadComplete()
@@ -250,7 +258,7 @@ namespace osu.Framework.Graphics
         /// ID is unique within the <see cref="Parent"/> <see cref="CompositeDrawable"/>.
         /// The primary use case of this ID is stable sorting of Drawables with equal <see cref="Depth"/>.
         /// </summary>
-        public ulong ChildID { get; internal set; }
+        internal ulong ChildID { get; set; }
 
         /// <summary>
         /// Whether this drawable has been added to a parent <see cref="CompositeDrawable"/>. Note that this does NOT imply that
@@ -330,7 +338,7 @@ namespace osu.Framework.Graphics
             if (isDisposed)
                 throw new ObjectDisposedException(ToString(), "Disposed Drawables may never be in the scene graph.");
 
-            if (ShouldProcessClock)
+            if (ProcessCustomClock)
                 customClock?.ProcessFrame();
 
             if (loadState < LoadState.Ready)
@@ -356,6 +364,29 @@ namespace osu.Framework.Graphics
             OnUpdate?.Invoke(this);
             return true;
         }
+
+        /// <summary>
+        /// Updates all masking calculations for this <see cref="Drawable"/>.
+        /// This occurs post-<see cref="UpdateSubTree"/> to ensure that all <see cref="Drawable"/> updates have taken place.
+        /// </summary>
+        /// <param name="source">The parent that triggered this update on this <see cref="Drawable"/>.</param>
+        /// <param name="maskingBounds">The <see cref="RectangleF"/> that defines the masking bounds.</param>
+        /// <returns>Whether masking calculations have taken place.</returns>
+        public virtual bool UpdateSubTreeMasking(Drawable source, RectangleF maskingBounds)
+        {
+            if (HasProxy && source != proxy)
+                return false;
+
+            IsMaskedAway = ComputeIsMaskedAway(maskingBounds);
+            return true;
+        }
+
+        /// <summary>
+        /// Computes whether this <see cref="Drawable"/> is masked away.
+        /// </summary>
+        /// <param name="maskingBounds">The <see cref="RectangleF"/> that defines the masking bounds.</param>
+        /// <returns>Whether this <see cref="Drawable"/> is currently masked away.</returns>
+        protected virtual bool ComputeIsMaskedAway(RectangleF maskingBounds) => !maskingBounds.IntersectsWith(ScreenSpaceDrawQuad.AABBFloat);
 
         /// <summary>
         /// Performs a once-per-frame update specific to this Drawable. A more elegant alternative to
@@ -1191,7 +1222,7 @@ namespace osu.Framework.Graphics
         /// uses a custom clock.
         /// </summary>
         /// <param name="clock">The new clock to be used.</param>
-        public virtual void UpdateClock(IFrameBasedClock clock)
+        internal virtual void UpdateClock(IFrameBasedClock clock)
         {
             this.clock = customClock ?? clock;
             scheduler?.UpdateClock(this.clock);
@@ -1199,9 +1230,9 @@ namespace osu.Framework.Graphics
 
         /// <summary>
         /// Whether <see cref="IFrameBasedClock.ProcessFrame"/> should be automatically invoked on this <see cref="Drawable"/>'s <see cref="Clock"/>
-        /// in <see cref="UpdateSubTree"/>. This should only be used in scenarios where <see cref="UpdateSubTree"/> is overridden to perform the functionality itself.
+        /// in <see cref="UpdateSubTree"/>. This should only be set to false in scenarios where the clock is updated elsewhere.
         /// </summary>
-        protected virtual bool ShouldProcessClock => Parent != null; //we don't want to update our clock if we are at the top of the stack. it's handled elsewhere for us.
+        public bool ProcessCustomClock = true;
 
         /// <summary>
         /// The time at which this drawable becomes valid (and is considered for drawing).
@@ -1324,7 +1355,7 @@ namespace osu.Framework.Graphics
         /// This is measured conservatively, i.e. it is only true when the Drawable was
         /// actually masked away, but it may be false, even if the Drawable was masked away.
         /// </summary>
-        internal bool IsMaskedAway;
+        internal bool IsMaskedAway { get; private set; }
 
         private Cached<Quad> screenSpaceDrawQuadBacking;
 
@@ -1508,7 +1539,7 @@ namespace osu.Framework.Graphics
         /// Generates the DrawNode for ourselves.
         /// </summary>
         /// <returns>A complete and updated DrawNode, or null if the DrawNode would be invisible.</returns>
-        internal virtual DrawNode GenerateDrawNodeSubtree(int treeIndex, RectangleF bounds)
+        internal virtual DrawNode GenerateDrawNodeSubtree(int treeIndex)
         {
             DrawNode node = drawNodes[treeIndex];
             if (node == null)
@@ -1841,22 +1872,29 @@ namespace osu.Framework.Graphics
         /// is propagated up the scene graph to the next eligible Drawable.</returns>
         protected virtual bool OnMouseMove(InputState state) => false;
 
-        private readonly bool handleInput;
-        /// <summary>
-        /// Whether this <see cref="Drawable"/> handles input.
-        /// This value is true by default if any "On-" input methods are overridden.
-        /// </summary>
-        public virtual bool HandleInput => handleInput;
+        private readonly bool handleKeyboardInput, handleMouseInput;
 
         /// <summary>
-        /// Nested class which is used for caching <see cref="HandleInput"/> values obtained via reflection.
+        /// Whether this <see cref="Drawable"/> handles keyboard input.
+        /// This value is true by default if any keyboard related "On-" input methods are overridden.
+        /// </summary>
+        public virtual bool HandleKeyboardInput => handleKeyboardInput;
+
+        /// <summary>
+        /// Whether this <see cref="Drawable"/> handles mouse input.
+        /// This value is true by default if any mouse related "On-" input methods are overridden.
+        /// </summary>
+        public virtual bool HandleMouseInput => handleMouseInput;
+
+        /// <summary>
+        /// Nested class which is used for caching <see cref="HandleKeyboardInput"/>, <see cref="HandleMouseInput"/> values obtained via reflection.
         /// </summary>
         private static class HandleInputCache
         {
-            private static readonly ConcurrentDictionary<Type, bool> cached_values = new ConcurrentDictionary<Type, bool>();
+            private static readonly ConcurrentDictionary<Type, bool> mouse_cached_values = new ConcurrentDictionary<Type, bool>();
+            private static readonly ConcurrentDictionary<Type, bool> keyboard_cached_values = new ConcurrentDictionary<Type, bool>();
 
-            private static string[] inputMethods => new[]
-            {
+            private static readonly string[] mouse_input_methods = {
                 nameof(OnHover),
                 nameof(OnHoverLost),
                 nameof(OnMouseDown),
@@ -1869,15 +1907,24 @@ namespace osu.Framework.Graphics
                 nameof(OnWheel),
                 nameof(OnFocus),
                 nameof(OnFocusLost),
-                nameof(OnKeyDown),
-                nameof(OnKeyUp),
-                nameof(OnMouseMove),
+                nameof(OnMouseMove)
             };
 
-            public static bool Get(Drawable drawable)
+            private static readonly string[] keyboard_input_methods = {
+                nameof(OnFocus),
+                nameof(OnFocusLost),
+                nameof(OnKeyDown),
+                nameof(OnKeyUp)
+            };
+
+            public static bool HandleKeyboardInput(Drawable drawable) => get(drawable, keyboard_cached_values, keyboard_input_methods);
+
+            public static bool HandleMouseInput(Drawable drawable) => get(drawable, mouse_cached_values, mouse_input_methods);
+
+            private static bool get(Drawable drawable, ConcurrentDictionary<Type, bool> cache, string[] inputMethods)
             {
                 var type = drawable.GetType();
-                if (cached_values.TryGetValue(type, out var value))
+                if (cache.TryGetValue(type, out var value))
                     return value;
 
                 foreach (var inputMethod in inputMethods)
@@ -1887,14 +1934,15 @@ namespace osu.Framework.Graphics
 
                     Debug.Assert(method != null);
 
+                    // ReSharper disable once PossibleNullReferenceException
                     if (method.DeclaringType != typeof(Drawable))
                     {
-                        cached_values.TryAdd(type, true);
+                        cache.TryAdd(type, true);
                         return true;
                     }
                 }
 
-                cached_values.TryAdd(type, false);
+                cache.TryAdd(type, false);
                 return false;
             }
         }
@@ -1941,9 +1989,14 @@ namespace osu.Framework.Graphics
         public virtual bool Contains(Vector2 screenSpacePos) => DrawRectangle.Contains(ToLocalSpace(screenSpacePos));
 
         /// <summary>
-        /// Whether this Drawable can receive input, taking into account all optimizations and masking.
+        /// Whether this Drawable can keyboard receive input, taking into account all optimizations and masking.
         /// </summary>
-        public bool CanReceiveInput => HandleInput && IsPresent && !IsMaskedAway;
+        public bool CanReceiveKeyboardInput => HandleKeyboardInput && IsPresent && !IsMaskedAway;
+
+        /// <summary>
+        /// Whether this Drawable can mouse receive input, taking into account all optimizations and masking.
+        /// </summary>
+        public bool CanReceiveMouseInput => HandleMouseInput && IsPresent && !IsMaskedAway;
 
         /// <summary>
         /// Creates a new InputState with mouse coodinates converted to the coordinate space of our parent.
@@ -1968,7 +2021,7 @@ namespace osu.Framework.Graphics
         /// <returns>Whether we have added ourself to the queue.</returns>
         internal virtual bool BuildKeyboardInputQueue(List<Drawable> queue)
         {
-            if (!CanReceiveInput)
+            if (!CanReceiveKeyboardInput)
                 return false;
 
             queue.Add(this);
@@ -1985,7 +2038,7 @@ namespace osu.Framework.Graphics
         /// <returns>Whether we have added ourself to the queue.</returns>
         internal virtual bool BuildMouseInputQueue(Vector2 screenSpaceMousePos, List<Drawable> queue)
         {
-            if (!CanReceiveInput || !ReceiveMouseInputAt(screenSpaceMousePos))
+            if (!CanReceiveMouseInput || !ReceiveMouseInputAt(screenSpaceMousePos))
                 return false;
 
             queue.Add(this);

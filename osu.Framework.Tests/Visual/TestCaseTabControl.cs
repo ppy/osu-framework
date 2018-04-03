@@ -1,10 +1,9 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using NUnit.Framework;
 using osu.Framework.Extensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
@@ -17,7 +16,6 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Tests.Visual
 {
-    [TestFixture]
     public class TestCaseTabControl : TestCase
     {
         public TestCaseTabControl()
@@ -60,9 +58,9 @@ namespace osu.Framework.Tests.Visual
 
             AddStep("RemoveItem", () =>
             {
-                if (pinnedAndAutoSort.Any())
+                if (pinnedAndAutoSort.Items.Any())
                 {
-                    pinnedAndAutoSort.RemoveItem(pinnedAndAutoSort.Items.Last());
+                    pinnedAndAutoSort.RemoveItem(pinnedAndAutoSort.Items.First());
                 }
             });
 

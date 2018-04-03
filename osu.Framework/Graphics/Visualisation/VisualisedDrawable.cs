@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -186,8 +186,7 @@ namespace osu.Framework.Graphics.Visualisation
             // Don't add individual characters of SpriteText
             if (Target is SpriteText) return;
 
-            VisualisedDrawable vis;
-            if (!visCache.TryGetValue(drawable, out vis))
+            if (!visCache.TryGetValue(drawable, out VisualisedDrawable vis))
             {
                 vis = visCache[drawable] = new VisualisedDrawable(drawable, tree)
                 {

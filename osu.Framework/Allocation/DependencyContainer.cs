@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Extensions.TypeExtensions;
@@ -20,7 +20,6 @@ namespace osu.Framework.Allocation
 
         private readonly ConcurrentDictionary<Type, ObjectActivator> activators = new ConcurrentDictionary<Type, ObjectActivator>();
         private readonly ConcurrentDictionary<Type, object> cache = new ConcurrentDictionary<Type, object>();
-        private readonly HashSet<Type> cacheable = new HashSet<Type>();
 
         private readonly IReadOnlyDependencyContainer parentContainer;
 
@@ -39,10 +38,9 @@ namespace osu.Framework.Allocation
                 mi => mi.GetCustomAttribute<BackgroundDependencyLoader>() != null).ToArray();
             if (loaderMethods.Length == 0)
                 return null;
-            else if (loaderMethods.Length == 1)
+            if (loaderMethods.Length == 1)
                 return loaderMethods[0];
-            else
-                throw new InvalidOperationException($"The type {type.ReadableName()} has more than one method marked with the {nameof(BackgroundDependencyLoader)}-Attribute. Any given type can only have one such method.");
+            throw new InvalidOperationException($"The type {type.ReadableName()} has more than one method marked with the {nameof(BackgroundDependencyLoader)}-Attribute. Any given type can only have one such method.");
         }
 
         private void register(Type type, bool lazy)
@@ -127,17 +125,25 @@ namespace osu.Framework.Allocation
         }
 
         /// <summary>
-        /// Caches an instance of a type. This instance will be returned each time you <see cref="Get(Type)"/>.
+        /// Caches an instance of a type as its most derived type. This instance will be returned each time you <see cref="Get(Type)"/>.
         /// </summary>
-        public T Cache<T>(T instance = null, bool overwrite = false) where T : class
+        /// <param name="instance">The instance to cache.</param>
+        public void Cache<T>(T instance)
+            where T : class
         {
-            if (!overwrite && cache.ContainsKey(typeof(T)))
-                throw new InvalidOperationException($@"Type {typeof(T).FullName} is already cached");
-            if (instance == null)
-                instance = this.Get<T>();
-            cacheable.Add(typeof(T));
-            cache[typeof(T)] = instance;
-            return instance;
+            if (instance == null)　throw new ArgumentNullException(nameof(instance));
+
+            cache[instance.GetType()] = instance;
+        }
+
+        /// <summary>
+        /// Caches an instance of a type as a type of <typeparamref name="T"/>. This instance will be returned each time you <see cref="Get(Type)"/>.
+        /// </summary>
+        /// <param name="instance">The instance to cache. Must be or derive from <typeparamref name="T"/>.</param>
+        public void CacheAs<T>(T instance)
+            where T : class
+        {
+            cache[typeof(T)] = instance ?? throw new ArgumentNullException(nameof(instance));
         }
 
         /// <summary>
@@ -149,8 +155,7 @@ namespace osu.Framework.Allocation
         /// <returns>The requested dependency, or null if not found.</returns>
         public object Get(Type type)
         {
-            object ret;
-            if (cache.TryGetValue(type, out ret))
+            if (cache.TryGetValue(type, out object ret))
                 return ret;
 
             return parentContainer?.Get(type);
@@ -182,9 +187,7 @@ namespace osu.Framework.Allocation
                 if (autoRegister && !activators.ContainsKey(type))
                     register(type, lazy);
 
-            ObjectActivator activator;
-
-            if (!activators.TryGetValue(type, out activator))
+            if (!activators.TryGetValue(type, out ObjectActivator activator))
                 throw new InvalidOperationException("DI Initialisation failed badly.");
 
             activator(this, instance);

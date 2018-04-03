@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -47,17 +47,15 @@ namespace osu.Framework.Platform
             var token = cancelListener.Token;
             try
             {
-                while (true)
+                while (!token.IsCancellationRequested)
                 {
                     while (!listener.Pending())
                     {
                         await Task.Delay(10, token);
                         if (token.IsCancellationRequested)
-                        {
-                            listener.Stop();
                             return;
-                        }
                     }
+
                     using (var client = await listener.AcceptTcpClientAsync())
                     {
                         using (var stream = client.GetStream())
@@ -85,6 +83,16 @@ namespace osu.Framework.Platform
             }
             catch (TaskCanceledException)
             {
+            }
+            finally
+            {
+                try
+                {
+                    listener.Stop();
+                }
+                catch
+                {
+                }
             }
         }
 

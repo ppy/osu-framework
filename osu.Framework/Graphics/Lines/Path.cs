@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Graphics.Primitives;
@@ -7,7 +7,8 @@ using OpenTK;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Allocation;
 using System.Collections.Generic;
-using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
+using System.Linq;
+using osu.Framework.Caching;
 
 namespace osu.Framework.Graphics.Lines
 {
@@ -24,8 +25,17 @@ namespace osu.Framework.Graphics.Lines
                 positions = value;
                 recomputeBounds();
 
+                segmentsCache.Invalidate();
                 Invalidate(Invalidation.DrawNode);
             }
+        }
+
+        public override bool ReceiveMouseInputAt(Vector2 screenSpacePos)
+        {
+            var localPos = ToLocalSpace(screenSpacePos);
+            var pathWidthSquared = PathWidth * PathWidth;
+
+            return segments.Any(s => s.DistanceSquaredToPoint(localPos) <= pathWidthSquared);
         }
 
         public Vector2 PositionInBoundingBox(Vector2 pos) => pos - new Vector2(minX, minY);
@@ -41,6 +51,7 @@ namespace osu.Framework.Graphics.Lines
             if ((RelativeSizeAxes & Axes.X) == 0) Width = 0;
             if ((RelativeSizeAxes & Axes.Y) == 0) Height = 0;
 
+            segmentsCache.Invalidate();
             Invalidate(Invalidation.DrawNode);
         }
 
@@ -49,6 +60,7 @@ namespace osu.Framework.Graphics.Lines
             positions.Add(pos);
             expandBounds(pos);
 
+            segmentsCache.Invalidate();
             Invalidate(Invalidation.DrawNode);
         }
 
@@ -95,8 +107,28 @@ namespace osu.Framework.Graphics.Lines
                 pathWidth = value;
                 recomputeBounds();
 
+                segmentsCache.Invalidate();
                 Invalidate(Invalidation.DrawNode);
             }
+        }
+
+        private readonly List<Line> segmentsBacking = new List<Line>();
+        private Cached segmentsCache = new Cached();
+        private List<Line> segments => segmentsCache.IsValid ? segmentsBacking : generateSegments();
+
+        private List<Line> generateSegments()
+        {
+            segmentsBacking.Clear();
+
+            if (positions.Count > 1)
+            {
+                Vector2 offset = new Vector2(minX, minY);
+                for (int i = 0; i < positions.Count - 1; ++i)
+                    segmentsBacking.Add(new Line(positions[i] - offset, positions[i + 1] - offset));
+            }
+
+            segmentsCache.Validate();
+            return segmentsBacking;
         }
 
         private Shader roundedTextureShader;
@@ -135,16 +167,7 @@ namespace osu.Framework.Graphics.Lines
 
             n.Shared = pathDrawNodeSharedData;
 
-            n.Segments.Clear();
-
-            if (positions.Count > 1)
-            {
-                Vector2 offset = new Vector2(minX, minY);
-                for (int i = 0; i < positions.Count - 1; ++i)
-                {
-                    n.Segments.Add(new Line(positions[i] - offset, positions[i + 1] - offset));
-                }
-            }
+            n.Segments = segments.ToList();
 
             base.ApplyDrawNode(node);
         }

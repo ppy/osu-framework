@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Graphics.Sprites;
@@ -111,12 +111,11 @@ namespace osu.Framework.Graphics.Containers
                                 throw new ArgumentException($"Missing ) in placeholder {placeholderStr}.");
                         }
 
-                        int placeholderIndex;
-                        if (int.TryParse(placeholderStr, out placeholderIndex))
+                        if (int.TryParse(placeholderStr, out int placeholderIndex))
                         {
                             if (placeholderIndex >= placeholders.Count)
                                 throw new ArgumentException($"This text has {placeholders.Count} placeholders. But placeholder with index {placeholderIndex} was used.");
-                            else if (placeholderIndex < 0)
+                            if (placeholderIndex < 0)
                                 throw new ArgumentException($"Negative placeholder indices are invalid. Index {placeholderIndex} was used.");
 
                             placeholderDrawable = placeholders[placeholderIndex];
@@ -134,15 +133,14 @@ namespace osu.Framework.Graphics.Containers
                                 args = new object[argStrs.Length];
                                 for (int i = 0; i < argStrs.Length; ++i)
                                 {
-                                    int argVal;
-                                    if (!int.TryParse(argStrs[i], out argVal))
+                                    if (!int.TryParse(argStrs[i], out int argVal))
                                         throw new ArgumentException($"The argument \"{argStrs[i]}\" in placeholder {placeholderStr} is not an integer.");
 
                                     args[i] = argVal;
                                 }
                             }
-                            Delegate cb;
-                            if (!iconFactories.TryGetValue(placeholderName, out cb))
+
+                            if (!iconFactories.TryGetValue(placeholderName, out Delegate cb))
                                 throw new ArgumentException($"There is no placeholder named {placeholderName}.");
 
                             placeholderDrawable = (Drawable)cb.DynamicInvoke(args);

@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Collections.Generic;
@@ -10,6 +10,8 @@ namespace osu.Framework.Input
 {
     public class MouseState : IMouseState
     {
+        private IMouseState lastState;
+
         public IReadOnlyList<MouseButton> Buttons
         {
             get { return buttons; }
@@ -24,7 +26,15 @@ namespace osu.Framework.Input
 
         public IMouseState NativeState => this;
 
-        public IMouseState LastState { get; set; }
+        public IMouseState LastState
+        {
+            get { return lastState; }
+            set
+            {
+                lastState = value;
+                if (lastState != null) lastState.LastState = null;
+            }
+        }
 
         public virtual int WheelDelta => Wheel - LastState?.Wheel ?? 0;
 
@@ -46,7 +56,7 @@ namespace osu.Framework.Input
         {
             var clone = (MouseState)MemberwiseClone();
             clone.buttons = new List<MouseButton>(buttons);
-            clone.LastState = null;
+            clone.LastState = LastState;
             return clone;
         }
 

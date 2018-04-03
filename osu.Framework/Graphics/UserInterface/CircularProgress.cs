@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Graphics.Textures;
@@ -54,6 +54,7 @@ namespace osu.Framework.Graphics.UserInterface
             n.Shared = pathDrawNodeSharedData;
 
             n.Angle = (float)Current.Value * MathHelper.TwoPi;
+            n.InnerRadius = innerRadius;
 
             base.ApplyDrawNode(node);
         }
@@ -79,6 +80,23 @@ namespace osu.Framework.Graphics.UserInterface
                     texture.Dispose();
 
                 texture = value;
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
+
+        private float innerRadius = 1;
+
+        /// <summary>
+        /// The inner fill radius, relative to the <see cref="Drawable.DrawSize"/> of the <see cref="CircularProgress"/>.
+        /// The value range is 0 to 1 where 0 is invisible and 1 is completely filled.
+        /// The entire texture still fills the disk without cropping it.
+        /// </summary>
+        public float InnerRadius
+        {
+            get => innerRadius;
+            set
+            {
+                innerRadius = MathHelper.Clamp(value, 0, 1);
                 Invalidate(Invalidation.DrawNode);
             }
         }

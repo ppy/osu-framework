@@ -1,18 +1,18 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using OpenTK;
-using OpenTK.Input;
-using osu.Framework.Allocation;
-using osu.Framework.Graphics;
-using osu.Framework.Graphics.Containers;
-using osu.Framework.Input.Handlers;
-using osu.Framework.Platform;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using osu.Framework.Allocation;
+using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
+using osu.Framework.Input.Handlers;
 using osu.Framework.Logging;
+using osu.Framework.Platform;
+using OpenTK;
+using OpenTK.Input;
 
 namespace osu.Framework.Input
 {
@@ -34,14 +34,9 @@ namespace osu.Framework.Input
         private const int double_click_time = 250;
 
         /// <summary>
-        /// The distance that must be moved before a drag begins.
-        /// </summary>
-        private const float drag_start_distance = 0;
-
-        /// <summary>
         /// The distance that must be moved until a dragged click becomes invalid.
         /// </summary>
-        private const float click_drag_distance = 40;
+        private const float click_drag_distance = 10;
 
         /// <summary>
         /// The time of the last input action.
@@ -220,7 +215,8 @@ namespace osu.Framework.Input
             {
                 foreach (var d in positionalInputQueue)
                     if (d is IRequireHighFrequencyMousePosition)
-                        if (d.TriggerOnMouseMove(CurrentState)) break;
+                        if (d.TriggerOnMouseMove(CurrentState))
+                            break;
             }
 
             keyboardRepeatTime -= Time.Elapsed;
@@ -257,11 +253,10 @@ namespace osu.Framework.Input
             // state potentially from a different input source.
             if (last.Mouse != null && state.Mouse != null)
             {
-                if (last.Mouse.GetType() == state.Mouse.GetType())
-                {
-                    last.Mouse.LastState = null;
+                // only set the last state if one hasn't already been set (in addition to being the same type of state).
+                // a smarter InputHandler may do this internally, if they are handling input from multiple distinct devices.
+                if (state.Mouse.LastState == null && last.Mouse.GetType() == state.Mouse.GetType())
                     state.Mouse.LastState = last.Mouse;
-                }
 
                 if (last.Mouse.HasAnyButtonPressed)
                     state.Mouse.PositionMouseDown = last.Mouse.PositionMouseDown;
@@ -385,9 +380,9 @@ namespace osu.Framework.Input
             foreach (Key k in keyboard.Keys.Distinct())
             {
                 bool isModifier = k == Key.LControl || k == Key.RControl
-                                  || k == Key.LAlt || k == Key.RAlt
-                                  || k == Key.LShift || k == Key.RShift
-                                  || k == Key.LWin || k == Key.RWin;
+                                                    || k == Key.LAlt || k == Key.RAlt
+                                                    || k == Key.LShift || k == Key.RShift
+                                                    || k == Key.LWin || k == Key.RWin;
 
                 LastActionTime = Time.Current;
 
@@ -475,7 +470,7 @@ namespace osu.Framework.Input
                     }
                 }
 
-                if (!isDragging && Vector2Extensions.Distance(mouse.PositionMouseDown ?? mouse.Position, mouse.Position) > drag_start_distance)
+                if (!isDragging && Vector2Extensions.Distance(mouse.PositionMouseDown ?? mouse.Position, mouse.Position) > click_drag_distance)
                 {
                     isDragging = true;
                     handleMouseDragStart(state);
@@ -483,7 +478,7 @@ namespace osu.Framework.Input
             }
             else if (last.HasAnyButtonPressed)
             {
-                if (isValidClick && (DraggedDrawable == null || Vector2Extensions.Distance(mouse.PositionMouseDown ?? mouse.Position, mouse.Position) < click_drag_distance))
+                if (isValidClick && (DraggedDrawable == null || Vector2Extensions.Distance(mouse.PositionMouseDown ?? mouse.Position, mouse.Position) <= click_drag_distance))
                     handleMouseClick(state);
 
                 mouseDownInputQueue = null;
@@ -505,9 +500,11 @@ namespace osu.Framework.Input
                 Button = button
             };
 
-            mouseDownInputQueue = new List<Drawable>(positionalInputQueue);
+            var result = PropagateMouseDown(positionalInputQueue, state, args, out Drawable handledBy);
 
-            return PropagateMouseDown(positionalInputQueue, state, args);
+            mouseDownInputQueue = new List<Drawable>(result ? positionalInputQueue.Take(positionalInputQueue.IndexOf(handledBy) + 1) : positionalInputQueue);
+
+            return result;
         }
 
         private bool handleMouseUp(InputState state, MouseButton button)
@@ -532,12 +529,12 @@ namespace osu.Framework.Input
         /// <returns>Whether the mouse up event was handled.</returns>
         protected virtual bool PropagateMouseUp(IEnumerable<Drawable> drawables, InputState state, MouseUpEventArgs args)
         {
-            var handled = drawables.FirstOrDefault(target => target.TriggerOnMouseUp(state, args));
+            var handledBy = drawables.FirstOrDefault(target => target.TriggerOnMouseUp(state, args));
 
-            if (handled != null)
-                Logger.Log($"MouseUp ({args.Button}) handled by {handled}.", LoggingTarget.Runtime, LogLevel.Debug);
+            if (handledBy != null)
+                Logger.Log($"MouseUp ({args.Button}) handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
 
-            return handled != null;
+            return handledBy != null;
         }
 
         /// <summary>
@@ -546,15 +543,16 @@ namespace osu.Framework.Input
         /// <param name="drawables">The drawables in the queue.</param>
         /// <param name="state">The input state.</param>
         /// <param name="args">The args.</param>
+        /// <param name="handledBy"></param>
         /// <returns>Whether the mouse down event was handled.</returns>
-        protected virtual bool PropagateMouseDown(IEnumerable<Drawable> drawables, InputState state, MouseDownEventArgs args)
+        protected virtual bool PropagateMouseDown(IEnumerable<Drawable> drawables, InputState state, MouseDownEventArgs args, out Drawable handledBy)
         {
-            var handled = drawables.FirstOrDefault(target => target.TriggerOnMouseDown(state, args));
+            handledBy = drawables.FirstOrDefault(target => target.TriggerOnMouseDown(state, args));
 
-            if (handled != null)
-                Logger.Log($"MouseDown ({args.Button}) handled by {handled}.", LoggingTarget.Runtime, LogLevel.Debug);
+            if (handledBy != null)
+                Logger.Log($"MouseDown ({args.Button}) handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
 
-            return handled != null;
+            return handledBy != null;
         }
 
         private bool handleMouseMove(InputState state)
@@ -572,7 +570,7 @@ namespace osu.Framework.Input
 
             // click pass, triggering an OnClick on all drawables up to the first which returns true.
             // an extra IsHovered check is performed because we are using an outdated queue (for valid reasons which we need to document).
-            clickedDrawable = intersectingQueue.FirstOrDefault(t => t.CanReceiveInput && t.ReceiveMouseInputAt(state.Mouse.Position) && t.TriggerOnClick(state));
+            clickedDrawable = intersectingQueue.FirstOrDefault(t => t.CanReceiveMouseInput && t.ReceiveMouseInputAt(state.Mouse.Position) && t.TriggerOnClick(state));
 
             if (clickedDrawable != null)
             {
@@ -631,6 +629,7 @@ namespace osu.Framework.Input
                 DraggedDrawable.IsDragged = true;
                 Logger.Log($"MouseDragStart handled by {DraggedDrawable}.", LoggingTarget.Runtime, LogLevel.Debug);
             }
+
             return DraggedDrawable != null;
         }
 
@@ -659,19 +658,19 @@ namespace osu.Framework.Input
         /// <returns></returns>
         protected virtual bool PropagateWheel(IEnumerable<Drawable> drawables, InputState state)
         {
-            var handled = drawables.FirstOrDefault(target => target.TriggerOnWheel(state));
+            var handledBy = drawables.FirstOrDefault(target => target.TriggerOnWheel(state));
 
-            if (handled != null)
-                Logger.Log($"Wheel ({state.Mouse.WheelDelta}) handled by {handled}.", LoggingTarget.Runtime, LogLevel.Debug);
+            if (handledBy != null)
+                Logger.Log($"Wheel ({state.Mouse.WheelDelta}) handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
 
-            return handled != null;
+            return handledBy != null;
         }
 
         private bool handleKeyDown(InputState state, Key key, bool repeat)
         {
             IEnumerable<Drawable> queue = inputQueue;
             if (!unfocusIfNoLongerValid())
-                queue = new[] { FocusedDrawable }.Concat(queue);
+                queue = queue.Prepend(FocusedDrawable);
 
             return PropagateKeyDown(queue, state, new KeyDownEventArgs { Key = key, Repeat = repeat });
         }
@@ -685,19 +684,19 @@ namespace osu.Framework.Input
         /// <returns>Whether the key down event was handled.</returns>
         protected virtual bool PropagateKeyDown(IEnumerable<Drawable> drawables, InputState state, KeyDownEventArgs args)
         {
-            var handled = drawables.FirstOrDefault(target => target.TriggerOnKeyDown(state, args));
+            var handledBy = drawables.FirstOrDefault(target => target.TriggerOnKeyDown(state, args));
 
-            if (handled != null)
-                Logger.Log($"KeyDown ({args.Key}) handled by {handled}.", LoggingTarget.Runtime, LogLevel.Debug);
+            if (handledBy != null)
+                Logger.Log($"KeyDown ({args.Key}) handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
 
-            return handled != null;
+            return handledBy != null;
         }
 
         private bool handleKeyUp(InputState state, Key key)
         {
             IEnumerable<Drawable> queue = inputQueue;
             if (!unfocusIfNoLongerValid())
-                queue = new[] { FocusedDrawable }.Concat(queue);
+                queue = queue.Prepend(FocusedDrawable);
 
             return PropagateKeyUp(queue, state, new KeyUpEventArgs { Key = key });
         }
@@ -711,12 +710,12 @@ namespace osu.Framework.Input
         /// <returns>Whether the key up event was handled.</returns>
         protected virtual bool PropagateKeyUp(IEnumerable<Drawable> drawables, InputState state, KeyUpEventArgs args)
         {
-            var handled = drawables.FirstOrDefault(target => target.TriggerOnKeyUp(state, args));
+            var handledBy = drawables.FirstOrDefault(target => target.TriggerOnKeyUp(state, args));
 
-            if (handled != null)
-                Logger.Log($"KeyUp ({args.Key}) handled by {handled}.", LoggingTarget.Runtime, LogLevel.Debug);
+            if (handledBy != null)
+                Logger.Log($"KeyUp ({args.Key}) handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
 
-            return handled != null;
+            return handledBy != null;
         }
 
         /// <summary>
@@ -740,6 +739,7 @@ namespace osu.Framework.Input
                         stillValid = false;
                         break;
                     }
+
                     d = d.Parent;
                 }
             }

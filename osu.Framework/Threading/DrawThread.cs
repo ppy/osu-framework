@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Statistics;
@@ -9,7 +9,8 @@ namespace osu.Framework.Threading
 {
     public class DrawThread : GameThread
     {
-        public DrawThread(Action onNewFrame, string threadName) : base(onNewFrame, threadName)
+        public DrawThread(Action onNewFrame)
+            : base(onNewFrame, "Draw")
         {
         }
 

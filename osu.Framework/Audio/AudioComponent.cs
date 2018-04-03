@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -26,9 +26,15 @@ namespace osu.Framework.Audio
                 return task;
             }
 
+            if (!acceptingActions)
+                // we don't want consumers to block on operations after we are disposed.
+                return Task.CompletedTask;
+
             PendingActions.Enqueue(task);
             return task;
         }
+
+        private bool acceptingActions = true;
 
         ~AudioComponent()
         {
@@ -39,6 +45,10 @@ namespace osu.Framework.Audio
         /// Run each loop of the audio thread after queued actions to allow components to update anything they need to.
         /// </summary>
         protected virtual void UpdateState()
+        {
+        }
+
+        protected virtual void UpdateChildren()
         {
         }
 
@@ -56,12 +66,13 @@ namespace osu.Framework.Audio
             FrameStatistics.Add(StatisticsCounterType.TasksRun, PendingActions.Count);
             FrameStatistics.Increment(StatisticsCounterType.Components);
 
-            Task task;
-            while (!IsDisposed && PendingActions.TryDequeue(out task))
+            while (!IsDisposed && PendingActions.TryDequeue(out Task task))
                 task.RunSynchronously();
 
             if (!IsDisposed)
                 UpdateState();
+
+            UpdateChildren();
         }
 
         /// <summary>
@@ -85,10 +96,10 @@ namespace osu.Framework.Audio
             IsDisposed = true;
         }
 
-        // This code added to correctly implement the disposable pattern.
-        public void Dispose()
+        public virtual void Dispose()
         {
-            EnqueueAction(() => Dispose(true));
+            acceptingActions = false;
+            PendingActions.Enqueue(new Task(() => Dispose(true)));
         }
 
         #endregion

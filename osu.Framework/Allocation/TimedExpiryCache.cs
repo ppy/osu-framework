@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -49,9 +49,7 @@ namespace osu.Framework.Allocation
 
         public bool TryGetValue(TKey key, out TValue value)
         {
-            TimedObject<TValue> timed;
-
-            if (!dictionary.TryGetValue(key, out timed))
+            if (!dictionary.TryGetValue(key, out TimedObject<TValue> timed))
             {
                 value = default(TValue);
                 return false;

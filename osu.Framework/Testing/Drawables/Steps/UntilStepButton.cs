@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -54,6 +54,15 @@ namespace osu.Framework.Testing.Drawables.Steps
 
                 Action?.Invoke();
             };
+        }
+
+        public override void Reset()
+        {
+            base.Reset();
+
+            invocations = 0;
+            elapsedTime = null;
+            success = false;
         }
 
         protected override void Success()

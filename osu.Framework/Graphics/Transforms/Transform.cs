@@ -1,7 +1,6 @@
-// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using osu.Framework.Extensions.TypeExtensions;
 using System;
 using System.Collections.Generic;
 
@@ -15,6 +14,17 @@ namespace osu.Framework.Graphics.Transforms
         /// Whether this <see cref="Transform"/> has been applied to an <see cref="ITransformable"/>.
         /// </summary>
         internal bool Applied;
+
+        /// <summary>
+        /// Whether this <see cref="Transform"/> has been applied completely to an <see cref="ITransformable"/>.
+        /// Used to track whether we still need to apply for targets which allow rewind.
+        /// </summary>
+        internal bool AppliedToEnd;
+
+        /// <summary>
+        /// Whether this <see cref="Transform"/> can be rewound.
+        /// </summary>
+        public bool Rewindable = true;
 
         public Easing Easing;
 
@@ -51,7 +61,9 @@ namespace osu.Framework.Graphics.Transforms
 
                 int compare = x.StartTime.CompareTo(y.StartTime);
                 if (compare != 0) return compare;
+
                 compare = x.TransformID.CompareTo(y.TransformID);
+
                 return compare;
             }
         }
@@ -82,6 +94,6 @@ namespace osu.Framework.Graphics.Transforms
 
         protected abstract void ReadIntoStartValue(T d);
 
-        public override string ToString() => $"{typeof(Transform<TValue, T>).ReadableName()} => {Target} {StartTime}:{StartValue}-{EndTime}:{EndValue}";
+        public override string ToString() => $"{Target.GetType().Name}.{TargetMember} {StartTime}-{EndTime}ms {StartValue} -> {EndValue}";
     }
 }

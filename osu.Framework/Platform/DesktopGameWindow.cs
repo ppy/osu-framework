@@ -1,18 +1,21 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 extern alias IOS;
 
 using System;
+using System.Drawing;
+using System.IO;
 using osu.Framework.Configuration;
 using osu.Framework.Input;
 using OpenTK;
 using Size = IOS::System.Drawing.Size;
 using Point = IOS::System.Drawing.Point;
+using OpenTK.Graphics;
 
 namespace osu.Framework.Platform
 {
-    public class DesktopGameWindow : GameWindow
+    public abstract class DesktopGameWindow : GameWindow
     {
         private const int default_width = 1366;
         private const int default_height = 768;
@@ -29,14 +32,20 @@ namespace osu.Framework.Platform
 
         public readonly Bindable<ConfineMouseMode> ConfineMouseMode = new Bindable<ConfineMouseMode>();
 
+        internal override IGraphicsContext Context => Implementation.Context;
+
         protected new OpenTK.GameWindow Implementation => (OpenTK.GameWindow)base.Implementation;
 
-        public DesktopGameWindow()
+        public readonly BindableBool MapAbsoluteInputToWindow = new BindableBool();
+
+        protected DesktopGameWindow()
             : base(default_width, default_height)
         {
-            Implementation.Resize += OnResize;
-            Implementation.Move += OnMove;
+            Resize += OnResize;
+            Move += OnMove;
         }
+
+        public virtual void SetIconFromStream(Stream stream) { }
 
         public override void SetupWindow(FrameworkConfigManager config)
         {
@@ -50,6 +59,8 @@ namespace osu.Framework.Platform
             config.BindWith(FrameworkSetting.WindowedPositionY, windowPositionY);
 
             config.BindWith(FrameworkSetting.ConfineMouseMode, ConfineMouseMode);
+
+            config.BindWith(FrameworkSetting.MapAbsoluteInputToWindow, MapAbsoluteInputToWindow);
 
             ConfineMouseMode.ValueChanged += confineMouseMode_ValueChanged;
             ConfineMouseMode.TriggerChange();
@@ -112,7 +123,7 @@ namespace osu.Framework.Platform
             switch (newMode)
             {
                 case Configuration.WindowMode.Fullscreen:
-                    DisplayResolution newResolution = DisplayDevice.Default.SelectResolution(widthFullscreen, heightFullscreen, 0, DisplayDevice.Default.RefreshRate);
+                    DisplayResolution newResolution = DisplayDevice.Default.SelectResolution(widthFullscreen, heightFullscreen, DisplayDevice.Default.BitsPerPixel, DisplayDevice.Default.RefreshRate);
                     DisplayDevice.Default.ChangeResolution(newResolution);
 
                     Implementation.WindowState = WindowState.Fullscreen;
@@ -154,14 +165,13 @@ namespace osu.Framework.Platform
             DisplayDevice.Default.RestoreResolution();
         }
 
-        public override Vector2 Position
+        public Vector2 Position
         {
             get
             {
                 return new Vector2((float)Implementation.Location.X / (DisplayDevice.Default.Width - Implementation.Size.Width),
                                    (float)Implementation.Location.Y / (DisplayDevice.Default.Height - Implementation.Size.Height));
             }
-
             set
             {
                 Implementation.Location = new Point(
@@ -184,6 +194,12 @@ namespace osu.Framework.Platform
                     WindowMode.Value = Configuration.WindowMode.Windowed;
                     break;
             }
+        }
+
+        public override VSyncMode VSync
+        {
+            get => Implementation.VSync;
+            set => Implementation.VSync = value;
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -462,8 +462,16 @@ namespace osu.Framework.Graphics.Containers
             updateSize();
             updatePosition();
 
-            Scrollbar?.MoveTo(ScrollDirection, Current * Scrollbar.Size[ScrollDim]);
-            content.MoveTo(ScrollDirection, -Current);
+            if (ScrollDirection == Direction.Horizontal)
+            {
+                Scrollbar.X = Current * Scrollbar.Size.X;
+                content.X = -Current;
+            }
+            else
+            {
+                Scrollbar.Y = Current * Scrollbar.Size.Y;
+                content.Y = -Current;
+            }
         }
 
         protected internal class ScrollbarContainer : Container

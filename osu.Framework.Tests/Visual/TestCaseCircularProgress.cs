@@ -1,7 +1,8 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using NUnit.Framework;
+using System;
+using System.Collections.Generic;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Textures;
@@ -12,9 +13,10 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Tests.Visual
 {
-    [TestFixture]
     public class TestCaseCircularProgress : TestCase
     {
+        public override IReadOnlyList<Type> RequiredTypes => new[] { typeof(CircularProgress), typeof(CircularProgressDrawNode), typeof(CircularProgressDrawNodeSharedData) };
+
         private readonly CircularProgress clock;
 
         private int rotateMode;
@@ -100,6 +102,8 @@ namespace osu.Framework.Tests.Visual
             AddStep("Vertical Gradient Colour", delegate { setColour(3); });
             AddStep("2D Gradient Colour", delegate { setColour(4); });
             AddStep("White Colour", delegate { setColour(0); });
+
+            AddSliderStep("Fill", 0, 10, 10, fill => clock.InnerRadius = fill / 10f);
         }
 
         protected override void Update()

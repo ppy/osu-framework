@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -31,11 +31,6 @@ namespace osu.Framework.Audio
         /// The thread audio operations (mainly Bass calls) are ran on.
         /// </summary>
         internal readonly AudioThread Thread;
-
-        /// <summary>
-        /// Used exclusively to perform thread checking.
-        /// </summary>
-        internal static AudioManager Instance;
 
         private List<DeviceInfo> audioDevices = new List<DeviceInfo>();
         private List<string> audioDeviceNames = new List<string>();
@@ -102,14 +97,12 @@ namespace osu.Framework.Audio
         {
             AudioDevice.ValueChanged += onDeviceChanged;
 
-            Instance = this;
-
             trackStore.AddExtension(@"mp3");
 
             sampleStore.AddExtension(@"wav");
             sampleStore.AddExtension(@"mp3");
 
-            Thread = new AudioThread(Update, @"Audio");
+            Thread = new AudioThread(Update);
             Thread.Start();
 
             globalTrackManager = new Lazy<TrackManager>(() => GetTrackManager(trackStore));
@@ -178,7 +171,7 @@ namespace osu.Framework.Audio
         /// Returns the global <see cref="SampleManager"/> if no resource store is passed.
         /// </summary>
         /// <param name="store">The <see cref="T:ResourceStore"/> of which to retrieve the <see cref="SampleManager"/>.</param>
-        public SampleManager GetSampleManager(ResourceStore<byte[]> store = null)
+        public SampleManager GetSampleManager(IResourceStore<byte[]> store = null)
         {
             if (store == null) return globalSampleManager.Value;
 

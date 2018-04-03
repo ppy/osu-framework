@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Extensions.TypeExtensions;
@@ -52,17 +52,11 @@ namespace osu.Framework.Timing
         private double timeSinceLastCalculation;
         private int framesSinceLastCalculation;
 
-        /// <summary>
-        /// Whether we should run <see cref="ProcessFrame"/> on the underlying <see cref="Source"/> (in the case it is an <see cref="IFrameBasedClock"/>).
-        /// </summary>
-        public bool ProcessSourceClockFrames = true;
-
         private const int fps_calculation_interval = 250;
 
         public virtual void ProcessFrame()
         {
-            if (ProcessSourceClockFrames)
-                (Source as IFrameBasedClock)?.ProcessFrame();
+            (Source as IFrameBasedClock)?.ProcessFrame();
 
             if (timeUntilNextCalculation <= 0)
             {

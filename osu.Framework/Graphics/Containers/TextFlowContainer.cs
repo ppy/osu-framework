@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Caching;
@@ -118,7 +118,8 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        public override bool HandleInput => false;
+        public override bool HandleKeyboardInput => false;
+        public override bool HandleMouseInput => false;
 
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
@@ -154,6 +155,20 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="text">The text to add.</param>
         /// <param name="creationParameters">A callback providing any <see cref="SpriteText" /> instances created for this new text.</param>
         public IEnumerable<SpriteText> AddText(string text, Action<SpriteText> creationParameters = null) => AddLine(new TextLine(text, creationParameters), true);
+
+        /// <summary>
+        /// Add an arbitrary <see cref="SpriteText"/> to this <see cref="TextFlowContainer"/>.
+        /// While default creation parameters are applied automatically, word wrapping is unavailable for contained words.
+        /// This should only be used when a specialised <see cref="SpriteText"/> type is requried.
+        /// </summary>
+        /// <param name="text">The text to add.</param>
+        /// <param name="creationParameters">A callback providing any <see cref="SpriteText" /> instances created for this new text.</param>
+        public void AddText(SpriteText text, Action<SpriteText> creationParameters = null)
+        {
+            base.Add(text);
+            defaultCreationParameters(text);
+            creationParameters?.Invoke(text);
+        }
 
         /// <summary>
         /// Add a new paragraph to this text flow. The \n character will create a line break. If you need \n to be a new paragraph, not just a line break, use <see cref="AddText(string, Action{SpriteText})"/> instead.

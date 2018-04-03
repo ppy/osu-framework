@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -54,8 +54,14 @@ namespace osu.Framework.Testing
                 host.Run(new TestCaseTestRunner(this));
             }
 
-            // clean up after each run
-            storage.DeleteDirectory(string.Empty);
+            try
+            {
+                // clean up after each run
+                storage.DeleteDirectory(string.Empty);
+            }
+            catch
+            {
+            }
         }
 
         /// <summary>
@@ -133,6 +139,8 @@ namespace osu.Framework.Testing
         public void RunAllSteps(Action onCompletion = null, Action<Exception> onError = null)
         {
             stepRunner?.Cancel();
+            foreach (var step in StepsContainer.OfType<StepButton>())
+                step.Reset();
 
             actionIndex = -1;
             actionRepetition = 0;
@@ -141,10 +149,11 @@ namespace osu.Framework.Testing
 
         public void RunFirstStep()
         {
+            stepRunner?.Cancel(); // Fixes RunAllSteps not working when toggled off
             actionIndex = 0;
             try
             {
-                loadableStep?.TriggerOnClick();
+                loadableStep?.PerformStep();
             }
             catch (Exception e)
             {
@@ -164,7 +173,7 @@ namespace osu.Framework.Testing
                 {
                     if (loadableStep.IsMaskedAway)
                         scroll.ScrollTo(loadableStep);
-                    loadableStep.TriggerOnClick();
+                    loadableStep.PerformStep();
                 }
             }
             catch (Exception e)
@@ -221,10 +230,9 @@ namespace osu.Framework.Testing
 
         protected void AddRepeatStep(string description, Action action, int invocationCount)
         {
-            StepsContainer.Add(new RepeatStepButton(invocationCount)
+            StepsContainer.Add(new RepeatStepButton(action, invocationCount)
             {
                 Text = description,
-                Action = action
             });
         }
 
@@ -241,21 +249,19 @@ namespace osu.Framework.Testing
             StepsContainer.Add(new UntilStepButton(waitUntilTrueDelegate)
             {
                 Text = description ?? @"Until",
-                BackgroundColour = Color4.Gray
             });
         }
 
         protected void AddWaitStep(int waitCount, string description = null)
         {
-            StepsContainer.Add(new RepeatStepButton(waitCount)
+            StepsContainer.Add(new RepeatStepButton(() => { }, waitCount)
             {
                 Text = description ?? @"Wait",
-                BackgroundColour = Color4.Gray
             });
         }
 
         protected void AddSliderStep<T>(string description, T min, T max, T start, Action<T> valueChanged)
-            where T : struct
+            where T : struct, IComparable, IConvertible
         {
             StepsContainer.Add(new StepSlider<T>(description, min, max, start)
             {

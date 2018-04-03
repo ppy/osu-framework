@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -23,8 +23,7 @@ namespace osu.Framework.Lists
             int index = 0;
             while (index < Count)
             {
-                T obj;
-                if (this[index].TryGetTarget(out obj))
+                if (this[index].TryGetTarget(out T obj))
                 {
                     action(obj);
                     index++;

@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Configuration;
@@ -64,10 +64,21 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         public abstract double CurrentTime { get; }
 
+        private double length;
+
         /// <summary>
         /// Length of the track in milliseconds.
         /// </summary>
-        public double Length { get; protected set; }
+        public double Length
+        {
+            get => length;
+            set
+            {
+                if (value < 0)
+                    throw new ArgumentException("Track length must be >= 0.", nameof(value));
+                length = value;
+            }
+        }
 
         public virtual int? Bitrate => null;
 
@@ -86,8 +97,6 @@ namespace osu.Framework.Audio.Track
 
         public virtual void Stop()
         {
-            if (IsDisposed)
-                throw new ObjectDisposedException(ToString(), "Can not stop disposed tracks.");
         }
 
         public abstract bool IsRunning { get; }

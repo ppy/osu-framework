@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using OpenTK;
@@ -6,6 +6,7 @@ using osu.Framework.Caching;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Graphics.Transforms;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -72,6 +73,63 @@ namespace osu.Framework.Graphics.Containers
             return base.Invalidate(invalidation, source, shallPropagate);
         }
 
+        private readonly Dictionary<Drawable, float> layoutChildren = new Dictionary<Drawable, float>();
+
+        protected internal override void AddInternal(Drawable drawable)
+        {
+            layoutChildren.Add(drawable, 0f);
+            // we have to ensure that the layout gets invalidated since Adding or Removing a child will affect the layout. The base class will not invalidate
+            // if we are set to AutoSizeAxes.None, but even in that situation, the layout can and often does change when children are added/removed.
+            InvalidateLayout();
+            base.AddInternal(drawable);
+        }
+
+        protected internal override bool RemoveInternal(Drawable drawable)
+        {
+            layoutChildren.Remove(drawable);
+            // we have to ensure that the layout gets invalidated since Adding or Removing a child will affect the layout. The base class will not invalidate
+            // if we are set to AutoSizeAxes.None, but even in that situation, the layout can and often does change when children are added/removed.
+            InvalidateLayout();
+            return base.RemoveInternal(drawable);
+        }
+
+        protected internal override void ClearInternal(bool disposeChildren = true)
+        {
+            layoutChildren.Clear();
+            // we have to ensure that the layout gets invalidated since Adding or Removing a child will affect the layout. The base class will not invalidate
+            // if we are set to AutoSizeAxes.None, but even in that situation, the layout can and often does change when children are added/removed.
+            InvalidateLayout();
+            base.ClearInternal(disposeChildren);
+        }
+
+        /// <summary>
+        /// Changes the position of the drawable in the layout. A higher position value means the drawable will be processed later (that is, the drawables with the lowest position appear first, and the drawable with the highest position appear last).
+        /// For example, the drawable with the lowest position value will be the left-most drawable in a horizontal <see cref="FillFlowContainer{T}"/> and the drawable with the highest position value will be the right-most drawable in a horizontal <see cref="FillFlowContainer{T}"/>.
+        /// </summary>
+        /// <param name="drawable">The drawable whose position should be changed, must be a child of this container.</param>
+        /// <param name="newPosition">The new position in the layout the drawable should have.</param>
+        public void SetLayoutPosition(Drawable drawable, float newPosition)
+        {
+            if (!layoutChildren.ContainsKey(drawable))
+                throw new InvalidOperationException($"Cannot change layout position of drawable which is not contained within this {nameof(FlowContainer<T>)}.");
+            layoutChildren[drawable] = newPosition;
+            InvalidateLayout();
+        }
+
+        /// <summary>
+        /// Gets the position of the drawable in the layout. A higher position value means the drawable will be processed later (that is, the drawables with the lowest position appear first, and the drawable with the highest position appear last).
+        /// For example, the drawable with the lowest position value will be the left-most drawable in a horizontal <see cref="FillFlowContainer{T}"/> and the drawable with the highest position value will be the right-most drawable in a horizontal <see cref="FillFlowContainer{T}"/>.
+        /// </summary>
+        /// <param name="drawable">The drawable whose position should be retrieved, must be a child of this container.</param>
+        /// <returns>The position of the drawable in the layout.</returns>
+        public float GetLayoutPosition(Drawable drawable)
+        {
+            if (!layoutChildren.ContainsKey(drawable))
+                throw new InvalidOperationException($"Cannot get layout position of drawable which is not contained within this {nameof(FlowContainer<T>)}.");
+
+            return layoutChildren[drawable];
+        }
+
         protected override bool UpdateChildrenLife()
         {
             bool changed = base.UpdateChildrenLife();
@@ -92,7 +150,10 @@ namespace osu.Framework.Graphics.Containers
             base.InvalidateFromChild(invalidation);
         }
 
-        protected virtual IEnumerable<Drawable> FlowingChildren => AliveInternalChildren.Where(d => d.IsPresent);
+        /// <summary>
+        /// Gets the children that appear in the flow of this <see cref="FlowContainer{T}"/> in the order in which they are processed within the flowing layout.
+        /// </summary>
+        public virtual IEnumerable<Drawable> FlowingChildren => AliveInternalChildren.Where(d => d.IsPresent).OrderBy(d => layoutChildren[d]).ThenBy(d => d.ChildID);
 
         protected abstract IEnumerable<Vector2> ComputeLayoutPositions();
 
@@ -128,7 +189,7 @@ namespace osu.Framework.Graphics.Containers
 
                 var finalPos = positions[i];
                 if (d.Position != finalPos)
-                    d.MoveTo(finalPos, LayoutDuration, LayoutEasing);
+                    d.TransformTo(d.PopulateTransform(new FlowTransform { Rewindable = false }, finalPos, LayoutDuration, LayoutEasing));
 
                 ++i;
             }
@@ -146,6 +207,14 @@ namespace osu.Framework.Graphics.Containers
             {
                 performLayout();
                 layout.Validate();
+            }
+        }
+
+        private class FlowTransform : TransformCustom<Vector2, Drawable>
+        {
+            public FlowTransform()
+                : base(nameof(Position))
+            {
             }
         }
     }

@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 namespace osu.Framework.Platform.Linux
@@ -8,8 +8,8 @@ namespace osu.Framework.Platform.Linux
         internal LinuxGameHost(string gameName, bool bindIPC = false)
             : base(gameName, bindIPC)
         {
-            Window = new DesktopGameWindow();
-            Window.Implementation.WindowStateChanged += (sender, e) =>
+            Window = new LinuxGameWindow();
+            Window.WindowStateChanged += (sender, e) =>
             {
                 if (Window.Implementation.WindowState != OpenTK.WindowState.Minimized)
                     OnActivated();

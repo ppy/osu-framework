@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using Newtonsoft.Json;
@@ -48,12 +48,12 @@ namespace osu.Framework.Tests.IO
         [Test]
         public void TestCustomComparer()
         {
-            int Compare(int i1, int i2) => i2.CompareTo(i1);
+            int compare(int i1, int i2) => i2.CompareTo(i1);
 
-            var original = new SortedList<int>(Compare);
+            var original = new SortedList<int>(compare);
             original.AddRange(new[] { 1, 2, 3, 4, 5, 6 });
 
-            var deserialized = new SortedList<int>(Compare);
+            var deserialized = new SortedList<int>(compare);
             JsonConvert.PopulateObject(JsonConvert.SerializeObject(original), deserialized);
 
             Assert.AreEqual(original.Count, deserialized.Count, "Counts are not equal");

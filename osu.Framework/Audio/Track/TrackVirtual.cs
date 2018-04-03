@@ -1,7 +1,8 @@
-// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Timing;
+using OpenTK;
 
 namespace osu.Framework.Audio.Track
 {
@@ -30,8 +31,7 @@ namespace osu.Framework.Audio.Track
                     clock.Reset();
             }
 
-            if (Length > 0 && seekOffset > Length)
-                seekOffset = Length;
+            seekOffset = MathHelper.Clamp(seekOffset, 0, Length);
 
             return current != seekOffset;
         }

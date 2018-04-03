@@ -1,7 +1,6 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.UserInterface;
@@ -10,7 +9,6 @@ using OpenTK;
 
 namespace osu.Framework.Tests.Visual
 {
-    [TestFixture]
     public class TestCaseTextBox : TestCase
     {
         public TestCaseTextBox()
@@ -64,6 +62,14 @@ namespace osu.Framework.Tests.Visual
                 Text = @"prefilled placeholder",
                 PlaceholderText = @"Placeholder text",
                 Size = new Vector2(500, 30),
+                TabbableContentContainer = textBoxes
+            });
+
+            textBoxes.Add(new TextBox
+            {
+                Text = "Readonly textbox",
+                Size = new Vector2(500, 30),
+                ReadOnly = true,
                 TabbableContentContainer = textBoxes
             });
 

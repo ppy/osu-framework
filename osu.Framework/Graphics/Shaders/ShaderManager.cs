@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -54,8 +54,7 @@ namespace osu.Framework.Graphics.Shaders
         {
             name = ensureValidName(name, type);
 
-            ShaderPart part;
-            if (!bypassCache && partCache.TryGetValue(name, out part))
+            if (!bypassCache && partCache.TryGetValue(name, out ShaderPart part))
                 return part;
 
             byte[] rawData = LoadRaw(name);
@@ -71,9 +70,7 @@ namespace osu.Framework.Graphics.Shaders
         {
             string name = vertex + '/' + fragment;
 
-            Shader shader;
-
-            if (!shaderCache.TryGetValue(name, out shader))
+            if (!shaderCache.TryGetValue(name, out Shader shader))
             {
                 List<ShaderPart> parts = new List<ShaderPart>
                 {

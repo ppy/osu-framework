@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Linq;
@@ -115,12 +115,8 @@ namespace osu.Framework
             samples.AddStore(new NamespacedResourceStore<byte[]>(Resources, @"Samples"));
             samples.AddStore(new OnlineStore());
 
-            Audio = dependencies.Cache(new AudioManager(
-                tracks,
-                samples)
-            {
-                EventScheduler = Scheduler
-            });
+            Audio = new AudioManager(tracks, samples) { EventScheduler = Scheduler };
+            dependencies.Cache(Audio);
 
             Host.RegisterThread(Audio.Thread);
 

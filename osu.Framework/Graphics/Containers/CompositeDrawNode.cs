@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Collections.Generic;
@@ -11,7 +11,6 @@ using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Colour;
 using System;
 using osu.Framework.Graphics.OpenGL.Vertices;
-using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -178,12 +177,6 @@ namespace osu.Framework.Graphics.Containers
 
         private const int min_amount_children_to_warrant_batch = 5;
 
-        /// <summary>
-        /// A custom action to perform for every given vertex to render.
-        /// If null, then by default vertices are added to a vertex batch.
-        /// </summary>
-        protected Action<TexturedVertex2D> CustomVertexAction => null;
-
         private bool mayHaveOwnVertexBatch(int amountChildren) => Shared.ForceOwnVertexBatch || amountChildren >= min_amount_children_to_warrant_batch;
 
         private void updateVertexBatch()
@@ -199,16 +192,11 @@ namespace osu.Framework.Graphics.Containers
 
         public override void Draw(Action<TexturedVertex2D> vertexAction)
         {
-            if (CustomVertexAction == null)
-            {
-                updateVertexBatch();
+            updateVertexBatch();
 
-                // Prefer to use own vertex batch instead of the parent-owned one.
-                if (Shared.VertexBatch != null)
-                    vertexAction = Shared.VertexBatch.Add;
-            }
-            else
-                vertexAction = CustomVertexAction;
+            // Prefer to use own vertex batch instead of the parent-owned one.
+            if (Shared.VertexBatch != null)
+                vertexAction = Shared.VertexBatch.AddAction;
 
             base.Draw(vertexAction);
 

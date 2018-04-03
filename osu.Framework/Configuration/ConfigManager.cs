@@ -1,36 +1,20 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using osu.Framework.Logging;
-using osu.Framework.Platform;
 using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+using osu.Framework.Configuration.Tracking;
 
 namespace osu.Framework.Configuration
 {
-    public class ConfigManager<T> : IDisposable
+    public abstract class ConfigManager<T> : ITrackableConfigManager, IDisposable
         where T : struct
     {
-        /// <summary>
-        /// The backing file used to store the config. Null means no persistent storage.
-        /// </summary>
-        protected virtual string Filename => @"game.ini";
-
         protected virtual bool AddMissingEntries => true;
 
-        private bool hasUnsavedChanges;
-
-        private readonly Dictionary<T, IBindable> configStore = new Dictionary<T, IBindable>();
-
-        private readonly Storage storage;
-
-        public ConfigManager(Storage storage)
-        {
-            this.storage = storage;
-            InitialiseDefaults();
-            Load();
-        }
+        protected readonly Dictionary<T, IBindable> ConfigStore = new Dictionary<T, IBindable>();
 
         protected virtual void InitialiseDefaults()
         {
@@ -43,7 +27,7 @@ namespace osu.Framework.Configuration
             if (bindable == null)
             {
                 bindable = new BindableDouble(value);
-                addBindable(lookup, bindable);
+                AddBindable(lookup, bindable);
             }
             else
             {
@@ -65,7 +49,7 @@ namespace osu.Framework.Configuration
             if (bindable == null)
             {
                 bindable = new BindableFloat(value);
-                addBindable(lookup, bindable);
+                AddBindable(lookup, bindable);
             }
             else
             {
@@ -87,7 +71,7 @@ namespace osu.Framework.Configuration
             if (bindable == null)
             {
                 bindable = new BindableInt(value);
-                addBindable(lookup, bindable);
+                AddBindable(lookup, bindable);
             }
             else
             {
@@ -108,7 +92,7 @@ namespace osu.Framework.Configuration
             if (bindable == null)
             {
                 bindable = new BindableBool(value);
-                addBindable(lookup, bindable);
+                AddBindable(lookup, bindable);
             }
             else
             {
@@ -134,32 +118,27 @@ namespace osu.Framework.Configuration
             return bindable;
         }
 
-        private void addBindable<TBindable>(T lookup, Bindable<TBindable> bindable)
+        protected virtual void AddBindable<TBindable>(T lookup, Bindable<TBindable> bindable)
         {
-            configStore[lookup] = bindable;
-            bindable.ValueChanged += delegate { hasUnsavedChanges = true; };
+            ConfigStore[lookup] = bindable;
+            bindable.ValueChanged += _ => backgroundSave();
         }
 
         private Bindable<U> set<U>(T lookup, U value)
         {
             Bindable<U> bindable = new Bindable<U>(value);
-            addBindable(lookup, bindable);
+            AddBindable(lookup, bindable);
             return bindable;
         }
 
-        public U Get<U>(T lookup)
-        {
-            return GetOriginalBindable<U>(lookup).Value;
-        }
+        public U Get<U>(T lookup) => GetOriginalBindable<U>(lookup).Value;
 
         protected Bindable<U> GetOriginalBindable<U>(T lookup)
         {
-            IBindable obj;
-
-            if (configStore.TryGetValue(lookup, out obj))
+            if (ConfigStore.TryGetValue(lookup, out IBindable obj))
                 return obj as Bindable<U>;
 
-            return set(lookup, default(U));
+            return null;
         }
 
         /// <summary>
@@ -175,86 +154,16 @@ namespace osu.Framework.Configuration
         /// </summary>
         public void BindWith<U>(T lookup, Bindable<U> bindable) => bindable.BindTo(GetOriginalBindable<U>(lookup));
 
-        public void Load()
-        {
-            if (string.IsNullOrEmpty(Filename)) return;
-
-            using (var stream = storage.GetStream(Filename))
-            {
-                if (stream == null)
-                    return;
-
-                using (var reader = new StreamReader(stream))
-                {
-                    string line;
-
-                    while ((line = reader.ReadLine()) != null)
-                    {
-                        int equalsIndex = line.IndexOf('=');
-
-                        if (line.Length == 0 || line[0] == '#' || equalsIndex < 0) continue;
-
-                        string key = line.Substring(0, equalsIndex).Trim();
-                        string val = line.Remove(0, equalsIndex + 1).Trim();
-
-                        T lookup;
-
-                        if (!Enum.TryParse(key, out lookup))
-                            continue;
-
-                        IBindable b;
-
-                        if (configStore.TryGetValue(lookup, out b))
-                        {
-                            try
-                            {
-                                b.Parse(val);
-                            }
-                            catch (Exception e)
-                            {
-                                Logger.Log($@"Unable to parse config key {lookup}: {e}", LoggingTarget.Runtime, LogLevel.Important);
-                            }
-                        }
-                        else if (AddMissingEntries)
-                            Set(lookup, val);
-                    }
-                }
-            }
-        }
-
-        public bool Save()
-        {
-            if (!hasUnsavedChanges || string.IsNullOrEmpty(Filename)) return true;
-
-            try
-            {
-                using (Stream stream = storage.GetStream(Filename, FileAccess.Write, FileMode.Create))
-                using (StreamWriter w = new StreamWriter(stream))
-                {
-                    foreach (KeyValuePair<T, IBindable> p in configStore)
-                        w.WriteLine(@"{0} = {1}", p.Key, p.Value);
-                }
-            }
-            catch
-            {
-                return false;
-            }
-
-            hasUnsavedChanges = false;
-            return true;
-        }
-
         #region IDisposable Support
 
-        private bool disposedValue; // To detect redundant calls
+        private bool isDisposed;
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!disposedValue)
+            if (!isDisposed)
             {
                 Save();
-
-                disposedValue = true;
+                isDisposed = true;
             }
         }
 
@@ -270,5 +179,61 @@ namespace osu.Framework.Configuration
         }
 
         #endregion
+
+        public virtual TrackedSettings CreateTrackedSettings() => null;
+
+        public void LoadInto(TrackedSettings settings) => settings.LoadFrom(this);
+
+        public class TrackedSetting<U> : Tracking.TrackedSetting<U>
+        {
+            /// <summary>
+            /// Constructs a new <see cref="TrackedSetting{U}"/>.
+            /// </summary>
+            /// <param name="setting">The config setting to be tracked.</param>
+            /// <param name="generateDescription">A function that generates the description for the setting, invoked every time the value changes.</param>
+            public TrackedSetting(T setting, Func<U, SettingDescription> generateDescription)
+                : base(setting, generateDescription)
+            {
+            }
+        }
+
+        private bool hasLoaded;
+
+        public void Load()
+        {
+            PerformLoad();
+            hasLoaded = true;
+        }
+
+        private int lastSave;
+
+        /// <summary>
+        /// Perform a save with debounce.
+        /// </summary>
+        private void backgroundSave()
+        {
+            var current = Interlocked.Increment(ref lastSave);
+            Task.Delay(100).ContinueWith(task =>
+            {
+                if (current == lastSave) Save();
+            });
+        }
+
+        private readonly object saveLock = new object();
+
+        public bool Save()
+        {
+            if (!hasLoaded) return false;
+
+            lock (saveLock)
+            {
+                Interlocked.Increment(ref lastSave);
+                return PerformSave();
+            }
+        }
+
+        protected abstract void PerformLoad();
+
+        protected abstract bool PerformSave();
     }
 }

@@ -1,10 +1,11 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using OpenTK;
@@ -50,11 +51,18 @@ namespace osu.Framework.Graphics.Visualisation
 
             Type type = source.GetType();
 
-            AddRange(((IEnumerable<MemberInfo>)type.GetProperties(BindingFlags.Instance | BindingFlags.Public).Where(p => p.GetMethod != null)) // Get all properties that can have a value
-                .Concat(type.GetFields(BindingFlags.Instance | BindingFlags.Public)) // And all fields
-                .OrderBy(member => member.Name)
-                .Concat(type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic).OrderBy(field => field.Name)) // Include non-public fields at the end
-                .Select(member => new PropertyItem(member, source)));
+            var properties = (IEnumerable<MemberInfo>)type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                                                          // Only properties which we can read
+                                                          .Where(p => p.CanRead);
+
+            var fields = (IEnumerable<MemberInfo>)type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                                                      // Exclude the backing fields of properties
+                                                      .Where(f => f.GetCustomAttribute<CompilerGeneratedAttribute>() == null);
+
+            // Upper, then lower-case
+            var allMembers = properties.Concat(fields).OrderBy(m => (int)m.Name[0]).ThenBy(m => m.Name);
+
+            AddRange(allMembers.Select(member => new PropertyItem(member, source)));
         }
 
         protected override void PopIn()

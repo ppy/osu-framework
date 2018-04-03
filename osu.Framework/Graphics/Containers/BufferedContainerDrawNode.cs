@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Collections.Generic;
@@ -16,7 +16,6 @@ using System;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using System.Diagnostics;
-using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -175,7 +174,7 @@ namespace osu.Framework.Graphics.Containers
             currentFrameBufferIndex = originalIndex;
 
             Vector2 frameBufferSize = new Vector2((float)Math.Ceiling(ScreenSpaceDrawRectangle.Width), (float)Math.Ceiling(ScreenSpaceDrawRectangle.Height));
-            if (UpdateVersion > DrawVersion.Value || frameBufferSize != FrameBuffers[0].Size)
+            if (UpdateVersion > DrawVersion.Value)
             {
                 DrawVersion.Value = UpdateVersion;
 

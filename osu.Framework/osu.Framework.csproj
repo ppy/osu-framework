@@ -1,50 +1,34 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\OpenTK.props" />
-  <Import Project="..\System.Drawing.props" />
   <Import Project="..\osu.Framework.props" />
-
   <PropertyGroup Label="Project">
-    <!-- We need to compile for net461 here for System.Drawing to work under .NET Framework... -->
+    <TargetFramework>netstandard2.0</TargetFramework>
     <OutputType>Library</OutputType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Company>ppy Pty Ltd</Company>
-    <Version>1.0.0.0</Version>
-    <Copyright>Copyright © ppy Pty Ltd 2017</Copyright>
     <AssemblyTitle>osu!framework</AssemblyTitle>
     <Description>Framework to support osu!</Description>
     <Product>osu!framework</Product>
   </PropertyGroup>
-
-  <PropertyGroup Label="Defines">
-   <DefineConstants Condition="'$(TargetFramework)' == 'net461'">$(DefineConstants);NET_FRAMEWORK</DefineConstants>
-  </PropertyGroup>
-
-  <ItemGroup Label="References">
-    <Reference Include="System.Runtime.InteropServices.RuntimeInformation" />
+  <ItemGroup Label="Service">
+    <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
   </ItemGroup>
-
   <ItemGroup Label="Package References">
+    <PackageReference Include="CoreCompat.System.Drawing.v2" Version="5.2.0-preview1-r131" />
+    <PackageReference Include="runtime.linux-x64.CoreCompat.System.Drawing" Version="1.0.0-beta009" />
+    <PackageReference Include="runtime.osx.10.10-x64.CoreCompat.System.Drawing" Version="5.4.0-r8" />
+    <PackageReference Include="ppy.OpenTK.NS20" Version="1.0.3" />
+    <PackageReference Include="System.Runtime.InteropServices" Version="4.3.0" />
+    <PackageReference Include="ppy.Microsoft.Diagnostics.Runtime" Version="0.9.180305.1" />
+    <PackageReference Include="NUnit" Version="3.8.1" />
     <PackageReference Include="System.Net.Http" Version="4.3.3" />
     <PackageReference Include="Cyotek.Drawing.BitmapFont" Version="1.3.4-beta1" />
     <PackageReference Include="ManagedBass" Version="2.0.3" />
     <PackageReference Include="ManagedBass.Fx" Version="2.0.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="2.4.0" />
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
-    <PackageReference Include="NUnit" Version="3.8.1" />
     <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.3.0" />
     <PackageReference Include="System.Reflection.Emit.ILGeneration" Version="4.3.0" />
+    <PackageReference Include="JetBrains.Annotations" Version="11.1.0" />
   </ItemGroup>
-
-  <ItemGroup Label="Content">
-    <Content Include="Resources\Fonts\LICENSE.txt" />
-    <EmbeddedResource Include="**\*.fs" />
-    <EmbeddedResource Include="**\*.vs" />
-    <EmbeddedResource Include="Resources\Shaders\sh_Utils.h" />
-    <EmbeddedResource Include="Resources\Fonts\OpenSans.fnt" />
-    <EmbeddedResource Include="Resources\Fonts\OpenSans_1.png" />
-    <EmbeddedResource Include="Resources\Fonts\OpenSans_0.png" />
-  </ItemGroup>
-
   <ItemGroup Label="Copied Content">
     <Content Include="x86\*.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

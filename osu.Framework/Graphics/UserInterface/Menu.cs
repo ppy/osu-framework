@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -11,7 +11,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Logging;
 using osu.Framework.MathUtils;
 using osu.Framework.Threading;
 using OpenTK;
@@ -669,8 +668,6 @@ namespace osu.Framework.Graphics.UserInterface
                 set
                 {
                     state = value;
-
-                    Logger.Log($"Menu item {Item.Text} is {state}");
 
                     UpdateForegroundColour();
                     UpdateBackgroundColour();

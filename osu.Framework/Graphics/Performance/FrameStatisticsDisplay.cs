@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using OpenTK;
@@ -103,7 +103,7 @@ namespace osu.Framework.Graphics.Performance
 
         public FrameStatisticsDisplay(GameThread thread, TextureAtlas atlas)
         {
-            Name = thread.Thread.Name;
+            Name = thread.Name;
             monitor = thread.Monitor;
 
             Origin = Anchor.TopRight;
@@ -353,8 +353,7 @@ namespace osu.Framework.Graphics.Performance
         {
             base.Update();
 
-            FrameStatistics frame;
-            while (monitor.PendingFrames.TryDequeue(out frame))
+            while (monitor.PendingFrames.TryDequeue(out FrameStatistics frame))
             {
                 if (processFrames)
                     applyFrame(frame);
@@ -429,12 +428,11 @@ namespace osu.Framework.Graphics.Performance
         {
             Trace.Assert(textureData.Length >= HEIGHT * 4, $"textureData is too small ({textureData.Length}) to hold area data.");
 
-            double elapsedMilliseconds;
             int drawHeight;
 
             if (!frameTimeType.HasValue)
                 drawHeight = currentHeight;
-            else if (frame.CollectedTimes.TryGetValue(frameTimeType.Value, out elapsedMilliseconds))
+            else if (frame.CollectedTimes.TryGetValue(frameTimeType.Value, out double elapsedMilliseconds))
             {
                 legendMapping[(int)frameTimeType].Alpha = 1;
                 drawHeight = (int)(elapsedMilliseconds * scale);
@@ -483,7 +481,8 @@ namespace osu.Framework.Graphics.Performance
                 Sprite.Texture = atlas.Add(WIDTH, HEIGHT);
             }
 
-            public override bool HandleInput => false;
+            public override bool HandleKeyboardInput => false;
+            public override bool HandleMouseInput => false;
         }
 
         private class CounterBar : Container
