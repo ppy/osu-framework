@@ -694,5 +694,97 @@ namespace osu.Framework.Input.Bindings
         /// The twentieth joystick button.
         /// </summary>
         Joystick20 = 166,
+
+        /// <summary>
+        /// Indicates the first available negative-axis joystick button.
+        /// </summary>
+        FirstJoystickAxisNegativeButton = 167,
+
+        /// <summary>
+        /// The first negative-axis joystick button.
+        /// </summary>
+        JoystickAxisNegative1 = 167,
+        /// <summary>
+        /// The second negative-axis joystick button.
+        /// </summary>
+        JoystickAxisNegative2 = 168,
+        /// <summary>
+        /// The third negative-axis joystick button.
+        /// </summary>
+        JoystickAxisNegative3 = 169,
+        /// <summary>
+        /// The fourth negative-axis joystick button.
+        /// </summary>
+        JoystickAxisNegative4 = 170,
+        /// <summary>
+        /// The fifth negative-axis joystick button.
+        /// </summary>
+        JoystickAxisNegative5 = 171,
+        /// <summary>
+        /// The sixth negative-axis joystick button.
+        /// </summary>
+        JoystickAxisNegative6 = 172,
+        /// <summary>
+        /// The seventh negative-axis joystick button.
+        /// </summary>
+        JoystickAxisNegative7 = 173,
+        /// <summary>
+        /// The eigth negative-axis joystick button.
+        /// </summary>
+        JoystickAxisNegative8 = 174,
+        /// <summary>
+        /// The ninth negative-axis joystick button.
+        /// </summary>
+        JoystickAxisNegative9 = 175,
+        /// <summary>
+        /// The tenth negative-axis joystick button.
+        /// </summary>
+        JoystickAxisNegative10 = 176,
+
+        /// <summary>
+        /// Indicates the first available positive-axis joystick button.
+        /// </summary>
+        FirstJoystickAxisPositiveButton = 177,
+
+        /// <summary>
+        /// The first positive-axis joystick button.
+        /// </summary>
+        JoystickAxisPositive1 = 177,
+        /// <summary>
+        /// The second positive-axis joystick button.
+        /// </summary>
+        JoystickAxisPositive2 = 178,
+        /// <summary>
+        /// The third positive-axis joystick button.
+        /// </summary>
+        JoystickAxisPositive3 = 179,
+        /// <summary>
+        /// The fourth positive-axis joystick button.
+        /// </summary>
+        JoystickAxisPositive4 = 180,
+        /// <summary>
+        /// The fifth positive-axis joystick button.
+        /// </summary>
+        JoystickAxisPositive5 = 181,
+        /// <summary>
+        /// The sixth positive-axis joystick button.
+        /// </summary>
+        JoystickAxisPositive6 = 182,
+        /// <summary>
+        /// The seventh positive-axis joystick button.
+        /// </summary>
+        JoystickAxisPositive7 = 183,
+        /// <summary>
+        /// The eigth positive-axis joystick button.
+        /// </summary>
+        JoystickAxisPositive8 = 184,
+        /// <summary>
+        /// The ninth positive-axis joystick button.
+        /// </summary>
+        JoystickAxisPositive9 = 185,
+        /// <summary>
+        /// The tenth positive-axis joystick button.
+        /// </summary>
+        JoystickAxisPositive10 = 186,
     }
 }

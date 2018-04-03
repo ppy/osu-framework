@@ -72,6 +72,10 @@ namespace osu.Framework.Input.Bindings
 
         private string getReadableKey(InputKey key)
         {
+            if (key >= InputKey.FirstJoystickAxisPositiveButton)
+                return $"Joystick Axis{key - InputKey.FirstJoystickAxisPositiveButton} +";
+            if (key >= InputKey.FirstJoystickAxisNegativeButton)
+                return $"Joystick Axis{key - InputKey.FirstJoystickAxisNegativeButton} -";
             if (key >= InputKey.FirstJoystickButton)
                 return $"Joystick{key - InputKey.FirstJoystickButton}";
 
@@ -206,7 +210,14 @@ namespace osu.Framework.Input.Bindings
 
         public static InputKey FromMouseButton(MouseButton button) => (InputKey)((int)InputKey.FirstMouseButton + button);
 
-        public static InputKey FromJoystickButton(JoystickButton button) => (InputKey)((int)InputKey.FirstJoystickButton + button);
+        public static InputKey FromJoystickButton(JoystickButton button)
+        {
+            if (button >= JoystickButton.FirstAxisPositiveButton)
+                return InputKey.FirstJoystickAxisPositiveButton + (button - JoystickButton.FirstAxisPositiveButton);
+            if (button >= JoystickButton.FirstAxisNegativeButton)
+                return InputKey.FirstJoystickAxisNegativeButton + (button - JoystickButton.FirstAxisNegativeButton);
+            return InputKey.FirstJoystickButton + (int)button;
+        }
 
         public static KeyCombination FromInputState(InputState state)
         {
