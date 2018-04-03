@@ -73,6 +73,10 @@ namespace osu.Framework.Input
 
         protected override bool OnJoystickRelease(InputState state, JoystickReleaseEventArgs args) => acceptState(state);
 
+        protected override bool OnJoystickAxisIncrease(InputState state, JoystickAxisEventArgs args) => acceptState(state);
+
+        protected override bool OnJoystickAxisDecrease(InputState state, JoystickAxisEventArgs args) => acceptState(state);
+
         /// <summary>
         /// An input state which allows for transformations to state which don't affect the source state.
         /// </summary>

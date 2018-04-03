@@ -1867,6 +1867,14 @@ namespace osu.Framework.Graphics
 
         protected virtual bool OnJoystickRelease(InputState state, JoystickReleaseEventArgs args) => false;
 
+        public bool TriggerOnJoystickAxisIncrease(InputState screenSpaceState, JoystickAxisEventArgs args) => OnJoystickAxisIncrease(createCloneInParentSpace(screenSpaceState), args);
+
+        protected virtual bool OnJoystickAxisIncrease(InputState state, JoystickAxisEventArgs args) => false;
+
+        public bool TriggerOnJoystickAxisDecrease(InputState screenSpaceState, JoystickAxisEventArgs args) => OnJoystickAxisDecrease(createCloneInParentSpace(screenSpaceState), args);
+
+        protected virtual bool OnJoystickAxisDecrease(InputState state, JoystickAxisEventArgs args) => false;
+
         /// <summary>
         /// Triggers <see cref="OnMouseMove(InputState)"/> with a local version of the given <see cref="InputState"/>.
         /// </summary>
@@ -1925,6 +1933,8 @@ namespace osu.Framework.Graphics
                 nameof(OnKeyUp),
                 nameof(OnJoystickPress),
                 nameof(OnJoystickRelease),
+                nameof(OnJoystickAxisIncrease),
+                nameof(OnJoystickAxisDecrease)
             };
 
             public static bool HandleKeyboardInput(Drawable drawable) => get(drawable, keyboard_cached_values, keyboard_input_methods);

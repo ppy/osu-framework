@@ -84,8 +84,8 @@ namespace osu.Framework.Input.Handlers.Joystick
         {
             public OpenTKJoystickState(JoystickDevice device)
             {
-                Buttons = Enumerable.Range(0, device.Capabilities.ButtonCount).Where(i => device.State.GetButton(i) == ButtonState.Pressed);
-                Axes = Enumerable.Range(0, device.Capabilities.AxisCount).Select(i => device.State.GetAxis(i));
+                Buttons = Enumerable.Range(0, device.Capabilities.ButtonCount).Where(i => device.State.GetButton(i) == ButtonState.Pressed).ToList();
+                Axes = Enumerable.Range(0, device.Capabilities.AxisCount).Select(i => device.State.GetAxis(i)).ToList();
             }
         }
 
