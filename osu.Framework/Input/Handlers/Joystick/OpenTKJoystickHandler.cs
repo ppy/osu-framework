@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Logging;
+using osu.Framework.MathUtils;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
 using osu.Framework.Threading;
@@ -89,8 +90,15 @@ namespace osu.Framework.Input.Handlers.Joystick
         {
             public OpenTKJoystickState(JoystickDevice device)
             {
-                Buttons = Enumerable.Range(0, device.Capabilities.ButtonCount).Where(i => device.State.GetButton(i) == ButtonState.Pressed).ToList();
                 Axes = Enumerable.Range(0, device.Capabilities.AxisCount).Select(i => device.State.GetAxis(i)).ToList();
+                Buttons = Enumerable.Range(0, device.Capabilities.ButtonCount).Where(i => device.State.GetButton(i) == ButtonState.Pressed).Select(i => (JoystickButton)i)
+                                    .Concat(Axes.Where(a => !Precision.AlmostEquals(a, 0)).Select((axisValue, index) =>
+                                    {
+                                        if (axisValue < 0)
+                                            return JoystickButton.FirstAxisNegativeButton + index;
+                                        return JoystickButton.FirstAxisPositiveButton + index;
+                                    })).ToList();
+
             }
         }
 

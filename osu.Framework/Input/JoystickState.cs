@@ -7,16 +7,7 @@ namespace osu.Framework.Input
 {
     public class JoystickState : IJoystickState
     {
-        private List<int> buttons = new List<int>();
-        public IReadOnlyList<int> Buttons
-        {
-            get => buttons;
-            set
-            {
-                buttons.Clear();
-                buttons.AddRange(value);
-            }
-        }
+        public IEnumerable<JoystickButton> Buttons { get; set; } = new List<JoystickButton>();
 
         public IReadOnlyList<float> Axes { get; set; } = new List<float>();
 
@@ -25,20 +16,6 @@ namespace osu.Framework.Input
             if (LastState == null)
                 return 0;
             return Axes[axisIndex] - LastState.Axes[axisIndex];
-        }
-
-        public bool IsPressed(int buttonIndex) => buttons.Contains(buttonIndex);
-
-        public void SetPressed(int buttonIndex, bool pressed)
-        {
-            if (pressed)
-            {
-                if (IsPressed(buttonIndex))
-                    return;
-                buttons.Add(buttonIndex);
-            }
-            else
-                buttons.Remove(buttonIndex);
         }
 
         private IJoystickState lastState;
@@ -55,7 +32,7 @@ namespace osu.Framework.Input
         public IJoystickState Clone()
         {
             var clone = (JoystickState)MemberwiseClone();
-            clone.buttons = new List<int>(buttons);
+            clone.Buttons = new List<JoystickButton>(Buttons);
             clone.Axes = new List<float>(Axes);
             clone.LastState = LastState;
 

@@ -112,9 +112,9 @@ namespace osu.Framework.Input.Bindings
 
         protected override bool OnKeyUp(InputState state, KeyUpEventArgs args) => handleNewReleased(state, KeyCombination.FromKey(args.Key));
 
-        protected override bool OnJoystickPress(InputState state, JoystickPressEventArgs args) => handleNewPressed(state, KeyCombination.FromJoystickButton(args.Button), false);
+        protected override bool OnJoystickPress(InputState state, JoystickEventArgs args) => handleNewPressed(state, KeyCombination.FromJoystickButton(args.Button), false);
 
-        protected override bool OnJoystickRelease(InputState state, JoystickReleaseEventArgs args) => handleNewReleased(state, KeyCombination.FromJoystickButton(args.Button));
+        protected override bool OnJoystickRelease(InputState state, JoystickEventArgs args) => handleNewReleased(state, KeyCombination.FromJoystickButton(args.Button));
 
         private bool handleNewPressed(InputState state, InputKey newKey, bool repeat)
         {

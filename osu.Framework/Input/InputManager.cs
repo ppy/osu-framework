@@ -438,21 +438,10 @@ namespace osu.Framework.Input
                     handleJoystickRelease(state, b);
             }
 
-            foreach (int b in joystick.Buttons)
+            foreach (var b in joystick.Buttons)
             {
                 LastActionTime = Time.Current;
                 handleJoystickPress(state, b);
-            }
-
-            for (int a = 0; a < joystick.Axes.Count; a++)
-            {
-                if (a >= last.Axes.Count)
-                    break;
-
-                if (joystick.AxisDelta(a) > 0)
-                    handleJoystickAxisIncrease(state, a);
-                else if (joystick.AxisDelta(a) < 0)
-                    handleJoystickAxisDecrease(state, a);
             }
         }
 
@@ -762,16 +751,16 @@ namespace osu.Framework.Input
             return handledBy != null;
         }
 
-        private bool handleJoystickPress(InputState state, int button)
+        private bool handleJoystickPress(InputState state, JoystickButton button)
         {
             IEnumerable<Drawable> queue = inputQueue;
             if (!unfocusIfNoLongerValid())
                 queue = new[] { FocusedDrawable }.Concat(queue);
 
-            return PropagateJoystickPress(queue, state, new JoystickPressEventArgs { Button = button });
+            return PropagateJoystickPress(queue, state, new JoystickEventArgs { Button = button });
         }
 
-        protected virtual bool PropagateJoystickPress(IEnumerable<Drawable> drawables, InputState state, JoystickPressEventArgs args)
+        protected virtual bool PropagateJoystickPress(IEnumerable<Drawable> drawables, InputState state, JoystickEventArgs args)
         {
             var handledBy = drawables.FirstOrDefault(target => target.TriggerOnJoystickPress(state, args));
 
@@ -781,59 +770,21 @@ namespace osu.Framework.Input
             return handledBy != null;
         }
 
-        private bool handleJoystickRelease(InputState state, int button)
+        private bool handleJoystickRelease(InputState state, JoystickButton button)
         {
             IEnumerable<Drawable> queue = inputQueue;
             if (!unfocusIfNoLongerValid())
                 queue = new[] { FocusedDrawable }.Concat(queue);
 
-            return PropagateJoystickRelease(queue, state, new JoystickReleaseEventArgs { Button = button });
+            return PropagateJoystickRelease(queue, state, new JoystickEventArgs { Button = button });
         }
 
-        protected virtual bool PropagateJoystickRelease(IEnumerable<Drawable> drawables, InputState state, JoystickReleaseEventArgs args)
+        protected virtual bool PropagateJoystickRelease(IEnumerable<Drawable> drawables, InputState state, JoystickEventArgs args)
         {
             var handledBy = drawables.FirstOrDefault(target => target.TriggerOnJoystickRelease(state, args));
 
             if (handledBy != null)
                 Logger.Log($"JoystickRelease ({args.Button}) handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
-
-            return handledBy != null;
-        }
-
-        private bool handleJoystickAxisIncrease(InputState state, int axisIndex)
-        {
-            IEnumerable<Drawable> queue = inputQueue;
-            if (!unfocusIfNoLongerValid())
-                queue = new[] { FocusedDrawable }.Concat(queue);
-
-            return PropagateJoystickAxisIncrease(queue, state, new JoystickAxisEventArgs { Axis = axisIndex });
-        }
-
-        protected virtual bool PropagateJoystickAxisIncrease(IEnumerable<Drawable> drawables, InputState state, JoystickAxisEventArgs args)
-        {
-            var handledBy = drawables.FirstOrDefault(target => target.TriggerOnJoystickAxisIncrease(state, args));
-
-            if (handledBy != null)
-                Logger.Log($"JoystickAxisIncrease ({args.Axis}) handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
-
-            return handledBy != null;
-        }
-
-        private bool handleJoystickAxisDecrease(InputState state, int axisIndex)
-        {
-            IEnumerable<Drawable> queue = inputQueue;
-            if (!unfocusIfNoLongerValid())
-                queue = new[] { FocusedDrawable }.Concat(queue);
-
-            return PropagateJoystickAxisDecrease(queue, state, new JoystickAxisEventArgs { Axis = axisIndex });
-        }
-
-        protected virtual bool PropagateJoystickAxisDecrease(IEnumerable<Drawable> drawables, InputState state, JoystickAxisEventArgs args)
-        {
-            var handledBy = drawables.FirstOrDefault(target => target.TriggerOnJoystickAxisDecrease(state, args));
-
-            if (handledBy != null)
-                Logger.Log($"JoystickAxisDecrease ({args.Axis}) handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
 
             return handledBy != null;
         }
@@ -945,38 +896,28 @@ namespace osu.Framework.Input
 
                 if (state.Joystick != null)
                 {
-                    // First we we'll propagate axis changes, which must be done without button input
-                    IJoystickState iWithoutButtons = state.Joystick.Clone();
-
-                    for (int i = 0; i < iWithoutButtons.Buttons.Count; i++)
-                        iWithoutButtons.SetPressed(i, lastJoystick.Buttons.Contains(i));
-
-                    var newState = state.Clone();
-                    newState.Joystick = lastJoystick = iWithoutButtons;
-                    yield return newState;
-
-                    // Now we can start propagating button input
-
                     if (lastJoystick != null)
                         foreach (var releasedButton in lastJoystick.Buttons.Except(state.Joystick.Buttons))
                         {
-                            lastJoystick = lastJoystick.Clone();
+                            var newState = state.Clone();
+                            newState.Joystick = lastJoystick = new JoystickState
+                            {
+                                Axes = lastJoystick.Axes,
+                                Buttons = lastJoystick.Buttons.Where(d => d != releasedButton).ToArray()
+                            };
 
-                            lastJoystick.SetPressed(releasedButton, false);
-
-                            newState = state.Clone();
-                            newState.Joystick = lastJoystick;
                             yield return newState;
                         }
 
-                    foreach (var pressedButton in state.Joystick.Buttons.Except(lastJoystick?.Buttons ?? new int[] { }))
+                    foreach (var pressedButton in state.Joystick.Buttons.Except(lastJoystick?.Buttons ?? new JoystickButton[] { }))
                     {
-                        lastJoystick = lastJoystick.Clone();
+                        var newState = state.Clone();
+                        newState.Joystick = lastJoystick = new JoystickState
+                        {
+                            Axes = lastJoystick.Axes,
+                            Buttons = lastJoystick.Buttons.Union(new[] { pressedButton }).ToArray()
+                        };
 
-                        lastJoystick.SetPressed(pressedButton, true);
-
-                        newState = state.Clone();
-                        newState.Joystick = lastJoystick;
                         yield return newState;
                     }
                 }

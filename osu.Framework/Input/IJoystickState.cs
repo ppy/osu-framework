@@ -7,15 +7,11 @@ namespace osu.Framework.Input
 {
     public interface IJoystickState
     {
-        IReadOnlyList<int> Buttons { get; }
+        IEnumerable<JoystickButton> Buttons { get; }
 
         IReadOnlyList<float> Axes { get; }
 
         float AxisDelta(int axisIndex);
-
-        bool IsPressed(int buttonIndex);
-
-        void SetPressed(int buttonIndex, bool pressed);
 
         // Todo: Hats?
 

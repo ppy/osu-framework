@@ -5,8 +5,8 @@ using System;
 
 namespace osu.Framework.Input
 {
-    public class JoystickPressEventArgs : EventArgs
+    public class JoystickEventArgs : EventArgs
     {
-        public int Button;
+        public JoystickButton Button;
     }
 }

@@ -206,7 +206,7 @@ namespace osu.Framework.Input.Bindings
 
         public static InputKey FromMouseButton(MouseButton button) => (InputKey)((int)InputKey.FirstMouseButton + button);
 
-        public static InputKey FromJoystickButton(int button) => (InputKey)((int)InputKey.FirstJoystickButton + button);
+        public static InputKey FromJoystickButton(JoystickButton button) => (InputKey)((int)InputKey.FirstJoystickButton + button);
 
         public static KeyCombination FromInputState(InputState state)
         {

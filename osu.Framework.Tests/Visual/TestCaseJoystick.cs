@@ -6,7 +6,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
-using osu.Framework.MathUtils;
 using osu.Framework.Testing;
 using OpenTK;
 using OpenTK.Graphics;
@@ -33,7 +32,7 @@ namespace osu.Framework.Tests.Visual
                 buttonFlow.Add(new JoystickButtonHandler(i));
 
             for (int i = 0; i < 6; i++)
-                axisFlow.Add(new JoystickAxisHandler(i));
+                axisFlow.Add(new JoystickAxisButtonHandler(i));
 
             Child = new FillFlowContainer
             {
@@ -47,11 +46,11 @@ namespace osu.Framework.Tests.Visual
         {
             private readonly Drawable background;
 
-            private readonly int buttonIndex;
+            private readonly JoystickButton button;
 
             public JoystickButtonHandler(int buttonIndex)
             {
-                this.buttonIndex = buttonIndex;
+                button = (JoystickButton)buttonIndex;
 
                 Size = new Vector2(100);
 
@@ -73,18 +72,18 @@ namespace osu.Framework.Tests.Visual
                 };
             }
 
-            protected override bool OnJoystickPress(InputState state, JoystickPressEventArgs args)
+            protected override bool OnJoystickPress(InputState state, JoystickEventArgs args)
             {
-                if (args.Button != buttonIndex)
+                if (args.Button != button)
                     return base.OnJoystickPress(state, args);
 
                 background.FadeIn(100, Easing.OutQuint);
                 return true;
             }
 
-            protected override bool OnJoystickRelease(InputState state, JoystickReleaseEventArgs args)
+            protected override bool OnJoystickRelease(InputState state, JoystickEventArgs args)
             {
-                if (args.Button != buttonIndex)
+                if (args.Button != button)
                     return base.OnJoystickRelease(state, args);
 
                 background.FadeOut(100);
@@ -92,16 +91,17 @@ namespace osu.Framework.Tests.Visual
             }
         }
 
-        private class JoystickAxisHandler : CompositeDrawable
+        private class JoystickAxisButtonHandler : CompositeDrawable
         {
             private readonly Drawable background;
-            private readonly SpriteText value;
 
-            private readonly int axisIndex;
+            private readonly JoystickButton positiveAxisButton;
+            private readonly JoystickButton negativeAxisButton;
 
-            public JoystickAxisHandler(int axisIndex)
+            public JoystickAxisButtonHandler(int axisIndex)
             {
-                this.axisIndex = axisIndex;
+                positiveAxisButton = JoystickButton.FirstAxisPositiveButton + axisIndex;
+                negativeAxisButton = JoystickButton.FirstAxisNegativeButton + axisIndex;
 
                 Size = new Vector2(200);
 
@@ -113,60 +113,33 @@ namespace osu.Framework.Tests.Visual
                         Colour = Color4.Transparent,
                         Child = new Box { RelativeSizeAxes = Axes.Both }
                     },
-                    new FillFlowContainer
+                    new SpriteText
                     {
-                        RelativeSizeAxes = Axes.Both,
-                        Direction = FillDirection.Vertical,
-                        Children = new[]
-                        {
-                            new SpriteText
-                            {
-                                Anchor = Anchor.Centre,
-                                Origin = Anchor.Centre,
-                                Text = $"Axis {axisIndex + 1}"
-                            },
-                            value = new SpriteText
-                            {
-                                Anchor = Anchor.Centre,
-                                Origin = Anchor.Centre,
-                            }
-                        }
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        Text = $"Axis {axisIndex + 1}"
                     }
                 };
             }
 
-            protected override bool OnJoystickAxisIncrease(InputState state, JoystickAxisEventArgs args)
+            protected override bool OnJoystickPress(InputState state, JoystickEventArgs args)
             {
-                if (args.Axis != axisIndex)
-                    return base.OnJoystickAxisIncrease(state, args);
-
-                updateColour(state);
-
-                value.Text = $"{state.Joystick.Axes[axisIndex]} (+{state.Joystick.AxisDelta(axisIndex)})";
-                return true;
-            }
-
-            protected override bool OnJoystickAxisDecrease(InputState state, JoystickAxisEventArgs args)
-            {
-                if (args.Axis != axisIndex)
-                    return base.OnJoystickAxisDecrease(state, args);
-
-                updateColour(state);
-
-                value.Text = $"{state.Joystick.Axes[axisIndex]} ({state.Joystick.AxisDelta(axisIndex)})";
-                return true;
-            }
-
-            private void updateColour(InputState state)
-            {
-                Color4 targetColour;
-
-                if (Precision.DefinitelyBigger(state.Joystick.Axes[axisIndex], 0))
-                    targetColour = state.Joystick.AxisDelta(axisIndex) > 0 ? Color4.DarkGreen : Color4.DarkRed;
+                if (args.Button == positiveAxisButton)
+                    background.FadeColour(Color4.DarkGreen, 100, Easing.OutQuint);
+                else if (args.Button == negativeAxisButton)
+                    background.FadeColour(Color4.DarkRed, 100, Easing.OutQuint);
                 else
-                    targetColour = new Color4(0, 0, 0, 0);
+                    return base.OnJoystickPress(state, args);
+                return true;
+            }
 
-                background.FadeColour(targetColour, 100, Easing.OutQuint);
+            protected override bool OnJoystickRelease(InputState state, JoystickEventArgs args)
+            {
+                if (args.Button == positiveAxisButton || args.Button == negativeAxisButton)
+                    background.FadeColour(new Color4(0, 0, 0, 0), 100, Easing.OutQuint);
+                else
+                    return base.OnJoystickRelease(state, args);
+                return true;
             }
         }
     }
