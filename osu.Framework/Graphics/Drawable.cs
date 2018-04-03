@@ -1922,7 +1922,9 @@ namespace osu.Framework.Graphics
                 nameof(OnFocus),
                 nameof(OnFocusLost),
                 nameof(OnKeyDown),
-                nameof(OnKeyUp)
+                nameof(OnKeyUp),
+                nameof(OnJoystickPress),
+                nameof(OnJoystickRelease),
             };
 
             public static bool HandleKeyboardInput(Drawable drawable) => get(drawable, keyboard_cached_values, keyboard_input_methods);
