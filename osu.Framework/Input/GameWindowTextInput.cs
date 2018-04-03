@@ -55,12 +55,12 @@ namespace osu.Framework.Input
 
         public void Deactivate(object sender)
         {
-            window.Implementation.KeyPress -= window_KeyPress;
+            window.KeyPress -= window_KeyPress;
         }
 
         public void Activate(object sender)
         {
-            window.Implementation.KeyPress += window_KeyPress;
+            window.KeyPress += window_KeyPress;
         }
 
         private void imeCompose()

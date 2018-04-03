@@ -1,6 +1,8 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+extern alias IOS;
+
 using System;
 using System.Linq;
 using osu.Framework.Configuration;
@@ -12,6 +14,8 @@ using OpenTK.Platform;
 using OpenTK.Input;
 using JetBrains.Annotations;
 using Icon = OpenTK.Icon;
+using IOS::System.Drawing;
+using System.ComponentModel;
 
 namespace osu.Framework.Platform
 {
@@ -97,18 +101,6 @@ namespace osu.Framework.Platform
                         GL Extensions:              {GL.GetString(StringName.Extensions)}", LoggingTarget.Runtime, LogLevel.Important);
         }
 
-        protected GameWindow(int width, int height)
-            : this(new OpenTK.GameWindow(width, height, new GraphicsMode(GraphicsMode.Default.ColorFormat, GraphicsMode.Default.Depth, GraphicsMode.Default.Stencil, GraphicsMode.Default.Samples, GraphicsMode.Default.AccumulatorFormat, 3)))
-        {
-            var gw = (OpenTK.GameWindow)Implementation;
-
-            gw.Closing += (sender, e) => e.Cancel = ExitRequested?.Invoke() ?? false;
-            gw.Closed += (sender, e) => Exited?.Invoke();
-
-            gw.MouseEnter += (sender, args) => CursorInWindow = true;
-            gw.MouseLeave += (sender, args) => CursorInWindow = false;
-        }
-
         /// <summary>
         /// Creates a <see cref="GameWindow"/> with given dimensions.
         /// <para>Note that this will use the default <see cref="OpenTK.GameWindow"/> implementation, which is not compatible with every platform.</para>
@@ -132,6 +124,7 @@ namespace osu.Framework.Platform
 
                 Implementation.Cursor = (cursorState & CursorState.Hidden) > 0 ? MouseCursor.Empty : MouseCursor.Default;
 
+                /*
                 try
                 {
                     Implementation.CursorGrabbed = (cursorState & CursorState.Confined) > 0;
@@ -140,6 +133,7 @@ namespace osu.Framework.Platform
                 {
                     // may not be supported by platform.
                 }
+                */
             }
         }
 

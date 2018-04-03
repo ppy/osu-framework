@@ -7,7 +7,7 @@ using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using OpenTK;
-using Point = IOS::System.Drawing.Point;
+using IOS::System.Drawing;
 
 namespace osu.Framework.Platform.Windows.Native
 {

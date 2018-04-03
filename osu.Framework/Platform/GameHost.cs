@@ -1,6 +1,8 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+extern alias IOS;
+
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -31,6 +33,7 @@ using osu.Framework.Threading;
 using osu.Framework.Timing;
 using osu.Framework.IO.File;
 using Bitmap = System.Drawing.Bitmap;
+using IOS::System.Drawing;
 
 namespace osu.Framework.Platform
 {
@@ -244,8 +247,8 @@ namespace osu.Framework.Platform
         {
             if (Root == null) return;
 
-            if (Window.Implementation?.WindowState != WindowState.Minimized)
-                Root.Size = Window != null ? new Vector2(Window.Implementation.ClientSize.Width, Window.Implementation.ClientSize.Height) :
+            if (Window.WindowState != WindowState.Minimized)
+                Root.Size = Window != null ? new Vector2(Window.ClientSize.Width, Window.ClientSize.Height) :
                     new Vector2(config.Get<int>(FrameworkSetting.Width), config.Get<int>(FrameworkSetting.Height));
 
             // Ensure we maintain a valid size for any children immediately scaling by the window size
@@ -260,12 +263,12 @@ namespace osu.Framework.Platform
 
         protected virtual void DrawInitialize()
         {
-            Window.Implementation.MakeCurrent();
+            Window.MakeCurrent();
             GLWrapper.Initialize(this);
 
             setVSyncMode();
 
-            GLWrapper.Reset(new Vector2(Window.Implementation.ClientSize.Width, Window.Implementation.ClientSize.Height));
+            GLWrapper.Reset(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
             GLWrapper.ClearColour(Color4.Black);
         }
 
@@ -288,7 +291,7 @@ namespace osu.Framework.Platform
 
                     using (drawMonitor.BeginCollecting(PerformanceCollectionType.GLReset))
                     {
-                        GLWrapper.Reset(new Vector2(Window.Implementation.ClientSize.Width, Window.Implementation.ClientSize.Height));
+                        GLWrapper.Reset(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
                         GLWrapper.ClearColour(Color4.Black);
                     }
 
@@ -302,7 +305,7 @@ namespace osu.Framework.Platform
 
             using (drawMonitor.BeginCollecting(PerformanceCollectionType.SwapBuffer))
             {
-                Window.Implementation.SwapBuffers();
+                Window.SwapBuffers();
 
                 //if (Window.VSync == VSyncMode.On)
                 //// without glFinish, vsync is basically unplayable due to the extra latency introduced.
@@ -326,6 +329,7 @@ namespace osu.Framework.Platform
             var bitmap = new Bitmap(clientRectangle.Width, clientRectangle.Height);
             BitmapData data = bitmap.LockBits(clientRectangle, ImageLockMode.WriteOnly, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
 
+            /*
             DrawThread.Scheduler.Add(() =>
             {
                 if (GraphicsContext.CurrentContext == null)
@@ -343,6 +347,7 @@ namespace osu.Framework.Platform
 
             bitmap.UnlockBits(data);
             bitmap.RotateFlip(RotateFlipType.RotateNoneFlipY);
+            */
 
             return bitmap;
         }
@@ -626,7 +631,7 @@ namespace osu.Framework.Platform
         {
             if (Window == null) return;
 
-            //DrawThread.Scheduler.Add(() => Window.Implementation.VSync = frameSyncMode == FrameSync.VSync ? VSyncMode.On : VSyncMode.Off);
+            //DrawThread.Scheduler.Add(() => Window.VSync = frameSyncMode == FrameSync.VSync ? VSyncMode.On : VSyncMode.Off);
         }
 
         protected abstract IEnumerable<InputHandler> CreateAvailableInputHandlers();

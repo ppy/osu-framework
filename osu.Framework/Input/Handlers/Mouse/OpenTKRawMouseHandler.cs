@@ -36,8 +36,8 @@ namespace osu.Framework.Input.Handlers.Mouse
 
         public override bool Initialize(GameHost host)
         {
-            host.Window.Implementation.MouseEnter += window_MouseEnter;
-            host.Window.Implementation.MouseLeave += window_MouseLeave;
+            host.Window.MouseEnter += window_MouseEnter;
+            host.Window.MouseLeave += window_MouseLeave;
 
             this.host = host;
 
@@ -58,7 +58,7 @@ namespace osu.Framework.Input.Handlers.Mouse
                 {
                     host.InputThread.Scheduler.Add(scheduled = new ScheduledDelegate(delegate
                     {
-                        if (!host.Window.Implementation.Visible || host.Window.Implementation.WindowState == WindowState.Minimized)
+                        if (!host.Window.Visible || host.Window.WindowState == WindowState.Minimized)
                             return;
 
                         if ((mouseInWindow || lastStates.Any(s => s.HasAnyButtonPressed)) && host.Window.Focused)
@@ -132,6 +132,7 @@ namespace osu.Framework.Input.Handlers.Mouse
         {
             Vector2 currentPosition;
 
+            /*
             if ((state.RawFlags & RawMouseFlags.MOUSE_MOVE_ABSOLUTE) > 0)
             {
                 const int raw_input_resolution = 65536;
@@ -162,6 +163,7 @@ namespace osu.Framework.Input.Handlers.Mouse
                 }
             }
             else
+            */
             {
                 if (lastState == null)
                 {
