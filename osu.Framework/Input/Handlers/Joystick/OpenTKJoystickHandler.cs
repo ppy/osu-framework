@@ -1,8 +1,10 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu/master/LICENCE
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
 using osu.Framework.Threading;
@@ -70,6 +72,9 @@ namespace osu.Framework.Input.Handlers.Joystick
                 var newDevice = new JoystickDevice(mostSeenDevices);
                 if (!newDevice.Capabilities.IsConnected)
                     break;
+
+                Logger.Log($"Connected joystick device: {newDevice.Guid}", level: LogLevel.Important);
+
                 newDevices.Add(newDevice);
                 mostSeenDevices++;
             }
@@ -104,6 +109,11 @@ namespace osu.Framework.Input.Handlers.Joystick
             /// </summary>
             public readonly JoystickCapabilities Capabilities;
 
+            /// <summary>
+            /// The <see cref="Guid"/> for this <see cref="JoystickDevice"/>.
+            /// </summary>
+            public readonly Guid Guid;
+
             private readonly int deviceIndex;
 
             public JoystickDevice(int deviceIndex)
@@ -111,6 +121,8 @@ namespace osu.Framework.Input.Handlers.Joystick
                 this.deviceIndex = deviceIndex;
 
                 Capabilities = OpenTK.Input.Joystick.GetCapabilities(deviceIndex);
+                Guid = OpenTK.Input.Joystick.GetGuid(deviceIndex);
+
                 Refresh();
             }
 
