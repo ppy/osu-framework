@@ -1860,12 +1860,32 @@ namespace osu.Framework.Graphics
         /// is propagated up the scene graph to the next eligible Drawable.</returns>
         protected virtual bool OnKeyUp(InputState state, KeyUpEventArgs args) => false;
 
+        /// <summary>
+        /// Triggers <see cref="OnJoystickPress(InputState, JoystickEventArgs)"/> with a local version of the given <see cref="InputState"/>.
+        /// </summary>
         public bool TriggerOnJoystickPress(InputState screenspaceState, JoystickEventArgs args) => OnJoystickPress(createCloneInParentSpace(screenspaceState), args);
 
+        /// <summary>
+        /// Triggered whenever a joystick button was pressed.
+        /// </summary>
+        /// <param name="state">The state after the button was pressed.</param>
+        /// <param name="args">Specific arguments for the press event.</param>
+        /// <returns>True if this Drawable handled the event. If false, then the event
+        /// is propagated up the scene graph to the next eligible Drawable.</returns>
         protected virtual bool OnJoystickPress(InputState state, JoystickEventArgs args) => false;
 
+        /// <summary>
+        /// Triggers <see cref="OnJoystickRelease(InputState, JoystickEventArgs)"/> with a local version of the given <see cref="InputState"/>.
+        /// </summary>
         public bool TriggerOnJoystickRelease(InputState screenSpaceState, JoystickEventArgs args) => OnJoystickRelease(createCloneInParentSpace(screenSpaceState), args);
 
+        /// <summary>
+        /// Triggered whenever a joystick button was released.
+        /// </summary>
+        /// <param name="state">The state after the button was released.</param>
+        /// <param name="args">Specific arguments for the release event.</param>
+        /// <returns>True if this Drawable handled the event. If false, then the event
+        /// is propagated up the scene graph to the next eligible Drawable.</returns>
         protected virtual bool OnJoystickRelease(InputState state, JoystickEventArgs args) => false;
 
         /// <summary>

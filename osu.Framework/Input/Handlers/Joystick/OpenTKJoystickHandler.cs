@@ -84,7 +84,7 @@ namespace osu.Framework.Input.Handlers.Joystick
         }
 
         public override bool IsActive => true;
-        public override int Priority => 1;
+        public override int Priority => 0;
 
         private class OpenTKJoystickState : JoystickState
         {
@@ -104,7 +104,12 @@ namespace osu.Framework.Input.Handlers.Joystick
 
         private class JoystickDevice
         {
+            /// <summary>
+            /// The last state of this <see cref="JoystickDevice"/>.
+            /// This is updated with ever invocation of <see cref="Refresh"/>.
+            /// </summary>
             public OpenTK.Input.JoystickState? LastState { get; private set; }
+
             /// <summary>
             /// The current state of this <see cref="JoystickDevice"/>.
             /// Use <see cref="Refresh"/> to update the state.

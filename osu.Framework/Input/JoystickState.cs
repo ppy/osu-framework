@@ -14,7 +14,7 @@ namespace osu.Framework.Input
         public float AxisDelta(int axisIndex)
         {
             if (LastState == null)
-                return 0;
+                return Axes[axisIndex];
             return Axes[axisIndex] - LastState.Axes[axisIndex];
         }
 

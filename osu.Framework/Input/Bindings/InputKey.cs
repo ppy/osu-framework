@@ -612,6 +612,9 @@ namespace osu.Framework.Input.Bindings
         /// </summary>
         MouseWheelDown = 146,
 
+        /// <summary>
+        /// Indicates the first available joystick button.
+        /// </summary>
         FirstJoystickButton = 147,
 
         /// <summary>
