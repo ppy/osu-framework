@@ -148,7 +148,7 @@ namespace osu.Framework.Testing
                 DYNAMIC_ASSEMBLY_NAME,
                 requiredFiles.Select(file => CSharpSyntaxTree.ParseText(File.ReadAllText(file), null, file))
                              // Compile the assembly with a new version so that it replaces the existing one
-                             .Concat(new[] { CSharpSyntaxTree.ParseText($"using System.Reflection; [assembly: AssemblyVersion(\"{assemblyVersion}\")]") })
+                             .Append(CSharpSyntaxTree.ParseText($"using System.Reflection; [assembly: AssemblyVersion(\"{assemblyVersion}\")]"))
                 ,
                 references,
                 options
