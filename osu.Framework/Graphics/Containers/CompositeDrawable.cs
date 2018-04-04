@@ -170,7 +170,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="x">The first child to compare.</param>
         /// <param name="y">The second child to compare.</param>
         /// <returns>-1 if <paramref name="x"/> comes before <paramref name="y"/>, and 1 otherwise.</returns>
-        protected int CompareReverseChildID(Drawable x, Drawable y)
+        protected static int CompareReverseChildID(Drawable x, Drawable y)
         {
             if (x == null) throw new ArgumentNullException(nameof(x));
             if (y == null) throw new ArgumentNullException(nameof(y));
