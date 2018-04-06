@@ -16,49 +16,6 @@ namespace osu.Framework.Graphics.Textures
             (store as ResourceStore<byte[]>)?.AddExtension(@"jpg");
         }
 
-/*        private RawTextureBitmap loadOther(Stream stream)
-        {
-            RawTextureBitmap t = new RawTextureBitmap();
-            using (var bmp = (Bitmap)Image.FromStream(stream))
-            {
-                t.Pixels = new byte[bmp.Width * bmp.Height * 4];
-                t.Width = bmp.Width;
-                t.Height = bmp.Height;
-                t.PixelFormat = OpenTK.Graphics.ES30.PixelFormat.Rgba;
-                var pixels = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height),
-                    ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
-                try
-                {
-                    unsafe
-                    {
-                        byte* p = (byte*)pixels.Scan0;
-
-                        Debug.Assert(p != null);
-
-                        int i = 0;
-                        for (int y = 0; y < bmp.Height; y++)
-                        {
-                            for (int x = 0; x < bmp.Width; x++, i++)
-                            {
-                                int desti = i * 4;
-                                int srci = y * pixels.Stride + x * 3;
-                                // ReSharper disable once PossibleNullReferenceException
-                                t.Pixels[desti] = p[srci + 2];
-                                t.Pixels[desti + 1] = p[srci + 1];
-                                t.Pixels[desti + 2] = p[srci + 0];
-                                t.Pixels[desti + 3] = 255;
-                            }
-                        }
-                    }
-                }
-                finally
-                {
-                    bmp.UnlockBits(pixels);
-                }
-            }
-            return t;
-        }*/
-
         public override RawTextureBitmap Get(string name)
         {
             try
