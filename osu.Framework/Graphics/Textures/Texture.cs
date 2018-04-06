@@ -31,7 +31,7 @@ namespace osu.Framework.Graphics.Textures
                 {
                     TextureAtlas atlas = new TextureAtlas(3, 3, true);
                     whitePixel = atlas.GetWhitePixel();
-                    whitePixel.SetData(new TextureUploadByteArray(new Size(1, 1)));
+                    whitePixel.SetData(new TextureUploadByteArray(white_pixel_bytes, new Size(1, 1)));
                 }
 
                 return whitePixel;
