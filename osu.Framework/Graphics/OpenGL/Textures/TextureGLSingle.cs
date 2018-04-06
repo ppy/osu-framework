@@ -320,11 +320,11 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
             while (uploadQueue.TryDequeue(out TextureUpload upload))
             {
-                IntPtr dataPointer = upload.GetPointer();
-                didUpload = dataPointer != IntPtr.Zero;
-
-                try
+                using (upload)
                 {
+                    IntPtr dataPointer = upload.GetPointer();
+                    didUpload = dataPointer != IntPtr.Zero;
+
                     // Do we need to generate a new texture?
                     if (textureId <= 0 || internalWidth != width || internalHeight != height)
                     {
@@ -359,7 +359,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                         {
                             initializeLevel(upload.Level, width, height);
 
-                            GL.TexSubImage2D(TextureTarget2d.Texture2D, upload.Level, upload.Bounds.X, upload.Bounds.Y, upload.Bounds.Width, upload.Bounds.Height, upload.Format, PixelType.UnsignedByte,
+                            GL.TexSubImage2D(TextureTarget2d.Texture2D, upload.Level, upload.Bounds.X, upload.Bounds.Y, upload.Bounds.Width, upload.Bounds.Height, upload.Format,
+                                PixelType.UnsignedByte,
                                 dataPointer);
                         }
                     }
@@ -389,10 +390,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                         GL.TexSubImage2D(TextureTarget2d.Texture2D, upload.Level, upload.Bounds.X / div, upload.Bounds.Y / div, upload.Bounds.Width / div, upload.Bounds.Height / div, upload.Format,
                             PixelType.UnsignedByte, dataPointer);
                     }
-                }
-                finally
-                {
-                    upload.Dispose();
                 }
             }
 
