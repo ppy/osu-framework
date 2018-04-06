@@ -21,7 +21,7 @@ namespace osu.Framework.Graphics.Textures
     {
         private static TextureWhitePixel whitePixel;
 
-        private static readonly byte[] white_pixel_pixels = { 255, 255, 255, 255 };
+        private static readonly byte[] white_pixel_bytes = { 255, 255, 255, 255 };
 
         public static Texture WhitePixel
         {
@@ -31,7 +31,7 @@ namespace osu.Framework.Graphics.Textures
                 {
                     TextureAtlas atlas = new TextureAtlas(3, 3, true);
                     whitePixel = atlas.GetWhitePixel();
-                    whitePixel.SetData(new TextureUploadByteArray(white_pixel_pixels));
+                    whitePixel.SetData(new TextureUploadByteArray(white_pixel_bytes));
                 }
 
                 return whitePixel;
