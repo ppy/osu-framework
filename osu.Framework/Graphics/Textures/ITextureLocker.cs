@@ -6,7 +6,7 @@ using System;
 namespace osu.Framework.Graphics.Textures
 {
     /// <summary>
-    /// Provides access to unmanaged texture data, as well as a method for freeing underlying resources after usage.
+    /// Provides access to data in <see cref="DataPointer"/> which should be used inside a using() block to handle clean-up.
     /// </summary>
     public interface ITextureLocker : IDisposable
     {
