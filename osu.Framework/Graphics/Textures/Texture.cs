@@ -31,7 +31,7 @@ namespace osu.Framework.Graphics.Textures
                 {
                     TextureAtlas atlas = new TextureAtlas(3, 3, true);
                     whitePixel = atlas.GetWhitePixel();
-                    whitePixel.SetData(new TextureUploadByteArray(white_pixel_bytes));
+                    whitePixel.SetData(new TextureUploadByteArray(new Size(1, 1)));
                 }
 
                 return whitePixel;
@@ -139,10 +139,9 @@ namespace osu.Framework.Graphics.Textures
 
             BitmapData bData = bitmap.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
 
-            TextureUploadByteArray upload = new TextureUploadByteArray(width * height * 4)
+            TextureUploadByteArray upload = new TextureUploadByteArray(new Size(width, height))
             {
                 Level = level,
-                Bounds = new RectangleI(0, 0, width, height)
             };
 
             byte[] data = upload.Data;

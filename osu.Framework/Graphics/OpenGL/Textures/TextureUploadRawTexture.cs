@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Textures;
 
 namespace osu.Framework.Graphics.OpenGL.Textures
@@ -13,6 +14,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         public TextureUploadRawTexture(IRawTexture data)
         {
             this.data = data;
+            Bounds = new RectangleI(0, 0, data.Width, data.Height);
         }
 
         private ITextureLocker locker;

@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Textures;
@@ -42,7 +43,7 @@ namespace osu.Framework.Tests.Visual
                 data[index + 2] = 128;
                 data[index + 3] = 255;
             }
-            gradientTextureHorizontal.SetData(new TextureUploadByteArray(data));
+            gradientTextureHorizontal.SetData(new TextureUploadByteArray(data, new Size(width, 1)));
 
             gradientTextureVertical = new Texture(1, width, true);
             for (int i = 0; i < width; ++i)
@@ -54,7 +55,7 @@ namespace osu.Framework.Tests.Visual
                 data[index + 2] = 128;
                 data[index + 3] = 255;
             }
-            gradientTextureVertical.SetData(new TextureUploadByteArray(data));
+            gradientTextureVertical.SetData(new TextureUploadByteArray(data, new Size(1, width)));
 
             byte[] data2 = new byte[width * width * 4];
             gradientTextureBoth = new Texture(width, width, true);
@@ -71,7 +72,7 @@ namespace osu.Framework.Tests.Visual
                     data2[index + 3] = 255;
                 }
             }
-            gradientTextureBoth.SetData(new TextureUploadByteArray(data2));
+            gradientTextureBoth.SetData(new TextureUploadByteArray(data2, new Size(width, width)));
 
 
             Children = new Drawable[]

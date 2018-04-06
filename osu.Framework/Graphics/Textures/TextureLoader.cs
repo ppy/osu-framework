@@ -84,7 +84,7 @@ namespace osu.Framework.Graphics.Textures
                 return null;
 
             Texture tex = atlas == null ? new Texture(width, height) : atlas.Add(width, height);
-            tex.SetData(new TextureUploadByteArray(data) { Format = format });
+            tex.SetData(new TextureUploadByteArray(data, new Size(width, height)) { Format = format });
             return tex;
         }
     }

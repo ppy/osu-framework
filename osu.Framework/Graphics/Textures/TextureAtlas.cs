@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using osu.Framework.Graphics.OpenGL.Textures;
 using OpenTK.Graphics.ES30;
 using osu.Framework.Graphics.Sprites;
@@ -60,7 +61,7 @@ namespace osu.Framework.Graphics.Textures
                 byte[] white = new byte[whiteTex.Width * whiteTex.Height * 4];
                 for (int i = 0; i < white.Length; i++)
                     white[i] = 255;
-                whiteTex.SetData(new TextureUploadByteArray(white));
+                whiteTex.SetData(new TextureUploadByteArray(white, new Size(whiteTex.Width, whiteTex.Height)));
             }
         }
 
