@@ -6,7 +6,6 @@ using osu.Framework.Allocation;
 using osu.Framework.Graphics.Textures;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -77,8 +76,6 @@ namespace osu.Framework.IO.Stores
         {
             lock (this)
             {
-
-
                 if (name.Length > 1 && !name.StartsWith($@"{fontName}/", StringComparison.Ordinal))
                     return null;
 
@@ -107,7 +104,8 @@ namespace osu.Framework.IO.Stores
                     unsafe
                     {
                         var src = (byte*)locker.DataPointer;
-                        Debug.Assert(src != null);
+
+                        if (src == null) throw new InvalidDataException("Bitmap data could not be read successfully.");
 
                         for (int y = 0; y < height; y++)
                         {

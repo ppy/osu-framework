@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using JetBrains.Annotations;
@@ -36,7 +35,7 @@ namespace osu.Framework.Graphics.Textures
                     //don't need to consider stride because we're in a raw format
                     var src = (byte*)locker.DataPointer;
 
-                    Debug.Assert(src != null);
+                    if (src == null) throw new InvalidDataException("Bitmap data could not be read successfully.");
 
                     int length = Region.Width * Region.Height;
                     for (int i = 0; i < length; i++)
