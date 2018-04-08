@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Threading;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -74,6 +75,36 @@ namespace osu.Framework.Tests.Visual
 
             AddAssert("ensure not current", () => !screen2.IsCurrentScreen);
             AddAssert("ensure not current", () => !screen3.IsCurrentScreen);
+        }
+
+        [Test]
+        public void TestAsyncPush()
+        {
+            TestScreen screen1 = null;
+
+            AddStep("push slow", () => baseScreen.Push(screen1 = new TestScreenSlow()));
+            AddAssert("ensure not current", () => !screen1.IsCurrentScreen);
+            AddWaitStep(1);
+            AddAssert("ensure current", () => screen1.IsCurrentScreen);
+        }
+
+        [Test]
+        public void TestAsyncPreloadPush()
+        {
+            TestScreen screen1 = null;
+            AddStep("preload slow", () => LoadComponentAsync(screen1 = new TestScreenSlow()));
+            AddStep("push before load complete", () => baseScreen.Push(screen1));
+            AddWaitStep(1);
+            AddAssert("ensure current", () => screen1.IsCurrentScreen);
+        }
+
+        private class TestScreenSlow : TestScreen
+        {
+            [BackgroundDependencyLoader]
+            private void load()
+            {
+                Thread.Sleep(500);
+            }
         }
 
         private class TestScreen : Screen
