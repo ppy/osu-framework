@@ -81,6 +81,7 @@ namespace osu.Framework.Graphics.Textures
             subTextureBounds.ForEach(bounds =>
             {
                 // +1 is required to prevent aliasing issues with sub-pixel positions while drawing. Bordering edged of other textures can show without it.
+                // ReSharper disable once AccessToModifiedClosure
                 res.X = Math.Max(res.X, bounds.Right + padding);
                 maxY = Math.Max(maxY, bounds.Bottom);
             });
