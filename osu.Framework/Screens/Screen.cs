@@ -186,7 +186,13 @@ namespace osu.Framework.Screens
         /// <summary>
         /// Exits this Screen.
         /// </summary>
-        public void Exit() => ExitFrom(this);
+        public void Exit()
+        {
+            if (ChildScreen != null)
+                throw new InvalidOperationException($"Can't exit when a child screen is still present. Please use {nameof(MakeCurrent)} instead.");
+
+            ExitFrom(this);
+        }
 
         private void enter(Screen source)
         {
