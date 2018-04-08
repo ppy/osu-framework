@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Shapes;
@@ -17,14 +18,67 @@ namespace osu.Framework.Tests.Visual
 {
     public class TestCaseScreen : TestCase
     {
-        public TestCaseScreen()
+        private Screen baseScreen;
+
+        [SetUp]
+        public new void SetupTest()
         {
-            Add(new TestScreen());
+            Clear();
+            Add(baseScreen = new TestScreen());
+        }
+
+        [Test]
+        public void TestPushPop()
+        {
+            TestScreen screen1 = null, screen2 = null;
+
+            AddStep("push", () => baseScreen.Push(screen1 = new TestScreen()));
+
+            AddAssert("ensure current", () => screen1.IsCurrentScreen);
+
+            // we don't support pushing a screen that has been entered
+            AddStep("bad push", () => Assert.Throws(typeof(InvalidOperationException), () => screen1.Push(screen1)));
+
+            AddStep("push", () => screen1.Push(screen2 = new TestScreen()));
+
+            AddAssert("ensure child", () => screen1.ChildScreen != null);
+            AddAssert("ensure current", () => screen2.IsCurrentScreen);
+
+            AddStep("pop", () => screen2.Exit());
+
+            AddAssert("ensure child gone", () => screen1.ChildScreen == null);
+            AddAssert("ensure not current", () => !screen2.IsCurrentScreen);
+
+            // can't push an exited screen
+            AddStep("bad push", () => Assert.Throws(typeof(InvalidOperationException), () => screen1.Push(screen2)));
+
+            AddStep("pop", () => screen1.Exit());
+        }
+
+        [Test]
+        public void TestMultiLevelExit()
+        {
+            TestScreen screen1 = null, screen2 = null, screen3 = null;
+
+            AddStep("push 1", () => baseScreen.Push(screen1 = new TestScreen()));
+            AddStep("push 2", () => screen1.Push(screen2 = new TestScreen()));
+            AddStep("push 3", () => screen2.Push(screen3 = new TestScreen()));
+
+            // can't push an exited screen
+            AddStep("bad exit", () => Assert.Throws(typeof(InvalidOperationException), () => screen1.Exit()));
+
+            AddStep("make current", () => screen1.MakeCurrent());
+
+            AddAssert("ensure child gone", () => screen1.ChildScreen == null);
+            AddAssert("ensure current", () => screen1.IsCurrentScreen);
+
+            AddAssert("ensure not current", () => !screen2.IsCurrentScreen);
+            AddAssert("ensure not current", () => !screen3.IsCurrentScreen);
         }
 
         private class TestScreen : Screen
         {
-            public int Sequence;
+            public static int Sequence;
             private Button popButton;
 
             private const int transition_time = 500;
@@ -76,7 +130,7 @@ namespace osu.Framework.Tests.Visual
                     },
                     new SpriteText
                     {
-                        Text = $@"Mode {Sequence}",
+                        Text = $@"Screen {Sequence++}",
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
                         TextSize = 50,
@@ -104,7 +158,6 @@ namespace osu.Framework.Tests.Visual
                         {
                             Push(new TestScreen
                             {
-                                Sequence = Sequence + 1,
                                 Anchor = Anchor.Centre,
                                 Origin = Anchor.Centre,
                             });
