@@ -84,8 +84,7 @@ namespace osu.Framework.Logging
         {
             lock (static_sync_lock)
             {
-                foreach (string f in filters)
-                    message = message.Replace(f, string.Empty.PadRight(f.Length, '*'));
+                filters.ForEach(f => message = message.Replace(f, string.Empty.PadRight(f.Length, '*')));
             }
 
             return message;

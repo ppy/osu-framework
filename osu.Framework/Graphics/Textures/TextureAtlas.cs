@@ -78,12 +78,12 @@ namespace osu.Framework.Graphics.Textures
             Vector2I res = new Vector2I(0, currentY);
 
             int maxY = currentY;
-            foreach (RectangleI bounds in subTextureBounds)
+            subTextureBounds.ForEach(bounds =>
             {
                 // +1 is required to prevent aliasing issues with sub-pixel positions while drawing. Bordering edged of other textures can show without it.
                 res.X = Math.Max(res.X, bounds.Right + padding);
                 maxY = Math.Max(maxY, bounds.Bottom);
-            }
+            });
 
             if (res.X + width > atlasWidth)
             {

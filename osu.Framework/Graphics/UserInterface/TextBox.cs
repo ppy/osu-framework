@@ -119,7 +119,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (textInput != null)
             {
-                textInput.OnNewImeComposition += delegate(string s)
+                textInput.OnNewImeComposition += delegate (string s)
                 {
                     textUpdateScheduler.Add(() => onImeComposition(s));
                     cursorAndLayout.Invalidate();
@@ -446,8 +446,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             // Update their depth to make room for the to-be inserted character.
             int i = -selectionLeft;
-            foreach (Drawable d in charsRight)
-                d.Depth = --i;
+            charsRight.ForEach(d => d.Depth = --i);
 
             // Add the character
             Drawable ch = GetDrawableCharacter(c);
@@ -774,11 +773,11 @@ namespace osu.Framework.Graphics.UserInterface
             //we only succeeded if there is pending data in the textbox
             if (imeDrawables.Count > 0)
             {
-                foreach (Drawable d in imeDrawables)
+                imeDrawables.ForEach(d =>
                 {
                     d.Colour = Color4.White;
                     d.FadeTo(1, 200, Easing.Out);
-                }
+                });
             }
 
             imeDrawables.Clear();

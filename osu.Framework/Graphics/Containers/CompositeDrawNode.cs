@@ -210,9 +210,7 @@ namespace osu.Framework.Graphics.Containers
                 GLWrapper.PushMaskingInfo(info);
             }
 
-            if (Children != null)
-                foreach (DrawNode child in Children)
-                    child.Draw(vertexAction);
+            Children?.ForEach(child => child.Draw(vertexAction));
 
             if (MaskingInfo != null)
                 GLWrapper.PopMaskingInfo();

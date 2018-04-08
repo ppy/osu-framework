@@ -13,17 +13,16 @@ namespace osu.Framework.Configuration.Tracking
         public void LoadFrom<T>(ConfigManager<T> configManager)
             where T : struct
         {
-            foreach (var value in this)
+            ForEach(value =>
             {
                 value.LoadFrom(configManager);
                 value.SettingChanged += d => SettingChanged?.Invoke(d);
-            }
+            });
         }
 
         public void Unload()
         {
-            foreach (var value in this)
-                value.Unload();
+            ForEach(value => value.Unload());
         }
     }
 }

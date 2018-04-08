@@ -65,8 +65,7 @@ namespace osu.Framework.Threading
                 {
                     // This is the first time we will get a valid time, so assume this is the
                     // reference point everything scheduled so far starts from.
-                    foreach (var s in timedTasks)
-                        s.ExecutionTime += newClock.CurrentTime;
+                    timedTasks.ForEach(s => s.ExecutionTime += newClock.CurrentTime);
                 }
 
                 clock = newClock;
@@ -115,13 +114,11 @@ namespace osu.Framework.Threading
                         }
                     }
 
-                    foreach (var t in tasksToRemove)
-                        timedTasks.Remove(t);
+                    tasksToRemove.ForEach(t => timedTasks.Remove(t));
 
                     tasksToRemove.Clear();
 
-                    foreach (var t in tasksToSchedule)
-                        timedTasks.AddInPlace(t);
+                    tasksToSchedule.ForEach(t => timedTasks.AddInPlace(t));
 
                     tasksToSchedule.Clear();
                 }
@@ -158,8 +155,7 @@ namespace osu.Framework.Threading
         {
             lock (timedTasks)
             {
-                foreach (var t in timedTasks)
-                    t.Cancel();
+                timedTasks.ForEach(t => t.Cancel());
                 timedTasks.Clear();
             }
         }

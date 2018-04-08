@@ -32,8 +32,7 @@ namespace osu.Framework.Input
 
         protected override void Dispose(bool isDisposing)
         {
-            foreach (var h in inputHandlers)
-                h.Dispose();
+            inputHandlers.ForEach(h => h.Dispose());
 
             base.Dispose(isDisposing);
         }

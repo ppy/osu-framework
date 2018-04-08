@@ -91,8 +91,7 @@ namespace osu.Framework.Graphics.Lines
         private void recomputeBounds()
         {
             resetBounds();
-            foreach (Vector2 pos in positions)
-                expandBounds(pos);
+            positions.ForEach(expandBounds);
         }
 
         private float pathWidth = 10f;

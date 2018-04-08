@@ -42,8 +42,7 @@ namespace osu.Framework.Input
 
             pendingStates.Clear();
 
-            foreach (var s in pendingParentStates)
-                pendingStates.Add(new PassThroughInputState(s));
+            pendingParentStates.ForEach(s => pendingStates.Add(new PassThroughInputState(s)));
 
             pendingParentStates.Clear();
 

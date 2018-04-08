@@ -86,8 +86,7 @@ namespace osu.Framework.Graphics.Shaders
                     logContents.AppendLine($@"Loading shader {name}:");
                     logContents.Append(shader.Log);
                     logContents.AppendLine(@"Parts:");
-                    foreach (ShaderPart p in parts)
-                        logContents.Append(p.Log);
+                    parts.ForEach(p => logContents.Append(p.Log));
                     Logger.Log(logContents.ToString(), LoggingTarget.Runtime, LogLevel.Debug);
                 }
 

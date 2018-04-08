@@ -835,8 +835,7 @@ namespace osu.Framework.Graphics.Containers
 
             return new InvokeOnDisposal(() =>
             {
-                foreach (var a in disposalActions)
-                    a.Dispose();
+                disposalActions.ForEach(a => a.Dispose());
             });
         }
 

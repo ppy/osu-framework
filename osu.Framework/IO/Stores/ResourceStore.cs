@@ -128,8 +128,7 @@ namespace osu.Framework.IO.Stores
             };
             //add file extension if it's missing.
             if (!name.Contains(@"."))
-                foreach (string ext in searchExtensions)
-                    filenames.Add($@"{name}.{ext}");
+                searchExtensions.ForEach(ext => filenames.Add($@"{name}.{ext}"));
 
             return filenames;
         }

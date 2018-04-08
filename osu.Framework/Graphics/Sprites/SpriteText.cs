@@ -282,11 +282,11 @@ namespace osu.Framework.Graphics.Sprites
             if (FixedWidth && !constantWidth.HasValue)
                 constantWidth = CreateCharacterDrawable('D').DrawWidth;
 
-            foreach (var k in keepDrawables)
+            keepDrawables.ForEach(k =>
             {
                 k.Scale = new Vector2(TextSize);
                 Add(k);
-            }
+            });
 
             for (int index = keepDrawables.Count; index < text.Length; index++)
             {

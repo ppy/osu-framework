@@ -297,10 +297,8 @@ namespace osu.Framework.Audio
             {
                 eventScheduler.Add(delegate
                 {
-                    foreach (var d in newDevices)
-                        OnNewDevice?.Invoke(d);
-                    foreach (var d in lostDevices)
-                        OnLostDevice?.Invoke(d);
+                    newDevices.ForEach(d => OnNewDevice?.Invoke(d));
+                    lostDevices.ForEach(d => OnLostDevice?.Invoke(d));
                 });
             }
 

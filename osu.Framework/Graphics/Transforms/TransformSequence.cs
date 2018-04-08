@@ -129,8 +129,7 @@ namespace osu.Framework.Graphics.Transforms
                 throw new InvalidOperationException($"May not append {nameof(TransformSequence<T>)} with different origin.");
 
             var oldLast = last;
-            foreach (var t in child.transforms)
-                Add(t);
+            child.transforms.ForEach(Add);
 
             // If we flatten a child into ourselves that already completed, then
             // we need to make sure to update the hasCompleted value, too, since
@@ -180,11 +179,11 @@ namespace osu.Framework.Graphics.Transforms
 
             // No need for OnAbort events to trigger anymore, since
             // we are already aware of the abortion.
-            foreach (var t in transforms)
+            transforms.ForEach(t =>
             {
                 t.OnAbort = null;
                 t.TargetTransformable.RemoveTransform(t);
-            }
+            });
 
             transforms.Clear();
             last = null;
@@ -327,12 +326,12 @@ namespace osu.Framework.Graphics.Transforms
                 throw new InvalidOperationException($"Can not perform {nameof(Loop)} on an endless {nameof(TransformSequence<T>)}.");
 
             var iterDuration = endTime - startTime + pause;
-            foreach (var t in transforms)
+            transforms.ForEach(t =>
             {
                 t.IsLooping = true;
                 t.LoopDelay = iterDuration;
                 t.AppliedToEnd = false; // we want to force a reprocess of this transform. it may have been applied-to-end in the Add, but not correctly looped as a result.
-            }
+            });
 
             onLoopingTransform();
             return this;

@@ -64,8 +64,7 @@ namespace osu.Framework.Testing
                     continue;
                 }
 
-                foreach (Type type in tests)
-                    TestTypes.Add(type);
+                tests.ForEach(type => TestTypes.Add(type));
             }
 
             TestTypes.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.Ordinal));
@@ -220,8 +219,7 @@ namespace osu.Framework.Testing
                 //it's okay for this to fail for now.
             }
 
-            foreach (Assembly asm in assemblies)
-                toolbar.AssemblyDropdown.AddDropdownItem(asm.GetName().Name, asm);
+            assemblies.ForEach(asm => toolbar.AssemblyDropdown.AddDropdownItem(asm.GetName().Name, asm));
 
             toolbar.AssemblyDropdown.Current.ValueChanged += updateList;
             toolbar.RunAllSteps.Current.ValueChanged += v => runTests(null);
@@ -237,7 +235,8 @@ namespace osu.Framework.Testing
             compilingNotice.FadeColour(Color4.White);
         });
 
-        private void compileFailed(Exception ex) => Schedule(() => {
+        private void compileFailed(Exception ex) => Schedule(() =>
+        {
             showLogOverlay.Value = true;
             Logger.Error(ex, "Error with dynamic compilation!");
 
