@@ -140,6 +140,12 @@ namespace osu.Framework.Screens
             if (ChildScreen != null)
                 throw new InvalidOperationException("Can not push more than one child screen.");
 
+            if (screen.hasExited)
+                throw new InvalidOperationException("Cannot push an already exited screen.");
+
+            if (screen.hasEntered)
+                throw new InvalidOperationException("Cannot push an already entered screen.");
+
             screen.ParentScreen = this;
             startSuspend(screen);
             ModePushed?.Invoke(screen);
