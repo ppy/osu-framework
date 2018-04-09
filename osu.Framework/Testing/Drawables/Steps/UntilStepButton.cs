@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using osu.Framework.Graphics;
 using OpenTK.Graphics;
 
 namespace osu.Framework.Testing.Drawables.Steps
@@ -68,13 +69,13 @@ namespace osu.Framework.Testing.Drawables.Steps
         protected override void Success()
         {
             base.Success();
-            LightColour = Color4.YellowGreen;
+            Light.FadeColour(Color4.YellowGreen);
         }
 
         protected override void Failure()
         {
             base.Failure();
-            LightColour = Color4.Red;
+            Light.FadeColour(Color4.Red);
         }
 
         private void updateText() => base.Text = $@"{Text} ({invocations} tries)";
