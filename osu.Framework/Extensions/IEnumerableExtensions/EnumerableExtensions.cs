@@ -18,8 +18,15 @@ namespace osu.Framework.Extensions.IEnumerableExtensions
         {
             if (collection == null) return;
 
-            foreach (var item in collection)
-                action(item);
+            var list = collection as IList<T>;
+
+            if (list != null)
+                // ReSharper disable once ForCanBeConvertedToForeach
+                for (int i = 0; i < list.Count; i++)
+                    action(list[i]);
+            else
+                foreach (var item in collection)
+                    action(item);
         }
     }
 }

@@ -208,8 +208,7 @@ namespace osu.Framework.Input
 
             unfocusIfNoLongerValid();
 
-            foreach (InputState s in distinctStates)
-                HandleNewState(s);
+            distinctStates.ForEach(HandleNewState);
 
             if (CurrentState.Mouse != null)
             {

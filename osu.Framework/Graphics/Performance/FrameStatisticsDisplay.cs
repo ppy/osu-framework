@@ -303,8 +303,7 @@ namespace osu.Framework.Graphics.Performance
 
         private void applyFrameGC(FrameStatistics frame)
         {
-            foreach (int gcLevel in frame.GarbageCollections)
-                addEvent(gcLevel);
+            frame.GarbageCollections.ForEach(addEvent);
         }
 
         private void applyFrameTime(FrameStatistics frame)

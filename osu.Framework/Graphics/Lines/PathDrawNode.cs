@@ -179,9 +179,7 @@ namespace osu.Framework.Graphics.Lines
 
             addLineCap(line.EndPoint, theta, MathHelper.Pi);
 
-
-            foreach (Line segment in Segments)
-                addLineQuads(segment);
+            Segments.ForEach(addLineQuads);
         }
 
         public override void Draw(Action<TexturedVertex2D> vertexAction)

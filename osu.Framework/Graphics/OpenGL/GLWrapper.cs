@@ -87,8 +87,7 @@ namespace osu.Framework.Graphics.OpenGL
             lastBlendingInfo = new BlendingInfo();
             lastBlendingEnabledState = null;
 
-            foreach (IVertexBatch b in this_frame_batches)
-                b.ResetCounters();
+            this_frame_batches.ForEach(b => b.ResetCounters());
 
             this_frame_batches.Clear();
             if (lastActiveBatch != null)

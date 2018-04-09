@@ -304,7 +304,7 @@ namespace osu.Framework.Graphics.Containers
 
             bool isFirstLine = true;
             float lastLineHeight = 0f;
-            foreach (var line in childrenByLine)
+            childrenByLine.ForEach(line =>
             {
                 bool isFirstChild = true;
                 IEnumerable<float> lineBaseHeightValues = line.OfType<IHasLineBaseHeight>().Select(l => l.LineBaseHeight);
@@ -340,7 +340,7 @@ namespace osu.Framework.Graphics.Containers
                     lastLineHeight = currentLineHeight;
 
                 isFirstLine = false;
-            }
+            });
         }
 
         protected override bool ForceNewRow(Drawable child) => child is NewLineContainer;

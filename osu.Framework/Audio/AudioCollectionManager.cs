@@ -42,8 +42,7 @@ namespace osu.Framework.Audio
         internal override void OnStateChanged()
         {
             base.OnStateChanged();
-            foreach (var item in Items)
-                item.OnStateChanged();
+            Items.ForEach(item => item.OnStateChanged());
         }
 
         public virtual void UpdateDevice(int deviceIndex)
@@ -73,8 +72,7 @@ namespace osu.Framework.Audio
         public override void Dispose()
         {
             // we need to queue disposal of our Items before enqueueing the main dispose.
-            foreach (var i in Items)
-                i.Dispose();
+            Items.ForEach(i => i.Dispose());
 
             base.Dispose();
         }

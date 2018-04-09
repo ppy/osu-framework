@@ -97,8 +97,7 @@ namespace osu.Framework.Lists
         {
             List<T> found = (List<T>)FindAll(match);
 
-            foreach (var i in found)
-                Remove(i);
+            found.ForEach(i => Remove(i));
 
             return found.Count;
         }

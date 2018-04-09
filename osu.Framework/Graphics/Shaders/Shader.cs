@@ -80,14 +80,13 @@ namespace osu.Framework.Graphics.Shaders
                 return;
 
             programID = GL.CreateProgram();
-            foreach (ShaderPart p in parts)
+            parts.ForEach(p =>
             {
                 if (!p.Compiled) p.Compile();
                 GL.AttachShader(this, p);
 
-                foreach (AttributeInfo attribute in p.Attributes)
-                    GL.BindAttribLocation(this, attribute.Location, attribute.Name);
-            }
+                p.Attributes.ForEach(attribute => GL.BindAttribLocation(this, attribute.Location, attribute.Name));
+            });
 
             GL.LinkProgram(this);
 
@@ -102,8 +101,7 @@ namespace osu.Framework.Graphics.Shaders
                 Log.AppendLine(linkLog);
             }
 
-            foreach (var part in parts)
-                GL.DetachShader(this, part);
+            parts.ForEach(part => GL.DetachShader(this, part));
 
             Loaded = linkResult == 1;
 
@@ -192,9 +190,11 @@ namespace osu.Framework.Graphics.Shaders
 
             global_properties[name] = value;
 
-            foreach (Shader shader in all_shaders)
+            all_shaders.ForEach(shader =>
+            {
                 if (shader.Loaded && shader.uniforms.TryGetValue(name, out UniformBase b))
                     b.Value = value;
+            });
         }
 
         public static implicit operator int(Shader shader)

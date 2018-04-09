@@ -152,8 +152,7 @@ namespace osu.Framework.Input.Bindings
             if (simultaneousMode == SimultaneousBindingMode.None)
             {
                 // we want to release any existing pressed actions.
-                foreach (var action in pressedActions)
-                    drawables.OfType<IKeyBindingHandler<T>>().ForEach(d => d.OnReleased(action));
+                pressedActions.ForEach(action => drawables.OfType<IKeyBindingHandler<T>>().ForEach(d => d.OnReleased(action)));
                 pressedActions.Clear();
             }
 
@@ -180,14 +179,14 @@ namespace osu.Framework.Input.Bindings
 
             Trace.Assert(newlyReleased.All(b => b.KeyCombination.Keys.Contains(releasedKey)));
 
-            foreach (var binding in newlyReleased)
+            newlyReleased.ForEach(binding =>
             {
                 pressedBindings.Remove(binding);
 
                 var action = binding.GetAction<T>();
 
                 handled |= PropagateReleased(KeyBindingInputQueue, action);
-            }
+            });
 
             return handled;
         }

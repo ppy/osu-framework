@@ -49,25 +49,29 @@ namespace osu.Framework.Physics
             toSimulate.Add(this);
 
             // Read the new state from each drawable in question
-            foreach (var d in toSimulate)
+            toSimulate.ForEach(d =>
             {
                 d.Simulation = this;
                 d.ReadState();
-            }
+            });
 
             // Handle collisions between each pair of bodies.
-            foreach (var d in toSimulate)
-                foreach (var other in toSimulate)
+            toSimulate.ForEach(d =>
+            {
+                toSimulate.ForEach(other =>
+                {
                     if (other != d)
                         d.CheckAndHandleCollisionWith(other);
+                });
+            });
 
             // Advance the simulation by the given time step for each body and
             // apply the state to each drawable in question.
-            foreach (var d in toSimulate)
+            toSimulate.ForEach(d =>
             {
                 d.Integrate(new Vector2(0, 981f * d.Mass), 0, dt);
                 d.ApplyState();
-            }
+            });
         }
 
         protected override void UpdateAfterChildren()

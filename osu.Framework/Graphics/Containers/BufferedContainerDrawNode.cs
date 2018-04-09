@@ -76,8 +76,7 @@ namespace osu.Framework.Graphics.Containers
 
             // These additional render buffers are only required if e.g. depth
             // or stencil information needs to also be stored somewhere.
-            foreach (var f in Formats)
-                frameBuffer.Attach(f);
+            Formats.ForEach(frameBuffer.Attach);
 
             // This setter will also take care of allocating a texture of appropriate size within the framebuffer.
             frameBuffer.Size = requestedSize;
