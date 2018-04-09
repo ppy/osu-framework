@@ -33,17 +33,14 @@ namespace osu.Framework.Tests.Visual
         {
             TestScreen screen1 = null, screen2 = null;
 
-            AddStep("push", () => baseScreen.Push(screen1 = new TestScreen()));
-
-            AddAssert("ensure current", () => screen1.IsCurrentScreen);
+            pushAndEnsureCurrent(screen1 = new TestScreen());
 
             // we don't support pushing a screen that has been entered
             AddStep("bad push", () => Assert.Throws(typeof(InvalidOperationException), () => screen1.Push(screen1)));
 
-            AddStep("push", () => screen1.Push(screen2 = new TestScreen()));
+            pushAndEnsureCurrent(screen2 = new TestScreen(), screen1);
 
             AddAssert("ensure child", () => screen1.ChildScreen != null);
-            AddAssert("ensure current", () => screen2.IsCurrentScreen);
 
             AddStep("pop", () => screen2.Exit());
 
@@ -61,9 +58,9 @@ namespace osu.Framework.Tests.Visual
         {
             TestScreen screen1 = null, screen2 = null, screen3 = null;
 
-            AddStep("push 1", () => baseScreen.Push(screen1 = new TestScreen()));
-            AddStep("push 2", () => screen1.Push(screen2 = new TestScreen()));
-            AddStep("push 3", () => screen2.Push(screen3 = new TestScreen()));
+            pushAndEnsureCurrent(screen1 = new TestScreen());
+            pushAndEnsureCurrent(screen2 = new TestScreen(), screen1);
+            pushAndEnsureCurrent(screen3 = new TestScreen(), screen2);
 
             // can't push an exited screen
             AddStep("bad exit", () => Assert.Throws(typeof(InvalidOperationException), () => screen1.Exit()));
@@ -98,12 +95,18 @@ namespace osu.Framework.Tests.Visual
             AddAssert("ensure current", () => screen1.IsCurrentScreen);
         }
 
+        private void pushAndEnsureCurrent(Screen screen, Screen target = null)
+        {
+            AddStep("push", () => (target ?? baseScreen).Push(screen));
+            AddUntilStep(() => screen.IsCurrentScreen, "ensure current");
+        }
+
         private class TestScreenSlow : TestScreen
         {
             [BackgroundDependencyLoader]
             private void load()
             {
-                Thread.Sleep(500);
+                Thread.Sleep((int)(500 / Clock.Rate));
             }
         }
 

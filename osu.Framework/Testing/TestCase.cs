@@ -74,7 +74,10 @@ namespace osu.Framework.Testing
         /// This test must run before any other tests, as it relies on <see cref="StepsContainer"/> not being cleared and not having any elements.
         /// </summary>
         [Test, Order(int.MinValue)]
-        public void TestConstructor() { mainTest = false; }
+        public void TestConstructor()
+        {
+            mainTest = false;
+        }
 
         protected TestCase()
         {
