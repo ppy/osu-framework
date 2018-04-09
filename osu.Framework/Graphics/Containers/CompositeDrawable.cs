@@ -702,11 +702,22 @@ namespace osu.Framework.Graphics.Containers
                     continue;
 
                 // Take drawable.Original until drawable.Original == drawable
-                while (drawable != (drawable = drawable.Original))
+                bool drawThroughProxy = true;
+                while (drawable != drawable.Original)
                 {
+                    drawable = drawable.Original;
+
+                    // Due to potential ordering of proxies vs original drawables in the scene graph, it is impossible to consistently determine
+                    // whether the original would be drawn before the proxy is reached. In such cases, the original's parent's alive/presence/masking states
+                    // have been bypassed, but are still necessary to be checked to determine whether the original would be drawn if no proxies were involved
+
+                    drawThroughProxy = drawable.ShouldDrawThroughProxy;
+
+                    if (!drawThroughProxy)
+                        break;
                 }
 
-                if (!drawable.IsPresent)
+                if (!drawThroughProxy || !drawable.IsPresent)
                     continue;
 
                 CompositeDrawable composite = drawable as CompositeDrawable;

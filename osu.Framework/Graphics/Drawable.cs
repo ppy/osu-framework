@@ -1346,6 +1346,12 @@ namespace osu.Framework.Graphics
             return proxy = new ProxyDrawable(this);
         }
 
+        /// <summary>
+        /// Used exclusively by <see cref="CompositeDrawable.addFromComposite"/> to determine whether this <see cref="Drawable"/> would be drawn,
+        /// for the case where it is drawn through a proxy.
+        /// </summary>
+        internal virtual bool ShouldDrawThroughProxy => IsPartOfComposite && !IsMaskedAway && IsAlive && IsPresent && (Parent?.ShouldDrawThroughProxy ?? true);
+
         #endregion
 
         #region Caching & invalidation (for things too expensive to compute every frame)

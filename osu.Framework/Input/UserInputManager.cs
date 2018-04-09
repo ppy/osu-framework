@@ -16,5 +16,7 @@ namespace osu.Framework.Input
         {
             UseParentState = false;
         }
+
+        internal override bool ShouldDrawThroughProxy => true; // This is the root container
     }
 }
