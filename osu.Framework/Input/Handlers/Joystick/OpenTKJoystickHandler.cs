@@ -63,6 +63,7 @@ namespace osu.Framework.Input.Handlers.Joystick
             foreach (var dev in devices)
             {
                 dev.Refresh();
+
                 if (dev.State.IsConnected)
                     newDevices.Add(dev);
             }
@@ -88,11 +89,13 @@ namespace osu.Framework.Input.Handlers.Joystick
 
         private class OpenTKJoystickState : JoystickState
         {
+            private const float dead_zone = 0.1f;
+
             public OpenTKJoystickState(JoystickDevice device)
             {
                 Axes = Enumerable.Range(0, device.Capabilities.AxisCount).Select(i => device.State.GetAxis(i)).ToList();
                 Buttons = Enumerable.Range(0, device.Capabilities.ButtonCount).Where(i => device.State.GetButton(i) == ButtonState.Pressed).Select(i => (JoystickButton)i)
-                                    .Concat(Axes.Where(a => !Precision.AlmostEquals(a, 0)).Select((axisValue, index) =>
+                                    .Concat(Axes.Where(a => !Precision.AlmostEquals(a, 0, dead_zone)).Select((axisValue, index) =>
                                     {
                                         if (axisValue < 0)
                                             return JoystickButton.FirstAxisNegativeButton + index;
