@@ -720,7 +720,7 @@ namespace osu.Framework.Graphics.Containers
                     continue;
 
                 if (drawable.HasProxy)
-                    drawable.SetProxyDrawNode(next, treeIndex, frame);
+                    drawable.ValidateProxyDrawNode(treeIndex, frame);
                 else
                 {
                     if (j < target.Count)

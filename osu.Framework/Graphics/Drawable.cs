@@ -1348,17 +1348,18 @@ namespace osu.Framework.Graphics
         {
             if (proxy != null)
                 throw new InvalidOperationException("Multiple proxies are not supported.");
-            return proxy = new ProxyDrawable(this);
+            return proxy = CreateProxyInternal();
         }
 
+        internal virtual ProxyDrawable CreateProxyInternal() => new ProxyDrawable(this, drawNodes);
+
         /// <summary>
-        /// Forwards a <see cref="DrawNode"/> to this <see cref="Drawable"/>'s <see cref="proxy"/>.
+        /// Validates a <see cref="DrawNode"/> for use by the proxy of this <see cref="Drawable"/>.
         /// This is used exclusively by <see cref="CompositeDrawable.addFromComposite"/>, and should not be used otherwise.
         /// </summary>
-        /// <param name="node">The <see cref="DrawNode"/> to forward.</param>
-        /// <param name="treeIndex">The index of <paramref name="node"/> in this <see cref="Drawable"/>.</param>
-        /// <param name="frame">The frame for which <paramref name="node"/> was created.</param>
-        internal virtual void SetProxyDrawNode(DrawNode node, int treeIndex, ulong frame) => proxy.SetProxyDrawNode(node, treeIndex, frame);
+        /// <param name="treeIndex">The index of the <see cref="DrawNode"/> in <see cref="drawNodes"/> which the proxy should use.</param>
+        /// <param name="frame">The frame for which the <see cref="DrawNode"/> was created. This is the parameter used for validation.</param>
+        internal virtual void ValidateProxyDrawNode(int treeIndex, ulong frame) => proxy.ValidateProxyDrawNode(treeIndex, frame);
 
         #endregion
 

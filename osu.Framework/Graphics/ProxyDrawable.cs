@@ -9,25 +9,27 @@ namespace osu.Framework.Graphics
 {
     public class ProxyDrawable : Drawable
     {
-        public ProxyDrawable(Drawable original)
+        private readonly DrawNode[] proxiedDrawNodes;
+        private readonly ulong[] drawNodeValidationIds = new ulong[3];
+
+        internal ProxyDrawable(Drawable original, DrawNode[] drawNodes)
         {
             Original = original;
+            proxiedDrawNodes = drawNodes;
         }
 
-        private readonly DrawNode[] proxiedDrawNodes = new DrawNode[3];
-        private readonly ulong[] drawNodeFrameCounts = new ulong[3];
+        internal override ProxyDrawable CreateProxyInternal() => new ProxyDrawable(this, proxiedDrawNodes);
 
-        internal override void SetProxyDrawNode(DrawNode node, int treeIndex, ulong frame)
+        internal override void ValidateProxyDrawNode(int treeIndex, ulong frame)
         {
             if (HasProxy)
             {
                 // Proxy of a proxy - forward drawnode to the new proxy
-                base.SetProxyDrawNode(node, treeIndex, frame);
+                base.ValidateProxyDrawNode(treeIndex, frame);
                 return;
             }
 
-            proxiedDrawNodes[treeIndex] = node;
-            drawNodeFrameCounts[treeIndex] = frame;
+            drawNodeValidationIds[treeIndex] = frame;
         }
 
         protected override DrawNode CreateDrawNode() => new ProxyDrawNode(this);
@@ -79,7 +81,7 @@ namespace osu.Framework.Graphics
                 if (target == null)
                     return;
 
-                if (proxyDrawable.drawNodeFrameCounts[DrawNodeIndex] != FrameCount)
+                if (proxyDrawable.drawNodeValidationIds[DrawNodeIndex] != FrameCount)
                     return;
 
                 target.Draw(vertexAction);
