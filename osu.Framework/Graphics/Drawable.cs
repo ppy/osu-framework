@@ -1331,6 +1331,11 @@ namespace osu.Framework.Graphics
         /// </summary>
         internal bool HasProxy => proxy != null;
 
+        /// <summary>
+        /// True iff this <see cref="Drawable"/> is not a proxy of any <see cref="Drawable"/>.
+        /// </summary>
+        internal bool IsProxy => Original != this;
+
         private ProxyDrawable proxy;
 
         /// <summary>
@@ -1345,6 +1350,15 @@ namespace osu.Framework.Graphics
                 throw new InvalidOperationException("Multiple proxies are not supported.");
             return proxy = new ProxyDrawable(this);
         }
+
+        /// <summary>
+        /// Forwards a <see cref="DrawNode"/> to this <see cref="Drawable"/>'s <see cref="proxy"/>.
+        /// This is used exclusively by <see cref="CompositeDrawable.addFromComposite"/>, and should not be used otherwise.
+        /// </summary>
+        /// <param name="node">The <see cref="DrawNode"/> to forward.</param>
+        /// <param name="treeIndex">The index of <paramref name="node"/> in this <see cref="Drawable"/>.</param>
+        /// <param name="frame">The frame for which <paramref name="node"/> was created.</param>
+        internal virtual void SetProxyDrawNode(DrawNode node, int treeIndex, ulong frame) => proxy.SetProxyDrawNode(node, treeIndex, frame);
 
         #endregion
 
@@ -1536,10 +1550,12 @@ namespace osu.Framework.Graphics
         private readonly DrawNode[] drawNodes = new DrawNode[3];
 
         /// <summary>
-        /// Generates the DrawNode for ourselves.
+        /// Generates the <see cref="DrawNode"/> for ourselves.
         /// </summary>
-        /// <returns>A complete and updated DrawNode, or null if the DrawNode would be invisible.</returns>
-        internal virtual DrawNode GenerateDrawNodeSubtree(int treeIndex)
+        /// <param name="frame">The frame which the <see cref="DrawNode"/> subtree should be generated for.</param>
+        /// <param name="treeIndex">The index of the <see cref="DrawNode"/> to use.</param>
+        /// <returns>A complete and updated <see cref="DrawNode"/>, or null if the <see cref="DrawNode"/> would be invisible.</returns>
+        internal virtual DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex)
         {
             DrawNode node = drawNodes[treeIndex];
             if (node == null)

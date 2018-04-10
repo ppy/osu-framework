@@ -362,10 +362,10 @@ namespace osu.Framework.Graphics.Containers
 
         internal override bool AddChildDrawNodes => drawNodeVersions[currentDrawNode] != updateVersion;
 
-        internal override DrawNode GenerateDrawNodeSubtree(int treeIndex)
+        internal override DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex)
         {
             currentDrawNode = treeIndex;
-            var node = base.GenerateDrawNodeSubtree(treeIndex);
+            var node = base.GenerateDrawNodeSubtree(frame, treeIndex);
             drawNodeVersions[currentDrawNode] = childrenUpdateVersion = updateVersion;
             return node;
         }
