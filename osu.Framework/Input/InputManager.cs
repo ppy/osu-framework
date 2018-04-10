@@ -703,7 +703,7 @@ namespace osu.Framework.Input
         {
             IEnumerable<Drawable> queue = inputQueue;
             if (!unfocusIfNoLongerValid())
-                queue = new[] { FocusedDrawable }.Concat(queue);
+                queue = queue.Prepend(FocusedDrawable);
 
             return PropagateKeyDown(queue, state, new KeyDownEventArgs { Key = key, Repeat = repeat });
         }
@@ -729,7 +729,7 @@ namespace osu.Framework.Input
         {
             IEnumerable<Drawable> queue = inputQueue;
             if (!unfocusIfNoLongerValid())
-                queue = new[] { FocusedDrawable }.Concat(queue);
+                queue = queue.Prepend(FocusedDrawable);
 
             return PropagateKeyUp(queue, state, new KeyUpEventArgs { Key = key });
         }

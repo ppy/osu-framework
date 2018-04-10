@@ -5,8 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Runtime;
 using System.Runtime.ExceptionServices;
 using System.Threading;
@@ -138,12 +138,7 @@ namespace osu.Framework.Platform
         private PerformanceMonitor inputMonitor => InputThread.Monitor;
         private PerformanceMonitor drawMonitor => DrawThread.Monitor;
 
-        private readonly Lazy<string> fullPathBacking = new Lazy<string>(() =>
-        {
-            string codeBase = Assembly.GetExecutingAssembly().CodeBase;
-            UriBuilder uri = new UriBuilder(codeBase);
-            return Uri.UnescapeDataString(uri.Path);
-        });
+        private readonly Lazy<string> fullPathBacking = new Lazy<string>(RuntimeInfo.GetFrameworkAssemblyPath);
 
         public string FullPath => fullPathBacking.Value;
 
@@ -179,7 +174,7 @@ namespace osu.Framework.Platform
                 (InputThread = new InputThread(null)), //never gets started.
             };
 
-            var path = System.IO.Path.GetDirectoryName(FullPath);
+            var path = Path.GetDirectoryName(FullPath);
             if (path != null)
                 Environment.CurrentDirectory = path;
         }
