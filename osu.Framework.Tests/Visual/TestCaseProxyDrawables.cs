@@ -14,34 +14,30 @@ namespace osu.Framework.Tests.Visual
     public class TestCaseProxyDrawables : GridTestCase
     {
         public TestCaseProxyDrawables()
-            : base(4, 2)
+            : base(4, 4)
         {
-            Cell(0, 0).Child = generateProxyAboveAllPresentTest();
-            Cell(0, 1).Child = generateProxyBelowAllPresentTest();
+            Cell(0, 0).Child = generateProxyAboveAllPresentTest(1);
+            Cell(0, 1).Child = generateProxyBelowAllPresentTest(1);
+            Cell(0, 2).Child = generateProxyAboveAllPresentTest(6);
+            Cell(0, 3).Child = generateProxyBelowAllPresentTest(6);
 
-            Cell(1, 0).Child = generateProxyAboveOriginalMaskedAway();
-            Cell(1, 1).Child = generateProxyBelowOriginalMaskedAway();
+            Cell(1, 0).Child = generateProxyAboveOriginalMaskedAway(1);
+            Cell(1, 1).Child = generateProxyBelowOriginalMaskedAway(1);
+            Cell(1, 2).Child = generateProxyAboveOriginalMaskedAway(6);
+            Cell(1, 3).Child = generateProxyBelowOriginalMaskedAway(6);
 
-            Cell(2, 0).Child = generateProxyAboveBoxParentNotPresent();
-            Cell(2, 1).Child = generateProxyBelowBoxParentNotPresent();
+            Cell(2, 0).Child = generateProxyAboveBoxParentNotPresent(1);
+            Cell(2, 1).Child = generateProxyBelowBoxParentNotPresent(1);
+            Cell(2, 2).Child = generateProxyAboveBoxParentNotPresent(6);
+            Cell(2, 3).Child = generateProxyBelowBoxParentNotPresent(6);
 
-            Cell(3, 0).Child = generateProxyAboveBoxParentNotAlive();
-            Cell(3, 1).Child = generateProxyBelowBoxParentNotAlive();
+            Cell(3, 0).Child = generateProxyAboveBoxParentNotAlive(1);
+            Cell(3, 1).Child = generateProxyBelowBoxParentNotAlive(1);
+            Cell(3, 2).Child = generateProxyAboveBoxParentNotAlive(6);
+            Cell(3, 3).Child = generateProxyBelowBoxParentNotAlive(6);
         }
 
-        private Drawable generateProxyAboveAllPresentTest()
-        {
-            var box = new Box
-            {
-                Anchor = Anchor.Centre,
-                Origin = Anchor.Centre,
-                Size = new Vector2(50),
-            };
-
-            return new Visualiser("Proxy above, all present", box, box.CreateProxy());
-        }
-
-        private Drawable generateProxyBelowAllPresentTest()
+        private Drawable generateProxyAboveAllPresentTest(int proxyCount)
         {
             var box = new Box
             {
@@ -50,41 +46,30 @@ namespace osu.Framework.Tests.Visual
                 Size = new Vector2(50),
             };
 
-            return new Visualiser("Proxy below, all present", box.CreateProxy(), box);
+            var proxy = box.CreateProxy();
+            for (int i = 1; i < proxyCount; i++)
+                proxy = proxy.CreateProxy();
+
+            return new Visualiser($"{proxyCount} proxy(s) above, all present", box, proxy);
         }
 
-        private Drawable generateProxyAboveOriginalMaskedAway()
+        private Drawable generateProxyBelowAllPresentTest(int proxyCount)
         {
             var box = new Box
-            {
-                RelativeSizeAxes = Axes.Both,
-                Position = new Vector2(60)
-            };
-
-            var boxMaskingContainer = new Container
             {
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
                 Size = new Vector2(50),
-                Masking = true,
-                BorderColour = Color4.Yellow,
-                BorderThickness = 2,
-                Children = new Drawable[]
-                {
-                    new Box
-                    {
-                        RelativeSizeAxes = Axes.Both,
-                        Alpha = 0,
-                        AlwaysPresent = true
-                    },
-                    box
-                }
             };
 
-            return new Visualiser("Proxy above, original masked away", boxMaskingContainer, box.CreateProxy());
+            var proxy = box.CreateProxy();
+            for (int i = 1; i < proxyCount; i++)
+                proxy = proxy.CreateProxy();
+
+            return new Visualiser($"{proxyCount} proxy(s) below, all present", proxy, box);
         }
 
-        private Drawable generateProxyBelowOriginalMaskedAway()
+        private Drawable generateProxyAboveOriginalMaskedAway(int proxyCount)
         {
             var box = new Box
             {
@@ -112,10 +97,49 @@ namespace osu.Framework.Tests.Visual
                 }
             };
 
-            return new Visualiser("Proxy below, original masked away", box.CreateProxy(), boxMaskingContainer);
+            var proxy = box.CreateProxy();
+            for (int i = 1; i < proxyCount; i++)
+                proxy = proxy.CreateProxy();
+
+            return new Visualiser($"{proxyCount} proxy(s) above, original masked away", boxMaskingContainer, proxy);
         }
 
-        private Drawable generateProxyAboveBoxParentNotPresent()
+        private Drawable generateProxyBelowOriginalMaskedAway(int proxyCount)
+        {
+            var box = new Box
+            {
+                RelativeSizeAxes = Axes.Both,
+                Position = new Vector2(60)
+            };
+
+            var boxMaskingContainer = new Container
+            {
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre,
+                Size = new Vector2(50),
+                Masking = true,
+                BorderColour = Color4.Yellow,
+                BorderThickness = 2,
+                Children = new Drawable[]
+                {
+                    new Box
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Alpha = 0,
+                        AlwaysPresent = true
+                    },
+                    box
+                }
+            };
+
+            var proxy = box.CreateProxy();
+            for (int i = 1; i < proxyCount; i++)
+                proxy = proxy.CreateProxy();
+
+            return new Visualiser($"{proxyCount} proxy(s) below, original masked away", proxy, boxMaskingContainer);
+        }
+
+        private Drawable generateProxyAboveBoxParentNotPresent(int proxyCount)
         {
             var box = new Box { RelativeSizeAxes = Axes.Both };
 
@@ -131,10 +155,14 @@ namespace osu.Framework.Tests.Visual
                 }
             };
 
-            return new Visualiser("Proxy above, original parent invisible", invisibleContainer, box.CreateProxy());
+            var proxy = box.CreateProxy();
+            for (int i = 1; i < proxyCount; i++)
+                proxy = proxy.CreateProxy();
+
+            return new Visualiser($"{proxyCount} proxy(s) above, original parent invisible", invisibleContainer, proxy);
         }
 
-        private Drawable generateProxyBelowBoxParentNotPresent()
+        private Drawable generateProxyBelowBoxParentNotPresent(int proxyCount)
         {
             var box = new Box { RelativeSizeAxes = Axes.Both };
 
@@ -150,10 +178,14 @@ namespace osu.Framework.Tests.Visual
                 }
             };
 
-            return new Visualiser("Proxy below, original parent invisible", box.CreateProxy(), invisibleContainer);
+            var proxy = box.CreateProxy();
+            for (int i = 1; i < proxyCount; i++)
+                proxy = proxy.CreateProxy();
+
+            return new Visualiser($"{proxyCount} proxy(s) below, original parent invisible", proxy, invisibleContainer);
         }
 
-        private Drawable generateProxyAboveBoxParentNotAlive()
+        private Drawable generateProxyAboveBoxParentNotAlive(int proxyCount)
         {
             var box = new Box { RelativeSizeAxes = Axes.Both };
 
@@ -169,10 +201,14 @@ namespace osu.Framework.Tests.Visual
                 }
             };
 
-            return new Visualiser("Proxy above, original parent not alive", invisibleContainer, box.CreateProxy());
+            var proxy = box.CreateProxy();
+            for (int i = 1; i < proxyCount; i++)
+                proxy = proxy.CreateProxy();
+
+            return new Visualiser($"{proxyCount} proxy(s) above, original parent not alive", invisibleContainer, proxy);
         }
 
-        private Drawable generateProxyBelowBoxParentNotAlive()
+        private Drawable generateProxyBelowBoxParentNotAlive(int proxyCount)
         {
             var box = new Box { RelativeSizeAxes = Axes.Both };
 
@@ -188,7 +224,11 @@ namespace osu.Framework.Tests.Visual
                 }
             };
 
-            return new Visualiser("Proxy below, original parent not alive", box.CreateProxy(), invisibleContainer);
+            var proxy = box.CreateProxy();
+            for (int i = 1; i < proxyCount; i++)
+                proxy = proxy.CreateProxy();
+
+            return new Visualiser($"{proxyCount} proxy(s) below, original parent not alive", proxy, invisibleContainer);
         }
 
         private class NonPresentContainer : Container
