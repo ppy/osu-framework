@@ -74,7 +74,7 @@ namespace osu.Framework.Tests.Visual
             var box = new Box
             {
                 RelativeSizeAxes = Axes.Both,
-                Position = new Vector2(60)
+                Position = new Vector2(60, 0)
             };
 
             var boxMaskingContainer = new Container
@@ -109,7 +109,7 @@ namespace osu.Framework.Tests.Visual
             var box = new Box
             {
                 RelativeSizeAxes = Axes.Both,
-                Position = new Vector2(60)
+                Position = new Vector2(60, 0)
             };
 
             var boxMaskingContainer = new Container
