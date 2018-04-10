@@ -150,6 +150,9 @@ namespace osu.Framework.Testing
         public void RunFirstStep()
         {
             stepRunner?.Cancel(); // Fixes RunAllSteps not working when toggled off
+            foreach (var step in StepsContainer.OfType<StepButton>())
+                step.Reset();
+
             actionIndex = 0;
             try
             {
