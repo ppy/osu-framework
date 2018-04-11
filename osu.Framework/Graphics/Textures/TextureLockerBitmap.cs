@@ -21,9 +21,27 @@ namespace osu.Framework.Graphics.Textures
             data = bitmap.LockBits(region, ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
         }
 
+        ~TextureLockerBitmap()
+        {
+            Dispose();
+        }
+
+        protected bool IsDisposed;
+
+        protected virtual void Dispose(bool isDisposing)
+        {
+            IsDisposed = true;
+
+            bitmap.UnlockBits(data);
+        }
+
         public void Dispose()
         {
-            bitmap.UnlockBits(data);
+            if (IsDisposed)
+                return;
+
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
     }
 }

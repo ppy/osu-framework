@@ -17,9 +17,27 @@ namespace osu.Framework.Graphics.Textures
             handle = GCHandle.Alloc(bytes, GCHandleType.Pinned);
         }
 
+        ~TextureLockerByteArray()
+        {
+            Dispose();
+        }
+
+        protected bool IsDisposed;
+
+        protected virtual void Dispose(bool isDisposing)
+        {
+            IsDisposed = true;
+
+            if (handle.IsAllocated) handle.Free();
+        }
+
         public void Dispose()
         {
-            handle.Free();
+            if (IsDisposed)
+                return;
+
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
     }
 }

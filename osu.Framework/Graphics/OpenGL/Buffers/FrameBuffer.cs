@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using osu.Framework.Graphics.OpenGL.Textures;
 using OpenTK;
 using OpenTK.Graphics.ES30;
@@ -61,7 +60,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             if (withTexture)
             {
                 Texture = new TextureGLSingle(1, 1, true, filteringMode);
-                Texture.SetData(new TextureUploadByteArray(Array.Empty<byte>(), new Size(0, 0)));
+                Texture.SetData(new TextureUploadByteArray(Array.Empty<byte>(), System.Drawing.Size.Empty));
                 Texture.Upload();
 
                 Bind();
@@ -91,7 +90,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
                 Texture.Width = (int)Math.Ceiling(size.X);
                 Texture.Height = (int)Math.Ceiling(size.Y);
-                Texture.SetData(new TextureUploadByteArray(Array.Empty<byte>(), new Size(0, 0)));
+                Texture.SetData(new TextureUploadByteArray(Array.Empty<byte>(), System.Drawing.Size.Empty));
                 Texture.Upload();
             }
         }

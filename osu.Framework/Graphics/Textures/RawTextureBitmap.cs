@@ -11,7 +11,7 @@ namespace osu.Framework.Graphics.Textures
 {
     public class RawTextureBitmap : IRawTexture
     {
-        public PixelFormat PixelFormat { get; }
+        public PixelFormat PixelFormat { get; } = PixelFormat.Rgba;
         public readonly Bitmap Bitmap;
         public Rectangle Region;
 
@@ -59,9 +59,7 @@ namespace osu.Framework.Graphics.Textures
         public RawTextureBitmap([NotNull] Bitmap bitmap, Rectangle region)
         {
             Bitmap = bitmap ?? throw new ArgumentNullException(nameof(bitmap));
-
             Region = region;
-            PixelFormat = PixelFormat.Rgba;
         }
 
         public RawTextureBitmap GetSubregion(Rectangle rectangle) => new RawTextureBitmap(Bitmap, rectangle);

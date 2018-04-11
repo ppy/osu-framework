@@ -13,12 +13,14 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         private readonly BufferStack<byte> bufferStack;
 
-        public TextureUploadByteArray(Size size, BufferStack<byte> bufferStack = null) : this(bufferStack?.ReserveBuffer(size.Width * size.Height * 4) ?? new byte[size.Width * size.Height * 4], size)
+        public TextureUploadByteArray(Size size, BufferStack<byte> bufferStack = null)
+            : this(bufferStack?.ReserveBuffer(size.Width * size.Height * 4) ?? new byte[size.Width * size.Height * 4], size)
         {
             this.bufferStack = bufferStack;
         }
 
-        public TextureUploadByteArray(byte[] data, Size size) : base(new RawTextureBytes(data, new Rectangle(Point.Empty, size)))
+        public TextureUploadByteArray(byte[] data, Size size)
+            : base(new RawTextureByteArray(data, new Rectangle(Point.Empty, size)))
         {
             Data = data;
         }

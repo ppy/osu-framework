@@ -132,7 +132,7 @@ namespace osu.Framework.IO.Stores
                         }
                     }
 
-                return new RawTextureBytes(pixels, new System.Drawing.Rectangle(0, 0, width, height));
+                return new RawTextureByteArray(pixels, new System.Drawing.Rectangle(0, 0, width, height));
                 // TODO: page?.GetSubregion(new Rectangle(c.Bounds.X - c.Offset.X, c.Bounds.Y - c.Offset.Y, width, height));
             }
         }
