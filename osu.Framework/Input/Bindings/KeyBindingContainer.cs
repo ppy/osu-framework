@@ -132,9 +132,13 @@ namespace osu.Framework.Input.Bindings
             if (!repeat)
                 pressedBindings.AddRange(newlyPressed);
 
-            // exact matching may result in no newly pressed actions, in which case we want to release all existing ones
+            // exact matching may result in no pressed (new or old) bindings, in which case we want to trigger releases for existing actions
             if (simultaneousMode == SimultaneousBindingMode.NoneExact)
-                releasePressedActions();
+            {
+                // only want to release pressed actions if no existing bindings would still remain pressed
+                if (pressedBindings.Count > 0 && !pressedBindings.Any(m => m.KeyCombination.IsPressed(pressedCombination, simultaneousMode == SimultaneousBindingMode.NoneExact)))
+                    releasePressedActions();
+            }
 
             foreach (var newBinding in newlyPressed)
             {
