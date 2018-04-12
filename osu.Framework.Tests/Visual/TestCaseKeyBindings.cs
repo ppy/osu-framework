@@ -122,6 +122,8 @@ namespace osu.Framework.Tests.Visual
                 base.OnWheel(state);
                 return false;
             }
+
+            public override bool ReceiveMouseInputAt(Vector2 screenSpacePos) => true;
         }
 
         private class TestButton : Button, IKeyBindingHandler<TestAction>
