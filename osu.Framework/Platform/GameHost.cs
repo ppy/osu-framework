@@ -391,7 +391,7 @@ namespace osu.Framework.Platform
                 bootstrapSceneGraph(game);
 
                 frameSyncMode.TriggerChange();
-                enabledInputHandlers.TriggerChange();
+                ignoredInputHandler.TriggerChange();
 
                 try
                 {
@@ -522,7 +522,7 @@ namespace osu.Framework.Platform
 
         private Bindable<FrameSync> frameSyncMode;
 
-        private Bindable<string> enabledInputHandlers;
+        private Bindable<string> ignoredInputHandler;
 
         private Bindable<double> cursorSensitivity;
         private Bindable<bool> performanceLogging;
@@ -579,33 +579,22 @@ namespace osu.Framework.Platform
                 if (UpdateThread != null) UpdateThread.ActiveHz = updateLimiter;
             };
 
-            enabledInputHandlers = config.GetBindable<string>(FrameworkSetting.ActiveInputHandlers);
-            enabledInputHandlers.ValueChanged += enabledString =>
+            ignoredInputHandler = config.GetBindable<string>(FrameworkSetting.IgnoredInputHandler);
+            ignoredInputHandler.ValueChanged += ignoredHandlerString =>
             {
-                var configHandlers = enabledString.Split(' ').Where(s => !string.IsNullOrWhiteSpace(s));
-                bool useDefaults = !configHandlers.Any();
-
-                // make sure all the handlers in the configuration file are available, else reset to sane defaults.
-                foreach (string handler in configHandlers)
-                {
-                    if (AvailableInputHandlers.All(h => h.ToString() != handler))
-                    {
-                        useDefaults = true;
-                        break;
-                    }
-                }
+                bool useDefaults = string.IsNullOrWhiteSpace(ignoredHandlerString);
 
                 if (useDefaults)
                 {
                     resetInputHandlers();
-                    enabledInputHandlers.Value = string.Join(" ", AvailableInputHandlers.Where(h => h.Enabled).Select(h => h.ToString()));
+                    ignoredInputHandler.Value = AvailableInputHandlers.Single(h => !h.Enabled).ToString();
                 }
                 else
                 {
                     foreach (var handler in AvailableInputHandlers)
                     {
                         var handlerType = handler.ToString();
-                        handler.Enabled.Value = configHandlers.Any(ch => ch == handlerType);
+                        handler.Enabled.Value = ignoredHandlerString != handlerType;
                     }
                 }
             };
