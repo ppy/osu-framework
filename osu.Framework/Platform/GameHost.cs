@@ -587,7 +587,7 @@ namespace osu.Framework.Platform
                 if (useDefaults)
                 {
                     resetInputHandlers();
-                    ignoredInputHandler.Value = AvailableInputHandlers.Single(h => !h.Enabled).ToString();
+                    ignoredInputHandler.Value = AvailableInputHandlers.SingleOrDefault(h => !h.Enabled)?.ToString();
                 }
                 else
                 {
