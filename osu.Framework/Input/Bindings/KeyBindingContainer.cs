@@ -132,6 +132,10 @@ namespace osu.Framework.Input.Bindings
             if (!repeat)
                 pressedBindings.AddRange(newlyPressed);
 
+            // exact matching may result in no newly pressed actions, in which case we want to release all existing ones
+            if (simultaneousMode == SimultaneousBindingMode.NoneExact)
+                releasePressedActions();
+
             foreach (var newBinding in newlyPressed)
             {
                 handled |= PropagatePressed(KeyBindingInputQueue, newBinding.GetAction<T>());
@@ -149,13 +153,8 @@ namespace osu.Framework.Input.Bindings
             IDrawable handled = null;
 
             // we handled a new binding and there is an existing one. if we don't want concurrency, let's propagate a released event.
-            if (simultaneousMode == SimultaneousBindingMode.None)
-            {
-                // we want to release any existing pressed actions.
-                foreach (var action in pressedActions)
-                    drawables.OfType<IKeyBindingHandler<T>>().ForEach(d => d.OnReleased(action));
-                pressedActions.Clear();
-            }
+            if (simultaneousMode == SimultaneousBindingMode.None || simultaneousMode == SimultaneousBindingMode.NoneExact)
+                releasePressedActions();
 
             // only handle if we are a new non-pressed action (or a concurrency mode that supports multiple simultaneous triggers).
             if (simultaneousMode == SimultaneousBindingMode.All || !pressedActions.Contains(pressed))
@@ -168,6 +167,16 @@ namespace osu.Framework.Input.Bindings
                 Logger.Log($"Pressed ({pressed}) handled by {handled}.", LoggingTarget.Runtime, LogLevel.Debug);
 
             return handled != null;
+        }
+
+        /// <summary>
+        /// Releases all pressed actions.
+        /// </summary>
+        private void releasePressedActions()
+        {
+            foreach (var action in pressedActions)
+                KeyBindingInputQueue.OfType<IKeyBindingHandler<T>>().ForEach(d => d.OnReleased(action));
+            pressedActions.Clear();
         }
 
         private bool handleNewReleased(InputState state, InputKey releasedKey)
