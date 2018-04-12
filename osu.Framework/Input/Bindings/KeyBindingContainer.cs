@@ -137,7 +137,7 @@ namespace osu.Framework.Input.Bindings
                 handled |= PropagatePressed(KeyBindingInputQueue, newBinding.GetAction<T>());
 
                 // we only want to handle the first valid binding (the one with the most keys) in non-simultaneous mode.
-                if (simultaneousMode == SimultaneousBindingMode.None && handled)
+                if ((simultaneousMode == SimultaneousBindingMode.None || simultaneousMode == SimultaneousBindingMode.NoneExact) && handled)
                     break;
             }
 
