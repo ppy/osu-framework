@@ -29,8 +29,9 @@ namespace osu.Framework.Tests.Visual
             base.LoadComplete();
 
             Cell(0).Add(new KeyBindingTester(SimultaneousBindingMode.None));
-            Cell(1).Add(new KeyBindingTester(SimultaneousBindingMode.Unique));
-            Cell(2).Add(new KeyBindingTester(SimultaneousBindingMode.All));
+            Cell(1).Add(new KeyBindingTester(SimultaneousBindingMode.NoneExact));
+            Cell(2).Add(new KeyBindingTester(SimultaneousBindingMode.Unique));
+            Cell(3).Add(new KeyBindingTester(SimultaneousBindingMode.All));
         }
 
         private enum TestAction
