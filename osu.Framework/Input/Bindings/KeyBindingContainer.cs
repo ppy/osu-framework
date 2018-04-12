@@ -61,11 +61,6 @@ namespace osu.Framework.Input.Bindings
         /// </summary>
         protected virtual bool Prioritised => false;
 
-        /// <summary>
-        /// Whether exact combinations are required for keybindings to trigger.
-        /// </summary>
-        protected virtual bool ExactMatch => false;
-
         protected override bool OnWheel(InputState state)
         {
             InputKey key = state.Mouse.WheelDelta > 0 ? InputKey.MouseWheelUp : InputKey.MouseWheelDown;
@@ -125,7 +120,7 @@ namespace osu.Framework.Input.Bindings
             var bindings = repeat ? KeyBindings : KeyBindings.Except(pressedBindings);
             var newlyPressed = bindings.Where(m =>
                 m.KeyCombination.Keys.Contains(newKey) // only handle bindings matching current key (not required for correct logic)
-                && m.KeyCombination.IsPressed(pressedCombination, ExactMatch));
+                && m.KeyCombination.IsPressed(pressedCombination, simultaneousMode == SimultaneousBindingMode.NoneExact));
 
             if (isModifier(newKey))
                 // if the current key pressed was a modifier, only handle modifier-only bindings.
@@ -181,7 +176,7 @@ namespace osu.Framework.Input.Bindings
 
             bool handled = false;
 
-            var newlyReleased = pressedBindings.Where(b => !b.KeyCombination.IsPressed(pressedCombination, ExactMatch)).ToList();
+            var newlyReleased = pressedBindings.Where(b => !b.KeyCombination.IsPressed(pressedCombination, simultaneousMode == SimultaneousBindingMode.NoneExact)).ToList();
 
             Trace.Assert(newlyReleased.All(b => b.KeyCombination.Keys.Contains(releasedKey)));
 
@@ -245,9 +240,16 @@ namespace osu.Framework.Input.Bindings
     public enum SimultaneousBindingMode
     {
         /// <summary>
-        /// One action can be in a pressed state at once. If a new matching binding is encountered, any existing binding is first released.
+        /// One action can be in a pressed state at once.
+        /// If a new matching binding is encountered, any existing binding is first released.
         /// </summary>
         None,
+
+        /// <summary>
+        /// One action can be in a pressed state at once. Exact key combinations are required for actions to be triggered.
+        /// If a new matching binding is encountered, any existing binding is first released.
+        /// </summary>
+        NoneExact,
 
         /// <summary>
         /// Unique actions are allowed to be pressed at the same time. There may therefore be more than one action in an actuated state at once.

@@ -18,6 +18,11 @@ namespace osu.Framework.Input
     {
         private GameHost host;
 
+        public PlatformActionContainer()
+            : base(SimultaneousBindingMode.NoneExact)
+        {
+        }
+
         [BackgroundDependencyLoader]
         private void load(GameHost host)
         {
@@ -27,8 +32,6 @@ namespace osu.Framework.Input
         public override IEnumerable<KeyBinding> DefaultKeyBindings => host.PlatformKeyBindings;
 
         protected override bool Prioritised => true;
-
-        protected override bool ExactMatch => true;
 
         protected override bool SendRepeats => true;
     }
