@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Input.Bindings;
 using osu.Framework.Logging;
 using osu.Framework.MathUtils;
 using osu.Framework.Platform;
@@ -89,19 +90,56 @@ namespace osu.Framework.Input.Handlers.Joystick
 
         private class OpenTKJoystickState : JoystickState
         {
+            /// <summary>
+            /// Arbitrary amount of axes supported by the osu!framework.
+            /// We can raise this to 64 (max supported by OpenTK) with appropriate implementation in <see cref="InputKey"/> if needed.
+            /// </summary>
+            private const int max_axes = 10;
+
+            /// <summary>
+            /// Arbitrary amount of buttons supported by the osu!framework.
+            /// We can raise this to 64 (max supported by OpenTK) with appropriate implementation in <see cref="InputKey"/> if needed.
+            /// </summary>
+            private const int max_buttons = 20;
+
+            /// <summary>
+            /// OpenTK only supports 4 hats.
+            /// </summary>
+            private const int max_hats = 4;
+
             private const float dead_zone = 0.1f;
 
             public OpenTKJoystickState(JoystickDevice device)
             {
-                Axes = Enumerable.Range(0, device.Capabilities.AxisCount).Select(i => device.State.GetAxis(i)).ToList();
-                Buttons = Enumerable.Range(0, device.Capabilities.ButtonCount).Where(i => device.State.GetButton(i) == ButtonState.Pressed).Select(i => (JoystickButton)i)
-                                    .Concat(Axes.Where(a => !Precision.AlmostEquals(a, 0, dead_zone)).Select((axisValue, index) =>
-                                    {
-                                        if (axisValue < 0)
-                                            return JoystickButton.FirstAxisNegativeButton + index;
-                                        return JoystickButton.FirstAxisPositiveButton + index;
-                                    })).ToList();
+                Axes = Enumerable.Range(0, max_axes).Select(i => device.State.GetAxis(i))
+                                 // To not break compatibility if more axes are added in the future, pad axes to 64 elements
+                                 .Concat(Enumerable.Repeat(0f, 64 - max_axes))
+                                 // Convert each hat to a pair of axes
+                                 .Concat(Enumerable.Range(0, max_hats).Select(i => device.State.GetHat(JoystickHat.Hat0 + i)).SelectMany(hatToAxes))
+                                 .ToList();
 
+                Buttons = Enumerable.Range(0, max_buttons).Where(i => device.State.GetButton(i) == ButtonState.Pressed).Select(i => (JoystickButton)i)
+                                    // Convert each axis to a button state
+                                    .Concat(Axes.Where(a => !Precision.AlmostEquals(a, 0, dead_zone))
+                                                .Select((axisValue, index) => (axisValue < 0 ? JoystickButton.AxisNegative1 : JoystickButton.AxisPositive1) + index))
+                                    .ToList();
+            }
+
+            private float[] hatToAxes(JoystickHatState hatState)
+            {
+                float xAxis = 0;
+                float yAxis = 0;
+
+                if (hatState.IsLeft)
+                    xAxis = -1;
+                else if (hatState.IsRight)
+                    xAxis = 1;
+                if (hatState.IsDown)
+                    yAxis = -1;
+                else if (hatState.IsUp)
+                    yAxis = 1;
+
+                return new[] { xAxis, yAxis };
             }
         }
 
