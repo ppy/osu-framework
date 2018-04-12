@@ -100,8 +100,8 @@ namespace osu.Framework.Tests.Visual
 
             public JoystickAxisButtonHandler(int axisIndex)
             {
-                positiveAxisButton = JoystickButton.FirstAxisPositiveButton + axisIndex;
-                negativeAxisButton = JoystickButton.FirstAxisNegativeButton + axisIndex;
+                positiveAxisButton = JoystickButton.AxisPositive1 + axisIndex;
+                negativeAxisButton = JoystickButton.AxisNegative1 + axisIndex;
 
                 Size = new Vector2(200);
 
