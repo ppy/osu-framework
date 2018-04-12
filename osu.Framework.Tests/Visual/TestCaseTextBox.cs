@@ -65,6 +65,14 @@ namespace osu.Framework.Tests.Visual
                 TabbableContentContainer = textBoxes
             });
 
+            textBoxes.Add(new TextBox
+            {
+                Text = "Readonly textbox",
+                Size = new Vector2(500, 30),
+                ReadOnly = true,
+                TabbableContentContainer = textBoxes
+            });
+
             FillFlowContainer otherTextBoxes = new FillFlowContainer
             {
                 Direction = FillDirection.Vertical,

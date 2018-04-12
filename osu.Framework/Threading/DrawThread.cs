@@ -9,7 +9,8 @@ namespace osu.Framework.Threading
 {
     public class DrawThread : GameThread
     {
-        public DrawThread(Action onNewFrame, string threadName) : base(onNewFrame, threadName)
+        public DrawThread(Action onNewFrame)
+            : base(onNewFrame, "Draw")
         {
         }
 

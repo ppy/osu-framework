@@ -3,13 +3,15 @@
 
 using System;
 using System.Drawing;
+using System.IO;
 using osu.Framework.Configuration;
 using osu.Framework.Input;
 using OpenTK;
+using OpenTK.Graphics;
 
 namespace osu.Framework.Platform
 {
-    public class DesktopGameWindow : GameWindow
+    public abstract class DesktopGameWindow : GameWindow
     {
         private const int default_width = 1366;
         private const int default_height = 768;
@@ -26,10 +28,20 @@ namespace osu.Framework.Platform
 
         public readonly Bindable<ConfineMouseMode> ConfineMouseMode = new Bindable<ConfineMouseMode>();
 
-        public DesktopGameWindow()
+        internal override IGraphicsContext Context => Implementation.Context;
+
+        protected new OpenTK.GameWindow Implementation => (OpenTK.GameWindow)base.Implementation;
+
+        public readonly BindableBool MapAbsoluteInputToWindow = new BindableBool();
+
+        protected DesktopGameWindow()
             : base(default_width, default_height)
         {
+            Resize += OnResize;
+            Move += OnMove;
         }
+
+        public virtual void SetIconFromStream(Stream stream) { }
 
         public override void SetupWindow(FrameworkConfigManager config)
         {
@@ -44,6 +56,8 @@ namespace osu.Framework.Platform
 
             config.BindWith(FrameworkSetting.ConfineMouseMode, ConfineMouseMode);
 
+            config.BindWith(FrameworkSetting.MapAbsoluteInputToWindow, MapAbsoluteInputToWindow);
+
             ConfineMouseMode.ValueChanged += confineMouseMode_ValueChanged;
             ConfineMouseMode.TriggerChange();
 
@@ -55,11 +69,9 @@ namespace osu.Framework.Platform
             Exited += onExit;
         }
 
-        protected override void OnResize(EventArgs e)
+        protected void OnResize(object sender, EventArgs e)
         {
             if (ClientSize.IsEmpty) return;
-
-            base.OnResize(e);
 
             switch (WindowMode.Value)
             {
@@ -70,10 +82,8 @@ namespace osu.Framework.Platform
             }
         }
 
-        protected override void OnMove(EventArgs e)
+        protected void OnMove(object sender, EventArgs e)
         {
-            base.OnMove(e);
-
             // The game is windowed and the whole window is on the screen (it is not minimized or moved outside of the screen)
             if (WindowMode.Value == Configuration.WindowMode.Windowed
                 && Position.X > 0 && Position.X < 1
@@ -109,7 +119,7 @@ namespace osu.Framework.Platform
             switch (newMode)
             {
                 case Configuration.WindowMode.Fullscreen:
-                    DisplayResolution newResolution = DisplayDevice.Default.SelectResolution(widthFullscreen, heightFullscreen, 0, DisplayDevice.Default.RefreshRate);
+                    DisplayResolution newResolution = DisplayDevice.Default.SelectResolution(widthFullscreen, heightFullscreen, DisplayDevice.Default.BitsPerPixel, DisplayDevice.Default.RefreshRate);
                     DisplayDevice.Default.ChangeResolution(newResolution);
 
                     WindowState = WindowState.Fullscreen;
@@ -151,14 +161,13 @@ namespace osu.Framework.Platform
             DisplayDevice.Default.RestoreResolution();
         }
 
-        public override Vector2 Position
+        public Vector2 Position
         {
             get
             {
                 return new Vector2((float)Location.X / (DisplayDevice.Default.Width - Size.Width),
                     (float)Location.Y / (DisplayDevice.Default.Height - Size.Height));
             }
-
             set
             {
                 Location = new Point(
@@ -181,6 +190,12 @@ namespace osu.Framework.Platform
                     WindowMode.Value = Configuration.WindowMode.Windowed;
                     break;
             }
+        }
+
+        public override VSyncMode VSync
+        {
+            get => Implementation.VSync;
+            set => Implementation.VSync = value;
         }
     }
 }

@@ -4,7 +4,8 @@ A game framework written with osu! in mind.
 
 # Requirements
 
-- A desktop platform which can compile .NET 4.5 (tested on macOS, linux and windows). We recommend using [Visual Studio Code](https://code.visualstudio.com/) (all platforms) or [Visual Studio Community Edition](https://www.visualstudio.com/) (windows only), both of which are free.
+- A desktop platform which can compile .NET 4.6.1 (tested on macOS, linux and windows), using C# 7 and [.NET Core 2.0 SDK](https://www.microsoft.com/net/download/core).
+- We recommend using [Visual Studio Code](https://code.visualstudio.com/) (all platforms) or [Visual Studio Community Edition](https://www.visualstudio.com/) 2017+ (windows only), both of which are free.
 
 # Objectives
 

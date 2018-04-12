@@ -16,12 +16,7 @@ namespace osu.Framework.Testing.Drawables.Steps
         public AssertButton()
         {
             Action += checkAssert;
-        }
-
-        public override void Reset()
-        {
-            base.Reset();
-            BackgroundColour = Color4.OrangeRed;
+            LightColour = Color4.OrangeRed;
         }
 
         private void checkAssert()

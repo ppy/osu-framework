@@ -8,7 +8,7 @@ namespace osu.Framework.Platform.Linux
         internal LinuxGameHost(string gameName, bool bindIPC = false)
             : base(gameName, bindIPC)
         {
-            Window = new DesktopGameWindow();
+            Window = new LinuxGameWindow();
             Window.WindowStateChanged += (sender, e) =>
             {
                 if (Window.WindowState != OpenTK.WindowState.Minimized)

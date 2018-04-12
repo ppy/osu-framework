@@ -91,8 +91,7 @@ namespace osu.Framework.Graphics.Shaders
 
             GL.LinkProgram(this);
 
-            int linkResult;
-            GL.GetProgram(this, GetProgramParameterName.LinkStatus, out linkResult);
+            GL.GetProgram(this, GetProgramParameterName.LinkStatus, out int linkResult);
             string linkLog = GL.GetProgramInfoLog(this);
 
             Log.AppendLine(string.Format(ShaderPart.BOUNDARY, name));
@@ -111,15 +110,12 @@ namespace osu.Framework.Graphics.Shaders
             if (Loaded)
             {
                 //Obtain all the shader uniforms
-                int uniformCount;
-                GL.GetProgram(this, GetProgramParameterName.ActiveUniforms, out uniformCount);
+                GL.GetProgram(this, GetProgramParameterName.ActiveUniforms, out int uniformCount);
                 uniformsArray = new UniformBase[uniformCount];
 
                 for (int i = 0; i < uniformCount; i++)
                 {
-                    ActiveUniformType type;
-                    string uniformName;
-                    GL.GetActiveUniform(this, i, 100, out _, out _, out type, out uniformName);
+                    GL.GetActiveUniform(this, i, 100, out _, out _, out ActiveUniformType type, out string uniformName);
 
                     uniformsArray[i] = new UniformBase(this, uniformName, GL.GetUniformLocation(this, uniformName), type);
                     uniforms.Add(uniformName, uniformsArray[i]);
@@ -191,14 +187,14 @@ namespace osu.Framework.Graphics.Shaders
         /// <param name="value">The uniform value.</param>
         public static void SetGlobalProperty(string name, object value)
         {
+            if (global_properties.TryGetValue(name, out object found) && found.Equals(value))
+                return;
+
             global_properties[name] = value;
 
             foreach (Shader shader in all_shaders)
-            {
-                shader.EnsureLoaded();
-                if (shader.uniforms.ContainsKey(name))
-                    shader.uniforms[name].Value = value;
-            }
+                if (shader.Loaded && shader.uniforms.TryGetValue(name, out UniformBase b))
+                    b.Value = value;
         }
 
         public static implicit operator int(Shader shader)

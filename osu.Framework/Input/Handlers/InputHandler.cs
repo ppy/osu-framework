@@ -30,8 +30,7 @@ namespace osu.Framework.Input.Handlers
             {
                 List<InputState> pending = new List<InputState>();
 
-                InputState s;
-                while (PendingStates.TryDequeue(out s))
+                while (PendingStates.TryDequeue(out InputState s))
                     pending.Add(s);
 
                 return pending;
