@@ -67,6 +67,8 @@ namespace osu.Framework.Input.Handlers.Joystick
 
                 if (dev.State.IsConnected)
                     newDevices.Add(dev);
+                else
+                    mostSeenDevices--;
             }
 
             // Find any newly-connected devices
