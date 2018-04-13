@@ -3,8 +3,7 @@
 
 using System.Diagnostics;
 using System.Threading;
-using osu.Framework.Audio;
-using osu.Framework.Platform;
+using osu.Framework.Threading;
 
 namespace osu.Framework.Development
 {
@@ -37,10 +36,10 @@ namespace osu.Framework.Development
             Debug.Assert(IsDrawThread);
         }
 
-        public static bool IsUpdateThread => Thread.CurrentThread == GameHost.Instance.UpdateThread.Thread;
+        public static bool IsUpdateThread => Thread.CurrentThread.Name == GameThread.PrefixedThreadNameFor("Update");
 
-        public static bool IsDrawThread => Thread.CurrentThread == GameHost.Instance.DrawThread.Thread;
+        public static bool IsDrawThread => Thread.CurrentThread.Name == GameThread.PrefixedThreadNameFor("Draw");
 
-        public static bool IsAudioThread => Thread.CurrentThread == AudioManager.Instance.Thread.Thread;
+        public static bool IsAudioThread => Thread.CurrentThread.Name == GameThread.PrefixedThreadNameFor("Audio");
     }
 }

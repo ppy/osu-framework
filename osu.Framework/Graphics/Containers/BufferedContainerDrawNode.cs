@@ -174,7 +174,7 @@ namespace osu.Framework.Graphics.Containers
             currentFrameBufferIndex = originalIndex;
 
             Vector2 frameBufferSize = new Vector2((float)Math.Ceiling(ScreenSpaceDrawRectangle.Width), (float)Math.Ceiling(ScreenSpaceDrawRectangle.Height));
-            if (UpdateVersion > DrawVersion.Value || frameBufferSize != FrameBuffers[0].Size)
+            if (UpdateVersion > DrawVersion.Value)
             {
                 DrawVersion.Value = UpdateVersion;
 

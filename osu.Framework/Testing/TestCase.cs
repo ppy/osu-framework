@@ -54,8 +54,14 @@ namespace osu.Framework.Testing
                 host.Run(new TestCaseTestRunner(this));
             }
 
-            // clean up after each run
-            storage.DeleteDirectory(string.Empty);
+            try
+            {
+                // clean up after each run
+                storage.DeleteDirectory(string.Empty);
+            }
+            catch
+            {
+            }
         }
 
         /// <summary>
@@ -144,6 +150,9 @@ namespace osu.Framework.Testing
         public void RunFirstStep()
         {
             stepRunner?.Cancel(); // Fixes RunAllSteps not working when toggled off
+            foreach (var step in StepsContainer.OfType<StepButton>())
+                step.Reset();
+
             actionIndex = 0;
             try
             {

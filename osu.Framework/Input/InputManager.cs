@@ -34,14 +34,9 @@ namespace osu.Framework.Input
         private const int double_click_time = 250;
 
         /// <summary>
-        /// The distance that must be moved before a drag begins.
-        /// </summary>
-        private const float drag_start_distance = 0;
-
-        /// <summary>
         /// The distance that must be moved until a dragged click becomes invalid.
         /// </summary>
-        private const float click_drag_distance = 40;
+        private const float click_drag_distance = 10;
 
         /// <summary>
         /// The time of the last input action.
@@ -258,11 +253,10 @@ namespace osu.Framework.Input
             // state potentially from a different input source.
             if (last.Mouse != null && state.Mouse != null)
             {
-                if (last.Mouse.GetType() == state.Mouse.GetType())
-                {
-                    last.Mouse.LastState = null;
+                // only set the last state if one hasn't already been set (in addition to being the same type of state).
+                // a smarter InputHandler may do this internally, if they are handling input from multiple distinct devices.
+                if (state.Mouse.LastState == null && last.Mouse.GetType() == state.Mouse.GetType())
                     state.Mouse.LastState = last.Mouse;
-                }
 
                 if (last.Mouse.HasAnyButtonPressed)
                     state.Mouse.PositionMouseDown = last.Mouse.PositionMouseDown;
@@ -476,7 +470,7 @@ namespace osu.Framework.Input
                     }
                 }
 
-                if (!isDragging && Vector2Extensions.Distance(mouse.PositionMouseDown ?? mouse.Position, mouse.Position) > drag_start_distance)
+                if (!isDragging && Vector2Extensions.Distance(mouse.PositionMouseDown ?? mouse.Position, mouse.Position) > click_drag_distance)
                 {
                     isDragging = true;
                     handleMouseDragStart(state);
@@ -484,7 +478,7 @@ namespace osu.Framework.Input
             }
             else if (last.HasAnyButtonPressed)
             {
-                if (isValidClick && (DraggedDrawable == null || Vector2Extensions.Distance(mouse.PositionMouseDown ?? mouse.Position, mouse.Position) < click_drag_distance))
+                if (isValidClick && (DraggedDrawable == null || Vector2Extensions.Distance(mouse.PositionMouseDown ?? mouse.Position, mouse.Position) <= click_drag_distance))
                     handleMouseClick(state);
 
                 mouseDownInputQueue = null;
@@ -506,8 +500,7 @@ namespace osu.Framework.Input
                 Button = button
             };
 
-            Drawable handledBy;
-            var result = PropagateMouseDown(positionalInputQueue, state, args, out handledBy);
+            var result = PropagateMouseDown(positionalInputQueue, state, args, out Drawable handledBy);
 
             mouseDownInputQueue = new List<Drawable>(result ? positionalInputQueue.Take(positionalInputQueue.IndexOf(handledBy) + 1) : positionalInputQueue);
 
@@ -677,7 +670,7 @@ namespace osu.Framework.Input
         {
             IEnumerable<Drawable> queue = inputQueue;
             if (!unfocusIfNoLongerValid())
-                queue = new[] { FocusedDrawable }.Concat(queue);
+                queue = queue.Prepend(FocusedDrawable);
 
             return PropagateKeyDown(queue, state, new KeyDownEventArgs { Key = key, Repeat = repeat });
         }
@@ -703,7 +696,7 @@ namespace osu.Framework.Input
         {
             IEnumerable<Drawable> queue = inputQueue;
             if (!unfocusIfNoLongerValid())
-                queue = new[] { FocusedDrawable }.Concat(queue);
+                queue = queue.Prepend(FocusedDrawable);
 
             return PropagateKeyUp(queue, state, new KeyUpEventArgs { Key = key });
         }

@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using osu.Framework.Logging;
 
 namespace osu.Framework.IO.Stores
 {
@@ -53,7 +54,8 @@ namespace osu.Framework.IO.Stores
                 }
                 catch
                 {
-                    throw new IOException($@"Couldn't load font asset from {assetName}.");
+                    Logger.Log($"Couldn't load font asset from {assetName}.");
+                    throw;
                 }
             });
 
@@ -75,11 +77,16 @@ namespace osu.Framework.IO.Stores
             if (name.Length > 1 && !name.StartsWith($@"{fontName}/", StringComparison.Ordinal))
                 return null;
 
-            fontLoadTask?.Wait();
+            try
+            {
+                fontLoadTask?.Wait();
+            }
+            catch
+            {
+                return null;
+            }
 
-            Character c;
-
-            if (!font.Characters.TryGetValue(name.Last(), out c))
+            if (!font.Characters.TryGetValue(name.Last(), out Character c))
                 return null;
 
             RawTexture page = getTexturePage(c.TexturePage);
@@ -126,8 +133,7 @@ namespace osu.Framework.IO.Stores
 
         private RawTexture getTexturePage(int texturePage)
         {
-            RawTexture t;
-            if (!texturePages.TryGetValue(texturePage, out t))
+            if (!texturePages.TryGetValue(texturePage, out RawTexture t))
             {
                 loadedPageCount++;
                 using (var stream = store.GetStream($@"{assetName}_{texturePage.ToString().PadLeft((font.Pages.Length - 1).ToString().Length, '0')}.png"))

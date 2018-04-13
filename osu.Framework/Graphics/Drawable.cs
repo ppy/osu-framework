@@ -87,7 +87,6 @@ namespace osu.Framework.Graphics
 
             Parent = null;
 
-            scheduler?.Dispose();
             scheduler = null;
 
             OnUpdate = null;
@@ -207,6 +206,8 @@ namespace osu.Framework.Graphics
 
                 Dependencies.Inject(this);
 
+                LoadAsyncComplete();
+
                 double loadDuration = perf.CurrentTime - t1;
                 if (perf.CurrentTime > 1000 && loadDuration > 50 && ThreadSafety.IsUpdateThread)
                     Logger.Log($@"Drawable [{ToString()}] took {loadDuration:0.00}ms to load and was not async!", LoggingTarget.Performance);
@@ -234,6 +235,13 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
+        /// Called after all async loading has completed.
+        /// </summary>
+        protected virtual void LoadAsyncComplete()
+        {
+        }
+
+        /// <summary>
         /// Play initial animation etc.
         /// </summary>
         protected virtual void LoadComplete()
@@ -250,7 +258,7 @@ namespace osu.Framework.Graphics
         /// ID is unique within the <see cref="Parent"/> <see cref="CompositeDrawable"/>.
         /// The primary use case of this ID is stable sorting of Drawables with equal <see cref="Depth"/>.
         /// </summary>
-        public ulong ChildID { get; internal set; }
+        internal ulong ChildID { get; set; }
 
         /// <summary>
         /// Whether this drawable has been added to a parent <see cref="CompositeDrawable"/>. Note that this does NOT imply that
@@ -330,7 +338,7 @@ namespace osu.Framework.Graphics
             if (isDisposed)
                 throw new ObjectDisposedException(ToString(), "Disposed Drawables may never be in the scene graph.");
 
-            if (ShouldProcessClock)
+            if (ProcessCustomClock)
                 customClock?.ProcessFrame();
 
             if (loadState < LoadState.Ready)
@@ -356,6 +364,32 @@ namespace osu.Framework.Graphics
             OnUpdate?.Invoke(this);
             return true;
         }
+
+        /// <summary>
+        /// Updates all masking calculations for this <see cref="Drawable"/>.
+        /// This occurs post-<see cref="UpdateSubTree"/> to ensure that all <see cref="Drawable"/> updates have taken place.
+        /// </summary>
+        /// <param name="source">The parent that triggered this update on this <see cref="Drawable"/>.</param>
+        /// <param name="maskingBounds">The <see cref="RectangleF"/> that defines the masking bounds.</param>
+        /// <returns>Whether masking calculations have taken place.</returns>
+        public virtual bool UpdateSubTreeMasking(Drawable source, RectangleF maskingBounds)
+        {
+            if (!IsPresent)
+                return false;
+
+            if (HasProxy && source != proxy)
+                return false;
+
+            IsMaskedAway = ComputeIsMaskedAway(maskingBounds);
+            return true;
+        }
+
+        /// <summary>
+        /// Computes whether this <see cref="Drawable"/> is masked away.
+        /// </summary>
+        /// <param name="maskingBounds">The <see cref="RectangleF"/> that defines the masking bounds.</param>
+        /// <returns>Whether this <see cref="Drawable"/> is currently masked away.</returns>
+        protected virtual bool ComputeIsMaskedAway(RectangleF maskingBounds) => !maskingBounds.IntersectsWith(ScreenSpaceDrawQuad.AABBFloat);
 
         /// <summary>
         /// Performs a once-per-frame update specific to this Drawable. A more elegant alternative to
@@ -1191,7 +1225,7 @@ namespace osu.Framework.Graphics
         /// uses a custom clock.
         /// </summary>
         /// <param name="clock">The new clock to be used.</param>
-        public virtual void UpdateClock(IFrameBasedClock clock)
+        internal virtual void UpdateClock(IFrameBasedClock clock)
         {
             this.clock = customClock ?? clock;
             scheduler?.UpdateClock(this.clock);
@@ -1199,9 +1233,9 @@ namespace osu.Framework.Graphics
 
         /// <summary>
         /// Whether <see cref="IFrameBasedClock.ProcessFrame"/> should be automatically invoked on this <see cref="Drawable"/>'s <see cref="Clock"/>
-        /// in <see cref="UpdateSubTree"/>. This should only be used in scenarios where <see cref="UpdateSubTree"/> is overridden to perform the functionality itself.
+        /// in <see cref="UpdateSubTree"/>. This should only be set to false in scenarios where the clock is updated elsewhere.
         /// </summary>
-        protected virtual bool ShouldProcessClock => Parent != null; //we don't want to update our clock if we are at the top of the stack. it's handled elsewhere for us.
+        public bool ProcessCustomClock = true;
 
         /// <summary>
         /// The time at which this drawable becomes valid (and is considered for drawing).
@@ -1319,23 +1353,12 @@ namespace osu.Framework.Graphics
 
         #region Caching & invalidation (for things too expensive to compute every frame)
 
-        private Cached<bool> isMaskedAwayBacking;
-
         /// <summary>
-        /// Whether this <see cref="Drawable"/> is currently masked away.
-        /// This is measured conservatively based on the AABB of this <see cref="Drawable"/>
-        /// and may be false even if it is visually fully masked away.
+        /// Was this Drawable masked away completely during the last frame?
+        /// This is measured conservatively, i.e. it is only true when the Drawable was
+        /// actually masked away, but it may be false, even if the Drawable was masked away.
         /// </summary>
-        internal bool IsMaskedAway =>
-            isMaskedAwayBacking.IsValid
-                ? isMaskedAwayBacking.Value
-                : (isMaskedAwayBacking.Value = Parent != null && ComputeIsMaskedAway(Parent.ChildMaskingRectangle));
-
-        /// <summary>
-        /// Computes whether this <see cref="Drawable"/> is currently masked away, based on the <see cref="Parent"/>'s <see cref="CompositeDrawable.ChildMaskingRectangle"/>.
-        /// </summary>
-        /// <param name="maskingRectangle">The current masking rectangle.</param>
-        internal virtual bool ComputeIsMaskedAway(RectangleF maskingRectangle) => !maskingRectangle.IntersectsWith(ScreenSpaceDrawQuad.AABBFloat);
+        internal bool IsMaskedAway { get; private set; }
 
         private Cached<Quad> screenSpaceDrawQuadBacking;
 
@@ -1385,6 +1408,7 @@ namespace osu.Framework.Graphics
                     $"The {nameof(di)} of null parents should always have the single colour white, and therefore this branch should never be hit.");
 
                 // Cannot use ToParentSpace here, because ToParentSpace depends on DrawInfo to be completed
+                // ReSharper disable once PossibleNullReferenceException
                 Quad interp = Quad.FromRectangle(DrawRectangle) * (di.Matrix * Parent.DrawInfo.MatrixInverse);
                 Vector2 parentSize = Parent.DrawSize;
 
@@ -1485,7 +1509,6 @@ namespace osu.Framework.Graphics
                 alreadyInvalidated &= !screenSpaceDrawQuadBacking.Invalidate();
                 alreadyInvalidated &= !drawInfoBacking.Invalidate();
                 alreadyInvalidated &= !drawSizeBacking.Invalidate();
-                alreadyInvalidated &= !isMaskedAwayBacking.Invalidate();
             }
 
             if (!alreadyInvalidated || (invalidation & Invalidation.DrawNode) > 0)
@@ -1914,6 +1937,7 @@ namespace osu.Framework.Graphics
 
                     Debug.Assert(method != null);
 
+                    // ReSharper disable once PossibleNullReferenceException
                     if (method.DeclaringType != typeof(Drawable))
                     {
                         cache.TryAdd(type, true);

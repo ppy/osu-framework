@@ -114,22 +114,29 @@ namespace osu.Framework.Timing
 
         public void Stop()
         {
-            adjustableSource?.Stop();
             decoupledStopwatch.Stop();
+            adjustableSource?.Stop();
         }
 
         public bool Seek(double position)
         {
-            bool success = adjustableSource?.Seek(position) != false;
+            try
+            {
+                bool success = adjustableSource?.Seek(position) != false;
 
-            if (IsCoupled)
-                return success;
+                if (IsCoupled)
+                    return success;
 
-            if (!success)
-                //if we failed to seek then stop the source and use decoupled mode.
-                adjustableSource?.Stop();
+                if (!success)
+                    //if we failed to seek then stop the source and use decoupled mode.
+                    adjustableSource?.Stop();
 
-            return decoupledStopwatch.Seek(position);
+                return decoupledStopwatch.Seek(position);
+            }
+            finally
+            {
+                ProcessFrame();
+            }
         }
     }
 }

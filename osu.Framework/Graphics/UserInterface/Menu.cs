@@ -11,7 +11,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Logging;
 using osu.Framework.MathUtils;
 using osu.Framework.Threading;
 using OpenTK;
@@ -669,8 +668,6 @@ namespace osu.Framework.Graphics.UserInterface
                 set
                 {
                     state = value;
-
-                    Logger.Log($"Menu item {Item.Text} is {state}");
 
                     UpdateForegroundColour();
                     UpdateBackgroundColour();

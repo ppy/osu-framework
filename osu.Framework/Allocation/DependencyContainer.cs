@@ -155,8 +155,7 @@ namespace osu.Framework.Allocation
         /// <returns>The requested dependency, or null if not found.</returns>
         public object Get(Type type)
         {
-            object ret;
-            if (cache.TryGetValue(type, out ret))
+            if (cache.TryGetValue(type, out object ret))
                 return ret;
 
             return parentContainer?.Get(type);
@@ -188,9 +187,7 @@ namespace osu.Framework.Allocation
                 if (autoRegister && !activators.ContainsKey(type))
                     register(type, lazy);
 
-            ObjectActivator activator;
-
-            if (!activators.TryGetValue(type, out activator))
+            if (!activators.TryGetValue(type, out ObjectActivator activator))
                 throw new InvalidOperationException("DI Initialisation failed badly.");
 
             activator(this, instance);

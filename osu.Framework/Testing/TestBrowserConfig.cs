@@ -13,6 +13,12 @@ namespace osu.Framework.Testing
         public TestBrowserConfig(Storage storage) : base(storage)
         {
         }
+
+        protected override void InitialiseDefaults()
+        {
+            base.InitialiseDefaults();
+            Set(TestBrowserSetting.LastTest, string.Empty);
+        }
     }
 
     internal enum TestBrowserSetting
