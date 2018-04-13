@@ -5,8 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Runtime;
 using System.Runtime.ExceptionServices;
 using System.Threading;
@@ -138,12 +138,7 @@ namespace osu.Framework.Platform
         private PerformanceMonitor inputMonitor => InputThread.Monitor;
         private PerformanceMonitor drawMonitor => DrawThread.Monitor;
 
-        private readonly Lazy<string> fullPathBacking = new Lazy<string>(() =>
-        {
-            string codeBase = Assembly.GetExecutingAssembly().CodeBase;
-            UriBuilder uri = new UriBuilder(codeBase);
-            return Uri.UnescapeDataString(uri.Path);
-        });
+        private readonly Lazy<string> fullPathBacking = new Lazy<string>(RuntimeInfo.GetFrameworkAssemblyPath);
 
         public string FullPath => fullPathBacking.Value;
 
@@ -179,7 +174,7 @@ namespace osu.Framework.Platform
                 (InputThread = new InputThread(null)), //never gets started.
             };
 
-            var path = System.IO.Path.GetDirectoryName(FullPath);
+            var path = Path.GetDirectoryName(FullPath);
             if (path != null)
                 Environment.CurrentDirectory = path;
         }
@@ -396,7 +391,7 @@ namespace osu.Framework.Platform
                 bootstrapSceneGraph(game);
 
                 frameSyncMode.TriggerChange();
-                enabledInputHandlers.TriggerChange();
+                ignoredInputHandler.TriggerChange();
 
                 try
                 {
@@ -527,7 +522,7 @@ namespace osu.Framework.Platform
 
         private Bindable<FrameSync> frameSyncMode;
 
-        private Bindable<string> enabledInputHandlers;
+        private Bindable<string> ignoredInputHandler;
 
         private Bindable<double> cursorSensitivity;
         private Bindable<bool> performanceLogging;
@@ -584,33 +579,22 @@ namespace osu.Framework.Platform
                 if (UpdateThread != null) UpdateThread.ActiveHz = updateLimiter;
             };
 
-            enabledInputHandlers = config.GetBindable<string>(FrameworkSetting.ActiveInputHandlers);
-            enabledInputHandlers.ValueChanged += enabledString =>
+            ignoredInputHandler = config.GetBindable<string>(FrameworkSetting.IgnoredInputHandler);
+            ignoredInputHandler.ValueChanged += ignoredHandlerString =>
             {
-                var configHandlers = enabledString.Split(' ').Where(s => !string.IsNullOrWhiteSpace(s));
-                bool useDefaults = !configHandlers.Any();
+                bool restoreDefaults = string.IsNullOrWhiteSpace(ignoredHandlerString);
 
-                // make sure all the handlers in the configuration file are available, else reset to sane defaults.
-                foreach (string handler in configHandlers)
-                {
-                    if (AvailableInputHandlers.All(h => h.ToString() != handler))
-                    {
-                        useDefaults = true;
-                        break;
-                    }
-                }
-
-                if (useDefaults)
+                if (restoreDefaults)
                 {
                     resetInputHandlers();
-                    enabledInputHandlers.Value = string.Join(" ", AvailableInputHandlers.Where(h => h.Enabled).Select(h => h.ToString()));
+                    ignoredInputHandler.Value = AvailableInputHandlers.SingleOrDefault(h => !h.Enabled)?.ToString();
                 }
                 else
                 {
                     foreach (var handler in AvailableInputHandlers)
                     {
                         var handlerType = handler.ToString();
-                        handler.Enabled.Value = configHandlers.Any(ch => ch == handlerType);
+                        handler.Enabled.Value = ignoredHandlerString != handlerType;
                     }
                 }
             };

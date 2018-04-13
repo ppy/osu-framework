@@ -354,13 +354,15 @@ namespace osu.Framework.Testing
 
             var dropdown = toolbar.AssemblyDropdown;
 
-            dropdown.RemoveDropdownItem(dropdown.Items.LastOrDefault(i => i.Value.FullName.Contains(DynamicClassCompiler.DYNAMIC_ASSEMBLY_NAME)).Value);
+            const string dynamic = "dynamic";
+
+            dropdown.RemoveDropdownItem(dropdown.Items.LastOrDefault(i => i.Value.FullName.Contains(dynamic)).Value);
 
             // if we are a dynamically compiled type (via DynamicClassCompiler) we should update the dropdown accordingly.
             if (isDynamicLoad)
-                dropdown.AddDropdownItem($"dynamic ({testType.Name})", testType.Assembly);
+                dropdown.AddDropdownItem($"{dynamic} ({testType.Name})", testType.Assembly);
             else
-                TestTypes.RemoveAll(t => t.Assembly.FullName.Contains(DynamicClassCompiler.DYNAMIC_ASSEMBLY_NAME));
+                TestTypes.RemoveAll(t => t.Assembly.FullName.Contains(dynamic));
 
             dropdown.Current.Value = testType.Assembly;
 
@@ -397,7 +399,7 @@ namespace osu.Framework.Testing
                 foreach (var m in methods.Where(m => m.Name != "TestConstructor" && m.GetCustomAttributes(typeof(TestAttribute), false).Length > 0))
                 {
                     var step = CurrentTest.AddStep(m.Name, () => { setUpMethod?.Invoke(CurrentTest, null); });
-                    step.BackgroundColour = Color4.Teal;
+                    step.LightColour = Color4.Teal;
                     m.Invoke(CurrentTest, null);
                 }
 
