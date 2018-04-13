@@ -173,6 +173,7 @@ osu! is written in C# on the .NET Framework. On August 28, 2016, osu!'s source c
                 }
             });
 
+            AddAssert("Handle input properties", () => !textFlowContainer.HandleKeyboardInput && !textFlowContainer.HandleMouseInput, $"Handle input properties of the {nameof(textFlowContainer)} are set to false");
             AddStep(@"resize paragraph 1", () => { paragraphContainer.Width = 1f; });
             AddStep(@"resize paragraph 2", () => { paragraphContainer.Width = 0.6f; });
             AddStep(@"header inset", () => { textFlowContainer.FirstLineIndent += 2; });
