@@ -6,6 +6,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Testing;
 using OpenTK;
 using OpenTK.Graphics;
@@ -173,13 +174,23 @@ osu! is written in C# on the .NET Framework. On August 28, 2016, osu!'s source c
                 }
             });
 
-            AddAssert("Handle input properties", () => !textFlowContainer.HandleKeyboardInput && !textFlowContainer.HandleMouseInput, $"Handle input properties of the {nameof(textFlowContainer)} are set to false");
+            AddAssert(@"handle input false", () => !textFlowContainer.HandleKeyboardInput && !textFlowContainer.HandleMouseInput, $"Handle input properties of the {nameof(textFlowContainer)} are set to false");
             AddStep(@"resize paragraph 1", () => { paragraphContainer.Width = 1f; });
             AddStep(@"resize paragraph 2", () => { paragraphContainer.Width = 0.6f; });
             AddStep(@"header inset", () => { textFlowContainer.FirstLineIndent += 2; });
             AddStep(@"body inset", () => { textFlowContainer.ContentIndent += 4; });
             AddToggleStep(@"Zero paragraph spacing", state => textFlowContainer.ParagraphSpacing = state ? 0 : 0.5f);
             AddToggleStep(@"Non-zero line spacing", state => textFlowContainer.LineSpacing = state ? 1 : 0);
+            AddAssert(@"child with input support", () =>
+            {
+                Button btn;
+                textFlowContainer.AddInternal(btn = new Button { Text = "Button inside of the TextFlowContainer" });
+                var check1 = !textFlowContainer.HandleKeyboardInput && textFlowContainer.HandleMouseInput;
+                textFlowContainer.RemoveInternal(btn);
+                var check2 = !textFlowContainer.HandleKeyboardInput && !textFlowContainer.HandleMouseInput;
+                return check1 && check2;
+            });
+
         }
 
         private class LineBaseBox : Box, IHasLineBaseHeight
