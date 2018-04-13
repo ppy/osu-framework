@@ -582,9 +582,9 @@ namespace osu.Framework.Platform
             ignoredInputHandler = config.GetBindable<string>(FrameworkSetting.IgnoredInputHandler);
             ignoredInputHandler.ValueChanged += ignoredHandlerString =>
             {
-                bool useDefaults = string.IsNullOrWhiteSpace(ignoredHandlerString);
+                bool restoreDefaults = string.IsNullOrWhiteSpace(ignoredHandlerString);
 
-                if (useDefaults)
+                if (restoreDefaults)
                 {
                     resetInputHandlers();
                     ignoredInputHandler.Value = AvailableInputHandlers.SingleOrDefault(h => !h.Enabled)?.ToString();
