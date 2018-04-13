@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System;
 using System.Diagnostics;
 using OpenTK;
-using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.OpenGL;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Shaders;
@@ -19,6 +18,7 @@ using osu.Framework.Caching;
 using osu.Framework.Threading;
 using osu.Framework.Statistics;
 using System.Threading.Tasks;
+using osu.Framework.Graphics.Primitives;
 using osu.Framework.MathUtils;
 
 namespace osu.Framework.Graphics.Containers
@@ -98,7 +98,6 @@ namespace osu.Framework.Graphics.Containers
             InternalChildren?.ForEach(c => c.Dispose());
 
             OnAutoSize = null;
-            schedulerAfterChildren?.Dispose();
             schedulerAfterChildren = null;
 
             base.Dispose(isDisposing);
@@ -137,7 +136,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private class ChildComparer : IComparer<Drawable>
+        protected class ChildComparer : IComparer<Drawable>
         {
             private readonly CompositeDrawable owner;
 
@@ -225,7 +224,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         /// <param name="drawable">The <see cref="Drawable"/> to be removed.</param>
         /// <returns>False if <paramref name="drawable"/> was not a child of this <see cref="CompositeDrawable"/> and true otherwise.</returns>
-        protected internal bool RemoveInternal(Drawable drawable)
+        protected internal virtual bool RemoveInternal(Drawable drawable)
         {
             if (drawable == null)
                 throw new ArgumentNullException(nameof(drawable));
@@ -260,7 +259,7 @@ namespace osu.Framework.Graphics.Containers
         /// Whether removed children should also get disposed.
         /// Disposal will be recursive.
         /// </param>
-        protected internal void ClearInternal(bool disposeChildren = true)
+        protected internal virtual void ClearInternal(bool disposeChildren = true)
         {
             if (internalChildren.Count == 0) return;
 
@@ -344,6 +343,8 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="newDepth">The new depth value to be set.</param>
         protected internal void ChangeInternalChildDepth(Drawable child, float newDepth)
         {
+            if (child.Depth == newDepth) return;
+
             var index = IndexOfInternal(child);
             if (index < 0)
                 throw new InvalidOperationException($"Can not change depth of drawable which is not contained within this {nameof(CompositeDrawable)}.");
@@ -445,7 +446,7 @@ namespace osu.Framework.Graphics.Containers
             return changed;
         }
 
-        public override void UpdateClock(IFrameBasedClock clock)
+        internal override void UpdateClock(IFrameBasedClock clock)
         {
             if (Clock == clock)
                 return;
@@ -505,23 +506,32 @@ namespace osu.Framework.Graphics.Containers
         /// Updates all masking calculations for this <see cref="CompositeDrawable"/> and its <see cref="AliveInternalChildren"/>.
         /// This occurs post-<see cref="UpdateSubTree"/> to ensure that all <see cref="Drawable"/> updates have taken place.
         /// </summary>
+        /// <param name="source">The parent that triggered this update on this <see cref="Drawable"/>.</param>
         /// <param name="maskingBounds">The <see cref="RectangleF"/> that defines the masking bounds.</param>
-        public override void UpdateSubTreeMasking(RectangleF maskingBounds)
+        /// <returns>Whether masking calculations have taken place.</returns>
+        public override bool UpdateSubTreeMasking(Drawable source, RectangleF maskingBounds)
         {
-            base.UpdateSubTreeMasking(maskingBounds);
+            if (!base.UpdateSubTreeMasking(source, maskingBounds))
+                return false;
 
             if (IsMaskedAway)
-                return;
+                return true;
 
             if (aliveInternalChildren.Count == 0)
-                return;
+                return true;
 
-            var childMaskingBounds = ComputeChildMaskingBounds(maskingBounds);
+            if (RequiresChildrenUpdate)
+            {
+                var childMaskingBounds = ComputeChildMaskingBounds(maskingBounds);
 
-            // We iterate by index to gain performance
-            // ReSharper disable once ForCanBeConvertedToForeach
-            for (int i = 0; i < aliveInternalChildren.Count; i++)
-                aliveInternalChildren[i].UpdateSubTreeMasking(childMaskingBounds);
+
+                // We iterate by index to gain performance
+                // ReSharper disable once ForCanBeConvertedToForeach
+                for (int i = 0; i < aliveInternalChildren.Count; i++)
+                    aliveInternalChildren[i].UpdateSubTreeMasking(this, childMaskingBounds);
+            }
+
+            return true;
         }
 
         protected override bool ComputeIsMaskedAway(RectangleF maskingBounds)
@@ -607,6 +617,7 @@ namespace osu.Framework.Graphics.Containers
                 childInvalidation &= ~Invalidation.MiscGeometry;
 
                 // Relative positioning can however affect child geometry
+                // ReSharper disable once PossibleNullReferenceException
                 if (c.RelativePositionAxes != Axes.None && (invalidation & Invalidation.DrawSize) > 0)
                     childInvalidation |= Invalidation.MiscGeometry;
 
@@ -723,7 +734,9 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        internal sealed override DrawNode GenerateDrawNodeSubtree(int treeIndex)
+        internal virtual bool AddChildDrawNodes => true;
+
+        internal override DrawNode GenerateDrawNodeSubtree(int treeIndex)
         {
             // No need for a draw node at all if there are no children and we are not glowing.
             if (aliveInternalChildren.Count == 0 && CanBeFlattened)
@@ -736,13 +749,16 @@ namespace osu.Framework.Graphics.Containers
             if (cNode.Children == null)
                 cNode.Children = new List<DrawNode>(aliveInternalChildren.Count);
 
-            List<DrawNode> target = cNode.Children;
+            if (AddChildDrawNodes)
+            {
+                List<DrawNode> target = cNode.Children;
 
-            int j = 0;
-            addFromComposite(treeIndex, ref j, this, target);
+                int j = 0;
+                addFromComposite(treeIndex, ref j, this, target);
 
-            if (j < target.Count)
-                target.RemoveRange(j, target.Count - j);
+                if (j < target.Count)
+                    target.RemoveRange(j, target.Count - j);
+            }
 
             return cNode;
         }

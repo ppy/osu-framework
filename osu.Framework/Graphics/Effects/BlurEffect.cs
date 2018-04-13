@@ -61,16 +61,8 @@ namespace osu.Framework.Graphics.Effects
 
         public BufferedContainer ApplyTo(Drawable drawable)
         {
-            Vector2 position = drawable.Position;
-            drawable.Position = Vector2.Zero;
-
             return new BufferedContainer
             {
-                RelativeSizeAxes = drawable.RelativeSizeAxes,
-                AutoSizeAxes = Axes.Both & ~drawable.RelativeSizeAxes,
-                Anchor = drawable.Anchor,
-                Origin = drawable.Origin,
-
                 BlurSigma = Sigma,
                 BlurRotation = Rotation,
                 EffectColour = Colour.MultiplyAlpha(Strength),
@@ -81,15 +73,12 @@ namespace osu.Framework.Graphics.Effects
 
                 CacheDrawnFrameBuffer = CacheDrawnEffect,
 
-                Position = position,
                 Padding = !PadExtent ? new MarginPadding() : new MarginPadding
                 {
                     Horizontal = Blur.KernelSize(Sigma.X),
                     Vertical = Blur.KernelSize(Sigma.Y),
                 },
-
-                Child = drawable
-            };
+            }.Wrap(drawable);
         }
     }
 }

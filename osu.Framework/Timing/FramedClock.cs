@@ -52,17 +52,11 @@ namespace osu.Framework.Timing
         private double timeSinceLastCalculation;
         private int framesSinceLastCalculation;
 
-        /// <summary>
-        /// Whether we should run <see cref="ProcessFrame"/> on the underlying <see cref="Source"/> (in the case it is an <see cref="IFrameBasedClock"/>).
-        /// </summary>
-        public bool ProcessSourceClockFrames = true;
-
         private const int fps_calculation_interval = 250;
 
         public virtual void ProcessFrame()
         {
-            if (ProcessSourceClockFrames)
-                (Source as IFrameBasedClock)?.ProcessFrame();
+            (Source as IFrameBasedClock)?.ProcessFrame();
 
             if (timeUntilNextCalculation <= 0)
             {

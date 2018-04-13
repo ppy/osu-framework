@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using osu.Framework.Graphics;
 using OpenTK.Graphics;
 
 namespace osu.Framework.Testing.Drawables.Steps
@@ -20,18 +21,13 @@ namespace osu.Framework.Testing.Drawables.Steps
         {
             this.reloadCallback = reloadCallback;
             Action = clickAction;
-        }
-
-        public override void Reset()
-        {
-            base.Reset();
-            BackgroundColour = off_colour;
+            LightColour = off_colour;
         }
 
         private void clickAction()
         {
             State = !State;
-            BackgroundColour = State ? on_colour : off_colour;
+            Light.FadeColour(State ? on_colour : off_colour);
             reloadCallback?.Invoke(State);
 
             if (!State)
