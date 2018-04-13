@@ -321,23 +321,26 @@ namespace osu.Framework.IO.Network
                         request.Headers.Add(kvp.Key, kvp.Value);
 
                     reportForwardProgress();
+
                     using (request)
+                    {
                         response = client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, linkedToken.Token).Result;
 
-                    ResponseStream = CreateOutputStream();
+                        ResponseStream = CreateOutputStream();
 
-                    switch (Method)
-                    {
-                        case HttpMethod.GET:
-                            //GETs are easy
-                            beginResponse(linkedToken.Token);
-                            break;
-                        case HttpMethod.POST:
-                            reportForwardProgress();
-                            UploadProgress?.Invoke(0, contentLength);
+                        switch (Method)
+                        {
+                            case HttpMethod.GET:
+                                //GETs are easy
+                                beginResponse(linkedToken.Token);
+                                break;
+                            case HttpMethod.POST:
+                                reportForwardProgress();
+                                UploadProgress?.Invoke(0, contentLength);
 
-                            beginResponse(linkedToken.Token);
-                            break;
+                                beginResponse(linkedToken.Token);
+                                break;
+                        }
                     }
                 }
                 catch (Exception) when (timeoutToken.IsCancellationRequested)

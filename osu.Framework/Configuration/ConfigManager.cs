@@ -205,17 +205,17 @@ namespace osu.Framework.Configuration
             hasLoaded = true;
         }
 
-        private int lastBackgroundSave;
+        private int lastSave;
 
         /// <summary>
         /// Perform a save with debounce.
         /// </summary>
         private void backgroundSave()
         {
-            var current = Interlocked.Increment(ref lastBackgroundSave);
+            var current = Interlocked.Increment(ref lastSave);
             Task.Delay(100).ContinueWith(task =>
             {
-                if (current == lastBackgroundSave) Save();
+                if (current == lastSave) Save();
             });
         }
 
@@ -224,8 +224,12 @@ namespace osu.Framework.Configuration
         public bool Save()
         {
             if (!hasLoaded) return false;
+
             lock (saveLock)
+            {
+                Interlocked.Increment(ref lastSave);
                 return PerformSave();
+            }
         }
 
         protected abstract void PerformLoad();

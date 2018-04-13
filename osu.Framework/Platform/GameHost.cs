@@ -3,8 +3,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Runtime;
 using System.Runtime.ExceptionServices;
 using System.Threading;
@@ -28,12 +30,15 @@ using osu.Framework.Statistics;
 using osu.Framework.Threading;
 using osu.Framework.Timing;
 using osu.Framework.IO.File;
+using Bitmap = System.Drawing.Bitmap;
 
 namespace osu.Framework.Platform
 {
     public abstract class GameHost : IIpcHost, IDisposable
     {
-        public GameWindow Window;
+        public GameWindow Window { get; protected set; }
+
+        private readonly Toolkit toolkit;
 
         private FrameworkDebugConfigManager debugConfig;
 
@@ -94,6 +99,7 @@ namespace osu.Framework.Platform
         public void RegisterThread(GameThread t)
         {
             threads.Add(t);
+            t.Monitor.EnablePerformanceProfiling = performanceLogging;
         }
 
         public GameThread DrawThread;
@@ -132,12 +138,7 @@ namespace osu.Framework.Platform
         private PerformanceMonitor inputMonitor => InputThread.Monitor;
         private PerformanceMonitor drawMonitor => DrawThread.Monitor;
 
-        private readonly Lazy<string> fullPathBacking = new Lazy<string>(() =>
-        {
-            string codeBase = Assembly.GetExecutingAssembly().CodeBase;
-            UriBuilder uri = new UriBuilder(codeBase);
-            return Uri.UnescapeDataString(uri.Path);
-        });
+        private readonly Lazy<string> fullPathBacking = new Lazy<string>(RuntimeInfo.GetFrameworkAssemblyPath);
 
         public string FullPath => fullPathBacking.Value;
 
@@ -147,6 +148,8 @@ namespace osu.Framework.Platform
 
         protected GameHost(string gameName = @"")
         {
+            toolkit = Toolkit.Init();
+
             AppDomain.CurrentDomain.UnhandledException += exceptionHandler;
 
             FileSafety.DeleteCleanupDirectory();
@@ -171,7 +174,7 @@ namespace osu.Framework.Platform
                 (InputThread = new InputThread(null)), //never gets started.
             };
 
-            var path = System.IO.Path.GetDirectoryName(FullPath);
+            var path = Path.GetDirectoryName(FullPath);
             if (path != null)
                 Environment.CurrentDirectory = path;
         }
@@ -303,6 +306,42 @@ namespace osu.Framework.Platform
             }
         }
 
+        /// <summary>
+        /// Make a <see cref="Bitmap"/> object from the current OpenTK screen buffer
+        /// </summary>
+        /// <returns><see cref="Bitmap"/> object</returns>
+        public async Task<Bitmap> TakeScreenshotAsync()
+        {
+            if (Window == null) throw new NullReferenceException(nameof(Window));
+
+            var clientRectangle = new Rectangle(new Point(Window.ClientRectangle.X, Window.ClientRectangle.Y), new Size(Window.ClientSize.Width, Window.ClientSize.Height));
+
+            bool complete = false;
+
+            var bitmap = new Bitmap(clientRectangle.Width, clientRectangle.Height);
+            BitmapData data = bitmap.LockBits(clientRectangle, ImageLockMode.WriteOnly, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+
+            DrawThread.Scheduler.Add(() =>
+            {
+                if (GraphicsContext.CurrentContext == null)
+                    throw new GraphicsContextMissingException();
+
+                OpenTK.Graphics.OpenGL.GL.ReadPixels(0, 0, clientRectangle.Width, clientRectangle.Height, OpenTK.Graphics.OpenGL.PixelFormat.Bgr, OpenTK.Graphics.OpenGL.PixelType.UnsignedByte, data.Scan0);
+                complete = true;
+            });
+
+            await Task.Run(() =>
+            {
+                while (!complete)
+                    Thread.Sleep(50);
+            });
+
+            bitmap.UnlockBits(data);
+            bitmap.RotateFlip(RotateFlipType.RotateNoneFlipY);
+
+            return bitmap;
+        }
+
         private volatile ExecutionState executionState;
 
         /// <summary>
@@ -352,7 +391,7 @@ namespace osu.Framework.Platform
                 bootstrapSceneGraph(game);
 
                 frameSyncMode.TriggerChange();
-                enabledInputHandlers.TriggerChange();
+                ignoredInputHandler.TriggerChange();
 
                 try
                 {
@@ -456,6 +495,10 @@ namespace osu.Framework.Platform
                 if (!t.Thread.Join(thread_join_timeout))
                     Logger.Log($"Thread {t.Name} failed to exit in allocated time ({thread_join_timeout}ms).", LoggingTarget.Runtime, LogLevel.Important);
             });
+
+            // as the input thread isn't actually handled by a thread, the above join does not necessarily mean it has been completed to an exiting state.
+            while (!InputThread.Exited)
+                InputThread.RunUpdate();
         }
 
         private void window_KeyDown(object sender, KeyboardKeyEventArgs e)
@@ -479,9 +522,10 @@ namespace osu.Framework.Platform
 
         private Bindable<FrameSync> frameSyncMode;
 
-        private Bindable<string> enabledInputHandlers;
+        private Bindable<string> ignoredInputHandler;
 
         private Bindable<double> cursorSensitivity;
+        private Bindable<bool> performanceLogging;
 
         private void setupConfig()
         {
@@ -535,38 +579,31 @@ namespace osu.Framework.Platform
                 if (UpdateThread != null) UpdateThread.ActiveHz = updateLimiter;
             };
 
-            enabledInputHandlers = config.GetBindable<string>(FrameworkSetting.ActiveInputHandlers);
-            enabledInputHandlers.ValueChanged += enabledString =>
+            ignoredInputHandler = config.GetBindable<string>(FrameworkSetting.IgnoredInputHandler);
+            ignoredInputHandler.ValueChanged += ignoredHandlerString =>
             {
-                var configHandlers = enabledString.Split(' ').Where(s => !string.IsNullOrWhiteSpace(s));
-                bool useDefaults = !configHandlers.Any();
+                bool restoreDefaults = string.IsNullOrWhiteSpace(ignoredHandlerString);
 
-                // make sure all the handlers in the configuration file are available, else reset to sane defaults.
-                foreach (string handler in configHandlers)
-                {
-                    if (AvailableInputHandlers.All(h => h.ToString() != handler))
-                    {
-                        useDefaults = true;
-                        break;
-                    }
-                }
-
-                if (useDefaults)
+                if (restoreDefaults)
                 {
                     resetInputHandlers();
-                    enabledInputHandlers.Value = string.Join(" ", AvailableInputHandlers.Where(h => h.Enabled).Select(h => h.ToString()));
+                    ignoredInputHandler.Value = AvailableInputHandlers.SingleOrDefault(h => !h.Enabled)?.ToString();
                 }
                 else
                 {
                     foreach (var handler in AvailableInputHandlers)
                     {
                         var handlerType = handler.ToString();
-                        handler.Enabled.Value = configHandlers.Any(ch => ch == handlerType);
+                        handler.Enabled.Value = ignoredHandlerString != handlerType;
                     }
                 }
             };
 
             cursorSensitivity = config.GetBindable<double>(FrameworkSetting.CursorSensitivity);
+
+            performanceLogging = config.GetBindable<bool>(FrameworkSetting.PerformanceLogging);
+            performanceLogging.ValueChanged += enabled => threads.ForEach(t => t.Monitor.EnablePerformanceProfiling = enabled);
+            performanceLogging.TriggerChange();
         }
 
         private void setVSyncMode()
@@ -599,10 +636,17 @@ namespace osu.Framework.Platform
             while (executionState > ExecutionState.Stopped)
                 Thread.Sleep(10);
 
+            AppDomain.CurrentDomain.UnhandledException -= exceptionHandler;
+
             Root?.Dispose();
+            Root = null;
 
             config?.Dispose();
             debugConfig?.Dispose();
+
+            Window?.Dispose();
+
+            toolkit?.Dispose();
 
             Logger.Flush();
         }

@@ -87,7 +87,6 @@ namespace osu.Framework.Graphics
 
             Parent = null;
 
-            scheduler?.Dispose();
             scheduler = null;
 
             OnUpdate = null;
@@ -259,7 +258,7 @@ namespace osu.Framework.Graphics
         /// ID is unique within the <see cref="Parent"/> <see cref="CompositeDrawable"/>.
         /// The primary use case of this ID is stable sorting of Drawables with equal <see cref="Depth"/>.
         /// </summary>
-        public ulong ChildID { get; internal set; }
+        internal ulong ChildID { get; set; }
 
         /// <summary>
         /// Whether this drawable has been added to a parent <see cref="CompositeDrawable"/>. Note that this does NOT imply that
@@ -375,6 +374,9 @@ namespace osu.Framework.Graphics
         /// <returns>Whether masking calculations have taken place.</returns>
         public virtual bool UpdateSubTreeMasking(Drawable source, RectangleF maskingBounds)
         {
+            if (!IsPresent)
+                return false;
+
             if (HasProxy && source != proxy)
                 return false;
 
@@ -1406,6 +1408,7 @@ namespace osu.Framework.Graphics
                     $"The {nameof(di)} of null parents should always have the single colour white, and therefore this branch should never be hit.");
 
                 // Cannot use ToParentSpace here, because ToParentSpace depends on DrawInfo to be completed
+                // ReSharper disable once PossibleNullReferenceException
                 Quad interp = Quad.FromRectangle(DrawRectangle) * (di.Matrix * Parent.DrawInfo.MatrixInverse);
                 Vector2 parentSize = Parent.DrawSize;
 
@@ -1934,6 +1937,7 @@ namespace osu.Framework.Graphics
 
                     Debug.Assert(method != null);
 
+                    // ReSharper disable once PossibleNullReferenceException
                     if (method.DeclaringType != typeof(Drawable))
                     {
                         cache.TryAdd(type, true);

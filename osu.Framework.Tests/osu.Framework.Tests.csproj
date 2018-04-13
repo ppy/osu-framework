@@ -1,151 +1,21 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\osu.Framework.props" />
-  <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{79803407-6F50-484F-93F5-641911EABD8A}</ProjectGuid>
+  <PropertyGroup Label="Project">
+    <TargetFrameworks>net461;netcoreapp2.0</TargetFrameworks>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>osu.Framework.Tests</RootNamespace>
-    <AssemblyName>osu.Framework.Tests</AssemblyName>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
-    <TargetFrameworkProfile />
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug</OutputPath>
-    <DefineConstants>DEBUG;</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <ConsolePause>false</ConsolePause>
-    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-    <Prefer32Bit>false</Prefer32Bit>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release</OutputPath>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <ConsolePause>false</ConsolePause>
-    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject />
+    <GenerateProgramFile>false</GenerateProgramFile>
   </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="JetBrains.Annotations, Version=11.1.0.0, Culture=neutral, PublicKeyToken=1010a0d8d6380325, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)\packages\JetBrains.Annotations.11.1.0\lib\net20\JetBrains.Annotations.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed">
-      <HintPath>$(SolutionDir)\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="nunit.framework, Version=3.8.1.0, Culture=neutral, PublicKeyToken=2638cd05610744eb, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)\packages\NUnit.3.8.1\lib\net45\nunit.framework.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="OpenTK, Version=3.0.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4">
-      <HintPath>$(SolutionDir)\packages\ppy.OpenTK.3.0.13\lib\net45\OpenTK.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Net.Http" />
+  <ItemGroup Label="Service">
+    <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="AutomatedVisualTestGame.cs" />
-    <Compile Include="Bindables\BindableBoolTest.cs" />
-    <Compile Include="Bindables\BindableDoubleTest.cs" />
-    <Compile Include="Bindables\BindableEnumTest.cs" />
-    <Compile Include="Bindables\BindableFloatTest.cs" />
-    <Compile Include="Bindables\BindableIntTest.cs" />
-    <Compile Include="Bindables\BindableLongTest.cs" />
-    <Compile Include="Bindables\BindableStringTest.cs" />
-    <Compile Include="IO\TestSortedListSerialization.cs" />
-    <Compile Include="IO\TestWebRequest.cs" />
-    <Compile Include="Lists\TestArrayExtensions.cs" />
-    <Compile Include="Lists\TestSortedList.cs" />
-    <Compile Include="MathUtils\TestInterpolation.cs" />
-    <Compile Include="Platform\HeadlessGameHostTest.cs" />
-    <Compile Include="Program.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TestGame.cs" />
-    <Compile Include="VisualTestGame.cs" />
-    <Compile Include="Visual\FrameworkTestCase.cs" />
-    <Compile Include="Visual\TestCaseAnimation.cs" />
-    <Compile Include="Visual\TestCaseBindableNumbers.cs" />
-    <Compile Include="Visual\TestCaseBlending.cs" />
-    <Compile Include="Visual\TestCaseBufferedContainer.cs" />
-    <Compile Include="Visual\TestCaseCachedBufferedContainer.cs" />
-    <Compile Include="Visual\TestCaseCheckboxes.cs" />
-    <Compile Include="Visual\TestCaseCircularContainer.cs" />
-    <Compile Include="Visual\TestCaseCircularProgress.cs" />
-    <Compile Include="Visual\TestCaseColourGradient.cs" />
-    <Compile Include="Visual\TestCaseContainerState.cs" />
-    <Compile Include="Visual\TestCaseContextMenu.cs" />
-    <Compile Include="Visual\TestCaseCoordinateSpaces.cs" />
-    <Compile Include="Visual\TestCaseCountingText.cs" />
-    <Compile Include="Visual\TestCaseDelayedLoad.cs" />
-    <Compile Include="Visual\TestCaseDrawablePath.cs" />
-    <Compile Include="Visual\TestCaseDrawSizePreservingFillContainer.cs" />
-    <Compile Include="Visual\TestCaseDropdownBox.cs" />
-    <Compile Include="Visual\TestCaseDynamicDepth.cs" />
-    <Compile Include="Visual\TestCaseEffects.cs" />
-    <Compile Include="Visual\TestCaseFillModes.cs" />
-    <Compile Include="Visual\TestCaseFillFlowContainer.cs" />
-    <Compile Include="Visual\TestCaseGridContainer.cs" />
-    <Compile Include="Visual\TestCaseHollowEdgeEffect.cs" />
-    <Compile Include="Visual\TestCaseInputResampler.cs" />
-    <Compile Include="Visual\TestCaseIsMaskedAway.cs" />
-    <Compile Include="Visual\TestCaseKeyBindings.cs" />
-    <Compile Include="Visual\TestCaseLayoutTransformRewinding.cs" />
-    <Compile Include="Visual\TestCaseLocalisation.cs" />
-    <Compile Include="Visual\TestCaseMasking.cs" />
-    <Compile Include="Visual\TestCaseNestedHover.cs" />
-    <Compile Include="Visual\TestCaseNestedMenus.cs" />
-    <Compile Include="Visual\TestCasePadding.cs" />
-    <Compile Include="Visual\TestCasePathInput.cs" />
-    <Compile Include="Visual\TestCasePropertyBoundaries.cs" />
-    <Compile Include="Visual\TestCaseTransformRewinding.cs" />
-    <Compile Include="Visual\TestCaseRigidBody.cs" />
-    <Compile Include="Visual\TestCaseScreen.cs" />
-    <Compile Include="Visual\TestCaseScrollableFlow.cs" />
-    <Compile Include="Visual\TestCaseSearchContainer.cs" />
-    <Compile Include="Visual\TestCaseSizing.cs" />
-    <Compile Include="Visual\TestCaseSliderbar.cs" />
-    <Compile Include="Visual\TestCaseSmoothedEdges.cs" />
-    <Compile Include="Visual\TestCaseSpriteText.cs" />
-    <Compile Include="Visual\TestCaseTabControl.cs" />
-    <Compile Include="Visual\TestCaseTextBox.cs" />
-    <Compile Include="Visual\TestCaseTextFlow.cs" />
-    <Compile Include="Visual\TestCaseTooltip.cs" />
-    <Compile Include="Visual\TestCaseTransformSequence.cs" />
-    <Compile Include="Visual\TestCaseTriangles.cs" />
-    <Compile Include="Visual\TestCaseWaveform.cs" />
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\osu.Framework\osu.Framework.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\osu.Framework\osu.Framework.csproj">
-      <Project>{C76BF5B3-985E-4D39-95FE-97C9C879B83A}</Project>
-      <Name>osu.Framework</Name>
-    </ProjectReference>
+  <ItemGroup Label="Package References">
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.6.1" />
+    <PackageReference Include="NUnit" Version="3.8.1" />
+    <PackageReference Include="NUnit3TestAdapter" Version="3.10.0" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="app.config" />
-    <None Include="OpenTK.dll.config" />
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\Tracks\sample-track.mp3" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\Textures\sample-texture.png" />
-  </ItemGroup>
-  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

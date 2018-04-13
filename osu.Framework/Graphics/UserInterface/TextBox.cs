@@ -31,6 +31,8 @@ namespace osu.Framework.Graphics.UserInterface
         protected Drawable Caret;
         protected Container TextContainer;
 
+        public override bool HandleKeyboardInput => HasFocus;
+
         /// <summary>
         /// Padding to be used within the TextContainer. Requires special handling due to the sideways scrolling of text content.
         /// </summary>
@@ -576,9 +578,6 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
-            if (!HasFocus)
-                return false;
-
             if (textInput?.ImeActive == true) return true;
 
             if (args.Key <= Key.F35)
@@ -602,19 +601,15 @@ namespace osu.Framework.Graphics.UserInterface
 
                 case Key.KeypadEnter:
                 case Key.Enter:
-                    if (HasFocus)
-                    {
-                        if (ReleaseFocusOnCommit)
-                            GetContainingInputManager().ChangeFocus(null);
+                    if (ReleaseFocusOnCommit)
+                        GetContainingInputManager().ChangeFocus(null);
 
-                        Background.Colour = ReleaseFocusOnCommit ? BackgroundUnfocused : BackgroundFocused;
-                        Background.ClearTransforms();
-                        Background.FlashColour(BackgroundCommit, 400);
+                    Background.Colour = ReleaseFocusOnCommit ? BackgroundUnfocused : BackgroundFocused;
+                    Background.ClearTransforms();
+                    Background.FlashColour(BackgroundCommit, 400);
 
-                        audio.Sample.Get(@"Keyboard/key-confirm")?.Play();
-                        OnCommit?.Invoke(this, true);
-                    }
-
+                    audio.Sample.Get(@"Keyboard/key-confirm")?.Play();
+                    OnCommit?.Invoke(this, true);
                     return true;
             }
 

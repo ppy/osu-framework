@@ -14,12 +14,7 @@ using Microsoft.CodeAnalysis.CSharp;
 
 namespace osu.Framework.Testing
 {
-    public class DynamicClassCompiler
-    {
-        public const string DYNAMIC_ASSEMBLY_NAME = "osu.DynamicTestAssembly";
-    }
-
-    public class DynamicClassCompiler<T> : DynamicClassCompiler
+    public class DynamicClassCompiler<T>
         where T : IDynamicallyCompile
     {
         public Action CompilationStarted;
@@ -28,7 +23,7 @@ namespace osu.Framework.Testing
 
         public Action<Exception> CompilationFailed;
 
-        private FileSystemWatcher fsw;
+        private readonly List<FileSystemWatcher> watchers = new List<FileSystemWatcher>();
 
         private string lastTouchedFile;
 
@@ -52,7 +47,7 @@ namespace osu.Framework.Testing
 
             Task.Run(() =>
             {
-                var basePath = di.Parent?.Parent?.Parent?.FullName;
+                var basePath = di.Parent?.Parent?.Parent?.Parent?.FullName;
 
                 if (!Directory.Exists(basePath))
                     return;
@@ -65,7 +60,7 @@ namespace osu.Framework.Testing
 
                     validDirectories.Add(dir);
 
-                    fsw = new FileSystemWatcher(dir, @"*.cs")
+                    var fsw = new FileSystemWatcher(dir, @"*.cs")
                     {
                         EnableRaisingEvents = true,
                         IncludeSubdirectories = true,
@@ -73,6 +68,8 @@ namespace osu.Framework.Testing
                     };
 
                     fsw.Changed += onChange;
+
+                    watchers.Add(fsw);
                 }
             });
         }
@@ -140,13 +137,17 @@ namespace osu.Framework.Testing
 
             CompilationStarted?.Invoke();
 
+            // ensure we don't duplicate the dynamic suffix.
+            string assemblyNamespace = checkpointObject.GetType().Assembly.GetName().Name.Replace(".Dynamic", "");
+
             string assemblyVersion = $"{++currentVersion}.0.*";
+            string dynamicNamespace = $"{assemblyNamespace}.Dynamic";
 
             var compilation = CSharpCompilation.Create(
-                DYNAMIC_ASSEMBLY_NAME,
+                dynamicNamespace,
                 requiredFiles.Select(file => CSharpSyntaxTree.ParseText(File.ReadAllText(file), null, file))
                              // Compile the assembly with a new version so that it replaces the existing one
-                             .Concat(new[] { CSharpSyntaxTree.ParseText($"using System.Reflection; [assembly: AssemblyVersion(\"{assemblyVersion}\")]") })
+                             .Append(CSharpSyntaxTree.ParseText($"using System.Reflection; [assembly: AssemblyVersion(\"{assemblyVersion}\")]"))
                 ,
                 references,
                 options

@@ -5,8 +5,6 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Security.AccessControl;
-using System.Security.Principal;
 using System.Text;
 
 namespace osu.Framework.IO.File
@@ -33,18 +31,18 @@ namespace osu.Framework.IO.File
         }
 
         // Adds an ACL entry on the specified directory for the specified account.
-        public static void AddDirectorySecurity(string filename, string account, FileSystemRights rights, InheritanceFlags inheritance, PropagationFlags propagation, AccessControlType controlType)
-        {
-            // Create a new DirectoryInfo object.
-            DirectoryInfo dInfo = new DirectoryInfo(filename);
-            // Get a DirectorySecurity object that represents the
-            // current security settings.
-            DirectorySecurity dSecurity = dInfo.GetAccessControl();
-            // Add the FileSystemAccessRule to the security settings.
-            dSecurity.AddAccessRule(new FileSystemAccessRule(account, rights, inheritance, propagation, controlType));
-            // Set the new access settings.
-            dInfo.SetAccessControl(dSecurity);
-        }
+        // public static void AddDirectorySecurity(string filename, string account, FileSystemRights rights, InheritanceFlags inheritance, PropagationFlags propagation, AccessControlType controlType)
+        // {
+        //     // Create a new DirectoryInfo object.
+        //     DirectoryInfo dInfo = new DirectoryInfo(filename);
+        //     // Get a DirectorySecurity object that represents the
+        //     // current security settings.
+        //     DirectorySecurity dSecurity = dInfo.GetAccessControl();
+        //     // Add the FileSystemAccessRule to the security settings.
+        //     dSecurity.AddAccessRule(new FileSystemAccessRule(account, rights, inheritance, propagation, controlType));
+        //     // Set the new access settings.
+        //     dInfo.SetAccessControl(dSecurity);
+        // }
 
         public static void RemoveReadOnlyRecursive(string s)
         {
@@ -381,33 +379,33 @@ namespace osu.Framework.IO.File
             return new string(converted);
         }
 
-        public static bool SetDirectoryPermissions(string directory)
-        {
-            SecurityIdentifier sid = new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null);
-            NTAccount acct = sid.Translate(typeof(NTAccount)) as NTAccount;
-            if (acct != null)
-            {
-                string strEveryoneAccount = acct.ToString();
+        // public static bool SetDirectoryPermissions(string directory)
+        // {
+        //     SecurityIdentifier sid = new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null);
+        //     NTAccount acct = sid.Translate(typeof(NTAccount)) as NTAccount;
+        //     if (acct != null)
+        //     {
+        //         string strEveryoneAccount = acct.ToString();
 
-                try
-                {
-                    AddDirectorySecurity(directory, strEveryoneAccount, FileSystemRights.FullControl,
-                        InheritanceFlags.None, PropagationFlags.NoPropagateInherit,
-                        AccessControlType.Allow);
-                    AddDirectorySecurity(directory, strEveryoneAccount, FileSystemRights.FullControl,
-                        InheritanceFlags.ObjectInherit | InheritanceFlags.ContainerInherit,
-                        PropagationFlags.InheritOnly, AccessControlType.Allow);
+        //         try
+        //         {
+        //             AddDirectorySecurity(directory, strEveryoneAccount, FileSystemRights.FullControl,
+        //                 InheritanceFlags.None, PropagationFlags.NoPropagateInherit,
+        //                 AccessControlType.Allow);
+        //             AddDirectorySecurity(directory, strEveryoneAccount, FileSystemRights.FullControl,
+        //                 InheritanceFlags.ObjectInherit | InheritanceFlags.ContainerInherit,
+        //                 PropagationFlags.InheritOnly, AccessControlType.Allow);
 
-                    RemoveReadOnlyRecursive(directory);
-                }
-                catch
-                {
-                    return false;
-                }
-            }
+        //             RemoveReadOnlyRecursive(directory);
+        //         }
+        //         catch
+        //         {
+        //             return false;
+        //         }
+        //     }
 
-            return true;
-        }
+        //     return true;
+        // }
 
         public static void CreateBackup(string filename)
         {
