@@ -399,7 +399,7 @@ namespace osu.Framework.Testing
                 foreach (var m in methods.Where(m => m.Name != "TestConstructor" && m.GetCustomAttributes(typeof(TestAttribute), false).Length > 0))
                 {
                     var step = CurrentTest.AddStep(m.Name, () => { setUpMethod?.Invoke(CurrentTest, null); });
-                    step.BackgroundColour = Color4.Teal;
+                    step.LightColour = Color4.Teal;
                     m.Invoke(CurrentTest, null);
                 }
 

@@ -137,8 +137,11 @@ namespace osu.Framework.Testing
 
             CompilationStarted?.Invoke();
 
+            // ensure we don't duplicate the dynamic suffix.
+            string assemblyNamespace = checkpointObject.GetType().Assembly.GetName().Name.Replace(".Dynamic", "");
+
             string assemblyVersion = $"{++currentVersion}.0.*";
-            string dynamicNamespace = $"{checkpointObject.GetType().Assembly.GetName().Name}.Dynamic";
+            string dynamicNamespace = $"{assemblyNamespace}.Dynamic";
 
             var compilation = CSharpCompilation.Create(
                 dynamicNamespace,

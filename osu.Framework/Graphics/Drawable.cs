@@ -375,6 +375,9 @@ namespace osu.Framework.Graphics
         /// <returns>Whether masking calculations have taken place.</returns>
         public virtual bool UpdateSubTreeMasking(Drawable source, RectangleF maskingBounds)
         {
+            if (!IsPresent)
+                return false;
+
             if (HasProxy && source != proxy)
                 return false;
 
