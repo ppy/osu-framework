@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
@@ -52,13 +51,6 @@ namespace osu.Framework.Testing
         /// <param name="assemblyNamespace">Assembly prefix which is used to match assemblies whose tests should be displayed</param>
         public TestBrowser(string assemblyNamespace = null)
         {
-            var loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies().ToList();
-            var loadedPaths = loadedAssemblies.Where(a => !a.IsDynamic).Select(a => a.Location).ToArray();
-
-            var referencedPaths = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*Test*.dll");
-            var toLoad = referencedPaths.Where(r => !loadedPaths.Contains(r, StringComparer.InvariantCultureIgnoreCase)).ToList();
-            toLoad.ForEach(path => loadedAssemblies.Add(AppDomain.CurrentDomain.Load(AssemblyName.GetAssemblyName(path))));
-
             assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(n => n.FullName.StartsWith("osu") || assemblyNamespace != null && n.FullName.StartsWith(assemblyNamespace)).ToList();
 
             //we want to build the lists here because we're interested in the assembly we were *created* on.
@@ -96,13 +88,17 @@ namespace osu.Framework.Testing
 
         private Action exit;
 
+        private Bindable<bool> showLogOverlay;
+
         [BackgroundDependencyLoader]
-        private void load(Storage storage, GameHost host)
+        private void load(Storage storage, GameHost host, FrameworkConfigManager frameworkConfig)
         {
             interactive = host.Window != null;
             config = new TestBrowserConfig(storage);
 
             exit = host.Exit;
+
+            showLogOverlay = frameworkConfig.GetBindable<bool>(FrameworkSetting.ShowLogOverlay);
 
             rateBindable = new BindableDouble(1)
             {
@@ -213,6 +209,7 @@ namespace osu.Framework.Testing
             {
                 CompilationStarted = compileStarted,
                 CompilationFinished = compileFinished,
+                CompilationFailed = compileFailed
             };
             try
             {
@@ -240,16 +237,34 @@ namespace osu.Framework.Testing
             compilingNotice.FadeColour(Color4.White);
         });
 
+        private void compileFailed(Exception ex) => Schedule(() => {
+            showLogOverlay.Value = true;
+            Logger.Error(ex, "Error with dynamic compilation!");
+
+            compilingNotice.FadeIn(100, Easing.OutQuint).Then().FadeOut(800, Easing.InQuint);
+            compilingNotice.FadeColour(Color4.Red, 100);
+        });
+
         private void compileFinished(Type newType) => Schedule(() =>
         {
             compilingNotice.FadeOut(800, Easing.InQuint);
-            compilingNotice.FadeColour(newType == null ? Color4.Red : Color4.YellowGreen, 100);
+            compilingNotice.FadeColour(Color4.YellowGreen, 100);
 
-            if (newType == null) return;
+            int i = TestTypes.FindIndex(t => t.Name == newType.Name && t.Assembly.GetName().Name == newType.Assembly.GetName().Name);
 
-            int i = TestTypes.FindIndex(t => t.Name == newType.Name);
-            TestTypes[i] = newType;
-            LoadTest(i);
+            if (i < 0)
+                TestTypes.Add(newType);
+            else
+                TestTypes[i] = newType;
+
+            try
+            {
+                LoadTest(newType, isDynamicLoad: true);
+            }
+            catch (Exception e)
+            {
+                compileFailed(e);
+            }
         });
 
         protected override void LoadComplete()
@@ -323,69 +338,75 @@ namespace osu.Framework.Testing
 
         public void LoadTest(int testIndex) => LoadTest(TestTypes[testIndex]);
 
-        public void LoadTest(Type testType = null, Action onCompletion = null)
+        public void LoadTest(Type testType = null, Action onCompletion = null, bool isDynamicLoad = false)
         {
             if (testType == null && TestTypes.Count > 0)
                 testType = TestTypes[0];
 
-            config.Set(TestBrowserSetting.LastTest, testType?.Name);
+            config.Set(TestBrowserSetting.LastTest, testType?.Name ?? string.Empty);
 
             var lastTest = CurrentTest;
-            CurrentTest = null;
 
-            if (testType != null)
+            if (testType == null)
+                return;
+
+            var newTest = (TestCase)Activator.CreateInstance(testType);
+
+            var dropdown = toolbar.AssemblyDropdown;
+
+            const string dynamic = "dynamic";
+
+            dropdown.RemoveDropdownItem(dropdown.Items.LastOrDefault(i => i.Value.FullName.Contains(dynamic)).Value);
+
+            // if we are a dynamically compiled type (via DynamicClassCompiler) we should update the dropdown accordingly.
+            if (isDynamicLoad)
+                dropdown.AddDropdownItem($"{dynamic} ({testType.Name})", testType.Assembly);
+            else
+                TestTypes.RemoveAll(t => t.Assembly.FullName.Contains(dynamic));
+
+            dropdown.Current.Value = testType.Assembly;
+
+            CurrentTest = newTest;
+
+            updateButtons();
+
+            testContentContainer.Add(new ErrorCatchingDelayedLoadWrapper(CurrentTest, isDynamicLoad)
             {
-                var dropdown = toolbar.AssemblyDropdown;
+                OnCaughtError = compileFailed
+            });
 
-                dropdown.RemoveDropdownItem(dropdown.Items.LastOrDefault(i => i.Value.FullName.Contains(DynamicClassCompiler.DYNAMIC_ASSEMBLY_NAME)).Value);
+            newTest.OnLoadComplete = d => Schedule(() =>
+            {
+                if (lastTest?.Parent != null)
+                {
+                    testContentContainer.Remove(lastTest.Parent);
+                    lastTest.Clear();
+                }
 
-                // if we are a dynamically compiled type (via DynamicClassCompiler) we should update the dropdown accordingly.
-                if (testType.Assembly.FullName.Contains(DynamicClassCompiler.DYNAMIC_ASSEMBLY_NAME))
-                    dropdown.AddDropdownItem($"dynamic ({testType.Name})", testType.Assembly);
-
-                dropdown.Current.Value = testType.Assembly;
-
-                var newTest = (TestCase)Activator.CreateInstance(testType);
-
-                CurrentTest = newTest;
+                if (CurrentTest != newTest)
+                {
+                    // There could have been multiple loads fired after us. In such a case we want to silently remove ourselves.
+                    testContentContainer.Remove(newTest.Parent);
+                    return;
+                }
 
                 updateButtons();
 
-                testContentContainer.Add(new DelayedLoadWrapper(CurrentTest, 0));
+                var methods = testType.GetMethods();
 
-                newTest.OnLoadComplete = d =>
+                var setUpMethod = methods.FirstOrDefault(m => m.GetCustomAttributes(typeof(SetUpAttribute), false).Length > 0);
+
+                foreach (var m in methods.Where(m => m.Name != "TestConstructor" && m.GetCustomAttributes(typeof(TestAttribute), false).Length > 0))
                 {
-                    if (lastTest?.Parent != null)
-                    {
-                        testContentContainer.Remove(lastTest.Parent);
-                        lastTest.Clear();
-                    }
+                    var step = CurrentTest.AddStep(m.Name, () => { setUpMethod?.Invoke(CurrentTest, null); });
+                    step.LightColour = Color4.Teal;
+                    m.Invoke(CurrentTest, null);
+                }
 
-                    if (CurrentTest != newTest)
-                    {
-                        // There could have been multiple loads fired after us. In such a case we want to silently remove ourselves.
-                        testContentContainer.Remove(newTest.Parent);
-                        return;
-                    }
-
-                    updateButtons();
-
-                    var methods = testType.GetMethods();
-
-                    var setUpMethod = methods.FirstOrDefault(m => m.GetCustomAttributes(typeof(SetUpAttribute), false).Length > 0);
-
-                    foreach (var m in methods.Where(m => m.Name != "TestConstructor" && m.GetCustomAttributes(typeof(TestAttribute), false).Length > 0))
-                    {
-                        var step = CurrentTest.AddStep(m.Name, () => { setUpMethod?.Invoke(CurrentTest, null); });
-                        step.BackgroundColour = Color4.Teal;
-                        m.Invoke(CurrentTest, null);
-                    }
-
-                    backgroundCompiler.Checkpoint(CurrentTest);
-                    runTests(onCompletion);
-                    updateButtons();
-                };
-            }
+                backgroundCompiler.Checkpoint(CurrentTest);
+                runTests(onCompletion);
+                updateButtons();
+            });
         }
 
         private void runTests(Action onCompletion)
@@ -400,6 +421,37 @@ namespace osu.Framework.Testing
         {
             foreach (var b in leftFlowContainer.Children)
                 b.Current = b.TestType.Name == CurrentTest?.GetType().Name;
+        }
+
+        private class ErrorCatchingDelayedLoadWrapper : DelayedLoadWrapper
+        {
+            private readonly bool catchErrors;
+
+            public Action<Exception> OnCaughtError;
+
+            public ErrorCatchingDelayedLoadWrapper(Drawable content, bool catchErrors)
+                : base(content, 0)
+            {
+                this.catchErrors = catchErrors;
+            }
+
+            public override bool UpdateSubTree()
+            {
+                try
+                {
+                    return base.UpdateSubTree();
+                }
+                catch (Exception e)
+                {
+                    if (!catchErrors)
+                        throw;
+
+                    OnCaughtError?.Invoke(e);
+                    RemoveInternal(Content);
+                }
+
+                return false;
+            }
         }
 
         private class Toolbar : CompositeDrawable

@@ -19,6 +19,7 @@ namespace osu.Framework.Configuration
             Set(FrameworkSetting.Width, 1366, 640);
             Set(FrameworkSetting.Height, 768, 480);
             Set(FrameworkSetting.ConfineMouseMode, ConfineMouseMode.Fullscreen);
+            Set(FrameworkSetting.MapAbsoluteInputToWindow, false);
             Set(FrameworkSetting.WindowedPositionX, 0.5, -0.1, 1.1);
             Set(FrameworkSetting.WindowedPositionY, 0.5, -0.1, 1.1);
             Set(FrameworkSetting.AudioDevice, string.Empty);
@@ -33,9 +34,10 @@ namespace osu.Framework.Configuration
             Set(FrameworkSetting.FrameSync, FrameSync.Limit2x);
             Set(FrameworkSetting.WindowMode, WindowMode.Windowed);
             Set(FrameworkSetting.ShowUnicode, false);
-            Set(FrameworkSetting.ActiveInputHandlers, string.Empty);
+            Set(FrameworkSetting.IgnoredInputHandler, string.Empty);
             Set(FrameworkSetting.CursorSensitivity, 1.0, 0.1, 6, 0.01);
             Set(FrameworkSetting.Locale, string.Empty);
+            Set(FrameworkSetting.PerformanceLogging, false);
         }
 
         public FrameworkConfigManager(Storage storage)
@@ -51,9 +53,9 @@ namespace osu.Framework.Configuration
             new TrackedSetting<int>(FrameworkSetting.Width, v => createResolutionDescription()),
             new TrackedSetting<int>(FrameworkSetting.Height, v => createResolutionDescription()),
             new TrackedSetting<double>(FrameworkSetting.CursorSensitivity, v => new SettingDescription(v, "Cursor Sensitivity", v.ToString(@"0.##x"), "Ctrl+Alt+R to reset")),
-            new TrackedSetting<string>(FrameworkSetting.ActiveInputHandlers, v =>
+            new TrackedSetting<string>(FrameworkSetting.IgnoredInputHandler, v =>
             {
-                bool raw = v.Contains("Raw");
+                bool raw = !v.Contains("Raw");
                 return new SettingDescription(raw, "Raw Input", raw ? "enabled" : "disabled", "Ctrl+Alt+R to reset");
             }),
             new TrackedSetting<WindowMode>(FrameworkSetting.WindowMode, v => new SettingDescription(v, "Screen Mode", v.ToString(), "Alt+Enter"))
@@ -88,7 +90,10 @@ namespace osu.Framework.Configuration
 
         ShowUnicode,
         Locale,
-        ActiveInputHandlers,
-        CursorSensitivity
+        IgnoredInputHandler,
+        CursorSensitivity,
+        MapAbsoluteInputToWindow,
+
+        PerformanceLogging
     }
 }

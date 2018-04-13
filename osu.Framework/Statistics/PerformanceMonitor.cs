@@ -10,7 +10,7 @@ using System.Threading;
 
 namespace osu.Framework.Statistics
 {
-    internal class PerformanceMonitor
+    internal class PerformanceMonitor : IDisposable
     {
         private readonly StopwatchClock ourClock = new StopwatchClock(true);
 
@@ -29,6 +29,12 @@ namespace osu.Framework.Statistics
         private readonly bool[] activeCounters = new bool[FrameStatistics.NUM_STATISTICS_COUNTER_TYPES];
 
         internal bool[] ActiveCounters => (bool[])activeCounters.Clone();
+
+        public bool EnablePerformanceProfiling
+        {
+            get => traceCollector.Enabled;
+            set => traceCollector.Enabled = value;
+        }
 
         private double consumptionTime;
 
@@ -103,8 +109,7 @@ namespace osu.Framework.Statistics
             PendingFrames.Enqueue(currentFrame);
             if (PendingFrames.Count >= max_pending_frames)
             {
-                FrameStatistics oldFrame;
-                PendingFrames.TryDequeue(out oldFrame);
+                PendingFrames.TryDequeue(out FrameStatistics oldFrame);
                 FramesHeap.FreeObject(oldFrame);
             }
 
@@ -143,5 +148,30 @@ namespace osu.Framework.Statistics
 
         internal double FramesPerSecond => Clock.FramesPerSecond;
         internal double AverageFrameTime => Clock.AverageFrameTime;
+
+        #region IDisposable Support
+
+        private bool isDisposed;
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!isDisposed)
+            {
+                isDisposed = true;
+                traceCollector.Dispose();
+            }
+        }
+
+        ~PerformanceMonitor()
+        {
+            Dispose(false);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+        #endregion
     }
 }

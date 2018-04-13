@@ -14,6 +14,12 @@ namespace osu.Framework
         [DllImport(@"kernel32.dll", CharSet = CharSet.Auto)]
         public static extern IntPtr GetModuleHandle(string lpModuleName);
 
+        /// <summary>
+        /// Returns the absolute path of osu.Framework.dll.
+        /// </summary>
+        public static string GetFrameworkAssemblyPath() =>
+            System.Reflection.Assembly.GetAssembly(typeof(RuntimeInfo)).Location;
+
         public static bool Is32Bit { get; }
         public static bool Is64Bit { get; }
         public static bool IsMono { get; }

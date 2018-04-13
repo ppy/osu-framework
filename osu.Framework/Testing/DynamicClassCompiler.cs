@@ -11,24 +11,19 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using osu.Framework.Development;
 
 namespace osu.Framework.Testing
 {
-    public class DynamicClassCompiler
-    {
-        public const string DYNAMIC_ASSEMBLY_NAME = "osu.DynamicTestAssembly";
-    }
-
-    public class DynamicClassCompiler<T> : DynamicClassCompiler
+    public class DynamicClassCompiler<T>
         where T : IDynamicallyCompile
     {
-
         public Action CompilationStarted;
 
         public Action<Type> CompilationFinished;
 
-        private FileSystemWatcher fsw;
+        public Action<Exception> CompilationFailed;
+
+        private readonly List<FileSystemWatcher> watchers = new List<FileSystemWatcher>();
 
         private string lastTouchedFile;
 
@@ -39,30 +34,51 @@ namespace osu.Framework.Testing
             checkpointObject = obj;
         }
 
-        private List<string> requiredFiles = new List<string>();
+        private readonly List<string> requiredFiles = new List<string>();
         private List<string> requiredTypeNames = new List<string>();
 
         private HashSet<string> assemblies;
+
+        private readonly List<string> validDirectories = new List<string>();
 
         public void Start()
         {
             var di = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory);
 
-            var basePath = di.Parent?.Parent?.Parent?.FullName;
-
-            if (!Directory.Exists(basePath))
-                return;
-
-            fsw = new FileSystemWatcher(basePath, @"*.cs")
+            Task.Run(() =>
             {
-                EnableRaisingEvents = true,
-                IncludeSubdirectories = true,
-                NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.CreationTime,
-            };
+                var basePath = di.Parent?.Parent?.Parent?.Parent?.FullName;
 
-            fsw.Changed += (sender, e) =>
+                if (!Directory.Exists(basePath))
+                    return;
+
+                foreach (var dir in Directory.GetDirectories(basePath))
+                {
+                    // only watch directories which house a csproj. this avoids submodules and directories like .git which can contain many files.
+                    if (!Directory.GetFiles(dir, "*.csproj").Any())
+                        continue;
+
+                    validDirectories.Add(dir);
+
+                    var fsw = new FileSystemWatcher(dir, @"*.cs")
+                    {
+                        EnableRaisingEvents = true,
+                        IncludeSubdirectories = true,
+                        NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.CreationTime,
+                    };
+
+                    fsw.Changed += onChange;
+
+                    watchers.Add(fsw);
+                }
+            });
+        }
+
+        private void onChange(object sender, FileSystemEventArgs e)
+        {
+            lock (compileLock)
             {
-                if (checkpointObject == null)
+                if (checkpointObject == null || isCompiling)
                     return;
 
                 var checkpointName = checkpointObject.GetType().Name;
@@ -80,27 +96,30 @@ namespace osu.Framework.Testing
                 if (!reqTypes.SequenceEqual(requiredTypeNames))
                 {
                     requiredTypeNames = reqTypes;
-                    requiredFiles = Directory
-                        .EnumerateFiles(DebugUtils.GetSolutionPath(), "*.cs", SearchOption.AllDirectories)
-                        .Where(fw => requiredTypeNames.Contains(Path.GetFileNameWithoutExtension(fw)))
-                        .ToList();
+
+                    requiredFiles.Clear();
+                    foreach (var d in validDirectories)
+                        requiredFiles.AddRange(Directory
+                                               .EnumerateFiles(d, "*.cs", SearchOption.AllDirectories)
+                                               .Where(fw => requiredTypeNames.Contains(Path.GetFileNameWithoutExtension(fw))));
                 }
 
                 lastTouchedFile = e.FullPath;
 
-                Task.Run((Action)recompile);
-            };
+                isCompiling = true;
+                Task.Run((Action)recompile)
+                    .ContinueWith(_ => isCompiling = false);
+            }
         }
 
         private int currentVersion;
 
         private bool isCompiling;
+
+        private readonly object compileLock = new object();
+
         private void recompile()
         {
-            if (isCompiling)
-                return;
-            isCompiling = true;
-
             if (assemblies == null)
             {
                 assemblies = new HashSet<string>();
@@ -118,19 +137,21 @@ namespace osu.Framework.Testing
 
             CompilationStarted?.Invoke();
 
+            // ensure we don't duplicate the dynamic suffix.
+            string assemblyNamespace = checkpointObject.GetType().Assembly.GetName().Name.Replace(".Dynamic", "");
+
             string assemblyVersion = $"{++currentVersion}.0.*";
+            string dynamicNamespace = $"{assemblyNamespace}.Dynamic";
 
             var compilation = CSharpCompilation.Create(
-                DYNAMIC_ASSEMBLY_NAME,
+                dynamicNamespace,
                 requiredFiles.Select(file => CSharpSyntaxTree.ParseText(File.ReadAllText(file), null, file))
                              // Compile the assembly with a new version so that it replaces the existing one
-                             .Concat(new[] { CSharpSyntaxTree.ParseText($"using System.Reflection; [assembly: AssemblyVersion(\"{assemblyVersion}\")]") })
+                             .Append(CSharpSyntaxTree.ParseText($"using System.Reflection; [assembly: AssemblyVersion(\"{assemblyVersion}\")]"))
                 ,
                 references,
                 options
             );
-
-            Type compiledType = null;
 
             using (var ms = new MemoryStream())
             {
@@ -139,8 +160,9 @@ namespace osu.Framework.Testing
                 if (compilationResult.Success)
                 {
                     ms.Seek(0, SeekOrigin.Begin);
-                    var assembly = Assembly.Load(ms.ToArray());
-                    compiledType = assembly.GetModules()[0]?.GetTypes().LastOrDefault(t => t.Name == checkpointObject.GetType().Name);
+                    CompilationFinished?.Invoke(
+                        Assembly.Load(ms.ToArray()).GetModules()[0]?.GetTypes().LastOrDefault(t => t.FullName == checkpointObject.GetType().FullName)
+                    );
                 }
                 else
                 {
@@ -148,17 +170,11 @@ namespace osu.Framework.Testing
                     {
                         if (diagnostic.Severity < DiagnosticSeverity.Error)
                             continue;
-                        Logger.Log(diagnostic.ToString(), LoggingTarget.Runtime, LogLevel.Error);
+
+                        CompilationFailed?.Invoke(new Exception(diagnostic.ToString()));
                     }
                 }
             }
-
-            CompilationFinished?.Invoke(compiledType);
-
-            if (compiledType != null)
-                Logger.Log(@"Complete!", LoggingTarget.Runtime, LogLevel.Important);
-
-            isCompiling = false;
         }
 
         /// <summary>

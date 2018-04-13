@@ -33,7 +33,12 @@ namespace osu.Framework.Platform.MacOS
 
         private object nativeWindow;
 
-        protected override void OnLoad(EventArgs e)
+        public MacOSGameWindow()
+        {
+            Load += OnLoad;
+        }
+
+        protected void OnLoad(object sender, EventArgs e)
         {
             try
             {
@@ -43,7 +48,7 @@ namespace osu.Framework.Platform.MacOS
                 var typeCocoaNativeWindow = typeof(OpenTK.NativeWindow).Assembly.GetTypes().Single(x => x.Name == "CocoaNativeWindow");
                 var fieldWindowClass = typeCocoaNativeWindow.GetRuntimeFields().Single(x => x.Name == "windowClass");
 
-                nativeWindow = fieldImplementation.GetValue(this);
+                nativeWindow = fieldImplementation.GetValue(Implementation);
                 var windowClass = (IntPtr)fieldWindowClass.GetValue(nativeWindow);
 
                 Class.RegisterMethod(windowClass, flagsChangedHandler, "flagsChanged:", "v@:@");
@@ -56,8 +61,6 @@ namespace osu.Framework.Platform.MacOS
                 Logger.Log("Window initialisation couldn't complete, likely due to the SDL backend being enabled.", LoggingTarget.Runtime, LogLevel.Important);
                 Logger.Log("Execution will continue but keyboard functionality may be limited.", LoggingTarget.Runtime, LogLevel.Important);
             }
-
-            base.OnLoad(e);
         }
 
         private void flagsChanged(IntPtr self, IntPtr cmd, IntPtr sender)
