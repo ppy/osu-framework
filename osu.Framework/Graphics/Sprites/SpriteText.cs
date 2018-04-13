@@ -13,9 +13,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Localisation;
 using JetBrains.Annotations;
@@ -280,7 +277,7 @@ namespace osu.Framework.Graphics.Sprites
 
             if (allowKeepingExistingDrawables)
             {
-                if (lastText == text)
+                if (lastText == displayText)
                 {
                     Children.ForEach(c => c.Scale = new Vector2(TextSize));
                     return;
