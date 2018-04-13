@@ -28,10 +28,10 @@ namespace osu.Framework.Tests.Visual
                 AutoSizeAxes = Axes.Y
             };
 
-            for (int i = 0; i < 20; i++)
+            for (int i = 0; i < 72; i++)
                 buttonFlow.Add(new JoystickButtonHandler(i));
 
-            for (int i = 0; i < 6; i++)
+            for (int i = 0; i < 72; i++)
                 axisFlow.Add(new JoystickAxisButtonHandler(i));
 
             Child = new FillFlowContainer
@@ -52,7 +52,7 @@ namespace osu.Framework.Tests.Visual
             {
                 button = (JoystickButton)buttonIndex;
 
-                Size = new Vector2(100);
+                Size = new Vector2(50);
 
                 InternalChildren = new[]
                 {
@@ -67,7 +67,7 @@ namespace osu.Framework.Tests.Visual
                     {
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
-                        Text = $"Button {buttonIndex + 1}"
+                        Text = $"B {buttonIndex + 1}"
                     }
                 };
             }
@@ -103,7 +103,7 @@ namespace osu.Framework.Tests.Visual
                 positiveAxisButton = JoystickButton.AxisPositive1 + axisIndex;
                 negativeAxisButton = JoystickButton.AxisNegative1 + axisIndex;
 
-                Size = new Vector2(200);
+                Size = new Vector2(50);
 
                 InternalChildren = new[]
                 {
@@ -117,7 +117,7 @@ namespace osu.Framework.Tests.Visual
                     {
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
-                        Text = $"Axis {axisIndex + 1}"
+                        Text = $"A {axisIndex + 1}"
                     }
                 };
             }

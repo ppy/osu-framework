@@ -118,11 +118,16 @@ namespace osu.Framework.Input.Handlers.Joystick
                                  .Concat(Enumerable.Range(0, max_hats).Select(i => device.State.GetHat(JoystickHat.Hat0 + i)).SelectMany(hatToAxes))
                                  .ToList();
 
-                Buttons = Enumerable.Range(0, max_buttons).Where(i => device.State.GetButton(i) == ButtonState.Pressed).Select(i => (JoystickButton)i)
-                                    // Convert each axis to a button state
-                                    .Concat(Axes.Where(a => !Precision.AlmostEquals(a, 0, dead_zone))
-                                                .Select((axisValue, index) => (axisValue < 0 ? JoystickButton.AxisNegative1 : JoystickButton.AxisPositive1) + index))
-                                    .ToList();
+                var buttons = Enumerable.Range(0, max_buttons).Where(i => device.State.GetButton(i) == ButtonState.Pressed).Select(i => (JoystickButton)i).ToList();
+
+                for (int i = 0; i < Axes.Count; i++)
+                {
+                    if (Precision.AlmostEquals(Axes[i], 0, dead_zone))
+                        continue;
+                    buttons.Add((Axes[i] < 0 ? JoystickButton.AxisNegative1 : JoystickButton.AxisPositive1) + i);
+                }
+
+                Buttons = buttons;
             }
 
             private float[] hatToAxes(JoystickHatState hatState)
