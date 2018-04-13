@@ -219,6 +219,10 @@ namespace osu.Framework.Configuration
             Disabled = false;
         }
 
+        IBindable IBindable.GetBoundCopy() => GetBoundCopy();
+
+        IBindable<T> IBindable<T>.GetBoundCopy() => GetBoundCopy();
+
         /// <summary>
         /// Retrieve a new bindable instance weakly bound to the configuration backing.
         /// If you are further binding to events of a bindable retrieved using this method, ensure to hold
