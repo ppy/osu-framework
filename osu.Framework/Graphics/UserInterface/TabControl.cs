@@ -8,6 +8,8 @@ using System.Linq;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Input;
+using osu.Framework.Input.Bindings;
 using OpenTK;
 
 namespace osu.Framework.Graphics.UserInterface
@@ -19,7 +21,7 @@ namespace osu.Framework.Graphics.UserInterface
     /// start of the list.
     /// </summary>
     /// <typeparam name="T">The type of item to be represented by tabs.</typeparam>
-    public abstract class TabControl<T> : Container, IHasCurrentValue<T>
+    public abstract class TabControl<T> : Container, IHasCurrentValue<T>, IKeyBindingHandler<PlatformAction>
     {
         public Bindable<T> Current { get; } = new Bindable<T>();
 
@@ -28,6 +30,8 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public IEnumerable<T> Items => TabContainer.TabItems.Select(t => t.Value).Concat(Dropdown.Items.Select(kvp => kvp.Value)).Distinct();
 
+        public IEnumerable<T> VisibleItems => TabContainer.TabItems.Select(t => t.Value).Distinct();
+        
         /// <summary>
         /// When true, tabs selected from the overflow dropdown will be moved to the front of the list (after pinned items).
         /// </summary>
@@ -40,6 +44,8 @@ namespace osu.Framework.Graphics.UserInterface
         protected IReadOnlyDictionary<T, TabItem<T>> TabMap => tabMap;
 
         protected TabItem<T> SelectedTab;
+
+        public virtual bool IsSwitchable => true;
 
         /// <summary>
         /// Creates an optional overflow dropdown.
@@ -239,7 +245,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         public virtual void SwitchTab(int offset, bool wrap = true)
         {
-            TabItem<T>[] switchableTabs = TabContainer.Children.Where(tab => tab.IsSwitchable).ToArray();
+            TabItem<T>[] switchableTabs = TabContainer.TabItems.Where(tab => tab.IsSwitchable).ToArray();
             int tabCount = switchableTabs.Length;
 
             if (tabCount == 0)
@@ -252,7 +258,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
 
             int selectedIndex = Array.IndexOf(switchableTabs, SelectedTab);
-            int targetIndex = selectedIndex - offset;
+            int targetIndex = selectedIndex + offset;
 
             if (wrap)
             {
@@ -276,6 +282,26 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         private float getTabDepth(TabItem<T> tab) => tab.Pinned ? float.MinValue : --depthCounter;
+
+        public bool OnPressed(PlatformAction action)
+        {
+            if (IsSwitchable)
+            {
+                switch (action.ActionType)
+                {
+                    case PlatformActionType.DocumentNext:
+                        SwitchTab(1);
+                        return true;
+
+                    case PlatformActionType.DocumentPrevious:
+                        SwitchTab(-1);
+                        return true;
+                }
+            }
+            return false;
+        }
+
+        public bool OnReleased(PlatformAction action) => false;
 
         protected virtual TabFillFlowContainer CreateTabFlow() => new TabFillFlowContainer
         {
