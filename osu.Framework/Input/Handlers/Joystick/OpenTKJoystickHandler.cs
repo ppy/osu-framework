@@ -109,7 +109,7 @@ namespace osu.Framework.Input.Handlers.Joystick
             /// </summary>
             private const int max_hats = 4;
 
-            private const float dead_zone = 0.1f;
+            private const float dead_zone = 0.4f;
 
             public OpenTKJoystickState(JoystickDevice device)
             {
