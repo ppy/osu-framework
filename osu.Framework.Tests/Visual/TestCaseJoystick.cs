@@ -67,7 +67,7 @@ namespace osu.Framework.Tests.Visual
                     {
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
-                        Text = $"B {buttonIndex + 1}"
+                        Text = $"B{buttonIndex + 1}"
                     }
                 };
             }
@@ -93,13 +93,16 @@ namespace osu.Framework.Tests.Visual
 
         private class JoystickAxisButtonHandler : CompositeDrawable
         {
+            private readonly int axisIndex;
             private readonly Drawable background;
 
             private readonly JoystickButton positiveAxisButton;
             private readonly JoystickButton negativeAxisButton;
+            private SpriteText rawValue;
 
             public JoystickAxisButtonHandler(int axisIndex)
             {
+                this.axisIndex = axisIndex;
                 positiveAxisButton = JoystickButton.AxisPositive1 + axisIndex;
                 negativeAxisButton = JoystickButton.AxisNegative1 + axisIndex;
 
@@ -117,9 +120,24 @@ namespace osu.Framework.Tests.Visual
                     {
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
-                        Text = $"A {axisIndex + 1}"
+                        Text = $"AX{axisIndex + 1}"
+                    },
+                    rawValue = new SpriteText
+                    {
+                        Anchor = Anchor.BottomCentre,
+                        Origin = Anchor.BottomCentre,
+                        Text = "-"
                     }
                 };
+            }
+
+            protected override void Update()
+            {
+                base.Update();
+
+                var joy = GetContainingInputManager().CurrentState.Joystick;
+                if (joy.Axes.Count > axisIndex)
+                    rawValue.Text = joy.Axes[axisIndex].ToString("0.00");
             }
 
             protected override bool OnJoystickPress(InputState state, JoystickEventArgs args)
