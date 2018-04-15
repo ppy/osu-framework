@@ -12,14 +12,24 @@ namespace osu.Framework.Configuration
     /// A generic implementation of a <see cref="IBindable"/>
     /// </summary>
     /// <typeparam name="T">The type of our stored <see cref="Value"/>.</typeparam>
-    public class Bindable<T> : IBindable
+    public class Bindable<T> : IBindable<T>, IBindable
     {
+        /// <summary>
+        /// An event which is raised when <see cref="Value"/> has changed (or manually via <see cref="TriggerValueChange"/>).
+        /// </summary>
+        public event Action<T> ValueChanged;
+
+        /// <summary>
+        /// An event which is raised when <see cref="Disabled"/>'s state has changed (or manually via <see cref="TriggerDisabledChange"/>).
+        /// </summary>
+        public event Action<bool> DisabledChanged;
+
         private T value;
 
         /// <summary>
         /// The default value of this bindable. Used when calling <see cref="SetDefault"/> or querying <see cref="IsDefault"/>.
         /// </summary>
-        public T Default;
+        public T Default { get; set; }
 
         private bool disabled;
 
@@ -48,16 +58,6 @@ namespace osu.Framework.Configuration
         /// Revert the current <see cref="Value"/> to the defined <see cref="Default"/>.
         /// </summary>
         public void SetDefault() => Value = Default;
-
-        /// <summary>
-        /// An event which is raised when <see cref="Value"/> has changed (or manually via <see cref="TriggerValueChange"/>).
-        /// </summary>
-        public event Action<T> ValueChanged;
-
-        /// <summary>
-        /// An event which is raised when <see cref="Disabled"/>'s state has changed (or manually via <see cref="TriggerDisabledChange"/>).
-        /// </summary>
-        public event Action<bool> DisabledChanged;
 
         /// <summary>
         /// The current value of this bindable.
@@ -93,9 +93,23 @@ namespace osu.Framework.Configuration
 
         private WeakReference<Bindable<T>> weakReference => new WeakReference<Bindable<T>>(this);
 
+        void IBindable.BindTo(IBindable them)
+        {
+            if (!(them is Bindable<T> tThem))
+                throw new InvalidCastException($"Can't bind to a bindable of type {them.GetType()} from a bindable of type {GetType()}.");
+            BindTo(tThem);
+        }
+
+        void IBindable<T>.BindTo(IBindable<T> them)
+        {
+            if (!(them is Bindable<T> tThem))
+                throw new InvalidCastException($"Can't bind to a bindable of type {them.GetType()} from a bindable of type {GetType()}.");
+            BindTo(tThem);
+        }
+
         /// <summary>
-        /// Binds outselves to another bindable such that they receive bi-directional updates.
-        /// We will take on any value limitations of the bindable we bind width.
+        /// Binds outselves to another bindable such that bi-directional updates are propagated.
+        /// We will take on any values and value limitations of the bindable we bind width.
         /// </summary>
         /// <param name="them">The foreign bindable. This should always be the most permanent end of the bind (ie. a ConfigManager)</param>
         public virtual void BindTo(Bindable<T> them)
@@ -204,6 +218,10 @@ namespace osu.Framework.Configuration
             Value = Default;
             Disabled = false;
         }
+
+        IBindable IBindable.GetBoundCopy() => GetBoundCopy();
+
+        IBindable<T> IBindable<T>.GetBoundCopy() => GetBoundCopy();
 
         /// <summary>
         /// Retrieve a new bindable instance weakly bound to the configuration backing.
