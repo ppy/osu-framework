@@ -619,7 +619,6 @@ namespace osu.Framework.Graphics.UserInterface
         protected override bool OnKeyUp(InputState state, KeyUpEventArgs args)
         {
             HandlePendingText(state);
-
             return base.OnKeyUp(state, args);
         }
 
