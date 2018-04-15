@@ -31,7 +31,7 @@ namespace osu.Framework.Graphics.UserInterface
         public IEnumerable<T> Items => TabContainer.TabItems.Select(t => t.Value).Concat(Dropdown.Items.Select(kvp => kvp.Value)).Distinct();
 
         public IEnumerable<T> VisibleItems => TabContainer.TabItems.Select(t => t.Value).Distinct();
-        
+
         /// <summary>
         /// When true, tabs selected from the overflow dropdown will be moved to the front of the list (after pinned items).
         /// </summary>
@@ -45,6 +45,9 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected TabItem<T> SelectedTab;
 
+        /// <summary>
+        /// When true, tabs can be switched back and forth using PlatformAction.DocumentPrevious and PlatformAction.DocumentNext respectively.
+        /// </summary>
         public virtual bool IsSwitchable => true;
 
         /// <summary>
