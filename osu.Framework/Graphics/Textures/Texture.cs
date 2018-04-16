@@ -129,44 +129,6 @@ namespace osu.Framework.Graphics.Textures
             TextureGL?.SetData(upload);
         }
 
-        public unsafe void SetData(Bitmap bitmap, int level = 0)
-        {
-            if (TextureGL == null)
-                return;
-
-            int width = Math.Min(bitmap.Width, Width);
-            int height = Math.Min(bitmap.Height, Height);
-
-            BitmapData bData = bitmap.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
-
-            TextureUploadByteArray upload = new TextureUploadByteArray(new Size(width, height))
-            {
-                Level = level,
-            };
-
-            byte[] data = upload.Data;
-
-            const int bytes_per_pixel = 4;
-            byte* bDataPointer = (byte*)bData.Scan0;
-
-            for (var y = 0; y < height; y++)
-            {
-                // This is why real scan-width is important to have!
-                IntPtr row = new IntPtr(bDataPointer + y * bData.Stride);
-                Marshal.Copy(row, data, width * bytes_per_pixel * y, width * bytes_per_pixel);
-            }
-
-            bitmap.UnlockBits(bData);
-
-            bool isTransparent = bgraToRgba(data, width * height * 4);
-            TextureGL.IsTransparent = isTransparent;
-
-            if (!isTransparent)
-                SetData(upload);
-            else
-                upload.Dispose();
-        }
-
         protected virtual RectangleF TextureBounds(RectangleF? textureRect = null)
         {
             RectangleF texRect = textureRect ?? new RectangleF(0, 0, DisplayWidth, DisplayHeight);
