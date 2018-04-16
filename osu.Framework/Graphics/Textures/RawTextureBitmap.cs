@@ -18,9 +18,7 @@ namespace osu.Framework.Graphics.Textures
         public int Width => Region.Width;
         public int Height => Region.Height;
 
-        private readonly bool useNativeFormat;
-
-        public ITextureLocker ObtainLock() => new TextureLockerBitmap(Bitmap, Region, useNativeFormat ? Bitmap.PixelFormat : System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+        public ITextureLocker ObtainLock() => new TextureLockerBitmap(Bitmap, Region);
 
         private readonly bool disposeBitmap;
 
@@ -29,17 +27,7 @@ namespace osu.Framework.Graphics.Textures
         {
             disposeBitmap = true;
 
-            switch (Bitmap.PixelFormat)
-            {
-                case System.Drawing.Imaging.PixelFormat.Format32bppArgb:
-                    PixelFormat = (PixelFormat)32993;
-                    useNativeFormat = true;
-                    break;
-                case System.Drawing.Imaging.PixelFormat.Format24bppRgb:
-                    PixelFormat = (PixelFormat)0x80E0;
-                    useNativeFormat = true;
-                    break;
-            }
+            PixelFormat = (PixelFormat)32993; // GL_BGRA
         }
 
         public RawTextureBitmap(Bitmap bitmap)
