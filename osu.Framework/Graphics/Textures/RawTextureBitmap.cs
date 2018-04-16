@@ -18,7 +18,9 @@ namespace osu.Framework.Graphics.Textures
         public int Width => Region.Width;
         public int Height => Region.Height;
 
-        public ITextureLocker ObtainLock() => new TextureLockerBitmap(Bitmap, Region);
+        private readonly bool useNativeFormat;
+
+        public ITextureLocker ObtainLock() => new TextureLockerBitmap(Bitmap, Region, useNativeFormat ? Bitmap.PixelFormat : System.Drawing.Imaging.PixelFormat.Format32bppArgb);
 
         private readonly bool disposeBitmap;
 
@@ -27,27 +29,16 @@ namespace osu.Framework.Graphics.Textures
         {
             disposeBitmap = true;
 
-            using (var locker = ObtainLock())
+            switch (Bitmap.PixelFormat)
             {
-                unsafe
-                {
-                    //convert from BGRA (System.Drawing) to RGBA
-                    //don't need to consider stride because we're in a raw format
-                    var src = (byte*)locker.DataPointer;
-
-                    if (src == null) throw new InvalidDataException("Bitmap data could not be read successfully.");
-
-                    int length = Region.Width * Region.Height;
-                    for (int i = 0; i < length; i++)
-                    {
-                        //BGRA -> RGBA
-                        byte temp = src[2];
-                        src[2] = src[0];
-                        src[0] = temp;
-
-                        src += 4;
-                    }
-                }
+                case System.Drawing.Imaging.PixelFormat.Format32bppArgb:
+                    PixelFormat = (PixelFormat)32993;
+                    useNativeFormat = true;
+                    break;
+                case System.Drawing.Imaging.PixelFormat.Format24bppRgb:
+                    PixelFormat = (PixelFormat)0x80E0;
+                    useNativeFormat = true;
+                    break;
             }
         }
 

@@ -15,10 +15,10 @@ namespace osu.Framework.Graphics.Textures
 
         public IntPtr DataPointer => data.Scan0;
 
-        public TextureLockerBitmap(Bitmap bitmap, Rectangle region)
+        public TextureLockerBitmap(Bitmap bitmap, Rectangle region, PixelFormat format = PixelFormat.Format32bppArgb)
         {
             this.bitmap = bitmap;
-            data = bitmap.LockBits(region, ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
+            data = bitmap.LockBits(region, ImageLockMode.ReadOnly, format);
         }
 
         ~TextureLockerBitmap()

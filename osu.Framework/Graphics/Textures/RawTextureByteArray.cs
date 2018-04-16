@@ -11,15 +11,16 @@ namespace osu.Framework.Graphics.Textures
         private readonly byte[] bytes;
         private readonly Rectangle dimensions;
 
-        public PixelFormat PixelFormat { get; } = PixelFormat.Rgba;
+        public PixelFormat PixelFormat { get; }
 
         public ITextureLocker ObtainLock() => new TextureLockerByteArray(bytes);
 
         public int Width => dimensions.Width;
         public int Height => dimensions.Height;
 
-        public RawTextureByteArray(byte[] bytes, Rectangle dimensions)
+        public RawTextureByteArray(byte[] bytes, Rectangle dimensions, PixelFormat format = PixelFormat.Rgba)
         {
+            PixelFormat = format;
             this.bytes = bytes;
             this.dimensions = dimensions;
         }
