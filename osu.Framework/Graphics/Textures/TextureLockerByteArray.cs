@@ -8,13 +8,14 @@ namespace osu.Framework.Graphics.Textures
 {
     public class TextureLockerByteArray : ITextureLocker
     {
-        private GCHandle handle;
+        private GCHandle? handle;
 
-        public IntPtr DataPointer => handle.AddrOfPinnedObject();
+        public IntPtr DataPointer => handle?.AddrOfPinnedObject() ?? IntPtr.Zero;
 
         public TextureLockerByteArray(byte[] bytes)
         {
-            handle = GCHandle.Alloc(bytes, GCHandleType.Pinned);
+            if (bytes.Length != 0)
+                handle = GCHandle.Alloc(bytes, GCHandleType.Pinned);
         }
 
         ~TextureLockerByteArray()
@@ -28,7 +29,7 @@ namespace osu.Framework.Graphics.Textures
         {
             IsDisposed = true;
 
-            if (handle.IsAllocated) handle.Free();
+            if (handle?.IsAllocated == true) handle?.Free();
         }
 
         public void Dispose()
