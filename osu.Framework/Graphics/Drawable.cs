@@ -42,7 +42,7 @@ namespace osu.Framework.Graphics
     /// Drawables are always rectangular in shape in their local coordinate system,
     /// which makes them quad-shaped in arbitrary (linearly transformed) coordinate systems.
     /// </summary>
-    public abstract class Drawable : Transformable, IDisposable, IDrawable
+    public abstract partial class Drawable : Transformable, IDisposable, IDrawable
     {
         #region Construction and disposal
 
@@ -1332,14 +1332,14 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// True iff <see cref="CreateProxy"/> has been called before.
         /// </summary>
-        internal bool HasProxy => proxy != null;
+        public bool HasProxy => proxy != null;
 
         /// <summary>
         /// True iff this <see cref="Drawable"/> is not a proxy of any <see cref="Drawable"/>.
         /// </summary>
-        internal bool IsProxy => Original != this;
+        public bool IsProxy => Original != this;
 
-        private ProxyDrawable proxy;
+        private Drawable proxy;
 
         /// <summary>
         /// Creates a proxy drawable which can be inserted elsewhere in the scene graph.
@@ -1347,14 +1347,12 @@ namespace osu.Framework.Graphics
         /// Creating multiple proxies is not supported and will result in an
         /// <see cref="InvalidOperationException"/>.
         /// </summary>
-        public ProxyDrawable CreateProxy()
+        public Drawable CreateProxy()
         {
             if (proxy != null)
                 throw new InvalidOperationException("Multiple proxies are not supported.");
-            return proxy = CreateProxyInternal();
+            return proxy = new ProxyDrawable(this);
         }
-
-        internal virtual ProxyDrawable CreateProxyInternal() => new ProxyDrawable(this, drawNodes);
 
         /// <summary>
         /// Validates a <see cref="DrawNode"/> for use by the proxy of this <see cref="Drawable"/>.

@@ -250,7 +250,7 @@ namespace osu.Framework.Tests.Visual
             {
                 RelativeSizeAxes = Axes.Both;
 
-                bool proxyIsBelow = layerBelow is ProxyDrawable;
+                bool proxyIsBelow = layerBelow.IsProxy;
 
                 original = proxyIsBelow ? layerBelow : layerAbove;
                 while (original != (original = original.Original))
