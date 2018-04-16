@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using osu.Framework.Input.Bindings;
 using osu.Framework.Logging;
 using osu.Framework.MathUtils;
 using osu.Framework.Platform;
@@ -93,19 +92,17 @@ namespace osu.Framework.Input.Handlers.Joystick
         private class OpenTKJoystickState : JoystickState
         {
             /// <summary>
-            /// Arbitrary amount of axes supported by the osu!framework.
-            /// We can raise this to 64 (max supported by OpenTK) with appropriate implementation in <see cref="InputKey"/> if needed.
+            /// Amount of axes supported by OpenTK.
             /// </summary>
-            private const int max_axes = 10;
+            private const int max_axes = 64;
 
             /// <summary>
-            /// Arbitrary amount of buttons supported by the osu!framework.
-            /// We can raise this to 64 (max supported by OpenTK) with appropriate implementation in <see cref="InputKey"/> if needed.
+            /// Amount of buttons supported by OpenTK.
             /// </summary>
-            private const int max_buttons = 20;
+            private const int max_buttons = 64;
 
             /// <summary>
-            /// OpenTK only supports 4 hats.
+            /// Amount of hats supported by OpenTK.
             /// </summary>
             private const int max_hats = 4;
 
@@ -114,8 +111,6 @@ namespace osu.Framework.Input.Handlers.Joystick
             public OpenTKJoystickState(JoystickDevice device)
             {
                 Axes = Enumerable.Range(0, max_axes).Select(i => device.State.GetAxis(i))
-                                 // To not break compatibility if more axes are added in the future, pad axes to 64 elements
-                                 .Concat(Enumerable.Repeat(0f, 64 - max_axes))
                                  // Convert each hat to a pair of axes
                                  .Concat(Enumerable.Range(0, max_hats).Select(i => device.State.GetHat(JoystickHat.Hat0 + i)).SelectMany(hatToAxes))
                                  .ToList();

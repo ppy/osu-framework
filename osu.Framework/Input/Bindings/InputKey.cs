@@ -618,85 +618,261 @@ namespace osu.Framework.Input.Bindings
         FirstJoystickButton = 1024,
 
         /// <summary>
-        /// The first joystick button.
+        /// Joystick button 1.
         /// </summary>
         Joystick1,
         /// <summary>
-        /// The second joystick button.
+        /// Joystick button 2.
         /// </summary>
         Joystick2,
         /// <summary>
-        /// The third joystick button.
+        /// Joystick button 3.
         /// </summary>
         Joystick3,
         /// <summary>
-        /// The fourth joystick button.
+        /// Joystick button 4.
         /// </summary>
         Joystick4,
         /// <summary>
-        /// The fifth joystick button.
+        /// Joystick button 5.
         /// </summary>
         Joystick5,
         /// <summary>
-        /// The sixth joystick button.
+        /// Joystick button 6.
         /// </summary>
         Joystick6,
         /// <summary>
-        /// The seventh joystick button.
+        /// Joystick button 7.
         /// </summary>
         Joystick7,
         /// <summary>
-        /// The eigth joystick button.
+        /// Joystick button 8.
         /// </summary>
         Joystick8,
         /// <summary>
-        /// The ninth joystick button.
+        /// Joystick button 9.
         /// </summary>
         Joystick9,
         /// <summary>
-        /// The tenth joystick button.
+        /// Joystick button 10.
         /// </summary>
         Joystick10,
         /// <summary>
-        /// The eleventh joystick button.
+        /// Joystick button 11.
         /// </summary>
         Joystick11,
         /// <summary>
-        /// The twelfth joystick button.
+        /// Joystick button 12.
         /// </summary>
         Joystick12,
         /// <summary>
-        /// The thirteenth joystick button.
+        /// Joystick button 13.
         /// </summary>
         Joystick13,
         /// <summary>
-        /// The fourteenth joystick button.
+        /// Joystick button 14.
         /// </summary>
         Joystick14,
         /// <summary>
-        /// The fifteenth joystick button.
+        /// Joystick button 15.
         /// </summary>
         Joystick15,
         /// <summary>
-        /// The sixteenth joystick button.
+        /// Joystick button 16.
         /// </summary>
         Joystick16,
         /// <summary>
-        /// The seventeenth joystick button.
+        /// Joystick button 17.
         /// </summary>
         Joystick17,
         /// <summary>
-        /// The eighteenth joystick button.
+        /// Joystick button 18.
         /// </summary>
         Joystick18,
         /// <summary>
-        /// The nineteenth joystick button.
+        /// Joystick button 19.
         /// </summary>
         Joystick19,
         /// <summary>
-        /// The twentieth joystick button.
+        /// Joystick button 20.
         /// </summary>
         Joystick20,
+        /// <summary>
+        /// Joystick button 21.
+        /// </summary>
+        Joystick21,
+        /// <summary>
+        /// Joystick button 22.
+        /// </summary>
+        Joystick22,
+        /// <summary>
+        /// Joystick button 23.
+        /// </summary>
+        Joystick23,
+        /// <summary>
+        /// Joystick button 24.
+        /// </summary>
+        Joystick24,
+        /// <summary>
+        /// Joystick button 25.
+        /// </summary>
+        Joystick25,
+        /// <summary>
+        /// Joystick button 26.
+        /// </summary>
+        Joystick26,
+        /// <summary>
+        /// Joystick button 27.
+        /// </summary>
+        Joystick27,
+        /// <summary>
+        /// Joystick button 28.
+        /// </summary>
+        Joystick28,
+        /// <summary>
+        /// Joystick button 29.
+        /// </summary>
+        Joystick29,
+        /// <summary>
+        /// Joystick button 30.
+        /// </summary>
+        Joystick30,
+        /// <summary>
+        /// Joystick button 31.
+        /// </summary>
+        Joystick31,
+        /// <summary>
+        /// Joystick button 32.
+        /// </summary>
+        Joystick32,
+        /// <summary>
+        /// Joystick button 33.
+        /// </summary>
+        Joystick33,
+        /// <summary>
+        /// Joystick button 34.
+        /// </summary>
+        Joystick34,
+        /// <summary>
+        /// Joystick button 35.
+        /// </summary>
+        Joystick35,
+        /// <summary>
+        /// Joystick button 36.
+        /// </summary>
+        Joystick36,
+        /// <summary>
+        /// Joystick button 37.
+        /// </summary>
+        Joystick37,
+        /// <summary>
+        /// Joystick button 38.
+        /// </summary>
+        Joystick38,
+        /// <summary>
+        /// Joystick button 39.
+        /// </summary>
+        Joystick39,
+        /// <summary>
+        /// Joystick button 40.
+        /// </summary>
+        Joystick40,
+        /// <summary>
+        /// Joystick button 41.
+        /// </summary>
+        Joystick41,
+        /// <summary>
+        /// Joystick button 42.
+        /// </summary>
+        Joystick42,
+        /// <summary>
+        /// Joystick button 43.
+        /// </summary>
+        Joystick43,
+        /// <summary>
+        /// Joystick button 44.
+        /// </summary>
+        Joystick44,
+        /// <summary>
+        /// Joystick button 45.
+        /// </summary>
+        Joystick45,
+        /// <summary>
+        /// Joystick button 46.
+        /// </summary>
+        Joystick46,
+        /// <summary>
+        /// Joystick button 47.
+        /// </summary>
+        Joystick47,
+        /// <summary>
+        /// Joystick button 48.
+        /// </summary>
+        Joystick48,
+        /// <summary>
+        /// Joystick button 49.
+        /// </summary>
+        Joystick49,
+        /// <summary>
+        /// Joystick button 50.
+        /// </summary>
+        Joystick50,
+        /// <summary>
+        /// Joystick button 51.
+        /// </summary>
+        Joystick51,
+        /// <summary>
+        /// Joystick button 52.
+        /// </summary>
+        Joystick52,
+        /// <summary>
+        /// Joystick button 53.
+        /// </summary>
+        Joystick53,
+        /// <summary>
+        /// Joystick button 54.
+        /// </summary>
+        Joystick54,
+        /// <summary>
+        /// Joystick button 55.
+        /// </summary>
+        Joystick55,
+        /// <summary>
+        /// Joystick button 56.
+        /// </summary>
+        Joystick56,
+        /// <summary>
+        /// Joystick button 57.
+        /// </summary>
+        Joystick57,
+        /// <summary>
+        /// Joystick button 58.
+        /// </summary>
+        Joystick58,
+        /// <summary>
+        /// Joystick button 59.
+        /// </summary>
+        Joystick59,
+        /// <summary>
+        /// Joystick button 60.
+        /// </summary>
+        Joystick60,
+        /// <summary>
+        /// Joystick button 61.
+        /// </summary>
+        Joystick61,
+        /// <summary>
+        /// Joystick button 62.
+        /// </summary>
+        Joystick62,
+        /// <summary>
+        /// Joystick button 63.
+        /// </summary>
+        Joystick63,
+        /// <summary>
+        /// Joystick button 64.
+        /// </summary>
+        Joystick64,
 
         /// <summary>
         /// Indicates the first available negative-axis joystick button.
@@ -704,45 +880,261 @@ namespace osu.Framework.Input.Bindings
         FirstJoystickAxisNegativeButton = 2048,
 
         /// <summary>
-        /// The first negative-axis joystick button.
+        /// Joystick axis 1 negative button.
         /// </summary>
         JoystickAxisNegative1,
         /// <summary>
-        /// The second negative-axis joystick button.
+        /// Joystick axis 2 negative button.
         /// </summary>
         JoystickAxisNegative2,
         /// <summary>
-        /// The third negative-axis joystick button.
+        /// Joystick axis 3 negative button.
         /// </summary>
         JoystickAxisNegative3,
         /// <summary>
-        /// The fourth negative-axis joystick button.
+        /// Joystick axis 4 negative button.
         /// </summary>
         JoystickAxisNegative4,
         /// <summary>
-        /// The fifth negative-axis joystick button.
+        /// Joystick axis 5 negative button.
         /// </summary>
         JoystickAxisNegative5,
         /// <summary>
-        /// The sixth negative-axis joystick button.
+        /// Joystick axis 6 negative button.
         /// </summary>
         JoystickAxisNegative6,
         /// <summary>
-        /// The seventh negative-axis joystick button.
+        /// Joystick axis 7 negative button.
         /// </summary>
         JoystickAxisNegative7,
         /// <summary>
-        /// The eigth negative-axis joystick button.
+        /// Joystick axis 8 negative button.
         /// </summary>
         JoystickAxisNegative8,
         /// <summary>
-        /// The ninth negative-axis joystick button.
+        /// Joystick axis 9 negative button.
         /// </summary>
         JoystickAxisNegative9,
         /// <summary>
-        /// The tenth negative-axis joystick button.
+        /// Joystick axis 10 negative button.
         /// </summary>
         JoystickAxisNegative10,
+        /// <summary>
+        /// Joystick axis 11 negative button.
+        /// </summary>
+        JoystickAxisNegative11,
+        /// <summary>
+        /// Joystick axis 12 negative button.
+        /// </summary>
+        JoystickAxisNegative12,
+        /// <summary>
+        /// Joystick axis 13 negative button.
+        /// </summary>
+        JoystickAxisNegative13,
+        /// <summary>
+        /// Joystick axis 14 negative button.
+        /// </summary>
+        JoystickAxisNegative14,
+        /// <summary>
+        /// Joystick axis 15 negative button.
+        /// </summary>
+        JoystickAxisNegative15,
+        /// <summary>
+        /// Joystick axis 16 negative button.
+        /// </summary>
+        JoystickAxisNegative16,
+        /// <summary>
+        /// Joystick axis 17 negative button.
+        /// </summary>
+        JoystickAxisNegative17,
+        /// <summary>
+        /// Joystick axis 18 negative button.
+        /// </summary>
+        JoystickAxisNegative18,
+        /// <summary>
+        /// Joystick axis 19 negative button.
+        /// </summary>
+        JoystickAxisNegative19,
+        /// <summary>
+        /// Joystick axis 20 negative button.
+        /// </summary>
+        JoystickAxisNegative20,
+        /// <summary>
+        /// Joystick axis 21 negative button.
+        /// </summary>
+        JoystickAxisNegative21,
+        /// <summary>
+        /// Joystick axis 22 negative button.
+        /// </summary>
+        JoystickAxisNegative22,
+        /// <summary>
+        /// Joystick axis 23 negative button.
+        /// </summary>
+        JoystickAxisNegative23,
+        /// <summary>
+        /// Joystick axis 24 negative button.
+        /// </summary>
+        JoystickAxisNegative24,
+        /// <summary>
+        /// Joystick axis 25 negative button.
+        /// </summary>
+        JoystickAxisNegative25,
+        /// <summary>
+        /// Joystick axis 26 negative button.
+        /// </summary>
+        JoystickAxisNegative26,
+        /// <summary>
+        /// Joystick axis 27 negative button.
+        /// </summary>
+        JoystickAxisNegative27,
+        /// <summary>
+        /// Joystick axis 28 negative button.
+        /// </summary>
+        JoystickAxisNegative28,
+        /// <summary>
+        /// Joystick axis 29 negative button.
+        /// </summary>
+        JoystickAxisNegative29,
+        /// <summary>
+        /// Joystick axis 30 negative button.
+        /// </summary>
+        JoystickAxisNegative30,
+        /// <summary>
+        /// Joystick axis 31 negative button.
+        /// </summary>
+        JoystickAxisNegative31,
+        /// <summary>
+        /// Joystick axis 32 negative button.
+        /// </summary>
+        JoystickAxisNegative32,
+        /// <summary>
+        /// Joystick axis 33 negative button.
+        /// </summary>
+        JoystickAxisNegative33,
+        /// <summary>
+        /// Joystick axis 34 negative button.
+        /// </summary>
+        JoystickAxisNegative34,
+        /// <summary>
+        /// Joystick axis 35 negative button.
+        /// </summary>
+        JoystickAxisNegative35,
+        /// <summary>
+        /// Joystick axis 36 negative button.
+        /// </summary>
+        JoystickAxisNegative36,
+        /// <summary>
+        /// Joystick axis 37 negative button.
+        /// </summary>
+        JoystickAxisNegative37,
+        /// <summary>
+        /// Joystick axis 38 negative button.
+        /// </summary>
+        JoystickAxisNegative38,
+        /// <summary>
+        /// Joystick axis 39 negative button.
+        /// </summary>
+        JoystickAxisNegative39,
+        /// <summary>
+        /// Joystick axis 40 negative button.
+        /// </summary>
+        JoystickAxisNegative40,
+        /// <summary>
+        /// Joystick axis 41 negative button.
+        /// </summary>
+        JoystickAxisNegative41,
+        /// <summary>
+        /// Joystick axis 42 negative button.
+        /// </summary>
+        JoystickAxisNegative42,
+        /// <summary>
+        /// Joystick axis 43 negative button.
+        /// </summary>
+        JoystickAxisNegative43,
+        /// <summary>
+        /// Joystick axis 44 negative button.
+        /// </summary>
+        JoystickAxisNegative44,
+        /// <summary>
+        /// Joystick axis 45 negative button.
+        /// </summary>
+        JoystickAxisNegative45,
+        /// <summary>
+        /// Joystick axis 46 negative button.
+        /// </summary>
+        JoystickAxisNegative46,
+        /// <summary>
+        /// Joystick axis 47 negative button.
+        /// </summary>
+        JoystickAxisNegative47,
+        /// <summary>
+        /// Joystick axis 48 negative button.
+        /// </summary>
+        JoystickAxisNegative48,
+        /// <summary>
+        /// Joystick axis 49 negative button.
+        /// </summary>
+        JoystickAxisNegative49,
+        /// <summary>
+        /// Joystick axis 50 negative button.
+        /// </summary>
+        JoystickAxisNegative50,
+        /// <summary>
+        /// Joystick axis 51 negative button.
+        /// </summary>
+        JoystickAxisNegative51,
+        /// <summary>
+        /// Joystick axis 52 negative button.
+        /// </summary>
+        JoystickAxisNegative52,
+        /// <summary>
+        /// Joystick axis 53 negative button.
+        /// </summary>
+        JoystickAxisNegative53,
+        /// <summary>
+        /// Joystick axis 54 negative button.
+        /// </summary>
+        JoystickAxisNegative54,
+        /// <summary>
+        /// Joystick axis 55 negative button.
+        /// </summary>
+        JoystickAxisNegative55,
+        /// <summary>
+        /// Joystick axis 56 negative button.
+        /// </summary>
+        JoystickAxisNegative56,
+        /// <summary>
+        /// Joystick axis 57 negative button.
+        /// </summary>
+        JoystickAxisNegative57,
+        /// <summary>
+        /// Joystick axis 58 negative button.
+        /// </summary>
+        JoystickAxisNegative58,
+        /// <summary>
+        /// Joystick axis 59 negative button.
+        /// </summary>
+        JoystickAxisNegative59,
+        /// <summary>
+        /// Joystick axis 60 negative button.
+        /// </summary>
+        JoystickAxisNegative60,
+        /// <summary>
+        /// Joystick axis 61 negative button.
+        /// </summary>
+        JoystickAxisNegative61,
+        /// <summary>
+        /// Joystick axis 62 negative button.
+        /// </summary>
+        JoystickAxisNegative62,
+        /// <summary>
+        /// Joystick axis 63 negative button.
+        /// </summary>
+        JoystickAxisNegative63,
+        /// <summary>
+        /// Joystick axis 64 negative button.
+        /// </summary>
+        JoystickAxisNegative64,
 
         /// <summary>
         /// Indicates the first available positive-axis joystick button.
@@ -750,44 +1142,260 @@ namespace osu.Framework.Input.Bindings
         FirstJoystickAxisPositiveButton = 3072,
 
         /// <summary>
-        /// The first positive-axis joystick button.
+        /// Joystick axis 1 positive button.
         /// </summary>
         JoystickAxisPositive1,
         /// <summary>
-        /// The second positive-axis joystick button.
+        /// Joystick axis 2 positive button.
         /// </summary>
         JoystickAxisPositive2,
         /// <summary>
-        /// The third positive-axis joystick button.
+        /// Joystick axis 3 positive button.
         /// </summary>
         JoystickAxisPositive3,
         /// <summary>
-        /// The fourth positive-axis joystick button.
+        /// Joystick axis 4 positive button.
         /// </summary>
         JoystickAxisPositive4,
         /// <summary>
-        /// The fifth positive-axis joystick button.
+        /// Joystick axis 5 positive button.
         /// </summary>
         JoystickAxisPositive5,
         /// <summary>
-        /// The sixth positive-axis joystick button.
+        /// Joystick axis 6 positive button.
         /// </summary>
         JoystickAxisPositive6,
         /// <summary>
-        /// The seventh positive-axis joystick button.
+        /// Joystick axis 7 positive button.
         /// </summary>
         JoystickAxisPositive7,
         /// <summary>
-        /// The eigth positive-axis joystick button.
+        /// Joystick axis 8 positive button.
         /// </summary>
         JoystickAxisPositive8,
         /// <summary>
-        /// The ninth positive-axis joystick button.
+        /// Joystick axis 9 positive button.
         /// </summary>
         JoystickAxisPositive9,
         /// <summary>
-        /// The tenth positive-axis joystick button.
+        /// Joystick axis 10 positive button.
         /// </summary>
         JoystickAxisPositive10,
+        /// <summary>
+        /// Joystick axis 11 positive button.
+        /// </summary>
+        JoystickAxisPositive11,
+        /// <summary>
+        /// Joystick axis 12 positive button.
+        /// </summary>
+        JoystickAxisPositive12,
+        /// <summary>
+        /// Joystick axis 13 positive button.
+        /// </summary>
+        JoystickAxisPositive13,
+        /// <summary>
+        /// Joystick axis 14 positive button.
+        /// </summary>
+        JoystickAxisPositive14,
+        /// <summary>
+        /// Joystick axis 15 positive button.
+        /// </summary>
+        JoystickAxisPositive15,
+        /// <summary>
+        /// Joystick axis 16 positive button.
+        /// </summary>
+        JoystickAxisPositive16,
+        /// <summary>
+        /// Joystick axis 17 positive button.
+        /// </summary>
+        JoystickAxisPositive17,
+        /// <summary>
+        /// Joystick axis 18 positive button.
+        /// </summary>
+        JoystickAxisPositive18,
+        /// <summary>
+        /// Joystick axis 19 positive button.
+        /// </summary>
+        JoystickAxisPositive19,
+        /// <summary>
+        /// Joystick axis 20 positive button.
+        /// </summary>
+        JoystickAxisPositive20,
+        /// <summary>
+        /// Joystick axis 21 positive button.
+        /// </summary>
+        JoystickAxisPositive21,
+        /// <summary>
+        /// Joystick axis 22 positive button.
+        /// </summary>
+        JoystickAxisPositive22,
+        /// <summary>
+        /// Joystick axis 23 positive button.
+        /// </summary>
+        JoystickAxisPositive23,
+        /// <summary>
+        /// Joystick axis 24 positive button.
+        /// </summary>
+        JoystickAxisPositive24,
+        /// <summary>
+        /// Joystick axis 25 positive button.
+        /// </summary>
+        JoystickAxisPositive25,
+        /// <summary>
+        /// Joystick axis 26 positive button.
+        /// </summary>
+        JoystickAxisPositive26,
+        /// <summary>
+        /// Joystick axis 27 positive button.
+        /// </summary>
+        JoystickAxisPositive27,
+        /// <summary>
+        /// Joystick axis 28 positive button.
+        /// </summary>
+        JoystickAxisPositive28,
+        /// <summary>
+        /// Joystick axis 29 positive button.
+        /// </summary>
+        JoystickAxisPositive29,
+        /// <summary>
+        /// Joystick axis 30 positive button.
+        /// </summary>
+        JoystickAxisPositive30,
+        /// <summary>
+        /// Joystick axis 31 positive button.
+        /// </summary>
+        JoystickAxisPositive31,
+        /// <summary>
+        /// Joystick axis 32 positive button.
+        /// </summary>
+        JoystickAxisPositive32,
+        /// <summary>
+        /// Joystick axis 33 positive button.
+        /// </summary>
+        JoystickAxisPositive33,
+        /// <summary>
+        /// Joystick axis 34 positive button.
+        /// </summary>
+        JoystickAxisPositive34,
+        /// <summary>
+        /// Joystick axis 35 positive button.
+        /// </summary>
+        JoystickAxisPositive35,
+        /// <summary>
+        /// Joystick axis 36 positive button.
+        /// </summary>
+        JoystickAxisPositive36,
+        /// <summary>
+        /// Joystick axis 37 positive button.
+        /// </summary>
+        JoystickAxisPositive37,
+        /// <summary>
+        /// Joystick axis 38 positive button.
+        /// </summary>
+        JoystickAxisPositive38,
+        /// <summary>
+        /// Joystick axis 39 positive button.
+        /// </summary>
+        JoystickAxisPositive39,
+        /// <summary>
+        /// Joystick axis 40 positive button.
+        /// </summary>
+        JoystickAxisPositive40,
+        /// <summary>
+        /// Joystick axis 41 positive button.
+        /// </summary>
+        JoystickAxisPositive41,
+        /// <summary>
+        /// Joystick axis 42 positive button.
+        /// </summary>
+        JoystickAxisPositive42,
+        /// <summary>
+        /// Joystick axis 43 positive button.
+        /// </summary>
+        JoystickAxisPositive43,
+        /// <summary>
+        /// Joystick axis 44 positive button.
+        /// </summary>
+        JoystickAxisPositive44,
+        /// <summary>
+        /// Joystick axis 45 positive button.
+        /// </summary>
+        JoystickAxisPositive45,
+        /// <summary>
+        /// Joystick axis 46 positive button.
+        /// </summary>
+        JoystickAxisPositive46,
+        /// <summary>
+        /// Joystick axis 47 positive button.
+        /// </summary>
+        JoystickAxisPositive47,
+        /// <summary>
+        /// Joystick axis 48 positive button.
+        /// </summary>
+        JoystickAxisPositive48,
+        /// <summary>
+        /// Joystick axis 49 positive button.
+        /// </summary>
+        JoystickAxisPositive49,
+        /// <summary>
+        /// Joystick axis 50 positive button.
+        /// </summary>
+        JoystickAxisPositive50,
+        /// <summary>
+        /// Joystick axis 51 positive button.
+        /// </summary>
+        JoystickAxisPositive51,
+        /// <summary>
+        /// Joystick axis 52 positive button.
+        /// </summary>
+        JoystickAxisPositive52,
+        /// <summary>
+        /// Joystick axis 53 positive button.
+        /// </summary>
+        JoystickAxisPositive53,
+        /// <summary>
+        /// Joystick axis 54 positive button.
+        /// </summary>
+        JoystickAxisPositive54,
+        /// <summary>
+        /// Joystick axis 55 positive button.
+        /// </summary>
+        JoystickAxisPositive55,
+        /// <summary>
+        /// Joystick axis 56 positive button.
+        /// </summary>
+        JoystickAxisPositive56,
+        /// <summary>
+        /// Joystick axis 57 positive button.
+        /// </summary>
+        JoystickAxisPositive57,
+        /// <summary>
+        /// Joystick axis 58 positive button.
+        /// </summary>
+        JoystickAxisPositive58,
+        /// <summary>
+        /// Joystick axis 59 positive button.
+        /// </summary>
+        JoystickAxisPositive59,
+        /// <summary>
+        /// Joystick axis 60 positive button.
+        /// </summary>
+        JoystickAxisPositive60,
+        /// <summary>
+        /// Joystick axis 61 positive button.
+        /// </summary>
+        JoystickAxisPositive61,
+        /// <summary>
+        /// Joystick axis 62 positive button.
+        /// </summary>
+        JoystickAxisPositive62,
+        /// <summary>
+        /// Joystick axis 63 positive button.
+        /// </summary>
+        JoystickAxisPositive63,
+        /// <summary>
+        /// Joystick axis 64 positive button.
+        /// </summary>
+        JoystickAxisPositive64,
     }
 }
