@@ -152,7 +152,7 @@ namespace osu.Framework.Tests.Visual
             var box = new Box { Position = new Vector2(-1) };
 
             Drawable proxy;
-            Children = new Drawable[]
+            Children = new[]
             {
                 new Container
                 {
