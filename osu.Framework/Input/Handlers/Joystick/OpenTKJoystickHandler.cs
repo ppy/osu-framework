@@ -110,12 +110,11 @@ namespace osu.Framework.Input.Handlers.Joystick
 
             public OpenTKJoystickState(JoystickDevice device)
             {
-                Axes = Enumerable.Range(0, max_axes).Select(i => device.State.GetAxis(i))
-                                 // Convert each hat to a pair of axes
-                                 .Concat(Enumerable.Range(0, max_hats).Select(i => device.State.GetHat(JoystickHat.Hat0 + i)).SelectMany(hatToAxes))
-                                 .ToList();
+                Axes = Enumerable.Range(0, max_axes).Select(i => device.State.GetAxis(i)).ToList();
 
-                var buttons = Enumerable.Range(0, max_buttons).Where(i => device.State.GetButton(i) == ButtonState.Pressed).Select(i => (JoystickButton)i).ToList();
+                var buttons = Enumerable.Range(0, max_buttons).Where(i => device.State.GetButton(i) == ButtonState.Pressed).Select(i => (JoystickButton)i)
+                                        .Concat(Enumerable.Range(0, max_hats).SelectMany(i => getHatButtons(device, i)))
+                                        .ToList();
 
                 for (int i = 0; i < Axes.Count; i++)
                 {
@@ -127,21 +126,19 @@ namespace osu.Framework.Input.Handlers.Joystick
                 Buttons = buttons;
             }
 
-            private float[] hatToAxes(JoystickHatState hatState)
+            private IEnumerable<JoystickButton> getHatButtons(JoystickDevice device, int hat)
             {
-                float xAxis = 0;
-                float yAxis = 0;
+                var state = device.State.GetHat(JoystickHat.Hat0 + hat);
 
-                if (hatState.IsLeft)
-                    xAxis = -1;
-                else if (hatState.IsRight)
-                    xAxis = 1;
-                if (hatState.IsDown)
-                    yAxis = -1;
-                else if (hatState.IsUp)
-                    yAxis = 1;
+                if (state.IsUp)
+                    yield return JoystickButton.HatUp1 + hat;
+                else if (state.IsDown)
+                    yield return JoystickButton.HatDown1 + hat;
 
-                return new[] { xAxis, yAxis };
+                if (state.IsLeft)
+                    yield return JoystickButton.HatLeft1 + hat;
+                else if (state.IsRight)
+                    yield return JoystickButton.HatRight1 + hat;
             }
         }
 

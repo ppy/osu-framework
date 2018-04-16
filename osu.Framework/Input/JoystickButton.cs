@@ -197,5 +197,21 @@ namespace osu.Framework.Input
         AxisPositive62,
         AxisPositive63,
         AxisPositive64,
+        HatUp1 = 3072,
+        HatUp2,
+        HatUp3,
+        HatUp4,
+        HatDown1 = 4096,
+        HatDown2,
+        HatDown3,
+        HatDown4,
+        HatLeft1 = 5120,
+        HatLeft2,
+        HatLeft3,
+        HatLeft4,
+        HatRight1 = 6144,
+        HatRight2,
+        HatRight3,
+        HatRight4
     }
 }

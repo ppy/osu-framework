@@ -22,14 +22,23 @@ namespace osu.Framework.Tests.Visual
                 AutoSizeAxes = Axes.Y,
             };
 
+            var hatFlow = new FillFlowContainer
+            {
+                RelativeSizeAxes = Axes.X,
+                AutoSizeAxes = Axes.Y
+            };
+
             var axisFlow = new FillFlowContainer
             {
                 RelativeSizeAxes = Axes.X,
                 AutoSizeAxes = Axes.Y
             };
 
-            for (int i = 0; i < 72; i++)
+            for (int i = 0; i < 64; i++)
                 buttonFlow.Add(new JoystickButtonHandler(i));
+
+            for (int i = 0; i < 4; i++)
+                hatFlow.Add(new JoystickHatHandler(i));
 
             for (int i = 0; i < 72; i++)
                 axisFlow.Add(new JoystickAxisButtonHandler(i));
@@ -38,7 +47,7 @@ namespace osu.Framework.Tests.Visual
             {
                 RelativeSizeAxes = Axes.Both,
                 Direction = FillDirection.Vertical,
-                Children = new[] { buttonFlow, axisFlow }
+                Children = new[] { buttonFlow, hatFlow, axisFlow }
             };
         }
 
@@ -87,6 +96,101 @@ namespace osu.Framework.Tests.Visual
                     return base.OnJoystickRelease(state, args);
 
                 background.FadeOut(100);
+                return true;
+            }
+        }
+
+        private class JoystickHatHandler : CompositeDrawable
+        {
+            private readonly Drawable upBox;
+            private readonly Drawable downBox;
+            private readonly Drawable leftBox;
+            private readonly Drawable rightBox;
+
+            private readonly int hatIndex;
+
+            public JoystickHatHandler(int hatIndex)
+            {
+                this.hatIndex = hatIndex;
+
+                Size = new Vector2(50);
+
+                InternalChildren = new[]
+                {
+                    upBox = new Container
+                    {
+                        RelativeSizeAxes = Axes.X,
+                        Colour = Color4.DarkGreen,
+                        Height = 10,
+                        Alpha = 0,
+                        Child = new Box { RelativeSizeAxes = Axes.Both }
+                    },
+                    downBox = new Container
+                    {
+                        Anchor = Anchor.BottomLeft,
+                        Origin = Anchor.BottomLeft,
+                        RelativeSizeAxes = Axes.X,
+                        Colour = Color4.DarkGreen,
+                        Height = 10,
+                        Alpha = 0,
+                        Child = new Box { RelativeSizeAxes = Axes.Both }
+                    },
+                    leftBox = new Container
+                    {
+                        RelativeSizeAxes = Axes.Y,
+                        Colour = Color4.DarkGreen,
+                        Width = 10,
+                        Alpha = 0,
+                        Child = new Box { RelativeSizeAxes = Axes.Both }
+                    },
+                    rightBox = new Container
+                    {
+                        Anchor = Anchor.TopRight,
+                        Origin = Anchor.TopRight,
+                        RelativeSizeAxes = Axes.Y,
+                        Colour = Color4.DarkGreen,
+                        Width = 10,
+                        Alpha = 0,
+                        Child = new Box { RelativeSizeAxes = Axes.Both }
+                    },
+                    new SpriteText
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        Text = $"H{hatIndex + 1}"
+                    }
+                };
+            }
+
+            protected override bool OnJoystickPress(InputState state, JoystickEventArgs args)
+            {
+                if (args.Button == JoystickButton.HatUp1 + hatIndex)
+                    upBox.FadeIn(100, Easing.OutQuint);
+                else if (args.Button == JoystickButton.HatDown1 + hatIndex)
+                    downBox.FadeIn(100, Easing.OutQuint);
+                else if (args.Button == JoystickButton.HatLeft1 + hatIndex)
+                    leftBox.FadeIn(100, Easing.OutQuint);
+                else if (args.Button == JoystickButton.HatRight1 + hatIndex)
+                    rightBox.FadeIn(100, Easing.OutQuint);
+                else
+                    return base.OnJoystickPress(state, args);
+
+                return true;
+            }
+
+            protected override bool OnJoystickRelease(InputState state, JoystickEventArgs args)
+            {
+                if (args.Button == JoystickButton.HatUp1 + hatIndex)
+                    upBox.FadeOut(100);
+                else if (args.Button == JoystickButton.HatDown1 + hatIndex)
+                    downBox.FadeOut(100);
+                else if (args.Button == JoystickButton.HatLeft1 + hatIndex)
+                    leftBox.FadeOut(100);
+                else if (args.Button == JoystickButton.HatRight1 + hatIndex)
+                    rightBox.FadeOut(100);
+                else
+                    return base.OnJoystickRelease(state, args);
+
                 return true;
             }
         }

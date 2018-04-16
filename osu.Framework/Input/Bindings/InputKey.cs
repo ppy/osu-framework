@@ -1397,5 +1397,93 @@ namespace osu.Framework.Input.Bindings
         /// Joystick axis 64 positive button.
         /// </summary>
         JoystickAxisPositive64,
+
+        /// <summary>
+        /// Indicates the first available joystick hat up button.
+        /// </summary>
+        FirstJoystickHatUpButton = 4096,
+
+        /// <summary>
+        /// Joystick hat 1 up button.
+        /// </summary>
+        JoystickHatUp1,
+        /// <summary>
+        /// Joystick hat 2 up button.
+        /// </summary>
+        JoystickHatUp2,
+        /// <summary>
+        /// Joystick hat 3 up button.
+        /// </summary>
+        JoystickHatUp3,
+        /// <summary>
+        /// Joystick hat 4 up button.
+        /// </summary>
+        JoystickHatUp4,
+
+        /// <summary>
+        /// Indicates the first available joystick hat down button.
+        /// </summary>
+        FirstJoystickHatDownButton = 5120,
+
+        /// <summary>
+        /// Joystick hat 1 down button.
+        /// </summary>
+        JoystickHatDown1,
+        /// <summary>
+        /// Joystick hat 2 down button.
+        /// </summary>
+        JoystickHatDown2,
+        /// <summary>
+        /// Joystick hat 3 down button.
+        /// </summary>
+        JoystickHatDown3,
+        /// <summary>
+        /// Joystick hat 4 down button.
+        /// </summary>
+        JoystickHatDown4,
+
+        /// <summary>
+        /// Indicates the first available joystick hat left button.
+        /// </summary>
+        FirstJoystickHatLeftButton = 6144,
+
+        /// <summary>
+        /// Joystick hat 1 left button.
+        /// </summary>
+        JoystickHatLeft1,
+        /// <summary>
+        /// Joystick hat 2 left button.
+        /// </summary>
+        JoystickHatLeft2,
+        /// <summary>
+        /// Joystick hat 3 left button.
+        /// </summary>
+        JoystickHatLeft3,
+        /// <summary>
+        /// Joystick hat 4 left button.
+        /// </summary>
+        JoystickHatLeft4,
+
+        /// <summary>
+        /// Indicates the first available joystick hat right button.
+        /// </summary>
+        FirstJoystickHatRightButton = 7168,
+
+        /// <summary>
+        /// Joystick hat 1 right button.
+        /// </summary>
+        JoystickHatRight1,
+        /// <summary>
+        /// Joystick hat 2 right button.
+        /// </summary>
+        JoystickHatRight2,
+        /// <summary>
+        /// Joystick hat 3 right button.
+        /// </summary>
+        JoystickHatRight3,
+        /// <summary>
+        /// Joystick hat 4 right button.
+        /// </summary>
+        JoystickHatRight4,
     }
 }
