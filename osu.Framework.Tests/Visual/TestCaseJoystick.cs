@@ -40,7 +40,7 @@ namespace osu.Framework.Tests.Visual
             for (int i = 0; i < 4; i++)
                 hatFlow.Add(new JoystickHatHandler(i));
 
-            for (int i = 0; i < 72; i++)
+            for (int i = 0; i < 64; i++)
                 axisFlow.Add(new JoystickAxisButtonHandler(i));
 
             Child = new FillFlowContainer
@@ -202,7 +202,7 @@ namespace osu.Framework.Tests.Visual
 
             private readonly JoystickButton positiveAxisButton;
             private readonly JoystickButton negativeAxisButton;
-            private SpriteText rawValue;
+            private readonly SpriteText rawValue;
 
             public JoystickAxisButtonHandler(int axisIndex)
             {
