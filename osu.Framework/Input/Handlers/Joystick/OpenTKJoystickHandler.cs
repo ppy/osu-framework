@@ -90,28 +90,13 @@ namespace osu.Framework.Input.Handlers.Joystick
 
         private class OpenTKJoystickState : JoystickState
         {
-            /// <summary>
-            /// Amount of axes supported by OpenTK.
-            /// </summary>
-            private const int max_axes = 64;
-
-            /// <summary>
-            /// Amount of buttons supported by OpenTK.
-            /// </summary>
-            private const int max_buttons = 64;
-
-            /// <summary>
-            /// Amount of hats supported by OpenTK.
-            /// </summary>
-            private const int max_hats = 4;
-
             private const float dead_zone = 0.4f;
 
             public OpenTKJoystickState(JoystickDevice device)
             {
                 // Populate axes
                 var axes = new List<JoystickAxis>();
-                for (int i = 0; i < max_axes; i++)
+                for (int i = 0; i < JoystickDevice.MAX_AXES; i++)
                 {
                     var value = device.State.GetAxis(i);
                     if (!Precision.AlmostEquals(value, 0, dead_zone))
@@ -122,14 +107,14 @@ namespace osu.Framework.Input.Handlers.Joystick
 
                 // Populate normal buttons
                 var buttons = new List<JoystickButton>();
-                for (int i = 0; i < max_buttons; i++)
+                for (int i = 0; i < JoystickDevice.MAX_BUTTONS; i++)
                 {
                     if (device.State.GetButton(i) == ButtonState.Pressed)
                         buttons.Add((JoystickButton)i);
                 }
 
                 // Populate hat buttons
-                for (int i = 0; i < max_hats; i++)
+                for (int i = 0; i < JoystickDevice.MAX_HATS; i++)
                 {
                     foreach (var hatButton in getHatButtons(device, i))
                         buttons.Add(hatButton);
@@ -160,6 +145,21 @@ namespace osu.Framework.Input.Handlers.Joystick
 
         private class JoystickDevice
         {
+            /// <summary>
+            /// Amount of axes supported by OpenTK.
+            /// </summary>
+            public const int MAX_AXES = 64;
+
+            /// <summary>
+            /// Amount of buttons supported by OpenTK.
+            /// </summary>
+            public const int MAX_BUTTONS = 64;
+
+            /// <summary>
+            /// Amount of hats supported by OpenTK.
+            /// </summary>
+            public const int MAX_HATS = 4;
+
             /// <summary>
             /// The last state of this <see cref="JoystickDevice"/>.
             /// This is updated with ever invocation of <see cref="Refresh"/>.
