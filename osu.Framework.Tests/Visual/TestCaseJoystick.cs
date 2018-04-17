@@ -164,13 +164,13 @@ namespace osu.Framework.Tests.Visual
 
             protected override bool OnJoystickPress(InputState state, JoystickEventArgs args)
             {
-                if (args.Button == JoystickButton.HatUp1 + hatIndex)
+                if (args.Button == JoystickButton.FirstHatUp + hatIndex)
                     upBox.FadeIn(100, Easing.OutQuint);
-                else if (args.Button == JoystickButton.HatDown1 + hatIndex)
+                else if (args.Button == JoystickButton.FirstHatDown + hatIndex)
                     downBox.FadeIn(100, Easing.OutQuint);
-                else if (args.Button == JoystickButton.HatLeft1 + hatIndex)
+                else if (args.Button == JoystickButton.FirstHatLeft + hatIndex)
                     leftBox.FadeIn(100, Easing.OutQuint);
-                else if (args.Button == JoystickButton.HatRight1 + hatIndex)
+                else if (args.Button == JoystickButton.FirstHatRight + hatIndex)
                     rightBox.FadeIn(100, Easing.OutQuint);
                 else
                     return base.OnJoystickPress(state, args);
@@ -180,13 +180,13 @@ namespace osu.Framework.Tests.Visual
 
             protected override bool OnJoystickRelease(InputState state, JoystickEventArgs args)
             {
-                if (args.Button == JoystickButton.HatUp1 + hatIndex)
+                if (args.Button == JoystickButton.FirstHatUp + hatIndex)
                     upBox.FadeOut(100);
-                else if (args.Button == JoystickButton.HatDown1 + hatIndex)
+                else if (args.Button == JoystickButton.FirstHatDown + hatIndex)
                     downBox.FadeOut(100);
-                else if (args.Button == JoystickButton.HatLeft1 + hatIndex)
+                else if (args.Button == JoystickButton.FirstHatLeft + hatIndex)
                     leftBox.FadeOut(100);
-                else if (args.Button == JoystickButton.HatRight1 + hatIndex)
+                else if (args.Button == JoystickButton.FirstHatRight + hatIndex)
                     rightBox.FadeOut(100);
                 else
                     return base.OnJoystickRelease(state, args);
@@ -207,8 +207,8 @@ namespace osu.Framework.Tests.Visual
             public JoystickAxisButtonHandler(int axisIndex)
             {
                 this.axisIndex = axisIndex;
-                positiveAxisButton = JoystickButton.AxisPositive1 + axisIndex;
-                negativeAxisButton = JoystickButton.AxisNegative1 + axisIndex;
+                positiveAxisButton = JoystickButton.FirstAxisPositive + axisIndex;
+                negativeAxisButton = JoystickButton.FirstAxisNegative + axisIndex;
 
                 Size = new Vector2(50);
 

@@ -212,10 +212,10 @@ namespace osu.Framework.Input.Bindings
 
         public static InputKey FromJoystickButton(JoystickButton button)
         {
-            if (button >= JoystickButton.AxisPositive1)
-                return InputKey.FirstJoystickAxisPositiveButton + (button - JoystickButton.AxisPositive1);
-            if (button >= JoystickButton.AxisNegative1)
-                return InputKey.FirstJoystickAxisNegativeButton + (button - JoystickButton.AxisNegative1);
+            if (button >= JoystickButton.FirstAxisPositive)
+                return InputKey.FirstJoystickAxisPositiveButton + (button - JoystickButton.FirstAxisPositive);
+            if (button >= JoystickButton.FirstAxisNegative)
+                return InputKey.FirstJoystickAxisNegativeButton + (button - JoystickButton.FirstAxisNegative);
             return InputKey.FirstJoystickButton + (int)button;
         }
 

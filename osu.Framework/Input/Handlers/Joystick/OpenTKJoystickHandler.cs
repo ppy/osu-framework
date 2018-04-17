@@ -120,7 +120,7 @@ namespace osu.Framework.Input.Handlers.Joystick
 
                 // Populate axis buttons (each axis has two buttons)
                 foreach (var axis in Axes)
-                    buttons.Add((axis.Value < 0 ? JoystickButton.AxisNegative1 : JoystickButton.AxisPositive1) + axis.Axis);
+                    buttons.Add((axis.Value < 0 ? JoystickButton.FirstAxisNegative : JoystickButton.FirstAxisPositive) + axis.Axis);
 
                 Buttons = buttons;
             }
@@ -130,14 +130,14 @@ namespace osu.Framework.Input.Handlers.Joystick
                 var state = device.State.GetHat(JoystickHat.Hat0 + hat);
 
                 if (state.IsUp)
-                    yield return JoystickButton.HatUp1 + hat;
+                    yield return JoystickButton.FirstHatUp + hat;
                 else if (state.IsDown)
-                    yield return JoystickButton.HatDown1 + hat;
+                    yield return JoystickButton.FirstHatDown + hat;
 
                 if (state.IsLeft)
-                    yield return JoystickButton.HatLeft1 + hat;
+                    yield return JoystickButton.FirstHatLeft + hat;
                 else if (state.IsRight)
-                    yield return JoystickButton.HatRight1 + hat;
+                    yield return JoystickButton.FirstHatRight + hat;
             }
         }
 
