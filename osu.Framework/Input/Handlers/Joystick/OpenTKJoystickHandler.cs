@@ -162,16 +162,16 @@ namespace osu.Framework.Input.Handlers.Joystick
 
             ~OpenTKJoystickState()
             {
-                Dispose(false);
+                dispose();
             }
 
             public void Dispose()
             {
-                Dispose(true);
+                dispose();
                 GC.SuppressFinalize(this);
             }
 
-            protected virtual void Dispose(bool disposing)
+            private void dispose()
             {
                 if (reservedAxes != null)
                     axis_buffer_stack.FreeBuffer(reservedAxes);
