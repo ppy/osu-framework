@@ -70,7 +70,7 @@ namespace osu.Framework.Testing
         }
 
         [TearDown]
-        public void RunTests() => runner.RunTestFromOtherThread(this);
+        public void RunTests() => runner.RunTestBlocking(this);
 
         /// <summary>
         /// Most derived usages of this start with TestCase. This will be removed for display purposes.

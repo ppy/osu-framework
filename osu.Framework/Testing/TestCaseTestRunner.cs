@@ -20,13 +20,13 @@ namespace osu.Framework.Testing
         }
 
         /// <summary>
-        /// Blocks execution until TestCase runs to completion.
+        /// Blocks execution until a provided <see cref="TestCase"/> runs to completion.
         /// </summary>
-        /// <param name="testCase">The TestCase to run.</param>
-        public void RunTestFromOtherThread(TestCase testCase)
+        /// <param name="test">The <see cref="TestCase"/> to run.</param>
+        public void RunTestBlocking(TestCase test)
         {
             bool completed = false;
-            Schedule(() => runner.RunTest(testCase, () => completed = true));
+            Schedule(() => runner.RunTest(test, () => completed = true));
             while (!completed)
                 Thread.Sleep(10);
         }
@@ -82,10 +82,10 @@ namespace osu.Framework.Testing
                         onCompletion?.Invoke();
                     }, time_between_tests);
                 }, e =>
-
                 {
                     // Other tests may run even if this one failed, so the TestCase still needs to be removed
                     Remove(test);
+                    onCompletion?.Invoke();
                     throw new Exception("The test case threw an exception while running", e);
                 });
             }
