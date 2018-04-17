@@ -121,8 +121,8 @@ namespace osu.Framework.Input.Handlers.Joystick
                 }
 
                 // Populate axis buttons (each axis has two buttons)
-                for (int i = 0; i < Axes.Count; i++)
-                    buttons.Add((Axes[i].Value < 0 ? JoystickButton.AxisNegative1 : JoystickButton.AxisPositive1) + i);
+                foreach (var axis in Axes)
+                    buttons.Add((axis.Value < 0 ? JoystickButton.AxisNegative1 : JoystickButton.AxisPositive1) + axis.Axis);
 
                 Buttons = buttons;
             }
