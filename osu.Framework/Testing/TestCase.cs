@@ -31,17 +31,15 @@ namespace osu.Framework.Testing
         protected virtual TestCaseTestRunner CreateRunner() => new TestCaseTestRunner();
 
         private GameHost host;
-        private Storage storage;
         private Task runTask;
-
         private TestCaseTestRunner runner;
 
         [OneTimeSetUp]
         public void SetupGameHost()
         {
             host = new HeadlessGameHost($"test-{Guid.NewGuid()}", realtime: false);
-            storage = host.Storage;
             runner = CreateRunner();
+
             runTask = Task.Factory.StartNew(() => host.Run(runner), TaskCreationOptions.LongRunning);
         }
 
@@ -50,16 +48,17 @@ namespace osu.Framework.Testing
         {
             host.Exit();
             runTask.Wait();
-            host?.Dispose();
 
             try
             {
                 // clean up after each run
-                storage.DeleteDirectory(string.Empty);
+                host.Storage.DeleteDirectory(string.Empty);
             }
             catch
             {
             }
+
+            host.Dispose();
         }
 
 
