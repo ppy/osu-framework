@@ -66,7 +66,8 @@ namespace osu.Framework.Testing
         [SetUp]
         public void SetupTest()
         {
-            StepsContainer.Clear();
+            if (TestContext.CurrentContext.Test.MethodName != nameof(TestConstructor))
+                StepsContainer.Clear();
         }
 
         [TearDown]
