@@ -73,19 +73,19 @@ namespace osu.Framework.Input.Bindings
         private string getReadableKey(InputKey key)
         {
             if (key >= InputKey.FirstJoystickHatRightButton)
-                return $"Joystick Hat{key - InputKey.FirstJoystickHatRightButton} Right";
+                return $"Joystick Hat {key - InputKey.FirstJoystickHatRightButton} Right";
             if (key >= InputKey.FirstJoystickHatLeftButton)
-                return $"Joystick Hat{key - InputKey.FirstJoystickHatLeftButton} Left";
+                return $"Joystick Hat {key - InputKey.FirstJoystickHatLeftButton} Left";
             if (key >= InputKey.FirstJoystickHatDownButton)
-                return $"Joystick Hat{key - InputKey.FirstJoystickHatDownButton} Down";
+                return $"Joystick Hat {key - InputKey.FirstJoystickHatDownButton} Down";
             if (key >= InputKey.FirstJoystickHatUpButton)
-                return $"Joystick Hat{key - InputKey.FirstJoystickHatUpButton} Up";
+                return $"Joystick Hat {key - InputKey.FirstJoystickHatUpButton} Up";
             if (key >= InputKey.FirstJoystickAxisPositiveButton)
-                return $"Joystick Axis{key - InputKey.FirstJoystickAxisPositiveButton} +";
+                return $"Joystick Axis {key - InputKey.FirstJoystickAxisPositiveButton} +";
             if (key >= InputKey.FirstJoystickAxisNegativeButton)
-                return $"Joystick Axis{key - InputKey.FirstJoystickAxisNegativeButton} -";
+                return $"Joystick Axis {key - InputKey.FirstJoystickAxisNegativeButton} -";
             if (key >= InputKey.FirstJoystickButton)
-                return $"Joystick{key - InputKey.FirstJoystickButton}";
+                return $"Joystick {key - InputKey.FirstJoystickButton}";
 
             switch (key)
             {
