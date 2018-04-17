@@ -90,8 +90,6 @@ namespace osu.Framework.Input.Handlers.Joystick
 
         private class OpenTKJoystickState : JoystickState
         {
-            private const float dead_zone = 0.4f;
-
             public OpenTKJoystickState(JoystickDevice device)
             {
                 // Populate axes
@@ -99,7 +97,7 @@ namespace osu.Framework.Input.Handlers.Joystick
                 for (int i = 0; i < JoystickDevice.MAX_AXES; i++)
                 {
                     var value = device.State.GetAxis(i);
-                    if (!Precision.AlmostEquals(value, 0, dead_zone))
+                    if (!Precision.AlmostEquals(value, 0, device.DefaultDeadzones?[i] ?? Precision.FLOAT_EPSILON))
                         axes.Add(new JoystickAxis(i, value));
                 }
 
@@ -161,6 +159,11 @@ namespace osu.Framework.Input.Handlers.Joystick
             public const int MAX_HATS = 4;
 
             /// <summary>
+            /// Amount of movement around the "centre" of the axis that counts as moving within the deadzone.
+            /// </summary>
+            private const float deadzone_threshold = 0.05f;
+
+            /// <summary>
             /// The last state of this <see cref="JoystickDevice"/>.
             /// This is updated with ever invocation of <see cref="Refresh"/>.
             /// </summary>
@@ -171,6 +174,13 @@ namespace osu.Framework.Input.Handlers.Joystick
             /// Use <see cref="Refresh"/> to update the state.
             /// </summary>
             public OpenTK.Input.JoystickState State { get; private set; }
+
+            private readonly Lazy<float[]> defaultDeadZones = new Lazy<float[]>(() => new float[MAX_AXES]);
+
+            /// <summary>
+            /// Default deadzones for each axis. Can be null if deadzones have not been found.
+            /// </summary>
+            public float[] DefaultDeadzones => defaultDeadZones.IsValueCreated ? defaultDeadZones.Value : null;
 
             /// <summary>
             /// The capabilities for this joystick device.
@@ -202,6 +212,18 @@ namespace osu.Framework.Input.Handlers.Joystick
             {
                 LastState = State;
                 State = OpenTK.Input.Joystick.GetState(deviceIndex);
+
+                if (!defaultDeadZones.IsValueCreated)
+                {
+                    for (int i = 0; i < MAX_AXES; i++)
+                    {
+                        var axisValue = Math.Abs(State.GetAxis(i));
+                        if (Precision.AlmostEquals(0, axisValue))
+                            continue;
+
+                        defaultDeadZones.Value[i] = axisValue + deadzone_threshold;
+                    }
+                }
             }
         }
     }
