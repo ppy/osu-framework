@@ -91,6 +91,13 @@ namespace osu.Framework.Graphics.UserInterface
 
             Current.ValueChanged += newSelection =>
             {
+                if (typeof(T).IsClass && newSelection == null)
+                {
+                    if (SelectedTab != null) SelectedTab.Active.Value = false;
+                    SelectedTab = null;
+                    return;
+                }
+
                 if (IsLoaded)
                     SelectTab(tabMap[Current]);
                 else
