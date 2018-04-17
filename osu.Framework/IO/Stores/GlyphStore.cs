@@ -22,7 +22,25 @@ namespace osu.Framework.IO.Stores
         private const float default_size = 96;
 
         private readonly ResourceStore<byte[]> store;
+
         private BitmapFont font;
+
+        protected BitmapFont Font
+        {
+            get
+            {
+                try
+                {
+                    fontLoadTask?.Wait();
+                }
+                catch
+                {
+                    return null;
+                }
+
+                return font;
+            }
+        }
 
         private readonly TimedExpiryCache<int, RawTexture> texturePages = new TimedExpiryCache<int, RawTexture>();
 
@@ -49,7 +67,7 @@ namespace osu.Framework.IO.Stores
                         font.LoadText(s);
 
                     if (precache)
-                        for (int i = 0; i < font.Pages.Length; i++)
+                        for (int i = 0; i < Font.Pages.Length; i++)
                             getTexturePage(i);
                 }
                 catch
@@ -62,14 +80,15 @@ namespace osu.Framework.IO.Stores
             fontLoadTask = null;
         }
 
-        public bool HasGlyph(char c) => font.Characters.ContainsKey(c);
-        public int GetBaseHeight() => font.BaseHeight;
+        public bool HasGlyph(char c) => Font.Characters.ContainsKey(c);
+        public int GetBaseHeight() => Font.BaseHeight;
+
         public int? GetBaseHeight(string name)
         {
             if (name != fontName)
                 return null;
 
-            return font.BaseHeight;
+            return Font.BaseHeight;
         }
 
         public RawTexture Get(string name)
@@ -189,6 +208,7 @@ namespace osu.Framework.IO.Stores
                 if (store.HasGlyph(c))
                     return store.GetBaseHeight() / ScaleAdjust;
             }
+
             return null;
         }
         public float? GetBaseHeight(string fontName)
@@ -199,6 +219,7 @@ namespace osu.Framework.IO.Stores
                 if (bh.HasValue)
                     return bh.Value / ScaleAdjust;
             }
+
             return null;
         }
     }
