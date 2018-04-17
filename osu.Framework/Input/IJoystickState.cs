@@ -13,12 +13,19 @@ namespace osu.Framework.Input
         IEnumerable<JoystickButton> Buttons { get; }
 
         /// <summary>
-        /// The current values of all axes.
+        /// The current values of all non-zero axes.
         /// </summary>
-        IReadOnlyList<float> Axes { get; }
+        IReadOnlyList<JoystickAxis> Axes { get; }
 
         /// <summary>
-        /// Finds the change in value of a specific axis.
+        /// Finds the current value of an axis.
+        /// </summary>
+        /// <param name="axisIndex">The index of the axis to find the value for.</param>
+        /// <returns>The axis' current value.</returns>
+        float AxisValue(int axisIndex);
+
+        /// <summary>
+        /// Finds the change in value of an axis.
         /// </summary>
         /// <param name="axisIndex">The index of the axis to find the delta for.</param>
         /// <returns>The change from the axis' last value.</returns>

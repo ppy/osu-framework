@@ -240,8 +240,7 @@ namespace osu.Framework.Tests.Visual
                 base.Update();
 
                 var joy = GetContainingInputManager().CurrentState.Joystick;
-                if (joy.Axes.Count > axisIndex)
-                    rawValue.Text = joy.Axes[axisIndex].ToString("0.00");
+                rawValue.Text = joy.AxisValue(axisIndex).ToString("0.00");
             }
 
             protected override bool OnJoystickPress(InputState state, JoystickEventArgs args)

@@ -3,20 +3,17 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace osu.Framework.Input
 {
     public class JoystickState : IJoystickState
     {
         public IEnumerable<JoystickButton> Buttons { get; set; } = Array.Empty<JoystickButton>();
-        public IReadOnlyList<float> Axes { get; set; } = Array.Empty<float>();
+        public IReadOnlyList<JoystickAxis> Axes { get; set; } = Array.Empty<JoystickAxis>();
 
-        public float AxisDelta(int axisIndex)
-        {
-            if (LastState == null)
-                return Axes[axisIndex];
-            return Axes[axisIndex] - LastState.Axes[axisIndex];
-        }
+        public float AxisValue(int axisIndex) => Axes.FirstOrDefault(a => a.Axis == axisIndex).Value;
+        public float AxisDelta(int axisIndex) => AxisValue(axisIndex) - LastState.AxisValue(axisIndex);
 
         private IJoystickState lastState;
         public IJoystickState LastState
@@ -33,7 +30,7 @@ namespace osu.Framework.Input
         {
             var clone = (JoystickState)MemberwiseClone();
             clone.Buttons = new List<JoystickButton>(Buttons);
-            clone.Axes = new List<float>(Axes);
+            clone.Axes = new List<JoystickAxis>(Axes);
             clone.LastState = LastState;
 
             return clone;

@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using osu.Framework.Allocation;
 using osu.Framework.Logging;
 using osu.Framework.MathUtils;
 using osu.Framework.Platform;
@@ -89,7 +88,7 @@ namespace osu.Framework.Input.Handlers.Joystick
         public override bool IsActive => true;
         public override int Priority => 0;
 
-        private class OpenTKJoystickState : JoystickState, IDisposable
+        private class OpenTKJoystickState : JoystickState
         {
             /// <summary>
             /// Amount of axes supported by OpenTK.
@@ -108,19 +107,21 @@ namespace osu.Framework.Input.Handlers.Joystick
 
             private const float dead_zone = 0.4f;
 
-            private static readonly BufferStack<float> axis_buffer_stack = new BufferStack<float>(4);
-
-            private float[] reservedAxes;
-
             public OpenTKJoystickState(JoystickDevice device)
             {
                 // Populate axes
-                Axes = reservedAxes = axis_buffer_stack.ReserveBuffer(max_axes);
+                var axes = new List<JoystickAxis>();
                 for (int i = 0; i < max_axes; i++)
-                    reservedAxes[i] = device.State.GetAxis(i);
+                {
+                    var value = device.State.GetAxis(i);
+                    if (!Precision.AlmostEquals(value, 0, dead_zone))
+                        axes.Add(new JoystickAxis(i, value));
+                }
+
+                Axes = axes;
 
                 // Populate normal buttons
-                List<JoystickButton> buttons = new List<JoystickButton>();
+                var buttons = new List<JoystickButton>();
                 for (int i = 0; i < max_buttons; i++)
                 {
                     if (device.State.GetButton(i) == ButtonState.Pressed)
@@ -136,11 +137,7 @@ namespace osu.Framework.Input.Handlers.Joystick
 
                 // Populate axis buttons (each axis has two buttons)
                 for (int i = 0; i < Axes.Count; i++)
-                {
-                    if (Precision.AlmostEquals(Axes[i], 0, dead_zone))
-                        continue;
-                    buttons.Add((Axes[i] < 0 ? JoystickButton.AxisNegative1 : JoystickButton.AxisPositive1) + i);
-                }
+                    buttons.Add((Axes[i].Value < 0 ? JoystickButton.AxisNegative1 : JoystickButton.AxisPositive1) + i);
 
                 Buttons = buttons;
             }
@@ -158,24 +155,6 @@ namespace osu.Framework.Input.Handlers.Joystick
                     yield return JoystickButton.HatLeft1 + hat;
                 else if (state.IsRight)
                     yield return JoystickButton.HatRight1 + hat;
-            }
-
-            ~OpenTKJoystickState()
-            {
-                dispose();
-            }
-
-            public void Dispose()
-            {
-                dispose();
-                GC.SuppressFinalize(this);
-            }
-
-            private void dispose()
-            {
-                if (reservedAxes != null)
-                    axis_buffer_stack.FreeBuffer(reservedAxes);
-                reservedAxes = null;
             }
         }
 
