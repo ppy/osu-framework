@@ -23,15 +23,9 @@ namespace osu.Framework.Testing
         /// Blocks execution until a provided <see cref="TestCase"/> runs to completion.
         /// </summary>
         /// <param name="test">The <see cref="TestCase"/> to run.</param>
-        public void RunTestBlocking(TestCase test)
-        {
-            bool completed = false;
-            Schedule(() => runner.RunTest(test, () => completed = true));
-            while (!completed)
-                Thread.Sleep(10);
-        }
+        public void RunTestBlocking(TestCase test) => runner.RunTestBlocking(test);
 
-        public class TestRunner : Screen
+        private class TestRunner : Screen
         {
             private const double time_between_tests = 200;
 
@@ -65,29 +59,40 @@ namespace osu.Framework.Testing
                 host.MaximumInactiveHz = int.MaxValue;
             }
 
-            public void RunTest(TestCase test, Action onCompletion)
+            /// <summary>
+            /// Blocks execution until a provided <see cref="TestCase"/> runs to completion.
+            /// </summary>
+            /// <param name="test">The <see cref="TestCase"/> to run.</param>
+            public void RunTestBlocking(TestCase test)
             {
-                Add(test);
-
-                Console.WriteLine($@"{(int)Time.Current}: Running {test} visual test cases...");
-
-                // Nunit will run the tests in the TestCase with the same TestCase instance so the TestCase
-                // needs to be removed before the host is exited, otherwise it will end up disposed
-
-                test.RunAllSteps(() =>
+                bool completed = false;
+                Schedule(() =>
                 {
-                    Scheduler.AddDelayed(() =>
+                    Add(test);
+
+                    Console.WriteLine($@"{(int)Time.Current}: Running {test} visual test cases...");
+
+                    // Nunit will run the tests in the TestCase with the same TestCase instance so the TestCase
+                    // needs to be removed before the host is exited, otherwise it will end up disposed
+
+                    test.RunAllSteps(() =>
                     {
+                        Scheduler.AddDelayed(() =>
+                        {
+                            Remove(test);
+                            completed = true;
+                        }, time_between_tests);
+                    }, e =>
+                    {
+                        // Other tests may run even if this one failed, so the TestCase still needs to be removed
                         Remove(test);
-                        onCompletion?.Invoke();
-                    }, time_between_tests);
-                }, e =>
-                {
-                    // Other tests may run even if this one failed, so the TestCase still needs to be removed
-                    Remove(test);
-                    onCompletion?.Invoke();
-                    throw new Exception("The test case threw an exception while running", e);
+                        completed = true;
+                        throw new Exception("The test case threw an exception while running", e);
+                    });
                 });
+
+                while (!completed)
+                    Thread.Sleep(10);
             }
         }
     }
