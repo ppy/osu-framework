@@ -11,10 +11,14 @@ namespace osu.Framework.Testing
 {
     public class TestCaseTestRunner : Game
     {
-        public TestCaseTestRunner(TestCase testCase)
+        private readonly TestRunner runner;
+
+        public TestCaseTestRunner()
         {
-            Add(new TestRunner(testCase));
+            Add(runner = new TestRunner());
         }
+
+        public void RunTest(TestCase test) => runner.RunTest(test);
 
         public class TestRunner : Screen
         {
@@ -23,13 +27,7 @@ namespace osu.Framework.Testing
             private Bindable<double> volume;
             private double volumeAtStartup;
 
-            private readonly TestCase test;
             private GameHost host;
-
-            public TestRunner(TestCase test)
-            {
-                this.test = test;
-            }
 
             [BackgroundDependencyLoader]
             private void load(GameHost host, FrameworkConfigManager config)
@@ -54,7 +52,10 @@ namespace osu.Framework.Testing
                 host.MaximumDrawHz = int.MaxValue;
                 host.MaximumUpdateHz = int.MaxValue;
                 host.MaximumInactiveHz = int.MaxValue;
+             }
 
+            public void RunTest(TestCase test)
+            {
                 Add(test);
 
                 Console.WriteLine($@"{(int)Time.Current}: Running {test} visual test cases...");
@@ -67,7 +68,6 @@ namespace osu.Framework.Testing
                     Scheduler.AddDelayed(() =>
                     {
                         Remove(test);
-                        host.Exit();
                     }, time_between_tests);
                 }, e =>
                 {
