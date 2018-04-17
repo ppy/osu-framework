@@ -3,7 +3,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using osu.Framework.Allocation;
 using osu.Framework.Logging;
 using osu.Framework.MathUtils;
 using osu.Framework.Platform;
@@ -89,7 +89,7 @@ namespace osu.Framework.Input.Handlers.Joystick
         public override bool IsActive => true;
         public override int Priority => 0;
 
-        private class OpenTKJoystickState : JoystickState
+        private class OpenTKJoystickState : JoystickState, IDisposable
         {
             /// <summary>
             /// Amount of axes supported by OpenTK.
@@ -108,14 +108,33 @@ namespace osu.Framework.Input.Handlers.Joystick
 
             private const float dead_zone = 0.4f;
 
+            private static readonly BufferStack<float> axis_buffer_stack = new BufferStack<float>(4);
+
+            private float[] reservedAxes;
+
             public OpenTKJoystickState(JoystickDevice device)
             {
-                Axes = Enumerable.Range(0, max_axes).Select(i => device.State.GetAxis(i)).ToList();
+                // Populate axes
+                Axes = reservedAxes = axis_buffer_stack.ReserveBuffer(max_axes);
+                for (int i = 0; i < max_axes; i++)
+                    reservedAxes[i] = device.State.GetAxis(i);
 
-                var buttons = Enumerable.Range(0, max_buttons).Where(i => device.State.GetButton(i) == ButtonState.Pressed).Select(i => (JoystickButton)i)
-                                        .Concat(Enumerable.Range(0, max_hats).SelectMany(i => getHatButtons(device, i)))
-                                        .ToList();
+                // Populate normal buttons
+                List<JoystickButton> buttons = new List<JoystickButton>();
+                for (int i = 0; i < max_buttons; i++)
+                {
+                    if (device.State.GetButton(i) == ButtonState.Pressed)
+                        buttons.Add((JoystickButton)i);
+                }
 
+                // Populate hat buttons
+                for (int i = 0; i < max_hats; i++)
+                {
+                    foreach (var hatButton in getHatButtons(device, i))
+                        buttons.Add(hatButton);
+                }
+
+                // Populate axis buttons (each axis has two buttons)
                 for (int i = 0; i < Axes.Count; i++)
                 {
                     if (Precision.AlmostEquals(Axes[i], 0, dead_zone))
@@ -139,6 +158,24 @@ namespace osu.Framework.Input.Handlers.Joystick
                     yield return JoystickButton.HatLeft1 + hat;
                 else if (state.IsRight)
                     yield return JoystickButton.HatRight1 + hat;
+            }
+
+            ~OpenTKJoystickState()
+            {
+                Dispose(false);
+            }
+
+            public void Dispose()
+            {
+                Dispose(true);
+                GC.SuppressFinalize(this);
+            }
+
+            protected virtual void Dispose(bool disposing)
+            {
+                if (reservedAxes != null)
+                    axis_buffer_stack.FreeBuffer(reservedAxes);
+                reservedAxes = null;
             }
         }
 
