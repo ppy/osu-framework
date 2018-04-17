@@ -28,7 +28,7 @@ namespace osu.Framework.Testing
 
         protected override Container<Drawable> Content => content;
 
-        private bool mainTest = true;
+        protected virtual TestCaseTestRunner CreateRunner() => new TestCaseTestRunner();
 
         private GameHost host;
         private Storage storage;
@@ -41,7 +41,7 @@ namespace osu.Framework.Testing
         {
             host = new HeadlessGameHost($"test-{Guid.NewGuid()}", realtime: false);
             storage = host.Storage;
-            runner = new TestCaseTestRunner();
+            runner = CreateRunner();
             runTask = Task.Factory.StartNew(() => host.Run(runner), TaskCreationOptions.LongRunning);
         }
 
@@ -55,7 +55,7 @@ namespace osu.Framework.Testing
             try
             {
                 // clean up after each run
-                //storage.DeleteDirectory(string.Empty);
+                storage.DeleteDirectory(string.Empty);
             }
             catch
             {
@@ -94,7 +94,6 @@ namespace osu.Framework.Testing
         [Test, Order(int.MinValue)]
         public void TestConstructor()
         {
-            mainTest = false;
         }
 
         protected TestCase()

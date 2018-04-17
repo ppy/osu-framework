@@ -29,10 +29,6 @@ namespace osu.Framework.Testing
 
             private GameHost host;
 
-            public TestRunner()
-            {
-            }
-
             [BackgroundDependencyLoader]
             private void load(GameHost host, FrameworkConfigManager config)
             {

@@ -9,12 +9,10 @@ namespace osu.Framework.Tests.Visual
 {
     public abstract class FrameworkTestCase : TestCase
     {
+        protected override TestCaseTestRunner CreateRunner() => new FrameworkTestCaseTestRunner();
+
         private class FrameworkTestCaseTestRunner : TestCaseTestRunner
         {
-            public FrameworkTestCaseTestRunner(TestCase testCase)
-            {
-            }
-
             [BackgroundDependencyLoader]
             private void load()
             {
