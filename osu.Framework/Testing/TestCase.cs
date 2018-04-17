@@ -15,6 +15,8 @@ using osu.Framework.Testing.Drawables.Steps;
 using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Graphics;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace osu.Framework.Testing
 {
@@ -28,6 +30,39 @@ namespace osu.Framework.Testing
 
         private bool mainTest = true;
 
+        private GameHost host;
+        private Storage storage;
+        private Task runTask;
+
+        private TestCaseTestRunner runner;
+
+        [OneTimeSetUp]
+        public void SetupGameHost()
+        {
+            host = new HeadlessGameHost($"test-{Guid.NewGuid()}", realtime: false);
+            storage = host.Storage;
+            runner = new TestCaseTestRunner();
+            runTask = Task.Factory.StartNew(() => host.Run(runner), TaskCreationOptions.LongRunning);
+        }
+
+        [OneTimeTearDown]
+        public void DestroyGameHost()
+        {
+            host.Exit();
+            runTask.Wait();
+            host?.Dispose();
+
+            try
+            {
+                // clean up after each run
+                //storage.DeleteDirectory(string.Empty);
+            }
+            catch
+            {
+            }
+        }
+
+
         /// <summary>
         /// Runs prior to all tests except <see cref="TestConstructor"/> to ensure that the <see cref="TestCase"/>
         /// is reverted to a clean state for all tests.
@@ -35,33 +70,16 @@ namespace osu.Framework.Testing
         [SetUp]
         public void SetupTest()
         {
-            if (!mainTest)
-                StepsContainer.Clear();
+            StepsContainer.Clear();
         }
 
-        /// <summary>
-        /// Ensures that the NUnit test runs correctly by running a <see cref="HeadlessGameHost"/>.
-        /// This runs during NUnit's TearDown to ensure that <see cref="TestCase"/> steps (e.g. from <see cref="AddStep(string, Action)"/>)
-        /// are properly added and executed.
-        /// </summary>
         [TearDown]
-        public virtual void RunTest()
+        public void RunTests()
         {
-            Storage storage;
-            using (var host = new HeadlessGameHost($"test-{Guid.NewGuid()}", realtime: false))
-            {
-                storage = host.Storage;
-                host.Run(new TestCaseTestRunner(this));
-            }
+            var task = runner.Schedule(() => runner.RunTest(this));
 
-            try
-            {
-                // clean up after each run
-                storage.DeleteDirectory(string.Empty);
-            }
-            catch
-            {
-            }
+            while (!task.Completed || IsPartOfComposite)
+                Thread.Sleep(10);
         }
 
         /// <summary>

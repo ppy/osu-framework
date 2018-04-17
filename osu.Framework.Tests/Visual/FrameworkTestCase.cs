@@ -3,23 +3,15 @@
 
 using osu.Framework.Allocation;
 using osu.Framework.IO.Stores;
-using osu.Framework.Platform;
 using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual
 {
     public abstract class FrameworkTestCase : TestCase
     {
-        public override void RunTest()
-        {
-            using (var host = new HeadlessGameHost())
-                host.Run(new FrameworkTestCaseTestRunner(this));
-        }
-
         private class FrameworkTestCaseTestRunner : TestCaseTestRunner
         {
             public FrameworkTestCaseTestRunner(TestCase testCase)
-                : base(testCase)
             {
             }
 
