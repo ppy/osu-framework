@@ -15,6 +15,8 @@ using osu.Framework.Testing.Drawables.Steps;
 using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Graphics;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace osu.Framework.Testing
 {
@@ -26,33 +28,29 @@ namespace osu.Framework.Testing
 
         protected override Container<Drawable> Content => content;
 
-        private bool mainTest = true;
+        protected virtual TestCaseTestRunner CreateRunner() => new TestCaseTestRunner();
 
-        /// <summary>
-        /// Runs prior to all tests except <see cref="TestConstructor"/> to ensure that the <see cref="TestCase"/>
-        /// is reverted to a clean state for all tests.
-        /// </summary>
-        [SetUp]
-        public void SetupTest()
+        private GameHost host;
+        private Storage storage;
+        private Task runTask;
+
+        private TestCaseTestRunner runner;
+
+        [OneTimeSetUp]
+        public void SetupGameHost()
         {
-            if (!mainTest)
-                StepsContainer.Clear();
+            host = new HeadlessGameHost($"test-{Guid.NewGuid()}", realtime: false);
+            storage = host.Storage;
+            runner = CreateRunner();
+            runTask = Task.Factory.StartNew(() => host.Run(runner), TaskCreationOptions.LongRunning);
         }
 
-        /// <summary>
-        /// Ensures that the NUnit test runs correctly by running a <see cref="HeadlessGameHost"/>.
-        /// This runs during NUnit's TearDown to ensure that <see cref="TestCase"/> steps (e.g. from <see cref="AddStep(string, Action)"/>)
-        /// are properly added and executed.
-        /// </summary>
-        [TearDown]
-        public virtual void RunTest()
+        [OneTimeTearDown]
+        public void DestroyGameHost()
         {
-            Storage storage;
-            using (var host = new HeadlessGameHost($"test-{Guid.NewGuid()}", realtime: false))
-            {
-                storage = host.Storage;
-                host.Run(new TestCaseTestRunner(this));
-            }
+            host.Exit();
+            runTask.Wait();
+            host?.Dispose();
 
             try
             {
@@ -62,6 +60,26 @@ namespace osu.Framework.Testing
             catch
             {
             }
+        }
+
+
+        /// <summary>
+        /// Runs prior to all tests except <see cref="TestConstructor"/> to ensure that the <see cref="TestCase"/>
+        /// is reverted to a clean state for all tests.
+        /// </summary>
+        [SetUp]
+        public void SetupTest()
+        {
+            StepsContainer.Clear();
+        }
+
+        [TearDown]
+        public void RunTests()
+        {
+            var task = runner.Schedule(() => runner.RunTest(this));
+
+            while (!task.Completed || IsPartOfComposite)
+                Thread.Sleep(10);
         }
 
         /// <summary>
@@ -74,7 +92,9 @@ namespace osu.Framework.Testing
         /// This test must run before any other tests, as it relies on <see cref="StepsContainer"/> not being cleared and not having any elements.
         /// </summary>
         [Test, Order(int.MinValue)]
-        public void TestConstructor() { mainTest = false; }
+        public void TestConstructor()
+        {
+        }
 
         protected TestCase()
         {
