@@ -42,11 +42,6 @@ namespace osu.Framework.Platform
 
         private FrameworkDebugConfigManager debugConfig;
 
-        internal void Run(object p)
-        {
-            throw new NotImplementedException();
-        }
-
         private FrameworkConfigManager config;
 
         public LocalisationEngine Localisation { get; private set; }

@@ -48,6 +48,7 @@ namespace osu.Framework.Testing
         {
             host.Exit();
             runTask.Wait();
+            host.Dispose();
 
             try
             {
@@ -57,8 +58,6 @@ namespace osu.Framework.Testing
             catch
             {
             }
-
-            host.Dispose();
         }
 
 
