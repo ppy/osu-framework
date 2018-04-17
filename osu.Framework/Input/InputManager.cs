@@ -889,7 +889,7 @@ namespace osu.Framework.Input
                             yield return newState;
                         }
 
-                    foreach (var pressedKey in state.Keyboard.Keys.Except(lastKeyboard?.Keys ?? new Key[] { }))
+                    foreach (var pressedKey in state.Keyboard.Keys.Except(lastKeyboard?.Keys ?? Array.Empty<Key>()))
                     {
                         var newState = state.Clone();
                         newState.Keyboard = lastKeyboard = new KeyboardState { Keys = lastKeyboard?.Keys.Union(new[] { pressedKey }) ?? new[] { pressedKey } };
@@ -925,7 +925,7 @@ namespace osu.Framework.Input
                             yield return newState;
                         }
 
-                    foreach (var pressedButton in state.Joystick.Buttons.Except(lastJoystick?.Buttons ?? new JoystickButton[] { }))
+                    foreach (var pressedButton in state.Joystick.Buttons.Except(lastJoystick?.Buttons ?? Array.Empty<JoystickButton>()))
                     {
                         var newState = state.Clone();
                         newState.Joystick = lastJoystick = new JoystickState

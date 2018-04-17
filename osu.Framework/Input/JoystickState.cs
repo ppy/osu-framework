@@ -1,15 +1,15 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
 using System.Collections.Generic;
 
 namespace osu.Framework.Input
 {
     public class JoystickState : IJoystickState
     {
-        public IEnumerable<JoystickButton> Buttons { get; set; } = new List<JoystickButton>();
-
-        public IReadOnlyList<float> Axes { get; set; } = new List<float>();
+        public IEnumerable<JoystickButton> Buttons { get; set; } = Array.Empty<JoystickButton>();
+        public IReadOnlyList<float> Axes { get; set; } = Array.Empty<float>();
 
         public float AxisDelta(int axisIndex)
         {
