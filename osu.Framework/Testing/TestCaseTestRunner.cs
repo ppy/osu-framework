@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Threading;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
 using osu.Framework.Platform;
@@ -18,7 +19,17 @@ namespace osu.Framework.Testing
             Add(runner = new TestRunner());
         }
 
-        public void RunTest(TestCase test) => runner.RunTest(test);
+        /// <summary>
+        /// Blocks execution until TestCase runs to completion.
+        /// </summary>
+        /// <param name="testCase">The TestCase to run.</param>
+        public void RunTestFromOtherThread(TestCase testCase)
+        {
+            bool completed = false;
+            Schedule(() => runner.RunTest(testCase, () => completed = true));
+            while (!completed)
+                Thread.Sleep(10);
+        }
 
         public class TestRunner : Screen
         {
@@ -52,9 +63,9 @@ namespace osu.Framework.Testing
                 host.MaximumDrawHz = int.MaxValue;
                 host.MaximumUpdateHz = int.MaxValue;
                 host.MaximumInactiveHz = int.MaxValue;
-             }
+            }
 
-            public void RunTest(TestCase test)
+            public void RunTest(TestCase test, Action onCompletion)
             {
                 Add(test);
 
@@ -68,8 +79,10 @@ namespace osu.Framework.Testing
                     Scheduler.AddDelayed(() =>
                     {
                         Remove(test);
+                        onCompletion?.Invoke();
                     }, time_between_tests);
                 }, e =>
+
                 {
                     // Other tests may run even if this one failed, so the TestCase still needs to be removed
                     Remove(test);

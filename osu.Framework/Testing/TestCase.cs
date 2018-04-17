@@ -16,7 +16,6 @@ using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Graphics;
 using System.Threading.Tasks;
-using System.Threading;
 
 namespace osu.Framework.Testing
 {
@@ -60,7 +59,6 @@ namespace osu.Framework.Testing
             }
         }
 
-
         /// <summary>
         /// Runs prior to all tests except <see cref="TestConstructor"/> to ensure that the <see cref="TestCase"/>
         /// is reverted to a clean state for all tests.
@@ -72,13 +70,7 @@ namespace osu.Framework.Testing
         }
 
         [TearDown]
-        public void RunTests()
-        {
-            var task = runner.Schedule(() => runner.RunTest(this));
-
-            while (!task.Completed || IsPartOfComposite)
-                Thread.Sleep(10);
-        }
+        public void RunTests() => runner.RunTestFromOtherThread(this);
 
         /// <summary>
         /// Most derived usages of this start with TestCase. This will be removed for display purposes.
