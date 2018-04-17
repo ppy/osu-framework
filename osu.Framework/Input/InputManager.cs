@@ -896,6 +896,19 @@ namespace osu.Framework.Input
 
                 if (state.Joystick != null)
                 {
+                    // Push a state for the axes
+                    if (lastJoystick != null)
+                    {
+                        var newState = state.Clone();
+                        newState.Joystick = lastJoystick = new JoystickState
+                        {
+                            Axes = state.Joystick.Axes,
+                            Buttons = lastJoystick.Buttons
+                        };
+
+                        yield return newState;
+                    }
+
                     if (lastJoystick != null)
                         foreach (var releasedButton in lastJoystick.Buttons.Except(state.Joystick.Buttons))
                         {
