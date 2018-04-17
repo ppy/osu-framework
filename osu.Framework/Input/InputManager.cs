@@ -440,8 +440,11 @@ namespace osu.Framework.Input
 
             foreach (var b in joystick.Buttons)
             {
-                LastActionTime = Time.Current;
-                handleJoystickPress(state, b);
+                if (!last.Buttons.Contains(b))
+                {
+                    LastActionTime = Time.Current;
+                    handleJoystickPress(state, b);
+                }
             }
         }
 
