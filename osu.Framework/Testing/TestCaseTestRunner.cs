@@ -66,6 +66,16 @@ namespace osu.Framework.Testing
             public void RunTestBlocking(TestCase test)
             {
                 bool completed = false;
+
+                void complete()
+                {
+                    // We want to remove the TestCase from the hierarchy on completion as under nUnit, it may have operations run on it from a different thread.
+                    // This is because nUnit will reuse the same class multiple times, running a different [Test] method each time, while the GameHost
+                    // is run from its own asynchronous thread.
+                    Remove(test);
+                    completed = true;
+                }
+
                 Schedule(() =>
                 {
                     Add(test);
@@ -77,16 +87,10 @@ namespace osu.Framework.Testing
 
                     test.RunAllSteps(() =>
                     {
-                        Scheduler.AddDelayed(() =>
-                        {
-                            Remove(test);
-                            completed = true;
-                        }, time_between_tests);
+                        Scheduler.AddDelayed(complete, time_between_tests);
                     }, e =>
                     {
-                        // Other tests may run even if this one failed, so the TestCase still needs to be removed
-                        Remove(test);
-                        completed = true;
+                        complete();
                         throw new Exception("The test case threw an exception while running", e);
                     });
                 });
