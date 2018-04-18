@@ -32,12 +32,12 @@ namespace osu.Framework.Testing
         private GameHost host;
         private Task runTask;
         private ITestCaseTestRunner runner;
-        private bool isUnitTestRunning;
+        private bool isNUnitRunning;
 
         [OneTimeSetUp]
         public void SetupGameHost()
         {
-            isUnitTestRunning = true;
+            isNUnitRunning = true;
 
             host = new HeadlessGameHost($"test-{Guid.NewGuid()}", realtime: false);
             runner = CreateRunner();
@@ -72,7 +72,7 @@ namespace osu.Framework.Testing
         [SetUp]
         public void SetupTest()
         {
-            if (isUnitTestRunning && TestContext.CurrentContext.Test.MethodName != nameof(TestConstructor))
+            if (isNUnitRunning && TestContext.CurrentContext.Test.MethodName != nameof(TestConstructor))
                 StepsContainer.Clear();
         }
 
