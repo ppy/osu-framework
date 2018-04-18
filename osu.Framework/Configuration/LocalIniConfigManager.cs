@@ -102,6 +102,5 @@ namespace osu.Framework.Configuration
             {
             }
         }
-
     }
 }

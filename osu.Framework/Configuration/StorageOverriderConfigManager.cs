@@ -55,5 +55,4 @@ namespace osu.Framework.Configuration
     {
         Path
     }
-
 }
