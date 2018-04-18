@@ -72,7 +72,7 @@ namespace osu.Framework.IO.Stores
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log($"Couldn't load font asset from {assetName}: {ex.Message}");
+                    Logger.Error(ex, $"Couldn't load font asset from {assetName}.");
                     throw;
                 }
             });
