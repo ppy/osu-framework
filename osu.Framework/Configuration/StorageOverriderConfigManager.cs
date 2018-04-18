@@ -7,34 +7,32 @@ namespace osu.Framework.Configuration
 {
     class StorageOverriderConfigManager : LocalIniConfigManager<StorageConfig>
     {
-        
         protected override void InitialiseDefaults()
         {
 
             switch (RuntimeInfo.OS)
             {
                 case RuntimeInfo.Platform.MacOsx:
-                    Set(StorageConfig.Path, Path.Combine(GetLinuxMacDefaultFolder(), "osu!lazer"));
+                    Set(StorageConfig.Path, Path.Combine(getLinuxMacDefaultFolder(), "osu!lazer"));
                     break;
                 case RuntimeInfo.Platform.Linux:
-                    Set(StorageConfig.Path, Path.Combine(GetLinuxMacDefaultFolder(), "osu!lazer"));
+                    Set(StorageConfig.Path, Path.Combine(getLinuxMacDefaultFolder(), "osu!lazer"));
                     break;
                 case RuntimeInfo.Platform.Windows:
-                    Set(StorageConfig.Path, Path.Combine(GetWindowsDefaultFolder(), "osu!lazer"));
+                    Set(StorageConfig.Path, Path.Combine(getWindowsDefaultFolder(), "osu!lazer"));
                     break;
                 default:
                     throw new InvalidOperationException($"Could not find a suitable default path for the selected operating system ({Enum.GetName(typeof(RuntimeInfo.Platform), RuntimeInfo.OS)}).");
             }
-
             
         }
 
-        private String GetWindowsDefaultFolder()
+        private String getWindowsDefaultFolder()
         {
             return Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         }
 
-        private String GetLinuxMacDefaultFolder()
+        private String getLinuxMacDefaultFolder()
         {
             string home = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
             string xdg = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
