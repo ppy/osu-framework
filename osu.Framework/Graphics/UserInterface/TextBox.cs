@@ -616,6 +616,12 @@ namespace osu.Framework.Graphics.UserInterface
             return false;
         }
 
+        protected override bool OnKeyUp(InputState state, KeyUpEventArgs args)
+        {
+            HandlePendingText(state);
+            return base.OnKeyUp(state, args);
+        }
+
         protected override bool OnDrag(InputState state)
         {
             //if (textInput?.ImeActive == true) return true;
