@@ -9,7 +9,7 @@ namespace osu.Framework.Tests.Visual
 {
     public abstract class FrameworkTestCase : TestCase
     {
-        protected override TestCaseTestRunner CreateRunner() => new FrameworkTestCaseTestRunner();
+        protected override ITestCaseTestRunner CreateRunner() => new FrameworkTestCaseTestRunner();
 
         private class FrameworkTestCaseTestRunner : TestCaseTestRunner
         {

@@ -27,11 +27,11 @@ namespace osu.Framework.Testing
 
         protected override Container<Drawable> Content => content;
 
-        protected virtual TestCaseTestRunner CreateRunner() => new TestCaseTestRunner();
+        protected virtual ITestCaseTestRunner CreateRunner() => new TestCaseTestRunner();
 
         private GameHost host;
         private Task runTask;
-        private TestCaseTestRunner runner;
+        private ITestCaseTestRunner runner;
 
         [OneTimeSetUp]
         public void SetupGameHost()
@@ -39,7 +39,10 @@ namespace osu.Framework.Testing
             host = new HeadlessGameHost($"test-{Guid.NewGuid()}", realtime: false);
             runner = CreateRunner();
 
-            runTask = Task.Factory.StartNew(() => host.Run(runner), TaskCreationOptions.LongRunning);
+            if (!(runner is Game game))
+                throw new InvalidCastException($"The test runner must be a {nameof(Game)}.");
+
+            runTask = Task.Factory.StartNew(() => host.Run(game), TaskCreationOptions.LongRunning);
         }
 
         [OneTimeTearDown]

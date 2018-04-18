@@ -10,7 +10,7 @@ using osu.Framework.Screens;
 
 namespace osu.Framework.Testing
 {
-    public class TestCaseTestRunner : Game
+    public class TestCaseTestRunner : Game, ITestCaseTestRunner
     {
         private readonly TestRunner runner;
 
@@ -25,7 +25,7 @@ namespace osu.Framework.Testing
         /// <param name="test">The <see cref="TestCase"/> to run.</param>
         public void RunTestBlocking(TestCase test) => runner.RunTestBlocking(test);
 
-        private class TestRunner : Screen
+        public class TestRunner : Screen
         {
             private const double time_between_tests = 200;
 
@@ -99,5 +99,14 @@ namespace osu.Framework.Testing
                     Thread.Sleep(10);
             }
         }
+    }
+
+    public interface ITestCaseTestRunner
+    {
+        /// <summary>
+        /// Blocks execution until a provided <see cref="TestCase"/> runs to completion.
+        /// </summary>
+        /// <param name="test">The <see cref="TestCase"/> to run.</param>
+        void RunTestBlocking(TestCase test);
     }
 }
