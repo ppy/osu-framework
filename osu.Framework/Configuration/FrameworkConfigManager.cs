@@ -34,7 +34,7 @@ namespace osu.Framework.Configuration
             Set(FrameworkSetting.FrameSync, FrameSync.Limit2x);
             Set(FrameworkSetting.WindowMode, WindowMode.Windowed);
             Set(FrameworkSetting.ShowUnicode, false);
-            Set(FrameworkSetting.IgnoredInputHandler, string.Empty);
+            Set(FrameworkSetting.IgnoredInputHandlers, string.Empty);
             Set(FrameworkSetting.CursorSensitivity, 1.0, 0.1, 6, 0.01);
             Set(FrameworkSetting.Locale, string.Empty);
             Set(FrameworkSetting.PerformanceLogging, false);
@@ -53,7 +53,7 @@ namespace osu.Framework.Configuration
             new TrackedSetting<int>(FrameworkSetting.Width, v => createResolutionDescription()),
             new TrackedSetting<int>(FrameworkSetting.Height, v => createResolutionDescription()),
             new TrackedSetting<double>(FrameworkSetting.CursorSensitivity, v => new SettingDescription(v, "Cursor Sensitivity", v.ToString(@"0.##x"), "Ctrl+Alt+R to reset")),
-            new TrackedSetting<string>(FrameworkSetting.IgnoredInputHandler, v =>
+            new TrackedSetting<string>(FrameworkSetting.IgnoredInputHandlers, v =>
             {
                 bool raw = !v.Contains("Raw");
                 return new SettingDescription(raw, "Raw Input", raw ? "enabled" : "disabled", "Ctrl+Alt+R to reset");
@@ -90,7 +90,7 @@ namespace osu.Framework.Configuration
 
         ShowUnicode,
         Locale,
-        IgnoredInputHandler,
+        IgnoredInputHandlers,
         CursorSensitivity,
         MapAbsoluteInputToWindow,
 
