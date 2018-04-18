@@ -181,7 +181,6 @@ namespace osu.Framework.Platform
 
         private class UserStorage : DesktopStorage
         {
-
             private StorageOverriderConfigManager configManager = new StorageOverriderConfigManager();
 
             protected override string LocateBasePath()

@@ -49,8 +49,6 @@ namespace osu.Framework.Configuration
 
             return paths[0];
         }
-       
-
     }
 
     public enum StorageConfig
