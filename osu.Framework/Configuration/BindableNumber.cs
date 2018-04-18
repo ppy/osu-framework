@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using OpenTK;
 
 namespace osu.Framework.Configuration
 {
@@ -305,10 +304,7 @@ namespace osu.Framework.Configuration
             var max = Convert.ToDouble(MaxValue);
             var value = min + (max - min) * amt;
             if (snap > 0)
-            {
-                var floor = Math.Floor(value / snap) * snap;
-                value = MathHelper.Clamp(value - floor < snap / 2f ? floor : floor + snap, min, max);
-            }
+                value = Math.Round(value / snap) * snap;
             Set(value);
         }
 
