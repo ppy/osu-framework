@@ -680,7 +680,11 @@ namespace osu.Framework.Graphics.Containers
         /// A flattened <see cref="CompositeDrawable"/> has its <see cref="DrawNode"/> merged into its parents'.
         /// In some cases, the <see cref="DrawNode"/> must always be generated and flattening should not occur.
         /// </summary>
-        protected virtual bool CanBeFlattened => !Masking && !HasProxy;
+        protected virtual bool CanBeFlattened =>
+            // Masking composite DrawNodes define the masking area for their children
+            !Masking
+            // Proxied drawables have their DrawNodes drawn elsewhere in the scene graph
+            && !HasProxy;
 
         private const int amount_children_required_for_masking_check = 2;
 
