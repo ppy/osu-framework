@@ -13,24 +13,7 @@ namespace osu.Framework.Platform.Windows
 
         public override Clipboard GetClipboard() => new WindowsClipboard();
 
-        protected override Storage GetStorage(string baseName) => new UserStorage();
-
-        private class UserStorage : DesktopStorage
-        {
-
-            private StorageOverriderConfigManager configManager = new StorageOverriderConfigManager();
-
-            protected override string LocateBasePath()
-            {
-                return this.configManager.Get<string>(StorageConfig.Path);
-            }
-
-            public UserStorage()
-                : base(string.Empty)
-            {
-                this.configManager.Load();
-            }
-        }
+        protected override Storage GetStorage(string baseName) => null;
 
 
         public override bool CapsLockEnabled => Console.CapsLock;

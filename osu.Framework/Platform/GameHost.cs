@@ -155,7 +155,7 @@ namespace osu.Framework.Platform
             FileSafety.DeleteCleanupDirectory();
 
             Dependencies.CacheAs(this);
-            Dependencies.CacheAs(Storage = GetStorage(gameName));
+            Dependencies.CacheAs(Storage = new UserStorage());
 
             Name = gameName;
             Logger.GameIdentifier = gameName;
@@ -177,6 +177,23 @@ namespace osu.Framework.Platform
             var path = Path.GetDirectoryName(FullPath);
             if (path != null)
                 Environment.CurrentDirectory = path;
+        }
+
+        private class UserStorage : DesktopStorage
+        {
+
+            private StorageOverriderConfigManager configManager = new StorageOverriderConfigManager();
+
+            protected override string LocateBasePath()
+            {
+                return this.configManager.Get<string>(StorageConfig.Path);
+            }
+
+            public UserStorage()
+                : base(string.Empty)
+            {
+                this.configManager.Load();
+            }
         }
 
         private void exceptionHandler(object sender, UnhandledExceptionEventArgs e)
