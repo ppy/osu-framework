@@ -676,6 +676,10 @@ namespace osu.Framework.Graphics.Containers
             base.ApplyDrawNode(node);
         }
 
+        /// <summary>
+        /// A flattened <see cref="CompositeDrawable"/> has its <see cref="DrawNode"/> merged into its parents'.
+        /// In some cases, the <see cref="DrawNode"/> must always be generated and flattening should not occur.
+        /// </summary>
         protected virtual bool CanBeFlattened => !Masking && !HasProxy;
 
         private const int amount_children_required_for_masking_check = 2;
