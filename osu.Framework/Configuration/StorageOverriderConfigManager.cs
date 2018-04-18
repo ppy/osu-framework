@@ -24,7 +24,6 @@ namespace osu.Framework.Configuration
                 default:
                     throw new InvalidOperationException($"Could not find a suitable default path for the selected operating system ({Enum.GetName(typeof(RuntimeInfo.Platform), RuntimeInfo.OS)}).");
             }
-            
         }
 
         private String getWindowsDefaultFolder()
