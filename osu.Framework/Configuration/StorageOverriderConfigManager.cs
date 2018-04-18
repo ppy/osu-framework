@@ -1,0 +1,61 @@
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text;
+
+namespace osu.Framework.Configuration
+{
+    class StorageOverriderConfigManager : LocalIniConfigManager<StorageConfig>
+    {
+        protected override void InitialiseDefaults()
+        {
+
+            switch (RuntimeInfo.OS)
+            {
+                case RuntimeInfo.Platform.MacOsx:
+                    Set(StorageConfig.Path, Path.Combine(getLinuxMacDefaultFolder(), "osu!lazer"));
+                    break;
+                case RuntimeInfo.Platform.Linux:
+                    Set(StorageConfig.Path, Path.Combine(getLinuxMacDefaultFolder(), "osu!lazer"));
+                    break;
+                case RuntimeInfo.Platform.Windows:
+                    Set(StorageConfig.Path, Path.Combine(getWindowsDefaultFolder(), "osu!lazer"));
+                    break;
+                default:
+                    throw new InvalidOperationException($"Could not find a suitable default path for the selected operating system ({Enum.GetName(typeof(RuntimeInfo.Platform), RuntimeInfo.OS)}).");
+            }
+        }
+
+        private String getWindowsDefaultFolder()
+        {
+            return Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        }
+
+        private String getLinuxMacDefaultFolder()
+        {
+            string home = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+            string xdg = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
+            string[] paths =
+            {
+                xdg ?? Path.Combine(home, ".local", "share"),
+                Path.Combine(home)
+            };
+
+            foreach (string path in paths)
+            {
+                if (Directory.Exists(path))
+                    return path;
+            }
+
+            return paths[0];
+        }
+    }
+
+    public enum StorageConfig
+    {
+        Path
+    }
+}

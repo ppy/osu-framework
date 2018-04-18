@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using osu.Framework.Configuration;
 using osu.Framework.Platform.Windows.Native;
 
 namespace osu.Framework.Platform.Windows
@@ -13,6 +14,7 @@ namespace osu.Framework.Platform.Windows
         public override Clipboard GetClipboard() => new WindowsClipboard();
 
         protected override Storage GetStorage(string baseName) => new WindowsStorage(baseName);
+
 
         public override bool CapsLockEnabled => Console.CapsLock;
 
