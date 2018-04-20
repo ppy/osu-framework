@@ -11,30 +11,42 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Tests.Visual
 {
-    public class TestCaseProxyDrawables : GridTestCase
+    public class TestCaseProxyDrawables : TestCase
     {
         public TestCaseProxyDrawables()
-            : base(4, 4)
         {
-            Cell(0, 0).Child = generateProxyAboveAllPresentTest(1);
-            Cell(0, 1).Child = generateProxyBelowAllPresentTest(1);
-            Cell(0, 2).Child = generateProxyAboveAllPresentTest(6);
-            Cell(0, 3).Child = generateProxyBelowAllPresentTest(6);
-
-            Cell(1, 0).Child = generateProxyAboveOriginalMaskedAway(1);
-            Cell(1, 1).Child = generateProxyBelowOriginalMaskedAway(1);
-            Cell(1, 2).Child = generateProxyAboveOriginalMaskedAway(6);
-            Cell(1, 3).Child = generateProxyBelowOriginalMaskedAway(6);
-
-            Cell(2, 0).Child = generateProxyAboveBoxParentNotPresent(1);
-            Cell(2, 1).Child = generateProxyBelowBoxParentNotPresent(1);
-            Cell(2, 2).Child = generateProxyAboveBoxParentNotPresent(6);
-            Cell(2, 3).Child = generateProxyBelowBoxParentNotPresent(6);
-
-            Cell(3, 0).Child = generateProxyAboveBoxParentNotAlive(1);
-            Cell(3, 1).Child = generateProxyBelowBoxParentNotAlive(1);
-            Cell(3, 2).Child = generateProxyAboveBoxParentNotAlive(6);
-            Cell(3, 3).Child = generateProxyBelowBoxParentNotAlive(6);
+            Child = new ScrollContainer
+            {
+                RelativeSizeAxes = Axes.Both,
+                Child = new FillFlowContainer
+                {
+                    RelativeSizeAxes = Axes.X,
+                    AutoSizeAxes = Axes.Y,
+                    Children = new[]
+                    {
+                        generateProxyAboveAllPresentTest(1),
+                        generateProxyBelowAllPresentTest(1),
+                        generateProxyAboveAllPresentTest(6),
+                        generateProxyBelowAllPresentTest(6),
+                        generateProxyAboveOriginalMaskedAway(1),
+                        generateProxyBelowOriginalMaskedAway(1),
+                        generateProxyAboveOriginalMaskedAway(6),
+                        generateProxyBelowOriginalMaskedAway(6),
+                        generateProxyAboveBoxParentNotPresent(1),
+                        generateProxyBelowBoxParentNotPresent(1),
+                        generateProxyAboveBoxParentNotPresent(6),
+                        generateProxyBelowBoxParentNotPresent(6),
+                        generateProxyAboveBoxParentNotAlive(1),
+                        generateProxyBelowBoxParentNotAlive(1),
+                        generateProxyAboveBoxParentNotAlive(6),
+                        generateProxyBelowBoxParentNotAlive(6),
+                        generateProxyAboveParentOriginalIndirectlyMaskedAway(1),
+                        generateProxyBelowParentOriginalIndirectlyMaskedAway(1),
+                        generateProxyAboveParentOriginalIndirectlyMaskedAway(6),
+                        generateProxyBelowParentOriginalIndirectlyMaskedAway(6),
+                    }
+                }
+            };
         }
 
         private Drawable generateProxyAboveAllPresentTest(int proxyCount)
@@ -248,7 +260,7 @@ namespace osu.Framework.Tests.Visual
 
             public Visualiser(string description, Drawable layerBelow, Drawable layerAbove)
             {
-                RelativeSizeAxes = Axes.Both;
+                Size = new Vector2(300);
 
                 bool proxyIsBelow = layerBelow.IsProxy;
 
