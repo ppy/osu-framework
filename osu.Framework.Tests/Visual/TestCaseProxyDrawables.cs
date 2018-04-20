@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -241,6 +242,84 @@ namespace osu.Framework.Tests.Visual
                 proxy = proxy.CreateProxy();
 
             return new Visualiser($"{proxyCount} proxy(s) below, original parent not alive", proxy, invisibleContainer);
+        }
+
+        private Drawable generateProxyAboveParentOriginalIndirectlyMaskedAway(int proxyCount)
+        {
+            var box = new Box
+            {
+                Size = new Vector2(50),
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre,
+                Position = new Vector2(-50)
+            };
+
+            var proxy = box.CreateProxy();
+            for (int i = 1; i < proxyCount; i++)
+                proxy = proxy.CreateProxy();
+
+            var fullContainer = new Container
+            {
+                RelativeSizeAxes = Axes.Both,
+                Children = new Drawable[]
+                {
+                    box,
+                    new Container
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        Size = new Vector2(100),
+                        Masking = true,
+                        CornerRadius = 20,
+                        Children = new[]
+                        {
+                            new Box { RelativeSizeAxes = Axes.Both, Colour = Color4.Yellow.Opacity(0.2f) },
+                            proxy.CreateProxy()
+                        }
+                    }
+                }
+            };
+
+            return new Visualiser($"{proxyCount} proxy(s) above, original indirectly masked", proxy, fullContainer);
+        }
+
+        private Drawable generateProxyBelowParentOriginalIndirectlyMaskedAway(int proxyCount)
+        {
+            var box = new Box
+            {
+                Size = new Vector2(50),
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre,
+                Position = new Vector2(-50)
+            };
+
+            var proxy = box.CreateProxy();
+            for (int i = 1; i < proxyCount; i++)
+                proxy = proxy.CreateProxy();
+
+            var fullContainer = new Container
+            {
+                RelativeSizeAxes = Axes.Both,
+                Children = new Drawable[]
+                {
+                    new Container
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        Size = new Vector2(100),
+                        Masking = true,
+                        CornerRadius = 20,
+                        Children = new[]
+                        {
+                            new Box { RelativeSizeAxes = Axes.Both, Colour = Color4.Yellow.Opacity(0.2f) },
+                            proxy.CreateProxy()
+                        }
+                    },
+                    box,
+                }
+            };
+
+            return new Visualiser($"{proxyCount} proxy(s) below, original indirectly masked", fullContainer, proxy);
         }
 
         private class NonPresentContainer : Container
