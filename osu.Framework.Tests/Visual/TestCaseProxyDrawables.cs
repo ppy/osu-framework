@@ -4,7 +4,6 @@
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Testing;
@@ -341,43 +340,24 @@ namespace osu.Framework.Tests.Visual
             };
         }
 
-        private class AlwaysUpdateContainer : CompositeDrawable
+        private class NonPresentContainer : Container
         {
-            private readonly Drawable drawableToUpdate;
-
-            public AlwaysUpdateContainer(Drawable drawableToUpdate)
-            {
-                this.drawableToUpdate = drawableToUpdate;
-
-                RelativeSizeAxes = Axes.Both;
-
-                InternalChild = drawableToUpdate;
-            }
+            private bool isPresent = true;
+            public override bool IsPresent => isPresent;
 
             public override bool UpdateSubTree()
             {
+                // We want to be present for updates
+                isPresent = true;
+
                 var result = base.UpdateSubTree();
                 if (!result)
                     return false;
 
-                drawableToUpdate.UpdateSubTree();
+                // We want to not be present for draw
+                isPresent = false;
                 return true;
             }
-
-            public override bool UpdateSubTreeMasking(Drawable source, RectangleF maskingBounds)
-            {
-                var result = base.UpdateSubTreeMasking(source, maskingBounds);
-                if (!result)
-                    return false;
-
-                drawableToUpdate.UpdateSubTreeMasking(this, ComputeChildMaskingBounds(maskingBounds));
-                return true;
-            }
-        }
-
-        private class NonPresentContainer : Container
-        {
-            public override bool IsPresent => false;
         }
 
         private class NonAliveContainer : Container
