@@ -676,7 +676,15 @@ namespace osu.Framework.Graphics.Containers
             base.ApplyDrawNode(node);
         }
 
-        protected virtual bool CanBeFlattened => !Masking;
+        /// <summary>
+        /// A flattened <see cref="CompositeDrawable"/> has its <see cref="DrawNode"/> merged into its parents'.
+        /// In some cases, the <see cref="DrawNode"/> must always be generated and flattening should not occur.
+        /// </summary>
+        protected virtual bool CanBeFlattened =>
+            // Masking composite DrawNodes define the masking area for their children
+            !Masking
+            // Proxied drawables have their DrawNodes drawn elsewhere in the scene graph
+            && !HasProxy;
 
         private const int amount_children_required_for_masking_check = 2;
 
@@ -684,11 +692,12 @@ namespace osu.Framework.Graphics.Containers
         /// This function adds all children's <see cref="DrawNode"/>s to a target List, flattening the children of certain types
         /// of <see cref="CompositeDrawable"/> subtrees for optimization purposes.
         /// </summary>
-        /// <param name="treeIndex">The index of the currently in-use DrawNode tree.</param>
+        /// <param name="frame">The frame which <see cref="DrawNode"/>s should be generated for.</param>
+        /// <param name="treeIndex">The index of the currently in-use <see cref="DrawNode"/> tree.</param>
         /// <param name="j">The running index into the target List.</param>
-        /// <param name="parentComposite">The <see cref="CompositeDrawable"/> whose children's DrawNodes to add.</param>
+        /// <param name="parentComposite">The <see cref="CompositeDrawable"/> whose children's <see cref="DrawNode"/>s to add.</param>
         /// <param name="target">The target list to fill with DrawNodes.</param>
-        private static void addFromComposite(int treeIndex, ref int j, CompositeDrawable parentComposite, List<DrawNode> target)
+        private static void addFromComposite(ulong frame, int treeIndex, ref int j, CompositeDrawable parentComposite, List<DrawNode> target)
         {
             SortedList<Drawable> current = parentComposite.aliveInternalChildren;
             // ReSharper disable once ForCanBeConvertedToForeach
@@ -696,53 +705,50 @@ namespace osu.Framework.Graphics.Containers
             {
                 Drawable drawable = current[i];
 
-                // If we are proxied somewhere, then we want to be drawn at the proxy's location
-                // in the scene graph, rather than at our own location, thus no draw nodes for us.
-                if (drawable.HasProxy)
-                    continue;
-
-                // Take drawable.Original until drawable.Original == drawable
-                while (drawable != (drawable = drawable.Original))
+                if (!drawable.IsProxy)
                 {
+                    if (!drawable.IsPresent)
+                        continue;
+
+                    CompositeDrawable composite = drawable as CompositeDrawable;
+                    if (composite?.CanBeFlattened == true)
+                    {
+                        if (!composite.IsMaskedAway)
+                            addFromComposite(frame, treeIndex, ref j, composite, target);
+
+                        continue;
+                    }
+
+                    if (drawable.IsMaskedAway)
+                        continue;
                 }
 
-                if (!drawable.IsPresent)
-                    continue;
-
-                CompositeDrawable composite = drawable as CompositeDrawable;
-                if (composite?.CanBeFlattened == true)
-                {
-                    if (!composite.IsMaskedAway)
-                        addFromComposite(treeIndex, ref j, composite, target);
-
-                    continue;
-                }
-
-                if (drawable.IsMaskedAway)
-                    continue;
-
-                DrawNode next = drawable.GenerateDrawNodeSubtree(treeIndex);
+                DrawNode next = drawable.GenerateDrawNodeSubtree(frame, treeIndex);
                 if (next == null)
                     continue;
 
-                if (j < target.Count)
-                    target[j] = next;
+                if (drawable.HasProxy)
+                    drawable.ValidateProxyDrawNode(treeIndex, frame);
                 else
-                    target.Add(next);
-
-                j++;
+                {
+                    if (j < target.Count)
+                        target[j] = next;
+                    else
+                        target.Add(next);
+                    j++;
+                }
             }
         }
 
         internal virtual bool AddChildDrawNodes => true;
 
-        internal override DrawNode GenerateDrawNodeSubtree(int treeIndex)
+        internal override DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex)
         {
             // No need for a draw node at all if there are no children and we are not glowing.
             if (aliveInternalChildren.Count == 0 && CanBeFlattened)
                 return null;
 
-            CompositeDrawNode cNode = base.GenerateDrawNodeSubtree(treeIndex) as CompositeDrawNode;
+            CompositeDrawNode cNode = base.GenerateDrawNodeSubtree(frame, treeIndex) as CompositeDrawNode;
             if (cNode == null)
                 return null;
 
@@ -754,7 +760,7 @@ namespace osu.Framework.Graphics.Containers
                 List<DrawNode> target = cNode.Children;
 
                 int j = 0;
-                addFromComposite(treeIndex, ref j, this, target);
+                addFromComposite(frame, treeIndex, ref j, this, target);
 
                 if (j < target.Count)
                     target.RemoveRange(j, target.Count - j);
