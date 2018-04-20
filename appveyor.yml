@@ -17,7 +17,7 @@ before_build:
   - cmd: CodeFileSanity.exe
   - cmd: nuget restore
 environment:
-  TargetFramework: net461
+  TargetFramework: net471
 build:
   project: osu-framework.sln
   parallel: true
