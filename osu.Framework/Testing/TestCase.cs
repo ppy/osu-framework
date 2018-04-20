@@ -155,13 +155,18 @@ namespace osu.Framework.Testing
 
         public void RunAllSteps(Action onCompletion = null, Action<Exception> onError = null)
         {
-            stepRunner?.Cancel();
-            foreach (var step in StepsContainer.OfType<StepButton>())
-                step.Reset();
+            // schedule once as we want to ensure we have run our LoadComplete before atttempting to execute steps.
+            // a user may be adding a step in LoadComplete.
+            Schedule(() =>
+            {
+                stepRunner?.Cancel();
+                foreach (var step in StepsContainer.OfType<StepButton>())
+                    step.Reset();
 
-            actionIndex = -1;
-            actionRepetition = 0;
-            runNextStep(onCompletion, onError);
+                actionIndex = -1;
+                actionRepetition = 0;
+                runNextStep(onCompletion, onError);
+            });
         }
 
         public void RunFirstStep()
