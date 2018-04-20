@@ -15,6 +15,7 @@ using osu.Framework.Testing.Drawables.Steps;
 using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Graphics;
+using System.Threading.Tasks;
 
 namespace osu.Framework.Testing
 {
@@ -26,7 +27,43 @@ namespace osu.Framework.Testing
 
         protected override Container<Drawable> Content => content;
 
-        private bool mainTest = true;
+        protected virtual ITestCaseTestRunner CreateRunner() => new TestCaseTestRunner();
+
+        private GameHost host;
+        private Task runTask;
+        private ITestCaseTestRunner runner;
+        private bool isNUnitRunning;
+
+        [OneTimeSetUp]
+        public void SetupGameHost()
+        {
+            isNUnitRunning = true;
+
+            host = new HeadlessGameHost($"test-{Guid.NewGuid()}", realtime: false);
+            runner = CreateRunner();
+
+            if (!(runner is Game game))
+                throw new InvalidCastException($"The test runner must be a {nameof(Game)}.");
+
+            runTask = Task.Factory.StartNew(() => host.Run(game), TaskCreationOptions.LongRunning);
+        }
+
+        [OneTimeTearDown]
+        public void DestroyGameHost()
+        {
+            host.Exit();
+            runTask.Wait();
+            host.Dispose();
+
+            try
+            {
+                // clean up after each run
+                host.Storage.DeleteDirectory(string.Empty);
+            }
+            catch
+            {
+            }
+        }
 
         /// <summary>
         /// Runs prior to all tests except <see cref="TestConstructor"/> to ensure that the <see cref="TestCase"/>
@@ -35,34 +72,12 @@ namespace osu.Framework.Testing
         [SetUp]
         public void SetupTest()
         {
-            if (!mainTest)
+            if (isNUnitRunning && TestContext.CurrentContext.Test.MethodName != nameof(TestConstructor))
                 StepsContainer.Clear();
         }
 
-        /// <summary>
-        /// Ensures that the NUnit test runs correctly by running a <see cref="HeadlessGameHost"/>.
-        /// This runs during NUnit's TearDown to ensure that <see cref="TestCase"/> steps (e.g. from <see cref="AddStep(string, Action)"/>)
-        /// are properly added and executed.
-        /// </summary>
         [TearDown]
-        public virtual void RunTest()
-        {
-            Storage storage;
-            using (var host = new HeadlessGameHost($"test-{Guid.NewGuid()}", realtime: false))
-            {
-                storage = host.Storage;
-                host.Run(new TestCaseTestRunner(this));
-            }
-
-            try
-            {
-                // clean up after each run
-                storage.DeleteDirectory(string.Empty);
-            }
-            catch
-            {
-            }
-        }
+        public void RunTests() => runner.RunTestBlocking(this);
 
         /// <summary>
         /// Most derived usages of this start with TestCase. This will be removed for display purposes.
@@ -74,7 +89,9 @@ namespace osu.Framework.Testing
         /// This test must run before any other tests, as it relies on <see cref="StepsContainer"/> not being cleared and not having any elements.
         /// </summary>
         [Test, Order(int.MinValue)]
-        public void TestConstructor() { mainTest = false; }
+        public void TestConstructor()
+        {
+        }
 
         protected TestCase()
         {
