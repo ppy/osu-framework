@@ -137,18 +137,19 @@ namespace osu.Framework.Graphics
         /// <returns>The task which is used for loading and callbacks.</returns>
         internal Task LoadAsync(Game game, Drawable target, Action onLoaded = null)
         {
-            if (loadState != LoadState.NotLoaded)
-                throw new InvalidOperationException($@"{nameof(LoadAsync)} may not be called more than once on the same Drawable.");
+            if (loadState == LoadState.NotLoaded)
+            {
+                Debug.Assert(loadTask == null);
+                loadState = LoadState.Loading;
+                loadTask = Task.Factory.StartNew(() => Load(target.Clock, target.Dependencies), TaskCreationOptions.LongRunning);
+            }
 
-            loadState = LoadState.Loading;
-
-            return loadTask = Task.Factory.StartNew(() => Load(target.Clock, target.Dependencies), TaskCreationOptions.LongRunning)
-                                  .ContinueWith(task => game.Schedule(() =>
-                                  {
-                                      task.ThrowIfFaulted(typeof(RecursiveLoadException));
-                                      onLoaded?.Invoke();
-                                      loadTask = null;
-                                  }));
+            return (loadTask ?? Task.CompletedTask).ContinueWith(task => game.Schedule(() =>
+            {
+                task.ThrowIfFaulted(typeof(RecursiveLoadException));
+                onLoaded?.Invoke();
+                loadTask = null;
+            }));
         }
 
         private static readonly StopwatchClock perf = new StopwatchClock(true);
