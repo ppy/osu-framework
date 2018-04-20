@@ -235,9 +235,13 @@ namespace osu.Framework.Platform
 
         protected Container Root;
 
+        private ulong frameCount;
+
         protected virtual void UpdateFrame()
         {
             if (Root == null) return;
+
+            frameCount++;
 
             if (Window?.WindowState != WindowState.Minimized)
                 Root.Size = Window != null ? new Vector2(Window.ClientSize.Width, Window.ClientSize.Height) :
@@ -250,7 +254,7 @@ namespace osu.Framework.Platform
             Root.UpdateSubTreeMasking(Root, Root.ScreenSpaceDrawQuad.AABBFloat);
 
             using (var buffer = DrawRoots.Get(UsageType.Write))
-                buffer.Object = Root.GenerateDrawNodeSubtree(buffer.Index);
+                buffer.Object = Root.GenerateDrawNodeSubtree(frameCount, buffer.Index);
         }
 
         protected virtual void DrawInitialize()

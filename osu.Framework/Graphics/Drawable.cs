@@ -42,7 +42,7 @@ namespace osu.Framework.Graphics
     /// Drawables are always rectangular in shape in their local coordinate system,
     /// which makes them quad-shaped in arbitrary (linearly transformed) coordinate systems.
     /// </summary>
-    public abstract class Drawable : Transformable, IDisposable, IDrawable
+    public abstract partial class Drawable : Transformable, IDisposable, IDrawable
     {
         #region Construction and disposal
 
@@ -137,18 +137,19 @@ namespace osu.Framework.Graphics
         /// <returns>The task which is used for loading and callbacks.</returns>
         internal Task LoadAsync(Game game, Drawable target, Action onLoaded = null)
         {
-            if (loadState != LoadState.NotLoaded)
-                throw new InvalidOperationException($@"{nameof(LoadAsync)} may not be called more than once on the same Drawable.");
+            if (loadState == LoadState.NotLoaded)
+            {
+                Debug.Assert(loadTask == null);
+                loadState = LoadState.Loading;
+                loadTask = Task.Factory.StartNew(() => Load(target.Clock, target.Dependencies), TaskCreationOptions.LongRunning);
+            }
 
-            loadState = LoadState.Loading;
-
-            return loadTask = Task.Factory.StartNew(() => Load(target.Clock, target.Dependencies), TaskCreationOptions.LongRunning)
-                                  .ContinueWith(task => game.Schedule(() =>
-                                  {
-                                      task.ThrowIfFaulted(typeof(RecursiveLoadException));
-                                      onLoaded?.Invoke();
-                                      loadTask = null;
-                                  }));
+            return (loadTask ?? Task.CompletedTask).ContinueWith(task => game.Schedule(() =>
+            {
+                task.ThrowIfFaulted(typeof(RecursiveLoadException));
+                onLoaded?.Invoke();
+                loadTask = null;
+            }));
         }
 
         private static readonly StopwatchClock perf = new StopwatchClock(true);
@@ -1332,9 +1333,14 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// True iff <see cref="CreateProxy"/> has been called before.
         /// </summary>
-        internal bool HasProxy => proxy != null;
+        public bool HasProxy => proxy != null;
 
-        private ProxyDrawable proxy;
+        /// <summary>
+        /// True iff this <see cref="Drawable"/> is not a proxy of any <see cref="Drawable"/>.
+        /// </summary>
+        public bool IsProxy => Original != this;
+
+        private Drawable proxy;
 
         /// <summary>
         /// Creates a proxy drawable which can be inserted elsewhere in the scene graph.
@@ -1342,12 +1348,20 @@ namespace osu.Framework.Graphics
         /// Creating multiple proxies is not supported and will result in an
         /// <see cref="InvalidOperationException"/>.
         /// </summary>
-        public ProxyDrawable CreateProxy()
+        public Drawable CreateProxy()
         {
             if (proxy != null)
                 throw new InvalidOperationException("Multiple proxies are not supported.");
             return proxy = new ProxyDrawable(this);
         }
+
+        /// <summary>
+        /// Validates a <see cref="DrawNode"/> for use by the proxy of this <see cref="Drawable"/>.
+        /// This is used exclusively by <see cref="CompositeDrawable.addFromComposite"/>, and should not be used otherwise.
+        /// </summary>
+        /// <param name="treeIndex">The index of the <see cref="DrawNode"/> in <see cref="drawNodes"/> which the proxy should use.</param>
+        /// <param name="frame">The frame for which the <see cref="DrawNode"/> was created. This is the parameter used for validation.</param>
+        internal virtual void ValidateProxyDrawNode(int treeIndex, ulong frame) => proxy.ValidateProxyDrawNode(treeIndex, frame);
 
         #endregion
 
@@ -1539,10 +1553,12 @@ namespace osu.Framework.Graphics
         private readonly DrawNode[] drawNodes = new DrawNode[3];
 
         /// <summary>
-        /// Generates the DrawNode for ourselves.
+        /// Generates the <see cref="DrawNode"/> for ourselves.
         /// </summary>
-        /// <returns>A complete and updated DrawNode, or null if the DrawNode would be invisible.</returns>
-        internal virtual DrawNode GenerateDrawNodeSubtree(int treeIndex)
+        /// <param name="frame">The frame which the <see cref="DrawNode"/> subtree should be generated for.</param>
+        /// <param name="treeIndex">The index of the <see cref="DrawNode"/> to use.</param>
+        /// <returns>A complete and updated <see cref="DrawNode"/>, or null if the <see cref="DrawNode"/> would be invisible.</returns>
+        internal virtual DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex)
         {
             DrawNode node = drawNodes[treeIndex];
             if (node == null)
