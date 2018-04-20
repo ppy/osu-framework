@@ -65,17 +65,11 @@ namespace osu.Framework.Graphics.UserInterface
             Vector2 screenOrigin = Vector2Extensions.Transform(origin, transformationMatrix);
             Color4 originColour = colourAt(origin);
 
-            // Clamps the angle so we don't overshoot.
-            // dir is used so negative angles result in negative angularOffset.
-            float angularOffset = dir * Math.Min(step, dir * Angle);
-            float normalisedStartAngle = 0;
-            float normalisedEndAngle = 0;
-
             // First center point
             Shared.HalfCircleBatch.Add(new TexturedVertex2D
             {
                 Position = Vector2.Lerp(current, screenOrigin, InnerRadius),
-                TexturePosition = new Vector2((normalisedStartAngle + normalisedEndAngle) / 2, 0),
+                TexturePosition = new Vector2(0, 0),
                 Colour = originColour
             });
 
@@ -83,17 +77,19 @@ namespace osu.Framework.Graphics.UserInterface
             Shared.HalfCircleBatch.Add(new TexturedVertex2D
             {
                 Position = new Vector2(current.X, current.Y),
-                TexturePosition = new Vector2(normalisedStartAngle, 1 - 1 / Texture.Height),
+                TexturePosition = new Vector2(0, 1 - 1 / Texture.Height),
                 Colour = currentColour
             });
 
             for (int i = 1; i <= amountPoints; i++)
             {
-                angularOffset = dir * Math.Min(i * step, dir * Angle);
-                normalisedStartAngle = amountPoints > 1
+                // Clamps the angle so we don't overshoot.
+                // dir is used so negative angles result in negative angularOffset.
+                float angularOffset = dir * Math.Min(i * step, dir * Angle);
+                float normalisedStartAngle = amountPoints > 1
                     ? (1 - 1 / Texture.Width) * ((float)(i - 1) / amountPoints * Angle / MathHelper.TwoPi + (dir > 0 ? 0 : 1))
                     : 0;
-                normalisedEndAngle = amountPoints > 1
+                float normalisedEndAngle = amountPoints > 1
                     ? (1 - 1 / Texture.Width) * ((float)i / amountPoints * Angle / MathHelper.TwoPi + (dir > 0 ? 0 : 1))
                     : 0;
 
