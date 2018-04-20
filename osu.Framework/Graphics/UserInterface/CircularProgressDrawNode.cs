@@ -16,9 +16,9 @@ namespace osu.Framework.Graphics.UserInterface
 {
     public class CircularProgressDrawNodeSharedData
     {
-        // We add 2 to the size param to account for the first triangle needing every vertex passed, subsequent triangles use the last two vertices of the previous triangle.
+        // We add 2 to the size param to account for the first triangle needing every vertex passed, subsequent triangles use the last two vertices of the previous triangle. MAXRES is being multiplied by 2 to account for each circle part needing 2 triangles
         // Otherwise overflowing the batch will result in wrong grouping of vertices into primitives.
-        public LinearBatch<TexturedVertex2D> HalfCircleBatch = new LinearBatch<TexturedVertex2D>(CircularProgressDrawNode.MAXRES * 100 + 2, 10, PrimitiveType.TriangleStrip);
+        public LinearBatch<TexturedVertex2D> HalfCircleBatch = new LinearBatch<TexturedVertex2D>(CircularProgressDrawNode.MAXRES * 100 * 2 + 2, 10, PrimitiveType.TriangleStrip);
     }
 
     public class CircularProgressDrawNode : DrawNode
