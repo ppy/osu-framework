@@ -48,7 +48,11 @@ namespace osu.Framework.Testing
 
             runTask = Task.Factory.StartNew(() => host.Run(game), TaskCreationOptions.LongRunning);
             while (!game.IsLoaded)
+            {
+                if (runTask.Exception != null)
+                    throw runTask.Exception;
                 Thread.Sleep(10);
+            }
         }
 
         [OneTimeTearDown]

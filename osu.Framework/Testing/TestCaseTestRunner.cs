@@ -69,6 +69,7 @@ namespace osu.Framework.Testing
                 Trace.Assert(host != null, $"Ensure this runner has been loaded before calling {nameof(RunTestBlocking)}");
 
                 bool completed = false;
+                Exception exception = null;
 
                 void complete()
                 {
@@ -94,12 +95,15 @@ namespace osu.Framework.Testing
                     }, e =>
                     {
                         complete();
-                        throw new Exception("The test case threw an exception while running", e);
+                        exception = e;
                     });
                 });
 
                 while (!completed && host.ExecutionState == ExecutionState.Running)
                     Thread.Sleep(10);
+
+                if (exception != null)
+                    throw exception;
             }
         }
     }
