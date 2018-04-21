@@ -49,8 +49,7 @@ namespace osu.Framework.Testing
             runTask = Task.Factory.StartNew(() => host.Run(game), TaskCreationOptions.LongRunning);
             while (!game.IsLoaded)
             {
-                if (runTask.Exception != null)
-                    throw runTask.Exception;
+                checkForErrors();
                 Thread.Sleep(10);
             }
         }
@@ -84,7 +83,18 @@ namespace osu.Framework.Testing
         }
 
         [TearDown]
-        public void RunTests() => runner.RunTestBlocking(this);
+        public void RunTests()
+        {
+            checkForErrors();
+            runner.RunTestBlocking(this);
+            checkForErrors();
+        }
+
+        private void checkForErrors()
+        {
+            if (runTask.Exception != null)
+                throw runTask.Exception;
+        }
 
         /// <summary>
         /// Most derived usages of this start with TestCase. This will be removed for display purposes.
