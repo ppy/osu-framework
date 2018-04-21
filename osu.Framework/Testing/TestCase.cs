@@ -47,7 +47,7 @@ namespace osu.Framework.Testing
                 throw new InvalidCastException($"The test runner must be a {nameof(Game)}.");
 
             runTask = Task.Factory.StartNew(() => host.Run(game), TaskCreationOptions.LongRunning);
-            while (host.ExecutionState != ExecutionState.Running)
+            while (!game.IsLoaded)
                 Thread.Sleep(10);
         }
 

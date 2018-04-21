@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Diagnostics;
 using System.Threading;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
@@ -65,6 +66,8 @@ namespace osu.Framework.Testing
             /// <param name="test">The <see cref="TestCase"/> to run.</param>
             public void RunTestBlocking(TestCase test)
             {
+                Trace.Assert(host != null, $"Ensure this runner has been loaded before calling {nameof(RunTestBlocking)}");
+
                 bool completed = false;
 
                 void complete()
@@ -95,7 +98,7 @@ namespace osu.Framework.Testing
                     });
                 });
 
-                while (!completed && host?.ExecutionState == ExecutionState.Running)
+                while (!completed && host.ExecutionState == ExecutionState.Running)
                     Thread.Sleep(10);
             }
         }
