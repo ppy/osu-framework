@@ -16,6 +16,7 @@ using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Graphics;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace osu.Framework.Testing
 {
@@ -46,6 +47,8 @@ namespace osu.Framework.Testing
                 throw new InvalidCastException($"The test runner must be a {nameof(Game)}.");
 
             runTask = Task.Factory.StartNew(() => host.Run(game), TaskCreationOptions.LongRunning);
+            while (host.ExecutionState != ExecutionState.Running)
+                Thread.Sleep(10);
         }
 
         [OneTimeTearDown]
