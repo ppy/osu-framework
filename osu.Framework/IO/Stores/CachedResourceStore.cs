@@ -104,5 +104,11 @@ namespace osu.Framework.IO.Stores
         {
             cache.Clear();
         }
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+            ResetCache();
+        }
     }
 }
