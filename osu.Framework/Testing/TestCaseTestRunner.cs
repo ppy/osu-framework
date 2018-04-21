@@ -46,7 +46,7 @@ namespace osu.Framework.Testing
 
             protected override void Dispose(bool isDisposing)
             {
-                volume.Value = volumeAtStartup;
+                if (volume != null) volume.Value = volumeAtStartup;
                 base.Dispose(isDisposing);
             }
 
