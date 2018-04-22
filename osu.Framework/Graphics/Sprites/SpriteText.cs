@@ -177,7 +177,7 @@ namespace osu.Framework.Graphics.Sprites
         /// Get or set a <see cref="LocalisableString"/> providing all necessary information to apply localisation to a text sequence.
         /// <para>Changing the bindable values is allowed, although you should create a new <see cref="LocalisableString"/> when changing two or more values.</para>
         /// </summary>
-        [NotNull]
+        [CanBeNull]
         public LocalisableString LocalisableText
         {
             get => localisableText;
@@ -201,7 +201,7 @@ namespace osu.Framework.Graphics.Sprites
             set => LocalisableText = value ?? string.Empty;
         }
 
-        private Bindable<string> displayTextBindable;
+        private IBindable<string> displayTextBindable;
 
         private void updateLocalisedBindable()
         {
@@ -213,7 +213,7 @@ namespace osu.Framework.Graphics.Sprites
 
             displayTextBindable = localisationEngine.GetBindableFor(localisableText);
             displayTextBindable.ValueChanged += setText;
-            displayTextBindable.TriggerChange();
+            setText(displayTextBindable.Value);
         }
 
         private void setText(string newText)

@@ -49,7 +49,7 @@ namespace osu.Framework.Localisation
         /// <param name="localisable">The <see cref="LocalisableString"/> to get a bindable for. 
         /// <para>Changing any of its bindables' values will also trigger a localisation update.</para></param>
         [NotNull]
-        public Bindable<string> GetBindableFor([NotNull] LocalisableString localisable)
+        public IBindable<string> GetBindableFor([NotNull] LocalisableString localisable)
         {
             var bindable = new LocalisedBindable(localisable);
             lock (allBindings)
