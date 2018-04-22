@@ -8,7 +8,6 @@ namespace osu.Framework.Localisation
 {
     /// <summary>
     /// Specifies the modifications the <see cref="LocalisationEngine"/> will carry out on the supplied string.
-    /// <para>Note that these will always be applied in the following order: Unicode preference, localisation, formatting.</para>
     /// </summary>
     [Flags]
     public enum LocalisationType
@@ -19,24 +18,14 @@ namespace osu.Framework.Localisation
         None = 0,
 
         /// <summary>
-        /// The string will be one of two options depending on the currently active <see cref="FrameworkSetting.ShowUnicode"/>.
-        /// </summary>
-        UnicodePreference = 1 << 0,
-
-        /// <summary>
         /// The string will be localised based on the supplied embedded localisation files and the currently active <see cref="FrameworkSetting.Locale"/>.
         /// </summary>
-        Localised = 1 << 1,
+        Localised = 1 << 0,
 
         /// <summary>
         /// The string will be formatted based on an object's value which will be re-evaluated on every <see cref="FrameworkSetting.Locale"/> change.
         /// <para>This is useful for e.g. date and time strings which differ from country to country.</para>
         /// </summary>
-        Formatted = 1 << 2,
-
-        /// <summary>
-        /// The string will be changed based on Unicode preference, then localised, then formatted.
-        /// </summary>
-        All = UnicodePreference | Localised | Formatted
+        Formatted = 1 << 1,
     }
 }

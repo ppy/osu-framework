@@ -25,17 +25,18 @@ namespace osu.Framework.Localisation
         public LocalisationEngine(FrameworkConfigManager config)
         {
             preferUnicode = config.GetBindable<bool>(FrameworkSetting.ShowUnicode);
-            preferUnicode.ValueChanged += _ =>
+            preferUnicode.ValueChanged += prefer =>
             {
-                lock (allBindings)
-                    allBindings.ForEachAlive(updateLocalisation);
+                lock (unicodeBindings)
+                    unicodeBindings.ForEachAlive(b => b.PreferUnicode = prefer);
             };
 
             locale = config.GetBindable<string>(FrameworkSetting.Locale);
             locale.ValueChanged += checkLocale;
         }
 
-        private readonly WeakList<LocalisedBindable> allBindings = new WeakList<LocalisedBindable>();
+        private readonly WeakList<LocalisedBindable> localisedBindings = new WeakList<LocalisedBindable>();
+        private readonly WeakList<UnicodeBindable> unicodeBindings = new WeakList<UnicodeBindable>();
 
         public void AddLanguage(string language, IResourceStore<string> storage)
         {
@@ -44,20 +45,19 @@ namespace osu.Framework.Localisation
         }
 
         /// <summary>
-        /// Get a localised <see cref="Bindable{String}"/> for a <see cref="LocalisableString"/>.
+        /// Get a localised <see cref="IBindable{string}"/> for a <see cref="LocalisableString"/>.
         /// </summary>
         /// <param name="localisable">The <see cref="LocalisableString"/> to get a bindable for. 
         /// <para>Changing any of its bindables' values will also trigger a localisation update.</para></param>
         [NotNull]
-        public IBindable<string> GetBindableFor([NotNull] LocalisableString localisable)
+        public IBindable<string> GetLocalisedBindable([NotNull] LocalisableString localisable)
         {
             var bindable = new LocalisedBindable(localisable);
-            lock (allBindings)
-                allBindings.Add(bindable);
+            lock (localisedBindings)
+                localisedBindings.Add(bindable);
 
             bindable.Localisable.Type.ValueChanged += _ => updateLocalisation(bindable);
             bindable.Localisable.Text.ValueChanged += _ => updateLocalisation(bindable);
-            bindable.Localisable.NonUnicode.ValueChanged += _ => updateLocalisation(bindable);
             bindable.Localisable.Args.ValueChanged += _ => updateLocalisation(bindable);
 
             updateLocalisation(bindable);
@@ -69,9 +69,6 @@ namespace osu.Framework.Localisation
         {
             var localisable = bindable.Localisable;
             string newText = localisable.Text;
-
-            if ((localisable.Type & LocalisationType.UnicodePreference) > 0 && !preferUnicode && localisable.NonUnicode.Value != null)
-                newText = localisable.NonUnicode;
 
             if ((localisable.Type & LocalisationType.Localised) > 0)
                 newText = GetLocalised(newText);
@@ -89,6 +86,24 @@ namespace osu.Framework.Localisation
             }
 
             bindable.Value = newText;
+        }
+
+        /// <summary>
+        /// Get a <see cref="IBindable{string}"/> for a given string and a non-Unicode (usually romanised) alternative.
+        /// <para>The Value of this <see cref="IBindable{string}"/> will depend on the current <see cref="FrameworkSetting.ShowUnicode"/> setting.</para>
+        /// </summary>
+        [NotNull]
+        public IBindable<string> GetUnicodeBindable([CanBeNull] string unicode, [CanBeNull] string nonUnicode)
+        {
+            var bindable = new UnicodeBindable(unicode, nonUnicode)
+            {
+                PreferUnicode = preferUnicode.Value
+            };
+
+            lock (unicodeBindings)
+                unicodeBindings.Add(bindable);
+
+            return bindable;
         }
 
         protected virtual string GetLocalised(string key) => current.Get(key);
@@ -124,8 +139,8 @@ namespace osu.Framework.Localisation
                 CultureInfo.DefaultThreadCurrentUICulture = culture;
                 ChangeLocale(validLocale);
 
-                lock (allBindings)
-                    allBindings.ForEachAlive(updateLocalisation);
+                lock (localisedBindings)
+                    localisedBindings.ForEachAlive(updateLocalisation);
             }
         }
 
@@ -140,6 +155,24 @@ namespace osu.Framework.Localisation
             : base(localisable.Text)
         {
             Localisable = localisable;
+        }
+    }
+
+    internal class UnicodeBindable : Bindable<string>
+    {
+        private readonly string unicode, nonUnicode;
+
+        public UnicodeBindable(string unicode, string nonUnicode)
+            : base(nonUnicode)
+        {
+            this.unicode = unicode ?? nonUnicode;
+            this.nonUnicode = nonUnicode ?? unicode;
+        }
+
+        public bool PreferUnicode
+        {
+            get => Value == unicode;
+            set => Value = value ? unicode : nonUnicode;
         }
     }
 }

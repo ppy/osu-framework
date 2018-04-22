@@ -211,7 +211,7 @@ namespace osu.Framework.Graphics.Sprites
             if (localisableText == null)
                 return;
 
-            displayTextBindable = localisationEngine.GetBindableFor(localisableText);
+            displayTextBindable = localisationEngine.GetLocalisedBindable(localisableText);
             displayTextBindable.ValueChanged += setText;
             setText(displayTextBindable.Value);
         }

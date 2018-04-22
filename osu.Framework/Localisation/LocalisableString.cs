@@ -13,16 +13,9 @@ namespace osu.Framework.Localisation
     public class LocalisableString
     {
         /// <summary>
-        /// The text to be used for localisation and/or formatting. This will only be used if <see cref="FrameworkSetting.ShowUnicode"/> is set to true and/or <see cref="NonUnicode"/> is null.
-        /// <para>Null values here mean an empty string (unless <see cref="NonUnicode"/> is used).</para>
+        /// The text to be used for localisation and/or formatting.
         /// </summary>
         public Bindable<string> Text { get; }
-
-        /// <summary>
-        /// An alternative to <see cref="Text"/> that is used when <see cref="FrameworkSetting.ShowUnicode"/> is set to false and this value is non-null.
-        /// <para>This means that if you want the displayed text to disappear when <see cref="FrameworkSetting.ShowUnicode"/> is false, you have to set this value to <see cref="string.Empty"/>.</para>
-        /// </summary>
-        public Bindable<string> NonUnicode { get; }
 
         /// <summary>
         /// What types of changes to apply to this string.
@@ -40,12 +33,10 @@ namespace osu.Framework.Localisation
         /// </summary>
         /// <param name="text">The text to be used for localisation and/or formatting. See also <seealso cref="Text"/>.</param>
         /// <param name="type">What types of changes to apply. See also <seealso cref="Type"/>.<para>If you plan on setting this to <see cref="LocalisationType.None"/>, use the implicit string conversion instead.</para></param>
-        /// <param name="nonUnicode">An alternative to '<paramref name="text"/>' that is used when Unicode text isn't allowed. See also <seealso cref="NonUnicode"/>.</param>
         /// <param name="args">The arguments to be used in case this string is formattable. See also <seealso cref="Args"/>.</param>
-        public LocalisableString([CanBeNull] string text, LocalisationType type, string nonUnicode = null, params object[] args)
+        public LocalisableString([CanBeNull] string text, LocalisationType type = LocalisationType.Localised, params object[] args)
         {
             Text = new Bindable<string>(text);
-            NonUnicode = new Bindable<string>(nonUnicode);
             Type = new Bindable<LocalisationType>(type);
             Args = new Bindable<object[]>(args);
         }
