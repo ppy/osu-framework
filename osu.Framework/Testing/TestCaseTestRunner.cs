@@ -95,7 +95,7 @@ namespace osu.Framework.Testing
                     });
                 });
 
-                while (!completed)
+                while (!completed && host?.ExecutionState != ExecutionState.Stopped)
                     Thread.Sleep(10);
             }
         }

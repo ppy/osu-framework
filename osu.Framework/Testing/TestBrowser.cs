@@ -232,6 +232,12 @@ namespace osu.Framework.Testing
             rateBindable.TriggerChange();
         }
 
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+            backgroundCompiler?.Dispose();
+        }
+
         private void compileStarted() => Schedule(() =>
         {
             compilingNotice.Show();
