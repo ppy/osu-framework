@@ -94,8 +94,8 @@ namespace osu.Framework.Testing
                         Scheduler.AddDelayed(complete, time_between_tests);
                     }, e =>
                     {
-                        complete();
                         exception = e;
+                        complete();
                     });
                 });
 
