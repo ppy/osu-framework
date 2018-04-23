@@ -6,20 +6,20 @@ using System.IO;
 
 namespace osu.Framework.Configuration
 {
-    public class StorageOverriderConfigManager : LocalIniConfigManager<StorageConfig>
+    public class LocalSettingsManager : LocalIniConfigManager<LocalSetting>
     {
         protected override void InitialiseDefaults()
         {
             switch (RuntimeInfo.OS)
             {
                 case RuntimeInfo.Platform.MacOsx:
-                    Set(StorageConfig.Path, Path.Combine(getLinuxMacDefaultFolder(), "osu!lazer"));
+                    Set(LocalSetting.Path, Path.Combine(getLinuxMacDefaultFolder(), "osu!lazer"));
                     break;
                 case RuntimeInfo.Platform.Linux:
-                    Set(StorageConfig.Path, Path.Combine(getLinuxMacDefaultFolder(), "osu!lazer"));
+                    Set(LocalSetting.Path, Path.Combine(getLinuxMacDefaultFolder(), "osu!lazer"));
                     break;
                 case RuntimeInfo.Platform.Windows:
-                    Set(StorageConfig.Path, Path.Combine(getWindowsDefaultFolder(), "osu!lazer"));
+                    Set(LocalSetting.Path, Path.Combine(getWindowsDefaultFolder(), "osu!lazer"));
                     break;
                 default:
                     throw new InvalidOperationException($"Could not find a suitable default path for the selected operating system ({Enum.GetName(typeof(RuntimeInfo.Platform), RuntimeInfo.OS)}).");
@@ -51,7 +51,7 @@ namespace osu.Framework.Configuration
         }
     }
 
-    public enum StorageConfig
+    public enum LocalSetting
     {
         Path
     }

@@ -14,7 +14,7 @@ namespace osu.Framework.Configuration
         /// <summary>
         /// The backing file used to store the config. Null means no persistent storage.
         /// </summary>
-        protected virtual string Filename => @"storage.ini";
+        protected virtual string Filename => @"settings.ini";
 
         private readonly Storage storage;
 
