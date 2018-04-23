@@ -68,6 +68,7 @@ namespace osu.Framework.Testing
                     };
 
                     fsw.Changed += onChange;
+                    fsw.Created += onChange;
 
                     watchers.Add(fsw);
                 }
