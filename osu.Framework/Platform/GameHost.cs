@@ -219,7 +219,7 @@ namespace osu.Framework.Platform
         /// <returns>true to cancel</returns>
         protected virtual bool OnExitRequested()
         {
-            if (executionState <= ExecutionState.Stopping) return false;
+            if (ExecutionState <= ExecutionState.Stopping) return false;
 
             bool? response = null;
 
@@ -251,9 +251,13 @@ namespace osu.Framework.Platform
 
         protected Container Root;
 
+        private ulong frameCount;
+
         protected virtual void UpdateFrame()
         {
             if (Root == null) return;
+
+            frameCount++;
 
             if (Window?.WindowState != WindowState.Minimized)
                 Root.Size = Window != null ? new Vector2(Window.ClientSize.Width, Window.ClientSize.Height) :
@@ -266,7 +270,7 @@ namespace osu.Framework.Platform
             Root.UpdateSubTreeMasking(Root, Root.ScreenSpaceDrawQuad.AABBFloat);
 
             using (var buffer = DrawRoots.Get(UsageType.Write))
-                buffer.Object = Root.GenerateDrawNodeSubtree(buffer.Index);
+                buffer.Object = Root.GenerateDrawNodeSubtree(frameCount, buffer.Index);
         }
 
         protected virtual void DrawInitialize()
@@ -287,7 +291,7 @@ namespace osu.Framework.Platform
             if (Root == null)
                 return;
 
-            while (executionState > ExecutionState.Stopping)
+            while (ExecutionState > ExecutionState.Stopping)
             {
                 using (var buffer = DrawRoots.Get(UsageType.Read))
                 {
@@ -358,14 +362,14 @@ namespace osu.Framework.Platform
             return bitmap;
         }
 
-        private volatile ExecutionState executionState;
+        public ExecutionState ExecutionState { get; private set; }
 
         /// <summary>
         /// Schedules the game to exit in the next frame.
         /// </summary>
         public void Exit()
         {
-            executionState = ExecutionState.Stopping;
+            ExecutionState = ExecutionState.Stopping;
             InputThread.Scheduler.Add(exit, false);
         }
 
@@ -375,20 +379,20 @@ namespace osu.Framework.Platform
         private void exit()
         {
             // exit() may be called without having been scheduled from Exit(), so ensure the correct exiting state
-            executionState = ExecutionState.Stopping;
+            ExecutionState = ExecutionState.Stopping;
             Window?.Close();
             stopAllThreads();
-            executionState = ExecutionState.Stopped;
+            ExecutionState = ExecutionState.Stopped;
         }
 
         public void Run(Game game)
         {
-            if (executionState != ExecutionState.Idle)
+            if (ExecutionState != ExecutionState.Idle)
                 throw new InvalidOperationException("A game that has already been run cannot be restarted.");
 
             try
             {
-                executionState = ExecutionState.Running;
+                ExecutionState = ExecutionState.Running;
 
                 setupConfig();
 
@@ -438,7 +442,7 @@ namespace osu.Framework.Platform
                     }
                     else
                     {
-                        while (executionState != ExecutionState.Stopped)
+                        while (ExecutionState != ExecutionState.Stopped)
                             InputThread.RunUpdate();
                     }
                 }
@@ -648,11 +652,11 @@ namespace osu.Framework.Platform
                 return;
             isDisposed = true;
 
-            if (executionState > ExecutionState.Stopping)
+            if (ExecutionState > ExecutionState.Stopping)
                 throw new InvalidOperationException($"{nameof(Exit)} must be called before the {nameof(GameHost)} is disposed.");
 
             // Delay disposal until the game has exited
-            while (executionState > ExecutionState.Stopped)
+            while (ExecutionState > ExecutionState.Stopped)
                 Thread.Sleep(10);
 
             AppDomain.CurrentDomain.UnhandledException -= exceptionHandler;
@@ -710,30 +714,30 @@ namespace osu.Framework.Platform
             new KeyBinding(new KeyCombination(new[] { InputKey.Shift, InputKey.Home }), new PlatformAction(PlatformActionType.LineStart, PlatformActionMethod.Select)),
             new KeyBinding(new KeyCombination(new[] { InputKey.Shift, InputKey.End }), new PlatformAction(PlatformActionType.LineEnd, PlatformActionMethod.Select)),
         };
+    }
 
+    /// <summary>
+    /// The game's execution states. All of these states can only be present once per <see cref="GameHost"/>.
+    /// Note: The order of values in this enum matters.
+    /// </summary>
+    public enum ExecutionState
+    {
         /// <summary>
-        /// The game's execution states. All of these states can only be present once per <see cref="GameHost"/>.
-        /// Note: The order of values in this enum matters.
+        /// <see cref="GameHost.Run"/> has not been invoked yet.
         /// </summary>
-        private enum ExecutionState
-        {
-            /// <summary>
-            /// <see cref="Run"/> has not been invoked yet.
-            /// </summary>
-            Idle = 0,
-            /// <summary>
-            /// The game's execution has completely stopped.
-            /// </summary>
-            Stopped = 1,
-            /// <summary>
-            /// The user has invoked <see cref="Exit"/>, or the window has been called.
-            /// The game is currently awaiting to stop all execution on the correct thread.
-            /// </summary>
-            Stopping = 2,
-            /// <summary>
-            /// <see cref="Run"/> has been invoked.
-            /// </summary>
-            Running = 3
-        }
+        Idle = 0,
+        /// <summary>
+        /// The game's execution has completely stopped.
+        /// </summary>
+        Stopped = 1,
+        /// <summary>
+        /// The user has invoked <see cref="GameHost.Exit"/>, or the window has been called.
+        /// The game is currently awaiting to stop all execution on the correct thread.
+        /// </summary>
+        Stopping = 2,
+        /// <summary>
+        /// <see cref="GameHost.Run"/> has been invoked.
+        /// </summary>
+        Running = 3
     }
 }

@@ -126,9 +126,10 @@ namespace osu.Framework.Screens
 
         /// <summary>
         /// Changes to a new Screen.
+        /// This will trigger an async load if the screen is not already loaded, during which the current screen will no longer be current (or accept user input).
         /// </summary>
         /// <param name="screen">The new Screen.</param>
-        public virtual bool Push(Screen screen)
+        public virtual void Push(Screen screen)
         {
             if (hasExited)
                 throw new InvalidOperationException("Cannot push to an already exited screen.");
@@ -139,24 +140,39 @@ namespace osu.Framework.Screens
             if (ChildScreen != null)
                 throw new InvalidOperationException("Can not push more than one child screen.");
 
-            screen.ParentScreen = this;
-            childModeContainer.Add(screen);
-
             if (screen.hasExited)
-            {
-                screen.Expire();
-                return false;
-            }
+                throw new InvalidOperationException("Cannot push an already exited screen.");
 
+            if (screen.hasEntered)
+                throw new InvalidOperationException("Cannot push an already entered screen.");
+
+            screen.ParentScreen = this;
             startSuspend(screen);
-
-            screen.enter(this);
-
             ModePushed?.Invoke(screen);
 
-            Content.Expire();
+            void finishLoad()
+            {
+                if (hasExited)
+                    return;
 
-            return true;
+                childModeContainer.Add(screen);
+
+                if (screen.hasExited)
+                {
+                    screen.Expire();
+                    startResume(screen);
+                    return;
+                }
+
+                screen.enter(this);
+
+                Content.Expire();
+            }
+
+            if (screen.LoadState >= LoadState.Ready)
+                finishLoad();
+            else
+                LoadComponentAsync(screen, _ => finishLoad());
         }
 
         private void startSuspend(Screen next)
@@ -170,7 +186,16 @@ namespace osu.Framework.Screens
         /// <summary>
         /// Exits this Screen.
         /// </summary>
-        public void Exit() => ExitFrom(this);
+        public void Exit()
+        {
+            if (ChildScreen != null)
+                throw new InvalidOperationException($"Can't exit when a child screen is still present. Please use {nameof(MakeCurrent)} instead.");
+
+            if (!IsCurrentScreen)
+                throw new InvalidOperationException("Can't exit when not the current screen");
+
+            ExitFrom(this);
+        }
 
         private void enter(Screen source)
         {
