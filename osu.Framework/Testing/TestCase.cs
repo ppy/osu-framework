@@ -16,6 +16,7 @@ using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Graphics;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace osu.Framework.Testing
 {
@@ -46,6 +47,11 @@ namespace osu.Framework.Testing
                 throw new InvalidCastException($"The test runner must be a {nameof(Game)}.");
 
             runTask = Task.Factory.StartNew(() => host.Run(game), TaskCreationOptions.LongRunning);
+            while (!game.IsLoaded)
+            {
+                checkForErrors();
+                Thread.Sleep(10);
+            }
         }
 
         [OneTimeTearDown]
@@ -77,7 +83,18 @@ namespace osu.Framework.Testing
         }
 
         [TearDown]
-        public void RunTests() => runner.RunTestBlocking(this);
+        public void RunTests()
+        {
+            checkForErrors();
+            runner.RunTestBlocking(this);
+            checkForErrors();
+        }
+
+        private void checkForErrors()
+        {
+            if (runTask.Exception != null)
+                throw runTask.Exception;
+        }
 
         /// <summary>
         /// Most derived usages of this start with TestCase. This will be removed for display purposes.
