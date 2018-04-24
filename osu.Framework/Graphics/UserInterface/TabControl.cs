@@ -246,8 +246,16 @@ namespace osu.Framework.Graphics.UserInterface
             Current.Value = SelectedTab.Value;
         }
 
-        public virtual void SwitchTab(int offset, bool wrap = true)
+        /// <summary>
+        /// Switches the currently selected tab forward or backward one index, optionally wrapping.
+        /// </summary>
+        /// <param name="direction">Pass 1 to move to the next tab, or -1 to move to the previous tab.</param>
+        /// <param name="wrap">If <c>true</c>, moving past the start or the end of the tab list will wrap to the opposite end.</param>
+        public virtual void SwitchTab(int direction, bool wrap = true)
         {
+            if (Math.Abs(direction) != 1)
+                throw new ArgumentException("Switch direction must be 1 or -1.");
+            
             TabItem<T>[] switchableTabs = TabContainer.TabItems.Where(tab => tab.IsSwitchable).ToArray();
             int tabCount = switchableTabs.Length;
 
@@ -261,7 +269,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
 
             int selectedIndex = Array.IndexOf(switchableTabs, SelectedTab);
-            int targetIndex = selectedIndex + offset;
+            int targetIndex = selectedIndex + direction;
 
             if (wrap)
             {
