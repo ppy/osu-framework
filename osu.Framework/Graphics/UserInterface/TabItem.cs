@@ -26,6 +26,11 @@ namespace osu.Framework.Graphics.UserInterface
 
         public override bool IsRemovable => false;
 
+        /// <summary>
+        /// When true, this tab can be switched to using PlatformAction.DocumentPrevious and PlatformAction.DocumentNext. Otherwise, it will be skipped.
+        /// </summary>
+        public virtual bool IsSwitchable => true;
+
         public readonly T Value;
 
         protected TabItem(T value)
