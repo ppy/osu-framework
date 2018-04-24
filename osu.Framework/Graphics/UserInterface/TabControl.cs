@@ -254,7 +254,7 @@ namespace osu.Framework.Graphics.UserInterface
         public virtual void SwitchTab(int direction, bool wrap = true)
         {
             if (Math.Abs(direction) != 1)
-                throw new ArgumentException("Switch direction must be 1 or -1.");
+                throw new ArgumentException("value must be -1 or 1", nameof(direction));
 
             TabItem<T>[] switchableTabs = TabContainer.TabItems.Where(tab => tab.IsSwitchable).ToArray();
             int tabCount = switchableTabs.Length;
