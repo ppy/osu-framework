@@ -50,6 +50,10 @@ namespace osu.Framework.Platform.MacOS
             new KeyBinding(new KeyCombination(new[] { InputKey.Super, InputKey.Delete }), new PlatformAction(PlatformActionType.LineEnd, PlatformActionMethod.Delete)),
             new KeyBinding(new KeyCombination(new[] { InputKey.Super, InputKey.Shift, InputKey.Left }), new PlatformAction(PlatformActionType.LineStart, PlatformActionMethod.Select)),
             new KeyBinding(new KeyCombination(new[] { InputKey.Super, InputKey.Shift, InputKey.Right }), new PlatformAction(PlatformActionType.LineEnd, PlatformActionMethod.Select)),
+            new KeyBinding(new KeyCombination(new[] { InputKey.Alt, InputKey.Super, InputKey.Left }), new PlatformAction(PlatformActionType.DocumentPrevious)),
+            new KeyBinding(new KeyCombination(new[] { InputKey.Alt, InputKey.Super, InputKey.Right }), new PlatformAction(PlatformActionType.DocumentNext)),
+            new KeyBinding(new KeyCombination(new[] { InputKey.Control, InputKey.Tab }), new PlatformAction(PlatformActionType.DocumentNext)),
+            new KeyBinding(new KeyCombination(new[] { InputKey.Control, InputKey.Shift, InputKey.Tab }), new PlatformAction(PlatformActionType.DocumentPrevious)),
         };
     }
 }
