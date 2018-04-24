@@ -12,7 +12,8 @@ namespace osu.Framework.Platform.Windows
     /// </summary>
     internal class TimePeriod : IDisposable
     {
-        private static TimeCaps timeCapabilities;
+        private static readonly TimeCaps time_capabilities;
+
         private readonly int period;
 
         [DllImport(@"winmm.dll", ExactSpelling = true)]
@@ -24,14 +25,14 @@ namespace osu.Framework.Platform.Windows
         [DllImport(@"winmm.dll", ExactSpelling = true)]
         private static extern int timeEndPeriod(int uPeriod);
 
-        internal static int MinimumPeriod => timeCapabilities.wPeriodMin;
-        internal static int MaximumPeriod => timeCapabilities.wPeriodMax;
+        internal static int MinimumPeriod => time_capabilities.wPeriodMin;
+        internal static int MaximumPeriod => time_capabilities.wPeriodMax;
 
         private bool canAdjust = MaximumPeriod > 0;
 
         static TimePeriod()
         {
-            timeGetDevCaps(ref timeCapabilities, Marshal.SizeOf(typeof(TimeCaps)));
+            timeGetDevCaps(ref time_capabilities, Marshal.SizeOf(typeof(TimeCaps)));
         }
 
         internal TimePeriod(int period)
