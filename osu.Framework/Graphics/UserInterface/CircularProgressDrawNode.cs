@@ -16,10 +16,9 @@ namespace osu.Framework.Graphics.UserInterface
 {
     public class CircularProgressDrawNodeSharedData
     {
-        // We multiply the size param by 3 such that the amount of vertices is a multiple of the amount of vertices
-        // per primitive (quads in this case). Otherwise overflowing the batch will result in wrong
-        // grouping of vertices into primitives.
-        public LinearBatch<TexturedVertex2D> HalfCircleBatch = new LinearBatch<TexturedVertex2D>(CircularProgressDrawNode.MAXRES * 100 * 4, 10, PrimitiveType.Quads);
+        // We add 2 to the size param to account for the first triangle needing every vertex passed, subsequent triangles use the last two vertices of the previous triangle. MAXRES is being multiplied by 2 to account for each circle part needing 2 triangles
+        // Otherwise overflowing the batch will result in wrong grouping of vertices into primitives.
+        public LinearBatch<TexturedVertex2D> HalfCircleBatch = new LinearBatch<TexturedVertex2D>(CircularProgressDrawNode.MAXRES * 100 * 2 + 2, 10, PrimitiveType.TriangleStrip);
     }
 
     public class CircularProgressDrawNode : DrawNode
@@ -66,6 +65,22 @@ namespace osu.Framework.Graphics.UserInterface
             Vector2 screenOrigin = Vector2Extensions.Transform(origin, transformationMatrix);
             Color4 originColour = colourAt(origin);
 
+            // First center point
+            Shared.HalfCircleBatch.Add(new TexturedVertex2D
+            {
+                Position = Vector2.Lerp(current, screenOrigin, InnerRadius),
+                TexturePosition = new Vector2(0, 0),
+                Colour = originColour
+            });
+
+            // First outer point.
+            Shared.HalfCircleBatch.Add(new TexturedVertex2D
+            {
+                Position = new Vector2(current.X, current.Y),
+                TexturePosition = new Vector2(0, 1 - 1 / Texture.Height),
+                Colour = currentColour
+            });
+
             for (int i = 1; i <= amountPoints; i++)
             {
                 // Clamps the angle so we don't overshoot.
@@ -78,41 +93,25 @@ namespace osu.Framework.Graphics.UserInterface
                     ? (1 - 1 / Texture.Width) * ((float)i / amountPoints * Angle / MathHelper.TwoPi + (dir > 0 ? 0 : 1))
                     : 0;
 
-                // First center point
-                Shared.HalfCircleBatch.Add(new TexturedVertex2D
-                {
-                    Position = Vector2.Lerp(current, screenOrigin, InnerRadius),
-                    TexturePosition = new Vector2((normalisedStartAngle + normalisedEndAngle) / 2, 0),
-                    Colour = originColour
-                });
-
-                // First outer point. (Note that this uses the same `current` as the second point of previous iteration)
-                Shared.HalfCircleBatch.Add(new TexturedVertex2D
-                {
-                    Position = new Vector2(current.X, current.Y),
-                    TexturePosition = new Vector2(normalisedStartAngle, 1 - 1 / Texture.Height),
-                    Colour = currentColour
-                });
-
                 // Update `current`
                 current = origin + pointOnCircle(start_angle + angularOffset) * 0.5f;
                 currentColour = colourAt(current);
                 current = Vector2Extensions.Transform(current, transformationMatrix);
 
-                // Second outer point
-                Shared.HalfCircleBatch.Add(new TexturedVertex2D
-                {
-                    Position = new Vector2(current.X, current.Y),
-                    TexturePosition = new Vector2(normalisedEndAngle, 1 - 1 / Texture.Height),
-                    Colour = currentColour
-                });
-
-                // Second center point
+                // current center point
                 Shared.HalfCircleBatch.Add(new TexturedVertex2D
                 {
                     Position = Vector2.Lerp(current, screenOrigin, InnerRadius),
                     TexturePosition = new Vector2((normalisedStartAngle + normalisedEndAngle) / 2, 0),
                     Colour = originColour
+                });
+
+                // current outer point
+                Shared.HalfCircleBatch.Add(new TexturedVertex2D
+                {
+                    Position = new Vector2(current.X, current.Y),
+                    TexturePosition = new Vector2(normalisedEndAngle, 1 - 1 / Texture.Height),
+                    Colour = currentColour
                 });
             }
         }
