@@ -40,5 +40,30 @@ namespace osu.Framework.IO.Stores
 
             return new MemoryStream(ret);
         }
+
+        #region IDisposable Support
+
+        private bool isDisposed;
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!isDisposed)
+            {
+                isDisposed = true;
+            }
+        }
+
+        ~OnlineStore()
+        {
+            Dispose(false);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        #endregion
     }
 }

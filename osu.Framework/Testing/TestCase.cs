@@ -15,6 +15,8 @@ using osu.Framework.Testing.Drawables.Steps;
 using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Graphics;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace osu.Framework.Testing
 {
@@ -26,7 +28,48 @@ namespace osu.Framework.Testing
 
         protected override Container<Drawable> Content => content;
 
-        private bool mainTest = true;
+        protected virtual ITestCaseTestRunner CreateRunner() => new TestCaseTestRunner();
+
+        private GameHost host;
+        private Task runTask;
+        private ITestCaseTestRunner runner;
+        private bool isNUnitRunning;
+
+        [OneTimeSetUp]
+        public void SetupGameHost()
+        {
+            isNUnitRunning = true;
+
+            host = new HeadlessGameHost($"test-{Guid.NewGuid()}", realtime: false);
+            runner = CreateRunner();
+
+            if (!(runner is Game game))
+                throw new InvalidCastException($"The test runner must be a {nameof(Game)}.");
+
+            runTask = Task.Factory.StartNew(() => host.Run(game), TaskCreationOptions.LongRunning);
+            while (!game.IsLoaded)
+            {
+                checkForErrors();
+                Thread.Sleep(10);
+            }
+        }
+
+        [OneTimeTearDown]
+        public void DestroyGameHost()
+        {
+            host.Exit();
+            runTask.Wait();
+            host.Dispose();
+
+            try
+            {
+                // clean up after each run
+                host.Storage.DeleteDirectory(string.Empty);
+            }
+            catch
+            {
+            }
+        }
 
         /// <summary>
         /// Runs prior to all tests except <see cref="TestConstructor"/> to ensure that the <see cref="TestCase"/>
@@ -35,33 +78,22 @@ namespace osu.Framework.Testing
         [SetUp]
         public void SetupTest()
         {
-            if (!mainTest)
+            if (isNUnitRunning && TestContext.CurrentContext.Test.MethodName != nameof(TestConstructor))
                 StepsContainer.Clear();
         }
 
-        /// <summary>
-        /// Ensures that the NUnit test runs correctly by running a <see cref="HeadlessGameHost"/>.
-        /// This runs during NUnit's TearDown to ensure that <see cref="TestCase"/> steps (e.g. from <see cref="AddStep(string, Action)"/>)
-        /// are properly added and executed.
-        /// </summary>
         [TearDown]
-        public virtual void RunTest()
+        public void RunTests()
         {
-            Storage storage;
-            using (var host = new HeadlessGameHost($"test-{Guid.NewGuid()}", realtime: false))
-            {
-                storage = host.Storage;
-                host.Run(new TestCaseTestRunner(this));
-            }
+            checkForErrors();
+            runner.RunTestBlocking(this);
+            checkForErrors();
+        }
 
-            try
-            {
-                // clean up after each run
-                storage.DeleteDirectory(string.Empty);
-            }
-            catch
-            {
-            }
+        private void checkForErrors()
+        {
+            if (runTask.Exception != null)
+                throw runTask.Exception;
         }
 
         /// <summary>
@@ -74,7 +106,9 @@ namespace osu.Framework.Testing
         /// This test must run before any other tests, as it relies on <see cref="StepsContainer"/> not being cleared and not having any elements.
         /// </summary>
         [Test, Order(int.MinValue)]
-        public void TestConstructor() { mainTest = false; }
+        public void TestConstructor()
+        {
+        }
 
         protected TestCase()
         {
@@ -138,13 +172,18 @@ namespace osu.Framework.Testing
 
         public void RunAllSteps(Action onCompletion = null, Action<Exception> onError = null)
         {
-            stepRunner?.Cancel();
-            foreach (var step in StepsContainer.OfType<StepButton>())
-                step.Reset();
+            // schedule once as we want to ensure we have run our LoadComplete before atttempting to execute steps.
+            // a user may be adding a step in LoadComplete.
+            Schedule(() =>
+            {
+                stepRunner?.Cancel();
+                foreach (var step in StepsContainer.OfType<StepButton>())
+                    step.Reset();
 
-            actionIndex = -1;
-            actionRepetition = 0;
-            runNextStep(onCompletion, onError);
+                actionIndex = -1;
+                actionRepetition = 0;
+                runNextStep(onCompletion, onError);
+            });
         }
 
         public void RunFirstStep()
