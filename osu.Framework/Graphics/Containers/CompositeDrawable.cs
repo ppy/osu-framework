@@ -748,8 +748,7 @@ namespace osu.Framework.Graphics.Containers
             if (aliveInternalChildren.Count == 0 && CanBeFlattened)
                 return null;
 
-            CompositeDrawNode cNode = base.GenerateDrawNodeSubtree(frame, treeIndex) as CompositeDrawNode;
-            if (cNode == null)
+            if (!(base.GenerateDrawNodeSubtree(frame, treeIndex) is CompositeDrawNode cNode))
                 return null;
 
             if (cNode.Children == null)

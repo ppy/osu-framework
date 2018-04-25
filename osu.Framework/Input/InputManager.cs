@@ -418,9 +418,7 @@ namespace osu.Framework.Input
         {
             MouseState mouse = (MouseState)state.Mouse;
 
-            var last = state.Last?.Mouse as MouseState;
-
-            if (last == null) return;
+            if (!(state.Last?.Mouse is MouseState last)) return;
 
             if (mouse.Position != last.Position)
             {

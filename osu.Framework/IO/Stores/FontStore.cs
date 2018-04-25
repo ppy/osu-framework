@@ -21,16 +21,14 @@ namespace osu.Framework.IO.Stores
 
         public override void AddStore(IResourceStore<RawTexture> store)
         {
-            var gs = store as GlyphStore;
-            if (gs != null)
+            if (store is GlyphStore gs)
                 glyphStores.Add(gs);
             base.AddStore(store);
         }
 
         public override void RemoveStore(IResourceStore<RawTexture> store)
         {
-            var gs = store as GlyphStore;
-            if (gs != null)
+            if (store is GlyphStore gs)
                 glyphStores.Remove(gs);
             base.RemoveStore(store);
         }
