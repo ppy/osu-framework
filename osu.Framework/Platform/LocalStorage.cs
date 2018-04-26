@@ -4,7 +4,7 @@
 using System;
 using osu.Framework.Platform;
 
-namespace osu.Framework.Configuration
+namespace osu.Framework.Platform
 {
     public class LocalStorage : DesktopStorage
     {
