@@ -7,7 +7,7 @@ namespace osu.Framework.Platform
 {
     public class UserStorage : DesktopStorage
     {
-        private readonly LocalSettingsManager configManager = new LocalSettingsManager();
+        private readonly LocalSettingsManager configManager = new LocalSettingsManager(new LocalStorage());
 
         protected override string LocateBasePath()
         {
