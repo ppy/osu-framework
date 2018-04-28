@@ -15,6 +15,7 @@ namespace osu.Framework.Graphics.UserInterface
         public Bindable<double> Current { get; } = new Bindable<double>();
         private double currentValue
         {
+            get => Current.Value;
             set => Current.Value = value;
         }
 
