@@ -8,6 +8,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Transforms;
 using System;
 using System.Linq;
+using JetBrains.Annotations;
 using osu.Framework.Configuration;
 
 namespace osu.Framework.Graphics
@@ -412,7 +413,7 @@ namespace osu.Framework.Graphics
         /// Smoothly adjusts the value of a <see cref="Bindable{TValue}"/> over time.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public static TransformSequence<T> TransformBindableTo<T, TValue>(this T drawable, Bindable<TValue> bindable, TValue newValue, double duration = 0, Easing easing = Easing.None)
+        public static TransformSequence<T> TransformBindableTo<T, TValue>(this T drawable, [NotNull] Bindable<TValue> bindable, TValue newValue, double duration = 0, Easing easing = Easing.None)
             where T : ITransformable =>
             drawable.TransformTo(drawable.PopulateTransform(new TransformBindable<TValue, T>(bindable), newValue, duration, easing));
     }
