@@ -1282,8 +1282,7 @@ namespace osu.Framework.Graphics
             Drawable search = Parent;
             while (search != null)
             {
-                var test = search as InputManager;
-                if (test != null) return test;
+                if (search is InputManager test) return test;
 
                 search = search.Parent;
             }

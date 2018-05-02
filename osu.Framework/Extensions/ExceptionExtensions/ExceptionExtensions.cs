@@ -40,8 +40,7 @@ namespace osu.Framework.Extensions.ExceptionExtensions
 
             while (aggregateException.InnerExceptions.Count == 1)
             {
-                var innerAggregate = aggregateException.InnerException as AggregateException;
-                if (innerAggregate == null)
+                if (!(aggregateException.InnerException is AggregateException innerAggregate))
                     return aggregateException.InnerException;
 
                 aggregateException = innerAggregate;

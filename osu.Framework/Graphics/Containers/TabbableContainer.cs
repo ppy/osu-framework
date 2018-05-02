@@ -62,8 +62,7 @@ namespace osu.Framework.Graphics.Containers
                 else if (drawable is ITabbableContainer tabbable && tabbable.CanBeTabbedTo)
                     return drawable;
 
-                var composite = drawable as CompositeDrawable;
-                if (composite != null)
+                if (drawable is CompositeDrawable composite)
                 {
                     var newChildren = composite.InternalChildren.ToList();
                     int bound = reverse ? newChildren.Count : 0;
