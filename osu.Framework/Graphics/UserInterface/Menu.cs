@@ -586,8 +586,7 @@ namespace osu.Framework.Graphics.UserInterface
                     },
                 };
 
-                var textContent = Content as IHasText;
-                if (textContent != null)
+                if (Content is IHasText textContent)
                 {
                     textContent.Text = item.Text;
                     Item.Text.ValueChanged += newText => textContent.Text = newText;

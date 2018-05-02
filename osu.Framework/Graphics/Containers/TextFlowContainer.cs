@@ -280,8 +280,7 @@ namespace osu.Framework.Graphics.Containers
                 c.Anchor = TextAnchor;
                 c.Origin = TextAnchor;
 
-                NewLineContainer nlc = c as NewLineContainer;
-                if (nlc != null)
+                if (c is NewLineContainer nlc)
                 {
                     curLine.Add(nlc);
                     childrenByLine.Add(curLine);
@@ -314,8 +313,7 @@ namespace osu.Framework.Graphics.Containers
 
                 foreach (Drawable c in line)
                 {
-                    NewLineContainer nlc = c as NewLineContainer;
-                    if (nlc != null)
+                    if (c is NewLineContainer nlc)
                     {
                         nlc.Height = nlc.IndicatesNewParagraph ? (currentLineHeight == 0 ? lastLineHeight : currentLineHeight) * ParagraphSpacing : 0;
                         continue;
