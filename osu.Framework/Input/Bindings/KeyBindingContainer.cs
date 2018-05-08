@@ -189,7 +189,8 @@ namespace osu.Framework.Input.Bindings
 
             bool handled = false;
 
-            var newlyReleased = pressedBindings.Where(b => !b.KeyCombination.IsPressed(pressedCombination, simultaneousMode == SimultaneousBindingMode.NoneExact)).ToList();
+            // we don't want to consider exact matching here as we are dealing with bindings, not actions.
+            var newlyReleased = pressedBindings.Where(b => !b.KeyCombination.IsPressed(pressedCombination, false)).ToList();
 
             Trace.Assert(newlyReleased.All(b => b.KeyCombination.Keys.Contains(releasedKey)));
 
