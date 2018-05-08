@@ -77,7 +77,9 @@ namespace osu.Framework.Graphics.Containers
             // for their correct alive state in the case LifetimeStart is set to a definite value.
             internalChildren.ForEach(loadChild);
 
-            // Let's also perform an update on our children's life to add any alive children.
+            // At this point we can assume that we are loaded although we're not in the "ready" state, because we'll be given
+            // a "ready" state soon after this method terminates. Therefore we can perform an early check to add any alive children
+            // while we're still in an asynchronous context and avoid putting pressure on the main thread during UpdateSubTree
             checkChildrenLife();
         }
 
