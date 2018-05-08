@@ -293,6 +293,9 @@ namespace osu.Framework.MathUtils
                         .GetMethod(nameof(InterpolationFunc<TValue>.Invoke))
                         ?.GetParameters().Select(p => p.ParameterType).ToArray()
                 )?.CreateDelegate(typeof(InterpolationFunc<TValue>));
+
+            if (interpolation_func == null)
+                throw new InvalidOperationException($"Type {typeof(TValue)} has no automatic interpolation function. The value must be interpolated manually.");
         }
 
         public static TValue ValueAt(double time, TValue val1, TValue val2, double startTime, double endTime, Easing easing = Easing.None)
