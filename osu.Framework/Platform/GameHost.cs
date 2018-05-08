@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -151,6 +152,8 @@ namespace osu.Framework.Platform
             toolkit = Toolkit.Init();
 
             AppDomain.CurrentDomain.UnhandledException += exceptionHandler;
+
+            Trace.Listeners.Add(new ThrowingTraceListener());
 
             FileSafety.DeleteCleanupDirectory();
 
