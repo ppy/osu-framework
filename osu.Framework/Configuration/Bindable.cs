@@ -165,7 +165,7 @@ namespace osu.Framework.Configuration
         protected void TriggerValueChange(bool propagateToBindings = true)
         {
             // check a bound bindable hasn't changed the value again (it will fire its own event)
-            T beforePropagation = Value;
+            T beforePropagation = value;
             if (propagateToBindings) Bindings?.ForEachAlive(b => b.Value = value);
             if (Equals(beforePropagation, Value))
                 ValueChanged?.Invoke(value);
@@ -174,7 +174,7 @@ namespace osu.Framework.Configuration
         protected void TriggerDisabledChange(bool propagateToBindings = true)
         {
             // check a bound bindable hasn't changed the value again (it will fire its own event)
-            bool beforePropagation = Disabled;
+            bool beforePropagation = disabled;
             if (propagateToBindings) Bindings?.ForEachAlive(b => b.Disabled = disabled);
             if (Equals(beforePropagation, Disabled))
                 DisabledChanged?.Invoke(disabled);
