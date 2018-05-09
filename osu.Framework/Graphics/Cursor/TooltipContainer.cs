@@ -164,8 +164,7 @@ namespace osu.Framework.Graphics.Cursor
         private IHasTooltip findTooltipTarget()
         {
             // While we are dragging a tooltipped drawable we should show a tooltip for it.
-            IHasTooltip draggedTarget = inputManager.DraggedDrawable as IHasTooltip;
-            if (draggedTarget != null)
+            if (inputManager.DraggedDrawable is IHasTooltip draggedTarget)
                 return hasValidTooltip(draggedTarget) ? draggedTarget : null;
 
             // Always keep 10 positions at equally-sized time intervals that add up to AppearDelay.
