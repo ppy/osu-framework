@@ -32,11 +32,6 @@ namespace osu.Framework.Graphics.Containers
         public readonly FrameBuffer[] FrameBuffers = Enumerable.Repeat(new FrameBuffer(), 3).ToArray();
 
         /// <summary>
-        /// The <see cref="RenderbufferInternalFormat"/>s to use when drawing children.
-        /// </summary>
-        public readonly List<RenderbufferInternalFormat> Formats = new List<RenderbufferInternalFormat>();
-
-        /// <summary>
         /// The version of drawn contents currently present in <see cref="FrameBuffers"/>.
         /// This should only be modified by <see cref="BufferedContainerDrawNode"/>.
         /// </summary>
@@ -59,6 +54,11 @@ namespace osu.Framework.Graphics.Containers
 
         public RectangleF ScreenSpaceDrawRectangle;
         public All FilteringMode;
+
+        /// <summary>
+        /// The <see cref="RenderbufferInternalFormat"/>s to use when drawing children.
+        /// </summary>
+        public readonly List<RenderbufferInternalFormat> Formats = new List<RenderbufferInternalFormat>();
 
         public new BufferedContainerDrawNodeSharedData Shared;
 
@@ -95,7 +95,7 @@ namespace osu.Framework.Graphics.Containers
 
             // These additional render buffers are only required if e.g. depth
             // or stencil information needs to also be stored somewhere.
-            foreach (var f in Shared.Formats)
+            foreach (var f in Formats)
                 frameBuffer.Attach(f);
 
             // This setter will also take care of allocating a texture of appropriate size within the framebuffer.

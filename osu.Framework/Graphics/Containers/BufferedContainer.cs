@@ -10,6 +10,7 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.MathUtils;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Caching;
 
@@ -272,6 +273,9 @@ namespace osu.Framework.Graphics.Containers
             n.BlurRadius = new Vector2I(Blur.KernelSize(BlurSigma.X), Blur.KernelSize(BlurSigma.Y));
             n.BlurRotation = blurRotation;
 
+            n.Formats.Clear();
+            n.Formats.AddRange(attachedFormats);
+
             base.ApplyDrawNode(node);
 
             // Our own draw node should contain our correct color, hence we have
@@ -279,17 +283,26 @@ namespace osu.Framework.Graphics.Containers
             n.DrawInfo.Colour = base.DrawInfo.Colour;
         }
 
+        private readonly List<RenderbufferInternalFormat> attachedFormats = new List<RenderbufferInternalFormat>();
+
         /// <summary>
-        /// Attach an additional component to the framebuffer. Such a component can e.g.
+        /// Attach an additional component to this <see cref="BufferedContainer{T}"/>. Such a component can e.g.
         /// be a depth component, such that the framebuffer can hold fragment depth information.
         /// </summary>
+        /// <param name="format">The component format to attach.</param>
         public void Attach(RenderbufferInternalFormat format)
         {
-            if (sharedData.Formats.Exists(f => f == format))
+            if (attachedFormats.Exists(f => f == format))
                 return;
 
-            sharedData.Formats.Add(format);
+            attachedFormats.Add(format);
         }
+
+        /// <summary>
+        /// Detaches an additional component of this <see cref="BufferedContainer{T}"/>.
+        /// </summary>
+        /// <param name="format">The component format to detach.</param>
+        public void Detach(RenderbufferInternalFormat format) => attachedFormats.Remove(format);
 
         protected override RectangleF ComputeChildMaskingBounds(RectangleF maskingBounds) => ScreenSpaceDrawQuad.AABBFloat; // Make sure children never get masked away
 
@@ -313,6 +326,8 @@ namespace osu.Framework.Graphics.Containers
 
         protected override void Update()
         {
+            base.Update();
+
             // Invalidate drawn frame buffer every frame.
             if (!CacheDrawnFrameBuffer)
                 ForceRedraw();
@@ -328,8 +343,6 @@ namespace osu.Framework.Graphics.Containers
 
                 screenSpaceSizeBacking.Validate();
             }
-
-            base.Update();
         }
 
         protected override void UpdateAfterChildren()
