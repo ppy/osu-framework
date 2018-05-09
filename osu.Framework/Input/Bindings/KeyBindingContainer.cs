@@ -120,7 +120,7 @@ namespace osu.Framework.Input.Bindings
             var bindings = repeat ? KeyBindings : KeyBindings.Except(pressedBindings);
             var newlyPressed = bindings.Where(m =>
                 m.KeyCombination.Keys.Contains(newKey) // only handle bindings matching current key (not required for correct logic)
-                && m.KeyCombination.IsPressed(pressedCombination));
+                && m.KeyCombination.IsPressed(pressedCombination, simultaneousMode == SimultaneousBindingMode.NoneExact));
 
             if (isModifier(newKey))
                 // if the current key pressed was a modifier, only handle modifier-only bindings.
@@ -132,12 +132,20 @@ namespace osu.Framework.Input.Bindings
             if (!repeat)
                 pressedBindings.AddRange(newlyPressed);
 
+            // exact matching may result in no pressed (new or old) bindings, in which case we want to trigger releases for existing actions
+            if (simultaneousMode == SimultaneousBindingMode.NoneExact)
+            {
+                // only want to release pressed actions if no existing bindings would still remain pressed
+                if (pressedBindings.Count > 0 && !pressedBindings.Any(m => m.KeyCombination.IsPressed(pressedCombination, simultaneousMode == SimultaneousBindingMode.NoneExact)))
+                    releasePressedActions();
+            }
+
             foreach (var newBinding in newlyPressed)
             {
                 handled |= PropagatePressed(KeyBindingInputQueue, newBinding.GetAction<T>());
 
                 // we only want to handle the first valid binding (the one with the most keys) in non-simultaneous mode.
-                if (simultaneousMode == SimultaneousBindingMode.None && handled)
+                if ((simultaneousMode == SimultaneousBindingMode.None || simultaneousMode == SimultaneousBindingMode.NoneExact) && handled)
                     break;
             }
 
@@ -149,13 +157,8 @@ namespace osu.Framework.Input.Bindings
             IDrawable handled = null;
 
             // we handled a new binding and there is an existing one. if we don't want concurrency, let's propagate a released event.
-            if (simultaneousMode == SimultaneousBindingMode.None)
-            {
-                // we want to release any existing pressed actions.
-                foreach (var action in pressedActions)
-                    drawables.OfType<IKeyBindingHandler<T>>().ForEach(d => d.OnReleased(action));
-                pressedActions.Clear();
-            }
+            if (simultaneousMode == SimultaneousBindingMode.None || simultaneousMode == SimultaneousBindingMode.NoneExact)
+                releasePressedActions();
 
             // only handle if we are a new non-pressed action (or a concurrency mode that supports multiple simultaneous triggers).
             if (simultaneousMode == SimultaneousBindingMode.All || !pressedActions.Contains(pressed))
@@ -170,13 +173,24 @@ namespace osu.Framework.Input.Bindings
             return handled != null;
         }
 
+        /// <summary>
+        /// Releases all pressed actions.
+        /// </summary>
+        private void releasePressedActions()
+        {
+            foreach (var action in pressedActions)
+                KeyBindingInputQueue.OfType<IKeyBindingHandler<T>>().ForEach(d => d.OnReleased(action));
+            pressedActions.Clear();
+        }
+
         private bool handleNewReleased(InputState state, InputKey releasedKey)
         {
             var pressedCombination = KeyCombination.FromInputState(state);
 
             bool handled = false;
 
-            var newlyReleased = pressedBindings.Where(b => !b.KeyCombination.IsPressed(pressedCombination)).ToList();
+            // we don't want to consider exact matching here as we are dealing with bindings, not actions.
+            var newlyReleased = pressedBindings.Where(b => !b.KeyCombination.IsPressed(pressedCombination, false)).ToList();
 
             Trace.Assert(newlyReleased.All(b => b.KeyCombination.Keys.Contains(releasedKey)));
 
@@ -240,9 +254,16 @@ namespace osu.Framework.Input.Bindings
     public enum SimultaneousBindingMode
     {
         /// <summary>
-        /// One action can be in a pressed state at once. If a new matching binding is encountered, any existing binding is first released.
+        /// One action can be in a pressed state at once.
+        /// If a new matching binding is encountered, any existing binding is first released.
         /// </summary>
         None,
+
+        /// <summary>
+        /// One action can be in a pressed state at once. Exact key combinations are required for actions to be triggered.
+        /// If a new matching binding is encountered, any existing binding is first released.
+        /// </summary>
+        NoneExact,
 
         /// <summary>
         /// Unique actions are allowed to be pressed at the same time. There may therefore be more than one action in an actuated state at once.
