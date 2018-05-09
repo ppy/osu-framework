@@ -10,6 +10,7 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.MathUtils;
 using System;
+using System.Linq;
 using osu.Framework.Caching;
 
 namespace osu.Framework.Graphics.Containers
@@ -338,7 +339,7 @@ namespace osu.Framework.Graphics.Containers
             childrenUpdateVersion = updateVersion;
         }
 
-        private readonly long[] drawNodeVersions = new long[3];
+        private readonly long[] drawNodeVersions = Enumerable.Repeat(-1L, 3).ToArray();
 
         private bool addChildDrawNodes;
         internal override bool AddChildDrawNodes => addChildDrawNodes;
