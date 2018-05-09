@@ -67,6 +67,11 @@ namespace osu.Framework.Graphics.Containers
 
         public new BufferedContainerDrawNodeSharedData Shared;
 
+        /// <summary>
+        /// Whether this <see cref="BufferedContainerDrawNode"/> should have its children re-drawn.
+        /// </summary>
+        public bool RequiresRedraw => UpdateVersion > Shared.DrawVersion;
+
         private InvokeOnDisposal establishFrameBufferViewport(Vector2 roundedSize)
         {
             // Disable masking for generating the frame buffer since masking will be re-applied
@@ -198,7 +203,7 @@ namespace osu.Framework.Graphics.Containers
             currentFrameBufferIndex = originalIndex;
 
             Vector2 frameBufferSize = new Vector2((float)Math.Ceiling(ScreenSpaceDrawRectangle.Width), (float)Math.Ceiling(ScreenSpaceDrawRectangle.Height));
-            if (UpdateVersion > Shared.DrawVersion)
+            if (RequiresRedraw)
             {
                 Shared.DrawVersion = UpdateVersion;
 

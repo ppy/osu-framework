@@ -11,7 +11,6 @@ using osu.Framework.Graphics.Shaders;
 using osu.Framework.MathUtils;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using osu.Framework.Caching;
 
 namespace osu.Framework.Graphics.Containers
@@ -240,6 +239,9 @@ namespace osu.Framework.Graphics.Containers
 
         private readonly BufferedContainerDrawNodeSharedData sharedData = new BufferedContainerDrawNodeSharedData();
 
+        private bool addChildDrawNodes;
+        internal override bool AddChildDrawNodes => addChildDrawNodes;
+
         protected override DrawNode CreateDrawNode() => new BufferedContainerDrawNode();
 
         protected override void ApplyDrawNode(DrawNode node)
@@ -281,6 +283,19 @@ namespace osu.Framework.Graphics.Containers
             // Our own draw node should contain our correct color, hence we have
             // to undo our overridden DrawInfo getter here.
             n.DrawInfo.Colour = base.DrawInfo.Colour;
+
+            // Only need to generate child draw nodes if the framebuffers will get redrawn this time around
+            addChildDrawNodes = n.RequiresRedraw;
+        }
+
+        internal override DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex)
+        {
+            var result = base.GenerateDrawNodeSubtree(frame, treeIndex);
+
+            // The framebuffers may be redrawn this time around, but will be cached the next time around
+            addChildDrawNodes = false;
+
+            return result;
         }
 
         private readonly List<RenderbufferInternalFormat> attachedFormats = new List<RenderbufferInternalFormat>();
@@ -350,19 +365,6 @@ namespace osu.Framework.Graphics.Containers
             base.UpdateAfterChildren();
 
             childrenUpdateVersion = updateVersion;
-        }
-
-        private readonly long[] drawNodeVersions = Enumerable.Repeat(-1L, 3).ToArray();
-
-        private bool addChildDrawNodes;
-        internal override bool AddChildDrawNodes => addChildDrawNodes;
-
-        internal override DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex)
-        {
-            addChildDrawNodes = drawNodeVersions[treeIndex] != updateVersion;
-            drawNodeVersions[treeIndex] = updateVersion;
-
-            return base.GenerateDrawNodeSubtree(frame, treeIndex);
         }
 
         public override DrawInfo DrawInfo
