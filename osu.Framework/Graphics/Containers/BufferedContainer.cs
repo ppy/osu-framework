@@ -5,15 +5,11 @@ using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.ES30;
 using osu.Framework.Allocation;
-using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Colour;
-using osu.Framework.Graphics.OpenGL.Buffers;
-using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.MathUtils;
 using System;
-using System.Collections.Generic;
 using osu.Framework.Caching;
 
 namespace osu.Framework.Graphics.Containers
@@ -113,7 +109,7 @@ namespace osu.Framework.Graphics.Containers
             get { return pixelSnapping; }
             set
             {
-                if (frameBuffers[0].IsInitialized || frameBuffers[1].IsInitialized)
+                if (sharedData.FrameBuffers[0].IsInitialized || sharedData.FrameBuffers[1].IsInitialized)
                     throw new InvalidOperationException("May only set PixelSnapping before FrameBuffers are initialized (i.e. before the first draw).");
                 pixelSnapping = value;
             }
@@ -199,8 +195,6 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private Shader blurShader;
-
         /// <summary>
         /// Whether the rendered framebuffer shall be cached until <see cref="ForceRedraw"/> is called
         /// or the size of the container (i.e. framebuffer) changes.
@@ -216,12 +210,6 @@ namespace osu.Framework.Graphics.Containers
         public void ForceRedraw() => Invalidate(Invalidation.DrawNode);
 
         /// <summary>
-        /// We need 3 frame buffers such that we can accumulate post-processing effects in a
-        /// ping-pong fashion going back and forth (reading from one buffer, writing into the other).
-        /// </summary>
-        private readonly FrameBuffer[] frameBuffers = new FrameBuffer[3];
-
-        /// <summary>
         /// In order to signal the draw thread to re-draw the buffered container we version it.
         /// Our own version (update) keeps track of which version we are on, whereas the
         /// drawVersion keeps track of the version the draw thread is on.
@@ -230,10 +218,6 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         private long updateVersion;
 
-        private readonly QuadBatch<TexturedVertex2D> quadBatch = new QuadBatch<TexturedVertex2D>(1, 3);
-
-        private readonly List<RenderbufferInternalFormat> attachedFormats = new List<RenderbufferInternalFormat>();
-
         protected override bool CanBeFlattened => false;
 
         /// <summary>
@@ -241,9 +225,6 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public BufferedContainer()
         {
-            for (int i = 0; i < frameBuffers.Length; ++i)
-                frameBuffers[i] = new FrameBuffer();
-
             // The initial draw cannot be cached, and thus we need to initialize
             // with a forced draw.
             ForceRedraw();
@@ -252,9 +233,10 @@ namespace osu.Framework.Graphics.Containers
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
         {
-            if (blurShader == null)
-                blurShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.BLUR);
+            sharedData.BlurShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.BLUR);
         }
+
+        private readonly BufferedContainerDrawNodeSharedData sharedData = new BufferedContainerDrawNodeSharedData();
 
         protected override DrawNode CreateDrawNode() => new BufferedContainerDrawNode();
 
@@ -262,10 +244,9 @@ namespace osu.Framework.Graphics.Containers
         {
             BufferedContainerDrawNode n = (BufferedContainerDrawNode)node;
 
+            n.Shared = sharedData;
+
             n.ScreenSpaceDrawRectangle = ScreenSpaceDrawQuad.AABBFloat;
-            n.Batch = quadBatch;
-            n.FrameBuffers = frameBuffers;
-            n.Formats = new List<RenderbufferInternalFormat>(attachedFormats);
             n.FilteringMode = pixelSnapping ? All.Nearest : All.Linear;
 
             n.UpdateVersion = updateVersion;
@@ -289,7 +270,6 @@ namespace osu.Framework.Graphics.Containers
             n.BlurSigma = blurSigma;
             n.BlurRadius = new Vector2I(Blur.KernelSize(BlurSigma.X), Blur.KernelSize(BlurSigma.Y));
             n.BlurRotation = blurRotation;
-            n.BlurShader = blurShader;
 
             base.ApplyDrawNode(node);
 
@@ -304,10 +284,10 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public void Attach(RenderbufferInternalFormat format)
         {
-            if (attachedFormats.Exists(f => f == format))
+            if (sharedData.Formats.Exists(f => f == format))
                 return;
 
-            attachedFormats.Add(format);
+            sharedData.Formats.Add(format);
         }
 
         protected override RectangleF ComputeChildMaskingBounds(RectangleF maskingBounds) => ScreenSpaceDrawQuad.AABBFloat; // Make sure children never get masked away
