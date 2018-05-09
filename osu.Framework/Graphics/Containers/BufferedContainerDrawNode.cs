@@ -14,6 +14,7 @@ using System;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using System.Diagnostics;
+using System.Linq;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -28,7 +29,7 @@ namespace osu.Framework.Graphics.Containers
         /// The <see cref="FrameBuffer"/>s to render to.
         /// These are used in a ping-pong manner to render effects <see cref="BufferedContainerDrawNode"/>.
         /// </summary>
-        public readonly FrameBuffer[] FrameBuffers = new FrameBuffer[3];
+        public readonly FrameBuffer[] FrameBuffers = Enumerable.Repeat(new FrameBuffer(), 3).ToArray();
 
         /// <summary>
         /// The <see cref="RenderbufferInternalFormat"/>s to use when drawing children.
@@ -40,12 +41,6 @@ namespace osu.Framework.Graphics.Containers
         /// This should only be modified by <see cref="BufferedContainerDrawNode"/>.
         /// </summary>
         public long DrawVersion = -1;
-
-        public BufferedContainerDrawNodeSharedData()
-        {
-            for (int i = 0; i < FrameBuffers.Length; ++i)
-                FrameBuffers[i] = new FrameBuffer();
-        }
     }
 
     public class BufferedContainerDrawNode : CompositeDrawNode
