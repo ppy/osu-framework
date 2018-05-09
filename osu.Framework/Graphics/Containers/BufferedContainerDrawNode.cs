@@ -35,13 +35,14 @@ namespace osu.Framework.Graphics.Containers
 
         public Shader BlurShader;
 
-        public AtomicCounter DrawVersion;
         public long UpdateVersion = -1;
 
         public RectangleF ScreenSpaceDrawRectangle;
         public QuadBatch<TexturedVertex2D> Batch;
         public List<RenderbufferInternalFormat> Formats;
         public All FilteringMode;
+
+        private readonly AtomicCounter drawVersion = new AtomicCounter();
 
         private InvokeOnDisposal establishFrameBufferViewport(Vector2 roundedSize)
         {
@@ -174,9 +175,9 @@ namespace osu.Framework.Graphics.Containers
             currentFrameBufferIndex = originalIndex;
 
             Vector2 frameBufferSize = new Vector2((float)Math.Ceiling(ScreenSpaceDrawRectangle.Width), (float)Math.Ceiling(ScreenSpaceDrawRectangle.Height));
-            if (UpdateVersion > DrawVersion.Value)
+            if (UpdateVersion > drawVersion.Value)
             {
-                DrawVersion.Value = UpdateVersion;
+                drawVersion.Value = UpdateVersion;
 
                 using (establishFrameBufferViewport(frameBufferSize))
                 {

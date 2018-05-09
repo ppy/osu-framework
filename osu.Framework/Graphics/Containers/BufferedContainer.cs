@@ -236,8 +236,6 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         private long childrenUpdateVersion;
 
-        private readonly AtomicCounter drawVersion = new AtomicCounter();
-
         private readonly QuadBatch<TexturedVertex2D> quadBatch = new QuadBatch<TexturedVertex2D>(1, 3);
 
         private readonly List<RenderbufferInternalFormat> attachedFormats = new List<RenderbufferInternalFormat>();
@@ -276,7 +274,6 @@ namespace osu.Framework.Graphics.Containers
             n.Formats = new List<RenderbufferInternalFormat>(attachedFormats);
             n.FilteringMode = pixelSnapping ? All.Nearest : All.Linear;
 
-            n.DrawVersion = drawVersion;
             n.UpdateVersion = updateVersion;
             n.BackgroundColour = backgroundColour;
 
