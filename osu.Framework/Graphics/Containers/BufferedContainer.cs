@@ -333,12 +333,12 @@ namespace osu.Framework.Graphics.Containers
                 ForceRedraw();
             else if (!screenSpaceSizeBacking.IsValid)
             {
-                var rect = ScreenSpaceDrawQuad.AABBFloat;
+                var screenSpaceSize = ScreenSpaceDrawQuad.AABBFloat.Size;
 
-                if (!Precision.AlmostEquals(lastScreenSpaceSize, rect.Size))
+                if (!Precision.AlmostEquals(lastScreenSpaceSize, screenSpaceSize))
                 {
                     ++updateVersion;
-                    lastScreenSpaceSize = rect.Size;
+                    lastScreenSpaceSize = screenSpaceSize;
                 }
 
                 screenSpaceSizeBacking.Validate();
