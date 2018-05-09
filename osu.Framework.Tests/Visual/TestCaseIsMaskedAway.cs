@@ -119,7 +119,7 @@ namespace osu.Framework.Tests.Visual
         {
             var box = new Box();
 
-            ProxyDrawable proxy;
+            Drawable proxy;
             Children = new Drawable[]
             {
                 new Container
@@ -151,8 +151,8 @@ namespace osu.Framework.Tests.Visual
         {
             var box = new Box { Position = new Vector2(-1) };
 
-            ProxyDrawable proxy;
-            Children = new Drawable[]
+            Drawable proxy;
+            Children = new[]
             {
                 new Container
                 {
@@ -182,7 +182,7 @@ namespace osu.Framework.Tests.Visual
         {
             var box = new Box();
 
-            ProxyDrawable proxy;
+            Drawable proxy;
             Children = new Drawable[]
             {
                 new Container
@@ -219,7 +219,7 @@ namespace osu.Framework.Tests.Visual
         {
             var box = new Box { Position = new Vector2(-1) };
 
-            ProxyDrawable proxy;
+            Drawable proxy;
             Children = new Drawable[]
             {
                 new Container

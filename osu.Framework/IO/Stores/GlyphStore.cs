@@ -5,7 +5,6 @@ using Cyotek.Drawing.BitmapFont;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Textures;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -22,7 +21,25 @@ namespace osu.Framework.IO.Stores
         private const float default_size = 96;
 
         private readonly ResourceStore<byte[]> store;
+
         private BitmapFont font;
+
+        protected BitmapFont Font
+        {
+            get
+            {
+                try
+                {
+                    fontLoadTask?.Wait();
+                }
+                catch
+                {
+                    return null;
+                }
+
+                return font;
+            }
+        }
 
         private readonly TimedExpiryCache<int, RawTexture> texturePages = new TimedExpiryCache<int, RawTexture>();
 
@@ -40,7 +57,7 @@ namespace osu.Framework.IO.Stores
 
         private async Task readFontMetadataAsync(bool precache)
         {
-            await Task.Run(() =>
+            await Task.Factory.StartNew(() =>
             {
                 try
                 {
@@ -49,27 +66,28 @@ namespace osu.Framework.IO.Stores
                         font.LoadText(s);
 
                     if (precache)
-                        for (int i = 0; i < font.Pages.Length; i++)
+                        for (int i = 0; i < Font.Pages.Length; i++)
                             getTexturePage(i);
                 }
-                catch
+                catch (Exception ex)
                 {
-                    Logger.Log($"Couldn't load font asset from {assetName}.");
+                    Logger.Error(ex, $"Couldn't load font asset from {assetName}.");
                     throw;
                 }
-            });
+            }, TaskCreationOptions.LongRunning);
 
             fontLoadTask = null;
         }
 
-        public bool HasGlyph(char c) => font.Characters.ContainsKey(c);
-        public int GetBaseHeight() => font.BaseHeight;
+        public bool HasGlyph(char c) => Font.Characters.ContainsKey(c);
+        public int GetBaseHeight() => Font.BaseHeight;
+
         public int? GetBaseHeight(string name)
         {
             if (name != fontName)
                 return null;
 
-            return font.BaseHeight;
+            return Font.BaseHeight;
         }
 
         public RawTexture Get(string name)
@@ -152,54 +170,31 @@ namespace osu.Framework.IO.Stores
         private int loadedGlyphCount;
 
         public override string ToString() => $@"GlyphStore({assetName}) LoadedPages:{loadedPageCount} LoadedGlyphs:{loadedGlyphCount}";
-    }
 
-    public class FontStore : TextureStore
-    {
-        private readonly List<GlyphStore> glyphStores = new List<GlyphStore>();
+        #region IDisposable Support
 
-        public FontStore()
-        {
-        }
+        private bool isDisposed;
 
-        public FontStore(GlyphStore glyphStore)
-            : base(glyphStore)
+        protected virtual void Dispose(bool disposing)
         {
-        }
-
-        public override void AddStore(IResourceStore<RawTexture> store)
-        {
-            var gs = store as GlyphStore;
-            if (gs != null)
-                glyphStores.Add(gs);
-            base.AddStore(store);
-        }
-        public override void RemoveStore(IResourceStore<RawTexture> store)
-        {
-            var gs = store as GlyphStore;
-            if (gs != null)
-                glyphStores.Remove(gs);
-            base.RemoveStore(store);
-        }
-
-        public float? GetBaseHeight(char c)
-        {
-            foreach (var store in glyphStores)
+            if (!isDisposed)
             {
-                if (store.HasGlyph(c))
-                    return store.GetBaseHeight() / ScaleAdjust;
+                isDisposed = true;
+                texturePages.Dispose();
             }
-            return null;
         }
-        public float? GetBaseHeight(string fontName)
+
+        ~GlyphStore()
         {
-            foreach (var store in glyphStores)
-            {
-                var bh = store.GetBaseHeight(fontName);
-                if (bh.HasValue)
-                    return bh.Value / ScaleAdjust;
-            }
-            return null;
+            Dispose(false);
         }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        #endregion
     }
 }

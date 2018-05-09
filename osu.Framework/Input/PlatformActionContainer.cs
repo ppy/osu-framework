@@ -18,6 +18,11 @@ namespace osu.Framework.Input
     {
         private GameHost host;
 
+        public PlatformActionContainer()
+            : base(SimultaneousBindingMode.NoneExact)
+        {
+        }
+
         [BackgroundDependencyLoader]
         private void load(GameHost host)
         {
@@ -54,7 +59,9 @@ namespace osu.Framework.Input
         WordPrevious,
         WordNext,
         LineStart,
-        LineEnd
+        LineEnd,
+        DocumentPrevious,
+        DocumentNext
     }
 
     public enum PlatformActionMethod

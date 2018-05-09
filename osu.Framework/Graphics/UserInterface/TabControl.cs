@@ -8,6 +8,8 @@ using System.Linq;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Input;
+using osu.Framework.Input.Bindings;
 using OpenTK;
 
 namespace osu.Framework.Graphics.UserInterface
@@ -19,7 +21,7 @@ namespace osu.Framework.Graphics.UserInterface
     /// start of the list.
     /// </summary>
     /// <typeparam name="T">The type of item to be represented by tabs.</typeparam>
-    public abstract class TabControl<T> : Container, IHasCurrentValue<T>
+    public abstract class TabControl<T> : Container, IHasCurrentValue<T>, IKeyBindingHandler<PlatformAction>
     {
         public Bindable<T> Current { get; } = new Bindable<T>();
 
@@ -27,6 +29,8 @@ namespace osu.Framework.Graphics.UserInterface
         /// A list of items currently in the tab control in the order they are dispalyed.
         /// </summary>
         public IEnumerable<T> Items => TabContainer.TabItems.Select(t => t.Value).Concat(Dropdown.Items.Select(kvp => kvp.Value)).Distinct();
+
+        public IEnumerable<T> VisibleItems => TabContainer.TabItems.Select(t => t.Value).Distinct();
 
         /// <summary>
         /// When true, tabs selected from the overflow dropdown will be moved to the front of the list (after pinned items).
@@ -40,6 +44,11 @@ namespace osu.Framework.Graphics.UserInterface
         protected IReadOnlyDictionary<T, TabItem<T>> TabMap => tabMap;
 
         protected TabItem<T> SelectedTab;
+
+        /// <summary>
+        /// When true, tabs can be switched back and forth using PlatformAction.DocumentPrevious and PlatformAction.DocumentNext respectively.
+        /// </summary>
+        public virtual bool IsSwitchable => true;
 
         /// <summary>
         /// Creates an optional overflow dropdown.
@@ -237,6 +246,43 @@ namespace osu.Framework.Graphics.UserInterface
             Current.Value = SelectedTab.Value;
         }
 
+        /// <summary>
+        /// Switches the currently selected tab forward or backward one index, optionally wrapping.
+        /// </summary>
+        /// <param name="direction">Pass 1 to move to the next tab, or -1 to move to the previous tab.</param>
+        /// <param name="wrap">If <c>true</c>, moving past the start or the end of the tab list will wrap to the opposite end.</param>
+        public virtual void SwitchTab(int direction, bool wrap = true)
+        {
+            if (Math.Abs(direction) != 1)
+                throw new ArgumentException("value must be -1 or 1", nameof(direction));
+
+            TabItem<T>[] switchableTabs = TabContainer.TabItems.Where(tab => tab.IsSwitchable).ToArray();
+            int tabCount = switchableTabs.Length;
+
+            if (tabCount == 0)
+                return;
+
+            if (tabCount == 1 || SelectedTab == null)
+            {
+                SelectTab(switchableTabs[0]);
+                return;
+            }
+
+            int selectedIndex = Array.IndexOf(switchableTabs, SelectedTab);
+            int targetIndex = selectedIndex + direction;
+
+            if (wrap)
+            {
+                targetIndex = targetIndex % tabCount;
+                if (targetIndex < 0)
+                    targetIndex += tabCount;
+            }
+
+            targetIndex = Math.Min(tabCount - 1, Math.Max(0, targetIndex));
+
+            SelectTab(switchableTabs[targetIndex]);
+        }
+
         private void performTabSort(TabItem<T> tab)
         {
             TabContainer.SetLayoutPosition(tab, getTabDepth(tab));
@@ -247,6 +293,26 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         private float getTabDepth(TabItem<T> tab) => tab.Pinned ? float.MinValue : --depthCounter;
+
+        public bool OnPressed(PlatformAction action)
+        {
+            if (IsSwitchable)
+            {
+                switch (action.ActionType)
+                {
+                    case PlatformActionType.DocumentNext:
+                        SwitchTab(1);
+                        return true;
+
+                    case PlatformActionType.DocumentPrevious:
+                        SwitchTab(-1);
+                        return true;
+                }
+            }
+            return false;
+        }
+
+        public bool OnReleased(PlatformAction action) => false;
 
         protected virtual TabFillFlowContainer CreateTabFlow() => new TabFillFlowContainer
         {
