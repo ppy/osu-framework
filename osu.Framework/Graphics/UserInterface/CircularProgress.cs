@@ -13,11 +13,6 @@ namespace osu.Framework.Graphics.UserInterface
     public class CircularProgress : Drawable, IHasCurrentValue<double>
     {
         public Bindable<double> Current { get; } = new Bindable<double>();
-        private double currentValue
-        {
-            get => Current.Value;
-            set => Current.Value = value;
-        }
 
         public CircularProgress()
         {
@@ -65,7 +60,7 @@ namespace osu.Framework.Graphics.UserInterface
             base.ApplyDrawNode(node);
         }
 
-        public TransformSequence<CircularProgress> FillTo(double value, int duration) => this.TransformTo(nameof(currentValue), value, duration);
+        public TransformSequence<CircularProgress> FillTo(double value, int duration) => this.TransformBindableTo(Current, value, duration);
 
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
