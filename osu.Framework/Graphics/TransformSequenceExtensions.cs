@@ -8,6 +8,9 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Transforms;
 using osu.Framework.Threading;
 using System;
+using JetBrains.Annotations;
+using osu.Framework.Configuration;
+using osu.Framework.MathUtils;
 
 namespace osu.Framework.Graphics
 {
@@ -232,5 +235,14 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> TransformSpacingTo<T>(this TransformSequence<T> t, Vector2 newSpacing, double duration = 0, Easing easing = Easing.None)
             where T : IFillFlowContainer =>
             t.Append(o => o.TransformSpacingTo(newSpacing, duration, easing));
+
+        /// <summary>
+        /// Smoothly adjusts the value of a <see cref="Bindable{TValue}"/> over time.
+        /// </summary>
+        /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
+        public static TransformSequence<T> TransformBindableTo<T, TValue>(this TransformSequence<T> t, [NotNull] Bindable<TValue> bindable, TValue newValue, double duration = 0, Easing easing = Easing.None,
+                                                                          InterpolationFunc<TValue> interpolationFunc = null)
+            where T : ITransformable =>
+            t.Append(o => o.TransformBindableTo(bindable, newValue, duration, easing, interpolationFunc));
     }
 }
