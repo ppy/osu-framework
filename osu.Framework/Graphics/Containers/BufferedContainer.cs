@@ -12,9 +12,9 @@ using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.MathUtils;
-using osu.Framework.Threading;
 using System;
 using System.Collections.Generic;
+using osu.Framework.Caching;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -230,12 +230,6 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         private long updateVersion;
 
-        /// <summary>
-        /// We also want to keep track of updates to our children, as we can bypass these updates
-        /// when our output is in a cached state.
-        /// </summary>
-        private long childrenUpdateVersion;
-
         private readonly QuadBatch<TexturedVertex2D> quadBatch = new QuadBatch<TexturedVertex2D>(1, 3);
 
         private readonly List<RenderbufferInternalFormat> attachedFormats = new List<RenderbufferInternalFormat>();
@@ -318,56 +312,64 @@ namespace osu.Framework.Graphics.Containers
 
         protected override RectangleF ComputeChildMaskingBounds(RectangleF maskingBounds) => ScreenSpaceDrawQuad.AABBFloat; // Make sure children never get masked away
 
-        private Vector2 lastScreenSpacePos;
-        private bool checkScrenSpaceSize;
+        private Vector2 lastScreenSpaceSize;
+        private Cached screenSpaceSizeBacking = new Cached();
 
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
             if ((invalidation & Invalidation.DrawNode) > 0)
-                    ++updateVersion;
+                ++updateVersion;
 
             // We actually only care about Invalidation.MiscGeometry | Invalidation.DrawInfo, but must match the blanket invalidation logic in Drawable.Invalidate
             if ((invalidation & (Invalidation.Colour | Invalidation.RequiredParentSizeToFit | Invalidation.DrawInfo)) > 0)
-                checkScrenSpaceSize = true;
+                screenSpaceSizeBacking.Invalidate();
 
             return base.Invalidate(invalidation, source, shallPropagate);
         }
+
+        private long childrenUpdateVersion = -1;
+        protected override bool RequiresChildrenUpdate => base.RequiresChildrenUpdate && childrenUpdateVersion != updateVersion;
 
         protected override void Update()
         {
             // Invalidate drawn frame buffer every frame.
             if (!CacheDrawnFrameBuffer)
                 ForceRedraw();
-            else if (checkScrenSpaceSize)
+            else if (!screenSpaceSizeBacking.IsValid)
             {
-                var quad = ScreenSpaceDrawQuad.AABBFloat;
+                var rect = ScreenSpaceDrawQuad.AABBFloat;
 
-                if (!Precision.AlmostEquals(quad.Width, lastScreenSpacePos.X) || !Precision.AlmostEquals(quad.Height, lastScreenSpacePos.Y))
+                if (!Precision.AlmostEquals(lastScreenSpaceSize, rect.Size))
                 {
                     ++updateVersion;
-                    lastScreenSpacePos = new Vector2(quad.Width, quad.Height);
+                    lastScreenSpaceSize = rect.Size;
                 }
 
-                checkScrenSpaceSize = false;
+                screenSpaceSizeBacking.Validate();
             }
 
             base.Update();
         }
 
-        private readonly long[] drawNodeVersions = new long[3];
-        private long currentDrawNode;
+        protected override void UpdateAfterChildren()
+        {
+            base.UpdateAfterChildren();
 
-        internal override bool AddChildDrawNodes => drawNodeVersions[currentDrawNode] != updateVersion;
+            childrenUpdateVersion = updateVersion;
+        }
+
+        private readonly long[] drawNodeVersions = new long[3];
+
+        private bool addChildDrawNodes;
+        internal override bool AddChildDrawNodes => addChildDrawNodes;
 
         internal override DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex)
         {
-            currentDrawNode = treeIndex;
-            var node = base.GenerateDrawNodeSubtree(frame, treeIndex);
-            drawNodeVersions[currentDrawNode] = childrenUpdateVersion = updateVersion;
-            return node;
-        }
+            addChildDrawNodes = drawNodeVersions[treeIndex] != updateVersion;
+            drawNodeVersions[treeIndex] = updateVersion;
 
-        protected override bool RequiresChildrenUpdate => base.RequiresChildrenUpdate && childrenUpdateVersion != updateVersion;
+            return base.GenerateDrawNodeSubtree(frame, treeIndex);
+        }
 
         public override DrawInfo DrawInfo
         {
