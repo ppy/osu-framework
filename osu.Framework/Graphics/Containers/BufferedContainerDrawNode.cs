@@ -7,7 +7,6 @@ using osu.Framework.Graphics.OpenGL.Buffers;
 using OpenTK;
 using OpenTK.Graphics.ES30;
 using OpenTK.Graphics;
-using osu.Framework.Threading;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Shaders;
@@ -32,14 +31,15 @@ namespace osu.Framework.Graphics.Containers
         public readonly FrameBuffer[] FrameBuffers = new FrameBuffer[3];
 
         /// <summary>
-        /// The version of drawn contents currently present in <see cref="FrameBuffers"/>.
-        /// </summary>
-        public readonly AtomicCounter DrawVersion = new AtomicCounter();
-
-        /// <summary>
         /// The <see cref="RenderbufferInternalFormat"/>s to use when drawing children.
         /// </summary>
         public readonly List<RenderbufferInternalFormat> Formats = new List<RenderbufferInternalFormat>();
+
+        /// <summary>
+        /// The version of drawn contents currently present in <see cref="FrameBuffers"/>.
+        /// This should only be modified by <see cref="BufferedContainerDrawNode"/>.
+        /// </summary>
+        public long DrawVersion = -1;
 
         public BufferedContainerDrawNodeSharedData()
         {
@@ -60,7 +60,7 @@ namespace osu.Framework.Graphics.Containers
         public Vector2I BlurRadius;
         public float BlurRotation;
 
-        public long UpdateVersion = -1;
+        public long UpdateVersion;
 
         public RectangleF ScreenSpaceDrawRectangle;
         public All FilteringMode;
@@ -198,9 +198,9 @@ namespace osu.Framework.Graphics.Containers
             currentFrameBufferIndex = originalIndex;
 
             Vector2 frameBufferSize = new Vector2((float)Math.Ceiling(ScreenSpaceDrawRectangle.Width), (float)Math.Ceiling(ScreenSpaceDrawRectangle.Height));
-            if (UpdateVersion > Shared.DrawVersion.Value)
+            if (UpdateVersion > Shared.DrawVersion)
             {
-                Shared.DrawVersion.Value = UpdateVersion;
+                Shared.DrawVersion = UpdateVersion;
 
                 using (establishFrameBufferViewport(frameBufferSize))
                 {
