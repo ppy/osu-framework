@@ -2206,7 +2206,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         MiscGeometry = 1 << 2,
         /// <summary>
-        /// Our colour changed.
+        /// <see cref="Drawable.Colour"/> or <see cref="Drawable.IsPresent"/> has changed.
         /// </summary>
         Colour = 1 << 3,
         /// <summary>
