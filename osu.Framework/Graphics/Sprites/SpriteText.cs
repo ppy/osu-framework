@@ -198,7 +198,7 @@ namespace osu.Framework.Graphics.Sprites
             [NotNull]
             get => displayText;
             [CanBeNull]
-            set => LocalisableText = value ?? string.Empty;
+            set => LocalisableText = new LocalisableString(value ?? string.Empty, LocalisationType.None);
         }
 
         private IBindable<string> displayTextBindable;

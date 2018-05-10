@@ -8,7 +8,7 @@ namespace osu.Framework.Localisation
 {
     /// <summary>
     /// A class containing all necessary information to apply any (or any amount) of these changes to a string: Unicode preference, Localisation, Formatting (in this order).
-    /// <para>Instead of setting the <see cref="Type"/> to <see cref="LocalisationType.None"/> it is recommended to just use a string instead.</para>
+    /// <para>Instead of setting <see cref="Type"/> to <see cref="LocalisationType.Localised"/>, you can just use a string instead.</para>
     /// </summary>
     public class LocalisableString
     {
@@ -34,13 +34,15 @@ namespace osu.Framework.Localisation
         /// <param name="text">The text to be used for localisation and/or formatting. See also <seealso cref="Text"/>.</param>
         /// <param name="type">What types of changes to apply. See also <seealso cref="Type"/>.<para>If you plan on setting this to <see cref="LocalisationType.None"/>, use the implicit string conversion instead.</para></param>
         /// <param name="args">The arguments to be used in case this string is formattable. See also <seealso cref="Args"/>.</param>
-        public LocalisableString([CanBeNull] string text, LocalisationType type = LocalisationType.Localised, params object[] args)
+        public LocalisableString([NotNull] string text, LocalisationType type = LocalisationType.Localised, params object[] args)
         {
             Text = new Bindable<string>(text);
             Type = new Bindable<LocalisationType>(type);
             Args = new Bindable<object[]>(args);
         }
 
-        public static implicit operator LocalisableString(string unlocalised) => new LocalisableString(unlocalised, LocalisationType.None);
+        // This is localised by default for convenience
+        // A way to directly set unlocalised text as a string should be provided by the implementing class
+        public static implicit operator LocalisableString(string localised) => new LocalisableString(localised, LocalisationType.Localised);
     }
 }
