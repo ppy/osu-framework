@@ -1,11 +1,13 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Transforms;
+using osu.Framework.MathUtils;
 using OpenTK;
 
 namespace osu.Framework.Graphics.UserInterface
@@ -60,7 +62,8 @@ namespace osu.Framework.Graphics.UserInterface
             base.ApplyDrawNode(node);
         }
 
-        public TransformSequence<CircularProgress> FillTo(double value, int duration) => this.TransformBindableTo(Current, value, duration);
+        public TransformSequence<CircularProgress> FillTo([NotNull] Bindable<double> bindable, double newValue, double duration = 0, Easing easing = Easing.None,
+                                                          InterpolationFunc<double> interpolationFunc = null) => this.TransformBindableTo(bindable, newValue, duration, easing, interpolationFunc);
 
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
@@ -103,5 +106,11 @@ namespace osu.Framework.Graphics.UserInterface
                 Invalidate(Invalidation.DrawNode);
             }
         }
+    }
+
+    public static class CircularProgressExtensions
+    {
+        public static TransformSequence<CircularProgress> FillTo(this CircularProgress t, [NotNull] Bindable<double> bindable, double newValue, double duration = 0, Easing easing = Easing.None,
+                                                                 InterpolationFunc<double> interpolationFunc = null) => t.TransformBindableTo(bindable, newValue, duration, easing, interpolationFunc);
     }
 }
