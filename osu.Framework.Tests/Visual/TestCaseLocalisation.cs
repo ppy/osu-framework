@@ -15,6 +15,7 @@ using osu.Framework.Localisation;
 using osu.Framework.Testing;
 using OpenTK;
 using OpenTK.Graphics;
+using System.Collections.Generic;
 
 namespace osu.Framework.Tests.Visual
 {
@@ -22,6 +23,12 @@ namespace osu.Framework.Tests.Visual
     {
         private DependencyContainer dependencies;
         protected override IReadOnlyDependencyContainer CreateLocalDependencies(IReadOnlyDependencyContainer parent) => dependencies = new DependencyContainer(parent);
+
+        public override IReadOnlyList<Type> RequiredTypes => new[]
+        {
+            typeof(LocalisationEngine),
+            typeof(LocalisableString),
+        };
 
         private readonly LocalisationEngine engine;
         private readonly FrameworkConfigManager config;
@@ -45,7 +52,6 @@ namespace osu.Framework.Tests.Visual
             AddStep("change existing", () =>
             {
                 sprite.LocalisableText.Text.Value = "new {0} {1}";
-                sprite.LocalisableText.Type.Value = LocalisationType.All;
                 sprite.LocalisableText.Args.Value = new object[] { "string value! Time:", DateTime.Now };
             });
         }
@@ -98,20 +104,21 @@ namespace osu.Framework.Tests.Visual
         [Test]
         public void TestUnicodePreference()
         {
-            AddStep("create unicode preference & 'localise'", () =>
-            {
-                // LocalisationType is 'too much' on purpose here - formatting shouldnt break anything
-                sprite.LocalisableText = new LocalisableString("yes Unicode", LocalisationType.All, "no Unicode");
-            });
-            AddStep("activate unicode", () => config.Set(FrameworkSetting.ShowUnicode, true));
-            AddAssert("text is unicode", () => sprite.Text == "Unicode localised!");
-            AddStep("deactivate unicode", () => config.Set(FrameworkSetting.ShowUnicode, false));
-            AddAssert("text is not unicode", () => sprite.Text == "non-Unicode localised!");
+            IBindable<string> bindable;
+            const string unicode = "this is the unicode text!";
+            const string nonUnicode = "this is the non-unicode alternative!";
 
-            AddStep("set non-unicode to empty", () => sprite.LocalisableText.NonUnicode.Value = string.Empty);
-            AddAssert("text disappeared", () => sprite.Text == string.Empty);
-            AddStep("set non-unicode to null", () => sprite.LocalisableText.NonUnicode.Value = null);
-            AddAssert("text reverted", () => sprite.Text == "Unicode localised!");
+            AddStep("setup unicode", () =>
+            {
+                bindable = engine.GetUnicodeBindable(unicode, nonUnicode);
+                bindable.ValueChanged += newText => sprite.Text = newText;
+                sprite.Text = bindable.Value;
+            });
+
+            AddStep("show unicode", () => config.Set(FrameworkSetting.ShowUnicode, true));
+            AddAssert("check for unicode", () => sprite.Text == unicode);
+            AddStep("show non-unicode", () => config.Set(FrameworkSetting.ShowUnicode, false));
+            AddAssert("check for non-unicode", () => sprite.Text == nonUnicode);
         }
 
         private void changeLanguage(string language, string locale)
