@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Linq;
 using osu.Framework.Graphics;
 using OpenTK;
 using OpenTK.Graphics;
@@ -278,4 +279,28 @@ namespace osu.Framework.MathUtils
             }
         }
     }
+
+    internal static class Interpolation<TValue>
+    {
+        private static readonly InterpolationFunc<TValue> interpolation_func;
+
+        static Interpolation()
+        {
+            interpolation_func =
+                (InterpolationFunc<TValue>)typeof(Interpolation).GetMethod(
+                    nameof(Interpolation.ValueAt),
+                    typeof(InterpolationFunc<TValue>)
+                        .GetMethod(nameof(InterpolationFunc<TValue>.Invoke))
+                        ?.GetParameters().Select(p => p.ParameterType).ToArray()
+                )?.CreateDelegate(typeof(InterpolationFunc<TValue>));
+
+            if (interpolation_func == null)
+                throw new InvalidOperationException($"Type {typeof(TValue)} has no automatic interpolation function. The value must be interpolated manually.");
+        }
+
+        public static TValue ValueAt(double time, TValue val1, TValue val2, double startTime, double endTime, Easing easing = Easing.None)
+            => interpolation_func(time, val1, val2, startTime, endTime, easing);
+    }
+
+    public delegate TValue InterpolationFunc<TValue>(double time, TValue startValue, TValue endValue, double startTime, double endTime, Easing easingType);
 }

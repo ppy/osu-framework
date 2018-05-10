@@ -8,8 +8,10 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Testing;
+using OpenTK;
 using OpenTK.Graphics;
 
 namespace osu.Framework.Tests.Visual
@@ -27,8 +29,9 @@ namespace osu.Framework.Tests.Visual
             base.LoadComplete();
 
             Cell(0).Add(new KeyBindingTester(SimultaneousBindingMode.None));
-            Cell(1).Add(new KeyBindingTester(SimultaneousBindingMode.Unique));
-            Cell(2).Add(new KeyBindingTester(SimultaneousBindingMode.All));
+            Cell(1).Add(new KeyBindingTester(SimultaneousBindingMode.NoneExact));
+            Cell(2).Add(new KeyBindingTester(SimultaneousBindingMode.Unique));
+            Cell(3).Add(new KeyBindingTester(SimultaneousBindingMode.All));
         }
 
         private enum TestAction
@@ -90,6 +93,38 @@ namespace osu.Framework.Tests.Visual
                 new KeyBinding(new[] { InputKey.MouseLeft }, TestAction.LeftMouse),
                 new KeyBinding(new[] { InputKey.MouseRight }, TestAction.RightMouse),
             };
+
+            protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
+            {
+                base.OnKeyDown(state, args);
+                return false;
+            }
+
+            protected override bool OnKeyUp(InputState state, KeyUpEventArgs args)
+            {
+                base.OnKeyUp(state, args);
+                return false;
+            }
+
+            protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
+            {
+                base.OnMouseDown(state, args);
+                return false;
+            }
+
+            protected override bool OnMouseUp(InputState state, MouseUpEventArgs args)
+            {
+                base.OnMouseUp(state, args);
+                return false;
+            }
+
+            protected override bool OnWheel(InputState state)
+            {
+                base.OnWheel(state);
+                return false;
+            }
+
+            public override bool ReceiveMouseInputAt(Vector2 screenSpacePos) => true;
         }
 
         private class TestButton : Button, IKeyBindingHandler<TestAction>
@@ -119,6 +154,8 @@ namespace osu.Framework.Tests.Visual
                 {
                     alphaTarget += 0.2f;
                     Background.FadeTo(alphaTarget, 100, Easing.OutQuint);
+
+                    return true;
                 }
 
                 return false;
@@ -130,6 +167,8 @@ namespace osu.Framework.Tests.Visual
                 {
                     alphaTarget -= 0.2f;
                     Background.FadeTo(alphaTarget, 100, Easing.OutQuint);
+
+                    return true;
                 }
 
                 return false;

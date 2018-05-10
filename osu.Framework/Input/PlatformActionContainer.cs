@@ -18,6 +18,11 @@ namespace osu.Framework.Input
     {
         private GameHost host;
 
+        public PlatformActionContainer()
+            : base(SimultaneousBindingMode.NoneExact)
+        {
+        }
+
         [BackgroundDependencyLoader]
         private void load(GameHost host)
         {
