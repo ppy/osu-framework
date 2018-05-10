@@ -22,9 +22,7 @@ namespace osu.Framework.Configuration
 
         public BindableDouble Set(T lookup, double value, double? min = null, double? max = null, double? precision = null)
         {
-            BindableDouble bindable = GetOriginalBindable<double>(lookup) as BindableDouble;
-
-            if (bindable == null)
+            if (!(GetOriginalBindable<double>(lookup) is BindableDouble bindable))
             {
                 bindable = new BindableDouble(value);
                 AddBindable(lookup, bindable);
@@ -44,9 +42,7 @@ namespace osu.Framework.Configuration
 
         public BindableFloat Set(T lookup, float value, float? min = null, float? max = null, float? precision = null)
         {
-            BindableFloat bindable = GetOriginalBindable<float>(lookup) as BindableFloat;
-
-            if (bindable == null)
+            if (!(GetOriginalBindable<float>(lookup) is BindableFloat bindable))
             {
                 bindable = new BindableFloat(value);
                 AddBindable(lookup, bindable);
@@ -66,9 +62,7 @@ namespace osu.Framework.Configuration
 
         public BindableInt Set(T lookup, int value, int? min = null, int? max = null)
         {
-            BindableInt bindable = GetOriginalBindable<int>(lookup) as BindableInt;
-
-            if (bindable == null)
+            if (!(GetOriginalBindable<int>(lookup) is BindableInt bindable))
             {
                 bindable = new BindableInt(value);
                 AddBindable(lookup, bindable);
@@ -87,9 +81,7 @@ namespace osu.Framework.Configuration
 
         public BindableBool Set(T lookup, bool value)
         {
-            BindableBool bindable = GetOriginalBindable<bool>(lookup) as BindableBool;
-
-            if (bindable == null)
+            if (!(GetOriginalBindable<bool>(lookup) is BindableBool bindable))
             {
                 bindable = new BindableBool(value);
                 AddBindable(lookup, bindable);
