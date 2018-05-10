@@ -277,7 +277,10 @@ namespace osu.Framework.Graphics.Sprites
             Clear();
 
             if (text.Length == 0)
+            {
+                lastText = string.Empty;
                 return;
+            }
 
             if (FixedWidth && !constantWidth.HasValue)
                 constantWidth = CreateCharacterDrawable('D').DrawWidth;
