@@ -37,11 +37,17 @@ namespace osu.Framework.Input.Bindings
         }
 
         /// <summary>
-        /// Check whether the provided input is a valid pressedKeys for this combination.
+        /// Check whether the provided pressed keys are valid for this <see cref="KeyCombination"/>.
         /// </summary>
-        /// <param name="pressedKeys">The potential pressedKeys for this combination.</param>
+        /// <param name="pressedKeys">The potential pressed keys for this <see cref="KeyCombination"/>.</param>
+        /// <param name="exact">Whether <paramref name="pressedKeys"/> should exactly match the keys required for this <see cref="KeyCombination"/>.</param>
         /// <returns>Whether the pressedKeys keys are valid.</returns>
-        public bool IsPressed(KeyCombination pressedKeys) => !Keys.Except(pressedKeys.Keys).Any();
+        public bool IsPressed(KeyCombination pressedKeys, bool exact)
+        {
+            if (exact)
+                return pressedKeys.Keys.Count() == Keys.Count() && pressedKeys.Keys.All(Keys.Contains);
+            return !Keys.Except(pressedKeys.Keys).Any();
+        }
 
         public bool Equals(KeyCombination other)
         {
@@ -222,7 +228,27 @@ namespace osu.Framework.Input.Bindings
             if (state.Keyboard != null)
             {
                 foreach (var key in state.Keyboard.Keys)
-                    keys.Add(FromKey(key));
+                {
+                    InputKey iKey = FromKey(key);
+
+                    switch (key)
+                    {
+                        case Key.LShift:
+                        case Key.RShift:
+                        case Key.LAlt:
+                        case Key.RAlt:
+                        case Key.LControl:
+                        case Key.RControl:
+                        case Key.LWin:
+                        case Key.RWin:
+                            if (!keys.Contains(iKey))
+                                keys.Add(iKey);
+                            break;
+                        default:
+                            keys.Add(iKey);
+                            break;
+                    }
+                }
             }
 
             return new KeyCombination(keys);
