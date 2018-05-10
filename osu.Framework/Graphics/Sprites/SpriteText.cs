@@ -38,7 +38,7 @@ namespace osu.Framework.Graphics.Sprites
         /// </summary>
         public bool UseFullGlyphHeight = true;
 
-        public override bool IsPresent => base.IsPresent && !string.IsNullOrEmpty(text);
+        public override bool IsPresent => base.IsPresent && (!layout.IsValid || !string.IsNullOrEmpty(text));
 
         /// <summary>
         /// True if the text should be wrapped if it gets too wide. Note that \n does NOT cause a line break. If you need explicit line breaks, use <see cref="TextFlowContainer"/> instead.
