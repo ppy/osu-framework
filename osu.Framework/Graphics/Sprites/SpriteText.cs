@@ -279,6 +279,10 @@ namespace osu.Framework.Graphics.Sprites
             if (text.Length == 0)
             {
                 lastText = string.Empty;
+
+                // We're going to become not present, so parents need to be signalled to recompute size/layout
+                Invalidate(InvalidationFromParentSize | Invalidation.Colour);
+
                 return;
             }
 
