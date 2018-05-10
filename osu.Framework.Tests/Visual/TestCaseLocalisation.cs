@@ -62,7 +62,7 @@ namespace osu.Framework.Tests.Visual
         {
             AddStep("make localisable", () =>
             {
-                sprite.LocalisableText = new LocalisableString("localisable", LocalisationType.Localised);
+                sprite.LocalisableText = new LocalisableString("localisable");
             });
             changeLanguage("english", "en");
             AddAssert("text localised", () => sprite.Text == "localisable in English");
@@ -106,11 +106,11 @@ namespace osu.Framework.Tests.Visual
         {
             IBindable<string> bindable;
             const string unicode = "this is the unicode text!";
-            const string nonUnicode = "this is the non-unicode alternative!";
+            const string non_unicode = "this is the non-unicode alternative!";
 
             AddStep("setup unicode", () =>
             {
-                bindable = engine.GetUnicodeBindable(unicode, nonUnicode);
+                bindable = engine.GetUnicodeBindable(unicode, non_unicode);
                 bindable.ValueChanged += newText => sprite.Text = newText;
                 sprite.Text = bindable.Value;
             });
@@ -118,7 +118,7 @@ namespace osu.Framework.Tests.Visual
             AddStep("show unicode", () => config.Set(FrameworkSetting.ShowUnicode, true));
             AddAssert("check for unicode", () => sprite.Text == unicode);
             AddStep("show non-unicode", () => config.Set(FrameworkSetting.ShowUnicode, false));
-            AddAssert("check for non-unicode", () => sprite.Text == nonUnicode);
+            AddAssert("check for non-unicode", () => sprite.Text == non_unicode);
         }
 
         private void changeLanguage(string language, string locale)

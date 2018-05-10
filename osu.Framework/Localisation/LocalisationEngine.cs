@@ -45,7 +45,7 @@ namespace osu.Framework.Localisation
         }
 
         /// <summary>
-        /// Get a localised <see cref="IBindable{string}"/> for a <see cref="LocalisableString"/>.
+        /// Get a localised <see cref="IBindable{T}"/> for a <see cref="LocalisableString"/>.
         /// </summary>
         /// <param name="localisable">The <see cref="LocalisableString"/> to get a bindable for. 
         /// <para>Changing any of its bindables' values will also trigger a localisation update.</para></param>
@@ -89,8 +89,8 @@ namespace osu.Framework.Localisation
         }
 
         /// <summary>
-        /// Get a <see cref="IBindable{string}"/> for a given string and a non-Unicode (usually romanised) alternative.
-        /// <para>The Value of this <see cref="IBindable{string}"/> will depend on the current <see cref="FrameworkSetting.ShowUnicode"/> setting.</para>
+        /// Get a <see cref="IBindable{T}"/> for a given string and a non-Unicode (usually romanised) alternative.
+        /// <para>The Value of this <see cref="IBindable{T}"/> will depend on the current <see cref="FrameworkSetting.ShowUnicode"/> setting.</para>
         /// </summary>
         [NotNull]
         public IBindable<string> GetUnicodeBindable([CanBeNull] string unicode, [CanBeNull] string nonUnicode)
