@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.CSharp;
 
 namespace osu.Framework.Testing
 {
-    public class DynamicClassCompiler<T>
+    public class DynamicClassCompiler<T> : IDisposable
         where T : IDynamicallyCompile
     {
         public Action CompilationStarted;
@@ -68,6 +68,7 @@ namespace osu.Framework.Testing
                     };
 
                     fsw.Changed += onChange;
+                    fsw.Created += onChange;
 
                     watchers.Add(fsw);
                 }
@@ -115,7 +116,6 @@ namespace osu.Framework.Testing
         private int currentVersion;
 
         private bool isCompiling;
-
         private readonly object compileLock = new object();
 
         private void recompile()
@@ -192,5 +192,31 @@ namespace osu.Framework.Testing
                 return false;
             }
         }
+
+        #region IDisposable Support
+
+        private bool isDisposed;
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!isDisposed)
+            {
+                isDisposed = true;
+                watchers.ForEach(w => w.Dispose());
+            }
+        }
+
+        ~DynamicClassCompiler()
+        {
+            Dispose(false);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        #endregion
     }
 }

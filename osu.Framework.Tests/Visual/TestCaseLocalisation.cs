@@ -175,7 +175,12 @@ namespace osu.Framework.Tests.Visual
                         return name;
                 }
             }
+
             public Stream GetStream(string name) => throw new NotSupportedException();
+
+            public void Dispose()
+            {
+            }
         }
     }
 }

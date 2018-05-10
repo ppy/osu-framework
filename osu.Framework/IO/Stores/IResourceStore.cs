@@ -1,11 +1,12 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
 using System.IO;
 
 namespace osu.Framework.IO.Stores
 {
-    public interface IResourceStore<out T>
+    public interface IResourceStore<out T> : IDisposable
     {
         /// <summary>
         /// Retrieves an object from the store.

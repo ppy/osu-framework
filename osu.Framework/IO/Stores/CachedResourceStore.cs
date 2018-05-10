@@ -52,8 +52,7 @@ namespace osu.Framework.IO.Stores
         {
             base.AddStore(store);
 
-            ChangeableResourceStore<T> crm = store as ChangeableResourceStore<T>;
-            if (crm != null)
+            if (store is ChangeableResourceStore<T> crm)
                 crm.OnChanged += NotifyChanged;
         }
 
@@ -65,8 +64,7 @@ namespace osu.Framework.IO.Stores
         {
             base.RemoveStore(store);
 
-            ChangeableResourceStore<T> crm = store as ChangeableResourceStore<T>;
-            if (crm != null)
+            if (store is ChangeableResourceStore<T> crm)
                 crm.OnChanged -= NotifyChanged;
         }
 
@@ -103,6 +101,12 @@ namespace osu.Framework.IO.Stores
         public void ResetCache()
         {
             cache.Clear();
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+            ResetCache();
         }
     }
 }

@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Diagnostics;
 using System.Threading;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
@@ -46,7 +47,7 @@ namespace osu.Framework.Testing
 
             protected override void Dispose(bool isDisposing)
             {
-                volume.Value = volumeAtStartup;
+                if (volume != null) volume.Value = volumeAtStartup;
                 base.Dispose(isDisposing);
             }
 
@@ -65,7 +66,10 @@ namespace osu.Framework.Testing
             /// <param name="test">The <see cref="TestCase"/> to run.</param>
             public void RunTestBlocking(TestCase test)
             {
+                Trace.Assert(host != null, $"Ensure this runner has been loaded before calling {nameof(RunTestBlocking)}");
+
                 bool completed = false;
+                Exception exception = null;
 
                 void complete()
                 {
@@ -90,13 +94,16 @@ namespace osu.Framework.Testing
                         Scheduler.AddDelayed(complete, time_between_tests);
                     }, e =>
                     {
+                        exception = e;
                         complete();
-                        throw new Exception("The test case threw an exception while running", e);
                     });
                 });
 
-                while (!completed)
+                while (!completed && host.ExecutionState == ExecutionState.Running)
                     Thread.Sleep(10);
+
+                if (exception != null)
+                    throw exception;
             }
         }
     }

@@ -39,7 +39,7 @@ namespace osu.Framework.Graphics.Sprites
         /// </summary>
         public bool UseFullGlyphHeight = true;
 
-        public override bool IsPresent => base.IsPresent && !string.IsNullOrEmpty(displayText);
+        public override bool IsPresent => base.IsPresent && (!string.IsNullOrEmpty(displayText) || !layout.IsValid);
 
         /// <summary>
         /// True if the text should be wrapped if it gets too wide. Note that \n does NOT cause a line break. If you need explicit line breaks, use <see cref="TextFlowContainer"/> instead.
@@ -291,7 +291,14 @@ namespace osu.Framework.Graphics.Sprites
             Clear();
 
             if (displayText.Length == 0)
+            {
+                lastText = string.Empty;
+
+                // We're going to become not present, so parents need to be signalled to recompute size/layout
+                Invalidate(InvalidationFromParentSize | Invalidation.Colour);
+
                 return;
+            }
 
             if (FixedWidth && !constantWidth.HasValue)
                 constantWidth = CreateCharacterDrawable('D').DrawWidth;
