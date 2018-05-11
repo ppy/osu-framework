@@ -7,13 +7,10 @@ using System.Collections.Concurrent;
 using System.Reflection.Emit;
 using osu.Framework.Extensions.TypeExtensions;
 using System.Reflection;
-using System.Linq;
 using System.Diagnostics;
 
 namespace osu.Framework.Graphics.Transforms
 {
-    public delegate TValue InterpolationFunc<TValue>(double time, TValue startValue, TValue endValue, double startTime, double endTime, Easing easingType);
-
     /// <summary>
     /// A transform which operates on arbitrary fields or properties of a given target.
     /// </summary>
@@ -31,18 +28,6 @@ namespace osu.Framework.Graphics.Transforms
         }
 
         private static readonly ConcurrentDictionary<string, Accessor> accessors = new ConcurrentDictionary<string, Accessor>();
-        private static readonly InterpolationFunc<TValue> interpolation_func;
-
-        static TransformCustom()
-        {
-            interpolation_func =
-                (InterpolationFunc<TValue>)typeof(Interpolation).GetMethod(
-                    nameof(Interpolation.ValueAt),
-                    typeof(InterpolationFunc<TValue>)
-                        .GetMethod(nameof(InterpolationFunc<TValue>.Invoke))
-                        ?.GetParameters().Select(p => p.ParameterType).ToArray()
-                )?.CreateDelegate(typeof(InterpolationFunc<TValue>));
-        }
 
         private static ReadFunc createFieldGetter(FieldInfo field)
         {
@@ -152,7 +137,7 @@ namespace osu.Framework.Graphics.Transforms
             accessor = getAccessor(propertyOrFieldName);
             Trace.Assert(accessor.Read != null && accessor.Write != null, $"Failed to populate {nameof(accessor)}.");
 
-            this.interpolationFunc = interpolationFunc ?? interpolation_func;
+            this.interpolationFunc = interpolationFunc ?? Interpolation<TValue>.ValueAt;
 
             if (this.interpolationFunc == null)
                 throw new InvalidOperationException(
