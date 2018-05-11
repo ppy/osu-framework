@@ -5,16 +5,13 @@ using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.ES30;
 using osu.Framework.Allocation;
-using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Colour;
-using osu.Framework.Graphics.OpenGL.Buffers;
-using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.MathUtils;
-using osu.Framework.Threading;
 using System;
 using System.Collections.Generic;
+using osu.Framework.Caching;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -113,7 +110,7 @@ namespace osu.Framework.Graphics.Containers
             get { return pixelSnapping; }
             set
             {
-                if (frameBuffers[0].IsInitialized || frameBuffers[1].IsInitialized)
+                if (sharedData.FrameBuffers[0].IsInitialized || sharedData.FrameBuffers[1].IsInitialized)
                     throw new InvalidOperationException("May only set PixelSnapping before FrameBuffers are initialized (i.e. before the first draw).");
                 pixelSnapping = value;
             }
@@ -199,8 +196,6 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private Shader blurShader;
-
         /// <summary>
         /// Whether the rendered framebuffer shall be cached until <see cref="ForceRedraw"/> is called
         /// or the size of the container (i.e. framebuffer) changes.
@@ -216,12 +211,6 @@ namespace osu.Framework.Graphics.Containers
         public void ForceRedraw() => Invalidate(Invalidation.DrawNode);
 
         /// <summary>
-        /// We need 3 frame buffers such that we can accumulate post-processing effects in a
-        /// ping-pong fashion going back and forth (reading from one buffer, writing into the other).
-        /// </summary>
-        private readonly FrameBuffer[] frameBuffers = new FrameBuffer[3];
-
-        /// <summary>
         /// In order to signal the draw thread to re-draw the buffered container we version it.
         /// Our own version (update) keeps track of which version we are on, whereas the
         /// drawVersion keeps track of the version the draw thread is on.
@@ -230,18 +219,6 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         private long updateVersion;
 
-        /// <summary>
-        /// We also want to keep track of updates to our children, as we can bypass these updates
-        /// when our output is in a cached state.
-        /// </summary>
-        private long childrenUpdateVersion;
-
-        private readonly AtomicCounter drawVersion = new AtomicCounter();
-
-        private readonly QuadBatch<TexturedVertex2D> quadBatch = new QuadBatch<TexturedVertex2D>(1, 3);
-
-        private readonly List<RenderbufferInternalFormat> attachedFormats = new List<RenderbufferInternalFormat>();
-
         protected override bool CanBeFlattened => false;
 
         /// <summary>
@@ -249,9 +226,6 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public BufferedContainer()
         {
-            for (int i = 0; i < frameBuffers.Length; ++i)
-                frameBuffers[i] = new FrameBuffer();
-
             // The initial draw cannot be cached, and thus we need to initialize
             // with a forced draw.
             ForceRedraw();
@@ -260,9 +234,13 @@ namespace osu.Framework.Graphics.Containers
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
         {
-            if (blurShader == null)
-                blurShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.BLUR);
+            sharedData.BlurShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.BLUR);
         }
+
+        private readonly BufferedContainerDrawNodeSharedData sharedData = new BufferedContainerDrawNodeSharedData();
+
+        private bool addChildDrawNodes;
+        internal override bool AddChildDrawNodes => addChildDrawNodes;
 
         protected override DrawNode CreateDrawNode() => new BufferedContainerDrawNode();
 
@@ -270,13 +248,11 @@ namespace osu.Framework.Graphics.Containers
         {
             BufferedContainerDrawNode n = (BufferedContainerDrawNode)node;
 
+            n.Shared = sharedData;
+
             n.ScreenSpaceDrawRectangle = ScreenSpaceDrawQuad.AABBFloat;
-            n.Batch = quadBatch;
-            n.FrameBuffers = frameBuffers;
-            n.Formats = new List<RenderbufferInternalFormat>(attachedFormats);
             n.FilteringMode = pixelSnapping ? All.Nearest : All.Linear;
 
-            n.DrawVersion = drawVersion;
             n.UpdateVersion = updateVersion;
             n.BackgroundColour = backgroundColour;
 
@@ -298,19 +274,37 @@ namespace osu.Framework.Graphics.Containers
             n.BlurSigma = blurSigma;
             n.BlurRadius = new Vector2I(Blur.KernelSize(BlurSigma.X), Blur.KernelSize(BlurSigma.Y));
             n.BlurRotation = blurRotation;
-            n.BlurShader = blurShader;
+
+            n.Formats.Clear();
+            n.Formats.AddRange(attachedFormats);
 
             base.ApplyDrawNode(node);
 
             // Our own draw node should contain our correct color, hence we have
             // to undo our overridden DrawInfo getter here.
             n.DrawInfo.Colour = base.DrawInfo.Colour;
+
+            // Only need to generate child draw nodes if the framebuffers will get redrawn this time around
+            addChildDrawNodes = n.RequiresRedraw;
         }
 
+        internal override DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex)
+        {
+            var result = base.GenerateDrawNodeSubtree(frame, treeIndex);
+
+            // The framebuffers may be redrawn this time around, but will be cached the next time around
+            addChildDrawNodes = false;
+
+            return result;
+        }
+
+        private readonly List<RenderbufferInternalFormat> attachedFormats = new List<RenderbufferInternalFormat>();
+
         /// <summary>
-        /// Attach an additional component to the framebuffer. Such a component can e.g.
+        /// Attach an additional component to this <see cref="BufferedContainer{T}"/>. Such a component can e.g.
         /// be a depth component, such that the framebuffer can hold fragment depth information.
         /// </summary>
+        /// <param name="format">The component format to attach.</param>
         public void Attach(RenderbufferInternalFormat format)
         {
             if (attachedFormats.Exists(f => f == format))
@@ -319,58 +313,59 @@ namespace osu.Framework.Graphics.Containers
             attachedFormats.Add(format);
         }
 
+        /// <summary>
+        /// Detaches an additional component of this <see cref="BufferedContainer{T}"/>.
+        /// </summary>
+        /// <param name="format">The component format to detach.</param>
+        public void Detach(RenderbufferInternalFormat format) => attachedFormats.Remove(format);
+
         protected override RectangleF ComputeChildMaskingBounds(RectangleF maskingBounds) => ScreenSpaceDrawQuad.AABBFloat; // Make sure children never get masked away
 
-        private Vector2 lastScreenSpacePos;
-        private bool checkScrenSpaceSize;
+        private Vector2 lastScreenSpaceSize;
+        private Cached screenSpaceSizeBacking = new Cached();
 
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
             if ((invalidation & Invalidation.DrawNode) > 0)
-                    ++updateVersion;
+                ++updateVersion;
 
             // We actually only care about Invalidation.MiscGeometry | Invalidation.DrawInfo, but must match the blanket invalidation logic in Drawable.Invalidate
             if ((invalidation & (Invalidation.Colour | Invalidation.RequiredParentSizeToFit | Invalidation.DrawInfo)) > 0)
-                checkScrenSpaceSize = true;
+                screenSpaceSizeBacking.Invalidate();
 
             return base.Invalidate(invalidation, source, shallPropagate);
         }
 
+        private long childrenUpdateVersion = -1;
+        protected override bool RequiresChildrenUpdate => base.RequiresChildrenUpdate && childrenUpdateVersion != updateVersion;
+
         protected override void Update()
         {
+            base.Update();
+
             // Invalidate drawn frame buffer every frame.
             if (!CacheDrawnFrameBuffer)
                 ForceRedraw();
-            else if (checkScrenSpaceSize)
+            else if (!screenSpaceSizeBacking.IsValid)
             {
-                var quad = ScreenSpaceDrawQuad.AABBFloat;
+                var screenSpaceSize = ScreenSpaceDrawQuad.AABBFloat.Size;
 
-                if (!Precision.AlmostEquals(quad.Width, lastScreenSpacePos.X) || !Precision.AlmostEquals(quad.Height, lastScreenSpacePos.Y))
+                if (!Precision.AlmostEquals(lastScreenSpaceSize, screenSpaceSize))
                 {
                     ++updateVersion;
-                    lastScreenSpacePos = new Vector2(quad.Width, quad.Height);
+                    lastScreenSpaceSize = screenSpaceSize;
                 }
 
-                checkScrenSpaceSize = false;
+                screenSpaceSizeBacking.Validate();
             }
-
-            base.Update();
         }
 
-        private readonly long[] drawNodeVersions = new long[3];
-        private long currentDrawNode;
-
-        internal override bool AddChildDrawNodes => drawNodeVersions[currentDrawNode] != updateVersion;
-
-        internal override DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex)
+        protected override void UpdateAfterChildren()
         {
-            currentDrawNode = treeIndex;
-            var node = base.GenerateDrawNodeSubtree(frame, treeIndex);
-            drawNodeVersions[currentDrawNode] = childrenUpdateVersion = updateVersion;
-            return node;
-        }
+            base.UpdateAfterChildren();
 
-        protected override bool RequiresChildrenUpdate => base.RequiresChildrenUpdate && childrenUpdateVersion != updateVersion;
+            childrenUpdateVersion = updateVersion;
+        }
 
         public override DrawInfo DrawInfo
         {
