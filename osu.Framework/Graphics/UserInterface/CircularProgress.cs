@@ -7,7 +7,6 @@ using osu.Framework.Configuration;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Transforms;
-using osu.Framework.MathUtils;
 using OpenTK;
 
 namespace osu.Framework.Graphics.UserInterface
@@ -62,8 +61,8 @@ namespace osu.Framework.Graphics.UserInterface
             base.ApplyDrawNode(node);
         }
 
-        public TransformSequence<CircularProgress> FillTo([NotNull] Bindable<double> bindable, double newValue, double duration = 0, Easing easing = Easing.None,
-                                                          InterpolationFunc<double> interpolationFunc = null) => this.TransformBindableTo(bindable, newValue, duration, easing, interpolationFunc);
+        public TransformSequence<CircularProgress> FillTo([NotNull] Bindable<double> bindable, double newValue, double duration = 0, Easing easing = Easing.None)
+            => this.TransformBindableTo(bindable, newValue, duration, easing);
 
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
@@ -110,7 +109,7 @@ namespace osu.Framework.Graphics.UserInterface
 
     public static class CircularProgressExtensions
     {
-        public static TransformSequence<CircularProgress> FillTo(this CircularProgress t, [NotNull] Bindable<double> bindable, double newValue, double duration = 0, Easing easing = Easing.None,
-                                                                 InterpolationFunc<double> interpolationFunc = null) => t.TransformBindableTo(bindable, newValue, duration, easing, interpolationFunc);
+        public static TransformSequence<CircularProgress> FillTo(this CircularProgress t, [NotNull] Bindable<double> bindable, double newValue, double duration = 0, Easing easing = Easing.None)
+            => t.TransformBindableTo(bindable, newValue, duration, easing);
     }
 }
