@@ -577,11 +577,11 @@ namespace osu.Framework.Graphics.UserInterface
             // as we are grabbing *all* waiting text, we may receive two or more characters.
             // each of these characters will still fire OnKeyDown events (which we want to block) so we need to
             // store our "handled" state until all keys are released.
-            handledText = true;
+            handledUserTextInput = true;
             return true;
         }
 
-        private bool handledText;
+        private bool handledUserTextInput;
 
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
@@ -621,15 +621,14 @@ namespace osu.Framework.Graphics.UserInterface
                     return true;
             }
 
-            return handledText;
+            return handledUserTextInput;
         }
 
         protected override bool OnKeyUp(InputState state, KeyUpEventArgs args)
         {
             HandlePendingText(state);
 
-            if (!state.Keyboard.Keys.Any())
-                handledText = false;
+            handledUserTextInput &= state.Keyboard.Keys.Any();
 
             return base.OnKeyUp(state, args);
         }
