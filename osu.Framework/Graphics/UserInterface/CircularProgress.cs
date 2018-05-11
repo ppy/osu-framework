@@ -1,7 +1,6 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics.Shaders;
@@ -61,8 +60,8 @@ namespace osu.Framework.Graphics.UserInterface
             base.ApplyDrawNode(node);
         }
 
-        public TransformSequence<CircularProgress> FillTo([NotNull] Bindable<double> bindable, double newValue, double duration = 0, Easing easing = Easing.None)
-            => this.TransformBindableTo(bindable, newValue, duration, easing);
+        public TransformSequence<CircularProgress> FillTo(double newValue, double duration = 0, Easing easing = Easing.None)
+            => this.TransformBindableTo(Current, newValue, duration, easing);
 
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
@@ -109,7 +108,7 @@ namespace osu.Framework.Graphics.UserInterface
 
     public static class CircularProgressExtensions
     {
-        public static TransformSequence<CircularProgress> FillTo(this CircularProgress t, [NotNull] Bindable<double> bindable, double newValue, double duration = 0, Easing easing = Easing.None)
-            => t.TransformBindableTo(bindable, newValue, duration, easing);
+        public static TransformSequence<CircularProgress> FillTo(this CircularProgress t, double newValue, double duration = 0, Easing easing = Easing.None)
+            => t.TransformBindableTo(t.Current, newValue, duration, easing);
     }
 }
