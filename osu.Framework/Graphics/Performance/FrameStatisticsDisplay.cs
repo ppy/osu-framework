@@ -410,6 +410,7 @@ namespace osu.Framework.Graphics.Performance
                 case StatisticsCounterType.DrawNodeCtor:
                 case StatisticsCounterType.VerticesDraw:
                 case StatisticsCounterType.Samples:
+                case StatisticsCounterType.JoystickEvents:
                     return Color4.HotPink;
 
                 case StatisticsCounterType.DrawNodeAppl:

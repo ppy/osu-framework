@@ -78,6 +78,21 @@ namespace osu.Framework.Input.Bindings
 
         private string getReadableKey(InputKey key)
         {
+            if (key >= InputKey.FirstJoystickHatRightButton)
+                return $"Joystick Hat {key - InputKey.FirstJoystickHatRightButton} Right";
+            if (key >= InputKey.FirstJoystickHatLeftButton)
+                return $"Joystick Hat {key - InputKey.FirstJoystickHatLeftButton} Left";
+            if (key >= InputKey.FirstJoystickHatDownButton)
+                return $"Joystick Hat {key - InputKey.FirstJoystickHatDownButton} Down";
+            if (key >= InputKey.FirstJoystickHatUpButton)
+                return $"Joystick Hat {key - InputKey.FirstJoystickHatUpButton} Up";
+            if (key >= InputKey.FirstJoystickAxisPositiveButton)
+                return $"Joystick Axis {key - InputKey.FirstJoystickAxisPositiveButton} +";
+            if (key >= InputKey.FirstJoystickAxisNegativeButton)
+                return $"Joystick Axis {key - InputKey.FirstJoystickAxisNegativeButton} -";
+            if (key >= InputKey.FirstJoystickButton)
+                return $"Joystick {key - InputKey.FirstJoystickButton}";
+
             switch (key)
             {
                 case InputKey.None:
@@ -207,9 +222,23 @@ namespace osu.Framework.Input.Bindings
             return (InputKey)key;
         }
 
-        public static InputKey FromMouseButton(MouseButton button)
+        public static InputKey FromMouseButton(MouseButton button) => (InputKey)((int)InputKey.FirstMouseButton + button);
+
+        public static InputKey FromJoystickButton(JoystickButton button)
         {
-            return (InputKey)((int)InputKey.FirstMouseButton + button);
+            if (button >= JoystickButton.FirstHatRight)
+                return InputKey.FirstJoystickHatRightButton + (button - JoystickButton.FirstHatRight);
+            if (button >= JoystickButton.FirstHatLeft)
+                return InputKey.FirstJoystickHatLeftButton + (button - JoystickButton.FirstHatLeft);
+            if (button >= JoystickButton.FirstHatDown)
+                return InputKey.FirstJoystickHatDownButton + (button - JoystickButton.FirstHatDown);
+            if (button >= JoystickButton.FirstHatUp)
+                return InputKey.FirstJoystickHatUpButton + (button - JoystickButton.FirstHatUp);
+            if (button >= JoystickButton.FirstAxisPositive)
+                return InputKey.FirstJoystickAxisPositiveButton + (button - JoystickButton.FirstAxisPositive);
+            if (button >= JoystickButton.FirstAxisNegative)
+                return InputKey.FirstJoystickAxisNegativeButton + (button - JoystickButton.FirstAxisNegative);
+            return InputKey.FirstJoystickButton + (int)button;
         }
 
         public static KeyCombination FromInputState(InputState state)
@@ -250,6 +279,9 @@ namespace osu.Framework.Input.Bindings
                     }
                 }
             }
+
+            if (state.Joystick != null)
+                keys.AddRange(state.Joystick.Buttons.Select(FromJoystickButton));
 
             return new KeyCombination(keys);
         }
