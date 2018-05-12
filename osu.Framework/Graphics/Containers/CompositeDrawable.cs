@@ -76,9 +76,16 @@ namespace osu.Framework.Graphics.Containers
             // regardless of their alive state. this also gives children a clock so they can be checked
             // for their correct alive state in the case LifetimeStart is set to a definite value.
             internalChildren.ForEach(loadChild);
+        }
 
-            // Let's also perform an update on our children's life to add any alive children.
-            UpdateChildrenLife();
+        protected override void LoadAsyncComplete()
+        {
+            base.LoadAsyncComplete();
+
+            // At this point we can assume that we are loaded although we're not in the "ready" state, because we'll be given
+            // a "ready" state soon after this method terminates. Therefore we can perform an early check to add any alive children
+            // while we're still in an asynchronous context and avoid putting pressure on the main thread during UpdateSubTree.
+            checkChildrenLife();
         }
 
         private void loadChild(Drawable child)
@@ -320,7 +327,9 @@ namespace osu.Framework.Graphics.Containers
                 loadChild(drawable);
 
             internalChildren.Add(drawable);
-            checkChildLife(drawable);
+
+            if (LoadState >= LoadState.Ready)
+                checkChildLife(drawable);
 
             if (AutoSizeAxes != Axes.None)
                 InvalidateFromChild(Invalidation.RequiredParentSizeToFit);
@@ -379,6 +388,24 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>True iff the life status of at least one child changed.</returns>
         protected virtual bool UpdateChildrenLife()
         {
+            // Can not have alive children if we are not loaded.
+            if (LoadState < LoadState.Ready)
+                return false;
+
+            if (!checkChildrenLife())
+                return false;
+
+            return true;
+        }
+
+        /// <summary>
+        /// Checks whether the alive state of any child has changed and processes it. This will add or remove
+        /// children from <see cref="aliveInternalChildren"/> depending on their alive states.
+        /// <para>Note that this does NOT check the load state of this <see cref="CompositeDrawable"/> to check if it can hold any alive children.</para>
+        /// </summary>
+        /// <returns>Whether any child's alive state has changed.</returns>
+        private bool checkChildrenLife()
+        {
             bool anyAliveChanged = false;
 
             // checkChildLife may remove a child from internalChildren. In order to not skip children,
@@ -394,18 +421,15 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Checks whether the alive state of a child has changed processes it. This will add or remove
+        /// Checks whether the alive state of a child has changed and processes it. This will add or remove
         /// the child from <see cref="aliveInternalChildren"/> depending on its alive state.
+        /// <para>Note that this does NOT check the load state of this <see cref="CompositeDrawable"/> to check if it can hold any alive children.</para>
         /// </summary>
         /// <param name="child">The child to check.</param>
         /// <returns>Whether the child's alive state has changed.</returns>
         private bool checkChildLife(Drawable child)
         {
             Debug.Assert(internalChildren.Contains(child), "Can only check and react to the life of our own children.");
-
-            // Can not have alive children if we are not loaded.
-            if (LoadState < LoadState.Ready)
-                return false;
 
             bool changed = false;
 
