@@ -153,6 +153,7 @@ namespace osu.Framework.Platform
 
             AppDomain.CurrentDomain.UnhandledException += exceptionHandler;
 
+            Trace.Listeners.Clear();
             Trace.Listeners.Add(new ThrowingTraceListener());
 
             FileSafety.DeleteCleanupDirectory();
