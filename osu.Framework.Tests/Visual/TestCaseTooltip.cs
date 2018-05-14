@@ -179,7 +179,7 @@ namespace osu.Framework.Tests.Visual
         {
             public string TooltipText { get; set; }
 
-            public double? AppearDelay => null;
+            double? IHasTooltip.AppearDelay => null;
 
             public TooltipTooltipContainer(string tooltipText)
             {

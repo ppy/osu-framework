@@ -193,7 +193,7 @@ namespace osu.Framework.Graphics.Cursor
 
             // check that we have recorded enough positions to make a judgement about whether or not the cursor has been standing still for the required amount of time.
             // we can skip this if the appear-delay is set to 0, since then tooltips can appear instantly and we don't need to wait to record enough positions.
-            if (appearDelay > 0 && (recentMousePositions.Count == 0 || (lastRecordedPositionTime - recentMousePositions[0].Time) < (appearDelay - positionRecordInterval)))
+            if (appearDelay > 0 && (recentMousePositions.Count == 0 || lastRecordedPositionTime - recentMousePositions[0].Time < appearDelay - positionRecordInterval))
                 return null;
             recentMousePositions.RemoveAll(t => Time.Current - t.Time > appearDelay);
 
