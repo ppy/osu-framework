@@ -69,6 +69,10 @@ namespace osu.Framework.Input
 
         protected override bool OnKeyUp(InputState state, KeyUpEventArgs args) => acceptState(state);
 
+        protected override bool OnJoystickPress(InputState state, JoystickEventArgs args) => acceptState(state);
+
+        protected override bool OnJoystickRelease(InputState state, JoystickEventArgs args) => acceptState(state);
+
         /// <summary>
         /// An input state which allows for transformations to state which don't affect the source state.
         /// </summary>
@@ -78,6 +82,7 @@ namespace osu.Framework.Input
             {
                 Mouse = (state.Mouse.NativeState as MouseState)?.Clone();
                 Keyboard = (state.Keyboard as KeyboardState)?.Clone();
+                Joystick = (state.Joystick as JoystickState)?.Clone();
             }
         }
     }
