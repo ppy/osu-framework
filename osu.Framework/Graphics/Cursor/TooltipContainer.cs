@@ -155,7 +155,7 @@ namespace osu.Framework.Graphics.Cursor
         private readonly List<TimedPosition> recentMousePositions = new List<TimedPosition>();
         private double lastRecordedPositionTime;
 
-        IHasTooltip lastCandidate;
+        private IHasTooltip lastCandidate;
         /// <summary>
         /// Determines which drawable should currently receive a tooltip, taking into account
         /// <see cref="AppearDelay"/> and <see cref="AppearRadius"/>. Returns null if no valid
