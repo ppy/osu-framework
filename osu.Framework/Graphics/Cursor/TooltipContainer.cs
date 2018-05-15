@@ -155,6 +155,7 @@ namespace osu.Framework.Graphics.Cursor
         private readonly List<TimedPosition> recentMousePositions = new List<TimedPosition>();
         private double lastRecordedPositionTime;
 
+        private IHasTooltip lastCandidate;
         /// <summary>
         /// Determines which drawable should currently receive a tooltip, taking into account
         /// <see cref="AppearDelay"/> and <see cref="AppearRadius"/>. Returns null if no valid
@@ -167,8 +168,19 @@ namespace osu.Framework.Graphics.Cursor
             if (inputManager.DraggedDrawable is IHasTooltip draggedTarget)
                 return hasValidTooltip(draggedTarget) ? draggedTarget : null;
 
+            IHasTooltip targetCandidate = FindTargets().FirstOrDefault(t => t.TooltipText != null);
+            // check this first - if we find no target candidate we still want to clear the recorded positions and update the lastCandidate.
+            if (targetCandidate != lastCandidate)
+            {
+                recentMousePositions.Clear();
+                lastCandidate = targetCandidate;
+            }
+            if (targetCandidate == null)
+                return null;
+
+            double appearDelay = targetCandidate.AppearDelay ?? AppearDelay;
             // Always keep 10 positions at equally-sized time intervals that add up to AppearDelay.
-            double positionRecordInterval = AppearDelay / 10;
+            double positionRecordInterval = appearDelay / 10;
             if (Time.Current - lastRecordedPositionTime >= positionRecordInterval)
             {
                 lastRecordedPositionTime = Time.Current;
@@ -179,11 +191,15 @@ namespace osu.Framework.Graphics.Cursor
                 });
             }
 
-            recentMousePositions.RemoveAll(t => Time.Current - t.Time > AppearDelay);
+            // check that we have recorded enough positions to make a judgement about whether or not the cursor has been standing still for the required amount of time.
+            // we can skip this if the appear-delay is set to 0, since then tooltips can appear instantly and we don't need to wait to record enough positions.
+            if (appearDelay > 0 && (recentMousePositions.Count == 0 || lastRecordedPositionTime - recentMousePositions[0].Time < appearDelay - positionRecordInterval))
+                return null;
+            recentMousePositions.RemoveAll(t => Time.Current - t.Time > appearDelay);
 
             // For determining whether to show a tooltip we first select only those positions
             // which happened within a shorter, alpha-adjusted appear delay.
-            double alphaModifiedAppearDelay = (1 - currentTooltip.Alpha) * AppearDelay;
+            double alphaModifiedAppearDelay = (1 - currentTooltip.Alpha) * appearDelay;
             var relevantPositions = recentMousePositions.Where(t => Time.Current - t.Time <= alphaModifiedAppearDelay);
 
             // We then check whether all relevant positions fall within a radius of AppearRadius within the
@@ -194,7 +210,7 @@ namespace osu.Framework.Graphics.Cursor
             float appearRadiusSq = AppearRadius * AppearRadius;
 
             if (relevantPositions.All(t => Vector2Extensions.DistanceSquared(t.Position, first) < appearRadiusSq))
-                return FindTargets().FirstOrDefault(t => t.TooltipText != null);
+                return targetCandidate;
 
             return null;
         }

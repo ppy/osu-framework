@@ -14,5 +14,10 @@ namespace osu.Framework.Graphics.Cursor
         /// Tooltip that shows when hovering the drawable.
         /// </summary>
         string TooltipText { get; }
+
+        /// <summary>
+        /// The delay until the tooltip should be displayed. Null means the <see cref="TooltipContainer.AppearDelay"/> from the <see cref="TooltipContainer"/> containing the <see cref="Drawable"/> implementing this interface will be used.
+        /// </summary>
+        double? AppearDelay { get; }
     }
 }

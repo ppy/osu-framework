@@ -150,6 +150,8 @@ namespace osu.Framework.Tests.Visual
 
             public string TooltipText => tooltipText;
 
+            public double? AppearDelay => null;
+
             public CustomTooltipSpriteText(string displayedText, string tooltipText)
             {
                 this.tooltipText = tooltipText;
@@ -177,6 +179,8 @@ namespace osu.Framework.Tests.Visual
         {
             public string TooltipText { get; set; }
 
+            double? IHasTooltip.AppearDelay => null;
+
             public TooltipTooltipContainer(string tooltipText)
             {
                 TooltipText = tooltipText;
@@ -186,11 +190,15 @@ namespace osu.Framework.Tests.Visual
         private class TooltipTextbox : TextBox, IHasTooltip
         {
             public string TooltipText => Text;
+
+            public double? AppearDelay => null;
         }
 
         private class TooltipBox : Box, IHasTooltip
         {
             public string TooltipText { get; set; }
+
+            public double? AppearDelay => null;
 
             public override bool HandleKeyboardInput => true;
             public override bool HandleMouseInput => true;
