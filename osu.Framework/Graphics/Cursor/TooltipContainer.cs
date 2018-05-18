@@ -178,7 +178,7 @@ namespace osu.Framework.Graphics.Cursor
             if (targetCandidate == null)
                 return null;
 
-            double appearDelay = targetCandidate.AppearDelay ?? AppearDelay;
+            double appearDelay = (targetCandidate as IHasAppearDelay)?.AppearDelay ?? AppearDelay;
             // Always keep 10 positions at equally-sized time intervals that add up to AppearDelay.
             double positionRecordInterval = appearDelay / 10;
             if (Time.Current - lastRecordedPositionTime >= positionRecordInterval)
