@@ -9,7 +9,7 @@ namespace osu.Framework.Graphics.Cursor
     public interface IHasAppearDelay : IDrawable
     {
         /// <summary>
-        /// The delay until the tooltip should be displayed. Null means the <see cref="TooltipContainer.AppearDelay"/> from the <see cref="TooltipContainer"/> containing the <see cref="Drawable"/> implementing this interface will be used.
+        /// The delay until the tooltip should be displayed.
         /// </summary>
         double AppearDelay { get; }
     }
