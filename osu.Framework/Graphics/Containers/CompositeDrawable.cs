@@ -254,7 +254,7 @@ namespace osu.Framework.Graphics.Containers
             drawable.IsAlive = false;
 
             if (AutoSizeAxes != Axes.None)
-                InvalidateFromChild(Invalidation.RequiredParentSizeToFit);
+                InvalidateFromChild(Invalidation.RequiredParentSizeToFit, drawable);
 
             return true;
         }
@@ -332,7 +332,7 @@ namespace osu.Framework.Graphics.Containers
                 checkChildLife(drawable);
 
             if (AutoSizeAxes != Axes.None)
-                InvalidateFromChild(Invalidation.RequiredParentSizeToFit);
+                InvalidateFromChild(Invalidation.RequiredParentSizeToFit, drawable);
         }
 
         /// <summary>
@@ -608,8 +608,13 @@ namespace osu.Framework.Graphics.Containers
         /// Informs this <see cref="CompositeDrawable"/> that a child has been invalidated.
         /// </summary>
         /// <param name="invalidation">The type of invalidation applied to the child.</param>
-        public virtual void InvalidateFromChild(Invalidation invalidation)
+        /// <param name="source">The child which caused this invalidation. May be null to indicate that a specific child wasn't specified.</param>
+        public virtual void InvalidateFromChild(Invalidation invalidation, Drawable source = null)
         {
+            // We only want to recompute autosize if the child isn't bypassing all of our autosize axes
+            if (source != null && (source.BypassAutoSizeAxes & AutoSizeAxes) == AutoSizeAxes)
+                return;
+
             //Colour captures potential changes in IsPresent. If this ever becomes a bottleneck,
             //Invalidation could be further separated into presence changes.
             if ((invalidation & (Invalidation.RequiredParentSizeToFit | Invalidation.Colour)) > 0)

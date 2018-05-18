@@ -316,11 +316,11 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         protected virtual void AnimateClose() => Hide();
 
-        public override void InvalidateFromChild(Invalidation invalidation)
+        public override void InvalidateFromChild(Invalidation invalidation, Drawable source = null)
         {
             if ((invalidation & Invalidation.RequiredParentSizeToFit) > 0)
                 sizeCache.Invalidate();
-            base.InvalidateFromChild(invalidation);
+            base.InvalidateFromChild(invalidation, source);
         }
 
         protected override void UpdateAfterChildren()
