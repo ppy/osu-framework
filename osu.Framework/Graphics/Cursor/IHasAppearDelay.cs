@@ -6,7 +6,7 @@ namespace osu.Framework.Graphics.Cursor
     /// <summary>
     /// A tooltip which provides a custom delay until it appears, override the <see cref="TooltipContainer"/>-wide default.
     /// </summary>
-    public interface IHasAppearDelay : IDrawable
+    public interface IHasAppearDelay : IHasTooltip
     {
         /// <summary>
         /// The delay until the tooltip should be displayed.
