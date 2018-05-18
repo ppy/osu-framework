@@ -787,7 +787,7 @@ namespace osu.Framework.Graphics
                     return;
 
                 bypassAutoSizeAxes = value;
-                Parent?.InvalidateFromChild(Invalidation.RequiredParentSizeToFit);
+                Parent?.InvalidateFromChild(Invalidation.RequiredParentSizeToFit, this);
             }
         }
 
@@ -1510,7 +1510,7 @@ namespace osu.Framework.Graphics
                 return false;
 
             if (shallPropagate && Parent != null && source != Parent)
-                Parent.InvalidateFromChild(invalidation);
+                Parent.InvalidateFromChild(invalidation, this);
 
             bool alreadyInvalidated = true;
 
