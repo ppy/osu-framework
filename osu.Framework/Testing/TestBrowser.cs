@@ -516,6 +516,7 @@ namespace osu.Framework.Testing
                                             RunAllSteps = new BasicCheckbox
                                             {
                                                 LabelText = "Run all steps",
+                                                LabelPadding = new MarginPadding { Left = 5, Right = 10 },
                                                 AutoSizeAxes = Axes.Y,
                                                 Width = 140,
                                                 Anchor = Anchor.CentreLeft,
