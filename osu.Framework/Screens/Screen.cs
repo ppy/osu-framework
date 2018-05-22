@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -127,6 +128,7 @@ namespace osu.Framework.Screens
         /// <summary>
         /// Changes to a new Screen.
         /// This will trigger an async load if the screen is not already loaded, during which the current screen will no longer be current (or accept user input).
+        /// Use <see cref="CompositeDrawable.LoadComponentAsync{TLoadable}(TLoadable, Action{TLoadable})"/> to preload screens (optionally <see cref="Task.Wait()"/> on the task if you need it completely synchronous).
         /// </summary>
         /// <param name="screen">The new Screen.</param>
         public virtual void Push(Screen screen)
