@@ -58,6 +58,18 @@ namespace osu.Framework.Testing.Input
             handler.Click(button);
         }
 
+        public void ButtonDown(MouseButton button)
+        {
+            UseParentState = false;
+            handler.ButtonDown(button);
+        }
+
+        public void ButtonUp(MouseButton button)
+        {
+            UseParentState = false;
+            handler.ButtonUp(button);
+        }
+
         private class ManualInputHandler : InputHandler
         {
             private readonly List<Key> pressedKeys = new List<Key>();
@@ -107,17 +119,21 @@ namespace osu.Framework.Testing.Input
 
             public void Click(MouseButton button)
             {
-                var mouseState = new MouseState
-                {
-                    Position = lastMousePosition,
-                    Wheel = lastWheel
-                };
+                ButtonDown(button);
+                ButtonUp(button);
+            }
 
+            public void ButtonDown(MouseButton button)
+            {
+                var mouseState = new MouseState { Position = lastMousePosition, Wheel = lastWheel};
                 mouseState.SetPressed(button, true);
 
                 PendingStates.Enqueue(new InputState { Mouse = mouseState });
+            }
 
-                mouseState = (MouseState)mouseState.Clone();
+            public void ButtonUp(MouseButton button)
+            {
+                var mouseState = new MouseState { Position = lastMousePosition, Wheel = lastWheel };
                 mouseState.SetPressed(button, false);
 
                 PendingStates.Enqueue(new InputState { Mouse = mouseState });
