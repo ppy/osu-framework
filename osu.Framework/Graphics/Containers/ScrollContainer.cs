@@ -187,9 +187,10 @@ namespace osu.Framework.Graphics.Containers
                     RelativeSizeAxes = Axes.Both & ~scrollAxis,
                     AutoSizeAxes = scrollAxis,
                 },
-                Scrollbar = new ScrollbarContainer(scrollDirection) { Dragged = onScrollbarMovement }
+                Scrollbar = CreateScrollbar(scrollDirection)
             });
 
+            Scrollbar.Dragged = onScrollbarMovement;
             ScrollbarAnchor = scrollDirection == Direction.Vertical ? Anchor.TopRight : Anchor.BottomLeft;
         }
 
@@ -474,9 +475,15 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        /// <summary>
+        /// Creates the scrollbar for this <see cref="ScrollContainer"/>.
+        /// </summary>
+        /// <param name="direction">The scrolling direction.</param>
+        protected virtual ScrollbarContainer CreateScrollbar(Direction direction) => new ScrollbarContainer(direction);
+
         protected internal class ScrollbarContainer : Container
         {
-            public Action<float> Dragged;
+            internal Action<float> Dragged;
 
             private readonly Color4 hoverColour = Color4.White;
             private readonly Color4 defaultColour = Color4.Gray;
