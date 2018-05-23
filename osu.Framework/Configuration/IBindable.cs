@@ -8,7 +8,7 @@ namespace osu.Framework.Configuration
     /// <summary>
     /// An interface which can be bound to other <see cref="IBindable"/>s in order to watch for (and react to) <see cref="IBindable.Disabled"/> changes.
     /// </summary>
-    public interface IBindable : IParseable, ICanBeDisabled, IHasDefaultValue, IHasDescription
+    public interface IBindable : IParseable, ICanBeDisabled, IHasDefaultValue, IUnbindable, IHasDescription
     {
         /// <summary>
         /// Binds outselves to another bindable such that we receive any value limitations of the bindable we bind width.
@@ -29,7 +29,7 @@ namespace osu.Framework.Configuration
     /// An interface which can be bound to other <see cref="IBindable{T}"/>s in order to watch for (and react to) <see cref="IBindable{T}.Disabled"/> and <see cref="IBindable{T}.Value"/> changes.
     /// </summary>
     /// <typeparam name="T">The type of value encapsulated by this <see cref="IBindable{T}"/>.</typeparam>
-    public interface IBindable<T> : IParseable, ICanBeDisabled, IHasDefaultValue, IHasDescription
+    public interface IBindable<T> : IParseable, ICanBeDisabled, IHasDefaultValue, IUnbindable, IHasDescription
     {
         /// <summary>
         /// An event which is raised when <see cref="Value"/> has changed.
