@@ -59,7 +59,7 @@ namespace osu.Framework.Graphics.Cursor
             }
         }
 
-        protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
+        protected override bool OnMouseUp(InputState state, MouseUpEventArgs args)
         {
             switch (args.Button)
             {
