@@ -3,6 +3,9 @@
 
 namespace osu.Framework.Configuration
 {
+    /// <summary>
+    /// Interface for objects that support publicly unbinding events or <see cref="IBindable"/>s.
+    /// </summary>
     public interface IUnbindable
     {
         /// <summary>
