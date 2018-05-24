@@ -388,6 +388,7 @@ namespace osu.Framework.Testing
                 {
                     testContentContainer.Remove(lastTest.Parent);
                     lastTest.Clear();
+                    lastTest.Dispose();
                 }
 
                 if (CurrentTest != newTest)
