@@ -814,110 +814,103 @@ namespace osu.Framework.Input
         /// main loop in <see cref="InputManager"/> after each and every button or key change. This allows
         /// correct behaviour in a case where the input queues change based on triggered by a button or key.
         /// </summary>
-        /// <param name="newStates">One ore more states which are to be converted to distinct states.</param>
+        /// <param name="states">One ore more states which are to be converted to distinct states.</param>
         /// <returns>Processed states such that at most one attribute change occurs between any two consecutive states.</returns>
-        private IEnumerable<InputState> createDistinctStates(IEnumerable<InputState> newStates)
+        private IEnumerable<InputState> createDistinctStates(IEnumerable<InputState> states)
         {
-            IKeyboardState lastKeyboard = CurrentState.Keyboard;
-            IMouseState lastMouse = CurrentState.Mouse;
-            IJoystickState lastJoystick = CurrentState.Joystick;
+            InputState transientState = CurrentState;
+            IKeyboardState lastKeyboard = CurrentState.Keyboard ?? new KeyboardState();
+            IMouseState lastMouse = CurrentState.Mouse ?? new MouseState();
+            IJoystickState lastJoystick = CurrentState.Joystick ?? new JoystickState();
 
-            foreach (var state in newStates)
+            InputState createDistinctState(Action<InputState> application)
             {
-                if (state.Mouse == null && state.Keyboard == null && state.Joystick == null)
+                var lastState = transientState;
+                lastState.Last = null;
+
+                transientState = lastState.Clone();
+                transientState.Last = lastState;
+
+                application?.Invoke(transientState);
+
+                lastKeyboard = transientState.Keyboard ?? lastKeyboard;
+                lastMouse = transientState.Mouse ?? lastMouse;
+                lastJoystick = transientState.Joystick ?? lastJoystick;
+
+                return transientState;
+            }
+
+            foreach (var incoming in states)
+            {
+                if (incoming.Mouse == null && incoming.Keyboard == null && incoming.Joystick == null)
                 {
                     // we still want to return at least one state change.
-                    yield return state;
+                    yield return incoming;
                 }
 
-                if (state.Mouse != null)
+                if (incoming.Mouse != null)
                 {
-                    // first we want to create a copy of ourselves without any button changes
-                    // this is done only for mouse handlers, as they have positional data we want to handle in a separate pass.
-                    var iWithoutButtons = state.Mouse.Clone();
-
-                    for (MouseButton b = 0; b < MouseButton.LastButton; b++)
-                        iWithoutButtons.SetPressed(b, lastMouse?.IsPressed(b) ?? false);
-
-                    //we start by adding this state to the processed list...
-                    var newState = state.Clone();
-                    newState.Mouse = lastMouse = iWithoutButtons;
-                    yield return newState;
-
-                    //and then iterate over each button/key change, adding intermediate states along the way.
-                    for (MouseButton b = 0; b < MouseButton.LastButton; b++)
+                    // necessary for high precision input (we always want to add at least one state)
+                    // this also cleans out any remnant delta values
+                    yield return createDistinctState(s =>
                     {
-                        if (state.Mouse.IsPressed(b) != (lastMouse?.IsPressed(b) ?? false))
+                        s.Mouse = ((MouseState)s.Mouse).CloneWithoutDeltas();
+                        s.Mouse.Position = incoming.Mouse.Position;
+                    });
+
+                    if (lastMouse.Wheel != incoming.Mouse.Wheel)
+                        yield return createDistinctState(s =>
                         {
-                            lastMouse = lastMouse?.Clone() ?? new MouseState();
+                            s.Mouse = s.Mouse.Clone();
+                            s.Mouse.Wheel = incoming.Mouse.Wheel;
+                        });
 
-                            //add our single local change
-                            lastMouse.SetPressed(b, state.Mouse.IsPressed(b));
+                    foreach (var releasedButton in lastMouse.Buttons.Except(incoming.Mouse.Buttons))
+                        yield return createDistinctState(s =>
+                        {
+                            s.Mouse = s.Mouse.Clone();
+                            s.Mouse.Buttons = s.Mouse.Buttons.Where(d => d != releasedButton).ToArray();
+                        });
 
-                            newState = state.Clone();
-                            newState.Mouse = lastMouse;
-                            yield return newState;
-                        }
-                    }
+                    foreach (var pressedButton in incoming.Mouse.Buttons.Except(lastMouse.Buttons))
+                        yield return createDistinctState(s =>
+                        {
+                            s.Mouse = s.Mouse.Clone();
+                            s.Mouse.Buttons = s.Mouse.Buttons.Union(new[] { pressedButton }).ToArray();
+                        });
                 }
 
-                if (state.Keyboard != null)
+                if (incoming.Keyboard != null)
                 {
-                    if (lastKeyboard != null)
-                        foreach (var releasedKey in lastKeyboard.Keys.Except(state.Keyboard.Keys))
-                        {
-                            var newState = state.Clone();
-                            newState.Keyboard = lastKeyboard = new KeyboardState { Keys = lastKeyboard.Keys.Where(d => d != releasedKey).ToArray() };
-                            yield return newState;
-                        }
+                    foreach (var releasedKey in lastKeyboard.Keys.Except(incoming.Keyboard.Keys))
+                        yield return createDistinctState(s => s.Keyboard = new KeyboardState { Keys = s.Keyboard.Keys.Where(d => d != releasedKey).ToArray() });
 
-                    foreach (var pressedKey in state.Keyboard.Keys.Except(lastKeyboard?.Keys ?? Array.Empty<Key>()))
-                    {
-                        var newState = state.Clone();
-                        newState.Keyboard = lastKeyboard = new KeyboardState { Keys = lastKeyboard?.Keys.Union(new[] { pressedKey }) ?? new[] { pressedKey } };
-                        yield return newState;
-                    }
+                    foreach (var pressedKey in incoming.Keyboard.Keys.Except(lastKeyboard.Keys))
+                        yield return createDistinctState(s => s.Keyboard = new KeyboardState { Keys = s.Keyboard.Keys.Union(new[] { pressedKey }) });
                 }
 
-                if (state.Joystick != null)
+                if (incoming.Joystick != null)
                 {
-                    // Push a state for the axes
-                    if (lastJoystick != null)
+                    // push a state for the axes
+                    yield return createDistinctState(s => s.Joystick = new JoystickState
                     {
-                        var newState = state.Clone();
-                        newState.Joystick = lastJoystick = new JoystickState
+                        Axes = incoming.Joystick.Axes,
+                        Buttons = s.Joystick.Buttons
+                    });
+
+                    foreach (var releasedButton in lastJoystick.Buttons.Except(incoming.Joystick.Buttons))
+                        yield return createDistinctState(s => s.Joystick = new JoystickState
                         {
-                            Axes = state.Joystick.Axes,
-                            Buttons = lastJoystick.Buttons
-                        };
+                            Axes = s.Joystick.Axes,
+                            Buttons = s.Joystick.Buttons.Where(d => d != releasedButton).ToArray()
+                        });
 
-                        yield return newState;
-                    }
-
-                    if (lastJoystick != null)
-                        foreach (var releasedButton in lastJoystick.Buttons.Except(state.Joystick.Buttons))
+                    foreach (var pressedButton in incoming.Joystick.Buttons.Except(lastJoystick.Buttons))
+                        yield return createDistinctState(s => s.Joystick = new JoystickState
                         {
-                            var newState = state.Clone();
-                            newState.Joystick = lastJoystick = new JoystickState
-                            {
-                                Axes = lastJoystick.Axes,
-                                Buttons = lastJoystick.Buttons.Where(d => d != releasedButton).ToArray()
-                            };
-
-                            yield return newState;
-                        }
-
-                    foreach (var pressedButton in state.Joystick.Buttons.Except(lastJoystick?.Buttons ?? Array.Empty<JoystickButton>()))
-                    {
-                        var newState = state.Clone();
-                        newState.Joystick = lastJoystick = new JoystickState
-                        {
-                            Axes = lastJoystick.Axes,
-                            Buttons = lastJoystick.Buttons.Union(new[] { pressedButton }).ToArray()
-                        };
-
-                        yield return newState;
-                    }
+                            Axes = s.Joystick.Axes,
+                            Buttons = s.Joystick.Buttons.Union(new[] { pressedButton }).ToArray()
+                        });
                 }
             }
         }

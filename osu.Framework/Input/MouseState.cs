@@ -61,6 +61,14 @@ namespace osu.Framework.Input
             return clone;
         }
 
+        public MouseState CloneWithoutDeltas()
+        {
+            var clone = (MouseState)Clone();
+            clone.lastWheel = null;
+            clone.lastPosition = null;
+            return clone;
+        }
+
         public bool IsPressed(MouseButton button) => buttons.Contains(button);
 
         public void SetPressed(MouseButton button, bool pressed)
