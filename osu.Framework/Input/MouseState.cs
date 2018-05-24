@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using OpenTK;
 using OpenTK.Input;
 using System.Linq;
+using osu.Framework.Extensions.TypeExtensions;
 
 namespace osu.Framework.Input
 {
@@ -80,6 +81,12 @@ namespace osu.Framework.Input
                 buttons.Add(button);
             else
                 buttons.Remove(button);
+        }
+
+        public override string ToString()
+        {
+            string down = PositionMouseDown != null ? $"(down @ {PositionMouseDown.Value.X:#,0},{PositionMouseDown.Value.Y:#,0})" : string.Empty;
+            return $@"{GetType().ReadableName()} ({Position.X:#,0},{Position.Y:#,0}) {down} {string.Join(",", Buttons.Select(b => b.ToString()))} Wheel {Wheel}/{WheelDelta}";
         }
     }
 }
