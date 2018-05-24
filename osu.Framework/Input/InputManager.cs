@@ -458,7 +458,7 @@ namespace osu.Framework.Input
                 }
             }
 
-            if (mouse.WheelDelta != 0 && Host.Window.CursorInWindow)
+            if (mouse.WheelDelta != 0 && (Host.Window?.CursorInWindow ?? true))
                 handleWheel(state);
 
             if (mouse.HasAnyButtonPressed)
