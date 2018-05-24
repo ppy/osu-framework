@@ -21,43 +21,62 @@ namespace osu.Framework.Tests.Visual
 {
     public class TestCaseLocalisation : TestCase
     {
-        private DependencyContainer dependencies;
-        protected override IReadOnlyDependencyContainer CreateLocalDependencies(IReadOnlyDependencyContainer parent) => dependencies = new DependencyContainer(parent);
-
         public override IReadOnlyList<Type> RequiredTypes => new[]
         {
             typeof(LocalisationEngine),
             typeof(LocalisableString),
         };
 
+        private readonly FrameworkConfigManager config = new FakeFrameworkConfigManager();
         private readonly LocalisationEngine engine;
-        private readonly FrameworkConfigManager config;
         private SpriteText sprite;
 
         public TestCaseLocalisation()
         {
-            config = new FakeFrameworkConfigManager();
             engine = new LocalisationEngine(config);
+            engine.AddLanguage("en", new FakeStorage(config));
+            engine.AddLanguage("zh-CHS", new FakeStorage(config));
+            engine.AddLanguage("ja", new FakeStorage(config));
+        }
 
-            engine.AddLanguage("en", new FakeStorage());
-            engine.AddLanguage("zh-CHS", new FakeStorage());
-            engine.AddLanguage("ja", new FakeStorage());
+        [SetUp]
+        public new void SetupTest()
+        {
+            Clear();
+            Add(new FillFlowContainer<SpriteText>
+            {
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre,
+                Direction = FillDirection.Vertical,
+                Padding = new MarginPadding(10),
+                AutoSizeAxes = Axes.Both,
+                Child = sprite = new CustomEngineSpriteText(engine)
+                {
+                    Text = string.Empty,
+                    TextSize = 48,
+                    Colour = Color4.White
+                },
+            });
+        }
 
-            const string basic_text = "not localisable (for now)";
-            AddStep("make not localisable", () => sprite.Text = basic_text);
-            AddAssert("text correct", () => sprite.Text == basic_text);
+        [Test]
+        public void TestUnlocalised()
+        {
+            const string unlocalised_text = "not localisable (for now)";
+            AddStep("make not localisable", () => sprite.Text = unlocalised_text);
+            AddAssert("text correct", () => sprite.Text == unlocalised_text);
 
-            // this should never actually be done (recreate the LocalisableString when changing 2+ properties)
+            // this should never be done (recreate the LocalisableString when changing 2+ properties)
             // this just makes sure nothing crashes even if you do
             AddStep("change existing", () =>
             {
+                sprite.LocalisableText.Type.Value = LocalisationType.Localised | LocalisationType.Formatted;
                 sprite.LocalisableText.Text.Value = "new {0} {1}";
                 sprite.LocalisableText.Args.Value = new object[] { "string value! Time:", DateTime.Now };
             });
         }
 
         [Test]
-        [SetCulture("en")]
         public void TestLocalised()
         {
             AddStep("make localisable", () =>
@@ -75,10 +94,10 @@ namespace osu.Framework.Tests.Visual
             var formattedDate = DateTime.Now;
             AddStep("make formattable", () =>
             {
-                sprite.LocalisableText = new LocalisableString("{0}", LocalisationType.Formatted, args: formattedDate);
+                sprite.LocalisableText = new LocalisableString("{0}", LocalisationType.Formatted, formattedDate);
             });
             changeLanguage("japanese", "ja");
-            AddAssert("text formatted correctly", () => sprite.Text == formattedDate.ToString(new CultureInfo("ja")));
+            AddAssert("text formatted correctly", () => sprite.Text == formattedDate.ToString());
 
             const string formattable_string = "{0}";
             AddStep("fail formatting on purpose", () =>
@@ -90,14 +109,13 @@ namespace osu.Framework.Tests.Visual
         }
 
         [Test]
-        [SetCulture("zh-CHS")]
         public void TestFormattedLocalised()
         {
             AddStep("Make localisable & formattable", () =>
             {
-                sprite.LocalisableText = new LocalisableString("localisableformat", LocalisationType.Localised | LocalisationType.Formatted, args: "formatted");
+                sprite.LocalisableText = new LocalisableString("localisableformat", LocalisationType.Localised | LocalisationType.Formatted, "formatted");
             });
-            changeLanguage("simplified chinese", "zh-CHS");
+            changeLanguage("chinese", "zh-CHS");
             AddAssert("text localised & formatted", () => sprite.Text == "formatted in locale zh-CHS");
         }
 
@@ -126,29 +144,21 @@ namespace osu.Framework.Tests.Visual
             AddStep($"language: {language}", () => config.Set(FrameworkSetting.Locale, locale));
         }
 
-        [BackgroundDependencyLoader]
-        private void load()
+        private class CustomEngineSpriteText : SpriteText
         {
-            dependencies.Cache(engine);
+            private readonly LocalisationEngine engine;
 
-            Add(new FillFlowContainer<SpriteText>
+            public CustomEngineSpriteText(LocalisationEngine engine)
             {
-                Anchor = Anchor.Centre,
-                Origin = Anchor.Centre,
-                Direction = FillDirection.Vertical,
-                Spacing = new Vector2(0, 10),
-                Padding = new MarginPadding(10),
-                AutoSizeAxes = Axes.Both,
-                Children = new[]
-                {
-                    sprite = new SpriteText
-                    {
-                        Text = "not localisable (for now)",
-                        TextSize = 48,
-                        Colour = Color4.White
-                    }
-                }
-            });
+                this.engine = engine;
+            }
+
+            protected override IReadOnlyDependencyContainer CreateLocalDependencies(IReadOnlyDependencyContainer parent)
+            {
+                var deps = base.CreateLocalDependencies(parent);
+                ((DependencyContainer)deps).Cache(engine);
+                return deps;
+            }
         }
 
         private class FakeFrameworkConfigManager : FrameworkConfigManager
@@ -160,20 +170,30 @@ namespace osu.Framework.Tests.Visual
             protected override void InitialiseDefaults()
             {
                 Set(FrameworkSetting.Locale, "");
-                Set(FrameworkSetting.ShowUnicode, false);
+                Set(FrameworkSetting.ShowUnicode, true);
             }
         }
 
         private class FakeStorage : IResourceStore<string>
         {
+            private readonly FrameworkConfigManager config;
+
+            public FakeStorage(FrameworkConfigManager config)
+            {
+                this.config = config;
+            }
+
             public string Get(string name)
             {
+                string locale = config.Get<string>(FrameworkSetting.Locale);
+
                 switch (name)
                 {
                     case "localisable":
-                        return $"{name} in {CultureInfo.CurrentCulture.EnglishName}";
+                        return $"{name} in {new CultureInfo(locale).EnglishName}";
                     case "localisableformat":
-                        return $"{{0}} in locale {CultureInfo.CurrentCulture.Name}";
+                        // culture = en-DE even directly after setting to zh-CHS (threading?)
+                        return $"{{0}} in locale {locale}";
                     case "no Unicode":
                         return "non-Unicode localised!";
                     case "yes Unicode":
