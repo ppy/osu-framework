@@ -1,10 +1,10 @@
 <!-- Contains required properties for osu!framework projects. -->
 <Project>
   <PropertyGroup Label="C#">
-    <LangVersion>7</LangVersion>
+    <LangVersion>7.3</LangVersion>
   </PropertyGroup>
   <ItemGroup Label="License">
-    <None Include="..\osu-framework.licenseheader">
+    <None Include="$(MSBuildThisFileDirectory)osu-framework.licenseheader">
       <Link>osu-framework.licenseheader</Link>
     </None>
   </ItemGroup>
