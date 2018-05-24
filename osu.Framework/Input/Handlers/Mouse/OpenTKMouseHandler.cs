@@ -17,6 +17,8 @@ namespace osu.Framework.Input.Handlers.Mouse
         private bool mouseInWindow;
 
         private ScheduledDelegate scheduled;
+        private OpenTKPollMouseState lastPollState;
+        private OpenTKEventMouseState lastEventState;
 
         public override bool Initialize(GameHost host)
         {
@@ -50,7 +52,7 @@ namespace osu.Framework.Input.Handlers.Mouse
 
                         var mapped = host.Window.PointToClient(new Point(state.X, state.Y));
 
-                        handleState(new OpenTKPollMouseState(state, host.IsActive, new Vector2(mapped.X, mapped.Y)));
+                        handleState(lastPollState = new OpenTKPollMouseState(state, host.IsActive, new Vector2(mapped.X, mapped.Y)));
                     }, 0, 1000.0 / 60));
                 }
                 else
@@ -79,11 +81,15 @@ namespace osu.Framework.Input.Handlers.Mouse
                 // on windows when crossing centre screen boundaries (width/2 or height/2).
                 return;
 
-            handleState(new OpenTKEventMouseState(e.Mouse, host.IsActive, null));
+            handleState(lastEventState = new OpenTKEventMouseState(e.Mouse, host.IsActive, null));
         }
 
         private void handleState(MouseState state)
         {
+            // combine wheel values to avoid discrepancy between sources.
+            state = (MouseState)state.Clone();
+            state.Wheel = (lastEventState?.Wheel ?? 0) + (lastPollState?.Wheel ?? 0);
+
             PendingStates.Enqueue(new InputState { Mouse = state });
             FrameStatistics.Increment(StatisticsCounterType.MouseEvents);
         }

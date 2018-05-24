@@ -250,27 +250,6 @@ namespace osu.Framework.Input
             //move above?
             updateInputQueues(CurrentState);
 
-            // we only want to set a last state if both the new and old state are of the same type.
-            // this avoids giving the new state a false impression of being able to calculate delta values based on a last
-            // state potentially from a different input source.
-            if (last.Mouse != null && state.Mouse != null)
-            {
-                // only set the last state if one hasn't already been set (in addition to being the same type of state).
-                // a smarter InputHandler may do this internally, if they are handling input from multiple distinct devices.
-                if (state.Mouse.LastState == null && last.Mouse.GetType() == state.Mouse.GetType())
-                    state.Mouse.LastState = last.Mouse;
-
-                if (last.Mouse.HasAnyButtonPressed)
-                    state.Mouse.PositionMouseDown = last.Mouse.PositionMouseDown;
-            }
-
-            if (last.Joystick != null && state.Joystick != null)
-            {
-                // Only set the last state if one hasn't already been set
-                if (state.Joystick.LastState == null)
-                    state.Joystick.LastState = last.Joystick;
-            }
-
             //hover could change even when the mouse state has not.
             updateHoverEvents(CurrentState);
 
