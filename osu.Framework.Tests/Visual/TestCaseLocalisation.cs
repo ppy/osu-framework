@@ -13,7 +13,6 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.IO.Stores;
 using osu.Framework.Localisation;
 using osu.Framework.Testing;
-using OpenTK;
 using OpenTK.Graphics;
 using System.Collections.Generic;
 
@@ -97,7 +96,7 @@ namespace osu.Framework.Tests.Visual
                 sprite.LocalisableText = new LocalisableString("{0}", LocalisationType.Formatted, formattedDate);
             });
             changeLanguage("japanese", "ja");
-            AddAssert("text formatted correctly", () => sprite.Text == formattedDate.ToString());
+            AddAssert("text formatted correctly", () => sprite.Text == formattedDate.ToString(CultureInfo.CurrentCulture));
 
             const string formattable_string = "{0}";
             AddStep("fail formatting on purpose", () =>
