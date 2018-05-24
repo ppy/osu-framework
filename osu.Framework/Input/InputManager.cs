@@ -854,7 +854,7 @@ namespace osu.Framework.Input
                     // this also cleans out any remnant delta values
                     yield return createDistinctState(s =>
                     {
-                        s.Mouse = ((MouseState)s.Mouse).CloneWithoutDeltas();
+                        s.Mouse = (s.Mouse as MouseState)?.CloneWithoutDeltas() ?? new MouseState();
                         s.Mouse.Position = incoming.Mouse.Position;
                     });
 
