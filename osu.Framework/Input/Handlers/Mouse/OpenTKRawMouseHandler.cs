@@ -90,10 +90,7 @@ namespace osu.Framework.Input.Handlers.Mouse
                                 if (lastState != null && state.Equals(lastState.RawState))
                                     continue;
 
-                                var newState = new OpenTKPollMouseState(state, host.IsActive, getUpdatedPosition(state, lastState))
-                                {
-                                    LastState = lastState
-                                };
+                                var newState = new OpenTKPollMouseState(state, host.IsActive, getUpdatedPosition(state, lastState));
 
                                 lastStates[i] = newState;
 

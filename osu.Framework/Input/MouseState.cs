@@ -10,8 +10,6 @@ namespace osu.Framework.Input
 {
     public class MouseState : IMouseState
     {
-        private IMouseState lastState;
-
         public IReadOnlyList<MouseButton> Buttons
         {
             get { return buttons; }
@@ -26,19 +24,17 @@ namespace osu.Framework.Input
 
         public IMouseState NativeState => this;
 
-        public IMouseState LastState
-        {
-            get { return lastState; }
-            set
-            {
-                lastState = value;
-                if (lastState != null) lastState.LastState = null;
-            }
-        }
-
-        public virtual int WheelDelta => Wheel - LastState?.Wheel ?? 0;
+        public virtual int WheelDelta => Wheel - LastWheel;
 
         public int Wheel { get; set; }
+
+        private int? lastWheel;
+
+        public int LastWheel
+        {
+            get => lastWheel ?? Wheel;
+            set => lastWheel = value;
+        }
 
         public bool HasMainButtonPressed => IsPressed(MouseButton.Left) || IsPressed(MouseButton.Right);
 
@@ -48,7 +44,13 @@ namespace osu.Framework.Input
 
         public Vector2 Position { get; set; }
 
-        public Vector2 LastPosition => LastState?.Position ?? Position;
+        private Vector2? lastPosition;
+
+        public Vector2 LastPosition
+        {
+            get => lastPosition ?? Position;
+            set => lastPosition = value;
+        }
 
         public Vector2? PositionMouseDown { get; set; }
 
@@ -56,7 +58,6 @@ namespace osu.Framework.Input
         {
             var clone = (MouseState)MemberwiseClone();
             clone.buttons = new List<MouseButton>(buttons);
-            clone.LastState = LastState;
             return clone;
         }
 

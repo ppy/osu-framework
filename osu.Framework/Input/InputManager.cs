@@ -433,7 +433,10 @@ namespace osu.Framework.Input
         {
             MouseState mouse = (MouseState)state.Mouse;
 
-            if (!(state.Last?.Mouse is MouseState last)) return;
+            if (!(state.Last.Mouse is MouseState last)) return;
+
+            mouse.LastPosition = last.Position;
+            mouse.LastWheel = last.Wheel;
 
             if (mouse.Position != last.Position)
             {
@@ -460,10 +463,12 @@ namespace osu.Framework.Input
 
             if (mouse.HasAnyButtonPressed)
             {
+                mouse.PositionMouseDown = last.PositionMouseDown;
+
                 if (!last.HasAnyButtonPressed)
                 {
                     //stuff which only happens once after the mousedown state
-                    mouse.PositionMouseDown = state.Mouse.Position;
+                    mouse.PositionMouseDown = mouse.Position;
                     LastActionTime = Time.Current;
 
                     if (mouse.IsPressed(MouseButton.Left))
@@ -491,7 +496,7 @@ namespace osu.Framework.Input
             }
             else if (last.HasAnyButtonPressed)
             {
-                if (isValidClick && (DraggedDrawable == null || Vector2Extensions.Distance(mouse.PositionMouseDown ?? mouse.Position, mouse.Position) <= click_drag_distance))
+                if (isValidClick && (DraggedDrawable == null || Vector2Extensions.Distance(last.PositionMouseDown ?? last.Position, mouse.Position) <= click_drag_distance))
                     handleMouseClick(state);
 
                 mouseDownInputQueue = null;

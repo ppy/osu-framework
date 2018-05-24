@@ -24,17 +24,6 @@ namespace osu.Framework.Input
         /// <returns>The axis' current value.</returns>
         float AxisValue(int axisIndex);
 
-        /// <summary>
-        /// Finds the change in value of an axis.
-        /// </summary>
-        /// <param name="axisIndex">The index of the axis to find the delta for.</param>
-        /// <returns>The change from the axis' last value.</returns>
-        float AxisDelta(int axisIndex);
-
-        // Todo: Hats?
-
-        IJoystickState LastState { get; set; }
-
         IJoystickState Clone();
     }
 }
