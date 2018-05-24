@@ -16,7 +16,7 @@ using OpenTK.Input;
 
 namespace osu.Framework.Input
 {
-    public abstract class InputManager : Container, IRequireHighFrequencyMousePosition
+    public abstract class InputManager : Container
     {
         /// <summary>
         /// The initial delay before key repeat begins.
