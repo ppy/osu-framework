@@ -50,29 +50,35 @@ namespace osu.Framework.Audio.Track
                 long length = Bass.ChannelGetLength(decodeStream);
 
                 // Each "point" is generated from a number of samples, each sample contains a number of channels
-                int sampleDataPerPoint = (int)(info.Frequency * resolution * info.Channels);
-                points.Capacity = (int)(length / sampleDataPerPoint);
+                int samplesPerPoint = (int)(info.Frequency * resolution * info.Channels);
+                int bytesPerPoint = samplesPerPoint * bytes_per_sample;
 
-                int bytesPerIteration = sampleDataPerPoint * points_per_iteration;
-                var dataBuffer = new float[bytesPerIteration / bytes_per_sample];
+                points.Capacity = (int)(length / bytesPerPoint);
 
+                // Each iteration pulls in several samples
+                int bytesPerIteration = bytesPerPoint * points_per_iteration;
+                var sampleBuffer = new float[bytesPerIteration / bytes_per_sample];
+
+                // Read sample data
                 while (length > 0)
                 {
-                    length = Bass.ChannelGetData(decodeStream, dataBuffer, bytesPerIteration);
+                    length = Bass.ChannelGetData(decodeStream, sampleBuffer, bytesPerIteration);
                     int samplesRead = (int)(length / bytes_per_sample);
 
-                    // Process a sequence of samples for each point
-                    for (int i = 0; i < samplesRead; i += sampleDataPerPoint)
+                    // Each point is composed of multiple samples
+                    for (int i = 0; i < samplesRead; i += samplesPerPoint)
                     {
-                        // Process each sample in the sequence
+                        // Channels are interleaved in the sample data (data[0] -> channel0, data[1] -> channel1, data[2] -> channel0, etc)
+                        // samplesPerPoint assumes this interleaving behaviour
                         var point = new WaveformPoint(info.Channels);
-                        for (int j = i; j < i + sampleDataPerPoint; j += info.Channels)
+                        for (int j = i; j < i + samplesPerPoint; j += info.Channels)
                         {
-                            // Process each channel in the sample
+                            // Find the maximum amplitude for each channel in the point
                             for (int c = 0; c < info.Channels; c++)
-                                point.Amplitude[c] = Math.Max(point.Amplitude[c], Math.Abs(dataBuffer[j + c]));
+                                point.Amplitude[c] = Math.Max(point.Amplitude[c], Math.Abs(sampleBuffer[j + c]));
                         }
 
+                        // BASS may provide unclipped samples, so clip them ourselves
                         for (int c = 0; c < info.Channels; c++)
                             point.Amplitude[c] = Math.Min(1, point.Amplitude[c]);
 
