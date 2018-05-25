@@ -5,11 +5,13 @@ using osu.Framework.Platform;
 using System;
 using System.IO;
 
-namespace osu.Framework.Configuration
+namespace osu.Framework.Configuration.LocalSettings
 {
-    public class LocalSettingsManager : IniConfigManager<LocalSetting>
+    public abstract class LocalSettingsManager : IniConfigManager<LocalSetting>
     {
         protected override string Filename => @"settings.ini";
+
+        protected abstract string GetDefaultPath();
 
         public LocalSettingsManager(Storage storage)
             : base(storage)
@@ -18,25 +20,7 @@ namespace osu.Framework.Configuration
 
         protected override void InitialiseDefaults()
         {
-            switch (RuntimeInfo.OS)
-            {
-                case RuntimeInfo.Platform.MacOsx:
-                    Set(LocalSetting.Path, Path.Combine(getLinuxMacDefaultFolder(), "osu!lazer"));
-                    break;
-                case RuntimeInfo.Platform.Linux:
-                    Set(LocalSetting.Path, Path.Combine(getLinuxMacDefaultFolder(), "osu!lazer"));
-                    break;
-                case RuntimeInfo.Platform.Windows:
-                    Set(LocalSetting.Path, Path.Combine(getWindowsDefaultFolder(), "osu!lazer"));
-                    break;
-                default:
-                    throw new InvalidOperationException($"Could not find a suitable default path for the selected operating system ({Enum.GetName(typeof(RuntimeInfo.Platform), RuntimeInfo.OS)}).");
-            }
-        }
-
-        private String getWindowsDefaultFolder()
-        {
-            return Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            Set(LocalSetting.Path, GetDefaultPath());
         }
 
         private String getLinuxMacDefaultFolder()
