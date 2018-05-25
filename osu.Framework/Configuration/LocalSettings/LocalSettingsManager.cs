@@ -2,8 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Platform;
-using System;
-using System.IO;
 
 namespace osu.Framework.Configuration.LocalSettings
 {
@@ -13,7 +11,7 @@ namespace osu.Framework.Configuration.LocalSettings
 
         protected abstract string GetDefaultPath();
 
-        public LocalSettingsManager(Storage storage)
+        protected LocalSettingsManager(Storage storage)
             : base(storage)
         {
         }
@@ -21,25 +19,6 @@ namespace osu.Framework.Configuration.LocalSettings
         protected override void InitialiseDefaults()
         {
             Set(LocalSetting.Path, GetDefaultPath());
-        }
-
-        private String getLinuxMacDefaultFolder()
-        {
-            string home = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
-            string xdg = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
-            string[] paths =
-            {
-                xdg ?? Path.Combine(home, ".local", "share"),
-                Path.Combine(home)
-            };
-
-            foreach (string path in paths)
-            {
-                if (Directory.Exists(path))
-                    return path;
-            }
-
-            return paths[0];
         }
     }
 

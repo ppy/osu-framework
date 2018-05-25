@@ -10,10 +10,7 @@ namespace osu.Framework.Platform
     {
         private readonly LocalSettingsManager configManager;
 
-        protected override string LocateBasePath()
-        {
-            return configManager.Get<string>(LocalSetting.Path);
-        }
+        protected override string LocateBasePath() => configManager.Get<string>(LocalSetting.Path);
 
         protected UserStorage(string baseName, LocalSettingsManager localSettings)
             : base(baseName)
@@ -24,10 +21,7 @@ namespace osu.Framework.Platform
 
         protected class LocalStorage : DesktopStorage
         {
-            protected override string LocateBasePath()
-            {
-                return Environment.CurrentDirectory;
-            }
+            protected override string LocateBasePath() => Environment.CurrentDirectory;
 
             public LocalStorage()
                 : base(string.Empty)

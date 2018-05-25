@@ -20,10 +20,8 @@ namespace osu.Framework.Configuration.LocalSettings
             };
 
             foreach (string path in paths)
-            {
                 if (Directory.Exists(path))
                     return path;
-            }
 
             return paths[0];
         }
