@@ -7,7 +7,6 @@ using System.Threading;
 using osu.Framework.Allocation;
 using osu.Framework.Audio.Track;
 using osu.Framework.Graphics.Batches;
-using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
@@ -77,6 +76,63 @@ namespace osu.Framework.Graphics.Audio
             }
         }
 
+        private Color4? lowColour;
+
+        /// <summary>
+        /// The colour which low-range frequencies should be colourised with.
+        /// May be null for this frequency range to not be colourised.
+        /// </summary>
+        public Color4? LowColour
+        {
+            get => lowColour;
+            set
+            {
+                if (lowColour == value)
+                    return;
+                lowColour = value;
+
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
+
+        private Color4? midColour;
+
+        /// <summary>
+        /// The colour which mid-range frequencies should be colourised with.
+        /// May be null for this frequency range to not be colourised.
+        /// </summary>
+        public Color4? MidColour
+        {
+            get => midColour;
+            set
+            {
+                if (midColour == value)
+                    return;
+                midColour = value;
+
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
+
+        private Color4? highColour;
+
+        /// <summary>
+        /// The colour which high-range frequencies should be colourised with.
+        /// May be null for this frequency range to not be colourised.
+        /// </summary>
+        public Color4? HighColour
+        {
+            get => highColour;
+            set
+            {
+                if (highColour == value)
+                    return;
+                highColour = value;
+
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
+
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
             var result = base.Invalidate(invalidation, source, shallPropagate);
@@ -132,6 +188,9 @@ namespace osu.Framework.Graphics.Audio
             n.Shared = sharedData;
             n.Points = generatedWaveform?.GetPoints();
             n.Channels = generatedWaveform?.GetChannels() ?? 0;
+            n.LowColour = lowColour ?? DrawInfo.Colour;
+            n.MidColour = midColour ?? DrawInfo.Colour;
+            n.HighColour = highColour ?? DrawInfo.Colour;
 
             base.ApplyDrawNode(node);
         }
@@ -158,7 +217,9 @@ namespace osu.Framework.Graphics.Audio
             public Vector2 DrawSize;
             public int Channels;
 
-            private readonly Color4 transparentBlack = new Color4(0, 0, 0, 255);
+            public Color4 LowColour;
+            public Color4 MidColour;
+            public Color4 HighColour;
 
             public override void Draw(Action<TexturedVertex2D> vertexAction)
             {
@@ -189,11 +250,11 @@ namespace osu.Framework.Graphics.Audio
                     if (leftX > localMaskingRectangle.Right)
                         break; // X is always increasing
 
-                    SRGBColour lowComponent = Interpolation.ValueAt(Points[i].LowIntensity, transparentBlack, Color4.Red, 0, 0.75f);
-                    SRGBColour midComponent = Interpolation.ValueAt(Points[i].MidIntensity, transparentBlack, Color4.Green, 0, 0.75f);
-                    SRGBColour highComponent = Interpolation.ValueAt(Points[i].HighIntensity, transparentBlack, Color4.Blue, 0, 0.75f);
+                    Color4 colour = DrawInfo.Colour;
 
-                    ColourInfo colour = lowComponent + midComponent + highComponent;
+                    colour = Interpolation.ValueAt(Points[i].MidIntensity, colour, MidColour, 0, 1);
+                    colour = Interpolation.ValueAt(Points[i].HighIntensity, colour, HighColour, 0, 1);
+                    colour = Interpolation.ValueAt(Points[i].LowIntensity, colour, LowColour, 0, 1);
 
                     Quad quadToDraw;
 

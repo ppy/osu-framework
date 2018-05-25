@@ -1,24 +1,25 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
 using System.Collections.Generic;
 using osu.Framework.Allocation;
+using osu.Framework.Audio;
 using osu.Framework.Audio.Track;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Audio;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Input;
 using OpenTK;
 using OpenTK.Graphics;
-using System;
 
 namespace osu.Framework.Tests.Visual
 {
     public class TestCaseWaveform : FrameworkTestCase
     {
-        private readonly List<WaveformGraph> waveforms = new List<WaveformGraph>();
-
         public override IReadOnlyList<Type> RequiredTypes => new[]
         {
             typeof(Waveform),
@@ -26,65 +27,154 @@ namespace osu.Framework.Tests.Visual
             typeof(DataStreamFileProcedures)
         };
 
-        public TestCaseWaveform()
+        private Button button;
+        private TrackBass track;
+
+        [BackgroundDependencyLoader]
+        private void load(Game game, AudioManager audio)
         {
+            track = new TrackBass(game.Resources.GetStream("Tracks/sample-track.mp3"));
+            audio.Track.AddItem(track);
+
+            var waveform = new Waveform(game.Resources.GetStream("Tracks/sample-track.mp3"));
+
             FillFlowContainer flow;
-            Add(flow = new FillFlowContainer
+
+            Child = new FillFlowContainer
             {
                 RelativeSizeAxes = Axes.Both,
                 Direction = FillDirection.Vertical,
-                Spacing = new Vector2(0, 10)
-            });
+                Children = new Drawable[]
+                {
+                    button = new Button
+                    {
+                        Text = "Start",
+                        Size = new Vector2(100, 50),
+                        BackgroundColour = Color4.DarkSlateGray,
+                        Action = startStop
+                    },
+                    flow = new FillFlowContainer
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Direction = FillDirection.Vertical,
+                        Spacing = new Vector2(0, 10)
+                    }
+                }
+            };
 
             for (int i = 1; i <= 16; i *= 2)
+                flow.Add(new TestWaveform(track, 1f / i) { Waveform = waveform });
+        }
+
+        private void startStop()
+        {
+            if (track.IsRunning)
             {
-                var newDisplay = new WaveformGraph
-                {
-                    RelativeSizeAxes = Axes.Both,
-                    Resolution = 1f / i
-                };
-
-                waveforms.Add(newDisplay);
-
-                flow.Add(new Container
-                {
-                    RelativeSizeAxes = Axes.X,
-                    Height = 100,
-                    Children = new Drawable[]
-                    {
-                        newDisplay,
-                        new Container
-                        {
-                            Anchor = Anchor.Centre,
-                            Origin = Anchor.Centre,
-                            AutoSizeAxes = Axes.Both,
-                            Children = new Drawable[]
-                            {
-                                new Box
-                                {
-                                    RelativeSizeAxes = Axes.Both,
-                                    Colour = Color4.Black,
-                                    Alpha = 0.75f
-                                },
-                                new SpriteText
-                                {
-                                    Anchor = Anchor.Centre,
-                                    Origin = Anchor.Centre,
-                                    Padding = new MarginPadding(4),
-                                    Text = $"Resolution: {1f / i:0.00}"
-                                }
-                            }
-                        }
-                    }
-                });
+                track.Stop();
+                button.Text = "Start";
+            }
+            else
+            {
+                track.Start();
+                button.Text = "Stop";
             }
         }
 
-        [BackgroundDependencyLoader]
-        private void load(Game game)
+        private class TestWaveform : CompositeDrawable
         {
-            var waveform = new Waveform(game.Resources.GetStream("Tracks/sample-track.mp3"));
-            waveforms.ForEach(w => w.Waveform = waveform);
+            private readonly Track track;
+            private readonly WaveformGraph graph;
+            private readonly Drawable marker;
+
+            public TestWaveform(Track track, float resolution)
+            {
+                this.track = track;
+
+                RelativeSizeAxes = Axes.X;
+                Height = 100;
+
+                InternalChildren = new[]
+                {
+                    graph = new WaveformGraph
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Resolution = resolution,
+                        LowColour = Color4.Orange,
+                        MidColour = Color4.Yellow,
+                        HighColour = Color4.White
+                    },
+                    new Container
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        AutoSizeAxes = Axes.Both,
+                        Children = new Drawable[]
+                        {
+                            new Box
+                            {
+                                RelativeSizeAxes = Axes.Both,
+                                Colour = Color4.Black,
+                                Alpha = 0.75f
+                            },
+                            new SpriteText
+                            {
+                                Anchor = Anchor.Centre,
+                                Origin = Anchor.Centre,
+                                Padding = new MarginPadding(4),
+                                Text = $"Resolution: {resolution:0.00}"
+                            }
+                        }
+                    },
+                    marker = new Box
+                    {
+                        RelativeSizeAxes = Axes.Y,
+                        RelativePositionAxes = Axes.X,
+                        Width = 2,
+                        Colour = Color4.Red
+                    },
+                };
+            }
+
+            public Waveform Waveform { set => graph.Waveform = value; }
+
+            protected override void Update()
+            {
+                base.Update();
+
+                if (track.IsLoaded)
+                    marker.X = (float)(track.CurrentTime / track.Length);
+            }
+
+            private bool mouseDown;
+
+            protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
+            {
+                mouseDown = true;
+                seekTo(ToLocalSpace(state.Mouse.NativeState.Position).X);
+                return true;
+            }
+
+            protected override bool OnMouseUp(InputState state, MouseUpEventArgs args)
+            {
+                mouseDown = false;
+                return true;
+            }
+
+            protected override bool OnMouseMove(InputState state)
+            {
+                if (mouseDown)
+                {
+                    seekTo(ToLocalSpace(state.Mouse.NativeState.Position).X);
+                    return true;
+                }
+
+                return false;
+            }
+
+            private void seekTo(float x)
+            {
+                track.Seek(x / DrawWidth * track.Length);
+            }
         }
     }
 }
