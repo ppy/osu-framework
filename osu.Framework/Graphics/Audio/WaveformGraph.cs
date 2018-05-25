@@ -14,6 +14,9 @@ using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using OpenTK;
 using osu.Framework.Graphics.OpenGL;
+using osu.Framework.MathUtils;
+using OpenTK.Graphics;
+using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Graphics.Audio
 {
@@ -155,6 +158,8 @@ namespace osu.Framework.Graphics.Audio
             public Vector2 DrawSize;
             public int Channels;
 
+            private readonly Color4 transparentBlack = new Color4(0, 0, 0, 255);
+
             public override void Draw(Action<TexturedVertex2D> vertexAction)
             {
                 base.Draw(vertexAction);
@@ -184,7 +189,12 @@ namespace osu.Framework.Graphics.Audio
                     if (leftX > localMaskingRectangle.Right)
                         break; // X is always increasing
 
-                    ColourInfo colour = DrawInfo.Colour;
+                    SRGBColour lowComponent = Interpolation.ValueAt(Points[i].LowIntensity, transparentBlack, Color4.Red, 0, 0.75f);
+                    SRGBColour midComponent = Interpolation.ValueAt(Points[i].MidIntensity, transparentBlack, Color4.Green, 0, 0.75f);
+                    SRGBColour highComponent = Interpolation.ValueAt(Points[i].HighIntensity, transparentBlack, Color4.Blue, 0, 0.75f);
+
+                    ColourInfo colour = lowComponent + midComponent + highComponent;
+
                     Quad quadToDraw;
 
                     switch (Channels)
