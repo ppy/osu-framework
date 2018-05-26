@@ -842,21 +842,14 @@ namespace osu.Framework.Input
 
             foreach (var incoming in states)
             {
-                if (incoming.Mouse == null && incoming.Keyboard == null && incoming.Joystick == null)
-                {
-                    // we still want to return at least one state change.
-                    yield return incoming;
-                }
-
                 if (incoming.Mouse != null)
                 {
-                    // necessary for high precision input (we always want to add at least one state)
-                    // this also cleans out any remnant delta values
-                    yield return createDistinctState(s =>
-                    {
-                        s.Mouse = (s.Mouse as MouseState)?.CloneWithoutDeltas() ?? new MouseState();
-                        s.Mouse.Position = incoming.Mouse.Position;
-                    });
+                    if (lastMouse.Position != incoming.Mouse.Position)
+                        yield return createDistinctState(s =>
+                        {
+                            s.Mouse = (s.Mouse as MouseState)?.CloneWithoutDeltas() ?? new MouseState();
+                            s.Mouse.Position = incoming.Mouse.Position;
+                        });
 
                     if (lastMouse.Wheel != incoming.Mouse.Wheel)
                         yield return createDistinctState(s =>
@@ -912,6 +905,8 @@ namespace osu.Framework.Input
                             Buttons = s.Joystick.Buttons.Union(new[] { pressedButton }).ToArray()
                         });
                 }
+
+                yield return incoming;
             }
         }
     }
