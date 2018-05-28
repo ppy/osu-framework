@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\osu.Framework.props" />
   <PropertyGroup Label="Project">
     <TargetFrameworks>net471;netcoreapp2.0</TargetFrameworks>
     <OutputType>WinExe</OutputType>
