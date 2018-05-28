@@ -2098,24 +2098,33 @@ namespace osu.Framework.Graphics
         {
             public IMouseState NativeState { get; }
 
-            public IMouseState LastState { get; set; }
-
             private readonly Drawable us;
 
             public LocalMouseState(IMouseState state, Drawable us)
             {
                 NativeState = state;
-                LastState = null;
                 this.us = us;
             }
 
-            public IReadOnlyList<MouseButton> Buttons => NativeState.Buttons;
+            public IReadOnlyList<MouseButton> Buttons
+            {
+                get => NativeState.Buttons;
+                set => NativeState.Buttons = value;
+            }
 
             public Vector2 Delta => Position - LastPosition;
 
-            public Vector2 Position => us.Parent?.ToLocalSpace(NativeState.Position) ?? NativeState.Position;
+            public Vector2 Position
+            {
+                get => us.Parent?.ToLocalSpace(NativeState.Position) ?? NativeState.Position;
+                set => throw new NotImplementedException();
+            }
 
-            public Vector2 LastPosition => us.Parent?.ToLocalSpace(NativeState.LastPosition) ?? NativeState.LastPosition;
+            public Vector2 LastPosition
+            {
+                get => us.Parent?.ToLocalSpace(NativeState.LastPosition) ?? NativeState.LastPosition;
+                set => throw new NotImplementedException();
+            }
 
             public Vector2? PositionMouseDown
             {
@@ -2127,7 +2136,18 @@ namespace osu.Framework.Graphics
 
             public bool HasAnyButtonPressed => NativeState.HasAnyButtonPressed;
 
-            public int Wheel => NativeState.Wheel;
+            public int Wheel
+            {
+                get => NativeState.Wheel;
+                set => throw new NotSupportedException();
+            }
+
+            public int LastWheel
+            {
+                get => NativeState.LastWheel;
+                set => throw new NotSupportedException();
+            }
+
             public int WheelDelta => NativeState.WheelDelta;
 
             public bool IsPressed(MouseButton button) => NativeState.IsPressed(button);
