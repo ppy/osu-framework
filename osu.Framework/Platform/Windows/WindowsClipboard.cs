@@ -46,8 +46,8 @@ namespace osu.Framework.Platform.Windows
         [DllImport("kernel32.dll")]
         private static extern IntPtr GlobalFree(IntPtr hMem);
 
-        [DllImport("kernel32.dll", EntryPoint = "CopyMemory", SetLastError = false)]
-        public static extern void CopyMemory(IntPtr dest, IntPtr src, uint count);
+        [DllImport("ntdll.dll")]
+        public static extern void RtlCopyMemory(IntPtr dest, IntPtr src, UIntPtr count);
 
         private const uint cf_unicodetext = 13U;
 
@@ -121,7 +121,7 @@ namespace osu.Framework.Platform.Windows
 
                     try
                     {
-                        CopyMemory(target, source, bytes);
+                        RtlCopyMemory(target, source, (UIntPtr)bytes);
                     }
                     finally
                     {
