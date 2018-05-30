@@ -42,7 +42,7 @@ namespace osu.Framework.Localisation
         }
 
         // This is localised by default for convenience
-        // A way to directly set unlocalised text as a string should be provided by the implementing class
+        // A way to directly set unlocalised text as a string should be provided by the implementing class (see e.g. SpriteText)
         public static implicit operator LocalisableString(string localised) => new LocalisableString(localised);
     }
 }

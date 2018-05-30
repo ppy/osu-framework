@@ -48,19 +48,23 @@ namespace osu.Framework.Localisation
         /// Get a localised <see cref="IBindable{T}"/> for a <see cref="LocalisableString"/>.
         /// </summary>
         /// <param name="localisable">The <see cref="LocalisableString"/> to get a bindable for. 
-        /// <para>Changing any of its bindables' values will also trigger a localisation update.</para></param>
+        /// <para>Changing any of its bindables' values will also trigger a localisation update, unless <see cref="LocalisableString.Type"/> is set to <see cref="LocalisationType.Never"/>.</para></param>
         [NotNull]
         public IBindable<string> GetLocalisedBindable([NotNull] LocalisableString localisable)
         {
             var bindable = new LocalisedBindable(localisable);
-            lock (localisedBindings)
-                localisedBindings.Add(bindable);
 
-            bindable.Localisable.Type.ValueChanged += _ => updateLocalisation(bindable);
-            bindable.Localisable.Text.ValueChanged += _ => updateLocalisation(bindable);
-            bindable.Localisable.Args.ValueChanged += _ => updateLocalisation(bindable);
+            if (localisable.Type != LocalisationType.Never)
+            {
+                lock (localisedBindings)
+                    localisedBindings.Add(bindable);
 
-            updateLocalisation(bindable);
+                bindable.Localisable.Type.ValueChanged += _ => updateLocalisation(bindable);
+                bindable.Localisable.Text.ValueChanged += _ => updateLocalisation(bindable);
+                bindable.Localisable.Args.ValueChanged += _ => updateLocalisation(bindable);
+
+                updateLocalisation(bindable);
+            }
 
             return bindable;
         }

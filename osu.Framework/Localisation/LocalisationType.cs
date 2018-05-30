@@ -13,19 +13,24 @@ namespace osu.Framework.Localisation
     public enum LocalisationType
     {
         /// <summary>
+        /// The string will not be changed by localisation, and any changes to the bindable will not be tracked at all by the <see cref="LocalisationEngine"/>.
+        /// </summary>
+        Never = 0,
+
+        /// <summary>
         /// The string will not be changed by localisation.
         /// </summary>
-        None = 0,
+        None = 1,
 
         /// <summary>
         /// The string will be localised based on the supplied embedded localisation files and the currently active <see cref="FrameworkSetting.Locale"/>.
         /// </summary>
-        Localised = 1 << 0,
+        Localised = 1 << 1,
 
         /// <summary>
         /// The string will be formatted based on an object's value which will be re-evaluated on every <see cref="FrameworkSetting.Locale"/> change.
         /// <para>This is useful for e.g. date and time strings which differ from country to country.</para>
         /// </summary>
-        Formatted = 1 << 1,
+        Formatted = 1 << 2,
     }
 }

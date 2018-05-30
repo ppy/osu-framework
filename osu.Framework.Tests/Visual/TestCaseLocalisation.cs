@@ -59,6 +59,25 @@ namespace osu.Framework.Tests.Visual
         }
 
         [Test]
+        public void TestNeverLocalised()
+        {
+            const string never_localised_text = "this is and will not be localised.";
+            AddStep("set never localised", () => sprite.Text = never_localised_text);
+            AddAssert("text correct", () => sprite.Text == never_localised_text);
+
+            AddStep("change existing", () =>
+            {
+                sprite.LocalisableText.Type.Value = LocalisationType.Localised;
+                sprite.LocalisableText.Text.Value = "localised now?";
+            });
+            AddAssert("text didn't change", () => sprite.Text == never_localised_text);
+
+            const string test2 = "different text";
+            AddStep("manual text setter", () => sprite.Text = test2);
+            AddAssert("text changed", () => sprite.Text == test2);
+        }
+
+        [Test]
         public void TestUnlocalised()
         {
             const string unlocalised_text = "not localised (for now)";
@@ -67,12 +86,14 @@ namespace osu.Framework.Tests.Visual
 
             // this should never be done (recreate the LocalisableString when changing 2+ properties)
             // this just makes sure nothing crashes even if you do
+            var formattedDate = DateTime.Now;
             AddStep("change existing", () =>
             {
                 sprite.LocalisableText.Type.Value = LocalisationType.Localised | LocalisationType.Formatted;
                 sprite.LocalisableText.Text.Value = "new {0} {1}";
-                sprite.LocalisableText.Args.Value = new object[] { "string value! Time:", DateTime.Now };
+                sprite.LocalisableText.Args.Value = new object[] { "string value! Time:", formattedDate };
             });
+            AddAssert("text changed", () => sprite.Text == $"new string value! Time: {formattedDate}");
         }
 
         [Test]
