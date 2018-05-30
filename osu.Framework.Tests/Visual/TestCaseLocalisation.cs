@@ -61,8 +61,8 @@ namespace osu.Framework.Tests.Visual
         [Test]
         public void TestUnlocalised()
         {
-            const string unlocalised_text = "not localisable (for now)";
-            AddStep("make not localisable", () => sprite.Text = unlocalised_text);
+            const string unlocalised_text = "not localised (for now)";
+            AddStep("make not localised", () => sprite.LocalisableText = unlocalised_text);
             AddAssert("text correct", () => sprite.Text == unlocalised_text);
 
             // this should never be done (recreate the LocalisableString when changing 2+ properties)
@@ -78,12 +78,12 @@ namespace osu.Framework.Tests.Visual
         [Test]
         public void TestLocalised()
         {
-            AddStep("make localisable", () =>
+            AddStep("make localised", () =>
             {
-                sprite.LocalisableText = new LocalisableString("localisable");
+                sprite.LocalisableText = new LocalisableString("localised");
             });
             changeLanguage("english", "en");
-            AddAssert("text localised", () => sprite.Text == "localisable in English");
+            AddAssert("text localised", () => sprite.Text == "localised in English");
         }
 
         [Test]
@@ -91,7 +91,7 @@ namespace osu.Framework.Tests.Visual
         public void TestFormatted()
         {
             var formattedDate = DateTime.Now;
-            AddStep("make formattable", () =>
+            AddStep("make formatted", () =>
             {
                 sprite.LocalisableText = new LocalisableString("{0}", LocalisationType.Formatted, formattedDate);
             });
@@ -110,9 +110,9 @@ namespace osu.Framework.Tests.Visual
         [Test]
         public void TestFormattedLocalised()
         {
-            AddStep("Make localisable & formattable", () =>
+            AddStep("Make localised & formatted", () =>
             {
-                sprite.LocalisableText = new LocalisableString("localisableformat", LocalisationType.Localised | LocalisationType.Formatted, "formatted");
+                sprite.LocalisableText = new LocalisableString("localisedformat", LocalisationType.Localised | LocalisationType.Formatted, "formatted");
             });
             changeLanguage("chinese", "zh-CHS");
             AddAssert("text localised & formatted", () => sprite.Text == "formatted in locale zh-CHS");
@@ -188,10 +188,9 @@ namespace osu.Framework.Tests.Visual
 
                 switch (name)
                 {
-                    case "localisable":
+                    case "localised":
                         return $"{name} in {new CultureInfo(locale).EnglishName}";
-                    case "localisableformat":
-                        // culture = en-DE even directly after setting to zh-CHS (threading?)
+                    case "localisedformat":
                         return $"{{0}} in locale {locale}";
                     case "no Unicode":
                         return "non-Unicode localised!";
