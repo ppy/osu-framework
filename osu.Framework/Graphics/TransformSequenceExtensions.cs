@@ -29,12 +29,28 @@ namespace osu.Framework.Graphics
             t.Append(o => o.Schedule(scheduledAction), out scheduledDelegate);
 
         public static TransformSequence<T> Spin<T>(this TransformSequence<T> t, double revolutionDuration, RotationDirection direction, float startRotation = 0)
-            where T : Drawable =>
-            t.Loop(d => d.RotateTo(startRotation).RotateTo(startRotation + (direction == RotationDirection.Clockwise ? 360 : -360), revolutionDuration));
+            where T : Drawable
+        {
+            var sequence = t.Spin(revolutionDuration, direction, startRotation, 1);
+
+            sequence.OnComplete(o =>
+            {
+                using (o.BeginAbsoluteSequence(sequence.EndTime))
+                    o.Spin(revolutionDuration, direction, startRotation);
+            });
+
+            return sequence;
+        }
 
         public static TransformSequence<T> Spin<T>(this TransformSequence<T> t, double revolutionDuration, RotationDirection direction, float startRotation, int numRevolutions)
-            where T : Drawable =>
-            t.Loop(0, numRevolutions, d => d.RotateTo(startRotation).RotateTo(startRotation + (direction == RotationDirection.Clockwise ? 360 : -360), revolutionDuration));
+            where T : Drawable
+        {
+            if (numRevolutions < 1)
+                throw new InvalidOperationException($"May not {nameof(Spin)} for fewer than 1 revolutions ({numRevolutions} attempted).");
+
+            float endRotation = startRotation + (direction == RotationDirection.Clockwise ? 360 : -360);
+            return t.RotateTo(startRotation).RotateTo(endRotation * numRevolutions, revolutionDuration * numRevolutions);
+        }
 
         /// <summary>
         /// Smoothly adjusts <see cref="Drawable.Alpha"/> to 1 over time.
