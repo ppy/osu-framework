@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics.Transforms
         InvokeOnDisposal BeginAbsoluteSequence(double newTransformStartTime, bool recursive = false);
 
         /// <summary>
-        /// The current frame's time as observed by this class's <see cref="Clock"/>.
+        /// The current frame's time as observed by this class's <see cref="Transform"/>s.
         /// </summary>
         FrameTimeInfo Time { get; }
 

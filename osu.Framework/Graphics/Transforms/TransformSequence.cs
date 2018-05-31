@@ -344,8 +344,8 @@ namespace osu.Framework.Graphics.Transforms
                 // looped right after they're added. This is required so that transforms can be
                 // inserted in the correct order such that none of them trigger abortions on
                 // each other due to instant re-sorting upon adding.
-                double currentTime = t.TargetTransformable.Time.Current;
-                while (t.EndTime <= currentTime)
+                double currentTransformTime = t.TargetTransformable.Time.Current;
+                while (t.EndTime <= currentTransformTime)
                 {
                     t.StartTime += iterDuration;
                     t.EndTime += iterDuration;
