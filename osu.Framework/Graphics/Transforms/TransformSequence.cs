@@ -3,9 +3,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using osu.Framework.Lists;
-using osu.Framework.Logging;
 
 namespace osu.Framework.Graphics.Transforms
 {
