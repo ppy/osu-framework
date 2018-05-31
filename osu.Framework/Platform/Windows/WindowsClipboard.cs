@@ -120,7 +120,7 @@ namespace osu.Framework.Platform.Windows
                     {
                         unsafe
                         {
-                            System.Buffer.MemoryCopy((void*)source, (void*)target, bytes, bytes);
+                            Buffer.MemoryCopy((void*)source, (void*)target, bytes, bytes);
                         }
                     }
                     finally
