@@ -437,6 +437,7 @@ namespace osu.Framework.Input
 
             mouse.LastPosition = last.Position;
             mouse.LastWheel = last.Wheel;
+            mouse.PositionMouseDown = last.PositionMouseDown;
 
             if (mouse.Position != last.Position)
             {
@@ -463,8 +464,6 @@ namespace osu.Framework.Input
 
             if (mouse.HasAnyButtonPressed)
             {
-                mouse.PositionMouseDown = last.PositionMouseDown;
-
                 if (!last.HasAnyButtonPressed)
                 {
                     //stuff which only happens once after the mousedown state
