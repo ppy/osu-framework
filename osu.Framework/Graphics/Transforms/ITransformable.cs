@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Allocation;
+using osu.Framework.Timing;
 
 namespace osu.Framework.Graphics.Transforms
 {
@@ -10,6 +11,11 @@ namespace osu.Framework.Graphics.Transforms
         InvokeOnDisposal BeginDelayedSequence(double delay, bool recursive = false);
 
         InvokeOnDisposal BeginAbsoluteSequence(double newTransformStartTime, bool recursive = false);
+
+        /// <summary>
+        /// The current frame's time as observed by this class's <see cref="Clock"/>.
+        /// </summary>
+        FrameTimeInfo Time { get; }
 
         double TransformStartTime { get; }
 
