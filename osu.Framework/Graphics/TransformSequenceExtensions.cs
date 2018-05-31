@@ -31,11 +31,8 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> Spin<T>(this TransformSequence<T> t, double revolutionDuration, RotationDirection direction, float startRotation = 0)
             where T : Drawable
         {
-            float endRotation = startRotation + (direction == RotationDirection.Clockwise ? 360 : -360);
-
-            var sequence = t.RotateTo(startRotation).RotateTo(endRotation, revolutionDuration);
+            var sequence = t.Spin(revolutionDuration, direction, startRotation, 1);
             sequence.OnComplete(o => o.Spin(revolutionDuration, direction, startRotation));
-
             return sequence;
         }
 
