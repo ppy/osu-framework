@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Globalization;
+using System.Threading;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -17,10 +18,11 @@ namespace osu.Framework.Tests.Visual
     {
         private readonly Container box;
         private double startTime;
-        private SpriteText textActual;
-        private SpriteText textRotationCount;
-        private SpriteText textExpected;
-        private SpriteText textDrift;
+        private readonly SpriteText textActual;
+        private readonly SpriteText textRotationCount;
+        private readonly SpriteText textExpected;
+        private readonly SpriteText textDrift;
+        private bool driftDetected;
 
         public TestCaseSpinForever()
         {
@@ -64,7 +66,7 @@ namespace osu.Framework.Tests.Visual
 
         private const double spin_duration = 1;
 
-        private float expectedRotation => (float)(((box.Time.Current - startTime) % spin_duration) / spin_duration * 360);
+        private float expectedRotation => (float)((box.Time.Current - startTime) % spin_duration / spin_duration * 360);
 
         private int rotationCount => (int)((box.Time.Current - startTime) / spin_duration);
 
@@ -76,6 +78,8 @@ namespace osu.Framework.Tests.Visual
             textActual.Text = box.Rotation.ToString(CultureInfo.InvariantCulture);
             textExpected.Text = expectedRotation.ToString(CultureInfo.InvariantCulture);
             textDrift.Text = (box.Rotation - expectedRotation).ToString(CultureInfo.InvariantCulture);
+
+            driftDetected = !Precision.AlmostEquals(box.Rotation, expectedRotation);
         }
 
         protected override void LoadComplete()
@@ -86,8 +90,11 @@ namespace osu.Framework.Tests.Visual
 
             box.Spin(spin_duration, RotationDirection.Clockwise);
 
-            AddUntilStep(() => rotationCount > 10000);
-            AddAssert("ensure no dirft", () => Precision.AlmostEquals(box.Rotation, expectedRotation));
+            AddUntilStep(() => rotationCount > 1000);
+            AddAssert("ensure no dirft", () => !driftDetected);
+            AddStep("delay execution", () => Thread.Sleep(500));
+            AddWaitStep(5);
+            AddAssert("ensure no dirft", () => !driftDetected);
         }
     }
 }
