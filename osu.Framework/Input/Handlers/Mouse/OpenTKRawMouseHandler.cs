@@ -96,7 +96,7 @@ namespace osu.Framework.Input.Handlers.Mouse
 
                                 if (lastState != null)
                                 {
-                                    PendingStates.Enqueue(new InputState { Mouse = newState });
+                                    handleState(lastRawState = newState);
                                     FrameStatistics.Increment(StatisticsCounterType.MouseEvents);
                                 }
                             }
@@ -105,7 +105,7 @@ namespace osu.Framework.Input.Handlers.Mouse
                         {
                             var state = OpenTK.Input.Mouse.GetCursorState();
                             var screenPoint = host.Window.PointToClient(new Point(state.X, state.Y));
-                            PendingStates.Enqueue(new InputState { Mouse = new UnfocusedMouseState(new OpenTK.Input.MouseState(), host.IsActive, new Vector2(screenPoint.X, screenPoint.Y)) });
+                            handleState(lastUnfocusedState = new UnfocusedMouseState(new OpenTK.Input.MouseState(), host.IsActive, new Vector2(screenPoint.X, screenPoint.Y)));
                             FrameStatistics.Increment(StatisticsCounterType.MouseEvents);
 
                             lastStates.Clear();
@@ -182,6 +182,19 @@ namespace osu.Framework.Input.Handlers.Mouse
             }
 
             return currentPosition;
+        }
+
+        private OpenTKPollMouseState lastRawState;
+        private UnfocusedMouseState lastUnfocusedState;
+
+        private void handleState(MouseState state)
+        {
+            // combine wheel values to avoid discrepancy between sources.
+            state = (MouseState)state.Clone();
+            state.Wheel = (lastUnfocusedState?.Wheel ?? 0) + (lastRawState?.Wheel ?? 0);
+
+            PendingStates.Enqueue(new InputState { Mouse = state });
+            FrameStatistics.Increment(StatisticsCounterType.MouseEvents);
         }
 
         private void window_MouseLeave(object sender, EventArgs e) => mouseInWindow = false;
