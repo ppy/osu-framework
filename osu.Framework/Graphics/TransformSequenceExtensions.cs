@@ -34,7 +34,7 @@ namespace osu.Framework.Graphics
             float endRotation = startRotation + (direction == RotationDirection.Clockwise ? 360 : -360);
 
             var sequence = t.RotateTo(startRotation).RotateTo(endRotation, revolutionDuration);
-            sequence.OnComplete(o => o.Spin(revolutionDuration, direction, endRotation));
+            sequence.OnComplete(o => o.Spin(revolutionDuration, direction, startRotation));
 
             return sequence;
         }
