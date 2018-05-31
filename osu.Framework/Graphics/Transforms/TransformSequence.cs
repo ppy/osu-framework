@@ -32,7 +32,7 @@ namespace osu.Framework.Graphics.Transforms
 
         private readonly double startTime;
         private double currentTime;
-        private double endTime => Math.Max(currentTime, lastEndTime);
+        public double EndTime => Math.Max(currentTime, lastEndTime);
 
         private Transform last;
         private double lastEndTime;
@@ -266,7 +266,7 @@ namespace osu.Framework.Graphics.Transforms
             if (!hasEnd)
                 throw new InvalidOperationException($"Can not perform {nameof(Loop)} on an endless {nameof(TransformSequence<T>)}.");
 
-            var iterDuration = endTime - startTime + pause;
+            var iterDuration = EndTime - startTime + pause;
             var toLoop = transforms.ToArray();
 
             // Duplicate existing transforms numIters times
@@ -326,7 +326,7 @@ namespace osu.Framework.Graphics.Transforms
             if (!hasEnd)
                 throw new InvalidOperationException($"Can not perform {nameof(Loop)} on an endless {nameof(TransformSequence<T>)}.");
 
-            var iterDuration = endTime - startTime + pause;
+            var iterDuration = EndTime - startTime + pause;
             foreach (var t in transforms)
             {
                 t.IsLooping = true;
@@ -362,7 +362,7 @@ namespace osu.Framework.Graphics.Transforms
 
             // "Then" simply sets the currentTime to endTime to continue where the last transform left off,
             // followed by a subsequent delay call.
-            currentTime = endTime;
+            currentTime = EndTime;
             return Delay(delay, childGenerators);
         }
 

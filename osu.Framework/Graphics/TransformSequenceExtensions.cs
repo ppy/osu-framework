@@ -32,7 +32,13 @@ namespace osu.Framework.Graphics
             where T : Drawable
         {
             var sequence = t.Spin(revolutionDuration, direction, startRotation, 1);
-            sequence.OnComplete(o => o.Spin(revolutionDuration, direction, startRotation));
+
+            sequence.OnComplete(o =>
+            {
+                using (o.BeginAbsoluteSequence(sequence.EndTime))
+                    o.Spin(revolutionDuration, direction, startRotation);
+            });
+
             return sequence;
         }
 
