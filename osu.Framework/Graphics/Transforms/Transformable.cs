@@ -406,6 +406,7 @@ namespace osu.Framework.Graphics.Transforms
         /// If <see cref="Clock"/> is null, e.g. because this object has just been constructed, then the given transform will be finished instantaneously.
         /// </summary>
         /// <param name="transform">The <see cref="Transform"/> to be added.</param>
+        /// <param name="customTransformID">When not null, the <see cref="Transform.TransformID"/> to assign for ordering.</param>
         public void AddTransform(Transform transform, ulong? customTransformID = null)
         {
             if (transform == null)

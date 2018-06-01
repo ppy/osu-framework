@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using osu.Framework.Lists;
 
 namespace osu.Framework.Graphics.Transforms
 {
