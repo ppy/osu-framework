@@ -97,7 +97,6 @@ namespace osu.Framework.Input.Handlers.Mouse
                                 if (lastState != null)
                                 {
                                     handleState(lastRawState = newState);
-                                    FrameStatistics.Increment(StatisticsCounterType.MouseEvents);
                                 }
                             }
                         }
@@ -106,7 +105,6 @@ namespace osu.Framework.Input.Handlers.Mouse
                             var state = OpenTK.Input.Mouse.GetCursorState();
                             var screenPoint = host.Window.PointToClient(new Point(state.X, state.Y));
                             handleState(lastUnfocusedState = new UnfocusedMouseState(new OpenTK.Input.MouseState(), host.IsActive, new Vector2(screenPoint.X, screenPoint.Y)));
-                            FrameStatistics.Increment(StatisticsCounterType.MouseEvents);
 
                             lastStates.Clear();
                         }
