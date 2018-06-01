@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics.Transforms
 
         double TransformStartTime { get; }
 
-        void AddTransform(Transform transform);
+        void AddTransform(Transform transform, ulong? customTransformID = null);
 
         void RemoveTransform(Transform toRemove);
     }

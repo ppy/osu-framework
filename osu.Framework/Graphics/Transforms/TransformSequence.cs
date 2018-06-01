@@ -364,7 +364,7 @@ namespace osu.Framework.Graphics.Transforms
                 t.Applied = false;
                 t.AppliedToEnd = false; // we want to force a reprocess of this transform. it may have been applied-to-end in the Add, but not correctly looped as a result.
 
-                t.TargetTransformable.AddTransform(t);
+                t.TargetTransformable.AddTransform(t, t.TransformID);
             }
 
             onLoopingTransform();
