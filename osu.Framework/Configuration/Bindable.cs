@@ -38,10 +38,11 @@ namespace osu.Framework.Configuration
         /// </summary>
         public bool Disabled
         {
-            get { return disabled; }
+            get => disabled;
             set
             {
-                if (disabled == value) return;
+                if (disabled == value)
+                    return;
 
                 disabled = value;
 
@@ -64,10 +65,11 @@ namespace osu.Framework.Configuration
         /// </summary>
         public virtual T Value
         {
-            get { return value; }
+            get => value;
             set
             {
-                if (EqualityComparer<T>.Default.Equals(this.value, value)) return;
+                if (EqualityComparer<T>.Default.Equals(this.value, value))
+                    return;
 
                 if (Disabled)
                     throw new InvalidOperationException($"Can not set value to \"{value.ToString()}\" as bindable is disabled.");

@@ -23,10 +23,11 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public float FirstLineIndent
         {
-            get { return firstLineIndent; }
+            get => firstLineIndent;
             set
             {
-                if (value == firstLineIndent) return;
+                if (value == firstLineIndent)
+                    return;
                 firstLineIndent = value;
 
                 layout.Invalidate();
@@ -40,10 +41,11 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public float ContentIndent
         {
-            get { return contentIndent; }
+            get => contentIndent;
             set
             {
-                if (value == contentIndent) return;
+                if (value == contentIndent)
+                    return;
                 contentIndent = value;
 
                 layout.Invalidate();
@@ -58,10 +60,11 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public float ParagraphSpacing
         {
-            get { return paragraphSpacing; }
+            get => paragraphSpacing;
             set
             {
-                if (value == paragraphSpacing) return;
+                if (value == paragraphSpacing)
+                    return;
                 paragraphSpacing = value;
 
                 layout.Invalidate();
@@ -76,10 +79,11 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public float LineSpacing
         {
-            get { return lineSpacing; }
+            get => lineSpacing;
             set
             {
-                if (value == lineSpacing) return;
+                if (value == lineSpacing)
+                    return;
                 lineSpacing = value;
 
                 layout.Invalidate();
@@ -92,7 +96,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public Anchor TextAnchor
         {
-            get { return textAnchor; }
+            get => textAnchor;
             set
             {
                 if (textAnchor == value)

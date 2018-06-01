@@ -193,8 +193,8 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         protected internal IReadOnlyList<Drawable> InternalChildren
         {
-            get { return internalChildren; }
-            set { InternalChildrenEnumerable = value; }
+            get => internalChildren;
+            set => InternalChildrenEnumerable = value;
         }
 
         /// <summary>
@@ -809,7 +809,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public override bool RemoveCompletedTransforms
         {
-            get { return base.RemoveCompletedTransforms; }
+            get => base.RemoveCompletedTransforms;
             internal set
             {
                 if (base.RemoveCompletedTransforms == value)
@@ -966,7 +966,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public bool Masking
         {
-            get { return masking; }
+            get => masking;
             protected set
             {
                 if (masking == value)
@@ -985,7 +985,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public float MaskingSmoothness
         {
-            get { return maskingSmoothness; }
+            get => maskingSmoothness;
             protected set
             {
                 //must be above zero to avoid a div-by-zero in the shader logic.
@@ -1007,7 +1007,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public float CornerRadius
         {
-            get { return cornerRadius; }
+            get => cornerRadius;
             protected set
             {
                 if (cornerRadius == value)
@@ -1032,7 +1032,7 @@ namespace osu.Framework.Graphics.Containers
         /// </remarks>
         public float BorderThickness
         {
-            get { return borderThickness; }
+            get => borderThickness;
             protected set
             {
                 if (borderThickness == value)
@@ -1051,7 +1051,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public SRGBColour BorderColour
         {
-            get { return borderColour; }
+            get => borderColour;
             protected set
             {
                 if (borderColour.Equals(value))
@@ -1071,7 +1071,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public EdgeEffectParameters EdgeEffect
         {
-            get { return edgeEffect; }
+            get => edgeEffect;
             protected set
             {
                 if (edgeEffect.Equals(value))
@@ -1122,12 +1122,14 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public MarginPadding Padding
         {
-            get { return padding; }
+            get => padding;
             protected set
             {
-                if (padding.Equals(value)) return;
+                if (padding.Equals(value))
+                    return;
 
-                if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(Padding)} must be finite, but is {value}.");
+                if (!Validation.IsFinite(value))
+                    throw new ArgumentException($@"{nameof(Padding)} must be finite, but is {value}.");
 
                 padding = value;
 
@@ -1156,14 +1158,16 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public Vector2 RelativeChildSize
         {
-            get { return relativeChildSize; }
+            get => relativeChildSize;
             protected set
             {
                 if (relativeChildSize == value)
                     return;
 
-                if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(RelativeChildSize)} must be finite, but is {value}.");
-                if (value.X == 0 || value.Y == 0) throw new ArgumentException($@"{nameof(RelativeChildSize)} must be non-zero, but is {value}.");
+                if (!Validation.IsFinite(value))
+                    throw new ArgumentException($@"{nameof(RelativeChildSize)} must be finite, but is {value}.");
+                if (value.X == 0 || value.Y == 0)
+                    throw new ArgumentException($@"{nameof(RelativeChildSize)} must be non-zero, but is {value}.");
 
                 relativeChildSize = value;
 
@@ -1180,13 +1184,14 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public Vector2 RelativeChildOffset
         {
-            get { return relativeChildOffset; }
+            get => relativeChildOffset;
             protected set
             {
                 if (relativeChildOffset == value)
                     return;
 
-                if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(RelativeChildOffset)} must be finite, but is {value}.");
+                if (!Validation.IsFinite(value))
+                    throw new ArgumentException($@"{nameof(RelativeChildOffset)} must be finite, but is {value}.");
 
                 relativeChildOffset = value;
 
@@ -1220,7 +1225,7 @@ namespace osu.Framework.Graphics.Containers
 
         public override Axes RelativeSizeAxes
         {
-            get { return base.RelativeSizeAxes; }
+            get => base.RelativeSizeAxes;
             set
             {
                 if ((AutoSizeAxes & value) != 0)
@@ -1242,7 +1247,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public virtual Axes AutoSizeAxes
         {
-            get { return autoSizeAxes; }
+            get => autoSizeAxes;
             protected set
             {
                 if (value == autoSizeAxes)
@@ -1416,8 +1421,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         private Vector2 baseSize
         {
-            get { return new Vector2(base.Width, base.Height); }
-
+            get => new Vector2(base.Width, base.Height);
             set
             {
                 base.Width = value.X;

@@ -106,8 +106,8 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         public virtual double Rate
         {
-            get { return Frequency * Tempo; }
-            set { Tempo.Value = value; }
+            get => Frequency * Tempo;
+            set => Tempo.Value = value;
         }
 
         public bool IsReversed => Rate < 0;

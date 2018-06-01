@@ -31,8 +31,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public Anchor ScrollbarAnchor
         {
-            get { return Scrollbar.Anchor; }
-
+            get => Scrollbar.Anchor;
             set
             {
                 Scrollbar.Anchor = value;
@@ -48,7 +47,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public bool ScrollbarVisible
         {
-            get { return scrollbarVisible; }
+            get => scrollbarVisible;
             set
             {
                 scrollbarVisible = value;
@@ -67,7 +66,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public bool ScrollbarOverlapsContent
         {
-            get { return scrollbarOverlapsContent; }
+            get => scrollbarOverlapsContent;
             set
             {
                 scrollbarOverlapsContent = value;

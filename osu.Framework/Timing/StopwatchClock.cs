@@ -40,11 +40,11 @@ namespace osu.Framework.Timing
 
         public double Rate
         {
-            get { return rate; }
-
+            get => rate;
             set
             {
-                if (rate == value) return;
+                if (rate == value)
+                    return;
 
                 rateChangeAccumulated += (stopwatchMilliseconds - rateChangeUsed) * rate;
                 rateChangeUsed = stopwatchMilliseconds;

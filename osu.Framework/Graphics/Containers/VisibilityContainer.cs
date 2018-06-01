@@ -36,13 +36,15 @@ namespace osu.Framework.Graphics.Containers
 
         public Visibility State
         {
-            get { return state; }
+            get => state;
             set
             {
-                if (value == state) return;
+                if (value == state)
+                    return;
                 state = value;
 
-                if (!IsLoaded) return;
+                if (!IsLoaded)
+                    return;
 
                 updateState();
             }

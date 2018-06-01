@@ -14,11 +14,11 @@ namespace osu.Framework.Graphics.Visualisation
 
         public Drawable Target
         {
-            get { return target; }
-
+            get => target;
             set
             {
-                if (target == value) return;
+                if (target == value)
+                    return;
                 target = value;
 
                 foreach (FlashyBox c in Children)

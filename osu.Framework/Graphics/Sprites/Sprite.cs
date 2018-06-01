@@ -93,7 +93,7 @@ namespace osu.Framework.Graphics.Sprites
         /// </summary>
         public Texture Texture
         {
-            get { return texture; }
+            get => texture;
             set
             {
                 if (value == texture)
