@@ -326,7 +326,8 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnScroll(InputState state)
         {
-            offset(-ScrollDistance * state.Mouse.ScrollDelta.Y, true, DistanceDecayScroll);
+            bool isPrecise = state.Mouse.HasPreciseScroll;
+            offset((isPrecise ? 10 : 80) * -state.Mouse.ScrollDelta.Y, true, isPrecise ? 1 : DistanceDecayScroll);
             return true;
         }
 
