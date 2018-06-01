@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Configuration.Tracking;
@@ -84,6 +85,23 @@ namespace osu.Framework.Configuration
             if (!(GetOriginalBindable<bool>(lookup) is BindableBool bindable))
             {
                 bindable = new BindableBool(value);
+                AddBindable(lookup, bindable);
+            }
+            else
+            {
+                bindable.Value = value;
+            }
+
+            bindable.Default = value;
+
+            return bindable;
+        }
+
+        public BindableSize Set(T lookup, Size value)
+        {
+            if (!(GetOriginalBindable<Size>(lookup) is BindableSize bindable))
+            {
+                bindable = new BindableSize(value);
                 AddBindable(lookup, bindable);
             }
             else

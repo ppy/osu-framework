@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System.Drawing;
 using osu.Framework.Configuration.Tracking;
 using osu.Framework.Extensions;
 using osu.Framework.Input;
@@ -26,8 +27,7 @@ namespace osu.Framework.Configuration
             Set(FrameworkSetting.VolumeUniversal, 1.0, 0.0, 1.0, 0.01);
             Set(FrameworkSetting.VolumeMusic, 1.0, 0.0, 1.0, 0.01);
             Set(FrameworkSetting.VolumeEffect, 1.0, 0.0, 1.0, 0.01);
-            Set(FrameworkSetting.WidthFullscreen, 9999, 320, 9999);
-            Set(FrameworkSetting.HeightFullscreen, 9999, 240, 9999);
+            Set(FrameworkSetting.SizeFullscreen, new Size(9999, 9999));
             Set(FrameworkSetting.Letterboxing, true);
             Set(FrameworkSetting.LetterboxPositionX, 0.0, -1.0, 1.0, 0.01);
             Set(FrameworkSetting.LetterboxPositionY, 0.0, -1.0, 1.0, 0.01);
@@ -78,8 +78,7 @@ namespace osu.Framework.Configuration
         WindowedPositionX,
         WindowedPositionY,
 
-        HeightFullscreen,
-        WidthFullscreen,
+        SizeFullscreen,
 
         WindowMode,
         ConfineMouseMode,

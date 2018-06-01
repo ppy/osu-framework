@@ -16,8 +16,7 @@ namespace osu.Framework.Platform
         private const int default_width = 1366;
         private const int default_height = 768;
 
-        private readonly BindableInt widthFullscreen = new BindableInt();
-        private readonly BindableInt heightFullscreen = new BindableInt();
+        private readonly BindableSize sizeFullscreen = new BindableSize();
         private readonly BindableInt width = new BindableInt();
         private readonly BindableInt height = new BindableInt();
 
@@ -45,8 +44,7 @@ namespace osu.Framework.Platform
 
         public override void SetupWindow(FrameworkConfigManager config)
         {
-            config.BindWith(FrameworkSetting.WidthFullscreen, widthFullscreen);
-            config.BindWith(FrameworkSetting.HeightFullscreen, heightFullscreen);
+            config.BindWith(FrameworkSetting.SizeFullscreen, sizeFullscreen);
 
             config.BindWith(FrameworkSetting.Width, width);
             config.BindWith(FrameworkSetting.Height, height);
@@ -119,7 +117,7 @@ namespace osu.Framework.Platform
             switch (newMode)
             {
                 case Configuration.WindowMode.Fullscreen:
-                    DisplayResolution newResolution = DisplayDevice.Default.SelectResolution(widthFullscreen, heightFullscreen, DisplayDevice.Default.BitsPerPixel, DisplayDevice.Default.RefreshRate);
+                    DisplayResolution newResolution = DisplayDevice.Default.SelectResolution(sizeFullscreen.Value.Width, sizeFullscreen.Value.Height, DisplayDevice.Default.BitsPerPixel, DisplayDevice.Default.RefreshRate);
                     DisplayDevice.Default.ChangeResolution(newResolution);
 
                     WindowState = WindowState.Fullscreen;
@@ -153,8 +151,7 @@ namespace osu.Framework.Platform
             switch (WindowMode.Value)
             {
                 case Configuration.WindowMode.Fullscreen:
-                    widthFullscreen.Value = ClientSize.Width;
-                    heightFullscreen.Value = ClientSize.Height;
+                    sizeFullscreen.Value = ClientSize;
                     break;
             }
 
