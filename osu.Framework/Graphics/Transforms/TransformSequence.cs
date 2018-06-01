@@ -353,8 +353,8 @@ namespace osu.Framework.Graphics.Transforms
             }
 
             // This sort is required such that no abortions happen.
-            var sortedTransforms = new SortedList<Transform>(Transform.COMPARER);
-            sortedTransforms.AddRange(transforms);
+            var sortedTransforms = new List<Transform>(transforms);
+            sortedTransforms.Sort(Transform.COMPARER);
 
             foreach (var t in sortedTransforms)
             {
