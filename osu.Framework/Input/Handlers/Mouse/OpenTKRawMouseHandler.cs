@@ -189,7 +189,7 @@ namespace osu.Framework.Input.Handlers.Mouse
         {
             // combine wheel values to avoid discrepancy between sources.
             state = (MouseState)state.Clone();
-            state.Wheel = (lastUnfocusedState?.Wheel ?? 0) + (lastRawState?.Wheel ?? 0);
+            state.Scroll = (lastUnfocusedState?.Scroll ?? Vector2.Zero) + (lastRawState?.Scroll ?? Vector2.Zero);
 
             PendingStates.Enqueue(new InputState { Mouse = state });
             FrameStatistics.Increment(StatisticsCounterType.MouseEvents);
