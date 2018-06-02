@@ -185,6 +185,7 @@ namespace osu.Framework.Platform
                 }
 
                 DisplayDevice.Default.ChangeResolution(newResolution);
+                ClientSize = new Size(newResolution.Width, newResolution.Height);
             }
         }
 
