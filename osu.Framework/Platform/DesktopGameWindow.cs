@@ -66,6 +66,9 @@ namespace osu.Framework.Platform
             WindowMode.ValueChanged += windowMode_ValueChanged;
             WindowMode.TriggerChange();
 
+            widthFullscreen.ValueChanged += (i) => changeFullscreenResolution();
+            heightFullscreen.ValueChanged += (i) => changeFullscreenResolution();
+
             Exited += onExit;
         }
 
@@ -119,8 +122,7 @@ namespace osu.Framework.Platform
             switch (newMode)
             {
                 case Configuration.WindowMode.Fullscreen:
-                    DisplayResolution newResolution = DisplayDevice.Default.SelectResolution(widthFullscreen, heightFullscreen, DisplayDevice.Default.BitsPerPixel, DisplayDevice.Default.RefreshRate);
-                    DisplayDevice.Default.ChangeResolution(newResolution);
+                    changeFullscreenResolution();
 
                     WindowState = WindowState.Fullscreen;
                     break;
@@ -146,6 +148,15 @@ namespace osu.Framework.Platform
             }
 
             ConfineMouseMode.TriggerChange();
+        }
+
+        private void changeFullscreenResolution()
+        {
+            if (WindowMode.Value == Configuration.WindowMode.Fullscreen)
+            {
+                DisplayResolution newResolution = DisplayDevice.Default.SelectResolution(widthFullscreen, heightFullscreen, DisplayDevice.Default.BitsPerPixel, DisplayDevice.Default.RefreshRate);
+                DisplayDevice.Default.ChangeResolution(newResolution);
+            }
         }
 
         private void onExit()
