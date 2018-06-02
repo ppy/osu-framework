@@ -1,6 +1,8 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System.IO;
+using System.Reflection;
 using osu.Framework.Allocation;
 using osu.Framework.IO.Stores;
 using osu.Framework.Testing;
@@ -16,7 +18,7 @@ namespace osu.Framework.Tests.Visual
             [BackgroundDependencyLoader]
             private void load()
             {
-                Resources.AddStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(@"osu.Framework.Tests.exe"), "Resources"));
+                Resources.AddStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(Path.GetFileName(Assembly.GetExecutingAssembly().Location)), "Resources"));
             }
         }
     }
