@@ -26,8 +26,7 @@ namespace osu.Framework.Configuration
             Set(FrameworkSetting.VolumeUniversal, 1.0, 0.0, 1.0, 0.01);
             Set(FrameworkSetting.VolumeMusic, 1.0, 0.0, 1.0, 0.01);
             Set(FrameworkSetting.VolumeEffect, 1.0, 0.0, 1.0, 0.01);
-            Set(FrameworkSetting.WidthFullscreen, 9999, 320, 9999);
-            Set(FrameworkSetting.HeightFullscreen, 9999, 240, 9999);
+            Set(FrameworkSetting.FullscreenResolution, int.MaxValue);
             Set(FrameworkSetting.Letterboxing, true);
             Set(FrameworkSetting.LetterboxPositionX, 0.0, -1.0, 1.0, 0.01);
             Set(FrameworkSetting.LetterboxPositionY, 0.0, -1.0, 1.0, 0.01);
@@ -78,8 +77,7 @@ namespace osu.Framework.Configuration
         WindowedPositionX,
         WindowedPositionY,
 
-        HeightFullscreen,
-        WidthFullscreen,
+        FullscreenResolution,
 
         WindowMode,
         ConfineMouseMode,
