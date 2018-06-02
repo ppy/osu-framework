@@ -46,6 +46,12 @@ namespace osu.Framework.Platform
         {
             config.BindWith(FrameworkSetting.SizeFullscreen, sizeFullscreen);
 
+            sizeFullscreen.ValueChanged += newSize =>
+            {
+                if (WindowState == WindowState.Fullscreen)
+                    changeResolution(newSize);
+            };
+
             config.BindWith(FrameworkSetting.Width, width);
             config.BindWith(FrameworkSetting.Height, height);
 
@@ -65,6 +71,33 @@ namespace osu.Framework.Platform
             WindowMode.TriggerChange();
 
             Exited += onExit;
+        }
+
+        private void changeResolution(Size newSize)
+        {
+            var currentDisplay = DisplayDevice.Default;
+
+            if (newSize.Width == currentDisplay.Width && newSize.Height == currentDisplay.Height)
+                return;
+
+            DisplayResolution newResolution = currentDisplay.SelectResolution(
+                newSize.Width,
+                newSize.Height,
+                currentDisplay.BitsPerPixel,
+                currentDisplay.RefreshRate
+            );
+
+            if (newResolution.Width == currentDisplay.Width && newResolution.Height == currentDisplay.Height)
+            {
+                // we wanted a new resolution, but got the old one -> OpenTK didn't find this resolution
+                currentDisplay.RestoreResolution();
+                throw new ArgumentException($"No supported resolution found for {newSize.Width}x{newSize.Height}@{currentDisplay.RefreshRate}Hz.");
+            }
+            else
+            {
+                currentDisplay.ChangeResolution(newResolution);
+                ClientSize = newSize;
+            }
         }
 
         protected void OnResize(object sender, EventArgs e)
@@ -117,8 +150,7 @@ namespace osu.Framework.Platform
             switch (newMode)
             {
                 case Configuration.WindowMode.Fullscreen:
-                    DisplayResolution newResolution = DisplayDevice.Default.SelectResolution(sizeFullscreen.Value.Width, sizeFullscreen.Value.Height, DisplayDevice.Default.BitsPerPixel, DisplayDevice.Default.RefreshRate);
-                    DisplayDevice.Default.ChangeResolution(newResolution);
+                    changeResolution(sizeFullscreen);
 
                     WindowState = WindowState.Fullscreen;
                     break;
