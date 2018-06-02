@@ -57,7 +57,6 @@ namespace osu.Framework.Tests.Visual
             AddStep("change to fullscreen", () => windowMode.Value = WindowMode.Fullscreen);
             testResolution(1920, 1080);
             testResolution(1280, 960);
-            AddStep("999x999 throws and restores", () => Assert.Throws(typeof(ArgumentException), () => sizeFullscreen.Value = new Size(999, 999)));
             AddStep("go back to windowed", () => windowMode.Value = WindowMode.Windowed);
         }
 
