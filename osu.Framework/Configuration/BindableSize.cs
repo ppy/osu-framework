@@ -20,10 +20,11 @@ namespace osu.Framework.Configuration
             switch (input)
             {
                 case string str:
-                    if (!str.Contains("x"))
+                    string[] split = str.Split('x');
+
+                    if (split.Length != 2)
                         throw new ArgumentException($"Input string was in wrong format! (expected: '<width>x<height>', actual: '{str}')");
 
-                    var split = str.Split('x');
                     Value = new Size(int.Parse(split[0]), int.Parse(split[1]));
                     break;
                 default:
