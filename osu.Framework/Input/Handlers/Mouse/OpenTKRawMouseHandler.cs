@@ -10,7 +10,6 @@ using osu.Framework.Platform;
 using osu.Framework.Statistics;
 using osu.Framework.Threading;
 using OpenTK;
-using OpenTK.Platform.Windows;
 
 namespace osu.Framework.Input.Handlers.Mouse
 {
@@ -125,7 +124,7 @@ namespace osu.Framework.Input.Handlers.Mouse
         {
             Vector2 currentPosition;
 
-            if ((state.RawFlags & RawMouseFlags.MOUSE_MOVE_ABSOLUTE) > 0)
+            if ((state.Flags & OpenTK.Input.MouseStateFlags.MoveAbsolute) > 0)
             {
                 const int raw_input_resolution = 65536;
 
@@ -138,7 +137,7 @@ namespace osu.Framework.Input.Handlers.Mouse
                 }
                 else
                 {
-                    Rectangle screenRect = (state.RawFlags & RawMouseFlags.MOUSE_VIRTUAL_DESKTOP) > 0
+                    Rectangle screenRect = (state.Flags & OpenTK.Input.MouseStateFlags.VirtualDesktop) > 0
                         ? Platform.Windows.Native.Input.GetVirtualScreenRect()
                         : new Rectangle(0, 0, DisplayDevice.Default.Width, DisplayDevice.Default.Height);
 

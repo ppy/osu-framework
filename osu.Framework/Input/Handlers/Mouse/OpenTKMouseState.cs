@@ -31,7 +31,7 @@ namespace osu.Framework.Input.Handlers.Mouse
             }
 
             Scroll = new Vector2(-tkState.Scroll.X, tkState.Scroll.Y);
-            HasPreciseScroll = tkState.HasPreciseScroll;
+            HasPreciseScroll = (tkState.Flags & MouseStateFlags.HasPreciseScroll) > 0;
             Position = new Vector2(mappedPosition?.X ?? tkState.X, mappedPosition?.Y ?? tkState.Y);
         }
 
