@@ -58,8 +58,8 @@ namespace osu.Framework.Logging
         /// </summary>
         public static Storage Storage
         {
-            private get { return storage; }
-            set { storage = value ?? throw new ArgumentNullException(nameof(value)); }
+            private get => storage;
+            set => storage = value ?? throw new ArgumentNullException(nameof(value));
         }
 
         /// <summary>

@@ -517,8 +517,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         public string PlaceholderText
         {
-            get { return Placeholder.Text; }
-            set { Placeholder.Text = value; }
+            get => Placeholder.Text;
+            set => Placeholder.Text = value;
         }
 
         public Bindable<string> Current { get; } = new Bindable<string>();
@@ -527,7 +527,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         public virtual string Text
         {
-            get { return text; }
+            get => text;
             set
             {
                 if (Current.Disabled)

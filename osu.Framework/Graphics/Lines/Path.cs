@@ -99,7 +99,7 @@ namespace osu.Framework.Graphics.Lines
 
         public float PathWidth
         {
-            get { return pathWidth; }
+            get => pathWidth;
             set
             {
                 if (pathWidth == value) return;
@@ -183,7 +183,7 @@ namespace osu.Framework.Graphics.Lines
 
         public Texture Texture
         {
-            get { return texture; }
+            get => texture;
             set
             {
                 if (value == texture)

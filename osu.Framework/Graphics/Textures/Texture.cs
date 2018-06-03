@@ -82,14 +82,14 @@ namespace osu.Framework.Graphics.Textures
 
         public int Width
         {
-            get { return TextureGL.Width; }
-            set { TextureGL.Width = value; }
+            get => TextureGL.Width;
+            set => TextureGL.Width = value;
         }
 
         public int Height
         {
-            get { return TextureGL.Height; }
-            set { TextureGL.Height = value; }
+            get => TextureGL.Height;
+            set => TextureGL.Height = value;
         }
 
         public Vector2 Size => new Vector2(Width, Height);

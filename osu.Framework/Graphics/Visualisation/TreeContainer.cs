@@ -44,8 +44,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         public TreeContainerStatus State
         {
-            get { return state; }
-
+            get => state;
             set
             {
                 if (state == value)

@@ -17,6 +17,7 @@ using OpenTK.Graphics;
 using OpenTK.Input;
 using MouseEventArgs = osu.Framework.Input.MouseEventArgs;
 using MouseState = osu.Framework.Input.MouseState;
+using osu.Framework.MathUtils;
 
 namespace osu.Framework.Tests.Visual
 {
@@ -93,21 +94,21 @@ namespace osu.Framework.Tests.Visual
         }
 
         [Test]
-        public void BasicWheel()
+        public void BasicScroll()
         {
             eventCounts.Clear();
 
             AddStep("move to centre", () => manual.MoveMouseTo(actionContainer));
             checkEventCount("Move", 1);
 
-            AddStep("scroll some", () => manual.ScrollBy(1));
+            AddStep("scroll some", () => manual.ScrollBy(new Vector2(-1, 1)));
             checkEventCount("Move");
-            checkEventCount("Wheel", 1);
-            checkLastWheelDelta(1);
+            checkEventCount("Scroll", 1);
+            checkLastScrollDelta(new Vector2(-1, 1));
 
-            AddStep("scroll some", () => manual.ScrollBy(-1));
-            checkEventCount("Wheel", 1);
-            checkLastWheelDelta(-1);
+            AddStep("scroll some", () => manual.ScrollBy(new Vector2(1, -1)));
+            checkEventCount("Scroll", 1);
+            checkLastScrollDelta(new Vector2(1, -1));
         }
 
         [Test]
@@ -117,11 +118,11 @@ namespace osu.Framework.Tests.Visual
 
             AddStep("push move state", () => manual.MoveMouseTo(marginBox.ScreenSpaceDrawQuad.TopLeft));
             checkEventCount("Move", 1);
-            checkEventCount("Wheel");
+            checkEventCount("Scroll");
 
             AddStep("push move state", () => manual.MoveMouseTo(marginBox.ScreenSpaceDrawQuad.TopRight));
             checkEventCount("Move", 1);
-            checkEventCount("Wheel");
+            checkEventCount("Scroll");
             checkLastPositionDelta(() => marginBox.ScreenSpaceDrawQuad.Width);
 
             AddStep("push move state", () => manual.MoveMouseTo(marginBox.ScreenSpaceDrawQuad.BottomRight));
@@ -216,12 +217,12 @@ namespace osu.Framework.Tests.Visual
             AddStep("push move state", () => manual.MoveMouseTo(marginBox.ScreenSpaceDrawQuad.BottomLeft));
             checkEventCount("Move", 1);
 
-            AddStep("push move wheel state", () => manual.AddStates(
-                new InputState { Mouse = new MouseState { Position = marginBox.ScreenSpaceDrawQuad.Centre, Wheel = 2 } }
+            AddStep("push move scroll state", () => manual.AddStates(
+                new InputState { Mouse = new MouseState { Position = marginBox.ScreenSpaceDrawQuad.Centre, Scroll = new Vector2(1, 2) } }
             ));
             checkEventCount("Move", 1);
-            checkEventCount("Wheel", 1);
-            checkLastWheelDelta(2);
+            checkEventCount("Scroll", 1);
+            checkLastScrollDelta(new Vector2(1, 2));
             checkLastPositionDelta(() => Vector2.Distance(marginBox.ScreenSpaceDrawQuad.BottomLeft, marginBox.ScreenSpaceDrawQuad.Centre));
 
             AddStep("push empty state", () => manual.AddStates(
@@ -229,13 +230,13 @@ namespace osu.Framework.Tests.Visual
             ));
 
             checkEventCount("Move");
-            checkEventCount("Wheel");
+            checkEventCount("Scroll");
 
             AddStep("push empty mouse state", () => manual.AddStates(new InputState { Mouse = new MouseState() }));
 
             // outside the bounds so should not increment.
             checkEventCount("Move");
-            checkEventCount("Wheel");
+            checkEventCount("Scroll");
         }
 
         private readonly Dictionary<string, int> eventCounts = new Dictionary<string, int>();
@@ -254,9 +255,9 @@ namespace osu.Framework.Tests.Visual
             s1.CounterFor("Move").LastState.Mouse.NativeState.Delta.Length == expected() &&
             s2.CounterFor("Move").LastState.Mouse.NativeState.Delta.Length == expected());
 
-        private void checkLastWheelDelta(int expected) => AddAssert("correct wheel delta", () =>
-            s1.CounterFor("Wheel").LastState.Mouse.WheelDelta == expected &&
-            s2.CounterFor("Wheel").LastState.Mouse.WheelDelta == expected);
+        private void checkLastScrollDelta(Vector2 expected) => AddAssert("correct scroll delta", () =>
+            Precision.AlmostEquals(s1.CounterFor("Scroll").LastState.Mouse.ScrollDelta, expected) &&
+            Precision.AlmostEquals(s2.CounterFor("Scroll").LastState.Mouse.ScrollDelta, expected));
 
         public class StateTracker : Container
         {
@@ -282,7 +283,7 @@ namespace osu.Framework.Tests.Visual
                             source = new SmallText(),
                             keyboard = new SmallText(),
                             mouse = new SmallText(),
-                            addCounter(new EventCounter("Wheel")),
+                            addCounter(new EventCounter("Scroll")),
                             addCounter(new EventCounter("Move")),
                             addCounter(new EventCounter("DragStart")),
                             addCounter(new EventCounter("MouseDown")),
@@ -293,7 +294,7 @@ namespace osu.Framework.Tests.Visual
                 };
             }
 
-            protected override bool OnWheel(InputState state) => CounterFor("Wheel").NewState(state);
+            protected override bool OnScroll(InputState state) => CounterFor("Scroll").NewState(state);
             protected override bool OnMouseMove(InputState state) => CounterFor("Move").NewState(state);
             protected override bool OnDragStart(InputState state) => CounterFor("DragStart").NewState(state);
 
@@ -415,10 +416,10 @@ namespace osu.Framework.Tests.Visual
                     return base.OnMouseMove(state);
                 }
 
-                protected override bool OnWheel(InputState state)
+                protected override bool OnScroll(InputState state)
                 {
-                    circle.MoveToY(circle.Y - state.Mouse.WheelDelta * 10).MoveToY(0, 500, Easing.OutQuint);
-                    return base.OnWheel(state);
+                    circle.MoveTo(circle.Position - state.Mouse.ScrollDelta * 10).MoveTo(Vector2.Zero, 500, Easing.OutQuint);
+                    return base.OnScroll(state);
                 }
 
                 protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
