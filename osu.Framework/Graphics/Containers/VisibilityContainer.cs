@@ -39,12 +39,10 @@ namespace osu.Framework.Graphics.Containers
             get => state;
             set
             {
-                if (value == state)
-                    return;
+                if (value == state) return;
                 state = value;
 
-                if (!IsLoaded)
-                    return;
+                if (!IsLoaded) return;
 
                 updateState();
             }

@@ -47,8 +47,7 @@ namespace osu.Framework.Platform.Windows
             get => active;
             set
             {
-                if (value == active || !canAdjust)
-                    return;
+                if (value == active || !canAdjust) return;
                 active = value;
 
                 try

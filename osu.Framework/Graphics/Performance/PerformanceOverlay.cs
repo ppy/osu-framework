@@ -22,8 +22,7 @@ namespace osu.Framework.Graphics.Performance
             get => state;
             set
             {
-                if (state == value)
-                    return;
+                if (state == value) return;
 
                 state = value;
 

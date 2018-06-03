@@ -35,8 +35,7 @@ namespace osu.Framework.Testing.Drawables.Steps
             set
             {
                 lightColour = value;
-                if (IsLoaded)
-                    Reset();
+                if (IsLoaded) Reset();
             }
         }
 

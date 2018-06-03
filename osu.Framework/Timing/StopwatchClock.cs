@@ -43,8 +43,7 @@ namespace osu.Framework.Timing
             get => rate;
             set
             {
-                if (rate == value)
-                    return;
+                if (rate == value) return;
 
                 rateChangeAccumulated += (stopwatchMilliseconds - rateChangeUsed) * rate;
                 rateChangeUsed = stopwatchMilliseconds;

@@ -55,8 +55,7 @@ namespace osu.Framework.Graphics.UserInterface
             get => pinned;
             set
             {
-                if (pinned == value)
-                    return;
+                if (pinned == value) return;
 
                 pinned = value;
                 PinnedChanged?.Invoke(this);

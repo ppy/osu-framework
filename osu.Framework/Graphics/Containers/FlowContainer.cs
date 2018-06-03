@@ -56,8 +56,7 @@ namespace osu.Framework.Graphics.Containers
             get => maximumSize;
             set
             {
-                if (maximumSize == value)
-                    return;
+                if (maximumSize == value) return;
 
                 maximumSize = value;
                 Invalidate(Invalidation.DrawSize);

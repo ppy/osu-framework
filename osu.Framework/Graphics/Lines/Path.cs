@@ -102,8 +102,7 @@ namespace osu.Framework.Graphics.Lines
             get => pathWidth;
             set
             {
-                if (pathWidth == value)
-                    return;
+                if (pathWidth == value) return;
 
                 pathWidth = value;
                 recomputeBounds();

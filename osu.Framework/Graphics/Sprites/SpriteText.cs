@@ -74,8 +74,7 @@ namespace osu.Framework.Graphics.Sprites
             get => shadow;
             set
             {
-                if (shadow == value)
-                    return;
+                if (shadow == value) return;
 
                 shadow = value;
                 layout.Invalidate(); // Trigger a layout refresh
@@ -146,8 +145,7 @@ namespace osu.Framework.Graphics.Sprites
             get => textSize;
             set
             {
-                if (textSize == value)
-                    return;
+                if (textSize == value) return;
 
                 textSize = value;
 

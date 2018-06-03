@@ -26,8 +26,7 @@ namespace osu.Framework.Graphics.Containers
             get => firstLineIndent;
             set
             {
-                if (value == firstLineIndent)
-                    return;
+                if (value == firstLineIndent) return;
                 firstLineIndent = value;
 
                 layout.Invalidate();
@@ -44,8 +43,7 @@ namespace osu.Framework.Graphics.Containers
             get => contentIndent;
             set
             {
-                if (value == contentIndent)
-                    return;
+                if (value == contentIndent) return;
                 contentIndent = value;
 
                 layout.Invalidate();
@@ -63,8 +61,7 @@ namespace osu.Framework.Graphics.Containers
             get => paragraphSpacing;
             set
             {
-                if (value == paragraphSpacing)
-                    return;
+                if (value == paragraphSpacing) return;
                 paragraphSpacing = value;
 
                 layout.Invalidate();
@@ -82,8 +79,7 @@ namespace osu.Framework.Graphics.Containers
             get => lineSpacing;
             set
             {
-                if (value == lineSpacing)
-                    return;
+                if (value == lineSpacing) return;
                 lineSpacing = value;
 
                 layout.Invalidate();

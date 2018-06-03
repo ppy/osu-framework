@@ -60,8 +60,7 @@ namespace osu.Framework.IO.Network
             private set
             {
                 completed = value;
-                if (!completed)
-                    return;
+                if (!completed) return;
 
                 // WebRequests can only be used once - no need to keep events bound
                 // This helps with disposal in PerformAsync usages

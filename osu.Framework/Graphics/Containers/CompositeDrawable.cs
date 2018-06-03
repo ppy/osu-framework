@@ -1125,11 +1125,9 @@ namespace osu.Framework.Graphics.Containers
             get => padding;
             protected set
             {
-                if (padding.Equals(value))
-                    return;
+                if (padding.Equals(value)) return;
 
-                if (!Validation.IsFinite(value))
-                    throw new ArgumentException($@"{nameof(Padding)} must be finite, but is {value}.");
+                if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(Padding)} must be finite, but is {value}.");
 
                 padding = value;
 
@@ -1164,10 +1162,8 @@ namespace osu.Framework.Graphics.Containers
                 if (relativeChildSize == value)
                     return;
 
-                if (!Validation.IsFinite(value))
-                    throw new ArgumentException($@"{nameof(RelativeChildSize)} must be finite, but is {value}.");
-                if (value.X == 0 || value.Y == 0)
-                    throw new ArgumentException($@"{nameof(RelativeChildSize)} must be non-zero, but is {value}.");
+                if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(RelativeChildSize)} must be finite, but is {value}.");
+                if (value.X == 0 || value.Y == 0) throw new ArgumentException($@"{nameof(RelativeChildSize)} must be non-zero, but is {value}.");
 
                 relativeChildSize = value;
 
@@ -1190,8 +1186,7 @@ namespace osu.Framework.Graphics.Containers
                 if (relativeChildOffset == value)
                     return;
 
-                if (!Validation.IsFinite(value))
-                    throw new ArgumentException($@"{nameof(RelativeChildOffset)} must be finite, but is {value}.");
+                if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(RelativeChildOffset)} must be finite, but is {value}.");
 
                 relativeChildOffset = value;
 
