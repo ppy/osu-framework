@@ -17,7 +17,7 @@ namespace osu.Framework.Tests.Visual
         private readonly Container[] boxes;
 
         public TestCaseTransformSequence()
-            : base(3, 3)
+            : base(4, 3)
         {
             boxes = new Container[Rows * Cols];
         }
@@ -71,6 +71,9 @@ namespace osu.Framework.Tests.Visual
             string[] labels =
             {
                 "Spin after 2 seconds",
+                "Spin immediately",
+                "Spin 2 seconds in the past",
+                "Complex rotation with preemption",
                 "Loop(1 sec pause; 1 sec rotate)",
                 "Complex transform 1 (should end in sync with CT2)",
                 "Complex transform 2 (should end in sync with CT1)",
@@ -120,9 +123,17 @@ namespace osu.Framework.Tests.Visual
                 b => b.Delay(500).Spin(1000, RotationDirection.CounterClockwise)
             );
 
-            boxes[1].Delay(1000).Loop(1000, 10, b => b.RotateTo(0).RotateTo(340, 1000));
+            boxes[1].Spin(1000, RotationDirection.CounterClockwise);
 
-            boxes[2].RotateTo(0).ScaleTo(1).RotateTo(360, 1000)
+            boxes[2].Delay(-2000).Spin(1000, RotationDirection.CounterClockwise);
+
+            boxes[3].RotateTo(90)
+            .Then().Delay(1000).RotateTo(0)
+            .Then().RotateTo(180, 1000).Loop();
+
+            boxes[4].Delay(1000).Loop(1000, 10, b => b.RotateTo(0).RotateTo(340, 1000));
+
+            boxes[5].RotateTo(0).ScaleTo(1).RotateTo(360, 1000)
             .Then(1000,
                 b => b.RotateTo(0, 1000),
                 b => b.ScaleTo(2, 500)
@@ -130,7 +141,7 @@ namespace osu.Framework.Tests.Visual
             .Then().RotateTo(360, 1000).ScaleTo(0.5f, 1000)
             .Then().FadeEdgeEffectTo(Color4.Red, 1000).ScaleTo(2, 500);
 
-            boxes[3].RotateTo(0).ScaleTo(1).RotateTo(360, 500)
+            boxes[6].RotateTo(0).ScaleTo(1).RotateTo(360, 500)
             .Then(1000,
                 b => b.RotateTo(0),
                 b => b.ScaleTo(2)
@@ -142,7 +153,7 @@ namespace osu.Framework.Tests.Visual
             .Finally(_ => finalizeTriggered = true);
 
 
-            boxes[4].RotateTo(0).ScaleTo(1).RotateTo(360, 500)
+            boxes[7].RotateTo(0).ScaleTo(1).RotateTo(360, 500)
             .Then(1000,
                 b => b.RotateTo(0),
                 b => b.ScaleTo(2)
@@ -154,7 +165,7 @@ namespace osu.Framework.Tests.Visual
             .OnAbort(b => b.FadeEdgeEffectTo(Color4.Red, 1000));
 
 
-            boxes[5].RotateTo(0).ScaleTo(1).RotateTo(360, 500)
+            boxes[8].RotateTo(0).ScaleTo(1).RotateTo(360, 500)
             .Then(1000,
                 b => b.RotateTo(0),
                 b => b.ScaleTo(2)
@@ -165,13 +176,13 @@ namespace osu.Framework.Tests.Visual
             )
             .Finally(b => b.FadeEdgeEffectTo(Color4.Red, 1000));
 
-            boxes[6].RotateTo(200)
+            boxes[9].RotateTo(200)
             .Finally(b => b.FadeEdgeEffectTo(Color4.Red, 1000));
 
-            boxes[7].Delay(-1000).RotateTo(200)
+            boxes[10].Delay(-1000).RotateTo(200)
             .Finally(b => b.FadeEdgeEffectTo(Color4.Red, 1000));
 
-            boxes[8].Delay(-1000).RotateTo(200, 1000)
+            boxes[11].Delay(-1000).RotateTo(200, 1000)
             .Finally(b => b.FadeEdgeEffectTo(Color4.Red, 1000));
         }
     }

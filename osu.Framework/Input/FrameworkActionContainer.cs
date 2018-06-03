@@ -20,7 +20,7 @@ namespace osu.Framework.Input
 
         protected override bool Prioritised => true;
 
-        protected override IEnumerable<Drawable> KeyBindingInputQueue => base.KeyBindingInputQueue.Prepend(Child);
+        protected override IEnumerable<Drawable> KeyBindingInputQueue => base.KeyBindingInputQueue.Prepend(Children.First());
     }
 
     public enum FrameworkAction

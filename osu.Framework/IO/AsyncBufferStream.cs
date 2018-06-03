@@ -164,9 +164,8 @@ namespace osu.Framework.IO
 
         public override long Position
         {
-            get { return position; }
-
-            set { position = MathHelper.Clamp((int)value, 0, data.Length); }
+            get => position;
+            set => position = MathHelper.Clamp((int)value, 0, data.Length);
         }
 
         public override void Flush()

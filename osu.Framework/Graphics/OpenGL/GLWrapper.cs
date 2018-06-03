@@ -135,13 +135,21 @@ namespace osu.Framework.Graphics.OpenGL
         /// Enqueues a texture to be uploaded in the next frame.
         /// </summary>
         /// <param name="texture">The texture to be uploaded.</param>
-        public static void EnqueueTextureUpload(TextureGL texture) => expensive_operations_queue.Enqueue(() => texture.Upload());
+        public static void EnqueueTextureUpload(TextureGL texture)
+        {
+            if (host != null)
+                expensive_operations_queue.Enqueue(() => texture.Upload());
+        }
 
         /// <summary>
         /// Enqueues the compile of a shader.
         /// </summary>
         /// <param name="shader">The shader to compile.</param>
-        public static void EnqueueShaderCompile(Shader shader) => expensive_operations_queue.Enqueue(shader.EnsureLoaded);
+        public static void EnqueueShaderCompile(Shader shader)
+        {
+            if (host != null)
+                expensive_operations_queue.Enqueue(shader.EnsureLoaded);
+        }
 
         private static readonly int[] last_bound_buffers = new int[2];
 

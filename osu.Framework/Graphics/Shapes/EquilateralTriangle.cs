@@ -29,8 +29,8 @@ namespace osu.Framework.Graphics.Shapes
         /// </summary>
         public override float Height
         {
-            get { return Width * sidelength_to_height_factor; }
-            set { Size = new Vector2(value / sidelength_to_height_factor); }
+            get => Width * sidelength_to_height_factor;
+            set => Size = new Vector2(value / sidelength_to_height_factor);
         }
     }
 }

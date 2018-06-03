@@ -6,25 +6,10 @@ using System;
 namespace osu.Framework.Configuration
 {
     /// <summary>
-    /// An interface which can be bound to in order to watch for (and react to) value changes.
+    /// An interface which can be bound to other <see cref="IBindable"/>s in order to watch for (and react to) <see cref="IBindable.Disabled"/> changes.
     /// </summary>
-    public interface IBindable : IParseable
+    public interface IBindable : IParseable, ICanBeDisabled, IHasDefaultValue, IUnbindable, IHasDescription
     {
-        /// <summary>
-        /// An event which is raised when <see cref="Disabled"/>'s state has changed.
-        /// </summary>
-        event Action<bool> DisabledChanged;
-
-        /// <summary>
-        /// Whether this bindable has been disabled.
-        /// </summary>
-        bool Disabled { get; }
-
-        /// <summary>
-        /// Check whether this bindable has its default value.
-        /// </summary>
-        bool IsDefault { get; }
-
         /// <summary>
         /// Binds outselves to another bindable such that we receive any value limitations of the bindable we bind width.
         /// </summary>
@@ -40,7 +25,11 @@ namespace osu.Framework.Configuration
         IBindable GetBoundCopy();
     }
 
-    public interface IBindable<T>
+    /// <summary>
+    /// An interface which can be bound to other <see cref="IBindable{T}"/>s in order to watch for (and react to) <see cref="IBindable{T}.Disabled"/> and <see cref="IBindable{T}.Value"/> changes.
+    /// </summary>
+    /// <typeparam name="T">The type of value encapsulated by this <see cref="IBindable{T}"/>.</typeparam>
+    public interface IBindable<T> : IParseable, ICanBeDisabled, IHasDefaultValue, IUnbindable, IHasDescription
     {
         /// <summary>
         /// An event which is raised when <see cref="Value"/> has changed.
@@ -53,11 +42,9 @@ namespace osu.Framework.Configuration
         T Value { get; }
 
         /// <summary>
-        /// The default value of this bindable. Used when querying <see cref="IBindable.IsDefault"/>.
+        /// The default value of this bindable. Used when querying <see cref="IBindable{T}.IsDefault"/>.
         /// </summary>
         T Default { get; }
-
-        string Description { get; }
 
         /// <summary>
         /// Binds outselves to another bindable such that we receive any values and value limitations of the bindable we bind width.
