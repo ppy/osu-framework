@@ -19,9 +19,6 @@ namespace osu.Framework.Configuration
         {
             switch (input)
             {
-                case Size s:
-                    Value = s;
-                    break;
                 case string str:
                     if (!str.Contains("x"))
                         throw new ArgumentException($"Input string was in wrong format! (expected: '<width>x<height>', actual: '{str}')");
@@ -30,7 +27,8 @@ namespace osu.Framework.Configuration
                     Value = new Size(int.Parse(split[0]), int.Parse(split[1]));
                     break;
                 default:
-                    throw new ArgumentException($"Could not parse provided {input.GetType()} ({input}) to {typeof(Size)}.");
+                    base.Parse(input);
+                    break;
             }
         }
     }
