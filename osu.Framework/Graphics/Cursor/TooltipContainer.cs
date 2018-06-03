@@ -149,6 +149,7 @@ namespace osu.Framework.Graphics.Cursor
                 AddInternal((Drawable)currentTooltip);
 
                 currentTooltip.Show();
+                RefreshTooltip(currentTooltip, target);
             }
         }
 
