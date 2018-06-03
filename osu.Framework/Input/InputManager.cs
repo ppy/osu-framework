@@ -429,7 +429,7 @@ namespace osu.Framework.Input
             if (!(state.Last.Mouse is MouseState last)) return;
 
             mouse.LastPosition = last.Position;
-            mouse.LastWheel = last.Wheel;
+            mouse.LastScroll = last.Scroll;
             mouse.PositionMouseDown = last.PositionMouseDown;
 
             if (mouse.Position != last.Position)
@@ -452,8 +452,8 @@ namespace osu.Framework.Input
                 }
             }
 
-            if (mouse.WheelDelta != 0 && (Host.Window?.CursorInWindow ?? true))
-                handleWheel(state);
+            if (mouse.ScrollDelta != Vector2.Zero && (Host.Window?.CursorInWindow ?? true))
+                handleScroll(state);
 
             if (mouse.HasAnyButtonPressed)
             {
@@ -655,23 +655,23 @@ namespace osu.Framework.Input
             return result;
         }
 
-        private bool handleWheel(InputState state)
+        private bool handleScroll(InputState state)
         {
-            return PropagateWheel(positionalInputQueue, state);
+            return PropagateScroll(positionalInputQueue, state);
         }
 
         /// <summary>
-        /// Triggers wheel events on drawables in <paramref cref="drawables"/> until it is handled.
+        /// Triggers scroll events on drawables in <paramref cref="drawables"/> until it is handled.
         /// </summary>
         /// <param name="drawables">The drawables in the queue.</param>
         /// <param name="state">The input state.</param>
         /// <returns></returns>
-        protected virtual bool PropagateWheel(IEnumerable<Drawable> drawables, InputState state)
+        protected virtual bool PropagateScroll(IEnumerable<Drawable> drawables, InputState state)
         {
-            var handledBy = drawables.FirstOrDefault(target => target.TriggerOnWheel(state));
+            var handledBy = drawables.FirstOrDefault(target => target.TriggerOnScroll(state));
 
             if (handledBy != null)
-                Logger.Log($"Wheel ({state.Mouse.WheelDelta}) handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
+                Logger.Log($"Scroll ({state.Mouse.ScrollDelta.X:#,2},{state.Mouse.ScrollDelta.Y:#,2}) handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
 
             return handledBy != null;
         }
@@ -860,8 +860,8 @@ namespace osu.Framework.Input
                     if (last.Mouse.Position != incoming.Mouse.Position)
                         createDistinctState(s => s.Mouse.Position = incoming.Mouse.Position);
 
-                    if (last.Mouse.Wheel != incoming.Mouse.Wheel)
-                        createDistinctState(s => s.Mouse.Wheel = incoming.Mouse.Wheel);
+                    if (last.Mouse.Scroll != incoming.Mouse.Scroll)
+                        createDistinctState(s => s.Mouse.Scroll = incoming.Mouse.Scroll);
 
                     processForButtons(last.Mouse.Buttons, incoming.Mouse.Buttons, (s, buttons) => s.Mouse.Buttons = buttons);
                 }

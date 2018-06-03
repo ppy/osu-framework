@@ -17,7 +17,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         protected double Count
         {
-            get { return count; }
+            get => count;
             private set
             {
                 if (count == value)

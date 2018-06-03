@@ -24,7 +24,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public Drawable[][] Content
         {
-            get { return content; }
+            get => content;
             set
             {
                 if (content == value)

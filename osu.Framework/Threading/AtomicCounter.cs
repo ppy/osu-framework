@@ -26,9 +26,8 @@ namespace osu.Framework.Threading
 
         public long Value
         {
-            set { Interlocked.Exchange(ref count, value); }
-
-            get { return Interlocked.Read(ref count); }
+            set => Interlocked.Exchange(ref count, value);
+            get => Interlocked.Read(ref count);
         }
     }
 }

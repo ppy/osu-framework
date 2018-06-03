@@ -32,14 +32,14 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public override int Height
         {
-            get { return bounds.Height; }
-            set { bounds.Height = value; }
+            get => bounds.Height;
+            set => bounds.Height = value;
         }
 
         public override int Width
         {
-            get { return bounds.Width; }
-            set { bounds.Width = value; }
+            get => bounds.Width;
+            set => bounds.Width = value;
         }
 
         private RectangleF boundsInParent(RectangleF? textureRect)

@@ -250,8 +250,8 @@ namespace osu.Framework.Input.Bindings
                 foreach (var button in state.Mouse.Buttons)
                     keys.Add(FromMouseButton(button));
 
-                if (state.Mouse.WheelDelta > 0) keys.Add(InputKey.MouseWheelUp);
-                if (state.Mouse.WheelDelta < 0) keys.Add(InputKey.MouseWheelDown);
+                if (state.Mouse.ScrollDelta.Y > 0) keys.Add(InputKey.MouseWheelUp);
+                if (state.Mouse.ScrollDelta.Y < 0) keys.Add(InputKey.MouseWheelDown);
             }
 
             if (state.Keyboard != null)
