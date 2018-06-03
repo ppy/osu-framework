@@ -133,7 +133,6 @@ namespace osu.Framework.IO.Network
         {
             client = new HttpClient(new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate });
             client.DefaultRequestHeaders.UserAgent.ParseAdd("osu!");
-            client.DefaultRequestHeaders.ExpectContinue = true;
 
             // Timeout is controlled manually through cancellation tokens because
             // HttpClient does not properly timeout while reading chunked data

@@ -547,7 +547,7 @@ namespace osu.Framework.Platform
             frameSyncMode = config.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
             frameSyncMode.ValueChanged += newMode =>
             {
-                float refreshRate = DisplayDevice.Default.RefreshRate;
+                float refreshRate = DisplayDevice.Default?.RefreshRate ?? 0;
                 // For invalid refresh rates let's assume 60 Hz as it is most common.
                 if (refreshRate <= 0)
                     refreshRate = 60;
