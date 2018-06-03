@@ -23,8 +23,8 @@ namespace osu.Framework.Graphics.UserInterface
 
             protected internal override string Label
             {
-                get { return label.Text; }
-                set { label.Text = value; }
+                get => label.Text;
+                set => label.Text = value;
             }
 
             public BasicDropdownHeader()

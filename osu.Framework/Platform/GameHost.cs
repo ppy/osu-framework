@@ -111,24 +111,21 @@ namespace osu.Framework.Platform
 
         public double MaximumUpdateHz
         {
-            get { return maximumUpdateHz; }
-
-            set { UpdateThread.ActiveHz = maximumUpdateHz = value; }
+            get => maximumUpdateHz;
+            set => UpdateThread.ActiveHz = maximumUpdateHz = value;
         }
 
         private double maximumDrawHz;
 
         public double MaximumDrawHz
         {
-            get { return maximumDrawHz; }
-
-            set { DrawThread.ActiveHz = maximumDrawHz = value; }
+            get => maximumDrawHz;
+            set => DrawThread.ActiveHz = maximumDrawHz = value;
         }
 
         public double MaximumInactiveHz
         {
-            get { return DrawThread.InactiveHz; }
-
+            get => DrawThread.InactiveHz;
             set
             {
                 DrawThread.InactiveHz = value;

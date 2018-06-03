@@ -25,7 +25,7 @@ namespace osu.Framework.Threading
 
         public bool IsActive
         {
-            get { return isActive; }
+            get => isActive;
             set
             {
                 isActive = value;
@@ -37,8 +37,7 @@ namespace osu.Framework.Threading
 
         public double ActiveHz
         {
-            get { return activeHz; }
-
+            get => activeHz;
             set
             {
                 activeHz = value;
@@ -51,8 +50,7 @@ namespace osu.Framework.Threading
 
         public double InactiveHz
         {
-            get { return inactiveHz; }
-
+            get => inactiveHz;
             set
             {
                 inactiveHz = value;

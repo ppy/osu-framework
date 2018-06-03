@@ -13,7 +13,7 @@ namespace osu.Framework.Input
     {
         public IReadOnlyList<MouseButton> Buttons
         {
-            get { return buttons; }
+            get => buttons;
             set
             {
                 buttons.Clear();

@@ -23,10 +23,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         public bool IsHighlighted
         {
-            get
-            {
-                return isHighlighted;
-            }
+            get => isHighlighted;
             set
             {
                 isHighlighted = value;

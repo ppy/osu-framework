@@ -44,7 +44,7 @@ namespace osu.Framework.Platform.Windows
 
         internal bool Active
         {
-            get { return active; }
+            get => active;
             set
             {
                 if (value == active || !canAdjust) return;

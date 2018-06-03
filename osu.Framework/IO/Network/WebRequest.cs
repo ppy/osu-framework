@@ -56,7 +56,7 @@ namespace osu.Framework.IO.Network
         /// </summary>
         public bool Completed
         {
-            get { return completed; }
+            get => completed;
             private set
             {
                 completed = value;
@@ -78,7 +78,7 @@ namespace osu.Framework.IO.Network
         /// </summary>
         public string Url
         {
-            get { return url; }
+            get => url;
             set
             {
 #if !DEBUG
@@ -677,8 +677,8 @@ namespace osu.Framework.IO.Network
 
             public override long Position
             {
-                get { return baseStream.Position; }
-                set { baseStream.Position = value; }
+                get => baseStream.Position;
+                set => baseStream.Position = value;
             }
 
             protected override void Dispose(bool disposing)

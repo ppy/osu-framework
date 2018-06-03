@@ -17,8 +17,8 @@ namespace osu.Framework.Graphics.Shaders
         /// </summary>
         public T Value
         {
-            get { return (T)uniformBase.Value; }
-            set { uniformBase.Value = value; }
+            get => (T)uniformBase.Value;
+            set => uniformBase.Value = value;
         }
 
         /// <summary>

@@ -50,8 +50,8 @@ namespace osu.Framework.Timing
 
         public virtual double Rate
         {
-            get { return FramedSourceClock.Rate; }
-            set { throw new NotSupportedException(); }
+            get => FramedSourceClock.Rate;
+            set => throw new NotSupportedException();
         }
 
         public virtual bool IsRunning => sourceIsRunning;
