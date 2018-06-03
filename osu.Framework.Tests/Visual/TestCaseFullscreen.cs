@@ -37,7 +37,7 @@ namespace osu.Framework.Tests.Visual
 
         private void testResolution(int w, int h)
         {
-            AddStep($"{w}x{h}", () => sizeFullscreen.Value = new Size(w, h));
+            AddStep($"set to {w}x{h}", () => sizeFullscreen.Value = new Size(w, h));
         }
 
         [BackgroundDependencyLoader]
@@ -51,7 +51,7 @@ namespace osu.Framework.Tests.Visual
             AddStep("nothing", () => { });
 
             // I'll assume that most monitors are compatible with 1280x720, and this is just for testing anyways
-            AddStep("set to 1280x720", () => sizeFullscreen.Value = new Size(1280, 720));
+            testResolution(1280, 720);
             AddStep("change to fullscreen", () => windowMode.Value = WindowMode.Fullscreen);
             testResolution(1920, 1080);
             testResolution(1280, 960);
