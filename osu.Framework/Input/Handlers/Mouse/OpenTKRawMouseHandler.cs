@@ -168,9 +168,8 @@ namespace osu.Framework.Input.Handlers.Mouse
                 {
                     currentPosition = lastState.Position + new Vector2(state.X - lastState.RawState.X, state.Y - lastState.RawState.Y) * (float)sensitivity.Value;
 
-                    // When confining, clamp to the window size.
-                    if (confineMode.Value == ConfineMouseMode.Always || confineMode.Value == ConfineMouseMode.Fullscreen && windowMode.Value == WindowMode.Fullscreen)
-                        currentPosition = Vector2.Clamp(currentPosition, Vector2.Zero, new Vector2(host.Window.Width, host.Window.Height));
+                    // raw mouse input should always be clamped to window bounds
+                    currentPosition = Vector2.Clamp(currentPosition, Vector2.Zero, new Vector2(host.Window.Width, host.Window.Height));
 
                     // update the windows cursor to match our raw cursor position.
                     // this is important when sensitivity is decreased below 1.0, where we need to ensure the cursor stays within the window.
