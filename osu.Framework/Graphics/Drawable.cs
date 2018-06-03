@@ -1808,17 +1808,17 @@ namespace osu.Framework.Graphics
         protected virtual bool OnDragEnd(InputState state) => false;
 
         /// <summary>
-        /// Triggers <see cref="OnWheel(InputState)"/> with a local version of the given <see cref="InputState"/>.
+        /// Triggers <see cref="OnScroll(InputState)"/> with a local version of the given <see cref="InputState"/>.
         /// </summary>
-        public bool TriggerOnWheel(InputState screenSpaceState) => OnWheel(createCloneInParentSpace(screenSpaceState));
+        public bool TriggerOnScroll(InputState screenSpaceState) => OnScroll(createCloneInParentSpace(screenSpaceState));
 
         /// <summary>
-        /// Triggered whenever the mouse wheel was turned over this Drawable.
+        /// Triggered whenever the mouse scrolled over this Drawable.
         /// </summary>
-        /// <param name="state">The state after the wheel was turned.</param>
+        /// <param name="state">The state after scrolling happened.</param>
         /// <returns>True if this Drawable handled the event. If false, then the event
         /// is propagated up the scene graph to the next eligible Drawable.</returns>
-        protected virtual bool OnWheel(InputState state) => false;
+        protected virtual bool OnScroll(InputState state) => false;
 
         /// <summary>
         /// Triggers <see cref="OnFocus(InputState)"/> with a local version of the given <see cref="InputState"/>
@@ -1951,7 +1951,7 @@ namespace osu.Framework.Graphics
                 nameof(OnDragStart),
                 nameof(OnDrag),
                 nameof(OnDragEnd),
-                nameof(OnWheel),
+                nameof(OnScroll),
                 nameof(OnFocus),
                 nameof(OnFocusLost),
                 nameof(OnMouseMove)
@@ -2136,19 +2136,19 @@ namespace osu.Framework.Graphics
 
             public bool HasAnyButtonPressed => NativeState.HasAnyButtonPressed;
 
-            public int Wheel
+            public Vector2 Scroll
             {
-                get => NativeState.Wheel;
+                get => NativeState.Scroll;
                 set => throw new NotSupportedException();
             }
 
-            public int LastWheel
+            public Vector2 LastScroll
             {
-                get => NativeState.LastWheel;
+                get => NativeState.LastScroll;
                 set => throw new NotSupportedException();
             }
 
-            public int WheelDelta => NativeState.WheelDelta;
+            public Vector2 ScrollDelta => NativeState.ScrollDelta;
 
             public bool IsPressed(MouseButton button) => NativeState.IsPressed(button);
 

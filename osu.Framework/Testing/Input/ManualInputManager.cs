@@ -34,11 +34,15 @@ namespace osu.Framework.Testing.Input
             handler.ReleaseKey(key);
         }
 
-        public void ScrollBy(int delta)
+        public void ScrollBy(Vector2 delta)
         {
             UseParentState = false;
             handler.ScrollBy(delta);
         }
+
+        public void ScrollHorizontalBy(float delta) => ScrollBy(new Vector2(delta, 0));
+
+        public void ScrollVerticalBy(float delta) => ScrollBy(new Vector2(0, delta));
 
         public void MoveMouseTo(Drawable drawable)
         {
@@ -110,12 +114,16 @@ namespace osu.Framework.Testing.Input
                 EnqueueState(new InputState { Mouse = state });
             }
 
-            public void ScrollBy(int delta)
+            public void ScrollBy(Vector2 delta)
             {
                 var state = lastMouseState.Clone();
-                state.Wheel += delta;
+                state.Scroll += delta;
                 EnqueueState(new InputState { Mouse = state });
             }
+
+            public void ScrollVerticalBy(float delta) => ScrollBy(new Vector2(0, delta));
+
+            public void ScrollHorizontalBy(float delta) => ScrollBy(new Vector2(delta, 0));
 
             public void MoveMouseTo(Vector2 position)
             {
