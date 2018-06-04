@@ -517,8 +517,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         public string PlaceholderText
         {
-            get { return Placeholder.Text; }
-            set { Placeholder.Text = value; }
+            get => Placeholder.Text;
+            set => Placeholder.Text = value;
         }
 
         public Bindable<string> Current { get; } = new Bindable<string>();
@@ -527,7 +527,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         public virtual string Text
         {
-            get { return text; }
+            get => text;
             set
             {
                 if (Current.Disabled)
@@ -573,8 +573,15 @@ namespace osu.Framework.Graphics.UserInterface
             else
                 audio.Sample.Get($@"Keyboard/key-press-{RNG.Next(1, 5)}")?.Play();
             insertString(str);
+
+            // as we are grabbing *all* waiting text, we may receive two or more characters.
+            // each of these characters will still fire OnKeyDown events (which we want to block) so we need to
+            // store our "handled" state until all keys are released.
+            handledUserTextInput = true;
             return true;
         }
+
+        private bool handledUserTextInput;
 
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
@@ -583,7 +590,8 @@ namespace osu.Framework.Graphics.UserInterface
             if (args.Key <= Key.F35)
                 return false;
 
-            if (HandlePendingText(state)) return true;
+            if (HandlePendingText(state))
+                return true;
 
             if (ReadOnly) return true;
 
@@ -613,12 +621,15 @@ namespace osu.Framework.Graphics.UserInterface
                     return true;
             }
 
-            return false;
+            return handledUserTextInput;
         }
 
         protected override bool OnKeyUp(InputState state, KeyUpEventArgs args)
         {
             HandlePendingText(state);
+
+            handledUserTextInput &= state.Keyboard.Keys.Any();
+
             return base.OnKeyUp(state, args);
         }
 

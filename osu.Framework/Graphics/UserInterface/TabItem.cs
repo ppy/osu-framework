@@ -52,7 +52,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         public bool Pinned
         {
-            get { return pinned; }
+            get => pinned;
             set
             {
                 if (pinned == value) return;

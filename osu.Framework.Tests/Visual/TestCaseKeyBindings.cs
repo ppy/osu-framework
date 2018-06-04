@@ -118,9 +118,9 @@ namespace osu.Framework.Tests.Visual
                 return false;
             }
 
-            protected override bool OnWheel(InputState state)
+            protected override bool OnScroll(InputState state)
             {
-                base.OnWheel(state);
+                base.OnScroll(state);
                 return false;
             }
 

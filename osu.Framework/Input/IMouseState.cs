@@ -11,14 +11,13 @@ namespace osu.Framework.Input
     {
         IMouseState NativeState { get; }
 
-        IMouseState LastState { get; set; }
-
-        IReadOnlyList<MouseButton> Buttons { get; }
+        IReadOnlyList<MouseButton> Buttons { get; set; }
 
         Vector2 Delta { get; }
-        Vector2 Position { get; }
 
-        Vector2 LastPosition { get; }
+        Vector2 Position { get; set; }
+
+        Vector2 LastPosition { get; set; }
 
         Vector2? PositionMouseDown { get; set; }
 
@@ -30,9 +29,11 @@ namespace osu.Framework.Input
 
         void SetPressed(MouseButton button, bool pressed);
 
-        int Wheel { get; }
+        Vector2 Scroll { get; set; }
 
-        int WheelDelta { get; }
+        Vector2 LastScroll { get; set; }
+
+        Vector2 ScrollDelta { get; }
 
         IMouseState Clone();
     }

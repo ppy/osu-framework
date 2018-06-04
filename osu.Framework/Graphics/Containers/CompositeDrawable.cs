@@ -76,9 +76,16 @@ namespace osu.Framework.Graphics.Containers
             // regardless of their alive state. this also gives children a clock so they can be checked
             // for their correct alive state in the case LifetimeStart is set to a definite value.
             internalChildren.ForEach(loadChild);
+        }
 
-            // Let's also perform an update on our children's life to add any alive children.
-            UpdateChildrenLife();
+        protected override void LoadAsyncComplete()
+        {
+            base.LoadAsyncComplete();
+
+            // At this point we can assume that we are loaded although we're not in the "ready" state, because we'll be given
+            // a "ready" state soon after this method terminates. Therefore we can perform an early check to add any alive children
+            // while we're still in an asynchronous context and avoid putting pressure on the main thread during UpdateSubTree.
+            checkChildrenLife();
         }
 
         private void loadChild(Drawable child)
@@ -186,8 +193,8 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         protected internal IReadOnlyList<Drawable> InternalChildren
         {
-            get { return internalChildren; }
-            set { InternalChildrenEnumerable = value; }
+            get => internalChildren;
+            set => InternalChildrenEnumerable = value;
         }
 
         /// <summary>
@@ -247,7 +254,7 @@ namespace osu.Framework.Graphics.Containers
             drawable.IsAlive = false;
 
             if (AutoSizeAxes != Axes.None)
-                InvalidateFromChild(Invalidation.RequiredParentSizeToFit);
+                InvalidateFromChild(Invalidation.RequiredParentSizeToFit, drawable);
 
             return true;
         }
@@ -320,10 +327,12 @@ namespace osu.Framework.Graphics.Containers
                 loadChild(drawable);
 
             internalChildren.Add(drawable);
-            checkChildLife(drawable);
+
+            if (LoadState >= LoadState.Ready)
+                checkChildLife(drawable);
 
             if (AutoSizeAxes != Axes.None)
-                InvalidateFromChild(Invalidation.RequiredParentSizeToFit);
+                InvalidateFromChild(Invalidation.RequiredParentSizeToFit, drawable);
         }
 
         /// <summary>
@@ -379,6 +388,24 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>True iff the life status of at least one child changed.</returns>
         protected virtual bool UpdateChildrenLife()
         {
+            // Can not have alive children if we are not loaded.
+            if (LoadState < LoadState.Ready)
+                return false;
+
+            if (!checkChildrenLife())
+                return false;
+
+            return true;
+        }
+
+        /// <summary>
+        /// Checks whether the alive state of any child has changed and processes it. This will add or remove
+        /// children from <see cref="aliveInternalChildren"/> depending on their alive states.
+        /// <para>Note that this does NOT check the load state of this <see cref="CompositeDrawable"/> to check if it can hold any alive children.</para>
+        /// </summary>
+        /// <returns>Whether any child's alive state has changed.</returns>
+        private bool checkChildrenLife()
+        {
             bool anyAliveChanged = false;
 
             // checkChildLife may remove a child from internalChildren. In order to not skip children,
@@ -394,18 +421,15 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Checks whether the alive state of a child has changed processes it. This will add or remove
+        /// Checks whether the alive state of a child has changed and processes it. This will add or remove
         /// the child from <see cref="aliveInternalChildren"/> depending on its alive state.
+        /// <para>Note that this does NOT check the load state of this <see cref="CompositeDrawable"/> to check if it can hold any alive children.</para>
         /// </summary>
         /// <param name="child">The child to check.</param>
         /// <returns>Whether the child's alive state has changed.</returns>
         private bool checkChildLife(Drawable child)
         {
             Debug.Assert(internalChildren.Contains(child), "Can only check and react to the life of our own children.");
-
-            // Can not have alive children if we are not loaded.
-            if (LoadState < LoadState.Ready)
-                return false;
 
             bool changed = false;
 
@@ -584,8 +608,13 @@ namespace osu.Framework.Graphics.Containers
         /// Informs this <see cref="CompositeDrawable"/> that a child has been invalidated.
         /// </summary>
         /// <param name="invalidation">The type of invalidation applied to the child.</param>
-        public virtual void InvalidateFromChild(Invalidation invalidation)
+        /// <param name="source">The child which caused this invalidation. May be null to indicate that a specific child wasn't specified.</param>
+        public virtual void InvalidateFromChild(Invalidation invalidation, Drawable source = null)
         {
+            // We only want to recompute autosize if the child isn't bypassing all of our autosize axes
+            if (source != null && (source.BypassAutoSizeAxes & AutoSizeAxes) == AutoSizeAxes)
+                return;
+
             //Colour captures potential changes in IsPresent. If this ever becomes a bottleneck,
             //Invalidation could be further separated into presence changes.
             if ((invalidation & (Invalidation.RequiredParentSizeToFit | Invalidation.Colour)) > 0)
@@ -780,7 +809,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public override bool RemoveCompletedTransforms
         {
-            get { return base.RemoveCompletedTransforms; }
+            get => base.RemoveCompletedTransforms;
             internal set
             {
                 if (base.RemoveCompletedTransforms == value)
@@ -937,7 +966,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public bool Masking
         {
-            get { return masking; }
+            get => masking;
             protected set
             {
                 if (masking == value)
@@ -956,7 +985,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public float MaskingSmoothness
         {
-            get { return maskingSmoothness; }
+            get => maskingSmoothness;
             protected set
             {
                 //must be above zero to avoid a div-by-zero in the shader logic.
@@ -978,7 +1007,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public float CornerRadius
         {
-            get { return cornerRadius; }
+            get => cornerRadius;
             protected set
             {
                 if (cornerRadius == value)
@@ -1003,7 +1032,7 @@ namespace osu.Framework.Graphics.Containers
         /// </remarks>
         public float BorderThickness
         {
-            get { return borderThickness; }
+            get => borderThickness;
             protected set
             {
                 if (borderThickness == value)
@@ -1022,7 +1051,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public SRGBColour BorderColour
         {
-            get { return borderColour; }
+            get => borderColour;
             protected set
             {
                 if (borderColour.Equals(value))
@@ -1042,7 +1071,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public EdgeEffectParameters EdgeEffect
         {
-            get { return edgeEffect; }
+            get => edgeEffect;
             protected set
             {
                 if (edgeEffect.Equals(value))
@@ -1093,7 +1122,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public MarginPadding Padding
         {
-            get { return padding; }
+            get => padding;
             protected set
             {
                 if (padding.Equals(value)) return;
@@ -1127,7 +1156,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public Vector2 RelativeChildSize
         {
-            get { return relativeChildSize; }
+            get => relativeChildSize;
             protected set
             {
                 if (relativeChildSize == value)
@@ -1151,7 +1180,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public Vector2 RelativeChildOffset
         {
-            get { return relativeChildOffset; }
+            get => relativeChildOffset;
             protected set
             {
                 if (relativeChildOffset == value)
@@ -1191,7 +1220,7 @@ namespace osu.Framework.Graphics.Containers
 
         public override Axes RelativeSizeAxes
         {
-            get { return base.RelativeSizeAxes; }
+            get => base.RelativeSizeAxes;
             set
             {
                 if ((AutoSizeAxes & value) != 0)
@@ -1213,7 +1242,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public virtual Axes AutoSizeAxes
         {
-            get { return autoSizeAxes; }
+            get => autoSizeAxes;
             protected set
             {
                 if (value == autoSizeAxes)
@@ -1387,8 +1416,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         private Vector2 baseSize
         {
-            get { return new Vector2(base.Width, base.Height); }
-
+            get => new Vector2(base.Width, base.Height);
             set
             {
                 base.Width = value.X;
