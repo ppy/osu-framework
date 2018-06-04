@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>osu.Framework</id>
+    <version>1.0</version>
+    <title>osu.Framework</title>
+    <authors>Github Contributors</authors>
+    <owners>ppy Pty Ltd</owners>
+    <licenseUrl>https://github.com/ppy/osu-framework/blob/master/LICENCE</licenseUrl>
+    <projectUrl>https://github.com/ppy/osu-framework</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>A game framework written with osu! in mind.</description>
+    <releaseNotes>Automated release.</releaseNotes>
+    <copyright>Copyright (c) 2007-2018 ppy Pty Ltd contact@ppy.sh</copyright>
+    <tags>osu game framework</tags>
+  </metadata>
+</package>

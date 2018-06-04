@@ -19,6 +19,7 @@ before_build:
 environment:
   TargetFramework: net471
 build:
+  publish_nuget: true
   project: osu-framework.sln
   parallel: true
   verbosity: minimal
