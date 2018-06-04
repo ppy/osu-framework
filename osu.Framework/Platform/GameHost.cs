@@ -8,6 +8,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime;
 using System.Runtime.ExceptionServices;
 using System.Threading;
@@ -175,7 +176,11 @@ namespace osu.Framework.Platform
                 (InputThread = new InputThread(null)), //never gets started.
             };
 
-            var path = Path.GetDirectoryName(FullPath);
+            var assembly = Assembly.GetEntryAssembly();
+            if (assembly == null || assembly.Location.Contains("testhost"))
+                assembly = Assembly.GetCallingAssembly();
+
+            var path = Path.GetDirectoryName(assembly.Location);
             if (path != null)
                 Environment.CurrentDirectory = path;
         }
