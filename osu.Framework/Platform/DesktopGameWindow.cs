@@ -75,7 +75,7 @@ namespace osu.Framework.Platform
             Exited += onExit;
         }
 
-        private void changeResolution(Size newSize, float? refreshRate = null)
+        private void changeResolution(Size newSize)
         {
             var currentDisplay = DisplayDevice.Default;
 
@@ -86,16 +86,14 @@ namespace osu.Framework.Platform
                 newSize.Width,
                 newSize.Height,
                 currentDisplay.BitsPerPixel,
-                refreshRate ?? currentDisplay.RefreshRate
+                currentDisplay.RefreshRate
             );
 
-            if (newResolution.Width == currentDisplay.Width
-                && newResolution.Height == currentDisplay.Height
-                && newResolution.RefreshRate == currentDisplay.RefreshRate)
+            if (newResolution.Width == currentDisplay.Width && newResolution.Height == currentDisplay.Height)
             {
                 // we wanted a new resolution, but got the old one -> OpenTK didn't find this resolution
                 currentDisplay.RestoreResolution();
-                throw new ArgumentException($"No supported resolution found for {newSize.Width}x{newSize.Height}@{refreshRate ?? currentDisplay.RefreshRate}Hz.");
+                throw new ArgumentException($"No supported resolution found for {newSize.Width}x{newSize.Height}@{currentDisplay.RefreshRate}Hz.");
             }
             else
             {
