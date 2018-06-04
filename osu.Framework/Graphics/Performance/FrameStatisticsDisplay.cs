@@ -66,8 +66,7 @@ namespace osu.Framework.Graphics.Performance
 
         public FrameStatisticsMode State
         {
-            get { return state; }
-
+            get => state;
             set
             {
                 if (state == value) return;
@@ -270,8 +269,7 @@ namespace osu.Framework.Graphics.Performance
 
         public bool Active
         {
-            get { return active; }
-
+            get => active;
             set
             {
                 if (active == value) return;
@@ -497,7 +495,7 @@ namespace osu.Framework.Graphics.Performance
 
             public bool Active
             {
-                get { return active; }
+                get => active;
                 set
                 {
                     if (active == value)

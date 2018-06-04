@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         public Drawable Target
         {
-            set { target = value; }
+            set => target = value;
         }
 
         public override Quad ScreenSpaceDrawQuad => target == null ? new Quad() : getScreenSpaceQuad(target);

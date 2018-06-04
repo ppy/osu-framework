@@ -16,11 +16,7 @@ namespace osu.Framework.Configuration
         }
         public override T Value
         {
-            get
-            {
-                return base.Value;
-            }
-
+            get => base.Value;
             set
             {
                 if (value == null)

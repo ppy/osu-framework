@@ -197,7 +197,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         public Drawable Target
         {
-            get { return target; }
+            get => target;
             set
             {
                 target = value;

@@ -13,14 +13,14 @@ namespace osu.Framework.Graphics.UserInterface
     {
         public Color4 Color
         {
-            get { return Box.Colour; }
-            set { Box.Colour = value; }
+            get => Box.Colour;
+            set => Box.Colour = value;
         }
 
         public Color4 SelectionColor
         {
-            get { return SelectionBox.Colour; }
-            set { SelectionBox.Colour = value; }
+            get => SelectionBox.Colour;
+            set => SelectionBox.Colour = value;
         }
 
         protected readonly Box SelectionBox;

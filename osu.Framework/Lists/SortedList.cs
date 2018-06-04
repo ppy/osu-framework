@@ -22,8 +22,8 @@ namespace osu.Framework.Lists
 
         public T this[int index]
         {
-            get { return list[index]; }
-            set { list[index] = value; }
+            get => list[index];
+            set => list[index] = value;
         }
 
         /// <summary>

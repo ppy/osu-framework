@@ -42,7 +42,7 @@ namespace osu.Framework.Graphics.Audio
         /// </summary>
         public float Resolution
         {
-            get { return resolution; }
+            get => resolution;
             set
             {
                 if (value < 0)
@@ -62,7 +62,7 @@ namespace osu.Framework.Graphics.Audio
         /// </summary>
         public Waveform Waveform
         {
-            get { return waveform; }
+            get => waveform;
             set
             {
                 if (waveform == value)
