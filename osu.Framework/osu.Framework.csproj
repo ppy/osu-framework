@@ -42,10 +42,10 @@
     <NativeLibs Include="$(MSBuildThisFileDirectory)*\*.dll*" />
     <NativeLibs Include="$(MSBuildThisFileDirectory)*.so" />
     <NativeLibs Include="$(MSBuildThisFileDirectory)*.dylib" />
-    <Content Include="@(NativeLibs)">
+    <None Include="@(NativeLibs)">
       <Pack>true</Pack>
       <PackageCopyToOutput>true</PackageCopyToOutput>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    </None>
   </ItemGroup>
 </Project>
