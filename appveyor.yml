@@ -7,7 +7,7 @@ cache:
   - C:\ProgramData\chocolatey\bin -> appveyor.yml
   - C:\ProgramData\chocolatey\lib -> appveyor.yml
   - inspectcode -> appveyor.yml
-  - packages -> **\packages.config
+  - '%USERPROFILE%\.nuget\packages -> **\*.csproj'
 install:
   - cmd: git submodule update --init --recursive
   - cmd: choco install resharper-clt -y
