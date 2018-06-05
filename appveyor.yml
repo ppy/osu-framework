@@ -19,10 +19,11 @@ before_build:
 environment:
   TargetFramework: net471
 build:
-  publish_nuget: true
   project: osu-framework.sln
   parallel: true
   verbosity: minimal
 after_build:
   - cmd: inspectcode /o="inspectcodereport.xml" /caches-home="inspectcode" osu-framework.sln
   - cmd: NVika parsereport "inspectcodereport.xml" --treatwarningsaserrors
+  - cmd: dotnet pack osu.Framework --include-symbols /p:Version=0.0.%APPVEYOR_BUILD_VERSION%
+  
