@@ -1,12 +1,24 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup Label="Project">
     <TargetFramework>netstandard2.0</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <OutputType>Library</OutputType>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <AssemblyTitle>osu!framework</AssemblyTitle>
-    <Description>Framework to support osu!</Description>
+    <AssemblyName>osu.Framework</AssemblyName>
+    <Description>A 2D application/game framework written with rhythm games in mind.</Description>
     <Product>osu!framework</Product>
+  </PropertyGroup>
+  <PropertyGroup Label="Nuget">
+    <Title>osu!framework</Title>
+    <Authors>ppy Pty Ltd</Authors>
+    <PackageLicenseUrl>https://github.com/ppy/osu-framework/blob/master/LICENCE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/ppy/osu-framework</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/ppy/osu-framework</RepositoryUrl>
+    <PackageReleaseNotes>Automated release.</PackageReleaseNotes>
+    <copyright>Copyright (c) 2007-2018 ppy Pty Ltd contact@ppy.sh</copyright>
+    <PackageTags>osu game framework</PackageTags>
   </PropertyGroup>
   <ItemGroup Label="Package References">
     <PackageReference Include="CoreCompat.System.Drawing.v2" Version="5.2.0-preview1-r131" />
