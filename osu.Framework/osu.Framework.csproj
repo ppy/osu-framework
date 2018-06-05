@@ -12,6 +12,7 @@
   </PropertyGroup>
   <PropertyGroup Label="Nuget">
     <Title>osu!framework</Title>
+    <PackageId>ppy.osu.Framework</PackageId>
     <Authors>ppy Pty Ltd</Authors>
     <PackageLicenseUrl>https://github.com/ppy/osu-framework/blob/master/LICENCE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/ppy/osu-framework</PackageProjectUrl>
