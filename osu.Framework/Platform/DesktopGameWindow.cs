@@ -17,8 +17,7 @@ namespace osu.Framework.Platform
         private const int default_height = 768;
 
         private readonly BindableSize sizeFullscreen = new BindableSize();
-        private readonly BindableInt width = new BindableInt();
-        private readonly BindableInt height = new BindableInt();
+        private readonly BindableSize sizeWindowed = new BindableSize();
 
         private readonly BindableDouble windowPositionX = new BindableDouble();
         private readonly BindableDouble windowPositionY = new BindableDouble();
@@ -46,8 +45,7 @@ namespace osu.Framework.Platform
         {
             config.BindWith(FrameworkSetting.SizeFullscreen, sizeFullscreen);
 
-            config.BindWith(FrameworkSetting.Width, width);
-            config.BindWith(FrameworkSetting.Height, height);
+            config.BindWith(FrameworkSetting.WindowedSize, sizeWindowed);
 
             config.BindWith(FrameworkSetting.WindowedPositionX, windowPositionX);
             config.BindWith(FrameworkSetting.WindowedPositionY, windowPositionY);
@@ -74,8 +72,7 @@ namespace osu.Framework.Platform
             switch (WindowMode.Value)
             {
                 case Configuration.WindowMode.Windowed:
-                    width.Value = ClientSize.Width;
-                    height.Value = ClientSize.Height;
+                    sizeWindowed.Value = ClientSize;
                     break;
             }
         }
@@ -138,7 +135,7 @@ namespace osu.Framework.Platform
                     WindowState = WindowState.Normal;
                     WindowBorder = WindowBorder.Resizable;
 
-                    ClientSize = new Size(width, height);
+                    ClientSize = sizeWindowed;
                     Position = new Vector2((float)windowPositionX, (float)windowPositionY);
                     break;
             }

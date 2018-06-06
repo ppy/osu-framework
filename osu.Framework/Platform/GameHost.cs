@@ -247,9 +247,13 @@ namespace osu.Framework.Platform
 
             frameCount++;
 
-            if (Window?.WindowState != WindowState.Minimized)
-                Root.Size = Window != null ? new Vector2(Window.ClientSize.Width, Window.ClientSize.Height) :
-                    new Vector2(config.Get<int>(FrameworkSetting.Width), config.Get<int>(FrameworkSetting.Height));
+            if (Window == null)
+            {
+                var windowedSize = config.Get<Size>(FrameworkSetting.WindowedSize);
+                Root.Size = new Vector2(windowedSize.Width, windowedSize.Height);
+            }
+            else if (Window.WindowState != WindowState.Minimized)
+                Root.Size = new Vector2(Window.ClientSize.Width, Window.ClientSize.Height);
 
             // Ensure we maintain a valid size for any children immediately scaling by the window size
             Root.Size = Vector2.ComponentMax(Vector2.One, Root.Size);

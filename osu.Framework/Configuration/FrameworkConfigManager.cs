@@ -17,8 +17,7 @@ namespace osu.Framework.Configuration
         {
             Set(FrameworkSetting.ShowLogOverlay, false);
 
-            Set(FrameworkSetting.Width, 1366, 640);
-            Set(FrameworkSetting.Height, 768, 480);
+            Set(FrameworkSetting.WindowedSize, new Size(1366, 768), new Size(640, 480));
             Set(FrameworkSetting.ConfineMouseMode, ConfineMouseMode.Fullscreen);
             Set(FrameworkSetting.MapAbsoluteInputToWindow, false);
             Set(FrameworkSetting.WindowedPositionX, 0.5, -0.1, 1.1);
@@ -50,8 +49,7 @@ namespace osu.Framework.Configuration
             new TrackedSetting<FrameSync>(FrameworkSetting.FrameSync, v => new SettingDescription(v, "Frame Limiter", v.GetDescription(), "Ctrl+F7")),
             new TrackedSetting<string>(FrameworkSetting.AudioDevice, v => new SettingDescription(v, "Audio Device", string.IsNullOrEmpty(v) ? "Default" : v, v)),
             new TrackedSetting<bool>(FrameworkSetting.ShowLogOverlay, v => new SettingDescription(v, "Debug Logs", v ? "visible" : "hidden", "Ctrl+F10")),
-            new TrackedSetting<int>(FrameworkSetting.Width, v => createResolutionDescription()),
-            new TrackedSetting<int>(FrameworkSetting.Height, v => createResolutionDescription()),
+            new TrackedSetting<Size>(FrameworkSetting.WindowedSize, v => new SettingDescription(v, "Screen resolution", $"{v.Width}x{v.Height}")),
             new TrackedSetting<double>(FrameworkSetting.CursorSensitivity, v => new SettingDescription(v, "Cursor Sensitivity", v.ToString(@"0.##x"), "Ctrl+Alt+R to reset")),
             new TrackedSetting<string>(FrameworkSetting.IgnoredInputHandlers, v =>
             {
@@ -60,8 +58,6 @@ namespace osu.Framework.Configuration
             }),
             new TrackedSetting<WindowMode>(FrameworkSetting.WindowMode, v => new SettingDescription(v, "Screen Mode", v.ToString(), "Alt+Enter"))
         };
-
-        private SettingDescription createResolutionDescription() => new SettingDescription(null, "Screen Resolution", Get<int>(FrameworkSetting.Width) + "x" + Get<int>(FrameworkSetting.Height));
     }
 
     public enum FrameworkSetting
@@ -73,8 +69,7 @@ namespace osu.Framework.Configuration
         VolumeEffect,
         VolumeMusic,
 
-        Width,
-        Height,
+        WindowedSize,
         WindowedPositionX,
         WindowedPositionY,
 
