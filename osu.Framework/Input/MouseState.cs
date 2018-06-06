@@ -37,6 +37,8 @@ namespace osu.Framework.Input
             set => lastScroll = value;
         }
 
+        public bool HasPreciseScroll { get; set; }
+
         public bool HasMainButtonPressed => IsPressed(MouseButton.Left) || IsPressed(MouseButton.Right);
 
         public bool HasAnyButtonPressed => buttons.Any();

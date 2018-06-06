@@ -35,6 +35,8 @@ namespace osu.Framework.Input
 
         Vector2 ScrollDelta { get; }
 
+        bool HasPreciseScroll { get; set; }
+
         IMouseState Clone();
     }
 }
