@@ -406,7 +406,8 @@ namespace osu.Framework.Graphics.Transforms
         /// If <see cref="Clock"/> is null, e.g. because this object has just been constructed, then the given transform will be finished instantaneously.
         /// </summary>
         /// <param name="transform">The <see cref="Transform"/> to be added.</param>
-        public void AddTransform(Transform transform)
+        /// <param name="customTransformID">When not null, the <see cref="Transform.TransformID"/> to assign for ordering.</param>
+        public void AddTransform(Transform transform, ulong? customTransformID = null)
         {
             if (transform == null)
                 throw new ArgumentNullException(nameof(transform));
@@ -429,7 +430,7 @@ namespace osu.Framework.Graphics.Transforms
             if (transform.TransformID != 0 && transforms.Contains(transform))
                 throw new InvalidOperationException($"{nameof(Transformable)} may not contain the same {nameof(Transform)} more than once.");
 
-            transform.TransformID = ++currentTransformID;
+            transform.TransformID = customTransformID ?? ++currentTransformID;
             int insertionIndex = transforms.Add(transform);
 
             // Remove all existing following transforms touching the same property as this one.

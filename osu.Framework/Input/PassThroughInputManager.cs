@@ -67,7 +67,7 @@ namespace osu.Framework.Input
 
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args) => acceptState(state);
 
-        protected override bool OnWheel(InputState state) => acceptState(state);
+        protected override bool OnScroll(InputState state) => acceptState(state);
 
         protected override bool OnKeyUp(InputState state, KeyUpEventArgs args) => acceptState(state);
 

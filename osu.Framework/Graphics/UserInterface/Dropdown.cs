@@ -40,7 +40,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public IEnumerable<KeyValuePair<string, T>> Items
         {
-            get { return MenuItems.Select(i => new KeyValuePair<string, T>(i.Text, i.Value)); }
+            get => MenuItems.Select(i => new KeyValuePair<string, T>(i.Text, i.Value));
             set
             {
                 ClearItems();
@@ -103,7 +103,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected DropdownMenuItem<T> SelectedItem
         {
-            get { return selectedItem; }
+            get => selectedItem;
             set
             {
                 selectedItem = value;
@@ -243,10 +243,7 @@ namespace osu.Framework.Graphics.UserInterface
                 private bool selected;
                 public bool IsSelected
                 {
-                    get
-                    {
-                        return !Item.Action.Disabled && selected;
-                    }
+                    get => !Item.Action.Disabled && selected;
                     set
                     {
                         if (selected == value)
@@ -260,7 +257,7 @@ namespace osu.Framework.Graphics.UserInterface
                 private Color4 backgroundColourSelected = Color4.SlateGray;
                 public Color4 BackgroundColourSelected
                 {
-                    get { return backgroundColourSelected; }
+                    get => backgroundColourSelected;
                     set
                     {
                         backgroundColourSelected = value;
@@ -271,7 +268,7 @@ namespace osu.Framework.Graphics.UserInterface
                 private Color4 foregroundColourSelected = Color4.White;
                 public Color4 ForegroundColourSelected
                 {
-                    get { return foregroundColourSelected; }
+                    get => foregroundColourSelected;
                     set
                     {
                         foregroundColourSelected = value;

@@ -13,11 +13,7 @@ namespace osu.Framework.Graphics.Containers
 
         public Action Action
         {
-            get
-            {
-                return action;
-            }
-
+            get => action;
             set
             {
                 action = value;
