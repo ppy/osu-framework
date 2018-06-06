@@ -97,7 +97,7 @@ namespace osu.Framework.Configuration
             return bindable;
         }
 
-        public BindableSize Set(T lookup, Size value)
+        public BindableSize Set(T lookup, Size value, Size? min = null, Size? max = null)
         {
             if (!(GetOriginalBindable<Size>(lookup) is BindableSize bindable))
             {
@@ -110,6 +110,8 @@ namespace osu.Framework.Configuration
             }
 
             bindable.Default = value;
+            if (min.HasValue) bindable.MinValue = min.Value;
+            if (max.HasValue) bindable.MaxValue = max.Value;
 
             return bindable;
         }
