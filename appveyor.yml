@@ -1,4 +1,3 @@
-# 2017-09-14
 clone_depth: 1
 version: '{build}'
 skip_tags: true
@@ -18,6 +17,9 @@ build:
   project: osu-framework.sln
   parallel: true
   verbosity: minimal
+test_script:
+  # temporary until we switch to dotnet. avoids duplicate test runs.
+  - nunit3-console "osu.Framework.Tests\bin\Debug\net471\osu.Framework.Tests.exe" --result=myresults.xml;format=AppVeyor
 after_build:
   - cmd: inspectcode /o="inspectcodereport.xml" /caches-home="inspectcode" osu-framework.sln
   - cmd: NVika parsereport "inspectcodereport.xml" --treatwarningsaserrors
