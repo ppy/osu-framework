@@ -177,6 +177,9 @@ namespace osu.Framework.Platform
             };
 
             var assembly = Assembly.GetEntryAssembly();
+
+            // when running under nunit + netcore, entry assembly becomes nunit itself (testhost, Version=15.0.0.0), which isn't what we want.
+            // when running under nunit + net471, entry assembly is null.
             if (assembly == null || assembly.Location.Contains("testhost"))
                 assembly = Assembly.GetCallingAssembly();
 
