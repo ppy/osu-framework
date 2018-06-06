@@ -28,11 +28,6 @@ namespace osu.Framework
 
         public TextureStore Textures;
 
-        /// <summary>
-        /// This should point to the main resource dll file. If not specified, it will use resources embedded in your executable.
-        /// </summary>
-        protected virtual string MainResourceFile => Host.FullPath;
-
         protected GameHost Host { get; private set; }
 
         private bool isActive;
@@ -101,7 +96,6 @@ namespace osu.Framework
         {
             Resources = new ResourceStore<byte[]>();
             Resources.AddStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(@"osu.Framework.dll"), @"Resources"));
-            Resources.AddStore(new DllResourceStore(MainResourceFile));
 
             Textures = new TextureStore(new RawTextureLoaderStore(new NamespacedResourceStore<byte[]>(Resources, @"Textures")));
             Textures.AddStore(new RawTextureLoaderStore(new OnlineStore()));
