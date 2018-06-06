@@ -160,7 +160,7 @@ namespace osu.Framework
         /// </summary>
         public bool IsActive
         {
-            get { return isActive; }
+            get => isActive;
             private set
             {
                 if (value == isActive)
@@ -176,8 +176,8 @@ namespace osu.Framework
 
         protected FrameStatisticsMode FrameStatisticsMode
         {
-            get { return performanceContainer.State; }
-            set { performanceContainer.State = value; }
+            get => performanceContainer.State;
+            set => performanceContainer.State = value;
         }
 
         public bool OnPressed(FrameworkAction action)

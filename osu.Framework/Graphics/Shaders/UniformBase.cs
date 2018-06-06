@@ -14,7 +14,7 @@ namespace osu.Framework.Graphics.Shaders
 
         public object Value
         {
-            get { return value; }
+            get => value;
             set
             {
                 if (value == this.value)

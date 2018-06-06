@@ -17,7 +17,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected Color4 BackgroundColour
         {
-            get { return backgroundColour; }
+            get => backgroundColour;
             set
             {
                 backgroundColour = value;

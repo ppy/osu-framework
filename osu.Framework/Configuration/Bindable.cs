@@ -38,7 +38,7 @@ namespace osu.Framework.Configuration
         /// </summary>
         public bool Disabled
         {
-            get { return disabled; }
+            get => disabled;
             set
             {
                 if (disabled == value) return;
@@ -64,7 +64,7 @@ namespace osu.Framework.Configuration
         /// </summary>
         public virtual T Value
         {
-            get { return value; }
+            get => value;
             set
             {
                 if (EqualityComparer<T>.Default.Equals(this.value, value)) return;
