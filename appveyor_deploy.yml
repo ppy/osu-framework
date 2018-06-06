@@ -3,8 +3,6 @@ version: '{build}'
 skip_non_tags: true
 image: Visual Studio 2017
 configuration: Release
-cache:
-  - '%USERPROFILE%\.nuget\packages -> **\*.csproj'
 build_script:
   - ps: if($env:appveyor_repo_tag -eq 'True') { Update-AppveyorBuild -Version $env:appveyor_repo_tag_name }
   - dotnet pack --include-symbols /p:Version=%APPVEYOR_BUILD_VERSION% /p:GenerateDocumentationFile=true
