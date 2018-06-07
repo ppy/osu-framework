@@ -290,7 +290,8 @@ namespace osu.Framework.Platform
                 {
                     if (buffer?.Object == null || buffer.FrameId == lastDrawFrameId)
                     {
-                        Thread.Sleep(1);
+                        using (drawMonitor.BeginCollecting(PerformanceCollectionType.Sleep))
+                            Thread.Sleep(1);
                         continue;
                     }
 
