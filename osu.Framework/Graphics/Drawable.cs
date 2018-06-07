@@ -2136,6 +2136,12 @@ namespace osu.Framework.Graphics
 
             public Vector2 ScrollDelta => NativeState.ScrollDelta;
 
+            public bool HasPreciseScroll
+            {
+                get => NativeState.HasPreciseScroll;
+                set => NativeState.HasPreciseScroll = value;
+            }
+
             public bool IsPressed(MouseButton button) => NativeState.IsPressed(button);
 
             public void SetPressed(MouseButton button, bool pressed) => NativeState.SetPressed(button, pressed);

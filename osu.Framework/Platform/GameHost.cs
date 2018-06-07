@@ -8,6 +8,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime;
 using System.Runtime.ExceptionServices;
 using System.Threading;
@@ -175,7 +176,14 @@ namespace osu.Framework.Platform
                 (InputThread = new InputThread(null)), //never gets started.
             };
 
-            var path = Path.GetDirectoryName(FullPath);
+            var assembly = Assembly.GetEntryAssembly();
+
+            // when running under nunit + netcore, entry assembly becomes nunit itself (testhost, Version=15.0.0.0), which isn't what we want.
+            // when running under nunit + net471, entry assembly is null.
+            if (assembly == null || assembly.Location.Contains("testhost"))
+                assembly = Assembly.GetCallingAssembly();
+
+            var path = Path.GetDirectoryName(assembly.Location);
             if (path != null)
                 Environment.CurrentDirectory = path;
         }
@@ -282,7 +290,8 @@ namespace osu.Framework.Platform
                 {
                     if (buffer?.Object == null || buffer.FrameId == lastDrawFrameId)
                     {
-                        Thread.Sleep(1);
+                        using (drawMonitor.BeginCollecting(PerformanceCollectionType.Sleep))
+                            Thread.Sleep(1);
                         continue;
                     }
 

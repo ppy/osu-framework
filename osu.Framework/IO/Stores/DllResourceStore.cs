@@ -14,7 +14,7 @@ namespace osu.Framework.IO.Stores
 
         public DllResourceStore(string dllName)
         {
-            assembly = Assembly.LoadFrom(dllName);
+            assembly = Assembly.LoadFrom(Path.Combine(Path.GetDirectoryName(Assembly.GetCallingAssembly().Location), dllName));
             space = Path.GetFileNameWithoutExtension(dllName);
         }
 

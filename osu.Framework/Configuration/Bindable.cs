@@ -122,6 +122,30 @@ namespace osu.Framework.Configuration
             them.AddWeakReference(weakReference);
         }
 
+        /// <summary>
+        /// Bind an action to <see cref="ValueChanged"/> with the option of running the bound action once immediately.
+        /// </summary>
+        /// <param name="onChange">The action to perform when <see cref="Value"/> changes.</param>
+        /// <param name="runOnceImmediately">Whether the action provided in <see cref="onChange"/> should be run once immediately.</param>
+        public void BindValueChanged(Action<T> onChange, bool runOnceImmediately = false)
+        {
+            ValueChanged += onChange;
+            if (runOnceImmediately)
+                onChange(Value);
+        }
+
+        /// <summary>
+        /// Bind an action to <see cref="DisabledChanged"/> with the option of running the bound action once immediately.
+        /// </summary>
+        /// <param name="onChange">The action to perform when <see cref="Disabled"/> changes.</param>
+        /// <param name="runOnceImmediately">Whether the action provided in <see cref="onChange"/> should be run once immediately.</param>
+        public void BindDisabledChanged(Action<bool> onChange, bool runOnceImmediately = false)
+        {
+            DisabledChanged += onChange;
+            if (runOnceImmediately)
+                onChange(Disabled);
+        }
+
         protected void AddWeakReference(WeakReference<Bindable<T>> weakReference)
         {
             if (Bindings == null)
