@@ -26,7 +26,7 @@ namespace osu.Framework.Configuration
             Set(FrameworkSetting.VolumeUniversal, 1.0, 0.0, 1.0, 0.01);
             Set(FrameworkSetting.VolumeMusic, 1.0, 0.0, 1.0, 0.01);
             Set(FrameworkSetting.VolumeEffect, 1.0, 0.0, 1.0, 0.01);
-            Set(FrameworkSetting.SizeFullscreen, new Size(9999, 9999));
+            Set(FrameworkSetting.SizeFullscreen, new Size(9999, 9999), new Size(320, 240));
             Set(FrameworkSetting.Letterboxing, true);
             Set(FrameworkSetting.LetterboxPositionX, 0.0, -1.0, 1.0, 0.01);
             Set(FrameworkSetting.LetterboxPositionY, 0.0, -1.0, 1.0, 0.01);
