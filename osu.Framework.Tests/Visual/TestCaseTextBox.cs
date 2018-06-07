@@ -65,6 +65,13 @@ namespace osu.Framework.Tests.Visual
                 TabbableContentContainer = textBoxes
             });
 
+            textBoxes.Add(new NumberTextBox
+            {
+                PlaceholderText = @"Only numbers",
+                Size = new Vector2(500, 30),
+                TabbableContentContainer = textBoxes
+            });
+
             textBoxes.Add(new TextBox
             {
                 Text = "Readonly textbox",
@@ -138,6 +145,11 @@ namespace osu.Framework.Tests.Visual
             Add(otherTextBoxes);
 
             //textBoxes.Add(tb = new PasswordTextBox(@"", 14, Vector2.Zero, 300));
+        }
+
+        private class NumberTextBox : TextBox
+        {
+            protected override bool VerifyCharacter(char character) => char.IsNumber(character);
         }
     }
 }
