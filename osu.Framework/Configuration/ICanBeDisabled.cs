@@ -16,6 +16,13 @@ namespace osu.Framework.Configuration
         event Action<bool> DisabledChanged;
 
         /// <summary>
+        /// Bind an action to <see cref="DisabledChanged"/> with the option of running the bound action once immediately.
+        /// </summary>
+        /// <param name="onChange">The action to perform when <see cref="Disabled"/> changes.</param>
+        /// <param name="runOnceImmediately">Whether the action provided in <see cref="onChange"/> should be run once immediately.</param>
+        void BindDisabledChanged(Action<bool> onChange, bool runOnceImmediately = false);
+
+        /// <summary>
         /// Whether this object has been disabled.
         /// </summary>
         bool Disabled { get; }
