@@ -131,7 +131,7 @@ namespace osu.Framework.Configuration
         {
             ValueChanged += onChange;
             if (runOnceImmediately)
-                onChange(value);
+                onChange(Value);
         }
 
         /// <summary>
@@ -143,7 +143,7 @@ namespace osu.Framework.Configuration
         {
             DisabledChanged += onChange;
             if (runOnceImmediately)
-                onChange(disabled);
+                onChange(Disabled);
         }
 
         protected void AddWeakReference(WeakReference<Bindable<T>> weakReference)
