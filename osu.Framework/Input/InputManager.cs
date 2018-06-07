@@ -813,13 +813,13 @@ namespace osu.Framework.Input
             Trace.Assert(CurrentState.Keyboard != null && CurrentState.Mouse != null && CurrentState.Joystick != null);
 
             List<InputState> distinctStates = new List<InputState>();
-            InputState last = CurrentState;
+            InputState transient = CurrentState;
 
             void createDistinctState(Action<InputState> application)
             {
-                last = last.Clone();
-                application?.Invoke(last);
-                distinctStates.Add(last);
+                transient = transient.Clone();
+                application?.Invoke(transient);
+                distinctStates.Add(transient);
             }
 
             void processForButtons<TButton>(
@@ -845,40 +845,37 @@ namespace osu.Framework.Input
 
             foreach (var incoming in states)
             {
-                // copying extra (other than Mouse/Keyboard/Joystick) members
-                {
-                    var prev = last;
-                    last = incoming.Clone();
-                    last.Mouse = prev.Mouse;
-                    last.Keyboard = prev.Keyboard;
-                    last.Joystick = prev.Joystick;
-                    distinctStates.Add(last);
-                }
+                var last = transient;
+
+                transient = incoming.Clone();
+                transient.Mouse = last.Mouse;
+                transient.Keyboard = last.Keyboard;
+                transient.Joystick = last.Joystick;
+
+                distinctStates.Add(transient);
 
                 if (incoming.Mouse != null)
                 {
-                    if (last.Mouse.Position != incoming.Mouse.Position)
+                    if (transient.Mouse.Position != incoming.Mouse.Position)
                         createDistinctState(s => s.Mouse.Position = incoming.Mouse.Position);
 
-                    if (last.Mouse.Scroll != incoming.Mouse.Scroll)
+                    if (transient.Mouse.Scroll != incoming.Mouse.Scroll)
                         createDistinctState(s => s.Mouse.Scroll = incoming.Mouse.Scroll);
 
-                    processForButtons(last.Mouse.Buttons, incoming.Mouse.Buttons, (s, buttons) => s.Mouse.Buttons = buttons);
+                    processForButtons(transient.Mouse.Buttons, incoming.Mouse.Buttons, (s, buttons) => s.Mouse.Buttons = buttons);
                 }
 
                 if (incoming.Keyboard != null)
                 {
-                    processForButtons(last.Keyboard.Keys.ToArray(), incoming.Keyboard.Keys, (s, buttons) => s.Keyboard = new KeyboardState { Keys = buttons });
+                    processForButtons(transient.Keyboard.Keys.ToArray(), incoming.Keyboard.Keys, (s, buttons) => s.Keyboard = new KeyboardState { Keys = buttons });
                 }
 
                 if (incoming.Joystick != null)
                 {
-                    if (!last.Joystick.Axes.SequenceEqual(incoming.Joystick.Axes))
-                    {
+                    if (!transient.Joystick.Axes.SequenceEqual(incoming.Joystick.Axes))
                         createDistinctState(s => s.Joystick = new JoystickState { Axes = incoming.Joystick.Axes, Buttons = s.Joystick.Buttons });
-                    }
 
-                    processForButtons(last.Joystick.Buttons.ToArray(), incoming.Joystick.Buttons,
+                    processForButtons(transient.Joystick.Buttons.ToArray(), incoming.Joystick.Buttons,
                         (s, buttons) => s.Joystick = new JoystickState { Axes = s.Joystick.Axes, Buttons = buttons });
                 }
             }
