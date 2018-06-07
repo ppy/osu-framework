@@ -488,13 +488,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private Drawable addCharacter(char c)
         {
-            if (!VerifyCharacter(c))
-                return null;
-
-            if (Current.Disabled)
-                return null;
-
-            if (char.IsControl(c))
+            if (Current.Disabled || char.IsControl(c) || !VerifyCharacter(c))
                 return null;
 
             if (selectionLength > 0)
