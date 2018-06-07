@@ -45,8 +45,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public bool DrawOriginal
         {
-            get { return drawOriginal; }
-
+            get => drawOriginal;
             set
             {
                 if (drawOriginal == value)
@@ -68,7 +67,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public Vector2 BlurSigma
         {
-            get { return blurSigma; }
+            get => blurSigma;
             set
             {
                 if (blurSigma == value)
@@ -87,7 +86,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public float BlurRotation
         {
-            get { return blurRotation; }
+            get => blurRotation;
             set
             {
                 if (blurRotation == value)
@@ -107,7 +106,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public bool PixelSnapping
         {
-            get { return pixelSnapping; }
+            get => pixelSnapping;
             set
             {
                 if (sharedData.FrameBuffers[0].IsInitialized || sharedData.FrameBuffers[1].IsInitialized)
@@ -124,8 +123,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public ColourInfo EffectColour
         {
-            get { return effectColour; }
-
+            get => effectColour;
             set
             {
                 if (effectColour.Equals(value))
@@ -145,8 +143,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public BlendingParameters EffectBlending
         {
-            get { return effectBlending; }
-
+            get => effectBlending;
             set
             {
                 if (effectBlending.Equals(value))
@@ -165,8 +162,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public EffectPlacement EffectPlacement
         {
-            get { return effectPlacement; }
-
+            get => effectPlacement;
             set
             {
                 if (effectPlacement == value)
@@ -184,8 +180,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public Color4 BackgroundColour
         {
-            get { return backgroundColour; }
-
+            get => backgroundColour;
             set
             {
                 if (backgroundColour == value)

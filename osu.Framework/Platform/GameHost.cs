@@ -8,6 +8,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime;
 using System.Runtime.ExceptionServices;
 using System.Threading;
@@ -111,24 +112,21 @@ namespace osu.Framework.Platform
 
         public double MaximumUpdateHz
         {
-            get { return maximumUpdateHz; }
-
-            set { UpdateThread.ActiveHz = maximumUpdateHz = value; }
+            get => maximumUpdateHz;
+            set => UpdateThread.ActiveHz = maximumUpdateHz = value;
         }
 
         private double maximumDrawHz;
 
         public double MaximumDrawHz
         {
-            get { return maximumDrawHz; }
-
-            set { DrawThread.ActiveHz = maximumDrawHz = value; }
+            get => maximumDrawHz;
+            set => DrawThread.ActiveHz = maximumDrawHz = value;
         }
 
         public double MaximumInactiveHz
         {
-            get { return DrawThread.InactiveHz; }
-
+            get => DrawThread.InactiveHz;
             set
             {
                 DrawThread.InactiveHz = value;
@@ -178,7 +176,14 @@ namespace osu.Framework.Platform
                 (InputThread = new InputThread(null)), //never gets started.
             };
 
-            var path = Path.GetDirectoryName(FullPath);
+            var assembly = Assembly.GetEntryAssembly();
+
+            // when running under nunit + netcore, entry assembly becomes nunit itself (testhost, Version=15.0.0.0), which isn't what we want.
+            // when running under nunit + net471, entry assembly is null.
+            if (assembly == null || assembly.Location.Contains("testhost"))
+                assembly = Assembly.GetCallingAssembly();
+
+            var path = Path.GetDirectoryName(assembly.Location);
             if (path != null)
                 Environment.CurrentDirectory = path;
         }
@@ -289,7 +294,8 @@ namespace osu.Framework.Platform
                 {
                     if (buffer?.Object == null || buffer.FrameId == lastDrawFrameId)
                     {
-                        Thread.Sleep(1);
+                        using (drawMonitor.BeginCollecting(PerformanceCollectionType.Sleep))
+                            Thread.Sleep(1);
                         continue;
                     }
 
@@ -554,7 +560,7 @@ namespace osu.Framework.Platform
             frameSyncMode = config.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
             frameSyncMode.ValueChanged += newMode =>
             {
-                float refreshRate = DisplayDevice.Default.RefreshRate;
+                float refreshRate = DisplayDevice.Default?.RefreshRate ?? 0;
                 // For invalid refresh rates let's assume 60 Hz as it is most common.
                 if (refreshRate <= 0)
                     refreshRate = 60;

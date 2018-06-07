@@ -27,8 +27,8 @@ namespace osu.Framework.Localisation
 
         public bool PreferUnicode
         {
-            get { return Value == Unicode; }
-            set { Value = value ? Unicode : NonUnicode; }
+            get => Value == Unicode;
+            set => Value = value ? Unicode : NonUnicode;
         }
     }
 }

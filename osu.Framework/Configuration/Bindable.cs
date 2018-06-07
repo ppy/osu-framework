@@ -38,7 +38,7 @@ namespace osu.Framework.Configuration
         /// </summary>
         public bool Disabled
         {
-            get { return disabled; }
+            get => disabled;
             set
             {
                 if (disabled == value) return;
@@ -64,7 +64,7 @@ namespace osu.Framework.Configuration
         /// </summary>
         public virtual T Value
         {
-            get { return value; }
+            get => value;
             set
             {
                 if (EqualityComparer<T>.Default.Equals(this.value, value)) return;
@@ -120,6 +120,30 @@ namespace osu.Framework.Configuration
 
             AddWeakReference(them.weakReference);
             them.AddWeakReference(weakReference);
+        }
+
+        /// <summary>
+        /// Bind an action to <see cref="ValueChanged"/> with the option of running the bound action once immediately.
+        /// </summary>
+        /// <param name="onChange">The action to perform when <see cref="Value"/> changes.</param>
+        /// <param name="runOnceImmediately">Whether the action provided in <see cref="onChange"/> should be run once immediately.</param>
+        public void BindValueChanged(Action<T> onChange, bool runOnceImmediately = false)
+        {
+            ValueChanged += onChange;
+            if (runOnceImmediately)
+                onChange(Value);
+        }
+
+        /// <summary>
+        /// Bind an action to <see cref="DisabledChanged"/> with the option of running the bound action once immediately.
+        /// </summary>
+        /// <param name="onChange">The action to perform when <see cref="Disabled"/> changes.</param>
+        /// <param name="runOnceImmediately">Whether the action provided in <see cref="onChange"/> should be run once immediately.</param>
+        public void BindDisabledChanged(Action<bool> onChange, bool runOnceImmediately = false)
+        {
+            DisabledChanged += onChange;
+            if (runOnceImmediately)
+                onChange(Disabled);
         }
 
         protected void AddWeakReference(WeakReference<Bindable<T>> weakReference)

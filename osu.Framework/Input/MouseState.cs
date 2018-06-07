@@ -13,7 +13,7 @@ namespace osu.Framework.Input
     {
         public IReadOnlyList<MouseButton> Buttons
         {
-            get { return buttons; }
+            get => buttons;
             set
             {
                 buttons.Clear();
@@ -25,17 +25,19 @@ namespace osu.Framework.Input
 
         public IMouseState NativeState => this;
 
-        public virtual int WheelDelta => Wheel - LastWheel;
+        public virtual Vector2 ScrollDelta => Scroll - LastScroll;
 
-        public int Wheel { get; set; }
+        public Vector2 Scroll { get; set; }
 
-        private int? lastWheel;
+        private Vector2? lastScroll;
 
-        public int LastWheel
+        public Vector2 LastScroll
         {
-            get => lastWheel ?? Wheel;
-            set => lastWheel = value;
+            get => lastScroll ?? Scroll;
+            set => lastScroll = value;
         }
+
+        public bool HasPreciseScroll { get; set; }
 
         public bool HasMainButtonPressed => IsPressed(MouseButton.Left) || IsPressed(MouseButton.Right);
 
@@ -65,7 +67,7 @@ namespace osu.Framework.Input
         public MouseState CloneWithoutDeltas()
         {
             var clone = (MouseState)Clone();
-            clone.lastWheel = null;
+            clone.lastScroll = null;
             clone.lastPosition = null;
             return clone;
         }
@@ -86,7 +88,7 @@ namespace osu.Framework.Input
         public override string ToString()
         {
             string down = PositionMouseDown != null ? $"(down @ {PositionMouseDown.Value.X:#,0},{PositionMouseDown.Value.Y:#,0})" : string.Empty;
-            return $@"{GetType().ReadableName()} ({Position.X:#,0},{Position.Y:#,0}) {down} {string.Join(",", Buttons.Select(b => b.ToString()))} Wheel {Wheel}/{WheelDelta}";
+            return $@"{GetType().ReadableName()} ({Position.X:#,0},{Position.Y:#,0}) {down} {string.Join(",", Buttons.Select(b => b.ToString()))} Scroll ({Scroll.X:#,2},{Scroll.Y:#,2})/({ScrollDelta.X:#,2},{ScrollDelta.Y:#,2})";
         }
     }
 }
