@@ -65,7 +65,8 @@ namespace osu.Framework.Tests.Visual
                 TabbableContentContainer = textBoxes
             });
 
-            textBoxes.Add(new NumberTextBox
+            NumberTextBox numbers;
+            textBoxes.Add(numbers = new NumberTextBox
             {
                 PlaceholderText = @"Only numbers",
                 Size = new Vector2(500, 30),
@@ -145,6 +146,8 @@ namespace osu.Framework.Tests.Visual
             Add(otherTextBoxes);
 
             //textBoxes.Add(tb = new PasswordTextBox(@"", 14, Vector2.Zero, 300));
+            AddStep(@"set number text", () => numbers.Text = @"1h2e3l4l5o6");
+            AddAssert(@"number text only numbers", () => numbers.Text == @"123456");
         }
 
         private class NumberTextBox : TextBox
