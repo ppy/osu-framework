@@ -16,7 +16,7 @@ using OpenTK.Input;
 
 namespace osu.Framework.Input
 {
-    public abstract class InputManager : Container
+    public abstract class InputManager : Container, IInputStateChangeHandler
     {
         /// <summary>
         /// The initial delay before key repeat begins.
@@ -206,24 +206,20 @@ namespace osu.Framework.Input
 
         protected override void Update()
         {
-            List<InputState> distinctStates = createDistinctStates(GetPendingStates());
-
-            //we need to make sure the code in the foreach below is run at least once even if we have no new pending states.
-            if (distinctStates.Count == 0)
-                distinctStates.Add(CurrentState.Clone());
-
             unfocusIfNoLongerValid();
 
-            foreach (InputState s in distinctStates)
-                HandleNewState(s);
+            updateMousePositionDependentThings(CurrentState);
 
-            if (CurrentState.Mouse != null)
+            foreach (var result in GetPendingInputHandlerResults())
             {
-                foreach (var d in positionalInputQueue)
-                    if (d is IRequireHighFrequencyMousePosition)
-                        if (d.TriggerOnMouseMove(CurrentState))
-                            break;
+                result.Apply(CurrentState, this);
             }
+
+
+            foreach (var d in positionalInputQueue)
+                if (d is IRequireHighFrequencyMousePosition)
+                    if (d.TriggerOnMouseMove(CurrentState))
+                        break;
 
             keyboardRepeatTime -= Time.Elapsed;
 
@@ -233,32 +229,15 @@ namespace osu.Framework.Input
             base.Update();
         }
 
-        protected virtual void HandleNewState(InputState state)
+        void updateMousePositionDependentThings(InputState state)
         {
-            var last = CurrentState;
-
-            //avoid lingering references that would stay forever.
-            last.Last = null;
-
-            CurrentState = state;
-            CurrentState.Last = last;
-
-            TransformState(CurrentState);
-
-            //move above?
             updateInputQueues(CurrentState);
-
-            //hover could change even when the mouse state has not.
             updateHoverEvents(CurrentState);
-
-            updateMouseEvents(CurrentState);
-            updateKeyboardEvents(CurrentState);
-            updateJoystickEvents(CurrentState);
         }
 
-        protected virtual List<InputState> GetPendingStates()
+        protected virtual List<IInputHandlerResult> GetPendingInputHandlerResults()
         {
-            var pendingStates = new List<InputState>();
+            var pendingStates = new List<IInputHandlerResult>();
 
             foreach (var h in InputHandlers)
             {
@@ -344,29 +323,23 @@ namespace osu.Framework.Input
             }
         }
 
-        private void updateKeyboardEvents(InputState state)
+        private bool isModifierKey(Key k)
         {
-            KeyboardState keyboard = (KeyboardState)state.Keyboard;
+            return k == Key.LControl || k == Key.RControl
+                || k == Key.LAlt || k == Key.RAlt
+                || k == Key.LShift || k == Key.RShift
+                || k == Key.LWin || k == Key.RWin;
+        }
 
-            if (!keyboard.Keys.Any())
-                keyboardRepeatTime = 0;
-
-            var last = state.Last?.Keyboard;
-
-            if (last == null) return;
-
-            foreach (var k in last.Keys)
+        public void HandleKeyboardChange(InputState state, Key key, ButtonStateChangeKind kind)
+        {
+            if (kind == ButtonStateChangeKind.Pressed)
             {
-                if (!keyboard.Keys.Contains(k))
-                    handleKeyUp(state, k);
-            }
+                handleKeyDown(state, key, false);
 
-            foreach (Key k in keyboard.Keys.Distinct())
-            {
-                bool isModifier = k == Key.LControl || k == Key.RControl
-                                                    || k == Key.LAlt || k == Key.RAlt
-                                                    || k == Key.LShift || k == Key.RShift
-                                                    || k == Key.LWin || k == Key.RWin;
+                // todo: key repeat
+                /*
+                bool isModifier = isModifierKey(key);
 
                 LastActionTime = Time.Current;
 
@@ -393,68 +366,63 @@ namespace osu.Framework.Input
                     keyboardRepeatTime = repeat_initial_delay;
                     handleKeyDown(state, k, false);
                 }
+                */
+            }
+            else
+            {
+                if (!state.Keyboard.Keys.Any())
+                    keyboardRepeatTime = 0;
+
+                handleKeyUp(state, key);
             }
         }
 
-        private void updateJoystickEvents(InputState state)
+        public void HandleJoystickAxisChange(InputState state, JoystickAxis axis, int axisValue)
         {
-            var joystick = (JoystickState)state.Joystick;
 
-            var last = state.Last?.Joystick;
-            if (last == null)
-                return;
+        }
 
-            foreach (var b in last.Buttons)
+        public void HandleJoystickButtonChange(InputState state, JoystickButton button, ButtonStateChangeKind kind)
+        {
+            if (kind == ButtonStateChangeKind.Pressed)
             {
-                if (!joystick.Buttons.Contains(b))
-                    handleJoystickRelease(state, b);
+                handleJoystickRelease(state, button);
             }
-
-            foreach (var b in joystick.Buttons)
+            else
             {
-                if (!last.Buttons.Contains(b))
-                {
-                    LastActionTime = Time.Current;
-                    handleJoystickPress(state, b);
-                }
+                handleJoystickPress(state, button);
             }
         }
 
-        private List<Drawable> mouseDownInputQueue;
-
-        private void updateMouseEvents(InputState state)
+        public void HandleMousePositionChange(InputState state)
         {
-            MouseState mouse = (MouseState)state.Mouse;
-
-            if (!(state.Last.Mouse is MouseState last)) return;
-
+            /*
             mouse.LastPosition = last.Position;
             mouse.LastScroll = last.Scroll;
             mouse.PositionMouseDown = last.PositionMouseDown;
+            */
 
-            if (mouse.Position != last.Position)
-            {
-                handleMouseMove(state);
-                if (isDragging)
-                    handleMouseDrag(state);
-            }
+            updateMousePositionDependentThings(state);
 
-            for (MouseButton b = 0; b < MouseButton.LastButton; b++)
-            {
-                var lastPressed = last.IsPressed(b);
+            handleMouseMove(state);
+            if (isDragging)
+                handleMouseDrag(state);
+        }
 
-                if (lastPressed != mouse.IsPressed(b))
-                {
-                    if (lastPressed)
-                        handleMouseUp(state, b);
-                    else
-                        handleMouseDown(state, b);
-                }
-            }
+        public void HandleMouseScrollChange(InputState state)
+        {
+            handleScroll(state);
+        }
 
-            if (mouse.ScrollDelta != Vector2.Zero && (Host.Window?.CursorInWindow ?? true))
-                handleScroll(state);
+        public void HandleMouseButtonChange(InputState state, MouseButton button, ButtonStateChangeKind kind)
+        {
+            if (kind == ButtonStateChangeKind.Pressed)
+                handleMouseDown(state, button);
+            else
+                handleMouseUp(state, button);
 
+            //todo: click, double click, drag
+            /*
             if (mouse.HasAnyButtonPressed)
             {
                 if (!last.HasAnyButtonPressed)
@@ -501,7 +469,10 @@ namespace osu.Framework.Input
                     handleMouseDragEnd(state);
                 }
             }
+            */
         }
+
+        private List<Drawable> mouseDownInputQueue;
 
         private bool handleMouseDown(InputState state, MouseButton button)
         {

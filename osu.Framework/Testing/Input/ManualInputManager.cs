@@ -147,7 +147,7 @@ namespace osu.Framework.Testing.Input
                 if (state.Mouse is MouseState ms)
                     lastMouseState = ms;
 
-                PendingStates.Enqueue(state);
+                PendingStates.Enqueue(new LeagcyInputStateChange { InputState = state });
             }
         }
     }

@@ -36,7 +36,7 @@ namespace osu.Framework.Input.Handlers.Joystick
 
                             if (device.LastState != null)
                             {
-                                PendingStates.Enqueue(new InputState { Joystick = new OpenTKJoystickState(device) });
+                                PendingStates.Enqueue(new LeagcyInputStateChange { InputState = new InputState { Joystick = new OpenTKJoystickState(device) } });
                                 FrameStatistics.Increment(StatisticsCounterType.JoystickEvents);
                             }
                         }

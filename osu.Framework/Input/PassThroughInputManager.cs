@@ -32,10 +32,10 @@ namespace osu.Framework.Input
             return false;
         }
 
-        protected override List<InputState> GetPendingStates()
+        protected override List<IInputHandlerResult> GetPendingInputHandlerResults()
         {
             //we still want to call the base method to clear any pending states that may build up.
-            var pendingStates = base.GetPendingStates();
+            var pendingStates = base.GetPendingInputHandlerResults();
 
             if (!UseParentState)
                 return pendingStates;
@@ -43,7 +43,7 @@ namespace osu.Framework.Input
             pendingStates.Clear();
 
             foreach (var s in pendingParentStates)
-                pendingStates.Add(new PassThroughInputState(s));
+                pendingStates.Add(new LeagcyInputStateChange { InputState = new PassThroughInputState(s) });
 
             pendingParentStates.Clear();
 
@@ -85,7 +85,6 @@ namespace osu.Framework.Input
                 Mouse = (state.Mouse.NativeState as MouseState)?.Clone();
                 Keyboard = (state.Keyboard as KeyboardState)?.Clone();
                 Joystick = (state.Joystick as JoystickState)?.Clone();
-                Last = state.Last;
             }
         }
     }

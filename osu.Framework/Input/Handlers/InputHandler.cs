@@ -17,20 +17,20 @@ namespace osu.Framework.Input.Handlers
         /// <returns>Success of the initialization.</returns>
         public abstract bool Initialize(GameHost host);
 
-        protected ConcurrentQueue<InputState> PendingStates = new ConcurrentQueue<InputState>();
+        protected ConcurrentQueue<IInputHandlerResult> PendingStates = new ConcurrentQueue<IInputHandlerResult>();
 
         private readonly object pendingStatesRetrievalLock = new object();
 
         /// <summary>
         /// Retrieve a list of all pending states since the last call to this method.
         /// </summary>
-        public virtual List<InputState> GetPendingStates()
+        public virtual List<IInputHandlerResult> GetPendingStates()
         {
             lock (pendingStatesRetrievalLock)
             {
-                List<InputState> pending = new List<InputState>();
+                List<IInputHandlerResult> pending = new List<IInputHandlerResult>();
 
-                while (PendingStates.TryDequeue(out InputState s))
+                while (PendingStates.TryDequeue(out IInputHandlerResult s))
                     pending.Add(s);
 
                 return pending;
