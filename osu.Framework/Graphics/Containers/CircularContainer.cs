@@ -11,26 +11,28 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     public class CircularContainer : Container
     {
-        private Cached cornerRadius = new Cached();
+        private Cached layout = new Cached();
 
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
             bool result = base.Invalidate(invalidation, source, shallPropagate);
 
             if ((invalidation & (Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit)) > 0)
-                cornerRadius.Invalidate();
+                layout.Invalidate();
 
             return result;
         }
 
-        protected override void UpdateAfterAutoSize()
-        {
-            base.UpdateAfterAutoSize();
+        protected override bool RequiresLayoutValidation => base.RequiresLayoutValidation || !layout.IsValid;
 
-            if (!cornerRadius.IsValid)
+        protected override void UpdateLayout()
+        {
+            base.UpdateLayout();
+
+            if (!layout.IsValid)
             {
                 CornerRadius = Math.Min(DrawSize.X, DrawSize.Y) / 2f;
-                cornerRadius.Validate();
+                layout.Validate();
             }
         }
     }

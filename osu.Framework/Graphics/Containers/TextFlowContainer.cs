@@ -1,12 +1,12 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using osu.Framework.Caching;
 using osu.Framework.Graphics.Sprites;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using osu.Framework.Caching;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -29,7 +29,7 @@ namespace osu.Framework.Graphics.Containers
                 if (value == firstLineIndent) return;
                 firstLineIndent = value;
 
-                layout.Invalidate();
+                InvalidateLayout();
             }
         }
 
@@ -46,7 +46,7 @@ namespace osu.Framework.Graphics.Containers
                 if (value == contentIndent) return;
                 contentIndent = value;
 
-                layout.Invalidate();
+                InvalidateLayout();
             }
         }
 
@@ -64,7 +64,7 @@ namespace osu.Framework.Graphics.Containers
                 if (value == paragraphSpacing) return;
                 paragraphSpacing = value;
 
-                layout.Invalidate();
+                InvalidateLayout();
             }
         }
 
@@ -82,7 +82,7 @@ namespace osu.Framework.Graphics.Containers
                 if (value == lineSpacing) return;
                 lineSpacing = value;
 
-                layout.Invalidate();
+                InvalidateLayout();
             }
         }
 
@@ -124,19 +124,8 @@ namespace osu.Framework.Graphics.Containers
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
             if ((invalidation & Invalidation.DrawSize) > 0)
-                layout.Invalidate();
+                InvalidateLayout();
             return base.Invalidate(invalidation, source, shallPropagate);
-        }
-
-        protected override void UpdateAfterChildren()
-        {
-            base.UpdateAfterChildren();
-
-            if (!layout.IsValid)
-            {
-                computeLayout();
-                layout.Validate();
-            }
         }
 
         protected override int Compare(Drawable x, Drawable y)
@@ -338,6 +327,25 @@ namespace osu.Framework.Graphics.Containers
                     lastLineHeight = currentLineHeight;
 
                 isFirstLine = false;
+            }
+        }
+
+        protected override void InvalidateLayout()
+        {
+            base.InvalidateLayout();
+            layout.Invalidate();
+        }
+
+        protected override bool RequiresLayoutValidation => base.RequiresLayoutValidation || !layout.IsValid;
+
+        protected override void UpdateLayout()
+        {
+            base.UpdateLayout();
+
+            if (!layout.IsValid)
+            {
+                computeLayout();
+                layout.Validate();
             }
         }
 

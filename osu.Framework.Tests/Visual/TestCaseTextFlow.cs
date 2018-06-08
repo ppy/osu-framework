@@ -26,7 +26,7 @@ namespace osu.Framework.Tests.Visual
                     RelativeSizeAxes = Axes.Both,
                     Children = new[]
                     {
-                        flow = new FillFlowContainer
+                        flow = new SingleUpdateFlow
                         {
                             Anchor = Anchor.TopLeft,
                             AutoSizeAxes = Axes.Y,
@@ -207,6 +207,24 @@ osu! is written in C# on the .NET Framework. On August 28, 2016, osu!'s source c
                 LineBaseHeight = 10f,
                 Size = new Vector2(25, 25)
             };
+        }
+
+        private class SingleUpdateFlow : FillFlowContainer
+        {
+            private bool validationAllowed = true;
+
+            public override bool UpdateSubTree()
+            {
+                if (!validationAllowed)
+                    return true;
+                return base.UpdateSubTree();
+            }
+
+            internal override DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex)
+            {
+                validationAllowed = false;
+                return base.GenerateDrawNodeSubtree(frame, treeIndex);
+            }
         }
     }
 }

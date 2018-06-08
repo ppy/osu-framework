@@ -521,9 +521,30 @@ namespace osu.Framework.Graphics.Containers
 
             UpdateAfterChildren();
 
-            updateChildrenSizeDependencies();
+            ValidateSubTree();
             UpdateAfterAutoSize();
             return true;
+        }
+
+        protected override bool RequiresLayoutValidation => base.RequiresLayoutValidation || !childrenSizeDependencies.IsValid;
+
+        private Cached childrenSizeDependencies = new Cached(true);
+
+        protected override void UpdateLayout()
+        {
+            base.UpdateLayout();
+
+            // We iterate by index to gain performance
+            // ReSharper disable once ForCanBeConvertedToForeach
+            for (int i = 0; i < aliveInternalChildren.Count; i++)
+                aliveInternalChildren[i].ValidateSubTree();
+
+
+            if (!childrenSizeDependencies.IsValid)
+            {
+                updateAutoSize();
+                childrenSizeDependencies.Validate();
+            }
         }
 
         /// <summary>
@@ -547,7 +568,6 @@ namespace osu.Framework.Graphics.Containers
             if (RequiresChildrenUpdate)
             {
                 var childMaskingBounds = ComputeChildMaskingBounds(maskingBounds);
-
 
                 // We iterate by index to gain performance
                 // ReSharper disable once ForCanBeConvertedToForeach
@@ -1275,14 +1295,12 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         internal event Action OnAutoSize;
 
-        private Cached childrenSizeDependencies = new Cached();
-
         public override float Width
         {
             get
             {
-                if (!StaticCached.BypassCache && !isComputingChildrenSizeDependencies && (AutoSizeAxes & Axes.X) > 0)
-                    updateChildrenSizeDependencies();
+                if (!StaticCached.BypassCache && !childrenSizeDependencies.IsValid && (AutoSizeAxes & Axes.X) > 0)
+                    ValidateSubTree();
                 return base.Width;
             }
 
@@ -1298,8 +1316,8 @@ namespace osu.Framework.Graphics.Containers
         {
             get
             {
-                if (!StaticCached.BypassCache && !isComputingChildrenSizeDependencies && (AutoSizeAxes & Axes.Y) > 0)
-                    updateChildrenSizeDependencies();
+                if (!StaticCached.BypassCache && !childrenSizeDependencies.IsValid && (AutoSizeAxes & Axes.Y) > 0)
+                    ValidateSubTree();
                 return base.Height;
             }
 
@@ -1311,14 +1329,12 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private bool isComputingChildrenSizeDependencies;
-
         public override Vector2 Size
         {
             get
             {
-                if (!StaticCached.BypassCache && !isComputingChildrenSizeDependencies && AutoSizeAxes != Axes.None)
-                    updateChildrenSizeDependencies();
+                if (!StaticCached.BypassCache && !childrenSizeDependencies.IsValid && AutoSizeAxes != Axes.None)
+                    ValidateSubTree();
                 return base.Size;
             }
 
@@ -1388,24 +1404,6 @@ namespace osu.Framework.Graphics.Containers
             //note that this is called before autoSize becomes valid. may be something to consider down the line.
             //might work better to add an OnRefresh event in Cached<> and invoke there.
             OnAutoSize?.Invoke();
-        }
-
-        private void updateChildrenSizeDependencies()
-        {
-            isComputingChildrenSizeDependencies = true;
-
-            try
-            {
-                if (!childrenSizeDependencies.IsValid)
-                {
-                    updateAutoSize();
-                    childrenSizeDependencies.Validate();
-                }
-            }
-            finally
-            {
-                isComputingChildrenSizeDependencies = false;
-            }
         }
 
         private void autoSizeResizeTo(Vector2 newSize, double duration = 0, Easing easing = Easing.None) =>

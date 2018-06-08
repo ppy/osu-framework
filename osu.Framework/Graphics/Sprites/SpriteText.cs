@@ -217,12 +217,6 @@ namespace osu.Framework.Graphics.Sprites
         /// </summary>
         public bool FixedWidth;
 
-        protected override void Update()
-        {
-            base.Update();
-            validateLayout();
-        }
-
         private void validateLayout()
         {
             if (!layout.IsValid)
