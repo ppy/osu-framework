@@ -152,7 +152,7 @@ namespace osu.Framework.Tests.Visual
 
         private class NumberTextBox : TextBox
         {
-            protected override bool VerifyCharacter(char character) => char.IsNumber(character);
+            protected override bool CanAddCharacter(char character) => char.IsNumber(character);
         }
     }
 }

@@ -59,11 +59,11 @@ namespace osu.Framework.Graphics.UserInterface
         protected virtual Color4 BackgroundUnfocused => new Color4(100, 100, 100, 120);
 
         /// <summary>
-        /// Verify a character before it is added to this TextBox.
+        /// Check if a character can be added to this TextBox.
         /// </summary>
         /// <param name="character">The pending character.</param>
         /// <returns>Whether the character is allowed to be added.</returns>
-        protected virtual bool VerifyCharacter(char character) => true;
+        protected virtual bool CanAddCharacter(char character) => true;
 
         public bool ReadOnly;
 
@@ -488,7 +488,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private Drawable addCharacter(char c)
         {
-            if (Current.Disabled || char.IsControl(c) || !VerifyCharacter(c))
+            if (Current.Disabled || char.IsControl(c) || !CanAddCharacter(c))
                 return null;
 
             if (selectionLength > 0)
