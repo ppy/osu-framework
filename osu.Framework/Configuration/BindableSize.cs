@@ -32,7 +32,7 @@ namespace osu.Framework.Configuration
             if (them is BindableSize other)
             {
                 MinValue = new Size(Math.Max(MinValue.Width, other.MinValue.Width), Math.Max(MinValue.Height, other.MinValue.Height));
-                MaxValue = new Size(Math.Min(Value.Width, other.MaxValue.Width), Math.Min(Value.Height, other.MaxValue.Height));
+                MaxValue = new Size(Math.Min(MaxValue.Width, other.MaxValue.Width), Math.Min(MaxValue.Height, other.MaxValue.Height));
 
                 if (MinValue.Width > MaxValue.Width || MinValue.Height > MaxValue.Height)
                 {
