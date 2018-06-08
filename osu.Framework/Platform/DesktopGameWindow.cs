@@ -2,8 +2,10 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using osu.Framework.Configuration;
 using osu.Framework.Input;
 using OpenTK;
@@ -16,8 +18,7 @@ namespace osu.Framework.Platform
         private const int default_width = 1366;
         private const int default_height = 768;
 
-        private readonly BindableInt widthFullscreen = new BindableInt();
-        private readonly BindableInt heightFullscreen = new BindableInt();
+        private readonly BindableInt fullscreenResolution = new BindableInt();
         private readonly BindableInt width = new BindableInt();
         private readonly BindableInt height = new BindableInt();
 
@@ -34,6 +35,26 @@ namespace osu.Framework.Platform
 
         public readonly BindableBool MapAbsoluteInputToWindow = new BindableBool();
 
+        public List<DisplayResolution> AvailableDisplayResolutions
+        {
+            get
+            {
+                var distinctFromOpenTk = DisplayDevice.Default.AvailableResolutions.Distinct().ToList();
+                var uniqueWidthHeightPairs = distinctFromOpenTk.Select(r => new Vector2(r.Width, r.Height)).Distinct().ToList();
+
+                var result = new List<DisplayResolution>(uniqueWidthHeightPairs.Count());
+
+                foreach (var uniqueWidthHeightPair in uniqueWidthHeightPairs)
+                {
+                    var resolutions = distinctFromOpenTk.Where(r => r.Width == uniqueWidthHeightPair.X && r.Height == uniqueWidthHeightPair.Y).ToList();
+                    var maxRefreshRate = resolutions.Max(r => r.RefreshRate);
+                    result.Add(resolutions.First(r => r.RefreshRate == maxRefreshRate));
+                }
+
+                return result;
+            }
+        }
+
         protected DesktopGameWindow()
             : base(default_width, default_height)
         {
@@ -41,12 +62,13 @@ namespace osu.Framework.Platform
             Move += OnMove;
         }
 
-        public virtual void SetIconFromStream(Stream stream) { }
+        public virtual void SetIconFromStream(Stream stream)
+        {
+        }
 
         public override void SetupWindow(FrameworkConfigManager config)
         {
-            config.BindWith(FrameworkSetting.WidthFullscreen, widthFullscreen);
-            config.BindWith(FrameworkSetting.HeightFullscreen, heightFullscreen);
+            config.BindWith(FrameworkSetting.FullscreenResolution, fullscreenResolution);
 
             config.BindWith(FrameworkSetting.Width, width);
             config.BindWith(FrameworkSetting.Height, height);
@@ -65,6 +87,8 @@ namespace osu.Framework.Platform
 
             WindowMode.ValueChanged += windowMode_ValueChanged;
             WindowMode.TriggerChange();
+
+            fullscreenResolution.ValueChanged += (i) => changeFullscreenResolution();
 
             Exited += onExit;
         }
@@ -119,8 +143,7 @@ namespace osu.Framework.Platform
             switch (newMode)
             {
                 case Configuration.WindowMode.Fullscreen:
-                    DisplayResolution newResolution = DisplayDevice.Default.SelectResolution(widthFullscreen, heightFullscreen, DisplayDevice.Default.BitsPerPixel, DisplayDevice.Default.RefreshRate);
-                    DisplayDevice.Default.ChangeResolution(newResolution);
+                    changeFullscreenResolution();
 
                     WindowState = WindowState.Fullscreen;
                     break;
@@ -148,18 +171,25 @@ namespace osu.Framework.Platform
             ConfineMouseMode.TriggerChange();
         }
 
-        private void onExit()
+        private void changeFullscreenResolution()
         {
-            switch (WindowMode.Value)
+            if (WindowMode.Value == Configuration.WindowMode.Fullscreen)
             {
-                case Configuration.WindowMode.Fullscreen:
-                    widthFullscreen.Value = ClientSize.Width;
-                    heightFullscreen.Value = ClientSize.Height;
-                    break;
-            }
+                var availableResolutions = AvailableDisplayResolutions;
+                var newResolution = availableResolutions.ElementAtOrDefault(fullscreenResolution);
 
-            DisplayDevice.Default.RestoreResolution();
+                if (newResolution == null)
+                {
+                    fullscreenResolution.Value = availableResolutions.Count - 1;
+                    newResolution = availableResolutions.Last();
+                }
+
+                DisplayDevice.Default.ChangeResolution(newResolution);
+                ClientSize = new Size(newResolution.Width, newResolution.Height);
+            }
         }
+
+        private void onExit() => DisplayDevice.Default.RestoreResolution();
 
         public Vector2 Position
         {
