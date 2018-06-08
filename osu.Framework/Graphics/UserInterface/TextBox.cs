@@ -58,6 +58,13 @@ namespace osu.Framework.Graphics.UserInterface
         protected virtual Color4 BackgroundFocused => new Color4(100, 100, 100, 255);
         protected virtual Color4 BackgroundUnfocused => new Color4(100, 100, 100, 120);
 
+        /// <summary>
+        /// Check if a character can be added to this TextBox.
+        /// </summary>
+        /// <param name="character">The pending character.</param>
+        /// <returns>Whether the character is allowed to be added.</returns>
+        protected virtual bool CanAddCharacter(char character) => true;
+
         public bool ReadOnly;
 
         public bool ReleaseFocusOnCommit = true;
@@ -481,10 +488,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         private Drawable addCharacter(char c)
         {
-            if (Current.Disabled)
+            if (Current.Disabled || char.IsControl(c) || !CanAddCharacter(c))
                 return null;
-
-            if (char.IsControl(c)) return null;
 
             if (selectionLength > 0)
                 removeCharacterOrSelection();
