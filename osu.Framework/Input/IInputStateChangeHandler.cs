@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using OpenTK.Input;
-using System;
 
 namespace osu.Framework.Input
 {

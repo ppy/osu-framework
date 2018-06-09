@@ -37,7 +37,7 @@ namespace osu.Framework.Input
         /// The distance that must be moved until a dragged click becomes invalid.
         /// </summary>
         private const float click_drag_distance = 10;
-        
+
         protected GameHost Host;
 
         internal Drawable FocusedDrawable;
@@ -209,7 +209,7 @@ namespace osu.Framework.Input
                 result.Apply(CurrentState, this);
             }
 
-            updateKeyRepeat();
+            updateKeyRepeat(CurrentState);
 
             foreach (var d in positionalInputQueue)
                 if (d is IRequireHighFrequencyMousePosition)
@@ -224,22 +224,22 @@ namespace osu.Framework.Input
             base.Update();
         }
 
-        void updateKeyRepeat()
+        private void updateKeyRepeat(InputState state)
         {
-            if (keyboardRepeatKey == null) return;
+            if (!(keyboardRepeatKey is Key key)) return;
 
             keyboardRepeatTime -= Time.Elapsed;
             while (keyboardRepeatTime < 0)
             {
-                handleKeyDown(CurrentState, keyboardRepeatKey.Value, true);
+                handleKeyDown(state, key, true);
                 keyboardRepeatTime += repeat_tick_rate;
             }
         }
 
-        void updateMousePositionDependentThings(InputState state)
+        private void updateMousePositionDependentThings(InputState state)
         {
-            updateInputQueues(CurrentState);
-            updateHoverEvents(CurrentState);
+            updateInputQueues(state);
+            updateHoverEvents(state);
         }
 
         protected virtual List<IInputHandlerResult> GetPendingInputHandlerResults()
