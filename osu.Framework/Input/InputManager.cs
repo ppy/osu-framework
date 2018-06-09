@@ -209,14 +209,12 @@ namespace osu.Framework.Input
                 result.Apply(CurrentState, this);
             }
 
-            updateKeyRepeat(CurrentState);
-
             foreach (var d in positionalInputQueue)
                 if (d is IRequireHighFrequencyMousePosition)
                     if (d.TriggerOnMouseMove(CurrentState))
                         break;
 
-            keyboardRepeatTime -= Time.Elapsed;
+            updateKeyRepeat(CurrentState);
 
             if (FocusedDrawable == null)
                 focusTopMostRequestingDrawable();
@@ -401,6 +399,8 @@ namespace osu.Framework.Input
 
         public void HandleMouseScrollChange(InputState state)
         {
+            if (Host.Window != null && !Host.Window.CursorInWindow) return;
+
             var mouse = state.Mouse;
             handleScroll(state);
             mouse.LastScroll = mouse.Scroll;

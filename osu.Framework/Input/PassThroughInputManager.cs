@@ -41,33 +41,46 @@ namespace osu.Framework.Input
                 return pendingInputs;
 
             pendingInputs.Clear();
+            pendingInputs.AddRange(pendingParentInputs);
 
-            foreach (var s in pendingParentStates)
-                pendingInputs.Add(new LeagcyInputStateChange { InputState = new PassThroughInputState(s) });
-
-            pendingParentStates.Clear();
-
+            pendingParentInputs.Clear();
             return pendingInputs;
         }
 
-        private readonly List<InputState> pendingParentStates = new List<InputState>();
+        private readonly List<IInput> pendingParentInputs = new List<IInput>();
 
         private bool acceptState(InputState state)
         {
             if (UseParentState)
-                pendingParentStates.Add(state);
+                pendingParentInputs.Add(new LeagcyInputStateChange { InputState = new PassThroughInputState(state) });
             return false;
         }
 
-        protected override bool OnMouseMove(InputState state) => acceptState(state);
+        protected override bool OnMouseMove(InputState state)
+        {
+            if (UseParentState)
+                pendingParentInputs.Add(new MousePositionAbsoluteChange { Position = state.Mouse.NativeState.Position });
+            return false;
+        }
 
-        protected override bool OnMouseDown(InputState state, MouseDownEventArgs args) => acceptState(state);
+        protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
+        {
+            return acceptState(state);
+        }
 
-        protected override bool OnMouseUp(InputState state, MouseUpEventArgs args) => acceptState(state);
+        protected override bool OnMouseUp(InputState state, MouseUpEventArgs args)
+        {
+            return acceptState(state);
+        }
+
+        protected override bool OnScroll(InputState state)
+        {
+            if (UseParentState)
+                pendingParentInputs.Add(new MouseScrollAbsoluteChange { Scroll = state.Mouse.NativeState.Scroll });
+            return false;
+        }
 
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args) => acceptState(state);
-
-        protected override bool OnScroll(InputState state) => acceptState(state);
 
         protected override bool OnKeyUp(InputState state, KeyUpEventArgs args) => acceptState(state);
 

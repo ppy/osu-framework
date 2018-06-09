@@ -33,7 +33,7 @@ namespace osu.Framework.Input
 
         public Vector2 LastScroll
         {
-            get => lastScroll ?? Scroll;
+            get => lastScroll ?? new Vector2();
             set => lastScroll = value;
         }
 
@@ -87,8 +87,8 @@ namespace osu.Framework.Input
 
         public override string ToString()
         {
-            string down = PositionMouseDown != null ? $"(down @ {PositionMouseDown.Value.X:#,0},{PositionMouseDown.Value.Y:#,0})" : string.Empty;
-            return $@"{GetType().ReadableName()} ({Position.X:#,0},{Position.Y:#,0}) {down} {string.Join(",", Buttons.Select(b => b.ToString()))} Scroll ({Scroll.X:#,2},{Scroll.Y:#,2})/({ScrollDelta.X:#,2},{ScrollDelta.Y:#,2})";
+            string down = PositionMouseDown != null ? $"(down @ {PositionMouseDown.Value.X:F0},{PositionMouseDown.Value.Y:F0})" : string.Empty;
+            return $@"{GetType().ReadableName()} ({Position.X:F0},{Position.Y:F0}) {down} {string.Join(",", Buttons.Select(b => b.ToString()))} Scroll ({Scroll.X:F2},{Scroll.Y:F2})/({ScrollDelta.X:F2},{ScrollDelta.Y:F2})";
         }
     }
 }
