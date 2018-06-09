@@ -204,7 +204,7 @@ namespace osu.Framework.Input
 
             updateMousePositionDependentThings(CurrentState);
 
-            foreach (var result in GetPendingInputHandlerResults())
+            foreach (var result in GetPendingInputs())
             {
                 result.Apply(CurrentState, this);
             }
@@ -242,19 +242,18 @@ namespace osu.Framework.Input
             updateHoverEvents(state);
         }
 
-        protected virtual List<IInputHandlerResult> GetPendingInputHandlerResults()
+        protected virtual List<IInput> GetPendingInputs()
         {
-            var pendingStates = new List<IInputHandlerResult>();
+            var inputs = new List<IInput>();
 
             foreach (var h in InputHandlers)
             {
+                var list = h.GetPendingInputs();
                 if (h.IsActive && h.Enabled)
-                    pendingStates.AddRange(h.GetPendingStates());
-                else
-                    h.GetPendingStates();
+                    inputs.AddRange(list);
             }
 
-            return pendingStates;
+            return inputs;
         }
 
         protected virtual void TransformState(InputState inputState)
@@ -338,7 +337,7 @@ namespace osu.Framework.Input
                 || k == Key.LWin || k == Key.RWin;
         }
 
-        public void HandleKeyboardChange(InputState state, Key key, ButtonStateChangeKind kind)
+        public void HandleKeyboardKeyStateChange(InputState state, Key key, ButtonStateChangeKind kind)
         {
             if (kind == ButtonStateChangeKind.Pressed)
             {
@@ -364,7 +363,7 @@ namespace osu.Framework.Input
 
         }
 
-        public void HandleJoystickButtonChange(InputState state, JoystickButton button, ButtonStateChangeKind kind)
+        public void HandleJoystickButtonStateChange(InputState state, JoystickButton button, ButtonStateChangeKind kind)
         {
             if (kind == ButtonStateChangeKind.Pressed)
             {
@@ -407,7 +406,7 @@ namespace osu.Framework.Input
             mouse.LastScroll = mouse.Scroll;
         }
 
-        public void HandleMouseButtonChange(InputState state, MouseButton button, ButtonStateChangeKind kind)
+        public void HandleMouseButtonStateChange(InputState state, MouseButton button, ButtonStateChangeKind kind)
         {
             var mouse = state.Mouse;
             if (kind == ButtonStateChangeKind.Pressed)

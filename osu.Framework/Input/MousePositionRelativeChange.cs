@@ -5,7 +5,7 @@ using OpenTK;
 
 namespace osu.Framework.Input
 {
-    public class MousePositionRelativeChange : IInputHandlerResult
+    public class MousePositionRelativeChange : IInput
     {
         public Vector2 Delta;
         public void Apply(InputState state, IInputStateChangeHandler handler)

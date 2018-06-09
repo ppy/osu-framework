@@ -3,7 +3,7 @@
 
 namespace osu.Framework.Input
 {
-    public interface IInputHandlerResult
+    public interface IInput
     {
         void Apply(InputState state, IInputStateChangeHandler handler);
     }

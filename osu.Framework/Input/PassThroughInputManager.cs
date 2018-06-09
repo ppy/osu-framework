@@ -32,22 +32,22 @@ namespace osu.Framework.Input
             return false;
         }
 
-        protected override List<IInputHandlerResult> GetPendingInputHandlerResults()
+        protected override List<IInput> GetPendingInputs()
         {
             //we still want to call the base method to clear any pending states that may build up.
-            var pendingStates = base.GetPendingInputHandlerResults();
+            var pendingInputs = base.GetPendingInputs();
 
             if (!UseParentState)
-                return pendingStates;
+                return pendingInputs;
 
-            pendingStates.Clear();
+            pendingInputs.Clear();
 
             foreach (var s in pendingParentStates)
-                pendingStates.Add(new LeagcyInputStateChange { InputState = new PassThroughInputState(s) });
+                pendingInputs.Add(new LeagcyInputStateChange { InputState = new PassThroughInputState(s) });
 
             pendingParentStates.Clear();
 
-            return pendingStates;
+            return pendingInputs;
         }
 
         private readonly List<InputState> pendingParentStates = new List<InputState>();

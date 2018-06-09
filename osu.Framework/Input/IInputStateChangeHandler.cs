@@ -9,9 +9,9 @@ namespace osu.Framework.Input
     {
         void HandleMousePositionChange(InputState state);
         void HandleMouseScrollChange(InputState state);
-        void HandleMouseButtonChange(InputState state, MouseButton button, ButtonStateChangeKind kind);
-        void HandleKeyboardChange(InputState state, Key key, ButtonStateChangeKind kind);
+        void HandleMouseButtonStateChange(InputState state, MouseButton button, ButtonStateChangeKind kind);
+        void HandleKeyboardKeyStateChange(InputState state, Key key, ButtonStateChangeKind kind);
         void HandleJoystickAxisChange(InputState state, JoystickAxis axis, int axisValue);
-        void HandleJoystickButtonChange(InputState state, JoystickButton button, ButtonStateChangeKind kind);
+        void HandleJoystickButtonStateChange(InputState state, JoystickButton button, ButtonStateChangeKind kind);
     }
 }

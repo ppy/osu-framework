@@ -46,7 +46,7 @@ namespace osu.Framework.Input.Handlers.Keyboard
 
             lastState = state;
 
-            PendingStates.Enqueue(new LeagcyInputStateChange { InputState = new InputState { Keyboard = new TkKeyboardState(state) } });
+            PendingInputs.Enqueue(new LeagcyInputStateChange { InputState = new InputState { Keyboard = new TkKeyboardState(state) } });
             FrameStatistics.Increment(StatisticsCounterType.KeyEvents);
         }
 

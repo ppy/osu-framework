@@ -10,7 +10,7 @@ namespace osu.Framework.Input
     /// <summary>
     /// Only temporary class for the WIP. Doesn't work for classes that is derived from InputState.
     /// </summary>
-    public class LeagcyInputStateChange : IInputHandlerResult
+    public class LeagcyInputStateChange : IInput
     {
         public InputState InputState;
         public void Apply(InputState state, IInputStateChangeHandler handler)
@@ -55,7 +55,7 @@ namespace osu.Framework.Input
                 processForButtons(state.Mouse.Buttons.ToArray(), InputState.Mouse.Buttons, (buttons, button, kind) =>
                 {
                     state.Mouse.Buttons = buttons;
-                    handler.HandleMouseButtonChange(state, button, kind);
+                    handler.HandleMouseButtonStateChange(state, button, kind);
                 });
             }
 
@@ -64,7 +64,7 @@ namespace osu.Framework.Input
                 processForButtons(state.Keyboard.Keys.ToArray(), InputState.Keyboard.Keys, (buttons, button, kind) =>
                 {
                     state.Keyboard = new KeyboardState { Keys = buttons };
-                    handler.HandleKeyboardChange(state, button, kind);
+                    handler.HandleKeyboardKeyStateChange(state, button, kind);
                 });
             }
 

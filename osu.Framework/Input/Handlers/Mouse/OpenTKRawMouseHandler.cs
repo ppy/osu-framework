@@ -189,7 +189,7 @@ namespace osu.Framework.Input.Handlers.Mouse
             state = (MouseState)state.Clone();
             state.Scroll = (lastUnfocusedState?.Scroll ?? Vector2.Zero) + (lastRawState?.Scroll ?? Vector2.Zero);
 
-            PendingStates.Enqueue(new LeagcyInputStateChange { InputState = new InputState { Mouse = state } });
+            PendingInputs.Enqueue(new LeagcyInputStateChange { InputState = new InputState { Mouse = state } });
             FrameStatistics.Increment(StatisticsCounterType.MouseEvents);
         }
 
