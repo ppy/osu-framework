@@ -7,7 +7,7 @@ using OpenTK;
 
 namespace osu.Framework.Input
 {
-    public class PassThroughInputManager : CustomInputManager
+    public class PassThroughInputManager : CustomInputManager, IRequireHighFrequencyMousePosition
     {
         /// <summary>
         /// If there's an InputManager above us, decide whether we should use their available state.
