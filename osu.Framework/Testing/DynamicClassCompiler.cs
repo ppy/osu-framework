@@ -128,6 +128,19 @@ namespace osu.Framework.Testing
             }
 
             var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+
+            // ReSharper disable once RedundantExplicitArrayCreation this doesn't compile when the array is empty
+            var parseOptions = new CSharpParseOptions(preprocessorSymbols: new string[] {
+                #if DEBUG
+                    "DEBUG",
+                #endif
+                #if TRACE
+                    "TRACE",
+                #endif
+                #if RELEASE
+                    "RELEASE",
+                #endif
+            });
             var references = assemblies.Select(a => MetadataReference.CreateFromFile(a));
 
             while (!checkFileReady(lastTouchedFile))
@@ -145,7 +158,7 @@ namespace osu.Framework.Testing
 
             var compilation = CSharpCompilation.Create(
                 dynamicNamespace,
-                requiredFiles.Select(file => CSharpSyntaxTree.ParseText(File.ReadAllText(file), null, file))
+                requiredFiles.Select(file => CSharpSyntaxTree.ParseText(File.ReadAllText(file), parseOptions, file))
                              // Compile the assembly with a new version so that it replaces the existing one
                              .Append(CSharpSyntaxTree.ParseText($"using System.Reflection; [assembly: AssemblyVersion(\"{assemblyVersion}\")]"))
                 ,

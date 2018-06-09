@@ -149,6 +149,7 @@ namespace osu.Framework.Graphics.Cursor
                 AddInternal((Drawable)currentTooltip);
 
                 currentTooltip.Show();
+                RefreshTooltip(currentTooltip, target);
             }
         }
 
@@ -268,10 +269,7 @@ namespace osu.Framework.Graphics.Cursor
             /// </summary>
             public virtual string TooltipText
             {
-                set
-                {
-                    text.Text = value;
-                }
+                set => text.Text = value;
             }
 
             public override bool HandleKeyboardInput => false;

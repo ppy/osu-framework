@@ -16,8 +16,8 @@ namespace osu.Framework.Testing.Drawables.Steps
 
         public new string Text
         {
-            get { return text; }
-            set { base.Text = text = value; }
+            get => text;
+            set => base.Text = text = value;
         }
 
         public RepeatStepButton(Action action, int count = 1)

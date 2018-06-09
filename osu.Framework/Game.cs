@@ -28,11 +28,6 @@ namespace osu.Framework
 
         public TextureStore Textures;
 
-        /// <summary>
-        /// This should point to the main resource dll file. If not specified, it will use resources embedded in your executable.
-        /// </summary>
-        protected virtual string MainResourceFile => Host.FullPath;
-
         protected GameHost Host { get; private set; }
 
         private bool isActive;
@@ -101,7 +96,6 @@ namespace osu.Framework
         {
             Resources = new ResourceStore<byte[]>();
             Resources.AddStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(@"osu.Framework.dll"), @"Resources"));
-            Resources.AddStore(new DllResourceStore(MainResourceFile));
 
             Textures = new TextureStore(new RawTextureLoaderStore(new NamespacedResourceStore<byte[]>(Resources, @"Textures")));
             Textures.AddStore(new RawTextureLoaderStore(new OnlineStore()));
@@ -160,7 +154,7 @@ namespace osu.Framework
         /// </summary>
         public bool IsActive
         {
-            get { return isActive; }
+            get => isActive;
             private set
             {
                 if (value == isActive)
@@ -176,8 +170,8 @@ namespace osu.Framework
 
         protected FrameStatisticsMode FrameStatisticsMode
         {
-            get { return performanceContainer.State; }
-            set { performanceContainer.State = value; }
+            get => performanceContainer.State;
+            set => performanceContainer.State = value;
         }
 
         public bool OnPressed(FrameworkAction action)

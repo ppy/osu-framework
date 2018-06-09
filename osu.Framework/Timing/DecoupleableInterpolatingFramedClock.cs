@@ -41,8 +41,8 @@ namespace osu.Framework.Timing
 
         public override double Rate
         {
-            get { return SourceClock?.Rate ?? 1; }
-            set { adjustableSource.Rate = value; }
+            get => SourceClock?.Rate ?? 1;
+            set => adjustableSource.Rate = value;
         }
 
         public void ResetSpeedAdjustments() => Rate = 1;

@@ -59,8 +59,14 @@ namespace osu.Framework.Input
 
         /// <summary>
         /// The last processed state.
+        /// Mouse, Keyboard and Joystick are always non-null.
         /// </summary>
-        public InputState CurrentState = new InputState();
+        public InputState CurrentState = new InputState
+        {
+            Mouse = new MouseState(),
+            Keyboard = new KeyboardState(),
+            Joystick = new JoystickState(),
+        };
 
         /// <summary>
         /// The sequential list in which to handle mouse input.
@@ -200,11 +206,11 @@ namespace osu.Framework.Input
 
         protected override void Update()
         {
-            List<InputState> distinctStates = createDistinctStates(GetPendingStates()).ToList();
+            List<InputState> distinctStates = createDistinctStates(GetPendingStates());
 
             //we need to make sure the code in the foreach below is run at least once even if we have no new pending states.
             if (distinctStates.Count == 0)
-                distinctStates.Add(new InputState());
+                distinctStates.Add(CurrentState.Clone());
 
             unfocusIfNoLongerValid();
 
@@ -229,10 +235,6 @@ namespace osu.Framework.Input
 
         protected virtual void HandleNewState(InputState state)
         {
-            bool hasNewKeyboard = state.Keyboard != null;
-            bool hasNewMouse = state.Mouse != null;
-            bool hasNewJoystick = state.Joystick != null;
-
             var last = CurrentState;
 
             //avoid lingering references that would stay forever.
@@ -240,10 +242,6 @@ namespace osu.Framework.Input
 
             CurrentState = state;
             CurrentState.Last = last;
-
-            if (CurrentState.Keyboard == null) CurrentState.Keyboard = last.Keyboard ?? new KeyboardState();
-            if (CurrentState.Mouse == null) CurrentState.Mouse = last.Mouse ?? new MouseState();
-            if (CurrentState.Joystick == null) CurrentState.Joystick = last.Joystick ?? new JoystickState();
 
             TransformState(CurrentState);
 
@@ -253,14 +251,9 @@ namespace osu.Framework.Input
             //hover could change even when the mouse state has not.
             updateHoverEvents(CurrentState);
 
-            if (hasNewMouse)
-                updateMouseEvents(CurrentState);
-
-            if (hasNewKeyboard || CurrentState.Keyboard.Keys.Any())
-                updateKeyboardEvents(CurrentState);
-
-            if (hasNewJoystick || CurrentState.Joystick.Buttons.Any())
-                updateJoystickEvents(CurrentState);
+            updateMouseEvents(CurrentState);
+            updateKeyboardEvents(CurrentState);
+            updateJoystickEvents(CurrentState);
         }
 
         protected virtual List<InputState> GetPendingStates()
@@ -436,7 +429,7 @@ namespace osu.Framework.Input
             if (!(state.Last.Mouse is MouseState last)) return;
 
             mouse.LastPosition = last.Position;
-            mouse.LastWheel = last.Wheel;
+            mouse.LastScroll = last.Scroll;
             mouse.PositionMouseDown = last.PositionMouseDown;
 
             if (mouse.Position != last.Position)
@@ -459,8 +452,8 @@ namespace osu.Framework.Input
                 }
             }
 
-            if (mouse.WheelDelta != 0 && (Host.Window?.CursorInWindow ?? true))
-                handleWheel(state);
+            if (mouse.ScrollDelta != Vector2.Zero && (Host.Window?.CursorInWindow ?? true))
+                handleScroll(state);
 
             if (mouse.HasAnyButtonPressed)
             {
@@ -662,23 +655,23 @@ namespace osu.Framework.Input
             return result;
         }
 
-        private bool handleWheel(InputState state)
+        private bool handleScroll(InputState state)
         {
-            return PropagateWheel(positionalInputQueue, state);
+            return PropagateScroll(positionalInputQueue, state);
         }
 
         /// <summary>
-        /// Triggers wheel events on drawables in <paramref cref="drawables"/> until it is handled.
+        /// Triggers scroll events on drawables in <paramref cref="drawables"/> until it is handled.
         /// </summary>
         /// <param name="drawables">The drawables in the queue.</param>
         /// <param name="state">The input state.</param>
         /// <returns></returns>
-        protected virtual bool PropagateWheel(IEnumerable<Drawable> drawables, InputState state)
+        protected virtual bool PropagateScroll(IEnumerable<Drawable> drawables, InputState state)
         {
-            var handledBy = drawables.FirstOrDefault(target => target.TriggerOnWheel(state));
+            var handledBy = drawables.FirstOrDefault(target => target.TriggerOnScroll(state));
 
             if (handledBy != null)
-                Logger.Log($"Wheel ({state.Mouse.WheelDelta}) handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
+                Logger.Log($"Scroll ({state.Mouse.ScrollDelta.X:#,2},{state.Mouse.ScrollDelta.Y:#,2}) handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
 
             return handledBy != null;
         }
@@ -815,98 +808,79 @@ namespace osu.Framework.Input
         /// </summary>
         /// <param name="states">One ore more states which are to be converted to distinct states.</param>
         /// <returns>Processed states such that at most one attribute change occurs between any two consecutive states.</returns>
-        private IEnumerable<InputState> createDistinctStates(IEnumerable<InputState> states)
+        private List<InputState> createDistinctStates(IEnumerable<InputState> states)
         {
-            InputState transientState = CurrentState;
-            IKeyboardState lastKeyboard = CurrentState.Keyboard ?? new KeyboardState();
-            IMouseState lastMouse = CurrentState.Mouse ?? new MouseState();
-            IJoystickState lastJoystick = CurrentState.Joystick ?? new JoystickState();
+            Trace.Assert(CurrentState.Keyboard != null && CurrentState.Mouse != null && CurrentState.Joystick != null);
 
-            InputState createDistinctState(Action<InputState> application)
+            List<InputState> distinctStates = new List<InputState>();
+            InputState transient = CurrentState;
+
+            void createDistinctState(Action<InputState> application)
             {
-                var lastState = transientState;
-                lastState.Last = null;
+                transient = transient.Clone();
+                application?.Invoke(transient);
+                distinctStates.Add(transient);
+            }
 
-                transientState = lastState.Clone();
-                transientState.Last = lastState;
+            void processForButtons<TButton>(
+                IReadOnlyList<TButton> lastButtons,
+                IEnumerable<TButton> incomingButtons,
+                Action<InputState, IReadOnlyList<TButton>> setButtons)
+                where TButton : struct
+            {
+                foreach (var releasedButton in lastButtons.Except(incomingButtons))
+                    createDistinctState(s =>
+                    {
+                        lastButtons = lastButtons.Where(d => !d.Equals(releasedButton)).ToArray();
+                        setButtons(s, lastButtons);
+                    });
 
-                application?.Invoke(transientState);
-
-                lastKeyboard = transientState.Keyboard ?? lastKeyboard;
-                lastMouse = transientState.Mouse ?? lastMouse;
-                lastJoystick = transientState.Joystick ?? lastJoystick;
-
-                return transientState;
+                foreach (var pressedButton in incomingButtons.Except(lastButtons))
+                    createDistinctState(s =>
+                    {
+                        lastButtons = lastButtons.Union(new[] { pressedButton }).ToArray();
+                        setButtons(s, lastButtons);
+                    });
             }
 
             foreach (var incoming in states)
             {
+                var last = transient;
+
+                transient = incoming.Clone();
+                transient.Mouse = last.Mouse;
+                transient.Keyboard = last.Keyboard;
+                transient.Joystick = last.Joystick;
+
+                distinctStates.Add(transient);
+
                 if (incoming.Mouse != null)
                 {
-                    if (lastMouse.Position != incoming.Mouse.Position)
-                        yield return createDistinctState(s =>
-                        {
-                            s.Mouse = (s.Mouse as MouseState)?.CloneWithoutDeltas() ?? new MouseState();
-                            s.Mouse.Position = incoming.Mouse.Position;
-                        });
+                    if (transient.Mouse.Position != incoming.Mouse.Position)
+                        createDistinctState(s => s.Mouse.Position = incoming.Mouse.Position);
 
-                    if (lastMouse.Wheel != incoming.Mouse.Wheel)
-                        yield return createDistinctState(s =>
-                        {
-                            s.Mouse = s.Mouse.Clone();
-                            s.Mouse.Wheel = incoming.Mouse.Wheel;
-                        });
+                    if (transient.Mouse.Scroll != incoming.Mouse.Scroll)
+                        createDistinctState(s => s.Mouse.Scroll = incoming.Mouse.Scroll);
 
-                    foreach (var releasedButton in lastMouse.Buttons.Except(incoming.Mouse.Buttons))
-                        yield return createDistinctState(s =>
-                        {
-                            s.Mouse = s.Mouse.Clone();
-                            s.Mouse.Buttons = s.Mouse.Buttons.Where(d => d != releasedButton).ToArray();
-                        });
-
-                    foreach (var pressedButton in incoming.Mouse.Buttons.Except(lastMouse.Buttons))
-                        yield return createDistinctState(s =>
-                        {
-                            s.Mouse = s.Mouse.Clone();
-                            s.Mouse.Buttons = s.Mouse.Buttons.Union(new[] { pressedButton }).ToArray();
-                        });
+                    processForButtons(transient.Mouse.Buttons, incoming.Mouse.Buttons, (s, buttons) => s.Mouse.Buttons = buttons);
                 }
 
                 if (incoming.Keyboard != null)
                 {
-                    foreach (var releasedKey in lastKeyboard.Keys.Except(incoming.Keyboard.Keys))
-                        yield return createDistinctState(s => s.Keyboard = new KeyboardState { Keys = s.Keyboard.Keys.Where(d => d != releasedKey).ToArray() });
-
-                    foreach (var pressedKey in incoming.Keyboard.Keys.Except(lastKeyboard.Keys))
-                        yield return createDistinctState(s => s.Keyboard = new KeyboardState { Keys = s.Keyboard.Keys.Union(new[] { pressedKey }) });
+                    processForButtons(transient.Keyboard.Keys.ToArray(), incoming.Keyboard.Keys, (s, buttons) => s.Keyboard = new KeyboardState { Keys = buttons });
                 }
 
                 if (incoming.Joystick != null)
                 {
-                    // push a state for the axes
-                    yield return createDistinctState(s => s.Joystick = new JoystickState
-                    {
-                        Axes = incoming.Joystick.Axes,
-                        Buttons = s.Joystick.Buttons
-                    });
+                    if (!transient.Joystick.Axes.SequenceEqual(incoming.Joystick.Axes))
+                        createDistinctState(s => s.Joystick = new JoystickState { Axes = incoming.Joystick.Axes, Buttons = s.Joystick.Buttons });
 
-                    foreach (var releasedButton in lastJoystick.Buttons.Except(incoming.Joystick.Buttons))
-                        yield return createDistinctState(s => s.Joystick = new JoystickState
-                        {
-                            Axes = s.Joystick.Axes,
-                            Buttons = s.Joystick.Buttons.Where(d => d != releasedButton).ToArray()
-                        });
-
-                    foreach (var pressedButton in incoming.Joystick.Buttons.Except(lastJoystick.Buttons))
-                        yield return createDistinctState(s => s.Joystick = new JoystickState
-                        {
-                            Axes = s.Joystick.Axes,
-                            Buttons = s.Joystick.Buttons.Union(new[] { pressedButton }).ToArray()
-                        });
+                    processForButtons(transient.Joystick.Buttons.ToArray(), incoming.Joystick.Buttons,
+                        (s, buttons) => s.Joystick = new JoystickState { Axes = s.Joystick.Axes, Buttons = buttons });
                 }
-
-                yield return incoming;
             }
+
+            return distinctStates;
         }
     }
 

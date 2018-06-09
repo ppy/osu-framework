@@ -10,7 +10,6 @@ using osu.Framework.Platform;
 using osu.Framework.Statistics;
 using osu.Framework.Threading;
 using OpenTK;
-using OpenTK.Platform.Windows;
 
 namespace osu.Framework.Input.Handlers.Mouse
 {
@@ -125,7 +124,7 @@ namespace osu.Framework.Input.Handlers.Mouse
         {
             Vector2 currentPosition;
 
-            if ((state.RawFlags & RawMouseFlags.MOUSE_MOVE_ABSOLUTE) > 0)
+            if ((state.Flags & OpenTK.Input.MouseStateFlags.MoveAbsolute) > 0)
             {
                 const int raw_input_resolution = 65536;
 
@@ -138,7 +137,7 @@ namespace osu.Framework.Input.Handlers.Mouse
                 }
                 else
                 {
-                    Rectangle screenRect = (state.RawFlags & RawMouseFlags.MOUSE_VIRTUAL_DESKTOP) > 0
+                    Rectangle screenRect = (state.Flags & OpenTK.Input.MouseStateFlags.VirtualDesktop) > 0
                         ? Platform.Windows.Native.Input.GetVirtualScreenRect()
                         : new Rectangle(0, 0, DisplayDevice.Default.Width, DisplayDevice.Default.Height);
 
@@ -168,9 +167,8 @@ namespace osu.Framework.Input.Handlers.Mouse
                 {
                     currentPosition = lastState.Position + new Vector2(state.X - lastState.RawState.X, state.Y - lastState.RawState.Y) * (float)sensitivity.Value;
 
-                    // When confining, clamp to the window size.
-                    if (confineMode.Value == ConfineMouseMode.Always || confineMode.Value == ConfineMouseMode.Fullscreen && windowMode.Value == WindowMode.Fullscreen)
-                        currentPosition = Vector2.Clamp(currentPosition, Vector2.Zero, new Vector2(host.Window.Width, host.Window.Height));
+                    // raw mouse input should always be clamped to window bounds
+                    currentPosition = Vector2.Clamp(currentPosition, Vector2.Zero, new Vector2(host.Window.Width, host.Window.Height));
 
                     // update the windows cursor to match our raw cursor position.
                     // this is important when sensitivity is decreased below 1.0, where we need to ensure the cursor stays within the window.
@@ -189,7 +187,7 @@ namespace osu.Framework.Input.Handlers.Mouse
         {
             // combine wheel values to avoid discrepancy between sources.
             state = (MouseState)state.Clone();
-            state.Wheel = (lastUnfocusedState?.Wheel ?? 0) + (lastRawState?.Wheel ?? 0);
+            state.Scroll = (lastUnfocusedState?.Scroll ?? Vector2.Zero) + (lastRawState?.Scroll ?? Vector2.Zero);
 
             PendingStates.Enqueue(new InputState { Mouse = state });
             FrameStatistics.Increment(StatisticsCounterType.MouseEvents);

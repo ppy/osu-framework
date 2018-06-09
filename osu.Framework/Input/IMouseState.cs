@@ -29,11 +29,13 @@ namespace osu.Framework.Input
 
         void SetPressed(MouseButton button, bool pressed);
 
-        int Wheel { get; set; }
+        Vector2 Scroll { get; set; }
 
-        int LastWheel { get; set; }
+        Vector2 LastScroll { get; set; }
 
-        int WheelDelta { get; }
+        Vector2 ScrollDelta { get; }
+
+        bool HasPreciseScroll { get; set; }
 
         IMouseState Clone();
     }

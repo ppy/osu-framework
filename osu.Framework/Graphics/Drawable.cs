@@ -285,7 +285,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         public float Depth
         {
-            get { return depth; }
+            get => depth;
             set
             {
                 if (IsPartOfComposite)
@@ -408,7 +408,7 @@ namespace osu.Framework.Graphics
 
         private Vector2 position
         {
-            get { return new Vector2(x, y); }
+            get => new Vector2(x, y);
             set
             {
                 x = value.X;
@@ -423,8 +423,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         public Vector2 Position
         {
-            get { return position; }
-
+            get => position;
             set
             {
                 if (position == value) return;
@@ -445,7 +444,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         public float X
         {
-            get { return x; }
+            get => x;
             set
             {
                 if (x == value) return;
@@ -463,7 +462,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         public float Y
         {
-            get { return y; }
+            get => y;
             set
             {
                 if (y == value) return;
@@ -490,7 +489,7 @@ namespace osu.Framework.Graphics
         /// </remarks>
         public Axes RelativePositionAxes
         {
-            get { return relativePositionAxes; }
+            get => relativePositionAxes;
             set
             {
                 if (value == relativePositionAxes)
@@ -540,7 +539,7 @@ namespace osu.Framework.Graphics
 
         private Vector2 size
         {
-            get { return new Vector2(width, height); }
+            get => new Vector2(width, height);
             set
             {
                 width = value.X;
@@ -554,8 +553,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         public virtual Vector2 Size
         {
-            get { return size; }
-
+            get => size;
             set
             {
                 if (size == value) return;
@@ -576,7 +574,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         public virtual float Width
         {
-            get { return width; }
+            get => width;
             set
             {
                 if (width == value) return;
@@ -594,7 +592,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         public virtual float Height
         {
-            get { return height; }
+            get => height;
             set
             {
                 if (height == value) return;
@@ -622,7 +620,7 @@ namespace osu.Framework.Graphics
         /// </remarks>
         public virtual Axes RelativeSizeAxes
         {
-            get { return relativeSizeAxes; }
+            get => relativeSizeAxes;
             set
             {
                 if (value == relativeSizeAxes)
@@ -684,7 +682,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         public MarginPadding Margin
         {
-            get { return margin; }
+            get => margin;
             set
             {
                 if (margin.Equals(value)) return;
@@ -779,8 +777,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         public Axes BypassAutoSizeAxes
         {
-            get { return bypassAutoSizeAxes | relativeSizeAxes | relativePositionAxes; }
-
+            get => bypassAutoSizeAxes | relativeSizeAxes | relativePositionAxes;
             set
             {
                 if (value == bypassAutoSizeAxes)
@@ -812,8 +809,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         public Vector2 Scale
         {
-            get { return scale; }
-
+            get => scale;
             set
             {
                 if (Math.Abs(value.X) < Precision.FLOAT_EPSILON)
@@ -840,8 +836,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         public float FillAspectRatio
         {
-            get { return fillAspectRatio; }
-
+            get => fillAspectRatio;
             set
             {
                 if (fillAspectRatio == value) return;
@@ -866,8 +861,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         public FillMode FillMode
         {
-            get { return fillMode; }
-
+            get => fillMode;
             set
             {
                 if (fillMode == value) return;
@@ -890,8 +884,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         public Vector2 Shear
         {
-            get { return shear; }
-
+            get => shear;
             set
             {
                 if (shear == value) return;
@@ -910,8 +903,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         public float Rotation
         {
-            get { return rotation; }
-
+            get => rotation;
             set
             {
                 if (value == rotation) return;
@@ -936,8 +928,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         public virtual Anchor Origin
         {
-            get { return origin; }
-
+            get => origin;
             set
             {
                 if (origin == value) return;
@@ -1021,8 +1012,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         public Anchor Anchor
         {
-            get { return anchor; }
-
+            get => anchor;
             set
             {
                 if (anchor == value) return;
@@ -1119,8 +1109,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         public ColourInfo Colour
         {
-            get { return colour; }
-
+            get => colour;
             set
             {
                 if (colour.Equals(value)) return;
@@ -1139,8 +1128,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         public float Alpha
         {
-            get { return alpha; }
-
+            get => alpha;
             set
             {
                 if (alpha == value) return;
@@ -1168,8 +1156,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         public bool AlwaysPresent
         {
-            get { return alwaysPresent; }
-
+            get => alwaysPresent;
             set
             {
                 if (alwaysPresent == value) return;
@@ -1188,8 +1175,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         public BlendingParameters Blending
         {
-            get { return blending; }
-
+            get => blending;
             set
             {
                 if (blending.Equals(value))
@@ -1214,7 +1200,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         public override IFrameBasedClock Clock
         {
-            get { return clock; }
+            get => clock;
             set
             {
                 customClock = value;
@@ -1297,7 +1283,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         public CompositeDrawable Parent
         {
-            get { return parent; }
+            get => parent;
             internal set
             {
                 if (isDisposed)
@@ -1808,17 +1794,17 @@ namespace osu.Framework.Graphics
         protected virtual bool OnDragEnd(InputState state) => false;
 
         /// <summary>
-        /// Triggers <see cref="OnWheel(InputState)"/> with a local version of the given <see cref="InputState"/>.
+        /// Triggers <see cref="OnScroll(InputState)"/> with a local version of the given <see cref="InputState"/>.
         /// </summary>
-        public bool TriggerOnWheel(InputState screenSpaceState) => OnWheel(createCloneInParentSpace(screenSpaceState));
+        public bool TriggerOnScroll(InputState screenSpaceState) => OnScroll(createCloneInParentSpace(screenSpaceState));
 
         /// <summary>
-        /// Triggered whenever the mouse wheel was turned over this Drawable.
+        /// Triggered whenever the mouse scrolled over this Drawable.
         /// </summary>
-        /// <param name="state">The state after the wheel was turned.</param>
+        /// <param name="state">The state after scrolling happened.</param>
         /// <returns>True if this Drawable handled the event. If false, then the event
         /// is propagated up the scene graph to the next eligible Drawable.</returns>
-        protected virtual bool OnWheel(InputState state) => false;
+        protected virtual bool OnScroll(InputState state) => false;
 
         /// <summary>
         /// Triggers <see cref="OnFocus(InputState)"/> with a local version of the given <see cref="InputState"/>
@@ -1951,7 +1937,7 @@ namespace osu.Framework.Graphics
                 nameof(OnDragStart),
                 nameof(OnDrag),
                 nameof(OnDragEnd),
-                nameof(OnWheel),
+                nameof(OnScroll),
                 nameof(OnFocus),
                 nameof(OnFocusLost),
                 nameof(OnMouseMove)
@@ -2128,27 +2114,33 @@ namespace osu.Framework.Graphics
 
             public Vector2? PositionMouseDown
             {
-                get { return NativeState.PositionMouseDown == null ? null : us.Parent?.ToLocalSpace(NativeState.PositionMouseDown.Value) ?? NativeState.PositionMouseDown; }
-                set { throw new NotImplementedException(); }
+                get => NativeState.PositionMouseDown == null ? null : us.Parent?.ToLocalSpace(NativeState.PositionMouseDown.Value) ?? NativeState.PositionMouseDown;
+                set => throw new NotImplementedException();
             }
 
             public bool HasMainButtonPressed => NativeState.HasMainButtonPressed;
 
             public bool HasAnyButtonPressed => NativeState.HasAnyButtonPressed;
 
-            public int Wheel
+            public Vector2 Scroll
             {
-                get => NativeState.Wheel;
+                get => NativeState.Scroll;
                 set => throw new NotSupportedException();
             }
 
-            public int LastWheel
+            public Vector2 LastScroll
             {
-                get => NativeState.LastWheel;
+                get => NativeState.LastScroll;
                 set => throw new NotSupportedException();
             }
 
-            public int WheelDelta => NativeState.WheelDelta;
+            public Vector2 ScrollDelta => NativeState.ScrollDelta;
+
+            public bool HasPreciseScroll
+            {
+                get => NativeState.HasPreciseScroll;
+                set => NativeState.HasPreciseScroll = value;
+            }
 
             public bool IsPressed(MouseButton button) => NativeState.IsPressed(button);
 

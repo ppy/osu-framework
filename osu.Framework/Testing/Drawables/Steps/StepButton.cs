@@ -23,15 +23,15 @@ namespace osu.Framework.Testing.Drawables.Steps
 
         public string Text
         {
-            get { return SpriteText.Text; }
-            set { SpriteText.Text = value; }
+            get => SpriteText.Text;
+            set => SpriteText.Text = value;
         }
 
         private Color4 lightColour = Color4.BlueViolet;
 
         public Color4 LightColour
         {
-            get { return lightColour; }
+            get => lightColour;
             set
             {
                 lightColour = value;

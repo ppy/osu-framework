@@ -237,8 +237,8 @@ namespace osu.Framework.Audio.Track
 
         public double PitchAdjust
         {
-            get { return Frequency.Value; }
-            set { Frequency.Value = value; }
+            get => Frequency.Value;
+            set => Frequency.Value = value;
         }
 
         private TrackAmplitudes currentAmplitudes;

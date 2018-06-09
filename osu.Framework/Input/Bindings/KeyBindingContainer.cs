@@ -61,13 +61,13 @@ namespace osu.Framework.Input.Bindings
         /// </summary>
         protected virtual bool Prioritised => false;
 
-        protected override bool OnWheel(InputState state)
+        protected override bool OnScroll(InputState state)
         {
-            InputKey key = state.Mouse.WheelDelta > 0 ? InputKey.MouseWheelUp : InputKey.MouseWheelDown;
+            InputKey key = state.Mouse.ScrollDelta.Y > 0 ? InputKey.MouseWheelUp : InputKey.MouseWheelDown;
 
             // we need to create a local cloned state to ensure the underlying code in handleNewReleased thinks we are in a sane state,
             // even though we are pressing and releasing an InputKey in a single frame.
-            // the important part of this cloned state is the value of Wheel reset to zero.
+            // the important part of this cloned state is the value of Scroll reset to zero.
             var clonedState = state.Clone();
             clonedState.Mouse = new MouseState { Buttons = clonedState.Mouse.Buttons };
 
