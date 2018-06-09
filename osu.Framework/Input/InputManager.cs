@@ -37,12 +37,7 @@ namespace osu.Framework.Input
         /// The distance that must be moved until a dragged click becomes invalid.
         /// </summary>
         private const float click_drag_distance = 10;
-
-        /// <summary>
-        /// The time of the last input action.
-        /// </summary>
-        public double LastActionTime;
-
+        
         protected GameHost Host;
 
         internal Drawable FocusedDrawable;
@@ -52,10 +47,9 @@ namespace osu.Framework.Input
         private double lastClickTime;
 
         private double keyboardRepeatTime;
+        private Key? keyboardRepeatKey;
 
         private bool isDragging;
-
-        private bool isValidClick;
 
         /// <summary>
         /// The last processed state.
@@ -215,6 +209,7 @@ namespace osu.Framework.Input
                 result.Apply(CurrentState, this);
             }
 
+            updateKeyRepeat();
 
             foreach (var d in positionalInputQueue)
                 if (d is IRequireHighFrequencyMousePosition)
@@ -227,6 +222,18 @@ namespace osu.Framework.Input
                 focusTopMostRequestingDrawable();
 
             base.Update();
+        }
+
+        void updateKeyRepeat()
+        {
+            if (keyboardRepeatKey == null) return;
+
+            keyboardRepeatTime -= Time.Elapsed;
+            while (keyboardRepeatTime < 0)
+            {
+                handleKeyDown(CurrentState, keyboardRepeatKey.Value, true);
+                keyboardRepeatTime += repeat_tick_rate;
+            }
         }
 
         void updateMousePositionDependentThings(InputState state)
@@ -337,43 +344,18 @@ namespace osu.Framework.Input
             {
                 handleKeyDown(state, key, false);
 
-                // todo: key repeat
-                /*
-                bool isModifier = isModifierKey(key);
-
-                LastActionTime = Time.Current;
-
-                bool isRepetition = last.Keys.Contains(k);
-
-                if (isModifier)
+                if (!isModifierKey(key))
                 {
-                    //modifiers shouldn't affect or report key repeat
-                    if (!isRepetition)
-                        handleKeyDown(state, k, false);
-                    continue;
-                }
-
-                if (isRepetition)
-                {
-                    if (keyboardRepeatTime <= 0)
-                    {
-                        keyboardRepeatTime += repeat_tick_rate;
-                        handleKeyDown(state, k, true);
-                    }
-                }
-                else
-                {
+                    keyboardRepeatKey = key;
                     keyboardRepeatTime = repeat_initial_delay;
-                    handleKeyDown(state, k, false);
                 }
-                */
             }
             else
             {
-                if (!state.Keyboard.Keys.Any())
-                    keyboardRepeatTime = 0;
-
                 handleKeyUp(state, key);
+
+                keyboardRepeatKey = null;
+                keyboardRepeatTime = 0;
             }
         }
 
@@ -396,80 +378,80 @@ namespace osu.Framework.Input
 
         public void HandleMousePositionChange(InputState state)
         {
-            /*
-            mouse.LastPosition = last.Position;
-            mouse.LastScroll = last.Scroll;
-            mouse.PositionMouseDown = last.PositionMouseDown;
-            */
+            var mouse = state.Mouse;
 
             updateMousePositionDependentThings(state);
 
             handleMouseMove(state);
-            if (isDragging)
-                handleMouseDrag(state);
-        }
 
-        public void HandleMouseScrollChange(InputState state)
-        {
-            handleScroll(state);
-        }
-
-        public void HandleMouseButtonChange(InputState state, MouseButton button, ButtonStateChangeKind kind)
-        {
-            if (kind == ButtonStateChangeKind.Pressed)
-                handleMouseDown(state, button);
-            else
-                handleMouseUp(state, button);
-
-            //todo: click, double click, drag
-            /*
-            if (mouse.HasAnyButtonPressed)
+            if (!isDragging)
             {
-                if (!last.HasAnyButtonPressed)
-                {
-                    //stuff which only happens once after the mousedown state
-                    mouse.PositionMouseDown = mouse.Position;
-                    LastActionTime = Time.Current;
-
-                    if (mouse.IsPressed(MouseButton.Left))
-                    {
-                        isValidClick = true;
-
-                        if (Time.Current - lastClickTime < double_click_time)
-                        {
-                            if (handleMouseDoubleClick(state))
-                                //when we handle a double-click we want to block a normal click from firing.
-                                isValidClick = false;
-
-                            lastClickTime = 0;
-                        }
-                        else
-                            lastClickTime = Time.Current;
-                    }
-                }
-
-                if (!isDragging && Vector2Extensions.Distance(mouse.PositionMouseDown ?? mouse.Position, mouse.Position) > click_drag_distance)
+                if (mouse.IsPressed(MouseButton.Left) && Vector2Extensions.Distance(mouse.PositionMouseDown ?? mouse.Position, mouse.Position) > click_drag_distance)
                 {
                     isDragging = true;
                     handleMouseDragStart(state);
                 }
             }
-            else if (last.HasAnyButtonPressed)
+            else
             {
-                if (isValidClick && (DraggedDrawable == null || Vector2Extensions.Distance(last.PositionMouseDown ?? last.Position, mouse.Position) <= click_drag_distance))
-                    handleMouseClick(state);
+                handleMouseDrag(state);
+            }
 
-                mouseDownInputQueue = null;
-                mouse.PositionMouseDown = null;
-                isValidClick = false;
+            mouse.LastPosition = mouse.Position;
+        }
 
-                if (isDragging)
+        public void HandleMouseScrollChange(InputState state)
+        {
+            var mouse = state.Mouse;
+            handleScroll(state);
+            mouse.LastScroll = mouse.Scroll;
+        }
+
+        public void HandleMouseButtonChange(InputState state, MouseButton button, ButtonStateChangeKind kind)
+        {
+            var mouse = state.Mouse;
+            if (kind == ButtonStateChangeKind.Pressed)
+            {
+                handleMouseDown(state, button);
+
+                if (button == MouseButton.Left)
                 {
+                    mouse.PositionMouseDown = mouse.Position;
                     isDragging = false;
-                    handleMouseDragEnd(state);
                 }
             }
-            */
+            else
+            {
+                handleMouseUp(state, button);
+
+                if (button == MouseButton.Left)
+                {
+                    if (isDragging)
+                    {
+                        isDragging = false;
+                        handleMouseDragEnd(state);
+                    }
+                    else
+                    {
+                        bool isValidClick = true;
+                        if (Time.Current - lastClickTime < double_click_time)
+                        {
+                            if (handleMouseDoubleClick(state))
+                            {
+                                //when we handle a double-click we want to block a normal click from firing.
+                                isValidClick = false;
+                                lastClickTime = 0;
+                            }
+                        }
+                        if (isValidClick)
+                        {
+                            lastClickTime = Time.Current;
+                            handleMouseClick(state);
+                        }
+                    }
+                    mouse.PositionMouseDown = null;
+                }
+            }
         }
 
         private List<Drawable> mouseDownInputQueue;
@@ -771,88 +753,6 @@ namespace osu.Framework.Input
         }
 
         private void focusTopMostRequestingDrawable() => ChangeFocus(inputQueue.FirstOrDefault(target => target.RequestsFocus));
-
-        /// <summary>
-        /// In order to provide a reliable event system to drawables, we want to ensure that we reprocess input queues (via the
-        /// main loop in <see cref="InputManager"/> after each and every button or key change. This allows
-        /// correct behaviour in a case where the input queues change based on triggered by a button or key.
-        /// </summary>
-        /// <param name="states">One ore more states which are to be converted to distinct states.</param>
-        /// <returns>Processed states such that at most one attribute change occurs between any two consecutive states.</returns>
-        private List<InputState> createDistinctStates(IEnumerable<InputState> states)
-        {
-            Trace.Assert(CurrentState.Keyboard != null && CurrentState.Mouse != null && CurrentState.Joystick != null);
-
-            List<InputState> distinctStates = new List<InputState>();
-            InputState transient = CurrentState;
-
-            void createDistinctState(Action<InputState> application)
-            {
-                transient = transient.Clone();
-                application?.Invoke(transient);
-                distinctStates.Add(transient);
-            }
-
-            void processForButtons<TButton>(
-                IReadOnlyList<TButton> lastButtons,
-                IEnumerable<TButton> incomingButtons,
-                Action<InputState, IReadOnlyList<TButton>> setButtons)
-                where TButton : struct
-            {
-                foreach (var releasedButton in lastButtons.Except(incomingButtons))
-                    createDistinctState(s =>
-                    {
-                        lastButtons = lastButtons.Where(d => !d.Equals(releasedButton)).ToArray();
-                        setButtons(s, lastButtons);
-                    });
-
-                foreach (var pressedButton in incomingButtons.Except(lastButtons))
-                    createDistinctState(s =>
-                    {
-                        lastButtons = lastButtons.Union(new[] { pressedButton }).ToArray();
-                        setButtons(s, lastButtons);
-                    });
-            }
-
-            foreach (var incoming in states)
-            {
-                var last = transient;
-
-                transient = incoming.Clone();
-                transient.Mouse = last.Mouse;
-                transient.Keyboard = last.Keyboard;
-                transient.Joystick = last.Joystick;
-
-                distinctStates.Add(transient);
-
-                if (incoming.Mouse != null)
-                {
-                    if (transient.Mouse.Position != incoming.Mouse.Position)
-                        createDistinctState(s => s.Mouse.Position = incoming.Mouse.Position);
-
-                    if (transient.Mouse.Scroll != incoming.Mouse.Scroll)
-                        createDistinctState(s => s.Mouse.Scroll = incoming.Mouse.Scroll);
-
-                    processForButtons(transient.Mouse.Buttons, incoming.Mouse.Buttons, (s, buttons) => s.Mouse.Buttons = buttons);
-                }
-
-                if (incoming.Keyboard != null)
-                {
-                    processForButtons(transient.Keyboard.Keys.ToArray(), incoming.Keyboard.Keys, (s, buttons) => s.Keyboard = new KeyboardState { Keys = buttons });
-                }
-
-                if (incoming.Joystick != null)
-                {
-                    if (!transient.Joystick.Axes.SequenceEqual(incoming.Joystick.Axes))
-                        createDistinctState(s => s.Joystick = new JoystickState { Axes = incoming.Joystick.Axes, Buttons = s.Joystick.Buttons });
-
-                    processForButtons(transient.Joystick.Buttons.ToArray(), incoming.Joystick.Buttons,
-                        (s, buttons) => s.Joystick = new JoystickState { Axes = s.Joystick.Axes, Buttons = buttons });
-                }
-            }
-
-            return distinctStates;
-        }
     }
 
     public enum ConfineMouseMode
