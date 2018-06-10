@@ -81,7 +81,7 @@ namespace osu.Framework.Input.Handlers.Mouse
 
                                 var newState = new OpenTKPollMouseState(state, host.IsActive, getUpdatedPosition(state, lastState));
                                 if (lastState != null) newState.LastPosition = lastState.Position;
-                                newState.LastScroll = lastState?.Scroll ?? newState.Scroll;
+                                newState.LastScroll = lastState?.Scroll ?? Vector2.Zero;
 
                                 HandleState(newState);
 
