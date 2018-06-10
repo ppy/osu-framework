@@ -61,7 +61,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 if (source == null && value == null)
                     return;
-                
+
                 if (CompareItems(source, value))
                     return;
 
@@ -101,7 +101,7 @@ namespace osu.Framework.Graphics.Containers
 
             if (previousDrawable != null && newDrawable == null)
                 PlaceholderDrawable?.FadeInFromZero(300, Easing.OutQuint);
-            
+
             if (newDrawable == null || FadeOutImmediately)
                 previousDrawable?.FadeOut(300).Expire();
 
@@ -119,7 +119,7 @@ namespace osu.Framework.Graphics.Containers
 
                     if (!FadeOutImmediately)
                         previousDrawable?.FadeOut(300).Expire();
-                    
+
                     d.FadeInFromZero(300, Easing.OutQuint);
                 };
                 Add(new DelayedLoadWrapper(newDrawable));
