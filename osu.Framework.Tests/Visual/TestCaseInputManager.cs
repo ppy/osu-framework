@@ -96,14 +96,14 @@ namespace osu.Framework.Tests.Visual
                 var inputManager = GetContainingInputManager();
                 var currentState = inputManager.CurrentState;
                 var mouse = currentState.Mouse;
-                inputManagerStatus.Text = $"{inputManager.ToString()}";
+                inputManagerStatus.Text = $"{inputManager}";
                 mouseStatus.Text = $"Mouse: {mouse.Position} {mouse.Scroll} " + String.Join(" ", mouse.Buttons);
                 keyboardStatus.Text = "Keyboard: " + String.Join(" ", currentState.Keyboard.Keys);
                 joystickStatus.Text = "Joystick: " + String.Join(" ", currentState.Joystick.Buttons);
                 base.Update();
             }
 
-            private int mouseMoveCount = 0;
+            private int mouseMoveCount;
             protected override bool OnMouseMove(InputState state)
             {
                 ++mouseMoveCount;
@@ -111,7 +111,7 @@ namespace osu.Framework.Tests.Visual
                 return base.OnMouseMove(state);
             }
 
-            private int scrollCount = 0;
+            private int scrollCount;
             protected override bool OnScroll(InputState state)
             {
                 ++scrollCount;
