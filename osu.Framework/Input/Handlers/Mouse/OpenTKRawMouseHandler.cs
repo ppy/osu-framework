@@ -7,17 +7,15 @@ using System.Drawing;
 using System.Linq;
 using osu.Framework.Configuration;
 using osu.Framework.Platform;
-using osu.Framework.Statistics;
 using osu.Framework.Threading;
 using OpenTK;
-using OpenTK.Input;
 
 namespace osu.Framework.Input.Handlers.Mouse
 {
     internal class OpenTKRawMouseHandler : OpenTKMouseHandlerBase, IHasCursorSensitivity
     {
         private ScheduledDelegate scheduled;
-        
+
         private readonly BindableDouble sensitivity = new BindableDouble(1) { MinValue = 0.1, MaxValue = 10 };
 
         public BindableDouble Sensitivity => sensitivity;
@@ -84,7 +82,7 @@ namespace osu.Framework.Input.Handlers.Mouse
                                 var newState = new OpenTKPollMouseState(state, host.IsActive, getUpdatedPosition(state, lastState));
                                 if (lastState != null) newState.LastPosition = lastState.Position;
                                 newState.LastScroll = lastState?.Scroll ?? Vector2.Zero;
-                                
+
                                 HandleState(newState);
 
                                 lastStates[i] = newState;

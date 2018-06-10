@@ -4,7 +4,6 @@
 using System.Drawing;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
-using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Input;
 
@@ -17,7 +16,7 @@ namespace osu.Framework.Input.Handlers.Mouse
 
         public override bool Initialize(GameHost host)
         {
-            this.Host = host;
+            Host = host;
 
             MouseInWindow = host.Window.CursorInWindow;
             Host.Window.MouseLeave += (s, e) => MouseInWindow = false;
@@ -26,10 +25,10 @@ namespace osu.Framework.Input.Handlers.Mouse
             return true;
         }
 
-        Vector2 currentPosition;
+        private Vector2 currentPosition;
         protected void HandleState(OpenTKMouseState state)
         {
-            if (!state.HasLastPosition || (state.RawState.Flags & OpenTK.Input.MouseStateFlags.MoveAbsolute) > 0)
+            if (!state.HasLastPosition || (state.RawState.Flags & MouseStateFlags.MoveAbsolute) > 0)
             {
                 PendingInputs.Enqueue(new MousePositionAbsoluteInput { Position = state.Position });
                 currentPosition = state.Position;
@@ -43,7 +42,7 @@ namespace osu.Framework.Input.Handlers.Mouse
             for (var i = 0; i <= (int)MouseButton.LastButton; ++ i)
                 PendingInputs.Enqueue(new MouseButtonInput { Button = (MouseButton)i, IsPressed = state.IsPressed((MouseButton)i) });
             FrameStatistics.Increment(StatisticsCounterType.MouseEvents);
-            
+
             // update the windows cursor to match our raw cursor position.
             // this is important when sensitivity is decreased below 1.0, where we need to ensure the cursor stays within the window.
             var screenPoint = Host.Window.PointToScreen(new Point((int)currentPosition.X, (int)currentPosition.Y));

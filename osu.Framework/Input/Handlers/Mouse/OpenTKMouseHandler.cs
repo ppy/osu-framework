@@ -3,10 +3,8 @@
 
 using System.Drawing;
 using osu.Framework.Platform;
-using osu.Framework.Statistics;
 using osu.Framework.Threading;
 using OpenTK;
-using OpenTK.Input;
 
 namespace osu.Framework.Input.Handlers.Mouse
 {
