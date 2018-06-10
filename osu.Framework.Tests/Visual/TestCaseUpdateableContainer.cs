@@ -1,30 +1,25 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System.Collections.Generic;
 using osu.Framework.Allocation;
-using osu.Framework.Audio.Track;
 using osu.Framework.Graphics;
-using osu.Framework.Graphics.Audio;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using OpenTK;
 using OpenTK.Graphics;
-using System;
 using osu.Framework.Testing;
-using osu.Framework.Graphics;
 using System.Threading;
 
 namespace osu.Framework.Tests.Visual
 {
     public class TestCaseUpdateableContainer : TestCase
     {
-        private readonly TestUpdateableContainer updateContainer;
-        private readonly PlaceholderTestUpdateableContainer placeholderContainer;
-
         public TestCaseUpdateableContainer()
         {
+            TestUpdateableContainer updateContainer;
+            PlaceholderTestUpdateableContainer placeholderContainer;
+
             AddRange(new Drawable[]
             {
                 updateContainer = new TestUpdateableContainer
@@ -56,22 +51,18 @@ namespace osu.Framework.Tests.Visual
 
         private class TestItem
         {
-            public int ItemId;
+            public readonly int ItemId;
 
-            public TestItem(int ItemId)
+            public TestItem(int itemId)
             {
-                this.ItemId = ItemId;
+                ItemId = itemId;
             }
         }
 
         private class TestItemDrawable : SpriteText
         {
-            private readonly TestItem item;
-
             public TestItemDrawable(TestItem item)
             {
-                this.item = item;
-
                 Position = new Vector2(50, 50);
                 Text = item == null ? "No Item" : $"Item {item.ItemId}";
             }
