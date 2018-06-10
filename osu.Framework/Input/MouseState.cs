@@ -33,7 +33,7 @@ namespace osu.Framework.Input
 
         public Vector2 LastScroll
         {
-            get => lastScroll ?? new Vector2();
+            get => lastScroll ?? Scroll;
             set => lastScroll = value;
         }
 
