@@ -9,7 +9,7 @@ using OpenTK.Input;
 
 namespace osu.Framework.Input.Handlers.Mouse
 {
-    internal class OpenTKMouseHandlerBase : InputHandler
+    internal abstract class OpenTKMouseHandlerBase : InputHandler
     {
         protected GameHost Host;
         protected bool MouseInWindow;
