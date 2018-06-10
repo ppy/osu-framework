@@ -11,8 +11,15 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     public abstract class UpdateableContainer<T> : Container where T : class
     {
-        private Drawable displayedDrawable;
-        private readonly Drawable placeholderDrawable;
+        /// <summary>
+        /// The placeholder Drawable created when the container was instantiated.
+        /// </summary>
+        public readonly Drawable PlaceholderDrawable;
+
+        /// <summary>
+        /// The currently displayed Drawable.  Null if no Drawable or the placeholder is displayed.
+        /// </summary>
+        public Drawable DisplayedDrawable { get; private set; }
 
         /// <summary>
         /// Determines whether the current Drawable should fade out straight away when switching to a new source,
@@ -67,12 +74,12 @@ namespace osu.Framework.Graphics.Containers
 
         protected UpdateableContainer()
         {
-            placeholderDrawable = CreatePlaceholder();
+            PlaceholderDrawable = CreatePlaceholder();
 
-            if (placeholderDrawable != null)
+            if (PlaceholderDrawable != null)
             {
-                placeholderDrawable.RelativeSizeAxes = Axes.Both;
-                AddInternal(placeholderDrawable);
+                PlaceholderDrawable.RelativeSizeAxes = Axes.Both;
+                AddInternal(PlaceholderDrawable);
             }
         }
 
@@ -86,14 +93,14 @@ namespace osu.Framework.Graphics.Containers
         {
             var newDrawable = CreateDrawable(source);
 
-            if (newDrawable == displayedDrawable)
+            if (newDrawable == DisplayedDrawable)
                 return;
 
-            var previousDrawable = displayedDrawable;
-            displayedDrawable = newDrawable;
+            var previousDrawable = DisplayedDrawable;
+            DisplayedDrawable = newDrawable;
 
             if (previousDrawable != null && newDrawable == null)
-                placeholderDrawable?.FadeInFromZero(300, Easing.OutQuint);
+                PlaceholderDrawable?.FadeInFromZero(300, Easing.OutQuint);
             
             if (newDrawable == null || FadeOutImmediately)
                 previousDrawable?.FadeOut(300).Expire();
@@ -102,13 +109,13 @@ namespace osu.Framework.Graphics.Containers
             {
                 newDrawable.OnLoadComplete = d =>
                 {
-                    if (d != displayedDrawable)
+                    if (d != DisplayedDrawable)
                     {
                         d.Expire();
                         return;
                     }
 
-                    placeholderDrawable?.FadeOut(300);
+                    PlaceholderDrawable?.FadeOut(300);
 
                     if (!FadeOutImmediately)
                         previousDrawable?.FadeOut(300).Expire();
