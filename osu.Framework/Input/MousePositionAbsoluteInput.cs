@@ -5,14 +5,14 @@ using OpenTK;
 
 namespace osu.Framework.Input
 {
-    public class MousePositionRelativeChange : IInput
+    public class MousePositionAbsoluteInput : IInput
     {
-        public Vector2 Delta;
+        public Vector2 Position;
         public void Apply(InputState state, IInputStateChangeHandler handler)
         {
-            if (Delta != Vector2.Zero)
+            if (state.Mouse.Position != Position)
             {
-                state.Mouse.Position += Delta;
+                state.Mouse.Position = Position;
                 handler.HandleMousePositionChange(state);
             }
         }

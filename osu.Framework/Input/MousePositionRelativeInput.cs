@@ -5,15 +5,15 @@ using OpenTK;
 
 namespace osu.Framework.Input
 {
-    public class MouseScrollAbsoluteChange : IInput
+    public class MousePositionRelativeInput : IInput
     {
-        public Vector2 Scroll;
+        public Vector2 Delta;
         public void Apply(InputState state, IInputStateChangeHandler handler)
         {
-            if (state.Mouse.Scroll != Scroll)
+            if (Delta != Vector2.Zero)
             {
-                state.Mouse.Scroll = Scroll;
-                handler.HandleMouseScrollChange(state);
+                state.Mouse.Position += Delta;
+                handler.HandleMousePositionChange(state);
             }
         }
     }

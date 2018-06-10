@@ -55,6 +55,8 @@ namespace osu.Framework.Input
             set => lastPosition = value;
         }
 
+        public bool HasLastPosition => lastPosition.HasValue;
+
         public Vector2? PositionMouseDown { get; set; }
 
         public IMouseState Clone()
