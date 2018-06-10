@@ -367,7 +367,7 @@ namespace osu.Framework.Tests.Visual
 
                 public bool NewState(InputState state, MouseEventArgs args = null)
                 {
-                    LastState = state;
+                    LastState = state.Clone();
                     LastArgs = args;
                     Count++;
 

@@ -59,28 +59,28 @@ namespace osu.Framework.Input
         protected override bool OnMouseMove(InputState state)
         {
             if (UseParentState)
-                pendingParentInputs.Add(new MousePositionAbsoluteInput { Position = state.Mouse.NativeState.Position });
+                new MousePositionAbsoluteInput { Position = state.Mouse.NativeState.Position }.Apply(CurrentState, this);
             return false;
         }
 
         protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
         {
             if (UseParentState)
-                pendingParentInputs.Add(new MouseButtonInput { Button = args.Button, IsPressed = true });
+                new MouseButtonInput { Button = args.Button, IsPressed = true }.Apply(CurrentState, this);
             return false;
         }
 
         protected override bool OnMouseUp(InputState state, MouseUpEventArgs args)
         {
             if (UseParentState)
-                pendingParentInputs.Add(new MouseButtonInput { Button = args.Button, IsPressed = false });
+                new MouseButtonInput { Button = args.Button, IsPressed = false }.Apply(CurrentState, this);
             return false;
         }
 
         protected override bool OnScroll(InputState state)
         {
             if (UseParentState)
-                pendingParentInputs.Add(new MouseScrollRelativeInput { Delta = state.Mouse.NativeState.ScrollDelta });
+                new MouseScrollRelativeInput { Delta = state.Mouse.NativeState.ScrollDelta }.Apply(CurrentState, this);
             return false;
         }
 

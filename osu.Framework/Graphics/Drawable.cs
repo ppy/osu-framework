@@ -2082,7 +2082,7 @@ namespace osu.Framework.Graphics
 
         private struct LocalMouseState : IMouseState
         {
-            public IMouseState NativeState { get; }
+            public IMouseState NativeState { get; private set; }
 
             private readonly Drawable us;
 
@@ -2148,7 +2148,9 @@ namespace osu.Framework.Graphics
 
             public IMouseState Clone()
             {
-                return (LocalMouseState)MemberwiseClone();
+                var cloned = (LocalMouseState)MemberwiseClone();
+                cloned.NativeState = NativeState.Clone();
+                return cloned;
             }
         }
 
