@@ -236,9 +236,12 @@ namespace osu.Framework.Graphics.Audio
                 {
                     points = value;
 
-                    highMax = points?.Max(p => p.HighIntensity) ?? 0;
-                    midMax = points?.Max(p => p.MidIntensity) ?? 0;
-                    lowMax = points?.Max(p => p.LowIntensity) ?? 0;
+                    if (points?.Any() == true)
+                    {
+                        highMax = points.Max(p => p.HighIntensity);
+                        midMax = points.Max(p => p.MidIntensity);
+                        lowMax = points.Max(p => p.LowIntensity);
+                    }
                 }
             }
 
