@@ -377,6 +377,12 @@ namespace osu.Framework.Input
         {
             var mouse = state.Mouse;
 
+            // confine cursor
+            if ((Host.Window.CursorState & CursorState.Confined) > 0)
+            {
+                mouse.Position = Vector2.Clamp(mouse.Position, Vector2.Zero, new Vector2(Host.Window.Width, Host.Window.Height));
+            }
+
             foreach (var h in InputHandlers)
                 if (h.Enabled && h is INeedsMousePositionFeedback handler)
                     handler.FeedbackMousePositionChange(mouse.Position);

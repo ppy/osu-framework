@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using osu.Framework.Configuration;
-using osu.Framework.Graphics;
 using osu.Framework.Platform;
 using osu.Framework.Threading;
 using OpenTK;
@@ -51,7 +50,7 @@ namespace osu.Framework.Input.Handlers.Mouse
                         if (!host.Window.Visible || host.Window.WindowState == WindowState.Minimized)
                             return;
 
-                        if ((MouseInWindow || lastEachDeviceStates.Any(s => s.HasAnyButtonPressed)) && host.Window.Focused)
+                        if ((MouseInWindow || lastEachDeviceStates.Any(s => s != null && s.HasAnyButtonPressed)) && host.Window.Focused)
                         {
                             var newRawStates = new List<OpenTK.Input.MouseState>(mostSeenStates + 1);
 
@@ -173,12 +172,6 @@ namespace osu.Framework.Input.Handlers.Mouse
                 {
                     currentPosition = lastState.Position + new Vector2(state.X - lastState.RawState.X, state.Y - lastState.RawState.Y) * (float)sensitivity.Value;
                 }
-            }
-
-            // confine cursor
-            if ((Host.Window.CursorState & CursorState.Confined) > 0)
-            {
-                currentPosition = Vector2.Clamp(currentPosition, Vector2.Zero, new Vector2(Host.Window.Width, Host.Window.Height));
             }
 
             return currentPosition;
