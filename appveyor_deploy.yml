@@ -1,0 +1,15 @@
+clone_depth: 1
+version: '{build}'
+skip_non_tags: true
+image: Visual Studio 2017
+configuration: Release
+build_script:
+  - ps: if($env:appveyor_repo_tag -eq 'True') { Update-AppveyorBuild -Version $env:appveyor_repo_tag_name }
+  - dotnet pack --include-symbols /p:Version=%APPVEYOR_BUILD_VERSION% /p:GenerateDocumentationFile=true
+artifacts:
+  - path: osu.Framework/bin/Release/*.nupkg
+deploy:
+  - provider: Environment
+    name: nuget
+  - provider: Environment
+    name: github

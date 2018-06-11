@@ -11,7 +11,7 @@ namespace osu.Framework.Timing
 
         public double Offset
         {
-            get { return offset; }
+            get => offset;
             set
             {
                 LastFrameTime += value - offset;

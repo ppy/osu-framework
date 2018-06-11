@@ -23,7 +23,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public float FirstLineIndent
         {
-            get { return firstLineIndent; }
+            get => firstLineIndent;
             set
             {
                 if (value == firstLineIndent) return;
@@ -40,7 +40,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public float ContentIndent
         {
-            get { return contentIndent; }
+            get => contentIndent;
             set
             {
                 if (value == contentIndent) return;
@@ -58,7 +58,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public float ParagraphSpacing
         {
-            get { return paragraphSpacing; }
+            get => paragraphSpacing;
             set
             {
                 if (value == paragraphSpacing) return;
@@ -76,7 +76,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public float LineSpacing
         {
-            get { return lineSpacing; }
+            get => lineSpacing;
             set
             {
                 if (value == lineSpacing) return;
@@ -92,7 +92,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public Anchor TextAnchor
         {
-            get { return textAnchor; }
+            get => textAnchor;
             set
             {
                 if (textAnchor == value)

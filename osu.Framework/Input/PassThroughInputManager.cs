@@ -7,7 +7,7 @@ using OpenTK;
 
 namespace osu.Framework.Input
 {
-    public class PassThroughInputManager : CustomInputManager
+    public class PassThroughInputManager : CustomInputManager, IRequireHighFrequencyMousePosition
     {
         /// <summary>
         /// If there's an InputManager above us, decide whether we should use their available state.
@@ -67,6 +67,8 @@ namespace osu.Framework.Input
 
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args) => acceptState(state);
 
+        protected override bool OnScroll(InputState state) => acceptState(state);
+
         protected override bool OnKeyUp(InputState state, KeyUpEventArgs args) => acceptState(state);
 
         protected override bool OnJoystickPress(InputState state, JoystickEventArgs args) => acceptState(state);
@@ -83,6 +85,7 @@ namespace osu.Framework.Input
                 Mouse = (state.Mouse.NativeState as MouseState)?.Clone();
                 Keyboard = (state.Keyboard as KeyboardState)?.Clone();
                 Joystick = (state.Joystick as JoystickState)?.Clone();
+                Last = state.Last;
             }
         }
     }

@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Configuration.Tracking;
@@ -92,6 +93,25 @@ namespace osu.Framework.Configuration
             }
 
             bindable.Default = value;
+
+            return bindable;
+        }
+
+        public BindableSize Set(T lookup, Size value, Size? min = null, Size? max = null)
+        {
+            if (!(GetOriginalBindable<Size>(lookup) is BindableSize bindable))
+            {
+                bindable = new BindableSize(value);
+                AddBindable(lookup, bindable);
+            }
+            else
+            {
+                bindable.Value = value;
+            }
+
+            bindable.Default = value;
+            if (min.HasValue) bindable.MinValue = min.Value;
+            if (max.HasValue) bindable.MaxValue = max.Value;
 
             return bindable;
         }

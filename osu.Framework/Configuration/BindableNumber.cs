@@ -70,7 +70,7 @@ namespace osu.Framework.Configuration
 
         public override T Value
         {
-            get { return base.Value; }
+            get => base.Value;
             set
             {
                 if (Precision.CompareTo(DefaultPrecision) > 0)
@@ -78,8 +78,6 @@ namespace osu.Framework.Configuration
                     double doubleValue = Convert.ToDouble(clamp(value, MinValue, MaxValue));
                     doubleValue = Math.Round(doubleValue / Convert.ToDouble(Precision)) * Convert.ToDouble(Precision);
 
-                    // ReSharper disable once PossibleNullReferenceException
-                    // https://youtrack.jetbrains.com/issue/RIDER-12652
                     base.Value = (T)Convert.ChangeType(doubleValue, typeof(T), CultureInfo.InvariantCulture);
                 }
                 else
@@ -93,7 +91,7 @@ namespace osu.Framework.Configuration
         public T MinValue { get; set; }
 
         /// <summary>
-        /// The maximim value of this bindable. <see cref="Bindable{T}.Value"/> will never go above this value.
+        /// The maximum value of this bindable. <see cref="Bindable{T}.Value"/> will never go above this value.
         /// </summary>
         public T MaxValue { get; set; }
 

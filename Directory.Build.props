@@ -1,0 +1,18 @@
+<!-- Contains required properties for osu!framework projects. -->
+<Project>
+  <PropertyGroup Label="C#">
+    <LangVersion>7</LangVersion>
+  </PropertyGroup>
+  <ItemGroup Label="License">
+    <None Include="$(MSBuildThisFileDirectory)osu-framework.licenseheader">
+      <Link>osu-framework.licenseheader</Link>
+    </None>
+  </ItemGroup>
+  <ItemGroup Label="Resources">
+    <EmbeddedResource Include="Resources\**\*.*" />
+  </ItemGroup>
+  <PropertyGroup Label="Project">
+    <Company>ppy Pty Ltd</Company>
+    <Copyright>ppy Pty Ltd 2007-2018</Copyright>
+  </PropertyGroup>
+</Project>
