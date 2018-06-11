@@ -109,6 +109,12 @@ namespace osu.Framework.Tests.Visual
             }
         }
 
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+            track?.Stop();
+        }
+
         private class TestWaveform : CompositeDrawable
         {
             private readonly Track track;
