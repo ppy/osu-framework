@@ -40,12 +40,12 @@ namespace osu.Framework.Audio.Track
         /// <summary>
         /// Minimum frequency for low-range (bass) frequencies.
         /// </summary>
-        private const double low_min = 0;
+        private const double low_min = 20;
 
         /// <summary>
         /// Minimum frequency for mid-range frequencies.
         /// </summary>
-        private const double mid_min = 250;
+        private const double mid_min = 100;
 
         /// <summary>
         /// Minimum frequency for high-range (treble) frequencies.
