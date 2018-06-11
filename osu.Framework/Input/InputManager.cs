@@ -365,10 +365,6 @@ namespace osu.Framework.Input
             }
         }
 
-        public virtual void HandleJoystickAxisChange(InputState state, JoystickAxis axis, int axisValue)
-        {
-        }
-
         public virtual void HandleJoystickButtonStateChange(InputState state, JoystickButton button, ButtonStateChangeKind kind)
         {
             if (kind == ButtonStateChangeKind.Pressed)
