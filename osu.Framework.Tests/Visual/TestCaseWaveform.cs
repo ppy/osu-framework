@@ -99,9 +99,10 @@ namespace osu.Framework.Tests.Visual
                     {
                         RelativeSizeAxes = Axes.Both,
                         Resolution = resolution,
-                        LowColour = Color4.Orange,
-                        MidColour = Color4.Yellow,
-                        HighColour = Color4.White
+                        Colour = new Color4(232, 78, 6, 255),
+                        LowColour = new Color4(255, 232, 100, 255),
+                        MidColour = new Color4(255, 153, 19, 255),
+                        HighColour = new Color4(255, 46, 7, 255)
                     },
                     new Container
                     {
@@ -130,12 +131,15 @@ namespace osu.Framework.Tests.Visual
                         RelativeSizeAxes = Axes.Y,
                         RelativePositionAxes = Axes.X,
                         Width = 2,
-                        Colour = Color4.Red
+                        Colour = Color4.Blue
                     },
                 };
             }
 
-            public Waveform Waveform { set => graph.Waveform = value; }
+            public Waveform Waveform
+            {
+                set => graph.Waveform = value;
+            }
 
             protected override void Update()
             {
