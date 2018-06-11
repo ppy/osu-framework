@@ -185,6 +185,8 @@ namespace osu.Framework.Audio.Track
 
                 for (float i = 0; i < points.Count; i += pointsPerGeneratedPoint)
                 {
+                    if (cancellationToken.IsCancellationRequested) break;
+
                     int startIndex = (int)i;
                     int endIndex = (int)Math.Min(points.Count, Math.Ceiling(i + pointsPerGeneratedPoint));
 
