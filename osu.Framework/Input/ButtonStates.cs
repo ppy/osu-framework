@@ -13,7 +13,7 @@ namespace osu.Framework.Input
     where TButton : struct
     {
         private List<TButton> pressedButtons { get; set; } = new List<TButton>();
-        
+
         public ButtonStates<TButton> Clone()
         {
             var clone = (ButtonStates<TButton>)MemberwiseClone();

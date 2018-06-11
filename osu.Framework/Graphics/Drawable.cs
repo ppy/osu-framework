@@ -2111,7 +2111,7 @@ namespace osu.Framework.Graphics
                 get => NativeState.PositionMouseDown == null ? null : us.Parent?.ToLocalSpace(NativeState.PositionMouseDown.Value) ?? NativeState.PositionMouseDown;
                 set => throw new NotImplementedException();
             }
-            
+
             public Vector2 Scroll
             {
                 get => NativeState.Scroll;

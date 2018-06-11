@@ -172,7 +172,6 @@ namespace osu.Framework.Tests.Visual
                 manual.ReleaseButton(MouseButton.Button1);
             });
             checkEventCount("MouseUp", 3);
-            
 
             AddStep("press two buttons", () =>
             {

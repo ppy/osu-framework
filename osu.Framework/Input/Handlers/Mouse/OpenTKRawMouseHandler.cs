@@ -124,7 +124,7 @@ namespace osu.Framework.Input.Handlers.Mouse
 
             OpenTK.Input.Mouse.SetPosition(screenPoint.X, screenPoint.Y);
         }
-        
+
         private Vector2 getUpdatedPosition(OpenTK.Input.MouseState state, OpenTKMouseState lastState)
         {
             Vector2 currentPosition;

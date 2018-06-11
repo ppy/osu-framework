@@ -27,7 +27,7 @@ namespace osu.Framework.Input
     }
 
     public struct ButtonInputEntry<TButton>
-    where TButton : struct 
+    where TButton : struct
     {
         public TButton Button;
         public bool IsPressed;

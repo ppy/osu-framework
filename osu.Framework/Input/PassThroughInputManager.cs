@@ -44,14 +44,14 @@ namespace osu.Framework.Input
             }
             return pendingInputs;
         }
-        
+
         protected override bool OnMouseMove(InputState state)
         {
             if (UseParentInput)
                 new MousePositionAbsoluteInput { Position = state.Mouse.NativeState.Position }.Apply(CurrentState, this);
             return false;
         }
-        
+
         protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
         {
             if (UseParentInput)
