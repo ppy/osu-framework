@@ -55,7 +55,7 @@ namespace osu.Framework.Audio.Track
         /// <summary>
         /// Maximum frequency for high-range (treble) frequencies. A sane value.
         /// </summary>
-        private const double high_max = 20000;
+        private const double high_max = 12000;
 
         private int channels;
         private List<WaveformPoint> points = new List<WaveformPoint>();
