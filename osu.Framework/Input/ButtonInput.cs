@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Collections.Generic;
+using System.Linq;
 
 namespace osu.Framework.Input
 {
@@ -47,5 +48,18 @@ namespace osu.Framework.Input
         {
             Entries = new[] { new ButtonInputEntry<TButton>(button, isPressed) }
         };
+
+        public static TInput TakeDifference<TInput, TButton>(ButtonStates<TButton> current, ButtonStates<TButton> last)
+            where TButton : struct
+            where TInput : ButtonInput<TButton>, new()
+        {
+            var difference = current.EnumerateDifference(last ?? new ButtonStates<TButton>());
+            return new TInput
+            {
+                Entries =
+                    difference.Released.Select(button => new ButtonInputEntry<TButton>(button, false)).Union(
+                        difference.Pressed.Select(button => new ButtonInputEntry<TButton>(button, true)))
+            };
+        }
     }
 }

@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using osu.Framework.Logging;
 using osu.Framework.MathUtils;
 using osu.Framework.Platform;
@@ -60,17 +59,9 @@ namespace osu.Framework.Input.Handlers.Joystick
 
         private void handleState(JoystickDevice device, JoystickState newState)
         {
-            var difference = newState.Buttons.EnumerateDifference(device.LastState?.Buttons ?? new ButtonStates<JoystickButton>());
+            PendingInputs.Enqueue(ButtonInputHelper.TakeDifference<JoystickButtonInput, JoystickButton>(newState.Buttons, device.LastState?.Buttons));
 
             device.LastState = newState;
-
-            PendingInputs.Enqueue(new JoystickButtonInput
-            {
-                Entries =
-                    difference.Released.Select(button => new ButtonInputEntry<JoystickButton>(button, false)).Union(
-                    difference.Pressed.Select(button => new ButtonInputEntry<JoystickButton>(button, true)))
-            });
-
         }
 
         private void refreshDevices()

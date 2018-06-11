@@ -1,7 +1,6 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System.Linq;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
 using OpenTK;
@@ -52,13 +51,7 @@ namespace osu.Framework.Input.Handlers.Mouse
                 }
             }
 
-            var difference = state.Buttons.EnumerateDifference(lastState?.Buttons ?? new ButtonStates<MouseButton>());
-            PendingInputs.Enqueue(new MouseButtonInput
-            {
-                Entries =
-                    difference.Released.Select(button => new ButtonInputEntry<MouseButton>(button, false)).Union(
-                    difference.Pressed.Select(button => new ButtonInputEntry<MouseButton>(button, true)))
-            });
+            PendingInputs.Enqueue(ButtonInputHelper.TakeDifference<MouseButtonInput, MouseButton>(state.Buttons, lastState?.Buttons));
 
             FrameStatistics.Increment(StatisticsCounterType.MouseEvents);
         }

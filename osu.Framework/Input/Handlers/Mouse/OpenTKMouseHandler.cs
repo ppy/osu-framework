@@ -11,7 +11,7 @@ namespace osu.Framework.Input.Handlers.Mouse
     internal class OpenTKMouseHandler : OpenTKMouseHandlerBase
     {
         private ScheduledDelegate scheduled;
- 
+
         private OpenTKMouseState lastPollState;
         private OpenTKMouseState lastEventState;
 

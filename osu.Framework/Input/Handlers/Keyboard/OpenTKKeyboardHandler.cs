@@ -17,7 +17,7 @@ namespace osu.Framework.Input.Handlers.Keyboard
         public override int Priority => 0;
 
         private TkKeyboardState lastEventState;
-        private OpenTK.Input.KeyboardState? lastOpenTKKeyboardState;
+        private OpenTK.Input.KeyboardState? lastRawState;
 
         public override bool Initialize(GameHost host)
         {
@@ -32,7 +32,7 @@ namespace osu.Framework.Input.Handlers.Keyboard
                 {
                     host.Window.KeyDown -= handleKeyboardEvent;
                     host.Window.KeyUp -= handleKeyboardEvent;
-                    lastOpenTKKeyboardState = null;
+                    lastRawState = null;
                     lastEventState = null;
                 }
             };
@@ -42,24 +42,17 @@ namespace osu.Framework.Input.Handlers.Keyboard
 
         private void handleKeyboardEvent(object sender, KeyboardKeyEventArgs e)
         {
-            var state = e.Keyboard;
+            var rawState = e.Keyboard;
 
-            if (lastOpenTKKeyboardState != null && state.Equals(lastOpenTKKeyboardState))
+            if (lastRawState != null && rawState.Equals(lastRawState))
                 return;
-            lastOpenTKKeyboardState = state;
+            lastRawState = rawState;
 
-            var newKeyboardState = new TkKeyboardState(state);
+            var newState = new TkKeyboardState(rawState);
 
-            var difference = newKeyboardState.Keys.EnumerateDifference(lastEventState?.Keys ?? new ButtonStates<Key>());
+            PendingInputs.Enqueue(ButtonInputHelper.TakeDifference<KeyboardKeyInput, Key>(newState.Keys, lastEventState?.Keys));
 
-            lastEventState = newKeyboardState;
-
-            PendingInputs.Enqueue(new KeyboardKeyInput
-            {
-                Entries =
-                    difference.Released.Select(key => new ButtonInputEntry<Key>(key, false)).Union(
-                    difference.Pressed.Select(key => new ButtonInputEntry<Key>(key, true)))
-            });
+            lastEventState = newState;
 
             FrameStatistics.Increment(StatisticsCounterType.KeyEvents);
         }
