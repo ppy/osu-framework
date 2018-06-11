@@ -16,7 +16,8 @@ namespace osu.Framework.Input.Handlers.Keyboard
 
         public override int Priority => 0;
 
-        private OpenTK.Input.KeyboardState lastState;
+        private TkKeyboardState lastEventState;
+        private OpenTK.Input.KeyboardState? lastOpenTKKeyboardState;
 
         public override bool Initialize(GameHost host)
         {
@@ -31,6 +32,8 @@ namespace osu.Framework.Input.Handlers.Keyboard
                 {
                     host.Window.KeyDown -= handleKeyboardEvent;
                     host.Window.KeyUp -= handleKeyboardEvent;
+                    lastOpenTKKeyboardState = null;
+                    lastEventState = null;
                 }
             };
             Enabled.TriggerChange();
@@ -41,16 +44,23 @@ namespace osu.Framework.Input.Handlers.Keyboard
         {
             var state = e.Keyboard;
 
-            if (state.Equals(lastState))
+            if (lastOpenTKKeyboardState != null && state.Equals(lastOpenTKKeyboardState))
                 return;
+            lastOpenTKKeyboardState = state;
 
-            lastState = state;
+            var newKeyboardState = new TkKeyboardState(state);
 
-            var newState = new TkKeyboardState(state);
-            foreach (var key in Enum.GetValues(typeof(Key)).Cast<Key>())
+            var difference = newKeyboardState.Keys.EnumerateDifference(lastEventState?.Keys ?? new ButtonStates<Key>());
+
+            lastEventState = newKeyboardState;
+
+            PendingInputs.Enqueue(new KeyboardKeyInput
             {
-                PendingInputs.Enqueue(new KeyboardKeyInput { Key = key, IsPressed = newState.IsPressed(key) });
-            }
+                Entries =
+                    difference.Released.Select(key => new ButtonInputEntry<Key>(key, false)).Union(
+                    difference.Pressed.Select(key => new ButtonInputEntry<Key>(key, true)))
+            });
+
             FrameStatistics.Increment(StatisticsCounterType.KeyEvents);
         }
 

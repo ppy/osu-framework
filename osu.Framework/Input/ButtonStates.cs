@@ -41,9 +41,9 @@ namespace osu.Framework.Input
 
         public bool HasAnyButtonPressed => pressedButtons.Any();
 
-        public (IEnumerable<TButton> Released, IEnumerable<TButton> Pressed) EnumerateDifference(ButtonStates<TButton> other)
+        public (IEnumerable<TButton> Released, IEnumerable<TButton> Pressed) EnumerateDifference(ButtonStates<TButton> lastButtons)
         {
-            return (pressedButtons.Except(other.pressedButtons), other.pressedButtons.Except(pressedButtons));
+            return (lastButtons.pressedButtons.Except(pressedButtons), pressedButtons.Except(lastButtons.pressedButtons));
         }
 
         public void Set(ButtonStates<TButton> other)

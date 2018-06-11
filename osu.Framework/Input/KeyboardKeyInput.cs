@@ -5,16 +5,11 @@ using OpenTK.Input;
 
 namespace osu.Framework.Input
 {
-    public class KeyboardKeyInput : IInput
+    public class KeyboardKeyInput : ButtonInput<Key>
     {
-        public Key Key;
-        public bool IsPressed;
-        public void Apply(InputState state, IInputStateChangeHandler handler)
-        {
-            if (state.Keyboard.Keys.SetPressed(Key, IsPressed))
-            {
-                handler.HandleKeyboardKeyStateChange(state, Key, IsPressed ? ButtonStateChangeKind.Pressed : ButtonStateChangeKind.Released);
-            }
-        }
+        protected override ButtonStates<Key> GetButtonStates(InputState state) => state.Keyboard.Keys;
+
+        protected override void Handle(IInputStateChangeHandler handler, InputState state, Key key, ButtonStateChangeKind kind) =>
+            handler.HandleKeyboardKeyStateChange(state, key, kind);
     }
 }

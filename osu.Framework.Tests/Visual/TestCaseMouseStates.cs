@@ -211,6 +211,10 @@ namespace osu.Framework.Tests.Visual
         public void CombinationChanges()
         {
             eventCounts.Clear();
+            AddStep("init mouse position", () =>
+            {
+                manual.MoveMouseTo(Vector2.Zero);
+            });
 
             AddStep("push move", () => manual.MoveMouseTo(marginBox.ScreenSpaceDrawQuad.BottomLeft));
             checkEventCount("Move", 1);

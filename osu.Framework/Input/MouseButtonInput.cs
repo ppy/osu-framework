@@ -5,16 +5,11 @@ using OpenTK.Input;
 
 namespace osu.Framework.Input
 {
-    public class MouseButtonInput : IInput
+    public class MouseButtonInput : ButtonInput<MouseButton>
     {
-        public MouseButton Button;
-        public bool IsPressed;
-        public void Apply(InputState state, IInputStateChangeHandler handler)
-        {
-            if (state.Mouse.Buttons.SetPressed(Button, IsPressed))
-            {
-                handler.HandleMouseButtonStateChange(state, Button, IsPressed ? ButtonStateChangeKind.Pressed : ButtonStateChangeKind.Released);
-            }
-        }
+        protected override ButtonStates<MouseButton> GetButtonStates(InputState state) => state.Mouse.Buttons;
+
+        protected override void Handle(IInputStateChangeHandler handler, InputState state, MouseButton button, ButtonStateChangeKind kind) =>
+            handler.HandleMouseButtonStateChange(state, button, kind);
     }
 }
