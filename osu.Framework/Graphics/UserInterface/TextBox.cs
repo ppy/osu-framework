@@ -28,7 +28,7 @@ namespace osu.Framework.Graphics.UserInterface
     {
         protected FillFlowContainer TextFlow;
         protected Box Background;
-        protected Drawable Caret;
+        protected DrawableCaret Caret;
         protected Container TextContainer;
 
         public override bool HandleKeyboardInput => HasFocus;
@@ -101,10 +101,15 @@ namespace osu.Framework.Graphics.UserInterface
                     Anchor = Anchor.CentreLeft,
                     Origin = Anchor.CentreLeft,
                     Position = new Vector2(LeftRightPadding, 0),
-                    Children = new[]
+                    Children = new Drawable[]
                     {
                         Placeholder = CreatePlaceholder(),
-                        Caret = new DrawableCaret(),
+                        Caret = new DrawableCaret
+                        {
+                            Width = 3,
+                            RelativeSizeAxes = Axes.Y,
+                            Size = new Vector2(1, 0.9f)
+                        },
                         TextFlow = new FillFlowContainer
                         {
                             Direction = FillDirection.Horizontal,
@@ -114,7 +119,7 @@ namespace osu.Framework.Graphics.UserInterface
                     },
                 },
             };
-
+            
             Current.ValueChanged += newValue => { Text = newValue; };
         }
 
@@ -180,16 +185,11 @@ namespace osu.Framework.Graphics.UserInterface
 
             textUpdateScheduler.Update();
 
-            float caretWidth = cursor_width;
-
             Vector2 cursorPos = Vector2.Zero;
             if (text.Length > 0)
                 cursorPos.X = getPositionAt(selectionLeft) - cursor_width / 2;
 
             float cursorPosEnd = getPositionAt(selectionEnd);
-
-            if (selectionLength > 0)
-                caretWidth = getPositionAt(selectionRight) - cursorPos.X;
 
             float cursorRelativePositionAxesInBox = (cursorPosEnd - textContainerPosX) / DrawWidth;
 
@@ -205,18 +205,12 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (HasFocus)
             {
-                Caret.ClearTransforms();
-                Caret.MoveTo(cursorPos, 60, Easing.Out);
-                Caret.ResizeWidthTo(caretWidth, caret_move_time, Easing.Out);
+                Caret.ResetTo(cursorPos, caret_move_time);
 
                 if (selectionLength > 0)
-                    Caret
-                        .FadeTo(0.5f, 200, Easing.Out)
-                        .FadeColour(SelectionColour, 200, Easing.Out);
+                    Caret.Hide();
                 else
-                    Caret
-                        .FadeColour(Color4.White, 200, Easing.Out)
-                        .Loop(c => c.FadeTo(0.7f).FadeTo(0.4f, 500, Easing.InOutSine));
+                    Caret.Show();
             }
 
             if (textAtLastLayout != text)
@@ -757,9 +751,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             unbindInput();
 
-            Caret.ClearTransforms();
-            Caret.FadeOut(200);
-
+            Caret.Hide();
 
             Background.ClearTransforms();
             Background.FadeColour(BackgroundUnfocused, 200, Easing.OutExpo);
@@ -865,28 +857,6 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         #endregion
-
-        private class DrawableCaret : CompositeDrawable
-        {
-            public DrawableCaret()
-            {
-                RelativeSizeAxes = Axes.Y;
-                Size = new Vector2(1, 0.9f);
-                Alpha = 0;
-                Colour = Color4.Transparent;
-                Anchor = Anchor.CentreLeft;
-                Origin = Anchor.CentreLeft;
-
-                Masking = true;
-                CornerRadius = 1;
-
-                InternalChild = new Box
-                {
-                    RelativeSizeAxes = Axes.Both,
-                    Colour = Color4.White,
-                };
-            }
-        }
 
         private class TextBoxPlatformBindingHandler : Container, IKeyBindingHandler<PlatformAction>
         {
