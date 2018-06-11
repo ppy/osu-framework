@@ -15,6 +15,7 @@ using osu.Framework.Graphics.Textures;
 using OpenTK;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.MathUtils;
+using osu.Framework.Threading;
 using OpenTK.Graphics;
 using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
@@ -55,8 +56,7 @@ namespace osu.Framework.Graphics.Audio
                 if (resolution == value)
                     return;
                 resolution = value;
-
-                cancelGeneration();
+                generate();
             }
         }
 
@@ -74,8 +74,7 @@ namespace osu.Framework.Graphics.Audio
                     return;
 
                 waveform = value;
-
-                cancelGeneration();
+                generate();
             }
         }
 
@@ -141,35 +140,35 @@ namespace osu.Framework.Graphics.Audio
             var result = base.Invalidate(invalidation, source, shallPropagate);
 
             if ((invalidation & Invalidation.RequiredParentSizeToFit) > 0)
-                cancelGeneration();
+                generate();
 
             return result;
         }
 
-        protected override void Update()
-        {
-            base.Update();
-
-            if (cancelSource == null)
-                generate();
-        }
-
         private CancellationTokenSource cancelSource = new CancellationTokenSource();
+        private ScheduledDelegate scheduledGenerate;
 
         private Waveform generatedWaveform;
 
         private void generate()
         {
+            scheduledGenerate?.Cancel();
+            cancelGeneration();
+
             if (Waveform == null)
                 return;
 
-            cancelSource = new CancellationTokenSource();
-
-            Waveform.GenerateResampledAsync((int)Math.Max(0, Math.Ceiling(DrawWidth * Scale.X) * Resolution), cancelSource.Token).ContinueWith(w =>
+            scheduledGenerate = Schedule(() =>
             {
-                generatedWaveform = w.Result;
-                Schedule(() => Invalidate(Invalidation.DrawNode));
-            }, cancelSource.Token);
+                cancelSource = new CancellationTokenSource();
+                var token = cancelSource.Token;
+
+                Waveform.GenerateResampledAsync((int)Math.Max(0, Math.Ceiling(DrawWidth * Scale.X) * Resolution), token).ContinueWith(w =>
+                {
+                    generatedWaveform = w.Result;
+                    Schedule(() => Invalidate(Invalidation.DrawNode));
+                }, token);
+            });
         }
 
         private void cancelGeneration()
