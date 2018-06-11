@@ -96,7 +96,7 @@ namespace osu.Framework.Testing.Input
 
             public void ScrollBy(Vector2 delta)
             {
-                PendingInputs.Enqueue(new MouseScrollRelativeInput { Delta = delta });
+                PendingInputs.Enqueue(new MouseScrollRelativeInput { Delta = delta, IsPrecise = false });
             }
 
             public void ScrollVerticalBy(float delta) => ScrollBy(new Vector2(0, delta));

@@ -69,7 +69,7 @@ namespace osu.Framework.Input
         protected override bool OnScroll(InputState state)
         {
             if (UseParentInput)
-                new MouseScrollRelativeInput { Delta = state.Mouse.NativeState.ScrollDelta }.Apply(CurrentState, this);
+                new MouseScrollRelativeInput { Delta = state.Mouse.NativeState.ScrollDelta, IsPrecise = state.Mouse.HasPreciseScroll }.Apply(CurrentState, this);
             return false;
         }
 

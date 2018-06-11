@@ -48,7 +48,7 @@ namespace osu.Framework.Input.Handlers.Mouse
                 var scrollDelta = state.Scroll - lastState.Scroll;
                 if (scrollDelta != Vector2.Zero)
                 {
-                    PendingInputs.Enqueue(new MouseScrollRelativeInput { Delta = scrollDelta });
+                    PendingInputs.Enqueue(new MouseScrollRelativeInput { Delta = scrollDelta, IsPrecise = state.HasPreciseScroll });
                 }
             }
 

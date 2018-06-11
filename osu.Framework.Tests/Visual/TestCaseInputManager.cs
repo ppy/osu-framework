@@ -115,7 +115,7 @@ namespace osu.Framework.Tests.Visual
             protected override bool OnScroll(InputState state)
             {
                 ++scrollCount;
-                onScrollStatus.Text = $"OnScroll {scrollCount}: Scroll={state.Mouse.Scroll}, ScrollDelta={state.Mouse.ScrollDelta}";
+                onScrollStatus.Text = $"OnScroll {scrollCount}: Scroll={state.Mouse.Scroll}, ScrollDelta={state.Mouse.ScrollDelta}, HasPreciseScroll={state.Mouse.HasPreciseScroll}";
                 return base.OnScroll(state);
             }
         }
