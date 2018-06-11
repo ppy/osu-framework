@@ -3,17 +3,20 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using osu.Framework.Allocation;
 using osu.Framework.Audio.Track;
 using osu.Framework.Graphics.Batches;
-using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using OpenTK;
 using osu.Framework.Graphics.OpenGL;
+using osu.Framework.MathUtils;
+using OpenTK.Graphics;
+using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Graphics.Audio
 {
@@ -37,6 +40,7 @@ namespace osu.Framework.Graphics.Audio
         }
 
         private float resolution = 1;
+
         /// <summary>
         /// Gets or sets the amount of <see cref="WaveformPoint"/>'s displayed relative to <see cref="WaveformGraph.DrawWidth"/>.
         /// </summary>
@@ -57,6 +61,7 @@ namespace osu.Framework.Graphics.Audio
         }
 
         private Waveform waveform;
+
         /// <summary>
         /// The <see cref="Framework.Audio.Track.Waveform"/> to display.
         /// </summary>
@@ -71,6 +76,63 @@ namespace osu.Framework.Graphics.Audio
                 waveform = value;
 
                 cancelGeneration();
+            }
+        }
+
+        private Color4? lowColour;
+
+        /// <summary>
+        /// The colour which low-range frequencies should be colourised with.
+        /// May be null for this frequency range to not be colourised.
+        /// </summary>
+        public Color4? LowColour
+        {
+            get => lowColour;
+            set
+            {
+                if (lowColour == value)
+                    return;
+                lowColour = value;
+
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
+
+        private Color4? midColour;
+
+        /// <summary>
+        /// The colour which mid-range frequencies should be colourised with.
+        /// May be null for this frequency range to not be colourised.
+        /// </summary>
+        public Color4? MidColour
+        {
+            get => midColour;
+            set
+            {
+                if (midColour == value)
+                    return;
+                midColour = value;
+
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
+
+        private Color4? highColour;
+
+        /// <summary>
+        /// The colour which high-range frequencies should be colourised with.
+        /// May be null for this frequency range to not be colourised.
+        /// </summary>
+        public Color4? HighColour
+        {
+            get => highColour;
+            set
+            {
+                if (highColour == value)
+                    return;
+                highColour = value;
+
+                Invalidate(Invalidation.DrawNode);
             }
         }
 
@@ -119,6 +181,7 @@ namespace osu.Framework.Graphics.Audio
 
         private readonly WaveformDrawNodeSharedData sharedData = new WaveformDrawNodeSharedData();
         protected override DrawNode CreateDrawNode() => new WaveformDrawNode();
+
         protected override void ApplyDrawNode(DrawNode node)
         {
             var n = (WaveformDrawNode)node;
@@ -129,6 +192,9 @@ namespace osu.Framework.Graphics.Audio
             n.Shared = sharedData;
             n.Points = generatedWaveform?.GetPoints();
             n.Channels = generatedWaveform?.GetChannels() ?? 0;
+            n.LowColour = lowColour ?? DrawInfo.Colour;
+            n.MidColour = midColour ?? DrawInfo.Colour;
+            n.HighColour = highColour ?? DrawInfo.Colour;
 
             base.ApplyDrawNode(node);
         }
@@ -151,15 +217,37 @@ namespace osu.Framework.Graphics.Audio
 
             public WaveformDrawNodeSharedData Shared;
 
-            public IReadOnlyList<WaveformPoint> Points;
             public Vector2 DrawSize;
             public int Channels;
+
+            public Color4 LowColour;
+            public Color4 MidColour;
+            public Color4 HighColour;
+
+            private IReadOnlyList<WaveformPoint> points;
+
+            private double highMax;
+            private double midMax;
+            private double lowMax;
+
+            public IReadOnlyList<WaveformPoint> Points
+            {
+                get { return points; }
+                set
+                {
+                    points = value;
+
+                    highMax = points?.Max(p => p.HighIntensity) ?? 0;
+                    midMax = points?.Max(p => p.MidIntensity) ?? 0;
+                    lowMax = points?.Max(p => p.LowIntensity) ?? 0;
+                }
+            }
 
             public override void Draw(Action<TexturedVertex2D> vertexAction)
             {
                 base.Draw(vertexAction);
 
-                if (Points == null || Points.Count == 0)
+                if (points == null || points.Count == 0)
                     return;
 
                 Shader.Bind();
@@ -172,9 +260,9 @@ namespace osu.Framework.Graphics.Audio
                 // Since the points are generated in the local coordinate space, we need to convert the screen space masking quad coordinates into the local coordinate space
                 RectangleF localMaskingRectangle = (Quad.FromRectangle(GLWrapper.CurrentMaskingInfo.ScreenSpaceAABB) * DrawInfo.MatrixInverse).AABBFloat;
 
-                float separation = DrawSize.X / (Points.Count - 1);
+                float separation = DrawSize.X / (points.Count - 1);
 
-                for (int i = 0; i < Points.Count - 1; i++)
+                for (int i = 0; i < points.Count - 1; i++)
                 {
                     float leftX = i * separation;
                     float rightX = (i + 1) * separation;
@@ -184,33 +272,41 @@ namespace osu.Framework.Graphics.Audio
                     if (leftX > localMaskingRectangle.Right)
                         break; // X is always increasing
 
-                    ColourInfo colour = DrawInfo.Colour;
+                    Color4 colour = DrawInfo.Colour;
+
+                    // colouring is applied in the order of interest to a viewer.
+                    colour = Interpolation.ValueAt(points[i].MidIntensity / midMax, colour, MidColour, 0, 1);
+                    // high end (cymbal) can help find beat, so give it priority over mids.
+                    colour = Interpolation.ValueAt(points[i].HighIntensity / highMax, colour, HighColour, 0, 1);
+                    // low end (bass drum) is generally the best visual aid for beat matching, so give it priority over high/mid.
+                    colour = Interpolation.ValueAt(points[i].LowIntensity / lowMax, colour, LowColour, 0, 1);
+
                     Quad quadToDraw;
 
                     switch (Channels)
                     {
                         default:
                         case 2:
-                            {
-                                float height = DrawSize.Y / 2;
-                                quadToDraw = new Quad(
-                                    new Vector2(leftX, height - Points[i].Amplitude[0] * height),
-                                    new Vector2(rightX, height - Points[i + 1].Amplitude[0] * height),
-                                    new Vector2(leftX, height + Points[i].Amplitude[1] * height),
-                                    new Vector2(rightX, height + Points[i + 1].Amplitude[1] * height)
-                                );
-                            }
+                        {
+                            float height = DrawSize.Y / 2;
+                            quadToDraw = new Quad(
+                                new Vector2(leftX, height - points[i].Amplitude[0] * height),
+                                new Vector2(rightX, height - points[i + 1].Amplitude[0] * height),
+                                new Vector2(leftX, height + points[i].Amplitude[1] * height),
+                                new Vector2(rightX, height + points[i + 1].Amplitude[1] * height)
+                            );
+                        }
                             break;
                         case 1:
-                            {
-                                quadToDraw = new Quad(
-                                    new Vector2(leftX, DrawSize.Y - Points[i].Amplitude[0] * DrawSize.Y),
-                                    new Vector2(rightX, DrawSize.Y - Points[i + 1].Amplitude[0] * DrawSize.Y),
-                                    new Vector2(leftX, DrawSize.Y),
-                                    new Vector2(rightX, DrawSize.Y)
-                                );
-                                break;
-                            }
+                        {
+                            quadToDraw = new Quad(
+                                new Vector2(leftX, DrawSize.Y - points[i].Amplitude[0] * DrawSize.Y),
+                                new Vector2(rightX, DrawSize.Y - points[i + 1].Amplitude[0] * DrawSize.Y),
+                                new Vector2(leftX, DrawSize.Y),
+                                new Vector2(rightX, DrawSize.Y)
+                            );
+                            break;
+                        }
                     }
 
                     quadToDraw *= DrawInfo.Matrix;
