@@ -10,10 +10,10 @@ namespace osu.Framework.Input.Handlers.Mouse
 {
     internal class OpenTKMouseHandler : OpenTKMouseHandlerBase
     {
-        private OpenTKMouseState lastPollingState;
-        private OpenTKMouseState lastEventState;
-
         private ScheduledDelegate scheduled;
+ 
+        private OpenTKMouseState lastPollState;
+        private OpenTKMouseState lastEventState;
 
         public override bool Initialize(GameHost host)
         {
@@ -44,8 +44,8 @@ namespace osu.Framework.Input.Handlers.Mouse
                         var mapped = host.Window.PointToClient(new Point(cursorState.X, cursorState.Y));
 
                         var newState = new OpenTKPollMouseState(cursorState, host.IsActive, new Vector2(mapped.X, mapped.Y));
-                        HandleState(newState, lastPollingState, true);
-                        lastPollingState = newState;
+                        HandleState(newState, lastPollState, true);
+                        lastPollState = newState;
                     }, 0, 1000.0 / 60));
                 }
                 else
@@ -57,7 +57,7 @@ namespace osu.Framework.Input.Handlers.Mouse
                     host.Window.MouseUp -= handleMouseEvent;
                     host.Window.MouseWheel -= handleMouseEvent;
 
-                    lastPollingState = null;
+                    lastPollState = null;
                     lastEventState = null;
                 }
             };

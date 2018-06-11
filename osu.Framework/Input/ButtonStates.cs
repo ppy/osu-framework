@@ -12,7 +12,7 @@ namespace osu.Framework.Input
     public class ButtonStates<TButton> : IEnumerable<TButton>
     where TButton : struct
     {
-        private List<TButton> pressedButtons { get; set; } = new List<TButton>();
+        private List<TButton> pressedButtons = new List<TButton>();
 
         public ButtonStates<TButton> Clone()
         {

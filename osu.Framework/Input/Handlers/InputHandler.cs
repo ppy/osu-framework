@@ -48,7 +48,7 @@ namespace osu.Framework.Input.Handlers
         public abstract int Priority { get; }
 
         /// <summary>
-        /// Whether this InputHandler should be collecting <see cref="InputState"/>s to return on the next <see cref="GetPendingInputs"/> call
+        /// Whether this InputHandler should be collecting <see cref="IInput"/>s to return on the next <see cref="GetPendingInputs"/> call
         /// </summary>
         public readonly BindableBool Enabled = new BindableBool(true);
 
