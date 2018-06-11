@@ -2092,12 +2092,6 @@ namespace osu.Framework.Graphics
                 this.us = us;
             }
 
-            public IReadOnlyList<MouseButton> Buttons
-            {
-                get => NativeState.Buttons;
-                set => NativeState.Buttons = value;
-            }
-
             public Vector2 Delta => Position - LastPosition;
 
             public Vector2 Position
@@ -2117,11 +2111,7 @@ namespace osu.Framework.Graphics
                 get => NativeState.PositionMouseDown == null ? null : us.Parent?.ToLocalSpace(NativeState.PositionMouseDown.Value) ?? NativeState.PositionMouseDown;
                 set => throw new NotImplementedException();
             }
-
-            public bool HasMainButtonPressed => NativeState.HasMainButtonPressed;
-
-            public bool HasAnyButtonPressed => NativeState.HasAnyButtonPressed;
-
+            
             public Vector2 Scroll
             {
                 get => NativeState.Scroll;
@@ -2142,15 +2132,27 @@ namespace osu.Framework.Graphics
                 set => NativeState.HasPreciseScroll = value;
             }
 
-            public bool IsPressed(MouseButton button) => NativeState.IsPressed(button);
+            public ButtonStates<MouseButton> Buttons => NativeState.Buttons;
 
-            public void SetPressed(MouseButton button, bool pressed) => NativeState.SetPressed(button, pressed);
+            public bool HasMainButtonPressed => NativeState.HasMainButtonPressed;
+
+            public bool HasAnyButtonPressed => NativeState.HasAnyButtonPressed;
 
             public IMouseState Clone()
             {
                 var cloned = (LocalMouseState)MemberwiseClone();
                 cloned.NativeState = NativeState.Clone();
                 return cloned;
+            }
+
+            public bool IsPressed(MouseButton button)
+            {
+                return NativeState.IsPressed(button);
+            }
+
+            public void SetPressed(MouseButton button, bool pressed)
+            {
+                NativeState.SetPressed(button, pressed);
             }
         }
 

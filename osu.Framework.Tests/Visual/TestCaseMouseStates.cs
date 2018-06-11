@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
@@ -16,7 +17,6 @@ using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Input;
 using MouseEventArgs = osu.Framework.Input.MouseEventArgs;
-using MouseState = osu.Framework.Input.MouseState;
 using osu.Framework.MathUtils;
 
 namespace osu.Framework.Tests.Visual
@@ -78,7 +78,7 @@ namespace osu.Framework.Tests.Visual
                 new StateTracker(0)
             };
 
-            AddStep("return input", () => manual.UseParentState = true);
+            AddStep("return input", () => manual.UseParentInput = true);
 
             // TODO: blocking event testing
         }
@@ -87,7 +87,7 @@ namespace osu.Framework.Tests.Visual
         public void SetUp()
         {
             // grab manual input control
-            manual.AddStates(new InputState { Mouse = new MouseState() });
+            manual.UseParentInput = false;
 
             s1.Reset();
             s2.Reset();
@@ -116,23 +116,24 @@ namespace osu.Framework.Tests.Visual
         {
             eventCounts.Clear();
 
-            AddStep("push move state", () => manual.MoveMouseTo(marginBox.ScreenSpaceDrawQuad.TopLeft));
+            AddStep("push move", () => manual.MoveMouseTo(marginBox.ScreenSpaceDrawQuad.TopLeft));
             checkEventCount("Move", 1);
             checkEventCount("Scroll");
 
-            AddStep("push move state", () => manual.MoveMouseTo(marginBox.ScreenSpaceDrawQuad.TopRight));
+            AddStep("push move", () => manual.MoveMouseTo(marginBox.ScreenSpaceDrawQuad.TopRight));
             checkEventCount("Move", 1);
             checkEventCount("Scroll");
             checkLastPositionDelta(() => marginBox.ScreenSpaceDrawQuad.Width);
 
-            AddStep("push move state", () => manual.MoveMouseTo(marginBox.ScreenSpaceDrawQuad.BottomRight));
+            AddStep("push move", () => manual.MoveMouseTo(marginBox.ScreenSpaceDrawQuad.BottomRight));
             checkEventCount("Move", 1);
             checkLastPositionDelta(() => marginBox.ScreenSpaceDrawQuad.Height);
 
-            AddStep("push two move states", () => manual.AddStates(
-                new InputState { Mouse = new MouseState { Position = marginBox.ScreenSpaceDrawQuad.TopLeft } },
-                new InputState { Mouse = new MouseState { Position = marginBox.ScreenSpaceDrawQuad.BottomLeft } }
-            ));
+            AddStep("push two moves", () =>
+            {
+                manual.MoveMouseTo(marginBox.ScreenSpaceDrawQuad.TopLeft);
+                manual.MoveMouseTo(marginBox.ScreenSpaceDrawQuad.BottomLeft);
+            });
             checkEventCount("Move", 2);
             checkLastPositionDelta(() => Vector2.Distance(marginBox.ScreenSpaceDrawQuad.TopLeft, marginBox.ScreenSpaceDrawQuad.BottomLeft));
         }
@@ -158,35 +159,32 @@ namespace osu.Framework.Tests.Visual
 
             AddStep("press three buttons", () =>
             {
-                var state = manual.CurrentState.Clone();
-                state.Mouse.SetPressed(MouseButton.Left, true);
-                state.Mouse.SetPressed(MouseButton.Right, true);
-                state.Mouse.SetPressed(MouseButton.Button1, true);
-                manual.AddStates(state);
+                manual.PressButton(MouseButton.Left);
+                manual.PressButton(MouseButton.Right);
+                manual.PressButton(MouseButton.Button1);
             });
             checkEventCount("MouseDown", 3);
 
-            AddStep("push empty mouse state", () => manual.AddStates(new InputState { Mouse = new MouseState() }));
-            checkEventCount("MouseUp", 3);
-
-            AddStep("move to centre", () => manual.MoveMouseTo(actionContainer));
-            checkEventCount("Move", 1);
-
-            AddStep("press two buttons two states", () =>
+            AddStep("Release mouse buttons", () =>
             {
-                var state = manual.CurrentState.Clone();
-                state.Mouse.SetPressed(MouseButton.Left, true);
-                manual.AddStates(state);
-                state = manual.CurrentState.Clone();
-                state.Mouse.SetPressed(MouseButton.Right, true);
-                manual.AddStates(state);
+                manual.ReleaseButton(MouseButton.Left);
+                manual.ReleaseButton(MouseButton.Right);
+                manual.ReleaseButton(MouseButton.Button1);
+            });
+            checkEventCount("MouseUp", 3);
+            
+
+            AddStep("press two buttons", () =>
+            {
+                manual.PressButton(MouseButton.Left);
+                manual.ReleaseButton(MouseButton.Left);
+                manual.PressButton(MouseButton.Right);
             });
 
             checkEventCount("MouseDown", 2);
             checkEventCount("MouseUp", 1);
 
-            AddStep("release", () => manual.AddStates(
-                new InputState { Mouse = new MouseState { Position = manual.CurrentState.Mouse.Position } }));
+            AddStep("release", () => manual.ReleaseButton(MouseButton.Right));
 
             checkEventCount("Move");
             checkEventCount("MouseUp", 1);
@@ -214,25 +212,33 @@ namespace osu.Framework.Tests.Visual
         {
             eventCounts.Clear();
 
-            AddStep("push move state", () => manual.MoveMouseTo(marginBox.ScreenSpaceDrawQuad.BottomLeft));
+            AddStep("push move", () => manual.MoveMouseTo(marginBox.ScreenSpaceDrawQuad.BottomLeft));
             checkEventCount("Move", 1);
 
-            AddStep("push move scroll state", () => manual.AddStates(
-                new InputState { Mouse = new MouseState { Position = marginBox.ScreenSpaceDrawQuad.Centre, Scroll = new Vector2(1, 2) } }
-            ));
+            AddStep("push move and scroll", () =>
+            {
+                manual.MoveMouseTo(marginBox.ScreenSpaceDrawQuad.Centre);
+                manual.ScrollBy(new Vector2(1, 2));
+            });
+
             checkEventCount("Move", 1);
             checkEventCount("Scroll", 1);
             checkLastScrollDelta(new Vector2(1, 2));
             checkLastPositionDelta(() => Vector2.Distance(marginBox.ScreenSpaceDrawQuad.BottomLeft, marginBox.ScreenSpaceDrawQuad.Centre));
 
-            AddStep("push empty state", () => manual.AddStates(
-                new InputState()
-            ));
+            AddStep("Move mouse to out of bounds", () =>
+            {
+                manual.MoveMouseTo(Vector2.Zero);
+            });
 
             checkEventCount("Move");
             checkEventCount("Scroll");
 
-            AddStep("push empty mouse state", () => manual.AddStates(new InputState { Mouse = new MouseState() }));
+            AddStep("Move mouse", () =>
+            {
+                manual.MoveMouseTo(new Vector2(10));
+                manual.ScrollBy(new Vector2(10));
+            });
 
             // outside the bounds so should not increment.
             checkEventCount("Move");
@@ -436,7 +442,7 @@ namespace osu.Framework.Tests.Visual
 
                 private void adjustForMouseDown(InputState state)
                 {
-                    circle.FadeColour(state.Mouse.HasAnyButtonPressed ? Color4.Green.Lighten((state.Mouse.Buttons.Count - 1) * 0.3f) : Color4.White, 50);
+                    circle.FadeColour(state.Mouse.HasAnyButtonPressed ? Color4.Green.Lighten((state.Mouse.Buttons.Count() - 1) * 0.3f) : Color4.White, 50);
                 }
             }
         }

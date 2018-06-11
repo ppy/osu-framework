@@ -65,6 +65,7 @@ namespace osu.Framework.Input.Bindings
         {
             InputKey key = state.Mouse.ScrollDelta.Y > 0 ? InputKey.MouseWheelUp : InputKey.MouseWheelDown;
 
+            /*
             // we need to create a local cloned state to ensure the underlying code in handleNewReleased thinks we are in a sane state,
             // even though we are pressing and releasing an InputKey in a single frame.
             // the important part of this cloned state is the value of Scroll reset to zero.
@@ -72,6 +73,8 @@ namespace osu.Framework.Input.Bindings
             clonedState.Mouse = new MouseState { Buttons = clonedState.Mouse.Buttons };
 
             return handleNewPressed(state, key, false) | handleNewReleased(clonedState, key);
+            */
+            return handleNewPressed(state, key, false) | handleNewReleased(state, key);
         }
 
         internal override bool BuildKeyboardInputQueue(List<Drawable> queue)

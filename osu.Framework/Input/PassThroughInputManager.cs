@@ -12,13 +12,13 @@ namespace osu.Framework.Input
         /// <summary>
         /// If there's an InputManager above us, decide whether we should use their available state.
         /// </summary>
-        public bool UseParentState = true;
+        public bool UseParentInput = true;
 
         internal override bool BuildKeyboardInputQueue(List<Drawable> queue)
         {
             if (!CanReceiveKeyboardInput) return false;
 
-            if (UseParentState)
+            if (UseParentInput)
                 queue.Add(this);
             return false;
         }
@@ -27,7 +27,7 @@ namespace osu.Framework.Input
         {
             if (!CanReceiveMouseInput) return false;
 
-            if (UseParentState)
+            if (UseParentInput)
                 queue.Add(this);
             return false;
         }
@@ -37,60 +37,69 @@ namespace osu.Framework.Input
             //we still want to call the base method to clear any pending states that may build up.
             var pendingInputs = base.GetPendingInputs();
 
-            if (!UseParentState)
-                return pendingInputs;
-
-            pendingInputs.Clear();
-            pendingInputs.AddRange(pendingParentInputs);
-
-            pendingParentInputs.Clear();
+            if (UseParentInput)
+            {
+                pendingInputs.Clear();
+            }
             return pendingInputs;
         }
-
-        private readonly List<IInput> pendingParentInputs = new List<IInput>();
-
-        private bool acceptState(InputState state)
-        {
-            if (UseParentState)
-                pendingParentInputs.Add(new LeagcyInputStateChange { InputState = new PassThroughInputState(state) });
-            return false;
-        }
-
+        
         protected override bool OnMouseMove(InputState state)
         {
-            if (UseParentState)
+            if (UseParentInput)
                 new MousePositionAbsoluteInput { Position = state.Mouse.NativeState.Position }.Apply(CurrentState, this);
             return false;
         }
 
         protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
         {
-            if (UseParentState)
+            if (UseParentInput)
                 new MouseButtonInput { Button = args.Button, IsPressed = true }.Apply(CurrentState, this);
             return false;
         }
 
         protected override bool OnMouseUp(InputState state, MouseUpEventArgs args)
         {
-            if (UseParentState)
+            if (UseParentInput)
                 new MouseButtonInput { Button = args.Button, IsPressed = false }.Apply(CurrentState, this);
             return false;
         }
 
         protected override bool OnScroll(InputState state)
         {
-            if (UseParentState)
+            if (UseParentInput)
                 new MouseScrollRelativeInput { Delta = state.Mouse.NativeState.ScrollDelta }.Apply(CurrentState, this);
             return false;
         }
 
-        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args) => acceptState(state);
+        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
+        {
+            if (UseParentInput)
+                new KeyboardKeyInput { Key = args.Key, IsPressed = true }.Apply(CurrentState, this);
+            return false;
+        }
 
-        protected override bool OnKeyUp(InputState state, KeyUpEventArgs args) => acceptState(state);
+        protected override bool OnKeyUp(InputState state, KeyUpEventArgs args)
+        {
+            if (UseParentInput)
+                new KeyboardKeyInput { Key = args.Key, IsPressed = false }.Apply(CurrentState, this);
+            return false;
+        }
 
-        protected override bool OnJoystickPress(InputState state, JoystickEventArgs args) => acceptState(state);
+        protected override bool OnJoystickPress(InputState state, JoystickEventArgs args)
+        {
+            if (UseParentInput)
+                new JoystickButtonInput { Button = args.Button, IsPressed = true }.Apply(CurrentState, this);
+            return false;
 
-        protected override bool OnJoystickRelease(InputState state, JoystickEventArgs args) => acceptState(state);
+        }
+
+        protected override bool OnJoystickRelease(InputState state, JoystickEventArgs args)
+        {
+            if (UseParentInput)
+                new JoystickButtonInput { Button = args.Button, IsPressed = false }.Apply(CurrentState, this);
+            return false;
+        }
 
         /// <summary>
         /// An input state which allows for transformations to state which don't affect the source state.

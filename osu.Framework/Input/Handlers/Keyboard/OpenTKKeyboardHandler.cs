@@ -24,20 +24,20 @@ namespace osu.Framework.Input.Handlers.Keyboard
             {
                 if (enabled)
                 {
-                    host.Window.KeyDown += handleState;
-                    host.Window.KeyUp += handleState;
+                    host.Window.KeyDown += handleKeyboardEvent;
+                    host.Window.KeyUp += handleKeyboardEvent;
                 }
                 else
                 {
-                    host.Window.KeyDown -= handleState;
-                    host.Window.KeyUp -= handleState;
+                    host.Window.KeyDown -= handleKeyboardEvent;
+                    host.Window.KeyUp -= handleKeyboardEvent;
                 }
             };
             Enabled.TriggerChange();
             return true;
         }
 
-        private void handleState(object sender, KeyboardKeyEventArgs e)
+        private void handleKeyboardEvent(object sender, KeyboardKeyEventArgs e)
         {
             var state = e.Keyboard;
 
@@ -46,7 +46,11 @@ namespace osu.Framework.Input.Handlers.Keyboard
 
             lastState = state;
 
-            PendingInputs.Enqueue(new LeagcyInputStateChange { InputState = new InputState { Keyboard = new TkKeyboardState(state) } });
+            var newState = new TkKeyboardState(state);
+            foreach (var key in Enum.GetValues(typeof(Key)).Cast<Key>())
+            {
+                PendingInputs.Enqueue(new KeyboardKeyInput { Key = key, IsPressed = newState.IsPressed(key) });
+            }
             FrameStatistics.Increment(StatisticsCounterType.KeyEvents);
         }
 
@@ -57,7 +61,15 @@ namespace osu.Framework.Input.Handlers.Keyboard
             public TkKeyboardState(OpenTK.Input.KeyboardState tkState)
             {
                 if (tkState.IsAnyKeyDown)
-                    Keys = all_keys.Where(tkState.IsKeyDown);
+                {
+                    foreach (var key in all_keys)
+                    {
+                        if (tkState.IsKeyDown(key))
+                        {
+                            Keys.SetPressed(key, true);
+                        }
+                    }
+                }
             }
         }
     }

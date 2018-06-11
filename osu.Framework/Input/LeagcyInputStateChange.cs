@@ -1,10 +1,6 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 namespace osu.Framework.Input
 {
     /// <summary>
@@ -16,28 +12,7 @@ namespace osu.Framework.Input
         public void Apply(InputState state, IInputStateChangeHandler handler)
         {
             // it is like createDistinctStates
-
-
-            void processForButtons<TButton>(
-                IReadOnlyList<TButton> lastButtons,
-                IEnumerable<TButton> incomingButtons,
-                Action<IReadOnlyList<TButton>, TButton, ButtonStateChangeKind> action)
-                where TButton : struct
-            {
-                foreach (var releasedButton in lastButtons.Except(incomingButtons))
-                {
-                    lastButtons = lastButtons.Where(d => !d.Equals(releasedButton)).ToArray();
-                    action(lastButtons, releasedButton, ButtonStateChangeKind.Released);
-                }
-
-                foreach (var pressedButton in incomingButtons.Except(lastButtons))
-                {
-                    lastButtons = lastButtons.Union(new[] { pressedButton }).ToArray();
-                    action(lastButtons, pressedButton, ButtonStateChangeKind.Pressed);
-                }
-            }
-
-
+            
             if (InputState.Mouse != null)
             {
                 if (state.Mouse.Position != InputState.Mouse.Position)
@@ -52,20 +27,28 @@ namespace osu.Framework.Input
                     handler.HandleMouseScrollChange(state);
                 }
 
-                processForButtons(state.Mouse.Buttons.ToArray(), InputState.Mouse.Buttons, (buttons, button, kind) =>
-                {
-                    state.Mouse.Buttons = buttons;
-                    handler.HandleMouseButtonStateChange(state, button, kind);
-                });
+                var (released, pressesd) = state.Mouse.Buttons.EnumerateDifference(InputState.Mouse.Buttons);
+
+                foreach (var button in released)
+                    handler.HandleMouseButtonStateChange(state, button, ButtonStateChangeKind.Released);
+
+                foreach (var button in pressesd)
+                    handler.HandleMouseButtonStateChange(state, button, ButtonStateChangeKind.Pressed);
+
+                state.Mouse.Buttons.Set(InputState.Mouse.Buttons);
             }
 
             if (InputState.Keyboard != null)
             {
-                processForButtons(state.Keyboard.Keys.ToArray(), InputState.Keyboard.Keys, (buttons, button, kind) =>
-                {
-                    state.Keyboard = new KeyboardState { Keys = buttons };
-                    handler.HandleKeyboardKeyStateChange(state, button, kind);
-                });
+                var (released, pressesd) = state.Keyboard.Keys.EnumerateDifference(InputState.Keyboard.Keys);
+
+                foreach (var button in released)
+                    handler.HandleKeyboardKeyStateChange(state, button, ButtonStateChangeKind.Released);
+
+                foreach (var button in pressesd)
+                    handler.HandleKeyboardKeyStateChange(state, button, ButtonStateChangeKind.Pressed);
+
+                state.Keyboard.Keys.Set(InputState.Keyboard.Keys);
             }
 
             // todo: joystick

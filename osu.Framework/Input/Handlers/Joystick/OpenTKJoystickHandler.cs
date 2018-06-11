@@ -36,7 +36,9 @@ namespace osu.Framework.Input.Handlers.Joystick
 
                             if (device.LastState != null)
                             {
-                                PendingInputs.Enqueue(new LeagcyInputStateChange { InputState = new InputState { Joystick = new OpenTKJoystickState(device) } });
+                                var newState = new OpenTKJoystickState(device);
+                                // todo: input
+                                Console.WriteLine(newState);
                                 FrameStatistics.Increment(StatisticsCounterType.JoystickEvents);
                             }
                         }
@@ -104,25 +106,22 @@ namespace osu.Framework.Input.Handlers.Joystick
                 Axes = axes;
 
                 // Populate normal buttons
-                var buttons = new List<JoystickButton>();
                 for (int i = 0; i < JoystickDevice.MAX_BUTTONS; i++)
                 {
                     if (device.State.GetButton(i) == ButtonState.Pressed)
-                        buttons.Add((JoystickButton)i);
+                        Buttons.SetPressed((JoystickButton)i, true);
                 }
 
                 // Populate hat buttons
                 for (int i = 0; i < JoystickDevice.MAX_HATS; i++)
                 {
                     foreach (var hatButton in getHatButtons(device, i))
-                        buttons.Add(hatButton);
+                        Buttons.SetPressed(hatButton, true);
                 }
 
                 // Populate axis buttons (each axis has two buttons)
                 foreach (var axis in Axes)
-                    buttons.Add((axis.Value < 0 ? JoystickButton.FirstAxisNegative : JoystickButton.FirstAxisPositive) + axis.Axis);
-
-                Buttons = buttons;
+                    Buttons.SetPressed((axis.Value < 0 ? JoystickButton.FirstAxisNegative : JoystickButton.FirstAxisPositive) + axis.Axis, true);
             }
 
             private IEnumerable<JoystickButton> getHatButtons(JoystickDevice device, int hat)

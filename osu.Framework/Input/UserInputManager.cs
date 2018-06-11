@@ -14,7 +14,7 @@ namespace osu.Framework.Input
 
         public UserInputManager()
         {
-            UseParentState = false;
+            UseParentInput = false;
         }
     }
 }

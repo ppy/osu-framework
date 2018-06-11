@@ -1,14 +1,12 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System.Collections.Generic;
 using osu.Framework.Graphics;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Platform;
 using OpenTK;
 using OpenTK.Input;
-using MouseState = osu.Framework.Input.MouseState;
 
 namespace osu.Framework.Testing.Input
 {
@@ -18,25 +16,25 @@ namespace osu.Framework.Testing.Input
 
         public ManualInputManager()
         {
-            UseParentState = true;
+            UseParentInput = true;
             AddHandler(handler = new ManualInputHandler());
         }
 
         public void PressKey(Key key)
         {
-            UseParentState = false;
+            UseParentInput = false;
             handler.PressKey(key);
         }
 
         public void ReleaseKey(Key key)
         {
-            UseParentState = false;
+            UseParentInput = false;
             handler.ReleaseKey(key);
         }
 
         public void ScrollBy(Vector2 delta)
         {
-            UseParentState = false;
+            UseParentInput = false;
             handler.ScrollBy(delta);
         }
 
@@ -46,79 +44,59 @@ namespace osu.Framework.Testing.Input
 
         public void MoveMouseTo(Drawable drawable)
         {
-            UseParentState = false;
+            UseParentInput = false;
             MoveMouseTo(drawable.ToScreenSpace(drawable.LayoutRectangle.Centre));
         }
 
         public void MoveMouseTo(Vector2 position)
         {
-            UseParentState = false;
+            UseParentInput = false;
             handler.MoveMouseTo(position);
         }
 
         public void Click(MouseButton button)
         {
-            UseParentState = false;
+            UseParentInput = false;
             handler.Click(button);
         }
 
         public void PressButton(MouseButton button)
         {
-            UseParentState = false;
+            UseParentInput = false;
             handler.PressButton(button);
         }
 
         public void ReleaseButton(MouseButton button)
         {
-            UseParentState = false;
+            UseParentInput = false;
             handler.ReleaseButton(button);
-        }
-
-        public void AddStates(params InputState[] states)
-        {
-            UseParentState = false;
-            foreach (var state in states)
-                handler.EnqueueState(state);
         }
 
         private class ManualInputHandler : InputHandler
         {
-            private readonly List<Key> pressedKeys = new List<Key>();
-
-            private MouseState lastMouseState = new MouseState();
-
             public void PressKey(Key key)
             {
-                pressedKeys.Add(key);
-                EnqueueState(new InputState { Keyboard = new Framework.Input.KeyboardState { Keys = pressedKeys } });
+                PendingInputs.Enqueue(new KeyboardKeyInput { Key = key, IsPressed = true});
             }
 
             public void ReleaseKey(Key key)
             {
-                if (!pressedKeys.Remove(key))
-                    return;
-                EnqueueState(new InputState { Keyboard = new Framework.Input.KeyboardState { Keys = pressedKeys } });
+                PendingInputs.Enqueue(new KeyboardKeyInput { Key = key, IsPressed = false });
             }
 
             public void PressButton(MouseButton button)
             {
-                var state = lastMouseState.Clone();
-                state.SetPressed(button, true);
-                EnqueueState(new InputState { Mouse = state });
+                PendingInputs.Enqueue(new MouseButtonInput { Button = button, IsPressed = true });
             }
 
             public void ReleaseButton(MouseButton button)
             {
-                var state = lastMouseState.Clone();
-                state.SetPressed(button, false);
-                EnqueueState(new InputState { Mouse = state });
+                PendingInputs.Enqueue(new MouseButtonInput { Button = button, IsPressed = false });
             }
 
             public void ScrollBy(Vector2 delta)
             {
-                var state = lastMouseState.Clone();
-                state.Scroll += delta;
-                EnqueueState(new InputState { Mouse = state });
+                PendingInputs.Enqueue(new MouseScrollRelativeInput { Delta = delta });
             }
 
             public void ScrollVerticalBy(float delta) => ScrollBy(new Vector2(0, delta));
@@ -127,9 +105,7 @@ namespace osu.Framework.Testing.Input
 
             public void MoveMouseTo(Vector2 position)
             {
-                var state = lastMouseState.Clone();
-                state.Position = position;
-                EnqueueState(new InputState { Mouse = state });
+                PendingInputs.Enqueue(new MousePositionAbsoluteInput { Position = position });
             }
 
             public void Click(MouseButton button)
@@ -142,12 +118,9 @@ namespace osu.Framework.Testing.Input
             public override bool IsActive => true;
             public override int Priority => 0;
 
-            public void EnqueueState(InputState state)
+            public void EnqueueInput(IInput input)
             {
-                if (state.Mouse is MouseState ms)
-                    lastMouseState = ms;
-
-                PendingInputs.Enqueue(new LeagcyInputStateChange { InputState = state });
+                PendingInputs.Enqueue(input);
             }
         }
     }
