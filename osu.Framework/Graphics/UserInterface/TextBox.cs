@@ -106,9 +106,11 @@ namespace osu.Framework.Graphics.UserInterface
                         Placeholder = CreatePlaceholder(),
                         Caret = new DrawableCaret
                         {
-                            Width = 3,
+                            Height = 0.9f,
                             RelativeSizeAxes = Axes.Y,
-                            Size = new Vector2(1, 0.9f)
+                            Anchor = Anchor.CentreLeft,
+                            Origin = Anchor.CentreLeft,
+                            Position = new Vector2(LeftRightPadding, 0)
                         },
                         TextFlow = new FillFlowContainer
                         {
@@ -187,17 +189,18 @@ namespace osu.Framework.Graphics.UserInterface
 
             Vector2 cursorPos = Vector2.Zero;
             if (text.Length > 0)
-                cursorPos.X = getPositionAt(selectionLeft) - cursor_width / 2;
+            {
+                cursorPos = getPositionAt(selectionLeft);
+                cursorPos.X -= cursor_width / 2;
+            }
 
-            float cursorPosEnd = getPositionAt(selectionEnd);
+            Vector2 cursorPosEnd = getPositionAt(selectionEnd);
 
-            float cursorRelativePositionAxesInBox = (cursorPosEnd - textContainerPosX) / DrawWidth;
+            float cursorRelativePositionAxesInBox = (cursorPosEnd.X - textContainerPosX) / DrawWidth;
 
             //we only want to reposition the view when the cursor reaches near the extremities.
             if (cursorRelativePositionAxesInBox < 0.1 || cursorRelativePositionAxesInBox > 0.9)
-            {
-                textContainerPosX = cursorPosEnd - DrawWidth / 2 + LeftRightPadding * 2;
-            }
+                textContainerPosX = cursorPosEnd.X - DrawWidth / 2 + LeftRightPadding * 2;
 
             textContainerPosX = MathHelper.Clamp(textContainerPosX, 0, Math.Max(0, TextFlow.DrawWidth - DrawWidth + LeftRightPadding * 2));
 
@@ -233,17 +236,21 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        private float getPositionAt(int index)
+        private Vector2 getPositionAt(int index)
         {
             if (index > 0)
             {
                 if (index < text.Length)
-                    return TextFlow.Children[index].DrawPosition.X + TextFlow.DrawPosition.X;
-                var d = TextFlow.Children[index - 1];
-                return d.DrawPosition.X + d.DrawSize.X + TextFlow.Spacing.X + TextFlow.DrawPosition.X;
+                {
+                    var inText = TextFlow.Children[index];
+                    return new Vector2(inText.DrawPosition.X + TextFlow.DrawPosition.X, inText.DrawPosition.Y + TextFlow.DrawPosition.Y);
+                }
+
+                var endText = TextFlow.Children[index - 1];
+                return new Vector2(endText.DrawPosition.X + endText.DrawSize.X + TextFlow.Spacing.X + TextFlow.DrawPosition.X, endText.DrawPosition.Y + TextFlow.DrawPosition.Y);
             }
 
-            return 0;
+            return Vector2.Zero;
         }
 
         private int getCharacterClosestTo(Vector2 pos)

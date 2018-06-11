@@ -16,8 +16,7 @@ namespace osu.Framework.Graphics.UserInterface
         public DrawableCaret()
         {
             Alpha = 0;
-            Anchor = Anchor.TopLeft;
-            Origin = Anchor.TopLeft;
+            Width = 3;
             Colour = Color4.Transparent;
 
             Masking = true;
