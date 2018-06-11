@@ -13,5 +13,7 @@ namespace osu.Framework.Input
         void HandleKeyboardKeyStateChange(InputState state, Key key, ButtonStateChangeKind kind);
         void HandleJoystickAxisChange(InputState state, JoystickAxis axis, int axisValue);
         void HandleJoystickButtonStateChange(InputState state, JoystickButton button, ButtonStateChangeKind kind);
+
+        void HandleCustomInput(InputState state, IInput input);
     }
 }

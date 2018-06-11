@@ -344,7 +344,7 @@ namespace osu.Framework.Input
                 || k == Key.LWin || k == Key.RWin;
         }
 
-        public void HandleKeyboardKeyStateChange(InputState state, Key key, ButtonStateChangeKind kind)
+        public virtual void HandleKeyboardKeyStateChange(InputState state, Key key, ButtonStateChangeKind kind)
         {
             if (kind == ButtonStateChangeKind.Pressed)
             {
@@ -365,12 +365,11 @@ namespace osu.Framework.Input
             }
         }
 
-        public void HandleJoystickAxisChange(InputState state, JoystickAxis axis, int axisValue)
+        public virtual void HandleJoystickAxisChange(InputState state, JoystickAxis axis, int axisValue)
         {
-
         }
 
-        public void HandleJoystickButtonStateChange(InputState state, JoystickButton button, ButtonStateChangeKind kind)
+        public virtual void HandleJoystickButtonStateChange(InputState state, JoystickButton button, ButtonStateChangeKind kind)
         {
             if (kind == ButtonStateChangeKind.Pressed)
             {
@@ -382,7 +381,7 @@ namespace osu.Framework.Input
             }
         }
 
-        public void HandleMousePositionChange(InputState state)
+        public virtual void HandleMousePositionChange(InputState state)
         {
             var mouse = state.Mouse;
 
@@ -416,7 +415,7 @@ namespace osu.Framework.Input
             mouse.LastPosition = mouse.Position;
         }
 
-        public void HandleMouseScrollChange(InputState state)
+        public virtual void HandleMouseScrollChange(InputState state)
         {
             if (Host.Window != null && !Host.Window.CursorInWindow) return;
 
@@ -425,7 +424,7 @@ namespace osu.Framework.Input
             mouse.LastScroll = mouse.Scroll;
         }
 
-        public void HandleMouseButtonStateChange(InputState state, MouseButton button, ButtonStateChangeKind kind)
+        public virtual void HandleMouseButtonStateChange(InputState state, MouseButton button, ButtonStateChangeKind kind)
         {
             var mouse = state.Mouse;
             if (kind == ButtonStateChangeKind.Pressed)
@@ -470,6 +469,10 @@ namespace osu.Framework.Input
                     mouse.PositionMouseDown = null;
                 }
             }
+        }
+
+        public virtual void HandleCustomInput(InputState state, IInput input)
+        {
         }
 
         private List<Drawable> mouseDownInputQueue;
