@@ -30,6 +30,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected Box Background;
         protected DrawableCaret Caret;
         protected Container TextContainer;
+        protected SelectionArea SelectionArea;
 
         public override bool HandleKeyboardInput => HasFocus;
 
@@ -105,6 +106,14 @@ namespace osu.Framework.Graphics.UserInterface
                     {
                         Placeholder = CreatePlaceholder(),
                         Caret = new DrawableCaret
+                        {
+                            Height = 0.9f,
+                            RelativeSizeAxes = Axes.Y,
+                            Anchor = Anchor.CentreLeft,
+                            Origin = Anchor.CentreLeft,
+                            Position = new Vector2(LeftRightPadding, 0)
+                        },
+                        SelectionArea = new SelectionArea(SelectionColour)
                         {
                             Height = 0.9f,
                             RelativeSizeAxes = Axes.Y,
@@ -211,9 +220,19 @@ namespace osu.Framework.Graphics.UserInterface
                 Caret.ResetTo(cursorPos, caret_move_time);
 
                 if (selectionLength > 0)
+                {
                     Caret.Hide();
+
+                    Vector2 leftBound = getPositionAt(selectionLeft);
+                    Vector2 rightBound = getPositionAt(selectionRight);
+                    
+                    SelectionArea.SelectArea(leftBound, new Vector2(rightBound.X - cursorPos.X, rightBound.Y - leftBound.Y + CalculatedTextSize));
+                }
                 else
+                {
                     Caret.Show();
+                    SelectionArea.Hide();
+                }
             }
 
             if (textAtLastLayout != text)
