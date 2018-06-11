@@ -428,7 +428,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 TextContainer.Add(d);
                 d.FadeOut(200);
-                d.MoveToY(d.DrawSize.Y, 200, Easing.InExpo);
+                d.MoveToY(d.DrawPosition.Y + d.DrawSize.Y, 200, Easing.InExpo);
                 d.Expire();
             }
 
