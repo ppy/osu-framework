@@ -129,7 +129,7 @@ namespace osu.Framework.Input.Handlers.Mouse
         {
             Vector2 currentPosition;
 
-            if ((state.Flags & OpenTK.Input.MouseStateFlags.MoveAbsolute) > 0)
+            if ((state.Flags & MouseStateFlags.MoveAbsolute) > 0)
             {
                 const int raw_input_resolution = 65536;
 
@@ -142,7 +142,7 @@ namespace osu.Framework.Input.Handlers.Mouse
                 }
                 else
                 {
-                    Rectangle screenRect = (state.Flags & OpenTK.Input.MouseStateFlags.VirtualDesktop) > 0
+                    Rectangle screenRect = (state.Flags & MouseStateFlags.VirtualDesktop) > 0
                         ? Platform.Windows.Native.Input.GetVirtualScreenRect()
                         : new Rectangle(0, 0, DisplayDevice.Default.Width, DisplayDevice.Default.Height);
 

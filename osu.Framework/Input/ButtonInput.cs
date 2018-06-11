@@ -34,7 +34,7 @@ namespace osu.Framework.Input
 
         public ButtonInputEntry(TButton button, bool isPressed)
         {
-            this.Button = button;
+            Button = button;
             IsPressed = isPressed;
         }
     }
@@ -43,15 +43,9 @@ namespace osu.Framework.Input
     {
         public static TInput MakeSingleton<TInput, TButton>(TButton button, bool isPressed)
         where TButton : struct
-        where TInput : ButtonInput<TButton>, new()
+        where TInput : ButtonInput<TButton>, new() => new TInput
         {
-            return new TInput
-            {
-                Entries = new ButtonInputEntry<TButton>[]
-                {
-                    new ButtonInputEntry<TButton>(button, isPressed)
-                }
-            };
-        }
+            Entries = new[] { new ButtonInputEntry<TButton>(button, isPressed) }
+        };
     }
 }
