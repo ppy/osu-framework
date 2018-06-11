@@ -10,7 +10,7 @@ namespace osu.Framework.Input
         public Vector2 Delta;
         public void Apply(InputState state, IInputStateChangeHandler handler)
         {
-            if (Delta != Vector2.Zero)
+            if (state.Mouse.IsPositionValid && Delta != Vector2.Zero)
             {
                 state.Mouse.Position += Delta;
                 handler.HandleMousePositionChange(state);

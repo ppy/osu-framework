@@ -16,6 +16,8 @@ namespace osu.Framework.Input
 
         Vector2 Position { get; set; }
 
+        bool IsPositionValid { get; set; }
+
         Vector2 LastPosition { get; set; }
 
         Vector2? PositionMouseDown { get; set; }

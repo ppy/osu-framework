@@ -52,15 +52,20 @@ namespace osu.Framework.Input
         private bool isDragging;
 
         /// <summary>
-        /// The last processed state.
-        /// Mouse, Keyboard and Joystick are always non-null.
+        /// The initial input state. <see cref="CurrentState"/> is always equals (as a reference) to this.
+        /// Mouse, Keyboard and Joystick should be non-null.
         /// </summary>
-        public InputState CurrentState = new InputState
+        protected virtual InputState CreateInitialState() => new InputState
         {
-            Mouse = new MouseState(),
+            Mouse = new MouseState { IsPositionValid = false },
             Keyboard = new KeyboardState(),
             Joystick = new JoystickState(),
         };
+
+        /// <summary>
+        /// The last processed state.
+        /// </summary>
+        public readonly InputState CurrentState;
 
         /// <summary>
         /// The sequential list in which to handle mouse input.
@@ -121,6 +126,7 @@ namespace osu.Framework.Input
 
         protected InputManager()
         {
+            CurrentState = CreateInitialState();
             RelativeSizeAxes = Axes.Both;
         }
 
@@ -209,10 +215,13 @@ namespace osu.Framework.Input
                 result.Apply(CurrentState, this);
             }
 
-            foreach (var d in positionalInputQueue)
-                if (d is IRequireHighFrequencyMousePosition)
-                    if (d.TriggerOnMouseMove(CurrentState))
-                        break;
+            if (CurrentState.Mouse.IsPositionValid)
+            {
+                foreach (var d in positionalInputQueue)
+                    if (d is IRequireHighFrequencyMousePosition)
+                        if (d.TriggerOnMouseMove(CurrentState))
+                            break;
+            }
 
             updateKeyRepeat(CurrentState);
 

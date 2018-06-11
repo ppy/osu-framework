@@ -2100,6 +2100,12 @@ namespace osu.Framework.Graphics
                 set => throw new NotImplementedException();
             }
 
+            public bool IsPositionValid
+            {
+                get => NativeState.IsPositionValid;
+                set => throw new NotImplementedException();
+            }
+
             public Vector2 LastPosition
             {
                 get => us.Parent?.ToLocalSpace(NativeState.LastPosition) ?? NativeState.LastPosition;

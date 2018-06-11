@@ -35,6 +35,8 @@ namespace osu.Framework.Input
 
         public Vector2 Position { get; set; }
 
+        public bool IsPositionValid { get; set; } = true;
+
         private Vector2? lastPosition;
 
         public Vector2 LastPosition
@@ -67,8 +69,9 @@ namespace osu.Framework.Input
 
         public override string ToString()
         {
+            string position = IsPositionValid ? $"({ Position.X:F0},{ Position.Y:F0})" : "(Invalid)";
             string down = PositionMouseDown != null ? $"(down @ {PositionMouseDown.Value.X:F0},{PositionMouseDown.Value.Y:F0})" : string.Empty;
-            return $@"{GetType().ReadableName()} ({Position.X:F0},{Position.Y:F0}) {down} {Buttons} Scroll ({Scroll.X:F2},{Scroll.Y:F2})/({ScrollDelta.X:F2},{ScrollDelta.Y:F2})";
+            return $@"{GetType().ReadableName()} {position} {down} {Buttons} Scroll ({Scroll.X:F2},{Scroll.Y:F2})/({ScrollDelta.X:F2},{ScrollDelta.Y:F2})";
         }
     }
 }
