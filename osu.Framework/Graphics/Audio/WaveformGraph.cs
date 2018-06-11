@@ -274,8 +274,11 @@ namespace osu.Framework.Graphics.Audio
 
                     Color4 colour = DrawInfo.Colour;
 
+                    // colouring is applied in the order of interest to a viewer.
                     colour = Interpolation.ValueAt(points[i].MidIntensity / midMax, colour, MidColour, 0, 1);
+                    // high end (cymbal) can help find beat, so give it priority over mids.
                     colour = Interpolation.ValueAt(points[i].HighIntensity / highMax, colour, HighColour, 0, 1);
+                    // low end (bass drum) is generally the best visual aid for beat matching, so give it priority over high/mid.
                     colour = Interpolation.ValueAt(points[i].LowIntensity / lowMax, colour, LowColour, 0, 1);
 
                     Quad quadToDraw;
