@@ -1,7 +1,9 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System.Drawing;
+using System;
+using System.Diagnostics;
+using System.Linq;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
 using OpenTK;
@@ -26,27 +28,41 @@ namespace osu.Framework.Input.Handlers.Mouse
         }
 
         private Vector2 currentPosition;
-        protected void HandleState(OpenTKMouseState state)
+        protected void HandleState(OpenTKMouseState state, OpenTKMouseState lastState, bool isAbsolutePosition)
         {
-            if (!state.HasLastPosition || (state.RawState.Flags & MouseStateFlags.MoveAbsolute) > 0)
+            if (lastState == null || isAbsolutePosition)
             {
                 PendingInputs.Enqueue(new MousePositionAbsoluteInput { Position = state.Position });
                 currentPosition = state.Position;
             }
             else
             {
-                PendingInputs.Enqueue(new MousePositionRelativeInput { Delta = state.Delta });
-                currentPosition += state.Delta;
+                var delta = state.Position - lastState.Position;
+                if (delta != Vector2.Zero)
+                {
+                    PendingInputs.Enqueue(new MousePositionRelativeInput { Delta = delta });
+                    currentPosition += delta;
+                }
             }
-            PendingInputs.Enqueue(new MouseScrollRelativeInput { Delta = state.ScrollDelta });
-            for (var i = 0; i <= (int)MouseButton.LastButton; ++ i)
-                PendingInputs.Enqueue(new MouseButtonInput { Button = (MouseButton)i, IsPressed = state.IsPressed((MouseButton)i) });
-            FrameStatistics.Increment(StatisticsCounterType.MouseEvents);
 
-            // update the windows cursor to match our raw cursor position.
-            // this is important when sensitivity is decreased below 1.0, where we need to ensure the cursor stays within the window.
-            var screenPoint = Host.Window.PointToScreen(new Point((int)currentPosition.X, (int)currentPosition.Y));
-            OpenTK.Input.Mouse.SetPosition(screenPoint.X, screenPoint.Y);
+            if (lastState != null)
+            {
+                var scrollDelta = state.Scroll - lastState.Scroll;
+                if (scrollDelta != Vector2.Zero)
+                {
+                    PendingInputs.Enqueue(new MouseScrollRelativeInput { Delta = scrollDelta });
+                }
+            }
+
+            var difference = state.Buttons.EnumerateDifference(lastState?.Buttons ?? new ButtonStates<MouseButton>());
+            PendingInputs.Enqueue(new MouseButtonInput
+            {
+                Entries =
+                    difference.Released.Select(button => new ButtonInputEntry<MouseButton>(button, false)).Union(
+                    difference.Pressed.Select(button => new ButtonInputEntry<MouseButton>(button, true)))
+            });
+
+            FrameStatistics.Increment(StatisticsCounterType.MouseEvents);
         }
 
         /// <summary>

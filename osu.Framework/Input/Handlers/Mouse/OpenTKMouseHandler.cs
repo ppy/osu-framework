@@ -10,7 +10,8 @@ namespace osu.Framework.Input.Handlers.Mouse
 {
     internal class OpenTKMouseHandler : OpenTKMouseHandlerBase
     {
-        private OpenTK.Input.MouseState? lastState;
+        private OpenTKMouseState lastPollingState;
+        private OpenTKMouseState lastEventState;
 
         private ScheduledDelegate scheduled;
 
@@ -28,20 +29,23 @@ namespace osu.Framework.Input.Handlers.Mouse
                     host.Window.MouseWheel += handleMouseEvent;
 
                     // polling is used to keep a valid mouse position when we aren't receiving events.
+                    OpenTK.Input.MouseState? lastCursorState = null;
                     host.InputThread.Scheduler.Add(scheduled = new ScheduledDelegate(delegate
                     {
                         // we should be getting events if the mouse is inside the window.
                         if (MouseInWindow || !host.Window.Visible || host.Window.WindowState == WindowState.Minimized) return;
 
-                        var state = OpenTK.Input.Mouse.GetCursorState();
+                        var cursorState = OpenTK.Input.Mouse.GetCursorState();
 
-                        if (state.Equals(lastState)) return;
+                        if (cursorState.Equals(lastCursorState)) return;
 
-                        lastState = state;
+                        lastCursorState = cursorState;
 
-                        var mapped = host.Window.PointToClient(new Point(state.X, state.Y));
+                        var mapped = host.Window.PointToClient(new Point(cursorState.X, cursorState.Y));
 
-                        handleState(new OpenTKPollMouseState(state, host.IsActive, new Vector2(mapped.X, mapped.Y)));
+                        var newState = new OpenTKPollMouseState(cursorState, host.IsActive, new Vector2(mapped.X, mapped.Y));
+                        HandleState(newState, lastPollingState, true);
+                        lastPollingState = newState;
                     }, 0, 1000.0 / 60));
                 }
                 else
@@ -53,7 +57,8 @@ namespace osu.Framework.Input.Handlers.Mouse
                     host.Window.MouseUp -= handleMouseEvent;
                     host.Window.MouseWheel -= handleMouseEvent;
 
-                    lastState = null;
+                    lastPollingState = null;
+                    lastEventState = null;
                 }
             };
             Enabled.TriggerChange();
@@ -70,19 +75,9 @@ namespace osu.Framework.Input.Handlers.Mouse
                 // on windows when crossing centre screen boundaries (width/2 or height/2).
                 return;
 
-            handleState(new OpenTKEventMouseState(e.Mouse, Host.IsActive, null));
-        }
-
-        private MouseState lastMouseState;
-        private void handleState(OpenTKMouseState state)
-        {
-            if (lastMouseState != null)
-            {
-                state.LastPosition = lastMouseState.Position;
-                state.LastScroll = lastMouseState.Scroll;
-            }
-            lastMouseState = state;
-            HandleState(state);
+            var newState = new OpenTKEventMouseState(e.Mouse, Host.IsActive, null);
+            HandleState(newState, lastEventState, true);
+            lastEventState = newState;
         }
     }
 }
