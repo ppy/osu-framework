@@ -43,6 +43,8 @@ namespace osu.Framework.Tests.Visual
 
             FillFlowContainer flow;
 
+            const float track_width = 1366; // required because RelativeSizeAxes.X doesn't seem to work with horizontal scroll
+
             Child = new FillFlowContainer
             {
                 RelativeSizeAxes = Axes.Both,
@@ -79,11 +81,16 @@ namespace osu.Framework.Tests.Visual
                             },
                         },
                     },
-                    flow = new FillFlowContainer
+                    new ScrollContainer(Direction.Horizontal)
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Direction = FillDirection.Vertical,
-                        Spacing = new Vector2(0, 10)
+                        Child = flow = new FillFlowContainer
+                        {
+                            RelativeSizeAxes = Axes.Y,
+                            Width = track_width,
+                            Direction = FillDirection.Vertical,
+                            Spacing = new Vector2(0, 10)
+                        }
                     }
                 }
             };
@@ -92,7 +99,7 @@ namespace osu.Framework.Tests.Visual
                 flow.Add(new TestWaveform(track, 1f / i) { Waveform = waveform });
 
             zoomSlider.Current.BindTo(zoom);
-            zoomSlider.Current.ValueChanged += v => flow.Width = v;
+            zoomSlider.Current.ValueChanged += v => flow.Width = track_width * v;
         }
 
         private void startStop()
