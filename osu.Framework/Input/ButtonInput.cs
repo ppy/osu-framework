@@ -57,7 +57,7 @@ namespace osu.Framework.Input
             return new TInput
             {
                 Entries =
-                    difference.Released.Select(button => new ButtonInputEntry<TButton>(button, false)).Union(
+                    difference.Released.Select(button => new ButtonInputEntry<TButton>(button, false)).Concat(
                         difference.Pressed.Select(button => new ButtonInputEntry<TButton>(button, true)))
             };
         }
