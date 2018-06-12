@@ -196,12 +196,9 @@ namespace osu.Framework.Graphics.UserInterface
 
             textUpdateScheduler.Update();
 
-            Vector2 cursorPos = Vector2.Zero;
+            Vector2 leftBound = Vector2.Zero;
             if (text.Length > 0)
-            {
-                cursorPos = getPositionAt(selectionLeft);
-                cursorPos.X -= cursor_width / 2;
-            }
+                leftBound = getPositionAt(selectionLeft);
 
             Vector2 cursorPosEnd = getPositionAt(selectionEnd);
 
@@ -217,22 +214,15 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (HasFocus)
             {
-                Caret.ResetTo(cursorPos, caret_move_time);
+                Vector2 rightBound = getPositionAt(selectionRight) + new Vector2(0, CalculatedTextSize);
+                
+                Caret.MoveTo(leftBound - new Vector2(cursor_width / 2, 0), caret_move_time, Easing.Out);
+                SelectionArea.SelectArea(leftBound, rightBound);
 
                 if (selectionLength > 0)
-                {
                     Caret.Hide();
-
-                    Vector2 leftBound = getPositionAt(selectionLeft);
-                    Vector2 rightBound = getPositionAt(selectionRight);
-                    
-                    SelectionArea.SelectArea(leftBound, new Vector2(rightBound.X - cursorPos.X, rightBound.Y - leftBound.Y + CalculatedTextSize));
-                }
                 else
-                {
                     Caret.Show();
-                    SelectionArea.Hide();
-                }
             }
 
             if (textAtLastLayout != text)

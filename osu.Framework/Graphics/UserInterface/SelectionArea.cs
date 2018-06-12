@@ -26,12 +26,15 @@ namespace osu.Framework.Graphics.UserInterface
             };
         }
 
-        public void SelectArea(Vector2 position, Vector2 size)
+        public void SelectArea(Vector2 leftBound, Vector2 rightBound)
         {
-            this.MoveTo(position)
-                         .ResizeWidthTo(size.X)
-                         .FadeTo(0.5f, 200, Easing.Out)
-                         .FadeColour(selectionColour, 200, Easing.Out);
+            var size = new Vector2(rightBound.X - leftBound.X, rightBound.Y - leftBound.Y);
+            
+            ClearTransforms();
+            this.MoveTo(leftBound, 60)
+                .ResizeWidthTo(size.X, 60)
+                .FadeTo(0.5f, 200, Easing.Out)
+                .FadeColour(selectionColour, 200, Easing.Out);
         }
     }
 }

@@ -3,14 +3,10 @@
 
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
-using OpenTK;
 using OpenTK.Graphics;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    /// <summary>
-    /// Displays a blinking Caret
-    /// </summary>
     public class DrawableCaret : CompositeDrawable
     {
         public DrawableCaret()
@@ -41,21 +37,13 @@ namespace osu.Framework.Graphics.UserInterface
         }
         
         /// <summary>
-        /// Fades out this caret over a short duration after clearing all transforms.
+        /// Stops the blinking and fades out this caret.
         /// </summary>
         public override void Hide()
         {
-            ClearTransforms();
-            this.FadeOut(200);
-        }
+            ClearTransforms(targetMember: nameof(Alpha));
 
-        /// <summary>
-        /// Clears all transforms and moves this caret to the specified location.
-        /// </summary>
-        public void ResetTo(Vector2 position, double duration)
-        {
-            ClearTransforms();
-            this.MoveTo(position, duration, Easing.Out);
+            base.Hide();
         }
     }
 }
