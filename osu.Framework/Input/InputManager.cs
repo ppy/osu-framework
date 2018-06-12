@@ -381,12 +381,6 @@ namespace osu.Framework.Input
         {
             var mouse = state.Mouse;
 
-            // confine cursor
-            if (Host.Window != null && (Host.Window.CursorState & CursorState.Confined) > 0)
-            {
-                mouse.Position = Vector2.Clamp(mouse.Position, Vector2.Zero, new Vector2(Host.Window.Width, Host.Window.Height));
-            }
-
             foreach (var h in InputHandlers)
                 if (h.Enabled && h is INeedsMousePositionFeedback handler)
                     handler.FeedbackMousePositionChange(mouse.Position);
@@ -411,8 +405,6 @@ namespace osu.Framework.Input
 
         public virtual void HandleMouseScrollChange(InputState state)
         {
-            if (Host.Window != null && !Host.Window.CursorInWindow) return;
-
             var mouse = state.Mouse;
             handleScroll(state);
             mouse.LastScroll = mouse.Scroll;
