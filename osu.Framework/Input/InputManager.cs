@@ -209,7 +209,8 @@ namespace osu.Framework.Input
         {
             unfocusIfNoLongerValid();
 
-            updateMousePositionDependentThings(CurrentState);
+            updateMouseStates(CurrentState);
+            updateKeyboardInputQueue(CurrentState);
 
             foreach (var result in GetPendingInputs())
             {
@@ -244,9 +245,9 @@ namespace osu.Framework.Input
             }
         }
 
-        private void updateMousePositionDependentThings(InputState state)
+        private void updateMouseStates(InputState state)
         {
-            updateInputQueues(state);
+            updateMouseInputQueue(state);
             updateHoverEvents(state);
         }
 
@@ -268,31 +269,32 @@ namespace osu.Framework.Input
         {
         }
 
-        private void updateInputQueues(InputState state)
+        private void updateKeyboardInputQueue(InputState state)
         {
             inputQueue.Clear();
-            positionalInputQueue.Clear();
 
-            if (state.Keyboard != null)
-            {
-                if (this is UserInputManager)
-                    FrameStatistics.Increment(StatisticsCounterType.KeyboardQueue);
-                foreach (Drawable d in AliveInternalChildren)
-                    d.BuildKeyboardInputQueue(inputQueue);
-            }
+            if (this is UserInputManager)
+                FrameStatistics.Increment(StatisticsCounterType.KeyboardQueue);
 
-            if (state.Mouse != null)
-            {
-                if (this is UserInputManager)
-                    FrameStatistics.Increment(StatisticsCounterType.MouseQueue);
-                foreach (Drawable d in AliveInternalChildren)
-                    d.BuildMouseInputQueue(state.Mouse.Position, positionalInputQueue);
-            }
+            foreach (Drawable d in AliveInternalChildren)
+                d.BuildKeyboardInputQueue(inputQueue);
 
             // Keyboard and mouse queues were created in back-to-front order.
             // We want input to first reach front-most drawables, so the queues
             // need to be reversed.
             inputQueue.Reverse();
+        }
+
+        private void updateMouseInputQueue(InputState state)
+        {
+            positionalInputQueue.Clear();
+
+            if (this is UserInputManager)
+                FrameStatistics.Increment(StatisticsCounterType.MouseQueue);
+
+            foreach (Drawable d in AliveInternalChildren)
+                d.BuildMouseInputQueue(state.Mouse.Position, positionalInputQueue);
+
             positionalInputQueue.Reverse();
         }
 
@@ -400,7 +402,7 @@ namespace osu.Framework.Input
                 if (h.Enabled && h is INeedsMousePositionFeedback handler)
                     handler.FeedbackMousePositionChange(mouse.Position);
 
-            updateMousePositionDependentThings(state);
+            updateMouseStates(state);
 
             handleMouseMove(state);
 
@@ -432,6 +434,9 @@ namespace osu.Framework.Input
         public virtual void HandleMouseButtonStateChange(InputState state, MouseButton button, ButtonStateChangeKind kind)
         {
             var mouse = state.Mouse;
+
+            updateMouseStates(state);
+
             if (kind == ButtonStateChangeKind.Pressed)
             {
                 handleMouseDown(state, button);
