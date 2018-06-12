@@ -11,7 +11,11 @@
             ],
             "cwd": "${workspaceRoot}",
             "preLaunchTask": "Build (Debug)",
-            "env": {},
+            "linux": {
+                "env": {
+                    "LD_LIBRARY_PATH": "${workspaceRoot}/osu.Framework.Tests/bin/Debug/netcoreapp2.1:${env:LD_LIBRARY_PATH}"
+                }
+            },
             "console": "internalConsole"
         },
         {
@@ -24,7 +28,11 @@
             ],
             "cwd": "${workspaceRoot}",
             "preLaunchTask": "Build (Release)",
-            "env": {},
+            "linux": {
+                "env": {
+                    "LD_LIBRARY_PATH": "${workspaceRoot}/osu.Framework.Tests/bin/Release/netcoreapp2.1:${env:LD_LIBRARY_PATH}"
+                }
+            },
             "console": "internalConsole"
         }
     ]

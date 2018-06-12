@@ -860,7 +860,11 @@ namespace osu.Framework.Input
                         createDistinctState(s => s.Mouse.Position = incoming.Mouse.Position);
 
                     if (transient.Mouse.Scroll != incoming.Mouse.Scroll)
-                        createDistinctState(s => s.Mouse.Scroll = incoming.Mouse.Scroll);
+                        createDistinctState(s =>
+                        {
+                            s.Mouse.Scroll = incoming.Mouse.Scroll;
+                            s.Mouse.HasPreciseScroll = incoming.Mouse.HasPreciseScroll;
+                        });
 
                     processForButtons(transient.Mouse.Buttons, incoming.Mouse.Buttons, (s, buttons) => s.Mouse.Buttons = buttons);
                 }
