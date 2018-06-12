@@ -26,6 +26,11 @@ namespace osu.Framework.Graphics.UserInterface
             };
         }
 
+        /// <summary>
+        /// Highlights a selected area.
+        /// </summary>
+        /// <param name="leftBound">Upper left corner of the selection</param>
+        /// <param name="rightBound">Lower right corner of the selection</param>
         public void SelectArea(Vector2 leftBound, Vector2 rightBound)
         {
             var size = new Vector2(rightBound.X - leftBound.X, rightBound.Y - leftBound.Y);
