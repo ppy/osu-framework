@@ -55,14 +55,14 @@ namespace osu.Framework.Input
         protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
         {
             if (UseParentInput)
-                ButtonInputHelper.MakeSingleton<MouseButtonInput, MouseButton>(args.Button, true).Apply(CurrentState, this);
+                ButtonInputHelper.MakeInput<MouseButtonInput, MouseButton>(args.Button, true).Apply(CurrentState, this);
             return false;
         }
 
         protected override bool OnMouseUp(InputState state, MouseUpEventArgs args)
         {
             if (UseParentInput)
-                ButtonInputHelper.MakeSingleton<MouseButtonInput, MouseButton>(args.Button, false).Apply(CurrentState, this);
+                ButtonInputHelper.MakeInput<MouseButtonInput, MouseButton>(args.Button, false).Apply(CurrentState, this);
             return false;
         }
 
@@ -76,21 +76,21 @@ namespace osu.Framework.Input
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
             if (UseParentInput)
-                ButtonInputHelper.MakeSingleton<KeyboardKeyInput, Key>(args.Key, true).Apply(CurrentState, this);
+                ButtonInputHelper.MakeInput<KeyboardKeyInput, Key>(args.Key, true).Apply(CurrentState, this);
             return false;
         }
 
         protected override bool OnKeyUp(InputState state, KeyUpEventArgs args)
         {
             if (UseParentInput)
-                ButtonInputHelper.MakeSingleton<KeyboardKeyInput, Key>(args.Key, false).Apply(CurrentState, this);
+                ButtonInputHelper.MakeInput<KeyboardKeyInput, Key>(args.Key, false).Apply(CurrentState, this);
             return false;
         }
 
         protected override bool OnJoystickPress(InputState state, JoystickEventArgs args)
         {
             if (UseParentInput)
-                ButtonInputHelper.MakeSingleton<JoystickButtonInput, JoystickButton>(args.Button, true).Apply(CurrentState, this);
+                ButtonInputHelper.MakeInput<JoystickButtonInput, JoystickButton>(args.Button, true).Apply(CurrentState, this);
             return false;
 
         }
@@ -98,7 +98,7 @@ namespace osu.Framework.Input
         protected override bool OnJoystickRelease(InputState state, JoystickEventArgs args)
         {
             if (UseParentInput)
-                ButtonInputHelper.MakeSingleton<JoystickButtonInput, JoystickButton>(args.Button, false).Apply(CurrentState, this);
+                ButtonInputHelper.MakeInput<JoystickButtonInput, JoystickButton>(args.Button, false).Apply(CurrentState, this);
             return false;
         }
 

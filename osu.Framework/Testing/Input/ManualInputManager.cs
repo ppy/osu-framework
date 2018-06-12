@@ -76,22 +76,22 @@ namespace osu.Framework.Testing.Input
         {
             public void PressKey(Key key)
             {
-                PendingInputs.Enqueue(ButtonInputHelper.MakeSingleton<KeyboardKeyInput, Key>(key, true));
+                PendingInputs.Enqueue(ButtonInputHelper.MakeInput<KeyboardKeyInput, Key>(key, true));
             }
 
             public void ReleaseKey(Key key)
             {
-                PendingInputs.Enqueue(ButtonInputHelper.MakeSingleton<KeyboardKeyInput, Key>(key, false));
+                PendingInputs.Enqueue(ButtonInputHelper.MakeInput<KeyboardKeyInput, Key>(key, false));
             }
 
             public void PressButton(MouseButton button)
             {
-                PendingInputs.Enqueue(ButtonInputHelper.MakeSingleton<MouseButtonInput, MouseButton>(button, true));
+                PendingInputs.Enqueue(ButtonInputHelper.MakeInput<MouseButtonInput, MouseButton>(button, true));
             }
 
             public void ReleaseButton(MouseButton button)
             {
-                PendingInputs.Enqueue(ButtonInputHelper.MakeSingleton<MouseButtonInput, MouseButton>(button, false));
+                PendingInputs.Enqueue(ButtonInputHelper.MakeInput<MouseButtonInput, MouseButton>(button, false));
             }
 
             public void ScrollBy(Vector2 delta)

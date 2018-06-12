@@ -42,7 +42,7 @@ namespace osu.Framework.Input
 
     internal static class ButtonInputHelper
     {
-        public static TInput MakeSingleton<TInput, TButton>(TButton button, bool isPressed)
+        public static TInput MakeInput<TInput, TButton>(TButton button, bool isPressed)
         where TButton : struct
         where TInput : ButtonInput<TButton>, new() => new TInput
         {
