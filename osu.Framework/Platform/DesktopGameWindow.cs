@@ -93,7 +93,6 @@ namespace osu.Framework.Platform
             {
                 // we wanted a new resolution, but got the old one -> OpenTK didn't find this resolution
                 currentDisplay.RestoreResolution();
-                throw new ArgumentException($"No supported resolution found for {newSize.Width}x{newSize.Height}@{currentDisplay.RefreshRate}Hz.");
             }
             else
             {
