@@ -31,7 +31,7 @@ namespace osu.Framework.Tests.Visual
                         RelativeSizeAxes = Axes.Both,
                         RelativePositionAxes = Axes.Both,
                         Position = new Vector2(0, -0.1f),
-                        Size = new Vector2(0.7f, 0.5f),
+                        Size = new Vector2(0.7f, 0.8f),
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
                         Child = new ContainingInputManagerStatusText(),
@@ -65,7 +65,8 @@ namespace osu.Framework.Tests.Visual
 
         public class ContainingInputManagerStatusText : Container
         {
-            private readonly SpriteText inputManagerStatus, mouseStatus, keyboardStatus, joystickStatus, onMouseMoveStatus, onScrollStatus;
+            private readonly SpriteText inputManagerStatus, mouseStatus, keyboardStatus, joystickStatus,
+                                        onMouseDownStatus, onMouseUpStatus, onMouseMoveStatus, onScrollStatus, onHoverStatus;
             public ContainingInputManagerStatusText()
             {
                 RelativeSizeAxes = Axes.Both;
@@ -84,8 +85,11 @@ namespace osu.Framework.Tests.Visual
                             mouseStatus = new SmallText(),
                             keyboardStatus = new SmallText(),
                             joystickStatus = new SmallText(),
+                            onMouseDownStatus = new SmallText { Text = "OnMouseDown 0" },
+                            onMouseUpStatus = new SmallText { Text = "OnMouseUp 0" },
                             onMouseMoveStatus = new SmallText { Text = "OnMouseMove 0" },
                             onScrollStatus = new SmallText { Text = "OnScroll 0" },
+                            onHoverStatus = new SmallText { Text = "OnHover 0" },
                         }
                     }
                 };
@@ -103,6 +107,22 @@ namespace osu.Framework.Tests.Visual
                 base.Update();
             }
 
+            private int mouseDownCount;
+            protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
+            {
+                ++mouseDownCount;
+                onMouseDownStatus.Text = $"OnMouseDown {mouseDownCount}: Position={state.Mouse.Position}";
+                return true;
+            }
+
+            private int mouseUpCount;
+            protected override bool OnMouseUp(InputState state, MouseUpEventArgs args)
+            {
+                ++mouseUpCount;
+                onMouseUpStatus.Text = $"OnMouseUp {mouseUpCount}: Position={state.Mouse.Position}, PositionMouseDown={state.Mouse.PositionMouseDown}";
+                return base.OnMouseUp(state, args);
+            }
+
             private int mouseMoveCount;
             protected override bool OnMouseMove(InputState state)
             {
@@ -117,6 +137,20 @@ namespace osu.Framework.Tests.Visual
                 ++scrollCount;
                 onScrollStatus.Text = $"OnScroll {scrollCount}: Scroll={state.Mouse.Scroll}, ScrollDelta={state.Mouse.ScrollDelta}, HasPreciseScroll={state.Mouse.HasPreciseScroll}";
                 return base.OnScroll(state);
+            }
+
+            private int hoverCount;
+            protected override bool OnHover(InputState state)
+            {
+                ++hoverCount;
+                onHoverStatus.Text = $"OnHover {hoverCount}: Position={state.Mouse.Position}";
+                return base.OnHover(state);
+            }
+
+            protected override bool OnClick(InputState state)
+            {
+                this.MoveToOffset(new Vector2(100, 0)).Then().MoveToOffset(new Vector2(-100, 0), 1000, Easing.In);
+                return true;
             }
         }
 
