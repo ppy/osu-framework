@@ -91,7 +91,7 @@ namespace osu.Framework.Platform
 
             if (newResolution.Width == currentDisplay.Width && newResolution.Height == currentDisplay.Height)
             {
-                // we wanted a new resolution, but got the old one -> OpenTK didn't find this resolution
+                // we wanted a new resolution but got the old one, which means OpenTK didn't find this resolution
                 currentDisplay.RestoreResolution();
             }
             else
