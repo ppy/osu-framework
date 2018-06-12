@@ -192,7 +192,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             const float cursor_width = 3;
 
-            Placeholder.TextSize = CalculatedTextSize;
+            Placeholder.TextSize = TextSize;
 
             textUpdateScheduler.Update();
 
@@ -214,7 +214,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (HasFocus)
             {
-                Vector2 rightBound = getPositionAt(selectionRight) + new Vector2(0, CalculatedTextSize);
+                Vector2 rightBound = getPositionAt(selectionRight) + new Vector2(0, TextSize);
 
                 Caret.MoveTo(leftBound - new Vector2(cursor_width / 2, 0), caret_move_time, Easing.Out);
                 SelectionArea.SelectArea(leftBound, rightBound);
@@ -452,7 +452,7 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
-        protected virtual Drawable GetDrawableCharacter(char c) => new SpriteText { Text = c.ToString(), TextSize = CalculatedTextSize };
+        protected virtual Drawable GetDrawableCharacter(char c) => new SpriteText { Text = c.ToString(), TextSize = TextSize };
 
         protected virtual Drawable AddCharacterToFlow(char c)
         {
@@ -484,7 +484,7 @@ namespace osu.Framework.Graphics.UserInterface
             return ch;
         }
 
-        protected float CalculatedTextSize => TextFlow.DrawSize.Y - (TextFlow.Padding.Top + TextFlow.Padding.Bottom);
+        protected virtual float TextSize => TextFlow.DrawSize.Y - (TextFlow.Padding.Top + TextFlow.Padding.Bottom);
 
         /// <summary>
         /// Insert an arbitrary string into the text at the current position.
