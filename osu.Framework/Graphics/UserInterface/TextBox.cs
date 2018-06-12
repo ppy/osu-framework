@@ -58,6 +58,8 @@ namespace osu.Framework.Graphics.UserInterface
         protected virtual Color4 BackgroundFocused => new Color4(100, 100, 100, 255);
         protected virtual Color4 BackgroundUnfocused => new Color4(100, 100, 100, 120);
 
+        protected virtual Color4 SelectionColour => new Color4(249, 90, 255, 255);
+
         /// <summary>
         /// Check if a character can be added to this TextBox.
         /// </summary>
@@ -210,7 +212,7 @@ namespace osu.Framework.Graphics.UserInterface
                 if (selectionLength > 0)
                     Caret
                         .FadeTo(0.5f, 200, Easing.Out)
-                        .FadeColour(new Color4(249, 90, 255, 255), 200, Easing.Out);
+                        .FadeColour(SelectionColour, 200, Easing.Out);
                 else
                     Caret
                         .FadeColour(Color4.White, 200, Easing.Out)
