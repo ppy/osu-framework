@@ -31,11 +31,11 @@ namespace osu.Framework.Graphics.UserInterface
         public override void Show()
         {
             base.Show();
-            
+
             this.FadeColour(Color4.White, 200, Easing.Out)
                 .Loop(c => c.FadeTo(0.7f).FadeTo(0.2f, 500, Easing.InOutSine));
         }
-        
+
         /// <summary>
         /// Stops the blinking and fades out this caret.
         /// </summary>

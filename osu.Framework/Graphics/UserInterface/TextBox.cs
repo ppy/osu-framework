@@ -130,7 +130,7 @@ namespace osu.Framework.Graphics.UserInterface
                     },
                 },
             };
-            
+
             Current.ValueChanged += newValue => { Text = newValue; };
         }
 
@@ -215,7 +215,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (HasFocus)
             {
                 Vector2 rightBound = getPositionAt(selectionRight) + new Vector2(0, CalculatedTextSize);
-                
+
                 Caret.MoveTo(leftBound - new Vector2(cursor_width / 2, 0), caret_move_time, Easing.Out);
                 SelectionArea.SelectArea(leftBound, rightBound);
 

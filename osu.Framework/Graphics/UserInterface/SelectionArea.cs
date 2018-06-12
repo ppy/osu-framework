@@ -11,7 +11,7 @@ namespace osu.Framework.Graphics.UserInterface
     public class SelectionArea : CompositeDrawable
     {
         private readonly Color4 selectionColour;
-        
+
         public SelectionArea(Color4 selectionColour)
         {
             this.selectionColour = selectionColour;
@@ -29,7 +29,7 @@ namespace osu.Framework.Graphics.UserInterface
         public void SelectArea(Vector2 leftBound, Vector2 rightBound)
         {
             var size = new Vector2(rightBound.X - leftBound.X, rightBound.Y - leftBound.Y);
-            
+
             ClearTransforms();
             this.MoveTo(leftBound, 60)
                 .ResizeWidthTo(size.X, 60)
