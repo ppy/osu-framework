@@ -9,6 +9,10 @@ using osu.Framework.Extensions.TypeExtensions;
 
 namespace osu.Framework.Input
 {
+    /// <summary>
+    /// Denotes a state of multiple buttons.
+    /// </summary>
+    /// <typeparam name="TButton">Type of button</typeparam>
     public class ButtonStates<TButton> : IEnumerable<TButton>
     where TButton : struct
     {
@@ -21,12 +25,15 @@ namespace osu.Framework.Input
             return clone;
         }
 
+        /// <summary>
+        /// Get whether <paramref name="button"/> is currently pressed.
+        /// </summary>
         public bool IsPressed(TButton button) => pressedButtons.Contains(button);
 
         /// <summary>
         /// Set the state of <param name="button"></param>.
         /// </summary>
-        /// <returns>Wether the button state actually changed.</returns>
+        /// <returns>Whether the button state actually changed.</returns>
         public bool SetPressed(TButton button, bool pressed)
         {
             if (pressedButtons.Contains(button) == pressed)
@@ -41,11 +48,17 @@ namespace osu.Framework.Input
 
         public bool HasAnyButtonPressed => pressedButtons.Any();
 
+        /// <summary>
+        /// Calculate the difference of this and <paramref name="lastButtons"/>.
+        /// </summary>
         public (IEnumerable<TButton> Released, IEnumerable<TButton> Pressed) EnumerateDifference(ButtonStates<TButton> lastButtons)
         {
             return (lastButtons.pressedButtons.Except(pressedButtons), pressedButtons.Except(lastButtons.pressedButtons));
         }
 
+        /// <summary>
+        /// Copy <paramref name="other"/>'s state to this.
+        /// </summary>
         public void Set(ButtonStates<TButton> other)
         {
             pressedButtons.Clear();

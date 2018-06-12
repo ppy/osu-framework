@@ -3,6 +3,9 @@
 
 namespace osu.Framework.Input
 {
+    /// <summary>
+    /// Denotes a kind of change of a button state.
+    /// </summary>
     public enum ButtonStateChangeKind
     {
         Pressed,

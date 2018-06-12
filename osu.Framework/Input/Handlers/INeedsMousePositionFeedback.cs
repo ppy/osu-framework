@@ -6,10 +6,14 @@ using OpenTK;
 namespace osu.Framework.Input.Handlers
 {
     /// <summary>
-    /// An input handler which can have its sensitivity changed.
+    /// An input handler which needs to get a feedback of final mouse position.
     /// </summary>
     public interface INeedsMousePositionFeedback
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="position"></param>
         void FeedbackMousePositionChange(Vector2 position);
     }
 }
