@@ -93,33 +93,6 @@ namespace osu.Framework.Graphics.Textures
 
         public Vector2 Size => new Vector2(Width, Height);
 
-        /// <summary>
-        /// Turns a byte array representing BGRA colour values to a byte array representing RGBA colour values.
-        /// Checks whether all colour values are transparent as a byproduct.
-        /// </summary>
-        /// <param name="data">The bytes to process.</param>
-        /// <param name="length">The amount of bytes to process.</param>
-        /// <returns>Whether all colour values are transparent.</returns>
-        private static unsafe bool bgraToRgba(byte[] data, int length)
-        {
-            bool isTransparent = true;
-
-            fixed (byte* dPtr = &data[0])
-            {
-                byte* sp = dPtr;
-                byte* ep = dPtr + length;
-
-                while (sp < ep)
-                {
-                    *(uint*)sp = (uint)(*(sp + 2) | *(sp + 1) << 8 | *sp << 16 | *(sp + 3) << 24);
-                    isTransparent &= *(sp + 3) == 0;
-                    sp += 4;
-                }
-            }
-
-            return isTransparent;
-        }
-
         public void SetData(TextureUpload upload)
         {
             TextureGL?.SetData(upload);

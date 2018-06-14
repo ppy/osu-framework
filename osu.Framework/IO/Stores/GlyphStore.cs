@@ -22,7 +22,7 @@ namespace osu.Framework.IO.Stores
 
         private readonly ResourceStore<byte[]> store;
 
-        private readonly TimedExpiryCache<int, RawTextureBitmap> texturePages = new TimedExpiryCache<int, RawTextureBitmap>();
+        private readonly TimedExpiryCache<int, RawTextureUnknownStream> texturePages = new TimedExpiryCache<int, RawTextureUnknownStream>();
 
         private BitmapFont font;
 
@@ -109,7 +109,7 @@ namespace osu.Framework.IO.Stores
                 if (!font.Characters.TryGetValue(name.Last(), out Character c))
                     return null;
 
-                RawTextureBitmap page = getTexturePage(c.TexturePage);
+                RawTextureUnknownStream page = getTexturePage(c.TexturePage);
                 loadedGlyphCount++;
 
                 int width = c.Bounds.Width + c.Offset.X + 1;
@@ -130,8 +130,7 @@ namespace osu.Framework.IO.Stores
                             for (int x = 0; x < width; x++)
                             {
                                 int desti = y * width * 4 + x * 4;
-                                if (x >= c.Offset.X && y >= c.Offset.Y
-                                                    && x - c.Offset.X < c.Bounds.Width && y - c.Offset.Y < c.Bounds.Height)
+                                if (x >= c.Offset.X && y >= c.Offset.Y && x - c.Offset.X < c.Bounds.Width && y - c.Offset.Y < c.Bounds.Height)
                                 {
                                     int srci = (c.Bounds.Y + y - c.Offset.Y) * page.Width * 4 + (c.Bounds.X + x - c.Offset.X) * 4;
                                     pixels[desti] = src[srci];
@@ -155,13 +154,13 @@ namespace osu.Framework.IO.Stores
             }
         }
 
-        private RawTextureBitmap getTexturePage(int texturePage)
+        private RawTextureUnknownStream getTexturePage(int texturePage)
         {
-            if (!texturePages.TryGetValue(texturePage, out RawTextureBitmap t))
+            if (!texturePages.TryGetValue(texturePage, out RawTextureUnknownStream t))
             {
                 loadedPageCount++;
                 using (var stream = store.GetStream($@"{assetName}_{texturePage.ToString().PadLeft((font.Pages.Length - 1).ToString().Length, '0')}.png"))
-                    texturePages.Add(texturePage, t = stream != null ? new RawTextureBitmap(stream) : null);
+                    texturePages.Add(texturePage, t = stream != null ? new RawTextureUnknownStream(stream) : null);
             }
 
             return t;
@@ -197,7 +196,6 @@ namespace osu.Framework.IO.Stores
 
         public void Dispose()
         {
-
             Dispose(true);
             GC.SuppressFinalize(this);
         }

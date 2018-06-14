@@ -5,7 +5,7 @@ using osu.Framework.IO.Stores;
 
 namespace osu.Framework.Graphics.Textures
 {
-    public class RawTextureLoaderStore : ResourceStore<RawTextureBitmap>
+    public class RawTextureLoaderStore : ResourceStore<RawTextureUnknownStream>
     {
         private IResourceStore<byte[]> store { get; }
 
@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics.Textures
             (store as ResourceStore<byte[]>)?.AddExtension(@"jpg");
         }
 
-        public override RawTextureBitmap Get(string name)
+        public override RawTextureUnknownStream Get(string name)
         {
             try
             {
@@ -24,7 +24,7 @@ namespace osu.Framework.Graphics.Textures
                 {
                     if (stream == null) return null;
 
-                    return new RawTextureBitmap(stream);
+                    return new RawTextureUnknownStream(stream);
                 }
             }
             catch

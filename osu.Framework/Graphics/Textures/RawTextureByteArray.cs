@@ -8,21 +8,25 @@ namespace osu.Framework.Graphics.Textures
 {
     public class RawTextureByteArray : IRawTexture
     {
-        private readonly byte[] bytes;
-        private readonly Rectangle dimensions;
+        protected byte[] Bytes;
+        protected Rectangle Dimensions;
 
-        public PixelFormat PixelFormat { get; }
+        public PixelFormat PixelFormat { get; protected set; }
 
-        public ITextureLocker ObtainLock() => new TextureLockerByteArray(bytes);
+        public ITextureLocker ObtainLock() => new TextureLockerByteArray(Bytes);
 
-        public int Width => dimensions.Width;
-        public int Height => dimensions.Height;
+        public int Width => Dimensions.Width;
+        public int Height => Dimensions.Height;
+
+        protected RawTextureByteArray()
+        {
+        }
 
         public RawTextureByteArray(byte[] bytes, Rectangle dimensions, PixelFormat format = PixelFormat.Rgba)
         {
             PixelFormat = format;
-            this.bytes = bytes;
-            this.dimensions = dimensions;
+            Bytes = bytes;
+            Dimensions = dimensions;
         }
 
         #region IDisposable Support

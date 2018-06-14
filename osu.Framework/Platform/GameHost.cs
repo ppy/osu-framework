@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -32,7 +31,12 @@ using osu.Framework.Statistics;
 using osu.Framework.Threading;
 using osu.Framework.Timing;
 using osu.Framework.IO.File;
-using Bitmap = System.Drawing.Bitmap;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Advanced;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.Processing.Transforms;
+using Image = SixLabors.ImageSharp.Image;
 
 namespace osu.Framework.Platform
 {
@@ -325,10 +329,10 @@ namespace osu.Framework.Platform
         }
 
         /// <summary>
-        /// Make a <see cref="Bitmap"/> object from the current OpenTK screen buffer
+        /// Make a <see cref="Image"/> object from the current OpenTK screen buffer
         /// </summary>
-        /// <returns><see cref="Bitmap"/> object</returns>
-        public async Task<Bitmap> TakeScreenshotAsync()
+        /// <returns><see cref="Image"/> object</returns>
+        public async Task<Image<Rgb24>> TakeScreenshotAsync()
         {
             if (Window == null) throw new NullReferenceException(nameof(Window));
 
@@ -336,15 +340,15 @@ namespace osu.Framework.Platform
 
             bool complete = false;
 
-            var bitmap = new Bitmap(clientRectangle.Width, clientRectangle.Height);
-            BitmapData data = bitmap.LockBits(clientRectangle, ImageLockMode.WriteOnly, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+            var image = new Image<Rgb24>(clientRectangle.Width, clientRectangle.Height);
+            var pixels = image.DangerousGetPinnableReferenceToPixelBuffer();
 
             DrawThread.Scheduler.Add(() =>
             {
                 if (GraphicsContext.CurrentContext == null)
                     throw new GraphicsContextMissingException();
 
-                OpenTK.Graphics.OpenGL.GL.ReadPixels(0, 0, clientRectangle.Width, clientRectangle.Height, OpenTK.Graphics.OpenGL.PixelFormat.Bgr, OpenTK.Graphics.OpenGL.PixelType.UnsignedByte, data.Scan0);
+                OpenTK.Graphics.OpenGL.GL.ReadPixels(0, 0, clientRectangle.Width, clientRectangle.Height, OpenTK.Graphics.OpenGL.PixelFormat.Bgr, OpenTK.Graphics.OpenGL.PixelType.UnsignedByte, ref pixels);
                 complete = true;
             });
 
@@ -354,10 +358,9 @@ namespace osu.Framework.Platform
                     Thread.Sleep(50);
             });
 
-            bitmap.UnlockBits(data);
-            bitmap.RotateFlip(RotateFlipType.RotateNoneFlipY);
+            image.Mutate(x => x.Flip(FlipMode.Vertical));
 
-            return bitmap;
+            return image;
         }
 
         public ExecutionState ExecutionState { get; private set; }
@@ -552,10 +555,7 @@ namespace osu.Framework.Platform
             Dependencies.Cache(Localisation = new LocalisationEngine(config));
 
             activeGCMode = debugConfig.GetBindable<GCLatencyMode>(DebugSetting.ActiveGCMode);
-            activeGCMode.ValueChanged += newMode =>
-            {
-                GCSettings.LatencyMode = IsActive ? newMode : GCLatencyMode.Interactive;
-            };
+            activeGCMode.ValueChanged += newMode => { GCSettings.LatencyMode = IsActive ? newMode : GCLatencyMode.Interactive; };
 
             frameSyncMode = config.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
             frameSyncMode.ValueChanged += newMode =>
@@ -728,15 +728,18 @@ namespace osu.Framework.Platform
         /// <see cref="GameHost.Run"/> has not been invoked yet.
         /// </summary>
         Idle = 0,
+
         /// <summary>
         /// The game's execution has completely stopped.
         /// </summary>
         Stopped = 1,
+
         /// <summary>
         /// The user has invoked <see cref="GameHost.Exit"/>, or the window has been called.
         /// The game is currently awaiting to stop all execution on the correct thread.
         /// </summary>
         Stopping = 2,
+
         /// <summary>
         /// <see cref="GameHost.Run"/> has been invoked.
         /// </summary>
