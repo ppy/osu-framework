@@ -3,16 +3,12 @@
 
 using System;
 using System.Drawing;
-using System.Drawing.Imaging;
-using System.Runtime.InteropServices;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
 using OpenTK;
 using OpenTK.Graphics.ES30;
-using Bitmap = System.Drawing.Bitmap;
-using PixelFormat = System.Drawing.Imaging.PixelFormat;
 using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Graphics.Textures
@@ -85,14 +81,14 @@ namespace osu.Framework.Graphics.Textures
 
         public int Width
         {
-            get { return TextureGL.Width; }
-            set { TextureGL.Width = value; }
+            get => TextureGL.Width;
+            set => TextureGL.Width = value;
         }
 
         public int Height
         {
-            get { return TextureGL.Height; }
-            set { TextureGL.Height = value; }
+            get => TextureGL.Height;
+            set => TextureGL.Height = value;
         }
 
         public Vector2 Size => new Vector2(Width, Height);

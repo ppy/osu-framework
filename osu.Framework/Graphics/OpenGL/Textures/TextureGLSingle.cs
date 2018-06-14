@@ -87,16 +87,16 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public override int Height
         {
-            get { return height; }
-            set { height = value; }
+            get => height;
+            set => height = value;
         }
 
         private int width;
 
         public override int Width
         {
-            get { return width; }
-            set { width = value; }
+            get => width;
+            set => width = value;
         }
 
         private int textureId;

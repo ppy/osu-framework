@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System.Collections.Generic;
 using osu.Framework.Graphics;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
@@ -21,6 +22,28 @@ namespace osu.Framework.Testing.Input
             AddHandler(handler = new ManualInputHandler());
         }
 
+        public void PressKey(Key key)
+        {
+            UseParentState = false;
+            handler.PressKey(key);
+        }
+
+        public void ReleaseKey(Key key)
+        {
+            UseParentState = false;
+            handler.ReleaseKey(key);
+        }
+
+        public void ScrollBy(Vector2 delta)
+        {
+            UseParentState = false;
+            handler.ScrollBy(delta);
+        }
+
+        public void ScrollHorizontalBy(float delta) => ScrollBy(new Vector2(delta, 0));
+
+        public void ScrollVerticalBy(float delta) => ScrollBy(new Vector2(0, delta));
+
         public void MoveMouseTo(Drawable drawable)
         {
             UseParentState = false;
@@ -39,32 +62,93 @@ namespace osu.Framework.Testing.Input
             handler.Click(button);
         }
 
+        public void PressButton(MouseButton button)
+        {
+            UseParentState = false;
+            handler.PressButton(button);
+        }
+
+        public void ReleaseButton(MouseButton button)
+        {
+            UseParentState = false;
+            handler.ReleaseButton(button);
+        }
+
+        public void AddStates(params InputState[] states)
+        {
+            UseParentState = false;
+            foreach (var state in states)
+                handler.EnqueueState(state);
+        }
+
         private class ManualInputHandler : InputHandler
         {
-            private Vector2 lastMousePosition;
+            private readonly List<Key> pressedKeys = new List<Key>();
+
+            private MouseState lastMouseState = new MouseState();
+
+            public void PressKey(Key key)
+            {
+                pressedKeys.Add(key);
+                EnqueueState(new InputState { Keyboard = new Framework.Input.KeyboardState { Keys = pressedKeys } });
+            }
+
+            public void ReleaseKey(Key key)
+            {
+                if (!pressedKeys.Remove(key))
+                    return;
+                EnqueueState(new InputState { Keyboard = new Framework.Input.KeyboardState { Keys = pressedKeys } });
+            }
+
+            public void PressButton(MouseButton button)
+            {
+                var state = lastMouseState.Clone();
+                state.SetPressed(button, true);
+                EnqueueState(new InputState { Mouse = state });
+            }
+
+            public void ReleaseButton(MouseButton button)
+            {
+                var state = lastMouseState.Clone();
+                state.SetPressed(button, false);
+                EnqueueState(new InputState { Mouse = state });
+            }
+
+            public void ScrollBy(Vector2 delta)
+            {
+                var state = lastMouseState.Clone();
+                state.Scroll += delta;
+                EnqueueState(new InputState { Mouse = state });
+            }
+
+            public void ScrollVerticalBy(float delta) => ScrollBy(new Vector2(0, delta));
+
+            public void ScrollHorizontalBy(float delta) => ScrollBy(new Vector2(delta, 0));
 
             public void MoveMouseTo(Vector2 position)
             {
-                PendingStates.Enqueue(new InputState { Mouse = new MouseState { Position = position } });
-                lastMousePosition = position;
+                var state = lastMouseState.Clone();
+                state.Position = position;
+                EnqueueState(new InputState { Mouse = state });
             }
 
             public void Click(MouseButton button)
             {
-                var mouseState = new MouseState { Position = lastMousePosition };
-                mouseState.SetPressed(button, true);
-
-                PendingStates.Enqueue(new InputState { Mouse = mouseState });
-
-                mouseState = (MouseState)mouseState.Clone();
-                mouseState.SetPressed(button, false);
-
-                PendingStates.Enqueue(new InputState { Mouse = mouseState });
+                PressButton(button);
+                ReleaseButton(button);
             }
 
             public override bool Initialize(GameHost host) => true;
             public override bool IsActive => true;
             public override int Priority => 0;
+
+            public void EnqueueState(InputState state)
+            {
+                if (state.Mouse is MouseState ms)
+                    lastMouseState = ms;
+
+                PendingStates.Enqueue(state);
+            }
         }
     }
 }

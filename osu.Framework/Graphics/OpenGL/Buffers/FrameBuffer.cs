@@ -81,7 +81,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         /// </summary>
         public Vector2 Size
         {
-            get { return size; }
+            get => size;
             set
             {
                 if (value == size)

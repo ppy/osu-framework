@@ -9,6 +9,7 @@ namespace osu.Framework.Input
     {
         public IKeyboardState Keyboard;
         public IMouseState Mouse;
+        public IJoystickState Joystick;
         public InputState Last;
 
         public virtual InputState Clone()
@@ -16,6 +17,7 @@ namespace osu.Framework.Input
             var clone = (InputState)MemberwiseClone();
             clone.Keyboard = Keyboard?.Clone();
             clone.Mouse = Mouse?.Clone();
+            clone.Joystick = Joystick?.Clone();
             clone.Last = Last;
 
             return clone;

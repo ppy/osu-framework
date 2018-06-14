@@ -5,16 +5,15 @@ using System.Collections.Generic;
 using OpenTK;
 using OpenTK.Input;
 using System.Linq;
+using osu.Framework.Extensions.TypeExtensions;
 
 namespace osu.Framework.Input
 {
     public class MouseState : IMouseState
     {
-        private IMouseState lastState;
-
         public IReadOnlyList<MouseButton> Buttons
         {
-            get { return buttons; }
+            get => buttons;
             set
             {
                 buttons.Clear();
@@ -26,19 +25,19 @@ namespace osu.Framework.Input
 
         public IMouseState NativeState => this;
 
-        public IMouseState LastState
+        public virtual Vector2 ScrollDelta => Scroll - LastScroll;
+
+        public Vector2 Scroll { get; set; }
+
+        private Vector2? lastScroll;
+
+        public Vector2 LastScroll
         {
-            get { return lastState; }
-            set
-            {
-                lastState = value;
-                if (lastState != null) lastState.LastState = null;
-            }
+            get => lastScroll ?? Scroll;
+            set => lastScroll = value;
         }
 
-        public virtual int WheelDelta => Wheel - LastState?.Wheel ?? 0;
-
-        public int Wheel { get; set; }
+        public bool HasPreciseScroll { get; set; }
 
         public bool HasMainButtonPressed => IsPressed(MouseButton.Left) || IsPressed(MouseButton.Right);
 
@@ -48,7 +47,13 @@ namespace osu.Framework.Input
 
         public Vector2 Position { get; set; }
 
-        public Vector2 LastPosition => LastState?.Position ?? Position;
+        private Vector2? lastPosition;
+
+        public Vector2 LastPosition
+        {
+            get => lastPosition ?? Position;
+            set => lastPosition = value;
+        }
 
         public Vector2? PositionMouseDown { get; set; }
 
@@ -56,7 +61,14 @@ namespace osu.Framework.Input
         {
             var clone = (MouseState)MemberwiseClone();
             clone.buttons = new List<MouseButton>(buttons);
-            clone.LastState = LastState;
+            return clone;
+        }
+
+        public MouseState CloneWithoutDeltas()
+        {
+            var clone = (MouseState)Clone();
+            clone.lastScroll = null;
+            clone.lastPosition = null;
             return clone;
         }
 
@@ -71,6 +83,12 @@ namespace osu.Framework.Input
                 buttons.Add(button);
             else
                 buttons.Remove(button);
+        }
+
+        public override string ToString()
+        {
+            string down = PositionMouseDown != null ? $"(down @ {PositionMouseDown.Value.X:#,0},{PositionMouseDown.Value.Y:#,0})" : string.Empty;
+            return $@"{GetType().ReadableName()} ({Position.X:#,0},{Position.Y:#,0}) {down} {string.Join(",", Buttons.Select(b => b.ToString()))} Scroll ({Scroll.X:#,2},{Scroll.Y:#,2})/({ScrollDelta.X:#,2},{ScrollDelta.Y:#,2})";
         }
     }
 }

@@ -99,6 +99,10 @@ namespace osu.Framework.Tests.Visual
             {
                 throw new NotSupportedException();
             }
+
+            public void Dispose()
+            {
+            }
         }
     }
 }

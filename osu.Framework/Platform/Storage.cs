@@ -11,7 +11,7 @@ namespace osu.Framework.Platform
     {
         protected string BaseName { get; set; }
 
-        protected readonly string BasePath;
+        protected string BasePath { get; set; }
 
         /// <summary>
         /// An optional path to be added after <see cref="BaseName"/>.

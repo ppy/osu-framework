@@ -14,8 +14,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         public Drawable Target
         {
-            get { return target; }
-
+            get => target;
             set
             {
                 if (target == value) return;
@@ -58,8 +57,7 @@ namespace osu.Framework.Graphics.Visualisation
                 },
                 childShape = new FlashyBox(delegate(Drawable d)
                 {
-                    var c = d as CompositeDrawable;
-                    if (c == null)
+                    if (!(d is CompositeDrawable c))
                         return d.ScreenSpaceDrawQuad;
 
                     RectangleF rect = new RectangleF(c.ChildOffset, c.ChildSize);

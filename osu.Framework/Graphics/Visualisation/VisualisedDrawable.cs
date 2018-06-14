@@ -23,10 +23,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         public bool IsHighlighted
         {
-            get
-            {
-                return isHighlighted;
-            }
+            get => isHighlighted;
             set
             {
                 isHighlighted = value;
@@ -149,32 +146,28 @@ namespace osu.Framework.Graphics.Visualisation
         {
             Target.OnInvalidate += onInvalidate;
 
-            var da = Target as Container<Drawable>;
-            if (da != null)
+            if (Target is Container<Drawable> da)
             {
                 da.OnAutoSize += onAutoSize;
                 da.ChildBecameAlive += addChild;
                 da.ChildDied += removeChild;
             }
 
-            var df = Target as FlowContainer<Drawable>;
-            if (df != null) df.OnLayout += onLayout;
+            if (Target is FlowContainer<Drawable> df) df.OnLayout += onLayout;
         }
 
         private void detachEvents()
         {
             Target.OnInvalidate -= onInvalidate;
 
-            var da = Target as Container<Drawable>;
-            if (da != null)
+            if (Target is Container<Drawable> da)
             {
                 da.OnAutoSize -= onAutoSize;
                 da.ChildBecameAlive -= addChild;
                 da.ChildDied -= removeChild;
             }
 
-            var df = Target as FlowContainer<Drawable>;
-            if (df != null) df.OnLayout -= onLayout;
+            if (Target is FlowContainer<Drawable> df) df.OnLayout -= onLayout;
         }
 
         private readonly Dictionary<Drawable, VisualisedDrawable> visCache = new Dictionary<Drawable, VisualisedDrawable>();

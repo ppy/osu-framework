@@ -45,16 +45,16 @@ namespace osu.Framework.Physics
 
         public Vector2 Velocity
         {
-            get { return Momentum / Mass; }
-            set { Momentum = value * Mass; }
+            get => Momentum / Mass;
+            set => Momentum = value * Mass;
         }
 
         public Vector2 Momentum { get; set; }
 
         public float AngularVelocity
         {
-            get { return AngularMomentum / MomentOfInertia; }
-            set { AngularMomentum = value * MomentOfInertia; }
+            get => AngularMomentum / MomentOfInertia;
+            set => AngularMomentum = value * MomentOfInertia;
         }
 
         public float AngularMomentum { get; set; }

@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.CSharp;
 
 namespace osu.Framework.Testing
 {
-    public class DynamicClassCompiler<T>
+    public class DynamicClassCompiler<T> : IDisposable
         where T : IDynamicallyCompile
     {
         public Action CompilationStarted;
@@ -68,6 +68,7 @@ namespace osu.Framework.Testing
                     };
 
                     fsw.Changed += onChange;
+                    fsw.Created += onChange;
 
                     watchers.Add(fsw);
                 }
@@ -115,7 +116,6 @@ namespace osu.Framework.Testing
         private int currentVersion;
 
         private bool isCompiling;
-
         private readonly object compileLock = new object();
 
         private void recompile()
@@ -128,6 +128,19 @@ namespace osu.Framework.Testing
             }
 
             var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+
+            // ReSharper disable once RedundantExplicitArrayCreation this doesn't compile when the array is empty
+            var parseOptions = new CSharpParseOptions(preprocessorSymbols: new string[] {
+                #if DEBUG
+                    "DEBUG",
+                #endif
+                #if TRACE
+                    "TRACE",
+                #endif
+                #if RELEASE
+                    "RELEASE",
+                #endif
+            });
             var references = assemblies.Select(a => MetadataReference.CreateFromFile(a));
 
             while (!checkFileReady(lastTouchedFile))
@@ -145,7 +158,7 @@ namespace osu.Framework.Testing
 
             var compilation = CSharpCompilation.Create(
                 dynamicNamespace,
-                requiredFiles.Select(file => CSharpSyntaxTree.ParseText(File.ReadAllText(file), null, file))
+                requiredFiles.Select(file => CSharpSyntaxTree.ParseText(File.ReadAllText(file), parseOptions, file))
                              // Compile the assembly with a new version so that it replaces the existing one
                              .Append(CSharpSyntaxTree.ParseText($"using System.Reflection; [assembly: AssemblyVersion(\"{assemblyVersion}\")]"))
                 ,
@@ -192,5 +205,31 @@ namespace osu.Framework.Testing
                 return false;
             }
         }
+
+        #region IDisposable Support
+
+        private bool isDisposed;
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!isDisposed)
+            {
+                isDisposed = true;
+                watchers.ForEach(w => w.Dispose());
+            }
+        }
+
+        ~DynamicClassCompiler()
+        {
+            Dispose(false);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        #endregion
     }
 }

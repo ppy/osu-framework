@@ -55,7 +55,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public FillDirection Direction
         {
-            get { return direction; }
+            get => direction;
             set
             {
                 if (direction == value)
@@ -73,7 +73,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public Vector2 Spacing
         {
-            get { return spacing; }
+            get => spacing;
             set
             {
                 if (spacing == value)

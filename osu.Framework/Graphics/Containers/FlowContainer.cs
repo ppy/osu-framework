@@ -23,8 +23,8 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public Easing LayoutEasing
         {
-            get { return AutoSizeEasing; }
-            set { AutoSizeEasing = value; }
+            get => AutoSizeEasing;
+            set => AutoSizeEasing = value;
         }
 
         /// <summary>
@@ -32,7 +32,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public float LayoutDuration
         {
-            get { return AutoSizeDuration * 2; }
+            get => AutoSizeDuration * 2;
             set
             {
                 //coupling with autosizeduration allows us to smoothly transition our size
@@ -53,7 +53,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public Vector2 MaximumSize
         {
-            get { return maximumSize; }
+            get => maximumSize;
             set
             {
                 if (maximumSize == value) return;
@@ -140,14 +140,14 @@ namespace osu.Framework.Graphics.Containers
             return changed;
         }
 
-        public override void InvalidateFromChild(Invalidation invalidation)
+        public override void InvalidateFromChild(Invalidation invalidation, Drawable source = null)
         {
             //Colour captures potential changes in IsPresent. If this ever becomes a bottleneck,
             //Invalidation could be further separated into presence changes.
             if ((invalidation & (Invalidation.RequiredParentSizeToFit | Invalidation.Colour)) > 0)
                 InvalidateLayout();
 
-            base.InvalidateFromChild(invalidation);
+            base.InvalidateFromChild(invalidation, source);
         }
 
         /// <summary>

@@ -10,7 +10,6 @@ using osu.Framework.Platform;
 using osu.Framework.Statistics;
 using osu.Framework.Threading;
 using OpenTK;
-using OpenTK.Platform.Windows;
 
 namespace osu.Framework.Input.Handlers.Mouse
 {
@@ -43,8 +42,7 @@ namespace osu.Framework.Input.Handlers.Mouse
             mouseInWindow = host.Window.CursorInWindow;
 
             // Get the bindables we need to determine whether to confine the mouse to window or not
-            DesktopGameWindow desktopWindow = host.Window as DesktopGameWindow;
-            if (desktopWindow != null)
+            if (host.Window is DesktopGameWindow desktopWindow)
             {
                 confineMode.BindTo(desktopWindow.ConfineMouseMode);
                 windowMode.BindTo(desktopWindow.WindowMode);
@@ -91,17 +89,13 @@ namespace osu.Framework.Input.Handlers.Mouse
                                 if (lastState != null && state.Equals(lastState.RawState))
                                     continue;
 
-                                var newState = new OpenTKPollMouseState(state, host.IsActive, getUpdatedPosition(state, lastState))
-                                {
-                                    LastState = lastState
-                                };
+                                var newState = new OpenTKPollMouseState(state, host.IsActive, getUpdatedPosition(state, lastState));
 
                                 lastStates[i] = newState;
 
                                 if (lastState != null)
                                 {
-                                    PendingStates.Enqueue(new InputState { Mouse = newState });
-                                    FrameStatistics.Increment(StatisticsCounterType.MouseEvents);
+                                    handleState(lastRawState = newState);
                                 }
                             }
                         }
@@ -109,8 +103,7 @@ namespace osu.Framework.Input.Handlers.Mouse
                         {
                             var state = OpenTK.Input.Mouse.GetCursorState();
                             var screenPoint = host.Window.PointToClient(new Point(state.X, state.Y));
-                            PendingStates.Enqueue(new InputState { Mouse = new UnfocusedMouseState(new OpenTK.Input.MouseState(), host.IsActive, new Vector2(screenPoint.X, screenPoint.Y)) });
-                            FrameStatistics.Increment(StatisticsCounterType.MouseEvents);
+                            handleState(lastUnfocusedState = new UnfocusedMouseState(new OpenTK.Input.MouseState(), host.IsActive, new Vector2(screenPoint.X, screenPoint.Y)));
 
                             lastStates.Clear();
                         }
@@ -131,7 +124,7 @@ namespace osu.Framework.Input.Handlers.Mouse
         {
             Vector2 currentPosition;
 
-            if ((state.RawFlags & RawMouseFlags.MOUSE_MOVE_ABSOLUTE) > 0)
+            if ((state.Flags & OpenTK.Input.MouseStateFlags.MoveAbsolute) > 0)
             {
                 const int raw_input_resolution = 65536;
 
@@ -144,7 +137,7 @@ namespace osu.Framework.Input.Handlers.Mouse
                 }
                 else
                 {
-                    Rectangle screenRect = (state.RawFlags & RawMouseFlags.MOUSE_VIRTUAL_DESKTOP) > 0
+                    Rectangle screenRect = (state.Flags & OpenTK.Input.MouseStateFlags.VirtualDesktop) > 0
                         ? Platform.Windows.Native.Input.GetVirtualScreenRect()
                         : new Rectangle(0, 0, DisplayDevice.Default.Width, DisplayDevice.Default.Height);
 
@@ -174,9 +167,8 @@ namespace osu.Framework.Input.Handlers.Mouse
                 {
                     currentPosition = lastState.Position + new Vector2(state.X - lastState.RawState.X, state.Y - lastState.RawState.Y) * (float)sensitivity.Value;
 
-                    // When confining, clamp to the window size.
-                    if (confineMode.Value == ConfineMouseMode.Always || confineMode.Value == ConfineMouseMode.Fullscreen && windowMode.Value == WindowMode.Fullscreen)
-                        currentPosition = Vector2.Clamp(currentPosition, Vector2.Zero, new Vector2(host.Window.Width, host.Window.Height));
+                    // raw mouse input should always be clamped to window bounds
+                    currentPosition = Vector2.Clamp(currentPosition, Vector2.Zero, new Vector2(host.Window.Width, host.Window.Height));
 
                     // update the windows cursor to match our raw cursor position.
                     // this is important when sensitivity is decreased below 1.0, where we need to ensure the cursor stays within the window.
@@ -186,6 +178,19 @@ namespace osu.Framework.Input.Handlers.Mouse
             }
 
             return currentPosition;
+        }
+
+        private OpenTKPollMouseState lastRawState;
+        private UnfocusedMouseState lastUnfocusedState;
+
+        private void handleState(MouseState state)
+        {
+            // combine wheel values to avoid discrepancy between sources.
+            state = (MouseState)state.Clone();
+            state.Scroll = (lastUnfocusedState?.Scroll ?? Vector2.Zero) + (lastRawState?.Scroll ?? Vector2.Zero);
+
+            PendingStates.Enqueue(new InputState { Mouse = state });
+            FrameStatistics.Increment(StatisticsCounterType.MouseEvents);
         }
 
         private void window_MouseLeave(object sender, EventArgs e) => mouseInWindow = false;

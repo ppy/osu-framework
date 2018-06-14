@@ -134,7 +134,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public IReadOnlyList<MenuItem> Items
         {
-            get { return ItemsContainer.Select(r => r.Item).ToList(); }
+            get => ItemsContainer.Select(r => r.Item).ToList();
             set
             {
                 Clear();
@@ -147,8 +147,8 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public Color4 BackgroundColour
         {
-            get { return background.Colour; }
-            set { background.Colour = value; }
+            get => background.Colour;
+            set => background.Colour = value;
         }
 
         /// <summary>
@@ -156,8 +156,8 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public bool ScrollbarVisible
         {
-            get { return ContentContainer.ScrollbarVisible; }
-            set { ContentContainer.ScrollbarVisible = value; }
+            get => ContentContainer.ScrollbarVisible;
+            set => ContentContainer.ScrollbarVisible = value;
         }
 
         private float maxWidth = float.MaxValue;
@@ -166,7 +166,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public float MaxWidth
         {
-            get { return maxWidth; }
+            get => maxWidth;
             set
             {
                 if (Precision.AlmostEquals(maxWidth, value))
@@ -183,7 +183,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public float MaxHeight
         {
-            get { return maxHeight; }
+            get => maxHeight;
             set
             {
                 if (Precision.AlmostEquals(maxHeight, value))
@@ -200,7 +200,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public virtual MenuState State
         {
-            get { return state; }
+            get => state;
             set
             {
                 if (TopLevelMenu)
@@ -316,11 +316,11 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         protected virtual void AnimateClose() => Hide();
 
-        public override void InvalidateFromChild(Invalidation invalidation)
+        public override void InvalidateFromChild(Invalidation invalidation, Drawable source = null)
         {
             if ((invalidation & Invalidation.RequiredParentSizeToFit) > 0)
                 sizeCache.Invalidate();
-            base.InvalidateFromChild(invalidation);
+            base.InvalidateFromChild(invalidation, source);
         }
 
         protected override void UpdateAfterChildren()
@@ -586,8 +586,7 @@ namespace osu.Framework.Graphics.UserInterface
                     },
                 };
 
-                var textContent = Content as IHasText;
-                if (textContent != null)
+                if (Content is IHasText textContent)
                 {
                     textContent.Text = item.Text;
                     Item.Text.ValueChanged += newText => textContent.Text = newText;
@@ -611,7 +610,7 @@ namespace osu.Framework.Graphics.UserInterface
             /// </summary>
             public Color4 BackgroundColour
             {
-                get { return backgroundColour; }
+                get => backgroundColour;
                 set
                 {
                     backgroundColour = value;
@@ -625,7 +624,7 @@ namespace osu.Framework.Graphics.UserInterface
             /// </summary>
             public Color4 ForegroundColour
             {
-                get { return foregroundColour; }
+                get => foregroundColour;
                 set
                 {
                     foregroundColour = value;
@@ -639,7 +638,7 @@ namespace osu.Framework.Graphics.UserInterface
             /// </summary>
             public Color4 BackgroundColourHover
             {
-                get { return backgroundColourHover; }
+                get => backgroundColourHover;
                 set
                 {
                     backgroundColourHover = value;
@@ -653,7 +652,7 @@ namespace osu.Framework.Graphics.UserInterface
             /// </summary>
             public Color4 ForegroundColourHover
             {
-                get { return foregroundColourHover; }
+                get => foregroundColourHover;
                 set
                 {
                     foregroundColourHover = value;
@@ -664,7 +663,7 @@ namespace osu.Framework.Graphics.UserInterface
             private MenuItemState state;
             public MenuItemState State
             {
-                get { return state; }
+                get => state;
                 set
                 {
                     state = value;

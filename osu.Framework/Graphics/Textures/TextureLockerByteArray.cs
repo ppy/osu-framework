@@ -8,6 +8,7 @@ namespace osu.Framework.Graphics.Textures
 {
     public class TextureLockerByteArray : ITextureLocker
     {
+        // ReSharper disable once FieldCanBeMadeReadOnly.Local (impure warning if readonly)
         private GCHandle? handle;
 
         public IntPtr DataPointer => handle?.AddrOfPinnedObject() ?? IntPtr.Zero;

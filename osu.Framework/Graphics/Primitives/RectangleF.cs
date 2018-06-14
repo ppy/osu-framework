@@ -54,7 +54,7 @@ namespace osu.Framework.Graphics.Primitives
         [Browsable(false)]
         public Vector2 Location
         {
-            get { return new Vector2(X, Y); }
+            get => new Vector2(X, Y);
             set
             {
                 X = value.X;
@@ -68,7 +68,7 @@ namespace osu.Framework.Graphics.Primitives
         [Browsable(false)]
         public Vector2 Size
         {
-            get { return new Vector2(Width, Height); }
+            get => new Vector2(Width, Height);
             set
             {
                 Width = value.X;

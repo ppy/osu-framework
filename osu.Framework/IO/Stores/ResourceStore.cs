@@ -161,5 +161,31 @@ namespace osu.Framework.IO.Stores
             if (!searchExtensions.Contains(extension))
                 searchExtensions.Add(extension);
         }
+
+        #region IDisposable Support
+
+        private bool isDisposed;
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!isDisposed)
+            {
+                isDisposed = true;
+                stores.ForEach(s => s.Dispose());
+            }
+        }
+
+        ~ResourceStore()
+        {
+            Dispose(false);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        #endregion
     }
 }
