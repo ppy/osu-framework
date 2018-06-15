@@ -8,6 +8,7 @@ using osu.Framework.Graphics.OpenGL.Textures;
 
 namespace osu.Framework.Graphics.Textures
 {
+    [Obsolete("Use RawTexture and TextureStore where possible")]
     public static class TextureLoader
     {
         /// <summary>
