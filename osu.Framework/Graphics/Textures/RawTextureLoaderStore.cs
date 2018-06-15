@@ -24,7 +24,7 @@ namespace osu.Framework.Graphics.Textures
                 {
                     if (stream == null) return null;
 
-                    return RawTexture.FromStream(stream);
+                    return new RawTexture(stream);
                 }
             }
             catch

@@ -42,7 +42,7 @@ namespace osu.Framework.Graphics.Textures
             if (raw == null) return null;
 
             Texture tex = atlas != null ? atlas.Add(raw.Width, raw.Height) : new Texture(raw.Width, raw.Height, filteringMode: filteringMode);
-            tex.SetData(new TextureUpload(raw.Pixels)
+            tex.SetData(new TextureUpload(raw.Data)
             {
                 Bounds = new RectangleI(0, 0, raw.Width, raw.Height),
                 Format = raw.PixelFormat,
