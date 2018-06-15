@@ -18,6 +18,7 @@ using osu.Framework.Threading;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.Linq;
 
 namespace osu.Framework.Graphics.Performance
@@ -244,11 +245,11 @@ namespace osu.Framework.Graphics.Performance
 
             addArea(null, null, HEIGHT, column, amount_count_steps);
 
-            counterBarBackground?.Texture.SetData(new TextureUpload(column));
+            counterBarBackground?.Texture.SetData(new TextureUploadByteArray(column, new Size(1, HEIGHT)));
             Schedule(() =>
             {
                 foreach (var t in timeBars)
-                    t.Sprite.Texture.SetData(new TextureUpload(fullBackground));
+                    t.Sprite.Texture.SetData(new TextureUploadByteArray(fullBackground, new Size(WIDTH, HEIGHT)));
             });
         }
 
@@ -308,7 +309,7 @@ namespace osu.Framework.Graphics.Performance
         private void applyFrameTime(FrameStatistics frame)
         {
             TimeBar timeBar = timeBars[timeBarIndex];
-            TextureUpload upload = new TextureUpload(HEIGHT * 4, textureBufferStack)
+            TextureUploadByteArray upload = new TextureUploadByteArray(new Size(1, HEIGHT), textureBufferStack)
             {
                 Bounds = new RectangleI(timeBarX, 0, 1, HEIGHT)
             };

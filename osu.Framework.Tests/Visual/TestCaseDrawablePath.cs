@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Collections.Generic;
+using System.Drawing;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Lines;
 using osu.Framework.Graphics.OpenGL.Textures;
@@ -30,7 +31,7 @@ namespace osu.Framework.Tests.Visual
                 data[index + 2] = (byte)(brightness * 255);
                 data[index + 3] = 255;
             }
-            gradientTexture.SetData(new TextureUpload(data));
+            gradientTexture.SetData(new TextureUploadByteArray(data, new Size(width, 1)));
 
             Cell(0).AddRange(new[]
             {

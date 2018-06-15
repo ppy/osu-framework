@@ -60,7 +60,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             if (withTexture)
             {
                 Texture = new TextureGLSingle(1, 1, true, filteringMode);
-                Texture.SetData(new TextureUpload(Array.Empty<byte>()));
+                Texture.SetData(new TextureUploadByteArray(Array.Empty<byte>(), System.Drawing.Size.Empty));
                 Texture.Upload();
 
                 Bind();
@@ -90,7 +90,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
                 Texture.Width = (int)Math.Ceiling(size.X);
                 Texture.Height = (int)Math.Ceiling(size.Y);
-                Texture.SetData(new TextureUpload(Array.Empty<byte>()));
+                Texture.SetData(new TextureUploadByteArray(Array.Empty<byte>(), System.Drawing.Size.Empty));
                 Texture.Upload();
             }
         }
