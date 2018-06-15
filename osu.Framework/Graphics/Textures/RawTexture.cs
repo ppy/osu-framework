@@ -54,7 +54,7 @@ namespace osu.Framework.Graphics.Textures
         /// Create an empty raw texture with an optional <see cref="BufferStack{T}"/>. backing.
         /// </summary>
         /// <param name="width">The width of the texture.</param>
-        /// <param name="height">The heightof the texture.</param>
+        /// <param name="height">The height of the texture.</param>
         /// <param name="bufferStack">The buffer stack to retrieve the byte[] from.</param>
         public RawTexture(int width, int height, BufferStack<byte> bufferStack = null)
         {
@@ -66,7 +66,7 @@ namespace osu.Framework.Graphics.Textures
             if (bufferStack != null)
             {
                 this.bufferStack = bufferStack;
-                Data= this.bufferStack.ReserveBuffer(size);
+                Data = this.bufferStack.ReserveBuffer(size);
             }
             else
             {
