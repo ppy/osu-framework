@@ -51,6 +51,7 @@ namespace osu.Framework.IO.Network
         public bool Aborted { get; private set; }
 
         private bool completed;
+
         /// <summary>
         /// Whether the <see cref="WebRequest"/> has been run.
         /// </summary>
@@ -217,6 +218,8 @@ namespace osu.Framework.IO.Network
 
         private const string form_content_type = "multipart/form-data; boundary=" + form_boundary;
 
+        private static readonly TaskFactory task_factory = new TaskFactory(TaskScheduler.Default);
+
         /// <summary>
         /// Performs the request asynchronously.
         /// </summary>
@@ -226,7 +229,8 @@ namespace osu.Framework.IO.Network
                 throw new InvalidOperationException($"The {nameof(WebRequest)} has already been run.");
             try
             {
-                await Task.Factory.StartNew(internalPerform, TaskCreationOptions.LongRunning);
+                abortToken = new CancellationTokenSource(); // early initialisation so we can use it on the task itself.
+                await task_factory.StartNew(internalPerform, abortToken.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
             }
             catch (AggregateException ae)
             {
@@ -236,7 +240,7 @@ namespace osu.Framework.IO.Network
 
         private void internalPerform()
         {
-            using (abortToken = new CancellationTokenSource())
+            using (abortToken = abortToken ?? new CancellationTokenSource())
             using (timeoutToken = new CancellationTokenSource())
             using (var linkedToken = CancellationTokenSource.CreateLinkedTokenSource(abortToken.Token, timeoutToken.Token))
             {
@@ -344,7 +348,8 @@ namespace osu.Framework.IO.Network
                 }
                 catch (Exception) when (timeoutToken.IsCancellationRequested)
                 {
-                    Complete(new WebException($"Request to {Url} timed out after {timeSinceLastAction / 1000} seconds idle (read {responseBytesRead} bytes, retried {RetryCount} times).", WebExceptionStatus.Timeout));
+                    Complete(new WebException($"Request to {Url} timed out after {timeSinceLastAction / 1000} seconds idle (read {responseBytesRead} bytes, retried {RetryCount} times).",
+                        WebExceptionStatus.Timeout));
                 }
                 catch (Exception) when (abortToken.IsCancellationRequested)
                 {
