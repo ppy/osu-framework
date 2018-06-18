@@ -5,6 +5,7 @@ using osu.Framework.Lists;
 using System.Collections.Generic;
 using System;
 using System.Diagnostics;
+using System.Threading;
 using OpenTK;
 using osu.Framework.Graphics.OpenGL;
 using OpenTK.Graphics;
@@ -45,6 +46,8 @@ namespace osu.Framework.Graphics.Containers
 
         private Game game;
 
+        private CancellationTokenSource cancelSource;
+
         /// <summary>
         /// Loads a future child or grand-child of this <see cref="CompositeDrawable"/> asyncronously. <see cref="Drawable.Dependencies"/>
         /// and <see cref="Drawable.Clock"/> are inherited from this <see cref="CompositeDrawable"/>.
@@ -61,7 +64,10 @@ namespace osu.Framework.Graphics.Containers
             if (game == null)
                 throw new InvalidOperationException($"May not invoke {nameof(LoadComponentAsync)} prior to this {nameof(CompositeDrawable)} being loaded.");
 
-            return component.LoadAsync(game, this, () => onLoaded?.Invoke(component));
+            if (cancelSource == null)
+                cancelSource = new CancellationTokenSource();
+
+            return component.LoadAsync(game, this, cancelSource.Token, () => onLoaded?.Invoke(component));
         }
 
         [BackgroundDependencyLoader(true)]
@@ -102,6 +108,8 @@ namespace osu.Framework.Graphics.Containers
 
         protected override void Dispose(bool isDisposing)
         {
+            cancelSource?.Cancel();
+
             InternalChildren?.ForEach(c => c.Dispose());
 
             OnAutoSize = null;

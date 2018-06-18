@@ -382,15 +382,14 @@ namespace osu.Framework.Testing
                 OnCaughtError = compileFailed
             });
 
+            if (lastTest?.Parent != null)
+            {
+                testContentContainer.Remove(lastTest.Parent);
+                lastTest.Dispose();
+            }
+
             newTest.OnLoadComplete = d => Schedule(() =>
             {
-                if (lastTest?.Parent != null)
-                {
-                    testContentContainer.Remove(lastTest.Parent);
-                    lastTest.Clear();
-                    lastTest.Dispose();
-                }
-
                 if (CurrentTest != newTest)
                 {
                     // There could have been multiple loads fired after us. In such a case we want to silently remove ourselves.
