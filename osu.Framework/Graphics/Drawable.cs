@@ -159,7 +159,7 @@ namespace osu.Framework.Graphics
                         return;
 
                     Load(target.Clock, target.Dependencies);
-                }, cancellationToken, TaskCreationOptions.None, task_schedulers.ConcurrentScheduler);
+                }, cancellationToken, TaskCreationOptions.None, target.Dependencies.Get<TaskScheduler>());
             }
 
             return (loadTask ?? Task.CompletedTask).ContinueWith(task => game.Schedule(() =>
@@ -169,8 +169,6 @@ namespace osu.Framework.Graphics
                 loadTask = null;
             }), cancellationToken);
         }
-
-        private static readonly ConcurrentExclusiveSchedulerPair task_schedulers = new ConcurrentExclusiveSchedulerPair(TaskScheduler.Default, 8);
 
         private static readonly StopwatchClock perf = new StopwatchClock(true);
 

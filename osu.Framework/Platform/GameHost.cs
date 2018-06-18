@@ -479,6 +479,8 @@ namespace osu.Framework.Platform
         /// </summary>
         protected virtual IFrameBasedClock SceneGraphClock => UpdateThread.Clock;
 
+        private static readonly ConcurrentExclusiveSchedulerPair async_schedulers = new ConcurrentExclusiveSchedulerPair(TaskScheduler.Default, 2);
+
         private void bootstrapSceneGraph(Game game)
         {
             var root = new UserInputManager
@@ -494,6 +496,7 @@ namespace osu.Framework.Platform
 
             Dependencies.Cache(root);
             Dependencies.CacheAs(game);
+            Dependencies.CacheAs(async_schedulers.ConcurrentScheduler);
 
             game.SetHost(this);
 
