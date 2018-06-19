@@ -308,7 +308,7 @@ namespace osu.Framework.Graphics.Performance
         private void applyFrameTime(FrameStatistics frame)
         {
             TimeBar timeBar = timeBars[timeBarIndex];
-            TextureUpload upload = new TextureUpload(new RawTexture(4, HEIGHT, textureBufferStack))
+            TextureUpload upload = new TextureUpload(new RawTexture(1, HEIGHT, textureBufferStack))
             {
                 Bounds = new RectangleI(timeBarX, 0, 1, HEIGHT)
             };
