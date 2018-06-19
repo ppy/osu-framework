@@ -2,35 +2,15 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Drawing;
 using System.IO;
 using OpenTK.Graphics.ES30;
 using osu.Framework.Graphics.OpenGL.Textures;
 
 namespace osu.Framework.Graphics.Textures
 {
+    [Obsolete("Use RawTexture and TextureStore where possible")]
     public static class TextureLoader
     {
-        /// <summary>
-        /// Creates a texture from a bitmap.
-        /// </summary>
-        /// <param name="bitmap">The bitmap to create the texture from.</param>
-        /// <param name="atlas">The atlas to add the texture to.</param>
-        /// <returns>The created texture.</returns>
-        public static Texture FromBitmap(Bitmap bitmap, TextureAtlas atlas = null)
-        {
-            if (bitmap == null)
-                return null;
-
-            //int usableWidth = Math.Min(GLWrapper.MaxTextureSize, bitmap.Width);
-            //int usableHeight = Math.Min(GLWrapper.MaxTextureSize, bitmap.Height);
-
-            Texture tex = atlas == null ? new Texture(bitmap.Width, bitmap.Height) : atlas.Add(bitmap.Width, bitmap.Height);
-            tex.SetData(bitmap);
-
-            return tex;
-        }
-
         /// <summary>
         /// Creates a texture from a data stream representing a bitmap.
         /// </summary>
@@ -44,8 +24,10 @@ namespace osu.Framework.Graphics.Textures
 
             try
             {
-                using (Bitmap b = (Bitmap)Image.FromStream(stream, false, false))
-                    return FromBitmap(b, atlas);
+                RawTexture data = new RawTexture(stream);
+                Texture tex = atlas == null ? new Texture(data.Width, data.Height) : atlas.Add(data.Width, data.Height);
+                tex.SetData(new TextureUpload(data.Data));
+                return tex;
             }
             catch (ArgumentException)
             {
@@ -85,10 +67,7 @@ namespace osu.Framework.Graphics.Textures
 
             Texture tex = atlas == null ? new Texture(width, height) : atlas.Add(width, height);
 
-            var upload = new TextureUpload(data)
-            {
-                Format = format
-            };
+            var upload = new TextureUpload(data) { Format = format };
             tex.SetData(upload);
             return tex;
         }
