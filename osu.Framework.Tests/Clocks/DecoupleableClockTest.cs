@@ -4,10 +4,10 @@
 using NUnit.Framework;
 using osu.Framework.Timing;
 
-namespace osu.Framework.Tests.NonVisual
+namespace osu.Framework.Tests.Clocks
 {
     [TestFixture]
-    public class TestDecoupleableClock
+    public class DecoupleableClockTest
     {
         private TestClock source;
         private DecoupleableInterpolatingFramedClock decoupleable;
