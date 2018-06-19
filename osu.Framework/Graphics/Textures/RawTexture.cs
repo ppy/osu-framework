@@ -94,13 +94,13 @@ namespace osu.Framework.Graphics.Textures
 
         #region IDisposable Support
 
-        private bool disposedValue;
+        private bool disposed;
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!disposedValue)
+            if (!disposed)
             {
-                disposedValue = true;
+                disposed = true;
                 bufferStack?.FreeBuffer(Data);
             }
         }

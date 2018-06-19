@@ -24,7 +24,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         public PixelFormat Format = PixelFormat.Rgba;
 
         /// <summary>
-        /// The target bounds for this upload. If not specified, will assume to be (0, 0, width, height)
+        /// The target bounds for this upload. If not specified, will assume to be (0, 0, width, height).
         /// </summary>
         public RectangleI Bounds;
 
@@ -34,7 +34,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         public readonly byte[] Data;
 
         /// <summary>
-        /// The backing texture. A handle it kept to avoid early GC.
+        /// The backing texture. A handle is kept to avoid early GC.
         /// </summary>
         private readonly RawTexture texture;
 
@@ -59,13 +59,13 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         #region IDisposable Support
 
-        private bool disposedValue;
+        private bool disposed;
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!disposedValue)
+            if (!disposed)
             {
-                disposedValue = true;
+                disposed = true;
                 texture?.Dispose();
             }
         }
