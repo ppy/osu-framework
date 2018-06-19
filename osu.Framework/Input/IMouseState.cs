@@ -16,6 +16,11 @@ namespace osu.Framework.Input
 
         Vector2 Position { get; set; }
 
+        /// <summary>
+        /// Whether if this mouse state contains a valid <see cref="Position"/>.
+        /// If this is false, the value of <see cref="Position"/> should not be used.
+        /// An example of a state with an invalid position is at before the first mouse input is handled.
+        /// </summary>
         bool IsPositionValid { get; set; }
 
         Vector2 LastPosition { get; set; }
