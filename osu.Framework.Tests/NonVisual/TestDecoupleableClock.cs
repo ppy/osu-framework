@@ -46,6 +46,32 @@ namespace osu.Framework.Tests.NonVisual
             Assert.IsFalse(source.IsRunning, "Source should not be running.");
         }
 
+        /// <summary>
+        /// Tests that the source clock starts when the decoupled clock starts.
+        /// </summary>
+        [Test]
+        public void TestSourceStartedByDecoupled()
+        {
+            decoupleable.IsCoupled = false;
+            decoupleable.Start();
+
+            Assert.IsTrue(source.IsRunning, "Source should be running.");
+        }
+
+        /// <summary>
+        /// Tests that the source clock stops when the decoupled clock stops.
+        /// </summary>
+        [Test]
+        public void TestSourceStoppedByDecoupled()
+        {
+            decoupleable.Start();
+
+            decoupleable.IsCoupled = false;
+            decoupleable.Stop();
+
+            Assert.IsFalse(source.IsRunning, "Source should not be running.");
+        }
+
 #endregion
 
 #region Start/stop by source
@@ -76,6 +102,35 @@ namespace osu.Framework.Tests.NonVisual
             Assert.IsFalse(decoupleable.IsRunning, "Coupled should not be running.");
         }
 
+        /// <summary>
+        /// Tests that the decoupled clock doesn't start when the source clock starts.
+        /// </summary>
+        [Test]
+        public void TestDecoupledNotStartedBySourceClock()
+        {
+            decoupleable.IsCoupled = false;
+
+            source.Start();
+            decoupleable.ProcessFrame();
+
+            Assert.IsFalse(decoupleable.IsRunning, "Decoupled should not be running.");
+        }
+
+        /// <summary>
+        /// Tests that the decoupled clock doesn't stop when the source clock stops.
+        /// </summary>
+        [Test]
+        public void TestDecoupledNotStoppedBySourceClock()
+        {
+            decoupleable.Start();
+            decoupleable.IsCoupled = false;
+
+            source.Stop();
+            decoupleable.ProcessFrame();
+
+            Assert.IsTrue(decoupleable.IsRunning, "Decoupled should be running.");
+        }
+
 #endregion
 
 #region Offset start
@@ -86,28 +141,40 @@ namespace osu.Framework.Tests.NonVisual
         [Test]
         public void TestCoupledStartBySourceWithSourceOffset()
         {
-            const double expected_time = 1000;
-
-            source.Seek(expected_time);
+            source.Seek(1000);
 
             source.Start();
             decoupleable.ProcessFrame();
 
-            Assert.AreEqual(expected_time, decoupleable.CurrentTime, "Coupled time should match source time.");
+            Assert.AreEqual(source.CurrentTime, decoupleable.CurrentTime, "Coupled time should match source time.");
         }
 
         /// <summary>
-        /// Tests that the coupled clock seeks the source to its time when it starts.
+        /// Tests that the coupled clock seeks the source clock to its time when it starts.
         /// </summary>
         [Test]
         public void TestCoupledStartWithSouceOffset()
         {
-            const double expected_time = 0;
+            source.Seek(1000);
+            decoupleable.Start();
+
+            Assert.AreEqual(0, source.CurrentTime);
+            Assert.AreEqual(source.CurrentTime, decoupleable.CurrentTime, "Coupled time should match source time.");
+        }
+
+        /// <summary>
+        /// Tests that the decoupled clock seeks the source clock to its time when it starts.
+        /// </summary>
+        [Test]
+        public void TestDecoupledStartWithSouceOffset()
+        {
+            decoupleable.IsCoupled = false;
 
             source.Seek(1000);
             decoupleable.Start();
 
-            Assert.AreEqual(expected_time, decoupleable.CurrentTime, "Coupled time should match source time.");
+            Assert.AreEqual(0, source.CurrentTime);
+            Assert.AreEqual(source.CurrentTime, decoupleable.CurrentTime, "Deoupled time should match source time.");
         }
 
 #endregion
@@ -120,11 +187,9 @@ namespace osu.Framework.Tests.NonVisual
         [Test]
         public void TestSourceSeekedByCoupledSeek()
         {
-            const double expected_time = 1000;
+            decoupleable.Seek(1000);
 
-            decoupleable.Seek(expected_time);
-
-            Assert.AreEqual(expected_time, source.CurrentTime, "Source time should match coupled time.");
+            Assert.AreEqual(source.CurrentTime, source.CurrentTime, "Source time should match coupled time.");
         }
 
         /// <summary>
@@ -133,14 +198,39 @@ namespace osu.Framework.Tests.NonVisual
         [Test]
         public void TestCoupledSeekedBySourceSeek()
         {
-            const double expected_time = 1000;
-
             decoupleable.Start();
 
-            source.Seek(expected_time);
+            source.Seek(1000);
             decoupleable.ProcessFrame();
 
-            Assert.AreEqual(expected_time, decoupleable.CurrentTime, "Coupled time should match source time.");
+            Assert.AreEqual(source.CurrentTime, decoupleable.CurrentTime, "Coupled time should match source time.");
+        }
+
+        /// <summary>
+        /// Tests that the source clock is seeked when the decoupled clock is seeked.
+        /// </summary>
+        [Test]
+        public void TestSourceSeekedByDecoupledSeek()
+        {
+            decoupleable.IsCoupled = false;
+            decoupleable.Seek(1000);
+
+            Assert.AreEqual(decoupleable.CurrentTime, source.CurrentTime, "Source time should match coupled time.");
+        }
+
+        /// <summary>
+        /// Tests that the coupled clock is not seeked while stopped and the source clock is seeked.
+        /// </summary>
+        [Test]
+        public void TestDecoupledNotSeekedBySourceSeekWhenStopped()
+        {
+            decoupleable.IsCoupled = false;
+
+            source.Seek(1000);
+            decoupleable.ProcessFrame();
+
+            Assert.AreEqual(0, decoupleable.CurrentTime);
+            Assert.AreNotEqual(source.CurrentTime, decoupleable.CurrentTime, "Coupled time should not match source time.");
         }
 
 #endregion
