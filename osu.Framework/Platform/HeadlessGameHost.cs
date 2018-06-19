@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using osu.Framework.Input.Handlers;
+using osu.Framework.Logging;
 using osu.Framework.Timing;
 
 namespace osu.Framework.Platform
@@ -15,6 +16,10 @@ namespace osu.Framework.Platform
         private readonly IFrameBasedClock customClock;
 
         protected override IFrameBasedClock SceneGraphClock => customClock ?? base.SceneGraphClock;
+
+        public override void OpenFileExternally(string filename) => Logger.Log($"Application has requested file \"{filename}\" to be opened.");
+
+        public override void OpenUrlExternally(string url) => Logger.Log($"Application has requested URL \"{url}\" to be opened.");
 
         protected override Storage GetStorage(string baseName) => new DesktopStorage($"headless-{baseName}");
 

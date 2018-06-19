@@ -11,6 +11,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
+using osu.Framework.Statistics;
 using OpenTK;
 using OpenTK.Input;
 
@@ -281,12 +282,20 @@ namespace osu.Framework.Input
             positionalInputQueue.Clear();
 
             if (state.Keyboard != null)
+            {
+                if (this is UserInputManager)
+                    FrameStatistics.Increment(StatisticsCounterType.KeyboardQueue);
                 foreach (Drawable d in AliveInternalChildren)
                     d.BuildKeyboardInputQueue(inputQueue);
+            }
 
             if (state.Mouse != null)
+            {
+                if (this is UserInputManager)
+                    FrameStatistics.Increment(StatisticsCounterType.MouseQueue);
                 foreach (Drawable d in AliveInternalChildren)
                     d.BuildMouseInputQueue(state.Mouse.Position, positionalInputQueue);
+            }
 
             // Keyboard and mouse queues were created in back-to-front order.
             // We want input to first reach front-most drawables, so the queues
