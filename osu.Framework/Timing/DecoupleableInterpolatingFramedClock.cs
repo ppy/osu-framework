@@ -78,6 +78,11 @@ namespace osu.Framework.Timing
                         Start();
                 }
             }
+            else if (IsCoupled && sourceRunning)
+            {
+                Start();
+                decoupledStopwatch.Seek(CurrentTime);
+            }
         }
 
         public override void ChangeSource(IClock source)
