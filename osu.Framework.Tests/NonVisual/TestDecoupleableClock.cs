@@ -235,6 +235,36 @@ namespace osu.Framework.Tests.NonVisual
 
 #endregion
 
+        /// <summary>
+        /// Tests that the state of the decouplable clock is preserved when it is stopped after processing a frame.
+        /// </summary>
+        [Test]
+        public void TestStoppingAfterProcessingFramePreservesState()
+        {
+            decoupleable.Start();
+            source.CurrentTime = 1000;
+
+            decoupleable.ProcessFrame();
+            decoupleable.Stop();
+
+            Assert.AreEqual(source.CurrentTime, decoupleable.CurrentTime, "Decoupled should match source time.");
+        }
+
+        /// <summary>
+        /// Tests that the state of the decouplable clock is preserved when it is stopped after having being started by the source clock.
+        /// </summary>
+        [Test]
+        public void TestStoppingAfterStartingBySourcePreservesState()
+        {
+            source.Start();
+            source.CurrentTime = 1000;
+
+            decoupleable.ProcessFrame();
+            decoupleable.Stop();
+
+            Assert.AreEqual(source.CurrentTime, decoupleable.CurrentTime, "Decoupled should match source time.");
+        }
+
         private class TestClock : IAdjustableClock
         {
             public double CurrentTime { get; set; }
