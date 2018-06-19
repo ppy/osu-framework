@@ -10,6 +10,7 @@ using OpenTK;
 using osu.Framework.IO;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using osu.Framework.Logging;
 
 namespace osu.Framework.Audio.Track
 {
@@ -193,7 +194,9 @@ namespace osu.Framework.Audio.Track
             double conservativeLength = Length == 0 ? double.MaxValue : Length;
             double conservativeClamped = MathHelper.Clamp(seek, 0, conservativeLength);
 
-            await EnqueueAction(() =>
+            //added a timeout because for some reason this async task hangs indefinitely someimtes (Such as in TestCaseStoryBoard)
+            int timeout = 1; //immediately return because the return value doesn't depend on the async task completing (and the task seems to complete anyway even though the task hangs?)
+            Task task = EnqueueAction(() =>
             {
                 double clamped = MathHelper.Clamp(seek, 0, Length);
 
@@ -203,6 +206,12 @@ namespace osu.Framework.Audio.Track
                     Bass.ChannelSetPosition(activeStream, pos);
                 }
             });
+
+            //if timed out
+            if (await Task.WhenAny(task, Task.Delay(timeout)) != task)
+            {
+                //Logger.Log("Async Enqueue action timed out", LoggingTarget.Runtime, LogLevel.Error);
+            }
 
             return conservativeClamped == seek;
         }

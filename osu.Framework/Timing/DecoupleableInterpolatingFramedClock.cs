@@ -78,6 +78,18 @@ namespace osu.Framework.Timing
                         Start();
                 }
             }
+            else
+            {
+                if (IsCoupled)
+                {
+                    //if we're not running and coupled, we want to start if our source clock starts.
+                    if (sourceRunning)
+                        Start();
+
+                    //we should attempt to seek to the same time if coupled
+                    decoupledStopwatch.Seek(base.CurrentTime);
+                }
+            }
         }
 
         public override void ChangeSource(IClock source)

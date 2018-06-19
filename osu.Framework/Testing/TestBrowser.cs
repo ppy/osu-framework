@@ -305,10 +305,35 @@ namespace osu.Framework.Testing
                     case Key.Escape:
                         exit();
                         return true;
+
+                    case Key.F11:
+                        toggleFullScreen();
+                        return true;
                 }
             }
 
             return base.OnKeyDown(state, args);
+        }
+
+        private void toggleFullScreen()
+        {
+            //If not full screen
+            if (this.Children.Count != 1)
+            {
+                this.Remove(leftContainer);
+                this.Remove(mainContainer);
+                mainContainer.Remove(testContentContainer);
+                this.Add(testContentContainer);
+                testContentContainer.Padding = new MarginPadding(0);
+            }
+            else
+            {
+                this.Remove(testContentContainer);
+                this.Add(leftContainer);
+                mainContainer.Add(testContentContainer);
+                this.Add(mainContainer);
+                testContentContainer.Padding = new MarginPadding { Top = 50 };
+            }
         }
 
         public override IEnumerable<KeyBinding> DefaultKeyBindings => new[]
