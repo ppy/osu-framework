@@ -57,7 +57,6 @@ namespace osu.Framework.Timing
             base.ProcessFrame();
 
             decoupledStopwatch.Rate = adjustableSource?.Rate ?? 1;
-            decoupledClock.ProcessFrame();
 
             bool sourceRunning = SourceClock?.IsRunning ?? false;
 
@@ -83,6 +82,8 @@ namespace osu.Framework.Timing
                 Start();
                 decoupledStopwatch.Seek(CurrentTime);
             }
+
+            decoupledClock.ProcessFrame();
         }
 
         public override void ChangeSource(IClock source)
