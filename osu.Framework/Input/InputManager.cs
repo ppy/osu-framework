@@ -399,15 +399,11 @@ namespace osu.Framework.Input
             {
                 handleMouseDrag(state);
             }
-
-            mouse.LastPosition = mouse.Position;
         }
 
         public virtual void HandleMouseScrollChange(InputState state)
         {
-            var mouse = state.Mouse;
             handleScroll(state);
-            mouse.LastScroll = mouse.Scroll;
         }
 
         public virtual void HandleMouseButtonStateChange(InputState state, MouseButton button, ButtonStateChangeKind kind)

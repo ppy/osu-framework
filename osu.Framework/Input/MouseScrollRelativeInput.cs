@@ -21,10 +21,12 @@ namespace osu.Framework.Input
         public bool IsPrecise;
         public void Apply(InputState state, IInputStateChangeHandler handler)
         {
+            var mouse = state.Mouse;
             if (Delta != Vector2.Zero)
             {
-                state.Mouse.Scroll += Delta;
-                state.Mouse.HasPreciseScroll = IsPrecise;
+                mouse.LastScroll = mouse.Scroll;
+                mouse.Scroll += Delta;
+                mouse.HasPreciseScroll = IsPrecise;
                 handler.HandleMouseScrollChange(state);
             }
         }

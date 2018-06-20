@@ -20,10 +20,12 @@ namespace osu.Framework.Input
         public Vector2 Position;
         public void Apply(InputState state, IInputStateChangeHandler handler)
         {
-            if (!state.Mouse.IsPositionValid || state.Mouse.Position != Position)
+            var mouse = state.Mouse;
+            if (!mouse.IsPositionValid || mouse.Position != Position)
             {
-                state.Mouse.IsPositionValid = true;
-                state.Mouse.Position = Position;
+                mouse.IsPositionValid = true;
+                mouse.LastPosition = mouse.Position;
+                mouse.Position = Position;
                 handler.HandleMousePositionChange(state);
             }
         }
