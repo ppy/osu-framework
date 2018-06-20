@@ -18,7 +18,7 @@ namespace osu.Framework.Platform.Linux
             };
         }
 
-        protected override Storage GetStorage(string baseName) => new LinuxStorage(baseName);
+        protected override Storage GetStorage(string baseName) => new LinuxStorage(baseName, this);
 
         public override Clipboard GetClipboard() => new LinuxClipboard();
     }
