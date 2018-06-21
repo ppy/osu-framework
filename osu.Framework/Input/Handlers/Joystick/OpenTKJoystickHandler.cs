@@ -60,7 +60,7 @@ namespace osu.Framework.Input.Handlers.Joystick
 
         private void handleState(JoystickDevice device, JoystickState newState)
         {
-            PendingInputs.Enqueue(ButtonInputHelper.TakeDifference<JoystickButtonInput, JoystickButton>(newState.Buttons, device.LastState?.Buttons));
+            PendingInputs.Enqueue(new JoystickButtonInput(newState.Buttons, device.LastState?.Buttons));
 
             device.LastState = newState;
         }

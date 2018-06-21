@@ -50,7 +50,7 @@ namespace osu.Framework.Input.Handlers.Keyboard
 
             var newState = new TkKeyboardState(rawState);
 
-            PendingInputs.Enqueue(ButtonInputHelper.TakeDifference<KeyboardKeyInput, Key>(newState.Keys, lastEventState?.Keys));
+            PendingInputs.Enqueue(new KeyboardKeyInput(newState.Keys, lastEventState?.Keys));
 
             lastEventState = newState;
 

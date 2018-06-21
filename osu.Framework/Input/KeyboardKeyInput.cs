@@ -7,6 +7,16 @@ namespace osu.Framework.Input
 {
     public class KeyboardKeyInput : ButtonInput<Key>
     {
+        public KeyboardKeyInput(Key button, bool isPressed)
+            : base(button, isPressed)
+        {
+        }
+
+        public KeyboardKeyInput(ButtonStates<Key> current, ButtonStates<Key> previous)
+            : base(current, previous)
+        {
+        }
+
         protected override ButtonStates<Key> GetButtonStates(InputState state) => state.Keyboard.Keys;
 
         protected override void Handle(IInputStateChangeHandler handler, InputState state, Key key, ButtonStateChangeKind kind) =>

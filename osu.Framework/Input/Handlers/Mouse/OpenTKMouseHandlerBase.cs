@@ -4,7 +4,6 @@
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
 using OpenTK;
-using OpenTK.Input;
 
 namespace osu.Framework.Input.Handlers.Mouse
 {
@@ -52,7 +51,7 @@ namespace osu.Framework.Input.Handlers.Mouse
                 }
             }
 
-            PendingInputs.Enqueue(ButtonInputHelper.TakeDifference<MouseButtonInput, MouseButton>(state.Buttons, lastState?.Buttons));
+            PendingInputs.Enqueue(new MouseButtonInput(state.Buttons, lastState?.Buttons));
 
             FrameStatistics.Increment(StatisticsCounterType.MouseEvents);
         }

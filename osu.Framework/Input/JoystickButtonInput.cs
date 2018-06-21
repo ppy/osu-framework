@@ -5,6 +5,16 @@ namespace osu.Framework.Input
 {
     public class JoystickButtonInput : ButtonInput<JoystickButton>
     {
+        public JoystickButtonInput(JoystickButton button, bool isPressed)
+            : base(button, isPressed)
+        {
+        }
+
+        public JoystickButtonInput(ButtonStates<JoystickButton> current, ButtonStates<JoystickButton> previous)
+            : base(current, previous)
+        {
+        }
+
         protected override ButtonStates<JoystickButton> GetButtonStates(InputState state) => state.Joystick.Buttons;
 
         protected override void Handle(IInputStateChangeHandler handler, InputState state, JoystickButton button, ButtonStateChangeKind kind) =>
