@@ -7,17 +7,18 @@ namespace osu.Framework.Input
 {
     /// <summary>
     /// Denotes an absolute change of mouse position.
-    /// <para>
-    /// An use case is when a current position is retrived from the platform.
-    /// Another use case is when the user moves an absolutely positioned device such as a tablet.
-    /// </para>
+    /// Pointing devices such as tablets provide absolute input.
     /// </summary>
+    /// <remarks>
+    /// This is the first input received from any pointing device.
+    /// </remarks>
     public class MousePositionAbsoluteInput : IInput
     {
         /// <summary>
-        /// The position which will be assigned to the current mouse position.
+        /// The position which will be assigned to the current position.
         /// </summary>
         public Vector2 Position;
+
         public void Apply(InputState state, IInputStateChangeHandler handler)
         {
             var mouse = state.Mouse;

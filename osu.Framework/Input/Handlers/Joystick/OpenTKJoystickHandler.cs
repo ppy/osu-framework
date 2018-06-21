@@ -48,6 +48,7 @@ namespace osu.Framework.Input.Handlers.Joystick
                         if (device.LastState != null)
                             handleState(device, new JoystickState());
                     }
+
                     devices.Clear();
                 }
             };

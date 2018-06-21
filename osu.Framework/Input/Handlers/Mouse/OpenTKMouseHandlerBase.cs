@@ -25,6 +25,7 @@ namespace osu.Framework.Input.Handlers.Mouse
         }
 
         private Vector2 currentPosition;
+
         protected void HandleState(OpenTKMouseState state, OpenTKMouseState lastState, bool isAbsolutePosition)
         {
             if (lastState == null || isAbsolutePosition)
@@ -67,4 +68,3 @@ namespace osu.Framework.Input.Handlers.Mouse
         public override int Priority => 0;
     }
 }
-

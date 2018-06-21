@@ -81,4 +81,3 @@ namespace osu.Framework.Input.Handlers.Mouse
         }
     }
 }
-

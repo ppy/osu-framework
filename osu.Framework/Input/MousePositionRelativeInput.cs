@@ -7,15 +7,16 @@ namespace osu.Framework.Input
 {
     /// <summary>
     /// Denotes a relative change of mouse position.
-    /// <para>It can be used to denote a move of a relatively positioned devices such as mouses.</para>
+    /// Pointing devices such as mice provide relative positional input.
     /// </summary>
     public class MousePositionRelativeInput : IInput
     {
         /// <summary>
-        /// The delta value which will be added to the current mouse position.
-        /// When the current mouse position is not valid, no changes will be made.
+        /// The change in position. This will be added to the current position.
+        /// When the current position is not valid, no changes will be made.
         /// </summary>
         public Vector2 Delta;
+
         public void Apply(InputState state, IInputStateChangeHandler handler)
         {
             var mouse = state.Mouse;

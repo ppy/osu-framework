@@ -42,7 +42,8 @@ namespace osu.Framework.Tests.Visual
                         Anchor = Anchor.Centre,
                         Size = new Vector2(0.7f, 0.1f),
                     },
-                    new PassThroughInputManager {
+                    new PassThroughInputManager
+                    {
                         RelativeSizeAxes = Axes.Both,
                         RelativePositionAxes = Axes.Both,
                         Position = new Vector2(0, 0.1f),
@@ -65,8 +66,16 @@ namespace osu.Framework.Tests.Visual
 
         public class ContainingInputManagerStatusText : Container
         {
-            private readonly SpriteText inputManagerStatus, mouseStatus, keyboardStatus, joystickStatus,
-                                        onMouseDownStatus, onMouseUpStatus, onMouseMoveStatus, onScrollStatus, onHoverStatus;
+            private readonly SpriteText inputManagerStatus,
+                                        mouseStatus,
+                                        keyboardStatus,
+                                        joystickStatus,
+                                        onMouseDownStatus,
+                                        onMouseUpStatus,
+                                        onMouseMoveStatus,
+                                        onScrollStatus,
+                                        onHoverStatus;
+
             public ContainingInputManagerStatusText()
             {
                 RelativeSizeAxes = Axes.Both;
@@ -108,6 +117,7 @@ namespace osu.Framework.Tests.Visual
             }
 
             private int mouseDownCount;
+
             protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
             {
                 ++mouseDownCount;
@@ -116,6 +126,7 @@ namespace osu.Framework.Tests.Visual
             }
 
             private int mouseUpCount;
+
             protected override bool OnMouseUp(InputState state, MouseUpEventArgs args)
             {
                 ++mouseUpCount;
@@ -124,6 +135,7 @@ namespace osu.Framework.Tests.Visual
             }
 
             private int mouseMoveCount;
+
             protected override bool OnMouseMove(InputState state)
             {
                 ++mouseMoveCount;
@@ -132,6 +144,7 @@ namespace osu.Framework.Tests.Visual
             }
 
             private int scrollCount;
+
             protected override bool OnScroll(InputState state)
             {
                 ++scrollCount;
@@ -140,6 +153,7 @@ namespace osu.Framework.Tests.Visual
             }
 
             private int hoverCount;
+
             protected override bool OnHover(InputState state)
             {
                 ++hoverCount;
@@ -155,6 +169,7 @@ namespace osu.Framework.Tests.Visual
         }
 
         private FrameworkConfigManager config;
+
         [BackgroundDependencyLoader]
         private void load(FrameworkConfigManager config)
         {

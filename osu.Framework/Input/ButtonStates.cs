@@ -10,11 +10,11 @@ using osu.Framework.Extensions.TypeExtensions;
 namespace osu.Framework.Input
 {
     /// <summary>
-    /// Denotes a state of multiple buttons.
+    /// Denotes multiple button states.
     /// </summary>
-    /// <typeparam name="TButton">Type of button</typeparam>
+    /// <typeparam name="TButton">The type of button.</typeparam>
     public class ButtonStates<TButton> : IEnumerable<TButton>
-    where TButton : struct
+        where TButton : struct
     {
         private List<TButton> pressedButtons = new List<TButton>();
 
@@ -26,14 +26,17 @@ namespace osu.Framework.Input
         }
 
         /// <summary>
-        /// Get whether <paramref name="button"/> is currently pressed.
+        /// Finds whether a <see cref="TButton"/> is currently pressed.
         /// </summary>
+        /// <param name="button">The <see cref="TButton"/> to check.</param>
         public bool IsPressed(TButton button) => pressedButtons.Contains(button);
 
         /// <summary>
-        /// Set the state of <param name="button"></param>.
+        /// Sets the state of a <see cref="TButton"/>.
         /// </summary>
-        /// <returns>Whether the button state actually changed.</returns>
+        /// <param name="button">The <see cref="TButton"/> to set the state of.</param>
+        /// <param name="pressed">Whether <paramref name="button"/> should be pressed.</param>
+        /// <returns>Whether the state of <paramref name="button"/> actually changed.</returns>
         public bool SetPressed(TButton button, bool pressed)
         {
             if (pressedButtons.Contains(button) == pressed)
@@ -49,16 +52,18 @@ namespace osu.Framework.Input
         public bool HasAnyButtonPressed => pressedButtons.Any();
 
         /// <summary>
-        /// Calculate the difference of this and <paramref name="lastButtons"/>.
+        /// Enumerates the differences between ourselves and a previous <see cref="ButtonStates{TButton}"/>.
         /// </summary>
+        /// <param name="lastButtons">The previous <see cref="ButtonStates{TButton}"/>.</param>
         public (IEnumerable<TButton> Released, IEnumerable<TButton> Pressed) EnumerateDifference(ButtonStates<TButton> lastButtons)
         {
             return (lastButtons.pressedButtons.Except(pressedButtons), pressedButtons.Except(lastButtons.pressedButtons));
         }
 
         /// <summary>
-        /// Copy <paramref name="other"/>'s state to this.
+        /// Copies the state of another <see cref="ButtonStates{TButton}"/> to ourselves.
         /// </summary>
+        /// <param name="other">The <see cref="ButtonStates{TButton}"/> to copy.</param>
         public void Set(ButtonStates<TButton> other)
         {
             pressedButtons.Clear();

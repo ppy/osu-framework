@@ -4,14 +4,16 @@
 namespace osu.Framework.Input
 {
     /// <summary>
-    /// Denotes an input from <see cref="Handlers.InputHandler"/>.
+    /// Denotes an input from an <see cref="Handlers.InputHandler"/>.
     /// </summary>
     public interface IInput
     {
         /// <summary>
-        /// Apply input to an <see cref="InputState"/>.
-        /// This changes <paramref name="state"/> and the change made will be reported to <paramref name="handler"/>.
+        /// Applies input to an <see cref="InputState"/>.
+        /// This alters the <see cref="InputState"/> and propagates the change to an <see cref="IInputStateChangeHandler"/>.
         /// </summary>
+        /// <param name="state">The <see cref="InputState"/> to apply changes to.</param>
+        /// <param name="handler">The <see cref="IInputStateChangeHandler"/> to handle changes to <paramref name="state"/>.</param>
         void Apply(InputState state, IInputStateChangeHandler handler);
     }
 }

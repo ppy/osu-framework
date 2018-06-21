@@ -53,8 +53,8 @@ namespace osu.Framework.Input
         private bool isDragging;
 
         /// <summary>
-        /// The initial input state. <see cref="CurrentState"/> is always equals (as a reference) to this.
-        /// Mouse, Keyboard and Joystick should be non-null.
+        /// The initial input state. <see cref="CurrentState"/> is always equal (as a reference) to the value returned from this.
+        /// <see cref="InputState.Mouse"/>, <see cref="InputState.Keyboard"/> and <see cref="InputState.Joystick"/> should be non-null.
         /// </summary>
         protected virtual InputState CreateInitialState() => new InputState
         {
@@ -339,9 +339,9 @@ namespace osu.Framework.Input
         private bool isModifierKey(Key k)
         {
             return k == Key.LControl || k == Key.RControl
-                || k == Key.LAlt || k == Key.RAlt
-                || k == Key.LShift || k == Key.RShift
-                || k == Key.LWin || k == Key.RWin;
+                                     || k == Key.LAlt || k == Key.RAlt
+                                     || k == Key.LShift || k == Key.RShift
+                                     || k == Key.LWin || k == Key.RWin;
         }
 
         public virtual void HandleKeyboardKeyStateChange(InputState state, Key key, ButtonStateChangeKind kind)
@@ -443,12 +443,14 @@ namespace osu.Framework.Input
                                 lastClickTime = 0;
                             }
                         }
+
                         if (isValidClick)
                         {
                             lastClickTime = Time.Current;
                             handleMouseClick(state);
                         }
                     }
+
                     mouse.PositionMouseDown = null;
                 }
             }
