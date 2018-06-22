@@ -69,7 +69,8 @@ namespace osu.Framework.Input.Bindings
             // even though we are pressing and releasing an InputKey in a single frame.
             // the important part of this cloned state is the value of Scroll reset to zero.
             var clonedState = state.Clone();
-            clonedState.Mouse = new MouseState { Buttons = clonedState.Mouse.Buttons };
+            clonedState.Mouse = new MouseState();
+            clonedState.Mouse.Buttons.Set(state.Mouse.Buttons);
 
             return handleNewPressed(state, key, false) | handleNewReleased(clonedState, key);
         }

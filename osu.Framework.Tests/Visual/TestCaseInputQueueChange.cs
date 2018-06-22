@@ -40,7 +40,7 @@ namespace osu.Framework.Tests.Visual
                 },
             };
 
-            AddStep("return input", () => manual.UseParentState = true);
+            AddStep("return input", () => manual.UseParentInput = true);
 
             // TODO: blocking event testing
         }
@@ -49,7 +49,7 @@ namespace osu.Framework.Tests.Visual
         public void SetUp()
         {
             // grab manual input control
-            manual.UseParentState = false;
+            manual.UseParentInput = false;
             foreach (var b in manual.Children.OfType<HittableBox>())
                 b.Reset();
         }
