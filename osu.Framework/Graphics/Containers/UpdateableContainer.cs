@@ -70,6 +70,8 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        private Drawable nextDrawable;
+
         protected UpdateableContainer()
         {
             PlaceholderDrawable = CreatePlaceholder();
@@ -94,20 +96,23 @@ namespace osu.Framework.Graphics.Containers
             if (newDrawable == DisplayedDrawable)
                 return;
 
-            var previousDrawable = DisplayedDrawable;
-            DisplayedDrawable = newDrawable;
+            nextDrawable = newDrawable;
 
-            if (previousDrawable != null && newDrawable == null)
+            if (newDrawable == null && DisplayedDrawable != null)
+            {
+                DisplayedDrawable?.FadeOut(300).Expire();
                 PlaceholderDrawable?.FadeInFromZero(300, Easing.OutQuint);
+                return;
+            }
 
-            if (newDrawable == null || FadeOutImmediately)
-                previousDrawable?.FadeOut(300).Expire();
+            if (FadeOutImmediately)
+                DisplayedDrawable?.FadeOut(300).Expire();
 
             if (newDrawable != null)
             {
                 newDrawable.OnLoadComplete = d =>
                 {
-                    if (d != DisplayedDrawable)
+                    if (d != nextDrawable)
                     {
                         d.Expire();
                         return;
@@ -116,10 +121,13 @@ namespace osu.Framework.Graphics.Containers
                     PlaceholderDrawable?.FadeOut(300);
 
                     if (!FadeOutImmediately)
-                        previousDrawable?.FadeOut(300).Expire();
+                        DisplayedDrawable?.FadeOut(300).Expire();
 
                     d.FadeInFromZero(300, Easing.OutQuint);
+
+                    DisplayedDrawable = d;
                 };
+
                 Add(new DelayedLoadWrapper(newDrawable));
             }
         }
