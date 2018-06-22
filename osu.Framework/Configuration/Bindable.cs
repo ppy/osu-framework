@@ -108,10 +108,10 @@ namespace osu.Framework.Configuration
         }
 
         /// <summary>
-        /// Binds outselves to another bindable such that bi-directional updates are propagated.
-        /// We will take on any values and value limitations of the bindable we bind width.
+        /// Binds this bindable to another such that bi-directional updates are propagated.
+        /// This will adopt any values and value limitations of the bindable bound to.
         /// </summary>
-        /// <param name="them">The foreign bindable. This should always be the most permanent end of the bind (ie. a ConfigManager)</param>
+        /// <param name="them">The foreign bindable. This should always be the most permanent end of the bind (ie. a ConfigManager).</param>
         public virtual void BindTo(Bindable<T> them)
         {
             Value = them.Value;

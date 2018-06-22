@@ -2082,7 +2082,7 @@ namespace osu.Framework.Graphics
 
         private struct LocalMouseState : IMouseState
         {
-            public IMouseState NativeState { get; }
+            public IMouseState NativeState { get; private set; }
 
             private readonly Drawable us;
 
@@ -2092,17 +2092,17 @@ namespace osu.Framework.Graphics
                 this.us = us;
             }
 
-            public IReadOnlyList<MouseButton> Buttons
-            {
-                get => NativeState.Buttons;
-                set => NativeState.Buttons = value;
-            }
-
             public Vector2 Delta => Position - LastPosition;
 
             public Vector2 Position
             {
                 get => us.Parent?.ToLocalSpace(NativeState.Position) ?? NativeState.Position;
+                set => throw new NotImplementedException();
+            }
+
+            public bool IsPositionValid
+            {
+                get => NativeState.IsPositionValid;
                 set => throw new NotImplementedException();
             }
 
@@ -2117,10 +2117,6 @@ namespace osu.Framework.Graphics
                 get => NativeState.PositionMouseDown == null ? null : us.Parent?.ToLocalSpace(NativeState.PositionMouseDown.Value) ?? NativeState.PositionMouseDown;
                 set => throw new NotImplementedException();
             }
-
-            public bool HasMainButtonPressed => NativeState.HasMainButtonPressed;
-
-            public bool HasAnyButtonPressed => NativeState.HasAnyButtonPressed;
 
             public Vector2 Scroll
             {
@@ -2142,13 +2138,27 @@ namespace osu.Framework.Graphics
                 set => NativeState.HasPreciseScroll = value;
             }
 
-            public bool IsPressed(MouseButton button) => NativeState.IsPressed(button);
+            public ButtonStates<MouseButton> Buttons => NativeState.Buttons;
 
-            public void SetPressed(MouseButton button, bool pressed) => NativeState.SetPressed(button, pressed);
+            public bool HasMainButtonPressed => NativeState.HasMainButtonPressed;
+
+            public bool HasAnyButtonPressed => NativeState.HasAnyButtonPressed;
 
             public IMouseState Clone()
             {
-                return (LocalMouseState)MemberwiseClone();
+                var cloned = (LocalMouseState)MemberwiseClone();
+                cloned.NativeState = NativeState.Clone();
+                return cloned;
+            }
+
+            public bool IsPressed(MouseButton button)
+            {
+                return NativeState.IsPressed(button);
+            }
+
+            public void SetPressed(MouseButton button, bool pressed)
+            {
+                NativeState.SetPressed(button, pressed);
             }
         }
 
@@ -2223,6 +2233,9 @@ namespace osu.Framework.Graphics
 
             if (!string.IsNullOrEmpty(Name))
                 shortClass = $@"{Name} ({shortClass})";
+
+            if (parent == null)
+                return shortClass;
 
             return $@"{shortClass} ({DrawPosition.X:#,0},{DrawPosition.Y:#,0}) {DrawSize.X:#,0}x{DrawSize.Y:#,0}";
         }

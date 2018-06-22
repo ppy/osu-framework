@@ -9,7 +9,7 @@ namespace osu.Framework.Input
 {
     public class JoystickState : IJoystickState
     {
-        public IEnumerable<JoystickButton> Buttons { get; set; } = Array.Empty<JoystickButton>();
+        public ButtonStates<JoystickButton> Buttons { get; private set; } = new ButtonStates<JoystickButton>();
         public IReadOnlyList<JoystickAxis> Axes { get; set; } = Array.Empty<JoystickAxis>();
 
         public float AxisValue(int axisIndex) => Axes.FirstOrDefault(a => a.Axis == axisIndex).Value;
@@ -17,7 +17,7 @@ namespace osu.Framework.Input
         public IJoystickState Clone()
         {
             var clone = (JoystickState)MemberwiseClone();
-            clone.Buttons = new List<JoystickButton>(Buttons);
+            clone.Buttons = Buttons.Clone();
             clone.Axes = new List<JoystickAxis>(Axes);
 
             return clone;

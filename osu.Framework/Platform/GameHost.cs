@@ -83,6 +83,18 @@ namespace osu.Framework.Platform
             throw new NotSupportedException("This platform does not implement IPC.");
         }
 
+        /// <summary>
+        /// Requests that a file be opened externally with an associated application, if available.
+        /// </summary>
+        /// <param name="filename">The absolute path to the file which should be opened.</param>
+        public abstract void OpenFileExternally(string filename);
+
+        /// <summary>
+        /// Requests that a URL be opened externally in a web browser, if available.
+        /// </summary>
+        /// <param name="url">The URL of the page which should be opened.</param>
+        public abstract void OpenUrlExternally(string url);
+
         public virtual Clipboard GetClipboard() => null;
 
         protected abstract Storage GetStorage(string baseName);

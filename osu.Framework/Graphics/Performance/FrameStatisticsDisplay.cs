@@ -109,6 +109,8 @@ namespace osu.Framework.Graphics.Performance
             AutoSizeAxes = Axes.Both;
             Alpha = alpha_when_active;
 
+            int colour = 0;
+
             bool hasCounters = monitor.ActiveCounters.Any(b => b);
             Child = new Container
             {
@@ -156,7 +158,7 @@ namespace osu.Framework.Graphics.Performance
                                                 where monitor.ActiveCounters[(int)t]
                                                 select counterBars[t] = new CounterBar
                                                 {
-                                                    Colour = getColour(t),
+                                                    Colour = getColour(colour++),
                                                     Label = t.ToString(),
                                                 },
                                         },
@@ -239,8 +241,8 @@ namespace osu.Framework.Graphics.Performance
             addArea(null, null, HEIGHT, column, amount_ms_steps);
 
             for (int i = 0; i < HEIGHT; i++)
-                for (int k = 0; k < WIDTH; k++)
-                    Buffer.BlockCopy(column, i * 4, fullBackground, i * WIDTH * 4 + k * 4, 4);
+            for (int k = 0; k < WIDTH; k++)
+                Buffer.BlockCopy(column, i * 4, fullBackground, i * WIDTH * 4 + k * 4, 4);
 
             addArea(null, null, HEIGHT, column, amount_count_steps);
 
@@ -308,7 +310,7 @@ namespace osu.Framework.Graphics.Performance
         private void applyFrameTime(FrameStatistics frame)
         {
             TimeBar timeBar = timeBars[timeBarIndex];
-            TextureUpload upload = new TextureUpload(HEIGHT * 4, textureBufferStack)
+            TextureUpload upload = new TextureUpload(new RawTexture(1, HEIGHT, textureBufferStack))
             {
                 Bounds = new RectangleI(timeBarX, 0, 1, HEIGHT)
             };
@@ -383,43 +385,26 @@ namespace osu.Framework.Graphics.Performance
             }
         }
 
-        private Color4 getColour(StatisticsCounterType type)
+        private Color4 getColour(int index)
         {
-            switch (type)
+            const int colour_count = 7;
+
+            switch (index % colour_count)
             {
                 default:
-                    return Color4.Yellow;
-
-                case StatisticsCounterType.VBufBinds:
-                    return Color4.SkyBlue;
-
-                case StatisticsCounterType.Invalidations:
-                case StatisticsCounterType.TextureBinds:
-                case StatisticsCounterType.TasksRun:
-                case StatisticsCounterType.MouseEvents:
                     return Color4.BlueViolet;
-
-                case StatisticsCounterType.DrawCalls:
-                case StatisticsCounterType.Refreshes:
-                case StatisticsCounterType.Tracks:
-                case StatisticsCounterType.KeyEvents:
+                case 1:
                     return Color4.YellowGreen;
-
-                case StatisticsCounterType.DrawNodeCtor:
-                case StatisticsCounterType.VerticesDraw:
-                case StatisticsCounterType.Samples:
-                case StatisticsCounterType.JoystickEvents:
+                case 2:
                     return Color4.HotPink;
-
-                case StatisticsCounterType.DrawNodeAppl:
-                case StatisticsCounterType.VerticesUpl:
-                case StatisticsCounterType.SChannels:
+                case 3:
                     return Color4.Red;
-
-                case StatisticsCounterType.ScheduleInvk:
-                case StatisticsCounterType.Pixels:
-                case StatisticsCounterType.Components:
+                case 4:
                     return Color4.Cyan;
+                case 5:
+                    return Color4.Yellow;
+                case 6:
+                    return Color4.SkyBlue;
             }
         }
 
@@ -523,6 +508,7 @@ namespace osu.Framework.Graphics.Performance
             private const float bar_width = 6;
 
             private long value;
+
             public long Value
             {
                 set
