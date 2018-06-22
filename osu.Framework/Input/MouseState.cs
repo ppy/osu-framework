@@ -1,27 +1,15 @@
 // Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System.Collections.Generic;
 using OpenTK;
 using OpenTK.Input;
-using System.Linq;
 using osu.Framework.Extensions.TypeExtensions;
 
 namespace osu.Framework.Input
 {
     public class MouseState : IMouseState
     {
-        public IReadOnlyList<MouseButton> Buttons
-        {
-            get => buttons;
-            set
-            {
-                buttons.Clear();
-                buttons.AddRange(value);
-            }
-        }
-
-        private List<MouseButton> buttons { get; set; } = new List<MouseButton>();
+        public ButtonStates<MouseButton> Buttons { get; private set; } = new ButtonStates<MouseButton>();
 
         public IMouseState NativeState => this;
 
@@ -33,19 +21,21 @@ namespace osu.Framework.Input
 
         public Vector2 LastScroll
         {
-            get => lastScroll ?? Scroll;
+            get => lastScroll ?? new Vector2();
             set => lastScroll = value;
         }
 
         public bool HasPreciseScroll { get; set; }
 
-        public bool HasMainButtonPressed => IsPressed(MouseButton.Left) || IsPressed(MouseButton.Right);
+        public bool HasMainButtonPressed => Buttons.IsPressed(MouseButton.Left) || Buttons.IsPressed(MouseButton.Right);
 
-        public bool HasAnyButtonPressed => buttons.Any();
+        public bool HasAnyButtonPressed => Buttons.HasAnyButtonPressed;
 
         public Vector2 Delta => Position - LastPosition;
 
         public Vector2 Position { get; set; }
+
+        public bool IsPositionValid { get; set; } = true;
 
         private Vector2? lastPosition;
 
@@ -55,12 +45,14 @@ namespace osu.Framework.Input
             set => lastPosition = value;
         }
 
+        public bool HasLastPosition => lastPosition.HasValue;
+
         public Vector2? PositionMouseDown { get; set; }
 
         public IMouseState Clone()
         {
             var clone = (MouseState)MemberwiseClone();
-            clone.buttons = new List<MouseButton>(buttons);
+            clone.Buttons = Buttons.Clone();
             return clone;
         }
 
@@ -72,23 +64,14 @@ namespace osu.Framework.Input
             return clone;
         }
 
-        public bool IsPressed(MouseButton button) => buttons.Contains(button);
-
-        public void SetPressed(MouseButton button, bool pressed)
-        {
-            if (buttons.Contains(button) == pressed)
-                return;
-
-            if (pressed)
-                buttons.Add(button);
-            else
-                buttons.Remove(button);
-        }
+        public bool IsPressed(MouseButton button) => Buttons.IsPressed(button);
+        public void SetPressed(MouseButton button, bool pressed) => Buttons.SetPressed(button, pressed);
 
         public override string ToString()
         {
-            string down = PositionMouseDown != null ? $"(down @ {PositionMouseDown.Value.X:#,0},{PositionMouseDown.Value.Y:#,0})" : string.Empty;
-            return $@"{GetType().ReadableName()} ({Position.X:#,0},{Position.Y:#,0}) {down} {string.Join(",", Buttons.Select(b => b.ToString()))} Scroll ({Scroll.X:#,2},{Scroll.Y:#,2})/({ScrollDelta.X:#,2},{ScrollDelta.Y:#,2})";
+            string position = IsPositionValid ? $"({ Position.X:F0},{ Position.Y:F0})" : "(Invalid)";
+            string down = PositionMouseDown != null ? $"(down @ {PositionMouseDown.Value.X:F0},{PositionMouseDown.Value.Y:F0})" : string.Empty;
+            return $@"{GetType().ReadableName()} {position} {down} {Buttons} Scroll ({Scroll.X:F2},{Scroll.Y:F2})/({ScrollDelta.X:F2},{ScrollDelta.Y:F2})";
         }
     }
 }
