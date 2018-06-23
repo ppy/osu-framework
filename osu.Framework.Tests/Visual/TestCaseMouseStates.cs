@@ -336,6 +336,7 @@ namespace osu.Framework.Tests.Visual
 
         private readonly Dictionary<string, int> eventCounts1 = new Dictionary<string, int>(),
                                                  eventCounts2 = new Dictionary<string, int>();
+
         private void checkEventCount(string type, int change = 0, bool outer = false)
         {
             eventCounts1.TryGetValue(type, out var count1);
