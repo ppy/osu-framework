@@ -16,6 +16,7 @@ namespace osu.Framework.Platform.Linux
                 else
                     OnDeactivated();
             };
+            Native.Library.LoadLazyGlobal("libbass.so");
         }
 
         protected override Storage GetStorage(string baseName) => new LinuxStorage(baseName, this);
