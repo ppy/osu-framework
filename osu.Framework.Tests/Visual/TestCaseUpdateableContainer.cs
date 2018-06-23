@@ -34,17 +34,18 @@ namespace osu.Framework.Tests.Visual
                 }
             });
 
+            AddStep("Set null no PH", () => updateContainer.Item = null);
             AddStep("Set item 0 no PH", () => updateContainer.Item = new TestItem(0));
-            AddUntilStep(() => updateContainer.DisplayedDrawable?.IsLoaded ?? false, "wait until loaded");
+            AddUntilStep(() => updateContainer.NextDrawable == null, "wait until loaded");
             AddStep("Set item 1 no PH", () => updateContainer.Item = new TestItem(1));
-            AddUntilStep(() => updateContainer.DisplayedDrawable?.IsLoaded ?? false, "wait until loaded");
+            AddUntilStep(() => updateContainer.NextDrawable == null, "wait until loaded");
             AddStep("Set null no PH", () => updateContainer.Item = null);
             AddAssert("Check no placeholder", () => updateContainer.PlaceholderDrawable == null);
 
             AddStep("Set item 0 with PH", () => placeholderContainer.Item = new TestItem(0));
-            AddUntilStep(() => placeholderContainer.DisplayedDrawable?.IsLoaded ?? false, "wait until loaded");
+            AddUntilStep(() => placeholderContainer.NextDrawable == null, "wait until loaded");
             AddStep("Set item 1 with PH", () => placeholderContainer.Item = new TestItem(1));
-            AddUntilStep(() => placeholderContainer.DisplayedDrawable?.IsLoaded ?? false, "wait until loaded");
+            AddUntilStep(() => placeholderContainer.NextDrawable == null, "wait until loaded");
             AddStep("Set null with PH", () => placeholderContainer.Item = null);
             AddAssert("Check placeholder is visible", () => (placeholderContainer.PlaceholderDrawable?.Alpha ?? 0) > 0);
         }
@@ -71,7 +72,7 @@ namespace osu.Framework.Tests.Visual
             private void load()
             {
                 // delay
-                Thread.Sleep(500);
+                Thread.Sleep((int)(500 / Clock.Rate));
             }
         }
 

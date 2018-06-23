@@ -20,6 +20,11 @@ namespace osu.Framework.Graphics.Containers
         public Drawable DisplayedDrawable { get; private set; }
 
         /// <summary>
+        /// The Drawable that will be presented next.  Null if we aren't switching to a new Drawable.
+        /// </summary>
+        public Drawable NextDrawable { get; private set; }
+
+        /// <summary>
         /// Determines whether the current Drawable should fade out straight away when switching to a new source,
         /// or whether it should wait until the new Drawable has finished loading.
         /// </summary>
@@ -70,8 +75,6 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private Drawable nextDrawable;
-
         protected UpdateableContainer()
         {
             PlaceholderDrawable = CreatePlaceholder();
@@ -96,12 +99,13 @@ namespace osu.Framework.Graphics.Containers
             if (newDrawable == DisplayedDrawable)
                 return;
 
-            nextDrawable = newDrawable;
+            NextDrawable = newDrawable;
 
             if (newDrawable == null && DisplayedDrawable != null)
             {
                 DisplayedDrawable?.FadeOut(300).Expire();
                 PlaceholderDrawable?.FadeInFromZero(300, Easing.OutQuint);
+                DisplayedDrawable = null;
                 return;
             }
 
@@ -112,7 +116,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 newDrawable.OnLoadComplete = d =>
                 {
-                    if (d != nextDrawable)
+                    if (d != NextDrawable)
                     {
                         d.Expire();
                         return;
@@ -126,6 +130,7 @@ namespace osu.Framework.Graphics.Containers
                     d.FadeInFromZero(300, Easing.OutQuint);
 
                     DisplayedDrawable = d;
+                    NextDrawable = null;
                 };
 
                 Add(new DelayedLoadWrapper(newDrawable));
