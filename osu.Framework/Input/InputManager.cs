@@ -426,12 +426,7 @@ namespace osu.Framework.Input
 
                 if (button == MouseButton.Left)
                 {
-                    if (isDragging)
-                    {
-                        isDragging = false;
-                        handleMouseDragEnd(state);
-                    }
-                    else
+                    if (DraggedDrawable == null || Vector2Extensions.Distance(mouse.PositionMouseDown ?? mouse.Position, mouse.Position) <= click_drag_distance)
                     {
                         bool isValidClick = true;
                         if (Time.Current - lastClickTime < double_click_time)
@@ -449,6 +444,12 @@ namespace osu.Framework.Input
                             lastClickTime = Time.Current;
                             handleMouseClick(state);
                         }
+                    }
+
+                    if (isDragging)
+                    {
+                        isDragging = false;
+                        handleMouseDragEnd(state);
                     }
 
                     mouse.PositionMouseDown = null;
