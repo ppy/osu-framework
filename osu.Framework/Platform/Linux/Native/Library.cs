@@ -19,32 +19,32 @@ namespace osu.Framework.Platform.Linux.Native
         {
             int flag = 0x00000;
 
-            const int RTLD_LAZY = 0x00001;
-            const int RTLD_NOW = 0x00002;
-            const int RTLD_BINDING_MASK = 0x00003;
-            const int RTLD_NOLOAD = 0x00004;
-            const int RTLD_DEEPBIND = 0x00008;
-            const int RTLD_GLOBAL = 0x00100;
-            const int RTLD_LOCAL = 0x00000;
-            const int RTLD_NODELETE = 0x01000;
+            const int rtld_lazy = 0x00001;
+            const int rtld_now = 0x00002;
+            const int rtld_binding_mask = 0x00003;
+            const int rtld_noload = 0x00004;
+            const int rtld_deepbind = 0x00008;
+            const int rtld_global = 0x00100;
+            const int rtld_local = 0x00000;
+            const int rtld_nodelete = 0x01000;
 
-            if (flags.Contains("RTLD_LAZY"))
-                flag+=RTLD_LAZY;
-            else if (flags.Contains("RTLD_NOW"))
-                flag+=RTLD_NOW;
+            if (flags.ToUpper().Contains("RTLD_LAZY"))
+                flag+=rtld_lazy;
+            else if (flags.ToUpper().Contains("RTLD_NOW"))
+                flag+=rtld_now;
 
-            if (flags.Contains("RTLD_BINDING_MASK"))
-                flag+=RTLD_BINDING_MASK;
-            if (flags.Contains("RTLD_NOLOAD"))
-                flag+=RTLD_NOLOAD;
-            if (flags.Contains("RTLD_DEEPBIND"))
-                flag+=RTLD_DEEPBIND;
-            if (flags.Contains("RTLD_GLOBAL"))
-                flag+=RTLD_GLOBAL;
-            if (flags.Contains("RTLD_LOCAL"))
-                flag+=RTLD_LOCAL;
-            if (flags.Contains("RTLD_NODELETE"))
-                flag+=RTLD_NODELETE;
+            if (flags.ToUpper().Contains("RTLD_BINDING_MASK"))
+                flag+=rtld_binding_mask;
+            if (flags.ToUpper().Contains("RTLD_NOLOAD"))
+                flag+=rtld_noload;
+            if (flags.ToUpper().Contains("RTLD_DEEPBIND"))
+                flag+=rtld_deepbind;
+            if (flags.ToUpper().Contains("RTLD_GLOBAL"))
+                flag+=rtld_global;
+            if (flags.ToUpper().Contains("RTLD_LOCAL"))
+                flag+=rtld_local;
+            if (flags.ToUpper().Contains("RTLD_NODELETE"))
+                flag+=rtld_nodelete;
 
             dlopen(library, flag);
         }
