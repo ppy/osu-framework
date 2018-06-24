@@ -3,6 +3,7 @@
 
 namespace osu.Framework.Platform.Linux
 {
+    using Native;
     public class LinuxGameHost : DesktopGameHost
     {
         internal LinuxGameHost(string gameName, bool bindIPC = false)
@@ -16,7 +17,7 @@ namespace osu.Framework.Platform.Linux
                 else
                     OnDeactivated();
             };
-            Native.Library.LoadLibrary("libbass.so", "RTLD_GLOBAL+RTLD_LAZY");
+            Library.LoadLibrary("libbass.so", Library.Flags.RTLD_LAZY | Library.Flags.RTLD_GLOBAL);
         }
 
         protected override Storage GetStorage(string baseName) => new LinuxStorage(baseName, this);
