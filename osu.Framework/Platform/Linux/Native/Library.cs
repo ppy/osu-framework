@@ -30,17 +30,18 @@ namespace osu.Framework.Platform.Linux.Native
         /// </summary>
         public static void LoadLibrary(string library, Flags flags)
         {
-            int used_flag = 0x00000;
+            int usedFlag = 0x00000;
             // Combine flags that were used with LoadLibrary into one integer.
             foreach (var flag in (Flags[]) Enum.GetValues(typeof(Flags)))
             {
                 if(flags.HasFlag(flag))
-                    used_flag+=(int)flag;
+                    usedFlag+=(int)flag;
             }
-            dlopen(library, used_flag);
+            dlopen(library, usedFlag);
             try
             {
-                var BASS_Version = ManagedBass.Bass.Version;
+                var bassVersion = ManagedBass.Bass.Version;
+                Logger.Log("Libbass.so version = " + bassVersion, LoggingTarget.Runtime, LogLevel.Verbose);
             }
             catch (Exception e)
             {
@@ -48,7 +49,8 @@ namespace osu.Framework.Platform.Linux.Native
             }
             try
             {
-                var BASS_FX_Version = ManagedBass.Fx.BassFx.Version;
+                var bassFxVersion = ManagedBass.Fx.BassFx.Version;
+                Logger.Log("Libbass_fx.so version = " + bassFxVersion, LoggingTarget.Runtime, LogLevel.Verbose);
             }
             catch (Exception e)
             {
