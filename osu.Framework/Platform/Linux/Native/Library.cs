@@ -11,7 +11,7 @@ namespace osu.Framework.Platform.Linux.Native
         private static extern IntPtr dlopen(string filename, int flags);
         public static void LoadLazyLocal(string filename)
         {
-            dlopen(filename, 0x001); // RTLD_LOCAL + RTLD_NOW
+            dlopen(filename, 0x001); // RTLD_LOCAL + RTLD_LAZY
         }
         public static void LoadNowLocal(string filename)
         {
