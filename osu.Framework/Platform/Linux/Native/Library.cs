@@ -8,7 +8,7 @@ namespace osu.Framework.Platform.Linux.Native
     public static class Library
     {
         [DllImport("libdl.so", EntryPoint = "dlopen")]
-        static extern IntPtr dlopen(string filename, int flags);
+        private static extern IntPtr dlopen(string filename, int flags);
         public static void LoadLazyLocal(string filename)
         {
             dlopen(filename, 0x001); // RTLD_LOCAL + RTLD_NOW
@@ -19,11 +19,11 @@ namespace osu.Framework.Platform.Linux.Native
         }
         public static void LoadLazyGlobal(string filename)
         {
-            dlopen(filename, 0x101);
+            dlopen(filename, 0x101); // RTLD_GLOBAL + RTLD_LAZY
         }
         public static void LoadNowGlobal(string filename)
         {
-            dlopen(filename, 0x102);
+            dlopen(filename, 0x102); // RTLD_GLOBAL + RTLD_NOW
         }
     }
 }
