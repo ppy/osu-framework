@@ -41,7 +41,7 @@ namespace osu.Framework.Platform.Linux.Native
             try
             {
                 var bassVersion = ManagedBass.Bass.Version;
-                Logger.Log("Libbass.so version = " + bassVersion, LoggingTarget.Runtime, LogLevel.Verbose);
+                Logger.Log("Libbass.so version = " + bassVersion, LoggingTarget.Runtime, LogLevel.Debug);
             }
             catch (Exception e)
             {
@@ -50,7 +50,7 @@ namespace osu.Framework.Platform.Linux.Native
             try
             {
                 var bassFxVersion = ManagedBass.Fx.BassFx.Version;
-                Logger.Log("Libbass_fx.so version = " + bassFxVersion, LoggingTarget.Runtime, LogLevel.Verbose);
+                Logger.Log("Libbass_fx.so version = " + bassFxVersion, LoggingTarget.Runtime, LogLevel.Debug);
             }
             catch (Exception e)
             {
