@@ -112,6 +112,7 @@ namespace osu.Framework.Input.Bindings
         private bool handleNewPressed(InputState state, InputKey newKey, bool repeat)
         {
             var pressedCombination = KeyCombination.FromInputState(state);
+            // MouseWheelUp/Down cannot be obtained from KeyCombination.FromInputState so we manually add that here.
             if (!pressedCombination.Keys.Contains(newKey))
                 pressedCombination = new KeyCombination(pressedCombination.Keys.Concat(new[] { newKey }));
 
