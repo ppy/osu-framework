@@ -86,7 +86,7 @@ namespace osu.Framework.Platform
                 newSize.Width,
                 newSize.Height,
                 currentDisplay.BitsPerPixel,
-                currentDisplay.RefreshRate
+                getMaxRefreshRate(newSize)
             );
 
             if (newResolution.Width == currentDisplay.Width && newResolution.Height == currentDisplay.Height)
@@ -99,6 +99,11 @@ namespace osu.Framework.Platform
                 currentDisplay.ChangeResolution(newResolution);
                 ClientSize = newSize;
             }
+        }
+
+        private float getMaxRefreshRate(Size size)
+        {
+            return AvailableDisplayResolutions.Where(r => r.Width == size.Width && r.Height == size.Height).Select(r => r.RefreshRate).Max();
         }
 
         protected void OnResize(object sender, EventArgs e)
