@@ -93,7 +93,7 @@ namespace osu.Framework.Input.Handlers.Joystick
                 if (!newDevice.Capabilities.IsConnected)
                     break;
 
-                Logger.Log($"Connected joystick device: {newDevice.Guid}", level: LogLevel.Important);
+                Logger.Log($"Connected joystick device: {newDevice.Guid}");
 
                 newDevices.Add(newDevice);
                 mostSeenDevices++;
