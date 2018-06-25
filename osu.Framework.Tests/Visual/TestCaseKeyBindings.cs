@@ -54,7 +54,7 @@ namespace osu.Framework.Tests.Visual
 
         private readonly List<Key> pressedKeys = new List<Key>();
         private readonly List<MouseButton> pressedMouseButtons = new List<MouseButton>();
-        private readonly Dictionary<TestButton, (int OnPressedCount, int OnReleasedCount)> lastEventCounts = new Dictionary<TestButton, (int, int)>();
+        private readonly Dictionary<TestButton, EventCounts> lastEventCounts = new Dictionary<TestButton, EventCounts>();
 
         private void toggleKey(Key key)
         {
@@ -89,21 +89,24 @@ namespace osu.Framework.Tests.Visual
             AddStep($"scroll wheel {dy}", () => manual.ScrollVerticalBy(dy));
         }
 
-        private void check(TestAction action, params (KeyBindingTester tester, int OnPressedDelta, int OnReleasedDelta)[] entries)
+        private void check(TestAction action, params CheckConditions[] entries)
         {
             AddAssert($"check {action}", () =>
             {
                 Assert.Multiple(() =>
                 {
-                    foreach (var (tester, onPressedDelta, onReleasedDelta) in entries)
+                    foreach (var entry in entries)
                     {
-                        var testButton = tester[action];
-                        lastEventCounts.TryGetValue(testButton, out var count);
-                        count.OnPressedCount += onPressedDelta;
-                        count.OnReleasedCount += onReleasedDelta;
-                        lastEventCounts[testButton] = count;
-                        var actual = (testButton.OnPressedCount, testButton.OnReleasedCount);
-                        Assert.AreEqual(count, actual, $"{testButton.Concurrency} {testButton.Action}");
+                        var testButton = entry.Tester[action];
+
+                        if (!lastEventCounts.TryGetValue(testButton, out var count))
+                            lastEventCounts[testButton] = count = new EventCounts();
+
+                        count.OnPressedCount += entry.OnPressedDelta;
+                        count.OnReleasedCount += entry.OnReleasedDelta;
+
+                        Assert.AreEqual(count.OnPressedCount, testButton.OnPressedCount, $"{testButton.Concurrency} {testButton.Action}");
+                        Assert.AreEqual(count.OnReleasedCount, testButton.OnReleasedCount, $"{testButton.Concurrency} {testButton.Action}");
                     }
                 });
                 return true;
@@ -112,12 +115,20 @@ namespace osu.Framework.Tests.Visual
 
         private void checkPressed(TestAction action, int noneDelta, int noneExactDelta, int uniqueDelta, int allDelta)
         {
-            check(action, (none, noneDelta, 0), (noneExact, noneExactDelta, 0), (unique, uniqueDelta, 0), (all, allDelta, 0));
+            check(action,
+                new CheckConditions(none, noneDelta, 0),
+                new CheckConditions(noneExact, noneExactDelta, 0),
+                new CheckConditions(unique, uniqueDelta, 0),
+                new CheckConditions(all, allDelta, 0));
         }
 
         private void checkReleased(TestAction action, int noneDelta, int noneExactDelta, int uniqueDelta, int allDelta)
         {
-            check(action, (none, 0, noneDelta), (noneExact, 0, noneExactDelta), (unique, 0, uniqueDelta), (all, 0, allDelta));
+            check(action,
+                new CheckConditions(none, 0, noneDelta),
+                new CheckConditions(noneExact, 0, noneExactDelta),
+                new CheckConditions(unique, 0, uniqueDelta),
+                new CheckConditions(all, 0, allDelta));
         }
 
         private void wrapTest(Action inner)
@@ -171,7 +182,7 @@ namespace osu.Framework.Tests.Visual
                 toggleKey(Key.D);
                 checkPressed(TestAction.D_or_F, 1, 1, 1, 1);
                 toggleKey(Key.F);
-                check(TestAction.D_or_F, (none, 1, 1), (noneExact, 0, 1), (unique, 0, 0), (all, 1, 0));
+                check(TestAction.D_or_F, new CheckConditions(none, 1, 1), new CheckConditions(noneExact, 0, 1), new CheckConditions(unique, 0, 0), new CheckConditions(all, 1, 0));
                 toggleKey(Key.F);
                 checkReleased(TestAction.D_or_F, 0, 0, 0, 1);
                 toggleKey(Key.D);
@@ -209,7 +220,14 @@ namespace osu.Framework.Tests.Visual
         [Test]
         public void MouseScrollAndButtons()
         {
-            var allPressAndReleased = new[] { (none, 1, 1), (noneExact, 1, 1), (unique, 1, 1), (all, 1, 1) };
+            var allPressAndReleased = new[]
+            {
+                new CheckConditions(none, 1, 1),
+                new CheckConditions(noneExact, 1, 1),
+                new CheckConditions(unique, 1, 1),
+                new CheckConditions(all, 1, 1)
+            };
+
             scrollMouseWheel(1);
             check(TestAction.MouseWheelUp, allPressAndReleased);
             scrollMouseWheel(-1);
@@ -220,6 +238,26 @@ namespace osu.Framework.Tests.Visual
             toggleMouseButton(MouseButton.Right);
             toggleMouseButton(MouseButton.Right);
             check(TestAction.RightMouse, allPressAndReleased);
+        }
+
+        private class EventCounts
+        {
+            public int OnPressedCount;
+            public int OnReleasedCount;
+        }
+
+        private class CheckConditions
+        {
+            public readonly KeyBindingTester Tester;
+            public readonly int OnPressedDelta;
+            public readonly int OnReleasedDelta;
+
+            public CheckConditions(KeyBindingTester tester, int onPressedDelta, int onReleasedDelta)
+            {
+                Tester = tester;
+                OnPressedDelta = onPressedDelta;
+                OnReleasedDelta = onReleasedDelta;
+            }
         }
 
         private enum TestAction
