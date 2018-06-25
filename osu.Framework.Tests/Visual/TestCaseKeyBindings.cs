@@ -33,7 +33,7 @@ namespace osu.Framework.Tests.Visual
                 Child = new GridContainer
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Content = new []
+                    Content = new[]
                     {
                         new Drawable[]
                         {
@@ -69,6 +69,7 @@ namespace osu.Framework.Tests.Visual
                 AddStep($"release {key}", () => manual.ReleaseKey(key));
             }
         }
+
         private void toggleMouseButton(MouseButton button)
         {
             if (!pressedMouseButtons.Contains(button))
@@ -82,6 +83,7 @@ namespace osu.Framework.Tests.Visual
                 AddStep($"release {button}", () => manual.ReleaseButton(button));
             }
         }
+
         private void scrollMouseWheel(int dy)
         {
             AddStep($"scroll wheel {dy}", () => manual.ScrollVerticalBy(dy));
@@ -117,7 +119,7 @@ namespace osu.Framework.Tests.Visual
         {
             check(action, (none, 0, noneDelta), (noneExact, 0, noneExactDelta), (unique, 0, uniqueDelta), (all, 0, allDelta));
         }
-        
+
         private void wrapTest(Action inner)
         {
             AddStep("init", () =>
@@ -130,6 +132,7 @@ namespace osu.Framework.Tests.Visual
                         mode[action].Reset();
                     }
                 }
+
                 lastEventCounts.Clear();
             });
             pressedKeys.Clear();
@@ -148,7 +151,7 @@ namespace osu.Framework.Tests.Visual
                 }
             }
         }
-        
+
         [Test]
         public void SimultaneousBindingModes()
         {
@@ -175,7 +178,7 @@ namespace osu.Framework.Tests.Visual
                 checkReleased(TestAction.D_or_F, 1, 0, 1, 1);
             });
         }
-        
+
         [Test]
         public void ModifierKeys()
         {
@@ -206,7 +209,7 @@ namespace osu.Framework.Tests.Visual
         [Test]
         public void MouseScrollAndButtons()
         {
-            var allPressAndReleased = new[] {(none, 1, 1), (noneExact, 1, 1), (unique, 1, 1), (all, 1, 1)};
+            var allPressAndReleased = new[] { (none, 1, 1), (noneExact, 1, 1), (unique, 1, 1), (all, 1, 1) };
             scrollMouseWheel(1);
             check(TestAction.MouseWheelUp, allPressAndReleased);
             scrollMouseWheel(-1);
@@ -245,28 +248,29 @@ namespace osu.Framework.Tests.Visual
 
         private class TestInputManager : KeyBindingContainer<TestAction>
         {
-            public TestInputManager(SimultaneousBindingMode concurrencyMode = SimultaneousBindingMode.None) : base(concurrencyMode)
+            public TestInputManager(SimultaneousBindingMode concurrencyMode = SimultaneousBindingMode.None)
+                : base(concurrencyMode)
             {
             }
 
             public override IEnumerable<KeyBinding> DefaultKeyBindings => new[]
             {
-                new KeyBinding(InputKey.A, TestAction.A ),
-                new KeyBinding(InputKey.S, TestAction.S ),
-                new KeyBinding(InputKey.D, TestAction.D_or_F ),
-                new KeyBinding(InputKey.F, TestAction.D_or_F ),
+                new KeyBinding(InputKey.A, TestAction.A),
+                new KeyBinding(InputKey.S, TestAction.S),
+                new KeyBinding(InputKey.D, TestAction.D_or_F),
+                new KeyBinding(InputKey.F, TestAction.D_or_F),
 
-                new KeyBinding(new[] { InputKey.Control, InputKey.A }, TestAction.Ctrl_A ),
-                new KeyBinding(new[] { InputKey.Control, InputKey.S }, TestAction.Ctrl_S ),
-                new KeyBinding(new[] { InputKey.Control, InputKey.D }, TestAction.Ctrl_D_or_F ),
-                new KeyBinding(new[] { InputKey.Control, InputKey.F }, TestAction.Ctrl_D_or_F ),
+                new KeyBinding(new[] { InputKey.Control, InputKey.A }, TestAction.Ctrl_A),
+                new KeyBinding(new[] { InputKey.Control, InputKey.S }, TestAction.Ctrl_S),
+                new KeyBinding(new[] { InputKey.Control, InputKey.D }, TestAction.Ctrl_D_or_F),
+                new KeyBinding(new[] { InputKey.Control, InputKey.F }, TestAction.Ctrl_D_or_F),
 
-                new KeyBinding(new[] { InputKey.Shift, InputKey.A }, TestAction.Shift_A ),
-                new KeyBinding(new[] { InputKey.Shift, InputKey.S }, TestAction.Shift_S ),
-                new KeyBinding(new[] { InputKey.Shift, InputKey.D }, TestAction.Shift_D_or_F ),
-                new KeyBinding(new[] { InputKey.Shift, InputKey.F }, TestAction.Shift_D_or_F ),
+                new KeyBinding(new[] { InputKey.Shift, InputKey.A }, TestAction.Shift_A),
+                new KeyBinding(new[] { InputKey.Shift, InputKey.S }, TestAction.Shift_S),
+                new KeyBinding(new[] { InputKey.Shift, InputKey.D }, TestAction.Shift_D_or_F),
+                new KeyBinding(new[] { InputKey.Shift, InputKey.F }, TestAction.Shift_D_or_F),
 
-                new KeyBinding(new[] { InputKey.Control, InputKey.Shift, InputKey.A }, TestAction.Ctrl_Shift_A ),
+                new KeyBinding(new[] { InputKey.Control, InputKey.Shift, InputKey.A }, TestAction.Ctrl_Shift_A),
                 new KeyBinding(new[] { InputKey.Control, InputKey.Shift, InputKey.S }, TestAction.Ctrl_Shift_S),
                 new KeyBinding(new[] { InputKey.Control, InputKey.Shift, InputKey.D }, TestAction.Ctrl_Shift_D_or_F),
                 new KeyBinding(new[] { InputKey.Control, InputKey.Shift, InputKey.F }, TestAction.Ctrl_Shift_D_or_F),
@@ -407,6 +411,7 @@ namespace osu.Framework.Tests.Visual
         private class KeyBindingTester : Container
         {
             private readonly TestButton[] testButtons;
+
             public KeyBindingTester(SimultaneousBindingMode concurrency)
             {
                 RelativeSizeAxes = Axes.Both;
