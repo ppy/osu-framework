@@ -275,8 +275,7 @@ namespace osu.Framework.Tests.Visual
             checkEventCount("Click", 1, true);
             checkEventCount("DragEnd");
 
-            // mouseDown on a draggable -> mouseUp on the original position: drag-clicking
-            // do we desire this behaviour?
+            // mouseDown on a draggable -> mouseUp on the original position: no drag-clicking
             AddStep("move mouse", () => manual.MoveMouseTo(marginBox.ScreenSpaceDrawQuad.TopLeft));
             AddStep("press left button", () => manual.PressButton(MouseButton.Left));
             AddStep("drag draggable", () => manual.MoveMouseTo(outerMarginBox.ScreenSpaceDrawQuad.BottomRight));
