@@ -21,27 +21,23 @@ namespace osu.Framework.Platform.Linux.Native
             RTLD_NODELETE = 0x01000
         }
         [DllImport("libdl.so", EntryPoint = "dlopen")]
-        private static extern IntPtr dlopen(string library, int flags);
+        private static extern IntPtr dlopen(string library, Flags flags);
 
         /// <summary>
-        /// Loads a library with an enum of flags to use with dlopen. Uses <see cref="Flags"/> for flags
+        /// Loads a library with an enum of flags to use with dlopen. Uses <see cref="Flags"/> for the flags
         /// <para/>See 'man dlopen' for more information about the flags.
         /// <para/>See 'man ld.so' for more information about how the libraries are loaded.
         /// </summary>
-        public static void LoadLibrary(string library, Flags flags)
+        public static void Load(string library, Flags flags) => dlopen(library, flags);
+        /// <summary>
+        /// Check that bass and bass_fx has been loaded, log the versions.
+        /// </summary>
+        public static void GetBassVersion()
         {
-            int usedFlag = 0x00000;
-            // Combine flags that were used with LoadLibrary into one integer.
-            foreach (var flag in (Flags[]) Enum.GetValues(typeof(Flags)))
-            {
-                if(flags.HasFlag(flag))
-                    usedFlag+=(int)flag;
-            }
-            dlopen(library, usedFlag);
             try
             {
                 var bassVersion = ManagedBass.Bass.Version;
-                Logger.Log("Libbass.so version = " + bassVersion, LoggingTarget.Runtime, LogLevel.Debug);
+                Logger.Log("Libbass.so version = " + bassVersion, LoggingTarget.Runtime, LogLevel.Verbose);
             }
             catch (Exception e)
             {
@@ -50,7 +46,7 @@ namespace osu.Framework.Platform.Linux.Native
             try
             {
                 var bassFxVersion = ManagedBass.Fx.BassFx.Version;
-                Logger.Log("Libbass_fx.so version = " + bassFxVersion, LoggingTarget.Runtime, LogLevel.Debug);
+                Logger.Log("Libbass_fx.so version = " + bassFxVersion, LoggingTarget.Runtime, LogLevel.Verbose);
             }
             catch (Exception e)
             {
