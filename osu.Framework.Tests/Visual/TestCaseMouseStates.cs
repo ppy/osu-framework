@@ -286,7 +286,7 @@ namespace osu.Framework.Tests.Visual
             checkIsDragged(true);
             checkEventCount("DragEnd");
             AddStep("release left button", () => manual.ReleaseButton(MouseButton.Left));
-            checkEventCount("Click", 1);
+            checkEventCount("Click");
             checkEventCount("DragEnd", 1);
             checkIsDragged(false);
 
