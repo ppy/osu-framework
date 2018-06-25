@@ -112,6 +112,8 @@ namespace osu.Framework.Input.Bindings
         private bool handleNewPressed(InputState state, InputKey newKey, bool repeat)
         {
             var pressedCombination = KeyCombination.FromInputState(state);
+            if (!pressedCombination.Keys.Contains(newKey))
+                pressedCombination = new KeyCombination(pressedCombination.Keys.Concat(new[] { newKey }));
 
             bool handled = false;
             var bindings = repeat ? KeyBindings : KeyBindings.Except(pressedBindings);
