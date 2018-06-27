@@ -617,7 +617,7 @@ namespace osu.Framework.Graphics.UserInterface
                 case Key.KeypadEnter:
                 case Key.Enter:
                     if (ReleaseFocusOnCommit)
-                        KillFocus();
+                        killFocus();
 
                     Background.Colour = ReleaseFocusOnCommit ? BackgroundUnfocused : BackgroundFocused;
                     Background.ClearTransforms();
@@ -631,7 +631,12 @@ namespace osu.Framework.Graphics.UserInterface
             return handledUserTextInput;
         }
 
-        protected virtual void KillFocus()
+        /// <summary>
+        /// Removes focus from this <see cref="TextBox"/> if it currently has focus.
+        /// </summary>
+        protected virtual void KillFocus() => killFocus();
+
+        private void killFocus()
         {
             var manager = GetContainingInputManager();
             if (manager.FocusedDrawable == this)
