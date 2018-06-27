@@ -36,7 +36,7 @@ namespace osu.Framework.Platform.Linux.Native
         {
             try
             {
-                Logger.Log(libraryName + " version = " + version(), LoggingTarget.Runtime);
+                Logger.Log(libraryName + " version = " + version());
             }
             catch (Exception e)
             {
