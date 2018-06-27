@@ -152,17 +152,10 @@ namespace osu.Framework.Screens
 
             void finishLoad()
             {
-                if (hasExited)
+                if (hasExited || screen.hasExited)
                     return;
 
                 childModeContainer.Add(screen);
-
-                if (screen.hasExited)
-                {
-                    screen.Expire();
-                    startResume(screen);
-                    return;
-                }
 
                 screen.enter(this);
 
@@ -190,9 +183,6 @@ namespace osu.Framework.Screens
         {
             if (ChildScreen != null)
                 throw new ScreenHasChildException(nameof(Exit), $"Use {nameof(MakeCurrent)} instead.");
-
-            if (!IsCurrentScreen)
-                throw new ScreenNotCurrentException(nameof(Exit));
 
             ExitFrom(this);
         }
