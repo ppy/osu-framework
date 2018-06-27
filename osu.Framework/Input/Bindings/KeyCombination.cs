@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using OpenTK;
 using OpenTK.Input;
 
 namespace osu.Framework.Input.Bindings
@@ -241,7 +242,7 @@ namespace osu.Framework.Input.Bindings
             return InputKey.FirstJoystickButton + (int)button;
         }
 
-        public static KeyCombination FromInputState(InputState state)
+        public static KeyCombination FromInputState(InputState state, Vector2? scrollDelta = null)
         {
             List<InputKey> keys = new List<InputKey>();
 
@@ -250,6 +251,11 @@ namespace osu.Framework.Input.Bindings
                 foreach (var button in state.Mouse.Buttons)
                     keys.Add(FromMouseButton(button));
             }
+
+            if (scrollDelta?.Y > 0)
+                keys.Add(InputKey.MouseWheelUp);
+            if (scrollDelta?.Y < 0)
+                keys.Add(InputKey.MouseWheelDown);
 
             if (state.Keyboard != null)
             {
