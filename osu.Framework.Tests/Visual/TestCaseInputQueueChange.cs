@@ -30,7 +30,7 @@ namespace osu.Framework.Tests.Visual
                 box2 = new HittableBox(2),
                 box1 = new HittableBox(1),
             };
-            
+
             // TODO: blocking event testing
         }
 

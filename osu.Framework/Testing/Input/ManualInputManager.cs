@@ -44,7 +44,7 @@ namespace osu.Framework.Testing.Input
 
         public void PressButton(MouseButton button) => Input(new MouseButtonInput(button, true));
         public void ReleaseButton(MouseButton button) => Input(new MouseButtonInput(button, false));
-        
+
         public void PressJoystickButton(JoystickButton button) => Input(new JoystickButtonInput(button, true));
         public void ReleaseJoystickButton(JoystickButton button) => Input(new JoystickButtonInput(button, false));
 
