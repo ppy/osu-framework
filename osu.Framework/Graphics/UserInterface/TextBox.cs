@@ -619,7 +619,7 @@ namespace osu.Framework.Graphics.UserInterface
                 return false;
 
             // we only care about keys which can result in text output.
-            if (args.Key >= Key.Keypad0)
+            if (keyProducesCharacter(args.Key))
                 BeginConsumingText();
 
             switch (args.Key)
@@ -635,6 +635,8 @@ namespace osu.Framework.Graphics.UserInterface
 
             return base.OnKeyDown(state, args) || consumingText;
         }
+
+        private bool keyProducesCharacter(Key key) => key == Key.Space || key >= Key.Keypad0;
 
         protected void Commit()
         {
