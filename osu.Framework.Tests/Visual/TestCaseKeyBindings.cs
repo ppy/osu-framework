@@ -97,6 +97,7 @@ namespace osu.Framework.Tests.Visual
                 {
                     foreach (var entry in entries)
                     {
+                        var wheelEntry = entry as MouseWheelCheckConditions;
                         var testButton = entry.Tester[action];
 
                         if (!lastEventCounts.TryGetValue(testButton, out var count))
@@ -104,9 +105,15 @@ namespace osu.Framework.Tests.Visual
 
                         count.OnPressedCount += entry.OnPressedDelta;
                         count.OnReleasedCount += entry.OnReleasedDelta;
+                        count.OnMouseWheelCount += wheelEntry?.OnMouseWheelCount ?? 0;
 
-                        Assert.AreEqual(count.OnPressedCount, testButton.OnPressedCount, $"{testButton.Concurrency} {testButton.Action}");
-                        Assert.AreEqual(count.OnReleasedCount, testButton.OnReleasedCount, $"{testButton.Concurrency} {testButton.Action}");
+                        Assert.AreEqual(count.OnPressedCount, testButton.OnPressedCount, $"{testButton.Concurrency} {testButton.Action} OnPressedCount");
+                        Assert.AreEqual(count.OnReleasedCount, testButton.OnReleasedCount, $"{testButton.Concurrency} {testButton.Action} OnReleasedCount");
+                        if (testButton is MouseWheelTestButton wheelTestButton && wheelEntry != null)
+                        {
+                            Assert.AreEqual(count.OnMouseWheelCount, wheelTestButton.OnMouseWheelCount, $"{testButton.Concurrency} {testButton.Action} OnMouseWheelCount");
+                            Assert.AreEqual(wheelEntry.LastMouseWheelAmount, wheelTestButton.LastMouseWheelAmount, $"{testButton.Concurrency} {testButton.Action} LastMouseWheelAmount");
+                        }
                     }
                 });
                 return true;
@@ -159,6 +166,8 @@ namespace osu.Framework.Tests.Visual
                 {
                     var testButton = mode[action];
                     Trace.Assert(testButton.OnPressedCount == testButton.OnReleasedCount);
+                    if (testButton is MouseWheelTestButton wheelTestButton)
+                        Trace.Assert(wheelTestButton.OnMouseWheelCount == testButton.OnPressedCount);
                 }
             }
         }
@@ -220,30 +229,62 @@ namespace osu.Framework.Tests.Visual
         [Test]
         public void MouseScrollAndButtons()
         {
-            var allPressAndReleased = new[]
+            wrapTest(() =>
             {
-                new CheckConditions(none, 1, 1),
-                new CheckConditions(noneExact, 1, 1),
-                new CheckConditions(unique, 1, 1),
-                new CheckConditions(all, 1, 1)
-            };
+                var allPressAndReleased = new[]
+                {
+                    new CheckConditions(none, 1, 1),
+                    new CheckConditions(noneExact, 1, 1),
+                    new CheckConditions(unique, 1, 1),
+                    new CheckConditions(all, 1, 1)
+                };
 
-            scrollMouseWheel(1);
-            check(TestAction.MouseWheelUp, allPressAndReleased);
-            scrollMouseWheel(-1);
-            check(TestAction.MouseWheelDown, allPressAndReleased);
-            toggleMouseButton(MouseButton.Left);
-            toggleMouseButton(MouseButton.Left);
-            check(TestAction.LeftMouse, allPressAndReleased);
-            toggleMouseButton(MouseButton.Right);
-            toggleMouseButton(MouseButton.Right);
-            check(TestAction.RightMouse, allPressAndReleased);
+                scrollMouseWheel(1);
+                check(TestAction.WheelUp, allPressAndReleased);
+                scrollMouseWheel(-1);
+                check(TestAction.WheelDown, allPressAndReleased);
+                toggleKey(Key.ControlLeft);
+                scrollMouseWheel(1);
+                toggleKey(Key.ControlLeft);
+                check(TestAction.Ctrl_and_WheelUp, allPressAndReleased);
+                toggleMouseButton(MouseButton.Left);
+                toggleMouseButton(MouseButton.Left);
+                check(TestAction.LeftMouse, allPressAndReleased);
+                toggleMouseButton(MouseButton.Right);
+                toggleMouseButton(MouseButton.Right);
+                check(TestAction.RightMouse, allPressAndReleased);
+            });
+        }
+
+        [Test]
+        public void MouseWheel()
+        {
+            wrapTest(() =>
+            {
+                CheckConditions[] allPressAndReleased(float amount) => new CheckConditions[]
+                {
+                    new MouseWheelCheckConditions(none, 1, 1, 1, amount),
+                    new MouseWheelCheckConditions(noneExact, 1, 1, 1, amount),
+                    new MouseWheelCheckConditions(unique, 1, 1, 1, amount),
+                    new MouseWheelCheckConditions(all, 1, 1, 1, amount)
+                };
+
+                scrollMouseWheel(2);
+                check(TestAction.WheelUp, allPressAndReleased(2));
+                scrollMouseWheel(-3);
+                check(TestAction.WheelDown, allPressAndReleased(3));
+                toggleKey(Key.ControlLeft);
+                scrollMouseWheel(4);
+                toggleKey(Key.ControlLeft);
+                check(TestAction.Ctrl_and_WheelUp, allPressAndReleased(4));
+            });
         }
 
         private class EventCounts
         {
             public int OnPressedCount;
             public int OnReleasedCount;
+            public int OnMouseWheelCount;
         }
 
         private class CheckConditions
@@ -257,6 +298,19 @@ namespace osu.Framework.Tests.Visual
                 Tester = tester;
                 OnPressedDelta = onPressedDelta;
                 OnReleasedDelta = onReleasedDelta;
+            }
+        }
+
+        private class MouseWheelCheckConditions : CheckConditions
+        {
+            public readonly int OnMouseWheelCount;
+            public readonly float LastMouseWheelAmount;
+
+            public MouseWheelCheckConditions(KeyBindingTester tester, int onPressedDelta, int onReleasedDelta, int onMouseWheelCount, float lastMouseWheelAmount)
+                : base(tester, onPressedDelta, onReleasedDelta)
+            {
+                OnMouseWheelCount = onMouseWheelCount;
+                LastMouseWheelAmount = lastMouseWheelAmount;
             }
         }
 
@@ -280,8 +334,9 @@ namespace osu.Framework.Tests.Visual
             Ctrl_or_Shift,
             LeftMouse,
             RightMouse,
-            MouseWheelUp,
-            MouseWheelDown
+            WheelUp,
+            WheelDown,
+            Ctrl_and_WheelUp,
         }
 
         private class TestInputManager : KeyBindingContainer<TestAction>
@@ -321,8 +376,10 @@ namespace osu.Framework.Tests.Visual
 
                 new KeyBinding(new[] { InputKey.MouseLeft }, TestAction.LeftMouse),
                 new KeyBinding(new[] { InputKey.MouseRight }, TestAction.RightMouse),
-                new KeyBinding(new[] { InputKey.MouseWheelUp }, TestAction.MouseWheelUp),
-                new KeyBinding(new[] { InputKey.MouseWheelDown }, TestAction.MouseWheelDown),
+
+                new KeyBinding(new[] { InputKey.MouseWheelUp }, TestAction.WheelUp),
+                new KeyBinding(new[] { InputKey.MouseWheelDown }, TestAction.WheelDown),
+                new KeyBinding(new[] { InputKey.Control, InputKey.MouseWheelUp }, TestAction.Ctrl_and_WheelUp),
             };
 
             protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
@@ -356,6 +413,42 @@ namespace osu.Framework.Tests.Visual
             }
 
             public override bool ReceiveMouseInputAt(Vector2 screenSpacePos) => true;
+        }
+
+        private class MouseWheelTestButton : TestButton, IMouseWheelBindingHandler<TestAction>
+        {
+            public int OnMouseWheelCount { get; protected set; }
+            public float LastMouseWheelAmount { get; protected set; }
+
+            public MouseWheelTestButton(TestAction action, SimultaneousBindingMode concurrency)
+                : base(action, concurrency)
+            {
+                SpriteText.TextSize *= .9f;
+            }
+
+            protected override void Update()
+            {
+                base.Update();
+                Text += $", {OnMouseWheelCount}, {LastMouseWheelAmount}";
+            }
+
+            public bool OnMouseWheel(TestAction action, float amount, bool isPrecise)
+            {
+                if (Action == action)
+                {
+                    ++OnMouseWheelCount;
+                    LastMouseWheelAmount = amount;
+                }
+
+                return false;
+            }
+
+            public override void Reset()
+            {
+                base.Reset();
+                OnMouseWheelCount = 0;
+                LastMouseWheelAmount = 0;
+            }
         }
 
         private class TestButton : Button, IKeyBindingHandler<TestAction>
@@ -439,7 +532,7 @@ namespace osu.Framework.Tests.Visual
                 return false;
             }
 
-            public void Reset()
+            public virtual void Reset()
             {
                 OnPressedCount = 0;
                 OnReleasedCount = 0;
@@ -454,7 +547,13 @@ namespace osu.Framework.Tests.Visual
             {
                 RelativeSizeAxes = Axes.Both;
 
-                testButtons = Enum.GetValues(typeof(TestAction)).Cast<TestAction>().Select(t => new TestButton(t, concurrency)).ToArray();
+                testButtons = Enum.GetValues(typeof(TestAction)).Cast<TestAction>().Select(t =>
+                {
+                    if (t.ToString().Contains("Wheel"))
+                        return new MouseWheelTestButton(t, concurrency);
+                    else
+                        return new TestButton(t, concurrency);
+                }).ToArray();
 
                 Children = new Drawable[]
                 {
