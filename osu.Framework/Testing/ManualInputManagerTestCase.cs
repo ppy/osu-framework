@@ -17,8 +17,15 @@ namespace osu.Framework.Testing
     {
         protected override Container<Drawable> Content => InputManager;
 
+        /// <summary>
+        /// The position which is used to initialize the mouse position before at setup.
+        /// If the value is null, the mouse position is not moved.
+        /// </summary>
         protected virtual Vector2? InitialMousePosition => null;
 
+        /// <summary>
+        /// The <see cref="ManualInputManager"/>.
+        /// </summary>
         protected ManualInputManager InputManager { get; }
 
         protected ManualInputManagerTestCase()
@@ -27,6 +34,9 @@ namespace osu.Framework.Testing
             AddStep("return user input", () => InputManager.UseParentInput = true);
         }
 
+        /// <summary>
+        /// Releases all pressed keys and buttons and initialize mouse position.
+        /// </summary>
         protected void ResetInput()
         {
             InputManager.UseParentInput = false;
