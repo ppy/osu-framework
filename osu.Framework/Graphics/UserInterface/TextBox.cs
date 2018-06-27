@@ -42,7 +42,15 @@ namespace osu.Framework.Graphics.UserInterface
 
         public int? LengthLimit;
 
-        public virtual bool AllowClipboardExport => true;
+        /// <summary>
+        /// Whether clipboard copying functionality is allowed.
+        /// </summary>
+        protected virtual bool AllowClipboardExport => true;
+
+        /// <summary>
+        /// Whether seeking to word boundaries is allowed.
+        /// </summary>
+        protected virtual bool AllowWordNavigation => true;
 
         //represents the left/right selection coordinates of the word double clicked on when dragging
         private int[] doubleClickWord;
@@ -332,19 +340,31 @@ namespace osu.Framework.Graphics.UserInterface
                     break;
 
                 case PlatformActionType.WordNext:
-                    int searchNext = MathHelper.Clamp(selectionEnd, 0, Text.Length - 1);
-                    while (searchNext < Text.Length && text[searchNext] == ' ')
-                        searchNext++;
-                    int nextSpace = text.IndexOf(' ', searchNext);
-                    amount = (nextSpace >= 0 ? nextSpace : text.Length) - selectionEnd;
+                    if (!AllowWordNavigation)
+                        amount = 1;
+                    else
+                    {
+                        int searchNext = MathHelper.Clamp(selectionEnd, 0, Text.Length - 1);
+                        while (searchNext < Text.Length && text[searchNext] == ' ')
+                            searchNext++;
+                        int nextSpace = text.IndexOf(' ', searchNext);
+                        amount = (nextSpace >= 0 ? nextSpace : text.Length) - selectionEnd;
+                    }
+
                     break;
 
                 case PlatformActionType.WordPrevious:
-                    int searchPrev = MathHelper.Clamp(selectionEnd - 2, 0, Text.Length - 1);
-                    while (searchPrev > 0 && text[searchPrev] == ' ')
-                        searchPrev--;
-                    int lastSpace = text.LastIndexOf(' ', searchPrev);
-                    amount = lastSpace > 0 ? -(selectionEnd - lastSpace - 1) : -selectionEnd;
+                    if (!AllowWordNavigation)
+                        amount = -1;
+                    else
+                    {
+                        int searchPrev = MathHelper.Clamp(selectionEnd - 2, 0, Text.Length - 1);
+                        while (searchPrev > 0 && text[searchPrev] == ' ')
+                            searchPrev--;
+                        int lastSpace = text.LastIndexOf(' ', searchPrev);
+                        amount = lastSpace > 0 ? -(selectionEnd - lastSpace - 1) : -selectionEnd;
+                    }
+
                     break;
             }
 
