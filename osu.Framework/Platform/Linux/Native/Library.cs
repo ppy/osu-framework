@@ -36,11 +36,11 @@ namespace osu.Framework.Platform.Linux.Native
         {
             try
             {
-                Logger.Log(libraryName + " version = " + version(), LoggingTarget.Runtime, LogLevel.Verbose);
+                Logger.Log(libraryName + " version = " + version(), LoggingTarget.Runtime);
             }
             catch (Exception e)
             {
-                Logger.Log("Failed to load " + libraryName + ", trace: \n" + e, LoggingTarget.Runtime, LogLevel.Important);
+                Logger.Log("Failed to load " + libraryName + ", trace: \n" + e, LoggingTarget.Runtime, LogLevel.Error);
             }
         }
     }
