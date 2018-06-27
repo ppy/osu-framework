@@ -1,7 +1,6 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System.Collections.Generic;
 using OpenTK;
 using OpenTK.Input;
 
@@ -11,11 +10,20 @@ namespace osu.Framework.Input
     {
         IMouseState NativeState { get; }
 
-        IReadOnlyList<MouseButton> Buttons { get; set; }
+        ButtonStates<MouseButton> Buttons { get; }
 
         Vector2 Delta { get; }
 
         Vector2 Position { get; set; }
+
+        /// <summary>
+        /// Whether this <see cref="IMouseState"/> contains a valid <see cref="Position"/>.
+        /// If this is false, the value of <see cref="Position"/> should not be used.
+        /// </summary>
+        /// <remarks>
+        /// For example, if the first mouse input has not been handled, the <see cref="Position"/> will be invalid.
+        /// </remarks>
+        bool IsPositionValid { get; set; }
 
         Vector2 LastPosition { get; set; }
 

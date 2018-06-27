@@ -8,8 +8,8 @@ namespace osu.Framework.Platform.MacOS
 {
     public class MacOSStorage : DesktopStorage
     {
-        public MacOSStorage(string baseName)
-            : base(baseName)
+        public MacOSStorage(string baseName, GameHost host)
+            : base(baseName, host)
         {
         }
 

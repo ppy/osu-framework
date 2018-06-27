@@ -21,7 +21,7 @@ namespace osu.Framework.Platform
 
         public override void OpenUrlExternally(string url) => Logger.Log($"Application has requested URL \"{url}\" to be opened.");
 
-        protected override Storage GetStorage(string baseName) => new DesktopStorage($"headless-{baseName}");
+        protected override Storage GetStorage(string baseName) => new DesktopStorage($"headless-{baseName}", this);
 
         public HeadlessGameHost(string gameName = @"", bool bindIPC = false, bool realtime = true)
             : base(gameName, bindIPC)

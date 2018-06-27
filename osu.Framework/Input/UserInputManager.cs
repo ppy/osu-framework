@@ -3,6 +3,8 @@
 
 using System.Collections.Generic;
 using osu.Framework.Input.Handlers;
+using osu.Framework.Platform;
+using OpenTK;
 
 namespace osu.Framework.Input
 {
@@ -14,7 +16,22 @@ namespace osu.Framework.Input
 
         public UserInputManager()
         {
-            UseParentState = false;
+            UseParentInput = false;
+        }
+
+        public override void HandleMousePositionChange(InputState state)
+        {
+            var mouse = state.Mouse;
+            // confine cursor
+            if (Host.Window != null && (Host.Window.CursorState & CursorState.Confined) > 0)
+                mouse.Position = Vector2.Clamp(mouse.Position, Vector2.Zero, new Vector2(Host.Window.Width, Host.Window.Height));
+            base.HandleMousePositionChange(state);
+        }
+
+        public override void HandleMouseScrollChange(InputState state)
+        {
+            if (Host.Window != null && !Host.Window.CursorInWindow) return;
+            base.HandleMouseScrollChange(state);
         }
     }
 }
