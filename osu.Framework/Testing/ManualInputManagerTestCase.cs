@@ -39,6 +39,9 @@ namespace osu.Framework.Testing
 
             var keyboard = currentState.Keyboard;
             keyboard.Keys.ForEach(InputManager.ReleaseKey);
+
+            var joystick = currentState.Joystick;
+            joystick.Buttons.ForEach(InputManager.ReleaseJoystickButton);
         }
 
         [SetUp]

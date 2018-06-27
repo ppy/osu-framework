@@ -20,100 +20,36 @@ namespace osu.Framework.Testing.Input
             AddHandler(handler = new ManualInputHandler());
         }
 
-        public void PressKey(Key key)
+        public void Input(IInput input)
         {
             UseParentInput = false;
-            handler.PressKey(key);
+            handler.EnqueueInput(input);
         }
 
-        public void ReleaseKey(Key key)
-        {
-            UseParentInput = false;
-            handler.ReleaseKey(key);
-        }
+        public void PressKey(Key key) => Input(new KeyboardKeyInput(key, true));
+        public void ReleaseKey(Key key) => Input(new KeyboardKeyInput(key, false));
 
-        public void ScrollBy(Vector2 delta)
-        {
-            UseParentInput = false;
-            handler.ScrollBy(delta);
-        }
+        public void ScrollBy(Vector2 delta, bool isPrecise = false) => Input(new MouseScrollRelativeInput { Delta = delta, IsPrecise = isPrecise });
+        public void ScrollHorizontalBy(float delta, bool isPrecise = false) => ScrollBy(new Vector2(delta, 0), isPrecise);
+        public void ScrollVerticalBy(float delta, bool isPrecise = false) => ScrollBy(new Vector2(0, delta), isPrecise);
 
-        public void ScrollHorizontalBy(float delta) => ScrollBy(new Vector2(delta, 0));
-
-        public void ScrollVerticalBy(float delta) => ScrollBy(new Vector2(0, delta));
-
-        public void MoveMouseTo(Drawable drawable)
-        {
-            UseParentInput = false;
-            MoveMouseTo(drawable.ToScreenSpace(drawable.LayoutRectangle.Centre));
-        }
-
-        public void MoveMouseTo(Vector2 position)
-        {
-            UseParentInput = false;
-            handler.MoveMouseTo(position);
-        }
+        public void MoveMouseTo(Drawable drawable) => MoveMouseTo(drawable.ToScreenSpace(drawable.LayoutRectangle.Centre));
+        public void MoveMouseTo(Vector2 position) => Input(new MousePositionAbsoluteInput { Position = position });
 
         public void Click(MouseButton button)
         {
-            UseParentInput = false;
-            handler.Click(button);
+            PressButton(button);
+            ReleaseButton(button);
         }
 
-        public void PressButton(MouseButton button)
-        {
-            UseParentInput = false;
-            handler.PressButton(button);
-        }
-
-        public void ReleaseButton(MouseButton button)
-        {
-            UseParentInput = false;
-            handler.ReleaseButton(button);
-        }
+        public void PressButton(MouseButton button) => Input(new MouseButtonInput(button, true));
+        public void ReleaseButton(MouseButton button) => Input(new MouseButtonInput(button, false));
+        
+        public void PressJoystickButton(JoystickButton button) => Input(new JoystickButtonInput(button, true));
+        public void ReleaseJoystickButton(JoystickButton button) => Input(new JoystickButtonInput(button, false));
 
         private class ManualInputHandler : InputHandler
         {
-            public void PressKey(Key key)
-            {
-                PendingInputs.Enqueue(new KeyboardKeyInput(key, true));
-            }
-
-            public void ReleaseKey(Key key)
-            {
-                PendingInputs.Enqueue(new KeyboardKeyInput(key, false));
-            }
-
-            public void PressButton(MouseButton button)
-            {
-                PendingInputs.Enqueue(new MouseButtonInput(button, true));
-            }
-
-            public void ReleaseButton(MouseButton button)
-            {
-                PendingInputs.Enqueue(new MouseButtonInput(button, false));
-            }
-
-            public void ScrollBy(Vector2 delta)
-            {
-                PendingInputs.Enqueue(new MouseScrollRelativeInput { Delta = delta, IsPrecise = false });
-            }
-
-            public void ScrollVerticalBy(float delta) => ScrollBy(new Vector2(0, delta));
-
-            public void ScrollHorizontalBy(float delta) => ScrollBy(new Vector2(delta, 0));
-
-            public void MoveMouseTo(Vector2 position)
-            {
-                PendingInputs.Enqueue(new MousePositionAbsoluteInput { Position = position });
-            }
-
-            public void Click(MouseButton button)
-            {
-                PressButton(button);
-                ReleaseButton(button);
-            }
-
             public override bool Initialize(GameHost host) => true;
             public override bool IsActive => true;
             public override int Priority => 0;
