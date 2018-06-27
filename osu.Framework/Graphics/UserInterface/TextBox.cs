@@ -631,7 +631,7 @@ namespace osu.Framework.Graphics.UserInterface
             return handledUserTextInput;
         }
 
-        protected void KillFocus()
+        protected virtual void KillFocus()
         {
             var manager = GetContainingInputManager();
             if (manager.FocusedDrawable == this)
