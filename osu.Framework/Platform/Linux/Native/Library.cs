@@ -32,25 +32,15 @@ namespace osu.Framework.Platform.Linux.Native
         /// <summary>
         /// Check that bass and bass_fx has been loaded, log the versions.
         /// </summary>
-        public static void GetBassVersion()
+        public static void LogVersion(string libraryName, Func<Version> version)
         {
             try
             {
-                var bassVersion = ManagedBass.Bass.Version;
-                Logger.Log("Libbass.so version = " + bassVersion, LoggingTarget.Runtime, LogLevel.Verbose);
+                Logger.Log(libraryName + " version = " + version(), LoggingTarget.Runtime, LogLevel.Verbose);
             }
             catch (Exception e)
             {
-                Logger.Log("Failed to load libbass, trace: \n" + e, LoggingTarget.Runtime, LogLevel.Important);
-            }
-            try
-            {
-                var bassFxVersion = ManagedBass.Fx.BassFx.Version;
-                Logger.Log("Libbass_fx.so version = " + bassFxVersion, LoggingTarget.Runtime, LogLevel.Verbose);
-            }
-            catch (Exception e)
-            {
-                Logger.Log("Failed to load libbass_fx, trace:\n" + e, LoggingTarget.Runtime, LogLevel.Important);
+                Logger.Log("Failed to load " + libraryName + ", trace: \n" + e, LoggingTarget.Runtime, LogLevel.Important);
             }
         }
     }
