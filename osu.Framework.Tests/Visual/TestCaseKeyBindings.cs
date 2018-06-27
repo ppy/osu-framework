@@ -16,40 +16,33 @@ using osu.Framework.Testing;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Shapes;
-using osu.Framework.Testing.Input;
 using OpenTK.Input;
 
 namespace osu.Framework.Tests.Visual
 {
-    public class TestCaseKeyBindings : TestCase
+    public class TestCaseKeyBindings : ManualInputManagerTestCase
     {
-        private readonly ManualInputManager manual;
         private readonly KeyBindingTester none, noneExact, unique, all;
 
         public TestCaseKeyBindings()
         {
-            Child = manual = new ManualInputManager
+            Child = new GridContainer
             {
-                Child = new GridContainer
+                RelativeSizeAxes = Axes.Both,
+                Content = new[]
                 {
-                    RelativeSizeAxes = Axes.Both,
-                    Content = new[]
+                    new Drawable[]
                     {
-                        new Drawable[]
-                        {
-                            none = new KeyBindingTester(SimultaneousBindingMode.None),
-                            noneExact = new KeyBindingTester(SimultaneousBindingMode.NoneExact)
-                        },
-                        new Drawable[]
-                        {
-                            unique = new KeyBindingTester(SimultaneousBindingMode.Unique),
-                            all = new KeyBindingTester(SimultaneousBindingMode.All)
-                        },
-                    }
+                        none = new KeyBindingTester(SimultaneousBindingMode.None),
+                        noneExact = new KeyBindingTester(SimultaneousBindingMode.NoneExact)
+                    },
+                    new Drawable[]
+                    {
+                        unique = new KeyBindingTester(SimultaneousBindingMode.Unique),
+                        all = new KeyBindingTester(SimultaneousBindingMode.All)
+                    },
                 }
             };
-
-            AddStep("return input", () => manual.UseParentInput = true);
         }
 
         private readonly List<Key> pressedKeys = new List<Key>();
@@ -61,12 +54,12 @@ namespace osu.Framework.Tests.Visual
             if (!pressedKeys.Contains(key))
             {
                 pressedKeys.Add(key);
-                AddStep($"press {key}", () => manual.PressKey(key));
+                AddStep($"press {key}", () => InputManager.PressKey(key));
             }
             else
             {
                 pressedKeys.Remove(key);
-                AddStep($"release {key}", () => manual.ReleaseKey(key));
+                AddStep($"release {key}", () => InputManager.ReleaseKey(key));
             }
         }
 
@@ -75,18 +68,18 @@ namespace osu.Framework.Tests.Visual
             if (!pressedMouseButtons.Contains(button))
             {
                 pressedMouseButtons.Add(button);
-                AddStep($"press {button}", () => manual.PressButton(button));
+                AddStep($"press {button}", () => InputManager.PressButton(button));
             }
             else
             {
                 pressedMouseButtons.Remove(button);
-                AddStep($"release {button}", () => manual.ReleaseButton(button));
+                AddStep($"release {button}", () => InputManager.ReleaseButton(button));
             }
         }
 
         private void scrollMouseWheel(int dy)
         {
-            AddStep($"scroll wheel {dy}", () => manual.ScrollVerticalBy(dy));
+            AddStep($"scroll wheel {dy}", () => InputManager.ScrollVerticalBy(dy));
         }
 
         private void check(TestAction action, params CheckConditions[] entries)
@@ -135,7 +128,6 @@ namespace osu.Framework.Tests.Visual
         {
             AddStep("init", () =>
             {
-                manual.UseParentInput = false;
                 foreach (var mode in new[] { none, noneExact, unique, all })
                 {
                     foreach (var action in Enum.GetValues(typeof(TestAction)).Cast<TestAction>())
@@ -143,7 +135,6 @@ namespace osu.Framework.Tests.Visual
                         mode[action].Reset();
                     }
                 }
-
                 lastEventCounts.Clear();
             });
             pressedKeys.Clear();
