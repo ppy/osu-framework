@@ -50,7 +50,10 @@ namespace osu.Framework.Input
         private double keyboardRepeatTime;
         private Key? keyboardRepeatKey;
 
-        private bool isDragging;
+        /// <summary>
+        /// Whether a drag operation has started and <see cref="DraggedDrawable"/> has been searched for.
+        /// </summary>
+        private bool dragStarted;
 
         /// <summary>
         /// The initial input state. <see cref="CurrentState"/> is always equal (as a reference) to the value returned from this.
@@ -387,13 +390,10 @@ namespace osu.Framework.Input
 
             handleMouseMove(state);
 
-            if (!isDragging)
+            if (!dragStarted)
             {
                 if (mouse.IsPressed(MouseButton.Left) && Vector2Extensions.Distance(mouse.PositionMouseDown ?? mouse.Position, mouse.Position) > click_drag_distance)
-                {
-                    isDragging = true;
                     handleMouseDragStart(state);
-                }
             }
             else
             {
@@ -416,8 +416,9 @@ namespace osu.Framework.Input
 
                 if (button == MouseButton.Left)
                 {
-                    mouse.PositionMouseDown = mouse.Position;
-                    isDragging = false;
+                    // only update the mouse down position if we aren't already in a drag.
+                    if (!dragStarted)
+                        mouse.PositionMouseDown = mouse.Position;
                 }
             }
             else
@@ -426,12 +427,7 @@ namespace osu.Framework.Input
 
                 if (button == MouseButton.Left)
                 {
-                    if (isDragging)
-                    {
-                        isDragging = false;
-                        handleMouseDragEnd(state);
-                    }
-                    else
+                    if (DraggedDrawable == null)
                     {
                         bool isValidClick = true;
                         if (Time.Current - lastClickTime < double_click_time)
@@ -450,6 +446,8 @@ namespace osu.Framework.Input
                             handleMouseClick(state);
                         }
                     }
+
+                    handleMouseDragEnd(state);
 
                     mouse.PositionMouseDown = null;
                 }
@@ -598,7 +596,11 @@ namespace osu.Framework.Input
 
         private bool handleMouseDragStart(InputState state)
         {
-            Trace.Assert(DraggedDrawable == null, "The draggingDrawable was not set to null by handleMouseDragEnd.");
+            Trace.Assert(DraggedDrawable == null, $"The {nameof(DraggedDrawable)} was not set to null by {nameof(handleMouseDragEnd)}.");
+            Trace.Assert(!dragStarted, $"A {nameof(DraggedDrawable)} was already searched for. Call {nameof(handleMouseDragEnd)} first.");
+
+            dragStarted = true;
+
             DraggedDrawable = mouseDownInputQueue?.FirstOrDefault(target => target.IsAlive && target.IsPresent && target.TriggerOnDragStart(state));
             if (DraggedDrawable != null)
             {
@@ -611,6 +613,8 @@ namespace osu.Framework.Input
 
         private bool handleMouseDragEnd(InputState state)
         {
+            dragStarted = false;
+
             if (DraggedDrawable == null)
                 return false;
 
