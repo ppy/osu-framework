@@ -2053,8 +2053,9 @@ namespace osu.Framework.Graphics
         /// children such that the entire scene graph is covered.
         /// </summary>
         /// <param name="queue">The input queue to be built.</param>
+        /// <param name="allowBlocking">Whether blocking at <see cref="PassThroughInputManager"/>s should be allowed</param>
         /// <returns>Whether we have added ourself to the queue.</returns>
-        internal virtual bool BuildKeyboardInputQueue(List<Drawable> queue)
+        internal virtual bool BuildKeyboardInputQueue(List<Drawable> queue, bool allowBlocking = true)
         {
             if (!CanReceiveKeyboardInput)
                 return false;
