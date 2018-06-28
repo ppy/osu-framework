@@ -1,5 +1,6 @@
 // Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+
 using System;
 using System.Runtime.InteropServices;
 
@@ -7,8 +8,18 @@ namespace osu.Framework.Platform.Linux.Native
 {
     public static class Library
     {
+        [DllImport("libdl.so", EntryPoint = "dlopen")]
+        private static extern IntPtr dlopen(string library, LoadFlags flags);
+
+        /// <summary>
+        /// Loads a library with an enum of flags to use with dlopen. Uses <see cref="LoadFlags"/> for the flags
+        /// </summary>
+        /// <param name="library">See 'man dlopen' for more information about the flags.</param>>
+        /// <param name="flags">See 'man ld.so' for more information about how the libraries are loaded.</param>>
+        public static void Load(string library, LoadFlags flags) => dlopen(library, flags);
+
         [Flags]
-        public enum Flags
+        public enum LoadFlags
         {
             RTLD_LAZY = 0x00001,
             RTLD_NOW = 0x00002,
@@ -19,15 +30,5 @@ namespace osu.Framework.Platform.Linux.Native
             RTLD_LOCAL = 0x00000,
             RTLD_NODELETE = 0x01000
         }
-
-        [DllImport("libdl.so", EntryPoint = "dlopen")]
-        private static extern IntPtr dlopen(string library, Flags flags);
-
-        /// <summary>
-        /// Loads a library with an enum of flags to use with dlopen. Uses <see cref="Flags"/> for the flags
-        /// <para/>See 'man dlopen' for more information about the flags.
-        /// <para/>See 'man ld.so' for more information about how the libraries are loaded.
-        /// </summary>
-        public static void Load(string library, Flags flags) => dlopen(library, flags);
     }
 }

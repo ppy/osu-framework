@@ -19,7 +19,7 @@ namespace osu.Framework.Platform.Linux
                     OnDeactivated();
             };
 
-            Library.Load("libbass.so", Library.Flags.RTLD_LAZY | Library.Flags.RTLD_GLOBAL);
+            Library.Load("libbass.so", Library.LoadFlags.RTLD_LAZY | Library.LoadFlags.RTLD_GLOBAL);
         }
 
         protected override Storage GetStorage(string baseName) => new LinuxStorage(baseName, this);
