@@ -19,6 +19,7 @@ namespace osu.Framework.Platform.Linux
                     OnDeactivated();
             };
 
+            // required for the time being to address libbass_fx.so load failures (see https://github.com/ppy/osu/issues/2852)
             Library.Load("libbass.so", Library.LoadFlags.RTLD_LAZY | Library.LoadFlags.RTLD_GLOBAL);
         }
 
