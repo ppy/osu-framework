@@ -127,6 +127,8 @@ namespace osu.Framework.Testing
                     assemblies.Add(ass.Location);
             }
 
+            assemblies.Add(typeof(JetBrains.Annotations.NotNullAttribute).Assembly.Location);
+
             var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
 
             // ReSharper disable once RedundantExplicitArrayCreation this doesn't compile when the array is empty

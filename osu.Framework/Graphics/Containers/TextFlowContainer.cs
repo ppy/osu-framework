@@ -166,7 +166,7 @@ namespace osu.Framework.Graphics.Containers
         public void AddText(SpriteText text, Action<SpriteText> creationParameters = null)
         {
             base.Add(text);
-            defaultCreationParameters(text);
+            defaultCreationParameters?.Invoke(text);
             creationParameters?.Invoke(text);
         }
 
