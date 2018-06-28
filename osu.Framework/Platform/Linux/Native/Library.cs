@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 using System;
 using System.Runtime.InteropServices;
-using osu.Framework.Logging;
 
 namespace osu.Framework.Platform.Linux.Native
 {
@@ -20,6 +19,7 @@ namespace osu.Framework.Platform.Linux.Native
             RTLD_LOCAL = 0x00000,
             RTLD_NODELETE = 0x01000
         }
+
         [DllImport("libdl.so", EntryPoint = "dlopen")]
         private static extern IntPtr dlopen(string library, Flags flags);
 
@@ -29,19 +29,5 @@ namespace osu.Framework.Platform.Linux.Native
         /// <para/>See 'man ld.so' for more information about how the libraries are loaded.
         /// </summary>
         public static void Load(string library, Flags flags) => dlopen(library, flags);
-        /// <summary>
-        /// Check that bass and bass_fx has been loaded, log the versions.
-        /// </summary>
-        public static void LogVersion(string libraryName, Func<Version> version)
-        {
-            try
-            {
-                Logger.Log(libraryName + " version = " + version());
-            }
-            catch (Exception e)
-            {
-                Logger.Log("Failed to load " + libraryName + ", trace: \n" + e, LoggingTarget.Runtime, LogLevel.Error);
-            }
-        }
     }
 }

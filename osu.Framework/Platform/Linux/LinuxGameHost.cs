@@ -4,6 +4,7 @@
 namespace osu.Framework.Platform.Linux
 {
     using Native;
+
     public class LinuxGameHost : DesktopGameHost
     {
         internal LinuxGameHost(string gameName, bool bindIPC = false)
@@ -17,13 +18,9 @@ namespace osu.Framework.Platform.Linux
                 else
                     OnDeactivated();
             };
-            Library.Load("libbass.so", Library.Flags.RTLD_LAZY | Library.Flags.RTLD_GLOBAL);
-            Library.LogVersion("libbass.so", GetBassVersion);
-            Library.LogVersion("libbass_fx.so", GetBassFxVersion);
 
+            Library.Load("libbass.so", Library.Flags.RTLD_LAZY | Library.Flags.RTLD_GLOBAL);
         }
-        public static System.Version GetBassVersion() => ManagedBass.Bass.Version;
-        public static System.Version GetBassFxVersion() => ManagedBass.Fx.BassFx.Version;
 
         protected override Storage GetStorage(string baseName) => new LinuxStorage(baseName, this);
 
