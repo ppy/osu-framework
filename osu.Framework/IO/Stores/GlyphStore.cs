@@ -57,7 +57,7 @@ namespace osu.Framework.IO.Stores
 
         private async Task readFontMetadataAsync(bool precache)
         {
-            await Task.Factory.StartNew(() =>
+            await Task.Run(() =>
             {
                 try
                 {
@@ -74,7 +74,7 @@ namespace osu.Framework.IO.Stores
                     Logger.Error(ex, $"Couldn't load font asset from {assetName}.");
                     throw;
                 }
-            }, TaskCreationOptions.LongRunning);
+            });
 
             fontLoadTask = null;
         }

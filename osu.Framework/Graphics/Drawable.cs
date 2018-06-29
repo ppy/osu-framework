@@ -142,7 +142,7 @@ namespace osu.Framework.Graphics
             {
                 Debug.Assert(loadTask == null);
                 loadState = LoadState.Loading;
-                loadTask = Task.Factory.StartNew(() => Load(target.Clock, target.Dependencies), TaskCreationOptions.LongRunning);
+                loadTask = Task.Run(() => Load(target.Clock, target.Dependencies));
             }
 
             return (loadTask ?? Task.CompletedTask).ContinueWith(task => game.Schedule(() =>
