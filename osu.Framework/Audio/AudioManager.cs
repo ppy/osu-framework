@@ -273,7 +273,7 @@ namespace osu.Framework.Audio
                           BASS Version:               {Bass.Version}
                           BASS FX Version:            {ManagedBass.Fx.BassFx.Version}
                           Device:                     {newDeviceInfo.Name}
-                          Drive:                      {newDeviceInfo.Driver}", LoggingTarget.Runtime, LogLevel.Important);
+                          Drive:                      {newDeviceInfo.Driver}");
 
             //we have successfully initialised a new device.
             currentAudioDevice = newDevice;
