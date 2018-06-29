@@ -4,7 +4,7 @@
 namespace osu.Framework.Graphics.Containers
 {
     /// <summary>
-    /// An abstract class that manages dynamically displaying a custom Drawable based on a "source" object.
+    /// Manages dynamically displaying a custom Drawable based on a "source" object.
     /// Useful for replacing Drawables on the fly.
     /// </summary>
     public abstract class UpdateableContainer<T> : Container where T : class
@@ -15,12 +15,12 @@ namespace osu.Framework.Graphics.Containers
         public readonly Drawable PlaceholderDrawable;
 
         /// <summary>
-        /// The currently displayed Drawable.  Null if no Drawable or the placeholder is displayed.
+        /// The currently displayed Drawable. Null if no Drawable or the placeholder is displayed.
         /// </summary>
         public Drawable DisplayedDrawable { get; private set; }
 
         /// <summary>
-        /// The Drawable that will be presented next.  Null if we aren't switching to a new Drawable.
+        /// The Drawable that will be presented next. Null if there is no pending drawable.
         /// </summary>
         public Drawable NextDrawable { get; private set; }
 
@@ -45,7 +45,7 @@ namespace osu.Framework.Graphics.Containers
         protected virtual Drawable CreateDrawable(T item) => null;
 
         /// <summary>
-        /// Override to perform a custom comparison of two source items.  By default an object reference comparison
+        /// Override to perform a custom comparison of two source items. By default an object reference comparison
         /// is used, but it may be desirable to compare based on properties of the items.
         /// </summary>
         /// <returns><c>true</c>, if the items are logically equivalent, <c>false</c> otherwise.</returns>
