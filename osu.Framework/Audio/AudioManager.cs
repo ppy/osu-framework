@@ -12,6 +12,7 @@ using osu.Framework.Threading;
 using System.Linq;
 using System.Diagnostics;
 using osu.Framework.Extensions.TypeExtensions;
+using osu.Framework.Logging;
 
 namespace osu.Framework.Audio
 {
@@ -267,6 +268,12 @@ namespace osu.Framework.Audio
             }
 
             Trace.Assert(Bass.LastError == Errors.OK);
+
+            Logger.Log($@"BASS Initialized
+                          BASS Version:               {Bass.Version}
+                          BASS FX Version:            {ManagedBass.Fx.BassFx.Version}
+                          Device:                     {newDeviceInfo.Name}
+                          Drive:                      {newDeviceInfo.Driver}");
 
             //we have successfully initialised a new device.
             currentAudioDevice = newDevice;

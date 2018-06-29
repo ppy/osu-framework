@@ -608,7 +608,7 @@ namespace osu.Framework.Graphics.UserInterface
             switch (args.Key)
             {
                 case Key.Escape:
-                    GetContainingInputManager().ChangeFocus(null);
+                    KillFocus();
                     return true;
 
                 case Key.Tab:
@@ -617,7 +617,7 @@ namespace osu.Framework.Graphics.UserInterface
                 case Key.KeypadEnter:
                 case Key.Enter:
                     if (ReleaseFocusOnCommit)
-                        GetContainingInputManager().ChangeFocus(null);
+                        killFocus();
 
                     Background.Colour = ReleaseFocusOnCommit ? BackgroundUnfocused : BackgroundFocused;
                     Background.ClearTransforms();
@@ -629,6 +629,18 @@ namespace osu.Framework.Graphics.UserInterface
             }
 
             return handledUserTextInput;
+        }
+
+        /// <summary>
+        /// Removes focus from this <see cref="TextBox"/> if it currently has focus.
+        /// </summary>
+        protected virtual void KillFocus() => killFocus();
+
+        private void killFocus()
+        {
+            var manager = GetContainingInputManager();
+            if (manager.FocusedDrawable == this)
+                manager.ChangeFocus(null);
         }
 
         protected override bool OnKeyUp(InputState state, KeyUpEventArgs args)
