@@ -10,7 +10,7 @@ namespace osu.Framework.Input
         /// <summary>
         /// The currently pressed buttons.
         /// </summary>
-        IEnumerable<JoystickButton> Buttons { get; }
+        ButtonStates<JoystickButton> Buttons { get; }
 
         /// <summary>
         /// The current values of all non-zero axes.

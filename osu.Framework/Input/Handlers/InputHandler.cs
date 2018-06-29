@@ -17,20 +17,20 @@ namespace osu.Framework.Input.Handlers
         /// <returns>Success of the initialization.</returns>
         public abstract bool Initialize(GameHost host);
 
-        protected ConcurrentQueue<InputState> PendingStates = new ConcurrentQueue<InputState>();
+        protected ConcurrentQueue<IInput> PendingInputs = new ConcurrentQueue<IInput>();
 
-        private readonly object pendingStatesRetrievalLock = new object();
+        private readonly object pendingInputsRetrievalLock = new object();
 
         /// <summary>
         /// Retrieve a list of all pending states since the last call to this method.
         /// </summary>
-        public virtual List<InputState> GetPendingStates()
+        public virtual List<IInput> GetPendingInputs()
         {
-            lock (pendingStatesRetrievalLock)
+            lock (pendingInputsRetrievalLock)
             {
-                List<InputState> pending = new List<InputState>();
+                List<IInput> pending = new List<IInput>();
 
-                while (PendingStates.TryDequeue(out InputState s))
+                while (PendingInputs.TryDequeue(out IInput s))
                     pending.Add(s);
 
                 return pending;
@@ -48,7 +48,7 @@ namespace osu.Framework.Input.Handlers
         public abstract int Priority { get; }
 
         /// <summary>
-        /// Whether this InputHandler should be collecting <see cref="InputState"/>s to return on the next <see cref="GetPendingStates"/> call
+        /// Whether this InputHandler should be collecting <see cref="IInput"/>s to return on the next <see cref="GetPendingInputs"/> call
         /// </summary>
         public readonly BindableBool Enabled = new BindableBool(true);
 

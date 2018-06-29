@@ -2,44 +2,71 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using osu.Framework.Allocation;
 using OpenTK.Graphics.ES30;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Textures;
 
 namespace osu.Framework.Graphics.OpenGL.Textures
 {
+    /// <summary>
+    /// Low level class for queueing texture uploads to the GPU.
+    /// </summary>
     public class TextureUpload : IDisposable
     {
-        private static readonly BufferStack<byte> global_buffer_stack = new BufferStack<byte>(10);
-
+        /// <summary>
+        /// The target mipmap level to upload into.
+        /// </summary>
         public int Level;
+
+        /// <summary>
+        /// The texture format for this upload.
+        /// </summary>
         public PixelFormat Format = PixelFormat.Rgba;
+
+        /// <summary>
+        /// The target bounds for this upload. If not specified, will assume to be (0, 0, width, height).
+        /// </summary>
         public RectangleI Bounds;
+
+        /// <summary>
+        /// The upload data.
+        /// </summary>
         public readonly byte[] Data;
 
-        private readonly BufferStack<byte> bufferStack;
+        /// <summary>
+        /// The backing texture. A handle is kept to avoid early GC.
+        /// </summary>
+        private readonly RawTexture texture;
 
-        public TextureUpload(int size, BufferStack<byte> bufferStack = null)
-        {
-            this.bufferStack = bufferStack ?? global_buffer_stack;
-            Data = this.bufferStack.ReserveBuffer(size);
-        }
-
+        /// <summary>
+        /// Create an upload with arbitrary raw data.
+        /// </summary>
+        /// <param name="data"></param>
         public TextureUpload(byte[] data)
         {
             Data = data;
         }
 
+        /// <summary>
+        /// Create an upload from a <see cref="RawTexture"/>. This is the preferred method.
+        /// </summary>
+        /// <param name="texture">The texture to upload.</param>
+        public TextureUpload(RawTexture texture)
+        {
+            this.texture = texture;
+            Data = texture.Data;
+        }
+
         #region IDisposable Support
 
-        private bool disposedValue;
+        private bool disposed;
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!disposedValue)
+            if (!disposed)
             {
-                disposedValue = true;
-                bufferStack?.FreeBuffer(Data);
+                disposed = true;
+                texture?.Dispose();
             }
         }
 
