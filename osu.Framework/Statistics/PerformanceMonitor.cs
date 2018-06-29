@@ -40,7 +40,7 @@ namespace osu.Framework.Statistics
 
         internal ThrottledFrameClock Clock;
 
-        public double FrameAimTime => 1000.0 / Clock?.MaximumUpdateHz ?? double.MaxValue;
+        public double FrameAimTime => 1000.0 / (Clock?.MaximumUpdateHz ?? double.MaxValue);
 
         internal PerformanceMonitor(ThrottledFrameClock clock, Thread thread, IEnumerable<StatisticsCounterType> counters)
         {
