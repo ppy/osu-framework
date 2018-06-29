@@ -12,7 +12,10 @@ namespace osu.Framework.Graphics.Containers
     {
         internal override DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex)
         {
+            // this shouldn't have to be done here, but it's the only place it works correctly.
+            // see https://github.com/ppy/osu-framework/pull/1666
             CornerRadius = Math.Min(DrawSize.X, DrawSize.Y) / 2f;
+
             return base.GenerateDrawNodeSubtree(frame, treeIndex);
         }
     }
