@@ -62,7 +62,7 @@ namespace osu.Framework.IO
             }
 
             cancellationToken = new CancellationTokenSource();
-            Task.Factory.StartNew(loadRequiredBlocks, cancellationToken.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+            Task.Run(() => loadRequiredBlocks(), cancellationToken.Token);
         }
 
         ~AsyncBufferStream()

@@ -226,7 +226,7 @@ namespace osu.Framework.IO.Network
                 throw new InvalidOperationException($"The {nameof(WebRequest)} has already been run.");
             try
             {
-                await Task.Factory.StartNew(internalPerform, TaskCreationOptions.LongRunning);
+                await Task.Run(() => internalPerform());
             }
             catch (AggregateException ae)
             {
