@@ -1,6 +1,10 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
+using System.Collections.Generic;
+using osu.Framework.Lists;
+
 namespace osu.Framework.Graphics.Containers
 {
     /// <summary>
@@ -31,6 +35,21 @@ namespace osu.Framework.Graphics.Containers
         protected virtual bool FadeOutImmediately => false;
 
         /// <summary>
+        /// The time in milliseconds that Drawables will fade in and out.
+        /// </summary>
+        protected virtual double FadeDuration => 300;
+
+        /// <summary>
+        /// The delay in milliseconds before Drawables will begin loading.
+        /// </summary>
+        protected virtual double LoadDelay => 0;
+
+        /// <summary>
+        /// The IComparer used to compare source items to ensure that Drawables are not updated unnecessarily.
+        /// </summary>
+        public readonly IComparer<T> Comparer;
+
+        /// <summary>
         /// Override to instantiate a placeholder Drawable that will be displayed when no source is set.
         /// May be null to indicate no placeholder.
         /// </summary>
@@ -42,14 +61,7 @@ namespace osu.Framework.Graphics.Containers
         /// in which case the placeholder will be used if it exists.
         /// </summary>
         /// <param name="item">The source item that the Drawable should represent.</param>
-        protected virtual Drawable CreateDrawable(T item) => null;
-
-        /// <summary>
-        /// Override to perform a custom comparison of two source items. By default an object reference comparison
-        /// is used, but it may be desirable to compare based on properties of the items.
-        /// </summary>
-        /// <returns><c>true</c>, if the items are logically equivalent, <c>false</c> otherwise.</returns>
-        protected virtual bool CompareItems(T lhs, T rhs) => lhs == rhs;
+        protected abstract Drawable CreateDrawable(T item);
 
         private T source;
 
@@ -65,7 +77,7 @@ namespace osu.Framework.Graphics.Containers
                 if (source == null && value == null)
                     return;
 
-                if (CompareItems(source, value))
+                if (Comparer.Compare(source, value) == 0)
                     return;
 
                 source = value;
@@ -75,8 +87,30 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        /// <summary>
+        /// Constructs a new <see cref="UpdateableContainer{T}"/> with the default <typeparamref name="T"/> comparer.
+        /// </summary>
         protected UpdateableContainer()
+            : this(Comparer<T>.Default)
         {
+        }
+
+        /// <summary>
+        /// Constructs a new <see cref="UpdateableContainer{T}"/> with a custom comparison function.
+        /// </summary>
+        /// <param name="comparer">The comparison function.</param>
+        protected UpdateableContainer(Func<T, T, int> comparer)
+            : this(new ComparisonComparer<T>(comparer))
+        {
+        }
+
+        /// <summary>
+        /// Constructs a new <see cref="UpdateableContainer{T}"/> with a custom <see cref="IComparer{T}"/>.
+        /// </summary>
+        /// <param name="comparer">The comparer to use.</param>
+        protected UpdateableContainer(IComparer<T> comparer)
+        {
+            Comparer = comparer;
             PlaceholderDrawable = CreatePlaceholder();
 
             if (PlaceholderDrawable != null)
@@ -92,6 +126,10 @@ namespace osu.Framework.Graphics.Containers
             updateDrawable();
         }
 
+        protected virtual void ShowDrawable(Drawable d) => d?.FadeInFromZero(FadeDuration, Easing.OutQuint);
+
+        protected virtual void HideDrawable(Drawable d) => d?.FadeOut(FadeDuration);
+
         private void updateDrawable()
         {
             var newDrawable = CreateDrawable(source);
@@ -101,40 +139,42 @@ namespace osu.Framework.Graphics.Containers
 
             NextDrawable = newDrawable;
 
-            if (newDrawable == null && DisplayedDrawable != null)
+            if (FadeOutImmediately)
             {
-                DisplayedDrawable?.FadeOut(300).Expire();
-                PlaceholderDrawable?.FadeInFromZero(300, Easing.OutQuint);
+                HideDrawable(DisplayedDrawable);
+                DisplayedDrawable?.Expire();
+            }
+
+            if (newDrawable == null || FadeOutImmediately)
+            {
+                ShowDrawable(PlaceholderDrawable);
                 DisplayedDrawable = null;
                 return;
             }
 
-            if (FadeOutImmediately)
-                DisplayedDrawable?.FadeOut(300).Expire();
-
-            if (newDrawable != null)
+            newDrawable.OnLoadComplete = d =>
             {
-                newDrawable.OnLoadComplete = d =>
+                if (d != NextDrawable)
                 {
-                    if (d != NextDrawable)
-                    {
-                        d.Expire();
-                        return;
-                    }
+                    d.Expire();
+                    return;
+                }
 
-                    PlaceholderDrawable?.FadeOut(300);
+                HideDrawable(PlaceholderDrawable);
 
-                    if (!FadeOutImmediately)
-                        DisplayedDrawable?.FadeOut(300).Expire();
+                if (!FadeOutImmediately)
+                {
+                    HideDrawable(DisplayedDrawable);
+                    DisplayedDrawable?.Expire();
+                }
 
-                    d.FadeInFromZero(300, Easing.OutQuint);
+                ShowDrawable(d);
 
-                    DisplayedDrawable = d;
-                    NextDrawable = null;
-                };
+                DisplayedDrawable = d;
+                NextDrawable = null;
+            };
 
-                Add(new DelayedLoadWrapper(newDrawable));
-            }
+            Add(new DelayedLoadWrapper(newDrawable, LoadDelay));
         }
     }
 }

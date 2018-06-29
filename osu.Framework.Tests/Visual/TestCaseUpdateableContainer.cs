@@ -80,7 +80,10 @@ namespace osu.Framework.Tests.Visual
         {
             public TestItem Item { get => Source; set => Source = value; }
 
-            protected override bool CompareItems(TestItem lhs, TestItem rhs) => lhs?.ItemId == rhs?.ItemId;
+            public TestUpdateableContainer()
+                : base((lhs, rhs) => lhs?.ItemId == rhs?.ItemId ? 0 : -1)
+            {
+            }
 
             protected override Drawable CreateDrawable(TestItem item) => new TestItemDrawable(item);
         }
@@ -89,7 +92,10 @@ namespace osu.Framework.Tests.Visual
         {
             public TestItem Item { get => Source; set => Source = value; }
 
-            protected override bool CompareItems(TestItem lhs, TestItem rhs) => lhs?.ItemId == rhs?.ItemId;
+            public PlaceholderTestUpdateableContainer()
+                : base((lhs, rhs) => lhs?.ItemId == rhs?.ItemId ? 0 : -1)
+            {
+            }
 
             protected override Drawable CreateDrawable(TestItem item) => item == null ? null : new TestItemDrawable(item);
 
