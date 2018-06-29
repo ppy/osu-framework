@@ -328,9 +328,6 @@ namespace osu.Framework.Graphics.Containers
 
             internalChildren.Add(drawable);
 
-            if (LoadState >= LoadState.Ready)
-                checkChildLife(drawable);
-
             if (AutoSizeAxes != Axes.None)
                 InvalidateFromChild(Invalidation.RequiredParentSizeToFit, drawable);
         }
