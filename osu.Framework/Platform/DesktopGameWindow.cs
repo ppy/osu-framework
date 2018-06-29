@@ -2,8 +2,10 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using osu.Framework.Configuration;
 using osu.Framework.Input;
 using OpenTK;
@@ -16,10 +18,8 @@ namespace osu.Framework.Platform
         private const int default_width = 1366;
         private const int default_height = 768;
 
-        private readonly BindableInt widthFullscreen = new BindableInt();
-        private readonly BindableInt heightFullscreen = new BindableInt();
-        private readonly BindableInt width = new BindableInt();
-        private readonly BindableInt height = new BindableInt();
+        private readonly BindableSize sizeFullscreen = new BindableSize();
+        private readonly BindableSize sizeWindowed = new BindableSize();
 
         private readonly BindableDouble windowPositionX = new BindableDouble();
         private readonly BindableDouble windowPositionY = new BindableDouble();
@@ -34,6 +34,8 @@ namespace osu.Framework.Platform
 
         public readonly BindableBool MapAbsoluteInputToWindow = new BindableBool();
 
+        public IEnumerable<DisplayResolution> AvailableDisplayResolutions => DisplayDevice.Default.AvailableResolutions.Distinct();
+
         protected DesktopGameWindow()
             : base(default_width, default_height)
         {
@@ -45,11 +47,15 @@ namespace osu.Framework.Platform
 
         public override void SetupWindow(FrameworkConfigManager config)
         {
-            config.BindWith(FrameworkSetting.WidthFullscreen, widthFullscreen);
-            config.BindWith(FrameworkSetting.HeightFullscreen, heightFullscreen);
+            config.BindWith(FrameworkSetting.SizeFullscreen, sizeFullscreen);
 
-            config.BindWith(FrameworkSetting.Width, width);
-            config.BindWith(FrameworkSetting.Height, height);
+            sizeFullscreen.ValueChanged += newSize =>
+            {
+                if (WindowState == WindowState.Fullscreen)
+                    changeResolution(newSize);
+            };
+
+            config.BindWith(FrameworkSetting.WindowedSize, sizeWindowed);
 
             config.BindWith(FrameworkSetting.WindowedPositionX, windowPositionX);
             config.BindWith(FrameworkSetting.WindowedPositionY, windowPositionY);
@@ -69,6 +75,32 @@ namespace osu.Framework.Platform
             Exited += onExit;
         }
 
+        private void changeResolution(Size newSize)
+        {
+            var currentDisplay = DisplayDevice.Default;
+
+            if (newSize.Width == currentDisplay.Width && newSize.Height == currentDisplay.Height)
+                return;
+
+            DisplayResolution newResolution = currentDisplay.SelectResolution(
+                newSize.Width,
+                newSize.Height,
+                currentDisplay.BitsPerPixel,
+                currentDisplay.RefreshRate
+            );
+
+            if (newResolution.Width == currentDisplay.Width && newResolution.Height == currentDisplay.Height)
+            {
+                // we wanted a new resolution but got the old one, which means OpenTK didn't find this resolution
+                currentDisplay.RestoreResolution();
+            }
+            else
+            {
+                currentDisplay.ChangeResolution(newResolution);
+                ClientSize = newSize;
+            }
+        }
+
         protected void OnResize(object sender, EventArgs e)
         {
             if (ClientSize.IsEmpty) return;
@@ -76,8 +108,7 @@ namespace osu.Framework.Platform
             switch (WindowMode.Value)
             {
                 case Configuration.WindowMode.Windowed:
-                    width.Value = ClientSize.Width;
-                    height.Value = ClientSize.Height;
+                    sizeWindowed.Value = ClientSize;
                     break;
             }
         }
@@ -119,8 +150,7 @@ namespace osu.Framework.Platform
             switch (newMode)
             {
                 case Configuration.WindowMode.Fullscreen:
-                    DisplayResolution newResolution = DisplayDevice.Default.SelectResolution(widthFullscreen, heightFullscreen, DisplayDevice.Default.BitsPerPixel, DisplayDevice.Default.RefreshRate);
-                    DisplayDevice.Default.ChangeResolution(newResolution);
+                    changeResolution(sizeFullscreen);
 
                     WindowState = WindowState.Fullscreen;
                     break;
@@ -140,7 +170,7 @@ namespace osu.Framework.Platform
                     WindowState = WindowState.Normal;
                     WindowBorder = WindowBorder.Resizable;
 
-                    ClientSize = new Size(width, height);
+                    ClientSize = sizeWindowed;
                     Position = new Vector2((float)windowPositionX, (float)windowPositionY);
                     break;
             }
@@ -153,8 +183,7 @@ namespace osu.Framework.Platform
             switch (WindowMode.Value)
             {
                 case Configuration.WindowMode.Fullscreen:
-                    widthFullscreen.Value = ClientSize.Width;
-                    heightFullscreen.Value = ClientSize.Height;
+                    sizeFullscreen.Value = ClientSize;
                     break;
             }
 
