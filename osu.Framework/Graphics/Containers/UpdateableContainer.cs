@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics.Containers
         public readonly Drawable PlaceholderDrawable;
 
         /// <summary>
-        /// The currently displayed Drawable. Null if no Drawable or the placeholder is displayed.
+        /// The currently displayed Drawable. Null if no drawable is displayed (note that the placeholder may still be displayed in this state).
         /// </summary>
         public Drawable DisplayedDrawable { get; private set; }
 
