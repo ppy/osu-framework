@@ -43,7 +43,9 @@ namespace osu.Framework.Platform
             Move += OnMove;
         }
 
-        public virtual void SetIconFromStream(Stream stream) { }
+        public virtual void SetIconFromStream(Stream stream)
+        {
+        }
 
         public override void SetupWindow(FrameworkConfigManager config)
         {
@@ -103,7 +105,8 @@ namespace osu.Framework.Platform
 
         private float getMaxRefreshRate(Size size)
         {
-            return AvailableDisplayResolutions.Where(r => r.Width == size.Width && r.Height == size.Height).Select(r => r.RefreshRate).Max();
+            var displayResolutions = AvailableDisplayResolutions.Where(r => r.Width == size.Width && r.Height == size.Height).ToList();
+            return displayResolutions.Any() ? displayResolutions.Select(r => r.RefreshRate).Max() : DisplayDevice.Default.RefreshRate;
         }
 
         protected void OnResize(object sender, EventArgs e)
