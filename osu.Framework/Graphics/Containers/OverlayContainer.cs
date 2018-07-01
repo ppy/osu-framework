@@ -22,7 +22,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         protected virtual bool BlockPassThroughKeyboard => false;
 
-        internal override bool BuildKeyboardInputQueue(List<Drawable> queue)
+        internal override bool BuildKeyboardInputQueue(List<Drawable> queue, bool allowBlocking = true)
         {
             if (CanReceiveKeyboardInput && BlockPassThroughKeyboard)
             {
@@ -31,7 +31,7 @@ namespace osu.Framework.Graphics.Containers
                 queue.RemoveAll(d => !(d is IHandleGlobalInput));
             }
 
-            return base.BuildKeyboardInputQueue(queue);
+            return base.BuildKeyboardInputQueue(queue, allowBlocking);
         }
 
         internal override bool BuildMouseInputQueue(Vector2 screenSpaceMousePos, List<Drawable> queue)
