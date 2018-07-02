@@ -194,7 +194,13 @@ namespace osu.Framework.Input
             return true;
         }
 
-        internal override bool BuildKeyboardInputQueue(List<Drawable> queue) => false;
+        internal override bool BuildKeyboardInputQueue(List<Drawable> queue, bool allowBlocking = true)
+        {
+            if (!allowBlocking)
+                base.BuildKeyboardInputQueue(queue, false);
+
+            return false;
+        }
 
         internal override bool BuildMouseInputQueue(Vector2 screenSpaceMousePos, List<Drawable> queue) => false;
 

@@ -14,9 +14,15 @@ namespace osu.Framework.Input
         /// </summary>
         public bool UseParentInput = true;
 
-        internal override bool BuildKeyboardInputQueue(List<Drawable> queue)
+        internal override bool BuildKeyboardInputQueue(List<Drawable> queue, bool allowBlocking = true)
         {
             if (!CanReceiveKeyboardInput) return false;
+
+            if (!allowBlocking)
+            {
+                base.BuildKeyboardInputQueue(queue, false);
+                return false;
+            }
 
             if (UseParentInput)
                 queue.Add(this);

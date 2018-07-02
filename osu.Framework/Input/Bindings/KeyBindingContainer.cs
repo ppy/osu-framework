@@ -46,9 +46,19 @@ namespace osu.Framework.Input.Bindings
         /// The input queue to be used for processing key bindings. Based on the non-positional <see cref="InputManager.InputQueue"/>.
         /// Can be overridden to change priorities.
         /// </summary>
-        protected virtual IEnumerable<Drawable> KeyBindingInputQueue => localQueue;
+        protected virtual IEnumerable<Drawable> KeyBindingInputQueue => childrenInputQueue;
 
-        private readonly List<Drawable> localQueue = new List<Drawable>();
+        private List<Drawable> childrenInputQueue
+        {
+            get
+            {
+                var queue = new List<Drawable>();
+                BuildKeyboardInputQueue(queue, false);
+                queue.Reverse();
+
+                return queue;
+            }
+        }
 
         /// <summary>
         /// Override to enable or disable sending of repeated actions (disabled by default).
@@ -67,22 +77,17 @@ namespace osu.Framework.Input.Bindings
             return handleNewPressed(state, key, false) | handleNewReleased(state, key);
         }
 
-        internal override bool BuildKeyboardInputQueue(List<Drawable> queue)
+        internal override bool BuildKeyboardInputQueue(List<Drawable> queue, bool allowBlocking = true)
         {
-            localQueue.Clear();
-
-            if (!base.BuildKeyboardInputQueue(localQueue))
+            if (!base.BuildKeyboardInputQueue(queue, allowBlocking))
                 return false;
 
             if (Prioritised)
             {
-                localQueue.Remove(this);
-                localQueue.Add(this);
+                queue.Remove(this);
+                queue.Add(this);
             }
 
-            queue.AddRange(localQueue);
-
-            localQueue.Reverse();
             return true;
         }
 
