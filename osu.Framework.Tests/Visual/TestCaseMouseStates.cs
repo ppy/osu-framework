@@ -93,12 +93,11 @@ namespace osu.Framework.Tests.Visual
             ((Container)InputManager.Parent).Add(new StateTracker(0));
         }
 
-        protected override Vector2? InitialMousePosition => actionContainer.ScreenSpaceDrawQuad.Centre;
-
         private void initTestCase()
         {
             eventCounts1.Clear();
             eventCounts2.Clear();
+            // InitialMousePosition cannot be used here because the event counters should be resetted after the initial mouse move.
             AddStep("move mouse to center", () => InputManager.MoveMouseTo(actionContainer));
             AddStep("reset event counters", () =>
             {
