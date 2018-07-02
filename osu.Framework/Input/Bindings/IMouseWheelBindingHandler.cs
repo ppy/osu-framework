@@ -21,6 +21,6 @@ namespace osu.Framework.Input.Bindings
         /// <param name="isPrecise">Whether the action is from a precise scrolling.</param>
         /// <returns>True if this Drawable handled the event. If false, then the event
         /// is propagated up the scene graph to the next eligible Drawable.</returns>
-        bool OnMouseWheel(T action, float amount, bool isPrecise);
+        bool OnScroll(T action, float amount, bool isPrecise);
     }
 }

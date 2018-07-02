@@ -179,7 +179,7 @@ namespace osu.Framework.Input.Bindings
             {
                 pressedActions.Add(pressed);
                 if (wheelAmount != 0)
-                    handled = drawables.OfType<IMouseWheelBindingHandler<T>>().FirstOrDefault(d => d.OnMouseWheel(pressed, wheelAmount, isPrecise));
+                    handled = drawables.OfType<IMouseWheelBindingHandler<T>>().FirstOrDefault(d => d.OnScroll(pressed, wheelAmount, isPrecise));
                 if (handled == null)
                     handled = drawables.OfType<IKeyBindingHandler<T>>().FirstOrDefault(d => d.OnPressed(pressed));
             }

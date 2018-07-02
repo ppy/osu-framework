@@ -423,7 +423,7 @@ namespace osu.Framework.Tests.Visual
                 Text += $", {OnMouseWheelCount}, {LastMouseWheelAmount}";
             }
 
-            public bool OnMouseWheel(TestAction action, float amount, bool isPrecise)
+            public bool OnScroll(TestAction action, float amount, bool isPrecise)
             {
                 if (Action == action)
                 {
