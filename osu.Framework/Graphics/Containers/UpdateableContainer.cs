@@ -139,16 +139,16 @@ namespace osu.Framework.Graphics.Containers
 
             NextDrawable = newDrawable;
 
-            if (FadeOutImmediately)
+            if (newDrawable == null || FadeOutImmediately)
             {
                 HideDrawable(DisplayedDrawable);
                 DisplayedDrawable?.Expire();
+                DisplayedDrawable = null;
             }
 
-            if (newDrawable == null || FadeOutImmediately)
+            if (newDrawable == null)
             {
                 ShowDrawable(PlaceholderDrawable);
-                DisplayedDrawable = null;
                 return;
             }
 
