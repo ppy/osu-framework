@@ -123,7 +123,11 @@ namespace osu.Framework.Input.Bindings
 
         private bool handleNewPressed(InputState state, InputKey newKey, bool repeat, Vector2? scrollDelta = null, bool isPrecise = false)
         {
-            var wheelAmount = (newKey == InputKey.MouseWheelUp ? scrollDelta?.Y : newKey == InputKey.MouseWheelDown ? -scrollDelta?.Y : 0) ?? 0;
+            float wheelAmount = 0;
+            if (newKey == InputKey.MouseWheelUp)
+                wheelAmount = scrollDelta?.Y ?? 0;
+            else if (newKey == InputKey.MouseWheelDown)
+                wheelAmount = -(scrollDelta?.Y ?? 0);
             var pressedCombination = KeyCombination.FromInputState(state, scrollDelta);
 
             bool handled = false;
