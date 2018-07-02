@@ -317,7 +317,7 @@ namespace osu.Framework.Tests.Visual
             checkEventCount("Click", 2);
             checkEventCount("DoubleClick", 1);
         }
-        
+
         [Test]
         public void SeparateMouseDown()
         {

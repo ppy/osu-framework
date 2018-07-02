@@ -125,9 +125,7 @@ namespace osu.Framework.Input
         {
             foreach (var button in Enum.GetValues(typeof(MouseButton)).Cast<MouseButton>())
             {
-                var manager = button == MouseButton.Left ?
-                    new MouseLeftButtonEventManager(this, button) as MouseButtonEventManager : 
-                    new MouseMinorButtonEventManager(this, button);
+                var manager = button == MouseButton.Left ? new MouseLeftButtonEventManager(this, button) as MouseButtonEventManager : new MouseMinorButtonEventManager(this, button);
                 mouseButtonEventManagers.Add(button, manager);
             }
         }
@@ -408,7 +406,7 @@ namespace osu.Framework.Input
         {
             handleScroll(state);
         }
-        
+
         public void HandleMouseButtonStateChange(InputState state, MouseButton button, ButtonStateChangeKind kind)
         {
             if (mouseButtonEventManagers.TryGetValue(button, out var manager))
@@ -594,7 +592,6 @@ namespace osu.Framework.Input
         public override bool ChangeFocusForClick => true;
     }
 
-    
     public class MouseMinorButtonEventManager : MouseButtonEventManager
     {
         public MouseMinorButtonEventManager(InputManager inputManager, MouseButton button)
