@@ -45,6 +45,11 @@ namespace osu.Framework.Graphics.Containers
         protected virtual double LoadDelay => 0;
 
         /// <summary>
+        /// True if the most recently added DelayedLoadWrapper has begun loading.
+        /// </summary>
+        public bool LoadTriggered => lastDelayedLoadWrapper?.LoadTriggered ?? false;
+
+        /// <summary>
         /// The IComparer used to compare source items to ensure that Drawables are not updated unnecessarily.
         /// </summary>
         public readonly IComparer<T> Comparer;
@@ -86,6 +91,8 @@ namespace osu.Framework.Graphics.Containers
                     updateDrawable();
             }
         }
+
+        private UpdateDelayedLoadWrapper lastDelayedLoadWrapper;
 
         /// <summary>
         /// Constructs a new <see cref="UpdateableContainer{T}"/> with the default <typeparamref name="T"/> comparer.
@@ -172,9 +179,20 @@ namespace osu.Framework.Graphics.Containers
 
                 DisplayedDrawable = d;
                 NextDrawable = null;
+                lastDelayedLoadWrapper = null;
             };
 
-            Add(new DelayedLoadWrapper(newDrawable, LoadDelay));
+            Add(lastDelayedLoadWrapper = new UpdateDelayedLoadWrapper(newDrawable, LoadDelay));
+        }
+
+        private class UpdateDelayedLoadWrapper : DelayedLoadWrapper
+        {
+            internal new bool LoadTriggered => base.LoadTriggered;
+
+            public UpdateDelayedLoadWrapper(Drawable content, double timeBeforeLoad = 500)
+                : base(content, timeBeforeLoad)
+            {
+            }
         }
     }
 }

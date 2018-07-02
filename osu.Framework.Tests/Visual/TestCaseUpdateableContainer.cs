@@ -41,32 +41,32 @@ namespace osu.Framework.Tests.Visual
             });
 
 
-            addNullTest("no PH", updateContainer, false);
-            addItemTest("no PH", updateContainer, 0);
-            addItemTest("no PH", updateContainer, 1);
-            addNullTest("no PH", updateContainer, false);
+            addNullTest("No PH", updateContainer, false);
+            addItemTest("No PH", updateContainer, 0);
+            addItemTest("No PH", updateContainer, 1);
+            addNullTest("No PH", updateContainer, false);
 
             addNullTest("PH", placeholderContainer, true);
             addItemTest("PH", placeholderContainer, 0);
             addItemTest("PH", placeholderContainer, 1);
             addNullTest("PH", placeholderContainer, true);
 
-            AddStep("Set item null", () => delayedContainer.Item = null);
-            AddStep("Set item with delay", () => delayedContainer.Item = new TestItem(0));
-            AddAssert("Test next drawable not null", () => delayedContainer.NextDrawable != null);
-            AddWaitStep(5);
-            AddAssert("Test next drawable null", () => delayedContainer.NextDrawable == null);
+            AddStep("D: Set item null", () => delayedContainer.Item = null);
+            AddStep("D: Set item with delay", () => delayedContainer.Item = new TestItem(0));
+            AddAssert("D: Test load not triggered", () => !delayedContainer.LoadTriggered);
+            AddUntilStep(() => delayedContainer.LoadTriggered, "D: Wait until load triggered");
         }
 
         private void addNullTest(string prefix, TestUpdateableContainer container, bool expectPlaceholder)
         {
-            AddStep($"{prefix} Set null", () => container.Item = null);
+            AddStep($"{prefix}: Set null", () => container.Item = null);
             if (expectPlaceholder)
-                AddAssert($"{prefix} Check null with PH", () => container.DisplayedDrawable == null && (container.PlaceholderDrawable?.Alpha ?? 0) > 0);
+                AddAssert($"{prefix}: Check null with PH", () => container.DisplayedDrawable == null && (container.PlaceholderDrawable?.Alpha ?? 0) > 0);
             else
             {
-                AddUntilStep(() => container.NextDrawable == null, $"{prefix} wait until loaded");
-                AddAssert($"{prefix} Check non-null no PH", () => container.VisibleItemId == -1 && container.PlaceholderDrawable == null);
+                AddAssert($"{prefix}: Test load triggered", () => container.LoadTriggered);
+                AddUntilStep(() => container.NextDrawable == null, $"{prefix}: Wait until loaded");
+                AddAssert($"{prefix}: Check non-null no PH", () => container.VisibleItemId == -1 && container.PlaceholderDrawable == null);
             }
         }
 
@@ -138,7 +138,7 @@ namespace osu.Framework.Tests.Visual
 
         private class DelayedTestUpdateableContainer : PlaceholderTestUpdateableContainer
         {
-            protected override double LoadDelay => 500 / Clock.Rate;
+            protected override double LoadDelay => 1000 / Clock.Rate;
         }
     }
 }
