@@ -449,11 +449,15 @@ namespace osu.Framework.Tests.Visual
             {
                 base.Update();
 
-                var state = GetContainingInputManager().CurrentState;
+                var inputManager = GetContainingInputManager();
+                if (inputManager != null)
+                {
+                    var state = inputManager.CurrentState;
 
-                source.Text = GetContainingInputManager().ToString();
-                keyboard.Text = state.Keyboard.ToString();
-                mouse.Text = state.Mouse.ToString();
+                    source.Text = inputManager.ToString();
+                    keyboard.Text = state.Keyboard.ToString();
+                    mouse.Text = state.Mouse.ToString();
+                }
             }
 
             public class SmallText : SpriteText
