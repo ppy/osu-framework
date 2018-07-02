@@ -29,7 +29,8 @@ namespace osu.Framework.Tests.Visual
 
         public TestCaseMouseStates()
         {
-            Child = new Container {
+            Child = new Container
+            {
                 FillMode = FillMode.Fit,
                 FillAspectRatio = 1,
                 RelativeSizeAxes = Axes.Both,
