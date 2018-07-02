@@ -99,6 +99,7 @@ namespace osu.Framework.Tests.Visual
         {
             eventCounts1.Clear();
             eventCounts2.Clear();
+            AddStep("move mouse to center", () => InputManager.MoveMouseTo(actionContainer));
             AddStep("reset event counters", () =>
             {
                 s1.Reset();
