@@ -328,9 +328,6 @@ namespace osu.Framework.Graphics.Containers
 
             internalChildren.Add(drawable);
 
-            if (LoadState >= LoadState.Ready)
-                checkChildLife(drawable);
-
             if (AutoSizeAxes != Axes.None)
                 InvalidateFromChild(Invalidation.RequiredParentSizeToFit, drawable);
         }
@@ -928,15 +925,15 @@ namespace osu.Framework.Graphics.Containers
             return DrawRectangle.Shrink(cRadius).DistanceSquared(ToLocalSpace(screenSpacePos)) <= cRadius * cRadius;
         }
 
-        internal override bool BuildKeyboardInputQueue(List<Drawable> queue)
+        internal override bool BuildKeyboardInputQueue(List<Drawable> queue, bool allowBlocking = true)
         {
-            if (!base.BuildKeyboardInputQueue(queue))
+            if (!base.BuildKeyboardInputQueue(queue, allowBlocking))
                 return false;
 
             // We iterate by index to gain performance
             // ReSharper disable once ForCanBeConvertedToForeach
             for (int i = 0; i < aliveInternalChildren.Count; ++i)
-                aliveInternalChildren[i].BuildKeyboardInputQueue(queue);
+                aliveInternalChildren[i].BuildKeyboardInputQueue(queue, allowBlocking);
 
             return true;
         }
