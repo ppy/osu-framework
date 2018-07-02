@@ -93,13 +93,12 @@ namespace osu.Framework.Tests.Visual
             ((Container)InputManager.Parent).Add(new StateTracker(0));
         }
 
-        protected override Vector2? InitialMousePosition => actionContainer.LayoutRectangle.Centre;
+        protected override Vector2? InitialMousePosition => actionContainer.ScreenSpaceDrawQuad.Centre;
 
         private void initTestCase()
         {
             eventCounts1.Clear();
             eventCounts2.Clear();
-            AddStep("move mouse to center", () => InputManager.MoveMouseTo(actionContainer));
             AddStep("reset event counters", () =>
             {
                 s1.Reset();
@@ -317,6 +316,21 @@ namespace osu.Framework.Tests.Visual
             });
             checkEventCount("Click", 2);
             checkEventCount("DoubleClick", 1);
+        }
+        
+        [Test]
+        public void SeparateMouseDown()
+        {
+            initTestCase();
+
+            AddStep("right down", () => InputManager.PressButton(MouseButton.Right));
+            checkEventCount("MouseDown", 1);
+            AddStep("move away", () => InputManager.MoveMouseTo(outerMarginBox.ScreenSpaceDrawQuad.TopLeft));
+            AddStep("left click", () => InputManager.Click(MouseButton.Left));
+            checkEventCount("MouseDown", 1, true);
+            checkEventCount("MouseUp", 1, true);
+            AddStep("right up", () => InputManager.ReleaseButton(MouseButton.Right));
+            checkEventCount("MouseUp", 1);
         }
 
         private void waitDoubleClickTime()
