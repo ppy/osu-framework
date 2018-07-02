@@ -16,11 +16,11 @@ namespace osu.Framework.Configuration
         /// </summary>
         protected virtual string Filename => @"game.ini";
 
-        private readonly Storage storage;
+        protected readonly Storage Storage;
 
         public IniConfigManager(Storage storage)
         {
-            this.storage = storage;
+            this.Storage = storage;
 
             InitialiseDefaults();
             Load();
@@ -30,7 +30,7 @@ namespace osu.Framework.Configuration
         {
             if (string.IsNullOrEmpty(Filename)) return;
 
-            using (var stream = storage.GetStream(Filename))
+            using (var stream = Storage.GetStream(Filename))
             {
                 if (stream == null)
                     return;
@@ -73,7 +73,7 @@ namespace osu.Framework.Configuration
 
             try
             {
-                using (var stream = storage.GetStream(Filename, FileAccess.Write, FileMode.Create))
+                using (var stream = Storage.GetStream(Filename, FileAccess.Write, FileMode.Create))
                 using (var w = new StreamWriter(stream))
                 {
                     foreach (var p in ConfigStore)

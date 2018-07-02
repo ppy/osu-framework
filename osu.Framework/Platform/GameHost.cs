@@ -563,6 +563,8 @@ namespace osu.Framework.Platform
             Dependencies.Cache(config = new FrameworkConfigManager(Storage));
             Dependencies.Cache(Localisation = new LocalisationEngine(config));
 
+            Storage.BasePath = config.Get<string>(FrameworkSetting.FileLocation);
+
             activeGCMode = debugConfig.GetBindable<GCLatencyMode>(DebugSetting.ActiveGCMode);
             activeGCMode.ValueChanged += newMode =>
             {

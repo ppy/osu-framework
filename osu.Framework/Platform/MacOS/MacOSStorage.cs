@@ -13,23 +13,24 @@ namespace osu.Framework.Platform.MacOS
         {
         }
 
-        protected override string LocateBasePath()
-        {
-            string home = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
-            string xdg = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
-            string[] paths =
-            {
-                xdg ?? Path.Combine(home, ".local", "share"),
-                Path.Combine(home)
-            };
+        protected override string DefaultBasePath {
+            get {
+                string home = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+                string xdg = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
+                string[] paths =
+                {
+                    xdg ?? Path.Combine(home, ".local", "share"),
+                    Path.Combine(home)
+                };
 
-            foreach (string path in paths)
-            {
-                if (Directory.Exists(path))
-                    return path;
+                foreach (string path in paths)
+                {
+                    if (Directory.Exists(path))
+                        return path;
+                }
+
+                return paths[0];
             }
-
-            return paths[0];
         }
     }
 }

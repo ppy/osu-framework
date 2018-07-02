@@ -11,13 +11,18 @@ namespace osu.Framework.Platform
     {
         private readonly GameHost host;
 
-        public DesktopStorage(string baseName, GameHost host)
+        public DesktopStorage(string baseName, GameHost host, string basePath=null)
             : base(baseName)
         {
             this.host = host;
+            this.CurrentBasePath = basePath;
         }
 
-        protected override string LocateBasePath() => @"./"; //use current directory by default
+        protected string CurrentBasePath { get; private set; }
+        protected virtual string DefaultBasePath => @"./"; //use current directory by default
+        protected override string LocateBasePath() {
+            return CurrentBasePath ?? DefaultBasePath;
+        }
 
         public override bool Exists(string path) => File.Exists(GetUsablePathFor(path));
 

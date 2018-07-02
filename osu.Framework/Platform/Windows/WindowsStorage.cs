@@ -18,6 +18,6 @@ namespace osu.Framework.Platform.Windows
 
         public override void OpenInNativeExplorer() => Process.Start("explorer.exe", GetUsablePathFor(string.Empty));
 
-        protected override string LocateBasePath() => Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        protected override string DefaultBasePath => Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
     }
 }
