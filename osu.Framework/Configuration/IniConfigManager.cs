@@ -20,7 +20,7 @@ namespace osu.Framework.Configuration
 
         public IniConfigManager(Storage storage)
         {
-            this.Storage = storage;
+            Storage = storage;
 
             InitialiseDefaults();
             Load();
