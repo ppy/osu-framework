@@ -42,7 +42,15 @@ namespace osu.Framework.Graphics.UserInterface
 
         public int? LengthLimit;
 
-        public virtual bool AllowClipboardExport => true;
+        /// <summary>
+        /// Whether clipboard copying functionality is allowed.
+        /// </summary>
+        protected virtual bool AllowClipboardExport => true;
+
+        /// <summary>
+        /// Whether seeking to word boundaries is allowed.
+        /// </summary>
+        protected virtual bool AllowWordNavigation => true;
 
         //represents the left/right selection coordinates of the word double clicked on when dragging
         private int[] doubleClickWord;
@@ -332,19 +340,31 @@ namespace osu.Framework.Graphics.UserInterface
                     break;
 
                 case PlatformActionType.WordNext:
-                    int searchNext = MathHelper.Clamp(selectionEnd, 0, Text.Length - 1);
-                    while (searchNext < Text.Length && text[searchNext] == ' ')
-                        searchNext++;
-                    int nextSpace = text.IndexOf(' ', searchNext);
-                    amount = (nextSpace >= 0 ? nextSpace : text.Length) - selectionEnd;
+                    if (!AllowWordNavigation)
+                        amount = 1;
+                    else
+                    {
+                        int searchNext = MathHelper.Clamp(selectionEnd, 0, Text.Length - 1);
+                        while (searchNext < Text.Length && text[searchNext] == ' ')
+                            searchNext++;
+                        int nextSpace = text.IndexOf(' ', searchNext);
+                        amount = (nextSpace >= 0 ? nextSpace : text.Length) - selectionEnd;
+                    }
+
                     break;
 
                 case PlatformActionType.WordPrevious:
-                    int searchPrev = MathHelper.Clamp(selectionEnd - 2, 0, Text.Length - 1);
-                    while (searchPrev > 0 && text[searchPrev] == ' ')
-                        searchPrev--;
-                    int lastSpace = text.LastIndexOf(' ', searchPrev);
-                    amount = lastSpace > 0 ? -(selectionEnd - lastSpace - 1) : -selectionEnd;
+                    if (!AllowWordNavigation)
+                        amount = -1;
+                    else
+                    {
+                        int searchPrev = MathHelper.Clamp(selectionEnd - 2, 0, Text.Length - 1);
+                        while (searchPrev > 0 && text[searchPrev] == ' ')
+                            searchPrev--;
+                        int lastSpace = text.LastIndexOf(' ', searchPrev);
+                        amount = lastSpace > 0 ? -(selectionEnd - lastSpace - 1) : -selectionEnd;
+                    }
+
                     break;
             }
 
@@ -569,73 +589,104 @@ namespace osu.Framework.Graphics.UserInterface
 
         public string SelectedText => selectionLength > 0 ? Text.Substring(selectionLeft, selectionLength) : string.Empty;
 
-        protected bool HandlePendingText(InputState state)
+        private bool consumingText;
+
+        /// <summary>
+        /// Begin consuming text from an <see cref="ITextInputSource"/>.
+        /// Continues to consume every <see cref="Drawable.Update"/> loop until <see cref="EndConsumingText"/> is called.
+        /// </summary>
+        protected void BeginConsumingText()
         {
-            string str = textInput?.GetPendingText();
-            if (string.IsNullOrEmpty(str) || ReadOnly)
-                return false;
-
-            if (state.Keyboard.ShiftPressed)
-                audio.Sample.Get(@"Keyboard/key-caps")?.Play();
-            else
-                audio.Sample.Get($@"Keyboard/key-press-{RNG.Next(1, 5)}")?.Play();
-            insertString(str);
-
-            // as we are grabbing *all* waiting text, we may receive two or more characters.
-            // each of these characters will still fire OnKeyDown events (which we want to block) so we need to
-            // store our "handled" state until all keys are released.
-            handledUserTextInput = true;
-            return true;
+            consumingText = true;
+            Schedule(consumePendingText);
         }
 
-        private bool handledUserTextInput;
+        /// <summary>
+        /// Stops consuming text from an <see cref="ITextInputSource"/>.
+        /// </summary>
+        protected void EndConsumingText()
+        {
+            consumingText = false;
+        }
+
+        /// <summary>
+        /// Consumes any pending characters and adds them to the textbox if not <see cref="ReadOnly"/>.
+        /// </summary>
+        /// <returns>Whether any characters were consumed.</returns>
+        private void consumePendingText()
+        {
+            string pendingText = textInput?.GetPendingText();
+
+            if (!string.IsNullOrEmpty(pendingText) && !ReadOnly)
+            {
+                if (pendingText.Any(char.IsUpper))
+                    audio.Sample.Get(@"Keyboard/key-caps")?.Play();
+                else
+                    audio.Sample.Get($@"Keyboard/key-press-{RNG.Next(1, 5)}")?.Play();
+
+                insertString(pendingText);
+            }
+
+            if (consumingText)
+                Schedule(consumePendingText);
+        }
 
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
-            if (textInput?.ImeActive == true) return true;
+            if (textInput?.ImeActive == true || ReadOnly) return true;
 
-            if (args.Key <= Key.F35)
+            if (state.Keyboard.ControlPressed || state.Keyboard.SuperPressed)
                 return false;
 
-            if (HandlePendingText(state))
-                return true;
-
-            if (ReadOnly) return true;
-
-            if (state.Keyboard.AltPressed || state.Keyboard.ControlPressed || state.Keyboard.SuperPressed)
-                return false;
+            // we only care about keys which can result in text output.
+            if (keyProducesCharacter(args.Key))
+                BeginConsumingText();
 
             switch (args.Key)
             {
                 case Key.Escape:
-                    GetContainingInputManager().ChangeFocus(null);
+                    KillFocus();
                     return true;
-
-                case Key.Tab:
-                    return base.OnKeyDown(state, args);
-
                 case Key.KeypadEnter:
                 case Key.Enter:
-                    if (ReleaseFocusOnCommit)
-                        GetContainingInputManager().ChangeFocus(null);
-
-                    Background.Colour = ReleaseFocusOnCommit ? BackgroundUnfocused : BackgroundFocused;
-                    Background.ClearTransforms();
-                    Background.FlashColour(BackgroundCommit, 400);
-
-                    audio.Sample.Get(@"Keyboard/key-confirm")?.Play();
-                    OnCommit?.Invoke(this, true);
+                    Commit();
                     return true;
             }
 
-            return handledUserTextInput;
+            return base.OnKeyDown(state, args) || consumingText;
+        }
+
+        private bool keyProducesCharacter(Key key) => (key == Key.Space || key >= Key.Keypad0) && key != Key.KeypadEnter;
+
+        /// <summary>
+        /// Removes focus from this <see cref="TextBox"/> if it currently has focus.
+        /// </summary>
+        protected virtual void KillFocus() => killFocus();
+
+        private void killFocus()
+        {
+            var manager = GetContainingInputManager();
+            if (manager.FocusedDrawable == this)
+                manager.ChangeFocus(null);
+        }
+
+        protected void Commit()
+        {
+            if (ReleaseFocusOnCommit)
+                killFocus();
+
+            Background.Colour = ReleaseFocusOnCommit ? BackgroundUnfocused : BackgroundFocused;
+            Background.ClearTransforms();
+            Background.FlashColour(BackgroundCommit, 400);
+
+            audio.Sample.Get(@"Keyboard/key-confirm")?.Play();
+            OnCommit?.Invoke(this, true);
         }
 
         protected override bool OnKeyUp(InputState state, KeyUpEventArgs args)
         {
-            HandlePendingText(state);
-
-            handledUserTextInput &= state.Keyboard.Keys.Any();
+            if (!state.Keyboard.Keys.Any())
+                EndConsumingText();
 
             return base.OnKeyUp(state, args);
         }
