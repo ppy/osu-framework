@@ -113,21 +113,17 @@ namespace osu.Framework.Input
         {
             CurrentState = CreateInitialState();
             RelativeSizeAxes = Axes.Both;
+            foreach (var button in Enum.GetValues(typeof(MouseButton)).Cast<MouseButton>())
+            {
+                var manager = button == MouseButton.Left ? new MouseLeftButtonEventManager(this, button) as MouseButtonEventManager : new MouseMinorButtonEventManager(this, button);
+                mouseButtonEventManagers.Add(button, manager);
+            }
         }
 
         [BackgroundDependencyLoader(permitNulls: true)]
         private void load(GameHost host)
         {
             Host = host;
-        }
-
-        protected override void LoadComplete()
-        {
-            foreach (var button in Enum.GetValues(typeof(MouseButton)).Cast<MouseButton>())
-            {
-                var manager = button == MouseButton.Left ? new MouseLeftButtonEventManager(this, button) as MouseButtonEventManager : new MouseMinorButtonEventManager(this, button);
-                mouseButtonEventManagers.Add(button, manager);
-            }
         }
 
         /// <summary>
