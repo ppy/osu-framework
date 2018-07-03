@@ -160,7 +160,7 @@ namespace osu.Framework.Tests.Layout.ContainerTests
             new object[] { nameof(Drawable.X), 0.5f, null },
             new object[] { nameof(Drawable.Y), 0.5f, null },
             new object[] { nameof(Drawable.RelativeSizeAxes), Axes.Both, null },
-            new object[] { nameof(Drawable.Size), Vector2.One, null },
+            new object[] { nameof(Drawable.Size), new Vector2(10), null },
             new object[] { nameof(Drawable.Width), 0.5f, null },
             new object[] { nameof(Drawable.Height), 0.5f, null },
             new object[] { nameof(Drawable.FillMode), FillMode.Fit, null },
