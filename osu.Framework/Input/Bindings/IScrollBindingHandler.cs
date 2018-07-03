@@ -4,7 +4,7 @@
 namespace osu.Framework.Input.Bindings
 {
     /// <summary>
-    /// A drawable that handles mouse wheel actions.
+    /// A drawable that handles scroll actions.
     /// </summary>
     /// <typeparam name="T">The type of bindings.</typeparam>
     public interface IScrollBindingHandler<in T> : IKeyBindingHandler<T>
