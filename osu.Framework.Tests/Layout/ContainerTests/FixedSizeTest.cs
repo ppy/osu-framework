@@ -18,8 +18,11 @@ namespace osu.Framework.Tests.Layout.ContainerTests
         [Test]
         public void Test1()
         {
-            var container = new LoadedContainer { Child = new LoadedBox() };
+            var container = new LoadedContainer();
 
+            container.ValidateChildrenSizeDependencies();
+
+            container.Add(new LoadedBox());
             Assert.IsTrue(container.ChildrenSizeDependencies.IsValid, "container should not have been invalidated");
         }
 
@@ -30,8 +33,9 @@ namespace osu.Framework.Tests.Layout.ContainerTests
         public void Test2()
         {
             LoadedBox child;
-            // ReSharper disable once CollectionNeverQueried.Local : Keeping a local reference
             var container = new LoadedContainer { Child = child = new LoadedBox() };
+
+            container.ValidateChildrenSizeDependencies();
 
             container.Remove(child);
             Assert.IsTrue(container.ChildrenSizeDependencies.IsValid, "container should not have been invalidated");
@@ -40,6 +44,7 @@ namespace osu.Framework.Tests.Layout.ContainerTests
         private class LoadedContainer : Container
         {
             public Cached ChildrenSizeDependencies => this.Get<Cached>("childrenSizeDependencies");
+            public void ValidateChildrenSizeDependencies() => this.Validate("childrenSizeDependencies");
 
             public LoadedContainer()
             {
