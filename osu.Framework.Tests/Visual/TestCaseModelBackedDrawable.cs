@@ -40,7 +40,6 @@ namespace osu.Framework.Tests.Visual
                 }
             });
 
-
             addNullTest("No PH", modelBackedDrawable, false);
             addItemTest("No PH", modelBackedDrawable, 0);
             addItemTest("No PH", modelBackedDrawable, 1);
@@ -113,7 +112,7 @@ namespace osu.Framework.Tests.Visual
             public int VisibleItemId => (DisplayedDrawable as TestItemDrawable)?.ItemId ?? -1;
 
             public TestModelBackedDrawable()
-                : base((lhs, rhs) => lhs?.ItemId == rhs?.ItemId ? 0 : -1)
+                : base((lhs, rhs) => lhs?.ItemId == rhs?.ItemId)
             {
                 AddInternal(new Box
                 {

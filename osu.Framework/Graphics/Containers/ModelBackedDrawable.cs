@@ -50,9 +50,9 @@ namespace osu.Framework.Graphics.Containers
         public bool LoadTriggered => lastDelayedLoadWrapper?.LoadTriggered ?? false;
 
         /// <summary>
-        /// The IComparer used to compare models to ensure that Drawables are not updated unnecessarily.
+        /// The IEqualityComparer used to compare models to ensure that Drawables are not updated unnecessarily.
         /// </summary>
-        public readonly IComparer<T> Comparer;
+        public readonly IEqualityComparer<T> Comparer;
 
         /// <summary>
         /// Override to instantiate a placeholder Drawable that will be displayed when no model is set.
@@ -82,7 +82,7 @@ namespace osu.Framework.Graphics.Containers
                 if (model == null && value == null)
                     return;
 
-                if (Comparer.Compare(model, value) == 0)
+                if (Comparer.Equals(model, value))
                     return;
 
                 model = value;
@@ -95,27 +95,27 @@ namespace osu.Framework.Graphics.Containers
         private UpdateDelayedLoadWrapper lastDelayedLoadWrapper;
 
         /// <summary>
-        /// Constructs a new <see cref="ModelBackedDrawable{T}"/> with the default <typeparamref name="T"/> comparer.
+        /// Constructs a new <see cref="ModelBackedDrawable{T}"/> with the default <typeparamref name="T"/> equality comparer.
         /// </summary>
         protected ModelBackedDrawable()
-            : this(Comparer<T>.Default)
+            : this(EqualityComparer<T>.Default)
         {
         }
 
         /// <summary>
-        /// Constructs a new <see cref="ModelBackedDrawable{T}"/> with a custom comparison function.
+        /// Constructs a new <see cref="ModelBackedDrawable{T}"/> with a custom equality function.
         /// </summary>
-        /// <param name="comparer">The comparison function.</param>
-        protected ModelBackedDrawable(Func<T, T, int> comparer)
-            : this(new ComparisonComparer<T>(comparer))
+        /// <param name="func">The equality function.</param>
+        protected ModelBackedDrawable(Func<T, T, bool> func)
+            : this(new FuncEqualityComparer<T>(func))
         {
         }
 
         /// <summary>
-        /// Constructs a new <see cref="ModelBackedDrawable{T}"/> with a custom <see cref="IComparer{T}"/>.
+        /// Constructs a new <see cref="ModelBackedDrawable{T}"/> with a custom <see cref="IEqualityComparer{T}"/>.
         /// </summary>
         /// <param name="comparer">The comparer to use.</param>
-        protected ModelBackedDrawable(IComparer<T> comparer)
+        protected ModelBackedDrawable(IEqualityComparer<T> comparer)
         {
             Comparer = comparer;
             PlaceholderDrawable = CreatePlaceholder();
