@@ -626,7 +626,7 @@ namespace osu.Framework.Graphics.Containers
         {
         }
 
-        public override bool RequiresLayoutValidation => !childrenSizeDependencies.IsValid;
+        public override bool RequiresLayoutValidation => base.RequiresLayoutValidation || !childrenSizeDependencies.IsValid;
 
         protected override void ValidateLayout()
         {
