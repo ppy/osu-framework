@@ -34,7 +34,7 @@ namespace osu.Framework.Platform
 
         public readonly BindableBool MapAbsoluteInputToWindow = new BindableBool();
 
-        public IEnumerable<DisplayResolution> AvailableDisplayResolutions => DisplayDevice.Default.AvailableResolutions.Distinct();
+        public override DisplayDevice GetCurrentDisplay() => DisplayDevice.Default;
 
         protected DesktopGameWindow()
             : base(default_width, default_height)
