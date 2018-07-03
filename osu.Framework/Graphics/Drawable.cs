@@ -368,6 +368,15 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
+        /// Performs a once-per-frame update specific to this Drawable. A more elegant alternative to
+        /// <see cref="OnUpdate"/> when deriving from <see cref="Drawable"/>. Note, that this
+        /// method is always called before Drawables further down the scene graph are updated.
+        /// </summary>
+        protected virtual void Update()
+        {
+        }
+
+        /// <summary>
         /// Updates all masking calculations for this <see cref="Drawable"/>.
         /// This occurs post-<see cref="UpdateSubTree"/> to ensure that all <see cref="Drawable"/> updates have taken place.
         /// </summary>
@@ -386,15 +395,6 @@ namespace osu.Framework.Graphics
             return true;
         }
 
-        public virtual bool ValidateSubTree()
-        {
-            return false; // stub
-        }
-
-        protected virtual void ValidateLayout()
-        {
-        }
-
         /// <summary>
         /// Computes whether this <see cref="Drawable"/> is masked away.
         /// </summary>
@@ -403,11 +403,30 @@ namespace osu.Framework.Graphics
         protected virtual bool ComputeIsMaskedAway(RectangleF maskingBounds) => !maskingBounds.IntersectsWith(ScreenSpaceDrawQuad.AABBFloat);
 
         /// <summary>
-        /// Performs a once-per-frame update specific to this Drawable. A more elegant alternative to
-        /// <see cref="OnUpdate"/> when deriving from <see cref="Drawable"/>. Note, that this
-        /// method is always called before Drawables further down the scene graph are updated.
+        /// Whether layout validation is required for this <see cref="Drawable"/>.
         /// </summary>
-        protected virtual void Update()
+        public virtual bool RequiresLayoutValidation => false;
+
+        /// <summary>
+        /// Validates the layout of this <see cref="Drawable"/>. Invoked until <see cref="RequiresLayoutValidation"/> yields false.
+        /// </summary>
+        /// <remarks>
+        /// This should only be invoked by the game host.
+        /// </remarks>
+        /// <returns>Whether this <see cref="Drawable"/> has been fully validated.</returns>
+        public virtual bool ValidateSubTree()
+        {
+            if (!RequiresLayoutValidation)
+                return true;
+
+            ValidateLayout();
+            return !RequiresLayoutValidation;
+        }
+
+        /// <summary>
+        /// Validates the layout of this <see cref="Drawable"/>.
+        /// </summary>
+        protected virtual void ValidateLayout()
         {
         }
 

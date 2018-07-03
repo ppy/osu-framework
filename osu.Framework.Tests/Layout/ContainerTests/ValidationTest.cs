@@ -73,7 +73,7 @@ namespace osu.Framework.Tests.Layout.ContainerTests
 
             container.ValidateSubTree();
 
-            Assert.IsTrue(container.ChildrenSizeDependencies.IsValid, "size dependencies should validate");
+            Assert.IsTrue(container.ChildrenSizeDependencies.IsValid, "size dependencies should be valid");
         }
 
         /// <summary>
@@ -89,6 +89,7 @@ namespace osu.Framework.Tests.Layout.ContainerTests
                 Child = innerContainer = new LoadedContainer { AutoSizeAxes = Axes.Both }
             };
 
+            container.UpdateChildrenLife();
             container.ValidateSubTree();
 
             Assert.IsTrue(container.ChildrenSizeDependencies.IsValid, "container size dependencies should validate");
@@ -113,6 +114,8 @@ namespace osu.Framework.Tests.Layout.ContainerTests
                 // These tests are running without a gamehost, but we need to fake ourselves to be loaded
                 this.Set("loadState", LoadState.Loaded);
             }
+
+            public new void UpdateChildrenLife() => base.UpdateChildrenLife();
         }
     }
 }

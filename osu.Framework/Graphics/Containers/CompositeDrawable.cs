@@ -20,6 +20,7 @@ using osu.Framework.Statistics;
 using System.Threading.Tasks;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.MathUtils;
+using Logger = osu.Framework.Logging.Logger;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -555,6 +556,34 @@ namespace osu.Framework.Graphics.Containers
             return true;
         }
 
+        /// <summary>
+        /// Validates the layout of this <see cref="CompositeDrawable"/> and all <see cref="AliveInternalChildren"/>.
+        /// Invoked until <see cref="Drawable.RequiresLayoutValidation"/> yields false for this <see cref="CompositeDrawable"/> and all <see cref="AliveInternalChildren"/>.
+        /// </summary>
+        /// <returns>Whether this <see cref="CompositeDrawable"/> and all <see cref="AliveInternalChildren"/> have been fully validated.</returns>
+        public override bool ValidateSubTree()
+        {
+            int validations = 0;
+
+            bool moreRequired = true;
+            while (moreRequired)
+            {
+                moreRequired = !base.ValidateSubTree();
+
+                // We iterate by index to gain performance
+                // ReSharper disable once ForCanBeConvertedToForeach
+                for (int i = 0; i < aliveInternalChildren.Count; i++)
+                    moreRequired |= !aliveInternalChildren[i].ValidateSubTree();
+
+                validations++;
+            }
+
+            if (validations > 1)
+                Logger.Log($"{this} took {validations} validations to fully validate.");
+
+            return true;
+        }
+
         protected override bool ComputeIsMaskedAway(RectangleF maskingBounds)
         {
             if (!CanBeFlattened)
@@ -595,6 +624,15 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         protected virtual void UpdateAfterAutoSize()
         {
+        }
+
+        public override bool RequiresLayoutValidation => !childrenSizeDependencies.IsValid;
+
+        protected override void ValidateLayout()
+        {
+            base.ValidateLayout();
+
+            updateChildrenSizeDependencies();
         }
 
         #endregion

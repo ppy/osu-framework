@@ -277,6 +277,7 @@ namespace osu.Framework.Platform
 
             Root.UpdateSubTree();
             Root.UpdateSubTreeMasking(Root, Root.ScreenSpaceDrawQuad.AABBFloat);
+            Root.ValidateSubTree();
 
             using (var buffer = DrawRoots.Get(UsageType.Write))
                 buffer.Object = Root.GenerateDrawNodeSubtree(frameCount, buffer.Index);
