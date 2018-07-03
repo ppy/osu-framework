@@ -14,7 +14,7 @@ namespace osu.Framework.Development
 
         private static readonly Lazy<bool> is_debug_build = new Lazy<bool>(() =>
             // https://stackoverflow.com/a/2186634
-            Assembly.GetEntryAssembly().GetCustomAttributes(false).OfType<DebuggableAttribute>().Any(da => da.IsJITTrackingEnabled)
+            (Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly()).GetCustomAttributes(false).OfType<DebuggableAttribute>().Any(da => da.IsJITTrackingEnabled)
         );
     }
 }
