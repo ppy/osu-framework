@@ -7,12 +7,34 @@ using OpenTK;
 
 namespace osu.Framework.Input
 {
+    /// <summary>An <see cref="InputManager"/> with an arbirity to use parent <see cref="InputManager"/>'s input.</summary>
+    /// <remarks>
+    /// This <see cref="InputManager"/> can be used in one of two states.
+    /// When <see cref="UseParentInput"/> is false, this input manager gets inputs only from own input handlers.
+    /// When <see cref="UseParentInput"/> is true, this input manager ignore own input handlers and
+    /// gets inputs from the parent (an ancestor in the scene graph) <see cref="InputManager"/> in the following way:
+    /// For mouse input, this only considers input that is passed as events such as <see cref="OnMouseDown"/>.
+    /// For keyboard and other inputs, this input manager try to reflect parent <see cref="InputManager"/>'s <see cref="InputState"/> closely as possible.
+    /// Thus, when this is attached to the scene graph initially and when <see cref="UseParentInput"/> is changed to true from false,
+    /// multiple keyboard events is called when the parent's <see cref="InputState"/> is a state with keys pressed for example.
+    /// </remarks>
     public class PassThroughInputManager : CustomInputManager, IRequireHighFrequencyMousePosition
     {
         /// <summary>
         /// If there's an InputManager above us, decide whether we should use their available state.
         /// </summary>
-        public bool UseParentInput = true;
+        public bool UseParentInput
+        {
+            get => useParentInput;
+            set
+            {
+                if (useParentInput == value) return;
+                useParentInput = value;
+                if (UseParentInput) Sync();
+            }
+        }
+
+        private bool useParentInput = true;
 
         internal override bool BuildKeyboardInputQueue(List<Drawable> queue, bool allowBlocking = true)
         {
@@ -60,14 +82,24 @@ namespace osu.Framework.Input
         protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
         {
             if (UseParentInput)
-                new MouseButtonInput(args.Button, true).Apply(CurrentState, this);
+            {
+                // safe-guard for edge cases.
+                if (!CurrentState.Mouse.IsPressed(args.Button))
+                    new MouseButtonInput(args.Button, true).Apply(CurrentState, this);
+            }
             return false;
         }
 
         protected override bool OnMouseUp(InputState state, MouseUpEventArgs args)
         {
             if (UseParentInput)
+            {
+                // safe-guard for edge cases.
+                if (!CurrentState.Mouse.IsPressed(args.Button))
+                    new MouseButtonInput(args.Button, true).Apply(CurrentState, this);
                 new MouseButtonInput(args.Button, false).Apply(CurrentState, this);
+            }
+
             return false;
         }
 
@@ -80,44 +112,64 @@ namespace osu.Framework.Input
 
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
-            if (UseParentInput)
-                new KeyboardKeyInput(args.Key, true).Apply(CurrentState, this);
+            if (UseParentInput) SyncInputState(state);
             return false;
         }
 
         protected override bool OnKeyUp(InputState state, KeyUpEventArgs args)
         {
-            if (UseParentInput)
-                new KeyboardKeyInput(args.Key, false).Apply(CurrentState, this);
+            if (UseParentInput) SyncInputState(state);
             return false;
         }
 
         protected override bool OnJoystickPress(InputState state, JoystickEventArgs args)
         {
-            if (UseParentInput)
-                new JoystickButtonInput(args.Button, true).Apply(CurrentState, this);
+            if (UseParentInput) SyncInputState(state);
             return false;
-
         }
 
         protected override bool OnJoystickRelease(InputState state, JoystickEventArgs args)
         {
-            if (UseParentInput)
-                new JoystickButtonInput(args.Button, false).Apply(CurrentState, this);
+            if (UseParentInput) SyncInputState(state);
             return false;
         }
 
-        /// <summary>
-        /// An input state which allows for transformations to state which don't affect the source state.
-        /// </summary>
-        public class PassThroughInputState : InputState
+        private InputManager parentInputManager;
+
+        protected override void LoadComplete()
         {
-            public PassThroughInputState(InputState state)
-            {
-                Mouse = (state.Mouse.NativeState as MouseState)?.Clone();
-                Keyboard = (state.Keyboard as KeyboardState)?.Clone();
-                Joystick = (state.Joystick as JoystickState)?.Clone();
-            }
+            base.LoadComplete();
+            Sync();
+        }
+
+        protected override void Update()
+        {
+            base.Update();
+            // Some keyboard/joystick events are blocked. Sync every frame.
+            if (UseParentInput) Sync(true);
+        }
+
+        /// <summary>
+        /// Sync input state to parent <see cref="InputManager"/>'s <see cref="InputState"/>.
+        /// Call this when parent <see cref="InputManager"/> changed somehow.
+        /// </summary>
+        /// <param name="useCachedParentInputManager">If this is false, assume parent input manager is unchanged from before.</param>
+        public void Sync(bool useCachedParentInputManager = false)
+        {
+            if (!UseParentInput) return;
+            if (!useCachedParentInputManager)
+                parentInputManager = GetContainingInputManager();
+            SyncInputState(parentInputManager?.CurrentState);
+        }
+
+        /// <summary>
+        /// Sync keyboard and joystick state to parent state.
+        /// </summary>
+        /// <param name="parentState">Parent's state. If this is null, it is regarded as an empty state.</param>
+        protected virtual void SyncInputState(InputState parentState)
+        {
+            new KeyboardKeyInput(parentState?.Keyboard?.Keys, CurrentState.Keyboard.Keys).Apply(CurrentState, this);
+            new JoystickButtonInput(parentState?.Joystick?.Buttons, CurrentState.Joystick.Buttons).Apply(CurrentState, this);
         }
     }
 }
