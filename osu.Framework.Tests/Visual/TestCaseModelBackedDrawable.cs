@@ -13,27 +13,27 @@ using System.Threading;
 
 namespace osu.Framework.Tests.Visual
 {
-    public class TestCaseUpdateableContainer : TestCase
+    public class TestCaseModelBackedDrawable : TestCase
     {
-        public TestCaseUpdateableContainer()
+        public TestCaseModelBackedDrawable()
         {
-            TestUpdateableContainer updateContainer;
-            PlaceholderTestUpdateableContainer placeholderContainer;
-            DelayedTestUpdateableContainer delayedContainer;
+            TestModelBackedDrawable updateContainer;
+            PlaceholderTestModelBackedDrawable placeholderContainer;
+            DelayedTestModelBackedDrawable delayedContainer;
 
             AddRange(new Drawable[]
             {
-                updateContainer = new TestUpdateableContainer
+                updateContainer = new TestModelBackedDrawable
                 {
                     Position = new Vector2(50, 50),
                     Size = new Vector2(100, 100)
                 },
-                placeholderContainer = new PlaceholderTestUpdateableContainer
+                placeholderContainer = new PlaceholderTestModelBackedDrawable
                 {
                     Position = new Vector2(50, 250),
                     Size = new Vector2(100, 100)
                 },
-                delayedContainer = new DelayedTestUpdateableContainer
+                delayedContainer = new DelayedTestModelBackedDrawable
                 {
                     Position = new Vector2(50, 450),
                     Size = new Vector2(100, 100)
@@ -57,7 +57,7 @@ namespace osu.Framework.Tests.Visual
             AddUntilStep(() => delayedContainer.LoadTriggered, "D: Wait until load triggered");
         }
 
-        private void addNullTest(string prefix, TestUpdateableContainer container, bool expectPlaceholder)
+        private void addNullTest(string prefix, TestModelBackedDrawable container, bool expectPlaceholder)
         {
             AddStep($"{prefix}: Set null", () => container.Item = null);
             if (expectPlaceholder)
@@ -70,7 +70,7 @@ namespace osu.Framework.Tests.Visual
             }
         }
 
-        private void addItemTest(string prefix, TestUpdateableContainer container, int itemNumber)
+        private void addItemTest(string prefix, TestModelBackedDrawable container, int itemNumber)
         {
             AddStep($"{prefix} Set item {itemNumber}", () => container.Item = new TestItem(itemNumber));
             AddUntilStep(() => container.NextDrawable == null, $"{prefix} wait until loaded");
@@ -106,13 +106,13 @@ namespace osu.Framework.Tests.Visual
             }
         }
 
-        private class TestUpdateableContainer : UpdateableContainer<TestItem>
+        private class TestModelBackedDrawable : ModelBackedDrawable<TestItem>
         {
             public TestItem Item { get => Source; set => Source = value; }
 
             public int VisibleItemId => (DisplayedDrawable as TestItemDrawable)?.ItemId ?? -1;
 
-            public TestUpdateableContainer()
+            public TestModelBackedDrawable()
                 : base((lhs, rhs) => lhs?.ItemId == rhs?.ItemId ? 0 : -1)
             {
                 Add(new Box
@@ -129,14 +129,14 @@ namespace osu.Framework.Tests.Visual
             protected override Drawable CreateDrawable(TestItem item) => new TestItemDrawable(item);
         }
 
-        private class PlaceholderTestUpdateableContainer : TestUpdateableContainer
+        private class PlaceholderTestModelBackedDrawable : TestModelBackedDrawable
         {
             protected override Drawable CreateDrawable(TestItem item) => item == null ? null : new TestItemDrawable(item);
 
             protected override Drawable CreatePlaceholder() => new Box { Colour = Color4.Blue };
         }
 
-        private class DelayedTestUpdateableContainer : PlaceholderTestUpdateableContainer
+        private class DelayedTestModelBackedDrawable : PlaceholderTestModelBackedDrawable
         {
             protected override double LoadDelay => 1000 / Clock.Rate;
         }

@@ -11,7 +11,7 @@ namespace osu.Framework.Graphics.Containers
     /// Manages dynamically displaying a custom Drawable based on a "source" object.
     /// Useful for replacing Drawables on the fly.
     /// </summary>
-    public abstract class UpdateableContainer<T> : Container where T : class
+    public abstract class ModelBackedDrawable<T> : Container where T : class
     {
         /// <summary>
         /// The placeholder Drawable created when the container was instantiated.
@@ -95,27 +95,27 @@ namespace osu.Framework.Graphics.Containers
         private UpdateDelayedLoadWrapper lastDelayedLoadWrapper;
 
         /// <summary>
-        /// Constructs a new <see cref="UpdateableContainer{T}"/> with the default <typeparamref name="T"/> comparer.
+        /// Constructs a new <see cref="ModelBackedDrawable{T}"/> with the default <typeparamref name="T"/> comparer.
         /// </summary>
-        protected UpdateableContainer()
+        protected ModelBackedDrawable()
             : this(Comparer<T>.Default)
         {
         }
 
         /// <summary>
-        /// Constructs a new <see cref="UpdateableContainer{T}"/> with a custom comparison function.
+        /// Constructs a new <see cref="ModelBackedDrawable{T}"/> with a custom comparison function.
         /// </summary>
         /// <param name="comparer">The comparison function.</param>
-        protected UpdateableContainer(Func<T, T, int> comparer)
+        protected ModelBackedDrawable(Func<T, T, int> comparer)
             : this(new ComparisonComparer<T>(comparer))
         {
         }
 
         /// <summary>
-        /// Constructs a new <see cref="UpdateableContainer{T}"/> with a custom <see cref="IComparer{T}"/>.
+        /// Constructs a new <see cref="ModelBackedDrawable{T}"/> with a custom <see cref="IComparer{T}"/>.
         /// </summary>
         /// <param name="comparer">The comparer to use.</param>
-        protected UpdateableContainer(IComparer<T> comparer)
+        protected ModelBackedDrawable(IComparer<T> comparer)
         {
             Comparer = comparer;
             PlaceholderDrawable = CreatePlaceholder();
