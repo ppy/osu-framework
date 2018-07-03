@@ -8,7 +8,7 @@ using osu.Framework.Lists;
 namespace osu.Framework.Graphics.Containers
 {
     /// <summary>
-    /// Manages dynamically displaying a custom Drawable based on a "source" object.
+    /// Manages dynamically displaying a custom Drawable based on a model object.
     /// Useful for replacing Drawables on the fly.
     /// </summary>
     public abstract class ModelBackedDrawable<T> : CompositeDrawable where T : class
@@ -29,7 +29,7 @@ namespace osu.Framework.Graphics.Containers
         public Drawable NextDrawable { get; private set; }
 
         /// <summary>
-        /// Determines whether the current Drawable should fade out straight away when switching to a new source,
+        /// Determines whether the current Drawable should fade out straight away when switching to a new model,
         /// or whether it should wait until the new Drawable has finished loading.
         /// </summary>
         protected virtual bool FadeOutImmediately => false;
@@ -50,42 +50,42 @@ namespace osu.Framework.Graphics.Containers
         public bool LoadTriggered => lastDelayedLoadWrapper?.LoadTriggered ?? false;
 
         /// <summary>
-        /// The IComparer used to compare source items to ensure that Drawables are not updated unnecessarily.
+        /// The IComparer used to compare models to ensure that Drawables are not updated unnecessarily.
         /// </summary>
         public readonly IComparer<T> Comparer;
 
         /// <summary>
-        /// Override to instantiate a placeholder Drawable that will be displayed when no source is set.
+        /// Override to instantiate a placeholder Drawable that will be displayed when no model is set.
         /// May be null to indicate no placeholder.
         /// </summary>
         protected virtual Drawable CreatePlaceholder() => null;
 
         /// <summary>
-        /// Override to instantiate a custom Drawable based on the passed source item.
-        /// May be null to indicate that the source item has no visual representation,
+        /// Override to instantiate a custom Drawable based on the passed model.
+        /// May be null to indicate that the model has no visual representation,
         /// in which case the placeholder will be used if it exists.
         /// </summary>
-        /// <param name="item">The source item that the Drawable should represent.</param>
-        protected abstract Drawable CreateDrawable(T item);
+        /// <param name="model">The model that the Drawable should represent.</param>
+        protected abstract Drawable CreateDrawable(T model);
 
-        private T source;
+        private T model;
 
         /// <summary>
-        /// Gets or sets the source item, potentially triggering the current Drawable to update.
+        /// Gets or sets the model, potentially triggering the current Drawable to update.
         /// Subclasses should expose this via a nicer property name to better represent the data being set.
         /// </summary>
-        protected T Source
+        protected T Model
         {
-            get => source;
+            get => model;
             set
             {
-                if (source == null && value == null)
+                if (model == null && value == null)
                     return;
 
-                if (Comparer.Compare(source, value) == 0)
+                if (Comparer.Compare(model, value) == 0)
                     return;
 
-                source = value;
+                model = value;
 
                 if (IsLoaded)
                     updateDrawable();
@@ -139,7 +139,7 @@ namespace osu.Framework.Graphics.Containers
 
         private void updateDrawable()
         {
-            var newDrawable = CreateDrawable(source);
+            var newDrawable = CreateDrawable(model);
 
             if (newDrawable == DisplayedDrawable)
                 return;

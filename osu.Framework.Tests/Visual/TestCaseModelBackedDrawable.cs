@@ -17,23 +17,23 @@ namespace osu.Framework.Tests.Visual
     {
         public TestCaseModelBackedDrawable()
         {
-            TestModelBackedDrawable updateContainer;
-            PlaceholderTestModelBackedDrawable placeholderContainer;
-            DelayedTestModelBackedDrawable delayedContainer;
+            TestModelBackedDrawable modelBackedDrawable;
+            PlaceholderTestModelBackedDrawable placeholderModelBackedDrawable;
+            DelayedTestModelBackedDrawable delayedModelBackedDrawable;
 
             AddRange(new Drawable[]
             {
-                updateContainer = new TestModelBackedDrawable
+                modelBackedDrawable = new TestModelBackedDrawable
                 {
                     Position = new Vector2(50, 50),
                     Size = new Vector2(100, 100)
                 },
-                placeholderContainer = new PlaceholderTestModelBackedDrawable
+                placeholderModelBackedDrawable = new PlaceholderTestModelBackedDrawable
                 {
                     Position = new Vector2(50, 250),
                     Size = new Vector2(100, 100)
                 },
-                delayedContainer = new DelayedTestModelBackedDrawable
+                delayedModelBackedDrawable = new DelayedTestModelBackedDrawable
                 {
                     Position = new Vector2(50, 450),
                     Size = new Vector2(100, 100)
@@ -41,40 +41,40 @@ namespace osu.Framework.Tests.Visual
             });
 
 
-            addNullTest("No PH", updateContainer, false);
-            addItemTest("No PH", updateContainer, 0);
-            addItemTest("No PH", updateContainer, 1);
-            addNullTest("No PH", updateContainer, false);
+            addNullTest("No PH", modelBackedDrawable, false);
+            addItemTest("No PH", modelBackedDrawable, 0);
+            addItemTest("No PH", modelBackedDrawable, 1);
+            addNullTest("No PH", modelBackedDrawable, false);
 
-            addNullTest("PH", placeholderContainer, true);
-            addItemTest("PH", placeholderContainer, 0);
-            addItemTest("PH", placeholderContainer, 1);
-            addNullTest("PH", placeholderContainer, true);
+            addNullTest("PH", placeholderModelBackedDrawable, true);
+            addItemTest("PH", placeholderModelBackedDrawable, 0);
+            addItemTest("PH", placeholderModelBackedDrawable, 1);
+            addNullTest("PH", placeholderModelBackedDrawable, true);
 
-            AddStep("D: Set item null", () => delayedContainer.Item = null);
-            AddStep("D: Set item with delay", () => delayedContainer.Item = new TestItem(0));
-            AddAssert("D: Test load not triggered", () => !delayedContainer.LoadTriggered);
-            AddUntilStep(() => delayedContainer.LoadTriggered, "D: Wait until load triggered");
+            AddStep("D: Set item null", () => delayedModelBackedDrawable.Item = null);
+            AddStep("D: Set item with delay", () => delayedModelBackedDrawable.Item = new TestItem(0));
+            AddAssert("D: Test load not triggered", () => !delayedModelBackedDrawable.LoadTriggered);
+            AddUntilStep(() => delayedModelBackedDrawable.LoadTriggered, "D: Wait until load triggered");
         }
 
-        private void addNullTest(string prefix, TestModelBackedDrawable container, bool expectPlaceholder)
+        private void addNullTest(string prefix, TestModelBackedDrawable drawable, bool expectPlaceholder)
         {
-            AddStep($"{prefix}: Set null", () => container.Item = null);
+            AddStep($"{prefix}: Set null", () => drawable.Item = null);
             if (expectPlaceholder)
-                AddAssert($"{prefix}: Check null with PH", () => container.DisplayedDrawable == null && (container.PlaceholderDrawable?.Alpha ?? 0) > 0);
+                AddAssert($"{prefix}: Check null with PH", () => drawable.DisplayedDrawable == null && (drawable.PlaceholderDrawable?.Alpha ?? 0) > 0);
             else
             {
-                AddAssert($"{prefix}: Test load triggered", () => container.LoadTriggered);
-                AddUntilStep(() => container.NextDrawable == null, $"{prefix}: Wait until loaded");
-                AddAssert($"{prefix}: Check non-null no PH", () => container.VisibleItemId == -1 && container.PlaceholderDrawable == null);
+                AddAssert($"{prefix}: Test load triggered", () => drawable.LoadTriggered);
+                AddUntilStep(() => drawable.NextDrawable == null, $"{prefix}: Wait until loaded");
+                AddAssert($"{prefix}: Check non-null no PH", () => drawable.VisibleItemId == -1 && drawable.PlaceholderDrawable == null);
             }
         }
 
-        private void addItemTest(string prefix, TestModelBackedDrawable container, int itemNumber)
+        private void addItemTest(string prefix, TestModelBackedDrawable drawable, int itemNumber)
         {
-            AddStep($"{prefix} Set item {itemNumber}", () => container.Item = new TestItem(itemNumber));
-            AddUntilStep(() => container.NextDrawable == null, $"{prefix} wait until loaded");
-            AddAssert($"{prefix} Check item {itemNumber}", () => container.VisibleItemId == itemNumber);
+            AddStep($"{prefix} Set item {itemNumber}", () => drawable.Item = new TestItem(itemNumber));
+            AddUntilStep(() => drawable.NextDrawable == null, $"{prefix} wait until loaded");
+            AddAssert($"{prefix} Check item {itemNumber}", () => drawable.VisibleItemId == itemNumber);
         }
 
         private class TestItem
@@ -108,7 +108,7 @@ namespace osu.Framework.Tests.Visual
 
         private class TestModelBackedDrawable : ModelBackedDrawable<TestItem>
         {
-            public TestItem Item { get => Source; set => Source = value; }
+            public TestItem Item { get => Model; set => Model = value; }
 
             public int VisibleItemId => (DisplayedDrawable as TestItemDrawable)?.ItemId ?? -1;
 
@@ -126,12 +126,12 @@ namespace osu.Framework.Tests.Visual
                 Masking = true;
             }
 
-            protected override Drawable CreateDrawable(TestItem item) => new TestItemDrawable(item);
+            protected override Drawable CreateDrawable(TestItem model) => new TestItemDrawable(model);
         }
 
         private class PlaceholderTestModelBackedDrawable : TestModelBackedDrawable
         {
-            protected override Drawable CreateDrawable(TestItem item) => item == null ? null : new TestItemDrawable(item);
+            protected override Drawable CreateDrawable(TestItem model) => model == null ? null : new TestItemDrawable(model);
 
             protected override Drawable CreatePlaceholder() => new Box { Colour = Color4.Blue };
         }
