@@ -4,6 +4,7 @@
 
 using System;
 using NUnit.Framework;
+using osu.Framework.Caching;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 
@@ -13,7 +14,7 @@ namespace osu.Framework.Tests.Layout.ContainerTests
     public class ValidationTest
     {
         /// <summary>
-        /// Tests that a fixed-size container will never perform validations.
+        /// Tests that a fixed-size container will never perform validations upon request.
         /// </summary>
         [Test]
         public void Test1()
@@ -26,7 +27,7 @@ namespace osu.Framework.Tests.Layout.ContainerTests
         }
 
         /// <summary>
-        /// Tests that an auto-size container will perform validations.
+        /// Tests that an auto-size container will perform validations upon request.
         /// </summary>
         [Test]
         public void Test2()
@@ -62,8 +63,43 @@ namespace osu.Framework.Tests.Layout.ContainerTests
             Assert.IsFalse(validated, "container should not re-validate");
         }
 
+        /// <summary>
+        /// Tests that the validation of an auto-size container validates its size dependencies.
+        /// </summary>
+        [Test]
+        public void Test4()
+        {
+            var container = new LoadedContainer { AutoSizeAxes = Axes.Both };
+
+            container.ValidateSubTree();
+
+            Assert.IsTrue(container.ChildrenSizeDependencies.IsValid, "size dependencies should validate");
+        }
+
+        /// <summary>
+        /// Tests that the subtree validation of nested auto-size containers validates all size dependencies.
+        /// </summary>
+        [Test]
+        public void Test5()
+        {
+            LoadedContainer innerContainer;
+            var container = new LoadedContainer
+            {
+                AutoSizeAxes = Axes.Both,
+                Child = innerContainer = new LoadedContainer { AutoSizeAxes = Axes.Both }
+            };
+
+            container.ValidateSubTree();
+
+            Assert.IsTrue(container.ChildrenSizeDependencies.IsValid, "container size dependencies should validate");
+            Assert.IsTrue(innerContainer.ChildrenSizeDependencies.IsValid, "inner container size dependencies should validate");
+        }
+
         private class LoadedContainer : Container
         {
+            public Cached ChildrenSizeDependencies => this.Get<Cached>("childrenSizeDependencies");
+            public void InvalidateChildrenSizeDependencies() => this.Invalidate("childrenSizeDependencies");
+
             public Action LayoutValidated;
 
             protected override void UpdateLayout()
