@@ -1272,7 +1272,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         internal event Action OnAutoSize;
 
-        private Cached childrenSizeDependencies = new Cached();
+        private Cached childrenSizeDependencies = new Cached(true);
 
         public override float Width
         {
