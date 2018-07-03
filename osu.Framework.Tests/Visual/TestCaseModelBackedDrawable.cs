@@ -115,7 +115,7 @@ namespace osu.Framework.Tests.Visual
             public TestModelBackedDrawable()
                 : base((lhs, rhs) => lhs?.ItemId == rhs?.ItemId ? 0 : -1)
             {
-                Add(new Box
+                AddInternal(new Box
                 {
                     RelativeSizeAxes = Axes.Both,
                     Alpha = 0,

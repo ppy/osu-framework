@@ -11,7 +11,7 @@ namespace osu.Framework.Graphics.Containers
     /// Manages dynamically displaying a custom Drawable based on a "source" object.
     /// Useful for replacing Drawables on the fly.
     /// </summary>
-    public abstract class ModelBackedDrawable<T> : Container where T : class
+    public abstract class ModelBackedDrawable<T> : CompositeDrawable where T : class
     {
         /// <summary>
         /// The placeholder Drawable created when the container was instantiated.
@@ -182,7 +182,7 @@ namespace osu.Framework.Graphics.Containers
                 lastDelayedLoadWrapper = null;
             };
 
-            Add(lastDelayedLoadWrapper = new UpdateDelayedLoadWrapper(newDrawable, LoadDelay));
+            AddInternal(lastDelayedLoadWrapper = new UpdateDelayedLoadWrapper(newDrawable, LoadDelay));
         }
 
         private class UpdateDelayedLoadWrapper : DelayedLoadWrapper
