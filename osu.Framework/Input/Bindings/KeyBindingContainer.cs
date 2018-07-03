@@ -46,9 +46,19 @@ namespace osu.Framework.Input.Bindings
         /// The input queue to be used for processing key bindings. Based on the non-positional <see cref="InputManager.InputQueue"/>.
         /// Can be overridden to change priorities.
         /// </summary>
-        protected virtual IEnumerable<Drawable> KeyBindingInputQueue => localQueue;
+        protected virtual IEnumerable<Drawable> KeyBindingInputQueue => childrenInputQueue;
 
-        private readonly List<Drawable> localQueue = new List<Drawable>();
+        private List<Drawable> childrenInputQueue
+        {
+            get
+            {
+                var queue = new List<Drawable>();
+                BuildKeyboardInputQueue(queue, false);
+                queue.Reverse();
+
+                return queue;
+            }
+        }
 
         /// <summary>
         /// Override to enable or disable sending of repeated actions (disabled by default).
@@ -64,32 +74,20 @@ namespace osu.Framework.Input.Bindings
         protected override bool OnScroll(InputState state)
         {
             InputKey key = state.Mouse.ScrollDelta.Y > 0 ? InputKey.MouseWheelUp : InputKey.MouseWheelDown;
-
-            // we need to create a local cloned state to ensure the underlying code in handleNewReleased thinks we are in a sane state,
-            // even though we are pressing and releasing an InputKey in a single frame.
-            // the important part of this cloned state is the value of Scroll reset to zero.
-            var clonedState = state.Clone();
-            clonedState.Mouse = new MouseState { Buttons = clonedState.Mouse.Buttons };
-
-            return handleNewPressed(state, key, false) | handleNewReleased(clonedState, key);
+            return handleNewPressed(state, key, false) | handleNewReleased(state, key);
         }
 
-        internal override bool BuildKeyboardInputQueue(List<Drawable> queue)
+        internal override bool BuildKeyboardInputQueue(List<Drawable> queue, bool allowBlocking = true)
         {
-            localQueue.Clear();
-
-            if (!base.BuildKeyboardInputQueue(localQueue))
+            if (!base.BuildKeyboardInputQueue(queue, allowBlocking))
                 return false;
 
             if (Prioritised)
             {
-                localQueue.Remove(this);
-                localQueue.Add(this);
+                queue.Remove(this);
+                queue.Add(this);
             }
 
-            queue.AddRange(localQueue);
-
-            localQueue.Reverse();
             return true;
         }
 
@@ -119,6 +117,9 @@ namespace osu.Framework.Input.Bindings
         private bool handleNewPressed(InputState state, InputKey newKey, bool repeat)
         {
             var pressedCombination = KeyCombination.FromInputState(state);
+            // MouseWheelUp/Down cannot be obtained from KeyCombination.FromInputState so we manually add that here.
+            if (!pressedCombination.Keys.Contains(newKey))
+                pressedCombination = new KeyCombination(pressedCombination.Keys.Concat(new[] { newKey }));
 
             bool handled = false;
             var bindings = repeat ? KeyBindings : KeyBindings.Except(pressedBindings);

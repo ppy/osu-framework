@@ -83,6 +83,18 @@ namespace osu.Framework.Platform
             throw new NotSupportedException("This platform does not implement IPC.");
         }
 
+        /// <summary>
+        /// Requests that a file be opened externally with an associated application, if available.
+        /// </summary>
+        /// <param name="filename">The absolute path to the file which should be opened.</param>
+        public abstract void OpenFileExternally(string filename);
+
+        /// <summary>
+        /// Requests that a URL be opened externally in a web browser, if available.
+        /// </summary>
+        /// <param name="url">The URL of the page which should be opened.</param>
+        public abstract void OpenUrlExternally(string url);
+
         public virtual Clipboard GetClipboard() => null;
 
         protected abstract Storage GetStorage(string baseName);
@@ -252,9 +264,13 @@ namespace osu.Framework.Platform
 
             frameCount++;
 
-            if (Window?.WindowState != WindowState.Minimized)
-                Root.Size = Window != null ? new Vector2(Window.ClientSize.Width, Window.ClientSize.Height) :
-                    new Vector2(config.Get<int>(FrameworkSetting.Width), config.Get<int>(FrameworkSetting.Height));
+            if (Window == null)
+            {
+                var windowedSize = config.Get<Size>(FrameworkSetting.WindowedSize);
+                Root.Size = new Vector2(windowedSize.Width, windowedSize.Height);
+            }
+            else if (Window.WindowState != WindowState.Minimized)
+                Root.Size = new Vector2(Window.ClientSize.Width, Window.ClientSize.Height);
 
             // Ensure we maintain a valid size for any children immediately scaling by the window size
             Root.Size = Vector2.ComponentMax(Vector2.One, Root.Size);

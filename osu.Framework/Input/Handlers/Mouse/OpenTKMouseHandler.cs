@@ -3,31 +3,21 @@
 
 using System.Drawing;
 using osu.Framework.Platform;
-using osu.Framework.Statistics;
 using osu.Framework.Threading;
 using OpenTK;
 
 namespace osu.Framework.Input.Handlers.Mouse
 {
-    internal class OpenTKMouseHandler : InputHandler
+    internal class OpenTKMouseHandler : OpenTKMouseHandlerBase
     {
-        private OpenTK.Input.MouseState? lastState;
-        private GameHost host;
-
-        private bool mouseInWindow;
-
         private ScheduledDelegate scheduled;
-        private OpenTKPollMouseState lastPollState;
-        private OpenTKEventMouseState lastEventState;
+
+        private OpenTKMouseState lastPollState;
+        private OpenTKMouseState lastEventState;
 
         public override bool Initialize(GameHost host)
         {
-            this.host = host;
-
-            host.Window.MouseLeave += (s, e) => mouseInWindow = false;
-            host.Window.MouseEnter += (s, e) => mouseInWindow = true;
-
-            mouseInWindow = host.Window.CursorInWindow;
+            base.Initialize(host);
 
             Enabled.ValueChanged += enabled =>
             {
@@ -39,20 +29,23 @@ namespace osu.Framework.Input.Handlers.Mouse
                     host.Window.MouseWheel += handleMouseEvent;
 
                     // polling is used to keep a valid mouse position when we aren't receiving events.
+                    OpenTK.Input.MouseState? lastCursorState = null;
                     host.InputThread.Scheduler.Add(scheduled = new ScheduledDelegate(delegate
                     {
                         // we should be getting events if the mouse is inside the window.
-                        if (mouseInWindow || !host.Window.Visible || host.Window.WindowState == WindowState.Minimized) return;
+                        if (MouseInWindow || !host.Window.Visible || host.Window.WindowState == WindowState.Minimized) return;
 
-                        var state = OpenTK.Input.Mouse.GetCursorState();
+                        var cursorState = OpenTK.Input.Mouse.GetCursorState();
 
-                        if (state.Equals(lastState)) return;
+                        if (cursorState.Equals(lastCursorState)) return;
 
-                        lastState = state;
+                        lastCursorState = cursorState;
 
-                        var mapped = host.Window.PointToClient(new Point(state.X, state.Y));
+                        var mapped = host.Window.PointToClient(new Point(cursorState.X, cursorState.Y));
 
-                        handleState(lastPollState = new OpenTKPollMouseState(state, host.IsActive, new Vector2(mapped.X, mapped.Y)));
+                        var newState = new OpenTKPollMouseState(cursorState, host.IsActive, new Vector2(mapped.X, mapped.Y));
+                        HandleState(newState, lastPollState, true);
+                        lastPollState = newState;
                     }, 0, 1000.0 / 60));
                 }
                 else
@@ -64,7 +57,8 @@ namespace osu.Framework.Input.Handlers.Mouse
                     host.Window.MouseUp -= handleMouseEvent;
                     host.Window.MouseWheel -= handleMouseEvent;
 
-                    lastState = null;
+                    lastPollState = null;
+                    lastEventState = null;
                 }
             };
             Enabled.TriggerChange();
@@ -73,7 +67,7 @@ namespace osu.Framework.Input.Handlers.Mouse
 
         private void handleMouseEvent(object sender, OpenTK.Input.MouseEventArgs e)
         {
-            if (!mouseInWindow)
+            if (!MouseInWindow)
                 return;
 
             if (e.Mouse.X < 0 || e.Mouse.Y < 0)
@@ -81,28 +75,9 @@ namespace osu.Framework.Input.Handlers.Mouse
                 // on windows when crossing centre screen boundaries (width/2 or height/2).
                 return;
 
-            handleState(lastEventState = new OpenTKEventMouseState(e.Mouse, host.IsActive, null));
+            var newState = new OpenTKEventMouseState(e.Mouse, Host.IsActive, null);
+            HandleState(newState, lastEventState, true);
+            lastEventState = newState;
         }
-
-        private void handleState(MouseState state)
-        {
-            // combine scroll values to avoid discrepancy between sources.
-            state = (MouseState)state.Clone();
-            state.Scroll = (lastEventState?.Scroll ?? Vector2.Zero) + (lastPollState?.Scroll ?? Vector2.Zero);
-
-            PendingStates.Enqueue(new InputState { Mouse = state });
-            FrameStatistics.Increment(StatisticsCounterType.MouseEvents);
-        }
-
-        /// <summary>
-        /// This input handler is always active, handling the cursor position if no other input handler does.
-        /// </summary>
-        public override bool IsActive => true;
-
-        /// <summary>
-        /// Lowest priority. We want the normal mouse handler to only kick in if all other handlers don't do anything.
-        /// </summary>
-        public override int Priority => 0;
     }
 }
-

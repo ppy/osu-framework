@@ -125,10 +125,10 @@ namespace osu.Framework.IO.Stores
                     {
                         int srci = (c.Bounds.Y + y - c.Offset.Y) * page.Width * 4
                                    + (c.Bounds.X + x - c.Offset.X) * 4;
-                        pixels[desti] = page.Pixels[srci];
-                        pixels[desti + 1] = page.Pixels[srci + 1];
-                        pixels[desti + 2] = page.Pixels[srci + 2];
-                        pixels[desti + 3] = page.Pixels[srci + 3];
+                        pixels[desti] = page.Data[srci];
+                        pixels[desti + 1] = page.Data[srci + 1];
+                        pixels[desti + 2] = page.Data[srci + 2];
+                        pixels[desti + 3] = page.Data[srci + 3];
                     }
                     else
                     {
@@ -140,13 +140,7 @@ namespace osu.Framework.IO.Stores
                 }
             }
 
-            return new RawTexture
-            {
-                Pixels = pixels,
-                PixelFormat = OpenTK.Graphics.ES30.PixelFormat.Rgba,
-                Width = width,
-                Height = height,
-            };
+            return new RawTexture(width, height, pixels);
         }
 
         private RawTexture getTexturePage(int texturePage)
@@ -155,7 +149,7 @@ namespace osu.Framework.IO.Stores
             {
                 loadedPageCount++;
                 using (var stream = store.GetStream($@"{assetName}_{texturePage.ToString().PadLeft((font.Pages.Length - 1).ToString().Length, '0')}.png"))
-                    texturePages.Add(texturePage, t = RawTexture.FromStream(stream));
+                    texturePages.Add(texturePage, t = new RawTexture(stream));
             }
 
             return t;

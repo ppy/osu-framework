@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Collections.Generic;
+using osu.Framework.Logging;
 
 namespace osu.Framework.Allocation
 {
@@ -26,9 +27,13 @@ namespace osu.Framework.Allocation
             this.maxAmountBuffers = maxAmountBuffers;
         }
 
+        private int totalUsage;
+
         private T[] findFreeBuffer(int minimumLength)
         {
             T[] buffer = null;
+
+            totalUsage++;
 
             if (freeDataBuffers.Count > 0)
                 buffer = freeDataBuffers.Pop();
@@ -39,11 +44,16 @@ namespace osu.Framework.Allocation
             if (usedDataBuffers.Count < maxAmountBuffers)
                 usedDataBuffers.Add(buffer);
 
+            if (totalUsage > maxAmountBuffers)
+                Logger.Log($"BufferStack usage exceeded allocation (usage: {totalUsage} max: {maxAmountBuffers})", LoggingTarget.Performance);
+
             return buffer;
         }
 
         private void returnFreeBuffer(T[] buffer)
         {
+            totalUsage--;
+
             if (usedDataBuffers.Remove(buffer))
                 // We are here if the element was successfully found and removed
                 freeDataBuffers.Push(buffer);

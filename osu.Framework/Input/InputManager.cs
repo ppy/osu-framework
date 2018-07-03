@@ -11,12 +11,13 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
+using osu.Framework.Statistics;
 using OpenTK;
 using OpenTK.Input;
 
 namespace osu.Framework.Input
 {
-    public abstract class InputManager : Container
+    public abstract class InputManager : Container, IInputStateChangeHandler
     {
         /// <summary>
         /// The initial delay before key repeat begins.
@@ -38,11 +39,6 @@ namespace osu.Framework.Input
         /// </summary>
         private const float click_drag_distance = 10;
 
-        /// <summary>
-        /// The time of the last input action.
-        /// </summary>
-        public double LastActionTime;
-
         protected GameHost Host;
 
         internal Drawable FocusedDrawable;
@@ -52,31 +48,28 @@ namespace osu.Framework.Input
         private double lastClickTime;
 
         private double keyboardRepeatTime;
-
-        private bool isDragging;
-
-        private bool isValidClick;
+        private Key? keyboardRepeatKey;
 
         /// <summary>
-        /// The last processed state.
-        /// Mouse, Keyboard and Joystick are always non-null.
+        /// Whether a drag operation has started and <see cref="DraggedDrawable"/> has been searched for.
         /// </summary>
-        public InputState CurrentState = new InputState
+        private bool dragStarted;
+
+        /// <summary>
+        /// The initial input state. <see cref="CurrentState"/> is always equal (as a reference) to the value returned from this.
+        /// <see cref="InputState.Mouse"/>, <see cref="InputState.Keyboard"/> and <see cref="InputState.Joystick"/> should be non-null.
+        /// </summary>
+        protected virtual InputState CreateInitialState() => new InputState
         {
-            Mouse = new MouseState(),
+            Mouse = new MouseState { IsPositionValid = false },
             Keyboard = new KeyboardState(),
             Joystick = new JoystickState(),
         };
 
         /// <summary>
-        /// The sequential list in which to handle mouse input.
+        /// The last processed state.
         /// </summary>
-        private readonly List<Drawable> positionalInputQueue = new List<Drawable>();
-
-        /// <summary>
-        /// The sequential list in which to handle keyboard input.
-        /// </summary>
-        private readonly List<Drawable> inputQueue = new List<Drawable>();
+        public readonly InputState CurrentState;
 
         /// <summary>
         /// The <see cref="Drawable"/> which is currently being dragged. null if none is.
@@ -117,16 +110,17 @@ namespace osu.Framework.Input
         /// that the return value of <see cref="Drawable.OnHover(InputState)"/> is not taken
         /// into account.
         /// </summary>
-        public IReadOnlyList<Drawable> PositionalInputQueue => positionalInputQueue;
+        public IEnumerable<Drawable> PositionalInputQueue => buildMouseInputQueue(CurrentState);
 
         /// <summary>
         /// Contains all <see cref="Drawable"/>s in top-down order which are considered
         /// for non-positional input.
         /// </summary>
-        public IReadOnlyList<Drawable> InputQueue => inputQueue;
+        public IEnumerable<Drawable> InputQueue => buildInputQueue();
 
         protected InputManager()
         {
+            CurrentState = CreateInitialState();
             RelativeSizeAxes = Axes.Both;
         }
 
@@ -200,32 +194,36 @@ namespace osu.Framework.Input
             return true;
         }
 
-        internal override bool BuildKeyboardInputQueue(List<Drawable> queue) => false;
+        internal override bool BuildKeyboardInputQueue(List<Drawable> queue, bool allowBlocking = true)
+        {
+            if (!allowBlocking)
+                base.BuildKeyboardInputQueue(queue, false);
+
+            return false;
+        }
 
         internal override bool BuildMouseInputQueue(Vector2 screenSpaceMousePos, List<Drawable> queue) => false;
 
         protected override void Update()
         {
-            List<InputState> distinctStates = createDistinctStates(GetPendingStates());
-
-            //we need to make sure the code in the foreach below is run at least once even if we have no new pending states.
-            if (distinctStates.Count == 0)
-                distinctStates.Add(CurrentState.Clone());
-
             unfocusIfNoLongerValid();
 
-            foreach (InputState s in distinctStates)
-                HandleNewState(s);
-
-            if (CurrentState.Mouse != null)
+            foreach (var result in GetPendingInputs())
             {
-                foreach (var d in positionalInputQueue)
+                result.Apply(CurrentState, this);
+            }
+
+            if (CurrentState.Mouse.IsPositionValid)
+            {
+                foreach (var d in PositionalInputQueue)
                     if (d is IRequireHighFrequencyMousePosition)
                         if (d.TriggerOnMouseMove(CurrentState))
                             break;
             }
 
-            keyboardRepeatTime -= Time.Elapsed;
+            updateKeyRepeat(CurrentState);
+
+            updateHoverEvents(CurrentState);
 
             if (FocusedDrawable == null)
                 focusTopMostRequestingDrawable();
@@ -233,66 +231,69 @@ namespace osu.Framework.Input
             base.Update();
         }
 
-        protected virtual void HandleNewState(InputState state)
+        private void updateKeyRepeat(InputState state)
         {
-            var last = CurrentState;
+            if (!(keyboardRepeatKey is Key key)) return;
 
-            //avoid lingering references that would stay forever.
-            last.Last = null;
-
-            CurrentState = state;
-            CurrentState.Last = last;
-
-            TransformState(CurrentState);
-
-            //move above?
-            updateInputQueues(CurrentState);
-
-            //hover could change even when the mouse state has not.
-            updateHoverEvents(CurrentState);
-
-            updateMouseEvents(CurrentState);
-            updateKeyboardEvents(CurrentState);
-            updateJoystickEvents(CurrentState);
+            keyboardRepeatTime -= Time.Elapsed;
+            while (keyboardRepeatTime < 0)
+            {
+                handleKeyDown(state, key, true);
+                keyboardRepeatTime += repeat_tick_rate;
+            }
         }
 
-        protected virtual List<InputState> GetPendingStates()
+        protected virtual List<IInput> GetPendingInputs()
         {
-            var pendingStates = new List<InputState>();
+            var inputs = new List<IInput>();
 
             foreach (var h in InputHandlers)
             {
+                var list = h.GetPendingInputs();
                 if (h.IsActive && h.Enabled)
-                    pendingStates.AddRange(h.GetPendingStates());
-                else
-                    h.GetPendingStates();
+                    inputs.AddRange(list);
             }
 
-            return pendingStates;
+            return inputs;
         }
 
         protected virtual void TransformState(InputState inputState)
         {
         }
 
-        private void updateInputQueues(InputState state)
+        private IEnumerable<Drawable> buildInputQueue()
         {
-            inputQueue.Clear();
-            positionalInputQueue.Clear();
+            var inputQueue = new List<Drawable>();
 
-            if (state.Keyboard != null)
-                foreach (Drawable d in AliveInternalChildren)
-                    d.BuildKeyboardInputQueue(inputQueue);
+            if (this is UserInputManager)
+                FrameStatistics.Increment(StatisticsCounterType.KeyboardQueue);
 
-            if (state.Mouse != null)
-                foreach (Drawable d in AliveInternalChildren)
-                    d.BuildMouseInputQueue(state.Mouse.Position, positionalInputQueue);
+            foreach (Drawable d in AliveInternalChildren)
+                d.BuildKeyboardInputQueue(inputQueue);
+
+            if (!unfocusIfNoLongerValid())
+                inputQueue.Append(FocusedDrawable);
 
             // Keyboard and mouse queues were created in back-to-front order.
             // We want input to first reach front-most drawables, so the queues
             // need to be reversed.
             inputQueue.Reverse();
+
+            return inputQueue;
+        }
+
+        private IEnumerable<Drawable> buildMouseInputQueue(InputState state)
+        {
+            var positionalInputQueue = new List<Drawable>();
+
+            if (this is UserInputManager)
+                FrameStatistics.Increment(StatisticsCounterType.MouseQueue);
+
+            foreach (Drawable d in AliveInternalChildren)
+                d.BuildMouseInputQueue(state.Mouse.Position, positionalInputQueue);
+
             positionalInputQueue.Reverse();
+            return positionalInputQueue;
         }
 
         protected virtual bool HandleHoverEvents => true;
@@ -310,7 +311,7 @@ namespace osu.Framework.Input
             if (HandleHoverEvents)
             {
                 // First, we need to construct hoveredDrawables for the current frame
-                foreach (Drawable d in positionalInputQueue)
+                foreach (Drawable d in PositionalInputQueue)
                 {
                     hoveredDrawables.Add(d);
 
@@ -344,164 +345,126 @@ namespace osu.Framework.Input
             }
         }
 
-        private void updateKeyboardEvents(InputState state)
+        private bool isModifierKey(Key k)
         {
-            KeyboardState keyboard = (KeyboardState)state.Keyboard;
+            return k == Key.LControl || k == Key.RControl
+                                     || k == Key.LAlt || k == Key.RAlt
+                                     || k == Key.LShift || k == Key.RShift
+                                     || k == Key.LWin || k == Key.RWin;
+        }
 
-            if (!keyboard.Keys.Any())
-                keyboardRepeatTime = 0;
-
-            var last = state.Last?.Keyboard;
-
-            if (last == null) return;
-
-            foreach (var k in last.Keys)
+        public virtual void HandleKeyboardKeyStateChange(InputState state, Key key, ButtonStateChangeKind kind)
+        {
+            if (kind == ButtonStateChangeKind.Pressed)
             {
-                if (!keyboard.Keys.Contains(k))
-                    handleKeyUp(state, k);
-            }
+                handleKeyDown(state, key, false);
 
-            foreach (Key k in keyboard.Keys.Distinct())
-            {
-                bool isModifier = k == Key.LControl || k == Key.RControl
-                                                    || k == Key.LAlt || k == Key.RAlt
-                                                    || k == Key.LShift || k == Key.RShift
-                                                    || k == Key.LWin || k == Key.RWin;
-
-                LastActionTime = Time.Current;
-
-                bool isRepetition = last.Keys.Contains(k);
-
-                if (isModifier)
+                if (!isModifierKey(key))
                 {
-                    //modifiers shouldn't affect or report key repeat
-                    if (!isRepetition)
-                        handleKeyDown(state, k, false);
-                    continue;
-                }
-
-                if (isRepetition)
-                {
-                    if (keyboardRepeatTime <= 0)
-                    {
-                        keyboardRepeatTime += repeat_tick_rate;
-                        handleKeyDown(state, k, true);
-                    }
-                }
-                else
-                {
+                    keyboardRepeatKey = key;
                     keyboardRepeatTime = repeat_initial_delay;
-                    handleKeyDown(state, k, false);
                 }
+            }
+            else
+            {
+                handleKeyUp(state, key);
+
+                keyboardRepeatKey = null;
+                keyboardRepeatTime = 0;
             }
         }
 
-        private void updateJoystickEvents(InputState state)
+        public virtual void HandleJoystickButtonStateChange(InputState state, JoystickButton button, ButtonStateChangeKind kind)
         {
-            var joystick = (JoystickState)state.Joystick;
-
-            var last = state.Last?.Joystick;
-            if (last == null)
-                return;
-
-            foreach (var b in last.Buttons)
+            if (kind == ButtonStateChangeKind.Pressed)
             {
-                if (!joystick.Buttons.Contains(b))
-                    handleJoystickRelease(state, b);
+                handleJoystickRelease(state, button);
             }
-
-            foreach (var b in joystick.Buttons)
+            else
             {
-                if (!last.Buttons.Contains(b))
-                {
-                    LastActionTime = Time.Current;
-                    handleJoystickPress(state, b);
-                }
+                handleJoystickPress(state, button);
             }
         }
 
-        private List<Drawable> mouseDownInputQueue;
-
-        private void updateMouseEvents(InputState state)
+        public virtual void HandleMousePositionChange(InputState state)
         {
-            MouseState mouse = (MouseState)state.Mouse;
+            var mouse = state.Mouse;
 
-            if (!(state.Last.Mouse is MouseState last)) return;
+            foreach (var h in InputHandlers)
+                if (h.Enabled && h is INeedsMousePositionFeedback handler)
+                    handler.FeedbackMousePositionChange(mouse.Position);
 
-            mouse.LastPosition = last.Position;
-            mouse.LastScroll = last.Scroll;
-            mouse.PositionMouseDown = last.PositionMouseDown;
+            handleMouseMove(state);
 
-            if (mouse.Position != last.Position)
+            if (!dragStarted)
             {
-                handleMouseMove(state);
-                if (isDragging)
-                    handleMouseDrag(state);
+                if (mouse.IsPressed(MouseButton.Left) && Vector2Extensions.Distance(mouse.PositionMouseDown ?? mouse.Position, mouse.Position) > click_drag_distance)
+                    handleMouseDragStart(state);
             }
-
-            for (MouseButton b = 0; b < MouseButton.LastButton; b++)
+            else
             {
-                var lastPressed = last.IsPressed(b);
+                handleMouseDrag(state);
+            }
+        }
 
-                if (lastPressed != mouse.IsPressed(b))
+        public virtual void HandleMouseScrollChange(InputState state)
+        {
+            handleScroll(state);
+        }
+
+        public virtual void HandleMouseButtonStateChange(InputState state, MouseButton button, ButtonStateChangeKind kind)
+        {
+            var mouse = state.Mouse;
+
+            if (kind == ButtonStateChangeKind.Pressed)
+            {
+                handleMouseDown(state, button);
+
+                if (button == MouseButton.Left)
                 {
-                    if (lastPressed)
-                        handleMouseUp(state, b);
-                    else
-                        handleMouseDown(state, b);
+                    // only update the mouse down position if we aren't already in a drag.
+                    if (!dragStarted)
+                        mouse.PositionMouseDown = mouse.Position;
                 }
             }
-
-            if (mouse.ScrollDelta != Vector2.Zero && (Host.Window?.CursorInWindow ?? true))
-                handleScroll(state);
-
-            if (mouse.HasAnyButtonPressed)
+            else
             {
-                if (!last.HasAnyButtonPressed)
-                {
-                    //stuff which only happens once after the mousedown state
-                    mouse.PositionMouseDown = mouse.Position;
-                    LastActionTime = Time.Current;
+                handleMouseUp(state, button);
 
-                    if (mouse.IsPressed(MouseButton.Left))
+                if (button == MouseButton.Left)
+                {
+                    if (DraggedDrawable == null)
                     {
-                        isValidClick = true;
-
+                        bool isValidClick = true;
                         if (Time.Current - lastClickTime < double_click_time)
                         {
                             if (handleMouseDoubleClick(state))
+                            {
                                 //when we handle a double-click we want to block a normal click from firing.
                                 isValidClick = false;
-
-                            lastClickTime = 0;
+                                lastClickTime = 0;
+                            }
                         }
-                        else
+
+                        if (isValidClick)
+                        {
                             lastClickTime = Time.Current;
+                            handleMouseClick(state);
+                        }
                     }
-                }
 
-                if (!isDragging && Vector2Extensions.Distance(mouse.PositionMouseDown ?? mouse.Position, mouse.Position) > click_drag_distance)
-                {
-                    isDragging = true;
-                    handleMouseDragStart(state);
-                }
-            }
-            else if (last.HasAnyButtonPressed)
-            {
-                if (isValidClick && (DraggedDrawable == null || Vector2Extensions.Distance(last.PositionMouseDown ?? last.Position, mouse.Position) <= click_drag_distance))
-                    handleMouseClick(state);
-
-                mouseDownInputQueue = null;
-                mouse.PositionMouseDown = null;
-                isValidClick = false;
-
-                if (isDragging)
-                {
-                    isDragging = false;
                     handleMouseDragEnd(state);
+
+                    mouse.PositionMouseDown = null;
                 }
             }
         }
+
+        public virtual void HandleCustomInput(InputState state, IInput input)
+        {
+        }
+
+        private List<Drawable> mouseDownInputQueue;
 
         private bool handleMouseDown(InputState state, MouseButton button)
         {
@@ -510,9 +473,16 @@ namespace osu.Framework.Input
                 Button = button
             };
 
+            var positionalInputQueue = PositionalInputQueue.ToList();
             var result = PropagateMouseDown(positionalInputQueue, state, args, out Drawable handledBy);
 
-            mouseDownInputQueue = new List<Drawable>(result ? positionalInputQueue.Take(positionalInputQueue.IndexOf(handledBy) + 1) : positionalInputQueue);
+            // only drawables up to the one that handled mouse down should handle mouse up
+            mouseDownInputQueue = positionalInputQueue;
+            if (result)
+            {
+                var count = mouseDownInputQueue.IndexOf(handledBy) + 1;
+                mouseDownInputQueue.RemoveRange(count, mouseDownInputQueue.Count - count);
+            }
 
             return result;
         }
@@ -567,14 +537,14 @@ namespace osu.Framework.Input
 
         private bool handleMouseMove(InputState state)
         {
-            return positionalInputQueue.Any(target => target.TriggerOnMouseMove(state));
+            return PositionalInputQueue.Any(target => target.TriggerOnMouseMove(state));
         }
 
         private Drawable clickedDrawable;
 
         private bool handleMouseClick(InputState state)
         {
-            var intersectingQueue = positionalInputQueue.Intersect(mouseDownInputQueue);
+            var intersectingQueue = PositionalInputQueue.Intersect(mouseDownInputQueue);
 
             Drawable focusTarget = null;
 
@@ -632,7 +602,11 @@ namespace osu.Framework.Input
 
         private bool handleMouseDragStart(InputState state)
         {
-            Trace.Assert(DraggedDrawable == null, "The draggingDrawable was not set to null by handleMouseDragEnd.");
+            Trace.Assert(DraggedDrawable == null, $"The {nameof(DraggedDrawable)} was not set to null by {nameof(handleMouseDragEnd)}.");
+            Trace.Assert(!dragStarted, $"A {nameof(DraggedDrawable)} was already searched for. Call {nameof(handleMouseDragEnd)} first.");
+
+            dragStarted = true;
+
             DraggedDrawable = mouseDownInputQueue?.FirstOrDefault(target => target.IsAlive && target.IsPresent && target.TriggerOnDragStart(state));
             if (DraggedDrawable != null)
             {
@@ -645,6 +619,8 @@ namespace osu.Framework.Input
 
         private bool handleMouseDragEnd(InputState state)
         {
+            dragStarted = false;
+
             if (DraggedDrawable == null)
                 return false;
 
@@ -657,7 +633,7 @@ namespace osu.Framework.Input
 
         private bool handleScroll(InputState state)
         {
-            return PropagateScroll(positionalInputQueue, state);
+            return PropagateScroll(PositionalInputQueue, state);
         }
 
         /// <summary>
@@ -678,11 +654,7 @@ namespace osu.Framework.Input
 
         private bool handleKeyDown(InputState state, Key key, bool repeat)
         {
-            IEnumerable<Drawable> queue = inputQueue;
-            if (!unfocusIfNoLongerValid())
-                queue = queue.Prepend(FocusedDrawable);
-
-            return PropagateKeyDown(queue, state, new KeyDownEventArgs { Key = key, Repeat = repeat });
+            return PropagateKeyDown(InputQueue, state, new KeyDownEventArgs { Key = key, Repeat = repeat });
         }
 
         /// <summary>
@@ -704,7 +676,7 @@ namespace osu.Framework.Input
 
         private bool handleKeyUp(InputState state, Key key)
         {
-            IEnumerable<Drawable> queue = inputQueue;
+            IEnumerable<Drawable> queue = InputQueue;
             if (!unfocusIfNoLongerValid())
                 queue = queue.Prepend(FocusedDrawable);
 
@@ -730,9 +702,9 @@ namespace osu.Framework.Input
 
         private bool handleJoystickPress(InputState state, JoystickButton button)
         {
-            IEnumerable<Drawable> queue = inputQueue;
+            IEnumerable<Drawable> queue = InputQueue;
             if (!unfocusIfNoLongerValid())
-                queue = new[] { FocusedDrawable }.Concat(queue);
+                queue = queue.Prepend(FocusedDrawable);
 
             return PropagateJoystickPress(queue, state, new JoystickEventArgs { Button = button });
         }
@@ -749,9 +721,9 @@ namespace osu.Framework.Input
 
         private bool handleJoystickRelease(InputState state, JoystickButton button)
         {
-            IEnumerable<Drawable> queue = inputQueue;
+            IEnumerable<Drawable> queue = InputQueue;
             if (!unfocusIfNoLongerValid())
-                queue = new[] { FocusedDrawable }.Concat(queue);
+                queue = queue.Prepend(FocusedDrawable);
 
             return PropagateJoystickRelease(queue, state, new JoystickEventArgs { Button = button });
         }
@@ -799,88 +771,10 @@ namespace osu.Framework.Input
             return true;
         }
 
-        private void focusTopMostRequestingDrawable() => ChangeFocus(inputQueue.FirstOrDefault(target => target.RequestsFocus));
-
-        /// <summary>
-        /// In order to provide a reliable event system to drawables, we want to ensure that we reprocess input queues (via the
-        /// main loop in <see cref="InputManager"/> after each and every button or key change. This allows
-        /// correct behaviour in a case where the input queues change based on triggered by a button or key.
-        /// </summary>
-        /// <param name="states">One ore more states which are to be converted to distinct states.</param>
-        /// <returns>Processed states such that at most one attribute change occurs between any two consecutive states.</returns>
-        private List<InputState> createDistinctStates(IEnumerable<InputState> states)
+        private void focusTopMostRequestingDrawable()
         {
-            Trace.Assert(CurrentState.Keyboard != null && CurrentState.Mouse != null && CurrentState.Joystick != null);
-
-            List<InputState> distinctStates = new List<InputState>();
-            InputState transient = CurrentState;
-
-            void createDistinctState(Action<InputState> application)
-            {
-                transient = transient.Clone();
-                application?.Invoke(transient);
-                distinctStates.Add(transient);
-            }
-
-            void processForButtons<TButton>(
-                IReadOnlyList<TButton> lastButtons,
-                IEnumerable<TButton> incomingButtons,
-                Action<InputState, IReadOnlyList<TButton>> setButtons)
-                where TButton : struct
-            {
-                foreach (var releasedButton in lastButtons.Except(incomingButtons))
-                    createDistinctState(s =>
-                    {
-                        lastButtons = lastButtons.Where(d => !d.Equals(releasedButton)).ToArray();
-                        setButtons(s, lastButtons);
-                    });
-
-                foreach (var pressedButton in incomingButtons.Except(lastButtons))
-                    createDistinctState(s =>
-                    {
-                        lastButtons = lastButtons.Union(new[] { pressedButton }).ToArray();
-                        setButtons(s, lastButtons);
-                    });
-            }
-
-            foreach (var incoming in states)
-            {
-                var last = transient;
-
-                transient = incoming.Clone();
-                transient.Mouse = last.Mouse;
-                transient.Keyboard = last.Keyboard;
-                transient.Joystick = last.Joystick;
-
-                distinctStates.Add(transient);
-
-                if (incoming.Mouse != null)
-                {
-                    if (transient.Mouse.Position != incoming.Mouse.Position)
-                        createDistinctState(s => s.Mouse.Position = incoming.Mouse.Position);
-
-                    if (transient.Mouse.Scroll != incoming.Mouse.Scroll)
-                        createDistinctState(s => s.Mouse.Scroll = incoming.Mouse.Scroll);
-
-                    processForButtons(transient.Mouse.Buttons, incoming.Mouse.Buttons, (s, buttons) => s.Mouse.Buttons = buttons);
-                }
-
-                if (incoming.Keyboard != null)
-                {
-                    processForButtons(transient.Keyboard.Keys.ToArray(), incoming.Keyboard.Keys, (s, buttons) => s.Keyboard = new KeyboardState { Keys = buttons });
-                }
-
-                if (incoming.Joystick != null)
-                {
-                    if (!transient.Joystick.Axes.SequenceEqual(incoming.Joystick.Axes))
-                        createDistinctState(s => s.Joystick = new JoystickState { Axes = incoming.Joystick.Axes, Buttons = s.Joystick.Buttons });
-
-                    processForButtons(transient.Joystick.Buttons.ToArray(), incoming.Joystick.Buttons,
-                        (s, buttons) => s.Joystick = new JoystickState { Axes = s.Joystick.Axes, Buttons = buttons });
-                }
-            }
-
-            return distinctStates;
+            // todo: don't rebuild input queue every frame
+            ChangeFocus(InputQueue.FirstOrDefault(target => target.RequestsFocus));
         }
     }
 
