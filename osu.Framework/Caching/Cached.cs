@@ -58,8 +58,12 @@ namespace osu.Framework.Caching
     public struct Cached
     {
         private bool isValid;
-
         public bool IsValid => !StaticCached.BypassCache && isValid;
+
+        public Cached(bool isValid = false)
+        {
+            this.isValid = isValid;
+        }
 
         /// <summary>
         /// Invalidate the cache of this object.
