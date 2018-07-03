@@ -80,6 +80,13 @@ namespace osu.Framework.Platform
         public abstract string[] GetDirectories(string path);
 
         /// <summary>
+        /// Retrieve a list of files at the specified path.
+        /// </summary>
+        /// <param name="path">The path to list.</param>
+        /// <returns>A list of files in the path, relative to the path.</returns>
+        public abstract string[] GetFiles(string path);
+
+        /// <summary>
         /// Retrieve a <see cref="Storage"/> for a contained directory.
         /// </summary>
         /// <param name="path">The subdirectory to use as a root.</param>
