@@ -2,10 +2,10 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using OpenTK;
+using osu.Framework.Caching;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using osu.Framework.Caching;
 using osu.Framework.Graphics.Transforms;
 
 namespace osu.Framework.Graphics.Containers
@@ -17,8 +17,6 @@ namespace osu.Framework.Graphics.Containers
         where T : Drawable
     {
         internal event Action OnLayout;
-
-        private Cached layout = new Cached();
 
         /// <summary>
         /// The easing that should be used when children are moved to their position in the layout.
@@ -43,6 +41,10 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        private Cached layout = new Cached();
+
+        protected void InvalidateLayout() => layout.Invalidate();
+
         private Vector2 maximumSize;
 
         /// <summary>
@@ -60,6 +62,8 @@ namespace osu.Framework.Graphics.Containers
                 Invalidate(Invalidation.DrawSize);
             }
         }
+
+        protected override bool RequiresChildrenUpdate => base.RequiresChildrenUpdate || !layout.IsValid;
 
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
@@ -195,13 +199,9 @@ namespace osu.Framework.Graphics.Containers
                     $"{GetType().FullName}.{nameof(ComputeLayoutPositions)} returned a total of {positions.Length} positions for {i} children. {nameof(ComputeLayoutPositions)} must return 1 position per child.");
         }
 
-        protected virtual void InvalidateLayout() => layout.Invalidate();
-
-        protected override bool RequiresLayoutValidation => base.RequiresLayoutValidation || !layout.IsValid;
-
-        protected override void UpdateLayout()
+        protected override void UpdateAfterChildren()
         {
-            base.UpdateLayout();
+            base.UpdateAfterChildren();
 
             if (!layout.IsValid)
             {

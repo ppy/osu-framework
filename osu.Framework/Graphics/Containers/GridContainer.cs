@@ -73,16 +73,6 @@ namespace osu.Framework.Graphics.Containers
             layoutContent();
         }
 
-        protected override bool RequiresLayoutValidation => base.RequiresLayoutValidation || !cellContent.IsValid || !cellLayout.IsValid;
-
-        protected override void UpdateLayout()
-        {
-            base.UpdateLayout();
-
-            layoutContent();
-            layoutCells();
-        }
-
         protected override void Update()
         {
             base.Update();
@@ -299,8 +289,6 @@ namespace osu.Framework.Graphics.Containers
             /// Whether this <see cref="CellContainer"/> has an explicitly-defined height.
             /// </summary>
             public bool IsHeightDefined;
-
-            public override void InvalidateFromChild(Invalidation invalidation, Drawable source = null) => Parent.InvalidateFromChild(invalidation);
         }
     }
 

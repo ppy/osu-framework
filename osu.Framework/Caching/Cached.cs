@@ -61,11 +61,6 @@ namespace osu.Framework.Caching
 
         public bool IsValid => !StaticCached.BypassCache && isValid;
 
-        public Cached(bool isValid = false)
-        {
-            this.isValid = isValid;
-        }
-
         /// <summary>
         /// Invalidate the cache of this object.
         /// </summary>

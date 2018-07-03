@@ -367,30 +367,6 @@ namespace osu.Framework.Graphics
             return true;
         }
 
-        protected virtual bool RequiresLayoutValidation => false;
-
-        private bool isValidatingLayout;
-
-        /// <summary>
-        /// Computes the layout for this <see cref="Drawable"/>.
-        /// </summary>
-        /// <returns>Whether the current layout is valid.</returns>
-        public void ValidateSubTree()
-        {
-            if (isValidatingLayout)
-                return;
-            isValidatingLayout = true;
-
-            while (RequiresLayoutValidation)
-                UpdateLayout();
-
-            isValidatingLayout = false;
-        }
-
-        protected virtual void UpdateLayout()
-        {
-        }
-
         /// <summary>
         /// Updates all masking calculations for this <see cref="Drawable"/>.
         /// This occurs post-<see cref="UpdateSubTree"/> to ensure that all <see cref="Drawable"/> updates have taken place.
@@ -408,6 +384,16 @@ namespace osu.Framework.Graphics
 
             IsMaskedAway = ComputeIsMaskedAway(maskingBounds);
             return true;
+        }
+
+        public virtual bool ValidateSubTree()
+        {
+            return false; // stub
+        }
+
+        protected virtual void UpdateLayout()
+        {
+
         }
 
         /// <summary>

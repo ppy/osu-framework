@@ -260,8 +260,6 @@ namespace osu.Framework.Platform
             Root.Size = Vector2.ComponentMax(Vector2.One, Root.Size);
 
             Root.UpdateSubTree();
-            Root.ValidateSubTree();
-
             Root.UpdateSubTreeMasking(Root, Root.ScreenSpaceDrawQuad.AABBFloat);
 
             using (var buffer = DrawRoots.Get(UsageType.Write))
