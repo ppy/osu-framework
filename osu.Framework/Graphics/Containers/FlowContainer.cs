@@ -199,9 +199,11 @@ namespace osu.Framework.Graphics.Containers
                     $"{GetType().FullName}.{nameof(ComputeLayoutPositions)} returned a total of {positions.Length} positions for {i} children. {nameof(ComputeLayoutPositions)} must return 1 position per child.");
         }
 
-        protected override void UpdateAfterChildren()
+        public override bool RequiresLayoutValidation => base.RequiresLayoutValidation || !layout.IsValid;
+
+        protected override void ValidateLayout()
         {
-            base.UpdateAfterChildren();
+            base.ValidateLayout();
 
             if (!layout.IsValid)
             {

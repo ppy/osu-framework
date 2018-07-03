@@ -235,11 +235,12 @@ namespace osu.Framework.Graphics.UserInterface
             textAtLastLayout = text;
         }
 
-        protected override void UpdateAfterChildren()
-        {
-            base.UpdateAfterChildren();
+        public override bool RequiresLayoutValidation => base.RequiresLayoutValidation || !cursorAndLayout.IsValid;
 
-            //have to run this after children flow
+        protected override void ValidateLayout()
+        {
+            base.ValidateLayout();
+
             if (!cursorAndLayout.IsValid)
             {
                 updateCursorAndLayout();

@@ -128,9 +128,11 @@ namespace osu.Framework.Graphics.Containers
             return base.Invalidate(invalidation, source, shallPropagate);
         }
 
-        protected override void UpdateAfterChildren()
+        public override bool RequiresLayoutValidation => base.RequiresLayoutValidation || !layout.IsValid;
+
+        protected override void ValidateLayout()
         {
-            base.UpdateAfterChildren();
+            base.ValidateLayout();
 
             if (!layout.IsValid)
             {

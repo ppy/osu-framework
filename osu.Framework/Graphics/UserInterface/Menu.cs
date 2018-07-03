@@ -323,9 +323,11 @@ namespace osu.Framework.Graphics.UserInterface
             base.InvalidateFromChild(invalidation, source);
         }
 
-        protected override void UpdateAfterChildren()
+        public override bool RequiresLayoutValidation => base.RequiresLayoutValidation || !sizeCache.IsValid;
+
+        protected override void ValidateLayout()
         {
-            base.UpdateAfterChildren();
+            base.ValidateLayout();
 
             if (!sizeCache.IsValid)
             {
