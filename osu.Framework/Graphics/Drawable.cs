@@ -420,6 +420,8 @@ namespace osu.Framework.Graphics
                 return true;
 
             ValidateLayout();
+            FrameStatistics.Increment(StatisticsCounterType.Validations);
+
             return !RequiresLayoutValidation;
         }
 

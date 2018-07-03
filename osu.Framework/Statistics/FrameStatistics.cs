@@ -44,6 +44,7 @@ namespace osu.Framework.Statistics
     internal enum StatisticsCounterType
     {
         Invalidations = 0,
+        Validations,
         Refreshes,
         DrawNodeCtor,
         DrawNodeAppl,

@@ -17,12 +17,13 @@ namespace osu.Framework.Threading
         internal override IEnumerable<StatisticsCounterType> StatisticsCounters => new[]
         {
             StatisticsCounterType.Invalidations,
+            StatisticsCounterType.Validations,
             StatisticsCounterType.Refreshes,
             StatisticsCounterType.DrawNodeCtor,
             StatisticsCounterType.DrawNodeAppl,
             StatisticsCounterType.ScheduleInvk,
             StatisticsCounterType.KeyboardQueue,
-            StatisticsCounterType.MouseQueue
+            StatisticsCounterType.MouseQueue,
         };
     }
 }
