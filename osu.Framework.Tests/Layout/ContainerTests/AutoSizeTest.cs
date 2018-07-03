@@ -14,67 +14,91 @@ using OpenTK.Graphics;
 namespace osu.Framework.Tests.Layout.ContainerTests
 {
     [TestFixture]
-    public class ContainerInvalidationTest
+    public class AutoSizeTest
     {
+        /// <summary>
+        /// Tests that an auto-sized container invalidates its size dependencies when a child is added.
+        /// </summary>
         [Test]
-        public void TestFixedSizeContainerDoesNotInvalidateSizeDependenciesChildIsAdded()
+        public void Test1()
         {
             var container = new LoadedContainer { Child = new LoadedBox() };
-            Assert.IsTrue(container.ChildrenSizeDependencies.IsValid, "container should not have been invalidated");
-        }
-
-        [Test]
-        public void TestFixedSizeContainerDoesNotSizeDependenciesWhenChildIsRemoved()
-        {
-            LoadedBox child;
-            // ReSharper disable once CollectionNeverQueried.Local : Keeping a local reference
-            var container = new LoadedContainer { Child = child = new LoadedBox() };
-
-            container.Remove(child);
-            Assert.IsTrue(container.ChildrenSizeDependencies.IsValid, "container should not have been invalidated");
-        }
-
-        [Test]
-        public void TestAutoSizingContainerInvalidatesSizeDependenciesWhenChildIsAdded()
-        {
-            var container = new LoadedContainer
-            {
-                AutoSizeAxes = Axes.Both,
-                Child = new LoadedBox()
-            };
 
             Assert.IsFalse(container.ChildrenSizeDependencies.IsValid, "container should have been invalidated");
         }
 
+        /// <summary>
+        /// Tests that an auto-sized container invalidates its size dependencies when a child is removed.
+        /// </summary>
         [Test]
-        public void TestAutoSizingContainerInvalidatesSizeDependenciesWhenChildIsRemoved()
+        public void Test2()
         {
             LoadedBox box;
-            // ReSharper disable once CollectionNeverQueried.Local : Keeping a local reference
-            var container = new LoadedContainer
-            {
-                AutoSizeAxes = Axes.Both,
-                Child = box = new LoadedBox()
-            };
+            var container = new LoadedContainer { Child = box = new LoadedBox() };
 
             container.ValidateChildrenSizeDependencies();
+
             container.Remove(box);
             Assert.IsFalse(container.ChildrenSizeDependencies.IsValid, "container should have been invalidated");
         }
 
+        /// <summary>
+        /// Tests that an auto-sized container invalidates its size dependencies when a child performs an <see cref="Invalidation.All"/> invalidation.
+        /// </summary>
         [Test]
-        public void TestAutoSizingContainerInvalidatesSizeDependenciesWhenChildInvalidatesAll()
+        public void Test3()
         {
             LoadedBox child;
-            var container = new LoadedContainer
-            {
-                AutoSizeAxes = Axes.Both,
-                Child = child = new LoadedBox()
-            };
+            var container = new LoadedContainer { Child = child = new LoadedBox() };
 
             container.ValidateChildrenSizeDependencies();
+
             child.Invalidate();
             Assert.IsFalse(container.ChildrenSizeDependencies.IsValid, "container should have been invalidated");
+        }
+
+        /// <summary>
+        /// Tests that an auto-sized container invalidates its size dependencies when a child's property is changed and performs a
+        /// <see cref="Invalidation.RequiredParentSizeToFit"/> invalidation.
+        /// </summary>
+        /// <param name="propertyName">The property or field that is to be changed.</param>
+        /// <param name="newValue">The value which the target property should take on.</param>
+        /// <param name="unobservedProperties">Any properties which should be set but should NOT be taken into account for the test.</param>
+        [TestCaseSource(nameof(child_property_cases))]
+        public void Test4(string propertyName, object newValue, params KeyValuePair<string, object>[] unobservedProperties)
+        {
+            LoadedBox child;
+            var container = new LoadedContainer { Child = child = new LoadedBox { Alpha = 0 } };
+
+            if (unobservedProperties != null)
+                foreach (var kvp in unobservedProperties)
+                    child.Set(kvp.Key, kvp.Value);
+
+            container.ValidateChildrenSizeDependencies();
+
+            child.Set(propertyName, newValue);
+            Assert.IsFalse(container.ChildrenSizeDependencies.IsValid, "container should have been invalidated");
+        }
+
+        /// <summary>
+        /// Tests that only the most-nested auto-size container invalidates when its child performs a<see cref="Invalidation.RequiredParentSizeToFit"/> invalidation.
+        /// </summary>
+        [Test]
+        public void Test5()
+        {
+            LoadedBox child;
+            LoadedContainer innerContainer;
+            var outerContainer = new LoadedContainer
+            {
+                Child = innerContainer = new LoadedContainer { Child = child = new LoadedBox() }
+            };
+
+            outerContainer.ValidateChildrenSizeDependencies();
+            innerContainer.ValidateChildrenSizeDependencies();
+
+            child.Width = 10;
+            Assert.IsTrue(outerContainer.ChildrenSizeDependencies.IsValid, "invalidation should not propagate to outer container");
+            Assert.IsFalse(innerContainer.ChildrenSizeDependencies.IsValid, "inner container should have been invalidated");
         }
 
         private static readonly object[] child_property_cases =
@@ -107,47 +131,6 @@ namespace osu.Framework.Tests.Layout.ContainerTests
             new object[] { nameof(Drawable.Shear), Vector2.One, null },
         };
 
-        [TestCaseSource(nameof(child_property_cases))]
-        public void TestAutoSizingContainerInvalidatesSizeDependenciesWhenChildPropertyChanges(string propertyName, object newValue, params KeyValuePair<string, object>[] unobservedProperties)
-        {
-            LoadedBox child;
-            var container = new LoadedContainer
-            {
-                AutoSizeAxes = Axes.Both,
-                Child = child = new LoadedBox { Alpha = 0 }
-            };
-
-            if (unobservedProperties != null)
-                foreach (var kvp in unobservedProperties)
-                    child.Set(kvp.Key, kvp.Value);
-
-            container.ValidateChildrenSizeDependencies();
-            child.Set(propertyName, newValue);
-            Assert.IsFalse(container.ChildrenSizeDependencies.IsValid, "container should have been invalidated");
-        }
-
-        [Test]
-        public void TestInvalidatingChildInNestedAutoSizeContainerOnlyInvalidatesParentSizeDependencies()
-        {
-            LoadedBox child;
-            LoadedContainer innerContainer;
-            var outerContainer = new LoadedContainer
-            {
-                AutoSizeAxes = Axes.Both,
-                Child = innerContainer = new LoadedContainer
-                {
-                    AutoSizeAxes = Axes.Both,
-                    Child = child = new LoadedBox()
-                }
-            };
-
-            outerContainer.ValidateChildrenSizeDependencies();
-            innerContainer.ValidateChildrenSizeDependencies();
-            child.Width = 10;
-            Assert.IsTrue(outerContainer.ChildrenSizeDependencies.IsValid, "invalidation should not propagate to outer container");
-            Assert.IsFalse(innerContainer.ChildrenSizeDependencies.IsValid, "inner container should have been invalidated");
-        }
-
         private class LoadedContainer : Container
         {
             public Cached ChildrenSizeDependencies => this.Get<Cached>("childrenSizeDependencies");
@@ -156,6 +139,8 @@ namespace osu.Framework.Tests.Layout.ContainerTests
 
             public LoadedContainer()
             {
+                AutoSizeAxes = Axes.Both;
+
                 // These tests are running without a gamehost, but we need to fake ourselves to be loaded
                 this.Set("loadState", LoadState.Loaded);
             }

@@ -10,10 +10,13 @@ using osu.Framework.Graphics.Containers;
 namespace osu.Framework.Tests.Layout.ContainerTests
 {
     [TestFixture]
-    public class ContainerLayoutTest
+    public class ValidationTest
     {
+        /// <summary>
+        /// Tests that a fixed-size container will never perform validations.
+        /// </summary>
         [Test]
-        public void TestNonAutoSizingContainerDoesNotValidateLayout()
+        public void Test1()
         {
             bool validated = false;
             var container = new Container1 { LayoutValidated = () => validated = true };
@@ -22,8 +25,11 @@ namespace osu.Framework.Tests.Layout.ContainerTests
             Assert.IsFalse(validated, "container should not be validated");
         }
 
+        /// <summary>
+        /// Tests that an auto-size container will perform validations.
+        /// </summary>
         [Test]
-        public void TestAutoSizingContainerValidatesLayout()
+        public void Test2()
         {
             bool validated = false;
             var container = new Container1
@@ -36,8 +42,11 @@ namespace osu.Framework.Tests.Layout.ContainerTests
             Assert.IsTrue(validated, "container should be validated");
         }
 
+        /// <summary>
+        /// Tests that a previously-validated auto-size container will not re-validate.
+        /// </summary>
         [Test]
-        public void TestAutoSizingContainerCachesLayoutValidation()
+        public void Test3()
         {
             bool validated = false;
             var container = new Container1
@@ -47,26 +56,20 @@ namespace osu.Framework.Tests.Layout.ContainerTests
             };
 
             container.ValidateSubTree();
+
             validated = false;
             container.ValidateSubTree();
-            Assert.IsFalse(validated, "container should be validated");
+            Assert.IsFalse(validated, "container should not re-validate");
         }
 
         private class Container1 : Container
         {
             public Action LayoutValidated;
-            public Action LayoutInvalidated;
 
             protected override void UpdateLayout()
             {
                 base.UpdateLayout();
                 LayoutValidated?.Invoke();
-            }
-
-            public override void InvalidateFromChild(Invalidation invalidation, Drawable source = null)
-            {
-                base.InvalidateFromChild(invalidation, source);
-                LayoutInvalidated?.Invoke();
             }
         }
     }

@@ -7,7 +7,7 @@ using osu.Framework.Graphics;
 
 namespace osu.Framework.Tests.Layout
 {
-    public static class DrawableValidationExtensions
+    internal static class ValidationTestExtensions
     {
         public static void Validate(this Drawable d, string cachedMemberName)
         {

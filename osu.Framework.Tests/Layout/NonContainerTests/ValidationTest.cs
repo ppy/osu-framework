@@ -8,10 +8,13 @@ using osu.Framework.Graphics.Shapes;
 namespace osu.Framework.Tests.Layout.NonContainerTests
 {
     [TestFixture]
-    public class BoxLayoutTest
+    public class ValidationTest
     {
+        /// <summary>
+        /// Tests that a box will never perform validations.
+        /// </summary>
         [Test]
-        public void TestBoxDoesNotValidateLayout()
+        public void Test1()
         {
             bool validated = false;
             var box = new Box1 { LayoutValidated = () => validated = true };

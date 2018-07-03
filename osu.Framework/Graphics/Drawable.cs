@@ -393,7 +393,6 @@ namespace osu.Framework.Graphics
 
         protected virtual void UpdateLayout()
         {
-
         }
 
         /// <summary>
