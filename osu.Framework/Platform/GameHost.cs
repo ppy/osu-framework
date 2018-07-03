@@ -171,8 +171,17 @@ namespace osu.Framework.Platform
             Dependencies.CacheAs(this);
             Dependencies.CacheAs(Storage = GetStorage(gameName));
 
+            var assembly = Assembly.GetEntryAssembly();
+
+            // when running under nunit + netcore, entry assembly becomes nunit itself (testhost, Version=15.0.0.0), which isn't what we want.
+            // when running under nunit + net471, entry assembly is null.
+            if (assembly == null || assembly.Location.Contains("testhost"))
+                assembly = Assembly.GetCallingAssembly();
+
             Name = gameName;
+
             Logger.GameIdentifier = gameName;
+            Logger.VersionIdentifier = assembly.GetName().Version.ToString();
 
             threads = new List<GameThread>
             {
@@ -187,13 +196,6 @@ namespace osu.Framework.Platform
                 }),
                 (InputThread = new InputThread(null)), //never gets started.
             };
-
-            var assembly = Assembly.GetEntryAssembly();
-
-            // when running under nunit + netcore, entry assembly becomes nunit itself (testhost, Version=15.0.0.0), which isn't what we want.
-            // when running under nunit + net471, entry assembly is null.
-            if (assembly == null || assembly.Location.Contains("testhost"))
-                assembly = Assembly.GetCallingAssembly();
 
             var path = Path.GetDirectoryName(assembly.Location);
             if (path != null)
