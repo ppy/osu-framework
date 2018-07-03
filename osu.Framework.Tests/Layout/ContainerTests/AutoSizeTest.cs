@@ -157,7 +157,6 @@ namespace osu.Framework.Tests.Layout.ContainerTests
             new object[] { nameof(Drawable.Origin), Anchor.Centre, null },
             new object[] { nameof(Drawable.Anchor), Anchor.Centre, null },
             new object[] { nameof(Drawable.Position), Vector2.One, null },
-            new object[] { nameof(Drawable.RelativePositionAxes), Axes.Both, null },
             new object[] { nameof(Drawable.X), 0.5f, null },
             new object[] { nameof(Drawable.Y), 0.5f, null },
             new object[] { nameof(Drawable.RelativeSizeAxes), Axes.Both, null },
@@ -165,16 +164,6 @@ namespace osu.Framework.Tests.Layout.ContainerTests
             new object[] { nameof(Drawable.Width), 0.5f, null },
             new object[] { nameof(Drawable.Height), 0.5f, null },
             new object[] { nameof(Drawable.FillMode), FillMode.Fit, null },
-            new object[] { nameof(Drawable.FillAspectRatio), 0.5f, new[]
-            {
-                new KeyValuePair<string, object>(nameof(Drawable.RelativeSizeAxes), Axes.Both),
-                new KeyValuePair<string, object>(nameof(Drawable.FillMode), FillMode.Fit)
-            }},
-            new object[] { nameof(Drawable.FillAspectRatio), 0.5f, new[]
-            {
-                new KeyValuePair<string, object>(nameof(Drawable.RelativeSizeAxes), Axes.Both),
-                new KeyValuePair<string, object>(nameof(Drawable.FillMode), FillMode.Fill)
-            }},
             new object[] { nameof(Drawable.Scale), new Vector2(2), null },
             new object[] { nameof(Drawable.Margin), new MarginPadding(2), null },
             new object[] { nameof(Drawable.Colour), (ColourInfo)Color4.Black, null },
