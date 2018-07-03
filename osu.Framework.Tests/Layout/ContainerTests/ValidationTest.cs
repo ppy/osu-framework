@@ -102,9 +102,9 @@ namespace osu.Framework.Tests.Layout.ContainerTests
 
             public Action LayoutValidated;
 
-            protected override void UpdateLayout()
+            protected override void ValidateLayout()
             {
-                base.UpdateLayout();
+                base.ValidateLayout();
                 LayoutValidated?.Invoke();
             }
 

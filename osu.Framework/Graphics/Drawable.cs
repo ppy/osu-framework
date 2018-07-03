@@ -391,7 +391,7 @@ namespace osu.Framework.Graphics
             return false; // stub
         }
 
-        protected virtual void UpdateLayout()
+        protected virtual void ValidateLayout()
         {
         }
 
