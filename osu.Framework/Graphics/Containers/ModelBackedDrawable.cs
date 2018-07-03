@@ -14,59 +14,19 @@ namespace osu.Framework.Graphics.Containers
     public abstract class ModelBackedDrawable<T> : CompositeDrawable where T : class
     {
         /// <summary>
-        /// The placeholder Drawable created when the container was instantiated.
-        /// </summary>
-        public readonly Drawable PlaceholderDrawable;
-
-        /// <summary>
         /// The currently displayed Drawable. Null if no drawable is displayed (note that the placeholder may still be displayed in this state).
         /// </summary>
-        public Drawable DisplayedDrawable { get; private set; }
-
-        /// <summary>
-        /// The Drawable that will be presented next. Null if there is no pending drawable.
-        /// </summary>
-        public Drawable NextDrawable { get; private set; }
-
-        /// <summary>
-        /// Determines whether the current Drawable should fade out straight away when switching to a new model,
-        /// or whether it should wait until the new Drawable has finished loading.
-        /// </summary>
-        protected virtual bool FadeOutImmediately => false;
-
-        /// <summary>
-        /// The time in milliseconds that Drawables will fade in and out.
-        /// </summary>
-        protected virtual double FadeDuration => 300;
-
-        /// <summary>
-        /// The delay in milliseconds before Drawables will begin loading.
-        /// </summary>
-        protected virtual double LoadDelay => 0;
-
-        /// <summary>
-        /// True if the most recently added DelayedLoadWrapper has begun loading.
-        /// </summary>
-        public bool LoadTriggered => lastDelayedLoadWrapper?.LoadTriggered ?? false;
+        protected Drawable DisplayedDrawable { get; private set; }
 
         /// <summary>
         /// The IEqualityComparer used to compare models to ensure that Drawables are not updated unnecessarily.
         /// </summary>
-        public readonly IEqualityComparer<T> Comparer;
+        protected readonly IEqualityComparer<T> Comparer;
 
         /// <summary>
-        /// Override to instantiate a placeholder Drawable that will be displayed when no model is set.
-        /// May be null to indicate no placeholder.
+        /// True if a placeholder exists and is present.
         /// </summary>
-        protected virtual Drawable CreatePlaceholder() => null;
-
-        /// <summary>
-        /// Override to instantiate a custom Drawable based on the passed model.
-        /// May be null to indicate that the model has no visual representation,
-        /// in which case the placeholder will be used if it exists.
-        /// </summary>
-        /// <param name="model">The model that the Drawable should represent.</param>
-        protected abstract Drawable CreateDrawable(T model);
+        protected bool IsShowingPlaceholder => placeholderDrawable?.IsPresent ?? false;
 
         private T model;
 
@@ -92,7 +52,8 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private UpdateDelayedLoadWrapper lastDelayedLoadWrapper;
+        private readonly Drawable placeholderDrawable;
+        private Drawable nextDrawable;
 
         /// <summary>
         /// Constructs a new <see cref="ModelBackedDrawable{T}"/> with the default <typeparamref name="T"/> equality comparer.
@@ -118,12 +79,12 @@ namespace osu.Framework.Graphics.Containers
         protected ModelBackedDrawable(IEqualityComparer<T> comparer)
         {
             Comparer = comparer;
-            PlaceholderDrawable = CreatePlaceholder();
+            placeholderDrawable = CreatePlaceholder();
 
-            if (PlaceholderDrawable != null)
+            if (placeholderDrawable != null)
             {
-                PlaceholderDrawable.RelativeSizeAxes = Axes.Both;
-                AddInternal(PlaceholderDrawable);
+                placeholderDrawable.RelativeSizeAxes = Axes.Both;
+                AddInternal(placeholderDrawable);
             }
         }
 
@@ -144,7 +105,7 @@ namespace osu.Framework.Graphics.Containers
             if (newDrawable == DisplayedDrawable)
                 return;
 
-            NextDrawable = newDrawable;
+            nextDrawable = newDrawable;
 
             if (newDrawable == null || FadeOutImmediately)
             {
@@ -155,19 +116,19 @@ namespace osu.Framework.Graphics.Containers
 
             if (newDrawable == null)
             {
-                ShowDrawable(PlaceholderDrawable);
+                ShowDrawable(placeholderDrawable);
                 return;
             }
 
             newDrawable.OnLoadComplete = d =>
             {
-                if (d != NextDrawable)
+                if (d != nextDrawable)
                 {
                     d.Expire();
                     return;
                 }
 
-                HideDrawable(PlaceholderDrawable);
+                HideDrawable(placeholderDrawable);
 
                 if (!FadeOutImmediately)
                 {
@@ -178,21 +139,46 @@ namespace osu.Framework.Graphics.Containers
                 ShowDrawable(d);
 
                 DisplayedDrawable = d;
-                NextDrawable = null;
-                lastDelayedLoadWrapper = null;
+                nextDrawable = null;
             };
 
-            AddInternal(lastDelayedLoadWrapper = new UpdateDelayedLoadWrapper(newDrawable, LoadDelay));
+            AddInternal(CreateDelayedLoadWrapper(newDrawable, LoadDelay));
         }
 
-        private class UpdateDelayedLoadWrapper : DelayedLoadWrapper
-        {
-            internal new bool LoadTriggered => base.LoadTriggered;
+        /// <summary>
+        /// Determines whether the current Drawable should fade out straight away when switching to a new model,
+        /// or whether it should wait until the new Drawable has finished loading.
+        /// </summary>
+        protected virtual bool FadeOutImmediately => false;
 
-            public UpdateDelayedLoadWrapper(Drawable content, double timeBeforeLoad = 500)
-                : base(content, timeBeforeLoad)
-            {
-            }
-        }
+        /// <summary>
+        /// The time in milliseconds that Drawables will fade in and out.
+        /// </summary>
+        protected virtual double FadeDuration => 300;
+
+        /// <summary>
+        /// The delay in milliseconds before Drawables will begin loading.
+        /// </summary>
+        protected virtual double LoadDelay => 0;
+
+        /// <summary>
+        /// Allows subclasses to customise the DelayedLoadWrapper.
+        /// </summary>
+        protected virtual DelayedLoadWrapper CreateDelayedLoadWrapper(Drawable content, double timeBeforeLoad) =>
+            new DelayedLoadWrapper(content, timeBeforeLoad);
+
+        /// <summary>
+        /// Override to instantiate a placeholder Drawable that will be displayed when no model is set.
+        /// May be null to indicate no placeholder.
+        /// </summary>
+        protected virtual Drawable CreatePlaceholder() => null;
+
+        /// <summary>
+        /// Override to instantiate a custom Drawable based on the passed model.
+        /// May be null to indicate that the model has no visual representation,
+        /// in which case the placeholder will be used if it exists.
+        /// </summary>
+        /// <param name="model">The model that the Drawable should represent.</param>
+        protected abstract Drawable CreateDrawable(T model);
     }
 }

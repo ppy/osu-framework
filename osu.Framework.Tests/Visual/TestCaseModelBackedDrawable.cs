@@ -40,40 +40,51 @@ namespace osu.Framework.Tests.Visual
                 }
             });
 
-            addNullTest("No PH", modelBackedDrawable, false);
+            // make sure the items are null before we begin the tests
+            AddStep("Set all null", () =>
+            {
+                modelBackedDrawable.Item = null;
+                placeholderModelBackedDrawable.Item = null;
+                delayedModelBackedDrawable.Item = null;
+            });
+            AddUntilStep(() => modelBackedDrawable.VisibleItemId == -1 &&
+                               placeholderModelBackedDrawable.VisibleItemId == -1 &&
+                               delayedModelBackedDrawable.VisibleItemId == -1, "Wait until all null");
+
+            // try setting items and null for a regular model backed drawable
             addItemTest("No PH", modelBackedDrawable, 0);
             addItemTest("No PH", modelBackedDrawable, 1);
             addNullTest("No PH", modelBackedDrawable, false);
 
-            addNullTest("PH", placeholderModelBackedDrawable, true);
+            // try setting items and null for a model backed drawable with a placeholder
             addItemTest("PH", placeholderModelBackedDrawable, 0);
             addItemTest("PH", placeholderModelBackedDrawable, 1);
             addNullTest("PH", placeholderModelBackedDrawable, true);
 
-            AddStep("D: Set item null", () => delayedModelBackedDrawable.Item = null);
-            AddStep("D: Set item with delay", () => delayedModelBackedDrawable.Item = new TestItem(0));
-            AddAssert("D: Test load not triggered", () => !delayedModelBackedDrawable.LoadTriggered);
-            AddUntilStep(() => delayedModelBackedDrawable.LoadTriggered, "D: Wait until load triggered");
+            // try setting items and null for a model backed drawable with a loading delay (test is the same as placeholder)
+            addItemTest("D", delayedModelBackedDrawable, 0);
+            addItemTest("D", delayedModelBackedDrawable, 1);
+            addNullTest("D", delayedModelBackedDrawable, true);
         }
 
         private void addNullTest(string prefix, TestModelBackedDrawable drawable, bool expectPlaceholder)
         {
             AddStep($"{prefix}: Set null", () => drawable.Item = null);
             if (expectPlaceholder)
-                AddAssert($"{prefix}: Check null with PH", () => drawable.DisplayedDrawable == null && (drawable.PlaceholderDrawable?.Alpha ?? 0) > 0);
+                AddAssert($"{prefix}: Check showing PH", () => drawable.VisibleItemId == -1 && drawable.IsShowingPlaceholder);
             else
             {
-                AddAssert($"{prefix}: Test load triggered", () => drawable.LoadTriggered);
-                AddUntilStep(() => drawable.NextDrawable == null, $"{prefix}: Wait until loaded");
-                AddAssert($"{prefix}: Check non-null no PH", () => drawable.VisibleItemId == -1 && drawable.PlaceholderDrawable == null);
+                AddAssert($"{prefix}: Test drawable not changed", () => drawable.VisibleItemId != -1);
+                AddUntilStep(() => drawable.VisibleItemId == -1, $"{prefix}: Wait until changed");
+                AddAssert($"{prefix}: Check not showing PH", () => !drawable.IsShowingPlaceholder);
             }
         }
 
         private void addItemTest(string prefix, TestModelBackedDrawable drawable, int itemNumber)
         {
-            AddStep($"{prefix} Set item {itemNumber}", () => drawable.Item = new TestItem(itemNumber));
-            AddUntilStep(() => drawable.NextDrawable == null, $"{prefix} wait until loaded");
-            AddAssert($"{prefix} Check item {itemNumber}", () => drawable.VisibleItemId == itemNumber);
+            AddStep($"{prefix}: Set item {itemNumber}", () => drawable.Item = new TestItem(itemNumber));
+            AddAssert($"{prefix}: Test drawable not changed", () => drawable.VisibleItemId != itemNumber);
+            AddUntilStep(() => drawable.VisibleItemId == itemNumber, $"{prefix}: Wait until changed");
         }
 
         private class TestItem
@@ -89,9 +100,11 @@ namespace osu.Framework.Tests.Visual
         private class TestItemDrawable : SpriteText
         {
             public readonly int ItemId;
+            private readonly bool delay;
 
-            public TestItemDrawable(TestItem item)
+            public TestItemDrawable(TestItem item, bool delay = true)
             {
+                this.delay = delay;
                 ItemId = item?.ItemId ?? -1;
                 Position = new Vector2(10, 10);
                 Text = item == null ? "No Item" : $"Item {item.ItemId}";
@@ -100,8 +113,8 @@ namespace osu.Framework.Tests.Visual
             [BackgroundDependencyLoader]
             private void load()
             {
-                // delay
-                Thread.Sleep((int)(500 / Clock.Rate));
+                if (delay)
+                    Thread.Sleep((int)(500 / Clock.Rate));
             }
         }
 
@@ -110,6 +123,10 @@ namespace osu.Framework.Tests.Visual
             public TestItem Item { get => Model; set => Model = value; }
 
             public int VisibleItemId => (DisplayedDrawable as TestItemDrawable)?.ItemId ?? -1;
+
+            public new Drawable DisplayedDrawable => base.DisplayedDrawable;
+
+            public new bool IsShowingPlaceholder => base.IsShowingPlaceholder;
 
             public TestModelBackedDrawable()
                 : base((lhs, rhs) => lhs?.ItemId == rhs?.ItemId)
@@ -138,6 +155,10 @@ namespace osu.Framework.Tests.Visual
         private class DelayedTestModelBackedDrawable : PlaceholderTestModelBackedDrawable
         {
             protected override double LoadDelay => 1000 / Clock.Rate;
+
+            protected override Drawable CreateDrawable(TestItem model) => model == null ? null : new TestItemDrawable(model, false);
+
+            protected override Drawable CreatePlaceholder() => new Box { Colour = Color4.DarkViolet };
         }
     }
 }
