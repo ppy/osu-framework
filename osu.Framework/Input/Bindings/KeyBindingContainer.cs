@@ -76,12 +76,9 @@ namespace osu.Framework.Input.Bindings
         {
             var scrollDelta = state.Mouse.ScrollDelta;
             var isPrecise = state.Mouse.HasPreciseScroll;
-            if (scrollDelta.Y != 0)
-            {
-                InputKey key = scrollDelta.Y > 0 ? InputKey.MouseWheelUp : InputKey.MouseWheelDown;
-                return handleNewPressed(state, key, false, scrollDelta, isPrecise) | handleNewReleased(state, key);
-            }
-            return false;
+            var key = KeyCombination.FromScrollDelta(scrollDelta);
+            if (key == InputKey.None) return false;
+            return handleNewPressed(state, key, false, scrollDelta, isPrecise) | handleNewReleased(state, key);
         }
 
         internal override bool BuildKeyboardInputQueue(List<Drawable> queue, bool allowBlocking = true)

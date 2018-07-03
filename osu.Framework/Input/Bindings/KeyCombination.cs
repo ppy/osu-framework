@@ -242,6 +242,13 @@ namespace osu.Framework.Input.Bindings
             return InputKey.FirstJoystickButton + (int)button;
         }
 
+        public static InputKey FromScrollDelta(Vector2 scrollDelta)
+        {
+            if (scrollDelta.Y > 0) return InputKey.MouseWheelUp;
+            if (scrollDelta.Y < 0) return InputKey.MouseWheelDown;
+            return InputKey.None;
+        }
+
         public static KeyCombination FromInputState(InputState state, Vector2? scrollDelta = null)
         {
             List<InputKey> keys = new List<InputKey>();
@@ -252,10 +259,8 @@ namespace osu.Framework.Input.Bindings
                     keys.Add(FromMouseButton(button));
             }
 
-            if (scrollDelta?.Y > 0)
-                keys.Add(InputKey.MouseWheelUp);
-            if (scrollDelta?.Y < 0)
-                keys.Add(InputKey.MouseWheelDown);
+            if (scrollDelta is Vector2 sd && sd.Y != 0)
+                keys.Add(FromScrollDelta(sd));
 
             if (state.Keyboard != null)
             {
