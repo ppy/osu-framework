@@ -123,11 +123,11 @@ namespace osu.Framework.Input.Bindings
 
         private bool handleNewPressed(InputState state, InputKey newKey, bool repeat, Vector2? scrollDelta = null, bool isPrecise = false)
         {
-            float wheelAmount = 0;
+            float scrollAmount = 0;
             if (newKey == InputKey.MouseWheelUp)
-                wheelAmount = scrollDelta?.Y ?? 0;
+                scrollAmount = scrollDelta?.Y ?? 0;
             else if (newKey == InputKey.MouseWheelDown)
-                wheelAmount = -(scrollDelta?.Y ?? 0);
+                scrollAmount = -(scrollDelta?.Y ?? 0);
             var pressedCombination = KeyCombination.FromInputState(state, scrollDelta);
 
             bool handled = false;
@@ -156,7 +156,7 @@ namespace osu.Framework.Input.Bindings
 
             foreach (var newBinding in newlyPressed)
             {
-                handled |= PropagatePressed(KeyBindingInputQueue, newBinding.GetAction<T>(), wheelAmount, isPrecise);
+                handled |= PropagatePressed(KeyBindingInputQueue, newBinding.GetAction<T>(), scrollAmount, isPrecise);
 
                 // we only want to handle the first valid binding (the one with the most keys) in non-simultaneous mode.
                 if ((simultaneousMode == SimultaneousBindingMode.None || simultaneousMode == SimultaneousBindingMode.NoneExact) && handled)
@@ -166,7 +166,7 @@ namespace osu.Framework.Input.Bindings
             return handled;
         }
 
-        protected virtual bool PropagatePressed(IEnumerable<Drawable> drawables, T pressed, float wheelAmount = 0, bool isPrecise = false)
+        protected virtual bool PropagatePressed(IEnumerable<Drawable> drawables, T pressed, float scrollAmount = 0, bool isPrecise = false)
         {
             IDrawable handled = null;
 
@@ -178,8 +178,8 @@ namespace osu.Framework.Input.Bindings
             if (simultaneousMode == SimultaneousBindingMode.All || !pressedActions.Contains(pressed))
             {
                 pressedActions.Add(pressed);
-                if (wheelAmount != 0)
-                    handled = drawables.OfType<IMouseWheelBindingHandler<T>>().FirstOrDefault(d => d.OnScroll(pressed, wheelAmount, isPrecise));
+                if (scrollAmount != 0)
+                    handled = drawables.OfType<IScrollBindingHandler<T>>().FirstOrDefault(d => d.OnScroll(pressed, scrollAmount, isPrecise));
                 if (handled == null)
                     handled = drawables.OfType<IKeyBindingHandler<T>>().FirstOrDefault(d => d.OnPressed(pressed));
             }

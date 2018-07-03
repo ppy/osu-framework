@@ -90,7 +90,7 @@ namespace osu.Framework.Tests.Visual
                 {
                     foreach (var entry in entries)
                     {
-                        var wheelEntry = entry as MouseWheelCheckConditions;
+                        var scrollEntry = entry as ScrollCheckConditions;
                         var testButton = entry.Tester[action];
 
                         if (!lastEventCounts.TryGetValue(testButton, out var count))
@@ -98,14 +98,14 @@ namespace osu.Framework.Tests.Visual
 
                         count.OnPressedCount += entry.OnPressedDelta;
                         count.OnReleasedCount += entry.OnReleasedDelta;
-                        count.OnMouseWheelCount += wheelEntry?.OnMouseWheelCount ?? 0;
+                        count.OnScrollCount += scrollEntry?.OnScrollCount ?? 0;
 
                         Assert.AreEqual(count.OnPressedCount, testButton.OnPressedCount, $"{testButton.Concurrency} {testButton.Action} OnPressedCount");
                         Assert.AreEqual(count.OnReleasedCount, testButton.OnReleasedCount, $"{testButton.Concurrency} {testButton.Action} OnReleasedCount");
-                        if (testButton is MouseWheelTestButton wheelTestButton && wheelEntry != null)
+                        if (testButton is ScrollTestButton scrollTestButton && scrollEntry != null)
                         {
-                            Assert.AreEqual(count.OnMouseWheelCount, wheelTestButton.OnMouseWheelCount, $"{testButton.Concurrency} {testButton.Action} OnMouseWheelCount");
-                            Assert.AreEqual(wheelEntry.LastMouseWheelAmount, wheelTestButton.LastMouseWheelAmount, $"{testButton.Concurrency} {testButton.Action} LastMouseWheelAmount");
+                            Assert.AreEqual(count.OnScrollCount, scrollTestButton.OnScrollCount, $"{testButton.Concurrency} {testButton.Action} OnScrollCount");
+                            Assert.AreEqual(scrollEntry.LastScrollAmount, scrollTestButton.LastScrollAmount, $"{testButton.Concurrency} {testButton.Action} LastScrollAmount");
                         }
                     }
                 });
@@ -157,8 +157,8 @@ namespace osu.Framework.Tests.Visual
                 {
                     var testButton = mode[action];
                     Trace.Assert(testButton.OnPressedCount == testButton.OnReleasedCount);
-                    if (testButton is MouseWheelTestButton wheelTestButton)
-                        Trace.Assert(wheelTestButton.OnMouseWheelCount == testButton.OnPressedCount);
+                    if (testButton is ScrollTestButton scrollTestButton)
+                        Trace.Assert(scrollTestButton.OnScrollCount == testButton.OnPressedCount);
                 }
             }
         }
@@ -248,16 +248,16 @@ namespace osu.Framework.Tests.Visual
         }
 
         [Test]
-        public void MouseWheel()
+        public void Scroll()
         {
             wrapTest(() =>
             {
                 CheckConditions[] allPressAndReleased(float amount) => new CheckConditions[]
                 {
-                    new MouseWheelCheckConditions(none, 1, 1, 1, amount),
-                    new MouseWheelCheckConditions(noneExact, 1, 1, 1, amount),
-                    new MouseWheelCheckConditions(unique, 1, 1, 1, amount),
-                    new MouseWheelCheckConditions(all, 1, 1, 1, amount)
+                    new ScrollCheckConditions(none, 1, 1, 1, amount),
+                    new ScrollCheckConditions(noneExact, 1, 1, 1, amount),
+                    new ScrollCheckConditions(unique, 1, 1, 1, amount),
+                    new ScrollCheckConditions(all, 1, 1, 1, amount)
                 };
 
                 scrollMouseWheel(2);
@@ -275,7 +275,7 @@ namespace osu.Framework.Tests.Visual
         {
             public int OnPressedCount;
             public int OnReleasedCount;
-            public int OnMouseWheelCount;
+            public int OnScrollCount;
         }
 
         private class CheckConditions
@@ -292,16 +292,16 @@ namespace osu.Framework.Tests.Visual
             }
         }
 
-        private class MouseWheelCheckConditions : CheckConditions
+        private class ScrollCheckConditions : CheckConditions
         {
-            public readonly int OnMouseWheelCount;
-            public readonly float LastMouseWheelAmount;
+            public readonly int OnScrollCount;
+            public readonly float LastScrollAmount;
 
-            public MouseWheelCheckConditions(KeyBindingTester tester, int onPressedDelta, int onReleasedDelta, int onMouseWheelCount, float lastMouseWheelAmount)
+            public ScrollCheckConditions(KeyBindingTester tester, int onPressedDelta, int onReleasedDelta, int onScrollCount, float lastScrollAmount)
                 : base(tester, onPressedDelta, onReleasedDelta)
             {
-                OnMouseWheelCount = onMouseWheelCount;
-                LastMouseWheelAmount = lastMouseWheelAmount;
+                OnScrollCount = onScrollCount;
+                LastScrollAmount = lastScrollAmount;
             }
         }
 
@@ -406,12 +406,12 @@ namespace osu.Framework.Tests.Visual
             public override bool ReceiveMouseInputAt(Vector2 screenSpacePos) => true;
         }
 
-        private class MouseWheelTestButton : TestButton, IMouseWheelBindingHandler<TestAction>
+        private class ScrollTestButton : TestButton, IScrollBindingHandler<TestAction>
         {
-            public int OnMouseWheelCount { get; protected set; }
-            public float LastMouseWheelAmount { get; protected set; }
+            public int OnScrollCount { get; protected set; }
+            public float LastScrollAmount { get; protected set; }
 
-            public MouseWheelTestButton(TestAction action, SimultaneousBindingMode concurrency)
+            public ScrollTestButton(TestAction action, SimultaneousBindingMode concurrency)
                 : base(action, concurrency)
             {
                 SpriteText.TextSize *= .9f;
@@ -420,15 +420,15 @@ namespace osu.Framework.Tests.Visual
             protected override void Update()
             {
                 base.Update();
-                Text += $", {OnMouseWheelCount}, {LastMouseWheelAmount}";
+                Text += $", {OnScrollCount}, {LastScrollAmount}";
             }
 
             public bool OnScroll(TestAction action, float amount, bool isPrecise)
             {
                 if (Action == action)
                 {
-                    ++OnMouseWheelCount;
-                    LastMouseWheelAmount = amount;
+                    ++OnScrollCount;
+                    LastScrollAmount = amount;
                 }
 
                 return false;
@@ -437,8 +437,8 @@ namespace osu.Framework.Tests.Visual
             public override void Reset()
             {
                 base.Reset();
-                OnMouseWheelCount = 0;
-                LastMouseWheelAmount = 0;
+                OnScrollCount = 0;
+                LastScrollAmount = 0;
             }
         }
 
@@ -541,7 +541,7 @@ namespace osu.Framework.Tests.Visual
                 testButtons = Enum.GetValues(typeof(TestAction)).Cast<TestAction>().Select(t =>
                 {
                     if (t.ToString().Contains("Wheel"))
-                        return new MouseWheelTestButton(t, concurrency);
+                        return new ScrollTestButton(t, concurrency);
                     else
                         return new TestButton(t, concurrency);
                 }).ToArray();
