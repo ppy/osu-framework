@@ -11,6 +11,7 @@ namespace osu.Framework.Input
     /// <remarks>
     /// This <see cref="InputManager"/> can be used in one of two states.
     /// When <see cref="UseParentInput"/> is false, this input manager gets inputs only from own input handlers.
+    /// When <see cref="UseParentInput"/> becomes false, all pressed buttons and keys are released.
     /// When <see cref="UseParentInput"/> is true, this input manager ignore own input handlers and
     /// gets inputs from the parent (an ancestor in the scene graph) <see cref="InputManager"/> in the following way:
     /// For mouse input, this only considers input that is passed as events such as <see cref="OnMouseDown"/>.
@@ -30,7 +31,11 @@ namespace osu.Framework.Input
             {
                 if (useParentInput == value) return;
                 useParentInput = value;
-                if (UseParentInput) Sync();
+
+                if (UseParentInput)
+                    Sync();
+                else
+                    Reset();
             }
         }
 
@@ -170,6 +175,16 @@ namespace osu.Framework.Input
         {
             new KeyboardKeyInput(parentState?.Keyboard?.Keys, CurrentState.Keyboard.Keys).Apply(CurrentState, this);
             new JoystickButtonInput(parentState?.Joystick?.Buttons, CurrentState.Joystick.Buttons).Apply(CurrentState, this);
+        }
+
+        /// <summary>
+        /// Reset all input state.
+        /// </summary>
+        protected virtual void Reset()
+        {
+            new MouseButtonInput(null, CurrentState.Mouse.Buttons).Apply(CurrentState, this);
+            new KeyboardKeyInput(null, CurrentState.Keyboard.Keys).Apply(CurrentState, this);
+            new JoystickButtonInput(null, CurrentState.Joystick.Buttons).Apply(CurrentState, this);
         }
     }
 }
