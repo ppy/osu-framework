@@ -101,6 +101,57 @@ namespace osu.Framework.Tests.Layout.ContainerTests
             Assert.IsFalse(innerContainer.ChildrenSizeDependencies.IsValid, "inner container should have been invalidated");
         }
 
+        /// <summary>
+        /// Tests that autosize layout is validated when its <see cref="CompositeDrawable.Width"/> or <see cref="CompositeDrawable.Height"/> are referenced.
+        /// </summary>
+        [Test]
+        public void Test6()
+        {
+            const float expected_size = 10;
+
+            LoadedBox child;
+            var container = new LoadedContainer
+            {
+                AutoSizeAxes = Axes.Both,
+                Child = child = new LoadedBox()
+            };
+
+            container.UpdateChildrenLife();
+
+            child.Size = new Vector2(expected_size);
+            Assert.AreEqual(new Vector2(10), container.Size);
+            Assert.IsTrue(container.ChildrenSizeDependencies.IsValid, "container should be validated");
+        }
+
+        /// <summary>
+        /// Tests that nested autosize layout is validated when an autosizing parent's <see cref="CompositeDrawable.Width"/> or <see cref="CompositeDrawable.Height"/> are referenced.
+        /// </summary>
+        [Test]
+        public void Test7()
+        {
+            const float expected_size = 10;
+
+            LoadedBox child;
+            LoadedContainer innerContainer;
+            var container = new LoadedContainer
+            {
+                AutoSizeAxes = Axes.Both,
+                Child = innerContainer = new LoadedContainer
+                {
+                    AutoSizeAxes = Axes.Both,
+                    Child = child = new LoadedBox()
+                }
+            };
+
+            innerContainer.UpdateChildrenLife();
+            container.UpdateChildrenLife();
+
+            child.Size = new Vector2(expected_size);
+            Assert.AreEqual(new Vector2(10), container.Size);
+            Assert.IsTrue(container.ChildrenSizeDependencies.IsValid, "container should be validated");
+            Assert.IsTrue(innerContainer.ChildrenSizeDependencies.IsValid, "inner container should be validated");
+        }
+
         private static readonly object[] child_property_cases =
         {
             new object[] { nameof(Drawable.Origin), Anchor.Centre, null },
@@ -144,6 +195,8 @@ namespace osu.Framework.Tests.Layout.ContainerTests
                 // These tests are running without a gamehost, but we need to fake ourselves to be loaded
                 this.Set("loadState", LoadState.Loaded);
             }
+
+            public new void UpdateChildrenLife() => base.UpdateChildrenLife();
         }
 
         private class LoadedBox : Box

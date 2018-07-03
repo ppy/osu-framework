@@ -19,7 +19,7 @@ namespace osu.Framework.Tests.Layout.ContainerTests
         public void Test1()
         {
             bool validated = false;
-            var container = new Container1 { LayoutValidated = () => validated = true };
+            var container = new LoadedContainer { LayoutValidated = () => validated = true };
 
             container.ValidateSubTree();
             Assert.IsFalse(validated, "container should not be validated");
@@ -32,7 +32,7 @@ namespace osu.Framework.Tests.Layout.ContainerTests
         public void Test2()
         {
             bool validated = false;
-            var container = new Container1
+            var container = new LoadedContainer
             {
                 AutoSizeAxes = Axes.Both,
                 LayoutValidated = () => validated = true
@@ -49,7 +49,7 @@ namespace osu.Framework.Tests.Layout.ContainerTests
         public void Test3()
         {
             bool validated = false;
-            var container = new Container1
+            var container = new LoadedContainer
             {
                 AutoSizeAxes = Axes.Both,
                 LayoutValidated = () => validated = true
@@ -62,7 +62,7 @@ namespace osu.Framework.Tests.Layout.ContainerTests
             Assert.IsFalse(validated, "container should not re-validate");
         }
 
-        private class Container1 : Container
+        private class LoadedContainer : Container
         {
             public Action LayoutValidated;
 
@@ -70,6 +70,12 @@ namespace osu.Framework.Tests.Layout.ContainerTests
             {
                 base.UpdateLayout();
                 LayoutValidated?.Invoke();
+            }
+
+            public LoadedContainer()
+            {
+                // These tests are running without a gamehost, but we need to fake ourselves to be loaded
+                this.Set("loadState", LoadState.Loaded);
             }
         }
     }
