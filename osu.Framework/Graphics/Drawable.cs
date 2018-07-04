@@ -206,7 +206,7 @@ namespace osu.Framework.Graphics
                 // get our dependencies from our parent, but allow local overriding of our inherited dependency container
                 Dependencies = CreateLocalDependencies(dependencies);
 
-                Dependencies.Inject(this);
+                dependencies.Inject(this);
 
                 LoadAsyncComplete();
 
