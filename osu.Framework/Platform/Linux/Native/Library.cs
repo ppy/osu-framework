@@ -14,9 +14,26 @@ namespace osu.Framework.Platform.Linux.Native
         /// <summary>
         /// Loads a library with an enum of flags to use with dlopen. Uses <see cref="LoadFlags"/> for the flags
         /// </summary>
-        /// <param name="library">See 'man dlopen' for more information about the flags.</param>>
-        /// <param name="flags">See 'man ld.so' for more information about how the libraries are loaded.</param>>
-        public static void Load(string library, LoadFlags flags) => dlopen(library, flags);
+        /// <param name="flags">See 'man dlopen' for more information.</param>
+        /// <param name="locations">Uses ld.so and NATIVE_DLL_SEARCH_DIRECTORIES for library locations</param>
+        public static void Load(string library, LoadFlags flags)
+        {
+            var loadStatus = IntPtr.Zero;
+            loadStatus = dlopen(library, flags);
+
+            if (loadStatus == IntPtr.Zero) // True if library failed to load
+            {
+                string fullPath;
+                // List of paths that coreclr uses to find libraries
+                var paths = (string)AppContext.GetData("NATIVE_DLL_SEARCH_DIRECTORIES");
+                var pathList = paths.Split(':');
+                for(var i = 0; i < pathList.Length && loadStatus == IntPtr.Zero; i++)
+                {
+                    fullPath = pathList[i]+'/'+library;
+                    loadStatus = dlopen(fullPath, flags);
+                }
+            }
+        }
 
         [Flags]
         public enum LoadFlags
