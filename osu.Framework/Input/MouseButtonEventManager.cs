@@ -12,9 +12,7 @@ using osu.Framework.Logging;
 namespace osu.Framework.Input
 {
     /// <summary>
-    /// Manages mouse events which is initiated by a state change of a button
-    /// namely drag, click and double click.
-    /// An instance manages those events for only one button.
+    /// Manages state and events (click, drag and double-click) for a single mouse button.
     /// </summary>
     public abstract class MouseButtonEventManager
     {
@@ -24,17 +22,17 @@ namespace osu.Framework.Input
         public readonly InputManager InputManager;
 
         /// <summary>
-        /// The mouse button this manager manages for.
+        /// The mouse button this manager manages.
         /// </summary>
         public readonly MouseButton Button;
 
         /// <summary>
-        /// Whether dragging is handled with the button.
+        /// Whether dragging is handled by the managed button.
         /// </summary>
         public abstract bool EnableDrag { get; }
 
         /// <summary>
-        /// Whether click and double click is handled with the button.
+        /// Whether click and double click are handled by the managed button.
         /// </summary>
         public abstract bool EnableClick { get; }
 
