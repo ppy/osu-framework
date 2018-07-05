@@ -259,8 +259,8 @@ namespace osu.Framework.Input.Bindings
                     keys.Add(FromMouseButton(button));
             }
 
-            if (scrollDelta is Vector2 sd && sd.Y != 0)
-                keys.Add(FromScrollDelta(sd));
+            if (scrollDelta.HasValue && scrollDelta.Value.Y != 0)
+                keys.Add(FromScrollDelta(scrollDelta.Value));
 
             if (state.Keyboard != null)
             {
