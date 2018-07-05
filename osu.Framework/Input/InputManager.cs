@@ -585,7 +585,7 @@ namespace osu.Framework.Input
 
             public override bool EnableClick => true;
 
-            public override bool ChangeFocusForClick => true;
+            public override bool ChangeFocusOnClick => true;
         }
 
         private class MouseMinorButtonEventManager : MouseButtonEventManager
@@ -599,7 +599,7 @@ namespace osu.Framework.Input
 
             public override bool EnableClick => false;
 
-            public override bool ChangeFocusForClick => false;
+            public override bool ChangeFocusOnClick => false;
         }
     }
 }
