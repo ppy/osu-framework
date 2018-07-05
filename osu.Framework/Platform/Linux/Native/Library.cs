@@ -13,16 +13,18 @@ namespace osu.Framework.Platform.Linux.Native
         private static extern IntPtr dlopen(string library, LoadFlags flags);
 
         /// <summary>
-        /// Loads a library with an enum of flags to use with dlopen. Uses <see cref="LoadFlags"/> for the flags
+        /// Loads a library with flags to use with dlopen. Uses <see cref="LoadFlags"/> for the flags
+        ///
+        /// Uses NATIVE_DLL_SEARCH_DIRECTORIES and then ld.so for library paths
         /// </summary>
         /// <param name="flags">See 'man dlopen' for more information.</param>
-        /// <param name="library">Uses ld.so and NATIVE_DLL_SEARCH_DIRECTORIES for locations</param>
+        /// <param name="library">Full name of the library</param>
         public static void Load(string library, LoadFlags flags)
         {
             var paths = (string)AppContext.GetData("NATIVE_DLL_SEARCH_DIRECTORIES");
             foreach (var path in paths.Split(':'))
             {
-                if(dlopen(Path.Combine(path, library), flags) != IntPtr.Zero)
+                if (dlopen(Path.Combine(path, library), flags) != IntPtr.Zero)
                     break;
             }
         }
