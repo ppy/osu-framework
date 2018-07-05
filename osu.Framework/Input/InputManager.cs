@@ -115,7 +115,12 @@ namespace osu.Framework.Input
             RelativeSizeAxes = Axes.Both;
 
             foreach (var button in Enum.GetValues(typeof(MouseButton)).Cast<MouseButton>())
-                mouseButtonEventManagers.Add(button, CreateButtonManagerFor(button));
+            {
+                var manager = CreateButtonManagerFor(button);
+                manager.RequestFocus = ChangeFocusFromClick;
+                manager.GetPositionalInputQueue = () => PositionalInputQueue;
+                mouseButtonEventManagers.Add(button, manager);
+            }
         }
 
         /// <summary>
@@ -128,9 +133,9 @@ namespace osu.Framework.Input
             switch (button)
             {
                 case MouseButton.Left:
-                    return new MouseLeftButtonEventManager(this, button);
+                    return new MouseLeftButtonEventManager(button);
                 default:
-                    return new MouseMinorButtonEventManager(this, button);
+                    return new MouseMinorButtonEventManager(button);
             }
         }
 
@@ -418,7 +423,7 @@ namespace osu.Framework.Input
         public void HandleMouseButtonStateChange(InputState state, MouseButton button, ButtonStateChangeKind kind)
         {
             if (mouseButtonEventManagers.TryGetValue(button, out var manager))
-                manager.HandleButtonStateChange(state, kind);
+                manager.HandleButtonStateChange(state, kind, Time.Current);
         }
 
         public virtual void HandleCustomInput(InputState state, IInput input)
@@ -570,6 +575,37 @@ namespace osu.Framework.Input
             return true;
         }
 
+        protected virtual void ChangeFocusFromClick(Drawable clickedDrawable)
+        {
+            if (clickedDrawable == null) return;
+
+            Drawable focusTarget = clickedDrawable;
+
+            if (!focusTarget.AcceptsFocus)
+            {
+                // search upwards from the clicked drawable until we find something to handle focus.
+                Drawable previousFocused = FocusedDrawable;
+
+                while (focusTarget?.AcceptsFocus == false)
+                    focusTarget = focusTarget.Parent;
+
+                if (focusTarget != null && previousFocused != null)
+                {
+                    // we found a focusable target above us.
+                    // now search upwards from previousFocused to check whether focusTarget is a common parent.
+                    Drawable search = previousFocused;
+                    while (search != null && search != focusTarget)
+                        search = search.Parent;
+
+                    if (focusTarget == search)
+                        // we have a common parent, so let's keep focus on the previously focused target.
+                        focusTarget = previousFocused;
+                }
+            }
+
+            ChangeFocus(focusTarget);
+        }
+
         private void focusTopMostRequestingDrawable()
         {
             // todo: don't rebuild input queue every frame
@@ -578,8 +614,8 @@ namespace osu.Framework.Input
 
         private class MouseLeftButtonEventManager : MouseButtonEventManager
         {
-            public MouseLeftButtonEventManager(InputManager inputManager, MouseButton button)
-                : base(inputManager, button)
+            public MouseLeftButtonEventManager(MouseButton button)
+                : base(button)
             {
             }
 
@@ -592,8 +628,8 @@ namespace osu.Framework.Input
 
         private class MouseMinorButtonEventManager : MouseButtonEventManager
         {
-            public MouseMinorButtonEventManager(InputManager inputManager, MouseButton button)
-                : base(inputManager, button)
+            public MouseMinorButtonEventManager(MouseButton button)
+                : base(button)
             {
             }
 

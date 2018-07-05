@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
 using System.Collections.Generic;
 using osu.Framework.Graphics;
 using OpenTK;
@@ -17,14 +18,19 @@ namespace osu.Framework.Input
     public abstract class MouseButtonEventManager
     {
         /// <summary>
-        /// The input manager.
-        /// </summary>
-        public readonly InputManager InputManager;
-
-        /// <summary>
         /// The mouse button this manager manages.
         /// </summary>
         public readonly MouseButton Button;
+
+        /// <summary>
+        /// Used for requesting focus from click.
+        /// </summary>
+        public Action<Drawable> RequestFocus;
+
+        /// <summary>
+        /// Used for get a positional input queue.
+        /// </summary>
+        public Func<IEnumerable<Drawable>> GetPositionalInputQueue;
 
         /// <summary>
         /// Whether dragging is handled by the managed button.
@@ -41,22 +47,10 @@ namespace osu.Framework.Input
         /// </summary>
         public abstract bool ChangeFocusOnClick { get; }
 
-        protected MouseButtonEventManager(InputManager inputManager, MouseButton button)
+        protected MouseButtonEventManager(MouseButton button)
         {
-            InputManager = inputManager;
             Button = button;
         }
-
-        /// <summary>
-        /// The current time.
-        /// Used for double click judgement.
-        /// </summary>
-        protected virtual double CurrentTime => InputManager.Time.Current;
-
-        /// <summary>
-        /// The positional input queue used for events.
-        /// </summary>
-        protected virtual IEnumerable<Drawable> PositionalInputQueue => InputManager.PositionalInputQueue;
 
         /// <summary>
         /// The maximum time between two clicks for a double-click to be considered.
@@ -89,6 +83,11 @@ namespace osu.Framework.Input
         protected bool DragStarted;
 
         /// <summary>
+        /// The positional input queue.
+        /// </summary>
+        protected IEnumerable<Drawable> PositionalInputQueue => GetPositionalInputQueue?.Invoke() ?? Enumerable.Empty<Drawable>();
+
+        /// <summary>
         /// The input queue for propagating <see cref="Drawable.OnMouseUp"/>.
         /// This is created from the <see cref="PositionalInputQueue"/> when the last time the button is pressed.
         /// </summary>
@@ -116,7 +115,7 @@ namespace osu.Framework.Input
             }
         }
 
-        public virtual void HandleButtonStateChange(InputState state, ButtonStateChangeKind kind)
+        public virtual void HandleButtonStateChange(InputState state, ButtonStateChangeKind kind, double currentTime)
         {
             Trace.Assert(state.Mouse.IsPressed(Button) == (kind == ButtonStateChangeKind.Pressed));
 
@@ -133,7 +132,7 @@ namespace osu.Framework.Input
                 if (EnableClick && DraggedDrawable == null)
                 {
                     bool isValidClick = true;
-                    if (LastClickTime != null && CurrentTime - LastClickTime < DoubleClickTime)
+                    if (LastClickTime != null && currentTime - LastClickTime < DoubleClickTime)
                     {
                         if (HandleMouseDoubleClick(state))
                         {
@@ -145,7 +144,7 @@ namespace osu.Framework.Input
 
                     if (isValidClick)
                     {
-                        LastClickTime = CurrentTime;
+                        LastClickTime = currentTime;
                         HandleMouseClick(state);
                     }
                 }
@@ -204,7 +203,7 @@ namespace osu.Framework.Input
             ClickedDrawable = intersectingQueue.FirstOrDefault(t => t.CanReceiveMouseInput && t.ReceiveMouseInputAt(state.Mouse.Position) && t.TriggerOnClick(state));
 
             if (ChangeFocusOnClick)
-                ChangeFocusToClickedDrawable();
+                RequestFocus?.Invoke(ClickedDrawable);
 
             if (ClickedDrawable != null)
                 Logger.Log($"MouseClick handled by {ClickedDrawable}.", LoggingTarget.Runtime, LogLevel.Debug);
@@ -299,40 +298,6 @@ namespace osu.Framework.Input
                 Logger.Log($"MouseUp ({args.Button}) handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
 
             return handledBy != null;
-        }
-
-        protected virtual void ChangeFocusToClickedDrawable()
-        {
-            Drawable focusTarget = null;
-
-            if (ClickedDrawable != null)
-            {
-                focusTarget = ClickedDrawable;
-
-                if (!focusTarget.AcceptsFocus)
-                {
-                    // search upwards from the clicked drawable until we find something to handle focus.
-                    Drawable previousFocused = InputManager.FocusedDrawable;
-
-                    while (focusTarget?.AcceptsFocus == false)
-                        focusTarget = focusTarget.Parent;
-
-                    if (focusTarget != null && previousFocused != null)
-                    {
-                        // we found a focusable target above us.
-                        // now search upwards from previousFocused to check whether focusTarget is a common parent.
-                        Drawable search = previousFocused;
-                        while (search != null && search != focusTarget)
-                            search = search.Parent;
-
-                        if (focusTarget == search)
-                            // we have a common parent, so let's keep focus on the previously focused target.
-                            focusTarget = previousFocused;
-                    }
-                }
-            }
-
-            InputManager.ChangeFocus(focusTarget);
         }
     }
 }
