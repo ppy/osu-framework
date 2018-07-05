@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.IO;
 using System.Runtime.InteropServices;
 
 namespace osu.Framework.Platform.Linux.Native
@@ -15,23 +16,14 @@ namespace osu.Framework.Platform.Linux.Native
         /// Loads a library with an enum of flags to use with dlopen. Uses <see cref="LoadFlags"/> for the flags
         /// </summary>
         /// <param name="flags">See 'man dlopen' for more information.</param>
-        /// <param name="locations">Uses ld.so and NATIVE_DLL_SEARCH_DIRECTORIES for library locations</param>
+        /// <param name="library">Uses ld.so and NATIVE_DLL_SEARCH_DIRECTORIES for locations</param>
         public static void Load(string library, LoadFlags flags)
         {
-            var loadStatus = IntPtr.Zero;
-            loadStatus = dlopen(library, flags);
-
-            if (loadStatus == IntPtr.Zero) // True if library failed to load
+            var paths = (string)AppContext.GetData("NATIVE_DLL_SEARCH_DIRECTORIES");
+            foreach (var path in paths.Split(':'))
             {
-                string fullPath;
-                // List of paths that coreclr uses to find libraries
-                var paths = (string)AppContext.GetData("NATIVE_DLL_SEARCH_DIRECTORIES");
-                var pathList = paths.Split(':');
-                for(var i = 0; i < pathList.Length && loadStatus == IntPtr.Zero; i++)
-                {
-                    fullPath = pathList[i]+'/'+library;
-                    loadStatus = dlopen(fullPath, flags);
-                }
+                if(dlopen(Path.Combine(path, library), flags) != IntPtr.Zero)
+                    break;
             }
         }
 
