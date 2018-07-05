@@ -115,20 +115,22 @@ namespace osu.Framework.Input
             RelativeSizeAxes = Axes.Both;
 
             foreach (var button in Enum.GetValues(typeof(MouseButton)).Cast<MouseButton>())
+                mouseButtonEventManagers.Add(button, CreateButtonManagerFor(button));
+        }
+
+        /// <summary>
+        /// Create a <see cref="MouseButtonEventManager"/> for a specified mouse button.
+        /// </summary>
+        /// <param name="button">The button to be handled by the returned manager.</param>
+        /// <returns>The <see cref="MouseButtonEventManager"/>.</returns>
+        protected virtual MouseButtonEventManager CreateButtonManagerFor(MouseButton button)
+        {
+            switch (button)
             {
-                MouseButtonEventManager manager;
-
-                switch (button)
-                {
-                    case MouseButton.Left:
-                        manager = new MouseLeftButtonEventManager(this, button);
-                        break;
-                    default:
-                        manager = new MouseMinorButtonEventManager(this, button);
-                        break;
-                }
-
-                mouseButtonEventManagers.Add(button, manager);
+                case MouseButton.Left:
+                    return new MouseLeftButtonEventManager(this, button);
+                default:
+                    return new MouseMinorButtonEventManager(this, button);
             }
         }
 
