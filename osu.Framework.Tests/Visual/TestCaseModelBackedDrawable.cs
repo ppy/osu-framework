@@ -10,6 +10,7 @@ using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Testing;
 using System.Threading;
+using osu.Framework.Extensions.Color4Extensions;
 
 namespace osu.Framework.Tests.Visual
 {
@@ -97,7 +98,7 @@ namespace osu.Framework.Tests.Visual
             }
         }
 
-        private class TestItemDrawable : SpriteText
+        private class TestItemDrawable : CompositeDrawable
         {
             public readonly int ItemId;
             private readonly bool delay;
@@ -106,8 +107,23 @@ namespace osu.Framework.Tests.Visual
             {
                 this.delay = delay;
                 ItemId = item?.ItemId ?? -1;
-                Position = new Vector2(10, 10);
-                Text = item == null ? "No Item" : $"Item {item.ItemId}";
+
+                RelativeSizeAxes = Axes.Both;
+
+                InternalChildren = new Drawable[]
+                {
+                    new Box
+                    {
+                        Colour = Color4.Gray.Opacity(0.2f),
+                        RelativeSizeAxes = Axes.Both
+                    },
+                    new SpriteText
+                    {
+                        Text = item == null ? "No Item" : $"Item {item.ItemId}",
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre
+                    }
+                };
             }
 
             [BackgroundDependencyLoader]
@@ -120,7 +136,11 @@ namespace osu.Framework.Tests.Visual
 
         private class TestModelBackedDrawable : ModelBackedDrawable<TestItem>
         {
-            public TestItem Item { get => Model; set => Model = value; }
+            public TestItem Item
+            {
+                get => Model;
+                set => Model = value;
+            }
 
             public int VisibleItemId => (DisplayedDrawable as TestItemDrawable)?.ItemId ?? -1;
 

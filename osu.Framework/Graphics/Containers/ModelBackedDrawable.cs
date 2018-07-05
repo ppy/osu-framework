@@ -146,35 +146,35 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Determines whether the current Drawable should fade out straight away when switching to a new model,
+        /// Determines whether the current <see cref="Drawable"/> should fade out straight away when switching to a new model,
         /// or whether it should wait until the new Drawable has finished loading.
         /// </summary>
         protected virtual bool FadeOutImmediately => false;
 
         /// <summary>
-        /// The time in milliseconds that Drawables will fade in and out.
+        /// The time in milliseconds that <see cref="Drawable"/>s will fade in and out.
         /// </summary>
         protected virtual double FadeDuration => 300;
 
         /// <summary>
-        /// The delay in milliseconds before Drawables will begin loading.
+        /// The delay in milliseconds before <see cref="Drawable"/>s will begin loading.
         /// </summary>
         protected virtual double LoadDelay => 0;
 
         /// <summary>
-        /// Allows subclasses to customise the DelayedLoadWrapper.
+        /// Allows subclasses to customise the <see cref="DelayedLoadWrapper"/>.
         /// </summary>
         protected virtual DelayedLoadWrapper CreateDelayedLoadWrapper(Drawable content, double timeBeforeLoad) =>
             new DelayedLoadWrapper(content, timeBeforeLoad);
 
         /// <summary>
-        /// Override to instantiate a placeholder Drawable that will be displayed when no model is set.
+        /// Override to instantiate a placeholder <see cref="Drawable"/> that will be displayed when no model is set.
         /// May be null to indicate no placeholder.
         /// </summary>
         protected virtual Drawable CreatePlaceholder() => null;
 
         /// <summary>
-        /// Override to instantiate a custom Drawable based on the passed model.
+        /// Override to instantiate a custom <see cref="Drawable"/> based on the passed model.
         /// May be null to indicate that the model has no visual representation,
         /// in which case the placeholder will be used if it exists.
         /// </summary>
