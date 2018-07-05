@@ -8,6 +8,7 @@ using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Logging;
+using OpenTK;
 
 namespace osu.Framework.Input.Bindings
 {
@@ -73,8 +74,11 @@ namespace osu.Framework.Input.Bindings
 
         protected override bool OnScroll(InputState state)
         {
-            InputKey key = state.Mouse.ScrollDelta.Y > 0 ? InputKey.MouseWheelUp : InputKey.MouseWheelDown;
-            return handleNewPressed(state, key, false) | handleNewReleased(state, key);
+            var scrollDelta = state.Mouse.ScrollDelta;
+            var isPrecise = state.Mouse.HasPreciseScroll;
+            var key = KeyCombination.FromScrollDelta(scrollDelta);
+            if (key == InputKey.None) return false;
+            return handleNewPressed(state, key, false, scrollDelta, isPrecise) | handleNewReleased(state, key);
         }
 
         internal override bool BuildKeyboardInputQueue(List<Drawable> queue, bool allowBlocking = true)
@@ -114,12 +118,14 @@ namespace osu.Framework.Input.Bindings
 
         protected override bool OnJoystickRelease(InputState state, JoystickEventArgs args) => handleNewReleased(state, KeyCombination.FromJoystickButton(args.Button));
 
-        private bool handleNewPressed(InputState state, InputKey newKey, bool repeat)
+        private bool handleNewPressed(InputState state, InputKey newKey, bool repeat, Vector2? scrollDelta = null, bool isPrecise = false)
         {
-            var pressedCombination = KeyCombination.FromInputState(state);
-            // MouseWheelUp/Down cannot be obtained from KeyCombination.FromInputState so we manually add that here.
-            if (!pressedCombination.Keys.Contains(newKey))
-                pressedCombination = new KeyCombination(pressedCombination.Keys.Concat(new[] { newKey }));
+            float scrollAmount = 0;
+            if (newKey == InputKey.MouseWheelUp)
+                scrollAmount = scrollDelta?.Y ?? 0;
+            else if (newKey == InputKey.MouseWheelDown)
+                scrollAmount = -(scrollDelta?.Y ?? 0);
+            var pressedCombination = KeyCombination.FromInputState(state, scrollDelta);
 
             bool handled = false;
             var bindings = repeat ? KeyBindings : KeyBindings.Except(pressedBindings);
@@ -147,7 +153,7 @@ namespace osu.Framework.Input.Bindings
 
             foreach (var newBinding in newlyPressed)
             {
-                handled |= PropagatePressed(KeyBindingInputQueue, newBinding.GetAction<T>());
+                handled |= PropagatePressed(KeyBindingInputQueue, newBinding.GetAction<T>(), scrollAmount, isPrecise);
 
                 // we only want to handle the first valid binding (the one with the most keys) in non-simultaneous mode.
                 if ((simultaneousMode == SimultaneousBindingMode.None || simultaneousMode == SimultaneousBindingMode.NoneExact) && handled)
@@ -157,7 +163,7 @@ namespace osu.Framework.Input.Bindings
             return handled;
         }
 
-        protected virtual bool PropagatePressed(IEnumerable<Drawable> drawables, T pressed)
+        protected virtual bool PropagatePressed(IEnumerable<Drawable> drawables, T pressed, float scrollAmount = 0, bool isPrecise = false)
         {
             IDrawable handled = null;
 
@@ -169,7 +175,10 @@ namespace osu.Framework.Input.Bindings
             if (simultaneousMode == SimultaneousBindingMode.All || !pressedActions.Contains(pressed))
             {
                 pressedActions.Add(pressed);
-                handled = drawables.OfType<IKeyBindingHandler<T>>().FirstOrDefault(d => d.OnPressed(pressed));
+                if (scrollAmount != 0)
+                    handled = drawables.OfType<IScrollBindingHandler<T>>().FirstOrDefault(d => d.OnScroll(pressed, scrollAmount, isPrecise));
+                if (handled == null)
+                    handled = drawables.OfType<IKeyBindingHandler<T>>().FirstOrDefault(d => d.OnPressed(pressed));
             }
 
             if (handled != null)
