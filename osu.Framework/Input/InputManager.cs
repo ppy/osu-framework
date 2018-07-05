@@ -574,7 +574,7 @@ namespace osu.Framework.Input
             ChangeFocus(InputQueue.FirstOrDefault(target => target.RequestsFocus));
         }
 
-        public class MouseLeftButtonEventManager : MouseButtonEventManager
+        private class MouseLeftButtonEventManager : MouseButtonEventManager
         {
             public MouseLeftButtonEventManager(InputManager inputManager, MouseButton button)
                 : base(inputManager, button)
@@ -588,7 +588,7 @@ namespace osu.Framework.Input
             public override bool ChangeFocusForClick => true;
         }
 
-        public class MouseMinorButtonEventManager : MouseButtonEventManager
+        private class MouseMinorButtonEventManager : MouseButtonEventManager
         {
             public MouseMinorButtonEventManager(InputManager inputManager, MouseButton button)
                 : base(inputManager, button)
