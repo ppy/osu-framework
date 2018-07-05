@@ -3,23 +3,24 @@
 
 using System;
 using System.Collections.Generic;
+using osu.Framework.Graphics.Transforms;
 using osu.Framework.Lists;
 
 namespace osu.Framework.Graphics.Containers
 {
     /// <summary>
-    /// Manages dynamically displaying a custom Drawable based on a model object.
-    /// Useful for replacing Drawables on the fly.
+    /// Manages dynamically displaying a custom <see cref="Drawable"/> based on a model object.
+    /// Useful for replacing <see cref="Drawable"/>s on the fly.
     /// </summary>
     public abstract class ModelBackedDrawable<T> : CompositeDrawable where T : class
     {
         /// <summary>
-        /// The currently displayed Drawable. Null if no drawable is displayed (note that the placeholder may still be displayed in this state).
+        /// The currently displayed <see cref="Drawable"/>. Null if no drawable is displayed (note that the placeholder may still be displayed in this state).
         /// </summary>
         protected Drawable DisplayedDrawable { get; private set; }
 
         /// <summary>
-        /// The IEqualityComparer used to compare models to ensure that Drawables are not updated unnecessarily.
+        /// The <see cref="IEqualityComparer{T}"/> used to compare models to ensure that <see cref="Drawable"/>s are not updated unnecessarily.
         /// </summary>
         protected readonly IEqualityComparer<T> Comparer;
 
@@ -31,7 +32,7 @@ namespace osu.Framework.Graphics.Containers
         private T model;
 
         /// <summary>
-        /// Gets or sets the model, potentially triggering the current Drawable to update.
+        /// Gets or sets the model, potentially triggering the current <see cref="Drawable"/> to update.
         /// Subclasses should expose this via a nicer property name to better represent the data being set.
         /// </summary>
         protected T Model
@@ -94,9 +95,23 @@ namespace osu.Framework.Graphics.Containers
             updateDrawable();
         }
 
-        protected virtual void ShowDrawable(Drawable d) => d?.FadeInFromZero(FadeDuration, Easing.OutQuint);
+        private void replaceDrawable(Drawable source, Drawable target)
+        {
+            if (source == null && target == null)
+                return;
 
-        protected virtual void HideDrawable(Drawable d) => d?.FadeOut(FadeDuration);
+            TransformSequence<Drawable> showTransform = null, hideTransform = null;
+
+            var showingTarget = target ?? placeholderDrawable;
+            if (showingTarget != null)
+                showTransform = ShowDrawable(showingTarget);
+
+            var hidingSource = source ?? placeholderDrawable;
+            if (hidingSource != null)
+                hideTransform = HideDrawable(hidingSource);
+
+            (showTransform ?? hideTransform)?.OnComplete((d) => source?.Expire());
+        }
 
         private void updateDrawable()
         {
@@ -109,16 +124,12 @@ namespace osu.Framework.Graphics.Containers
 
             if (newDrawable == null || FadeOutImmediately)
             {
-                HideDrawable(DisplayedDrawable);
-                DisplayedDrawable?.Expire();
+                replaceDrawable(DisplayedDrawable, null);
                 DisplayedDrawable = null;
             }
 
             if (newDrawable == null)
-            {
-                ShowDrawable(placeholderDrawable);
                 return;
-            }
 
             newDrawable.OnLoadComplete = d =>
             {
@@ -128,15 +139,7 @@ namespace osu.Framework.Graphics.Containers
                     return;
                 }
 
-                HideDrawable(placeholderDrawable);
-
-                if (!FadeOutImmediately)
-                {
-                    HideDrawable(DisplayedDrawable);
-                    DisplayedDrawable?.Expire();
-                }
-
-                ShowDrawable(d);
+                replaceDrawable(DisplayedDrawable, d);
 
                 DisplayedDrawable = d;
                 nextDrawable = null;
@@ -147,7 +150,7 @@ namespace osu.Framework.Graphics.Containers
 
         /// <summary>
         /// Determines whether the current <see cref="Drawable"/> should fade out straight away when switching to a new model,
-        /// or whether it should wait until the new Drawable has finished loading.
+        /// or whether it should wait until the new <see cref="Drawable"/> has finished loading.
         /// </summary>
         protected virtual bool FadeOutImmediately => false;
 
@@ -160,6 +163,20 @@ namespace osu.Framework.Graphics.Containers
         /// The delay in milliseconds before <see cref="Drawable"/>s will begin loading.
         /// </summary>
         protected virtual double LoadDelay => 0;
+
+        /// <summary>
+        /// Hides the specified <see cref="Drawable"/>.
+        /// </summary>
+        /// <param name="d">The <see cref="Drawable"/> that will be hidden.</param>
+        /// <returns>The <see cref="TransformSequence{T}"/> for chaining.</returns>
+        protected virtual TransformSequence<Drawable> HideDrawable(Drawable d) => d.FadeOut(FadeDuration, Easing.OutQuint);
+
+        /// <summary>
+        /// Shows the specified <see cref="Drawable"/>.
+        /// </summary>
+        /// <param name="d">The <see cref="Drawable"/> that will be shown.</param>
+        /// <returns>The <see cref="TransformSequence{T}"/> for chaining.</returns>
+        protected virtual TransformSequence<Drawable> ShowDrawable(Drawable d) => d.FadeInFromZero(FadeDuration, Easing.OutQuint);
 
         /// <summary>
         /// Allows subclasses to customise the <see cref="DelayedLoadWrapper"/>.
@@ -178,7 +195,7 @@ namespace osu.Framework.Graphics.Containers
         /// May be null to indicate that the model has no visual representation,
         /// in which case the placeholder will be used if it exists.
         /// </summary>
-        /// <param name="model">The model that the Drawable should represent.</param>
+        /// <param name="model">The model that the <see cref="Drawable"/> should represent.</param>
         protected abstract Drawable CreateDrawable(T model);
     }
 }

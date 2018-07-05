@@ -21,6 +21,7 @@ namespace osu.Framework.Tests.Visual
             TestModelBackedDrawable modelBackedDrawable;
             PlaceholderTestModelBackedDrawable placeholderModelBackedDrawable;
             DelayedTestModelBackedDrawable delayedModelBackedDrawable;
+            FadeImmediateTestModelBackedDrawable fadeImmediateModelBackedDrawable;
 
             AddRange(new Drawable[]
             {
@@ -31,12 +32,17 @@ namespace osu.Framework.Tests.Visual
                 },
                 placeholderModelBackedDrawable = new PlaceholderTestModelBackedDrawable
                 {
-                    Position = new Vector2(50, 250),
+                    Position = new Vector2(50, 200),
                     Size = new Vector2(100, 100)
                 },
                 delayedModelBackedDrawable = new DelayedTestModelBackedDrawable
                 {
-                    Position = new Vector2(50, 450),
+                    Position = new Vector2(50, 350),
+                    Size = new Vector2(100, 100)
+                },
+                fadeImmediateModelBackedDrawable = new FadeImmediateTestModelBackedDrawable
+                {
+                    Position = new Vector2(50, 500),
                     Size = new Vector2(100, 100)
                 }
             });
@@ -47,10 +53,12 @@ namespace osu.Framework.Tests.Visual
                 modelBackedDrawable.Item = null;
                 placeholderModelBackedDrawable.Item = null;
                 delayedModelBackedDrawable.Item = null;
+                fadeImmediateModelBackedDrawable.Item = null;
             });
             AddUntilStep(() => modelBackedDrawable.VisibleItemId == -1 &&
                                placeholderModelBackedDrawable.VisibleItemId == -1 &&
-                               delayedModelBackedDrawable.VisibleItemId == -1, "Wait until all null");
+                               delayedModelBackedDrawable.VisibleItemId == -1 &&
+                               fadeImmediateModelBackedDrawable.VisibleItemId == -1, "Wait until all null");
 
             // try setting items and null for a regular model backed drawable
             addItemTest("No PH", modelBackedDrawable, 0);
@@ -66,13 +74,21 @@ namespace osu.Framework.Tests.Visual
             addItemTest("D", delayedModelBackedDrawable, 0);
             addItemTest("D", delayedModelBackedDrawable, 1);
             addNullTest("D", delayedModelBackedDrawable, true);
+
+            // try setting an item and checking that the placeholder is visible during the transition
+            AddStep("F: Set item 0", () => fadeImmediateModelBackedDrawable.Item = new TestItem(0));
+            AddUntilStep(() => fadeImmediateModelBackedDrawable.VisibleItemId == 0, "F: Wait until changed");
+            AddStep("F: Set item 1", () => fadeImmediateModelBackedDrawable.Item = new TestItem(1));
+            AddAssert("F: Check showing PH", () => fadeImmediateModelBackedDrawable.IsShowingPlaceholder);
+            AddUntilStep(() => fadeImmediateModelBackedDrawable.VisibleItemId == 1, "F: Wait until changed");
+            AddAssert("F: Check not showing PH", () => !fadeImmediateModelBackedDrawable.IsShowingPlaceholder);
         }
 
         private void addNullTest(string prefix, TestModelBackedDrawable drawable, bool expectPlaceholder)
         {
             AddStep($"{prefix}: Set null", () => drawable.Item = null);
             if (expectPlaceholder)
-                AddAssert($"{prefix}: Check showing PH", () => drawable.VisibleItemId == -1 && drawable.IsShowingPlaceholder);
+                AddAssert($"{prefix}: Check showing PH", () => drawable.IsShowingPlaceholder);
             else
             {
                 AddAssert($"{prefix}: Test drawable not changed", () => drawable.VisibleItemId != -1);
@@ -170,6 +186,13 @@ namespace osu.Framework.Tests.Visual
             protected override Drawable CreateDrawable(TestItem model) => model == null ? null : new TestItemDrawable(model);
 
             protected override Drawable CreatePlaceholder() => new Box { Colour = Color4.Blue };
+        }
+
+        private class FadeImmediateTestModelBackedDrawable : PlaceholderTestModelBackedDrawable
+        {
+            protected override bool FadeOutImmediately => true;
+
+            protected override double FadeDuration => 0;
         }
 
         private class DelayedTestModelBackedDrawable : PlaceholderTestModelBackedDrawable
