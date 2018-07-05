@@ -110,7 +110,7 @@ namespace osu.Framework.Graphics.Containers
             if (hidingSource != null)
                 hideTransform = HideDrawable(hidingSource);
 
-            (showTransform ?? hideTransform)?.OnComplete((d) => source?.Expire());
+            (showTransform ?? hideTransform)?.OnComplete(d => source?.Expire());
         }
 
         private void updateDrawable()
