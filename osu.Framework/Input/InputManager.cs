@@ -393,9 +393,7 @@ namespace osu.Framework.Input
             handleMouseMove(state);
 
             foreach (var manager in mouseButtonEventManagers.Values)
-            {
                 manager.HandlePositionChange(state);
-            }
         }
 
         public virtual void HandleMouseScrollChange(InputState state)
@@ -406,9 +404,7 @@ namespace osu.Framework.Input
         public void HandleMouseButtonStateChange(InputState state, MouseButton button, ButtonStateChangeKind kind)
         {
             if (mouseButtonEventManagers.TryGetValue(button, out var manager))
-            {
                 manager.HandleButtonStateChange(state, kind);
-            }
         }
 
         public virtual void HandleCustomInput(InputState state, IInput input)
@@ -565,40 +561,33 @@ namespace osu.Framework.Input
             // todo: don't rebuild input queue every frame
             ChangeFocus(InputQueue.FirstOrDefault(target => target.RequestsFocus));
         }
-    }
 
-    public enum ConfineMouseMode
-    {
-        Never,
-        Fullscreen,
-        Always
-    }
-
-    public class MouseLeftButtonEventManager : MouseButtonEventManager
-    {
-        public MouseLeftButtonEventManager(InputManager inputManager, MouseButton button)
-            : base(inputManager, button)
+        public class MouseLeftButtonEventManager : MouseButtonEventManager
         {
+            public MouseLeftButtonEventManager(InputManager inputManager, MouseButton button)
+                : base(inputManager, button)
+            {
+            }
+
+            public override bool EnableDrag => true;
+
+            public override bool EnableClick => true;
+
+            public override bool ChangeFocusForClick => true;
         }
 
-        public override bool EnableDrag => true;
-
-        public override bool EnableClick => true;
-
-        public override bool ChangeFocusForClick => true;
-    }
-
-    public class MouseMinorButtonEventManager : MouseButtonEventManager
-    {
-        public MouseMinorButtonEventManager(InputManager inputManager, MouseButton button)
-            : base(inputManager, button)
+        public class MouseMinorButtonEventManager : MouseButtonEventManager
         {
+            public MouseMinorButtonEventManager(InputManager inputManager, MouseButton button)
+                : base(inputManager, button)
+            {
+            }
+
+            public override bool EnableDrag => false;
+
+            public override bool EnableClick => false;
+
+            public override bool ChangeFocusForClick => false;
         }
-
-        public override bool EnableDrag => false;
-
-        public override bool EnableClick => false;
-
-        public override bool ChangeFocusForClick => false;
     }
 }
