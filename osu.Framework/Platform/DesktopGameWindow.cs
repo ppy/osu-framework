@@ -4,6 +4,7 @@
 using System;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using osu.Framework.Configuration;
 using osu.Framework.Input;
 using OpenTK;
@@ -82,16 +83,14 @@ namespace osu.Framework.Platform
             if (newSize.Width == currentDisplay.Width && newSize.Height == currentDisplay.Height)
                 return;
 
-            DisplayResolution newResolution = currentDisplay.SelectResolution(
-                newSize.Width,
-                newSize.Height,
-                currentDisplay.BitsPerPixel,
-                getMaxRefreshRate(newSize)
-            );
+            var newResolution = currentDisplay.AvailableResolutions
+                                              .Where(r => r.Width == newSize.Width && r.Height == newSize.Height)
+                                              .OrderByDescending(r => r.RefreshRate)
+                                              .FirstOrDefault();
 
-            if (newResolution.Width == currentDisplay.Width && newResolution.Height == currentDisplay.Height)
+            if (newResolution == null)
             {
-                // we wanted a new resolution but got the old one, which means OpenTK didn't find this resolution
+                // we wanted a new resolution but got nothing, which means OpenTK didn't find this resolution
                 currentDisplay.RestoreResolution();
             }
             else
@@ -99,12 +98,6 @@ namespace osu.Framework.Platform
                 currentDisplay.ChangeResolution(newResolution);
                 ClientSize = newSize;
             }
-        }
-
-        private float getMaxRefreshRate(Size size)
-        {
-            var displayResolutions = AvailableDisplayResolutions.Where(r => r.Width == size.Width && r.Height == size.Height).ToList();
-            return displayResolutions.Any() ? displayResolutions.Select(r => r.RefreshRate).Max() : DisplayDevice.Default.RefreshRate;
         }
 
         protected void OnResize(object sender, EventArgs e)
