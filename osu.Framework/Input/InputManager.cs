@@ -113,9 +113,21 @@ namespace osu.Framework.Input
         {
             CurrentState = CreateInitialState();
             RelativeSizeAxes = Axes.Both;
+
             foreach (var button in Enum.GetValues(typeof(MouseButton)).Cast<MouseButton>())
             {
-                var manager = button == MouseButton.Left ? new MouseLeftButtonEventManager(this, button) as MouseButtonEventManager : new MouseMinorButtonEventManager(this, button);
+                MouseButtonEventManager manager;
+
+                switch (button)
+                {
+                    case MouseButton.Left:
+                        manager = new MouseLeftButtonEventManager(this, button);
+                        break;
+                    default:
+                        manager = new MouseMinorButtonEventManager(this, button);
+                        break;
+                }
+
                 mouseButtonEventManagers.Add(button, manager);
             }
         }
