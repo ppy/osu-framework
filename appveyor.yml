@@ -1,13 +1,8 @@
-# 2017-09-14
 clone_depth: 1
 version: '{build}'
+skip_tags: true
 image: Visual Studio 2017
 configuration: Debug
-cache:
-  - C:\ProgramData\chocolatey\bin -> appveyor.yml
-  - C:\ProgramData\chocolatey\lib -> appveyor.yml
-  - inspectcode -> appveyor.yml
-  - packages -> **\packages.config
 install:
   - cmd: git submodule update --init --recursive
   - cmd: choco install resharper-clt -y
@@ -22,6 +17,14 @@ build:
   project: osu-framework.sln
   parallel: true
   verbosity: minimal
+test_script:
+  # temporary until we switch to dotnet. avoids duplicate test runs.
+  - nunit3-console "osu.Framework.Tests\bin\Debug\net471\osu.Framework.Tests.exe" --result=myresults.xml;format=AppVeyor
 after_build:
   - cmd: inspectcode /o="inspectcodereport.xml" /caches-home="inspectcode" osu-framework.sln
   - cmd: NVika parsereport "inspectcodereport.xml" --treatwarningsaserrors
+  - cmd: dotnet pack osu.Framework --include-symbols /p:Version=0.0.%APPVEYOR_BUILD_VERSION%
+artifacts:
+  - path: osu.Framework/bin/Debug/*.nupkg
+
+  

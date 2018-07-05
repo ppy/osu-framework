@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using osu.Framework.Caching;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -11,27 +10,13 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     public class CircularContainer : Container
     {
-        private Cached cornerRadius = new Cached();
-
-        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
+        internal override DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex)
         {
-            bool result = base.Invalidate(invalidation, source, shallPropagate);
+            // this shouldn't have to be done here, but it's the only place it works correctly.
+            // see https://github.com/ppy/osu-framework/pull/1666
+            CornerRadius = Math.Min(DrawSize.X, DrawSize.Y) / 2f;
 
-            if ((invalidation & (Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit)) > 0)
-                cornerRadius.Invalidate();
-
-            return result;
-        }
-
-        protected override void UpdateAfterAutoSize()
-        {
-            base.UpdateAfterAutoSize();
-
-            if (!cornerRadius.IsValid)
-            {
-                CornerRadius = Math.Min(DrawSize.X, DrawSize.Y) / 2f;
-                cornerRadius.Validate();
-            }
+            return base.GenerateDrawNodeSubtree(frame, treeIndex);
         }
     }
 }

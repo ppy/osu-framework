@@ -11,7 +11,7 @@ namespace osu.Framework.Platform
     {
         protected string BaseName { get; set; }
 
-        protected readonly string BasePath;
+        protected string BasePath { get; set; }
 
         /// <summary>
         /// An optional path to be added after <see cref="BaseName"/>.
@@ -78,6 +78,13 @@ namespace osu.Framework.Platform
         /// <param name="path">The path to list.</param>
         /// <returns>A list of directories in the path, relative to the path.</returns>
         public abstract string[] GetDirectories(string path);
+
+        /// <summary>
+        /// Retrieve a list of files at the specified path.
+        /// </summary>
+        /// <param name="path">The path to list.</param>
+        /// <returns>A list of files in the path, relative to the path.</returns>
+        public abstract string[] GetFiles(string path);
 
         /// <summary>
         /// Retrieve a <see cref="Storage"/> for a contained directory.

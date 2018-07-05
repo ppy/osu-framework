@@ -90,6 +90,7 @@ namespace osu.Framework.Tests.Visual
                         Children = new Drawable[]
                         {
                             new TooltipSpriteText("this text has a tooltip!"),
+                            new InstantTooltipSpriteText("this text has an instant tooltip!"),
                             new TooltipSpriteText("this one too!"),
                             new CustomTooltipSpriteText("this text has an empty tooltip!", string.Empty),
                             new CustomTooltipSpriteText("this text has a nulled tooltip!", null),
@@ -171,6 +172,16 @@ namespace osu.Framework.Tests.Visual
                 : base(tooltipText, tooltipText)
             {
             }
+        }
+
+        private class InstantTooltipSpriteText : CustomTooltipSpriteText, IHasAppearDelay
+        {
+            public InstantTooltipSpriteText(string tooltipText)
+                : base(tooltipText, tooltipText)
+            {
+            }
+
+            public double AppearDelay => 0;
         }
 
         private class TooltipTooltipContainer : TooltipContainer, IHasTooltip

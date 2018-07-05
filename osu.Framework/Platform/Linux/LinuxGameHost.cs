@@ -1,6 +1,8 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using osu.Framework.Platform.Linux.Native;
+
 namespace osu.Framework.Platform.Linux
 {
     public class LinuxGameHost : DesktopGameHost
@@ -16,9 +18,12 @@ namespace osu.Framework.Platform.Linux
                 else
                     OnDeactivated();
             };
+
+            // required for the time being to address libbass_fx.so load failures (see https://github.com/ppy/osu/issues/2852)
+            Library.Load("libbass.so", Library.LoadFlags.RTLD_LAZY | Library.LoadFlags.RTLD_GLOBAL);
         }
 
-        protected override Storage GetStorage(string baseName) => new LinuxStorage(baseName);
+        protected override Storage GetStorage(string baseName) => new LinuxStorage(baseName, this);
 
         public override Clipboard GetClipboard() => new LinuxClipboard();
     }

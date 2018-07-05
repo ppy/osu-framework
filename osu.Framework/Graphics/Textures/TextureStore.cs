@@ -7,7 +7,6 @@ using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.IO.Stores;
 using System;
 using System.Threading;
-using osu.Framework.Graphics.Primitives;
 using OpenTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Textures
@@ -42,11 +41,7 @@ namespace osu.Framework.Graphics.Textures
             if (raw == null) return null;
 
             Texture tex = atlas != null ? atlas.Add(raw.Width, raw.Height) : new Texture(raw.Width, raw.Height, filteringMode: filteringMode);
-            tex.SetData(new TextureUpload(raw.Pixels)
-            {
-                Bounds = new RectangleI(0, 0, raw.Width, raw.Height),
-                Format = raw.PixelFormat,
-            });
+            tex.SetData(new TextureUpload(raw));
 
             return tex;
         }

@@ -46,9 +46,6 @@ namespace osu.Framework.Platform.Windows
         [DllImport("kernel32.dll")]
         private static extern IntPtr GlobalFree(IntPtr hMem);
 
-        [DllImport("kernel32.dll", EntryPoint = "CopyMemory", SetLastError = false)]
-        public static extern void CopyMemory(IntPtr dest, IntPtr src, uint count);
-
         private const uint cf_unicodetext = 13U;
 
         public override string GetText()
@@ -121,7 +118,10 @@ namespace osu.Framework.Platform.Windows
 
                     try
                     {
-                        CopyMemory(target, source, bytes);
+                        unsafe
+                        {
+                            Buffer.MemoryCopy((void*)source, (void*)target, bytes, bytes);
+                        }
                     }
                     finally
                     {

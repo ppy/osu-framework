@@ -38,15 +38,15 @@ namespace osu.Framework.Graphics.Sprites
         /// </summary>
         public bool UseFullGlyphHeight = true;
 
-        public override bool IsPresent => base.IsPresent && !string.IsNullOrEmpty(text);
+        public override bool IsPresent => base.IsPresent && (!string.IsNullOrEmpty(text) || !layout.IsValid);
 
         /// <summary>
         /// True if the text should be wrapped if it gets too wide. Note that \n does NOT cause a line break. If you need explicit line breaks, use <see cref="TextFlowContainer"/> instead.
         /// </summary>
         public bool AllowMultiline
         {
-            get { return Direction == FillDirection.Full; }
-            set { Direction = value ? FillDirection.Full : FillDirection.Horizontal; }
+            get => Direction == FillDirection.Full;
+            set => Direction = value ? FillDirection.Full : FillDirection.Horizontal;
         }
 
         private string font;
@@ -56,7 +56,7 @@ namespace osu.Framework.Graphics.Sprites
         /// </summary>
         public string Font
         {
-            get { return font; }
+            get => font;
             set
             {
                 font = value;
@@ -71,7 +71,7 @@ namespace osu.Framework.Graphics.Sprites
         /// </summary>
         public bool Shadow
         {
-            get { return shadow; }
+            get => shadow;
             set
             {
                 if (shadow == value) return;
@@ -89,7 +89,7 @@ namespace osu.Framework.Graphics.Sprites
         /// </summary>
         public Color4 ShadowColour
         {
-            get { return shadowColour; }
+            get => shadowColour;
             set
             {
                 shadowColour = value;
@@ -142,7 +142,7 @@ namespace osu.Framework.Graphics.Sprites
         /// </summary>
         public float TextSize
         {
-            get { return textSize; }
+            get => textSize;
             set
             {
                 if (textSize == value) return;
@@ -170,7 +170,7 @@ namespace osu.Framework.Graphics.Sprites
         /// </summary>
         public Bindable<string> Current
         {
-            get { return current; }
+            get => current;
             set
             {
                 if (current != null)
@@ -201,7 +201,7 @@ namespace osu.Framework.Graphics.Sprites
         /// </summary>
         public string Text
         {
-            get { return text; }
+            get => text;
             set
             {
                 if (current != null)
@@ -277,7 +277,14 @@ namespace osu.Framework.Graphics.Sprites
             Clear();
 
             if (text.Length == 0)
+            {
+                lastText = string.Empty;
+
+                // We're going to become not present, so parents need to be signalled to recompute size/layout
+                Invalidate(InvalidationFromParentSize | Invalidation.Colour);
+
                 return;
+            }
 
             if (FixedWidth && !constantWidth.HasValue)
                 constantWidth = CreateCharacterDrawable('D').DrawWidth;

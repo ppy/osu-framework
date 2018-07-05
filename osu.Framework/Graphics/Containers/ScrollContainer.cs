@@ -32,8 +32,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public Anchor ScrollbarAnchor
         {
-            get { return Scrollbar.Anchor; }
-
+            get => Scrollbar.Anchor;
             set
             {
                 Scrollbar.Anchor = value;
@@ -49,7 +48,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public bool ScrollbarVisible
         {
-            get { return scrollbarVisible; }
+            get => scrollbarVisible;
             set
             {
                 scrollbarVisible = value;
@@ -68,7 +67,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public bool ScrollbarOverlapsContent
         {
-            get { return scrollbarOverlapsContent; }
+            get => scrollbarOverlapsContent;
             set
             {
                 scrollbarOverlapsContent = value;
@@ -88,9 +87,9 @@ namespace osu.Framework.Graphics.Containers
         private float displayableContent => ChildSize[ScrollDim];
 
         /// <summary>
-        /// Controls the distance scrolled when turning the mouse wheel a single notch.
+        /// Controls the distance scrolled per unit of mouse scroll.
         /// </summary>
-        public float MouseWheelScrollDistance = 80;
+        public float ScrollDistance = 80;
 
         /// <summary>
         /// This limits how far out of clamping bounds we allow the target position to be at most.
@@ -110,9 +109,9 @@ namespace osu.Framework.Graphics.Containers
         public double DistanceDecayDrag = 0.0035;
 
         /// <summary>
-        /// Controls the rate with which the target position is approached after using the mouse wheel. Default is 0.01
+        /// Controls the rate with which the target position is approached after scrolling. Default is 0.01
         /// </summary>
-        public double DistanceDecayWheel = 0.01;
+        public double DistanceDecayScroll = 0.01;
 
         /// <summary>
         /// Controls the rate with which the target position is approached after jumping to a specific location. Default is 0.01.
@@ -121,7 +120,7 @@ namespace osu.Framework.Graphics.Containers
 
         /// <summary>
         /// Controls the rate with which the target position is approached. It is automatically set after
-        /// dragging or using the mouse wheel.
+        /// dragging or scrolling.
         /// </summary>
         private double distanceDecay;
 
@@ -188,9 +187,10 @@ namespace osu.Framework.Graphics.Containers
                     RelativeSizeAxes = Axes.Both & ~scrollAxis,
                     AutoSizeAxes = scrollAxis,
                 },
-                Scrollbar = new ScrollbarContainer(scrollDirection) { Dragged = onScrollbarMovement }
+                Scrollbar = CreateScrollbar(scrollDirection)
             });
 
+            Scrollbar.Dragged = onScrollbarMovement;
             ScrollbarAnchor = scrollDirection == Direction.Vertical ? Anchor.TopRight : Anchor.BottomLeft;
         }
 
@@ -341,9 +341,16 @@ namespace osu.Framework.Graphics.Containers
             return true;
         }
 
-        protected override bool OnWheel(InputState state)
+        protected override bool OnScroll(InputState state)
         {
-            offset(-MouseWheelScrollDistance * state.Mouse.WheelDelta, true, DistanceDecayWheel);
+            bool isPrecise = state.Mouse.HasPreciseScroll;
+
+            Vector2 scrollDelta = state.Mouse.ScrollDelta;
+            float scrollDeltaFloat = scrollDelta.Y;
+            if (ScrollDirection == Direction.Horizontal && scrollDelta.X != 0)
+                scrollDeltaFloat = scrollDelta.X;
+
+            offset((isPrecise ? 10 : 80) * -scrollDeltaFloat, true, isPrecise ? 0.05 : DistanceDecayScroll);
             return true;
         }
 
@@ -503,9 +510,15 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        /// <summary>
+        /// Creates the scrollbar for this <see cref="ScrollContainer"/>.
+        /// </summary>
+        /// <param name="direction">The scrolling direction.</param>
+        protected virtual ScrollbarContainer CreateScrollbar(Direction direction) => new ScrollbarContainer(direction);
+
         protected internal class ScrollbarContainer : Container
         {
-            public Action<float> Dragged;
+            internal Action<float> Dragged;
 
             private readonly Color4 hoverColour = Color4.White;
             private readonly Color4 defaultColour = Color4.Gray;
