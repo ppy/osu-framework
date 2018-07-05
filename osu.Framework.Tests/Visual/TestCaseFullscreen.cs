@@ -15,7 +15,7 @@ namespace osu.Framework.Tests.Visual
     {
         private readonly SpriteText currentActualSize = new SpriteText();
 
-        private DesktopGameWindow window;
+        private GameWindow window;
         private readonly BindableSize sizeFullscreen = new BindableSize();
         private readonly Bindable<WindowMode> windowMode = new Bindable<WindowMode>();
 
@@ -43,7 +43,7 @@ namespace osu.Framework.Tests.Visual
         [BackgroundDependencyLoader]
         private void load(FrameworkConfigManager config, GameHost host)
         {
-            window = (DesktopGameWindow)host.Window;
+            window = host.Window;
             config.BindWith(FrameworkSetting.SizeFullscreen, sizeFullscreen);
             config.BindWith(FrameworkSetting.WindowMode, windowMode);
 
@@ -55,6 +55,7 @@ namespace osu.Framework.Tests.Visual
             AddStep("change to fullscreen", () => windowMode.Value = WindowMode.Fullscreen);
             testResolution(1920, 1080);
             testResolution(1280, 960);
+            testResolution(9999, 9999);
             AddStep("go back to windowed", () => windowMode.Value = WindowMode.Windowed);
         }
 
