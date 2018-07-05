@@ -577,29 +577,32 @@ namespace osu.Framework.Input
 
         protected virtual void ChangeFocusFromClick(Drawable clickedDrawable)
         {
-            if (clickedDrawable == null) return;
+            Drawable focusTarget = null;
 
-            Drawable focusTarget = clickedDrawable;
-
-            if (!focusTarget.AcceptsFocus)
+            if (clickedDrawable != null)
             {
-                // search upwards from the clicked drawable until we find something to handle focus.
-                Drawable previousFocused = FocusedDrawable;
+                focusTarget = clickedDrawable;
 
-                while (focusTarget?.AcceptsFocus == false)
-                    focusTarget = focusTarget.Parent;
-
-                if (focusTarget != null && previousFocused != null)
+                if (!focusTarget.AcceptsFocus)
                 {
-                    // we found a focusable target above us.
-                    // now search upwards from previousFocused to check whether focusTarget is a common parent.
-                    Drawable search = previousFocused;
-                    while (search != null && search != focusTarget)
-                        search = search.Parent;
+                    // search upwards from the clicked drawable until we find something to handle focus.
+                    Drawable previousFocused = FocusedDrawable;
 
-                    if (focusTarget == search)
-                        // we have a common parent, so let's keep focus on the previously focused target.
-                        focusTarget = previousFocused;
+                    while (focusTarget?.AcceptsFocus == false)
+                        focusTarget = focusTarget.Parent;
+
+                    if (focusTarget != null && previousFocused != null)
+                    {
+                        // we found a focusable target above us.
+                        // now search upwards from previousFocused to check whether focusTarget is a common parent.
+                        Drawable search = previousFocused;
+                        while (search != null && search != focusTarget)
+                            search = search.Parent;
+
+                        if (focusTarget == search)
+                            // we have a common parent, so let's keep focus on the previously focused target.
+                            focusTarget = previousFocused;
+                    }
                 }
             }
 
