@@ -61,7 +61,7 @@ namespace osu.Framework.Tests.Visual
             {
                 RelativeSizeAxes = Axes.Both,
             };
-            container.ImportMarkdownDocument(doc);
+            container.MarkdownDocument = doc;
             Add(container);
         }
     }
