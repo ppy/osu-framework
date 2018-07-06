@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
 using Markdig;
 using Markdig.Extensions.AutoIdentifiers;
 using osu.Framework.Graphics;
@@ -13,25 +10,21 @@ using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual
 {
-    [System.ComponentModel.Description("frame-based animations")]
+    [System.ComponentModel.Description("markdown reader")]
     public class TestCaseMarkdown : TestCase
     {
-        static void Error(string message)
-        {
-            Console.WriteLine(message);
-            Environment.Exit(1);
-        }
-
         public TestCaseMarkdown()
         {
-            var path = "https://github.com/lunet-io/scriban/blob/master/doc/language.md";
-            string markdown = null;
-            if (path.StartsWith("https:"))
+            var url = "https://github.com/lunet-io/scriban/blob/master/doc/language.md";
+            string markdowntext = "";
+
+            //if url is https
+            if (url.StartsWith("https:"))
             {
                 Uri uri;
-                if (!Uri.TryCreate(path, UriKind.Absolute, out uri))
+                if (!Uri.TryCreate(url, UriKind.Absolute, out uri))
                 {
-                    Error($"Unable to parse Uri `{path}`");
+                    Console.WriteLine($"Unable to parse Uri `{url}`");
                     return;
                 }
                 // Special handling of github URL to access the raw content instead
@@ -43,7 +36,7 @@ namespace osu.Framework.Tests.Visual
                     var paths = new List<string>(newPath.Split(new char[] { '/' }, StringSplitOptions.RemoveEmptyEntries));
                     if (paths.Count < 5 || paths[2] != "blob")
                     {
-                        Error($"Invalid github.com URL `{path}`");
+                        Console.WriteLine($"Invalid github.com URL `{uri}`");
                         return;
                     }
                     paths.RemoveAt(2); // remove blob
@@ -51,28 +44,24 @@ namespace osu.Framework.Tests.Visual
                 }
 
                 var httpClient = new HttpClient();
-                markdown = httpClient.GetStringAsync(uri).ConfigureAwait(false).GetAwaiter().GetResult();
+                markdowntext = httpClient.GetStringAsync(uri).ConfigureAwait(false).GetAwaiter().GetResult();
             }
             else
             {
-                markdown = File.ReadAllText(path);
+                //read from local file
+                markdowntext = File.ReadAllText(url);
             }
 
+            //convert markdown into markdown document
             var pipeline = new MarkdownPipelineBuilder().UseAutoIdentifiers(AutoIdentifierOptions.GitHub).Build();
-            var doc = Markdig.Markdown.Parse(markdown, pipeline);
+            var doc = Markdig.Markdown.Parse(markdowntext, pipeline);
 
-            //var headings = doc.Descendants<HeadingBlock>().Take(20).ToList();
-            //var headings = doc.Descendants<ParagraphBlock>().Take(20).ToList();
-            //var headings = doc.Descendants<QuoteBlock>().Take(20).ToList();
-
+            //create markdown scrollView container
             var container = new MarkdownScrollContainer()
             {
                 RelativeSizeAxes = Axes.Both,
             };
-
             container.ImportMarkdownDocument(doc);
-            
-
             Add(container);
         }
     }
