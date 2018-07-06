@@ -168,6 +168,12 @@ namespace osu.Framework.Platform
             set => throw new InvalidOperationException($@"{nameof(CursorGrabbed)} is not supported. Use {nameof(CursorState)}.");
         }
 
+        /// <summary>
+        /// Gets the <see cref="DisplayDevice"/> that this window is currently on.
+        /// </summary>
+        /// <returns></returns>
+        public abstract DisplayDevice GetCurrentDisplay();
+
         private string getVersionNumberSubstring(string version)
         {
             string result = version.Split(' ').FirstOrDefault(s => char.IsDigit(s, 0));
