@@ -13,45 +13,36 @@ using OpenTK.Graphics;
 namespace osu.Framework.Graphics.Containers
 {
     /// <summary>
-    /// MarkDownScrollContainer
+    ///     MarkDownScrollContainer
     /// </summary>
     public class MarkdownScrollContainer : ScrollContainer
     {
-        private readonly MarkdownContainer _markdownContainer;
-
-        public MarkdownScrollContainer()
-        {
-            ScrollbarOverlapsContent = false;
-            Child = _markdownContainer = new MarkdownContainer()
-            {
-                Padding = new MarginPadding(3),
-                AutoSizeAxes = Axes.Y,
-                RelativeSizeAxes = Axes.X,
-            };
-        }
-
         public MarkdownDocument MarkdownDocument
         {
             get => _markdownContainer.MarkdownDocument;
             set => _markdownContainer.MarkdownDocument = value;
         }
+
+        private readonly MarkdownContainer _markdownContainer;
+
+        public MarkdownScrollContainer()
+        {
+            ScrollbarOverlapsContent = false;
+            Child = _markdownContainer = new MarkdownContainer
+            {
+                Padding = new MarginPadding(3),
+                AutoSizeAxes = Axes.Y,
+                RelativeSizeAxes = Axes.X
+            };
+        }
     }
 
     /// <summary>
-    /// MarkdownContainer
-    /// Contains  all the markdown component <see cref="IMarkdownObject"/> in <see cref="MarkdownDocument"/>
+    ///     MarkdownContainer
+    ///     Contains  all the markdown component <see cref="IMarkdownObject" /> in <see cref="MarkdownDocument" />
     /// </summary>
     public class MarkdownContainer : FillFlowContainer
     {
-        public MarkdownContainer()
-        {
-            Direction = FillDirection.Vertical;
-            Spacing = new Vector2(20, 20);
-            Margin = new MarginPadding() { Left = 20, Right = 20 };
-        }
-
-        private MarkdownDocument _document;
-
         public MarkdownDocument MarkdownDocument
         {
             get => _document;
@@ -62,12 +53,18 @@ namespace osu.Framework.Graphics.Containers
                 Clear();
 
                 //start creating
-                int rootLayerIndex = 0;
-                foreach (var component in _document)
-                {
-                    AddMarkdownComponent(component, this, rootLayerIndex);
-                }
+                const int root_layer_index = 0;
+                foreach (var component in _document) AddMarkdownComponent(component, this, root_layer_index);
             }
+        }
+
+        private MarkdownDocument _document;
+
+        public MarkdownContainer()
+        {
+            Direction = FillDirection.Vertical;
+            Spacing = new Vector2(20, 20);
+            Margin = new MarginPadding { Left = 20, Right = 20 };
         }
 
         public void AddMarkdownComponent(IMarkdownObject markdownObject, FillFlowContainer container, int layerIndex)
@@ -106,11 +103,8 @@ namespace osu.Framework.Graphics.Containers
 
             //show child object
             if (markdownObject is LeafBlock leafBlock && !(markdownObject is ParagraphBlock))
-            {
                 if (leafBlock.Inline != null)
-                {
                     foreach (var single in leafBlock.Inline)
-                    {
                         //TODO : if mant to insert markdown object recursive , use this instead.
                         /*
                         var childContainer = new FillFlowContainer()
@@ -126,15 +120,12 @@ namespace osu.Framework.Graphics.Containers
                         */
 
                         AddMarkdownComponent(single, container, layerIndex + 1);
-                    }
-                }
-            }
         }
     }
 
     /// <summary>
-    /// NotExistMarkdown : 
-    /// shows the <see cref="IMarkdownObject"/> does not implement in drawable object
+    ///     NotExistMarkdown :
+    ///     shows the <see cref="IMarkdownObject" /> does not implement in drawable object
     /// </summary>
     internal class NotExistMarkdown : SpriteText
     {
@@ -147,10 +138,10 @@ namespace osu.Framework.Graphics.Containers
     }
 
     /// <summary>
-    /// MarkdownFencedCodeBlock :
-    /// ```
-    /// foo
-    /// ```
+    ///     MarkdownFencedCodeBlock :
+    ///     ```
+    ///     foo
+    ///     ```
     /// </summary>
     internal class MarkdownFencedCodeBlock : Container
     {
@@ -166,7 +157,7 @@ namespace osu.Framework.Graphics.Containers
                 {
                     RelativeSizeAxes = Axes.Both,
                     Colour = Color4.Gray,
-                    Alpha = 0.5f,
+                    Alpha = 0.5f
                 },
                 _textFlowContainer = new TextFlowContainer
                 {
@@ -186,8 +177,8 @@ namespace osu.Framework.Graphics.Containers
     }
 
     /// <summary>
-    /// NotExistMarkdown : 
-    /// - [1. Blocks](#1-blocks)
+    ///     NotExistMarkdown :
+    ///     - [1. Blocks](#1-blocks)
     ///     - [1.1 Code block](#11-code-block)
     ///     - [1.2 Text block](#12-text-block)
     ///     - [1.3 Escape block](#13-escape-block)
@@ -201,14 +192,13 @@ namespace osu.Framework.Graphics.Containers
             AutoSizeAxes = Axes.Y;
             RelativeSizeAxes = Axes.X;
 
-            int rootLayerIndex = 0;
-            CreateLayer(listBlock, rootLayerIndex);
+            const int root_layer_index = 0;
+            createLayer(listBlock, root_layer_index);
         }
 
-        void CreateLayer(ListBlock listBlock, int layerIndex)
+        private void createLayer(ListBlock listBlock, int layerIndex)
         {
             foreach (var singleBlock in listBlock)
-            {
                 //TODO : singleBlock has two child
                 //[0] : 1. Blocks
                 //[1] : 1.1 Code block
@@ -217,33 +207,28 @@ namespace osu.Framework.Graphics.Containers
                 //      1.4 Whitespace control
 
                 if (singleBlock is ListItemBlock listitemBlock)
-                {
                     foreach (var block in listitemBlock)
-                    {
                         if (block is ParagraphBlock paragraphBlock)
                         {
                             var drawableParagraphBlock = ParagraphBlockHelper.GenerateText(paragraphBlock);
-                            drawableParagraphBlock.Margin = new MarginPadding() { Left = 20 * layerIndex };
+                            drawableParagraphBlock.Margin = new MarginPadding { Left = 20 * layerIndex };
                             drawableParagraphBlock.RelativeSizeAxes = Axes.X;
                             drawableParagraphBlock.AutoSizeAxes = Axes.Y;
                             Add(drawableParagraphBlock);
                         }
                         else if (block is ListBlock listBlock2)
                         {
-                            CreateLayer(listBlock2, layerIndex + 1);
+                            createLayer(listBlock2, layerIndex + 1);
                         }
-                    }
-                }
-            }
         }
     }
 
     /// <summary>
-    /// MarkdownHeading : 
-    /// #Heading1
-    /// ##Heading2
-    /// ###Heading3
-    /// ###3Heading4
+    ///     MarkdownHeading :
+    ///     #Heading1
+    ///     ##Heading2
+    ///     ###Heading3
+    ///     ###3Heading4
     /// </summary>
     internal class MarkdownHeadingBlock : Container
     {
@@ -264,8 +249,8 @@ namespace osu.Framework.Graphics.Containers
             };
 
             var level = headingBlock.Level;
-            string text = headingBlock.Inline.FirstChild.ToString();
-            int textSize = 10;
+            var text = headingBlock.Inline.FirstChild.ToString();
+            var textSize = 10;
 
             switch (level)
             {
@@ -292,8 +277,9 @@ namespace osu.Framework.Graphics.Containers
     }
 
     /// <summary>
-    /// MarkdownQuoteBlock : 
-    /// > NOTE: This document does not describe the `liquid` language. Check the [`liquid website`](https://shopify.github.io/liquid/) directly.
+    ///     MarkdownQuoteBlock :
+    ///     > NOTE: This document does not describe the `liquid` language. Check the [`liquid
+    ///     website`](https://shopify.github.io/liquid/) directly.
     /// </summary>
     internal class MarkdownQuoteBlock : Container
     {
@@ -307,36 +293,33 @@ namespace osu.Framework.Graphics.Containers
 
             Children = new Drawable[]
             {
-                _quoteBox = new Box()
+                _quoteBox = new Box
                 {
                     Colour = Color4.Gray,
                     Width = 5,
                     Anchor = Anchor.CentreLeft,
                     Origin = Anchor.CentreLeft,
-                    RelativeSizeAxes = Axes.Y,
+                    RelativeSizeAxes = Axes.Y
                 },
                 _textFlowContainer = new TextFlowContainer
                 {
                     RelativeSizeAxes = Axes.X,
                     AutoSizeAxes = Axes.Y,
-                    Margin = new MarginPadding() { Left = 20 }
+                    Margin = new MarginPadding { Left = 20 }
                 }
             };
 
-            if (quoteBlock.LastChild is ParagraphBlock paragraphBlock)
-            {
-                _textFlowContainer = ParagraphBlockHelper.GeneratePartial(_textFlowContainer, paragraphBlock.Inline);
-            }
+            if (quoteBlock.LastChild is ParagraphBlock paragraphBlock) _textFlowContainer = ParagraphBlockHelper.GeneratePartial(_textFlowContainer, paragraphBlock.Inline);
         }
     }
 
     /// <summary>
-    /// MarkdownSeperator : 
-    /// (spacing)
+    ///     MarkdownSeperator :
+    ///     (spacing)
     /// </summary>
     internal class MarkdownSeperator : Box
     {
-        public MarkdownSeperator(LiteralInline ParagraphBlock)
+        public MarkdownSeperator(LiteralInline literalInline)
         {
             RelativeSizeAxes = Axes.X;
             Height = 1;
@@ -345,13 +328,13 @@ namespace osu.Framework.Graphics.Containers
     }
 
     /// <summary>
-    /// Fill <see cref="Inline"/> into <see cref="TextFlowContainer"/>
+    ///     Fill <see cref="Inline" /> into <see cref="TextFlowContainer" />
     /// </summary>
     internal static class ParagraphBlockHelper
     {
         public static TextFlowContainer GenerateText(ParagraphBlock paragraphBlock)
         {
-            TextFlowContainer textFlowContainer = new TextFlowContainer();
+            var textFlowContainer = new TextFlowContainer();
             GeneratePartial(textFlowContainer, paragraphBlock.Inline);
             return textFlowContainer;
         }
@@ -365,25 +348,17 @@ namespace osu.Framework.Graphics.Containers
                     var text = literalInline.Content.ToString();
                     if (lnline.GetNext(literalInline) is HtmlInline
                         && lnline.GetPrevious(literalInline) is HtmlInline htmlInline)
-                    {
                         textFlowContainer.AddText(text, t => t.Colour = Color4.MediumPurple);
-                    }
                     else if (lnline.GetNext(literalInline) is HtmlEntityInline htmlEntityInline)
-                    {
                         textFlowContainer.AddText(text, t => t.Colour = Color4.LawnGreen);
-                    }
                     else if (literalInline.Parent is LinkInline linkInline)
-                    {
                         textFlowContainer.AddText(text, t => t.Colour = Color4.DodgerBlue);
-                    }
                     //else if(literalInline.Parent is HeadingBlock headingBlock)
                     //{
                     //    
                     //}
                     else
-                    {
                         textFlowContainer.AddText(text);
-                    }
                 }
                 else if (single is CodeInline codeInline)
                 {
@@ -410,10 +385,7 @@ namespace osu.Framework.Graphics.Containers
                 }
 
                 //generate child
-                if (single is ContainerInline containerInline)
-                {
-                    GeneratePartial(textFlowContainer, containerInline);
-                }
+                if (single is ContainerInline containerInline) GeneratePartial(textFlowContainer, containerInline);
             }
 
             return textFlowContainer;
