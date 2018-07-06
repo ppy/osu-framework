@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace osu.Framework.Extensions.IEnumerableExtensions
 {
@@ -20,6 +21,30 @@ namespace osu.Framework.Extensions.IEnumerableExtensions
 
             foreach (var item in collection)
                 action(item);
+        }
+
+        /// <summary>
+        /// Get next value in an IEnumearble collection.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="guidList"></param>
+        /// <param name="current"></param>
+        /// <returns></returns>
+        public static T GetNext<T>(this IEnumerable<T> guidList, T current)
+        {
+            return guidList.SkipWhile(i => !i.Equals(current)).Skip(1).FirstOrDefault();
+        }
+
+        /// <summary>
+        /// Get pervious value in an IEnumearble collection.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="guidList"></param>
+        /// <param name="current"></param>
+        /// <returns></returns>
+        public static T GetPrevious<T>(this IEnumerable<T> guidList, T current)
+        {
+            return guidList.TakeWhile(i => !i.Equals(current)).LastOrDefault();
         }
     }
 }
