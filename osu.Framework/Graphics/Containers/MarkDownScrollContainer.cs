@@ -1,7 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+
 using System.Linq;
-using System.Text;
 using Markdig.Syntax;
 using Markdig.Syntax.Inlines;
 using osu.Framework.Extensions.IEnumerableExtensions;
@@ -47,10 +47,11 @@ namespace osu.Framework.Graphics.Containers
         {
             Direction = FillDirection.Vertical;
             Spacing = new Vector2(20, 20);
-            Margin = new MarginPadding(){Left = 20,Right = 20};
+            Margin = new MarginPadding() { Left = 20, Right = 20 };
         }
 
         private MarkdownDocument _document;
+
         public MarkdownDocument MarkdownDocument
         {
             get => _document;
@@ -58,43 +59,43 @@ namespace osu.Framework.Graphics.Containers
             {
                 _document = value;
                 //clear all exist markdown object
-                this.Clear();
+                Clear();
 
                 //start creating
                 int rootLayerIndex = 0;
                 foreach (var component in _document)
                 {
-                    AddMarkdownComponent(component,this,rootLayerIndex);
+                    AddMarkdownComponent(component, this, rootLayerIndex);
                 }
             }
         }
 
-        public void AddMarkdownComponent(IMarkdownObject markdownObject,FillFlowContainer container,int layerIndex)
+        public void AddMarkdownComponent(IMarkdownObject markdownObject, FillFlowContainer container, int layerIndex)
         {
-            if(markdownObject is HeadingBlock headingBlock)
+            if (markdownObject is HeadingBlock headingBlock)
             {
                 container.Add(new MarkdownHeadingBlock(headingBlock));
             }
-            else if(markdownObject is LiteralInline literalInline)
+            else if (markdownObject is LiteralInline literalInline)
             {
                 container.Add(new MarkdownSeperator(literalInline));
             }
-            else if(markdownObject is ParagraphBlock paragraphBlock)
+            else if (markdownObject is ParagraphBlock paragraphBlock)
             {
                 var drawableParagraphBlock = ParagraphBlockHelper.GenerateText(paragraphBlock);
                 drawableParagraphBlock.RelativeSizeAxes = Axes.X;
                 drawableParagraphBlock.AutoSizeAxes = Axes.Y;
                 container.Add(drawableParagraphBlock);
             }
-            else if(markdownObject is QuoteBlock quoteBlock)
+            else if (markdownObject is QuoteBlock quoteBlock)
             {
                 container.Add(new MarkdownQuoteBlock(quoteBlock));
             }
-            else if(markdownObject is ListBlock listBlock)
+            else if (markdownObject is ListBlock listBlock)
             {
                 container.Add(new MarkdownListBlock(listBlock));
             }
-            else if(markdownObject is FencedCodeBlock fencedCodeBlock)
+            else if (markdownObject is FencedCodeBlock fencedCodeBlock)
             {
                 container.Add(new MarkdownFencedCodeBlock(fencedCodeBlock));
             }
@@ -123,8 +124,8 @@ namespace osu.Framework.Graphics.Containers
                         container.Add(childContainer);
                         AddMarkdownComponent(single,childContainer,layerIndex + 1);
                         */
-                        
-                        AddMarkdownComponent(single,container,layerIndex + 1);
+
+                        AddMarkdownComponent(single, container, layerIndex + 1);
                     }
                 }
             }
@@ -139,7 +140,7 @@ namespace osu.Framework.Graphics.Containers
     {
         public NotExistMarkdown(IMarkdownObject markdownObject)
         {
-            Colour = new Color4(255,0,0,255);
+            Colour = new Color4(255, 0, 0, 255);
             TextSize = 21;
             Text = markdownObject?.GetType() + "Does not be implemented";
         }
@@ -169,14 +170,14 @@ namespace osu.Framework.Graphics.Containers
                 },
                 _textFlowContainer = new TextFlowContainer
                 {
-                    Margin = new MarginPadding{Left = 10,Right = 10,Top = 10,Bottom = 10},
+                    Margin = new MarginPadding { Left = 10, Right = 10, Top = 10, Bottom = 10 },
                     RelativeSizeAxes = Axes.X,
                     AutoSizeAxes = Axes.Y
                 }
             };
 
             var lines = fencedCodeBlock.Lines.Lines.Take(fencedCodeBlock.Lines.Count);
-            foreach(var sligneLine in lines)
+            foreach (var sligneLine in lines)
             {
                 var lineString = sligneLine.ToString();
                 _textFlowContainer.AddParagraph(lineString);
@@ -201,11 +202,10 @@ namespace osu.Framework.Graphics.Containers
             RelativeSizeAxes = Axes.X;
 
             int rootLayerIndex = 0;
-            CreateLayer(listBlock,rootLayerIndex);
-            
+            CreateLayer(listBlock, rootLayerIndex);
         }
 
-        void CreateLayer(ListBlock listBlock,int layerIndex)
+        void CreateLayer(ListBlock listBlock, int layerIndex)
         {
             foreach (var singleBlock in listBlock)
             {
@@ -223,18 +223,18 @@ namespace osu.Framework.Graphics.Containers
                         if (block is ParagraphBlock paragraphBlock)
                         {
                             var drawableParagraphBlock = ParagraphBlockHelper.GenerateText(paragraphBlock);
-                            drawableParagraphBlock.Margin = new MarginPadding(){Left = 20 * layerIndex};
+                            drawableParagraphBlock.Margin = new MarginPadding() { Left = 20 * layerIndex };
                             drawableParagraphBlock.RelativeSizeAxes = Axes.X;
                             drawableParagraphBlock.AutoSizeAxes = Axes.Y;
                             Add(drawableParagraphBlock);
                         }
-                        else if(block is ListBlock listBlock2)
+                        else if (block is ListBlock listBlock2)
                         {
                             CreateLayer(listBlock2, layerIndex + 1);
                         }
                     }
                 }
-            }       
+            }
         }
     }
 
@@ -286,8 +286,8 @@ namespace osu.Framework.Graphics.Containers
                     break;
             }
 
-            _textFlowContainer.AddText(text,t=>t.TextSize = textSize);
-            _textFlowContainer = ParagraphBlockHelper.GeneratePartial(_textFlowContainer,headingBlock.Inline);
+            _textFlowContainer.AddText(text, t => t.TextSize = textSize);
+            _textFlowContainer = ParagraphBlockHelper.GeneratePartial(_textFlowContainer, headingBlock.Inline);
         }
     }
 
@@ -299,6 +299,7 @@ namespace osu.Framework.Graphics.Containers
     {
         private readonly TextFlowContainer _textFlowContainer;
         private Box _quoteBox;
+
         public MarkdownQuoteBlock(QuoteBlock quoteBlock)
         {
             AutoSizeAxes = Axes.Y;
@@ -318,13 +319,13 @@ namespace osu.Framework.Graphics.Containers
                 {
                     RelativeSizeAxes = Axes.X,
                     AutoSizeAxes = Axes.Y,
-                    Margin = new MarginPadding(){Left = 20}
+                    Margin = new MarginPadding() { Left = 20 }
                 }
             };
 
             if (quoteBlock.LastChild is ParagraphBlock paragraphBlock)
             {
-                _textFlowContainer = ParagraphBlockHelper.GeneratePartial(_textFlowContainer,paragraphBlock.Inline);
+                _textFlowContainer = ParagraphBlockHelper.GeneratePartial(_textFlowContainer, paragraphBlock.Inline);
             }
         }
     }
@@ -350,8 +351,8 @@ namespace osu.Framework.Graphics.Containers
     {
         public static TextFlowContainer GenerateText(ParagraphBlock paragraphBlock)
         {
-             TextFlowContainer textFlowContainer = new TextFlowContainer();
-             GeneratePartial(textFlowContainer,paragraphBlock.Inline);
+            TextFlowContainer textFlowContainer = new TextFlowContainer();
+            GeneratePartial(textFlowContainer, paragraphBlock.Inline);
             return textFlowContainer;
         }
 
@@ -362,16 +363,16 @@ namespace osu.Framework.Graphics.Containers
                 if (single is LiteralInline literalInline)
                 {
                     var text = literalInline.Content.ToString();
-                    if(lnline.GetNext(literalInline) is HtmlInline 
+                    if (lnline.GetNext(literalInline) is HtmlInline
                         && lnline.GetPrevious(literalInline) is HtmlInline htmlInline)
                     {
-                        textFlowContainer.AddText(text, t=>t.Colour = Color4.MediumPurple);
+                        textFlowContainer.AddText(text, t => t.Colour = Color4.MediumPurple);
                     }
-                    else if(lnline.GetNext(literalInline) is HtmlEntityInline htmlEntityInline)
+                    else if (lnline.GetNext(literalInline) is HtmlEntityInline htmlEntityInline)
                     {
-                        textFlowContainer.AddText(text, t=>t.Colour = Color4.LawnGreen);
+                        textFlowContainer.AddText(text, t => t.Colour = Color4.LawnGreen);
                     }
-                    else if(literalInline.Parent is LinkInline linkInline)
+                    else if (literalInline.Parent is LinkInline linkInline)
                     {
                         textFlowContainer.AddText(text, t => t.Colour = Color4.DodgerBlue);
                     }
@@ -386,7 +387,7 @@ namespace osu.Framework.Graphics.Containers
                 }
                 else if (single is CodeInline codeInline)
                 {
-                    textFlowContainer.AddText(codeInline.Content ,t => t.Colour = Color4.Orange);
+                    textFlowContainer.AddText(codeInline.Content, t => t.Colour = Color4.Orange);
                 }
                 else if (single is EmphasisInline emphasisInline)
                 {
@@ -395,7 +396,7 @@ namespace osu.Framework.Graphics.Containers
                     //    textFlowContainer.AddText(child.ToString());
                     //}
                 }
-                else if(single is LinkInline || single is HtmlInline || single is HtmlEntityInline)
+                else if (single is LinkInline || single is HtmlInline || single is HtmlEntityInline)
                 {
                     //DO nothing
                 }
@@ -409,11 +410,12 @@ namespace osu.Framework.Graphics.Containers
                 }
 
                 //generate child
-                if(single is ContainerInline containerInline)
+                if (single is ContainerInline containerInline)
                 {
-                    GeneratePartial(textFlowContainer,containerInline);
+                    GeneratePartial(textFlowContainer, containerInline);
                 }
             }
+
             return textFlowContainer;
         }
     }
