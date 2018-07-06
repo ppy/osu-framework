@@ -52,6 +52,7 @@ namespace osu.Framework.Graphics.Containers
     public class MarkdownContainer : FillFlowContainer
     {
         private const int seperator_px = 25;
+
         public MarkdownDocument MarkdownDocument
         {
             get => _document;
@@ -77,7 +78,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 var markdownText = value;
                 var pipeline = new MarkdownPipelineBuilder().UseAutoIdentifiers(AutoIdentifierOptions.GitHub).Build();
-                MarkdownDocument = Markdig.Markdown.Parse(markdownText, pipeline);
+                MarkdownDocument = Markdown.Parse(markdownText, pipeline);
             }
         }
 
@@ -135,7 +136,7 @@ namespace osu.Framework.Graphics.Containers
                 var childContainer = new FillFlowContainer()
                 {
                     Direction = FillDirection.Vertical,
-                    Spacing = new OpenTK.Vector2(10, 10),
+                    Spacing = new Vector2(10, 10),
                     Margin = new MarginPadding() { Left = 25, Right = 10 },
                     AutoSizeAxes = Axes.Y,
                     RelativeSizeAxes = Axes.X,
@@ -303,7 +304,6 @@ namespace osu.Framework.Graphics.Containers
             {
                 _textFlowContainer = new MarkdownTextFlowContainer
                 {
-
                 }
             };
 

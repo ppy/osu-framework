@@ -1,16 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+
+using System;
+using System.ComponentModel;
 using System.Net.Http;
-using Markdig;
-using Markdig.Extensions.AutoIdentifiers;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual
 {
-    [System.ComponentModel.Description("markdown reader")]
+    [Description("markdown reader")]
     public class TestCaseMarkdown : TestCase
     {
         public TestCaseMarkdown()
@@ -18,6 +18,8 @@ namespace osu.Framework.Tests.Visual
             try
             {
                 //test readme
+                //in https://github.com/lunet-io/scriban/blob/master/doc/language.md#92-if-expression-else-else-if-expression
+
                 var url = "https://raw.githubusercontent.com/lunet-io/scriban/master/doc/language.md";
                 var httpClient = new HttpClient();
 
@@ -36,7 +38,6 @@ namespace osu.Framework.Tests.Visual
             {
                 Console.WriteLine(e);
             }
-            
         }
     }
 }
