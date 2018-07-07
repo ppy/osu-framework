@@ -398,9 +398,9 @@ namespace osu.Framework.Graphics.Containers
     {
         private readonly string imageUrl;
 
-        public MarkdownImage(string imageUrl)
+        public MarkdownImage(string url)
         {
-            imageUrl = imageUrl;
+            imageUrl = url;
         }
 
         [BackgroundDependencyLoader]
