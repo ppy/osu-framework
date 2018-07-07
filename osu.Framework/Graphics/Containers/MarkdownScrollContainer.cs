@@ -42,7 +42,8 @@ namespace osu.Framework.Graphics.Containers
             ScrollbarOverlapsContent = false;
             Child = markdownContainer = new MarkdownContainer
             {
-                Padding = new MarginPadding(3),
+                Padding = new MarginPadding { Left = 10, Right = 30 },
+                Margin = new MarginPadding { Left = 10, Right = 30 },
                 AutoSizeAxes = Axes.Y,
                 RelativeSizeAxes = Axes.X
             };
@@ -138,7 +139,7 @@ namespace osu.Framework.Graphics.Containers
                 {
                     Direction = FillDirection.Vertical,
                     Spacing = new Vector2(10, 10),
-                    Margin = new MarginPadding() { Left = 25, Right = 10 },
+                    Padding = new MarginPadding() { Left = 25, Right = 5 },
                     AutoSizeAxes = Axes.Y,
                     RelativeSizeAxes = Axes.X,
                 };
@@ -341,8 +342,10 @@ namespace osu.Framework.Graphics.Containers
                     else if (lnline.GetNext(literalInline) is HtmlEntityInline htmlEntityInline)
                         textFlowContainer.AddText(text, t => t.Colour = Color4.GreenYellow);
                     else if (literalInline.Parent is LinkInline linkInline)
+                    {
                         if (!linkInline.IsImage)
                             textFlowContainer.AddText(text, t => t.Colour = Color4.DodgerBlue);
+                    }
                     else
                         textFlowContainer.AddText(text);
                 }
