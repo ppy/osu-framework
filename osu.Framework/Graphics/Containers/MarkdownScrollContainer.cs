@@ -19,7 +19,7 @@ using OpenTK.Graphics;
 namespace osu.Framework.Graphics.Containers
 {
     /// <summary>
-    /// MarkDownScrollContainer
+    /// Contains <see cref="MarkdownContainer"/> and make it scrollable
     /// </summary>
     public class MarkdownScrollContainer : ScrollContainer
     {
@@ -50,8 +50,7 @@ namespace osu.Framework.Graphics.Containers
     }
 
     /// <summary>
-    /// MarkdownContainer
-    /// Contains  all the markdown component <see cref="IMarkdownObject" /> in <see cref="MarkdownDocument" />
+    /// Contains all the markdown component <see cref="IMarkdownObject" /> in <see cref="MarkdownDocument" />
     /// </summary>
     public class MarkdownContainer : FillFlowContainer
     {
@@ -117,8 +116,6 @@ namespace osu.Framework.Graphics.Containers
                         drawableParagraphBlock.AddText("# ", t => t.Colour = Color4.DarkGray);
                         break;
                     case 3:
-                        drawableParagraphBlock.AddText("+ ", t => t.Colour = Color4.DarkGray);
-                        break;
                     case 4:
                         drawableParagraphBlock.AddText("+ ", t => t.Colour = Color4.DarkGray);
                         break;
@@ -160,7 +157,7 @@ namespace osu.Framework.Graphics.Containers
             }
             else
             {
-                container.Add(new NotExistMarkdown(markdownObject));
+                container.Add(new NotExistingMarkdown(markdownObject));
             }
 
             //show seperator line
@@ -175,16 +172,16 @@ namespace osu.Framework.Graphics.Containers
     }
 
     /// <summary>
-    ///     NotExistMarkdown :
-    ///     shows the <see cref="IMarkdownObject" /> does not implement in drawable object
+    /// NotExistMarkdown :
+    /// shows the <see cref="IMarkdownObject" /> does not implement in drawable object
     /// </summary>
-    internal class NotExistMarkdown : SpriteText
+    internal class NotExistingMarkdown : SpriteText
     {
-        public NotExistMarkdown(IMarkdownObject markdownObject)
+        public NotExistingMarkdown(IMarkdownObject markdownObject)
         {
             Colour = new Color4(255, 0, 0, 255);
             TextSize = 21;
-            Text = markdownObject?.GetType() + " Does not be implemented";
+            Text = markdownObject?.GetType() + " Not implemented.";
         }
     }
 
@@ -226,69 +223,6 @@ namespace osu.Framework.Graphics.Containers
     }
 
     /// <summary>
-    /// NotExistMarkdown :
-    /// - [1. Blocks](#1-blocks)
-    ///  - [1.1 Code block](#11-code-block)
-    ///  - [1.2 Text block](#12-text-block)
-    ///  - [1.3 Escape block](#13-escape-block)
-    ///  - [1.4 Whitespace control](#14-whitespace-control)
-    /// </summary>
-    internal class MarkdownListBlock : FillFlowContainer
-    {
-        public MarkdownListBlock(ListBlock listBlock)
-        {
-            Direction = FillDirection.Vertical;
-            AutoSizeAxes = Axes.Y;
-            RelativeSizeAxes = Axes.X;
-
-            const int root_layer_index = 1;
-            createLayer(listBlock, root_layer_index);
-        }
-
-        private void createLayer(ListBlock listBlock, int layerIndex)
-        {
-            foreach (var singleBlock in listBlock)
-                //TODO : singleBlock has two child
-                //[0] : 1. Blocks
-                //[1] : 1.1 Code block
-                //      1.2 Text block
-                //      1.3 Escape block
-                //      1.4 Whitespace control
-
-                if (singleBlock is ListItemBlock listitemBlock)
-                    foreach (var block in listitemBlock)
-                        if (block is ParagraphBlock paragraphBlock)
-                        {
-                            var drawableParagraphBlock = new MarkdownTextFlowContainer();
-                            drawableParagraphBlock.Margin = new MarginPadding { Left = 20 * layerIndex };
-
-                            switch (layerIndex)
-                            {
-                                case 1:
-                                    drawableParagraphBlock.AddText("@ ", t => t.Colour = Color4.DarkGray);
-                                    break;
-                                case 2:
-                                    drawableParagraphBlock.AddText("# ", t => t.Colour = Color4.DarkGray);
-                                    break;
-                                case 3:
-                                    drawableParagraphBlock.AddText("+ ", t => t.Colour = Color4.DarkGray);
-                                    break;
-                                case 4:
-                                    drawableParagraphBlock.AddText("+ ", t => t.Colour = Color4.DarkGray);
-                                    break;
-                            }
-
-                            drawableParagraphBlock = ParagraphBlockHelper.GeneratePartial(drawableParagraphBlock, paragraphBlock.Inline);
-                            Add(drawableParagraphBlock);
-                        }
-                        else if (block is ListBlock listBlock2)
-                        {
-                            createLayer(listBlock2, layerIndex + 1);
-                        }
-        }
-    }
-
-    /// <summary>
     /// MarkdownHeading :
     /// #Heading1
     /// ##Heading2
@@ -306,9 +240,7 @@ namespace osu.Framework.Graphics.Containers
 
             Children = new Drawable[]
             {
-                textFlowContainer = new MarkdownTextFlowContainer
-                {
-                }
+                textFlowContainer = new MarkdownTextFlowContainer()
             };
 
             var level = headingBlock.Level;
@@ -327,9 +259,6 @@ namespace osu.Framework.Graphics.Containers
                     break;
                 case 4:
                     scale = new Vector2(1.3f);
-                    break;
-                case 5:
-                    scale = new Vector2(1);
                     break;
             }
 
@@ -408,18 +337,12 @@ namespace osu.Framework.Graphics.Containers
                     var text = literalInline.Content.ToString();
                     if (lnline.GetNext(literalInline) is HtmlInline
                         && lnline.GetPrevious(literalInline) is HtmlInline htmlInline)
-                    {
                         textFlowContainer.AddText(text, t => t.Colour = Color4.MediumPurple);
-                    }
                     else if (lnline.GetNext(literalInline) is HtmlEntityInline htmlEntityInline)
-                    {
                         textFlowContainer.AddText(text, t => t.Colour = Color4.GreenYellow);
-                    }
                     else if (literalInline.Parent is LinkInline linkInline)
-                    {
                         if (!linkInline.IsImage)
                             textFlowContainer.AddText(text, t => t.Colour = Color4.DodgerBlue);
-                    }
                     else
                         textFlowContainer.AddText(text);
                 }
@@ -457,7 +380,7 @@ namespace osu.Framework.Graphics.Containers
                 }
                 else
                 {
-                    textFlowContainer.AddText(single.GetType().ToString(), t => t.Colour = Color4.Red);
+                    textFlowContainer.AddText(single.GetType() + " Not implemented.", t => t.Colour = Color4.Red);
                 }
 
                 //generate child

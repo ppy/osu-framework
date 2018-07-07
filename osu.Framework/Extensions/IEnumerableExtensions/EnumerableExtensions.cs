@@ -26,8 +26,8 @@ namespace osu.Framework.Extensions.IEnumerableExtensions
         /// <summary>
         /// Get next value in an IEnumearble collection.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="guidList"></param>
+        /// <typeparam name="T">The type of the items stored in the collection.</typeparam>
+        /// <param name="guidList">The collection to iterate on.</param>
         /// <param name="current"></param>
         /// <returns></returns>
         public static T GetNext<T>(this IEnumerable<T> guidList, T current)
@@ -38,8 +38,8 @@ namespace osu.Framework.Extensions.IEnumerableExtensions
         /// <summary>
         /// Get pervious value in an IEnumearble collection.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="guidList"></param>
+        /// <typeparam name="T">The type of the items stored in the collection.</typeparam>
+        /// <param name="guidList">The collection to iterate on.</param>
         /// <param name="current"></param>
         /// <returns></returns>
         public static T GetPrevious<T>(this IEnumerable<T> guidList, T current)
