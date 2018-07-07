@@ -55,8 +55,8 @@ namespace osu.Framework.Platform.MacOS
                 flagsChangedHandler = flagsChanged;
                 willUseFullScreenHandler = willUseFullScreen;
 
-                var fieldImplementation = typeof(OpenTK.NativeWindow).GetRuntimeFields().Single(x => x.Name == "implementation");
-                var typeCocoaNativeWindow = typeof(OpenTK.NativeWindow).Assembly.GetTypes().Single(x => x.Name == "CocoaNativeWindow");
+                var fieldImplementation = typeof(NativeWindow).GetRuntimeFields().Single(x => x.Name == "implementation");
+                var typeCocoaNativeWindow = typeof(NativeWindow).Assembly.GetTypes().Single(x => x.Name == "CocoaNativeWindow");
                 var fieldWindowClass = typeCocoaNativeWindow.GetRuntimeFields().Single(x => x.Name == "windowClass");
 
                 nativeWindow = fieldImplementation.GetValue(Implementation);
