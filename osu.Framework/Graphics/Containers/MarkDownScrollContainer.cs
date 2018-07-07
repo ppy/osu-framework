@@ -1,14 +1,17 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using Markdig;
 using Markdig.Extensions.AutoIdentifiers;
 using Markdig.Syntax;
 using Markdig.Syntax.Inlines;
-using osu.Framework.Extensions.IEnumerableExtensions;
+using osu.Framework.Allocation;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.Textures;
 using OpenTK;
 using OpenTK.Graphics;
 
@@ -78,7 +81,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 var markdownText = value;
                 var pipeline = new MarkdownPipelineBuilder().UseAutoIdentifiers(AutoIdentifierOptions.GitHub).Build();
-                MarkdownDocument = Markdown.Parse(markdownText, pipeline);
+                MarkdownDocument = Markdig.Markdown.Parse(markdownText, pipeline);
             }
         }
 
@@ -414,7 +417,8 @@ namespace osu.Framework.Graphics.Containers
                     }
                     else if (literalInline.Parent is LinkInline linkInline)
                     {
-                        textFlowContainer.AddText(text, t => t.Colour = Color4.DodgerBlue);
+                        if (!linkInline.IsImage)
+                            textFlowContainer.AddText(text, t => t.Colour = Color4.DodgerBlue);
                     }
                     else
                         textFlowContainer.AddText(text);
@@ -425,12 +429,26 @@ namespace osu.Framework.Graphics.Containers
                 }
                 else if (single is EmphasisInline emphasisInline)
                 {
+
                     //foreach (var child in emphasisInline)
                     //{
                     //    textFlowContainer.AddText(child.ToString());
                     //}
                 }
-                else if (single is LinkInline || single is HtmlInline || single is HtmlEntityInline)
+                else if (single is LinkInline linkInline)
+                {
+                    if (linkInline.IsImage)
+                    {
+                        var imageUrl = linkInline.Url;
+                        //insert a image
+                        textFlowContainer.AddImage(new MarkdownImage(imageUrl)
+                        {
+                            Width = 300,
+                            Height = 300,
+                        });
+                    }
+                }
+                else if (single is HtmlInline || single is HtmlEntityInline)
                 {
                     //DO nothing
                 }
@@ -451,12 +469,80 @@ namespace osu.Framework.Graphics.Containers
         }
     }
 
-    internal class MarkdownTextFlowContainer : TextFlowContainer
+    /// <summary>
+    /// Load image from url
+    /// </summary>
+    internal class MarkdownImage : Container
+    {
+        private readonly string _imageUrl;
+
+        public MarkdownImage(string imageUrl)
+        {
+            _imageUrl = imageUrl;
+        }
+
+        [BackgroundDependencyLoader]
+        private void load(TextureStore textures)
+        {
+            Texture texture = null;
+            if (!string.IsNullOrEmpty(_imageUrl))
+                texture = textures.Get(_imageUrl);
+
+            //TODO : get default texture
+            //if (texture == null) 
+            //    texture = textures.Get(@"Online/avatar-guest");
+
+            Add(new Sprite
+            {
+                RelativeSizeAxes = Axes.Both,
+                Texture = texture,
+                FillMode = FillMode.Fit,
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre
+            });
+        }
+    }
+
+    internal class MarkdownTextFlowContainer : CustomizableTextContainer
     {
         public MarkdownTextFlowContainer()
         {
             RelativeSizeAxes = Axes.X;
             AutoSizeAxes = Axes.Y;
+        }
+
+        public IEnumerable<SpriteText> AddImage(MarkdownImage image)
+        {
+            var imageIndex = this.AddPlaceholder(image);
+            return base.AddText("[" + imageIndex + "]");
+        }
+
+        public new IEnumerable<SpriteText> AddText(string text, Action<SpriteText> creationParameters = null)
+        {
+            text = text.Replace("[", "[[").Replace("]", "]]");
+            return base.AddText(text, creationParameters);
+        }
+
+        public new IEnumerable<SpriteText> AddParagraph(string text, Action<SpriteText> creationParameters = null)
+        {
+            text = text.Replace("[", "[[").Replace("]", "]]");
+            return base.AddParagraph(text, creationParameters);
+        }
+    }
+
+    /// <summary>
+    /// List extension
+    /// </summary>
+    internal static class ListExtension
+    {
+        public static T GetNext<T>(this IEnumerable<T> guidList, T current)
+        {
+            return guidList.SkipWhile(i => !i.Equals(current)).Skip(1).FirstOrDefault();
+        }
+
+        public static T GetPrevious<T>(this IEnumerable<T> guidList, T current)
+        {
+            return guidList.TakeWhile(i => !i.Equals(current)).LastOrDefault();
         }
     }
 }
