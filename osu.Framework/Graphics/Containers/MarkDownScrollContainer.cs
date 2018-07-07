@@ -81,7 +81,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 var markdownText = value;
                 var pipeline = new MarkdownPipelineBuilder().UseAutoIdentifiers(AutoIdentifierOptions.GitHub).Build();
-                MarkdownDocument = Markdig.Markdown.Parse(markdownText, pipeline);
+                MarkdownDocument = Markdown.Parse(markdownText, pipeline);
             }
         }
 
@@ -429,7 +429,6 @@ namespace osu.Framework.Graphics.Containers
                 }
                 else if (single is EmphasisInline emphasisInline)
                 {
-
                     //foreach (var child in emphasisInline)
                     //{
                     //    textFlowContainer.AddText(child.ToString());
@@ -513,7 +512,7 @@ namespace osu.Framework.Graphics.Containers
 
         public IEnumerable<SpriteText> AddImage(MarkdownImage image)
         {
-            var imageIndex = this.AddPlaceholder(image);
+            var imageIndex = AddPlaceholder(image);
             return base.AddText("[" + imageIndex + "]");
         }
 
