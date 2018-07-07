@@ -15,6 +15,8 @@ namespace osu.Framework.Tests.Visual
     {
         public TestCaseMarkdown()
         {
+            string markdownText = "";
+
             try
             {
                 //test readme
@@ -22,22 +24,22 @@ namespace osu.Framework.Tests.Visual
 
                 var url = "https://raw.githubusercontent.com/lunet-io/scriban/master/doc/language.md";
                 var httpClient = new HttpClient();
+                //download file
+                markdownText = httpClient.GetStringAsync(url).ConfigureAwait(false).GetAwaiter().GetResult();
 
-                //download file 
-                string markdowntext = httpClient.GetStringAsync(url).ConfigureAwait(false).GetAwaiter().GetResult();
-
-                //create markdown scrollView container
-                var container = new MarkdownScrollContainer()
-                {
-                    RelativeSizeAxes = Axes.Both,
-                };
-                container.MarkdownText = markdowntext;
-                Add(container);
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
             }
+
+            //create markdown scrollView container
+            var container = new MarkdownScrollContainer()
+            {
+                RelativeSizeAxes = Axes.Both,
+                MarkdownText = markdownText,
+            };
+            Add(container);
         }
     }
 }

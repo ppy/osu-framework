@@ -9,6 +9,7 @@ using Markdig.Extensions.AutoIdentifiers;
 using Markdig.Syntax;
 using Markdig.Syntax.Inlines;
 using osu.Framework.Allocation;
+using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
@@ -18,28 +19,28 @@ using OpenTK.Graphics;
 namespace osu.Framework.Graphics.Containers
 {
     /// <summary>
-    ///     MarkDownScrollContainer
+    /// MarkDownScrollContainer
     /// </summary>
     public class MarkdownScrollContainer : ScrollContainer
     {
         public MarkdownDocument MarkdownDocument
         {
-            get => _markdownContainer.MarkdownDocument;
-            set => _markdownContainer.MarkdownDocument = value;
+            get => markdownContainer.MarkdownDocument;
+            set => markdownContainer.MarkdownDocument = value;
         }
 
         public string MarkdownText
         {
-            get => _markdownContainer.MarkdownText;
-            set => _markdownContainer.MarkdownText = value;
+            get => markdownContainer.MarkdownText;
+            set => markdownContainer.MarkdownText = value;
         }
 
-        private readonly MarkdownContainer _markdownContainer;
+        private readonly MarkdownContainer markdownContainer;
 
         public MarkdownScrollContainer()
         {
             ScrollbarOverlapsContent = false;
-            Child = _markdownContainer = new MarkdownContainer
+            Child = markdownContainer = new MarkdownContainer
             {
                 Padding = new MarginPadding(3),
                 AutoSizeAxes = Axes.Y,
@@ -49,8 +50,8 @@ namespace osu.Framework.Graphics.Containers
     }
 
     /// <summary>
-    ///     MarkdownContainer
-    ///     Contains  all the markdown component <see cref="IMarkdownObject" /> in <see cref="MarkdownDocument" />
+    /// MarkdownContainer
+    /// Contains  all the markdown component <see cref="IMarkdownObject" /> in <see cref="MarkdownDocument" />
     /// </summary>
     public class MarkdownContainer : FillFlowContainer
     {
@@ -58,17 +59,17 @@ namespace osu.Framework.Graphics.Containers
 
         public MarkdownDocument MarkdownDocument
         {
-            get => _document;
+            get => document;
             set
             {
-                _document = value;
+                document = value;
                 //clear all exist markdown object
                 Clear();
 
                 //start creating
                 const int root_layer_index = 0;
 
-                foreach (var component in _document)
+                foreach (var component in document)
                     AddMarkdownComponent(component, this, root_layer_index);
             }
         }
@@ -85,7 +86,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private MarkdownDocument _document;
+        private MarkdownDocument document;
 
         public MarkdownContainer()
         {
@@ -188,14 +189,14 @@ namespace osu.Framework.Graphics.Containers
     }
 
     /// <summary>
-    ///     MarkdownFencedCodeBlock :
-    ///     ```
-    ///     foo
-    ///     ```
+    /// MarkdownFencedCodeBlock :
+    /// ```
+    /// foo
+    /// ```
     /// </summary>
     internal class MarkdownFencedCodeBlock : Container
     {
-        private readonly MarkdownTextFlowContainer _textFlowContainer;
+        private readonly MarkdownTextFlowContainer textFlowContainer;
 
         public MarkdownFencedCodeBlock(FencedCodeBlock fencedCodeBlock)
         {
@@ -209,7 +210,7 @@ namespace osu.Framework.Graphics.Containers
                     Colour = Color4.Gray,
                     Alpha = 0.5f
                 },
-                _textFlowContainer = new MarkdownTextFlowContainer
+                textFlowContainer = new MarkdownTextFlowContainer
                 {
                     Margin = new MarginPadding { Left = 10, Right = 10, Top = 10, Bottom = 10 },
                 }
@@ -219,18 +220,18 @@ namespace osu.Framework.Graphics.Containers
             foreach (var sligneLine in lines)
             {
                 var lineString = sligneLine.ToString();
-                _textFlowContainer.AddParagraph(lineString);
+                textFlowContainer.AddParagraph(lineString);
             }
         }
     }
 
     /// <summary>
-    ///     NotExistMarkdown :
-    ///     - [1. Blocks](#1-blocks)
-    ///     - [1.1 Code block](#11-code-block)
-    ///     - [1.2 Text block](#12-text-block)
-    ///     - [1.3 Escape block](#13-escape-block)
-    ///     - [1.4 Whitespace control](#14-whitespace-control)
+    /// NotExistMarkdown :
+    /// - [1. Blocks](#1-blocks)
+    ///  - [1.1 Code block](#11-code-block)
+    ///  - [1.2 Text block](#12-text-block)
+    ///  - [1.3 Escape block](#13-escape-block)
+    ///  - [1.4 Whitespace control](#14-whitespace-control)
     /// </summary>
     internal class MarkdownListBlock : FillFlowContainer
     {
@@ -288,15 +289,15 @@ namespace osu.Framework.Graphics.Containers
     }
 
     /// <summary>
-    ///     MarkdownHeading :
-    ///     #Heading1
-    ///     ##Heading2
-    ///     ###Heading3
-    ///     ###3Heading4
+    /// MarkdownHeading :
+    /// #Heading1
+    /// ##Heading2
+    /// ###Heading3
+    /// ###3Heading4
     /// </summary>
     internal class MarkdownHeadingBlock : Container
     {
-        private readonly MarkdownTextFlowContainer _textFlowContainer;
+        private readonly MarkdownTextFlowContainer textFlowContainer;
 
         public MarkdownHeadingBlock(HeadingBlock headingBlock)
         {
@@ -305,7 +306,7 @@ namespace osu.Framework.Graphics.Containers
 
             Children = new Drawable[]
             {
-                _textFlowContainer = new MarkdownTextFlowContainer
+                textFlowContainer = new MarkdownTextFlowContainer
                 {
                 }
             };
@@ -332,20 +333,19 @@ namespace osu.Framework.Graphics.Containers
                     break;
             }
 
-            _textFlowContainer.Scale = scale;
-            _textFlowContainer = ParagraphBlockHelper.GeneratePartial(_textFlowContainer, headingBlock.Inline);
+            textFlowContainer.Scale = scale;
+            textFlowContainer = ParagraphBlockHelper.GeneratePartial(textFlowContainer, headingBlock.Inline);
         }
     }
 
     /// <summary>
-    ///     MarkdownQuoteBlock :
-    ///     > NOTE: This document does not describe the `liquid` language. Check the [`liquid
-    ///     website`](https://shopify.github.io/liquid/) directly.
+    /// MarkdownQuoteBlock :
+    /// > NOTE: This document does not describe the `liquid` language.
     /// </summary>
     internal class MarkdownQuoteBlock : Container
     {
-        private readonly MarkdownTextFlowContainer _textFlowContainer;
-        private Box _quoteBox;
+        private readonly MarkdownTextFlowContainer textFlowContainer;
+        private Box quoteBox;
 
         public MarkdownQuoteBlock(QuoteBlock quoteBlock)
         {
@@ -354,7 +354,7 @@ namespace osu.Framework.Graphics.Containers
 
             Children = new Drawable[]
             {
-                _quoteBox = new Box
+                quoteBox = new Box
                 {
                     Colour = Color4.Gray,
                     Width = 5,
@@ -362,20 +362,20 @@ namespace osu.Framework.Graphics.Containers
                     Origin = Anchor.CentreLeft,
                     RelativeSizeAxes = Axes.Y
                 },
-                _textFlowContainer = new MarkdownTextFlowContainer
+                textFlowContainer = new MarkdownTextFlowContainer
                 {
                     Margin = new MarginPadding { Left = 20 }
                 }
             };
 
             if (quoteBlock.LastChild is ParagraphBlock paragraphBlock)
-                _textFlowContainer = ParagraphBlockHelper.GeneratePartial(_textFlowContainer, paragraphBlock.Inline);
+                textFlowContainer = ParagraphBlockHelper.GeneratePartial(textFlowContainer, paragraphBlock.Inline);
         }
     }
 
     /// <summary>
-    ///     MarkdownSeperator :
-    ///     (spacing)
+    /// MarkdownSeperator :
+    /// (spacing)
     /// </summary>
     internal class MarkdownSeperator : Box
     {
@@ -388,7 +388,7 @@ namespace osu.Framework.Graphics.Containers
     }
 
     /// <summary>
-    ///     Fill <see cref="Inline" /> into <see cref="TextFlowContainer" />
+    /// Fill <see cref="Inline" /> into <see cref="TextFlowContainer" />
     /// </summary>
     internal static class ParagraphBlockHelper
     {
@@ -473,22 +473,22 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     internal class MarkdownImage : Container
     {
-        private readonly string _imageUrl;
+        private readonly string imageUrl;
 
         public MarkdownImage(string imageUrl)
         {
-            _imageUrl = imageUrl;
+            imageUrl = imageUrl;
         }
 
         [BackgroundDependencyLoader]
         private void load(TextureStore textures)
         {
             Texture texture = null;
-            if (!string.IsNullOrEmpty(_imageUrl))
-                texture = textures.Get(_imageUrl);
+            if (!string.IsNullOrEmpty(imageUrl))
+                texture = textures.Get(imageUrl);
 
             //TODO : get default texture
-            //if (texture == null) 
+            //if (texture == null)
             //    texture = textures.Get(@"Online/avatar-guest");
 
             Add(new Sprite
@@ -502,6 +502,9 @@ namespace osu.Framework.Graphics.Containers
         }
     }
 
+    /// <summary>
+    /// Markdown text flow container.
+    /// </summary>
     internal class MarkdownTextFlowContainer : CustomizableTextContainer
     {
         public MarkdownTextFlowContainer()
@@ -526,22 +529,6 @@ namespace osu.Framework.Graphics.Containers
         {
             text = text.Replace("[", "[[").Replace("]", "]]");
             return base.AddParagraph(text, creationParameters);
-        }
-    }
-
-    /// <summary>
-    /// List extension
-    /// </summary>
-    internal static class ListExtension
-    {
-        public static T GetNext<T>(this IEnumerable<T> guidList, T current)
-        {
-            return guidList.SkipWhile(i => !i.Equals(current)).Skip(1).FirstOrDefault();
-        }
-
-        public static T GetPrevious<T>(this IEnumerable<T> guidList, T current)
-        {
-            return guidList.TakeWhile(i => !i.Equals(current)).LastOrDefault();
         }
     }
 }
