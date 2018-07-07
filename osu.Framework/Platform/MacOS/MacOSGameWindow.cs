@@ -2,11 +2,14 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Reflection;
+using osu.Framework.Configuration;
 using osu.Framework.Logging;
 using osu.Framework.Platform.MacOS.Native;
+using OpenTK;
 
 namespace osu.Framework.Platform.MacOS
 {
@@ -14,11 +17,16 @@ namespace osu.Framework.Platform.MacOS
     {
         [UnmanagedFunctionPointer(CallingConvention.Winapi)]
         private delegate void FlagsChangedDelegate(IntPtr self, IntPtr cmd, IntPtr notification);
+        private delegate uint WillUseFullScreenDelegate(IntPtr self, IntPtr cmd, IntPtr window, uint options);
 
         private FlagsChangedDelegate flagsChangedHandler;
+        private WillUseFullScreenDelegate willUseFullScreenHandler;
 
         private readonly IntPtr selModifierFlags = Selector.Get("modifierFlags");
         private readonly IntPtr selKeyCode = Selector.Get("keyCode");
+        private readonly IntPtr selStyleMask = Selector.Get("styleMask");
+        private readonly IntPtr selToggleFullScreen = Selector.Get("toggleFullScreen:");
+
         private MethodInfo methodKeyDown;
         private MethodInfo methodKeyUp;
 
@@ -33,6 +41,8 @@ namespace osu.Framework.Platform.MacOS
 
         private object nativeWindow;
 
+        internal Action<Action> InvokeOnInputThread;
+
         public MacOSGameWindow()
         {
             Load += OnLoad;
@@ -43,6 +53,7 @@ namespace osu.Framework.Platform.MacOS
             try
             {
                 flagsChangedHandler = flagsChanged;
+                willUseFullScreenHandler = willUseFullScreen;
 
                 var fieldImplementation = typeof(OpenTK.NativeWindow).GetRuntimeFields().Single(x => x.Name == "implementation");
                 var typeCocoaNativeWindow = typeof(OpenTK.NativeWindow).Assembly.GetTypes().Single(x => x.Name == "CocoaNativeWindow");
@@ -52,6 +63,7 @@ namespace osu.Framework.Platform.MacOS
                 var windowClass = (IntPtr)fieldWindowClass.GetValue(nativeWindow);
 
                 Class.RegisterMethod(windowClass, flagsChangedHandler, "flagsChanged:", "v@:@");
+                Class.RegisterMethod(windowClass, willUseFullScreenHandler, "window:willUseFullScreenPresentationOptions:", "I@:@I");
 
                 methodKeyDown = nativeWindow.GetType().GetRuntimeMethods().Single(x => x.Name == "OnKeyDown");
                 methodKeyUp = nativeWindow.GetType().GetRuntimeMethods().Single(x => x.Name == "OnKeyUp");
@@ -62,6 +74,9 @@ namespace osu.Framework.Platform.MacOS
                 Logger.Log("Execution will continue but keyboard functionality may be limited.", LoggingTarget.Runtime, LogLevel.Important);
             }
         }
+
+        private uint willUseFullScreen(IntPtr self, IntPtr cmd, IntPtr window, uint options) =>
+            (uint)(NSApplicationPresentationOptions.HideDock | NSApplicationPresentationOptions.HideMenuBar | NSApplicationPresentationOptions.FullScreen);
 
         private void flagsChanged(IntPtr self, IntPtr cmd, IntPtr sender)
         {
@@ -122,6 +137,27 @@ namespace osu.Framework.Platform.MacOS
             else
                 methodKeyUp.Invoke(nativeWindow, new object[] { key });
         }
+
+        protected override void UpdateWindowMode(WindowMode newMode)
+        {
+            InvokeOnInputThread.Invoke(() =>
+            {
+                bool toggleFullscreen;
+                if (newMode == Configuration.WindowMode.Borderless || newMode == Configuration.WindowMode.Fullscreen)
+                    toggleFullscreen = (Cocoa.SendUint(WindowInfo.Handle, selStyleMask) & (uint)NSWindowStyleMask.FullScreen) == 0;
+                else
+                    toggleFullscreen = (Cocoa.SendUint(WindowInfo.Handle, selStyleMask) & (uint)NSWindowStyleMask.FullScreen) != 0;
+                if (toggleFullscreen)
+                    Cocoa.SendVoid(WindowInfo.Handle, selToggleFullScreen, IntPtr.Zero);
+            });
+        }
+
+        // Apple recommends not changing the system resolution for fullscreen access
+        protected override void ChangeResolution(Size newSize) => ClientSize = newSize;
+
+        protected override void RestoreResolution(DisplayDevice displayDevice)
+        {
+        }
     }
 
     internal enum MacOSKeyCodes
@@ -136,5 +172,41 @@ namespace osu.Framework.Platform.MacOS
         RCommand = 54,
         CapsLock = 57,
         Function = 63
+    }
+
+    [Flags]
+    internal enum NSWindowStyleMask
+    {
+        Borderless = 0,
+        Titled = 1 << 0,
+        Closable = 1 << 1,
+        Miniaturizable = 1 << 2,
+        Resizable = 1 << 3,
+        TexturedBackground = 1 << 8,
+        UnifiedTitleAndToolbar = 1 << 12,
+        FullScreen = 1 << 14,
+        FullSizeContentView = 1 << 15,
+        UtilityWindow = 1 << 4,
+        DocModalWindow = 1 << 6,
+        NonactivatingPanel = 1 << 7,
+        HUDWindow = 1 << 13
+    }
+
+    [Flags]
+    internal enum NSApplicationPresentationOptions
+    {
+        Default = 0,
+        AutoHideDock = 1 << 0,
+        HideDock = 1 << 1,
+        AutoHideMenuBar = 1 << 2,
+        HideMenuBar = 1 << 3,
+        DisableAppleMenu = 1 << 4,
+        DisableProcessSwitching = 1 << 5,
+        DisableForceQuit = 1 << 6,
+        DisableSessionTermination = 1 << 7,
+        DisableHideApplication = 1 << 8,
+        DisableMenuBarTransparency = 1 << 9,
+        FullScreen = 1 << 10,
+        AutoHideToolbar = 1 << 11
     }
 }

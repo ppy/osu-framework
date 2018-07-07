@@ -50,7 +50,7 @@ namespace osu.Framework.Platform
             sizeFullscreen.ValueChanged += newSize =>
             {
                 if (WindowState == WindowState.Fullscreen)
-                    changeResolution(newSize);
+                    ChangeResolution(newSize);
             };
 
             config.BindWith(FrameworkSetting.WindowedSize, sizeWindowed);
@@ -73,7 +73,7 @@ namespace osu.Framework.Platform
             Exited += onExit;
         }
 
-        private void changeResolution(Size newSize)
+        protected virtual void ChangeResolution(Size newSize)
         {
             var currentDisplay = DisplayDevice.Default;
 
@@ -90,7 +90,7 @@ namespace osu.Framework.Platform
             if (newResolution.Width == currentDisplay.Width && newResolution.Height == currentDisplay.Height)
             {
                 // we wanted a new resolution but got the old one, which means OpenTK didn't find this resolution
-                currentDisplay.RestoreResolution();
+                RestoreResolution(currentDisplay);
             }
             else
             {
@@ -98,6 +98,8 @@ namespace osu.Framework.Platform
                 ClientSize = newSize;
             }
         }
+
+        protected virtual void RestoreResolution(DisplayDevice displayDevice) => displayDevice.RestoreResolution();
 
         protected void OnResize(object sender, EventArgs e)
         {
@@ -143,17 +145,19 @@ namespace osu.Framework.Platform
                 CursorState &= ~CursorState.Confined;
         }
 
-        private void windowMode_ValueChanged(WindowMode newMode)
+        private void windowMode_ValueChanged(WindowMode newMode) => UpdateWindowMode(newMode);
+
+        protected virtual void UpdateWindowMode(WindowMode newMode)
         {
             switch (newMode)
             {
                 case Configuration.WindowMode.Fullscreen:
-                    changeResolution(sizeFullscreen);
+                    ChangeResolution(sizeFullscreen);
 
                     WindowState = WindowState.Fullscreen;
                     break;
                 case Configuration.WindowMode.Borderless:
-                    DisplayDevice.Default.RestoreResolution();
+                    RestoreResolution(DisplayDevice.Default);
 
                     WindowState = WindowState.Maximized;
                     WindowBorder = WindowBorder.Hidden;
@@ -163,7 +167,7 @@ namespace osu.Framework.Platform
                     Position = Vector2.Zero;
                     break;
                 default:
-                    DisplayDevice.Default.RestoreResolution();
+                    RestoreResolution(DisplayDevice.Default);
 
                     WindowState = WindowState.Normal;
                     WindowBorder = WindowBorder.Resizable;
@@ -185,7 +189,7 @@ namespace osu.Framework.Platform
                     break;
             }
 
-            DisplayDevice.Default.RestoreResolution();
+            RestoreResolution(DisplayDevice.Default);
         }
 
         public Vector2 Position

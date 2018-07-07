@@ -28,6 +28,9 @@ namespace osu.Framework.Platform.MacOS.Native
         public static extern int SendInt(IntPtr receiver, IntPtr selector);
 
         [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
+        public static extern uint SendUint(IntPtr receiver, IntPtr selector);
+
+        [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
         public static extern int SendInt(IntPtr receiver, IntPtr selector, IntPtr ptr1);
 
         [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
