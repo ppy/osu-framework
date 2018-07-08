@@ -42,7 +42,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 var markdownText = value;
                 var pipeline = new MarkdownPipelineBuilder().UseAutoIdentifiers(AutoIdentifierOptions.GitHub).Build();
-                MarkdownDocument = Markdig.Markdown.Parse(markdownText, pipeline);
+                MarkdownDocument = Markdown.Parse(markdownText, pipeline);
             }
         }
 
@@ -73,7 +73,7 @@ namespace osu.Framework.Graphics.Containers
                     container.Add(new MarkdownHeading(headingBlock));
                     break;
                 case LiteralInline literalInline:
-                    container.Add(new MarkdownSeperator(literalInline));
+                    container.Add(new MarkdownSeperator());
                     break;
                 case ParagraphBlock paragraphBlock:
                     var drawableParagraphBlock = new MarkdownTextFlowContainer();
@@ -101,11 +101,11 @@ namespace osu.Framework.Graphics.Containers
                     container.Add(new MarkdownFencedCodeBlock(fencedCodeBlock));
                     break;
                 case ListBlock listBlock:
-                    var childContainer = new FillFlowContainer()
+                    var childContainer = new FillFlowContainer
                     {
                         Direction = FillDirection.Vertical,
                         Spacing = new Vector2(10, 10),
-                        Padding = new MarginPadding() { Left = 25, Right = 5 },
+                        Padding = new MarginPadding { Left = 25, Right = 5 },
                         AutoSizeAxes = Axes.Y,
                         RelativeSizeAxes = Axes.X,
                     };
@@ -132,7 +132,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 if (leafBlock.Inline != null)
                 {
-                    container.Add(new MarkdownSeperator(null));
+                    container.Add(new MarkdownSeperator());
                 }
             }
         }
@@ -160,12 +160,12 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     internal class MarkdownFencedCodeBlock : Container
     {
-        private readonly TextFlowContainer textFlowContainer;
-
         public MarkdownFencedCodeBlock(FencedCodeBlock fencedCodeBlock)
         {
             AutoSizeAxes = Axes.Y;
             RelativeSizeAxes = Axes.X;
+
+            TextFlowContainer textFlowContainer;
             Children = new Drawable[]
             {
                 new Box
@@ -200,12 +200,12 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     internal class MarkdownHeading : Container
     {
-        private readonly MarkdownTextFlowContainer textFlowContainer;
-
         public MarkdownHeading(HeadingBlock headingBlock)
         {
             AutoSizeAxes = Axes.Y;
             RelativeSizeAxes = Axes.X;
+
+            MarkdownTextFlowContainer textFlowContainer;
 
             Children = new Drawable[]
             {
@@ -242,17 +242,16 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     internal class MarkdownQuoteBlock : Container
     {
-        private readonly MarkdownTextFlowContainer textFlowContainer;
-        private Box quoteBox;
-
         public MarkdownQuoteBlock(QuoteBlock quoteBlock)
         {
             AutoSizeAxes = Axes.Y;
             RelativeSizeAxes = Axes.X;
 
+            MarkdownTextFlowContainer textFlowContainer;
+
             Children = new Drawable[]
             {
-                quoteBox = new Box
+                new Box
                 {
                     Colour = Color4.Gray,
                     Width = 5,
@@ -277,7 +276,7 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     internal class MarkdownSeperator : Box
     {
-        public MarkdownSeperator(LiteralInline literalInline)
+        public MarkdownSeperator()
         {
             RelativeSizeAxes = Axes.X;
             Height = 1;
@@ -305,9 +304,9 @@ namespace osu.Framework.Graphics.Containers
                 {
                     var text = literalInline.Content.ToString();
                     if (lnline.GetNext(literalInline) is HtmlInline
-                        && lnline.GetPrevious(literalInline) is HtmlInline htmlInline)
+                        && lnline.GetPrevious(literalInline) is HtmlInline)
                         textFlowContainer.AddText(text, t => t.Colour = Color4.MediumPurple);
-                    else if (lnline.GetNext(literalInline) is HtmlEntityInline htmlEntityInline)
+                    else if (lnline.GetNext(literalInline) is HtmlEntityInline)
                         textFlowContainer.AddText(text, t => t.Colour = Color4.GreenYellow);
                     else if (literalInline.Parent is LinkInline linkInline)
                     {
@@ -321,7 +320,7 @@ namespace osu.Framework.Graphics.Containers
                 {
                     textFlowContainer.AddText(codeInline.Content, t => t.Colour = Color4.Orange);
                 }
-                else if (single is EmphasisInline emphasisInline)
+                else if (single is EmphasisInline)
                 {
                     //foreach (var child in emphasisInline)
                     //{

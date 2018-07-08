@@ -16,7 +16,7 @@ namespace osu.Framework.Tests.Visual
         public TestCaseMarkdown()
         {
             MarkdownContainer markdownContainer;
-            Add(markdownContainer = new MarkdownContainer()
+            Add(markdownContainer = new MarkdownContainer
             {
                 RelativeSizeAxes = Axes.Both,
             });
@@ -24,10 +24,10 @@ namespace osu.Framework.Tests.Visual
             AddStep("Markdown Heading", () =>
             {
                 markdownContainer.MarkdownText = @"# Header 1
-                ## Header 2
-                ### Header 3
-                #### Header 4
-                ##### Header 5";
+## Header 2
+### Header 3
+#### Header 4
+##### Header 5";
             });
 
             AddStep("Markdown Seperator", () =>
@@ -93,7 +93,7 @@ namespace osu.Framework.Tests.Visual
                 try
                 {
                     //test readme in https://github.com/lunet-io/scriban/blob/master/doc/language.md#92-if-expression-else-else-if-expression
-                    var url = "https://raw.githubusercontent.com/lunet-io/scriban/master/doc/language.md";
+                    const string url = "https://raw.githubusercontent.com/lunet-io/scriban/master/doc/language.md";
                     var httpClient = new HttpClient();
                     markdownContainer.MarkdownText = httpClient.GetStringAsync(url).ConfigureAwait(false).GetAwaiter().GetResult();
                 }
