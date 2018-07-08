@@ -72,9 +72,6 @@ namespace osu.Framework.Graphics.Containers
                 case HeadingBlock headingBlock:
                     container.Add(new MarkdownHeading(headingBlock));
                     break;
-                case LiteralInline literalInline:
-                    container.Add(new MarkdownSeperator());
-                    break;
                 case ParagraphBlock paragraphBlock:
                     var drawableParagraphBlock = new MarkdownTextFlowContainer();
                     switch (layerIndex)
@@ -232,7 +229,7 @@ namespace osu.Framework.Graphics.Containers
             }
 
             textFlowContainer.Scale = scale;
-            textFlowContainer = ParagraphBlockHelper.GeneratePartial(textFlowContainer, headingBlock.Inline);
+            ParagraphBlockHelper.GeneratePartial(textFlowContainer, headingBlock.Inline);
         }
     }
 
@@ -266,7 +263,7 @@ namespace osu.Framework.Graphics.Containers
             };
 
             if (quoteBlock.LastChild is ParagraphBlock paragraphBlock)
-                textFlowContainer = ParagraphBlockHelper.GeneratePartial(textFlowContainer, paragraphBlock.Inline);
+                ParagraphBlockHelper.GeneratePartial(textFlowContainer, paragraphBlock.Inline);
         }
     }
 
