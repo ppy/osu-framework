@@ -15,8 +15,8 @@ namespace osu.Framework.Tests.Visual
     {
         public TestCaseMarkdown()
         {
-            MarkdownScrollContainer markdownContainer;
-            Add(markdownContainer = new MarkdownScrollContainer()
+            MarkdownContainer markdownContainer;
+            Add(markdownContainer = new MarkdownContainer()
             {
                 RelativeSizeAxes = Axes.Both,
             });
