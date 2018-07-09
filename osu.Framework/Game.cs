@@ -46,6 +46,8 @@ namespace osu.Framework
 
         protected override Container<Drawable> Content => content;
 
+        protected internal virtual UserInputManager CreateUserInputManager() => new UserInputManager();
+
         protected Game()
         {
             RelativeSizeAxes = Axes.Both;
