@@ -498,14 +498,12 @@ namespace osu.Framework.Platform
 
         private void bootstrapSceneGraph(Game game)
         {
-            var root = new UserInputManager
+            var root = game.CreateUserInputManager();
+            root.Child = new PlatformActionContainer
             {
-                Child = new PlatformActionContainer
+                Child = new FrameworkActionContainer
                 {
-                    Child = new FrameworkActionContainer
-                    {
-                        Child = game
-                    }
+                    Child = game
                 }
             };
 
