@@ -17,8 +17,8 @@ namespace osu.Framework.Platform.Linux.Native
         ///
         /// Uses NATIVE_DLL_SEARCH_DIRECTORIES and then ld.so for library paths
         /// </summary>
-        /// <param name="flags">See 'man dlopen' for more information.</param>
         /// <param name="library">Full name of the library</param>
+        /// <param name="flags">See 'man dlopen' for more information.</param>
         public static void Load(string library, LoadFlags flags)
         {
             var paths = (string)AppContext.GetData("NATIVE_DLL_SEARCH_DIRECTORIES");
