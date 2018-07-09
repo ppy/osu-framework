@@ -119,16 +119,11 @@ namespace osu.Framework.Configuration
 
         protected void TriggerPrecisionChange(bool propagateToBindings = true)
         {
-            PrecisionChanged?.Invoke(MinValue);
-
-            if (!propagateToBindings)
-                return;
-
-            Bindings?.ForEachAlive(b =>
-            {
-                if (b is BindableNumber<T> other)
-                    other.Precision = Precision;
-            });
+            // check a bound bindable hasn't changed the value again (it will fire its own event)
+            T beforePropagation = precision;
+            if (propagateToBindings) Bindings?.ForEachAlive(b => ((BindableNumber<T>)b).Precision = precision);
+            if (Equals(beforePropagation, precision))
+                PrecisionChanged?.Invoke(precision);
         }
 
         public override void BindTo(Bindable<T> them)
