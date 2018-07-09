@@ -1544,10 +1544,10 @@ namespace osu.Framework.Graphics
         /// <param name="frame">The frame which the <see cref="DrawNode"/> subtree should be generated for.</param>
         /// <param name="treeIndex">The index of the <see cref="DrawNode"/> to use.</param>
         /// <returns>A complete and updated <see cref="DrawNode"/>, or null if the <see cref="DrawNode"/> would be invisible.</returns>
-        internal virtual DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex)
+        internal virtual DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex, bool forceNewDrawNode)
         {
             DrawNode node = drawNodes[treeIndex];
-            if (node == null)
+            if (node == null || forceNewDrawNode)
             {
                 drawNodes[treeIndex] = node = CreateDrawNode();
                 FrameStatistics.Increment(StatisticsCounterType.DrawNodeCtor);
