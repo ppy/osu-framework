@@ -75,6 +75,12 @@ namespace osu.Framework.Graphics.Containers
 
         public override bool RequiresLayoutValidation => base.RequiresLayoutValidation || !cellContent.IsValid || !cellLayout.IsValid;
 
+        protected override void Update()
+        {
+            base.Update();
+            ValidateLayout();
+        }
+
         protected override void ValidateLayout()
         {
             base.ValidateLayout();

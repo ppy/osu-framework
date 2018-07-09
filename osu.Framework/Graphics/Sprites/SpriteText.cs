@@ -160,7 +160,7 @@ namespace osu.Framework.Graphics.Sprites
 
             spaceWidth = CreateCharacterDrawable('.')?.DrawWidth * 2 ?? default_text_size;
 
-            validateLayout();
+            ValidateLayout();
         }
 
         private Bindable<string> current;
@@ -217,16 +217,16 @@ namespace osu.Framework.Graphics.Sprites
         /// </summary>
         public bool FixedWidth;
 
-        public override bool RequiresLayoutValidation => base.RequiresLayoutValidation || !layout.IsValid;
+        protected override void Update()
+        {
+            base.Update();
+            ValidateLayout();
+        }
 
         protected override void ValidateLayout()
         {
             base.ValidateLayout();
-            validateLayout();
-        }
 
-        private void validateLayout()
-        {
             if (!layout.IsValid)
             {
                 computeLayout();
