@@ -150,6 +150,7 @@ namespace osu.Framework.Input
         protected override void Update()
         {
             base.Update();
+
             // Some keyboard/joystick events are blocked. Sync every frame.
             if (UseParentInput) Sync(true);
         }
@@ -162,8 +163,10 @@ namespace osu.Framework.Input
         public void Sync(bool useCachedParentInputManager = false)
         {
             if (!UseParentInput) return;
+
             if (!useCachedParentInputManager)
                 parentInputManager = GetContainingInputManager();
+
             SyncInputState(parentInputManager?.CurrentState);
         }
 
