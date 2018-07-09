@@ -7,17 +7,17 @@ using OpenTK;
 
 namespace osu.Framework.Input
 {
-    /// <summary>An <see cref="InputManager"/> with an arbirity to use parent <see cref="InputManager"/>'s input.</summary>
+    /// <summary>An <see cref="InputManager"/> with an ability to use parent <see cref="InputManager"/>'s input.</summary>
     /// <remarks>
-    /// This <see cref="InputManager"/> can be used in one of two states.
+    /// There are two modes of operation for this class:
     /// When <see cref="UseParentInput"/> is false, this input manager gets inputs only from own input handlers.
-    /// When <see cref="UseParentInput"/> becomes false, all pressed buttons and keys are released.
-    /// When <see cref="UseParentInput"/> is true, this input manager ignore own input handlers and
-    /// gets inputs from the parent (an ancestor in the scene graph) <see cref="InputManager"/> in the following way:
+    /// When <see cref="UseParentInput"/> is true, this input manager ignore any local input handlers and
+    /// gets inputs from the parent (its ancestor in the scene graph) <see cref="InputManager"/> in the following way:
     /// For mouse input, this only considers input that is passed as events such as <see cref="OnMouseDown"/>.
     /// For keyboard and other inputs, this input manager try to reflect parent <see cref="InputManager"/>'s <see cref="InputState"/> closely as possible.
-    /// Thus, when this is attached to the scene graph initially and when <see cref="UseParentInput"/> is changed to true from false,
-    /// multiple keyboard events is called when the parent's <see cref="InputState"/> is a state with keys pressed for example.
+    /// Thus, when this is attached to the scene graph initially and when <see cref="UseParentInput"/> becomes true,
+    /// multiple events may fire to synchronise the local <see cref="InputState"/> with the parent's.
+    /// Conversely, when <see cref="UseParentInput"/> becomes false, all pressed buttons and keys are released.
     /// </remarks>
     public class PassThroughInputManager : CustomInputManager, IRequireHighFrequencyMousePosition
     {
