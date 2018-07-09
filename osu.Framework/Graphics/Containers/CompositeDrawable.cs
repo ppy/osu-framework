@@ -575,6 +575,8 @@ namespace osu.Framework.Graphics.Containers
                 for (int i = 0; i < aliveInternalChildren.Count; i++)
                     moreRequired |= !aliveInternalChildren[i].ValidateSubTree();
 
+                moreRequired |= RequiresLayoutValidation;
+
                 validations++;
             }
 
