@@ -15,6 +15,11 @@ namespace osu.Framework.Input
     {
         public IEnumerable<ButtonInputEntry<TButton>> Entries;
 
+        protected ButtonInput(IEnumerable<ButtonInputEntry<TButton>> entries)
+        {
+            Entries = entries;
+        }
+
         /// <summary>
         /// Creates a <see cref="ButtonInput{TButton}"/> with a single <see cref="TButton"/> state.
         /// </summary>
