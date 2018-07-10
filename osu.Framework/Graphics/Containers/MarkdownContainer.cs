@@ -456,7 +456,7 @@ namespace osu.Framework.Graphics.Containers
                         textFlowContainer.AddImage(new MarkdownImage(imageUrl)
                         {
                             Width = 300,
-                            Height = 300,
+                            Height = 240,
                         });
                     }
                 }
@@ -486,32 +486,63 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     internal class MarkdownImage : Container
     {
-        private readonly string imageUrl;
-
         public MarkdownImage(string url)
         {
-            imageUrl = url;
+            Box background;
+            Children = new Drawable[]
+            {
+                background = new Box
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Colour = Color4.LightGray,
+                    Alpha = 0.3f
+                },
+                new DelayedLoadWrapper(
+                    new ImageContainer(url)
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        OnLoadComplete = d =>
+                        {
+                            background.FadeTo(0,300,Easing.OutQuint);
+                            d.FadeInFromZero(300, Easing.OutQuint);
+                        },
+                    })
+            };
         }
 
-        [BackgroundDependencyLoader]
-        private void load(TextureStore textures)
+        private class ImageContainer : Container
         {
-            Texture texture = null;
-            if (!string.IsNullOrEmpty(imageUrl))
-                texture = textures.Get(imageUrl);
+            private readonly string imageUrl;
+            private readonly Sprite image;
 
-            //TODO : get default texture
-            //if (texture == null)
-            //    texture = textures.Get(@"Online/avatar-guest");
-
-            Add(new Sprite
+            public ImageContainer(string url)
             {
-                RelativeSizeAxes = Axes.Both,
-                Texture = texture,
-                FillMode = FillMode.Fit,
-                Anchor = Anchor.Centre,
-                Origin = Anchor.Centre
-            });
+                imageUrl = url;
+                Children = new Drawable[]
+                {
+                    image = new Sprite
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        FillMode = FillMode.Fit,
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre
+                    }
+                };
+            }
+
+            [BackgroundDependencyLoader]
+            private void load(TextureStore textures)
+            {
+                Texture texture = null;
+                if (!string.IsNullOrEmpty(imageUrl))
+                    texture = textures.Get(imageUrl);
+
+                //TODO : get default texture
+                //if (texture == null)
+                //    texture = textures.Get(@"Markdown/default-image");
+
+                image.Texture = texture;
+            }
         }
     }
 
