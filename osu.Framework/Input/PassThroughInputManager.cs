@@ -2,8 +2,10 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Collections.Generic;
+using System.Linq;
 using osu.Framework.Graphics;
 using OpenTK;
+using OpenTK.Input;
 
 namespace osu.Framework.Input
 {
@@ -167,11 +169,15 @@ namespace osu.Framework.Input
         }
 
         /// <summary>
-        /// Sync keyboard and joystick state to parent state.
+        /// Sync current state to parent state.
         /// </summary>
         /// <param name="parentState">Parent's state. If this is null, it is regarded as an empty state.</param>
         protected virtual void SyncInputState(InputState parentState)
         {
+            // release all buttons that is not pressed on parent state
+            var mosueButtonDifference = (parentState?.Mouse?.Buttons ?? new ButtonStates<MouseButton>()).EnumerateDifference(CurrentState.Mouse.Buttons);
+            new MouseButtonInput(mosueButtonDifference.Released.Select(button => new ButtonInputEntry<MouseButton>(button, false))).Apply(CurrentState, this);
+
             new KeyboardKeyInput(parentState?.Keyboard?.Keys, CurrentState.Keyboard.Keys).Apply(CurrentState, this);
             new JoystickButtonInput(parentState?.Joystick?.Buttons, CurrentState.Joystick.Buttons).Apply(CurrentState, this);
         }
