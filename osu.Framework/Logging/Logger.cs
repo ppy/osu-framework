@@ -372,7 +372,7 @@ namespace osu.Framework.Logging
 
             add("----------------------------------------------------------", outputToListeners: false);
             add($"{Target} Log for {UserIdentifier} (LogLevel: {Level})", outputToListeners: false);
-            add($"{GameIdentifier} version {VersionIdentifier}", outputToListeners: false);
+            add($"{GameIdentifier} {VersionIdentifier}", outputToListeners: false);
             add($"Running on {Environment.OSVersion}, {Environment.ProcessorCount} cores", outputToListeners: false);
             add("----------------------------------------------------------", outputToListeners: false);
         }
