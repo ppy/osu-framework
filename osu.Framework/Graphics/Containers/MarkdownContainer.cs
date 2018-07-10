@@ -159,31 +159,32 @@ namespace osu.Framework.Graphics.Containers
     /// MarkdownTable : 
     /// |Operator            | Description
     /// |--------------------|------------
-    /// | `<left> + <right>` | add left to right number 
-    /// | `<left> - <right>` | substract right number from left
-    /// | `<left> * <right>` | multiply left by right number
-    /// | `<left> / <right>` | divide left by right number
-    /// | `<left> // <right>`| divide left by right number and round to an integer
-    /// | `<left> % <right>` | calculates the modulus of left by right
+    /// | `<left/> + <right/>` | add left to right number 
+    /// | `<left/> - <right/>` | substract right number from left
+    /// | `<left/> * <right/>` | multiply left by right number
+    /// | `<left/> / <right/>` | divide left by right number
+    /// | `<left/> // <right/>`| divide left by right number and round to an integer
+    /// | `<left/> % <right/>` | calculates the modulus of left by right
     /// </summary>
     internal class MarkdownTable : Container
     {
-        private MarkdownTableContainer tableContainer;
-        private List<List<MarkdownTableCell>> listContainerArray = new List<List<MarkdownTableCell>>();
+        private readonly MarkdownTableContainer tableContainer;
+        private readonly List<List<MarkdownTableCell>> listContainerArray = new List<List<MarkdownTableCell>>();
         public MarkdownTable(Table table)
         {
             AutoSizeAxes = Axes.Y;
             RelativeSizeAxes = Axes.X;
             Padding = new MarginPadding { Right = 100 };
 
-
-            foreach (TableRow tableRow in table)
+            foreach (var block in table)
             {
+                var tableRow = (TableRow)block;
                 List<MarkdownTableCell> rows = new List<MarkdownTableCell>();
 
                 if (tableRow != null)
-                    foreach (TableCell tableCell in tableRow)
+                    foreach (var block1 in tableRow)
                     {
+                        var tableCell = (TableCell)block1;
                         if (tableCell != null)
                             rows.Add(new MarkdownTableCell(tableCell, listContainerArray.Count));
                     }
@@ -191,13 +192,13 @@ namespace osu.Framework.Graphics.Containers
                 listContainerArray.Add(rows);
             }
 
-            this.Children = new Drawable[]
+            Children = new Drawable[]
             {
                 tableContainer = new MarkdownTableContainer
                 {
                     AutoSizeAxes = Axes.Y,
                     RelativeSizeAxes = Axes.X,
-                    Content = listContainerArray.Select(X=>X.ToArray()).ToArray(),
+                    Content = listContainerArray.Select(x=>x.Select(y=>(Drawable)y).ToArray()).ToArray(),
                 }
             };
 
@@ -231,7 +232,7 @@ namespace osu.Framework.Graphics.Containers
         private class MarkdownTableCell : Container
         {
             public MarkdownTextFlowContainer TextFlowContainer => textFlowContainer;
-            MarkdownTextFlowContainer textFlowContainer;
+            private readonly MarkdownTextFlowContainer textFlowContainer;
 
             public MarkdownTableCell(TableCell cell, int rowNumber)
             {
@@ -262,8 +263,9 @@ namespace osu.Framework.Graphics.Containers
                     }
                 };
 
-                foreach (ParagraphBlock single in cell)
+                foreach (var block in cell)
                 {
+                    var single = (ParagraphBlock)block;
                     ParagraphBlockHelper.GeneratePartial(textFlowContainer, single.Inline);
                 }
             }
