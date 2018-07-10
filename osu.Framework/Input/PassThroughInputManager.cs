@@ -97,9 +97,8 @@ namespace osu.Framework.Input
             if (UseParentInput)
             {
                 // safe-guard for edge cases.
-                if (!CurrentState.Mouse.IsPressed(args.Button))
-                    new MouseButtonInput(args.Button, true).Apply(CurrentState, this);
-                new MouseButtonInput(args.Button, false).Apply(CurrentState, this);
+                if (CurrentState.Mouse.IsPressed(args.Button))
+                    new MouseButtonInput(args.Button, false).Apply(CurrentState, this);
             }
 
             return false;
