@@ -50,7 +50,7 @@ namespace osu.Framework.Graphics.Colour
         }
 
         /// <summary>
-        /// Creates a ColourInfo with a horizontal gradient.
+        /// Creates a ColourInfo with a vertical gradient.
         /// </summary>
         /// <param name="c1">The top colour of the gradient.</param>
         /// <param name="c2">The bottom colour of the gradient.</param>
