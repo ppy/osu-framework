@@ -156,12 +156,12 @@ namespace osu.Framework.Graphics
         private static readonly StopwatchClock perf = new StopwatchClock(true);
 
         /// <summary>
-        /// Create a local dependency container which will be used by ourselves and all our nested children.
+        /// Create a local dependency container which will be used by our nested children.
         /// If not overridden, the load-time parent's dependency tree will be used.
         /// </summary>
         /// <param name="parent">The parent <see cref="IReadOnlyDependencyContainer"/> which should be passed through if we want fallback lookups to work.</param>
         /// <returns>A new dependency container to be stored for this Drawable.</returns>
-        protected virtual IReadOnlyDependencyContainer CreateLocalDependencies(IReadOnlyDependencyContainer parent) => parent;
+        protected virtual IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent) => parent;
 
         /// <summary>
         /// Contains all dependencies that can be injected into this Drawable using <see cref="BackgroundDependencyLoader"/>.
@@ -173,7 +173,7 @@ namespace osu.Framework.Graphics
         /// Loads this drawable, including the gathering of dependencies and initialisation of required resources.
         /// </summary>
         /// <param name="clock">The clock we should use by default.</param>
-        /// <param name="dependencies">The dependency tree we will inherit by default. May be extended via <see cref="CreateLocalDependencies(IReadOnlyDependencyContainer)"/></param>
+        /// <param name="dependencies">The dependency tree we will inherit by default. May be extended via <see cref="CreateChildDependencies"/></param>
         internal void Load(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies)
         {
             // Blocks when loading from another thread already.
@@ -204,7 +204,7 @@ namespace osu.Framework.Graphics
                 double t1 = perf.CurrentTime;
 
                 // get our dependencies from our parent, but allow local overriding of our inherited dependency container
-                Dependencies = CreateLocalDependencies(dependencies);
+                Dependencies = CreateChildDependencies(dependencies);
 
                 dependencies.Inject(this);
 
