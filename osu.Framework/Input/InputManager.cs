@@ -389,11 +389,11 @@ namespace osu.Framework.Input
         {
             if (kind == ButtonStateChangeKind.Pressed)
             {
-                handleJoystickRelease(state, button);
+                handleJoystickPress(state, button);
             }
             else
             {
-                handleJoystickPress(state, button);
+                handleJoystickRelease(state, button);
             }
         }
 
