@@ -189,7 +189,7 @@ namespace osu.Framework.Input
             setPositionMouseDown(state);
 
             //extra check for IsAlive because we are using an outdated queue.
-            return PropagateMouseUp(MouseDownInputQueue.Intersect(PositionalInputQueue).Where(target => target.IsAlive && target.IsPresent), state, args);
+            return PropagateMouseUp(MouseDownInputQueue, state, args);
         }
 
         protected virtual bool HandleMouseClick(InputState state)
