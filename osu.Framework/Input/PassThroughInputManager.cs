@@ -17,7 +17,6 @@ namespace osu.Framework.Input
     /// For keyboard and other inputs, this input manager try to reflect parent <see cref="InputManager"/>'s <see cref="InputState"/> closely as possible.
     /// Thus, when this is attached to the scene graph initially and when <see cref="UseParentInput"/> becomes true,
     /// multiple events may fire to synchronise the local <see cref="InputState"/> with the parent's.
-    /// Conversely, when <see cref="UseParentInput"/> becomes false, all pressed buttons and keys are released.
     /// </remarks>
     public class PassThroughInputManager : CustomInputManager, IRequireHighFrequencyMousePosition
     {
@@ -34,8 +33,6 @@ namespace osu.Framework.Input
 
                 if (UseParentInput)
                     Sync();
-                else
-                    Reset();
             }
         }
 
@@ -178,16 +175,6 @@ namespace osu.Framework.Input
         {
             new KeyboardKeyInput(parentState?.Keyboard?.Keys, CurrentState.Keyboard.Keys).Apply(CurrentState, this);
             new JoystickButtonInput(parentState?.Joystick?.Buttons, CurrentState.Joystick.Buttons).Apply(CurrentState, this);
-        }
-
-        /// <summary>
-        /// Reset all input state.
-        /// </summary>
-        protected virtual void Reset()
-        {
-            new MouseButtonInput(null, CurrentState.Mouse.Buttons).Apply(CurrentState, this);
-            new KeyboardKeyInput(null, CurrentState.Keyboard.Keys).Apply(CurrentState, this);
-            new JoystickButtonInput(null, CurrentState.Joystick.Buttons).Apply(CurrentState, this);
         }
     }
 }
