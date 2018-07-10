@@ -68,6 +68,15 @@ namespace osu.Framework.Tests.Visual
 ```";
             });
 
+            AddStep("Markdown Table", () =>
+            {
+                markdownContainer.MarkdownText =
+                    @"|Operator            | Description
+|--------------------|------------
+| `'left' + <right>` | concatenates left to right string: `""ab"" + ""c"" -> ""abc""`
+| `'left' * <right>` | concatenates the left string `right` times: `'a' * 5  -> aaaaa`. left and right and be swapped as long as there is one string and one number.";
+            });
+
             AddStep("Markdown Paragraph 1", () =>
             {
                 markdownContainer.MarkdownText = @"A text enclosed by `{{` and `}}` is a scriban **code block** that will be evaluated by the scriban templating engine.";

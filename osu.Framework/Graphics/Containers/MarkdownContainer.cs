@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Markdig;
 using Markdig.Extensions.AutoIdentifiers;
+using Markdig.Extensions.Tables;
 using Markdig.Syntax;
 using Markdig.Syntax.Inlines;
 using osu.Framework.Allocation;
@@ -41,7 +42,9 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 var markdownText = value;
-                var pipeline = new MarkdownPipelineBuilder().UseAutoIdentifiers(AutoIdentifierOptions.GitHub).Build();
+                var pipeline = new MarkdownPipelineBuilder().UseAutoIdentifiers(AutoIdentifierOptions.GitHub)
+                    .UseEmojiAndSmiley()
+                    .UseAdvancedExtensions().Build();
                 MarkdownDocument = Markdown.Parse(markdownText, pipeline);
             }
         }
@@ -97,6 +100,9 @@ namespace osu.Framework.Graphics.Containers
                 case FencedCodeBlock fencedCodeBlock:
                     container.Add(new MarkdownFencedCodeBlock(fencedCodeBlock));
                     break;
+                case Table table:
+                    container.Add(new MarkdownTable(table));
+                    break;
                 case ListBlock listBlock:
                     var childContainer = new FillFlowContainer
                     {
@@ -146,6 +152,121 @@ namespace osu.Framework.Graphics.Containers
             Colour = new Color4(255, 0, 0, 255);
             TextSize = 21;
             Text = markdownObject?.GetType() + " Not implemented.";
+        }
+    }
+
+    /// <summary>
+    /// MarkdownTable : 
+    /// |Operator            | Description
+    /// |--------------------|------------
+    /// | `<left> + <right>` | add left to right number 
+    /// | `<left> - <right>` | substract right number from left
+    /// | `<left> * <right>` | multiply left by right number
+    /// | `<left> / <right>` | divide left by right number
+    /// | `<left> // <right>`| divide left by right number and round to an integer
+    /// | `<left> % <right>` | calculates the modulus of left by right
+    /// </summary>
+    internal class MarkdownTable : Container
+    {
+        private MarkdownTableContainer tableContainer;
+        private List<List<MarkdownTableCell>> listContainerArray = new List<List<MarkdownTableCell>>();
+        public MarkdownTable(Table table)
+        {
+            AutoSizeAxes = Axes.Y;
+            RelativeSizeAxes = Axes.X;
+            Padding = new MarginPadding { Right = 100 };
+
+
+            foreach (TableRow tableRow in table)
+            {
+                List<MarkdownTableCell> rows = new List<MarkdownTableCell>();
+
+                if (tableRow != null)
+                    foreach (TableCell tableCell in tableRow)
+                    {
+                        if (tableCell != null)
+                            rows.Add(new MarkdownTableCell(tableCell, listContainerArray.Count));
+                    }
+
+                listContainerArray.Add(rows);
+            }
+
+            this.Children = new Drawable[]
+            {
+                tableContainer = new MarkdownTableContainer
+                {
+                    AutoSizeAxes = Axes.Y,
+                    RelativeSizeAxes = Axes.X,
+                    Content = listContainerArray.Select(X=>X.ToArray()).ToArray(),
+                }
+            };
+
+            //define max row is 50
+            tableContainer.RowDimensions = Enumerable.Repeat(new Dimension(GridSizeMode.AutoSize), 50).ToArray();
+
+            int row = listContainerArray.FirstOrDefault()?.Count ?? 0;
+
+            if (row == 2)
+            {
+                tableContainer.ColumnDimensions = new[] { new Dimension(GridSizeMode.Relative, 0.3f) };
+            }
+        }
+
+        protected override void Update()
+        {
+            tableContainer.RowDimensions = listContainerArray.Select(X => new Dimension(GridSizeMode.Absolute, X.Max(Y => Y.TextFlowContainer.DrawHeight + 10))).ToArray();
+            base.Update();
+        }
+
+
+        private class MarkdownTableContainer : GridContainer
+        {
+            public new Axes AutoSizeAxes
+            {
+                get => base.AutoSizeAxes;
+                set => base.AutoSizeAxes = value;
+            }
+        }
+
+        private class MarkdownTableCell : Container
+        {
+            public MarkdownTextFlowContainer TextFlowContainer => textFlowContainer;
+            MarkdownTextFlowContainer textFlowContainer;
+
+            public MarkdownTableCell(TableCell cell, int rowNumber)
+            {
+                RelativeSizeAxes = Axes.Both;
+                BorderThickness = 1.8f;
+                BorderColour = Color4.White;
+                Masking = true;
+
+                var backgroundColor = rowNumber % 2 != 0 ? Color4.White : Color4.LightGray;
+                var backgroundAlpha = 0.3f;
+                if (rowNumber == 0)
+                {
+                    backgroundColor = Color4.White;
+                    backgroundAlpha = 0.4f;
+                }
+
+                Children = new Drawable[]
+                {
+                    new Box
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Colour = backgroundColor,
+                        Alpha = backgroundAlpha
+                    },
+                    textFlowContainer = new MarkdownTextFlowContainer
+                    {
+                        Margin = new MarginPadding{Left = 5,Right = 5,Top = 5,Bottom = 5}
+                    }
+                };
+
+                foreach (ParagraphBlock single in cell)
+                {
+                    ParagraphBlockHelper.GeneratePartial(textFlowContainer, single.Inline);
+                }
+            }
         }
     }
 
