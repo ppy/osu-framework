@@ -3,12 +3,12 @@
 
 using System;
 using System.Diagnostics;
+using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input;
+using osu.Framework.Input.Bindings;
 using osu.Framework.MathUtils;
 using OpenTK;
 using OpenTK.Graphics;
-using osu.Framework.Graphics.Shapes;
-using osu.Framework.Input.Bindings;
 using OpenTK.Input;
 
 namespace osu.Framework.Graphics.Containers
@@ -19,7 +19,8 @@ namespace osu.Framework.Graphics.Containers
         /// Creates a scroll container.
         /// </summary>
         /// <param name="scrollDirection">The direction in which should be scrolled. Can be vertical or horizontal. Default is vertical.</param>
-        public ScrollContainer(Direction scrollDirection = Direction.Vertical) : base(scrollDirection)
+        public ScrollContainer(Direction scrollDirection = Direction.Vertical)
+            : base(scrollDirection)
         {
         }
     }
@@ -253,11 +254,11 @@ namespace osu.Framework.Graphics.Containers
             switch (args.Key)
             {
                 case Key.PageUp:
-                    if (!IsDragging)
+                    if (IsHovered && !IsDragging)
                         ScrollTo(target - displayableContent);
                     return true;
                 case Key.PageDown:
-                    if (!IsDragging)
+                    if (IsHovered && !IsDragging)
                         ScrollTo(target + displayableContent);
                     return true;
                 default:
