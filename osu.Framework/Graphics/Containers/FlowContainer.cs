@@ -63,8 +63,6 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        protected override bool RequiresChildrenUpdate => base.RequiresChildrenUpdate || !layout.IsValid;
-
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
             if ((invalidation & Invalidation.DrawSize) > 0)

@@ -485,7 +485,7 @@ namespace osu.Framework.Graphics.Containers
         /// If the return value is false, then children are not updated and
         /// <see cref="UpdateAfterChildren"/> is not called.
         /// </summary>
-        protected virtual bool RequiresChildrenUpdate => !IsMaskedAway || !childrenSizeDependencies.IsValid;
+        protected virtual bool RequiresChildrenUpdate => !IsMaskedAway || RequiresLayoutValidation;
 
         public override bool UpdateSubTree()
         {
