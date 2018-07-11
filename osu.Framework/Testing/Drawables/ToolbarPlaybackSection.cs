@@ -52,6 +52,7 @@ namespace osu.Framework.Testing.Drawables
                     {
                         RelativeSizeAxes = Axes.Y,
                         Width = 200,
+                        Colour = Color4.MediumPurple
                     },
                     previousButton = new Button
                     {
