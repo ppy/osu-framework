@@ -272,10 +272,6 @@ namespace osu.Framework.Input
             return inputs;
         }
 
-        protected virtual void TransformState(InputState inputState)
-        {
-        }
-
         private IEnumerable<Drawable> buildInputQueue()
         {
             var inputQueue = new List<Drawable>();

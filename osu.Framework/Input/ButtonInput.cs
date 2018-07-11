@@ -15,6 +15,11 @@ namespace osu.Framework.Input
     {
         public IEnumerable<ButtonInputEntry<TButton>> Entries;
 
+        protected ButtonInput(IEnumerable<ButtonInputEntry<TButton>> entries)
+        {
+            Entries = entries;
+        }
+
         /// <summary>
         /// Creates a <see cref="ButtonInput{TButton}"/> with a single <see cref="TButton"/> state.
         /// </summary>
@@ -36,7 +41,7 @@ namespace osu.Framework.Input
         /// <param name="previous">The older <see cref="ButtonStates{TButton}"/>.</param>
         protected ButtonInput(ButtonStates<TButton> current, ButtonStates<TButton> previous)
         {
-            var difference = current.EnumerateDifference(previous ?? new ButtonStates<TButton>());
+            var difference = (current ?? new ButtonStates<TButton>()).EnumerateDifference(previous ?? new ButtonStates<TButton>());
 
             Entries = difference.Released.Select(button => new ButtonInputEntry<TButton>(button, false))
                                 .Concat(difference.Pressed.Select(button => new ButtonInputEntry<TButton>(button, true)));
