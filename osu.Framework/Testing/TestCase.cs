@@ -153,7 +153,7 @@ namespace osu.Framework.Testing
                         Bottom = padding,
                     },
                     RelativeSizeAxes = Axes.Both,
-                    Child = content = new Container
+                    Child = content = new DrawFrameRecordingContainer
                     {
                         Masking = true,
                         RelativeSizeAxes = Axes.Both
