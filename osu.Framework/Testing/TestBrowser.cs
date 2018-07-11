@@ -381,6 +381,10 @@ namespace osu.Framework.Testing
 
             updateButtons();
 
+            frameBindable.Value = 0;
+            if (playbackBindable.Value == PlaybackState.Stopped)
+                playbackBindable.Value = PlaybackState.Normal;
+
             testContentContainer.Add(new ErrorCatchingDelayedLoadWrapper(CurrentTest, isDynamicLoad)
             {
                 OnCaughtError = compileFailed

@@ -80,8 +80,7 @@ namespace osu.Framework.Testing.Drawables
             };
 
             frameSliderBar.Current.BindTo(this.currentFrame);
-
-            updateState();
+            this.playback.BindValueChanged(updateState, true);
         }
 
         private void changeState()
@@ -90,17 +89,15 @@ namespace osu.Framework.Testing.Drawables
                 playback.Value = TestBrowser.PlaybackState.Normal;
             else
                 playback.Value = playback.Value + 1;
-
-            updateState();
         }
 
         private void previousFrame() => currentFrame.Value = currentFrame.Value - 1;
 
         private void nextFrame() => currentFrame.Value = currentFrame.Value + 1;
 
-        private void updateState()
+        private void updateState(TestBrowser.PlaybackState state)
         {
-            switch (playback.Value)
+            switch (state)
             {
                 case TestBrowser.PlaybackState.Normal:
                     recordButton.Text = "start recording";
@@ -116,7 +113,7 @@ namespace osu.Framework.Testing.Drawables
                     break;
             }
 
-            switch (playback.Value)
+            switch (state)
             {
                 case TestBrowser.PlaybackState.Normal:
                 case TestBrowser.PlaybackState.Recording:
