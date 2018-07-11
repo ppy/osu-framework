@@ -19,6 +19,7 @@ using osu.Framework.Threading;
 using osu.Framework.Statistics;
 using System.Threading.Tasks;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Logging;
 using osu.Framework.MathUtils;
 using Logger = osu.Framework.Logging.Logger;
 
@@ -581,7 +582,7 @@ namespace osu.Framework.Graphics.Containers
             }
 
             if (validations > 1)
-                Logger.Log($"{this} took {validations} validations to fully validate.");
+                Logger.Log($"{this} took {validations} validations to fully validate.", LoggingTarget.Debug, LogLevel.Debug);
 
             return true;
         }
