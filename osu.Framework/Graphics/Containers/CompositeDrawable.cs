@@ -561,7 +561,7 @@ namespace osu.Framework.Graphics.Containers
         /// Validates the layout of this <see cref="CompositeDrawable"/> and all <see cref="AliveInternalChildren"/>.
         /// Invoked until <see cref="Drawable.RequiresLayoutValidation"/> yields false for this <see cref="CompositeDrawable"/> and all <see cref="AliveInternalChildren"/>.
         /// </summary>
-        /// <returns>Whether this <see cref="CompositeDrawable"/> and all <see cref="AliveInternalChildren"/> have been fully validated.</returns>
+        /// <returns>True when this <see cref="CompositeDrawable"/> and all <see cref="AliveInternalChildren"/> have been fully validated.</returns>
         public override bool ValidateSubTree()
         {
             int validations = 0;

@@ -413,7 +413,7 @@ namespace osu.Framework.Graphics
         /// <remarks>
         /// This should only be invoked by the game host.
         /// </remarks>
-        /// <returns>Whether this <see cref="Drawable"/> has been fully validated.</returns>
+        /// <returns>True when this <see cref="Drawable"/> has been fully validated.</returns>
         public virtual bool ValidateSubTree()
         {
             if (!RequiresLayoutValidation)
