@@ -22,14 +22,12 @@ namespace osu.Framework
 
         public static bool Is32Bit { get; }
         public static bool Is64Bit { get; }
-        public static bool IsMono { get; }
         public static Platform OS { get; }
         public static bool IsUnix => OS == Platform.Linux || OS == Platform.MacOsx;
         public static bool IsWine { get; }
 
         static RuntimeInfo()
         {
-            IsMono = Type.GetType("Mono.Runtime") != null;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 OS = Platform.Windows;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
