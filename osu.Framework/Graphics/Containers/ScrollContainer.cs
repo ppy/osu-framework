@@ -251,14 +251,17 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
+            if (!IsHovered)
+                return false;
+
             switch (args.Key)
             {
                 case Key.PageUp:
-                    if (IsHovered && !IsDragging)
+                    if (!IsDragging)
                         ScrollTo(target - displayableContent);
                     return true;
                 case Key.PageDown:
-                    if (IsHovered && !IsDragging)
+                    if (!IsDragging)
                         ScrollTo(target + displayableContent);
                     return true;
                 default:
@@ -616,6 +619,9 @@ namespace osu.Framework.Graphics.Containers
 
         public bool OnPressed(PlatformAction action)
         {
+            if (!IsHovered)
+                return false;
+
             switch (action.ActionType)
             {
                 case PlatformActionType.LineStart:
@@ -635,7 +641,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 case PlatformActionType.LineStart:
                 case PlatformActionType.LineEnd:
-                    return true;
+                    return IsHovered;
                 default:
                     return false;
             }
