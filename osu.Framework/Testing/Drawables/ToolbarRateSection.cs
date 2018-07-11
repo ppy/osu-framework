@@ -45,7 +45,7 @@ namespace osu.Framework.Testing.Drawables
                         {
                             RelativeSizeAxes = Axes.Both,
                             Colour = Color4.MediumPurple,
-                            SelectionColor = Color4.White,
+                            SelectionColour = Color4.White,
                         },
                         rateText = new SpriteText
                         {
