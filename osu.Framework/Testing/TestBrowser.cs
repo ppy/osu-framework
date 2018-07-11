@@ -82,6 +82,8 @@ namespace osu.Framework.Testing
         private readonly RateBindable rateBindable = new RateBindable();
         private readonly AssemblyBindable assemblyBindable = new AssemblyBindable();
         private readonly RunAllStepsBindable runAllStepsBindable = new RunAllStepsBindable();
+        private readonly PlaybackBindable playbackBindable = new PlaybackBindable();
+        private readonly FrameBindable frameBindable = new FrameBindable();
 
         private Toolbar toolbar;
         private Container leftContainer;
@@ -164,7 +166,7 @@ namespace osu.Framework.Testing
                         toolbar = new Toolbar
                         {
                             RelativeSizeAxes = Axes.X,
-                            Height = 50,
+                            Height = 100,
                             Depth = -1,
                         },
                         testContentContainer = new Container
@@ -232,6 +234,8 @@ namespace osu.Framework.Testing
             dependencies.Cache(rateBindable);
             dependencies.Cache(assemblyBindable);
             dependencies.Cache(runAllStepsBindable);
+            dependencies.Cache(playbackBindable);
+            dependencies.Cache(frameBindable);
 
             return dependencies;
         }
@@ -478,6 +482,35 @@ namespace osu.Framework.Testing
 
         internal class RunAllStepsBindable : Bindable<bool>
         {
+        }
+
+        internal class PlaybackBindable : Bindable<PlaybackState>
+        {
+        }
+
+        internal class FrameBindable : BindableInt
+        {
+            public FrameBindable()
+            {
+                MinValue = 0;
+                MaxValue = 0;
+            }
+        }
+
+        internal enum PlaybackState
+        {
+            /// <summary>
+            /// The game is playing back normally.
+            /// </summary>
+            Normal,
+            /// <summary>
+            /// Drawn game frames are currently being recorded.
+            /// </summary>
+            Recording,
+            /// <summary>
+            /// The default game playback is stopped, recorded frames are being played back.
+            /// </summary>
+            Stopped
         }
     }
 

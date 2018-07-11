@@ -24,28 +24,52 @@ namespace osu.Framework.Testing.Drawables
                     RelativeSizeAxes = Axes.Both,
                     Colour = Color4.Black,
                 },
-                new Container
+                new GridContainer
                 {
-                    Padding = new MarginPadding(10),
                     RelativeSizeAxes = Axes.Both,
-                    Child = new GridContainer
+                    RowDimensions = new[]
                     {
-                        RelativeSizeAxes = Axes.Both,
-                        ColumnDimensions = new[]
+                        new Dimension(GridSizeMode.Relative, 0.5f),
+                        new Dimension(GridSizeMode.Relative, 0.5f),
+                    },
+                    Content = new[]
+                    {
+                        new Drawable[]
                         {
-                            new Dimension(GridSizeMode.AutoSize),
-                            new Dimension(GridSizeMode.Distributed),
-                        },
-                        Content = new[]
-                        {
-                            new Drawable[]
+                            new Container
                             {
-                                assemblySection = new ToolbarAssemblySection { RelativeSizeAxes = Axes.Y },
-                                new ToolbarRateSection { RelativeSizeAxes = Axes.Both }
+                                Padding = new MarginPadding(10),
+                                RelativeSizeAxes = Axes.Both,
+                                Child = new GridContainer
+                                {
+                                    RelativeSizeAxes = Axes.Both,
+                                    ColumnDimensions = new[]
+                                    {
+                                        new Dimension(GridSizeMode.AutoSize),
+                                        new Dimension(GridSizeMode.Distributed),
+                                    },
+                                    Content = new[]
+                                    {
+                                        new Drawable[]
+                                        {
+                                            assemblySection = new ToolbarAssemblySection { RelativeSizeAxes = Axes.Y },
+                                            new ToolbarRateSection { RelativeSizeAxes = Axes.Both }
+                                        }
+                                    },
+                                },
                             }
                         },
-                    },
-                },
+                        new Drawable[]
+                        {
+                            new Container
+                            {
+                                Padding = new MarginPadding { Top = 0, Bottom = 10, Left = 10, Right = 10 },
+                                RelativeSizeAxes = Axes.Both,
+                                Child = new ToolbarPlaybackSection { RelativeSizeAxes = Axes.Y }
+                            }
+                        }
+                    }
+                }
             };
         }
 
