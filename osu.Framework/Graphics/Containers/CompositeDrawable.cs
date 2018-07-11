@@ -720,10 +720,11 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         /// <param name="frame">The frame which <see cref="DrawNode"/>s should be generated for.</param>
         /// <param name="treeIndex">The index of the currently in-use <see cref="DrawNode"/> tree.</param>
+        /// <param name="forceNewDrawNode">Whether the creation of a new <see cref="DrawNode"/> should be forced, rather than re-using an existing <see cref="DrawNode"/>.</param>
         /// <param name="j">The running index into the target List.</param>
         /// <param name="parentComposite">The <see cref="CompositeDrawable"/> whose children's <see cref="DrawNode"/>s to add.</param>
         /// <param name="target">The target list to fill with DrawNodes.</param>
-        private static void addFromComposite(ulong frame, int treeIndex, ref int j, CompositeDrawable parentComposite, List<DrawNode> target, bool forceNewDrawNode)
+        private static void addFromComposite(ulong frame, int treeIndex, bool forceNewDrawNode, ref int j, CompositeDrawable parentComposite, List<DrawNode> target)
         {
             SortedList<Drawable> current = parentComposite.aliveInternalChildren;
             // ReSharper disable once ForCanBeConvertedToForeach
@@ -740,7 +741,7 @@ namespace osu.Framework.Graphics.Containers
                     if (composite?.CanBeFlattened == true)
                     {
                         if (!composite.IsMaskedAway)
-                            addFromComposite(frame, treeIndex, ref j, composite, target, forceNewDrawNode);
+                            addFromComposite(frame, treeIndex, forceNewDrawNode, ref j, composite, target);
 
                         continue;
                     }
@@ -785,7 +786,7 @@ namespace osu.Framework.Graphics.Containers
                 List<DrawNode> target = cNode.Children;
 
                 int j = 0;
-                addFromComposite(frame, treeIndex, ref j, this, target, forceNewDrawNode);
+                addFromComposite(frame, treeIndex, forceNewDrawNode, ref j, this, target);
 
                 if (j < target.Count)
                     target.RemoveRange(j, target.Count - j);
