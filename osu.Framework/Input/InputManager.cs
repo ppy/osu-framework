@@ -272,10 +272,6 @@ namespace osu.Framework.Input
             return inputs;
         }
 
-        protected virtual void TransformState(InputState inputState)
-        {
-        }
-
         private IEnumerable<Drawable> buildInputQueue()
         {
             var inputQueue = new List<Drawable>();
@@ -393,11 +389,11 @@ namespace osu.Framework.Input
         {
             if (kind == ButtonStateChangeKind.Pressed)
             {
-                handleJoystickRelease(state, button);
+                handleJoystickPress(state, button);
             }
             else
             {
-                handleJoystickPress(state, button);
+                handleJoystickRelease(state, button);
             }
         }
 
