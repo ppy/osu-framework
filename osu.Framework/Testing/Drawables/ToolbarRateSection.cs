@@ -44,8 +44,7 @@ namespace osu.Framework.Testing.Drawables
                         rateAdjustSlider = new BasicSliderBar<double>
                         {
                             RelativeSizeAxes = Axes.Both,
-                            Colour = Color4.MediumPurple,
-                            SelectionColour = Color4.White,
+                            TintColour = Color4.MediumPurple
                         },
                         rateText = new SpriteText
                         {

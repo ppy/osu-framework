@@ -46,13 +46,14 @@ namespace osu.Framework.Testing.Drawables
                     {
                         Anchor = Anchor.CentreLeft,
                         Origin = Anchor.CentreLeft,
+                        Margin = new MarginPadding { Top = -5 }, // A bit of positional alignment
                         Text = "Frame:"
                     },
-                    frameSliderBar = new BasicSliderBar<int>
+                    frameSliderBar = new FrameSliderBar
                     {
                         RelativeSizeAxes = Axes.Y,
                         Width = 200,
-                        Colour = Color4.MediumPurple
+                        TintColour = Color4.MediumPurple
                     },
                     previousButton = new Button
                     {
@@ -125,6 +126,70 @@ namespace osu.Framework.Testing.Drawables
                     previousButton.Enabled.Value = true;
                     nextButton.Enabled.Value = true;
                     break;
+            }
+        }
+
+        private class FrameSliderBar : BasicSliderBar<int>
+        {
+            private readonly SpriteText currentFrameText;
+            private readonly SpriteText maxFrameText;
+
+            public FrameSliderBar()
+            {
+                Box.Anchor = Anchor.CentreLeft;
+                Box.Origin = Anchor.CentreLeft;
+                Box.Height = 0.25f;
+
+                SelectionBox.Anchor = Anchor.CentreLeft;
+                SelectionBox.Origin = Anchor.CentreLeft;
+                SelectionBox.Height = 0.25f;
+
+                CornerRadius = 0;
+
+                Add(new Container
+                {
+                    Anchor = Anchor.CentreLeft,
+                    Origin = Anchor.CentreLeft,
+                    RelativeSizeAxes = Axes.Both,
+                    Height = 0.25f,
+                    Children = new[]
+                    {
+                        new SpriteText
+                        {
+                            Anchor = Anchor.BottomLeft,
+                            Origin = Anchor.TopLeft,
+                            TextSize = 18,
+                            Text = "0"
+                        },
+                        currentFrameText = new SpriteText
+                        {
+                            Anchor = Anchor.TopLeft,
+                            Origin = Anchor.BottomCentre,
+                            TextSize = 18,
+                            Text = "0",
+                        },
+                        maxFrameText = new SpriteText
+                        {
+                            Anchor = Anchor.BottomRight,
+                            Origin = Anchor.TopRight,
+                            TextSize = 18,
+                        }
+                    }
+                });
+            }
+
+            protected override void UpdateValue(float value)
+            {
+                base.UpdateValue(value);
+
+                maxFrameText.Text = CurrentNumber.MaxValue.ToString();
+                currentFrameText.Text = CurrentNumber.Value.ToString();
+            }
+
+            protected override void UpdateAfterChildren()
+            {
+                base.UpdateAfterChildren();
+                currentFrameText.X = MathHelper.Clamp(Box.Scale.X * DrawWidth, currentFrameText.DrawWidth / 2f, DrawWidth - currentFrameText.DrawWidth / 2f);
             }
         }
     }
