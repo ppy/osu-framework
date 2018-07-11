@@ -175,8 +175,8 @@ namespace osu.Framework.Input
         protected virtual void SyncInputState(InputState parentState)
         {
             // release all buttons that is not pressed on parent state
-            var mosueButtonDifference = (parentState?.Mouse?.Buttons ?? new ButtonStates<MouseButton>()).EnumerateDifference(CurrentState.Mouse.Buttons);
-            new MouseButtonInput(mosueButtonDifference.Released.Select(button => new ButtonInputEntry<MouseButton>(button, false))).Apply(CurrentState, this);
+            var mouseButtonDifference = (parentState?.Mouse?.Buttons ?? new ButtonStates<MouseButton>()).EnumerateDifference(CurrentState.Mouse.Buttons);
+            new MouseButtonInput(mouseButtonDifference.Released.Select(button => new ButtonInputEntry<MouseButton>(button, false))).Apply(CurrentState, this);
 
             new KeyboardKeyInput(parentState?.Keyboard?.Keys, CurrentState.Keyboard.Keys).Apply(CurrentState, this);
             new JoystickButtonInput(parentState?.Joystick?.Buttons, CurrentState.Joystick.Buttons).Apply(CurrentState, this);
