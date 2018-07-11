@@ -564,6 +564,9 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>True when this <see cref="CompositeDrawable"/> and all <see cref="AliveInternalChildren"/> have been fully validated.</returns>
         public override bool ValidateSubTree()
         {
+            if (!IsPresent)
+                return true;
+
             int validations = 0;
 
             bool moreRequired = true;

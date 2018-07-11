@@ -416,7 +416,7 @@ namespace osu.Framework.Graphics
         /// <returns>True when this <see cref="Drawable"/> has been fully validated.</returns>
         public virtual bool ValidateSubTree()
         {
-            if (!RequiresLayoutValidation)
+            if (!IsPresent || !RequiresLayoutValidation)
                 return true;
 
             ValidateLayout();
