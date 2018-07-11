@@ -456,7 +456,7 @@ namespace osu.Framework.Graphics
             get => position;
             set
             {
-                if (Precision.AlmostEquals(position, value)) return;
+                if (position == value) return;
 
                 if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(Position)} must be finite, but is {value}.");
 
@@ -477,7 +477,7 @@ namespace osu.Framework.Graphics
             get => x;
             set
             {
-                if (Precision.AlmostEquals(x, value)) return;
+                if (x == value) return;
 
                 if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(X)} must be finite, but is {value}.");
 
@@ -495,7 +495,7 @@ namespace osu.Framework.Graphics
             get => y;
             set
             {
-                if (Precision.AlmostEquals(y, value)) return;
+                if (y == value) return;
 
                 if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(Y)} must be finite, but is {value}.");
 
@@ -586,7 +586,7 @@ namespace osu.Framework.Graphics
             get => size;
             set
             {
-                if (Precision.AlmostEquals(size, value)) return;
+                if (size == value) return;
 
                 if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(Size)} must be finite, but is {value}.");
 
@@ -607,7 +607,7 @@ namespace osu.Framework.Graphics
             get => width;
             set
             {
-                if (Precision.AlmostEquals(width, value)) return;
+                if (width == value) return;
 
                 if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(Width)} must be finite, but is {value}.");
 
@@ -625,7 +625,7 @@ namespace osu.Framework.Graphics
             get => height;
             set
             {
-                if (Precision.AlmostEquals(height, value)) return;
+                if (height == value) return;
 
                 if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(Height)} must be finite, but is {value}.");
 
