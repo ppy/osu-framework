@@ -173,7 +173,7 @@ namespace osu.Framework.Testing
                         {
                             Clock = framedClock,
                             RelativeSizeAxes = Axes.Both,
-                            Padding = new MarginPadding { Top = 50 },
+                            Padding = new MarginPadding { Top = 100 },
                             Child = compilingNotice = new Container
                             {
                                 Alpha = 0,
