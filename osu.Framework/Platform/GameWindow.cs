@@ -88,12 +88,6 @@ namespace osu.Framework.Platform
             if (GLSLVersion == null)
                 GLSLVersion = new Version();
 
-            //Set up OpenGL related characteristics
-            GL.Disable(EnableCap.DepthTest);
-            GL.Disable(EnableCap.StencilTest);
-            GL.Enable(EnableCap.Blend);
-            GL.Enable(EnableCap.ScissorTest);
-
             Logger.Log($@"GL Initialized
                         GL Version:                 {GL.GetString(StringName.Version)}
                         GL Renderer:                {GL.GetString(StringName.Renderer)}
