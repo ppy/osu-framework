@@ -572,21 +572,20 @@ namespace osu.Framework.Graphics.Containers
             bool moreRequired = true;
             while (moreRequired)
             {
-                moreRequired = !base.ValidateSubTree();
-
                 // We iterate by index to gain performance
                 // ReSharper disable once ForCanBeConvertedToForeach
                 for (int i = 0; i < aliveInternalChildren.Count; i++)
                     moreRequired |= !aliveInternalChildren[i].ValidateSubTree();
 
-                moreRequired |= RequiresLayoutValidation;
+                // Composite layouts are almost always dependent on the layouts of children. Validating our layout after our children removes one validation iteration.
+                moreRequired = !base.ValidateSubTree();
 
                 validations++;
             }
 
             // One validation will almost always occur due to autosize - which is computed either when queried or during validation
             if (validations > 1)
-                Logger.Log($"{this} took {validations} validations to fully validate.", LoggingTarget.Debug, LogLevel.Debug);
+                Logger.Log($"{this} took {validations} iterations to fully validate.", LoggingTarget.Debug, LogLevel.Debug);
 
             return true;
         }
