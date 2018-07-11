@@ -79,7 +79,9 @@ namespace osu.Framework.Testing
             leftFlowContainer.AddRange(TestTypes.Where(t => t.Assembly == asm).Select(t => new TestCaseButton(t) { Action = () => LoadTest(t) }));
         }
 
-        private BindableDouble rateBindable;
+        private readonly RateBindable rateBindable = new RateBindable();
+        private readonly AssemblyBindable assemblyBindable = new AssemblyBindable();
+        private readonly RunAllStepsBindable runAllStepsBindable = new RunAllStepsBindable();
 
         private Toolbar toolbar;
         private Container leftContainer;
@@ -100,12 +102,6 @@ namespace osu.Framework.Testing
             exit = host.Exit;
 
             showLogOverlay = frameworkConfig.GetBindable<bool>(FrameworkSetting.ShowLogOverlay);
-
-            rateBindable = new BindableDouble(1)
-            {
-                MinValue = 0,
-                MaxValue = 2,
-            };
 
             var rateAdjustClock = new StopwatchClock(true);
             var framedClock = new FramedClock(rateAdjustClock);
@@ -222,14 +218,22 @@ namespace osu.Framework.Testing
             }
 
             foreach (Assembly asm in assemblies)
-                toolbar.AssemblyDropdown.AddDropdownItem(asm.GetName().Name, asm);
+                toolbar.AddAssembly(asm.GetName().Name, asm);
 
-            toolbar.AssemblyDropdown.Current.ValueChanged += updateList;
-            toolbar.RunAllSteps.Current.ValueChanged += v => runTests(null);
-            toolbar.RateAdjustSlider.Current.BindTo(rateBindable);
+            assemblyBindable.BindValueChanged(updateList);
+            runAllStepsBindable.BindValueChanged(v => runTests(null));
+            rateBindable.BindValueChanged(v => rateAdjustClock.Rate = v, true);
+        }
 
-            rateBindable.ValueChanged += v => rateAdjustClock.Rate = v;
-            rateBindable.TriggerChange();
+        protected override IReadOnlyDependencyContainer CreateLocalDependencies(IReadOnlyDependencyContainer parent)
+        {
+            var dependencies = new DependencyContainer(base.CreateLocalDependencies(parent));
+
+            dependencies.Cache(rateBindable);
+            dependencies.Cache(assemblyBindable);
+            dependencies.Cache(runAllStepsBindable);
+
+            return dependencies;
         }
 
         protected override void Dispose(bool isDisposing)
@@ -359,19 +363,15 @@ namespace osu.Framework.Testing
 
             var newTest = (TestCase)Activator.CreateInstance(testType);
 
-            var dropdown = toolbar.AssemblyDropdown;
-
             const string dynamic = "dynamic";
-
-            dropdown.RemoveDropdownItem(dropdown.Items.LastOrDefault(i => i.Value.FullName.Contains(dynamic)).Value);
 
             // if we are a dynamically compiled type (via DynamicClassCompiler) we should update the dropdown accordingly.
             if (isDynamicLoad)
-                dropdown.AddDropdownItem($"{dynamic} ({testType.Name})", testType.Assembly);
+                toolbar.AddAssembly($"{dynamic} ({testType.Name})", testType.Assembly);
             else
                 TestTypes.RemoveAll(t => t.Assembly.FullName.Contains(dynamic));
 
-            dropdown.Current.Value = testType.Assembly;
+            assemblyBindable.Value = testType.Assembly;
 
             CurrentTest = newTest;
 
@@ -419,7 +419,7 @@ namespace osu.Framework.Testing
 
         private void runTests(Action onCompletion)
         {
-            if (!interactive || toolbar.RunAllSteps.Current)
+            if (!interactive || runAllStepsBindable.Value)
                 CurrentTest.RunAllSteps(onCompletion, e => Logger.Log($@"Error on step: {e}"));
             else
                 CurrentTest.RunFirstStep();
@@ -460,6 +460,24 @@ namespace osu.Framework.Testing
 
                 return false;
             }
+        }
+
+        internal class RateBindable : BindableDouble
+        {
+            public RateBindable()
+                : base(1)
+            {
+                MinValue = 0;
+                MaxValue = 2;
+            }
+        }
+
+        internal class AssemblyBindable : Bindable<Assembly>
+        {
+        }
+
+        internal class RunAllStepsBindable : Bindable<bool>
+        {
         }
     }
 
