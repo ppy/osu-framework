@@ -7,8 +7,11 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Input;
+using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Graphics;
+using OpenTK.Input;
 
 namespace osu.Framework.Testing.Drawables
 {
@@ -55,7 +58,7 @@ namespace osu.Framework.Testing.Drawables
                         Width = 200,
                         TintColour = Color4.MediumPurple
                     },
-                    previousButton = new Button
+                    previousButton = new RepeatButton
                     {
                         Width = 25,
                         RelativeSizeAxes = Axes.Y,
@@ -63,7 +66,7 @@ namespace osu.Framework.Testing.Drawables
                         Text = "<",
                         Action = previousFrame
                     },
-                    nextButton = new Button
+                    nextButton = new RepeatButton
                     {
                         Width = 25,
                         RelativeSizeAxes = Axes.Y,
@@ -191,6 +194,39 @@ namespace osu.Framework.Testing.Drawables
                 base.UpdateAfterChildren();
                 currentFrameText.X = MathHelper.Clamp(Box.Scale.X * DrawWidth, currentFrameText.DrawWidth / 2f, DrawWidth - currentFrameText.DrawWidth / 2f);
             }
+        }
+
+        private class RepeatButton : Button
+        {
+            private ScheduledDelegate repeatDelegate;
+
+            protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
+            {
+                repeatDelegate?.Cancel();
+
+                if (args.Button == MouseButton.Left)
+                {
+                    if (!base.OnClick(state))
+                        return false;
+
+                    repeatDelegate = Scheduler.AddDelayed(() =>
+                    {
+                        repeatDelegate = Scheduler.AddDelayed(() => base.OnClick(state), 100, true);
+                    }, 300);
+
+                    return true;
+                }
+
+                return false;
+            }
+
+            protected override bool OnMouseUp(InputState state, MouseUpEventArgs args)
+            {
+                repeatDelegate?.Cancel();
+                return base.OnMouseUp(state, args);
+            }
+
+            protected override bool OnClick(InputState state) => false; // Clicks aren't handled by this type of button
         }
     }
 }
