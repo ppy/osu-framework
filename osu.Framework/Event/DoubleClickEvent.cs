@@ -6,7 +6,7 @@ using OpenTK.Input;
 
 namespace osu.Framework.Event
 {
-    public class DoubleClickEvent : MouseDownEvent
+    public class DoubleClickEvent : MouseButtonEvent
     {
         public DoubleClickEvent(InputState state, MouseButton button)
             : base(state, button)
