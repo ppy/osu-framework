@@ -10,7 +10,6 @@ using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Testing;
 using System.Threading;
-using osu.Framework.Extensions.Color4Extensions;
 
 namespace osu.Framework.Tests.Visual
 {
@@ -130,7 +129,7 @@ namespace osu.Framework.Tests.Visual
                 {
                     new Box
                     {
-                        Colour = Color4.Gray.Opacity(0.2f),
+                        Colour = Color4.DarkGoldenrod,
                         RelativeSizeAxes = Axes.Both
                     },
                     new SpriteText
