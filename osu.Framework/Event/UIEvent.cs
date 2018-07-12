@@ -27,6 +27,16 @@ namespace osu.Framework.Event
         /// </summary>
         public Vector2 MousePosition => ToLocalSpace(ScreenSpaceMousePosition);
 
+        public InputState LegacyInputState
+        {
+            get
+            {
+                var state = InputState.Clone();
+                state.Mouse = new LocalMouseState(InputState.Mouse.NativeState, Target);
+                return state;
+            }
+        }
+
         protected UIEvent(InputState state) : base(state)
         {
         }
