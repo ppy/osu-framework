@@ -144,11 +144,18 @@ namespace osu.Framework.Graphics.Cursor
             {
                 currentlyDisplayed = target;
 
-                RemoveInternal((Drawable)currentTooltip);
-                currentTooltip = getTooltip(target);
-                AddInternal((Drawable)currentTooltip);
+                var newTooltip = getTooltip(target);
 
-                currentTooltip.Show();
+                if (newTooltip != currentTooltip)
+                {
+                    RemoveInternal((Drawable)currentTooltip);
+                    currentTooltip = newTooltip;
+                    AddInternal((Drawable)newTooltip);
+                }
+
+                if (hasValidTooltip(target))
+                    currentTooltip.Show();
+
                 RefreshTooltip(currentTooltip, target);
             }
         }
