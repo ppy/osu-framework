@@ -572,13 +572,15 @@ namespace osu.Framework.Graphics.Containers
             bool moreRequired = true;
             while (moreRequired)
             {
+                moreRequired = false;
+
                 // We iterate by index to gain performance
                 // ReSharper disable once ForCanBeConvertedToForeach
                 for (int i = 0; i < aliveInternalChildren.Count; i++)
                     moreRequired |= !aliveInternalChildren[i].ValidateSubTree();
 
                 // Composite layouts are almost always dependent on the layouts of children. Validating our layout after our children removes one validation iteration.
-                moreRequired = !base.ValidateSubTree();
+                moreRequired |= !base.ValidateSubTree();
 
                 validations++;
             }
