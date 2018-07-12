@@ -230,7 +230,7 @@ namespace osu.Framework.Graphics.Cursor
         /// <param name="tooltipTarget">The target of the tooltip.</param>
         protected virtual void RefreshTooltip(ITooltip tooltip, IHasTooltip tooltipTarget)
         {
-            if (tooltipTarget != null)
+            if (tooltipTarget != null && hasValidTooltip(tooltipTarget))
             {
                 tooltip.TooltipText = tooltipTarget.TooltipText;
                 tooltip.Refresh();
