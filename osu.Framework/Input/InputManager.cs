@@ -231,10 +231,7 @@ namespace osu.Framework.Input
 
             if (CurrentState.Mouse.IsPositionValid)
             {
-                foreach (var d in PositionalInputQueue)
-                    if (d is IRequireHighFrequencyMousePosition)
-                        if (d.TriggerEvent(new MouseMoveEvent(CurrentState)))
-                            break;
+                PropagateBlockableEvent(PositionalInputQueue.Where(d => d is IRequireHighFrequencyMousePosition), new MouseMoveEvent(CurrentState));
             }
 
             updateKeyRepeat(CurrentState);
@@ -465,7 +462,7 @@ namespace osu.Framework.Input
 
         private bool handleMouseMove(InputState state, Vector2 lastPosition)
         {
-            return PositionalInputQueue.Any(target => target.TriggerEvent(new MouseMoveEvent(state) { ScreenSpaceLastMousePosition = lastPosition }));
+            return PropagateBlockableEvent(PositionalInputQueue, new MouseMoveEvent(state) { ScreenSpaceLastMousePosition = lastPosition });
         }
 
         private bool handleScroll(InputState state)
