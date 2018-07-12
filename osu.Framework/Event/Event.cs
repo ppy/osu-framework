@@ -10,10 +10,6 @@ namespace osu.Framework.Event
     /// </summary>
     public abstract class Event
     {
-        protected Event()
-        {
-        }
-
         /// <summary>
         /// Create a shallow clone of this object.
         /// </summary>

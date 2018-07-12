@@ -92,10 +92,10 @@ namespace osu.Framework.Tests.Visual
             {
                 var drawSize = sliderBar.DrawSize;
                 drawSize.X *= 0.75f;
-                InputManager.PressKey(OpenTK.Input.Key.LShift);
+                InputManager.PressKey(Key.LShift);
                 InputManager.MoveMouseTo(sliderBar.ToScreenSpace(drawSize));
                 InputManager.Click(MouseButton.Left);
-                InputManager.ReleaseKey(OpenTK.Input.Key.LShift);
+                InputManager.ReleaseKey(Key.LShift);
             });
 
             AddAssert("Value == 6", () => sliderBarValue == 6);

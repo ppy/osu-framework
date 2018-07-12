@@ -30,7 +30,7 @@ namespace osu.Framework.Input
                     mouse.Position = Vector2.Clamp(mouse.Position, Vector2.Zero, new Vector2(Host.Window.Width, Host.Window.Height));
             }
 
-            if (inputStateChange is MouseScrollChangeEvent scrollChange)
+            if (inputStateChange is MouseScrollChangeEvent)
             {
                 if (Host.Window != null && !Host.Window.CursorInWindow) return;
             }
