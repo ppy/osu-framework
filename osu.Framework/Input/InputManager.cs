@@ -257,19 +257,7 @@ namespace osu.Framework.Input
             }
         }
 
-        protected virtual List<IInput> GetPendingInputs()
-        {
-            var inputs = new List<IInput>();
-
-            foreach (var h in InputHandlers)
-            {
-                var list = h.GetPendingInputs();
-                if (h.IsActive && h.Enabled)
-                    inputs.AddRange(list);
-            }
-
-            return inputs;
-        }
+        protected virtual List<IInput> GetPendingInputs() => InputHandlers.Where(h => h.IsActive && h.Enabled).SelectMany(h => h.GetPendingInputs()).ToList();
 
         private IEnumerable<Drawable> buildInputQueue()
         {
