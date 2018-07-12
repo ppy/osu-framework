@@ -270,7 +270,7 @@ namespace osu.Framework.Input
                 d.BuildKeyboardInputQueue(inputQueue);
 
             if (!unfocusIfNoLongerValid())
-                inputQueue.Append(FocusedDrawable);
+                inputQueue.Add(FocusedDrawable);
 
             // Keyboard and mouse queues were created in back-to-front order.
             // We want input to first reach front-most drawables, so the queues
