@@ -101,16 +101,23 @@ namespace osu.Framework.Input
         /// </summary>
         public IEnumerable<Drawable> PositionalInputQueue => buildMouseInputQueue(CurrentState);
 
+        private readonly List<Drawable> positionalInputQueue;
+
         /// <summary>
         /// Contains all <see cref="Drawable"/>s in top-down order which are considered
         /// for non-positional input.
         /// </summary>
         public IEnumerable<Drawable> InputQueue => buildInputQueue();
 
+        private readonly List<Drawable> inputQueue;
+
         private readonly Dictionary<MouseButton, MouseButtonEventManager> mouseButtonEventManagers = new Dictionary<MouseButton, MouseButtonEventManager>();
 
         protected InputManager()
         {
+            inputQueue = new List<Drawable>();
+            positionalInputQueue = new List<Drawable>();
+
             CurrentState = CreateInitialState();
             RelativeSizeAxes = Axes.Both;
 
@@ -261,7 +268,7 @@ namespace osu.Framework.Input
 
         private IEnumerable<Drawable> buildInputQueue()
         {
-            var inputQueue = new List<Drawable>();
+            inputQueue.Clear();
 
             if (this is UserInputManager)
                 FrameStatistics.Increment(StatisticsCounterType.KeyboardQueue);
@@ -282,7 +289,7 @@ namespace osu.Framework.Input
 
         private IEnumerable<Drawable> buildMouseInputQueue(InputState state)
         {
-            var positionalInputQueue = new List<Drawable>();
+            positionalInputQueue.Clear();
 
             if (this is UserInputManager)
                 FrameStatistics.Increment(StatisticsCounterType.MouseQueue);
@@ -589,7 +596,6 @@ namespace osu.Framework.Input
                     }
                 }
             }
-
 
             ChangeFocus(focusTarget);
         }
