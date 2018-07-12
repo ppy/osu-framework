@@ -198,7 +198,7 @@ namespace osu.Framework.Input
 
             FocusedDrawable = potentialFocusTarget;
 
-            Logger.Log($"Focus switched to {FocusedDrawable?.ToString() ?? "nothing"}.", LoggingTarget.Runtime, LogLevel.Debug);
+            Logger.Log($"Focus changed from {previousFocus?.ToString() ?? "nothing"} to {FocusedDrawable?.ToString() ?? "nothing"}.", LoggingTarget.Runtime, LogLevel.Debug);
 
             if (FocusedDrawable != null)
             {
@@ -567,6 +567,7 @@ namespace osu.Framework.Input
             if (stillValid)
                 return false;
 
+            Logger.Log($"Focus on \"{FocusedDrawable}\" no longer valid as a result of {nameof(unfocusIfNoLongerValid)}.", LoggingTarget.Runtime, LogLevel.Debug);
             ChangeFocus(null);
             return true;
         }
@@ -601,6 +602,7 @@ namespace osu.Framework.Input
                     }
                 }
             }
+
 
             ChangeFocus(focusTarget);
         }

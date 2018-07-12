@@ -11,7 +11,7 @@ namespace osu.Framework.Graphics.Containers
     {
         public override bool RequestsFocus => State == Visibility.Visible;
 
-        public override bool AcceptsFocus => true;
+        public override bool AcceptsFocus => State == Visibility.Visible;
 
         protected override void PopIn()
         {
