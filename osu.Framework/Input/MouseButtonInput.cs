@@ -24,8 +24,5 @@ namespace osu.Framework.Input
         }
 
         protected override ButtonStates<MouseButton> GetButtonStates(InputState state) => state.Mouse.Buttons;
-
-        protected override void Handle(IInputStateChangeHandler handler, InputState state, MouseButton button, ButtonStateChangeKind kind) =>
-            handler.HandleMouseButtonStateChange(state, button, kind);
     }
 }

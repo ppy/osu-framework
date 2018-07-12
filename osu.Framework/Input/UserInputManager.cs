@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Collections.Generic;
+using osu.Framework.Event;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Platform;
 using OpenTK;
@@ -19,19 +20,22 @@ namespace osu.Framework.Input
             UseParentInput = false;
         }
 
-        public override void HandleMousePositionChange(InputState state)
+        public override void HandleInputStateChange(InputStateChangeEvent inputStateChange)
         {
-            var mouse = state.Mouse;
-            // confine cursor
-            if (Host.Window != null && (Host.Window.CursorState & CursorState.Confined) > 0)
-                mouse.Position = Vector2.Clamp(mouse.Position, Vector2.Zero, new Vector2(Host.Window.Width, Host.Window.Height));
-            base.HandleMousePositionChange(state);
-        }
+            if (inputStateChange is MousePositionChangeEvent mousePositionChange)
+            {
+                var mouse = mousePositionChange.InputState.Mouse;
+                // confine cursor
+                if (Host.Window != null && (Host.Window.CursorState & CursorState.Confined) > 0)
+                    mouse.Position = Vector2.Clamp(mouse.Position, Vector2.Zero, new Vector2(Host.Window.Width, Host.Window.Height));
+            }
 
-        public override void HandleMouseScrollChange(InputState state)
-        {
-            if (Host.Window != null && !Host.Window.CursorInWindow) return;
-            base.HandleMouseScrollChange(state);
+            if (inputStateChange is MouseScrollChangeEvent scrollChange)
+            {
+                if (Host.Window != null && !Host.Window.CursorInWindow) return;
+            }
+
+            base.HandleInputStateChange(inputStateChange);
         }
     }
 }

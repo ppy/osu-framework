@@ -365,8 +365,12 @@ namespace osu.Framework.Input
                                      || k == Key.LWin || k == Key.RWin;
         }
 
-        public virtual void HandleKeyboardKeyStateChange(InputState state, Key key, ButtonStateChangeKind kind)
+        protected virtual void HandleKeyboardKeyStateChange(ButtonStateChangeEvent<Key> keyboardKeyStateChange)
         {
+            var state = keyboardKeyStateChange.InputState;
+            var key = keyboardKeyStateChange.Button;
+            var kind = keyboardKeyStateChange.Kind;
+
             if (kind == ButtonStateChangeKind.Pressed)
             {
                 handleKeyDown(state, key, false);
@@ -386,8 +390,12 @@ namespace osu.Framework.Input
             }
         }
 
-        public virtual void HandleJoystickButtonStateChange(InputState state, JoystickButton button, ButtonStateChangeKind kind)
+        protected virtual void HandleJoystickButtonStateChange(ButtonStateChangeEvent<JoystickButton> joystickButtonStateChange)
         {
+            var state = joystickButtonStateChange.InputState;
+            var button = joystickButtonStateChange.Button;
+            var kind = joystickButtonStateChange.Kind;
+
             if (kind == ButtonStateChangeKind.Pressed)
             {
                 handleJoystickPress(state, button);
@@ -398,38 +406,66 @@ namespace osu.Framework.Input
             }
         }
 
-        public virtual void HandleMousePositionChange(InputState state)
+        public virtual void HandleInputStateChange(InputStateChangeEvent inputStateChange)
         {
+            // Set default
+            var mouse = inputStateChange.InputState.Mouse;
+            mouse.LastPosition = mouse.Position;
+            mouse.LastScroll = mouse.Scroll;
+
+            switch (inputStateChange)
+            {
+                case MousePositionChangeEvent mousePositionChange:
+                    HandleMousePositionChange(mousePositionChange);
+                    return;
+                case MouseScrollChangeEvent mouseScrollChange:
+                    HandleMouseScrollChange(mouseScrollChange);
+                    return;
+                case ButtonStateChangeEvent<MouseButton> mouseButtonStateChange:
+                    HandleMouseButtonStateChange(mouseButtonStateChange);
+                    return;
+                case ButtonStateChangeEvent<Key> keyboardKeyStateChange:
+                    HandleKeyboardKeyStateChange(keyboardKeyStateChange);
+                    return;
+                case ButtonStateChangeEvent<JoystickButton> joystickButtonStateChange:
+                    HandleJoystickButtonStateChange(joystickButtonStateChange);
+                    return;
+            }
+        }
+
+        protected virtual void HandleMousePositionChange(MousePositionChangeEvent e)
+        {
+            var state = e.InputState;
             var mouse = state.Mouse;
+
+            mouse.LastPosition = e.LastPosition;
 
             foreach (var h in InputHandlers)
                 if (h.Enabled && h is INeedsMousePositionFeedback handler)
                     handler.FeedbackMousePositionChange(mouse.Position);
 
-            handleMouseMove(state);
+            handleMouseMove(state, e.LastPosition);
 
             foreach (var manager in mouseButtonEventManagers.Values)
                 manager.HandlePositionChange(state);
         }
 
-        public virtual void HandleMouseScrollChange(InputState state)
+        protected virtual void HandleMouseScrollChange(MouseScrollChangeEvent e)
         {
-            handleScroll(state);
+            e.InputState.Mouse.LastScroll = e.LastScroll;
+
+            handleScroll(e.InputState);
         }
 
-        public void HandleMouseButtonStateChange(InputState state, MouseButton button, ButtonStateChangeKind kind)
+        protected virtual void HandleMouseButtonStateChange(ButtonStateChangeEvent<MouseButton> e)
         {
-            if (mouseButtonEventManagers.TryGetValue(button, out var manager))
-                manager.HandleButtonStateChange(state, kind, Time.Current);
+            if (mouseButtonEventManagers.TryGetValue(e.Button, out var manager))
+                manager.HandleButtonStateChange(e.InputState, e.Kind, Time.Current);
         }
 
-        public virtual void HandleCustomInput(InputState state, IInput input)
+        private bool handleMouseMove(InputState state, Vector2 lastPosition)
         {
-        }
-
-        private bool handleMouseMove(InputState state)
-        {
-            return PositionalInputQueue.Any(target => target.TriggerEvent(new MouseMoveEvent(state) { ScreenSpaceLastMousePosition = state.Mouse.LastPosition }));
+            return PositionalInputQueue.Any(target => target.TriggerEvent(new MouseMoveEvent(state) { ScreenSpaceLastMousePosition = lastPosition }));
         }
 
         private bool handleScroll(InputState state)
