@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Allocation;
+using osu.Framework.Event;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input.Handlers;
@@ -191,7 +192,7 @@ namespace osu.Framework.Input
             if (previousFocus != null)
             {
                 previousFocus.HasFocus = false;
-                previousFocus.TriggerOnFocusLost(state);
+                previousFocus.TriggerEvent(new FocusLostEvent(state));
 
                 if (FocusedDrawable != null) throw new InvalidOperationException($"Focus cannot be changed inside {nameof(OnFocusLost)}");
             }
@@ -203,7 +204,7 @@ namespace osu.Framework.Input
             if (FocusedDrawable != null)
             {
                 FocusedDrawable.HasFocus = true;
-                FocusedDrawable.TriggerOnFocus(state);
+                FocusedDrawable.TriggerEvent(new FocusEvent(state));
             }
 
             return true;
@@ -232,7 +233,7 @@ namespace osu.Framework.Input
             {
                 foreach (var d in PositionalInputQueue)
                     if (d is IRequireHighFrequencyMousePosition)
-                        if (d.TriggerOnMouseMove(CurrentState))
+                        if (d.TriggerEvent(new MouseMoveEvent(CurrentState)))
                             break;
             }
 
@@ -340,7 +341,7 @@ namespace osu.Framework.Input
                     }
 
                     d.IsHovered = true;
-                    if (d.TriggerOnHover(state))
+                    if (d.TriggerEvent(new HoverEvent(state)))
                     {
                         hoverHandledDrawable = d;
                         break;
@@ -352,7 +353,7 @@ namespace osu.Framework.Input
             foreach (Drawable d in lastHoveredDrawables.Except(hoveredDrawables))
             {
                 d.IsHovered = false;
-                d.TriggerOnHoverLost(state);
+                d.TriggerEvent(new HoverLostEvent(state));
             }
         }
 
@@ -428,112 +429,46 @@ namespace osu.Framework.Input
 
         private bool handleMouseMove(InputState state)
         {
-            return PositionalInputQueue.Any(target => target.TriggerOnMouseMove(state));
+            return PositionalInputQueue.Any(target => target.TriggerEvent(new MouseMoveEvent(state) { ScreenSpaceLastMousePosition = state.Mouse.LastPosition }));
         }
 
         private bool handleScroll(InputState state)
         {
-            return PropagateScroll(PositionalInputQueue, state);
-        }
-
-        /// <summary>
-        /// Triggers scroll events on drawables in <paramref cref="drawables"/> until it is handled.
-        /// </summary>
-        /// <param name="drawables">The drawables in the queue.</param>
-        /// <param name="state">The input state.</param>
-        /// <returns></returns>
-        protected virtual bool PropagateScroll(IEnumerable<Drawable> drawables, InputState state)
-        {
-            var handledBy = drawables.FirstOrDefault(target => target.TriggerOnScroll(state));
-
-            if (handledBy != null)
-                Logger.Log($"Scroll ({state.Mouse.ScrollDelta.X:#,2},{state.Mouse.ScrollDelta.Y:#,2}) handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
-
-            return handledBy != null;
+            return PropagateBlockableEvent(PositionalInputQueue, new ScrollEvent(state, state.Mouse.ScrollDelta));
         }
 
         private bool handleKeyDown(InputState state, Key key, bool repeat)
         {
-            return PropagateKeyDown(InputQueue, state, new KeyDownEventArgs { Key = key, Repeat = repeat });
-        }
-
-        /// <summary>
-        /// Triggers key down events on drawables in <paramref cref="drawables"/> until it is handled.
-        /// </summary>
-        /// <param name="drawables">The drawables in the queue.</param>
-        /// <param name="state">The input state.</param>
-        /// <param name="args">The args.</param>
-        /// <returns>Whether the key down event was handled.</returns>
-        protected virtual bool PropagateKeyDown(IEnumerable<Drawable> drawables, InputState state, KeyDownEventArgs args)
-        {
-            var handledBy = drawables.FirstOrDefault(target => target.TriggerOnKeyDown(state, args));
-
-            if (handledBy != null)
-                Logger.Log($"KeyDown ({args.Key}) handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
-
-            return handledBy != null;
+            return PropagateBlockableEvent(InputQueue, new KeyDownEvent(state, key) { Repeat = repeat });
         }
 
         private bool handleKeyUp(InputState state, Key key)
         {
-            IEnumerable<Drawable> queue = InputQueue;
-            if (!unfocusIfNoLongerValid())
-                queue = queue.Prepend(FocusedDrawable);
-
-            return PropagateKeyUp(queue, state, new KeyUpEventArgs { Key = key });
-        }
-
-        /// <summary>
-        /// Triggers key up events on drawables in <paramref cref="drawables"/> until it is handled.
-        /// </summary>
-        /// <param name="drawables">The drawables in the queue.</param>
-        /// <param name="state">The input state.</param>
-        /// <param name="args">The args.</param>
-        /// <returns>Whether the key up event was handled.</returns>
-        protected virtual bool PropagateKeyUp(IEnumerable<Drawable> drawables, InputState state, KeyUpEventArgs args)
-        {
-            var handledBy = drawables.FirstOrDefault(target => target.TriggerOnKeyUp(state, args));
-
-            if (handledBy != null)
-                Logger.Log($"KeyUp ({args.Key}) handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
-
-            return handledBy != null;
+            return PropagateBlockableEvent(InputQueue, new KeyUpEvent(state, key));
         }
 
         private bool handleJoystickPress(InputState state, JoystickButton button)
         {
-            IEnumerable<Drawable> queue = InputQueue;
-            if (!unfocusIfNoLongerValid())
-                queue = queue.Prepend(FocusedDrawable);
-
-            return PropagateJoystickPress(queue, state, new JoystickEventArgs { Button = button });
-        }
-
-        protected virtual bool PropagateJoystickPress(IEnumerable<Drawable> drawables, InputState state, JoystickEventArgs args)
-        {
-            var handledBy = drawables.FirstOrDefault(target => target.TriggerOnJoystickPress(state, args));
-
-            if (handledBy != null)
-                Logger.Log($"JoystickPress ({args.Button}) handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
-
-            return handledBy != null;
+            return PropagateBlockableEvent(InputQueue, new JoystickPressEvent(state, button));
         }
 
         private bool handleJoystickRelease(InputState state, JoystickButton button)
         {
-            IEnumerable<Drawable> queue = InputQueue;
-            if (!unfocusIfNoLongerValid())
-                queue = queue.Prepend(FocusedDrawable);
-
-            return PropagateJoystickRelease(queue, state, new JoystickEventArgs { Button = button });
+            return PropagateBlockableEvent(InputQueue, new JoystickReleaseEvent(state, button));
         }
 
-        protected virtual bool PropagateJoystickRelease(IEnumerable<Drawable> drawables, InputState state, JoystickEventArgs args)
+        /// <summary>
+        /// Triggers events on drawables in <paramref cref="drawables"/> until it is handled.
+        /// </summary>
+        /// <param name="drawables">The drawables in the queue.</param>
+        /// <param name="e">The event.</param>
+        /// <returns>Whether the event was handled.</returns>
+        protected virtual bool PropagateBlockableEvent(IEnumerable<Drawable> drawables, UIEvent e)
         {
-            var handledBy = drawables.FirstOrDefault(target => target.TriggerOnJoystickRelease(state, args));
+            var handledBy = drawables.FirstOrDefault(target => target.TriggerEvent(e));
 
             if (handledBy != null)
-                Logger.Log($"JoystickRelease ({args.Button}) handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
+                Logger.Log($"{e} handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
 
             return handledBy != null;
         }

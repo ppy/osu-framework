@@ -3,12 +3,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using osu.Framework.Event;
 using osu.Framework.Graphics;
+using osu.Framework.Logging;
 using OpenTK;
 using OpenTK.Input;
-using System.Linq;
-using System.Diagnostics;
-using osu.Framework.Logging;
 
 namespace osu.Framework.Input
 {
@@ -131,16 +132,14 @@ namespace osu.Framework.Input
 
                 if (EnableClick && DraggedDrawable == null)
                 {
-                    bool isValidClick = true;
+                    var isValidClick = true;
                     if (LastClickTime != null && currentTime - LastClickTime < DoubleClickTime)
-                    {
                         if (HandleMouseDoubleClick(state))
                         {
                             //when we handle a double-click we want to block a normal click from firing.
                             isValidClick = false;
                             LastClickTime = null;
                         }
-                    }
 
                     if (isValidClick)
                     {
@@ -158,73 +157,57 @@ namespace osu.Framework.Input
 
         protected virtual bool HandleMouseDown(InputState state)
         {
-            MouseDownEventArgs args = new MouseDownEventArgs { Button = Button };
-
             var positionalInputQueue = PositionalInputQueue.ToList();
-            var result = PropagateMouseDown(positionalInputQueue, state, args, out Drawable handledBy);
+            var handledBy = PropagateMouseButtonEvent(positionalInputQueue, new MouseDownEvent(state, Button));
 
             // only drawables up to the one that handled mouse down should handle mouse up
             MouseDownInputQueue = positionalInputQueue;
-            if (result)
+            if (handledBy != null)
             {
                 var count = MouseDownInputQueue.IndexOf(handledBy) + 1;
                 MouseDownInputQueue.RemoveRange(count, MouseDownInputQueue.Count - count);
             }
 
-            return result;
-        }
-
-        // set PositionMouseDown right before the event is invoked so it can be used as the mouse down position for each button
-        private void setPositionMouseDown(InputState state)
-        {
-            state.Mouse.PositionMouseDown = MouseDownPosition;
+            return handledBy != null;
         }
 
         protected virtual bool HandleMouseUp(InputState state)
         {
             if (MouseDownInputQueue == null) return false;
 
-            MouseUpEventArgs args = new MouseUpEventArgs { Button = Button };
-
-            setPositionMouseDown(state);
-
-            return PropagateMouseUp(MouseDownInputQueue, state, args);
+            return PropagateMouseButtonEvent(MouseDownInputQueue, new MouseUpEvent(state, Button)) != null;
         }
 
         protected virtual bool HandleMouseClick(InputState state)
         {
-            var intersectingQueue = MouseDownInputQueue.Intersect(PositionalInputQueue);
+            // due to the laziness of IEnumerable, .Where check should be done right before it is triggered for the event.
+            var drawables = MouseDownInputQueue.Intersect(PositionalInputQueue)
+                                               .Where(t => t.CanReceiveMouseInput && t.ReceiveMouseInputAt(state.Mouse.Position));
 
-            setPositionMouseDown(state);
 
             // click pass, triggering an OnClick on all drawables up to the first which returns true.
             // an extra IsHovered check is performed because we are using an outdated queue (for valid reasons which we need to document).
-            ClickedDrawable = intersectingQueue.FirstOrDefault(t => t.CanReceiveMouseInput && t.ReceiveMouseInputAt(state.Mouse.Position) && t.TriggerOnClick(state));
+            ClickedDrawable = PropagateMouseButtonEvent(drawables, new ClickEvent(state, Button));
 
             if (ChangeFocusOnClick)
                 RequestFocus?.Invoke(ClickedDrawable);
-
-            if (ClickedDrawable != null)
-                Logger.Log($"MouseClick handled by {ClickedDrawable}.", LoggingTarget.Runtime, LogLevel.Debug);
 
             return ClickedDrawable != null;
         }
 
         protected virtual bool HandleMouseDoubleClick(InputState state)
         {
-            if (ClickedDrawable == null) return false;
+            if (ClickedDrawable == null || !ClickedDrawable.ReceiveMouseInputAt(state.Mouse.Position)) return false;
 
-            setPositionMouseDown(state);
-
-            return ClickedDrawable.ReceiveMouseInputAt(state.Mouse.Position) && ClickedDrawable.TriggerOnDoubleClick(state);
+            return PropagateMouseButtonEvent(new[] { ClickedDrawable }, new DoubleClickEvent(state, Button)) != null;
         }
 
         protected virtual bool HandleMouseDrag(InputState state)
         {
-            setPositionMouseDown(state);
+            if (DraggedDrawable == null) return false;
 
             //Once a drawable is dragged, it remains in a dragged state until the drag is finished.
-            return DraggedDrawable?.TriggerOnDrag(state) ?? false;
+            return PropagateMouseButtonEvent(new[] { DraggedDrawable }, new DragEvent(state, Button)) != null;
         }
 
         protected virtual bool HandleMouseDragStart(InputState state)
@@ -236,14 +219,10 @@ namespace osu.Framework.Input
 
             DragStarted = true;
 
-            setPositionMouseDown(state);
+            // also the laziness of IEnumerable here
+            var drawables = MouseDownInputQueue.Where(t => t.IsAlive && t.IsPresent);
 
-            DraggedDrawable = MouseDownInputQueue?.FirstOrDefault(target => target.IsAlive && target.IsPresent && target.TriggerOnDragStart(state));
-            if (DraggedDrawable != null)
-            {
-                DraggedDrawable.IsDragged = true;
-                Logger.Log($"MouseDragStart handled by {DraggedDrawable}.", LoggingTarget.Runtime, LogLevel.Debug);
-            }
+            DraggedDrawable = PropagateMouseButtonEvent(drawables, new DragStartEvent(state, Button));
 
             return DraggedDrawable != null;
         }
@@ -252,12 +231,10 @@ namespace osu.Framework.Input
         {
             DragStarted = false;
 
-            if (DraggedDrawable == null)
-                return false;
+            if (DraggedDrawable == null) return false;
 
-            setPositionMouseDown(state);
+            var result = PropagateMouseButtonEvent(new[] { DraggedDrawable }, new DragEndEvent(state, Button)) != null;
 
-            bool result = DraggedDrawable.TriggerOnDragEnd(state);
             DraggedDrawable.IsDragged = false;
             DraggedDrawable = null;
 
@@ -265,38 +242,21 @@ namespace osu.Framework.Input
         }
 
         /// <summary>
-        /// Triggers mouse down events on drawables in <paramref cref="drawables"/> until it is handled.
+        /// Triggers events on drawables in <paramref cref="drawables"/> until it is handled.
         /// </summary>
         /// <param name="drawables">The drawables in the queue.</param>
-        /// <param name="state">The input state.</param>
-        /// <param name="args">The args.</param>
-        /// <param name="handledBy"></param>
-        /// <returns>Whether the mouse down event was handled.</returns>
-        protected virtual bool PropagateMouseDown(IEnumerable<Drawable> drawables, InputState state, MouseDownEventArgs args, out Drawable handledBy)
+        /// <param name="e">The event.</param>
+        /// <returns>The drawable which handled the event or null if none.</returns>
+        protected virtual Drawable PropagateMouseButtonEvent(IEnumerable<Drawable> drawables, MouseButtonEvent e)
         {
-            handledBy = drawables.FirstOrDefault(target => target.TriggerOnMouseDown(state, args));
+            e.InputState.Mouse.PositionMouseDown = MouseDownPosition;
+
+            var handledBy = drawables.FirstOrDefault(target => target.TriggerEvent(e));
 
             if (handledBy != null)
-                Logger.Log($"MouseDown ({args.Button}) handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
+                Logger.Log($"{e} handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
 
-            return handledBy != null;
-        }
-
-        /// <summary>
-        /// Triggers mouse up events on drawables in <paramref cref="drawables"/> until it is handled.
-        /// </summary>
-        /// <param name="drawables">The drawables in the queue.</param>
-        /// <param name="state">The input state.</param>
-        /// <param name="args">The args.</param>
-        /// <returns>Whether the mouse up event was handled.</returns>
-        protected virtual bool PropagateMouseUp(IEnumerable<Drawable> drawables, InputState state, MouseUpEventArgs args)
-        {
-            var handledBy = drawables.FirstOrDefault(target => target.TriggerOnMouseUp(state, args));
-
-            if (handledBy != null)
-                Logger.Log($"MouseUp ({args.Button}) handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
-
-            return handledBy != null;
+            return handledBy;
         }
     }
 }
