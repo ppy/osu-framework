@@ -223,6 +223,8 @@ namespace osu.Framework.Input
             var drawables = MouseDownInputQueue.Where(t => t.IsAlive && t.IsPresent);
 
             DraggedDrawable = PropagateMouseButtonEvent(drawables, new DragStartEvent(state, Button));
+            if (DraggedDrawable != null)
+                DraggedDrawable.IsDragged = true;
 
             return DraggedDrawable != null;
         }
@@ -249,6 +251,8 @@ namespace osu.Framework.Input
         /// <returns>The drawable which handled the event or null if none.</returns>
         protected virtual Drawable PropagateMouseButtonEvent(IEnumerable<Drawable> drawables, MouseButtonEvent e)
         {
+            if (MouseDownPosition.HasValue)
+                e.ScreenSpaceMouseDownPosition = MouseDownPosition.Value;
             e.InputState.Mouse.PositionMouseDown = MouseDownPosition;
 
             var handledBy = drawables.FirstOrDefault(target => target.TriggerEvent(e));
