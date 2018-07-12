@@ -231,9 +231,8 @@ namespace osu.Framework.Input
             if (CurrentState.Mouse.IsPositionValid)
             {
                 foreach (var d in PositionalInputQueue)
-                    if (d is IRequireHighFrequencyMousePosition)
-                        if (d.TriggerOnMouseMove(CurrentState))
-                            break;
+                    if (d is IRequireHighFrequencyMousePosition && d.TriggerOnMouseMove(CurrentState))
+                        break;
             }
 
             updateKeyRepeat(CurrentState);
