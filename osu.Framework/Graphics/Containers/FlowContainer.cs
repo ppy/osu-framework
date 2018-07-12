@@ -207,13 +207,13 @@ namespace osu.Framework.Graphics.Containers
 
         protected override void ValidateLayout()
         {
-            base.ValidateLayout();
-
             if (!layout.IsValid)
             {
                 performLayout();
                 layout.Validate();
             }
+
+            base.ValidateLayout();
         }
 
         private class FlowTransform : TransformCustom<Vector2, Drawable>

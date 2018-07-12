@@ -138,13 +138,13 @@ namespace osu.Framework.Graphics.Containers
 
         protected override void ValidateLayout()
         {
-            base.ValidateLayout();
-
             if (!layout.IsValid)
             {
                 computeLayout();
                 layout.Validate();
             }
+
+            base.ValidateLayout();
         }
 
         protected override int Compare(Drawable x, Drawable y)

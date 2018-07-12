@@ -333,8 +333,6 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override void ValidateLayout()
         {
-            base.ValidateLayout();
-
             if (!sizeCache.IsValid)
             {
                 // Our children will be relatively-sized on the axis separate to the menu direction, so we need to compute
@@ -371,6 +369,8 @@ namespace osu.Framework.Graphics.UserInterface
 
                 sizeCache.Validate();
             }
+
+            base.ValidateLayout();
         }
 
         /// <summary>

@@ -225,13 +225,13 @@ namespace osu.Framework.Graphics.Sprites
 
         protected override void ValidateLayout()
         {
-            base.ValidateLayout();
-
             if (!layout.IsValid)
             {
                 computeLayout();
                 layout.Validate();
             }
+
+            base.ValidateLayout();
         }
 
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
