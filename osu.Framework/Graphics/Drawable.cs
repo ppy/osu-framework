@@ -1732,23 +1732,63 @@ namespace osu.Framework.Graphics
         }
 
         #region Legacy event handling
-        [Obsolete("Use Handle instead")] protected virtual bool OnMouseMove(InputState state) => false;
-        [Obsolete("Use Handle instead")] protected virtual bool OnHover(InputState state) => false;
-        [Obsolete("Use Handle instead")] protected virtual void OnHoverLost(InputState state) {}
-        [Obsolete("Use Handle instead")] protected virtual bool OnMouseDown(InputState state, MouseDownEventArgs args) => false;
-        [Obsolete("Use Handle instead")] protected virtual bool OnMouseUp(InputState state, MouseUpEventArgs args) => false;
-        [Obsolete("Use Handle instead")] protected virtual bool OnClick(InputState state) => false;
-        [Obsolete("Use Handle instead")] protected virtual bool OnDoubleClick(InputState state) => false;
-        [Obsolete("Use Handle instead")] protected virtual bool OnDragStart(InputState state) => false;
-        [Obsolete("Use Handle instead")] protected virtual bool OnDrag(InputState state) => false;
-        [Obsolete("Use Handle instead")] protected virtual bool OnDragEnd(InputState state) => false;
-        [Obsolete("Use Handle instead")] protected virtual bool OnScroll(InputState state) => false;
-        [Obsolete("Use Handle instead")] protected virtual void OnFocus(InputState state) {}
-        [Obsolete("Use Handle instead")] protected virtual void OnFocusLost(InputState state) {}
-        [Obsolete("Use Handle instead")] protected virtual bool OnKeyDown(InputState state, KeyDownEventArgs args) => false;
-        [Obsolete("Use Handle instead")] protected virtual bool OnKeyUp(InputState state, KeyUpEventArgs args) => false;
-        [Obsolete("Use Handle instead")] protected virtual bool OnJoystickPress(InputState state, JoystickEventArgs args) => false;
-        [Obsolete("Use Handle instead")] protected virtual bool OnJoystickRelease(InputState state, JoystickEventArgs args) => false;
+
+        [Obsolete("Use Handle instead")]
+        protected virtual bool OnMouseMove(InputState state) => false;
+
+        [Obsolete("Use Handle instead")]
+        protected virtual bool OnHover(InputState state) => false;
+
+        [Obsolete("Use Handle instead")]
+        protected virtual void OnHoverLost(InputState state)
+        {
+        }
+
+        [Obsolete("Use Handle instead")]
+        protected virtual bool OnMouseDown(InputState state, MouseDownEventArgs args) => false;
+
+        [Obsolete("Use Handle instead")]
+        protected virtual bool OnMouseUp(InputState state, MouseUpEventArgs args) => false;
+
+        [Obsolete("Use Handle instead")]
+        protected virtual bool OnClick(InputState state) => false;
+
+        [Obsolete("Use Handle instead")]
+        protected virtual bool OnDoubleClick(InputState state) => false;
+
+        [Obsolete("Use Handle instead")]
+        protected virtual bool OnDragStart(InputState state) => false;
+
+        [Obsolete("Use Handle instead")]
+        protected virtual bool OnDrag(InputState state) => false;
+
+        [Obsolete("Use Handle instead")]
+        protected virtual bool OnDragEnd(InputState state) => false;
+
+        [Obsolete("Use Handle instead")]
+        protected virtual bool OnScroll(InputState state) => false;
+
+        [Obsolete("Use Handle instead")]
+        protected virtual void OnFocus(InputState state)
+        {
+        }
+
+        [Obsolete("Use Handle instead")]
+        protected virtual void OnFocusLost(InputState state)
+        {
+        }
+
+        [Obsolete("Use Handle instead")]
+        protected virtual bool OnKeyDown(InputState state, KeyDownEventArgs args) => false;
+
+        [Obsolete("Use Handle instead")]
+        protected virtual bool OnKeyUp(InputState state, KeyUpEventArgs args) => false;
+
+        [Obsolete("Use Handle instead")]
+        protected virtual bool OnJoystickPress(InputState state, JoystickEventArgs args) => false;
+
+        [Obsolete("Use Handle instead")]
+        protected virtual bool OnJoystickRelease(InputState state, JoystickEventArgs args) => false;
         #endregion
 
         private readonly bool handleKeyboardInput, handleMouseInput;
