@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Cyotek.Drawing.BitmapFont;
 using Markdig;
 using Markdig.Extensions.AutoIdentifiers;
 using Markdig.Extensions.Tables;
@@ -11,6 +12,7 @@ using Markdig.Syntax;
 using Markdig.Syntax.Inlines;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.IEnumerableExtensions;
+using osu.Framework.Graphics.Animations;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
@@ -22,50 +24,59 @@ namespace osu.Framework.Graphics.Containers
     /// <summary>
     /// Contains all the markdown component <see cref="IMarkdownObject" /> in <see cref="MarkdownDocument" />
     /// </summary>
-    public class MarkdownContainer : ScrollContainer
+    public class MarkdownContainer : CompositeDrawable
     {
-        public MarkdownDocument MarkdownDocument
+
+        protected virtual MarkdownPipeline CreateBuilder()
         {
-            get => document;
+            return new MarkdownPipelineBuilder().UseAutoIdentifiers(AutoIdentifierOptions.GitHub)
+                                         .UseEmojiAndSmiley()
+                                         .UseAdvancedExtensions().Build();
+        }
+
+        public string Text
+        {
             set
             {
-                document = value;
-                //clear all exist markdown object and re-create them
+                var markdownText = value;
+                var pipeline = CreateBuilder();
+                var document = Markdown.Parse(markdownText, pipeline);
+
                 markdownContainer.Clear();
                 foreach (var component in document)
                     AddMarkdownComponent(component, markdownContainer, root_layer_index);
             }
         }
 
-        public string MarkdownText
+        public float Spacing
         {
-            set
-            {
-                var markdownText = value;
-                var pipeline = new MarkdownPipelineBuilder().UseAutoIdentifiers(AutoIdentifierOptions.GitHub)
-                    .UseEmojiAndSmiley()
-                    .UseAdvancedExtensions().Build();
-                MarkdownDocument = Markdown.Parse(markdownText, pipeline);
-            }
+            get => markdownContainer.Spacing.Y;
+            set => markdownContainer.Spacing = new Vector2(value);
         }
 
         private const int root_layer_index = 0;
-        private const int seperator_px = 25;
-        private MarkdownDocument document;
         private readonly FillFlowContainer markdownContainer;
 
         public MarkdownContainer()
         {
-            ScrollbarOverlapsContent = false;
-            Child = markdownContainer = new FillFlowContainer
+            InternalChildren = new Drawable[]
             {
-                Padding = new MarginPadding { Left = 10, Right = 30 },
-                Margin = new MarginPadding { Left = 10, Right = 30 },
-                AutoSizeAxes = Axes.Y,
-                RelativeSizeAxes = Axes.X,
-                Direction = FillDirection.Vertical,
-                Spacing = new Vector2(seperator_px)
+                new ScrollContainer
+                {
+                    ScrollbarOverlapsContent = false,
+                    RelativeSizeAxes = Axes.Both,
+                    Child = markdownContainer = new FillFlowContainer
+                    {
+                        Padding = new MarginPadding { Left = 10, Right = 30 },
+                        Margin = new MarginPadding { Left = 10, Right = 30 },
+                        AutoSizeAxes = Axes.Y,
+                        RelativeSizeAxes = Axes.X,
+                        Direction = FillDirection.Vertical,
+                    }
+                }
             };
+
+            Spacing = 25;
         }
 
         protected void AddMarkdownComponent(IMarkdownObject markdownObject, FillFlowContainer container, int layerIndex)

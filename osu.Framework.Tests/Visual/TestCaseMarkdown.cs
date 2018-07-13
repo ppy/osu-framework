@@ -23,7 +23,7 @@ namespace osu.Framework.Tests.Visual
 
             AddStep("Markdown Heading", () =>
             {
-                markdownContainer.MarkdownText = @"# Header 1
+                markdownContainer.Text = @"# Header 1
 ## Header 2
 ### Header 3
 #### Header 4
@@ -32,14 +32,14 @@ namespace osu.Framework.Tests.Visual
 
             AddStep("Markdown Seperator", () =>
             {
-                markdownContainer.MarkdownText = @"# Language
+                markdownContainer.Text = @"# Language
 
 ";
             });
 
             AddStep("Markdown Heading", () =>
             {
-                markdownContainer.MarkdownText = @"- [1. Blocks](#1-blocks)
+                markdownContainer.Text = @"- [1. Blocks](#1-blocks)
   - [1.1 Code block](#11-code-block)
   - [1.2 Text block](#12-text-block)
   - [1.3 Escape block](#13-escape-block)
@@ -54,12 +54,12 @@ namespace osu.Framework.Tests.Visual
 
             AddStep("Markdown Quote", () =>
             {
-                markdownContainer.MarkdownText = @"> **input**";
+                markdownContainer.Text = @"> **input**";
             });
 
             AddStep("Markdown Fenced Code", () =>
             {
-                markdownContainer.MarkdownText = @"```scriban-html
+                markdownContainer.Text = @"```scriban-html
 {{
   x = ""5""   # This assignment will not output anything
   x         # This expression will print 5
@@ -70,7 +70,7 @@ namespace osu.Framework.Tests.Visual
 
             AddStep("Markdown Table", () =>
             {
-                markdownContainer.MarkdownText =
+                markdownContainer.Text =
                     @"|Operator            | Description
 |--------------------|------------
 | `'left' + <right>` | concatenates left to right string: `""ab"" + ""c"" -> ""abc""`
@@ -79,18 +79,18 @@ namespace osu.Framework.Tests.Visual
 
             AddStep("Markdown Paragraph 1", () =>
             {
-                markdownContainer.MarkdownText = @"A text enclosed by `{{` and `}}` is a scriban **code block** that will be evaluated by the scriban templating engine.";
+                markdownContainer.Text = @"A text enclosed by `{{` and `}}` is a scriban **code block** that will be evaluated by the scriban templating engine.";
             });
 
             AddStep("Markdown Paragraph 2", () =>
             {
-                markdownContainer.MarkdownText =
+                markdownContainer.Text =
                     @"The greedy mode using the character - (e.g {{- or -}}), removes any whitespace, including newlines Examples with the variable name = ""foo"":";
             });
 
             AddStep("MarkdownImage", () =>
             {
-                markdownContainer.MarkdownText = @"![Drag Racing](https://www.wonderplugin.com/videos/demo-image0.jpg)
+                markdownContainer.Text = @"![Drag Racing](https://www.wonderplugin.com/videos/demo-image0.jpg)
 ![Drag Racing](https://www.wonderplugin.com/videos/demo-image0.jpg)
 ![Drag Racing](https://www.wonderplugin.com/videos/demo-image0.jpg)
 ![Drag Racing](https://www.wonderplugin.com/videos/demo-image0.jpg)
@@ -104,7 +104,7 @@ namespace osu.Framework.Tests.Visual
                     //test readme in https://github.com/lunet-io/scriban/blob/master/doc/language.md#92-if-expression-else-else-if-expression
                     const string url = "https://raw.githubusercontent.com/lunet-io/scriban/master/doc/language.md";
                     var httpClient = new HttpClient();
-                    markdownContainer.MarkdownText = httpClient.GetStringAsync(url).ConfigureAwait(false).GetAwaiter().GetResult();
+                    markdownContainer.Text = httpClient.GetStringAsync(url).ConfigureAwait(false).GetAwaiter().GetResult();
                 }
                 catch (Exception e)
                 {
