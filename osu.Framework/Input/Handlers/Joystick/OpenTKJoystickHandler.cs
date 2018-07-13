@@ -50,6 +50,7 @@ namespace osu.Framework.Input.Handlers.Joystick
                     }
 
                     devices.Clear();
+                    mostSeenDevices = 0;
                 }
             };
 
