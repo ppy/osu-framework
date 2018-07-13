@@ -251,7 +251,7 @@ namespace osu.Framework.Input
         /// <returns>The drawable which handled the event or null if none.</returns>
         protected virtual Drawable PropagateMouseButtonEvent(IEnumerable<Drawable> drawables, MouseButtonEvent e)
         {
-            e.InputState.Mouse.PositionMouseDown = MouseDownPosition;
+            e.CurrentState.Mouse.PositionMouseDown = MouseDownPosition;
 
             var handledBy = drawables.FirstOrDefault(target => target.TriggerEvent(e));
 

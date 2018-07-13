@@ -364,7 +364,7 @@ namespace osu.Framework.Input
 
         protected virtual void HandleKeyboardKeyStateChange(ButtonStateChangeEvent<Key> keyboardKeyStateChange)
         {
-            var state = keyboardKeyStateChange.InputState;
+            var state = keyboardKeyStateChange.State;
             var key = keyboardKeyStateChange.Button;
             var kind = keyboardKeyStateChange.Kind;
 
@@ -389,7 +389,7 @@ namespace osu.Framework.Input
 
         protected virtual void HandleJoystickButtonStateChange(ButtonStateChangeEvent<JoystickButton> joystickButtonStateChange)
         {
-            var state = joystickButtonStateChange.InputState;
+            var state = joystickButtonStateChange.State;
             var button = joystickButtonStateChange.Button;
             var kind = joystickButtonStateChange.Kind;
 
@@ -406,7 +406,7 @@ namespace osu.Framework.Input
         public virtual void HandleInputStateChange(InputStateChangeEvent inputStateChange)
         {
             // Set default
-            var mouse = inputStateChange.InputState.Mouse;
+            var mouse = inputStateChange.State.Mouse;
             mouse.LastPosition = mouse.Position;
             mouse.LastScroll = mouse.Scroll;
 
@@ -432,7 +432,7 @@ namespace osu.Framework.Input
 
         protected virtual void HandleMousePositionChange(MousePositionChangeEvent e)
         {
-            var state = e.InputState;
+            var state = e.State;
             var mouse = state.Mouse;
 
             mouse.LastPosition = e.LastPosition;
@@ -449,15 +449,15 @@ namespace osu.Framework.Input
 
         protected virtual void HandleMouseScrollChange(MouseScrollChangeEvent e)
         {
-            e.InputState.Mouse.LastScroll = e.LastScroll;
+            e.State.Mouse.LastScroll = e.LastScroll;
 
-            handleScroll(e.InputState);
+            handleScroll(e.State);
         }
 
         protected virtual void HandleMouseButtonStateChange(ButtonStateChangeEvent<MouseButton> e)
         {
             if (mouseButtonEventManagers.TryGetValue(e.Button, out var manager))
-                manager.HandleButtonStateChange(e.InputState, e.Kind, Time.Current);
+                manager.HandleButtonStateChange(e.State, e.Kind, Time.Current);
         }
 
         private bool handleMouseMove(InputState state, Vector2 lastPosition)
