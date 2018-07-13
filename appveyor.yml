@@ -3,6 +3,9 @@ version: '{build}'
 skip_tags: true
 image: Visual Studio 2017
 configuration: Debug
+cache:
+  - C:\ProgramData\chocolatey\bin -> appveyor.yml
+  - C:\ProgramData\chocolatey\lib -> appveyor.yml
 install:
   - cmd: git submodule update --init --recursive
   - cmd: choco install resharper-clt -y
