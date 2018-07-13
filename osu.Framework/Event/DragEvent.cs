@@ -12,7 +12,7 @@ namespace osu.Framework.Event
         /// <summary>
         /// The last mouse position before this mouse move in the screen space.
         /// </summary>
-        public Vector2 ScreenSpaceLastMousePosition;
+        public readonly Vector2 ScreenSpaceLastMousePosition;
 
         /// <summary>
         /// The last mouse position before this mouse move in local space.
@@ -24,10 +24,10 @@ namespace osu.Framework.Event
         /// </summary>
         public Vector2 Delta => MousePosition - LastMousePosition;
 
-        public DragEvent(InputState state, MouseButton button)
-            : base(state, button)
+        public DragEvent(InputState state, MouseButton button, Vector2? screenSpaceMousePosition = null, Vector2? screenSpaceLastMousePosition = null)
+            : base(state, button, screenSpaceMousePosition)
         {
-            ScreenSpaceLastMousePosition = state.Mouse.Position;
+            ScreenSpaceLastMousePosition = screenSpaceLastMousePosition ?? state.Mouse.Position;
         }
     }
 }

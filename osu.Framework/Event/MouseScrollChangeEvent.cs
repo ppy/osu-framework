@@ -8,9 +8,9 @@ namespace osu.Framework.Event
 {
     public class MouseScrollChangeEvent : InputStateChangeEvent
     {
-        public Vector2 LastScroll;
+        public readonly Vector2 LastScroll;
 
-        public bool IsPrecise;
+        public readonly bool IsPrecise;
 
         public MouseScrollChangeEvent(InputState state, IInput input, Vector2 lastScroll, bool isPrecise)
             : base(state, input)

@@ -9,11 +9,12 @@ namespace osu.Framework.Event
 {
     public class KeyDownEvent : KeyboardEvent
     {
-        public bool Repeat;
+        public readonly bool Repeat;
 
-        public KeyDownEvent(InputState state, Key key)
+        public KeyDownEvent(InputState state, Key key, bool repeat = false)
             : base(state, key)
         {
+            Repeat = repeat;
         }
     }
 }

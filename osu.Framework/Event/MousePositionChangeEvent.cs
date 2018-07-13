@@ -11,7 +11,7 @@ namespace osu.Framework.Event
         /// <summary>
         /// The last mouse position.
         /// </summary>
-        public Vector2 LastPosition;
+        public readonly Vector2 LastPosition;
 
         public MousePositionChangeEvent(InputState state, IInput input, Vector2 lastPosition)
             : base(state, input)

@@ -9,16 +9,16 @@ namespace osu.Framework.Event
 {
     public abstract class MouseButtonEvent : MouseEvent
     {
-        public MouseButton Button;
-        public Vector2 ScreenSpaceMouseDownPosition;
+        public readonly MouseButton Button;
+        public readonly Vector2 ScreenSpaceMouseDownPosition;
 
         public Vector2 MouseDownPosition => ToLocalSpace(ScreenSpaceMouseDownPosition);
 
-        protected MouseButtonEvent(InputState state, MouseButton button)
+        protected MouseButtonEvent(InputState state, MouseButton button, Vector2? screenSpaceMouseDownPosition)
             : base(state)
         {
             Button = button;
-            ScreenSpaceMouseDownPosition = ScreenSpaceMousePosition;
+            ScreenSpaceMouseDownPosition = screenSpaceMouseDownPosition ?? ScreenSpaceMousePosition;
         }
     }
 }

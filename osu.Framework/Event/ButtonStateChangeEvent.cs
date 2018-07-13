@@ -9,14 +9,14 @@ namespace osu.Framework.Event
     where TButton : struct
     {
         /// <summary>
-        /// The button which state changed.
+        /// The button which changed state.
         /// </summary>
-        public TButton Button;
+        public readonly TButton Button;
 
         /// <summary>
-        /// The kind of button state change. either pressed or released.
+        /// The kind of button state change. Either pressed or released.
         /// </summary>
-        public ButtonStateChangeKind Kind;
+        public readonly ButtonStateChangeKind Kind;
 
         public ButtonStateChangeEvent(InputState state, IInput input, TButton button, ButtonStateChangeKind kind)
             : base(state, input)

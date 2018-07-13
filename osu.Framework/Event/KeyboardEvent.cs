@@ -9,7 +9,8 @@ namespace osu.Framework.Event
 {
     public class KeyboardEvent : UIEvent
     {
-        public Key Key;
+        public readonly Key Key;
+
         public KeyboardEvent(InputState state, Key key)
             : base(state)
         {

@@ -8,13 +8,14 @@ namespace osu.Framework.Event
 {
     public class ScrollEvent : UIEvent
     {
-        public Vector2 ScrollDelta;
-        public bool IsPrecise;
+        public readonly Vector2 ScrollDelta;
+        public readonly bool IsPrecise;
 
-        public ScrollEvent(InputState state, Vector2 scrollDelta)
+        public ScrollEvent(InputState state, Vector2 scrollDelta, bool isPrecise = false)
             : base(state)
         {
             ScrollDelta = scrollDelta;
+            IsPrecise = isPrecise;
         }
     }
 }

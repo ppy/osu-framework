@@ -2,14 +2,15 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Input;
+using OpenTK;
 using OpenTK.Input;
 
 namespace osu.Framework.Event
 {
     public class MouseUpEvent : MouseButtonEvent
     {
-        public MouseUpEvent(InputState state, MouseButton button)
-            : base(state, button)
+        public MouseUpEvent(InputState state, MouseButton button, Vector2? screenSpaceMouseDownPosition = null)
+            : base(state, button, screenSpaceMouseDownPosition)
         {
         }
     }

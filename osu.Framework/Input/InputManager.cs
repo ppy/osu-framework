@@ -444,7 +444,7 @@ namespace osu.Framework.Input
             handleMouseMove(state, e.LastPosition);
 
             foreach (var manager in mouseButtonEventManagers.Values)
-                manager.HandlePositionChange(state);
+                manager.HandlePositionChange(state, e.LastPosition);
         }
 
         protected virtual void HandleMouseScrollChange(MouseScrollChangeEvent e)
@@ -462,7 +462,7 @@ namespace osu.Framework.Input
 
         private bool handleMouseMove(InputState state, Vector2 lastPosition)
         {
-            return PropagateBlockableEvent(PositionalInputQueue, new MouseMoveEvent(state) { ScreenSpaceLastMousePosition = lastPosition });
+            return PropagateBlockableEvent(PositionalInputQueue, new MouseMoveEvent(state, lastPosition));
         }
 
         private bool handleScroll(InputState state)
@@ -472,7 +472,7 @@ namespace osu.Framework.Input
 
         private bool handleKeyDown(InputState state, Key key, bool repeat)
         {
-            return PropagateBlockableEvent(InputQueue, new KeyDownEvent(state, key) { Repeat = repeat });
+            return PropagateBlockableEvent(InputQueue, new KeyDownEvent(state, key, repeat));
         }
 
         private bool handleKeyUp(InputState state, Key key)

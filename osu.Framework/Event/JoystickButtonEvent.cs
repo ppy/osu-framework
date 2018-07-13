@@ -7,7 +7,8 @@ namespace osu.Framework.Event
 {
     public abstract class JoystickButtonEvent : UIEvent
     {
-        public JoystickButton Button;
+        public readonly JoystickButton Button;
+
         protected JoystickButtonEvent(InputState state, JoystickButton button)
             : base(state)
         {
