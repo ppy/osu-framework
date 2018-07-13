@@ -59,7 +59,7 @@ namespace osu.Framework.Tests.Visual
 
             public JoystickButtonHandler(int buttonIndex)
             {
-                button = (JoystickButton)buttonIndex;
+                button = JoystickButton.FirstButton + buttonIndex;
 
                 Size = new Vector2(50);
 

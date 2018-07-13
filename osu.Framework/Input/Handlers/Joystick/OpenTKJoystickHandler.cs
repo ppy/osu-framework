@@ -124,7 +124,7 @@ namespace osu.Framework.Input.Handlers.Joystick
                 for (int i = 0; i < JoystickDevice.MAX_BUTTONS; i++)
                 {
                     if (device.RawState.GetButton(i) == ButtonState.Pressed)
-                        Buttons.SetPressed((JoystickButton)i, true);
+                        Buttons.SetPressed(JoystickButton.FirstButton + i, true);
                 }
 
                 // Populate hat buttons
