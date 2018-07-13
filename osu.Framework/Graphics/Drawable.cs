@@ -1676,6 +1676,7 @@ namespace osu.Framework.Graphics
         protected virtual bool Handle(UIEvent e)
         {
             // call a leagacy input handler
+#pragma warning disable 0618    // suppress obsolete warnings
             switch (e)
             {
                 case MouseMoveEvent mouseMove:
@@ -1718,6 +1719,7 @@ namespace osu.Framework.Graphics
                 default:
                     return false;
             }
+#pragma warning restore 0618
         }
 
         /// <summary>
