@@ -87,8 +87,8 @@ namespace osu.Framework.Graphics.Containers
             };
 
             Spacing = 25;
-            Padding = new MarginPadding { Left = 10, Right = 30 };
-            Margin = new MarginPadding { Left = 10, Right = 30 };
+            MarkdownPadding = new MarginPadding { Left = 10, Right = 30 };
+            MarkdownMargin = new MarginPadding { Left = 10, Right = 30 };
         }
 
         protected virtual void AddMarkdownComponent(IMarkdownObject markdownObject, FillFlowContainer container, int layerIndex)
@@ -97,6 +97,8 @@ namespace osu.Framework.Graphics.Containers
             {
                 case HeadingBlock headingBlock:
                     container.Add(CreateMarkdownHeading(headingBlock));
+                    if (headingBlock.Level < 3)
+                        container.Add(CreateMarkdownSeperator());
                     break;
                 case ParagraphBlock paragraphBlock:
                     container.Add(CreateMarkdownTextFlowContainer(paragraphBlock, layerIndex));
@@ -121,17 +123,8 @@ namespace osu.Framework.Graphics.Containers
                         AddMarkdownComponent(single, container, layerIndex);
                     break;
                 default:
-                    container.Add(CreateNotImplementMarkdown(markdownObject));
+                    container.Add(CreateNotImplementedMarkdown(markdownObject));
                     break;
-            }
-
-            //show seperator line
-            if (markdownObject is LeafBlock leafBlock && !(markdownObject is ParagraphBlock))
-            {
-                if (leafBlock.Inline != null)
-                {
-                    container.Add(new MarkdownSeperator());
-                }
             }
         }
 
@@ -188,19 +181,25 @@ namespace osu.Framework.Graphics.Containers
             };
         }
 
-        protected virtual Drawable CreateNotImplementMarkdown(IMarkdownObject markdownObject)
+        protected virtual MarkdownSeperator CreateMarkdownSeperator()
         {
-            return new NotExistingMarkdown(markdownObject);
+            return new MarkdownSeperator();
         }
+
+        protected virtual Drawable CreateNotImplementedMarkdown(IMarkdownObject markdownObject)
+        {
+            return new NotImplementedMarkdown(markdownObject);
+        }
+
     }
 
     /// <summary>
     /// NotExistMarkdown :
     /// shows the <see cref="IMarkdownObject" /> does not implement in drawable object
     /// </summary>
-    public class NotExistingMarkdown : SpriteText
+    public class NotImplementedMarkdown : SpriteText
     {
-        public NotExistingMarkdown(IMarkdownObject markdownObject)
+        public NotImplementedMarkdown(IMarkdownObject markdownObject)
         {
             Colour = new Color4(255, 0, 0, 255);
             TextSize = 21;
@@ -464,7 +463,7 @@ namespace osu.Framework.Graphics.Containers
     /// MarkdownSeperator :
     /// (spacing)
     /// </summary>
-    internal class MarkdownSeperator : Box
+    public class MarkdownSeperator : Box
     {
         public MarkdownSeperator()
         {
