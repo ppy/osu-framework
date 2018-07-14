@@ -4,9 +4,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Input.StateChange;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
 using OpenTK.Input;
+using KeyboardState = osu.Framework.Input.State.KeyboardState;
 
 namespace osu.Framework.Input.Handlers.Keyboard
 {

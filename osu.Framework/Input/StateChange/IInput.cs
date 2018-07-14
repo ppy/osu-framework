@@ -1,7 +1,9 @@
 // Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-namespace osu.Framework.Input
+using osu.Framework.Input.State;
+
+namespace osu.Framework.Input.StateChange
 {
     /// <summary>
     /// Denotes an input from an <see cref="Handlers.InputHandler"/>.

@@ -12,6 +12,7 @@ using OpenTK.Input;
 using osu.Framework.Graphics.Shapes;
 using System.Collections.Generic;
 using osu.Framework.Extensions.IEnumerableExtensions;
+using osu.Framework.Input.State;
 
 namespace osu.Framework.Graphics.Visualisation
 {

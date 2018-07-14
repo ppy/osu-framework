@@ -5,6 +5,7 @@ using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Input;
+using osu.Framework.Input.State;
 using osu.Framework.Testing;
 using osu.Framework.Testing.Input;
 using OpenTK;

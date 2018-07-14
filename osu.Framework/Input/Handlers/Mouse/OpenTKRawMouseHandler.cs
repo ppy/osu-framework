@@ -52,7 +52,7 @@ namespace osu.Framework.Input.Handlers.Mouse
 
                         if ((MouseInWindow || lastEachDeviceStates.Any(s => s != null && s.HasAnyButtonPressed)) && host.Window.Focused)
                         {
-                            var newRawStates = new List<OpenTK.Input.MouseState>(mostSeenStates + 1);
+                            var newRawStates = new List<MouseState>(mostSeenStates + 1);
 
                             for (int i = 0; i <= mostSeenStates + 1; i++)
                             {
@@ -94,7 +94,7 @@ namespace osu.Framework.Input.Handlers.Mouse
                             var state = OpenTK.Input.Mouse.GetCursorState();
                             var screenPoint = host.Window.PointToClient(new Point(state.X, state.Y));
 
-                            var newState = new UnfocusedMouseState(new OpenTK.Input.MouseState(), host.IsActive, new Vector2(screenPoint.X, screenPoint.Y));
+                            var newState = new UnfocusedMouseState(new MouseState(), host.IsActive, new Vector2(screenPoint.X, screenPoint.Y));
 
                             HandleState(newState, lastUnfocusedState, true);
 
@@ -125,7 +125,7 @@ namespace osu.Framework.Input.Handlers.Mouse
             OpenTK.Input.Mouse.SetPosition(screenPoint.X, screenPoint.Y);
         }
 
-        private Vector2 getUpdatedPosition(OpenTK.Input.MouseState state, OpenTKMouseState lastState)
+        private Vector2 getUpdatedPosition(MouseState state, OpenTKMouseState lastState)
         {
             Vector2 currentPosition;
 
@@ -179,7 +179,7 @@ namespace osu.Framework.Input.Handlers.Mouse
 
         private class UnfocusedMouseState : OpenTKMouseState
         {
-            public UnfocusedMouseState(OpenTK.Input.MouseState tkState, bool active, Vector2? mappedPosition)
+            public UnfocusedMouseState(MouseState tkState, bool active, Vector2? mappedPosition)
                 : base(tkState, active, mappedPosition)
             {
             }

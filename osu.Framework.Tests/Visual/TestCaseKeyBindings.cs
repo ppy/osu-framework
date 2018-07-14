@@ -16,6 +16,7 @@ using osu.Framework.Testing;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Input.State;
 using OpenTK.Input;
 
 namespace osu.Framework.Tests.Visual

@@ -3,6 +3,7 @@
 
 using OpenTK;
 using OpenTK.Input;
+using MouseState = osu.Framework.Input.State.MouseState;
 
 namespace osu.Framework.Input.Handlers.Mouse
 {

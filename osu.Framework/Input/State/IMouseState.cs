@@ -4,7 +4,7 @@
 using OpenTK;
 using OpenTK.Input;
 
-namespace osu.Framework.Input
+namespace osu.Framework.Input.State
 {
     public interface IMouseState
     {

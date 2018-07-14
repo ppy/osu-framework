@@ -3,12 +3,14 @@
 
 using System;
 using System.Collections.Generic;
+using osu.Framework.Input.StateChange;
 using osu.Framework.Logging;
 using osu.Framework.MathUtils;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
 using osu.Framework.Threading;
 using OpenTK.Input;
+using JoystickState = osu.Framework.Input.State.JoystickState;
 
 namespace osu.Framework.Input.Handlers.Joystick
 {

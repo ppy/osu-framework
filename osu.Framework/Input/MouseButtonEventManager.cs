@@ -8,6 +8,8 @@ using OpenTK;
 using OpenTK.Input;
 using System.Linq;
 using System.Diagnostics;
+using osu.Framework.Input.State;
+using osu.Framework.Input.StateChange;
 using osu.Framework.Logging;
 
 namespace osu.Framework.Input

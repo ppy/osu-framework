@@ -17,6 +17,7 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
+using osu.Framework.Input.State;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Testing.Drawables;

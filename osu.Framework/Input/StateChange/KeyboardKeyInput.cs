@@ -2,9 +2,10 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Collections.Generic;
+using osu.Framework.Input.State;
 using OpenTK.Input;
 
-namespace osu.Framework.Input
+namespace osu.Framework.Input.StateChange
 {
     public class KeyboardKeyInput : ButtonInput<Key>
     {

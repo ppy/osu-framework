@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Extensions.TypeExtensions;
 
-namespace osu.Framework.Input
+namespace osu.Framework.Input.State
 {
     /// <summary>
     /// Denotes multiple button states.
