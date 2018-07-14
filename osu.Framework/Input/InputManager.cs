@@ -310,11 +310,11 @@ namespace osu.Framework.Input
             // New drawables shouldn't be hovered if the cursor isn't in the window
             if (HandleHoverEvents)
             {
+                hoveredDrawables.AddRange(PositionalInputQueue);
+
                 // First, we need to construct hoveredDrawables for the current frame
                 foreach (Drawable d in PositionalInputQueue)
                 {
-                    hoveredDrawables.Add(d);
-
                     // Don't need to re-hover those that are already hovered
                     if (d.IsHovered)
                     {
