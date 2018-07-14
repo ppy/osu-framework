@@ -15,7 +15,7 @@ namespace osu.Framework.Graphics.Containers
     public abstract class ModelBackedDrawable<T> : CompositeDrawable where T : class
     {
         /// <summary>
-        /// The currently displayed <see cref="Drawable"/>. Null if no drawable is displayed (note that the placeholder may still be displayed in this state).
+        /// The currently displayed <see cref="Drawable"/>. Null if no drawable is displayed.
         /// </summary>
         protected Drawable DisplayedDrawable { get; private set; }
 
@@ -23,11 +23,6 @@ namespace osu.Framework.Graphics.Containers
         /// The <see cref="IEqualityComparer{T}"/> used to compare models to ensure that <see cref="Drawable"/>s are not updated unnecessarily.
         /// </summary>
         protected readonly IEqualityComparer<T> Comparer;
-
-        /// <summary>
-        /// True if a placeholder exists and is present.
-        /// </summary>
-        protected bool IsShowingPlaceholder => placeholderDrawable?.IsPresent ?? false;
 
         private T model;
 
@@ -53,7 +48,6 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private readonly Drawable placeholderDrawable;
         private Drawable nextDrawable;
 
         /// <summary>
@@ -80,69 +74,58 @@ namespace osu.Framework.Graphics.Containers
         protected ModelBackedDrawable(IEqualityComparer<T> comparer)
         {
             Comparer = comparer;
-            placeholderDrawable = CreatePlaceholder();
 
-            if (placeholderDrawable != null)
+            DisplayedDrawable = CreateDrawable(null);
+            AddInternal(CreateDelayedLoadWrapper(DisplayedDrawable, 0));
+        }
+
+        private void replaceDrawable(Drawable source, Drawable target, bool placeholder = false)
+        {
+            // we need to make sure we definitely get a transform so that we can fire off OnComplete
+            var transform = ReplaceDrawable(source, target) ?? (source ?? target)?.DelayUntilTransformsFinished();
+            transform?.OnComplete(d =>
             {
-                placeholderDrawable.RelativeSizeAxes = Axes.Both;
-                AddInternal(placeholderDrawable);
-            }
-        }
-
-        protected override void LoadComplete()
-        {
-            base.LoadComplete();
-            updateDrawable();
-        }
-
-        private void replaceDrawable(Drawable source, Drawable target)
-        {
-            if (source == null && target == null)
-                return;
-
-            TransformSequence<Drawable> showTransform = null, hideTransform = null;
-
-            var showingTarget = target ?? placeholderDrawable;
-            if (showingTarget != null)
-                showTransform = ShowDrawable(showingTarget);
-
-            var hidingSource = source ?? placeholderDrawable;
-            if (hidingSource != null)
-                hideTransform = HideDrawable(hidingSource);
-
-            (showTransform ?? hideTransform)?.OnComplete(d => source?.Expire());
+                if (!placeholder)
+                {
+                    if (target != nextDrawable)
+                    {
+                        target?.Expire();
+                        return;
+                    }
+                    nextDrawable = null;
+                }
+                DisplayedDrawable = target;
+                source?.Expire();
+            });
         }
 
         private void updateDrawable()
         {
             var newDrawable = CreateDrawable(model);
 
-            if (newDrawable == DisplayedDrawable)
-                return;
-
             nextDrawable = newDrawable;
 
-            if (newDrawable == null || FadeOutImmediately)
+            if (newDrawable == null)
             {
                 replaceDrawable(DisplayedDrawable, null);
-                DisplayedDrawable = null;
+                return;
             }
 
-            if (newDrawable == null)
-                return;
-
-            newDrawable.OnLoadComplete = d =>
+            if (FadeOutImmediately)
             {
-                if (d != nextDrawable)
+                var placeholder = CreateDrawable(null);
+                AddInternal(placeholder);
+                replaceDrawable(DisplayedDrawable, placeholder, true);
+            }
+
+            newDrawable.OnLoadComplete = loadedDrawable =>
+            {
+                if (loadedDrawable != nextDrawable)
                 {
-                    d.Expire();
+                    loadedDrawable.Expire();
                     return;
                 }
-
-                replaceDrawable(DisplayedDrawable, d);
-
-                DisplayedDrawable = d;
-                nextDrawable = null;
+                replaceDrawable(DisplayedDrawable, loadedDrawable);
             };
 
             AddInternal(CreateDelayedLoadWrapper(newDrawable, LoadDelay));
@@ -157,26 +140,12 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// The time in milliseconds that <see cref="Drawable"/>s will fade in and out.
         /// </summary>
-        protected virtual double FadeDuration => 300;
+        protected virtual double FadeDuration => 1000;
 
         /// <summary>
         /// The delay in milliseconds before <see cref="Drawable"/>s will begin loading.
         /// </summary>
         protected virtual double LoadDelay => 0;
-
-        /// <summary>
-        /// Hides the specified <see cref="Drawable"/>.
-        /// </summary>
-        /// <param name="d">The <see cref="Drawable"/> that will be hidden.</param>
-        /// <returns>The <see cref="TransformSequence{T}"/> for chaining.</returns>
-        protected virtual TransformSequence<Drawable> HideDrawable(Drawable d) => d.FadeOut(FadeDuration, Easing.OutQuint);
-
-        /// <summary>
-        /// Shows the specified <see cref="Drawable"/>.
-        /// </summary>
-        /// <param name="d">The <see cref="Drawable"/> that will be shown.</param>
-        /// <returns>The <see cref="TransformSequence{T}"/> for chaining.</returns>
-        protected virtual TransformSequence<Drawable> ShowDrawable(Drawable d) => d.FadeInFromZero(FadeDuration, Easing.OutQuint);
 
         /// <summary>
         /// Allows subclasses to customise the <see cref="DelayedLoadWrapper"/>.
@@ -185,17 +154,21 @@ namespace osu.Framework.Graphics.Containers
             new DelayedLoadWrapper(content, timeBeforeLoad);
 
         /// <summary>
-        /// Override to instantiate a placeholder <see cref="Drawable"/> that will be displayed when no model is set.
-        /// May be null to indicate no placeholder.
-        /// </summary>
-        protected virtual Drawable CreatePlaceholder() => null;
-
-        /// <summary>
         /// Override to instantiate a custom <see cref="Drawable"/> based on the passed model.
         /// May be null to indicate that the model has no visual representation,
         /// in which case the placeholder will be used if it exists.
         /// </summary>
         /// <param name="model">The model that the <see cref="Drawable"/> should represent.</param>
         protected abstract Drawable CreateDrawable(T model);
+
+        /// <summary>
+        /// Returns a <see cref="TransformSequence{Drawable}"/> that replaces the given <see cref="Drawable"/>s.
+        /// Default functionality is to fade in the target from zero, or if it is null, to fade out the source.
+        /// </summary>
+        /// <returns>The drawable.</returns>
+        /// <param name="source">The <see cref="Drawable"/> to be replaced.</param>
+        /// <param name="target">The <see cref="Drawable"/> we are replacing with.</param>
+        protected virtual TransformSequence<Drawable> ReplaceDrawable(Drawable source, Drawable target) =>
+            target?.FadeInFromZero(FadeDuration, Easing.OutQuint) ?? source?.FadeOut(FadeDuration, Easing.OutQuint);
     }
 }

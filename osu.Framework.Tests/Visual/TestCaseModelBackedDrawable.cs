@@ -18,7 +18,6 @@ namespace osu.Framework.Tests.Visual
         public TestCaseModelBackedDrawable()
         {
             TestModelBackedDrawable modelBackedDrawable;
-            PlaceholderTestModelBackedDrawable placeholderModelBackedDrawable;
             DelayedTestModelBackedDrawable delayedModelBackedDrawable;
             FadeImmediateTestModelBackedDrawable fadeImmediateModelBackedDrawable;
 
@@ -29,19 +28,14 @@ namespace osu.Framework.Tests.Visual
                     Position = new Vector2(50, 50),
                     Size = new Vector2(100, 100)
                 },
-                placeholderModelBackedDrawable = new PlaceholderTestModelBackedDrawable
+                delayedModelBackedDrawable = new DelayedTestModelBackedDrawable
                 {
                     Position = new Vector2(50, 200),
                     Size = new Vector2(100, 100)
                 },
-                delayedModelBackedDrawable = new DelayedTestModelBackedDrawable
-                {
-                    Position = new Vector2(50, 350),
-                    Size = new Vector2(100, 100)
-                },
                 fadeImmediateModelBackedDrawable = new FadeImmediateTestModelBackedDrawable
                 {
-                    Position = new Vector2(50, 500),
+                    Position = new Vector2(50, 350),
                     Size = new Vector2(100, 100)
                 }
             });
@@ -50,56 +44,37 @@ namespace osu.Framework.Tests.Visual
             AddStep("Set all null", () =>
             {
                 modelBackedDrawable.Item = null;
-                placeholderModelBackedDrawable.Item = null;
                 delayedModelBackedDrawable.Item = null;
                 fadeImmediateModelBackedDrawable.Item = null;
             });
             AddUntilStep(() => modelBackedDrawable.VisibleItemId == -1 &&
-                               placeholderModelBackedDrawable.VisibleItemId == -1 &&
                                delayedModelBackedDrawable.VisibleItemId == -1 &&
                                fadeImmediateModelBackedDrawable.VisibleItemId == -1, "Wait until all null");
 
             // try setting items and null for a regular model backed drawable
-            addItemTest("No PH", modelBackedDrawable, 0);
-            addItemTest("No PH", modelBackedDrawable, 1);
-            addNullTest("No PH", modelBackedDrawable, false);
+            addItemTest("Simple", modelBackedDrawable, 0);
+            addItemTest("Simple", modelBackedDrawable, 1);
+            addItemTest("Simple", modelBackedDrawable, -1);
 
-            // try setting items and null for a model backed drawable with a placeholder
-            addItemTest("PH", placeholderModelBackedDrawable, 0);
-            addItemTest("PH", placeholderModelBackedDrawable, 1);
-            addNullTest("PH", placeholderModelBackedDrawable, true);
-
-            // try setting items and null for a model backed drawable with a loading delay (test is the same as placeholder)
-            addItemTest("D", delayedModelBackedDrawable, 0);
-            addItemTest("D", delayedModelBackedDrawable, 1);
-            addNullTest("D", delayedModelBackedDrawable, true);
+            // try setting items and null for a model backed drawable with a loading delay
+            addItemTest("Delay", delayedModelBackedDrawable, 0);
+            addItemTest("Delay", delayedModelBackedDrawable, 1);
+            addItemTest("Delay", delayedModelBackedDrawable, -1);
 
             // try setting an item and checking that the placeholder is visible during the transition
-            AddStep("F: Set item 0", () => fadeImmediateModelBackedDrawable.Item = new TestItem(0));
-            AddUntilStep(() => fadeImmediateModelBackedDrawable.VisibleItemId == 0, "F: Wait until changed");
-            AddStep("F: Set item 1", () => fadeImmediateModelBackedDrawable.Item = new TestItem(1));
-            AddAssert("F: Check showing PH", () => fadeImmediateModelBackedDrawable.IsShowingPlaceholder);
-            AddUntilStep(() => fadeImmediateModelBackedDrawable.VisibleItemId == 1, "F: Wait until changed");
-            AddAssert("F: Check not showing PH", () => !fadeImmediateModelBackedDrawable.IsShowingPlaceholder);
+            addItemTest("Fade Imm.", fadeImmediateModelBackedDrawable, 0, false);
+            addItemTest("Fade Imm.", fadeImmediateModelBackedDrawable, 1, false);
+            addItemTest("Fade Imm.", fadeImmediateModelBackedDrawable, -1, false);
         }
 
-        private void addNullTest(string prefix, TestModelBackedDrawable drawable, bool expectPlaceholder)
+        private void addItemTest(string prefix, TestModelBackedDrawable drawable, int itemNumber, bool testNotChanged = true)
         {
-            AddStep($"{prefix}: Set null", () => drawable.Item = null);
-            if (expectPlaceholder)
-                AddAssert($"{prefix}: Check showing PH", () => drawable.IsShowingPlaceholder);
+            if (itemNumber < 0)
+                AddStep($"{prefix}: Set null", () => drawable.Item = null);
             else
-            {
-                AddAssert($"{prefix}: Test drawable not changed", () => drawable.VisibleItemId != -1);
-                AddUntilStep(() => drawable.VisibleItemId == -1, $"{prefix}: Wait until changed");
-                AddAssert($"{prefix}: Check not showing PH", () => !drawable.IsShowingPlaceholder);
-            }
-        }
-
-        private void addItemTest(string prefix, TestModelBackedDrawable drawable, int itemNumber)
-        {
-            AddStep($"{prefix}: Set item {itemNumber}", () => drawable.Item = new TestItem(itemNumber));
-            AddAssert($"{prefix}: Test drawable not changed", () => drawable.VisibleItemId != itemNumber);
+                AddStep($"{prefix}: Set item {itemNumber}", () => drawable.Item = new TestItem(itemNumber));
+            if (testNotChanged)
+                AddAssert($"{prefix}: Test drawable not changed", () => drawable.VisibleItemId != itemNumber);
             AddUntilStep(() => drawable.VisibleItemId == itemNumber, $"{prefix}: Wait until changed");
         }
 
@@ -120,7 +95,7 @@ namespace osu.Framework.Tests.Visual
 
             public TestItemDrawable(TestItem item, bool delay = true)
             {
-                this.delay = delay;
+                this.delay = delay && item != null;
                 ItemId = item?.ItemId ?? -1;
 
                 RelativeSizeAxes = Axes.Both;
@@ -161,8 +136,6 @@ namespace osu.Framework.Tests.Visual
 
             public new Drawable DisplayedDrawable => base.DisplayedDrawable;
 
-            public new bool IsShowingPlaceholder => base.IsShowingPlaceholder;
-
             public TestModelBackedDrawable()
                 : base((lhs, rhs) => lhs?.ItemId == rhs?.ItemId)
             {
@@ -180,27 +153,18 @@ namespace osu.Framework.Tests.Visual
             protected override Drawable CreateDrawable(TestItem model) => new TestItemDrawable(model);
         }
 
-        private class PlaceholderTestModelBackedDrawable : TestModelBackedDrawable
-        {
-            protected override Drawable CreateDrawable(TestItem model) => model == null ? null : new TestItemDrawable(model);
-
-            protected override Drawable CreatePlaceholder() => new Box { Colour = Color4.Blue };
-        }
-
-        private class FadeImmediateTestModelBackedDrawable : PlaceholderTestModelBackedDrawable
+        private class FadeImmediateTestModelBackedDrawable : TestModelBackedDrawable
         {
             protected override bool FadeOutImmediately => true;
 
             protected override double FadeDuration => 0;
         }
 
-        private class DelayedTestModelBackedDrawable : PlaceholderTestModelBackedDrawable
+        private class DelayedTestModelBackedDrawable : TestModelBackedDrawable
         {
             protected override double LoadDelay => 1000 / Clock.Rate;
 
-            protected override Drawable CreateDrawable(TestItem model) => model == null ? null : new TestItemDrawable(model, false);
-
-            protected override Drawable CreatePlaceholder() => new Box { Colour = Color4.DarkViolet };
+            protected override Drawable CreateDrawable(TestItem model) => new TestItemDrawable(model, false);
         }
     }
 }
