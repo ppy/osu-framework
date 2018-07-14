@@ -3,6 +3,7 @@
 
 using System;
 using JetBrains.Annotations;
+using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Input;
 using OpenTK;
@@ -14,7 +15,7 @@ namespace osu.Framework.Event
     /// A UI event is produced for and can be handled by a <see cref="Drawable"/>.
     /// While an event handling, the <see cref="Target"/> is set to the <see cref="Drawable"/> which is handling the event.
     /// </summary>
-    public abstract class UIEvent : Event
+    public abstract class UIEvent
     {
         /// <summary>
         /// The current input state.
@@ -66,5 +67,7 @@ namespace osu.Framework.Event
         {
             CurrentState = state ?? throw new ArgumentNullException(nameof(state));
         }
+
+        public override string ToString() => $"{GetType().ReadableName()}()";
     }
 }

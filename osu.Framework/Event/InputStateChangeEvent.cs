@@ -11,7 +11,7 @@ namespace osu.Framework.Event
     /// An event which represents a change of an <see cref="InputState"/>.
     /// An <see cref="IInput"/> produces this type of event after it changes <see cref="State"/>.
     /// </summary>
-    public abstract class InputStateChangeEvent : Event
+    public abstract class InputStateChangeEvent
     {
         /// <summary>
         /// The <see cref="InputState"/> changed by this event.
