@@ -77,6 +77,16 @@ namespace osu.Framework.Tests.Visual
 | `'left' * <right>` | concatenates the left string `right` times: `'a' * 5  -> aaaaa`. left and right and be swapped as long as there is one string and one number.";
             });
 
+            AddStep("Markdown Table (Aligned)", () =>
+            {
+                markdownContainer.Text =
+                    @"| Left-Aligned  | Center Aligned  | Right Aligned |
+| :------------ |:---------------:| -----:|
+| col 3 is      | some wordy text | $1600 |
+| col 2 is      | centered        |   $12 |
+| zebra stripes | are neat        |    $1 |";
+            });
+
             AddStep("Markdown Paragraph 1", () =>
             {
                 markdownContainer.Text = @"A text enclosed by `{{` and `}}` is a scriban **code block** that will be evaluated by the scriban templating engine.";
