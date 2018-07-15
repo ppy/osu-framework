@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Linq;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
@@ -160,6 +161,8 @@ namespace osu.Framework.Graphics.Containers
 
         protected virtual bool IsDragging { get; private set; }
 
+        public bool IsHandlingKeyboardScrolling => IsHovered || GetContainingInputManager().PositionalInputQueue.Contains(this);
+
         /// <summary>
         /// The direction in which scrolling is supported.
         /// </summary>
@@ -251,7 +254,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
-            if (!IsHovered)
+            if (!IsHandlingKeyboardScrolling)
                 return false;
 
             switch (args.Key)
@@ -619,7 +622,7 @@ namespace osu.Framework.Graphics.Containers
 
         public bool OnPressed(PlatformAction action)
         {
-            if (!IsHovered)
+            if (!IsHandlingKeyboardScrolling)
                 return false;
 
             switch (action.ActionType)
@@ -635,16 +638,6 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        public bool OnReleased(PlatformAction action)
-        {
-            switch (action.ActionType)
-            {
-                case PlatformActionType.LineStart:
-                case PlatformActionType.LineEnd:
-                    return IsHovered;
-                default:
-                    return false;
-            }
-        }
+        public bool OnReleased(PlatformAction action) => false;
     }
 }
