@@ -83,6 +83,18 @@ namespace osu.Framework.Platform
             throw new NotSupportedException("This platform does not implement IPC.");
         }
 
+        /// <summary>
+        /// Requests that a file be opened externally with an associated application, if available.
+        /// </summary>
+        /// <param name="filename">The absolute path to the file which should be opened.</param>
+        public abstract void OpenFileExternally(string filename);
+
+        /// <summary>
+        /// Requests that a URL be opened externally in a web browser, if available.
+        /// </summary>
+        /// <param name="url">The URL of the page which should be opened.</param>
+        public abstract void OpenUrlExternally(string url);
+
         public virtual Clipboard GetClipboard() => null;
 
         protected abstract Storage GetStorage(string baseName);
@@ -159,8 +171,16 @@ namespace osu.Framework.Platform
             Dependencies.CacheAs(this);
             Dependencies.CacheAs(Storage = GetStorage(gameName));
 
+            var assembly = Assembly.GetEntryAssembly();
+
+            // when running under nunit + netcore, entry assembly becomes nunit itself (testhost, Version=15.0.0.0), which isn't what we want.
+            if (assembly == null || assembly.Location.Contains("testhost"))
+                assembly = Assembly.GetCallingAssembly();
+
             Name = gameName;
+
             Logger.GameIdentifier = gameName;
+            Logger.VersionIdentifier = assembly.GetName().Version.ToString();
 
             threads = new List<GameThread>
             {
@@ -175,13 +195,6 @@ namespace osu.Framework.Platform
                 }),
                 (InputThread = new InputThread(null)), //never gets started.
             };
-
-            var assembly = Assembly.GetEntryAssembly();
-
-            // when running under nunit + netcore, entry assembly becomes nunit itself (testhost, Version=15.0.0.0), which isn't what we want.
-            // when running under nunit + net471, entry assembly is null.
-            if (assembly == null || assembly.Location.Contains("testhost"))
-                assembly = Assembly.GetCallingAssembly();
 
             var path = Path.GetDirectoryName(assembly.Location);
             if (path != null)
@@ -415,16 +428,21 @@ namespace osu.Framework.Platform
                 {
                     if (Window != null)
                     {
-                        setActive(Window.Focused);
-
                         Window.KeyDown += window_KeyDown;
 
                         Window.ExitRequested += OnExitRequested;
                         Window.Exited += OnExited;
                         Window.FocusedChanged += delegate { setActive(Window.Focused); };
 
+                        bool initialized = false;
+
                         Window.UpdateFrame += delegate
                         {
+                            if (!initialized)
+                            {
+                                setActive(Window.Focused);
+                                initialized = true;
+                            }
                             inputPerformanceCollectionPeriod?.Dispose();
                             InputThread.RunUpdate();
                             inputPerformanceCollectionPeriod = inputMonitor.BeginCollecting(PerformanceCollectionType.WndProc);
@@ -481,14 +499,12 @@ namespace osu.Framework.Platform
 
         private void bootstrapSceneGraph(Game game)
         {
-            var root = new UserInputManager
+            var root = game.CreateUserInputManager();
+            root.Child = new PlatformActionContainer
             {
-                Child = new PlatformActionContainer
+                Child = new FrameworkActionContainer
                 {
-                    Child = new FrameworkActionContainer
-                    {
-                        Child = game
-                    }
+                    Child = game
                 }
             };
 

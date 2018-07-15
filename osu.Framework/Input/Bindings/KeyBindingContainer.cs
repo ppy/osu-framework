@@ -8,6 +8,7 @@ using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Logging;
+using OpenTK;
 
 namespace osu.Framework.Input.Bindings
 {
@@ -46,9 +47,19 @@ namespace osu.Framework.Input.Bindings
         /// The input queue to be used for processing key bindings. Based on the non-positional <see cref="InputManager.InputQueue"/>.
         /// Can be overridden to change priorities.
         /// </summary>
-        protected virtual IEnumerable<Drawable> KeyBindingInputQueue => localQueue;
+        protected virtual IEnumerable<Drawable> KeyBindingInputQueue => childrenInputQueue;
 
-        private readonly List<Drawable> localQueue = new List<Drawable>();
+        private List<Drawable> childrenInputQueue
+        {
+            get
+            {
+                var queue = new List<Drawable>();
+                BuildKeyboardInputQueue(queue, false);
+                queue.Reverse();
+
+                return queue;
+            }
+        }
 
         /// <summary>
         /// Override to enable or disable sending of repeated actions (disabled by default).
@@ -63,33 +74,24 @@ namespace osu.Framework.Input.Bindings
 
         protected override bool OnScroll(InputState state)
         {
-            InputKey key = state.Mouse.ScrollDelta.Y > 0 ? InputKey.MouseWheelUp : InputKey.MouseWheelDown;
-
-            // we need to create a local cloned state to ensure the underlying code in handleNewReleased thinks we are in a sane state,
-            // even though we are pressing and releasing an InputKey in a single frame.
-            // the important part of this cloned state is the value of Scroll reset to zero.
-            var clonedState = state.Clone();
-            clonedState.Mouse = new MouseState { Buttons = clonedState.Mouse.Buttons };
-
-            return handleNewPressed(state, key, false) | handleNewReleased(clonedState, key);
+            var scrollDelta = state.Mouse.ScrollDelta;
+            var isPrecise = state.Mouse.HasPreciseScroll;
+            var key = KeyCombination.FromScrollDelta(scrollDelta);
+            if (key == InputKey.None) return false;
+            return handleNewPressed(state, key, false, scrollDelta, isPrecise) | handleNewReleased(state, key);
         }
 
-        internal override bool BuildKeyboardInputQueue(List<Drawable> queue)
+        internal override bool BuildKeyboardInputQueue(List<Drawable> queue, bool allowBlocking = true)
         {
-            localQueue.Clear();
-
-            if (!base.BuildKeyboardInputQueue(localQueue))
+            if (!base.BuildKeyboardInputQueue(queue, allowBlocking))
                 return false;
 
             if (Prioritised)
             {
-                localQueue.Remove(this);
-                localQueue.Add(this);
+                queue.Remove(this);
+                queue.Add(this);
             }
 
-            queue.AddRange(localQueue);
-
-            localQueue.Reverse();
             return true;
         }
 
@@ -116,12 +118,17 @@ namespace osu.Framework.Input.Bindings
 
         protected override bool OnJoystickRelease(InputState state, JoystickEventArgs args) => handleNewReleased(state, KeyCombination.FromJoystickButton(args.Button));
 
-        private bool handleNewPressed(InputState state, InputKey newKey, bool repeat)
+        private bool handleNewPressed(InputState state, InputKey newKey, bool repeat, Vector2? scrollDelta = null, bool isPrecise = false)
         {
-            var pressedCombination = KeyCombination.FromInputState(state);
+            float scrollAmount = 0;
+            if (newKey == InputKey.MouseWheelUp)
+                scrollAmount = scrollDelta?.Y ?? 0;
+            else if (newKey == InputKey.MouseWheelDown)
+                scrollAmount = -(scrollDelta?.Y ?? 0);
+            var pressedCombination = KeyCombination.FromInputState(state, scrollDelta);
 
             bool handled = false;
-            var bindings = repeat ? KeyBindings : KeyBindings.Except(pressedBindings);
+            var bindings = (repeat ? KeyBindings : KeyBindings?.Except(pressedBindings)) ?? Enumerable.Empty<KeyBinding>();
             var newlyPressed = bindings.Where(m =>
                 m.KeyCombination.Keys.Contains(newKey) // only handle bindings matching current key (not required for correct logic)
                 && m.KeyCombination.IsPressed(pressedCombination, simultaneousMode == SimultaneousBindingMode.NoneExact));
@@ -146,7 +153,7 @@ namespace osu.Framework.Input.Bindings
 
             foreach (var newBinding in newlyPressed)
             {
-                handled |= PropagatePressed(KeyBindingInputQueue, newBinding.GetAction<T>());
+                handled |= PropagatePressed(KeyBindingInputQueue, newBinding.GetAction<T>(), scrollAmount, isPrecise);
 
                 // we only want to handle the first valid binding (the one with the most keys) in non-simultaneous mode.
                 if ((simultaneousMode == SimultaneousBindingMode.None || simultaneousMode == SimultaneousBindingMode.NoneExact) && handled)
@@ -156,7 +163,7 @@ namespace osu.Framework.Input.Bindings
             return handled;
         }
 
-        protected virtual bool PropagatePressed(IEnumerable<Drawable> drawables, T pressed)
+        protected virtual bool PropagatePressed(IEnumerable<Drawable> drawables, T pressed, float scrollAmount = 0, bool isPrecise = false)
         {
             IDrawable handled = null;
 
@@ -168,7 +175,10 @@ namespace osu.Framework.Input.Bindings
             if (simultaneousMode == SimultaneousBindingMode.All || !pressedActions.Contains(pressed))
             {
                 pressedActions.Add(pressed);
-                handled = drawables.OfType<IKeyBindingHandler<T>>().FirstOrDefault(d => d.OnPressed(pressed));
+                if (scrollAmount != 0)
+                    handled = drawables.OfType<IScrollBindingHandler<T>>().FirstOrDefault(d => d.OnScroll(pressed, scrollAmount, isPrecise));
+                if (handled == null)
+                    handled = drawables.OfType<IKeyBindingHandler<T>>().FirstOrDefault(d => d.OnPressed(pressed));
             }
 
             if (handled != null)

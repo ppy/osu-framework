@@ -16,7 +16,8 @@ namespace osu.Framework.Input.Handlers.Keyboard
 
         public override int Priority => 0;
 
-        private OpenTK.Input.KeyboardState lastState;
+        private TkKeyboardState lastEventState;
+        private OpenTK.Input.KeyboardState? lastRawState;
 
         public override bool Initialize(GameHost host)
         {
@@ -24,29 +25,35 @@ namespace osu.Framework.Input.Handlers.Keyboard
             {
                 if (enabled)
                 {
-                    host.Window.KeyDown += handleState;
-                    host.Window.KeyUp += handleState;
+                    host.Window.KeyDown += handleKeyboardEvent;
+                    host.Window.KeyUp += handleKeyboardEvent;
                 }
                 else
                 {
-                    host.Window.KeyDown -= handleState;
-                    host.Window.KeyUp -= handleState;
+                    host.Window.KeyDown -= handleKeyboardEvent;
+                    host.Window.KeyUp -= handleKeyboardEvent;
+                    lastRawState = null;
+                    lastEventState = null;
                 }
             };
             Enabled.TriggerChange();
             return true;
         }
 
-        private void handleState(object sender, KeyboardKeyEventArgs e)
+        private void handleKeyboardEvent(object sender, KeyboardKeyEventArgs e)
         {
-            var state = e.Keyboard;
+            var rawState = e.Keyboard;
 
-            if (state.Equals(lastState))
+            if (lastRawState != null && rawState.Equals(lastRawState))
                 return;
+            lastRawState = rawState;
 
-            lastState = state;
+            var newState = new TkKeyboardState(rawState);
 
-            PendingStates.Enqueue(new InputState { Keyboard = new TkKeyboardState(state) });
+            PendingInputs.Enqueue(new KeyboardKeyInput(newState.Keys, lastEventState?.Keys));
+
+            lastEventState = newState;
+
             FrameStatistics.Increment(StatisticsCounterType.KeyEvents);
         }
 
@@ -57,7 +64,15 @@ namespace osu.Framework.Input.Handlers.Keyboard
             public TkKeyboardState(OpenTK.Input.KeyboardState tkState)
             {
                 if (tkState.IsAnyKeyDown)
-                    Keys = all_keys.Where(tkState.IsKeyDown);
+                {
+                    foreach (var key in all_keys)
+                    {
+                        if (tkState.IsKeyDown(key))
+                        {
+                            Keys.SetPressed(key, true);
+                        }
+                    }
+                }
             }
         }
     }

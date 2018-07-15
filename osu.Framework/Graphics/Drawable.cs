@@ -156,12 +156,12 @@ namespace osu.Framework.Graphics
         private static readonly StopwatchClock perf = new StopwatchClock(true);
 
         /// <summary>
-        /// Create a local dependency container which will be used by ourselves and all our nested children.
+        /// Create a local dependency container which will be used by our nested children.
         /// If not overridden, the load-time parent's dependency tree will be used.
         /// </summary>
         /// <param name="parent">The parent <see cref="IReadOnlyDependencyContainer"/> which should be passed through if we want fallback lookups to work.</param>
         /// <returns>A new dependency container to be stored for this Drawable.</returns>
-        protected virtual IReadOnlyDependencyContainer CreateLocalDependencies(IReadOnlyDependencyContainer parent) => parent;
+        protected virtual IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent) => parent;
 
         /// <summary>
         /// Contains all dependencies that can be injected into this Drawable using <see cref="BackgroundDependencyLoader"/>.
@@ -173,7 +173,7 @@ namespace osu.Framework.Graphics
         /// Loads this drawable, including the gathering of dependencies and initialisation of required resources.
         /// </summary>
         /// <param name="clock">The clock we should use by default.</param>
-        /// <param name="dependencies">The dependency tree we will inherit by default. May be extended via <see cref="CreateLocalDependencies(IReadOnlyDependencyContainer)"/></param>
+        /// <param name="dependencies">The dependency tree we will inherit by default. May be extended via <see cref="CreateChildDependencies"/></param>
         internal void Load(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies)
         {
             // Blocks when loading from another thread already.
@@ -204,9 +204,9 @@ namespace osu.Framework.Graphics
                 double t1 = perf.CurrentTime;
 
                 // get our dependencies from our parent, but allow local overriding of our inherited dependency container
-                Dependencies = CreateLocalDependencies(dependencies);
+                Dependencies = CreateChildDependencies(dependencies);
 
-                Dependencies.Inject(this);
+                dependencies.Inject(this);
 
                 LoadAsyncComplete();
 
@@ -2053,8 +2053,9 @@ namespace osu.Framework.Graphics
         /// children such that the entire scene graph is covered.
         /// </summary>
         /// <param name="queue">The input queue to be built.</param>
+        /// <param name="allowBlocking">Whether blocking at <see cref="PassThroughInputManager"/>s should be allowed.</param>
         /// <returns>Whether we have added ourself to the queue.</returns>
-        internal virtual bool BuildKeyboardInputQueue(List<Drawable> queue)
+        internal virtual bool BuildKeyboardInputQueue(List<Drawable> queue, bool allowBlocking = true)
         {
             if (!CanReceiveKeyboardInput)
                 return false;
@@ -2082,7 +2083,7 @@ namespace osu.Framework.Graphics
 
         private struct LocalMouseState : IMouseState
         {
-            public IMouseState NativeState { get; }
+            public IMouseState NativeState { get; private set; }
 
             private readonly Drawable us;
 
@@ -2092,17 +2093,17 @@ namespace osu.Framework.Graphics
                 this.us = us;
             }
 
-            public IReadOnlyList<MouseButton> Buttons
-            {
-                get => NativeState.Buttons;
-                set => NativeState.Buttons = value;
-            }
-
             public Vector2 Delta => Position - LastPosition;
 
             public Vector2 Position
             {
                 get => us.Parent?.ToLocalSpace(NativeState.Position) ?? NativeState.Position;
+                set => throw new NotImplementedException();
+            }
+
+            public bool IsPositionValid
+            {
+                get => NativeState.IsPositionValid;
                 set => throw new NotImplementedException();
             }
 
@@ -2117,10 +2118,6 @@ namespace osu.Framework.Graphics
                 get => NativeState.PositionMouseDown == null ? null : us.Parent?.ToLocalSpace(NativeState.PositionMouseDown.Value) ?? NativeState.PositionMouseDown;
                 set => throw new NotImplementedException();
             }
-
-            public bool HasMainButtonPressed => NativeState.HasMainButtonPressed;
-
-            public bool HasAnyButtonPressed => NativeState.HasAnyButtonPressed;
 
             public Vector2 Scroll
             {
@@ -2142,13 +2139,27 @@ namespace osu.Framework.Graphics
                 set => NativeState.HasPreciseScroll = value;
             }
 
-            public bool IsPressed(MouseButton button) => NativeState.IsPressed(button);
+            public ButtonStates<MouseButton> Buttons => NativeState.Buttons;
 
-            public void SetPressed(MouseButton button, bool pressed) => NativeState.SetPressed(button, pressed);
+            public bool HasMainButtonPressed => NativeState.HasMainButtonPressed;
+
+            public bool HasAnyButtonPressed => NativeState.HasAnyButtonPressed;
 
             public IMouseState Clone()
             {
-                return (LocalMouseState)MemberwiseClone();
+                var cloned = (LocalMouseState)MemberwiseClone();
+                cloned.NativeState = NativeState.Clone();
+                return cloned;
+            }
+
+            public bool IsPressed(MouseButton button)
+            {
+                return NativeState.IsPressed(button);
+            }
+
+            public void SetPressed(MouseButton button, bool pressed)
+            {
+                NativeState.SetPressed(button, pressed);
             }
         }
 
@@ -2223,6 +2234,9 @@ namespace osu.Framework.Graphics
 
             if (!string.IsNullOrEmpty(Name))
                 shortClass = $@"{Name} ({shortClass})";
+
+            if (parent == null)
+                return shortClass;
 
             return $@"{shortClass} ({DrawPosition.X:#,0},{DrawPosition.Y:#,0}) {DrawSize.X:#,0}x{DrawSize.Y:#,0}";
         }

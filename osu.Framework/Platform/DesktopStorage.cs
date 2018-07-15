@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Diagnostics;
 using System.IO;
 using osu.Framework.IO.File;
 
@@ -10,9 +9,12 @@ namespace osu.Framework.Platform
 {
     public class DesktopStorage : Storage
     {
-        public DesktopStorage(string baseName)
+        private readonly GameHost host;
+
+        public DesktopStorage(string baseName, GameHost host)
             : base(baseName)
         {
+            this.host = host;
         }
 
         protected override string LocateBasePath() => @"./"; //use current directory by default
@@ -34,7 +36,9 @@ namespace osu.Framework.Platform
 
         public override string[] GetDirectories(string path) => Directory.GetDirectories(GetUsablePathFor(path));
 
-        public override void OpenInNativeExplorer() => Process.Start(GetUsablePathFor(string.Empty));
+        public override string[] GetFiles(string path) => Directory.GetFiles(GetUsablePathFor(path));
+
+        public override void OpenInNativeExplorer() => host.OpenFileExternally(GetUsablePathFor(string.Empty));
 
         public override Stream GetStream(string path, FileAccess access = FileAccess.Read, FileMode mode = FileMode.OpenOrCreate)
         {
