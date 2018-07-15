@@ -28,8 +28,9 @@ namespace osu.Framework.Graphics.UserInterface
     {
         protected FillFlowContainer TextFlow;
         protected Box Background;
-        protected Drawable Caret;
+        protected DrawableCaret Caret;
         protected Container TextContainer;
+        protected SelectionArea SelectionArea;
 
         public override bool HandleKeyboardInput => HasFocus;
 
@@ -109,10 +110,25 @@ namespace osu.Framework.Graphics.UserInterface
                     Anchor = Anchor.CentreLeft,
                     Origin = Anchor.CentreLeft,
                     Position = new Vector2(LeftRightPadding, 0),
-                    Children = new[]
+                    Children = new Drawable[]
                     {
                         Placeholder = CreatePlaceholder(),
-                        Caret = new DrawableCaret(),
+                        Caret = new DrawableCaret
+                        {
+                            Height = 0.9f,
+                            RelativeSizeAxes = Axes.Y,
+                            Anchor = Anchor.CentreLeft,
+                            Origin = Anchor.CentreLeft,
+                            Position = new Vector2(LeftRightPadding, 0)
+                        },
+                        SelectionArea = new SelectionArea(SelectionColour)
+                        {
+                            Height = 0.9f,
+                            RelativeSizeAxes = Axes.Y,
+                            Anchor = Anchor.CentreLeft,
+                            Origin = Anchor.CentreLeft,
+                            Position = new Vector2(LeftRightPadding, 0)
+                        },
                         TextFlow = new FillFlowContainer
                         {
                             Direction = FillDirection.Horizontal,
@@ -184,28 +200,21 @@ namespace osu.Framework.Graphics.UserInterface
         {
             const float cursor_width = 3;
 
-            Placeholder.TextSize = CalculatedTextSize;
+            Placeholder.TextSize = TextSize;
 
             textUpdateScheduler.Update();
 
-            float caretWidth = cursor_width;
-
-            Vector2 cursorPos = Vector2.Zero;
+            Vector2 leftBound = Vector2.Zero;
             if (text.Length > 0)
-                cursorPos.X = getPositionAt(selectionLeft) - cursor_width / 2;
+                leftBound = getPositionAt(selectionLeft);
 
-            float cursorPosEnd = getPositionAt(selectionEnd);
+            Vector2 cursorPosEnd = getPositionAt(selectionEnd);
 
-            if (selectionLength > 0)
-                caretWidth = getPositionAt(selectionRight) - cursorPos.X;
-
-            float cursorRelativePositionAxesInBox = (cursorPosEnd - textContainerPosX) / DrawWidth;
+            float cursorRelativePositionAxesInBox = (cursorPosEnd.X - textContainerPosX) / DrawWidth;
 
             //we only want to reposition the view when the cursor reaches near the extremities.
             if (cursorRelativePositionAxesInBox < 0.1 || cursorRelativePositionAxesInBox > 0.9)
-            {
-                textContainerPosX = cursorPosEnd - DrawWidth / 2 + LeftRightPadding * 2;
-            }
+                textContainerPosX = cursorPosEnd.X - DrawWidth / 2 + LeftRightPadding * 2;
 
             textContainerPosX = MathHelper.Clamp(textContainerPosX, 0, Math.Max(0, TextFlow.DrawWidth - DrawWidth + LeftRightPadding * 2));
 
@@ -213,18 +222,15 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (HasFocus)
             {
-                Caret.ClearTransforms();
-                Caret.MoveTo(cursorPos, 60, Easing.Out);
-                Caret.ResizeWidthTo(caretWidth, caret_move_time, Easing.Out);
+                Vector2 rightBound = getPositionAt(selectionRight) + new Vector2(0, TextSize);
+
+                Caret.MoveTo(leftBound - new Vector2(cursor_width / 2, 0), caret_move_time, Easing.Out);
+                SelectionArea.SelectArea(leftBound, rightBound);
 
                 if (selectionLength > 0)
-                    Caret
-                        .FadeTo(0.5f, 200, Easing.Out)
-                        .FadeColour(SelectionColour, 200, Easing.Out);
+                    Caret.Hide();
                 else
-                    Caret
-                        .FadeColour(Color4.White, 200, Easing.Out)
-                        .Loop(c => c.FadeTo(0.7f).FadeTo(0.4f, 500, Easing.InOutSine));
+                    Caret.Show();
             }
 
             if (textAtLastLayout != text)
@@ -247,17 +253,21 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        private float getPositionAt(int index)
+        private Vector2 getPositionAt(int index)
         {
             if (index > 0)
             {
                 if (index < text.Length)
-                    return TextFlow.Children[index].DrawPosition.X + TextFlow.DrawPosition.X;
-                var d = TextFlow.Children[index - 1];
-                return d.DrawPosition.X + d.DrawSize.X + TextFlow.Spacing.X + TextFlow.DrawPosition.X;
+                {
+                    var inText = TextFlow.Children[index];
+                    return new Vector2(inText.DrawPosition.X + TextFlow.DrawPosition.X, inText.DrawPosition.Y + TextFlow.DrawPosition.Y);
+                }
+
+                var endText = TextFlow.Children[index - 1];
+                return new Vector2(endText.DrawPosition.X + endText.DrawSize.X + TextFlow.Spacing.X + TextFlow.DrawPosition.X, endText.DrawPosition.Y + TextFlow.DrawPosition.Y);
             }
 
-            return 0;
+            return Vector2.Zero;
         }
 
         private int getCharacterClosestTo(Vector2 pos)
@@ -447,7 +457,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 TextContainer.Add(d);
                 d.FadeOut(200);
-                d.MoveToY(d.DrawSize.Y, 200, Easing.InExpo);
+                d.MoveToY(d.DrawPosition.Y + d.DrawSize.Y, 200, Easing.InExpo);
                 d.Expire();
             }
 
@@ -462,7 +472,7 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
-        protected virtual Drawable GetDrawableCharacter(char c) => new SpriteText { Text = c.ToString(), TextSize = CalculatedTextSize };
+        protected virtual Drawable GetDrawableCharacter(char c) => new SpriteText { Text = c.ToString(), TextSize = TextSize };
 
         protected virtual Drawable AddCharacterToFlow(char c)
         {
@@ -490,7 +500,7 @@ namespace osu.Framework.Graphics.UserInterface
             return ch;
         }
 
-        protected float CalculatedTextSize => TextFlow.DrawSize.Y - (TextFlow.Padding.Top + TextFlow.Padding.Bottom);
+        protected virtual float TextSize => TextFlow.DrawSize.Y - (TextFlow.Padding.Top + TextFlow.Padding.Bottom);
 
         /// <summary>
         /// Insert an arbitrary string into the text at the current position.
@@ -809,9 +819,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             unbindInput();
 
-            Caret.ClearTransforms();
-            Caret.FadeOut(200);
-
+            Caret.Hide();
 
             Background.ClearTransforms();
             Background.FadeColour(BackgroundUnfocused, 200, Easing.OutExpo);
@@ -917,28 +925,6 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         #endregion
-
-        private class DrawableCaret : CompositeDrawable
-        {
-            public DrawableCaret()
-            {
-                RelativeSizeAxes = Axes.Y;
-                Size = new Vector2(1, 0.9f);
-                Alpha = 0;
-                Colour = Color4.Transparent;
-                Anchor = Anchor.CentreLeft;
-                Origin = Anchor.CentreLeft;
-
-                Masking = true;
-                CornerRadius = 1;
-
-                InternalChild = new Box
-                {
-                    RelativeSizeAxes = Axes.Both,
-                    Colour = Color4.White,
-                };
-            }
-        }
 
         private class TextBoxPlatformBindingHandler : Container, IKeyBindingHandler<PlatformAction>
         {
