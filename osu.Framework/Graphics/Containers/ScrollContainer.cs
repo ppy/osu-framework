@@ -3,7 +3,6 @@
 
 using System;
 using System.Diagnostics;
-using System.Linq;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
@@ -161,7 +160,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected virtual bool IsDragging { get; private set; }
 
-        public bool IsHandlingKeyboardScrolling => IsHovered || GetContainingInputManager().PositionalInputQueue.Contains(this);
+        public bool IsHandlingKeyboardScrolling => IsHovered || ReceiveMouseInputAt(GetContainingInputManager().CurrentState.Mouse.Position);
 
         /// <summary>
         /// The direction in which scrolling is supported.
