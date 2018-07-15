@@ -10,14 +10,10 @@ namespace osu.Framework.Graphics.UserInterface
 {
     public class SelectionArea : CompositeDrawable
     {
-        private readonly Color4 selectionColour;
-
         public SelectionArea(Color4 selectionColour)
         {
-            this.selectionColour = selectionColour;
-
             Alpha = 0;
-            Colour = Color4.Transparent;
+            Colour = selectionColour;
 
             InternalChild = new Box
             {
@@ -36,10 +32,10 @@ namespace osu.Framework.Graphics.UserInterface
             var size = new Vector2(rightBound.X - leftBound.X, rightBound.Y - leftBound.Y);
 
             ClearTransforms();
+
             this.MoveTo(leftBound, 60)
                 .ResizeWidthTo(size.X, 60)
-                .FadeTo(0.5f, 200, Easing.Out)
-                .FadeColour(selectionColour, 200, Easing.Out);
+                .FadeTo(0.5f, 200, Easing.Out);
         }
     }
 }

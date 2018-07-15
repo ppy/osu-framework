@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             Alpha = 0;
             Width = 3;
-            Colour = Color4.Transparent;
+            Colour = Color4.White;
 
             Masking = true;
             CornerRadius = 1;
@@ -32,8 +32,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             base.Show();
 
-            this.FadeColour(Color4.White, 200, Easing.Out)
-                .Loop(c => c.FadeTo(0.7f).FadeTo(0.2f, 500, Easing.InOutSine));
+            this.Loop(c => c.FadeTo(0.7f).FadeTo(0.2f, 500, Easing.InOutSine));
         }
 
         /// <summary>
@@ -41,7 +40,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public override void Hide()
         {
-            ClearTransforms(targetMember: nameof(Alpha));
+            ClearTransforms();
 
             base.Hide();
         }
