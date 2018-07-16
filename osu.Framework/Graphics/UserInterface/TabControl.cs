@@ -85,8 +85,8 @@ namespace osu.Framework.Graphics.UserInterface
 
                 Add(Dropdown);
 
-                Trace.Assert((Dropdown.Header.Anchor & Anchor.x2) > 0, $@"The {nameof(Dropdown)} implementation should use a right-based anchor inside a TabControl.");
-                Trace.Assert((Dropdown.Header.RelativeSizeAxes & Axes.X) == 0, $@"The {nameof(Dropdown)} implementation's header should have a specific size.");
+                Trace.Assert(Dropdown.Header.Anchor.HasFlag(Anchor.x2), $@"The {nameof(Dropdown)} implementation should use a right-based anchor inside a TabControl.");
+                Trace.Assert(!Dropdown.Header.RelativeSizeAxes.HasFlag(Axes.X), $@"The {nameof(Dropdown)} implementation's header should have a specific size.");
 
                 // create tab items for already existing items in dropdown (if any).
                 tabMap = Dropdown.Items.ToDictionary(item => item.Value, item => addTab(item.Value, false));
