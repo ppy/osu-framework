@@ -220,6 +220,10 @@ namespace osu.Framework.Graphics.Containers
     {
         private readonly MarkdownTableContainer tableContainer;
         private readonly List<List<MarkdownTableCell>> listContainerArray = new List<List<MarkdownTableCell>>();
+
+        protected virtual MarkdownTableCell CreateMarkdownTableCell(TableCell cell, TableColumnDefinition definition, int rowNumber) =>
+            new MarkdownTableCell(cell, definition, rowNumber);
+
         public MarkdownTable(Table table)
         {
             AutoSizeAxes = Axes.Y;
@@ -237,7 +241,7 @@ namespace osu.Framework.Graphics.Containers
                         var columnDimensions = table.ColumnDefinitions[columnIndex];
                         var tableCell = (TableCell)tableRow[columnIndex];
                         if (tableCell != null)
-                            rows.Add(new MarkdownTableCell(tableCell, columnDimensions, listContainerArray.Count));
+                            rows.Add(CreateMarkdownTableCell(tableCell, columnDimensions, listContainerArray.Count));
                     }
 
                 listContainerArray.Add(rows);
@@ -280,10 +284,16 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private class MarkdownTableCell : Container
+        public class MarkdownTableCell : Container
         {
             public MarkdownTextFlowContainer TextFlowContainer => textFlowContainer;
             private readonly MarkdownTextFlowContainer textFlowContainer;
+
+            protected virtual MarkdownTextFlowContainer CreateMarkdownTextFlowContainer() =>
+                new MarkdownTextFlowContainer
+                {
+                    Margin = new MarginPadding { Left = 5, Right = 5, Top = 5, Bottom = 5 }
+                };
 
             public MarkdownTableCell(TableCell cell, TableColumnDefinition definition, int rowNumber)
             {
@@ -308,10 +318,7 @@ namespace osu.Framework.Graphics.Containers
                         Colour = backgroundColor,
                         Alpha = backgroundAlpha
                     },
-                    textFlowContainer = new MarkdownTextFlowContainer
-                    {
-                        Margin = new MarginPadding{Left = 5,Right = 5,Top = 5,Bottom = 5}
-                    }
+                    textFlowContainer = CreateMarkdownTextFlowContainer()
                 };
 
                 foreach (var block in cell)
@@ -387,6 +394,9 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     public class MarkdownHeading : Container
     {
+        protected virtual MarkdownTextFlowContainer CreateMarkdownTextFlowContainer() =>
+            new MarkdownTextFlowContainer();
+
         public MarkdownHeading(HeadingBlock headingBlock)
         {
             AutoSizeAxes = Axes.Y;
@@ -396,7 +406,7 @@ namespace osu.Framework.Graphics.Containers
 
             Children = new Drawable[]
             {
-                textFlowContainer = new MarkdownTextFlowContainer()
+                textFlowContainer = CreateMarkdownTextFlowContainer()
             };
 
             var level = headingBlock.Level;
@@ -429,6 +439,12 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     public class MarkdownQuoteBlock : Container
     {
+        protected virtual MarkdownTextFlowContainer CreateMarkdownTextFlowContainer() =>
+            new MarkdownTextFlowContainer
+            {
+                Margin = new MarginPadding { Left = 20 }
+            };
+
         public MarkdownQuoteBlock(QuoteBlock quoteBlock)
         {
             AutoSizeAxes = Axes.Y;
@@ -446,10 +462,7 @@ namespace osu.Framework.Graphics.Containers
                     Origin = Anchor.CentreLeft,
                     RelativeSizeAxes = Axes.Y
                 },
-                textFlowContainer = new MarkdownTextFlowContainer
-                {
-                    Margin = new MarginPadding { Left = 20 }
-                }
+                textFlowContainer = CreateMarkdownTextFlowContainer()
             };
 
             if (quoteBlock.LastChild is ParagraphBlock paragraphBlock)
@@ -549,7 +562,8 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 paragraphBlock = value;
-                GeneratePartial(this, paragraphBlock.Inline);
+                Clear();
+                AddInlineText(paragraphBlock.Inline);
             }
         }
 
@@ -579,11 +593,6 @@ namespace osu.Framework.Graphics.Containers
 
         public MarkdownTextFlowContainer AddInlineText(ContainerInline lnline)
         {
-            return GeneratePartial(this, lnline);
-        }
-
-        protected MarkdownTextFlowContainer GeneratePartial(MarkdownTextFlowContainer textFlowContainer, ContainerInline lnline)
-        {
             foreach (var single in lnline)
             {
                 if (single is LiteralInline literalInline)
@@ -591,20 +600,20 @@ namespace osu.Framework.Graphics.Containers
                     var text = literalInline.Content.ToString();
                     if (lnline.GetNext(literalInline) is HtmlInline
                         && lnline.GetPrevious(literalInline) is HtmlInline)
-                        textFlowContainer.AddText(text, t => t.Colour = Color4.MediumPurple);
+                        AddText(text, t => t.Colour = Color4.MediumPurple);
                     else if (lnline.GetNext(literalInline) is HtmlEntityInline)
-                        textFlowContainer.AddText(text, t => t.Colour = Color4.GreenYellow);
+                        AddText(text, t => t.Colour = Color4.GreenYellow);
                     else if (literalInline.Parent is LinkInline linkInline)
                     {
                         if (!linkInline.IsImage)
-                            textFlowContainer.AddText(text, t => t.Colour = Color4.DodgerBlue);
+                            AddText(text, t => t.Colour = Color4.DodgerBlue);
                     }
                     else
-                        textFlowContainer.AddText(text);
+                        AddText(text);
                 }
                 else if (single is CodeInline codeInline)
                 {
-                    textFlowContainer.AddText(codeInline.Content, t => t.Colour = Color4.Orange);
+                    AddCodeInLineText(codeInline);
                 }
                 else if (single is EmphasisInline)
                 {
@@ -617,13 +626,7 @@ namespace osu.Framework.Graphics.Containers
                 {
                     if (linkInline.IsImage)
                     {
-                        var imageUrl = linkInline.Url;
-                        //insert a image
-                        textFlowContainer.AddImage(new MarkdownImage(imageUrl)
-                        {
-                            Width = 300,
-                            Height = 240,
-                        });
+                        AddImage(linkInline);
                     }
                 }
                 else if (single is HtmlInline || single is HtmlEntityInline)
@@ -636,14 +639,33 @@ namespace osu.Framework.Graphics.Containers
                 }
                 else
                 {
-                    textFlowContainer.AddText(single.GetType() + " Not implemented.", t => t.Colour = Color4.Red);
+                    AddText(single.GetType() + " Not implemented.", t => t.Colour = Color4.Red);
                 }
 
                 //generate child
-                if (single is ContainerInline containerInline) GeneratePartial(textFlowContainer, containerInline);
+                if (single is ContainerInline containerInline) AddInlineText(containerInline);
             }
 
-            return textFlowContainer;
+            return this;
+        }
+
+        protected virtual void AddCodeInLineText(CodeInline codeInline)
+        {
+            AddText(codeInline.Content, t =>
+            {
+                t.Colour = Color4.Orange;
+            });
+        }
+
+        protected virtual void AddImage(LinkInline linkInline)
+        {
+            var imageUrl = linkInline.Url;
+            //insert a image
+            AddImage(new MarkdownImage(imageUrl)
+            {
+                Width = 300,
+                Height = 240,
+            });
         }
     }
 }
