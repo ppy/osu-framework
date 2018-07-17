@@ -17,10 +17,20 @@ namespace osu.Framework.Platform.MacOS
     {
         [UnmanagedFunctionPointer(CallingConvention.Winapi)]
         private delegate void FlagsChangedDelegate(IntPtr self, IntPtr cmd, IntPtr notification);
-        private delegate uint WillUseFullScreenDelegate(IntPtr self, IntPtr cmd, IntPtr window, uint options);
+        [UnmanagedFunctionPointer(CallingConvention.Winapi)]
+        private delegate uint WindowWillUseFullScreenDelegate(IntPtr self, IntPtr cmd, IntPtr window, uint options);
+        [UnmanagedFunctionPointer(CallingConvention.Winapi)]
+        private delegate void WindowDidEnterFullScreenDelegate(IntPtr self, IntPtr cmd, IntPtr notification);
+        [UnmanagedFunctionPointer(CallingConvention.Winapi)]
+        private delegate void WindowDidExitFullScreenDelegate(IntPtr self, IntPtr cmd, IntPtr notification);
+        [UnmanagedFunctionPointer(CallingConvention.Winapi)]
+        private delegate bool WindowShouldZoomToFrameDelegate(IntPtr self, IntPtr cmd, IntPtr nsWindow, RectangleF toFrame);
 
         private FlagsChangedDelegate flagsChangedHandler;
-        private WillUseFullScreenDelegate willUseFullScreenHandler;
+        private WindowWillUseFullScreenDelegate windowWillUseFullScreenHandler;
+        private WindowDidEnterFullScreenDelegate windowDidEnterFullScreenHandler;
+        private WindowDidExitFullScreenDelegate windowDidExitFullScreenHandler;
+        private WindowShouldZoomToFrameDelegate windowShouldZoomToFrameHandler;
 
         private readonly IntPtr selModifierFlags = Selector.Get("modifierFlags");
         private readonly IntPtr selKeyCode = Selector.Get("keyCode");
@@ -39,12 +49,19 @@ namespace osu.Framework.Platform.MacOS
             Load += OnLoad;
         }
 
+        private NSWindowStyleMask styleMask => (NSWindowStyleMask)Cocoa.SendUint(WindowInfo.Handle, selStyleMask);
+
+        private bool isFullScreen() => (styleMask & NSWindowStyleMask.FullScreen) != 0;
+
         protected void OnLoad(object sender, EventArgs e)
         {
             try
             {
                 flagsChangedHandler = flagsChanged;
-                willUseFullScreenHandler = willUseFullScreen;
+                windowWillUseFullScreenHandler = windowWillUseFullScreen;
+                windowDidEnterFullScreenHandler = windowDidEnterFullScreen;
+                windowDidExitFullScreenHandler = windowDidExitFullScreen;
+                windowShouldZoomToFrameHandler = windowShouldZoomToFrame;
 
                 var fieldImplementation = typeof(NativeWindow).GetRuntimeFields().Single(x => x.Name == "implementation");
                 var typeCocoaNativeWindow = typeof(NativeWindow).Assembly.GetTypes().Single(x => x.Name == "CocoaNativeWindow");
@@ -53,8 +70,17 @@ namespace osu.Framework.Platform.MacOS
                 nativeWindow = fieldImplementation.GetValue(Implementation);
                 var windowClass = (IntPtr)fieldWindowClass.GetValue(nativeWindow);
 
+                // register new methods
                 Class.RegisterMethod(windowClass, flagsChangedHandler, "flagsChanged:", "v@:@");
-                Class.RegisterMethod(windowClass, willUseFullScreenHandler, "window:willUseFullScreenPresentationOptions:", "I@:@I");
+                Class.RegisterMethod(windowClass, windowWillUseFullScreenHandler, "window:willUseFullScreenPresentationOptions:", "I@:@I");
+                Class.RegisterMethod(windowClass, windowDidEnterFullScreenHandler, "windowDidEnterFullScreen:", "v@:@");
+                Class.RegisterMethod(windowClass, windowDidExitFullScreenHandler, "windowDidExitFullScreen:", "v@:@");
+
+                // replace methods that currently break
+                Class.RegisterMethod(windowClass, windowShouldZoomToFrameHandler, "windowShouldZoom:toFrame:", "b@:@{NSRect={NSPoint=ff}{NSSize=ff}}");
+
+                NSNotificationCenter.AddObserver(WindowInfo.Handle, Selector.Get("windowDidEnterFullScreen:"), NSNotificationCenter.WindowDidEnterFullScreen, IntPtr.Zero);
+                NSNotificationCenter.AddObserver(WindowInfo.Handle, Selector.Get("windowDidExitFullScreen:"), NSNotificationCenter.WindowDidExitFullScreen, IntPtr.Zero);
 
                 methodKeyDown = nativeWindow.GetType().GetRuntimeMethods().Single(x => x.Name == "OnKeyDown");
                 methodKeyUp = nativeWindow.GetType().GetRuntimeMethods().Single(x => x.Name == "OnKeyUp");
@@ -66,8 +92,29 @@ namespace osu.Framework.Platform.MacOS
             }
         }
 
-        private uint willUseFullScreen(IntPtr self, IntPtr cmd, IntPtr window, uint options) =>
-            (uint)(NSApplicationPresentationOptions.HideDock | NSApplicationPresentationOptions.HideMenuBar | NSApplicationPresentationOptions.FullScreen);
+        private NSApplicationPresentationOptions presentationOptionsForWindowMode(WindowMode windowMode)
+        {
+            switch (windowMode)
+            {
+                case Configuration.WindowMode.Fullscreen:
+                    return NSApplicationPresentationOptions.HideDock | NSApplicationPresentationOptions.HideMenuBar | NSApplicationPresentationOptions.FullScreen;
+                case Configuration.WindowMode.Borderless:
+                    return NSApplicationPresentationOptions.AutoHideDock | NSApplicationPresentationOptions.AutoHideMenuBar | NSApplicationPresentationOptions.FullScreen;
+                default:
+                    return NSApplicationPresentationOptions.Default;
+            }
+        }
+
+        private uint windowWillUseFullScreen(IntPtr self, IntPtr cmd, IntPtr window, uint options) => (uint)presentationOptionsForWindowMode(Configuration.WindowMode.Borderless);
+
+        private void windowDidEnterFullScreen(IntPtr self, IntPtr cmd, IntPtr notification)
+        {
+            if (WindowMode.Value == Configuration.WindowMode.Windowed)
+                WindowMode.Value = Configuration.WindowMode.Borderless;
+            NSApplication.PresentationOptions = presentationOptionsForWindowMode(WindowMode.Value);
+        }
+
+        private void windowDidExitFullScreen(IntPtr self, IntPtr cmd, IntPtr notification) => WindowMode.Value = Configuration.WindowMode.Windowed;
 
         private void flagsChanged(IntPtr self, IntPtr cmd, IntPtr sender)
         {
@@ -129,17 +176,20 @@ namespace osu.Framework.Platform.MacOS
                 methodKeyUp.Invoke(nativeWindow, new object[] { key });
         }
 
+        // FIXME: OpenTK's current window:shouldZoomToFrame: is broken and can't be overridden, so we replace it
+        private bool windowShouldZoomToFrame(IntPtr self, IntPtr cmd, IntPtr nsWindow, RectangleF toFrame) => true;
+
         protected override void UpdateWindowMode(WindowMode newMode)
         {
             InvokeOnInputThread.Invoke(() =>
             {
-                bool toggleFullscreen;
-                if (newMode == Configuration.WindowMode.Borderless || newMode == Configuration.WindowMode.Fullscreen)
-                    toggleFullscreen = (Cocoa.SendUint(WindowInfo.Handle, selStyleMask) & (uint)NSWindowStyleMask.FullScreen) == 0;
-                else
-                    toggleFullscreen = (Cocoa.SendUint(WindowInfo.Handle, selStyleMask) & (uint)NSWindowStyleMask.FullScreen) != 0;
-                if (toggleFullscreen)
+                bool currentFullScreen = isFullScreen();
+                bool toggleFullScreen = newMode == Configuration.WindowMode.Borderless || newMode == Configuration.WindowMode.Fullscreen ? !currentFullScreen : currentFullScreen;
+
+                if (toggleFullScreen)
                     Cocoa.SendVoid(WindowInfo.Handle, selToggleFullScreen, IntPtr.Zero);
+                else if (currentFullScreen)
+                    NSApplication.PresentationOptions = presentationOptionsForWindowMode(newMode);
             });
         }
 
