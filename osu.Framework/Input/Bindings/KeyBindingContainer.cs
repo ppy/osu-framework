@@ -128,7 +128,7 @@ namespace osu.Framework.Input.Bindings
             var pressedCombination = KeyCombination.FromInputState(state, scrollDelta);
 
             bool handled = false;
-            var bindings = repeat ? KeyBindings : KeyBindings.Except(pressedBindings);
+            var bindings = (repeat ? KeyBindings : KeyBindings?.Except(pressedBindings)) ?? Enumerable.Empty<KeyBinding>();
             var newlyPressed = bindings.Where(m =>
                 m.KeyCombination.Keys.Contains(newKey) // only handle bindings matching current key (not required for correct logic)
                 && m.KeyCombination.IsPressed(pressedCombination, simultaneousMode == SimultaneousBindingMode.NoneExact));

@@ -87,9 +87,9 @@ namespace osu.Framework.Graphics.Containers
         private Vector2 spacingFactor(Drawable c)
         {
             Vector2 result = c.RelativeOriginPosition;
-            if ((c.Anchor & Anchor.x2) > 0)
+            if (c.Anchor.HasFlag(Anchor.x2))
                 result.X = 1 - result.X;
-            if ((c.Anchor & Anchor.y2) > 0)
+            if (c.Anchor.HasFlag(Anchor.y2))
                 result.Y = 1 - result.Y;
             return result;
         }
@@ -103,8 +103,8 @@ namespace osu.Framework.Graphics.Containers
 
                 // If we are autosize and haven't specified a maximum size, we should allow infinite expansion.
                 // If we are inheriting then we need to use the parent size (our ActualSize).
-                max.X = (AutoSizeAxes & Axes.X) > 0 ? float.MaxValue : s.X;
-                max.Y = (AutoSizeAxes & Axes.Y) > 0 ? float.MaxValue : s.Y;
+                max.X = AutoSizeAxes.HasFlag(Axes.X) ? float.MaxValue : s.X;
+                max.Y = AutoSizeAxes.HasFlag(Axes.Y) ? float.MaxValue : s.Y;
             }
 
             var children = FlowingChildren.ToArray();
@@ -217,17 +217,17 @@ namespace osu.Framework.Graphics.Containers
                         break;
                 }
 
-                if ((c.Anchor & Anchor.x1) > 0)
+                if (c.Anchor.HasFlag(Anchor.x1))
                     // Begin flow at centre of row
                     result[i].X += rowOffsetsToMiddle[rowIndices[i]];
-                else if ((c.Anchor & Anchor.x2) > 0)
+                else if (c.Anchor.HasFlag(Anchor.x2))
                     // Flow right-to-left
                     result[i].X = -result[i].X;
 
-                if ((c.Anchor & Anchor.y1) > 0)
+                if (c.Anchor.HasFlag(Anchor.y1))
                     // Begin flow at centre of total height
                     result[i].Y -= height / 2;
-                else if ((c.Anchor & Anchor.y2) > 0)
+                else if (c.Anchor.HasFlag(Anchor.y2))
                     // Flow bottom-to-top
                     result[i].Y = -result[i].Y;
             }

@@ -36,7 +36,22 @@ namespace osu.Framework.Allocation
         /// <typeparam name="T">The dependency type to query for.</typeparam>
         /// <param name="container">The <see cref="IReadOnlyDependencyContainer"/> to query.</param>
         /// <returns>The requested dependency, or null if not found.</returns>
-        public static T Get<T>(this IReadOnlyDependencyContainer container) where T : class =>
-            (T)container.Get(typeof(T));
+        public static T Get<T>(this IReadOnlyDependencyContainer container)
+            where T : class
+            => (T)container.Get(typeof(T));
+
+        /// <summary>
+        /// Tries to retrieve a cached dependency of type <typeparamref name="T"/>.
+        /// </summary>
+        /// <param name="container">The <see cref="IReadOnlyDependencyContainer"/> to query.</param>
+        /// <param name="value">The requested dependency, or null if not found.</param>
+        /// <typeparam name="T">The dependency type to query for.</typeparam>
+        /// <returns>Whether the requested dependency existed.</returns>
+        public static bool TryGet<T>(this IReadOnlyDependencyContainer container, out T value)
+            where T : class
+        {
+            value = container.Get<T>();
+            return value != null;
+        }
     }
 }

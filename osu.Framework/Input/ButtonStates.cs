@@ -55,9 +55,9 @@ namespace osu.Framework.Input
         /// Enumerates the differences between ourselves and a previous <see cref="ButtonStates{TButton}"/>.
         /// </summary>
         /// <param name="lastButtons">The previous <see cref="ButtonStates{TButton}"/>.</param>
-        public (IEnumerable<TButton> Released, IEnumerable<TButton> Pressed) EnumerateDifference(ButtonStates<TButton> lastButtons)
+        public ButtonStateDifference EnumerateDifference(ButtonStates<TButton> lastButtons)
         {
-            return (lastButtons.pressedButtons.Except(pressedButtons), pressedButtons.Except(lastButtons.pressedButtons));
+            return new ButtonStateDifference(lastButtons.Except(this).ToArray(), this.Except(lastButtons).ToArray());
         }
 
         /// <summary>
@@ -75,17 +75,22 @@ namespace osu.Framework.Input
             return $@"{GetType().ReadableName()}({String.Join(" ", pressedButtons)})";
         }
 
-        public IEnumerator<TButton> GetEnumerator()
-        {
-            return ((IEnumerable<TButton>)pressedButtons).GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return ((IEnumerable<TButton>)pressedButtons).GetEnumerator();
-        }
+        public IEnumerator<TButton> GetEnumerator() => ((IEnumerable<TButton>)pressedButtons).GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         // for collection initializer
         public void Add(TButton button) => SetPressed(button, true);
+
+        public struct ButtonStateDifference
+        {
+            public readonly IEnumerable<TButton> Released;
+            public readonly IEnumerable<TButton> Pressed;
+
+            public ButtonStateDifference(IEnumerable<TButton> released, IEnumerable<TButton> pressed)
+            {
+                Released = released;
+                Pressed = pressed;
+            }
+        }
     }
 }
