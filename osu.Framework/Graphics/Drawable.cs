@@ -112,7 +112,7 @@ namespace osu.Framework.Graphics
 
         /// <summary>
         /// Whether this Drawable is fully loaded.
-        /// Override to false for delaying the load further (e.g. using <see cref="ShouldBeAlive"/>).
+        /// This is true iff <see cref="UpdateSubTree"/> has run once on this <see cref="Drawable"/>.
         /// </summary>
         public bool IsLoaded => loadState >= LoadState.Loaded;
 
