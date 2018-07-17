@@ -11,6 +11,8 @@ using Markdig.Syntax;
 using Markdig.Syntax.Inlines;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.IEnumerableExtensions;
+using osu.Framework.Graphics.Colour;
+using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
@@ -229,6 +231,7 @@ namespace osu.Framework.Graphics.Containers
             AutoSizeAxes = Axes.Y;
             RelativeSizeAxes = Axes.X;
             Padding = new MarginPadding { Right = 100 };
+            Margin = new MarginPadding { Right = 100 };
 
             foreach (var block in table)
             {
@@ -256,24 +259,69 @@ namespace osu.Framework.Graphics.Containers
                     Content = listContainerArray.Select(x=>x.Select(y=>(Drawable)y).ToArray()).ToArray(),
                 }
             };
-
-            //define max row is 50
-            tableContainer.RowDimensions = Enumerable.Repeat(new Dimension(GridSizeMode.AutoSize), 50).ToArray();
-
-            int row = listContainerArray.FirstOrDefault()?.Count ?? 0;
-
-            if (row == 2)
-            {
-                tableContainer.ColumnDimensions = new[] { new Dimension(GridSizeMode.Relative, 0.3f) };
-            }
         }
 
+        private Vector2 lastDrawSize;
         protected override void Update()
         {
-            tableContainer.RowDimensions = listContainerArray.Select(X => new Dimension(GridSizeMode.Absolute, X.Max(y => y.TextFlowContainer.DrawHeight + 10))).ToArray();
+            if (lastDrawSize != DrawSize)
+            {
+                lastDrawSize = DrawSize;
+                UpdateColumnDefinitions();
+                UpdateRowDefinitions();
+            }
             base.Update();
         }
 
+        protected virtual void UpdateColumnDefinitions()
+        {
+            var totalColumn = listContainerArray.Max(x => x.Count);
+            var totalRows = listContainerArray.Count;
+
+            var listcolumnMaxWidth = new float[totalColumn];
+
+            for (int row = 0; row < totalRows; row++)
+            {
+                for (int column = 0; column < totalColumn; column++)
+                {
+                    var colimnTextTotalWidth = listContainerArray[row][column].TextFlowContainer.TotalTextWidth();
+
+                    //get max width
+                    listcolumnMaxWidth[column] = Math.Max(listcolumnMaxWidth[column], colimnTextTotalWidth);
+                }
+            }
+
+            listcolumnMaxWidth = listcolumnMaxWidth.Select(x => x + 20).ToArray();
+
+            var columnDimensions = new Dimension[totalColumn];
+
+            //if max width < DrawWidth, means set absolute value to each column
+            if (listcolumnMaxWidth.Sum() < DrawWidth - Margin.Right)
+            {
+                //not relative , define value instead
+                tableContainer.RelativeSizeAxes = Axes.None;
+                for (int column = 0; column < totalColumn; column++)
+                {
+                    columnDimensions[column] = new Dimension(GridSizeMode.Absolute, listcolumnMaxWidth[column]);
+                }
+            }
+            else
+            {
+                //set to relative
+                tableContainer.RelativeSizeAxes = Axes.X;
+                var totalWidth = listcolumnMaxWidth.Sum();
+                for (int column = 0; column < totalColumn; column++)
+                {
+                    columnDimensions[column] = new Dimension(GridSizeMode.Relative, listcolumnMaxWidth[column] / totalWidth);
+                }
+            }
+            tableContainer.ColumnDimensions = columnDimensions;
+        }
+
+        protected virtual void UpdateRowDefinitions()
+        {
+            tableContainer.RowDimensions = listContainerArray.Select(x => new Dimension(GridSizeMode.Absolute, x.Max(y => y.TextFlowContainer.DrawHeight + 10))).ToArray();
+        }
 
         private class MarkdownTableContainer : GridContainer
         {
@@ -603,10 +651,29 @@ namespace osu.Framework.Graphics.Containers
                         AddText(text, t => t.Colour = Color4.MediumPurple);
                     else if (lnline.GetNext(literalInline) is HtmlEntityInline)
                         AddText(text, t => t.Colour = Color4.GreenYellow);
+                    else if (literalInline.Parent is EmphasisInline emphasisInline)
+                    {
+                        if (emphasisInline.IsDouble)
+                        {
+                            switch (emphasisInline.DelimiterChar)
+                            {
+                                case '*':
+                                    AddBoldText(text, literalInline);
+                                    break;
+                                default:
+                                    AddDefalutLiteralInlineText(text, literalInline);
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            AddDefalutLiteralInlineText(text, literalInline);
+                        }
+                    }
                     else if (literalInline.Parent is LinkInline linkInline)
                     {
                         if (!linkInline.IsImage)
-                            AddText(text, t => t.Colour = Color4.DodgerBlue);
+                            AddLinkText(text, literalInline);
                     }
                     else
                         AddText(text);
@@ -615,13 +682,6 @@ namespace osu.Framework.Graphics.Containers
                 {
                     AddCodeInLineText(codeInline);
                 }
-                else if (single is EmphasisInline)
-                {
-                    //foreach (var child in emphasisInline)
-                    //{
-                    //    textFlowContainer.AddText(child.ToString());
-                    //}
-                }
                 else if (single is LinkInline linkInline)
                 {
                     if (linkInline.IsImage)
@@ -629,7 +689,7 @@ namespace osu.Framework.Graphics.Containers
                         AddImage(linkInline);
                     }
                 }
-                else if (single is HtmlInline || single is HtmlEntityInline)
+                else if (single is HtmlInline || single is HtmlEntityInline || single is EmphasisInline)
                 {
                     //DO nothing
                 }
@@ -649,6 +709,31 @@ namespace osu.Framework.Graphics.Containers
             return this;
         }
 
+        protected virtual void AddBoldText(string text, LiteralInline literalInline)
+        {
+            //TODO : make real "Bold text"
+            AddDrawanle(new SpriteText
+            {
+                Text = text,
+                Colour = Color4.LightGray
+            }.WithEffect(new GlowEffect
+            {
+                BlurSigma = new Vector2(1f),
+                Strength = 2f,
+                Colour = ColourInfo.GradientHorizontal(new Color4(1.2f, 1.2f, 1.2f, 1f), new Color4(1.2f, 1.2f, 1.2f, 1f)),
+            }));
+        }
+
+        protected virtual void AddLinkText(string text, LiteralInline literalInline)
+        {
+            AddText(text, t => t.Colour = Color4.DodgerBlue);
+        }
+
+        protected virtual void AddDefalutLiteralInlineText(string text, LiteralInline literalInline)
+        {
+            AddText(text);
+        }
+
         protected virtual void AddCodeInLineText(CodeInline codeInline)
         {
             AddText(codeInline.Content, t =>
@@ -666,6 +751,27 @@ namespace osu.Framework.Graphics.Containers
                 Width = 300,
                 Height = 240,
             });
+        }
+
+        protected IEnumerable<SpriteText> AddDrawanle(Drawable drawable)
+        {
+            var imageIndex = AddPlaceholder(drawable);
+            return base.AddText("[" + imageIndex + "]");
+        }
+
+        public bool IsChangeLine()
+        {
+            if (FlowingChildren.Any())
+            {
+                var fortRowX = FlowingChildren.FirstOrDefault()?.BoundingBox.Size.X;
+                return FlowingChildren.Any(x => x.BoundingBox.X != fortRowX);
+            }
+            return true;
+        }
+
+        public float TotalTextWidth()
+        {
+            return FlowingChildren.Sum(x => x.BoundingBox.Size.X);
         }
     }
 }
