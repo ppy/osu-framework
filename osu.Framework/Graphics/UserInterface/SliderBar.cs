@@ -5,13 +5,13 @@ using System;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
-using OpenTK.Input;
 using OpenTK;
 using System.Diagnostics;
+using osu.Framework.Input.Bindings;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public abstract class SliderBar<T> : Container, IHasCurrentValue<T>
+    public abstract class SliderBar<T> : Container, IHasCurrentValue<T>, IKeyBindingHandler<PlatformAction>
         where T : struct, IComparable, IConvertible
     {
         /// <summary>
@@ -24,10 +24,27 @@ namespace osu.Framework.Graphics.UserInterface
 
         public float UsableWidth => DrawWidth - 2 * RangePadding;
 
+        private float smallKeyboardStep;
+        private float defaultSmallKeyboardStep => (Convert.ToSingle(CurrentNumber.MaxValue) - Convert.ToSingle(CurrentNumber.MinValue)) / 20;
         /// <summary>
-        /// A custom step value for each key press which actuates a change on this control.
+        /// A custom step value for each Left/Right key press which actuates a change on this control.
         /// </summary>
-        public float KeyboardStep;
+        public float SmallKeyboardStep
+        {
+            get => smallKeyboardStep != default(float) ? smallKeyboardStep : defaultSmallKeyboardStep;
+            set => smallKeyboardStep = value;
+        }
+
+        private float largeKeyboardStep;
+        private float defaultLargeKeyboardStep => (Convert.ToSingle(CurrentNumber.MaxValue) - Convert.ToSingle(CurrentNumber.MinValue)) / 4;
+        /// <summary>
+        /// A custom step value for each PgUp/PgDn key press which actuates a change on this control.
+        /// </summary>
+        public float LargeKeyboardStep
+        {
+            get => largeKeyboardStep != default(float) ? largeKeyboardStep : defaultLargeKeyboardStep;
+            set => largeKeyboardStep = value;
+        }
 
         protected readonly BindableNumber<T> CurrentNumber;
 
@@ -109,23 +126,47 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnDragEnd(InputState state) => true;
 
-        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
+        public bool OnPressed(PlatformAction action)
         {
             if (!IsHovered || CurrentNumber.Disabled)
                 return false;
 
-            var step = KeyboardStep != 0 ? KeyboardStep : (Convert.ToSingle(CurrentNumber.MaxValue) - Convert.ToSingle(CurrentNumber.MinValue)) / 20;
-            if (CurrentNumber.IsInteger) step = (float)Math.Ceiling(step);
-
-            switch (args.Key)
+            switch (action.ActionType)
             {
-                case Key.Right:
-                    CurrentNumber.Add(step);
-                    OnUserChange();
-                    return true;
-                case Key.Left:
-                    CurrentNumber.Add(-step);
-                    OnUserChange();
+                case PlatformActionType.CharPrevious:
+                    CurrentNumber.Add(CurrentNumber.IsInteger ? -(float)Math.Ceiling(SmallKeyboardStep) : -SmallKeyboardStep);
+                    return OnInputHandled();
+                case PlatformActionType.CharNext:
+                    CurrentNumber.Add(CurrentNumber.IsInteger ? (float)Math.Ceiling(SmallKeyboardStep) : SmallKeyboardStep);
+                    return OnInputHandled();
+                case PlatformActionType.WordPrevious:
+                    CurrentNumber.Add(CurrentNumber.IsInteger ? -(float)Math.Ceiling(LargeKeyboardStep) : -LargeKeyboardStep);
+                    return OnInputHandled();
+                case PlatformActionType.WordNext:
+                    CurrentNumber.Add(CurrentNumber.IsInteger ? (float)Math.Ceiling(LargeKeyboardStep) : LargeKeyboardStep);
+                    return OnInputHandled();
+                default:
+                    return false;
+            }
+
+            bool OnInputHandled()
+            {
+                OnUserChange();
+                return true;
+            }
+        }
+
+        public bool OnReleased(PlatformAction action)
+        {
+            if (!IsHovered || CurrentNumber.Disabled)
+                return false;
+
+            switch (action.ActionType)
+            {
+                case PlatformActionType.CharPrevious:
+                case PlatformActionType.CharNext:
+                case PlatformActionType.WordPrevious:
+                case PlatformActionType.WordNext:
                     return true;
                 default:
                     return false;
@@ -137,7 +178,7 @@ namespace osu.Framework.Graphics.UserInterface
             var xPosition = ToLocalSpace(state?.Mouse.NativeState.Position ?? Vector2.Zero).X - RangePadding;
 
             if (!CurrentNumber.Disabled)
-                CurrentNumber.SetProportional(xPosition / UsableWidth, state != null && state.Keyboard.ShiftPressed ? KeyboardStep : 0);
+                CurrentNumber.SetProportional(xPosition / UsableWidth, state != null && state.Keyboard.ShiftPressed ? SmallKeyboardStep : 0);
 
             OnUserChange();
         }
