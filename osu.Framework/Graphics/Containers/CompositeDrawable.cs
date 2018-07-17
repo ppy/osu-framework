@@ -1278,7 +1278,7 @@ namespace osu.Framework.Graphics.Containers
         {
             get
             {
-                if (!StaticCached.BypassCache && !isComputingChildrenSizeDependencies && (AutoSizeAxes & Axes.X) > 0)
+                if (!StaticCached.BypassCache && !isComputingChildrenSizeDependencies && AutoSizeAxes.HasFlag(Axes.X))
                     updateChildrenSizeDependencies();
                 return base.Width;
             }
@@ -1295,7 +1295,7 @@ namespace osu.Framework.Graphics.Containers
         {
             get
             {
-                if (!StaticCached.BypassCache && !isComputingChildrenSizeDependencies && (AutoSizeAxes & Axes.Y) > 0)
+                if (!StaticCached.BypassCache && !isComputingChildrenSizeDependencies && AutoSizeAxes.HasFlag(Axes.Y))
                     updateChildrenSizeDependencies();
                 return base.Height;
             }
@@ -1349,16 +1349,16 @@ namespace osu.Framework.Graphics.Containers
 
                     Vector2 cBound = c.RequiredParentSizeToFit;
 
-                    if ((c.BypassAutoSizeAxes & Axes.X) == 0)
+                    if (!c.BypassAutoSizeAxes.HasFlag(Axes.X))
                         maxBoundSize.X = Math.Max(maxBoundSize.X, cBound.X);
 
-                    if ((c.BypassAutoSizeAxes & Axes.Y) == 0)
+                    if (!c.BypassAutoSizeAxes.HasFlag(Axes.Y))
                         maxBoundSize.Y = Math.Max(maxBoundSize.Y, cBound.Y);
                 }
 
-                if ((AutoSizeAxes & Axes.X) == 0)
+                if (!AutoSizeAxes.HasFlag(Axes.X))
                     maxBoundSize.X = DrawSize.X;
-                if ((AutoSizeAxes & Axes.Y) == 0)
+                if (!AutoSizeAxes.HasFlag(Axes.Y))
                     maxBoundSize.Y = DrawSize.Y;
 
                 return new Vector2(maxBoundSize.X, maxBoundSize.Y);
@@ -1378,8 +1378,8 @@ namespace osu.Framework.Graphics.Containers
             Vector2 b = computeAutoSize() + Padding.Total;
 
             autoSizeResizeTo(new Vector2(
-                (AutoSizeAxes & Axes.X) > 0 ? b.X : base.Width,
-                (AutoSizeAxes & Axes.Y) > 0 ? b.Y : base.Height
+                AutoSizeAxes.HasFlag(Axes.X) ? b.X : base.Width,
+                AutoSizeAxes.HasFlag(Axes.Y) ? b.Y : base.Height
             ), AutoSizeDuration, AutoSizeEasing);
 
             //note that this is called before autoSize becomes valid. may be something to consider down the line.

@@ -351,8 +351,8 @@ namespace osu.Framework.Graphics.UserInterface
                 height = Math.Min(MaxHeight, height);
 
                 // Regardless of the above result, if we are relative-sizing, just use the stored width/height
-                width = (RelativeSizeAxes & Axes.X) > 0 ? Width : width;
-                height = (RelativeSizeAxes & Axes.Y) > 0 ? Height : height;
+                width = RelativeSizeAxes.HasFlag(Axes.X) ? Width : width;
+                height = RelativeSizeAxes.HasFlag(Axes.Y) ? Height : height;
 
                 if (State == MenuState.Closed && Direction == Direction.Horizontal)
                     width = 0;

@@ -83,7 +83,7 @@ namespace osu.Framework.Input.Handlers.Mouse
 
                                 var newState = new OpenTKPollMouseState(rawState, host.IsActive, getUpdatedPosition(rawState, lastState));
 
-                                HandleState(newState, lastState, (rawState.Flags & MouseStateFlags.MoveAbsolute) > 0);
+                                HandleState(newState, lastState, rawState.Flags.HasFlag(MouseStateFlags.MoveAbsolute));
 
                                 lastEachDeviceStates[i] = newState;
                                 lastUnfocusedState = null;
@@ -129,7 +129,7 @@ namespace osu.Framework.Input.Handlers.Mouse
         {
             Vector2 currentPosition;
 
-            if ((state.Flags & MouseStateFlags.MoveAbsolute) > 0)
+            if (state.Flags.HasFlag(MouseStateFlags.MoveAbsolute))
             {
                 const int raw_input_resolution = 65536;
 
@@ -142,7 +142,7 @@ namespace osu.Framework.Input.Handlers.Mouse
                 }
                 else
                 {
-                    Rectangle screenRect = (state.Flags & MouseStateFlags.VirtualDesktop) > 0
+                    Rectangle screenRect = state.Flags.HasFlag(MouseStateFlags.VirtualDesktop)
                         ? Platform.Windows.Native.Input.GetVirtualScreenRect()
                         : new Rectangle(0, 0, DisplayDevice.Default.Width, DisplayDevice.Default.Height);
 
