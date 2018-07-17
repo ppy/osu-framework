@@ -237,15 +237,23 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
-        /// Called after all async loading has completed.
+        /// Invoked after dependency injection has completed for this <see cref="Drawable"/> and all
+        /// children if this is a <see cref="CompositeDrawable"/>.
         /// </summary>
+        /// <remarks>
+        /// This method is invoked in the potentially asynchronous context of <see cref="Load"/> prior to
+        /// this <see cref="Drawable"/> becoming <see cref="IsLoaded"/> = true.
+        /// </remarks>
         protected virtual void LoadAsyncComplete()
         {
         }
 
         /// <summary>
-        /// Play initial animation etc.
+        /// Invoked after this <see cref="Drawable"/> has finished loading.
         /// </summary>
+        /// <remarks>
+        /// This method is invoked on the update thread inside this <see cref="Drawable"/>'s <see cref="UpdateSubTree"/>.
+        /// </remarks>
         protected virtual void LoadComplete()
         {
         }
