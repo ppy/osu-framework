@@ -41,7 +41,7 @@ namespace osu.Framework.Allocation
             foreach (var attribute in type.GetCustomAttributes<DependencyCachedAttribute>())
                 additionActivators.Add((target, dc) => dc.CacheAs(attribute.cachedType ?? type, target));
 
-            foreach (var field in type.GetFields(activator_flags).Where(f => f.GetCustomAttribute<DependencyCachedAttribute>() != null))
+            foreach (var field in type.GetFields(activator_flags).Where(f => f.GetCustomAttributes<DependencyCachedAttribute>().Any()))
             foreach (var attribute in field.GetCustomAttributes<DependencyCachedAttribute>())
                 additionActivators.Add((target, dc) => dc.CacheAs(attribute.cachedType ?? field.FieldType, field.GetValue(target)));
 
