@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using JetBrains.Annotations;
+using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 
 namespace osu.Framework.Allocation
@@ -15,7 +16,7 @@ namespace osu.Framework.Allocation
     /// that the value of the field should be retrieved from a dependency cache.
     /// </summary>
     [MeansImplicitUse]
-    [AttributeUsage(AttributeTargets.Field)]
+    [AttributeUsage(AttributeTargets.Property)]
     public class DependencyAttribute : Attribute
     {
         private const BindingFlags activator_flags = BindingFlags.NonPublic | BindingFlags.Instance;
@@ -27,19 +28,21 @@ namespace osu.Framework.Allocation
 
         internal static InjectDependencyDelegate CreateActivator(Type type)
         {
-            var fields = type.GetFields(activator_flags).Where(f => f.GetCustomAttribute<DependencyAttribute>() != null);
+            var activators = new List<Action<object, DependencyContainer>>();
 
-            var fieldActivators = new List<Action<object, DependencyContainer>>();
-
-            foreach (var field in fields)
+            var properties = type.GetProperties(activator_flags).Where(f => f.GetCustomAttribute<DependencyAttribute>() != null);
+            foreach (var property in properties)
             {
-                var attrib = field.GetCustomAttribute<DependencyAttribute>();
-                var fieldGetter = getDependency(field.FieldType, type, attrib.CanBeNull);
+                if (!property.CanWrite)
+                    throw new PropertyNotWritableException(type, property.Name);
 
-                fieldActivators.Add((target, dc) => field.SetValue(target, fieldGetter(dc)));
+                var attribute = property.GetCustomAttribute<DependencyAttribute>();
+                var fieldGetter = getDependency(property.PropertyType, type, attribute.CanBeNull);
+
+                activators.Add((target, dc) => property.SetValue(target, fieldGetter(dc)));
             }
 
-            return (target, dc) => fieldActivators.ForEach(a => a(target, dc));
+            return (target, dc) => activators.ForEach(a => a(target, dc));
         }
 
         private static Func<DependencyContainer, object> getDependency(Type type, Type requestingType, bool permitNulls) => dc =>
@@ -49,5 +52,13 @@ namespace osu.Framework.Allocation
                 throw new DependencyNotRegisteredException(requestingType, type);
             return val;
         };
+    }
+
+    public class PropertyNotWritableException : Exception
+    {
+        public PropertyNotWritableException(Type type, string propertyName)
+            : base($"Attempting to inject dependencies into non-write-able property {propertyName} of type {type.ReadableName()}.")
+        {
+        }
     }
 }
