@@ -2,6 +2,9 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using osu.Framework.Graphics;
 
 namespace osu.Framework.Allocation
@@ -14,27 +17,44 @@ namespace osu.Framework.Allocation
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = true)]
     public class DependencyCachedAttribute : Attribute
     {
+        private const BindingFlags activator_flags = BindingFlags.NonPublic | BindingFlags.Instance;
+
         /// <summary>
         /// The type to cache the value as.
         /// </summary>
-        public readonly Type CachedType;
+        private readonly Type cachedType;
 
         /// <summary>
         /// Constructs a new <see cref="DependencyCachedAttribute"/>.
-        /// The type of the cached value matches that of the member which this attribute is attached on.
         /// </summary>
-        public DependencyCachedAttribute()
+        /// <param name="cachedType">The type to cache the value as.
+        /// If this is null, the cached type will match the type of the member which the attribute is attached to.</param>
+        public DependencyCachedAttribute(Type cachedType = null)
         {
+            this.cachedType = cachedType;
         }
 
-        /// <summary>
-        /// Constructs a new <see cref="DependencyCachedAttribute"/>.
-        /// The type of the cached value will match a given type.
-        /// </summary>
-        /// <param name="cachedType">The type to cache the value as.</param>
-        public DependencyCachedAttribute(Type cachedType)
+        internal static CacheDependencyDelegate CreateActivator(Type type)
         {
-            CachedType = cachedType;
+            var additionActivators = new List<Action<object, DependencyContainer>>();
+
+            foreach (var attribute in type.GetCustomAttributes<DependencyCachedAttribute>())
+                additionActivators.Add((target, dc) => dc.CacheAs(attribute.cachedType ?? type, target));
+
+            foreach (var field in type.GetFields(activator_flags).Where(f => f.GetCustomAttribute<DependencyCachedAttribute>() != null))
+            foreach (var attribute in field.GetCustomAttributes<DependencyCachedAttribute>())
+                additionActivators.Add((target, dc) => dc.CacheAs(attribute.cachedType ?? field.FieldType, field.GetValue(target)));
+
+            if (additionActivators.Count == 0)
+                return (_, existing) => existing;
+
+            return (target, existing) =>
+            {
+                var dependencies = new DependencyContainer(existing);
+                additionActivators.ForEach(a => a(target, dependencies));
+
+                return dependencies;
+            };
         }
     }
 }

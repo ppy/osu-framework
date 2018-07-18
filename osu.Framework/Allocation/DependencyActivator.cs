@@ -13,6 +13,7 @@ namespace osu.Framework.Allocation
         private static readonly ConcurrentDictionary<Type, DependencyActivator> activator_cache = new ConcurrentDictionary<Type, DependencyActivator>();
 
         private readonly List<InjectDependencyDelegate> injectionActivators = new List<InjectDependencyDelegate>();
+        private readonly List<CacheDependencyDelegate> buildCacheActivators = new List<CacheDependencyDelegate>();
 
         private readonly DependencyActivator baseActivator;
 
@@ -20,6 +21,7 @@ namespace osu.Framework.Allocation
         {
             injectionActivators.Add(DependencyAttribute.CreateActivator(type));
             injectionActivators.Add(BackgroundDependencyLoaderAttribute.CreateActivator(type));
+            buildCacheActivators.Add(DependencyCachedAttribute.CreateActivator(type));
 
             if (type.BaseType != typeof(object))
                 baseActivator = getActivator(type.BaseType);
@@ -29,6 +31,9 @@ namespace osu.Framework.Allocation
 
         public static void Activate(object obj, DependencyContainer dependencies)
             => getActivator(obj.GetType()).activate(obj, dependencies);
+
+        public static IReadOnlyDependencyContainer BuildDependencies(object obj, IReadOnlyDependencyContainer dependencies)
+            => getActivator(obj.GetType()).buildDependencies(obj, dependencies);
 
         private static DependencyActivator getActivator(Type type)
         {
@@ -43,53 +48,13 @@ namespace osu.Framework.Allocation
             injectionActivators.ForEach(a => a.Invoke(obj, dependencies));
         }
 
-        private Action<object, DependencyContainer> buildFieldActivator()
+        private IReadOnlyDependencyContainer buildDependencies(object obj, IReadOnlyDependencyContainer dependencies)
         {
-            var fields = type.GetFields(activator_flags).Where(f => f.GetCustomAttribute<DependencyAttribute>() != null);
+            dependencies = baseActivator?.buildDependencies(obj, dependencies) ?? dependencies;
+            buildCacheActivators.ForEach(a => dependencies = a.Invoke(obj, dependencies));
 
-            var fieldActivators = new List<Action<object, DependencyContainer>>();
-
-            foreach (var field in fields)
-            {
-                var attrib = field.GetCustomAttribute<DependencyAttribute>();
-                var fieldGetter = getDependency(field.FieldType, attrib.CanBeNull);
-
-                fieldActivators.Add((target, dc) => field.SetValue(target, fieldGetter(dc)));
-            }
-
-            return (target, dc) => fieldActivators.ForEach(a => a(target, dc));
+            return dependencies;
         }
-
-        private Action<object, DependencyContainer> buildLoaderActivator()
-        {
-            var loaderMethods = type.GetMethods(activator_flags).Where(m => m.GetCustomAttribute<BackgroundDependencyLoaderAttribute>() != null).ToArray();
-
-            switch (loaderMethods.Length)
-            {
-                case 0:
-                    return (_,__) => { };
-                case 1:
-                    var method = loaderMethods[0];
-                    var permitNulls = method.GetCustomAttribute<BackgroundDependencyLoaderAttribute>().PermitNulls;
-                    var parameterGetters = method.GetParameters().Select(p => p.ParameterType).Select(t => getDependency(t, permitNulls));
-
-                    return (target, dc) =>
-                    {
-                        var parameters = parameterGetters.Select(p => p(dc)).ToArray();
-                        method.Invoke(target, parameters);
-                    };
-                default:
-                    throw new MultipleDependencyLoaderMethodsException(type);
-            }
-        }
-
-        private Func<DependencyContainer, object> getDependency(Type type, bool permitNulls) => dc =>
-        {
-            var val = dc.Get(type);
-            if (val == null && !permitNulls)
-                throw new DependencyNotRegisteredException(this.type, type);
-            return val;
-        };
     }
 
     public class MultipleDependencyLoaderMethodsException : InvalidOperationException
@@ -110,4 +75,5 @@ namespace osu.Framework.Allocation
     }
 
     internal delegate void InjectDependencyDelegate(object target, DependencyContainer dependencies);
+    internal delegate IReadOnlyDependencyContainer CacheDependencyDelegate(object target, IReadOnlyDependencyContainer existingDependencies);
 }
