@@ -11,7 +11,7 @@ namespace osu.Framework.Allocation
     /// </summary>
     [MeansImplicitUse]
     [AttributeUsage(AttributeTargets.Method)]
-    public class BackgroundDependencyLoader : Attribute
+    public class BackgroundDependencyLoaderAttribute : Attribute
     {
         /// <summary>
         /// True if nulls are allowed to be passed to the method marked with this attribute.
@@ -22,7 +22,7 @@ namespace osu.Framework.Allocation
         /// Marks this method as the initializer for a class in the context of dependency injection.
         /// </summary>
         /// <param name="permitNulls">If true, the initializer may be passed null for the dependencies we can't fulfill.</param>
-        public BackgroundDependencyLoader(bool permitNulls = false)
+        public BackgroundDependencyLoaderAttribute(bool permitNulls = false)
         {
             PermitNulls = permitNulls;
         }

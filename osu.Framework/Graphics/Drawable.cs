@@ -164,7 +164,7 @@ namespace osu.Framework.Graphics
         protected virtual IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent) => parent;
 
         /// <summary>
-        /// Contains all dependencies that can be injected into this Drawable using <see cref="BackgroundDependencyLoader"/>.
+        /// Contains all dependencies that can be injected into this Drawable using <see cref="BackgroundDependencyLoaderAttribute"/>.
         /// Add or override dependencies by calling <see cref="DependencyContainer.Cache{T}(T)"/>.
         /// </summary>
         public IReadOnlyDependencyContainer Dependencies { get; private set; }

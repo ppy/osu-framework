@@ -35,12 +35,12 @@ namespace osu.Framework.Allocation
         private MethodInfo getLoaderMethod(Type type)
         {
             var loaderMethods = type.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance).Where(
-                mi => mi.GetCustomAttribute<BackgroundDependencyLoader>() != null).ToArray();
+                mi => mi.GetCustomAttribute<BackgroundDependencyLoaderAttribute>() != null).ToArray();
             if (loaderMethods.Length == 0)
                 return null;
             if (loaderMethods.Length == 1)
                 return loaderMethods[0];
-            throw new InvalidOperationException($"The type {type.ReadableName()} has more than one method marked with the {nameof(BackgroundDependencyLoader)}-Attribute. Any given type can only have one such method.");
+            throw new InvalidOperationException($"The type {type.ReadableName()} has more than one method marked with the {nameof(BackgroundDependencyLoaderAttribute)}-Attribute. Any given type can only have one such method.");
         }
 
         private void register(Type type, bool lazy)
@@ -64,7 +64,7 @@ namespace osu.Framework.Allocation
 
             var initializers = initializerMethods.Select(initializer =>
             {
-                var permitNull = initializer.GetCustomAttribute<BackgroundDependencyLoader>().PermitNulls;
+                var permitNull = initializer.GetCustomAttribute<BackgroundDependencyLoaderAttribute>().PermitNulls;
                 var parameters = initializer.GetParameters().Select(p => p.ParameterType)
                                             .Select(t => new Func<object>(() =>
                                             {
