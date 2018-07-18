@@ -43,7 +43,8 @@ namespace osu.Framework.Graphics.Containers
             aliveInternalChildren = new SortedList<Drawable>(new ChildComparer(this));
         }
 
-        private Game game;
+        [Dependency]
+        private Game game { get; set; }
 
         /// <summary>
         /// Loads a future child or grand-child of this <see cref="CompositeDrawable"/> asyncronously. <see cref="Drawable.Dependencies"/>
@@ -65,10 +66,8 @@ namespace osu.Framework.Graphics.Containers
         }
 
         [BackgroundDependencyLoader(true)]
-        private void load(Game game, ShaderManager shaders)
+        private void load(ShaderManager shaders)
         {
-            this.game = game;
-
             if (shader == null)
                 shader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
 
