@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using JetBrains.Annotations;
 using osu.Framework.Graphics;
 
 namespace osu.Framework.Allocation
@@ -10,6 +11,7 @@ namespace osu.Framework.Allocation
     /// An attribute that is attached to fields of a <see cref="Drawable"/> component to indicate
     /// that the value of the field should be retrieved from a dependency cache.
     /// </summary>
+    [MeansImplicitUse]
     [AttributeUsage(AttributeTargets.Field)]
     public class DependencyAttribute : Attribute
     {

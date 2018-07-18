@@ -25,6 +25,7 @@ namespace osu.Framework.Allocation
         {
             this.type = type;
 
+            activators.Add(buildFieldActivator());
             activators.Add(buildLoaderActivator());
 
             if (type.BaseType != typeof(object))
@@ -47,6 +48,23 @@ namespace osu.Framework.Allocation
         {
             baseActivator?.activate(obj, dependencies);
             activators.ForEach(a => a.Invoke(obj, dependencies));
+        }
+
+        private Action<object, DependencyContainer> buildFieldActivator()
+        {
+            var fields = type.GetFields(activator_flags).Where(f => f.GetCustomAttribute<DependencyAttribute>() != null);
+
+            var fieldActivators = new List<Action<object, DependencyContainer>>();
+
+            foreach (var field in fields)
+            {
+                var attrib = field.GetCustomAttribute<DependencyAttribute>();
+                var fieldGetter = getValue(field.FieldType, attrib.CanBeNull);
+
+                fieldActivators.Add((target, dc) => field.SetValue(target, fieldGetter(dc)));
+            }
+
+            return (target, dc) => fieldActivators.ForEach(a => a(target, dc));
         }
 
         private Action<object, DependencyContainer> buildLoaderActivator()
