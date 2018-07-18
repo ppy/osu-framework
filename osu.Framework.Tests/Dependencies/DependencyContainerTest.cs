@@ -60,7 +60,7 @@ namespace osu.Framework.Tests.Dependencies
 
             var receiver = new Receiver1();
 
-            Assert.Throws<InvalidOperationException>(() => dependencies.Inject(receiver));
+            Assert.Throws<DependencyNotRegisteredException>(() => dependencies.Inject(receiver));
         }
 
         [Test]

@@ -1,13 +1,8 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using osu.Framework.Extensions.TypeExtensions;
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using osu.Framework.Extensions.ExceptionExtensions;
 
 namespace osu.Framework.Allocation
 {
@@ -16,9 +11,6 @@ namespace osu.Framework.Allocation
     /// </summary>
     public class DependencyContainer : IReadOnlyDependencyContainer
     {
-        private delegate object ObjectActivator(DependencyContainer dc, object instance);
-
-        private readonly ConcurrentDictionary<Type, ObjectActivator> activators = new ConcurrentDictionary<Type, ObjectActivator>();
         private readonly ConcurrentDictionary<Type, object> cache = new ConcurrentDictionary<Type, object>();
 
         private readonly IReadOnlyDependencyContainer parentContainer;
@@ -30,82 +22,6 @@ namespace osu.Framework.Allocation
         public DependencyContainer(IReadOnlyDependencyContainer parent = null)
         {
             parentContainer = parent;
-        }
-
-        private MethodInfo getLoaderMethod(Type type)
-        {
-            var loaderMethods = type.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance).Where(
-                mi => mi.GetCustomAttribute<BackgroundDependencyLoaderAttribute>() != null).ToArray();
-            if (loaderMethods.Length == 0)
-                return null;
-            if (loaderMethods.Length == 1)
-                return loaderMethods[0];
-            throw new InvalidOperationException($"The type {type.ReadableName()} has more than one method marked with the {nameof(BackgroundDependencyLoaderAttribute)}-Attribute. Any given type can only have one such method.");
-        }
-
-        private void register(Type type, bool lazy)
-        {
-            if (activators.ContainsKey(type))
-                throw new InvalidOperationException($@"Type {type.FullName} can not be registered twice");
-
-            var initialize = getLoaderMethod(type);
-            var constructor = type.GetConstructor(new Type[] { });
-
-            var initializerMethods = new List<MethodInfo>();
-
-            for (Type parent = type.BaseType; parent != typeof(object); parent = parent?.BaseType)
-            {
-                var init = getLoaderMethod(parent);
-                if (init != null)
-                    initializerMethods.Insert(0, init);
-            }
-
-            if (initialize != null)
-                initializerMethods.Add(initialize);
-
-            var initializers = initializerMethods.Select(initializer =>
-            {
-                var permitNull = initializer.GetCustomAttribute<BackgroundDependencyLoaderAttribute>().PermitNulls;
-                var parameters = initializer.GetParameters().Select(p => p.ParameterType)
-                                            .Select(t => new Func<object>(() =>
-                                            {
-                                                var val = Get(t);
-                                                if (val == null && !permitNull)
-                                                {
-                                                    throw new InvalidOperationException(
-                                                        $@"Type {t.FullName} is not registered, and is a dependency of {type.FullName}");
-                                                }
-                                                return val;
-                                            })).ToList();
-                // Test that we already have all the dependencies registered
-                if (!lazy)
-                    parameters.ForEach(p => p());
-                return new Action<object>(instance =>
-                {
-                    var p = parameters.Select(pa => pa()).ToArray();
-
-                    try
-                    {
-                        initializer.Invoke(instance, p);
-                    }
-                    catch (TargetInvocationException e)
-                    {
-                        new RecursiveLoadException(e.GetLastInvocation(), initializer).Rethrow();
-                    }
-                });
-            }).ToList();
-
-            activators[type] = (container, instance) =>
-            {
-                if (instance == null)
-                {
-                    if (constructor == null)
-                        throw new InvalidOperationException($@"Type {type.FullName} must have a parameterless constructor to initialize one from scratch.");
-                    instance = Activator.CreateInstance(type);
-                }
-                initializers.ForEach(init => init(instance));
-                return instance;
-            };
         }
 
         /// <summary>
@@ -151,22 +67,8 @@ namespace osu.Framework.Allocation
         /// <param name="instance">The instance to inject dependencies into.</param>
         /// <param name="autoRegister">True if the instance should be automatically registered as injectable if it isn't already.</param>
         /// <param name="lazy">True if the dependencies should be initialized lazily.</param>
-        public void Inject<T>(T instance, bool autoRegister = true, bool lazy = false) where T : class
-        {
-            var type = instance.GetType();
-
-            // TODO: consider using parentContainer for activator lookups as a potential performance improvement.
-
-            lock (activators)
-            {
-                if (autoRegister && !activators.ContainsKey(type))
-                    register(type, lazy);
-
-                if (!activators.TryGetValue(type, out ObjectActivator activator))
-                    throw new InvalidOperationException("DI Initialisation failed badly.");
-
-                activator(this, instance);
-            }
-        }
+        public void Inject<T>(T instance, bool autoRegister = true, bool lazy = false)
+            where T : class
+            => DependencyActivator.Activate(instance, this);
     }
 }
