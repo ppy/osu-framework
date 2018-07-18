@@ -24,28 +24,18 @@ namespace osu.Framework.Allocation
         /// <summary>
         /// The type to cache the value as.
         /// </summary>
-        private readonly Type cachedType;
-
-        /// <summary>
-        /// Constructs a new <see cref="DependencyCachedAttribute"/>.
-        /// </summary>
-        /// <param name="cachedType">The type to cache the value as.
-        /// If this is null, the cached type will match the type of the member which the attribute is attached to.</param>
-        public DependencyCachedAttribute(Type cachedType = null)
-        {
-            this.cachedType = cachedType;
-        }
+        public Type Type;
 
         internal static CacheDependencyDelegate CreateActivator(Type type)
         {
             var additionActivators = new List<Action<object, DependencyContainer>>();
 
             foreach (var attribute in type.GetCustomAttributes<DependencyCachedAttribute>())
-                additionActivators.Add((target, dc) => dc.CacheAs(attribute.cachedType ?? type, target));
+                additionActivators.Add((target, dc) => dc.CacheAs(attribute.Type ?? type, target));
 
             foreach (var field in type.GetFields(activator_flags).Where(f => f.GetCustomAttributes<DependencyCachedAttribute>().Any()))
             foreach (var attribute in field.GetCustomAttributes<DependencyCachedAttribute>())
-                additionActivators.Add((target, dc) => dc.CacheAs(attribute.cachedType ?? field.FieldType, field.GetValue(target)));
+                additionActivators.Add((target, dc) => dc.CacheAs(attribute.Type ?? field.FieldType, field.GetValue(target)));
 
             if (additionActivators.Count == 0)
                 return (_, existing) => existing;

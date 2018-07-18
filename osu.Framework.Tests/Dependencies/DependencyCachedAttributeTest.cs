@@ -113,12 +113,12 @@ namespace osu.Framework.Tests.Dependencies
         {
         }
 
-        [DependencyCached(typeof(object))]
+        [DependencyCached(Type = typeof(object))]
         private class Provider2
         {
         }
 
-        [DependencyCached(typeof(Provider1))]
+        [DependencyCached(Type = typeof(Provider1))]
         private class Provider3 : Provider1
         {
         }
@@ -151,19 +151,19 @@ namespace osu.Framework.Tests.Dependencies
         private class Provider7
         {
             [DependencyCached]
-            [DependencyCached(typeof(object))]
+            [DependencyCached(Type = typeof(object))]
             private ProvidedType1 provided1 = new ProvidedType1();
         }
 
         [DependencyCached]
-        [DependencyCached(typeof(object))]
+        [DependencyCached(Type = typeof(object))]
         private class Provider8
         {
         }
 
         private class Provider9
         {
-            [DependencyCached(typeof(ProvidedType1))]
+            [DependencyCached(Type = typeof(ProvidedType1))]
             private object provided1 = new object();
         }
     }

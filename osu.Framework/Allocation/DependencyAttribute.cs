@@ -20,16 +20,10 @@ namespace osu.Framework.Allocation
     {
         private const BindingFlags activator_flags = BindingFlags.NonPublic | BindingFlags.Instance;
 
-        private readonly bool canBeNull;
-
         /// <summary>
-        /// Creates a new <see cref="DependencyAttribute"/>.
+        /// Whether a null value can be accepted if the value does not exist in the cache.
         /// </summary>
-        /// <param name="canBeNull">Whether a null value can be accepted if the value does not exist in the cache.</param>
-        public DependencyAttribute(bool canBeNull = false)
-        {
-            this.canBeNull = canBeNull;
-        }
+        public bool CanBeNull;
 
         internal static InjectDependencyDelegate CreateActivator(Type type)
         {
@@ -40,7 +34,7 @@ namespace osu.Framework.Allocation
             foreach (var field in fields)
             {
                 var attrib = field.GetCustomAttribute<DependencyAttribute>();
-                var fieldGetter = getDependency(field.FieldType, type, attrib.canBeNull);
+                var fieldGetter = getDependency(field.FieldType, type, attrib.CanBeNull);
 
                 fieldActivators.Add((target, dc) => field.SetValue(target, fieldGetter(dc)));
             }
