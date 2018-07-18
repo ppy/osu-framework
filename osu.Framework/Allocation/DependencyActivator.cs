@@ -4,29 +4,22 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 using osu.Framework.Extensions.TypeExtensions;
 
 namespace osu.Framework.Allocation
 {
     internal class DependencyActivator
     {
-        private const BindingFlags activator_flags = BindingFlags.NonPublic | BindingFlags.Instance;
-
         private static readonly ConcurrentDictionary<Type, DependencyActivator> activator_cache = new ConcurrentDictionary<Type, DependencyActivator>();
 
-        private readonly List<Action<object, DependencyContainer>> activators = new List<Action<object, DependencyContainer>>();
+        private readonly List<InjectDependencyDelegate> injectionActivators = new List<InjectDependencyDelegate>();
 
-        private readonly Type type;
         private readonly DependencyActivator baseActivator;
 
         private DependencyActivator(Type type)
         {
-            this.type = type;
-
-            activators.Add(buildFieldActivator());
-            activators.Add(buildLoaderActivator());
+            injectionActivators.Add(DependencyAttribute.CreateActivator(type));
+            injectionActivators.Add(BackgroundDependencyLoaderAttribute.CreateActivator(type));
 
             if (type.BaseType != typeof(object))
                 baseActivator = getActivator(type.BaseType);
@@ -47,7 +40,7 @@ namespace osu.Framework.Allocation
         private void activate(object obj, DependencyContainer dependencies)
         {
             baseActivator?.activate(obj, dependencies);
-            activators.ForEach(a => a.Invoke(obj, dependencies));
+            injectionActivators.ForEach(a => a.Invoke(obj, dependencies));
         }
 
         private Action<object, DependencyContainer> buildFieldActivator()
@@ -115,4 +108,6 @@ namespace osu.Framework.Allocation
         {
         }
     }
+
+    internal delegate void InjectDependencyDelegate(object target, DependencyContainer dependencies);
 }

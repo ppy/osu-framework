@@ -95,7 +95,7 @@ namespace osu.Framework.Tests.Dependencies
 
         private class Receiver3
         {
-            [Dependency(CanBeNull = true)]
+            [Dependency(true)]
             private BaseObject obj;
 
             public BaseObject Obj => obj;
