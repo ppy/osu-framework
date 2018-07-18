@@ -10,7 +10,7 @@ namespace osu.Framework.Tests.Dependencies
     public class DependencyCachedAttributeTest
     {
         [Test]
-        public void TestCacheCtor()
+        public void TestCacheType()
         {
             IReadOnlyDependencyContainer dependencies = new DependencyContainer();
 
@@ -22,7 +22,7 @@ namespace osu.Framework.Tests.Dependencies
         }
 
         [Test]
-        public void TestCacheCtorAsBase()
+        public void TestCacheTypeAsParentClass()
         {
             IReadOnlyDependencyContainer dependencies = new DependencyContainer();
 
