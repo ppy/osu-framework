@@ -59,6 +59,7 @@ namespace osu.Framework.Allocation
                 if (init != null)
                     initializerMethods.Insert(0, init);
             }
+
             if (initialize != null)
                 initializerMethods.Add(initialize);
 
@@ -105,23 +106,6 @@ namespace osu.Framework.Allocation
                 initializers.ForEach(init => init(instance));
                 return instance;
             };
-        }
-
-        /// <summary>
-        /// Registers a type and configures a default allocator for it that injects its
-        /// dependencies.
-        /// </summary>
-        public void Register<T>(bool lazy = false) where T : class => register(typeof(T), lazy);
-
-        /// <summary>
-        /// Registers a type that allocates with a custom allocator.
-        /// </summary>
-        public void Register<T>(Func<DependencyContainer, T> activator) where T : class
-        {
-            var type = typeof(T);
-            if (activators.ContainsKey(type))
-                throw new InvalidOperationException($@"Type {typeof(T).FullName} is already registered");
-            activators[type] = (d, i) => i ?? activator(d);
         }
 
         /// <summary>
@@ -174,13 +158,15 @@ namespace osu.Framework.Allocation
             // TODO: consider using parentContainer for activator lookups as a potential performance improvement.
 
             lock (activators)
+            {
                 if (autoRegister && !activators.ContainsKey(type))
                     register(type, lazy);
 
-            if (!activators.TryGetValue(type, out ObjectActivator activator))
-                throw new InvalidOperationException("DI Initialisation failed badly.");
+                if (!activators.TryGetValue(type, out ObjectActivator activator))
+                    throw new InvalidOperationException("DI Initialisation failed badly.");
 
-            activator(this, instance);
+                activator(this, instance);
+            }
         }
     }
 }
