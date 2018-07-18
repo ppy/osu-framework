@@ -12,11 +12,9 @@ namespace osu.Framework.Tests.Dependencies
         [Test]
         public void TestCacheType()
         {
-            IReadOnlyDependencyContainer dependencies = new DependencyContainer();
-
             var provider = new Provider1();
 
-            dependencies = DependencyActivator.BuildDependencies(provider, dependencies);
+            var dependencies = DependencyActivator.BuildDependencies(provider, new DependencyContainer());
 
             Assert.AreEqual(provider, dependencies.Get<Provider1>());
         }
@@ -24,11 +22,9 @@ namespace osu.Framework.Tests.Dependencies
         [Test]
         public void TestCacheTypeAsParentClass()
         {
-            IReadOnlyDependencyContainer dependencies = new DependencyContainer();
-
             var provider = new Provider2();
 
-            dependencies = DependencyActivator.BuildDependencies(provider, dependencies);
+            var dependencies = DependencyActivator.BuildDependencies(provider, new DependencyContainer());
 
             Assert.AreEqual(provider, dependencies.Get<object>());
         }
@@ -36,11 +32,9 @@ namespace osu.Framework.Tests.Dependencies
         [Test]
         public void TestCacheTypeOverrideParent()
         {
-            IReadOnlyDependencyContainer dependencies = new DependencyContainer();
-
             var provider = new Provider3();
 
-            dependencies = DependencyActivator.BuildDependencies(provider, dependencies);
+            var dependencies = DependencyActivator.BuildDependencies(provider, new DependencyContainer());
 
             Assert.AreEqual(provider, dependencies.Get<Provider1>());
             Assert.AreEqual(null, dependencies.Get<Provider3>());
