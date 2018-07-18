@@ -26,6 +26,7 @@ namespace osu.Framework.Input.Bindings
         /// Create a new instance.
         /// </summary>
         /// <param name="simultaneousMode">Specify how to deal with multiple matches of <see cref="KeyCombination"/>s and <see cref="T"/>s.</param>
+        /// <param name="matchingMode">Specify how to deal with exact <see cref="KeyCombination"/> matches.</param>
         protected KeyBindingContainer(SimultaneousBindingMode simultaneousMode = SimultaneousBindingMode.None, KeyCombinationMatchingMode matchingMode = KeyCombinationMatchingMode.Any)
         {
             RelativeSizeAxes = Axes.Both;

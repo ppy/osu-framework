@@ -41,7 +41,7 @@ namespace osu.Framework.Input.Bindings
         /// Check whether the provided pressed keys are valid for this <see cref="KeyCombination"/>.
         /// </summary>
         /// <param name="pressedKeys">The potential pressed keys for this <see cref="KeyCombination"/>.</param>
-        /// <param name="exact">Whether <paramref name="pressedKeys"/> should exactly match the keys required for this <see cref="KeyCombination"/>.</param>
+        /// <param name="matchingMode">The method for handling exact key matches.</param>
         /// <returns>Whether the pressedKeys keys are valid.</returns>
         public bool IsPressed(KeyCombination pressedKeys, KeyCombinationMatchingMode matchingMode)
         {
