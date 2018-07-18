@@ -5,7 +5,7 @@ using System;
 
 namespace osu.Framework.Platform.MacOS.Native
 {
-    internal struct NSApplication
+    internal static class NSApplication
     {
         internal static IntPtr Handle;
 

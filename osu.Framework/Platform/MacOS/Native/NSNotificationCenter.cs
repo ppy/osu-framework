@@ -5,7 +5,7 @@ using System;
 
 namespace osu.Framework.Platform.MacOS.Native
 {
-    internal struct NSNotificationCenter
+    internal static class NSNotificationCenter
     {
         internal static IntPtr Handle;
 
