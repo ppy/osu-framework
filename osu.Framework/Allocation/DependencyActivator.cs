@@ -59,7 +59,7 @@ namespace osu.Framework.Allocation
             foreach (var field in fields)
             {
                 var attrib = field.GetCustomAttribute<DependencyAttribute>();
-                var fieldGetter = getValue(field.FieldType, attrib.CanBeNull);
+                var fieldGetter = getDependency(field.FieldType, attrib.CanBeNull);
 
                 fieldActivators.Add((target, dc) => field.SetValue(target, fieldGetter(dc)));
             }
@@ -78,7 +78,7 @@ namespace osu.Framework.Allocation
                 case 1:
                     var method = loaderMethods[0];
                     var permitNulls = method.GetCustomAttribute<BackgroundDependencyLoaderAttribute>().PermitNulls;
-                    var parameterGetters = method.GetParameters().Select(p => p.ParameterType).Select(t => getValue(t, permitNulls));
+                    var parameterGetters = method.GetParameters().Select(p => p.ParameterType).Select(t => getDependency(t, permitNulls));
 
                     return (target, dc) =>
                     {
@@ -90,7 +90,7 @@ namespace osu.Framework.Allocation
             }
         }
 
-        private Func<DependencyContainer, object> getValue(Type type, bool permitNulls) => dc =>
+        private Func<DependencyContainer, object> getDependency(Type type, bool permitNulls) => dc =>
         {
             var val = dc.Get(type);
             if (val == null && !permitNulls)
