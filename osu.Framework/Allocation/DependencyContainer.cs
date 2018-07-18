@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using osu.Framework.Extensions.TypeExtensions;
 
 namespace osu.Framework.Allocation
 {
@@ -44,6 +45,20 @@ namespace osu.Framework.Allocation
             where T : class
         {
             cache[typeof(T)] = instance ?? throw new ArgumentNullException(nameof(instance));
+        }
+
+        /// <summary>
+        /// Caches an instance of a type as a type of <paramref name="type"/>. This instance will be returned each time you <see cref="Get(Type)"/>.
+        /// </summary>
+        /// <param name="type">The type to cache <paramref name="instance"/> as.</param>
+        /// <param name="instance">The instance to cache. Must be or derive from <paramref name="type"/>.</param>
+        public void CacheAs(Type type, object instance)
+        {
+            if (!type.IsClass) throw new ArgumentException($"{type.ReadableName()} must be a class to be cached as a dependency.", nameof(type));
+
+            if (!type.IsInstanceOfType(instance)) throw new ArgumentException($"{instance.GetType().ReadableName()} must be a subclass of {type.ReadableName()}.", nameof(instance));
+
+            cache[type] = instance ?? throw new ArgumentNullException(nameof(instance));
         }
 
         /// <summary>
