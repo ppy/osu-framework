@@ -43,11 +43,26 @@ namespace osu.Framework.Input.Bindings
         /// <param name="pressedKeys">The potential pressed keys for this <see cref="KeyCombination"/>.</param>
         /// <param name="exact">Whether <paramref name="pressedKeys"/> should exactly match the keys required for this <see cref="KeyCombination"/>.</param>
         /// <returns>Whether the pressedKeys keys are valid.</returns>
-        public bool IsPressed(KeyCombination pressedKeys, bool exact)
+        public bool IsPressed(KeyCombination pressedKeys, KeyCombinationMatchingMode matchingMode)
         {
-            if (exact)
-                return pressedKeys.Keys.Count() == Keys.Count() && pressedKeys.Keys.All(Keys.Contains);
-            return !Keys.Except(pressedKeys.Keys).Any();
+            switch (matchingMode)
+            {
+                case KeyCombinationMatchingMode.Any:
+                    return !Keys.Except(pressedKeys.Keys).Any();
+
+                case KeyCombinationMatchingMode.Exact:
+                    return pressedKeys.Keys.Count() == Keys.Count() && pressedKeys.Keys.All(Keys.Contains);
+
+                case KeyCombinationMatchingMode.Modifiers:
+                    if (Keys.Except(pressedKeys.Keys).Any())
+                        return false;
+                    var pressedModifiers = pressedKeys.Keys.Where(isModifierKey);
+                    var requiredModifiers = Keys.Where(isModifierKey);
+                    return pressedModifiers.Count() == requiredModifiers.Count() && pressedModifiers.All(requiredModifiers.Contains);
+
+                default:
+                    return false;
+            }
         }
 
         public bool Equals(KeyCombination other)
@@ -76,6 +91,8 @@ namespace osu.Framework.Input.Bindings
         public override string ToString() => Keys?.Select(b => ((int)b).ToString()).Aggregate((s1, s2) => $"{s1},{s2}") ?? string.Empty;
 
         public string ReadableString() => Keys?.Select(getReadableKey).Aggregate((s1, s2) => $"{s1}+{s2}") ?? string.Empty;
+
+        private static bool isModifierKey(InputKey key) => key == InputKey.Control || key == InputKey.Shift || key == InputKey.Alt || key == InputKey.Super;
 
         private string getReadableKey(InputKey key)
         {
@@ -293,5 +310,23 @@ namespace osu.Framework.Input.Bindings
 
             return new KeyCombination(keys);
         }
+    }
+
+    public enum KeyCombinationMatchingMode
+    {
+        /// <summary>
+        /// Matches a <see cref="KeyCombination"/> regardless of any additional key presses.
+        /// </summary>
+        Any,
+
+        /// <summary>
+        /// Matches a <see cref="KeyCombination"/> if there are no additional key presses.
+        /// </summary>
+        Exact,
+
+        /// <summary>
+        /// Matches a <see cref="KeyCombination"/> regardless of any additional key presses, however key modifiers must match exactly.
+        /// </summary>
+        Modifiers,
     }
 }
