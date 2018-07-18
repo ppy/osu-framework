@@ -14,7 +14,7 @@ namespace osu.Framework.Allocation
     /// that the value should be cached as a dependency.
     /// Cached values may be retrieved through <see cref="BackgroundDependencyLoaderAttribute"/> or <see cref="DependencyAttribute"/>.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = true)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Field, AllowMultiple = true, Inherited = false)]
     public class DependencyCachedAttribute : Attribute
     {
         private const BindingFlags activator_flags = BindingFlags.NonPublic | BindingFlags.Instance;
