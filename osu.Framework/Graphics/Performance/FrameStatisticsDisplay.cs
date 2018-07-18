@@ -95,6 +95,7 @@ namespace osu.Framework.Graphics.Performance
                 }
 
                 Running = true;
+                Expanded = false;
 
                 StateChanged?.Invoke(State);
             }
