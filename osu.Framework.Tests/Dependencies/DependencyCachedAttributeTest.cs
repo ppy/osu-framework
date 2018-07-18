@@ -126,7 +126,9 @@ namespace osu.Framework.Tests.Dependencies
         private class Provider4
         {
             [DependencyCached]
+#pragma warning disable 169
             private int fail;
+#pragma warning restore 169
         }
 
         private class Provider5
