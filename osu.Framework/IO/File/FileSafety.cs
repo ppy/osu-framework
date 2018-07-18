@@ -49,7 +49,7 @@ namespace osu.Framework.IO.File
             foreach (string f in Directory.GetFiles(s))
             {
                 FileInfo myFile = new FileInfo(f);
-                if ((myFile.Attributes & FileAttributes.ReadOnly) > 0)
+                if (myFile.Attributes.HasFlag(FileAttributes.ReadOnly))
                     myFile.Attributes &= ~FileAttributes.ReadOnly;
             }
 
@@ -225,7 +225,7 @@ namespace osu.Framework.IO.File
                 {
                     DirectoryInfo newDirectoryInfo = Directory.CreateDirectory(newSubDirectory);
 
-                    if ((new DirectoryInfo(dir).Attributes & FileAttributes.Hidden) > 0)
+                    if (new DirectoryInfo(dir).Attributes.HasFlag(FileAttributes.Hidden))
                         newDirectoryInfo.Attributes |= FileAttributes.Hidden;
                 }
                 catch
@@ -241,7 +241,7 @@ namespace osu.Framework.IO.File
                 DirectoryInfo newDirectoryInfo = Directory.CreateDirectory(newDirectory);
                 try
                 {
-                    if ((new DirectoryInfo(oldDirectory).Attributes & FileAttributes.Hidden) > 0)
+                    if (new DirectoryInfo(oldDirectory).Attributes.HasFlag(FileAttributes.Hidden))
                         newDirectoryInfo.Attributes |= FileAttributes.Hidden;
                 }
                 catch
