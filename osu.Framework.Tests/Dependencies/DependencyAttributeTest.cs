@@ -97,8 +97,6 @@ namespace osu.Framework.Tests.Dependencies
         {
             [Dependency(true)]
             private BaseObject obj;
-
-            public BaseObject Obj => obj;
         }
 
         private class Receiver4 : Receiver2

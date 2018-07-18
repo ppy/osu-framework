@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using JetBrains.Annotations;
 using osu.Framework.Graphics;
 
 namespace osu.Framework.Allocation
@@ -14,6 +15,7 @@ namespace osu.Framework.Allocation
     /// that the value should be cached as a dependency.
     /// Cached values may be retrieved through <see cref="BackgroundDependencyLoaderAttribute"/> or <see cref="DependencyAttribute"/>.
     /// </summary>
+    [MeansImplicitUse]
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Field, AllowMultiple = true, Inherited = false)]
     public class DependencyCachedAttribute : Attribute
     {
