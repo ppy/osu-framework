@@ -35,7 +35,13 @@ namespace osu.Framework.Allocation
 
             foreach (var field in type.GetFields(activator_flags).Where(f => f.GetCustomAttributes<CachedAttribute>().Any()))
             foreach (var attribute in field.GetCustomAttributes<CachedAttribute>())
-                additionActivators.Add((target, dc) => dc.CacheAs(attribute.Type ?? field.FieldType, field.GetValue(target)));
+            {
+                additionActivators.Add((target, dc) =>
+                {
+                    var value = field.GetValue(target);
+                    dc.CacheAs(attribute.Type ?? value.GetType(), value);
+                });
+            }
 
             if (additionActivators.Count == 0)
                 return (_, existing) => existing;

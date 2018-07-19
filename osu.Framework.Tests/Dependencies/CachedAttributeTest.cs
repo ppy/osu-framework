@@ -100,6 +100,16 @@ namespace osu.Framework.Tests.Dependencies
             Assert.Throws<ArgumentException>(() => DependencyActivator.MergeDependencies(provider, new DependencyContainer()));
         }
 
+        [Test]
+        public void TestCacheMostDerivedType()
+        {
+            var provider = new Provider10();
+
+            var dependencies = DependencyActivator.MergeDependencies(provider, new DependencyContainer());
+
+            Assert.IsNotNull(dependencies.Get<ProvidedType1>());
+        }
+
         private class ProvidedType1
         {
         }
@@ -167,6 +177,12 @@ namespace osu.Framework.Tests.Dependencies
         {
             [Cached(Type = typeof(ProvidedType1))]
             private object provided1 = new object();
+        }
+
+        private class Provider10
+        {
+            [Cached]
+            private object provided1 = new ProvidedType1();
         }
     }
 }
