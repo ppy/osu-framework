@@ -19,9 +19,9 @@ namespace osu.Framework.Allocation
 
         private DependencyActivator(Type type)
         {
-            injectionActivators.Add(DependencyAttribute.CreateActivator(type));
+            injectionActivators.Add(ResolvedAttribute.CreateActivator(type));
             injectionActivators.Add(BackgroundDependencyLoaderAttribute.CreateActivator(type));
-            buildCacheActivators.Add(DependencyCachedAttribute.CreateActivator(type));
+            buildCacheActivators.Add(CachedAttribute.CreateActivator(type));
 
             if (type.BaseType != typeof(object))
                 baseActivator = getActivator(type.BaseType);

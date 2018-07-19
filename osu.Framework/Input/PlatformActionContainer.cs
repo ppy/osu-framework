@@ -16,7 +16,7 @@ namespace osu.Framework.Input
     /// </summary>
     public class PlatformActionContainer : KeyBindingContainer<PlatformAction>, IHandleGlobalInput
     {
-        [Dependency]
+        [Resolved]
         private GameHost host { get; set; }
 
         public PlatformActionContainer()

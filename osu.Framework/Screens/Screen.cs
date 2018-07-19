@@ -18,7 +18,7 @@ namespace osu.Framework.Screens
         private readonly Container content;
         private Container childModeContainer;
 
-        [Dependency]
+        [Resolved]
         protected Game Game { get; set; }
 
         protected override Container<Drawable> Content => content;

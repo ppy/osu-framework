@@ -13,11 +13,11 @@ namespace osu.Framework.Allocation
     /// <summary>
     /// An attribute that may be attached to a class definitions, fields, or properties of a <see cref="Drawable"/> to indicate
     /// that the value should be cached as a dependency.
-    /// Cached values may be retrieved through <see cref="BackgroundDependencyLoaderAttribute"/> or <see cref="DependencyAttribute"/>.
+    /// Cached values may be retrieved through <see cref="BackgroundDependencyLoaderAttribute"/> or <see cref="ResolvedAttribute"/>.
     /// </summary>
     [MeansImplicitUse]
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Field, AllowMultiple = true, Inherited = false)]
-    public class DependencyCachedAttribute : Attribute
+    public class CachedAttribute : Attribute
     {
         private const BindingFlags activator_flags = BindingFlags.NonPublic | BindingFlags.Instance;
 
@@ -30,11 +30,11 @@ namespace osu.Framework.Allocation
         {
             var additionActivators = new List<Action<object, DependencyContainer>>();
 
-            foreach (var attribute in type.GetCustomAttributes<DependencyCachedAttribute>())
+            foreach (var attribute in type.GetCustomAttributes<CachedAttribute>())
                 additionActivators.Add((target, dc) => dc.CacheAs(attribute.Type ?? type, target));
 
-            foreach (var field in type.GetFields(activator_flags).Where(f => f.GetCustomAttributes<DependencyCachedAttribute>().Any()))
-            foreach (var attribute in field.GetCustomAttributes<DependencyCachedAttribute>())
+            foreach (var field in type.GetFields(activator_flags).Where(f => f.GetCustomAttributes<CachedAttribute>().Any()))
+            foreach (var attribute in field.GetCustomAttributes<CachedAttribute>())
                 additionActivators.Add((target, dc) => dc.CacheAs(attribute.Type ?? field.FieldType, field.GetValue(target)));
 
             if (additionActivators.Count == 0)

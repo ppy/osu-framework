@@ -170,7 +170,7 @@ namespace osu.Framework.Tests.Visual
             }
         }
 
-        [Dependency]
+        [Resolved]
         private FrameworkConfigManager config { get; set; }
 
         [BackgroundDependencyLoader]

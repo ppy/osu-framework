@@ -28,7 +28,7 @@ namespace osu.Framework.Input
         /// </summary>
         private const int repeat_tick_rate = 70;
 
-        [Dependency(CanBeNull = true)]
+        [Resolved(CanBeNull = true)]
         protected GameHost Host { get; set; }
 
         internal Drawable FocusedDrawable;

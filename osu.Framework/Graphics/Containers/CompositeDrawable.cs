@@ -43,7 +43,7 @@ namespace osu.Framework.Graphics.Containers
             aliveInternalChildren = new SortedList<Drawable>(new ChildComparer(this));
         }
 
-        [Dependency]
+        [Resolved]
         private Game game { get; set; }
 
         /// <summary>

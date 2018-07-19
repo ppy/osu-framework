@@ -8,7 +8,7 @@ using osu.Framework.Allocation;
 namespace osu.Framework.Tests.Dependencies
 {
     [TestFixture]
-    public class DependencyCachedAttributeTest
+    public class CachedAttributeTest
     {
         [Test]
         public void TestCacheType()
@@ -108,24 +108,24 @@ namespace osu.Framework.Tests.Dependencies
         {
         }
 
-        [DependencyCached]
+        [Cached]
         private class Provider1
         {
         }
 
-        [DependencyCached(Type = typeof(object))]
+        [Cached(Type = typeof(object))]
         private class Provider2
         {
         }
 
-        [DependencyCached(Type = typeof(Provider1))]
+        [Cached(Type = typeof(Provider1))]
         private class Provider3 : Provider1
         {
         }
 
         private class Provider4
         {
-            [DependencyCached]
+            [Cached]
 #pragma warning disable 169
             private int fail;
 #pragma warning restore 169
@@ -133,18 +133,18 @@ namespace osu.Framework.Tests.Dependencies
 
         private class Provider5
         {
-            [DependencyCached]
+            [Cached]
             private ProvidedType1 provided1 = new ProvidedType1();
 
             public ProvidedType1 Provided1 => provided1;
 
-            [DependencyCached]
+            [Cached]
             private ProvidedType2 provided2 = new ProvidedType2();
         }
 
         private class Provider6 : Provider5
         {
-            [DependencyCached]
+            [Cached]
             private ProvidedType1 provided3 = new ProvidedType1();
 
             public ProvidedType1 Provided3 => provided3;
@@ -152,20 +152,20 @@ namespace osu.Framework.Tests.Dependencies
 
         private class Provider7
         {
-            [DependencyCached]
-            [DependencyCached(Type = typeof(object))]
+            [Cached]
+            [Cached(Type = typeof(object))]
             private ProvidedType1 provided1 = new ProvidedType1();
         }
 
-        [DependencyCached]
-        [DependencyCached(Type = typeof(object))]
+        [Cached]
+        [Cached(Type = typeof(object))]
         private class Provider8
         {
         }
 
         private class Provider9
         {
-            [DependencyCached(Type = typeof(ProvidedType1))]
+            [Cached(Type = typeof(ProvidedType1))]
             private object provided1 = new object();
         }
     }

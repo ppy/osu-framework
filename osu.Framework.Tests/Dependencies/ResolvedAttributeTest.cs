@@ -7,7 +7,7 @@ using osu.Framework.Allocation;
 namespace osu.Framework.Tests.Dependencies
 {
     [TestFixture]
-    public class DependencyAttributeTest
+    public class ResolvedAttributeTest
     {
         [Test]
         public void TestInjectIntoNothing()
@@ -87,7 +87,7 @@ namespace osu.Framework.Tests.Dependencies
 
         private class Receiver2
         {
-            [Dependency]
+            [Resolved]
             private BaseObject obj { get; set; }
 
             public BaseObject Obj => obj;
@@ -95,13 +95,13 @@ namespace osu.Framework.Tests.Dependencies
 
         private class Receiver3
         {
-            [Dependency(CanBeNull = true)]
+            [Resolved(CanBeNull = true)]
             private BaseObject obj { get; set; }
         }
 
         private class Receiver4 : Receiver2
         {
-            [Dependency]
+            [Resolved]
             private BaseObject obj { get; set; }
 
             public BaseObject Obj2 => obj;
@@ -109,7 +109,7 @@ namespace osu.Framework.Tests.Dependencies
 
         private class Receiver5
         {
-            [Dependency]
+            [Resolved]
             private BaseObject obj { get; set; }
 
             public BaseObject Obj => obj;

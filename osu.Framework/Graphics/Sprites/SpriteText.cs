@@ -120,7 +120,7 @@ namespace osu.Framework.Graphics.Sprites
 
         private float spaceWidth;
 
-        [Dependency]
+        [Resolved]
         private FontStore store { get; set; }
 
         public override bool HandleKeyboardInput => false;

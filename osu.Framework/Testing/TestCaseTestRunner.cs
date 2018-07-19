@@ -33,7 +33,7 @@ namespace osu.Framework.Testing
             private Bindable<double> volume;
             private double volumeAtStartup;
 
-            [Dependency]
+            [Resolved]
             private GameHost host { get; set; }
 
             [BackgroundDependencyLoader]

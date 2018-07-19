@@ -55,7 +55,7 @@ namespace osu.Framework.Graphics.UserInterface
         //represents the left/right selection coordinates of the word double clicked on when dragging
         private int[] doubleClickWord;
 
-        [Dependency]
+        [Resolved]
         private AudioManager audio { get; set; }
 
         /// <summary>

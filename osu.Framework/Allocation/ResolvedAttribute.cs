@@ -17,7 +17,7 @@ namespace osu.Framework.Allocation
     /// </summary>
     [MeansImplicitUse]
     [AttributeUsage(AttributeTargets.Property)]
-    public class DependencyAttribute : Attribute
+    public class ResolvedAttribute : Attribute
     {
         private const BindingFlags activator_flags = BindingFlags.NonPublic | BindingFlags.Instance;
 
@@ -30,13 +30,13 @@ namespace osu.Framework.Allocation
         {
             var activators = new List<Action<object, DependencyContainer>>();
 
-            var properties = type.GetProperties(activator_flags).Where(f => f.GetCustomAttribute<DependencyAttribute>() != null);
+            var properties = type.GetProperties(activator_flags).Where(f => f.GetCustomAttribute<ResolvedAttribute>() != null);
             foreach (var property in properties)
             {
                 if (!property.CanWrite)
                     throw new PropertyNotWritableException(type, property.Name);
 
-                var attribute = property.GetCustomAttribute<DependencyAttribute>();
+                var attribute = property.GetCustomAttribute<ResolvedAttribute>();
                 var fieldGetter = getDependency(property.PropertyType, type, attribute.CanBeNull);
 
                 activators.Add((target, dc) => property.SetValue(target, fieldGetter(dc)));

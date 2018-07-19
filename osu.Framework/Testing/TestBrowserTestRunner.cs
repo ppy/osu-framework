@@ -57,7 +57,7 @@ namespace osu.Framework.Testing
 
         private readonly TestBrowser browser;
 
-        [Dependency]
+        [Resolved]
         private GameHost host { get; set; }
 
         private void runNext()
