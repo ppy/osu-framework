@@ -88,21 +88,21 @@ namespace osu.Framework.Tests.Dependencies
         private class Receiver2
         {
             [Dependency]
-            private BaseObject obj { get; }
+            private BaseObject obj { get; set; }
 
             public BaseObject Obj => obj;
         }
 
         private class Receiver3
         {
-            [Dependency]
-            private BaseObject obj { get; }
+            [Dependency(CanBeNull = true)]
+            private BaseObject obj { get; set; }
         }
 
         private class Receiver4 : Receiver2
         {
             [Dependency]
-            private BaseObject obj { get; }
+            private BaseObject obj { get; set; }
 
             public BaseObject Obj2 => obj;
         }
@@ -110,7 +110,7 @@ namespace osu.Framework.Tests.Dependencies
         private class Receiver5
         {
             [Dependency]
-            private BaseObject obj { get; }
+            private BaseObject obj { get; set; }
 
             public BaseObject Obj => obj;
         }
