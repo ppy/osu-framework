@@ -146,7 +146,7 @@ namespace osu.Framework.Graphics.Visualisation
         {
             Target.OnInvalidate += onInvalidate;
 
-            if (Target is Container<Drawable> da)
+            if (Target is CompositeDrawable da)
             {
                 da.OnAutoSize += onAutoSize;
                 da.ChildBecameAlive += addChild;
@@ -160,7 +160,7 @@ namespace osu.Framework.Graphics.Visualisation
         {
             Target.OnInvalidate -= onInvalidate;
 
-            if (Target is Container<Drawable> da)
+            if (Target is CompositeDrawable da)
             {
                 da.OnAutoSize -= onAutoSize;
                 da.ChildBecameAlive -= addChild;
