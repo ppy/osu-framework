@@ -5,9 +5,21 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using osu.Framework.Extensions.TypeExtensions;
+using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
 
 namespace osu.Framework.Allocation
 {
+    /// <summary>
+    /// Helper class that provides methods to merge dependencies of objects and inject dependencies into objects.
+    /// The process of merging/injecting dependencies into objects happens in a "bottom-up" manner from least derived to most derived.
+    /// E.g. Drawable -> CompositeDrawable -> Toolbar, etc...
+    /// </summary>
+    /// <remarks>
+    /// Injection of dependencies is ordered into two processes:
+    /// <para>1) Inject into properties marked with <see cref="ResolvedAttribute"/>.</para>
+    /// 2) Invoke methods marked with <see cref="BackgroundDependencyLoaderAttribute"/>.
+    /// </remarks>
     internal class DependencyActivator
     {
         private static readonly ConcurrentDictionary<Type, DependencyActivator> activator_cache = new ConcurrentDictionary<Type, DependencyActivator>();
@@ -68,7 +80,10 @@ namespace osu.Framework.Allocation
         }
     }
 
-    public class MultipleDependencyLoaderMethodsException : InvalidOperationException
+    /// <summary>
+    /// Occurs when multiple <see cref="BackgroundDependencyLoaderAttribute"/>s exist in one object.
+    /// </summary>
+    public class MultipleDependencyLoaderMethodsException : Exception
     {
         public MultipleDependencyLoaderMethodsException(Type type)
             : base($"The type {type.ReadableName()} has more than one method marked with a {nameof(BackgroundDependencyLoaderAttribute)}."
@@ -77,7 +92,12 @@ namespace osu.Framework.Allocation
         }
     }
 
-    public class DependencyNotRegisteredException : InvalidOperationException
+    /// <summary>
+    /// Occurs when an object requests the resolution of a dependency, but the dependency doesn't exist.
+    /// This is caused by the dependency not being registered by parent <see cref="CompositeDrawable"/> through
+    /// <see cref="Drawable.CreateChildDependencies"/> or <see cref="CachedAttribute"/>.
+    /// </summary>
+    public class DependencyNotRegisteredException : Exception
     {
         public DependencyNotRegisteredException(Type type, Type requestedType)
             : base($"The type {type.ReadableName()} has a dependency on {requestedType.ReadableName()}, but the dependency is not registered.")

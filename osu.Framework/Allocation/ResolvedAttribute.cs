@@ -12,9 +12,12 @@ using osu.Framework.Graphics;
 namespace osu.Framework.Allocation
 {
     /// <summary>
-    /// An attribute that is attached to fields of a <see cref="Drawable"/> component to indicate
-    /// that the value of the field should be retrieved from a dependency cache.
+    /// An attribute that is attached to properties of a <see cref="Drawable"/> component to indicate that the value of the property should be retrieved from a dependency cache.
+    /// Properties marked with this attribute must be private and have a setter.
     /// </summary>
+    /// <remarks>
+    /// The value of the property is resolved upon <see cref="Drawable.Load"/> for the target <see cref="Drawable"/>.
+    /// </remarks>
     [MeansImplicitUse]
     [AttributeUsage(AttributeTargets.Property)]
     public class ResolvedAttribute : Attribute

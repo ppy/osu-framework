@@ -11,9 +11,8 @@ using osu.Framework.Graphics;
 namespace osu.Framework.Allocation
 {
     /// <summary>
-    /// An attribute that may be attached to a class definitions, fields, or properties of a <see cref="Drawable"/> to indicate
-    /// that the value should be cached as a dependency.
-    /// Cached values may be retrieved through <see cref="BackgroundDependencyLoaderAttribute"/> or <see cref="ResolvedAttribute"/>.
+    /// An attribute that may be attached to a class definitions or fields of a <see cref="Drawable"/> to indicate that the value should be cached as a dependency.
+    /// Cached values may be resolved through <see cref="BackgroundDependencyLoaderAttribute"/> or <see cref="ResolvedAttribute"/>.
     /// </summary>
     [MeansImplicitUse]
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Field, AllowMultiple = true, Inherited = false)]
@@ -22,8 +21,15 @@ namespace osu.Framework.Allocation
         private const BindingFlags activator_flags = BindingFlags.NonPublic | BindingFlags.Instance;
 
         /// <summary>
-        /// The type to cache the value as.
+        /// The type to cache the value as. If null, the value will be cached as the value's most derived type.
         /// </summary>
+        /// <example>
+        /// For example, if this value is null on the following field definition:
+        ///
+        /// private BaseType obj = new DerivedType()
+        ///
+        /// Then the cached type will be "BaseType".
+        /// </example>
         public Type Type;
 
         internal static CacheDependencyDelegate CreateActivator(Type type)
