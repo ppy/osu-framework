@@ -32,7 +32,10 @@ namespace osu.Framework.Platform.MacOS
             FocusedChanged += focusedChanged;
         }
 
-        private void focusedChanged(object sender, EventArgs e) => Task.Delay(300).ContinueWith(arg => methodInvalidateCursorRects.Invoke(nativeWindow, new object[0]));
+        // When the window regains focus, the macOS cursor will often reappear regardless of the "hidden" state.
+        // Invalidating the cursor rects for the content view will solve the issue, and OpenTK already has a private function that does this.
+        // Note that there needs to be a short delay after we regain the focus, otherwise the cursor will not disappear until the user moves the mouse.
+        private void focusedChanged(object sender, EventArgs e) => Task.Delay(300).ContinueWith(_ => methodInvalidateCursorRects.Invoke(nativeWindow, new object[0]));
 
         protected void OnLoad(object sender, EventArgs e)
         {
