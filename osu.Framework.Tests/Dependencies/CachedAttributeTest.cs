@@ -15,7 +15,7 @@ namespace osu.Framework.Tests.Dependencies
         {
             var provider = new Provider1();
 
-            var dependencies = DependencyActivator.BuildDependencies(provider, new DependencyContainer());
+            var dependencies = DependencyActivator.MergeDependencies(provider, new DependencyContainer());
 
             Assert.AreEqual(provider, dependencies.Get<Provider1>());
         }
@@ -25,7 +25,7 @@ namespace osu.Framework.Tests.Dependencies
         {
             var provider = new Provider2();
 
-            var dependencies = DependencyActivator.BuildDependencies(provider, new DependencyContainer());
+            var dependencies = DependencyActivator.MergeDependencies(provider, new DependencyContainer());
 
             Assert.AreEqual(provider, dependencies.Get<object>());
         }
@@ -35,7 +35,7 @@ namespace osu.Framework.Tests.Dependencies
         {
             var provider = new Provider3();
 
-            var dependencies = DependencyActivator.BuildDependencies(provider, new DependencyContainer());
+            var dependencies = DependencyActivator.MergeDependencies(provider, new DependencyContainer());
 
             Assert.AreEqual(provider, dependencies.Get<Provider1>());
             Assert.AreEqual(null, dependencies.Get<Provider3>());
@@ -46,7 +46,7 @@ namespace osu.Framework.Tests.Dependencies
         {
             var provider = new Provider4();
 
-            Assert.Throws<ArgumentException>(() => DependencyActivator.BuildDependencies(provider, new DependencyContainer()));
+            Assert.Throws<ArgumentException>(() => DependencyActivator.MergeDependencies(provider, new DependencyContainer()));
         }
 
         [Test]
@@ -54,7 +54,7 @@ namespace osu.Framework.Tests.Dependencies
         {
             var provider = new Provider5();
 
-            var dependencies = DependencyActivator.BuildDependencies(provider, new DependencyContainer());
+            var dependencies = DependencyActivator.MergeDependencies(provider, new DependencyContainer());
 
             Assert.IsNotNull(dependencies.Get<ProvidedType1>());
             Assert.IsNotNull(dependencies.Get<ProvidedType2>());
@@ -65,7 +65,7 @@ namespace osu.Framework.Tests.Dependencies
         {
             var provider = new Provider6();
 
-            var dependencies = DependencyActivator.BuildDependencies(provider, new DependencyContainer());
+            var dependencies = DependencyActivator.MergeDependencies(provider, new DependencyContainer());
 
             Assert.AreEqual(provider.Provided3, dependencies.Get<ProvidedType1>());
         }
@@ -75,7 +75,7 @@ namespace osu.Framework.Tests.Dependencies
         {
             var provider = new Provider7();
 
-            var dependencies = DependencyActivator.BuildDependencies(provider, new DependencyContainer());
+            var dependencies = DependencyActivator.MergeDependencies(provider, new DependencyContainer());
 
             Assert.IsNotNull(dependencies.Get<object>());
             Assert.IsNotNull(dependencies.Get<ProvidedType1>());
@@ -86,7 +86,7 @@ namespace osu.Framework.Tests.Dependencies
         {
             var provider = new Provider8();
 
-            var dependencies = DependencyActivator.BuildDependencies(provider, new DependencyContainer());
+            var dependencies = DependencyActivator.MergeDependencies(provider, new DependencyContainer());
 
             Assert.IsNotNull(dependencies.Get<object>());
             Assert.IsNotNull(dependencies.Get<Provider8>());
@@ -97,7 +97,7 @@ namespace osu.Framework.Tests.Dependencies
         {
             var provider = new Provider9();
 
-            Assert.Throws<ArgumentException>(() => DependencyActivator.BuildDependencies(provider, new DependencyContainer()));
+            Assert.Throws<ArgumentException>(() => DependencyActivator.MergeDependencies(provider, new DependencyContainer()));
         }
 
         private class ProvidedType1

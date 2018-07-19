@@ -29,11 +29,22 @@ namespace osu.Framework.Allocation
             activator_cache[type] = this;
         }
 
+        /// <summary>
+        /// Injects dependencies from a <see cref="DependencyContainer"/> into an object.
+        /// </summary>
+        /// <param name="obj">The object to inject the dependencies into.</param>
+        /// <param name="dependencies">The dependencies to use for injection.</param>
         public static void Activate(object obj, DependencyContainer dependencies)
             => getActivator(obj.GetType()).activate(obj, dependencies);
 
-        public static IReadOnlyDependencyContainer BuildDependencies(object obj, IReadOnlyDependencyContainer dependencies)
-            => getActivator(obj.GetType()).buildDependencies(obj, dependencies);
+        /// <summary>
+        /// Merges existing dependencies with new dependencies from an object into a new <see cref="IReadOnlyDependencyContainer"/>.
+        /// </summary>
+        /// <param name="obj">The object whose dependencies should be merged into the dependencies provided by <paramref name="dependencies"/>.</param>
+        /// <param name="dependencies">The existing dependencies.</param>
+        /// <returns>A new <see cref="IReadOnlyDependencyContainer"/> if <paramref name="obj"/> provides any dependencies, otherwise <paramref name="dependencies"/>.</returns>
+        public static IReadOnlyDependencyContainer MergeDependencies(object obj, IReadOnlyDependencyContainer dependencies)
+            => getActivator(obj.GetType()).mergeDependencies(obj, dependencies);
 
         private static DependencyActivator getActivator(Type type)
         {
@@ -48,9 +59,9 @@ namespace osu.Framework.Allocation
             injectionActivators.ForEach(a => a.Invoke(obj, dependencies));
         }
 
-        private IReadOnlyDependencyContainer buildDependencies(object obj, IReadOnlyDependencyContainer dependencies)
+        private IReadOnlyDependencyContainer mergeDependencies(object obj, IReadOnlyDependencyContainer dependencies)
         {
-            dependencies = baseActivator?.buildDependencies(obj, dependencies) ?? dependencies;
+            dependencies = baseActivator?.mergeDependencies(obj, dependencies) ?? dependencies;
             buildCacheActivators.ForEach(a => dependencies = a.Invoke(obj, dependencies));
 
             return dependencies;
