@@ -7,7 +7,6 @@ using System.Runtime.InteropServices;
 using System.Reflection;
 using osu.Framework.Logging;
 using osu.Framework.Platform.MacOS.Native;
-using System.Threading.Tasks;
 
 namespace osu.Framework.Platform.MacOS
 {
@@ -29,13 +28,8 @@ namespace osu.Framework.Platform.MacOS
         public MacOSGameWindow()
         {
             Load += OnLoad;
-            FocusedChanged += focusedChanged;
+            UpdateFrame += refreshCursorState;
         }
-
-        // When the window regains focus, the macOS cursor will often reappear regardless of the "hidden" state.
-        // Invalidating the cursor rects for the content view will solve the issue, and OpenTK already has a private function that does this.
-        // Note that there needs to be a short delay after we regain the focus, otherwise the cursor will not disappear until the user moves the mouse.
-        private void focusedChanged(object sender, EventArgs e) => Task.Delay(300).ContinueWith(_ => methodInvalidateCursorRects.Invoke(nativeWindow, new object[0]));
 
         protected void OnLoad(object sender, EventArgs e)
         {
@@ -61,6 +55,14 @@ namespace osu.Framework.Platform.MacOS
                 Logger.Log("Window initialisation couldn't complete, likely due to the SDL backend being enabled.", LoggingTarget.Runtime, LogLevel.Important);
                 Logger.Log("Execution will continue but keyboard functionality may be limited.", LoggingTarget.Runtime, LogLevel.Important);
             }
+        }
+
+        private void refreshCursorState(object sender, OpenTK.FrameEventArgs e)
+        {
+            // If the cursor should be hidden, but something in the system has made it appear (such as a notification),
+            // invalidate the cursor rects to hide it.  OpenTK has a private function that does this.
+            if ((CursorState & CursorState.Hidden) != 0 && Cocoa.CGCursorIsVisible())
+                methodInvalidateCursorRects.Invoke(nativeWindow, new object[0]);
         }
 
         private void flagsChanged(IntPtr self, IntPtr cmd, IntPtr sender)
