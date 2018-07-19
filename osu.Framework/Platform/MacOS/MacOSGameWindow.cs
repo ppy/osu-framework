@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Reflection;
 using osu.Framework.Logging;
 using osu.Framework.Platform.MacOS.Native;
+using System.Threading.Tasks;
 
 namespace osu.Framework.Platform.MacOS
 {
@@ -21,13 +22,17 @@ namespace osu.Framework.Platform.MacOS
         private readonly IntPtr selKeyCode = Selector.Get("keyCode");
         private MethodInfo methodKeyDown;
         private MethodInfo methodKeyUp;
+        private MethodInfo methodInvalidateCursorRects;
 
         private object nativeWindow;
 
         public MacOSGameWindow()
         {
             Load += OnLoad;
+            FocusedChanged += focusedChanged;
         }
+
+        private void focusedChanged(object sender, EventArgs e) => Task.Delay(300).ContinueWith(arg => methodInvalidateCursorRects.Invoke(nativeWindow, new object[0]));
 
         protected void OnLoad(object sender, EventArgs e)
         {
@@ -46,6 +51,7 @@ namespace osu.Framework.Platform.MacOS
 
                 methodKeyDown = nativeWindow.GetType().GetRuntimeMethods().Single(x => x.Name == "OnKeyDown");
                 methodKeyUp = nativeWindow.GetType().GetRuntimeMethods().Single(x => x.Name == "OnKeyUp");
+                methodInvalidateCursorRects = nativeWindow.GetType().GetRuntimeMethods().Single(x => x.Name == "InvalidateCursorRects");
             }
             catch
             {
