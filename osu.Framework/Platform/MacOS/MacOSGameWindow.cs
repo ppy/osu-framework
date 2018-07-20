@@ -39,6 +39,7 @@ namespace osu.Framework.Platform.MacOS
 
         private MethodInfo methodKeyDown;
         private MethodInfo methodKeyUp;
+        private MethodInfo methodInvalidateCursorRects;
 
         private object nativeWindow;
 
@@ -47,6 +48,7 @@ namespace osu.Framework.Platform.MacOS
         public MacOSGameWindow()
         {
             Load += OnLoad;
+            UpdateFrame += refreshCursorState;
         }
 
         private NSWindowStyleMask styleMask => (NSWindowStyleMask)Cocoa.SendUint(WindowInfo.Handle, selStyleMask);
@@ -84,6 +86,7 @@ namespace osu.Framework.Platform.MacOS
 
                 methodKeyDown = nativeWindow.GetType().GetRuntimeMethods().Single(x => x.Name == "OnKeyDown");
                 methodKeyUp = nativeWindow.GetType().GetRuntimeMethods().Single(x => x.Name == "OnKeyUp");
+                methodInvalidateCursorRects = nativeWindow.GetType().GetRuntimeMethods().Single(x => x.Name == "InvalidateCursorRects");
             }
             catch
             {
@@ -116,6 +119,14 @@ namespace osu.Framework.Platform.MacOS
         }
 
         private void windowDidExitFullScreen(IntPtr self, IntPtr cmd, IntPtr notification) => WindowMode.Value = Configuration.WindowMode.Windowed;
+
+        private void refreshCursorState(object sender, OpenTK.FrameEventArgs e)
+        {
+            // If the cursor should be hidden, but something in the system has made it appear (such as a notification),
+            // invalidate the cursor rects to hide it.  OpenTK has a private function that does this.
+            if (CursorState.HasFlag(CursorState.Hidden) && Cocoa.CGCursorIsVisible())
+                methodInvalidateCursorRects.Invoke(nativeWindow, new object[0]);
+        }
 
         private void flagsChanged(IntPtr self, IntPtr cmd, IntPtr sender)
         {

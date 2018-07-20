@@ -4,10 +4,11 @@
 using System;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Input;
 using OpenTK.Input;
 using OpenTK;
 using System.Diagnostics;
+using osu.Framework.Input.EventArgs;
+using osu.Framework.Input.States;
 
 namespace osu.Framework.Graphics.UserInterface
 {
