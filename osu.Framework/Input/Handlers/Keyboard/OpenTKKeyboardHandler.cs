@@ -23,7 +23,7 @@ namespace osu.Framework.Input.Handlers.Keyboard
 
         public override bool Initialize(GameHost host)
         {
-            Enabled.ValueChanged += enabled =>
+            Enabled.BindValueChanged(enabled =>
             {
                 if (enabled)
                 {
@@ -37,8 +37,8 @@ namespace osu.Framework.Input.Handlers.Keyboard
                     lastRawState = null;
                     lastEventState = null;
                 }
-            };
-            Enabled.TriggerChange();
+            }, true);
+
             return true;
         }
 

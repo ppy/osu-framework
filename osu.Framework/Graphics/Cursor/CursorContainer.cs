@@ -33,6 +33,8 @@ namespace osu.Framework.Graphics.Cursor
 
         public override bool ReceiveMouseInputAt(Vector2 screenSpacePos) => true;
 
+        public override bool HandleMouseInput => IsPresent; // make sure we are still updating position during possible fade out.
+
         protected override bool OnMouseMove(InputState state)
         {
             ActiveCursor.Position = state.Mouse.Position;
