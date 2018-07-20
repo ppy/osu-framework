@@ -70,7 +70,7 @@ namespace osu.Framework.Tests.Visual
                     Anchor = anchor,
                     Origin = anchor,
                     Size = new Vector2(10),
-                    Position = new Vector2((anchor & Anchor.x0) > 0 ? -5 : 5, (anchor & Anchor.y0) > 0 ? -5 : 5),
+                    Position = new Vector2(anchor.HasFlag(Anchor.x0) ? -5 : 5, anchor.HasFlag(Anchor.y0) ? -5 : 5),
                 }
             };
 
@@ -99,7 +99,7 @@ namespace osu.Framework.Tests.Visual
                     Anchor = anchor,
                     Origin = anchor,
                     Size = new Vector2(10),
-                    Position = new Vector2((anchor & Anchor.x0) > 0 ? -20 : 20, (anchor & Anchor.y0) > 0 ? -20 : 20),
+                    Position = new Vector2(anchor.HasFlag(Anchor.x0) ? -20 : 20, anchor.HasFlag(Anchor.y0) ? -20 : 20),
                 }
             };
 

@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.IO;
 using System.Runtime.InteropServices;
 
 namespace osu.Framework.Platform.Linux.Native
@@ -12,11 +13,21 @@ namespace osu.Framework.Platform.Linux.Native
         private static extern IntPtr dlopen(string library, LoadFlags flags);
 
         /// <summary>
-        /// Loads a library with an enum of flags to use with dlopen. Uses <see cref="LoadFlags"/> for the flags
+        /// Loads a library with flags to use with dlopen. Uses <see cref="LoadFlags"/> for the flags
+        ///
+        /// Uses NATIVE_DLL_SEARCH_DIRECTORIES and then ld.so for library paths
         /// </summary>
-        /// <param name="library">See 'man dlopen' for more information about the flags.</param>>
-        /// <param name="flags">See 'man ld.so' for more information about how the libraries are loaded.</param>>
-        public static void Load(string library, LoadFlags flags) => dlopen(library, flags);
+        /// <param name="library">Full name of the library</param>
+        /// <param name="flags">See 'man dlopen' for more information.</param>
+        public static void Load(string library, LoadFlags flags)
+        {
+            var paths = (string)AppContext.GetData("NATIVE_DLL_SEARCH_DIRECTORIES");
+            foreach (var path in paths.Split(':'))
+            {
+                if (dlopen(Path.Combine(path, library), flags) != IntPtr.Zero)
+                    break;
+            }
+        }
 
         [Flags]
         public enum LoadFlags

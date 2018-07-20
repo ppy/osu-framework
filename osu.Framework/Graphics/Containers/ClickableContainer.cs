@@ -3,7 +3,7 @@
 
 using System;
 using osu.Framework.Configuration;
-using osu.Framework.Input;
+using osu.Framework.Input.States;
 
 namespace osu.Framework.Graphics.Containers
 {

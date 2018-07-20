@@ -42,13 +42,13 @@ namespace osu.Framework.Graphics.Containers
 
             // For anchor/origin positioning to be preserved correctly,
             // relatively sized axes must be lifted to the wrapping container.
-            if ((container.RelativeSizeAxes & Axes.X) > 0)
+            if (container.RelativeSizeAxes.HasFlag(Axes.X))
             {
                 container.Width = drawable.Width;
                 drawable.Width = 1;
             }
 
-            if ((container.RelativeSizeAxes & Axes.Y) > 0)
+            if (container.RelativeSizeAxes.HasFlag(Axes.Y))
             {
                 container.Height = drawable.Height;
                 drawable.Height = 1;
