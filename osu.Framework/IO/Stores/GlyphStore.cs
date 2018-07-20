@@ -66,7 +66,7 @@ namespace osu.Framework.IO.Stores
                         font.LoadText(s);
 
                     if (precache)
-                        for (int i = 0; i < Font.Pages.Length; i++)
+                        for (int i = 0; i < font.Pages.Length; i++)
                             getTexturePage(i);
                 }
                 catch (Exception ex)
