@@ -143,7 +143,7 @@ namespace osu.Framework.Graphics.Containers
         {
             // FillFlowContainer will reverse the ordering of right-anchored words such that the (previously) first word would be
             // the right-most word, whereas it should still be flowed left-to-right. This is achieved by reversing the comparator.
-            if ((TextAnchor & Anchor.x2) > 0)
+            if (TextAnchor.HasFlag(Anchor.x2))
                 return base.Compare(y, x);
             return base.Compare(x, y);
         }

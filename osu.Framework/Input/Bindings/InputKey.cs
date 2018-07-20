@@ -615,12 +615,12 @@ namespace osu.Framework.Input.Bindings
         /// <summary>
         /// Indicates the first available joystick button.
         /// </summary>
-        FirstJoystickButton = 1024,
+        FirstJoystickButton = 1024 + 1,
 
         /// <summary>
         /// Joystick button 1.
         /// </summary>
-        Joystick1,
+        Joystick1 = FirstJoystickButton,
         /// <summary>
         /// Joystick button 2.
         /// </summary>
@@ -877,12 +877,12 @@ namespace osu.Framework.Input.Bindings
         /// <summary>
         /// Indicates the first available negative-axis joystick button.
         /// </summary>
-        FirstJoystickAxisNegativeButton = 2048,
+        FirstJoystickAxisNegativeButton = 2048 + 1,
 
         /// <summary>
         /// Joystick axis 1 negative button.
         /// </summary>
-        JoystickAxis1Negative,
+        JoystickAxis1Negative = FirstJoystickAxisNegativeButton,
         /// <summary>
         /// Joystick axis 2 negative button.
         /// </summary>
@@ -1139,12 +1139,12 @@ namespace osu.Framework.Input.Bindings
         /// <summary>
         /// Indicates the first available positive-axis joystick button.
         /// </summary>
-        FirstJoystickAxisPositiveButton = 3072,
+        FirstJoystickAxisPositiveButton = 3072 + 1,
 
         /// <summary>
         /// Joystick axis 1 positive button.
         /// </summary>
-        JoystickAxis1Positive,
+        JoystickAxis1Positive = FirstJoystickAxisPositiveButton,
         /// <summary>
         /// Joystick axis 2 positive button.
         /// </summary>
@@ -1401,12 +1401,12 @@ namespace osu.Framework.Input.Bindings
         /// <summary>
         /// Indicates the first available joystick hat up button.
         /// </summary>
-        FirstJoystickHatUpButton = 4096,
+        FirstJoystickHatUpButton = 4096 + 1,
 
         /// <summary>
         /// Joystick hat 1 up button.
         /// </summary>
-        JoystickHat1Up,
+        JoystickHat1Up = FirstJoystickHatUpButton,
         /// <summary>
         /// Joystick hat 2 up button.
         /// </summary>
@@ -1423,12 +1423,12 @@ namespace osu.Framework.Input.Bindings
         /// <summary>
         /// Indicates the first available joystick hat down button.
         /// </summary>
-        FirstJoystickHatDownButton = 5120,
+        FirstJoystickHatDownButton = 5120 + 1,
 
         /// <summary>
         /// Joystick hat 1 down button.
         /// </summary>
-        JoystickHat1Down,
+        JoystickHat1Down = FirstJoystickHatDownButton,
         /// <summary>
         /// Joystick hat 2 down button.
         /// </summary>
@@ -1445,12 +1445,12 @@ namespace osu.Framework.Input.Bindings
         /// <summary>
         /// Indicates the first available joystick hat left button.
         /// </summary>
-        FirstJoystickHatLeftButton = 6144,
+        FirstJoystickHatLeftButton = 6144 + 1,
 
         /// <summary>
         /// Joystick hat 1 left button.
         /// </summary>
-        JoystickHat1Left,
+        JoystickHat1Left = FirstJoystickHatLeftButton,
         /// <summary>
         /// Joystick hat 2 left button.
         /// </summary>
@@ -1467,12 +1467,12 @@ namespace osu.Framework.Input.Bindings
         /// <summary>
         /// Indicates the first available joystick hat right button.
         /// </summary>
-        FirstJoystickHatRightButton = 7168,
+        FirstJoystickHatRightButton = 7168 + 1,
 
         /// <summary>
         /// Joystick hat 1 right button.
         /// </summary>
-        JoystickHat1Right,
+        JoystickHat1Right = FirstJoystickHatRightButton,
         /// <summary>
         /// Joystick hat 2 right button.
         /// </summary>

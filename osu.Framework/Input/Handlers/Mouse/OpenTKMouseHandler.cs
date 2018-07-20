@@ -19,7 +19,7 @@ namespace osu.Framework.Input.Handlers.Mouse
         {
             base.Initialize(host);
 
-            Enabled.ValueChanged += enabled =>
+            Enabled.BindValueChanged(enabled =>
             {
                 if (enabled)
                 {
@@ -60,8 +60,8 @@ namespace osu.Framework.Input.Handlers.Mouse
                     lastPollState = null;
                     lastEventState = null;
                 }
-            };
-            Enabled.TriggerChange();
+            }, true);
+
             return true;
         }
 

@@ -147,25 +147,6 @@ namespace osu.Framework.Lists
         }
 
         #endregion
-
-        private class ComparisonComparer<TComparison> : IComparer<TComparison>
-        {
-            private readonly Comparison<TComparison> comparison;
-
-            public ComparisonComparer(Func<TComparison, TComparison, int> compare)
-            {
-                if (compare == null)
-                {
-                    throw new ArgumentNullException(nameof(compare));
-                }
-                comparison = new Comparison<TComparison>(compare);
-            }
-
-            public int Compare(TComparison x, TComparison y)
-            {
-                return comparison(x, y);
-            }
-        }
     }
 
     [JsonConverter(typeof(SortedListConverter))]

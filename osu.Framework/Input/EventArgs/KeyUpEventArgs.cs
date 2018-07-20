@@ -1,12 +1,12 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System;
+using OpenTK.Input;
 
-namespace osu.Framework.Input
+namespace osu.Framework.Input.EventArgs
 {
-    public class JoystickEventArgs : EventArgs
+    public class KeyUpEventArgs : System.EventArgs
     {
-        public JoystickButton Button;
+        public Key Key;
     }
 }

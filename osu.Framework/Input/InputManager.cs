@@ -7,12 +7,19 @@ using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Input.EventArgs;
 using osu.Framework.Input.Handlers;
+using osu.Framework.Input.StateChanges;
+using osu.Framework.Input.States;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
 using OpenTK;
 using OpenTK.Input;
+using JoystickEventArgs = osu.Framework.Input.EventArgs.JoystickEventArgs;
+using JoystickState = osu.Framework.Input.States.JoystickState;
+using KeyboardState = osu.Framework.Input.States.KeyboardState;
+using MouseState = osu.Framework.Input.States.MouseState;
 
 namespace osu.Framework.Input
 {
@@ -198,7 +205,7 @@ namespace osu.Framework.Input
 
             FocusedDrawable = potentialFocusTarget;
 
-            Logger.Log($"Focus switched to {FocusedDrawable?.ToString() ?? "nothing"}.", LoggingTarget.Runtime, LogLevel.Debug);
+            Logger.Log($"Focus changed from {previousFocus?.ToString() ?? "nothing"} to {FocusedDrawable?.ToString() ?? "nothing"}.", LoggingTarget.Runtime, LogLevel.Debug);
 
             if (FocusedDrawable != null)
             {
@@ -264,9 +271,7 @@ namespace osu.Framework.Input
 
             foreach (var h in InputHandlers)
             {
-                var list = h.GetPendingInputs();
-                if (h.IsActive && h.Enabled)
-                    inputs.AddRange(list);
+                inputs.AddRange(h.GetPendingInputs());
             }
 
             return inputs;
@@ -567,6 +572,7 @@ namespace osu.Framework.Input
             if (stillValid)
                 return false;
 
+            Logger.Log($"Focus on \"{FocusedDrawable}\" no longer valid as a result of {nameof(unfocusIfNoLongerValid)}.", LoggingTarget.Runtime, LogLevel.Debug);
             ChangeFocus(null);
             return true;
         }
@@ -601,6 +607,7 @@ namespace osu.Framework.Input
                     }
                 }
             }
+
 
             ChangeFocus(focusTarget);
         }
