@@ -8,9 +8,10 @@ using osu.Framework.Caching;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Input;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Input.EventArgs;
+using osu.Framework.Input.States;
 using osu.Framework.MathUtils;
 using osu.Framework.Threading;
 using OpenTK;
@@ -351,8 +352,8 @@ namespace osu.Framework.Graphics.UserInterface
                 height = Math.Min(MaxHeight, height);
 
                 // Regardless of the above result, if we are relative-sizing, just use the stored width/height
-                width = (RelativeSizeAxes & Axes.X) > 0 ? Width : width;
-                height = (RelativeSizeAxes & Axes.Y) > 0 ? Height : height;
+                width = RelativeSizeAxes.HasFlag(Axes.X) ? Width : width;
+                height = RelativeSizeAxes.HasFlag(Axes.Y) ? Height : height;
 
                 if (State == MenuState.Closed && Direction == Direction.Horizontal)
                     width = 0;

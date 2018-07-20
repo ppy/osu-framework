@@ -6,6 +6,8 @@ using System.Diagnostics;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
+using osu.Framework.Input.EventArgs;
+using osu.Framework.Input.States;
 using osu.Framework.MathUtils;
 using OpenTK;
 using OpenTK.Graphics;

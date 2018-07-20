@@ -1,10 +1,18 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-namespace osu.Framework.Input
+using System.Collections.Generic;
+using osu.Framework.Input.States;
+
+namespace osu.Framework.Input.StateChanges
 {
     public class JoystickButtonInput : ButtonInput<JoystickButton>
     {
+        public JoystickButtonInput(IEnumerable<ButtonInputEntry<JoystickButton>> entries)
+            : base(entries)
+        {
+        }
+
         public JoystickButtonInput(JoystickButton button, bool isPressed)
             : base(button, isPressed)
         {

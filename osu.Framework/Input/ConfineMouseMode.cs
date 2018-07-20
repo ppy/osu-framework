@@ -3,12 +3,10 @@
 
 namespace osu.Framework.Input
 {
-    /// <summary>
-    /// Denotes a kind of change of a button state.
-    /// </summary>
-    public enum ButtonStateChangeKind
+    public enum ConfineMouseMode
     {
-        Pressed,
-        Released
+        Never,
+        Fullscreen,
+        Always
     }
 }

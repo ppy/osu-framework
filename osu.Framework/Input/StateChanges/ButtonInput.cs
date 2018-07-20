@@ -3,8 +3,9 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Input.States;
 
-namespace osu.Framework.Input
+namespace osu.Framework.Input.StateChanges
 {
     /// <summary>
     /// An abstract base class of an <see cref="IInput"/> which denotes a list of button state changes (pressed or released).
@@ -14,6 +15,11 @@ namespace osu.Framework.Input
         where TButton : struct
     {
         public IEnumerable<ButtonInputEntry<TButton>> Entries;
+
+        protected ButtonInput(IEnumerable<ButtonInputEntry<TButton>> entries)
+        {
+            Entries = entries;
+        }
 
         /// <summary>
         /// Creates a <see cref="ButtonInput{TButton}"/> with a single <see cref="TButton"/> state.
@@ -36,7 +42,7 @@ namespace osu.Framework.Input
         /// <param name="previous">The older <see cref="ButtonStates{TButton}"/>.</param>
         protected ButtonInput(ButtonStates<TButton> current, ButtonStates<TButton> previous)
         {
-            var difference = current.EnumerateDifference(previous ?? new ButtonStates<TButton>());
+            var difference = (current ?? new ButtonStates<TButton>()).EnumerateDifference(previous ?? new ButtonStates<TButton>());
 
             Entries = difference.Released.Select(button => new ButtonInputEntry<TButton>(button, false))
                                 .Concat(difference.Pressed.Select(button => new ButtonInputEntry<TButton>(button, true)));
