@@ -21,12 +21,14 @@ namespace osu.Framework.Platform.MacOS
         private readonly IntPtr selKeyCode = Selector.Get("keyCode");
         private MethodInfo methodKeyDown;
         private MethodInfo methodKeyUp;
+        private MethodInfo methodInvalidateCursorRects;
 
         private object nativeWindow;
 
         public MacOSGameWindow()
         {
             Load += OnLoad;
+            UpdateFrame += refreshCursorState;
         }
 
         protected void OnLoad(object sender, EventArgs e)
@@ -46,12 +48,21 @@ namespace osu.Framework.Platform.MacOS
 
                 methodKeyDown = nativeWindow.GetType().GetRuntimeMethods().Single(x => x.Name == "OnKeyDown");
                 methodKeyUp = nativeWindow.GetType().GetRuntimeMethods().Single(x => x.Name == "OnKeyUp");
+                methodInvalidateCursorRects = nativeWindow.GetType().GetRuntimeMethods().Single(x => x.Name == "InvalidateCursorRects");
             }
             catch
             {
                 Logger.Log("Window initialisation couldn't complete, likely due to the SDL backend being enabled.", LoggingTarget.Runtime, LogLevel.Important);
                 Logger.Log("Execution will continue but keyboard functionality may be limited.", LoggingTarget.Runtime, LogLevel.Important);
             }
+        }
+
+        private void refreshCursorState(object sender, OpenTK.FrameEventArgs e)
+        {
+            // If the cursor should be hidden, but something in the system has made it appear (such as a notification),
+            // invalidate the cursor rects to hide it.  OpenTK has a private function that does this.
+            if (CursorState.HasFlag(CursorState.Hidden) && Cocoa.CGCursorIsVisible())
+                methodInvalidateCursorRects.Invoke(nativeWindow, new object[0]);
         }
 
         private void flagsChanged(IntPtr self, IntPtr cmd, IntPtr sender)
