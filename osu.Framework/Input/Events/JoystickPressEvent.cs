@@ -5,6 +5,9 @@ using osu.Framework.Input.States;
 
 namespace osu.Framework.Input.Events
 {
+    /// <summary>
+    /// An event representing a press of a joystick button.
+    /// </summary>
     public class JoystickPressEvent : JoystickButtonEvent
     {
         public JoystickPressEvent(InputState state, JoystickButton button)

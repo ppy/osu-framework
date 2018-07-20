@@ -7,6 +7,9 @@ using OpenTK.Input;
 
 namespace osu.Framework.Input.Events
 {
+    /// <summary>
+    /// An event represeting the start of a mouse drag.
+    /// </summary>
     public class DragStartEvent : MouseButtonEvent
     {
         public DragStartEvent(InputState state, MouseButton button, Vector2? screenSpaceMouseDownPosition = null)

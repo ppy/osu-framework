@@ -7,11 +7,14 @@ using OpenTK.Input;
 
 namespace osu.Framework.Input.Events
 {
-    public class KeyboardEvent : UIEvent
+    /// <summary>
+    /// Events of a keyboard key.
+    /// </summary>
+    public abstract class KeyboardEvent : UIEvent
     {
         public readonly Key Key;
 
-        public KeyboardEvent(InputState state, Key key)
+        protected KeyboardEvent(InputState state, Key key)
             : base(state)
         {
             Key = key;

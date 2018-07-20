@@ -7,6 +7,9 @@ using OpenTK;
 
 namespace osu.Framework.Input.Events
 {
+    /// <summary>
+    /// An event representing a change of the mouse wheel.
+    /// </summary>
     public class ScrollEvent : UIEvent
     {
         public readonly Vector2 ScrollDelta;

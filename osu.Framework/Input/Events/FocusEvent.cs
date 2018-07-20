@@ -6,7 +6,10 @@ using osu.Framework.Input.States;
 
 namespace osu.Framework.Input.Events
 {
-    public class FocusEvent : MouseEvent
+    /// <summary>
+    /// An event represeting that a drawable gained the focus.
+    /// </summary>
+    public class FocusEvent : UIEvent
     {
         public FocusEvent(InputState state)
             : base(state)

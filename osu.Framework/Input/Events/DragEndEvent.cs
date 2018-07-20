@@ -7,6 +7,10 @@ using OpenTK.Input;
 
 namespace osu.Framework.Input.Events
 {
+    /// <summary>
+    /// An event represeting the end of a mouse drag.
+    /// Triggered when the mouse button used for dragging is released.
+    /// </summary>
     public class DragEndEvent : MouseButtonEvent
     {
         public DragEndEvent(InputState state, MouseButton button, Vector2? screenSpaceMouseDownPosition = null)

@@ -6,6 +6,9 @@ using OpenTK;
 
 namespace osu.Framework.Input.Events
 {
+    /// <summary>
+    /// An event representing a move of the mouse cursor.
+    /// </summary>
     public class MouseMoveEvent : MouseEvent
     {
         /// <summary>

@@ -7,6 +7,9 @@ using OpenTK.Input;
 
 namespace osu.Framework.Input.Events
 {
+    /// <summary>
+    /// An event represeting a mouse double click.
+    /// </summary>
     public class DoubleClickEvent : MouseButtonEvent
     {
         public DoubleClickEvent(InputState state, MouseButton button, Vector2? screenSpaceMouseDownPosition = null)

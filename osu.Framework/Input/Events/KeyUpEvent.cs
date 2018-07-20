@@ -6,6 +6,9 @@ using OpenTK.Input;
 
 namespace osu.Framework.Input.Events
 {
+    /// <summary>
+    /// An event representing a release of a keyboard key.
+    /// </summary>
     public class KeyUpEvent : KeyboardEvent
     {
         public KeyUpEvent(InputState state, Key key)

@@ -8,6 +8,9 @@ using OpenTK.Input;
 
 namespace osu.Framework.Input.Events
 {
+    /// <summary>
+    /// Represents events of a mouse button.
+    /// </summary>
     public abstract class MouseButtonEvent : MouseEvent
     {
         public readonly MouseButton Button;

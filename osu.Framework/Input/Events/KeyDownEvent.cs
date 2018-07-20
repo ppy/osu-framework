@@ -7,6 +7,9 @@ using OpenTK.Input;
 
 namespace osu.Framework.Input.Events
 {
+    /// <summary>
+    /// An event representing a press of a keyboard key.
+    /// </summary>
     public class KeyDownEvent : KeyboardEvent
     {
         public readonly bool Repeat;

@@ -6,6 +6,9 @@ using osu.Framework.Input.States;
 
 namespace osu.Framework.Input.Events
 {
+    /// <summary>
+    /// Events of a joystick button.
+    /// </summary>
     public abstract class JoystickButtonEvent : UIEvent
     {
         public readonly JoystickButton Button;

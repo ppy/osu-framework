@@ -7,6 +7,10 @@ using OpenTK.Input;
 
 namespace osu.Framework.Input.Events
 {
+    /// <summary>
+    /// An event represeting a mouse drag.
+    /// Triggered when mouse is moved while dragging.
+    /// </summary>
     public class DragEvent : MouseButtonEvent
     {
         /// <summary>

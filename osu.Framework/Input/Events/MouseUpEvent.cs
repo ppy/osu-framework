@@ -7,6 +7,9 @@ using OpenTK.Input;
 
 namespace osu.Framework.Input.Events
 {
+    /// <summary>
+    /// An event representing a release of a mouse button.
+    /// </summary>
     public class MouseUpEvent : MouseButtonEvent
     {
         public MouseUpEvent(InputState state, MouseButton button, Vector2? screenSpaceMouseDownPosition = null)
