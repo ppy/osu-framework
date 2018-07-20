@@ -10,7 +10,7 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Testing.Drawables
 {
-    internal class Toolbar : CompositeDrawable
+    internal class TestBrowserToolbar : CompositeDrawable
     {
         private ToolbarAssemblySection assemblySection;
 

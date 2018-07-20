@@ -86,7 +86,7 @@ namespace osu.Framework.Testing
         private readonly PlaybackBindable playbackBindable = new PlaybackBindable();
         private readonly FrameBindable frameBindable = new FrameBindable();
 
-        private Toolbar toolbar;
+        private TestBrowserToolbar toolbar;
         private Container leftContainer;
         private Container mainContainer;
 
@@ -164,7 +164,7 @@ namespace osu.Framework.Testing
                     Padding = new MarginPadding { Left = test_list_width },
                     Children = new Drawable[]
                     {
-                        toolbar = new Toolbar
+                        toolbar = new TestBrowserToolbar
                         {
                             RelativeSizeAxes = Axes.X,
                             Height = 100,
