@@ -41,14 +41,14 @@ namespace osu.Framework.Platform.MacOS
         private MethodInfo methodKeyUp;
         private MethodInfo methodInvalidateCursorRects;
 
-        private object nativeWindow;
+        private WindowMode? newWindowMode;
 
-        internal Action<Action> InvokeOnInputThread;
+        private object nativeWindow;
 
         public MacOSGameWindow()
         {
             Load += OnLoad;
-            UpdateFrame += refreshCursorState;
+            UpdateFrame += OnUpdateFrame;
         }
 
         private NSWindowStyleMask styleMask => (NSWindowStyleMask)Cocoa.SendUint(WindowInfo.Handle, selStyleMask);
@@ -120,8 +120,22 @@ namespace osu.Framework.Platform.MacOS
 
         private void windowDidExitFullScreen(IntPtr self, IntPtr cmd, IntPtr notification) => WindowMode.Value = Configuration.WindowMode.Windowed;
 
-        private void refreshCursorState(object sender, OpenTK.FrameEventArgs e)
+        protected void OnUpdateFrame(object sender, FrameEventArgs e)
         {
+            // update the window mode if we have an update queued
+            if (newWindowMode.HasValue)
+            {
+                bool currentFullScreen = isFullScreen();
+                bool toggleFullScreen = newWindowMode.Value == Configuration.WindowMode.Borderless || newWindowMode.Value == Configuration.WindowMode.Fullscreen ? !currentFullScreen : currentFullScreen;
+
+                if (toggleFullScreen)
+                    Cocoa.SendVoid(WindowInfo.Handle, selToggleFullScreen, IntPtr.Zero);
+                else if (currentFullScreen)
+                    NSApplication.PresentationOptions = presentationOptionsForWindowMode(newWindowMode.Value);
+
+                newWindowMode = null;
+            }
+
             // If the cursor should be hidden, but something in the system has made it appear (such as a notification),
             // invalidate the cursor rects to hide it.  OpenTK has a private function that does this.
             if (CursorState.HasFlag(CursorState.Hidden) && Cocoa.CGCursorIsVisible())
@@ -191,19 +205,7 @@ namespace osu.Framework.Platform.MacOS
         // FIXME: OpenTK's current window:shouldZoomToFrame: is broken and can't be overridden, so we replace it
         private bool windowShouldZoomToFrame(IntPtr self, IntPtr cmd, IntPtr nsWindow, RectangleF toFrame) => true;
 
-        protected override void UpdateWindowMode(WindowMode newMode)
-        {
-            InvokeOnInputThread.Invoke(() =>
-            {
-                bool currentFullScreen = isFullScreen();
-                bool toggleFullScreen = newMode == Configuration.WindowMode.Borderless || newMode == Configuration.WindowMode.Fullscreen ? !currentFullScreen : currentFullScreen;
-
-                if (toggleFullScreen)
-                    Cocoa.SendVoid(WindowInfo.Handle, selToggleFullScreen, IntPtr.Zero);
-                else if (currentFullScreen)
-                    NSApplication.PresentationOptions = presentationOptionsForWindowMode(newMode);
-            });
-        }
+        protected override void UpdateWindowMode(WindowMode newMode) => newWindowMode = newMode;
 
         // Apple recommends not changing the system resolution for fullscreen access
         protected override void ChangeResolution(Size newSize) => ClientSize = newSize;

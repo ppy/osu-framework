@@ -12,10 +12,7 @@ namespace osu.Framework.Platform.MacOS
         internal MacOSGameHost(string gameName, bool bindIPC = false)
             : base(gameName, bindIPC)
         {
-            Window = new MacOSGameWindow
-            {
-                InvokeOnInputThread = action => { InputThread.Scheduler.Add(action); }
-            };
+            Window = new MacOSGameWindow();
             Window.WindowStateChanged += (sender, e) =>
             {
                 if (Window.WindowState != OpenTK.WindowState.Minimized)
