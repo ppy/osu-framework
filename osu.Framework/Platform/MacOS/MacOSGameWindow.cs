@@ -123,15 +123,16 @@ namespace osu.Framework.Platform.MacOS
         protected void OnUpdateFrame(object sender, FrameEventArgs e)
         {
             // update the window mode if we have an update queued
-            if (newWindowMode.HasValue)
+            WindowMode? mode = newWindowMode;
+            if (mode.HasValue)
             {
                 bool currentFullScreen = isFullScreen();
-                bool toggleFullScreen = newWindowMode.Value == Configuration.WindowMode.Borderless || newWindowMode.Value == Configuration.WindowMode.Fullscreen ? !currentFullScreen : currentFullScreen;
+                bool toggleFullScreen = mode.Value == Configuration.WindowMode.Borderless || mode.Value == Configuration.WindowMode.Fullscreen ? !currentFullScreen : currentFullScreen;
 
                 if (toggleFullScreen)
                     Cocoa.SendVoid(WindowInfo.Handle, selToggleFullScreen, IntPtr.Zero);
                 else if (currentFullScreen)
-                    NSApplication.PresentationOptions = presentationOptionsForWindowMode(newWindowMode.Value);
+                    NSApplication.PresentationOptions = presentationOptionsForWindowMode(mode.Value);
 
                 newWindowMode = null;
             }
