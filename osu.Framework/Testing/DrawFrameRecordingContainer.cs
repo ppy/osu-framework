@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Collections.Generic;
+using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics;
@@ -16,11 +17,14 @@ namespace osu.Framework.Testing
 
         private readonly List<DrawNode> recordedFrames = new List<DrawNode>();
 
-        [BackgroundDependencyLoader]
-        private void load(TestBrowser.PlaybackBindable playback, TestBrowser.FrameBindable currentFrame)
+        [BackgroundDependencyLoader(true)]
+        private void load([CanBeNull] TestBrowser.PlaybackBindable playback, [CanBeNull] TestBrowser.FrameBindable currentFrame)
         {
-            this.playback.BindTo(playback);
-            this.currentFrame.BindTo(currentFrame);
+            if (playback != null)
+                this.playback.BindTo(playback);
+
+            if (currentFrame != null)
+                this.currentFrame.BindTo(currentFrame);
         }
 
         protected override bool CanBeFlattened => false;
