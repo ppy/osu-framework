@@ -3,19 +3,18 @@
 
 using OpenTK;
 using OpenTK.Input;
-using MouseState = osu.Framework.Input.State.MouseState;
 
 namespace osu.Framework.Input.Handlers.Mouse
 {
-    internal abstract class OpenTKMouseState : MouseState
+    internal abstract class OpenTKMouseState : States.MouseState
     {
         public readonly bool WasActive;
 
-        public OpenTK.Input.MouseState RawState;
+        public MouseState RawState;
 
         public override Vector2 ScrollDelta => WasActive ? base.ScrollDelta : Vector2.Zero;
 
-        protected OpenTKMouseState(OpenTK.Input.MouseState tkState, bool active, Vector2? mappedPosition)
+        protected OpenTKMouseState(MouseState tkState, bool active, Vector2? mappedPosition)
         {
             WasActive = active;
 

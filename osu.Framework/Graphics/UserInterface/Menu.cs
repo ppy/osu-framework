@@ -11,7 +11,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Input.State;
+using osu.Framework.Input.States;
 using osu.Framework.MathUtils;
 using osu.Framework.Threading;
 using OpenTK;

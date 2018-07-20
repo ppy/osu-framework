@@ -3,7 +3,7 @@
 
 using System;
 
-namespace osu.Framework.Input.State
+namespace osu.Framework.Input.States
 {
     public class InputState : EventArgs
     {

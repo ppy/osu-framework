@@ -2,9 +2,9 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Collections.Generic;
-using osu.Framework.Input.State;
+using osu.Framework.Input.States;
 
-namespace osu.Framework.Input.StateChange
+namespace osu.Framework.Input.StateChanges
 {
     public class JoystickButtonInput : ButtonInput<JoystickButton>
     {

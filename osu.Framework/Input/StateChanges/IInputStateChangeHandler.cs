@@ -1,10 +1,10 @@
 // Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using osu.Framework.Input.State;
+using osu.Framework.Input.States;
 using OpenTK.Input;
 
-namespace osu.Framework.Input.StateChange
+namespace osu.Framework.Input.StateChanges
 {
     /// <summary>
     /// An object which can handle <see cref="InputState"/> changes.

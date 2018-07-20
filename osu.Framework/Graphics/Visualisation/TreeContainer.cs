@@ -9,7 +9,7 @@ using osu.Framework.Graphics.UserInterface;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Shapes;
-using osu.Framework.Input.State;
+using osu.Framework.Input.States;
 
 namespace osu.Framework.Graphics.Visualisation
 {

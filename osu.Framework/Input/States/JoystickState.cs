@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace osu.Framework.Input.State
+namespace osu.Framework.Input.States
 {
     public class JoystickState : IJoystickState
     {

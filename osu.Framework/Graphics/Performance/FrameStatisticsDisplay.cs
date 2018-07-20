@@ -19,7 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using osu.Framework.Input.State;
+using osu.Framework.Input.States;
 
 namespace osu.Framework.Graphics.Performance
 {

@@ -8,7 +8,7 @@ using osu.Framework.Configuration;
 using osu.Framework.Graphics.Containers;
 using OpenTK.Graphics;
 using osu.Framework.Extensions.IEnumerableExtensions;
-using osu.Framework.Input.State;
+using osu.Framework.Input.States;
 
 namespace osu.Framework.Graphics.UserInterface
 {

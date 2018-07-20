@@ -9,7 +9,7 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using System;
 using osu.Framework.Extensions.Color4Extensions;
-using osu.Framework.Input.State;
+using osu.Framework.Input.States;
 
 namespace osu.Framework.Testing.Drawables.Steps
 {

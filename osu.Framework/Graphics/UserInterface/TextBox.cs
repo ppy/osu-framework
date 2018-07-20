@@ -20,7 +20,7 @@ using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Platform;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Bindings;
-using osu.Framework.Input.State;
+using osu.Framework.Input.States;
 using osu.Framework.Timing;
 
 namespace osu.Framework.Graphics.UserInterface

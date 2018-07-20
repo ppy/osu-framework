@@ -26,7 +26,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Development;
-using osu.Framework.Input.State;
+using osu.Framework.Input.States;
 using osu.Framework.MathUtils;
 using JoystickEventArgs = osu.Framework.Input.JoystickEventArgs;
 

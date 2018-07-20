@@ -10,7 +10,7 @@ using osu.Framework.Graphics.Shapes;
 using OpenTK.Graphics;
 using System.Collections.Generic;
 using System.Linq;
-using osu.Framework.Input.State;
+using osu.Framework.Input.States;
 
 namespace osu.Framework.Testing.Drawables
 {

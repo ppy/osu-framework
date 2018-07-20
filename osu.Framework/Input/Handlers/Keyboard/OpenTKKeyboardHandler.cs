@@ -4,11 +4,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using osu.Framework.Input.StateChange;
+using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
 using OpenTK.Input;
-using KeyboardState = osu.Framework.Input.State.KeyboardState;
 
 namespace osu.Framework.Input.Handlers.Keyboard
 {
@@ -19,7 +18,7 @@ namespace osu.Framework.Input.Handlers.Keyboard
         public override int Priority => 0;
 
         private TkKeyboardState lastEventState;
-        private OpenTK.Input.KeyboardState? lastRawState;
+        private KeyboardState? lastRawState;
 
         public override bool Initialize(GameHost host)
         {
@@ -59,11 +58,11 @@ namespace osu.Framework.Input.Handlers.Keyboard
             FrameStatistics.Increment(StatisticsCounterType.KeyEvents);
         }
 
-        private class TkKeyboardState : KeyboardState
+        private class TkKeyboardState : States.KeyboardState
         {
             private static readonly IEnumerable<Key> all_keys = Enum.GetValues(typeof(Key)).Cast<Key>();
 
-            public TkKeyboardState(OpenTK.Input.KeyboardState tkState)
+            public TkKeyboardState(KeyboardState tkState)
             {
                 if (tkState.IsAnyKeyDown)
                 {

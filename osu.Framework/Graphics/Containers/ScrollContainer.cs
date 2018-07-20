@@ -8,7 +8,7 @@ using osu.Framework.MathUtils;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Shapes;
-using osu.Framework.Input.State;
+using osu.Framework.Input.States;
 using OpenTK.Input;
 
 namespace osu.Framework.Graphics.Containers
