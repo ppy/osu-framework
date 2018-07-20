@@ -8,7 +8,7 @@ using OpenTK.Input;
 
 namespace osu.Framework.Input.Events
 {
-    public abstract class MouseButtonEvent : UIEvent
+    public abstract class MouseButtonEvent : MouseEvent
     {
         public readonly MouseButton Button;
         public readonly Vector2 ScreenSpaceMouseDownPosition;

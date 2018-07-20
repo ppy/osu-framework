@@ -6,7 +6,7 @@ using osu.Framework.Input.States;
 
 namespace osu.Framework.Input.Events
 {
-    public class HoverLostEvent : UIEvent
+    public class HoverLostEvent : MouseEvent
     {
         public HoverLostEvent(InputState state)
             : base(state)

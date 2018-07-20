@@ -6,7 +6,7 @@ using osu.Framework.Input.States;
 
 namespace osu.Framework.Input.Events
 {
-    public class FocusLostEvent : UIEvent
+    public class FocusLostEvent : MouseEvent
     {
         public FocusLostEvent(InputState state)
             : base(state)
