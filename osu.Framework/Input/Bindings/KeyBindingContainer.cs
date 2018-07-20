@@ -44,8 +44,6 @@ namespace osu.Framework.Input.Bindings
         /// </summary>
         public IEnumerable<T> PressedActions => pressedActions;
 
-        private bool isModifier(InputKey k) => k < InputKey.F1;
-
         /// <summary>
         /// The input queue to be used for processing key bindings. Based on the non-positional <see cref="InputManager.InputQueue"/>.
         /// Can be overridden to change priorities.
@@ -136,9 +134,9 @@ namespace osu.Framework.Input.Bindings
                 m.KeyCombination.Keys.Contains(newKey) // only handle bindings matching current key (not required for correct logic)
                 && m.KeyCombination.IsPressed(pressedCombination, matchingMode));
 
-            if (isModifier(newKey))
+            if (KeyCombination.IsModifierKey(newKey))
                 // if the current key pressed was a modifier, only handle modifier-only bindings.
-                newlyPressed = newlyPressed.Where(b => b.KeyCombination.Keys.All(isModifier));
+                newlyPressed = newlyPressed.Where(b => b.KeyCombination.Keys.All(KeyCombination.IsModifierKey));
 
             // we want to always handle bindings with more keys before bindings with less.
             newlyPressed = newlyPressed.OrderByDescending(b => b.KeyCombination.Keys.Count()).ToList();

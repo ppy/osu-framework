@@ -56,8 +56,8 @@ namespace osu.Framework.Input.Bindings
                 case KeyCombinationMatchingMode.Modifiers:
                     if (Keys.Except(pressedKeys.Keys).Any())
                         return false;
-                    var pressedModifiers = pressedKeys.Keys.Where(isModifierKey);
-                    var requiredModifiers = Keys.Where(isModifierKey);
+                    var pressedModifiers = pressedKeys.Keys.Where(IsModifierKey);
+                    var requiredModifiers = Keys.Where(IsModifierKey);
                     return pressedModifiers.Count() == requiredModifiers.Count() && pressedModifiers.All(requiredModifiers.Contains);
 
                 default:
@@ -92,7 +92,7 @@ namespace osu.Framework.Input.Bindings
 
         public string ReadableString() => Keys?.Select(getReadableKey).Aggregate((s1, s2) => $"{s1}+{s2}") ?? string.Empty;
 
-        private static bool isModifierKey(InputKey key) => key == InputKey.Control || key == InputKey.Shift || key == InputKey.Alt || key == InputKey.Super;
+        public static bool IsModifierKey(InputKey key) => key == InputKey.Control || key == InputKey.Shift || key == InputKey.Alt || key == InputKey.Super;
 
         private string getReadableKey(InputKey key)
         {
