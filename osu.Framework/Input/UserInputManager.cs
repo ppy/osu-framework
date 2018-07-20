@@ -27,7 +27,7 @@ namespace osu.Framework.Input
                 case MousePositionChangeEvent mousePositionChange:
                     var mouse = mousePositionChange.State.Mouse;
                     // confine cursor
-                    if (Host.Window != null && (Host.Window.CursorState & CursorState.Confined) > 0)
+                    if (Host.Window != null && Host.Window.CursorState.HasFlag(CursorState.Confined))
                         mouse.Position = Vector2.Clamp(mouse.Position, Vector2.Zero, new Vector2(Host.Window.Width, Host.Window.Height));
                     break;
 

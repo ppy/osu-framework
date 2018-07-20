@@ -3,6 +3,7 @@
 
 using System;
 using osu.Framework.Graphics;
+using osu.Framework.Input.States;
 using OpenTK;
 using OpenTK.Input;
 

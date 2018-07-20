@@ -7,6 +7,8 @@ using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Event;
 using osu.Framework.Graphics;
+using osu.Framework.Input.StateChanges;
+using osu.Framework.Input.States;
 using osu.Framework.Logging;
 using OpenTK;
 using OpenTK.Input;

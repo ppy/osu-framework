@@ -6,6 +6,7 @@ using JetBrains.Annotations;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Input;
+using osu.Framework.Input.States;
 using OpenTK;
 
 namespace osu.Framework.Event

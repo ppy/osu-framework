@@ -11,11 +11,13 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
+using osu.Framework.Input.EventArgs;
+using osu.Framework.Input.States;
 using osu.Framework.Testing;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Input;
-using MouseEventArgs = osu.Framework.Input.MouseEventArgs;
+using MouseEventArgs = osu.Framework.Input.EventArgs.MouseEventArgs;
 using osu.Framework.MathUtils;
 
 namespace osu.Framework.Tests.Visual

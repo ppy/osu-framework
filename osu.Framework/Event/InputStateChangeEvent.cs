@@ -3,7 +3,8 @@
 
 using System;
 using JetBrains.Annotations;
-using osu.Framework.Input;
+using osu.Framework.Input.StateChanges;
+using osu.Framework.Input.States;
 
 namespace osu.Framework.Event
 {

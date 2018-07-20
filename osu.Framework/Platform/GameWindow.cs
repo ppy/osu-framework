@@ -119,11 +119,11 @@ namespace osu.Framework.Platform
             {
                 cursorState = value;
 
-                Implementation.Cursor = (cursorState & CursorState.Hidden) > 0 ? MouseCursor.Empty : MouseCursor.Default;
+                Implementation.Cursor = cursorState.HasFlag(CursorState.Hidden) ? MouseCursor.Empty : MouseCursor.Default;
 
                 try
                 {
-                    Implementation.CursorGrabbed = (cursorState & CursorState.Confined) > 0;
+                    Implementation.CursorGrabbed = cursorState.HasFlag(CursorState.Confined);
                 }
                 catch
                 {

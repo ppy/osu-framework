@@ -2,8 +2,9 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Event;
+using osu.Framework.Input.States;
 
-namespace osu.Framework.Input
+namespace osu.Framework.Input.StateChanges
 {
     /// <summary>
     /// An object which can handle <see cref="InputState"/> changes.

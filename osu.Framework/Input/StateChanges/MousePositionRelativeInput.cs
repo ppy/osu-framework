@@ -2,9 +2,10 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Event;
+using osu.Framework.Input.States;
 using OpenTK;
 
-namespace osu.Framework.Input
+namespace osu.Framework.Input.StateChanges
 {
     /// <summary>
     /// Denotes a relative change of mouse position.

@@ -4,8 +4,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Event;
+using osu.Framework.Input.States;
 
-namespace osu.Framework.Input
+namespace osu.Framework.Input.StateChanges
 {
     /// <summary>
     /// An abstract base class of an <see cref="IInput"/> which denotes a list of button state changes (pressed or released).

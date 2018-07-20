@@ -41,7 +41,7 @@ namespace osu.Framework.Input.Handlers.Mouse
                 mapAbsoluteInputToWindow.BindTo(desktopWindow.MapAbsoluteInputToWindow);
             }
 
-            Enabled.ValueChanged += enabled =>
+            Enabled.BindValueChanged(enabled =>
             {
                 if (enabled)
                 {
@@ -52,7 +52,7 @@ namespace osu.Framework.Input.Handlers.Mouse
 
                         if ((MouseInWindow || lastEachDeviceStates.Any(s => s != null && s.HasAnyButtonPressed)) && host.Window.Focused)
                         {
-                            var newRawStates = new List<OpenTK.Input.MouseState>(mostSeenStates + 1);
+                            var newRawStates = new List<MouseState>(mostSeenStates + 1);
 
                             for (int i = 0; i <= mostSeenStates + 1; i++)
                             {
@@ -83,7 +83,7 @@ namespace osu.Framework.Input.Handlers.Mouse
 
                                 var newState = new OpenTKPollMouseState(rawState, host.IsActive, getUpdatedPosition(rawState, lastState));
 
-                                HandleState(newState, lastState, (rawState.Flags & MouseStateFlags.MoveAbsolute) > 0);
+                                HandleState(newState, lastState, rawState.Flags.HasFlag(MouseStateFlags.MoveAbsolute));
 
                                 lastEachDeviceStates[i] = newState;
                                 lastUnfocusedState = null;
@@ -94,7 +94,7 @@ namespace osu.Framework.Input.Handlers.Mouse
                             var state = OpenTK.Input.Mouse.GetCursorState();
                             var screenPoint = host.Window.PointToClient(new Point(state.X, state.Y));
 
-                            var newState = new UnfocusedMouseState(new OpenTK.Input.MouseState(), host.IsActive, new Vector2(screenPoint.X, screenPoint.Y));
+                            var newState = new UnfocusedMouseState(new MouseState(), host.IsActive, new Vector2(screenPoint.X, screenPoint.Y));
 
                             HandleState(newState, lastUnfocusedState, true);
 
@@ -109,9 +109,8 @@ namespace osu.Framework.Input.Handlers.Mouse
                     lastEachDeviceStates.Clear();
                     lastUnfocusedState = null;
                 }
-            };
+            }, true);
 
-            Enabled.TriggerChange();
             return true;
         }
 
@@ -125,11 +124,11 @@ namespace osu.Framework.Input.Handlers.Mouse
             OpenTK.Input.Mouse.SetPosition(screenPoint.X, screenPoint.Y);
         }
 
-        private Vector2 getUpdatedPosition(OpenTK.Input.MouseState state, OpenTKMouseState lastState)
+        private Vector2 getUpdatedPosition(MouseState state, OpenTKMouseState lastState)
         {
             Vector2 currentPosition;
 
-            if ((state.Flags & MouseStateFlags.MoveAbsolute) > 0)
+            if (state.Flags.HasFlag(MouseStateFlags.MoveAbsolute))
             {
                 const int raw_input_resolution = 65536;
 
@@ -142,7 +141,7 @@ namespace osu.Framework.Input.Handlers.Mouse
                 }
                 else
                 {
-                    Rectangle screenRect = (state.Flags & MouseStateFlags.VirtualDesktop) > 0
+                    Rectangle screenRect = state.Flags.HasFlag(MouseStateFlags.VirtualDesktop)
                         ? Platform.Windows.Native.Input.GetVirtualScreenRect()
                         : new Rectangle(0, 0, DisplayDevice.Default.Width, DisplayDevice.Default.Height);
 
@@ -179,7 +178,7 @@ namespace osu.Framework.Input.Handlers.Mouse
 
         private class UnfocusedMouseState : OpenTKMouseState
         {
-            public UnfocusedMouseState(OpenTK.Input.MouseState tkState, bool active, Vector2? mappedPosition)
+            public UnfocusedMouseState(MouseState tkState, bool active, Vector2? mappedPosition)
                 : base(tkState, active, mappedPosition)
             {
             }

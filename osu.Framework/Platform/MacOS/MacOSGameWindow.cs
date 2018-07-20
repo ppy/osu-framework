@@ -21,21 +21,14 @@ namespace osu.Framework.Platform.MacOS
         private readonly IntPtr selKeyCode = Selector.Get("keyCode");
         private MethodInfo methodKeyDown;
         private MethodInfo methodKeyUp;
-
-        private const int modifier_flag_left_control = 1 << 0;
-        private const int modifier_flag_left_shift = 1 << 1;
-        private const int modifier_flag_right_shift = 1 << 2;
-        private const int modifier_flag_left_command = 1 << 3;
-        private const int modifier_flag_right_command = 1 << 4;
-        private const int modifier_flag_left_alt = 1 << 5;
-        private const int modifier_flag_right_alt = 1 << 6;
-        private const int modifier_flag_right_control = 1 << 13;
+        private MethodInfo methodInvalidateCursorRects;
 
         private object nativeWindow;
 
         public MacOSGameWindow()
         {
             Load += OnLoad;
+            UpdateFrame += refreshCursorState;
         }
 
         protected void OnLoad(object sender, EventArgs e)
@@ -55,6 +48,7 @@ namespace osu.Framework.Platform.MacOS
 
                 methodKeyDown = nativeWindow.GetType().GetRuntimeMethods().Single(x => x.Name == "OnKeyDown");
                 methodKeyUp = nativeWindow.GetType().GetRuntimeMethods().Single(x => x.Name == "OnKeyUp");
+                methodInvalidateCursorRects = nativeWindow.GetType().GetRuntimeMethods().Single(x => x.Name == "InvalidateCursorRects");
             }
             catch
             {
@@ -63,9 +57,17 @@ namespace osu.Framework.Platform.MacOS
             }
         }
 
+        private void refreshCursorState(object sender, OpenTK.FrameEventArgs e)
+        {
+            // If the cursor should be hidden, but something in the system has made it appear (such as a notification),
+            // invalidate the cursor rects to hide it.  OpenTK has a private function that does this.
+            if (CursorState.HasFlag(CursorState.Hidden) && Cocoa.CGCursorIsVisible())
+                methodInvalidateCursorRects.Invoke(nativeWindow, new object[0]);
+        }
+
         private void flagsChanged(IntPtr self, IntPtr cmd, IntPtr sender)
         {
-            var modifierFlags = Cocoa.SendInt(sender, selModifierFlags);
+            var modifierFlags = (CocoaKeyModifiers)Cocoa.SendInt(sender, selModifierFlags);
             var keyCode = Cocoa.SendInt(sender, selKeyCode);
 
             bool keyDown;
@@ -75,42 +77,42 @@ namespace osu.Framework.Platform.MacOS
             {
                 case MacOSKeyCodes.LShift:
                     key = OpenTK.Input.Key.LShift;
-                    keyDown = (modifierFlags & modifier_flag_left_shift) > 0;
+                    keyDown = modifierFlags.HasFlag(CocoaKeyModifiers.LeftShift);
                     break;
 
                 case MacOSKeyCodes.RShift:
                     key = OpenTK.Input.Key.RShift;
-                    keyDown = (modifierFlags & modifier_flag_right_shift) > 0;
+                    keyDown = modifierFlags.HasFlag(CocoaKeyModifiers.RightShift);
                     break;
 
                 case MacOSKeyCodes.LControl:
                     key = OpenTK.Input.Key.LControl;
-                    keyDown = (modifierFlags & modifier_flag_left_control) > 0;
+                    keyDown = modifierFlags.HasFlag(CocoaKeyModifiers.LeftControl);
                     break;
 
                 case MacOSKeyCodes.RControl:
                     key = OpenTK.Input.Key.RControl;
-                    keyDown = (modifierFlags & modifier_flag_right_control) > 0;
+                    keyDown = modifierFlags.HasFlag(CocoaKeyModifiers.RightControl);
                     break;
 
                 case MacOSKeyCodes.LAlt:
                     key = OpenTK.Input.Key.LAlt;
-                    keyDown = (modifierFlags & modifier_flag_left_alt) > 0;
+                    keyDown = modifierFlags.HasFlag(CocoaKeyModifiers.LeftAlt);
                     break;
 
                 case MacOSKeyCodes.RAlt:
                     key = OpenTK.Input.Key.RAlt;
-                    keyDown = (modifierFlags & modifier_flag_right_alt) > 0;
+                    keyDown = modifierFlags.HasFlag(CocoaKeyModifiers.RightAlt);
                     break;
 
                 case MacOSKeyCodes.LCommand:
                     key = OpenTK.Input.Key.LWin;
-                    keyDown = (modifierFlags & modifier_flag_left_command) > 0;
+                    keyDown = modifierFlags.HasFlag(CocoaKeyModifiers.LeftCommand);
                     break;
 
                 case MacOSKeyCodes.RCommand:
                     key = OpenTK.Input.Key.RWin;
-                    keyDown = (modifierFlags & modifier_flag_right_command) > 0;
+                    keyDown = modifierFlags.HasFlag(CocoaKeyModifiers.RightCommand);
                     break;
 
                 default:
@@ -122,6 +124,18 @@ namespace osu.Framework.Platform.MacOS
             else
                 methodKeyUp.Invoke(nativeWindow, new object[] { key });
         }
+    }
+
+    internal enum CocoaKeyModifiers
+    {
+        LeftControl = 1 << 0,
+        LeftShift = 1 << 1,
+        RightShift = 1 << 2,
+        LeftCommand = 1 << 3,
+        RightCommand = 1 << 4,
+        LeftAlt = 1 << 5,
+        RightAlt = 1 << 6,
+        RightControl = 1 << 13,
     }
 
     internal enum MacOSKeyCodes

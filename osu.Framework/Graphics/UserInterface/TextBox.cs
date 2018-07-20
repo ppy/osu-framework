@@ -16,10 +16,12 @@ using OpenTK.Input;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Configuration;
-using osu.Framework.Graphics.Colour;
+using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Platform;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Bindings;
+using osu.Framework.Input.EventArgs;
+using osu.Framework.Input.States;
 using osu.Framework.Timing;
 
 namespace osu.Framework.Graphics.UserInterface
@@ -484,10 +486,6 @@ namespace osu.Framework.Graphics.UserInterface
 
             TextFlow.Add(ch);
 
-            ch.FadeColour(Color4.Transparent)
-              .FadeColour(ColourInfo.GradientHorizontal(Color4.White, Color4.Transparent), caret_move_time / 2).Then()
-              .FadeColour(Color4.White, caret_move_time / 2);
-
             // Add back all the previously removed characters
             TextFlow.AddRange(charsRight);
 
@@ -505,7 +503,12 @@ namespace osu.Framework.Graphics.UserInterface
             if (string.IsNullOrEmpty(addText)) return;
 
             foreach (char c in addText)
-                addCharacter(c);
+            {
+                var ch = addCharacter(c);
+
+                var col = (Color4)ch.Colour;
+                ch.FadeColour(col.Opacity(0)).FadeColour(col, caret_move_time * 2, Easing.Out);
+            }
         }
 
         private Drawable addCharacter(char c)
