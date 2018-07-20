@@ -6,19 +6,13 @@ using System.Linq;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
-using osu.Framework.Input;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Input.States;
 
 namespace osu.Framework.Graphics.Visualisation
 {
-    internal enum TreeContainerStatus
-    {
-        Onscreen,
-        Offscreen
-    }
-
     internal class TreeContainer : Container, IStateful<TreeContainerStatus>
     {
         private readonly ScrollContainer scroll;
@@ -30,8 +24,6 @@ namespace osu.Framework.Graphics.Visualisation
         public Action ToggleProperties;
 
         protected override Container<Drawable> Content => scroll;
-
-        private readonly Container titleBar;
 
         private const float width = 400;
         private const float height = 600;
@@ -95,26 +87,7 @@ namespace osu.Framework.Graphics.Visualisation
                     Direction = FillDirection.Vertical,
                     Children = new Drawable[]
                     {
-                        titleBar = new Container
-                        {
-                            RelativeSizeAxes = Axes.X,
-                            Size = new Vector2(1, 25),
-                            Children = new Drawable[]
-                            {
-                                new Box
-                                {
-                                    RelativeSizeAxes = Axes.Both,
-                                    Colour = Color4.BlueViolet,
-                                },
-                                new SpriteText
-                                {
-                                    Anchor = Anchor.Centre,
-                                    Origin = Anchor.Centre,
-                                    Text = "draw visualiser (Ctrl+F1 to toggle)",
-                                    Alpha = 0.8f,
-                                },
-                            }
-                        },
+                        new TitleBar("draw visualiser (Ctrl+F1 to toggle)", this),
                         new Container //toolbar
                         {
                             RelativeSizeAxes = Axes.X,
@@ -207,16 +180,6 @@ namespace osu.Framework.Graphics.Visualisation
             State = TreeContainerStatus.Offscreen;
             base.OnHoverLost(state);
         }
-
-        protected override bool OnDragStart(InputState state) => titleBar.ReceiveMouseInputAt(state.Mouse.NativeState.Position);
-
-        protected override bool OnDrag(InputState state)
-        {
-            Position += state.Mouse.Delta;
-            return base.OnDrag(state);
-        }
-
-        protected override bool OnMouseDown(InputState state, MouseDownEventArgs args) => true;
 
         protected override bool OnClick(InputState state) => true;
 
