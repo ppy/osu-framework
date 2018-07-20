@@ -6,7 +6,7 @@ using OpenTK;
 
 namespace osu.Framework.Input.Events
 {
-    public class MouseMoveEvent : MouseEvent
+    public class MouseMoveEvent : UIEvent
     {
         /// <summary>
         /// The last mouse position before this mouse move in the screen space.
