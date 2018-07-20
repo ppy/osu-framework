@@ -3,7 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using osu.Framework.Input;
+using osu.Framework.Input.EventArgs;
 using osu.Framework.Input.States;
 using OpenTK.Input;
 
