@@ -6,9 +6,12 @@ using osu.Framework.Input.States;
 
 namespace osu.Framework.Input.Events
 {
-    public class MouseEvent : UIEvent
+    /// <summary>
+    /// Represent an event which is propagated based on mouse position.
+    /// </summary>
+    public abstract class MouseEvent : UIEvent
     {
-        public MouseEvent(InputState state)
+        protected MouseEvent(InputState state)
             : base(state)
         {
         }
