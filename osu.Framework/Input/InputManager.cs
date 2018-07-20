@@ -264,9 +264,7 @@ namespace osu.Framework.Input
 
             foreach (var h in InputHandlers)
             {
-                var list = h.GetPendingInputs();
-                if (h.IsActive && h.Enabled)
-                    inputs.AddRange(list);
+                inputs.AddRange(h.GetPendingInputs());
             }
 
             return inputs;

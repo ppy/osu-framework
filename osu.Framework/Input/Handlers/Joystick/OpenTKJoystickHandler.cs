@@ -21,7 +21,7 @@ namespace osu.Framework.Input.Handlers.Joystick
 
         public override bool Initialize(GameHost host)
         {
-            Enabled.ValueChanged += enabled =>
+            Enabled.BindValueChanged(enabled =>
             {
                 if (enabled)
                 {
@@ -50,10 +50,9 @@ namespace osu.Framework.Input.Handlers.Joystick
                     }
 
                     devices.Clear();
+                    mostSeenDevices = 0;
                 }
-            };
-
-            Enabled.TriggerChange();
+            }, true);
 
             return true;
         }
@@ -124,7 +123,7 @@ namespace osu.Framework.Input.Handlers.Joystick
                 for (int i = 0; i < JoystickDevice.MAX_BUTTONS; i++)
                 {
                     if (device.RawState.GetButton(i) == ButtonState.Pressed)
-                        Buttons.SetPressed((JoystickButton)i, true);
+                        Buttons.SetPressed(JoystickButton.FirstButton + i, true);
                 }
 
                 // Populate hat buttons

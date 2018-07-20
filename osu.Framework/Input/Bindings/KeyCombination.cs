@@ -97,19 +97,19 @@ namespace osu.Framework.Input.Bindings
         private string getReadableKey(InputKey key)
         {
             if (key >= InputKey.FirstJoystickHatRightButton)
-                return $"Joystick Hat {key - InputKey.FirstJoystickHatRightButton} Right";
+                return $"Joystick Hat {key - InputKey.FirstJoystickHatRightButton + 1} Right";
             if (key >= InputKey.FirstJoystickHatLeftButton)
-                return $"Joystick Hat {key - InputKey.FirstJoystickHatLeftButton} Left";
+                return $"Joystick Hat {key - InputKey.FirstJoystickHatLeftButton + 1} Left";
             if (key >= InputKey.FirstJoystickHatDownButton)
-                return $"Joystick Hat {key - InputKey.FirstJoystickHatDownButton} Down";
+                return $"Joystick Hat {key - InputKey.FirstJoystickHatDownButton + 1} Down";
             if (key >= InputKey.FirstJoystickHatUpButton)
-                return $"Joystick Hat {key - InputKey.FirstJoystickHatUpButton} Up";
+                return $"Joystick Hat {key - InputKey.FirstJoystickHatUpButton + 1} Up";
             if (key >= InputKey.FirstJoystickAxisPositiveButton)
-                return $"Joystick Axis {key - InputKey.FirstJoystickAxisPositiveButton} +";
+                return $"Joystick Axis {key - InputKey.FirstJoystickAxisPositiveButton + 1} +";
             if (key >= InputKey.FirstJoystickAxisNegativeButton)
-                return $"Joystick Axis {key - InputKey.FirstJoystickAxisNegativeButton} -";
+                return $"Joystick Axis {key - InputKey.FirstJoystickAxisNegativeButton + 1} -";
             if (key >= InputKey.FirstJoystickButton)
-                return $"Joystick {key - InputKey.FirstJoystickButton}";
+                return $"Joystick {key - InputKey.FirstJoystickButton + 1}";
 
             switch (key)
             {
@@ -256,7 +256,7 @@ namespace osu.Framework.Input.Bindings
                 return InputKey.FirstJoystickAxisPositiveButton + (button - JoystickButton.FirstAxisPositive);
             if (button >= JoystickButton.FirstAxisNegative)
                 return InputKey.FirstJoystickAxisNegativeButton + (button - JoystickButton.FirstAxisNegative);
-            return InputKey.FirstJoystickButton + (int)button;
+            return InputKey.FirstJoystickButton + (button - JoystickButton.FirstButton);
         }
 
         public static InputKey FromScrollDelta(Vector2 scrollDelta)
