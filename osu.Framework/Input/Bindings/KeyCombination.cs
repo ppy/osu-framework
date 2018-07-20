@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Input.States;
 using OpenTK;
 using OpenTK.Input;
 

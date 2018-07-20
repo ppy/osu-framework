@@ -7,12 +7,19 @@ using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Input.EventArgs;
 using osu.Framework.Input.Handlers;
+using osu.Framework.Input.StateChanges;
+using osu.Framework.Input.States;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
 using OpenTK;
 using OpenTK.Input;
+using JoystickEventArgs = osu.Framework.Input.EventArgs.JoystickEventArgs;
+using JoystickState = osu.Framework.Input.States.JoystickState;
+using KeyboardState = osu.Framework.Input.States.KeyboardState;
+using MouseState = osu.Framework.Input.States.MouseState;
 
 namespace osu.Framework.Input
 {

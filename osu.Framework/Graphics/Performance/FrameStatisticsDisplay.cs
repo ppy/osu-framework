@@ -11,7 +11,6 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.Input;
 using osu.Framework.MathUtils;
 using osu.Framework.Statistics;
 using osu.Framework.Threading;
@@ -19,6 +18,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using osu.Framework.Input.EventArgs;
+using osu.Framework.Input.States;
 
 namespace osu.Framework.Graphics.Performance
 {

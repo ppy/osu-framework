@@ -3,7 +3,7 @@
 
 using System.Collections.Generic;
 
-namespace osu.Framework.Input
+namespace osu.Framework.Input.States
 {
     public interface IJoystickState
     {
