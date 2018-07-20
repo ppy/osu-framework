@@ -157,17 +157,7 @@ namespace osu.Framework.Allocation
         {
             if (cache.TryGetValue(type, out object ret))
                 return ret;
-
             return parentContainer?.Get(type);
-
-            //we don't ever want to instantiate for now, as this breaks expectations when using permitNull.
-            //need to revisit this when/if it is required.
-            //if (!activators.ContainsKey(type))
-            //    return null; // Or an exception?
-            //object instance = activators[type](this, null);
-            //if (cacheable.Contains(type))
-            //    cache[type] = instance;
-            //return instance;
         }
 
         /// <summary>
