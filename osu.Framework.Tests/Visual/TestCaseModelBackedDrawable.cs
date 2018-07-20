@@ -47,6 +47,7 @@ namespace osu.Framework.Tests.Visual
                 delayedModelBackedDrawable.Item = null;
                 fadeImmediateModelBackedDrawable.Item = null;
             });
+
             AddUntilStep(() => modelBackedDrawable.VisibleItemId == -1 &&
                                delayedModelBackedDrawable.VisibleItemId == -1 &&
                                fadeImmediateModelBackedDrawable.VisibleItemId == -1, "Wait until all null");
@@ -73,8 +74,10 @@ namespace osu.Framework.Tests.Visual
                 AddStep($"{prefix}: Set null", () => drawable.Item = null);
             else
                 AddStep($"{prefix}: Set item {itemNumber}", () => drawable.Item = new TestItem(itemNumber));
+
             if (testNotChanged)
                 AddAssert($"{prefix}: Test drawable not changed", () => drawable.VisibleItemId != itemNumber);
+
             AddUntilStep(() => drawable.VisibleItemId == itemNumber, $"{prefix}: Wait until changed");
         }
 
@@ -145,6 +148,7 @@ namespace osu.Framework.Tests.Visual
                     Alpha = 0,
                     AlwaysPresent = true
                 });
+
                 BorderColour = Color4.White;
                 BorderThickness = 2;
                 Masking = true;
