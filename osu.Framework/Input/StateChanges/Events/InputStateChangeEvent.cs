@@ -3,10 +3,9 @@
 
 using System;
 using JetBrains.Annotations;
-using osu.Framework.Input.StateChanges;
 using osu.Framework.Input.States;
 
-namespace osu.Framework.Event
+namespace osu.Framework.Input.StateChanges.Events
 {
     /// <summary>
     /// An event which represents a change of an <see cref="InputState"/>.

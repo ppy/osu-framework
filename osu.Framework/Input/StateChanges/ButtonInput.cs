@@ -3,7 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using osu.Framework.Event;
+using osu.Framework.Input.StateChanges.Events;
 using osu.Framework.Input.States;
 
 namespace osu.Framework.Input.StateChanges

@@ -4,11 +4,11 @@
 
 using osu.Framework.Input.States;
 
-namespace osu.Framework.Event
+namespace osu.Framework.Input.Events
 {
-    public class FocusLostEvent : MouseEvent
+    public class MouseEvent : UIEvent
     {
-        public FocusLostEvent(InputState state)
+        public MouseEvent(InputState state)
             : base(state)
         {
         }

@@ -5,11 +5,11 @@ using osu.Framework.Input.States;
 using OpenTK;
 using OpenTK.Input;
 
-namespace osu.Framework.Event
+namespace osu.Framework.Input.Events
 {
-    public class MouseDownEvent : MouseButtonEvent
+    public class ClickEvent : MouseButtonEvent
     {
-        public MouseDownEvent(InputState state, MouseButton button, Vector2? screenSpaceMouseDownPosition = null)
+        public ClickEvent(InputState state, MouseButton button, Vector2? screenSpaceMouseDownPosition = null)
             : base(state, button, screenSpaceMouseDownPosition)
         {
         }

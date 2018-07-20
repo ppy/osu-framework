@@ -5,7 +5,7 @@ using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Input.States;
 using OpenTK;
 
-namespace osu.Framework.Event
+namespace osu.Framework.Input.Events
 {
     public class ScrollEvent : UIEvent
     {

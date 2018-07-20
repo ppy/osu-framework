@@ -1,15 +1,15 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using osu.Framework.Input.States;
-using OpenTK.Input;
 
-namespace osu.Framework.Event
+using osu.Framework.Input.States;
+
+namespace osu.Framework.Input.Events
 {
-    public class KeyUpEvent : KeyboardEvent
+    public class HoverEvent : MouseEvent
     {
-        public KeyUpEvent(InputState state, Key key)
-            : base(state, key)
+        public HoverEvent(InputState state)
+            : base(state)
         {
         }
     }
