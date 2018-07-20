@@ -21,7 +21,7 @@ namespace osu.Framework.Input.Handlers.Joystick
 
         public override bool Initialize(GameHost host)
         {
-            Enabled.ValueChanged += enabled =>
+            Enabled.BindValueChanged(enabled =>
             {
                 if (enabled)
                 {
@@ -52,9 +52,7 @@ namespace osu.Framework.Input.Handlers.Joystick
                     devices.Clear();
                     mostSeenDevices = 0;
                 }
-            };
-
-            Enabled.TriggerChange();
+            }, true);
 
             return true;
         }

@@ -41,7 +41,7 @@ namespace osu.Framework.Input.Handlers.Mouse
                 mapAbsoluteInputToWindow.BindTo(desktopWindow.MapAbsoluteInputToWindow);
             }
 
-            Enabled.ValueChanged += enabled =>
+            Enabled.BindValueChanged(enabled =>
             {
                 if (enabled)
                 {
@@ -109,9 +109,8 @@ namespace osu.Framework.Input.Handlers.Mouse
                     lastEachDeviceStates.Clear();
                     lastUnfocusedState = null;
                 }
-            };
+            }, true);
 
-            Enabled.TriggerChange();
             return true;
         }
 
