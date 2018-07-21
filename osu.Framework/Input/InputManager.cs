@@ -106,18 +106,25 @@ namespace osu.Framework.Input
         /// that the return value of <see cref="Drawable.OnHover(InputState)"/> is not taken
         /// into account.
         /// </summary>
-        public IEnumerable<Drawable> PositionalInputQueue => buildMouseInputQueue(CurrentState);
+        public IEnumerable<Drawable> PositionalInputQueue => positionalInputQueue;
+
+        private readonly List<Drawable> positionalInputQueue;
 
         /// <summary>
         /// Contains all <see cref="Drawable"/>s in top-down order which are considered
         /// for non-positional input.
         /// </summary>
-        public IEnumerable<Drawable> InputQueue => buildInputQueue();
+        public IEnumerable<Drawable> InputQueue => inputQueue;
+
+        private readonly List<Drawable> inputQueue;
 
         private readonly Dictionary<MouseButton, MouseButtonEventManager> mouseButtonEventManagers = new Dictionary<MouseButton, MouseButtonEventManager>();
 
         protected InputManager()
         {
+            inputQueue = new List<Drawable>();
+            positionalInputQueue = new List<Drawable>();
+
             CurrentState = CreateInitialState();
             RelativeSizeAxes = Axes.Both;
 
@@ -125,7 +132,7 @@ namespace osu.Framework.Input
             {
                 var manager = CreateButtonManagerFor(button);
                 manager.RequestFocus = ChangeFocusFromClick;
-                manager.GetPositionalInputQueue = () => PositionalInputQueue;
+                manager.GetPositionalInputQueue = () => buildMouseInputQueue(CurrentState);
                 mouseButtonEventManagers.Add(button, manager);
             }
         }
@@ -237,10 +244,9 @@ namespace osu.Framework.Input
 
             if (CurrentState.Mouse.IsPositionValid)
             {
-                foreach (var d in PositionalInputQueue)
-                    if (d is IRequireHighFrequencyMousePosition)
-                        if (d.TriggerOnMouseMove(CurrentState))
-                            break;
+                foreach (var d in buildMouseInputQueue(CurrentState))
+                    if (d is IRequireHighFrequencyMousePosition && d.TriggerOnMouseMove(CurrentState))
+                        break;
             }
 
             updateKeyRepeat(CurrentState);
@@ -265,21 +271,11 @@ namespace osu.Framework.Input
             }
         }
 
-        protected virtual List<IInput> GetPendingInputs()
-        {
-            var inputs = new List<IInput>();
-
-            foreach (var h in InputHandlers)
-            {
-                inputs.AddRange(h.GetPendingInputs());
-            }
-
-            return inputs;
-        }
+        protected virtual List<IInput> GetPendingInputs() => InputHandlers.SelectMany(h => h.GetPendingInputs()).ToList();
 
         private IEnumerable<Drawable> buildInputQueue()
         {
-            var inputQueue = new List<Drawable>();
+            inputQueue.Clear();
 
             if (this is UserInputManager)
                 FrameStatistics.Increment(StatisticsCounterType.KeyboardQueue);
@@ -288,7 +284,7 @@ namespace osu.Framework.Input
                 d.BuildKeyboardInputQueue(inputQueue);
 
             if (!unfocusIfNoLongerValid())
-                inputQueue.Append(FocusedDrawable);
+                inputQueue.Add(FocusedDrawable);
 
             // Keyboard and mouse queues were created in back-to-front order.
             // We want input to first reach front-most drawables, so the queues
@@ -300,7 +296,7 @@ namespace osu.Framework.Input
 
         private IEnumerable<Drawable> buildMouseInputQueue(InputState state)
         {
-            var positionalInputQueue = new List<Drawable>();
+            positionalInputQueue.Clear();
 
             if (this is UserInputManager)
                 FrameStatistics.Increment(StatisticsCounterType.MouseQueue);
@@ -327,7 +323,7 @@ namespace osu.Framework.Input
             if (HandleHoverEvents)
             {
                 // First, we need to construct hoveredDrawables for the current frame
-                foreach (Drawable d in PositionalInputQueue)
+                foreach (Drawable d in buildMouseInputQueue(CurrentState))
                 {
                     hoveredDrawables.Add(d);
 
@@ -433,12 +429,12 @@ namespace osu.Framework.Input
 
         private bool handleMouseMove(InputState state)
         {
-            return PositionalInputQueue.Any(target => target.TriggerOnMouseMove(state));
+            return buildMouseInputQueue(CurrentState).Any(target => target.TriggerOnMouseMove(state));
         }
 
         private bool handleScroll(InputState state)
         {
-            return PropagateScroll(PositionalInputQueue, state);
+            return PropagateScroll(buildMouseInputQueue(CurrentState), state);
         }
 
         /// <summary>
@@ -459,7 +455,7 @@ namespace osu.Framework.Input
 
         private bool handleKeyDown(InputState state, Key key, bool repeat)
         {
-            return PropagateKeyDown(InputQueue, state, new KeyDownEventArgs { Key = key, Repeat = repeat });
+            return PropagateKeyDown(buildInputQueue(), state, new KeyDownEventArgs { Key = key, Repeat = repeat });
         }
 
         /// <summary>
@@ -481,7 +477,7 @@ namespace osu.Framework.Input
 
         private bool handleKeyUp(InputState state, Key key)
         {
-            IEnumerable<Drawable> queue = InputQueue;
+            IEnumerable<Drawable> queue = buildInputQueue();
             if (!unfocusIfNoLongerValid())
                 queue = queue.Prepend(FocusedDrawable);
 
@@ -507,7 +503,7 @@ namespace osu.Framework.Input
 
         private bool handleJoystickPress(InputState state, JoystickButton button)
         {
-            IEnumerable<Drawable> queue = InputQueue;
+            IEnumerable<Drawable> queue = buildInputQueue();
             if (!unfocusIfNoLongerValid())
                 queue = queue.Prepend(FocusedDrawable);
 
@@ -526,7 +522,7 @@ namespace osu.Framework.Input
 
         private bool handleJoystickRelease(InputState state, JoystickButton button)
         {
-            IEnumerable<Drawable> queue = InputQueue;
+            IEnumerable<Drawable> queue = buildInputQueue();
             if (!unfocusIfNoLongerValid())
                 queue = queue.Prepend(FocusedDrawable);
 
@@ -608,14 +604,13 @@ namespace osu.Framework.Input
                 }
             }
 
-
             ChangeFocus(focusTarget);
         }
 
         private void focusTopMostRequestingDrawable()
         {
             // todo: don't rebuild input queue every frame
-            ChangeFocus(InputQueue.FirstOrDefault(target => target.RequestsFocus));
+            ChangeFocus(buildInputQueue().FirstOrDefault(target => target.RequestsFocus));
         }
 
         private class MouseLeftButtonEventManager : MouseButtonEventManager
