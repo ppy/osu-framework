@@ -53,8 +53,6 @@ namespace osu.Framework.Platform.MacOS
 
         private NSWindowStyleMask styleMask => (NSWindowStyleMask)Cocoa.SendUint(WindowInfo.Handle, selStyleMask);
 
-        private bool isFullScreen() => (styleMask & NSWindowStyleMask.FullScreen) != 0;
-
         protected void OnLoad(object sender, EventArgs e)
         {
             try
@@ -109,16 +107,15 @@ namespace osu.Framework.Platform.MacOS
             }
         }
 
-        private uint windowWillUseFullScreen(IntPtr self, IntPtr cmd, IntPtr window, uint options) => (uint)presentationOptionsForWindowMode(WindowMode.Value);
+        private uint windowWillUseFullScreen(IntPtr self, IntPtr cmd, IntPtr window, uint options) => (uint)presentationOptionsForWindowMode(newWindowMode ?? WindowMode.Value);
 
         private void windowDidEnterFullScreen(IntPtr self, IntPtr cmd, IntPtr notification)
         {
-            if (WindowMode.Value == Configuration.WindowMode.Windowed)
-                WindowMode.Value = Configuration.WindowMode.Borderless;
-            NSApplication.PresentationOptions = presentationOptionsForWindowMode(WindowMode.Value);
+            if ((newWindowMode ?? WindowMode.Value) == Configuration.WindowMode.Windowed)
+                newWindowMode = Configuration.WindowMode.Borderless;
         }
 
-        private void windowDidExitFullScreen(IntPtr self, IntPtr cmd, IntPtr notification) => WindowMode.Value = Configuration.WindowMode.Windowed;
+        private void windowDidExitFullScreen(IntPtr self, IntPtr cmd, IntPtr notification) => newWindowMode = Configuration.WindowMode.Windowed;
 
         protected void OnUpdateFrame(object sender, FrameEventArgs e)
         {
@@ -126,7 +123,9 @@ namespace osu.Framework.Platform.MacOS
             WindowMode? mode = newWindowMode;
             if (mode.HasValue)
             {
-                bool currentFullScreen = isFullScreen();
+                newWindowMode = null;
+
+                bool currentFullScreen = styleMask.HasFlag(NSWindowStyleMask.FullScreen);
                 bool toggleFullScreen = mode.Value == Configuration.WindowMode.Borderless || mode.Value == Configuration.WindowMode.Fullscreen ? !currentFullScreen : currentFullScreen;
 
                 if (toggleFullScreen)
@@ -134,7 +133,7 @@ namespace osu.Framework.Platform.MacOS
                 else if (currentFullScreen)
                     NSApplication.PresentationOptions = presentationOptionsForWindowMode(mode.Value);
 
-                newWindowMode = null;
+                WindowMode.Value = mode.Value;
             }
 
             // If the cursor should be hidden, but something in the system has made it appear (such as a notification),

@@ -24,7 +24,6 @@ namespace osu.Framework.Tests.Visual
         {
             var currentBindableSize = new SpriteText();
 
-
             Child = new FillFlowContainer
             {
                 Children = new[]
