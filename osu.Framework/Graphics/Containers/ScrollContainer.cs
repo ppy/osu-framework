@@ -255,22 +255,20 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
-            if (!IsHandlingKeyboardScrolling)
-                return false;
-
-            switch (args.Key)
+            if (IsHandlingKeyboardScrolling && !IsDragging)
             {
-                case Key.PageUp:
-                    if (!IsDragging)
+                switch (args.Key)
+                {
+                    case Key.PageUp:
                         ScrollTo(target - displayableContent);
-                    return true;
-                case Key.PageDown:
-                    if (!IsDragging)
+                        return true;
+                    case Key.PageDown:
                         ScrollTo(target + displayableContent);
-                    return true;
-                default:
-                    return base.OnKeyDown(state, args);
+                        return true;
+                }
             }
+
+            return base.OnKeyDown(state, args);
         }
 
         protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
