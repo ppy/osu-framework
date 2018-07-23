@@ -54,11 +54,18 @@ namespace osu.Framework.Allocation
         /// <param name="instance">The instance to cache. Must be or derive from <paramref name="type"/>.</param>
         public void CacheAs(Type type, object instance)
         {
-            if (!type.IsClass) throw new ArgumentException($"{type.ReadableName()} must be a class to be cached as a dependency.", nameof(type));
+            if (instance == null)
+                throw new ArgumentNullException(nameof(instance));
 
-            if (!type.IsInstanceOfType(instance)) throw new ArgumentException($"{instance.GetType().ReadableName()} must be a subclass of {type.ReadableName()}.", nameof(instance));
+            var instanceType = instance.GetType();
 
-            cache[type] = instance ?? throw new ArgumentNullException(nameof(instance));
+            if (instanceType.IsValueType)
+                throw new ArgumentException($"{instanceType.ReadableName()} must be a class to be cached as a dependency.", nameof(instance));
+
+            if (!type.IsInstanceOfType(instance))
+                throw new ArgumentException($"{instanceType.ReadableName()} must be a subclass of {type.ReadableName()}.", nameof(instance));
+
+            cache[type] = instance;
         }
 
         /// <summary>

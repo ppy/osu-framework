@@ -110,11 +110,38 @@ namespace osu.Framework.Tests.Dependencies
             Assert.IsNotNull(dependencies.Get<ProvidedType1>());
         }
 
-        private class ProvidedType1
+        [Test]
+        public void TestCacheClassAsInterface()
+        {
+            var provider = new Provider11();
+
+            var dependencies = DependencyActivator.MergeDependencies(provider, new DependencyContainer());
+
+            Assert.IsNotNull(dependencies.Get<IProvidedInterface1>());
+            Assert.IsNotNull(dependencies.Get<ProvidedType1>());
+        }
+
+        [Test]
+        public void TestCacheStructAsInterface()
+        {
+            var provider = new Provider12();
+
+            Assert.Throws<ArgumentException>(() => DependencyActivator.MergeDependencies(provider, new DependencyContainer()));
+        }
+
+        private interface IProvidedInterface1
+        {
+        }
+
+        private class ProvidedType1 : IProvidedInterface1
         {
         }
 
         private class ProvidedType2
+        {
+        }
+
+        private struct ProvidedType3 : IProvidedInterface1
         {
         }
 
@@ -183,6 +210,19 @@ namespace osu.Framework.Tests.Dependencies
         {
             [Cached]
             private object provided1 = new ProvidedType1();
+        }
+
+        private class Provider11
+        {
+            [Cached]
+            [Cached(Type = typeof(IProvidedInterface1))]
+            private IProvidedInterface1 provided1 = new ProvidedType1();
+        }
+
+        private class Provider12
+        {
+            [Cached(Type = typeof(IProvidedInterface1))]
+            private IProvidedInterface1 provided1 = new ProvidedType3();
         }
     }
 }
