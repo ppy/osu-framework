@@ -20,7 +20,7 @@ namespace osu.Framework.Input
         private GameHost host { get; set; }
 
         public PlatformActionContainer()
-            : base(SimultaneousBindingMode.NoneExact)
+            : base(SimultaneousBindingMode.None, KeyCombinationMatchingMode.Modifiers)
         {
         }
 

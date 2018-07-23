@@ -3,7 +3,7 @@
 
 using OpenTK.Input;
 
-namespace osu.Framework.Input
+namespace osu.Framework.Input.States
 {
     public interface IKeyboardState
     {
