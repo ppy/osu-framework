@@ -25,7 +25,6 @@ namespace osu.Framework.Input.Handlers.Mouse
         private readonly Bindable<WindowMode> windowMode = new Bindable<WindowMode>();
         private readonly BindableBool mapAbsoluteInputToWindow = new BindableBool();
 
-        private int mostSeenStates;
         private readonly List<OsuTKMouseState> lastEachDeviceStates = new List<OsuTKMouseState>();
         private OsuTKMouseState lastUnfocusedState;
 
@@ -52,22 +51,12 @@ namespace osu.Framework.Input.Handlers.Mouse
 
                         if ((MouseInWindow || lastEachDeviceStates.Any(s => s != null && s.Buttons.HasAnyButtonPressed)) && host.Window.Focused)
                         {
-                            var newRawStates = new List<MouseState>(mostSeenStates + 1);
+                            var newRawStates = osuTK.Input.Mouse.GetStates();
 
-                            for (int i = 0; i <= mostSeenStates + 1; i++)
-                            {
-                                var s = osuTK.Input.Mouse.GetState(i);
-                                if (s.IsConnected || i < mostSeenStates)
-                                {
-                                    newRawStates.Add(s);
-                                    mostSeenStates = i;
-                                }
-                            }
-
-                            while (lastEachDeviceStates.Count < newRawStates.Count)
+                            while (lastEachDeviceStates.Count < newRawStates.Length)
                                 lastEachDeviceStates.Add(null);
 
-                            for (int i = 0; i < newRawStates.Count; i++)
+                            for (int i = 0; i < newRawStates.Length; i++)
                             {
                                 if (newRawStates[i].IsConnected != true)
                                 {
