@@ -175,7 +175,7 @@ namespace osu.Framework.Platform
 
             // when running under nunit + netcore, entry assembly becomes nunit itself (testhost, Version=15.0.0.0), which isn't what we want.
             if (assembly == null || assembly.Location.Contains("testhost"))
-                assembly = Assembly.GetCallingAssembly();
+                assembly = Assembly.GetExecutingAssembly();
 
             Name = gameName;
 
