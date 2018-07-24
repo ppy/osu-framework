@@ -14,6 +14,7 @@ namespace osu.Framework.Tests.Visual
     public class TestCaseFullscreen : TestCase
     {
         private readonly SpriteText currentActualSize = new SpriteText();
+        private readonly SpriteText currentDisplay = new SpriteText();
 
         private GameWindow window;
         private readonly BindableSize sizeFullscreen = new BindableSize();
@@ -29,6 +30,7 @@ namespace osu.Framework.Tests.Visual
                 {
                     currentBindableSize,
                     currentActualSize,
+                    currentDisplay
                 },
             };
 
@@ -64,6 +66,7 @@ namespace osu.Framework.Tests.Visual
             base.Update();
 
             currentActualSize.Text = $"Window size: {window?.Bounds.Size}";
+            currentDisplay.Text = $"Current display device: {window?.GetCurrentDisplay()}";
         }
     }
 }
