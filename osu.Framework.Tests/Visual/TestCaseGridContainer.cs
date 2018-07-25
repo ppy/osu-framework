@@ -335,20 +335,47 @@ namespace osu.Framework.Tests.Visual
             AddStep("Autosizing child", () =>
             {
                 reset();
+
+                Drawable child1, child2;
+
                 grid.Content = new[]
                 {
-                    new Drawable[]
+                    new[]
                     {
-                        new FillFlowContainer
+                        child1 = new Container
                         {
+                            Anchor = Anchor.Centre,
+                            Origin = Anchor.Centre,
                             AutoSizeAxes = Axes.Both,
                             Child = new Box { Size = new Vector2(100, 50) }
                         },
                         new FillBox()
+                    },
+                    new[]
+                    {
+                        null,
+                        child2 = new Container
+                        {
+                            Anchor = Anchor.Centre,
+                            Origin = Anchor.Centre,
+                            AutoSizeAxes = Axes.Both,
+                            Child = new Box { Size = new Vector2(100, 50) }
+                        },
                     }
                 };
 
                 grid.ColumnDimensions = new[] { new Dimension(GridSizeMode.AutoSize) };
+                grid.RowDimensions = new[]
+                {
+                    new Dimension(),
+                    new Dimension(GridSizeMode.AutoSize),
+                };
+
+                SchedulerAfterChildren.Add(() =>
+                {
+                    child1.Spin(3000, RotationDirection.Clockwise);
+                    child2.Spin(3000, RotationDirection.Clockwise);
+                });
             });
         }
 
