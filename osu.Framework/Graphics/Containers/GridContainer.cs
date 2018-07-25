@@ -91,7 +91,7 @@ namespace osu.Framework.Graphics.Containers
 
         public override void InvalidateFromChild(Invalidation invalidation, Drawable source = null)
         {
-            if ((invalidation & Invalidation.RequiredParentSizeToFit) > 0)
+            if ((invalidation & Invalidation.RequiredParentSizeToFit | Invalidation.Colour) > 0)
                 cellLayout.Invalidate();
 
             base.InvalidateFromChild(invalidation, source);
@@ -197,7 +197,7 @@ namespace osu.Framework.Graphics.Containers
                             break;
                         case GridSizeMode.AutoSize:
                             for (int r = 0; r < cellRows; r++)
-                                cellWidth = Math.Max(cellWidth, Content[r]?[i]?.DrawWidth ?? 0);
+                                cellWidth = Math.Max(cellWidth, Content[r]?[i]?.BoundingBox.Width ?? 0);
                             break;
                     }
 
@@ -235,7 +235,7 @@ namespace osu.Framework.Graphics.Containers
                             break;
                         case GridSizeMode.AutoSize:
                             for (int c = 0; c < cellColumns; c++)
-                                cellHeight = Math.Max(cellHeight, Content[i]?[c]?.DrawHeight ?? 0);
+                                cellHeight = Math.Max(cellHeight, Content[i]?[c]?.BoundingBox.Height ?? 0);
                             break;
                     }
 
@@ -289,6 +289,13 @@ namespace osu.Framework.Graphics.Containers
             /// Whether this <see cref="CellContainer"/> uses <see cref="GridSizeMode.Distributed"/> for its height.
             /// </summary>
             public bool DistributedHeight;
+
+            public override void InvalidateFromChild(Invalidation invalidation, Drawable source = null)
+            {
+                if ((invalidation & (Invalidation.RequiredParentSizeToFit | Invalidation.Colour)) > 0)
+                    Parent.InvalidateFromChild(invalidation);
+                base.InvalidateFromChild(invalidation, source);
+            }
         }
     }
 
