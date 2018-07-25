@@ -35,7 +35,8 @@ namespace osu.Framework.Input
         /// </summary>
         private const int repeat_tick_rate = 70;
 
-        protected GameHost Host;
+        [Resolved(CanBeNull = true)]
+        protected GameHost Host { get; set; }
 
         internal Drawable FocusedDrawable;
 
@@ -144,12 +145,6 @@ namespace osu.Framework.Input
                 default:
                     return new MouseMinorButtonEventManager(button);
             }
-        }
-
-        [BackgroundDependencyLoader(permitNulls: true)]
-        private void load(GameHost host)
-        {
-            Host = host;
         }
 
         /// <summary>
