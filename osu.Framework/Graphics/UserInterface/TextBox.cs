@@ -626,7 +626,6 @@ namespace osu.Framework.Graphics.UserInterface
                 else
                     audio.Sample.Get($@"Keyboard/key-press-{RNG.Next(1, 5)}")?.Play();
 
-                // if capslock is on, make pendingText upper case
                 insertString(pendingText);
             }
 
