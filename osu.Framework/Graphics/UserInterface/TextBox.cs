@@ -657,7 +657,7 @@ namespace osu.Framework.Graphics.UserInterface
                     Commit();
                     return true;
                 case Key.CapsLock:
-                    capslockOn = true;
+                    capslockOn = !capslockOn;
                     return true;
             }
 
@@ -695,13 +695,6 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (!state.Keyboard.Keys.Any())
                 EndConsumingText();
-
-            switch (args.Key)
-            {
-                case Key.CapsLock:
-                    capslockOn = false;
-                    return true;
-            }
 
             return base.OnKeyUp(state, args);
         }
