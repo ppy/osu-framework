@@ -115,6 +115,10 @@ namespace osu.Framework.Platform.MacOS
                     keyDown = modifierFlags.HasFlag(CocoaKeyModifiers.RightCommand);
                     break;
 
+                case MacOSKeyCodes.CapsLock:
+                    CapslockDown = !CapslockDown;
+                    return;
+
                 default:
                     return;
             }

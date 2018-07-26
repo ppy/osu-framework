@@ -54,6 +54,11 @@ namespace osu.Framework.Platform
         public bool CursorInWindow { get; private set; }
 
         /// <summary>
+        /// Whether the caps lock key is enabled
+        /// </summary>
+        public bool CapslockDown { get; protected set; }
+
+        /// <summary>
         /// Creates a <see cref="GameWindow"/> with a given <see cref="IGameWindow"/> implementation.
         /// </summary>
         protected GameWindow([NotNull] IGameWindow implementation)

@@ -84,8 +84,6 @@ namespace osu.Framework.Graphics.UserInterface
 
         public override bool CanBeTabbedTo => !ReadOnly;
 
-        private bool capslockOn;
-
         private ITextInputSource textInput;
         private Clipboard clipboard;
 
@@ -629,7 +627,7 @@ namespace osu.Framework.Graphics.UserInterface
                     audio.Sample.Get($@"Keyboard/key-press-{RNG.Next(1, 5)}")?.Play();
 
                 // if capslock is on, make pendingText upper case
-                insertString(capslockOn ? pendingText.ToUpper() : pendingText);
+                insertString(pendingText);
             }
 
             if (consumingText)
@@ -655,9 +653,6 @@ namespace osu.Framework.Graphics.UserInterface
                 case Key.KeypadEnter:
                 case Key.Enter:
                     Commit();
-                    return true;
-                case Key.CapsLock:
-                    capslockOn = !capslockOn;
                     return true;
             }
 

@@ -36,7 +36,9 @@ namespace osu.Framework.Input
                 if (e.KeyChar > 63000)
                     return;
             }
-            pending += e.KeyChar;
+
+            // Do we use ToUpper? or ToUpperInvariant
+            pending += window.CapslockDown ? char.ToUpper(e.KeyChar) : e.KeyChar;
         }
 
         public bool ImeActive => false;
