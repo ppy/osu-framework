@@ -656,7 +656,7 @@ namespace osu.Framework.Graphics.UserInterface
                 case Key.Enter:
                     Commit();
                     return true;
-                case Key.Capslock:
+                case Key.CapsLock:
                     capslockOn = true;
                     return true;
             }
@@ -698,7 +698,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             switch (args.Key)
             {
-                case Key.Capslock:
+                case Key.CapsLock:
                     capslockOn = false;
                     return true;
             }
