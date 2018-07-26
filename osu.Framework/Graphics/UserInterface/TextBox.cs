@@ -84,7 +84,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         public override bool CanBeTabbedTo => !ReadOnly;
 
-        private bool capslockOn = false;
+        private bool capslockOn;
 
         private ITextInputSource textInput;
         private Clipboard clipboard;
