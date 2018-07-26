@@ -83,7 +83,7 @@ namespace osu.Framework.Graphics.UserInterface
         public bool ReleaseFocusOnCommit = true;
 
         public override bool CanBeTabbedTo => !ReadOnly;
-        
+
         private bool capslockOn = false;
 
         private ITextInputSource textInput;
