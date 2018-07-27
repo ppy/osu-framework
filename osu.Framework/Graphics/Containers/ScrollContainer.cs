@@ -372,7 +372,7 @@ namespace osu.Framework.Graphics.Containers
             Current += offset;
         }
 
-        private void offset(float value, bool animated, double distanceDecay = float.PositiveInfinity) => scrollTo(target + value, animated, distanceDecay);
+        private void offset(float value, bool animated, double distanceDecay = float.PositiveInfinity) => scrollTo(target + (InvertedScroll ? -value : value), animated, distanceDecay);
 
         /// <summary>
         /// Scroll to the start of available content.
@@ -497,6 +497,12 @@ namespace osu.Framework.Graphics.Containers
                 Current = target;
         }
 
+        /// <summary>
+        /// Whether scrolling should be inverted i.e. in a vertical <see cref="ScrollContainer"/> children should be anchored to the bottom and
+        /// in a horizontal <see cref="ScrollContainer"/> children should be anchored to the right.
+        /// </summary>
+        public bool InvertedScroll;
+
         protected override void UpdateAfterChildren()
         {
             base.UpdateAfterChildren();
@@ -504,15 +510,17 @@ namespace osu.Framework.Graphics.Containers
             updateSize();
             updatePosition();
 
+            var cur = InvertedScroll ? scrollableExtent - Current : Current;
+
             if (ScrollDirection == Direction.Horizontal)
             {
-                Scrollbar.X = Current * Scrollbar.Size.X;
-                content.X = -Current;
+                Scrollbar.X = cur * Scrollbar.Size.X;
+                content.X = -cur;
             }
             else
             {
-                Scrollbar.Y = Current * Scrollbar.Size.Y;
-                content.Y = -Current;
+                Scrollbar.Y = cur * Scrollbar.Size.Y;
+                content.Y = -cur;
             }
         }
 

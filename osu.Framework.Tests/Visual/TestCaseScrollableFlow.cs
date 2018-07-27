@@ -96,6 +96,8 @@ namespace osu.Framework.Tests.Visual
             AddStep("Dragger Visible", delegate { scroll.ScrollbarVisible = !scroll.ScrollbarVisible; });
             AddStep("Dragger Overlap", delegate { scroll.ScrollbarOverlapsContent = !scroll.ScrollbarOverlapsContent; });
 
+            AddToggleStep("Inverted", inverted => scroll.InvertedScroll = inverted);
+
             boxCreator?.Cancel();
             boxCreator = Scheduler.AddDelayed(delegate
             {
