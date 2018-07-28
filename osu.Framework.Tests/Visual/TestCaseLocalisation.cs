@@ -176,7 +176,7 @@ namespace osu.Framework.Tests.Visual
             protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent)
             {
                 var deps = base.CreateChildDependencies(parent);
-                ((DependencyContainer)deps).Cache(engine);
+                ((DependencyContainer)deps).CacheAs<ILocalisationEngine>(engine);
                 return deps;
             }
         }

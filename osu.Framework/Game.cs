@@ -137,7 +137,7 @@ namespace osu.Framework
             dependencies.Cache(Fonts);
 
             Localisation = CreateLocalisationEngine(config);
-            dependencies.Cache(Localisation);
+            dependencies.CacheAs(Localisation);
         }
 
         protected override void LoadComplete()

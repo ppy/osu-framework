@@ -7,13 +7,13 @@ using System;
 namespace osu.Framework.Localisation
 {
     /// <summary>
-    /// Specifies the modifications the <see cref="LocalisationEngine"/> will carry out on the supplied string.
+    /// Specifies the modifications the <see cref="ILocalisationEngine"/> will carry out on the supplied string.
     /// </summary>
     [Flags]
     public enum LocalisationType
     {
         /// <summary>
-        /// The string will not be changed by localisation, and any changes to the bindable will not be tracked at all by the <see cref="LocalisationEngine"/>.
+        /// The string will not be changed by localisation, and any changes to the bindable will not be tracked at all by the <see cref="ILocalisationEngine"/>.
         /// </summary>
         Never = 0,
 

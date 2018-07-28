@@ -156,7 +156,7 @@ namespace osu.Framework.Graphics.Sprites
         }
 
         [BackgroundDependencyLoader]
-        private void load(LocalisationEngine localisation)
+        private void load(ILocalisationEngine localisation)
         {
             localisationEngine = localisation;
             updateLocalisedBindable();
@@ -166,7 +166,7 @@ namespace osu.Framework.Graphics.Sprites
             validateLayout();
         }
 
-        private LocalisationEngine localisationEngine;
+        private ILocalisationEngine localisationEngine;
 
         [NotNull]
         private string displayText = string.Empty;
