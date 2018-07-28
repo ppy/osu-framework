@@ -2,7 +2,10 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Linq;
+using OpenTK;
+using osu.Framework.Allocation;
 using osu.Framework.Audio;
+using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Performance;
@@ -10,12 +13,10 @@ using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Visualisation;
 using osu.Framework.Input;
-using osu.Framework.IO.Stores;
-using osu.Framework.Platform;
-using osu.Framework.Allocation;
-using osu.Framework.Configuration;
 using osu.Framework.Input.Bindings;
-using OpenTK;
+using osu.Framework.IO.Stores;
+using osu.Framework.Localisation;
+using osu.Framework.Platform;
 using GameWindow = osu.Framework.Platform.GameWindow;
 
 namespace osu.Framework
@@ -38,6 +39,8 @@ namespace osu.Framework
 
         public FontStore Fonts;
 
+        public ILocalisationEngine Localisation;
+
         private readonly Container content;
         private PerformanceOverlay performanceContainer;
         internal DrawVisualiser DrawVisualiser;
@@ -47,6 +50,8 @@ namespace osu.Framework
         protected override Container<Drawable> Content => content;
 
         protected internal virtual UserInputManager CreateUserInputManager() => new UserInputManager();
+
+        protected virtual ILocalisationEngine CreateLocalisationEngine(FrameworkConfigManager config) => new LocalisationEngine(config);
 
         protected Game()
         {
@@ -130,6 +135,9 @@ namespace osu.Framework
                 ScaleAdjust = 100
             };
             dependencies.Cache(Fonts);
+
+            Localisation = CreateLocalisationEngine(config);
+            dependencies.Cache(Localisation);
         }
 
         protected override void LoadComplete()

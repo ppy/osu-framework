@@ -47,8 +47,6 @@ namespace osu.Framework.Platform
 
         private FrameworkConfigManager config;
 
-        public LocalisationEngine Localisation { get; private set; }
-
         private void setActive(bool isActive)
         {
             threads.ForEach(t => t.IsActive = isActive);
@@ -573,7 +571,6 @@ namespace osu.Framework.Platform
         {
             Dependencies.Cache(debugConfig = new FrameworkDebugConfigManager());
             Dependencies.Cache(config = new FrameworkConfigManager(Storage));
-            Dependencies.Cache(Localisation = new LocalisationEngine(config));
 
             activeGCMode = debugConfig.GetBindable<GCLatencyMode>(DebugSetting.ActiveGCMode);
             activeGCMode.ValueChanged += newMode =>
