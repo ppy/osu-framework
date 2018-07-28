@@ -16,6 +16,10 @@ namespace osu.Framework.Localisation
     {
         private readonly Bindable<bool> preferUnicode;
         private readonly Bindable<string> locale;
+
+        private readonly WeakList<LocalisedBindable> localisedBindings = new WeakList<LocalisedBindable>();
+        private readonly WeakList<UnicodeBindable> unicodeBindings = new WeakList<UnicodeBindable>();
+
         private readonly Dictionary<string, IResourceStore<string>> storages = new Dictionary<string, IResourceStore<string>>();
         private IResourceStore<string> current;
 
@@ -35,9 +39,6 @@ namespace osu.Framework.Localisation
             locale.ValueChanged += checkLocale;
         }
 
-        private readonly WeakList<LocalisedBindable> localisedBindings = new WeakList<LocalisedBindable>();
-        private readonly WeakList<UnicodeBindable> unicodeBindings = new WeakList<UnicodeBindable>();
-
         public void AddLanguage(string language, IResourceStore<string> storage)
         {
             storages.Add(language, storage);
@@ -45,10 +46,10 @@ namespace osu.Framework.Localisation
         }
 
         /// <summary>
-        /// Get a localised <see cref="IBindable{T}"/> for a <see cref="LocalisableString"/>.
+        /// Creates and tracks a <see cref="Bindable{T}"/> according to information provided in <paramref name="localisable"/>, with the ability to dynamically update the bindable.
         /// </summary>
-        /// <param name="localisable">The <see cref="LocalisableString"/> to get a bindable for. 
-        /// <para>Changing any of its bindables' values will also trigger a localisation update, unless <see cref="LocalisableString.Type"/> is set to <see cref="LocalisationType.Never"/>.</para></param>
+        /// <param name="localisable">Provides information about the text and expected type of localisation.</param>
+        /// <returns>A <see cref="Bindable{T}"/> that contains the localised text as specified by the input <paramref name="localisable"/>.</returns>
         [NotNull]
         public IBindable<string> GetLocalisedBindable([NotNull] LocalisableString localisable)
         {
@@ -93,9 +94,11 @@ namespace osu.Framework.Localisation
         }
 
         /// <summary>
-        /// Get a <see cref="IBindable{T}"/> for a given string and a non-Unicode (usually romanised) alternative.
-        /// <para>The Value of this <see cref="IBindable{T}"/> will depend on the current <see cref="FrameworkSetting.ShowUnicode"/> setting.</para>
+        /// Creates and tracks a <see cref="Bindable{T}"/> that is one of two given string values, based on the <see cref="FrameworkSetting.ShowUnicode"/>.
         /// </summary>
+        /// <param name="unicode">The unicode text to be used when <see cref="FrameworkSetting.ShowUnicode"/> is true.</param>
+        /// <param name="nonUnicode">The non-unicode text to be used when <see cref="FrameworkSetting.ShowUnicode"/> is false.</param>
+        /// <returns>A <see cref="Bindable{T}"/> that contains either the unicode or non-unicode text and updates dynamically.</returns>
         [NotNull]
         public IBindable<string> GetUnicodeBindable([CanBeNull] string unicode, [CanBeNull] string nonUnicode)
         {
