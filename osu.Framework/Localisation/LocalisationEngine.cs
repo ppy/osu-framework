@@ -12,7 +12,7 @@ using JetBrains.Annotations;
 
 namespace osu.Framework.Localisation
 {
-    public class LocalisationEngine
+    public class LocalisationEngine : ILocalisationEngine
     {
         private readonly Bindable<bool> preferUnicode;
         private readonly Bindable<string> locale;
