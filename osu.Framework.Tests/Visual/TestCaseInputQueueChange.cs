@@ -7,61 +7,50 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Input;
+using osu.Framework.Input.EventArgs;
+using osu.Framework.Input.States;
 using osu.Framework.Testing;
-using osu.Framework.Testing.Input;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Input;
 
 namespace osu.Framework.Tests.Visual
 {
-    public class TestCaseInputQueueChange : TestCase
+    public class TestCaseInputQueueChange : ManualInputManagerTestCase
     {
-        private readonly ManualInputManager manual;
-
         private readonly HittableBox box1;
         private readonly HittableBox box2;
         private readonly HittableBox box3;
 
         public TestCaseInputQueueChange()
         {
+            RelativeSizeAxes = Axes.Both;
             Children = new Drawable[]
             {
-                manual = new ManualInputManager
-                {
-                    RelativeSizeAxes = Axes.Both,
-                    Children = new Drawable[]
-                    {
-                        box3 = new HittableBox(3),
-                        box2 = new HittableBox(2),
-                        box1 = new HittableBox(1),
-                    }
-                },
+                box3 = new HittableBox(3),
+                box2 = new HittableBox(2),
+                box1 = new HittableBox(1),
             };
-
-            AddStep("return input", () => manual.UseParentInput = true);
 
             // TODO: blocking event testing
         }
 
         [SetUp]
-        public void SetUp()
+        public override void SetUp()
         {
-            // grab manual input control
-            manual.UseParentInput = false;
-            foreach (var b in manual.Children.OfType<HittableBox>())
+            base.SetUp();
+            foreach (var b in Children.OfType<HittableBox>())
                 b.Reset();
         }
 
         [Test]
         public void SeparateClicks()
         {
-            AddStep("move", () => manual.MoveMouseTo(manual.Children.First().ScreenSpaceDrawQuad.Centre));
-            AddStep("press 1", () => manual.PressButton(MouseButton.Button1));
-            AddStep("press 2", () => manual.PressButton(MouseButton.Button2));
-            AddStep("release 1", () => manual.ReleaseButton(MouseButton.Button1));
-            AddStep("release 2", () => manual.ReleaseButton(MouseButton.Button2));
+            AddStep("move", () => InputManager.MoveMouseTo(InputManager.Children.First().ScreenSpaceDrawQuad.Centre));
+            AddStep("press 1", () => InputManager.PressButton(MouseButton.Button1));
+            AddStep("press 2", () => InputManager.PressButton(MouseButton.Button2));
+            AddStep("release 1", () => InputManager.ReleaseButton(MouseButton.Button1));
+            AddStep("release 2", () => InputManager.ReleaseButton(MouseButton.Button2));
             AddAssert("box 1 was pressed", () => box1.HitCount == 1);
             AddAssert("box 2 was pressed", () => box2.HitCount == 1);
             AddAssert("box 3 not pressed", () => box3.HitCount == 0);
@@ -70,16 +59,16 @@ namespace osu.Framework.Tests.Visual
         [Test]
         public void CombinedClicks()
         {
-            AddStep("move", () => manual.MoveMouseTo(manual.Children.First().ScreenSpaceDrawQuad.Centre));
+            AddStep("move", () => InputManager.MoveMouseTo(Children.First().ScreenSpaceDrawQuad.Centre));
             AddStep("press 1+2", () =>
             {
-                manual.PressButton(MouseButton.Button1);
-                manual.PressButton(MouseButton.Button2);
+                InputManager.PressButton(MouseButton.Button1);
+                InputManager.PressButton(MouseButton.Button2);
             });
             AddStep("release 1+2", () =>
             {
-                manual.ReleaseButton(MouseButton.Button1);
-                manual.ReleaseButton(MouseButton.Button2);
+                InputManager.ReleaseButton(MouseButton.Button1);
+                InputManager.ReleaseButton(MouseButton.Button2);
             });
             AddAssert("box 1 was pressed", () => box1.HitCount == 1);
             AddAssert("box 2 was pressed", () => box2.HitCount == 1);

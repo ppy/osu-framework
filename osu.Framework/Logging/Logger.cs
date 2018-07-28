@@ -10,6 +10,7 @@ using osu.Framework.Platform;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using osu.Framework.Development;
 using osu.Framework.Threading;
 
 namespace osu.Framework.Logging
@@ -34,7 +35,7 @@ namespace osu.Framework.Logging
         /// <summary>
         /// The minimum log-level a logged message needs to have to be logged. Default is <see cref="LogLevel.Verbose"/>. Please note that setting this to <see cref="LogLevel.Debug"/>  will log input events, including keypresses when entering a password.
         /// </summary>
-        public static LogLevel Level = LogLevel.Verbose;
+        public static LogLevel Level = DebugUtils.IsDebugBuild ? LogLevel.Debug : LogLevel.Verbose;
 
         /// <summary>
         /// An identifier used in log file headers to figure where the log file came from.
@@ -169,10 +170,9 @@ namespace osu.Framework.Logging
         /// <param name="level">The verbosity level.</param>
         public static void LogPrint(string message, LoggingTarget target = LoggingTarget.Runtime, LogLevel level = LogLevel.Verbose)
         {
-#if DEBUG
-            if (Enabled)
+            if (Enabled && DebugUtils.IsDebugBuild)
                 System.Diagnostics.Debug.Print(message);
-#endif
+
             Log(message, target, level);
         }
 
@@ -184,10 +184,9 @@ namespace osu.Framework.Logging
         /// <param name="level">The verbosity level.</param>
         public static void LogPrint(string message, string name, LogLevel level = LogLevel.Verbose)
         {
-#if DEBUG
-            if (Enabled)
+            if (Enabled && DebugUtils.IsDebugBuild)
                 System.Diagnostics.Debug.Print(message);
-#endif
+
             Log(message, name, level);
         }
 
@@ -281,8 +280,7 @@ namespace osu.Framework.Logging
 
             ensureHeader();
 
-#if DEBUG
-            if (outputToListeners)
+            if (outputToListeners && DebugUtils.IsDebugBuild)
             {
                 var debugLine = $"[{Target?.ToString().ToLower() ?? Name}:{level.ToString().ToLower()}] {message}";
 
@@ -292,15 +290,6 @@ namespace osu.Framework.Logging
                 // fire for console displays (appveyor/CI).
                 Console.WriteLine(debugLine);
             }
-#endif
-
-#if Public
-            if (level < LogLevel.Important) return;
-#endif
-
-#if !DEBUG
-            if (level <= LogLevel.Debug) return;
-#endif
 
             message = ApplyFilters(message);
 
@@ -382,8 +371,8 @@ namespace osu.Framework.Logging
             headerAdded = true;
 
             add("----------------------------------------------------------", outputToListeners: false);
-            add($"{Target} Log for {UserIdentifier}", outputToListeners: false);
-            add($"{GameIdentifier} version {VersionIdentifier}", outputToListeners: false);
+            add($"{Target} Log for {UserIdentifier} (LogLevel: {Level})", outputToListeners: false);
+            add($"{GameIdentifier} {VersionIdentifier}", outputToListeners: false);
             add($"Running on {Environment.OSVersion}, {Environment.ProcessorCount} cores", outputToListeners: false);
             add("----------------------------------------------------------", outputToListeners: false);
         }

@@ -11,104 +11,96 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
+using osu.Framework.Input.EventArgs;
+using osu.Framework.Input.States;
 using osu.Framework.Testing;
-using osu.Framework.Testing.Input;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Input;
-using MouseEventArgs = osu.Framework.Input.MouseEventArgs;
+using MouseEventArgs = osu.Framework.Input.EventArgs.MouseEventArgs;
 using osu.Framework.MathUtils;
 
 namespace osu.Framework.Tests.Visual
 {
-    public class TestCaseMouseStates : TestCase
+    public class TestCaseMouseStates : ManualInputManagerTestCase
     {
         private readonly Box marginBox, outerMarginBox;
-        private readonly ManualInputManager manual;
         private readonly FrameworkActionContainer actionContainer;
 
         private readonly StateTracker s1, s2;
 
         public TestCaseMouseStates()
         {
-            Children = new Drawable[]
+            Child = new Container
             {
-                new StateTracker(0),
-                manual = new ManualInputManager
+                FillMode = FillMode.Fit,
+                FillAspectRatio = 1,
+                RelativeSizeAxes = Axes.Both,
+                Size = new Vector2(0.75f),
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre,
+                Children = new Drawable[]
                 {
-                    FillMode = FillMode.Fit,
-                    FillAspectRatio = 1,
-                    RelativeSizeAxes = Axes.Both,
-                    Size = new Vector2(0.75f),
-                    Anchor = Anchor.Centre,
-                    Origin = Anchor.Centre,
-                    Children = new Drawable[]
+                    new Box
                     {
-                        new Box
+                        RelativeSizeAxes = Axes.Both,
+                        Colour = new Color4(1, 1, 1, 0.2f),
+                    },
+                    s1 = new StateTracker(1),
+                    new Container
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Children = new Drawable[]
                         {
-                            RelativeSizeAxes = Axes.Both,
-                            Colour = new Color4(1, 1, 1, 0.2f),
-                        },
-                        s1 = new StateTracker(1),
-                        new Container
-                        {
-                            RelativeSizeAxes = Axes.Both,
-                            Children = new Drawable[]
+                            outerMarginBox = new Box
                             {
-                                outerMarginBox = new Box
+                                RelativeSizeAxes = Axes.Both,
+                                Anchor = Anchor.Centre,
+                                Origin = Anchor.Centre,
+                                Size = new Vector2(0.9f),
+                                Colour = Color4.SkyBlue.Opacity(0.1f),
+                            },
+                            actionContainer = new FrameworkActionContainer
+                            {
+                                RelativeSizeAxes = Axes.Both,
+                                Size = new Vector2(0.6f),
+                                Anchor = Anchor.Centre,
+                                Origin = Anchor.Centre,
+                                Children = new Drawable[]
                                 {
-                                    RelativeSizeAxes = Axes.Both,
-                                    Anchor = Anchor.Centre,
-                                    Origin = Anchor.Centre,
-                                    Size = new Vector2(0.9f),
-                                    Colour = Color4.SkyBlue.Opacity(0.1f),
-                                },
-                                actionContainer = new FrameworkActionContainer
-                                {
-                                    RelativeSizeAxes = Axes.Both,
-                                    Size = new Vector2(0.6f),
-                                    Anchor = Anchor.Centre,
-                                    Origin = Anchor.Centre,
-                                    Children = new Drawable[]
+                                    new Box
                                     {
-                                        new Box
-                                        {
-                                            RelativeSizeAxes = Axes.Both,
-                                            Colour = new Color4(1, 1, 1, 0.2f),
-                                        },
-                                        marginBox = new Box
-                                        {
-                                            RelativeSizeAxes = Axes.Both,
-                                            Anchor = Anchor.Centre,
-                                            Origin = Anchor.Centre,
-                                            Size = new Vector2(0.8f),
-                                            Colour = Color4.SkyBlue.Opacity(0.1f),
-                                        },
-                                        s2 = new DraggableStateTracker(2),
-                                    }
+                                        RelativeSizeAxes = Axes.Both,
+                                        Colour = new Color4(1, 1, 1, 0.2f),
+                                    },
+                                    marginBox = new Box
+                                    {
+                                        RelativeSizeAxes = Axes.Both,
+                                        Anchor = Anchor.Centre,
+                                        Origin = Anchor.Centre,
+                                        Size = new Vector2(0.8f),
+                                        Colour = Color4.SkyBlue.Opacity(0.1f),
+                                    },
+                                    s2 = new DraggableStateTracker(2),
                                 }
                             }
-                        },
+                        }
                     }
                 }
             };
-
-            AddStep("return input", () => manual.UseParentInput = true);
         }
 
-        [SetUp]
-        public void SetUp()
+        protected override void LoadComplete()
         {
-            // grab manual input control
-            manual.UseParentInput = false;
-            manual.MoveMouseTo(actionContainer);
+            ((Container)InputManager.Parent).Add(new StateTracker(0));
         }
 
         private void initTestCase()
         {
             eventCounts1.Clear();
             eventCounts2.Clear();
-            AddStep("move mouse to center", () => manual.MoveMouseTo(actionContainer));
+            // InitialMousePosition cannot be used here because the event counters should be resetted after the initial mouse move.
+            AddStep("move mouse to center", () => InputManager.MoveMouseTo(actionContainer));
             AddStep("reset event counters", () =>
             {
                 s1.Reset();
@@ -121,12 +113,12 @@ namespace osu.Framework.Tests.Visual
         {
             initTestCase();
 
-            AddStep("scroll some", () => manual.ScrollBy(new Vector2(-1, 1)));
+            AddStep("scroll some", () => InputManager.ScrollBy(new Vector2(-1, 1)));
             checkEventCount("Move");
             checkEventCount("Scroll", 1);
             checkLastScrollDelta(new Vector2(-1, 1));
 
-            AddStep("scroll some", () => manual.ScrollBy(new Vector2(1, -1)));
+            AddStep("scroll some", () => InputManager.ScrollBy(new Vector2(1, -1)));
             checkEventCount("Scroll", 1);
             checkLastScrollDelta(new Vector2(1, -1));
         }
@@ -136,23 +128,23 @@ namespace osu.Framework.Tests.Visual
         {
             initTestCase();
 
-            AddStep("push move", () => manual.MoveMouseTo(marginBox.ScreenSpaceDrawQuad.TopLeft));
+            AddStep("push move", () => InputManager.MoveMouseTo(marginBox.ScreenSpaceDrawQuad.TopLeft));
             checkEventCount("Move", 1);
             checkEventCount("Scroll");
 
-            AddStep("push move", () => manual.MoveMouseTo(marginBox.ScreenSpaceDrawQuad.TopRight));
+            AddStep("push move", () => InputManager.MoveMouseTo(marginBox.ScreenSpaceDrawQuad.TopRight));
             checkEventCount("Move", 1);
             checkEventCount("Scroll");
             checkLastPositionDelta(() => marginBox.ScreenSpaceDrawQuad.Width);
 
-            AddStep("push move", () => manual.MoveMouseTo(marginBox.ScreenSpaceDrawQuad.BottomRight));
+            AddStep("push move", () => InputManager.MoveMouseTo(marginBox.ScreenSpaceDrawQuad.BottomRight));
             checkEventCount("Move", 1);
             checkLastPositionDelta(() => marginBox.ScreenSpaceDrawQuad.Height);
 
             AddStep("push two moves", () =>
             {
-                manual.MoveMouseTo(marginBox.ScreenSpaceDrawQuad.TopLeft);
-                manual.MoveMouseTo(marginBox.ScreenSpaceDrawQuad.BottomLeft);
+                InputManager.MoveMouseTo(marginBox.ScreenSpaceDrawQuad.TopLeft);
+                InputManager.MoveMouseTo(marginBox.ScreenSpaceDrawQuad.BottomLeft);
             });
             checkEventCount("Move", 2);
             checkLastPositionDelta(() => Vector2.Distance(marginBox.ScreenSpaceDrawQuad.TopLeft, marginBox.ScreenSpaceDrawQuad.BottomLeft));
@@ -163,45 +155,45 @@ namespace osu.Framework.Tests.Visual
         {
             initTestCase();
 
-            AddStep("press left button", () => manual.PressButton(MouseButton.Left));
+            AddStep("press left button", () => InputManager.PressButton(MouseButton.Left));
             checkEventCount("MouseDown", 1);
 
-            AddStep("press right button", () => manual.PressButton(MouseButton.Right));
+            AddStep("press right button", () => InputManager.PressButton(MouseButton.Right));
             checkEventCount("MouseDown", 1);
 
-            AddStep("release left button", () => manual.ReleaseButton(MouseButton.Left));
+            AddStep("release left button", () => InputManager.ReleaseButton(MouseButton.Left));
             checkEventCount("MouseUp", 1);
 
-            AddStep("release right button", () => manual.ReleaseButton(MouseButton.Right));
+            AddStep("release right button", () => InputManager.ReleaseButton(MouseButton.Right));
             checkEventCount("MouseUp", 1);
 
             AddStep("press three buttons", () =>
             {
-                manual.PressButton(MouseButton.Left);
-                manual.PressButton(MouseButton.Right);
-                manual.PressButton(MouseButton.Button1);
+                InputManager.PressButton(MouseButton.Left);
+                InputManager.PressButton(MouseButton.Right);
+                InputManager.PressButton(MouseButton.Button1);
             });
             checkEventCount("MouseDown", 3);
 
             AddStep("Release mouse buttons", () =>
             {
-                manual.ReleaseButton(MouseButton.Left);
-                manual.ReleaseButton(MouseButton.Right);
-                manual.ReleaseButton(MouseButton.Button1);
+                InputManager.ReleaseButton(MouseButton.Left);
+                InputManager.ReleaseButton(MouseButton.Right);
+                InputManager.ReleaseButton(MouseButton.Button1);
             });
             checkEventCount("MouseUp", 3);
 
             AddStep("press two buttons", () =>
             {
-                manual.PressButton(MouseButton.Left);
-                manual.ReleaseButton(MouseButton.Left);
-                manual.PressButton(MouseButton.Right);
+                InputManager.PressButton(MouseButton.Left);
+                InputManager.ReleaseButton(MouseButton.Left);
+                InputManager.PressButton(MouseButton.Right);
             });
 
             checkEventCount("MouseDown", 2);
             checkEventCount("MouseUp", 1);
 
-            AddStep("release", () => manual.ReleaseButton(MouseButton.Right));
+            AddStep("release", () => InputManager.ReleaseButton(MouseButton.Right));
 
             checkEventCount("Move");
             checkEventCount("MouseUp", 1);
@@ -212,15 +204,15 @@ namespace osu.Framework.Tests.Visual
         {
             initTestCase();
 
-            AddStep("press left button", () => manual.PressButton(MouseButton.Left));
+            AddStep("press left button", () => InputManager.PressButton(MouseButton.Left));
             checkEventCount("MouseDown", 1);
             checkIsDragged(false);
 
-            AddStep("move bottom left", () => manual.MoveMouseTo(marginBox.ScreenSpaceDrawQuad.BottomLeft));
+            AddStep("move bottom left", () => InputManager.MoveMouseTo(marginBox.ScreenSpaceDrawQuad.BottomLeft));
             checkEventCount("DragStart", 1);
             checkIsDragged(true);
 
-            AddStep("release left button", () => manual.ReleaseButton(MouseButton.Left));
+            AddStep("release left button", () => InputManager.ReleaseButton(MouseButton.Left));
             checkEventCount("MouseUp", 1);
             checkIsDragged(false);
         }
@@ -230,13 +222,13 @@ namespace osu.Framework.Tests.Visual
         {
             initTestCase();
 
-            AddStep("push move", () => manual.MoveMouseTo(marginBox.ScreenSpaceDrawQuad.BottomLeft));
+            AddStep("push move", () => InputManager.MoveMouseTo(marginBox.ScreenSpaceDrawQuad.BottomLeft));
             checkEventCount("Move", 1);
 
             AddStep("push move and scroll", () =>
             {
-                manual.MoveMouseTo(marginBox.ScreenSpaceDrawQuad.Centre);
-                manual.ScrollBy(new Vector2(1, 2));
+                InputManager.MoveMouseTo(marginBox.ScreenSpaceDrawQuad.Centre);
+                InputManager.ScrollBy(new Vector2(1, 2));
             });
 
             checkEventCount("Move", 1);
@@ -244,15 +236,15 @@ namespace osu.Framework.Tests.Visual
             checkLastScrollDelta(new Vector2(1, 2));
             checkLastPositionDelta(() => Vector2.Distance(marginBox.ScreenSpaceDrawQuad.BottomLeft, marginBox.ScreenSpaceDrawQuad.Centre));
 
-            AddStep("Move mouse to out of bounds", () => manual.MoveMouseTo(Vector2.Zero));
+            AddStep("Move mouse to out of bounds", () => InputManager.MoveMouseTo(Vector2.Zero));
 
             checkEventCount("Move");
             checkEventCount("Scroll");
 
             AddStep("Move mouse", () =>
             {
-                manual.MoveMouseTo(new Vector2(10));
-                manual.ScrollBy(new Vector2(10));
+                InputManager.MoveMouseTo(new Vector2(10));
+                InputManager.ScrollBy(new Vector2(10));
             });
 
             // outside the bounds so should not increment.
@@ -266,33 +258,33 @@ namespace osu.Framework.Tests.Visual
             initTestCase();
 
             // mouseDown on a non-draggable -> mouseUp on a distant position: drag-clicking
-            AddStep("move mouse", () => manual.MoveMouseTo(outerMarginBox.ScreenSpaceDrawQuad.TopLeft));
-            AddStep("press left button", () => manual.PressButton(MouseButton.Left));
+            AddStep("move mouse", () => InputManager.MoveMouseTo(outerMarginBox.ScreenSpaceDrawQuad.TopLeft));
+            AddStep("press left button", () => InputManager.PressButton(MouseButton.Left));
             checkEventCount("DragStart");
-            AddStep("drag non-draggable", () => manual.MoveMouseTo(marginBox));
+            AddStep("drag non-draggable", () => InputManager.MoveMouseTo(marginBox));
             checkEventCount("DragStart", 1, true);
-            AddStep("release left button", () => manual.ReleaseButton(MouseButton.Left));
+            AddStep("release left button", () => InputManager.ReleaseButton(MouseButton.Left));
             checkEventCount("Click", 1, true);
             checkEventCount("DragEnd");
 
             // mouseDown on a draggable -> mouseUp on the original position: no drag-clicking
-            AddStep("move mouse", () => manual.MoveMouseTo(marginBox.ScreenSpaceDrawQuad.TopLeft));
-            AddStep("press left button", () => manual.PressButton(MouseButton.Left));
-            AddStep("drag draggable", () => manual.MoveMouseTo(outerMarginBox.ScreenSpaceDrawQuad.BottomRight));
+            AddStep("move mouse", () => InputManager.MoveMouseTo(marginBox.ScreenSpaceDrawQuad.TopLeft));
+            AddStep("press left button", () => InputManager.PressButton(MouseButton.Left));
+            AddStep("drag draggable", () => InputManager.MoveMouseTo(outerMarginBox.ScreenSpaceDrawQuad.BottomRight));
             checkEventCount("DragStart", 1);
             checkIsDragged(true);
-            AddStep("return mouse position", () => manual.MoveMouseTo(marginBox.ScreenSpaceDrawQuad.TopLeft));
+            AddStep("return mouse position", () => InputManager.MoveMouseTo(marginBox.ScreenSpaceDrawQuad.TopLeft));
             checkIsDragged(true);
             checkEventCount("DragEnd");
-            AddStep("release left button", () => manual.ReleaseButton(MouseButton.Left));
+            AddStep("release left button", () => InputManager.ReleaseButton(MouseButton.Left));
             checkEventCount("Click");
             checkEventCount("DragEnd", 1);
             checkIsDragged(false);
 
             // mouseDown on a draggable -> mouseUp on a distant position: no drag-clicking
-            AddStep("press left button", () => manual.PressButton(MouseButton.Left));
-            AddStep("drag draggable", () => manual.MoveMouseTo(marginBox.ScreenSpaceDrawQuad.BottomRight));
-            AddStep("release left button", () => manual.ReleaseButton(MouseButton.Left));
+            AddStep("press left button", () => InputManager.PressButton(MouseButton.Left));
+            AddStep("drag draggable", () => InputManager.MoveMouseTo(marginBox.ScreenSpaceDrawQuad.BottomRight));
+            AddStep("release left button", () => InputManager.ReleaseButton(MouseButton.Left));
             checkEventCount("DragStart", 1);
             checkEventCount("DragEnd", 1);
             checkEventCount("Click");
@@ -304,28 +296,43 @@ namespace osu.Framework.Tests.Visual
             initTestCase();
 
             waitDoubleClickTime();
-            AddStep("click", () => manual.Click(MouseButton.Left));
+            AddStep("click", () => InputManager.Click(MouseButton.Left));
             checkEventCount("Click", 1);
             waitDoubleClickTime();
-            AddStep("click", () => manual.Click(MouseButton.Left));
+            AddStep("click", () => InputManager.Click(MouseButton.Left));
             checkEventCount("Click", 1);
             waitDoubleClickTime();
             AddStep("double click", () =>
             {
-                manual.Click(MouseButton.Left);
-                manual.Click(MouseButton.Left);
+                InputManager.Click(MouseButton.Left);
+                InputManager.Click(MouseButton.Left);
             });
             checkEventCount("Click", 1);
             checkEventCount("DoubleClick", 1);
             waitDoubleClickTime();
             AddStep("triple click", () =>
             {
-                manual.Click(MouseButton.Left);
-                manual.Click(MouseButton.Left);
-                manual.Click(MouseButton.Left);
+                InputManager.Click(MouseButton.Left);
+                InputManager.Click(MouseButton.Left);
+                InputManager.Click(MouseButton.Left);
             });
             checkEventCount("Click", 2);
             checkEventCount("DoubleClick", 1);
+        }
+
+        [Test]
+        public void SeparateMouseDown()
+        {
+            initTestCase();
+
+            AddStep("right down", () => InputManager.PressButton(MouseButton.Right));
+            checkEventCount("MouseDown", 1);
+            AddStep("move away", () => InputManager.MoveMouseTo(outerMarginBox.ScreenSpaceDrawQuad.TopLeft));
+            AddStep("left click", () => InputManager.Click(MouseButton.Left));
+            checkEventCount("MouseDown", 1, true);
+            checkEventCount("MouseUp", 1, true);
+            AddStep("right up", () => InputManager.ReleaseButton(MouseButton.Right));
+            checkEventCount("MouseUp", 1);
         }
 
         private void waitDoubleClickTime()
@@ -444,11 +451,15 @@ namespace osu.Framework.Tests.Visual
             {
                 base.Update();
 
-                var state = GetContainingInputManager().CurrentState;
+                var inputManager = GetContainingInputManager();
+                if (inputManager != null)
+                {
+                    var state = inputManager.CurrentState;
 
-                source.Text = GetContainingInputManager().ToString();
-                keyboard.Text = state.Keyboard.ToString();
-                mouse.Text = state.Mouse.ToString();
+                    source.Text = inputManager.ToString();
+                    keyboard.Text = state.Keyboard.ToString();
+                    mouse.Text = state.Mouse.ToString();
+                }
             }
 
             public class SmallText : SpriteText

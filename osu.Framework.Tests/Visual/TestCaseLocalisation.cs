@@ -173,9 +173,9 @@ namespace osu.Framework.Tests.Visual
                 this.engine = engine;
             }
 
-            protected override IReadOnlyDependencyContainer CreateLocalDependencies(IReadOnlyDependencyContainer parent)
+            protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent)
             {
-                var deps = base.CreateLocalDependencies(parent);
+                var deps = base.CreateChildDependencies(parent);
                 ((DependencyContainer)deps).Cache(engine);
                 return deps;
             }

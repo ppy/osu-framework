@@ -148,5 +148,103 @@ namespace osu.Framework.Tests.Bindables
             Assert.AreEqual(1, changed1);
             Assert.AreEqual(2, changed2);
         }
+
+        [Test]
+        public void TestMinValueChanged()
+        {
+            BindableInt bindable1 = new BindableInt();
+            BindableInt bindable2 = new BindableInt();
+            bindable2.BindTo(bindable1);
+
+            int minValue1 = 0, minValue2 = 0;
+
+            bindable1.MinValueChanged += v => minValue1 = v;
+            bindable2.MinValueChanged += v => minValue2 = v;
+
+            bindable1.MinValue = 1;
+
+            Assert.AreEqual(1, minValue1);
+            Assert.AreEqual(1, minValue2);
+
+            bindable1.MinValue = 2;
+
+            Assert.AreEqual(2, minValue1);
+            Assert.AreEqual(2, minValue2);
+        }
+
+        [Test]
+        public void TestMinValueChangedWithUpstreamRejection()
+        {
+            BindableInt bindable1 = new BindableInt(1337); // Won't change
+            BindableInt bindable2 = new BindableInt();
+            bindable2.BindTo(bindable1);
+
+            int changed1 = 0, changed2 = 0;
+
+            bindable1.MinValueChanged += v => changed1++;
+            bindable2.MinValueChanged += _ =>
+            {
+                bindable2.MinValue = 1337;
+                changed2++;
+            };
+
+            bindable1.MinValue = 2;
+
+            Assert.AreEqual(1337, bindable1.MinValue);
+            Assert.AreEqual(bindable1.MinValue, bindable2.MinValue);
+
+            // bindable1 should only receive the final value changed, skipping the intermediary (overidden) one.
+            Assert.AreEqual(1, changed1);
+            Assert.AreEqual(2, changed2);
+        }
+
+        [Test]
+        public void TestMaxValueChanged()
+        {
+            BindableInt bindable1 = new BindableInt();
+            BindableInt bindable2 = new BindableInt();
+            bindable2.BindTo(bindable1);
+
+            int minValue1 = 0, minValue2 = 0;
+
+            bindable1.MaxValueChanged += v => minValue1 = v;
+            bindable2.MaxValueChanged += v => minValue2 = v;
+
+            bindable1.MaxValue = 1;
+
+            Assert.AreEqual(1, minValue1);
+            Assert.AreEqual(1, minValue2);
+
+            bindable1.MaxValue = 2;
+
+            Assert.AreEqual(2, minValue1);
+            Assert.AreEqual(2, minValue2);
+        }
+
+        [Test]
+        public void TestMaxValueChangedWithUpstreamRejection()
+        {
+            BindableInt bindable1 = new BindableInt(1337); // Won't change
+            BindableInt bindable2 = new BindableInt();
+            bindable2.BindTo(bindable1);
+
+            int changed1 = 0, changed2 = 0;
+
+            bindable1.MaxValueChanged += v => changed1++;
+            bindable2.MaxValueChanged += _ =>
+            {
+                bindable2.MaxValue = 1337;
+                changed2++;
+            };
+
+            bindable1.MaxValue = 2;
+
+            Assert.AreEqual(1337, bindable1.MaxValue);
+            Assert.AreEqual(bindable1.MaxValue, bindable2.MaxValue);
+
+            // bindable1 should only receive the final value changed, skipping the intermediary (overidden) one.
+            Assert.AreEqual(1, changed1);
+            Assert.AreEqual(2, changed2);
+        }
     }
 }

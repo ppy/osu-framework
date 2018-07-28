@@ -121,7 +121,8 @@ namespace osu.Framework.Graphics.Sprites
 
         private float spaceWidth;
 
-        private FontStore store;
+        [Resolved]
+        private FontStore store { get; set; }
 
         public override bool HandleKeyboardInput => false;
         public override bool HandleMouseInput => false;
@@ -155,9 +156,8 @@ namespace osu.Framework.Graphics.Sprites
         }
 
         [BackgroundDependencyLoader]
-        private void load(FontStore store, LocalisationEngine localisation)
+        private void load(LocalisationEngine localisation)
         {
-            this.store = store;
             localisationEngine = localisation;
             updateLocalisedBindable();
 

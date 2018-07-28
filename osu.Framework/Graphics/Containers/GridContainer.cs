@@ -91,7 +91,7 @@ namespace osu.Framework.Graphics.Containers
 
         public override void InvalidateFromChild(Invalidation invalidation, Drawable source = null)
         {
-            if ((invalidation & Invalidation.RequiredParentSizeToFit) > 0)
+            if ((invalidation & Invalidation.RequiredParentSizeToFit | Invalidation.Colour) > 0)
                 cellLayout.Invalidate();
 
             base.InvalidateFromChild(invalidation, source);
@@ -164,8 +164,8 @@ namespace osu.Framework.Graphics.Containers
 
             foreach (var cell in cells)
             {
-                cell.IsWidthDefined = false;
-                cell.IsHeightDefined = false;
+                cell.DistributedWidth = true;
+                cell.DistributedHeight = true;
             }
 
             int autoSizedRows = cellRows;
@@ -174,7 +174,7 @@ namespace osu.Framework.Graphics.Containers
             float definedWidth = 0;
             float definedHeight = 0;
 
-            // Compute the width of explicitly-defined columns
+            // Compute the width of non-distributed columns
             if (columnDimensions?.Length > 0)
             {
                 for (int i = 0; i < columnDimensions.Length; i++)
@@ -197,14 +197,14 @@ namespace osu.Framework.Graphics.Containers
                             break;
                         case GridSizeMode.AutoSize:
                             for (int r = 0; r < cellRows; r++)
-                                cellWidth = Math.Max(cellWidth, Content[r]?[i]?.DrawWidth ?? 0);
+                                cellWidth = Math.Max(cellWidth, Content[r]?[i]?.BoundingBox.Width ?? 0);
                             break;
                     }
 
                     for (int r = 0; r < cellRows; r++)
                     {
                         cells[r, i].Width = cellWidth;
-                        cells[r, i].IsWidthDefined = true;
+                        cells[r, i].DistributedWidth = false;
                     }
 
                     definedWidth += cellWidth;
@@ -212,7 +212,7 @@ namespace osu.Framework.Graphics.Containers
                 }
             }
 
-            // Compute the height of explicitly-defined rows
+            // Compute the height of non-distributed rows
             if (rowDimensions?.Length > 0)
             {
                 for (int i = 0; i < rowDimensions.Length; i++)
@@ -235,14 +235,14 @@ namespace osu.Framework.Graphics.Containers
                             break;
                         case GridSizeMode.AutoSize:
                             for (int c = 0; c < cellColumns; c++)
-                                cellHeight = Math.Max(cellHeight, Content[i]?[c]?.DrawHeight ?? 0);
+                                cellHeight = Math.Max(cellHeight, Content[i]?[c]?.BoundingBox.Height ?? 0);
                             break;
                     }
 
                     for (int c = 0; c < cellColumns; c++)
                     {
-                        cells[i, c].IsHeightDefined = true;
                         cells[i, c].Height = cellHeight;
+                        cells[i, c].DistributedHeight = false;
                     }
 
                     definedHeight += cellHeight;
@@ -250,21 +250,21 @@ namespace osu.Framework.Graphics.Containers
                 }
             }
 
-            // Compute the size of non-explicitly defined rows/columns that should fill the remaining area
-            var autoSize = new Vector2
+            // Compute the size which all distributed columns/rows should take on
+            var distributedSize = new Vector2
             (
                 Math.Max(0, DrawWidth - definedWidth) / autoSizedColumns,
                 Math.Max(0, DrawHeight - definedHeight) / autoSizedRows
             );
 
-            // Add sizing to non-explicitly-defined columns and add positional offsets
+            // Add size to distributed columns/rows and add adjust cell positions
             for (int r = 0; r < cellRows; r++)
                 for (int c = 0; c < cellColumns; c++)
                 {
-                    if (!cells[r, c].IsWidthDefined)
-                        cells[r, c].Width = autoSize.X;
-                    if (!cells[r, c].IsHeightDefined)
-                        cells[r, c].Height = autoSize.Y;
+                    if (cells[r, c].DistributedWidth)
+                        cells[r, c].Width = distributedSize.X;
+                    if (cells[r, c].DistributedHeight)
+                        cells[r, c].Height = distributedSize.Y;
 
                     if (c > 0)
                         cells[r, c].X = cells[r, c - 1].X + cells[r, c - 1].Width;
@@ -281,14 +281,21 @@ namespace osu.Framework.Graphics.Containers
         private class CellContainer : Container
         {
             /// <summary>
-            /// Whether this <see cref="CellContainer"/> has an explicitly-defined width.
+            /// Whether this <see cref="CellContainer"/> uses <see cref="GridSizeMode.Distributed"/> for its width.
             /// </summary>
-            public bool IsWidthDefined;
+            public bool DistributedWidth;
 
             /// <summary>
-            /// Whether this <see cref="CellContainer"/> has an explicitly-defined height.
+            /// Whether this <see cref="CellContainer"/> uses <see cref="GridSizeMode.Distributed"/> for its height.
             /// </summary>
-            public bool IsHeightDefined;
+            public bool DistributedHeight;
+
+            public override void InvalidateFromChild(Invalidation invalidation, Drawable source = null)
+            {
+                if ((invalidation & (Invalidation.RequiredParentSizeToFit | Invalidation.Colour)) > 0)
+                    Parent.InvalidateFromChild(invalidation);
+                base.InvalidateFromChild(invalidation, source);
+            }
         }
     }
 

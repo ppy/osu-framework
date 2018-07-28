@@ -18,7 +18,8 @@ namespace osu.Framework.Screens
         private readonly Container content;
         private Container childModeContainer;
 
-        protected Game Game;
+        [Resolved]
+        protected Game Game { get; set; }
 
         protected override Container<Drawable> Content => content;
 
@@ -96,12 +97,6 @@ namespace osu.Framework.Screens
         {
         }
 
-        [BackgroundDependencyLoader]
-        private void load(Game game)
-        {
-            Game = game;
-        }
-
         protected override void LoadComplete()
         {
             base.LoadComplete();
@@ -132,19 +127,19 @@ namespace osu.Framework.Screens
         public virtual void Push(Screen screen)
         {
             if (hasExited)
-                throw new InvalidOperationException("Cannot push to an already exited screen.");
+                throw new TargetAlreadyExitedException();
 
             if (!IsCurrentScreen)
-                throw new InvalidOperationException("Cannot push a child screen to a non-current screen.");
+                throw new ScreenNotCurrentException(nameof(Push));
 
             if (ChildScreen != null)
-                throw new InvalidOperationException("Can not push more than one child screen.");
+                throw new ScreenHasChildException(nameof(Push), "Exit the existing child screen first.");
 
             if (screen.hasExited)
-                throw new InvalidOperationException("Cannot push an already exited screen.");
+                throw new ScreenAlreadyExitedException();
 
             if (screen.hasEntered)
-                throw new InvalidOperationException("Cannot push an already entered screen.");
+                throw new ScreenAlreadyEnteredException();
 
             screen.ParentScreen = this;
             startSuspend(screen);
@@ -182,7 +177,7 @@ namespace osu.Framework.Screens
         public void Exit()
         {
             if (ChildScreen != null)
-                throw new InvalidOperationException($"Can't exit when a child screen is still present. Please use {nameof(MakeCurrent)} instead.");
+                throw new ScreenHasChildException(nameof(Exit), $"Use {nameof(MakeCurrent)} instead.");
 
             ExitFrom(this);
         }
@@ -258,6 +253,46 @@ namespace osu.Framework.Screens
             public ContentContainer()
             {
                 RelativeSizeAxes = Axes.Both;
+            }
+        }
+
+        public class TargetAlreadyExitedException : InvalidOperationException
+        {
+            public TargetAlreadyExitedException()
+                : base("Cannot push to an already exited screen.")
+            {
+            }
+        }
+
+        public class ScreenNotCurrentException : InvalidOperationException
+        {
+            public ScreenNotCurrentException(string action)
+                : base($"Cannot perform {action} on a non-current screen.")
+            {
+            }
+        }
+
+        public class ScreenHasChildException : InvalidOperationException
+        {
+            public ScreenHasChildException(string action, string description)
+                : base($"Cannot perform {action} when a child is already present. {description}")
+            {
+            }
+        }
+
+        public class ScreenAlreadyExitedException : InvalidOperationException
+        {
+            public ScreenAlreadyExitedException()
+                : base("Cannot push a screen in an exited state.")
+            {
+            }
+        }
+
+        public class ScreenAlreadyEnteredException : InvalidOperationException
+        {
+            public ScreenAlreadyEnteredException()
+                : base("Cannot push a screen in an entered state.")
+            {
             }
         }
     }
