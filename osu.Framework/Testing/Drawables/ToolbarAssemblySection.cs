@@ -48,7 +48,7 @@ namespace osu.Framework.Testing.Drawables
                     },
                     assemblyDropdown = new BasicDropdown<Assembly>
                     {
-                        Width = 300,
+                        Width = 250,
                     },
                     runAllStepsCheckbox = new BasicCheckbox
                     {
