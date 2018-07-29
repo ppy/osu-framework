@@ -21,23 +21,18 @@ namespace osu.Framework.Tests.Visual
 
         public TestCaseDropdownBox()
         {
-            StyledDropdown styledDropdown, styledDropdownMenu2;
+            StyledDropdown styledDropdown, styledDropdownMenu2, keyboardInputDropdown;
 
             var testItems = new string[10];
             int i = 0;
             while (i < items_to_add)
                 testItems[i] = @"test " + i++;
 
-            PlatformActionContainer platformActionContainer;
-
-            Add(platformActionContainer = new PlatformActionContainer
+            Add(styledDropdown = new StyledDropdown
             {
-                Child = styledDropdown = new StyledDropdown
-                {
-                    Width = 150,
-                    Position = new Vector2(200, 70),
-                    Items = testItems.Select(item => new KeyValuePair<string, string>(item, item)),
-                }
+                Width = 150,
+                Position = new Vector2(200, 70),
+                Items = testItems.Select(item => new KeyValuePair<string, string>(item, item)),
             });
 
             Add(styledDropdownMenu2 = new StyledDropdown
@@ -45,6 +40,18 @@ namespace osu.Framework.Tests.Visual
                 Width = 150,
                 Position = new Vector2(400, 70),
                 Items = testItems.Select(item => new KeyValuePair<string, string>(item, item)),
+            });
+
+            PlatformActionContainer platformActionContainer;
+
+            Add(platformActionContainer = new PlatformActionContainer
+            {
+                Child = keyboardInputDropdown = new StyledDropdown
+                {
+                    Width = 150,
+                    Position = new Vector2(600, 70),
+                    Items = testItems.Select(item => new KeyValuePair<string, string>(item, item)),
+                }
             });
 
             AddStep("click dropdown1", () => toggleDropdownViaClick(styledDropdown));
@@ -69,47 +76,47 @@ namespace osu.Framework.Tests.Visual
             AddAssert("dropdown1 is closed", () => styledDropdown.Menu.State == MenuState.Closed);
             AddAssert("dropdown2 is open", () => styledDropdownMenu2.Menu.State == MenuState.Open);
 
-            int currentStyledDropdownIndex() => styledDropdown.Items.Select(ii => ii.Value).ToList().IndexOf(styledDropdown.Current);
+            int currentKeyboardInputDropdownIndex() => keyboardInputDropdown.Items.Select(ii => ii.Value).ToList().IndexOf(keyboardInputDropdown.Current);
             var expectedIndex = 0;
 
             AddStep($"dropdown1: perform {Key.Up} keypress", () =>
             {
-                expectedIndex = MathHelper.Clamp(currentStyledDropdownIndex() - 1, 0, styledDropdown.Items.Count() - 1);
+                expectedIndex = MathHelper.Clamp(currentKeyboardInputDropdownIndex() - 1, 0, keyboardInputDropdown.Items.Count() - 1);
 
-                styledDropdown.Header.TriggerOnKeyDown(null, new KeyDownEventArgs { Key = Key.Up });
-                styledDropdown.Header.TriggerOnKeyUp(null, new KeyUpEventArgs { Key = Key.Up });
+                keyboardInputDropdown.Header.TriggerOnKeyDown(null, new KeyDownEventArgs { Key = Key.Up });
+                keyboardInputDropdown.Header.TriggerOnKeyUp(null, new KeyUpEventArgs { Key = Key.Up });
             });
-            AddAssert("Previous dropdown1 item is selected", () => currentStyledDropdownIndex() == expectedIndex);
+            AddAssert("Previous dropdown1 item is selected", () => currentKeyboardInputDropdownIndex() == expectedIndex);
 
             AddStep($"dropdown1: perform {Key.Down} keypress", () =>
             {
-                expectedIndex = MathHelper.Clamp(currentStyledDropdownIndex() + 1, 0, styledDropdown.Items.Count() - 1);
+                expectedIndex = MathHelper.Clamp(currentKeyboardInputDropdownIndex() + 1, 0, keyboardInputDropdown.Items.Count() - 1);
 
-                styledDropdown.Header.TriggerOnKeyDown(null, new KeyDownEventArgs { Key = Key.Down });
-                styledDropdown.Header.TriggerOnKeyUp(null, new KeyUpEventArgs { Key = Key.Down });
+                keyboardInputDropdown.Header.TriggerOnKeyDown(null, new KeyDownEventArgs { Key = Key.Down });
+                keyboardInputDropdown.Header.TriggerOnKeyUp(null, new KeyUpEventArgs { Key = Key.Down });
             });
-            AddAssert("Next dropdown1 item is selected", () => currentStyledDropdownIndex() == expectedIndex);
+            AddAssert("Next dropdown1 item is selected", () => currentKeyboardInputDropdownIndex() == expectedIndex);
 
             void performPlatformAction(PlatformAction action)
             {
-                var tIsHovered = styledDropdown.Header.IsHovered;
-                var tHasFocus = styledDropdown.Header.HasFocus;
+                var tIsHovered = keyboardInputDropdown.Header.IsHovered;
+                var tHasFocus = keyboardInputDropdown.Header.HasFocus;
 
-                styledDropdown.Header.IsHovered = true;
-                styledDropdown.Header.HasFocus = true;
+                keyboardInputDropdown.Header.IsHovered = true;
+                keyboardInputDropdown.Header.HasFocus = true;
 
                 platformActionContainer.TriggerPressed(action);
                 platformActionContainer.TriggerReleased(action);
 
-                styledDropdown.Header.IsHovered = tIsHovered;
-                styledDropdown.Header.HasFocus = tHasFocus;
+                keyboardInputDropdown.Header.IsHovered = tIsHovered;
+                keyboardInputDropdown.Header.HasFocus = tHasFocus;
             }
 
             AddStep($"dropdown1: perform {PlatformActionType.LineStart} action", () => performPlatformAction(new PlatformAction(PlatformActionType.LineStart)));
-            AddAssert($"dropdown1: first item selected", () => currentStyledDropdownIndex() == 0);
+            AddAssert("dropdown1: first item selected", () => currentKeyboardInputDropdownIndex() == 0);
 
             AddStep($"dropdown1: perform {PlatformActionType.LineEnd} action", () => { performPlatformAction(new PlatformAction(PlatformActionType.LineEnd)); });
-            AddAssert($"dropdown1: last item selected", () => currentStyledDropdownIndex() == styledDropdown.Items.Count() - 1);
+            AddAssert("dropdown1: last item selected", () => currentKeyboardInputDropdownIndex() == keyboardInputDropdown.Items.Count() - 1);
         }
 
         private void toggleDropdownViaClick(StyledDropdown dropdown) => dropdown.Children.First().TriggerOnClick();
