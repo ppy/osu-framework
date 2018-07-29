@@ -167,14 +167,14 @@ namespace osu.Framework.Testing
                         toolbar = new TestBrowserToolbar
                         {
                             RelativeSizeAxes = Axes.X,
-                            Height = 100,
+                            Height = 50,
                             Depth = -1,
                         },
                         testContentContainer = new Container
                         {
                             Clock = framedClock,
                             RelativeSizeAxes = Axes.Both,
-                            Padding = new MarginPadding { Top = 100 },
+                            Padding = new MarginPadding { Top = 50 },
                             Child = compilingNotice = new Container
                             {
                                 Alpha = 0,

@@ -149,6 +149,7 @@ namespace osu.Framework.Testing.Drawables
                 SelectionBox.Height = 0.25f;
 
                 CornerRadius = 0;
+                Masking = false;
 
                 Add(new Container
                 {

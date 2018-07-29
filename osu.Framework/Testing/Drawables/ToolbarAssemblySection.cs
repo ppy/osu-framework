@@ -44,7 +44,7 @@ namespace osu.Framework.Testing.Drawables
                     new SpriteText
                     {
                         Padding = new MarginPadding(5),
-                        Text = "Current Assembly:"
+                        Text = "Assembly:"
                     },
                     assemblyDropdown = new BasicDropdown<Assembly>
                     {
