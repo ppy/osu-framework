@@ -5,10 +5,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Configuration;
-using osu.Framework.Graphics.Containers;
-using OpenTK.Graphics;
 using osu.Framework.Extensions.IEnumerableExtensions;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Input.States;
+using OpenTK;
+using OpenTK.Graphics;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -126,7 +127,35 @@ namespace osu.Framework.Graphics.UserInterface
             Menu.RelativeSizeAxes = Axes.X;
 
             Header.Action = Menu.Toggle;
+            Header.SelectionKeyPressed += Header_SelectionKeyPressed;
+
             Current.ValueChanged += selectionChanged;
+        }
+
+        private void Header_SelectionKeyPressed(DropdownHeader.SelectionChange change)
+        {
+            var dropdownMenuItems = MenuItems.ToList();
+            var selectedIndex = dropdownMenuItems.IndexOf(SelectedItem);
+
+            if (!dropdownMenuItems.Any()) return;
+
+            switch (change)
+            {
+                case DropdownHeader.SelectionChange.Previous:
+                    SelectedItem = dropdownMenuItems[MathHelper.Clamp(selectedIndex - 1, 0, dropdownMenuItems.Count - 1)];
+                    break;
+                case DropdownHeader.SelectionChange.Next:
+                    SelectedItem = dropdownMenuItems[MathHelper.Clamp(selectedIndex + 1, 0, dropdownMenuItems.Count - 1)];
+                    break;
+                case DropdownHeader.SelectionChange.First:
+                    SelectedItem = dropdownMenuItems.First();
+                    break;
+                case DropdownHeader.SelectionChange.Last:
+                    SelectedItem = dropdownMenuItems.Last();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(change), change, null);
+            }
         }
 
         protected override void LoadComplete()
