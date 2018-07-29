@@ -1,15 +1,20 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using OpenTK.Graphics;
+using System;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Input.EventArgs;
 using osu.Framework.Input.States;
+using OpenTK.Graphics;
+using OpenTK.Input;
 
 namespace osu.Framework.Graphics.UserInterface
 {
     public abstract class DropdownHeader : ClickableContainer
     {
+        public event Action<SelectionChange> SelectionKeyPressed;
+
         protected Container Background;
         protected Container Foreground;
 
@@ -71,6 +76,31 @@ namespace osu.Framework.Graphics.UserInterface
         {
             Background.Colour = BackgroundColour;
             base.OnHoverLost(state);
+        }
+
+        public override bool HandleKeyboardInput => IsHovered;
+
+        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
+        {
+            switch (args.Key)
+            {
+                case Key.Up:
+                    SelectionKeyPressed?.Invoke(SelectionChange.Previous);
+                    return true;
+                case Key.Down:
+                    SelectionKeyPressed?.Invoke(SelectionChange.Next);
+                    return true;
+                default:
+                    return base.OnKeyDown(state, args);
+            }
+        }
+
+        public enum SelectionChange
+        {
+            Previous,
+            Next,
+            First,
+            Last
         }
     }
 }
