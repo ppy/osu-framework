@@ -6,6 +6,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Testing.Drawables.Sections;
 using OpenTK.Graphics;
 
 namespace osu.Framework.Testing.Drawables
@@ -43,7 +44,7 @@ namespace osu.Framework.Testing.Drawables
                             {
                                 assemblySection = new ToolbarAssemblySection { RelativeSizeAxes = Axes.Y },
                                 new ToolbarRateSection { RelativeSizeAxes = Axes.Both },
-                                new ToolbarPlaybackSection { RelativeSizeAxes = Axes.Y }
+                                new ToolbarRecordSection { RelativeSizeAxes = Axes.Y }
                             }
                         },
                     },

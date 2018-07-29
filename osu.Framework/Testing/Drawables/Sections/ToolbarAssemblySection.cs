@@ -11,9 +11,9 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using OpenTK;
 
-namespace osu.Framework.Testing.Drawables
+namespace osu.Framework.Testing.Drawables.Sections
 {
-    public class ToolbarAssemblySection : CompositeDrawable
+    public class ToolbarAssemblySection : ToolbarSection
     {
         private readonly Bindable<Assembly> assembly = new Bindable<Assembly>();
         private readonly Bindable<bool> runAllSteps = new Bindable<bool>();

@@ -14,9 +14,9 @@ using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Input;
 
-namespace osu.Framework.Testing.Drawables
+namespace osu.Framework.Testing.Drawables.Sections
 {
-    public class ToolbarPlaybackSection : CompositeDrawable
+    public class ToolbarRecordSection : ToolbarSection
     {
         private readonly Bindable<TestBrowser.PlaybackState> playback = new Bindable<TestBrowser.PlaybackState>();
         private readonly BindableInt currentFrame = new BindableInt();
@@ -24,8 +24,9 @@ namespace osu.Framework.Testing.Drawables
         private Button previousButton;
         private Button nextButton;
         private Button recordButton;
+        private FillFlowContainer playbackControls;
 
-        public ToolbarPlaybackSection()
+        public ToolbarRecordSection()
         {
             AutoSizeAxes = Axes.X;
         }
@@ -46,38 +47,47 @@ namespace osu.Framework.Testing.Drawables
                 Spacing = new Vector2(5),
                 Children = new Drawable[]
                 {
-                    new SpriteText
+                    playbackControls = new FillFlowContainer
                     {
-                        Anchor = Anchor.CentreLeft,
-                        Origin = Anchor.CentreLeft,
-                        Margin = new MarginPadding { Top = -5 }, // A bit of positional alignment
-                        Text = "Frame:"
-                    },
-                    frameSliderBar = new FrameSliderBar
-                    {
+                        AutoSizeAxes = Axes.X,
                         RelativeSizeAxes = Axes.Y,
-                        Width = 200,
-                    },
-                    previousButton = new RepeatButton
-                    {
-                        Width = 25,
-                        RelativeSizeAxes = Axes.Y,
-                        BackgroundColour = Color4.DarkMagenta,
-                        Text = "<",
-                        Action = previousFrame
-                    },
-                    nextButton = new RepeatButton
-                    {
-                        Width = 25,
-                        RelativeSizeAxes = Axes.Y,
-                        BackgroundColour = Color4.DarkMagenta,
-                        Text = ">",
-                        Action = nextFrame
+                        Spacing = new Vector2(5),
+                        Direction = FillDirection.Horizontal,
+                        Children = new Drawable[]
+                        {
+                            new SpriteText
+                            {
+                                Anchor = Anchor.CentreLeft,
+                                Origin = Anchor.CentreLeft,
+                                Text = "Playback:"
+                            },
+                            frameSliderBar = new FrameSliderBar
+                            {
+                                RelativeSizeAxes = Axes.Y,
+                                Width = 250,
+                            },
+                            previousButton = new RepeatButton
+                            {
+                                Width = 25,
+                                RelativeSizeAxes = Axes.Y,
+                                BackgroundColour = Color4.MediumPurple,
+                                Text = "<",
+                                Action = previousFrame
+                            },
+                            nextButton = new RepeatButton
+                            {
+                                Width = 25,
+                                RelativeSizeAxes = Axes.Y,
+                                BackgroundColour = Color4.MediumPurple,
+                                Text = ">",
+                                Action = nextFrame
+                            },
+                        }
                     },
                     recordButton = new Button
                     {
                         RelativeSizeAxes = Axes.Y,
-                        Width = 150,
+                        Width = 100,
                         Action = changeState
                     },
                 }
@@ -106,14 +116,17 @@ namespace osu.Framework.Testing.Drawables
                 case TestBrowser.PlaybackState.Normal:
                     recordButton.Text = "record";
                     recordButton.BackgroundColour = Color4.DarkGreen;
+                    playbackControls.Hide();
                     break;
                 case TestBrowser.PlaybackState.Recording:
                     recordButton.Text = "stop";
                     recordButton.BackgroundColour = Color4.DarkRed;
+                    playbackControls.Hide();
                     break;
                 case TestBrowser.PlaybackState.Stopped:
                     recordButton.Text = "reset";
                     recordButton.BackgroundColour = Color4.DarkSlateGray;
+                    playbackControls.Show();
                     break;
             }
 
@@ -138,44 +151,29 @@ namespace osu.Framework.Testing.Drawables
 
             public FrameSliderBar()
             {
-                Box.Anchor = Anchor.CentreLeft;
-                Box.Origin = Anchor.CentreLeft;
-                Box.Height = 0.25f;
-
-                SelectionBox.Anchor = Anchor.CentreLeft;
-                SelectionBox.Origin = Anchor.CentreLeft;
-                SelectionBox.Height = 0.25f;
-
-                CornerRadius = 0;
-                Masking = false;
-
                 Add(new Container
                 {
                     Anchor = Anchor.CentreLeft,
                     Origin = Anchor.CentreLeft,
+                    Depth = float.MinValue,
                     RelativeSizeAxes = Axes.Both,
-                    Height = 0.25f,
                     Children = new[]
                     {
-                        new SpriteText
+                        new Label
                         {
                             Anchor = Anchor.BottomLeft,
-                            Origin = Anchor.TopLeft,
-                            TextSize = 18,
+                            Origin = Anchor.BottomLeft,
                             Text = "0"
                         },
-                        currentFrameText = new SpriteText
+                        currentFrameText = new Label
                         {
                             Anchor = Anchor.TopLeft,
-                            Origin = Anchor.BottomCentre,
-                            TextSize = 18,
-                            Text = "0",
+                            Origin = Anchor.TopLeft,
                         },
-                        maxFrameText = new SpriteText
+                        maxFrameText = new Label
                         {
                             Anchor = Anchor.BottomRight,
-                            Origin = Anchor.TopRight,
-                            TextSize = 18,
+                            Origin = Anchor.BottomRight,
                         }
                     }
                 });
@@ -192,7 +190,16 @@ namespace osu.Framework.Testing.Drawables
             protected override void UpdateAfterChildren()
             {
                 base.UpdateAfterChildren();
-                currentFrameText.X = MathHelper.Clamp(Box.Scale.X * DrawWidth, currentFrameText.DrawWidth / 2f, DrawWidth - currentFrameText.DrawWidth / 2f);
+                currentFrameText.X = MathHelper.Clamp(SelectionBox.Scale.X * DrawWidth, 0, DrawWidth - currentFrameText.DrawWidth);
+            }
+
+            private class Label : SpriteText
+            {
+                public Label()
+                {
+                    TextSize = 18;
+                    Padding = new MarginPadding { Horizontal = 2 };
+                }
             }
         }
 
@@ -209,10 +216,7 @@ namespace osu.Framework.Testing.Drawables
                     if (!base.OnClick(state))
                         return false;
 
-                    repeatDelegate = Scheduler.AddDelayed(() =>
-                    {
-                        repeatDelegate = Scheduler.AddDelayed(() => base.OnClick(state), 100, true);
-                    }, 300);
+                    repeatDelegate = Scheduler.AddDelayed(() => { repeatDelegate = Scheduler.AddDelayed(() => base.OnClick(state), 100, true); }, 300);
 
                     return true;
                 }

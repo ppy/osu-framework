@@ -8,9 +8,9 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 
-namespace osu.Framework.Testing.Drawables
+namespace osu.Framework.Testing.Drawables.Sections
 {
-    public class ToolbarRateSection : CompositeDrawable
+    public class ToolbarRateSection : ToolbarSection
     {
         private readonly Bindable<double> rate = new Bindable<double>();
 
@@ -47,6 +47,8 @@ namespace osu.Framework.Testing.Drawables
                         rateText = new SpriteText
                         {
                             Padding = new MarginPadding(5),
+                            AutoSizeAxes = Axes.None,
+                            Width = 60,
                         },
                     }
                 }
