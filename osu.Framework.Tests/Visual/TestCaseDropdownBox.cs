@@ -6,9 +6,11 @@ using System.Linq;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Input.EventArgs;
 using osu.Framework.Testing;
 using OpenTK;
 using OpenTK.Graphics;
+using OpenTK.Input;
 
 namespace osu.Framework.Tests.Visual
 {
@@ -60,6 +62,29 @@ namespace osu.Framework.Tests.Visual
 
             AddAssert("dropdown1 is closed", () => styledDropdown.Menu.State == MenuState.Closed);
             AddAssert("dropdown2 is open", () => styledDropdownMenu2.Menu.State == MenuState.Open);
+
+            int currentStyledDropdownIndex() => styledDropdown.Items.Select(ii => ii.Value).ToList().IndexOf(styledDropdown.Current);
+            var expectedIndex = 0;
+
+            AddStep($"dropdown1: perform {Key.Up} keypress", () =>
+            {
+                expectedIndex = MathHelper.Clamp(currentStyledDropdownIndex() - 1, 0, styledDropdown.Items.Count() - 1);
+
+                styledDropdown.Header.TriggerOnKeyDown(null, new KeyDownEventArgs { Key = Key.Up });
+                styledDropdown.Header.TriggerOnKeyUp(null, new KeyUpEventArgs { Key = Key.Up });
+            });
+
+            AddAssert("Previous dropdown1 item is selected", () => currentStyledDropdownIndex() == expectedIndex);
+
+            AddStep($"dropdown1: perform {Key.Down} keypress", () =>
+            {
+                expectedIndex = MathHelper.Clamp(currentStyledDropdownIndex() + 1, 0, styledDropdown.Items.Count() - 1);
+
+                styledDropdown.Header.TriggerOnKeyDown(null, new KeyDownEventArgs { Key = Key.Down });
+                styledDropdown.Header.TriggerOnKeyUp(null, new KeyUpEventArgs { Key = Key.Down });
+            });
+
+            AddAssert($"Next dropdown1 item is selected", () => currentStyledDropdownIndex() == expectedIndex);
         }
 
         private void toggleDropdownViaClick(StyledDropdown dropdown) => dropdown.Children.First().TriggerOnClick();
