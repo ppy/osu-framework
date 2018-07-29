@@ -9,7 +9,9 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
+using osu.Framework.Input.EventArgs;
 using osu.Framework.Input.Handlers.Mouse;
+using osu.Framework.Input.States;
 using osu.Framework.Testing;
 using OpenTK;
 using OpenTK.Graphics;
@@ -170,13 +172,12 @@ namespace osu.Framework.Tests.Visual
             }
         }
 
-        private FrameworkConfigManager config;
+        [Resolved]
+        private FrameworkConfigManager config { get; set; }
 
         [BackgroundDependencyLoader]
-        private void load(FrameworkConfigManager config)
+        private void load()
         {
-            this.config = config;
-
             AddSliderStep("Cursor sensivity", 0.5, 5, 1, setCursorSensivityConfig);
             setCursorSensivityConfig(1);
             AddToggleStep("Toggle raw input", setRawInputConfig);
