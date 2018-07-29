@@ -6,6 +6,7 @@ using System.Linq;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Input;
 using osu.Framework.Input.EventArgs;
 using osu.Framework.Testing;
 using OpenTK;
@@ -27,11 +28,16 @@ namespace osu.Framework.Tests.Visual
             while (i < items_to_add)
                 testItems[i] = @"test " + i++;
 
-            Add(styledDropdown = new StyledDropdown
+            PlatformActionContainer platformActionContainer;
+
+            Add(platformActionContainer = new PlatformActionContainer
             {
-                Width = 150,
-                Position = new Vector2(200, 70),
-                Items = testItems.Select(item => new KeyValuePair<string, string>(item, item)),
+                Child = styledDropdown = new StyledDropdown
+                {
+                    Width = 150,
+                    Position = new Vector2(200, 70),
+                    Items = testItems.Select(item => new KeyValuePair<string, string>(item, item)),
+                }
             });
 
             Add(styledDropdownMenu2 = new StyledDropdown
@@ -73,7 +79,6 @@ namespace osu.Framework.Tests.Visual
                 styledDropdown.Header.TriggerOnKeyDown(null, new KeyDownEventArgs { Key = Key.Up });
                 styledDropdown.Header.TriggerOnKeyUp(null, new KeyUpEventArgs { Key = Key.Up });
             });
-
             AddAssert("Previous dropdown1 item is selected", () => currentStyledDropdownIndex() == expectedIndex);
 
             AddStep($"dropdown1: perform {Key.Down} keypress", () =>
@@ -83,8 +88,28 @@ namespace osu.Framework.Tests.Visual
                 styledDropdown.Header.TriggerOnKeyDown(null, new KeyDownEventArgs { Key = Key.Down });
                 styledDropdown.Header.TriggerOnKeyUp(null, new KeyUpEventArgs { Key = Key.Down });
             });
+            AddAssert("Next dropdown1 item is selected", () => currentStyledDropdownIndex() == expectedIndex);
 
-            AddAssert($"Next dropdown1 item is selected", () => currentStyledDropdownIndex() == expectedIndex);
+            void performPlatformAction(PlatformAction action)
+            {
+                var tIsHovered = styledDropdown.Header.IsHovered;
+                var tHasFocus = styledDropdown.Header.HasFocus;
+
+                styledDropdown.Header.IsHovered = true;
+                styledDropdown.Header.HasFocus = true;
+
+                platformActionContainer.TriggerPressed(action);
+                platformActionContainer.TriggerReleased(action);
+
+                styledDropdown.Header.IsHovered = tIsHovered;
+                styledDropdown.Header.HasFocus = tHasFocus;
+            }
+
+            AddStep($"dropdown1: perform {PlatformActionType.LineStart} action", () => performPlatformAction(new PlatformAction(PlatformActionType.LineStart)));
+            AddAssert($"dropdown1: first item selected", () => currentStyledDropdownIndex() == 0);
+
+            AddStep($"dropdown1: perform {PlatformActionType.LineEnd} action", () => { performPlatformAction(new PlatformAction(PlatformActionType.LineEnd)); });
+            AddAssert($"dropdown1: last item selected", () => currentStyledDropdownIndex() == styledDropdown.Items.Count() - 1);
         }
 
         private void toggleDropdownViaClick(StyledDropdown dropdown) => dropdown.Children.First().TriggerOnClick();
