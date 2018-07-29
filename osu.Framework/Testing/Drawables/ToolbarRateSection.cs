@@ -7,7 +7,6 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
-using OpenTK.Graphics;
 
 namespace osu.Framework.Testing.Drawables
 {
@@ -44,7 +43,6 @@ namespace osu.Framework.Testing.Drawables
                         rateAdjustSlider = new BasicSliderBar<double>
                         {
                             RelativeSizeAxes = Axes.Both,
-                            TintColour = Color4.MediumPurple
                         },
                         rateText = new SpriteText
                         {

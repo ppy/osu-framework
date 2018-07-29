@@ -57,7 +57,6 @@ namespace osu.Framework.Testing.Drawables
                     {
                         RelativeSizeAxes = Axes.Y,
                         Width = 200,
-                        TintColour = Color4.MediumPurple
                     },
                     previousButton = new RepeatButton
                     {
@@ -79,7 +78,6 @@ namespace osu.Framework.Testing.Drawables
                     {
                         RelativeSizeAxes = Axes.Y,
                         Width = 150,
-                        BackgroundColour = Color4.Purple,
                         Action = changeState
                     },
                 }
@@ -106,16 +104,16 @@ namespace osu.Framework.Testing.Drawables
             switch (state)
             {
                 case TestBrowser.PlaybackState.Normal:
-                    recordButton.Text = "start recording";
+                    recordButton.Text = "record";
                     recordButton.BackgroundColour = Color4.DarkGreen;
                     break;
                 case TestBrowser.PlaybackState.Recording:
-                    recordButton.Text = "stop recording";
+                    recordButton.Text = "stop";
                     recordButton.BackgroundColour = Color4.DarkRed;
                     break;
                 case TestBrowser.PlaybackState.Stopped:
                     recordButton.Text = "reset";
-                    recordButton.BackgroundColour = Color4.DarkOrange;
+                    recordButton.BackgroundColour = Color4.DarkSlateGray;
                     break;
             }
 
