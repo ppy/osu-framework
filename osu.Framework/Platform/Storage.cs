@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using osu.Framework.IO.File;
 
@@ -76,15 +77,15 @@ namespace osu.Framework.Platform
         /// Retrieve a list of directories at the specified path.
         /// </summary>
         /// <param name="path">The path to list.</param>
-        /// <returns>A list of directories in the path, relative to the path.</returns>
-        public abstract string[] GetDirectories(string path);
+        /// <returns>A list of directory names in the path.</returns>
+        public abstract IEnumerable<string> GetDirectories(string path);
 
         /// <summary>
         /// Retrieve a list of files at the specified path.
         /// </summary>
         /// <param name="path">The path to list.</param>
-        /// <returns>A list of files in the path, relative to the path.</returns>
-        public abstract string[] GetFiles(string path);
+        /// <returns>A list of filenames in the path.</returns>
+        public abstract IEnumerable<string> GetFiles(string path);
 
         /// <summary>
         /// Retrieve a <see cref="Storage"/> for a contained directory.

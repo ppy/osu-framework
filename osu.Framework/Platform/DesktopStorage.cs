@@ -2,7 +2,9 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using osu.Framework.IO.File;
 
 namespace osu.Framework.Platform
@@ -34,9 +36,9 @@ namespace osu.Framework.Platform
 
         public override void Delete(string path) => FileSafety.FileDelete(GetUsablePathFor(path));
 
-        public override string[] GetDirectories(string path) => Directory.GetDirectories(GetUsablePathFor(path));
+        public override IEnumerable<string> GetDirectories(string path) => Directory.GetDirectories(GetUsablePathFor(path)).Select(Path.GetFileName);
 
-        public override string[] GetFiles(string path) => Directory.GetFiles(GetUsablePathFor(path));
+        public override IEnumerable<string> GetFiles(string path) => Directory.GetFiles(GetUsablePathFor(path)).Select(Path.GetFileName);
 
         public override void OpenInNativeExplorer() => host.OpenFileExternally(GetUsablePathFor(string.Empty));
 
