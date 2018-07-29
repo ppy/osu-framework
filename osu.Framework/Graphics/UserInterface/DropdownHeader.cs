@@ -4,6 +4,8 @@
 using System;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Input;
+using osu.Framework.Input.Bindings;
 using osu.Framework.Input.EventArgs;
 using osu.Framework.Input.States;
 using OpenTK.Graphics;
@@ -11,7 +13,7 @@ using OpenTK.Input;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public abstract class DropdownHeader : ClickableContainer
+    public abstract class DropdownHeader : ClickableContainer, IKeyBindingHandler<PlatformAction>
     {
         public event Action<SelectionChange> SelectionKeyPressed;
 
@@ -94,6 +96,23 @@ namespace osu.Framework.Graphics.UserInterface
                     return base.OnKeyDown(state, args);
             }
         }
+
+        public bool OnPressed(PlatformAction action)
+        {
+            switch (action.ActionType)
+            {
+                case PlatformActionType.LineStart:
+                    SelectionKeyPressed?.Invoke(SelectionChange.First);
+                    return true;
+                case PlatformActionType.LineEnd:
+                    SelectionKeyPressed?.Invoke(SelectionChange.Last);
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        public bool OnReleased(PlatformAction action) => false;
 
         public enum SelectionChange
         {
