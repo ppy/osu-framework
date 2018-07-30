@@ -335,7 +335,7 @@ namespace osu.Framework.Graphics.Video
                                 SWScale.sws_freeContext(swsCtx);
                                 swsCtx = IntPtr.Zero;
 
-                                var tex = new Texture(codecParams.width, codecParams.height);
+                                var tex = new Texture(codecParams.width, codecParams.height, true);
                                 var rawTex = new RawTexture(tex.Width, tex.Height, bufferStack);
                                 Marshal.Copy((IntPtr)frameRgb->data0, rawTex.Data, 0, uncompressedFrameSize);
                                 tex.SetData(new TextureUpload(rawTex));
