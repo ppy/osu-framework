@@ -167,7 +167,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// Removes all items from the control.
         /// </summary>
         public void RemoveAllItems() => tabMap.Keys.ToArray().ForEach(item => removeTab(item));
-        
+
         private TabItem<T> addTab(T value, bool addToDropdown = true)
         {
             // Do not allow duplicate adding
