@@ -8,7 +8,7 @@ namespace osu.Framework.Graphics.Video
 {
     internal static class AVFormat
     {
-        private const string dllName = "x64/avformat-58.dll";
+        private const string dllName = "avformat-58";
 
         internal const int AVSEEK_FLAG_BACKWARD = 1;
 

@@ -11,7 +11,7 @@ namespace osu.Framework.Graphics.Video
     /// </summary>
     internal static class AVCodec
     {
-        private const string dllName = "x64/avcodec-58.dll";
+        private const string dllName = "avcodec-58";
 
         internal const int AV_INPUT_BUFFER_PADDING_SIZE = 64;
 

@@ -8,7 +8,7 @@ namespace osu.Framework.Graphics.Video
 {
     internal static class AVUtil
     {
-        private const string dllName = "x64/avutil-56.dll";
+        private const string dllName = "avutil-56";
 
         internal const int AV_TIME_BASE = 1000000;
 
