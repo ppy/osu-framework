@@ -238,7 +238,7 @@ namespace osu.Framework.Graphics.Video
         AV_CODEC_ID_FITS,
 
         /* various PCM "codecs" */
-        AV_CODEC_ID_FIRST_AUDIO = 0x10000,     ///< A dummy id pointing at the start of audio codecs
+        AV_CODEC_ID_FIRST_AUDIO = 0x10000,     // <- A dummy id pointing at the start of audio codecs
         AV_CODEC_ID_PCM_S16LE = 0x10000,
         AV_CODEC_ID_PCM_S16BE,
         AV_CODEC_ID_PCM_U16LE,
@@ -339,7 +339,7 @@ namespace osu.Framework.Graphics.Video
 
         /* audio codecs */
         AV_CODEC_ID_MP2 = 0x15000,
-        AV_CODEC_ID_MP3, ///< preferred ID for decoding MPEG audio layer 1, 2 or 3
+        AV_CODEC_ID_MP3, // <- preferred ID for decoding MPEG audio layer 1, 2 or 3
         AV_CODEC_ID_AAC,
         AV_CODEC_ID_AC3,
         AV_CODEC_ID_DTS,
@@ -356,7 +356,7 @@ namespace osu.Framework.Graphics.Video
         AV_CODEC_ID_SHORTEN,
         AV_CODEC_ID_ALAC,
         AV_CODEC_ID_WESTWOOD_SND1,
-        AV_CODEC_ID_GSM, ///< as in Berlin toast format
+        AV_CODEC_ID_GSM, // <- as in Berlin toast format
         AV_CODEC_ID_QDM2,
         AV_CODEC_ID_COOK,
         AV_CODEC_ID_TRUESPEECH,
@@ -429,10 +429,10 @@ namespace osu.Framework.Graphics.Video
         AV_CODEC_ID_SBC,
 
         /* subtitle codecs */
-        AV_CODEC_ID_FIRST_SUBTITLE = 0x17000,          ///< A dummy ID pointing at the start of subtitle codecs.
+        AV_CODEC_ID_FIRST_SUBTITLE = 0x17000,          // <- A dummy ID pointing at the start of subtitle codecs.
         AV_CODEC_ID_DVD_SUBTITLE = 0x17000,
         AV_CODEC_ID_DVB_SUBTITLE,
-        AV_CODEC_ID_TEXT,  ///< raw UTF-8 text
+        AV_CODEC_ID_TEXT,  // <- raw UTF-8 text
         AV_CODEC_ID_XSUB,
         AV_CODEC_ID_SSA,
         AV_CODEC_ID_MOV_TEXT,
@@ -458,10 +458,10 @@ namespace osu.Framework.Graphics.Video
         AV_CODEC_ID_TTML,
 
         /* other specific kind of codecs (generally used for attachments) */
-        AV_CODEC_ID_FIRST_UNKNOWN = 0x18000,           ///< A dummy ID pointing at the start of various fake codecs.
+        AV_CODEC_ID_FIRST_UNKNOWN = 0x18000,           // <- A dummy ID pointing at the start of various fake codecs.
         AV_CODEC_ID_TTF = 0x18000,
 
-        AV_CODEC_ID_SCTE_35, ///< Contain timestamp estimated through PCR of program stream.
+        AV_CODEC_ID_SCTE_35, // <- Contain timestamp estimated through PCR of program stream.
         AV_CODEC_ID_BINTEXT = 0x18800,
         AV_CODEC_ID_XBIN,
         AV_CODEC_ID_IDF,

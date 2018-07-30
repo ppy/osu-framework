@@ -4,7 +4,7 @@
 
 namespace osu.Framework.Graphics.Video
 {
-    internal static class StdIO
+    internal static class StdIo
     {
         internal const int SEEK_SET = 0;
 

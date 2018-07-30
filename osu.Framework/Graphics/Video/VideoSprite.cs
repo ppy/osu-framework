@@ -107,7 +107,7 @@ namespace osu.Framework.Graphics.Video
 
         private volatile float lastDecodedFrameTime;
 
-        private SortedList<DecodedFrame> availableFrames;
+        private readonly SortedList<DecodedFrame> availableFrames;
         private int currentFrameIndex;
 
         private bool isDisposed;
@@ -153,17 +153,17 @@ namespace osu.Framework.Graphics.Video
         private long seek(void* opaque, long offset, int whence)
         {
             if (!videoStream.CanSeek)
-                throw new InvalidOperationException($"Tried seeking on a video sourced by a non-seekable stream.");
+                throw new InvalidOperationException("Tried seeking on a video sourced by a non-seekable stream.");
 
             switch (whence)
             {
-                case StdIO.SEEK_CUR:
+                case StdIo.SEEK_CUR:
                     videoStream.Seek(offset, SeekOrigin.Current);
                     break;
-                case StdIO.SEEK_END:
+                case StdIo.SEEK_END:
                     videoStream.Seek(offset, SeekOrigin.End);
                     break;
-                case StdIO.SEEK_SET:
+                case StdIo.SEEK_SET:
                     videoStream.Seek(offset, SeekOrigin.Begin);
                     break;
                 case AVFormat.AVSEEK_SIZE:
@@ -217,8 +217,10 @@ namespace osu.Framework.Graphics.Video
                     if (result < 0)
                         throw new Exception("Could not fill image arrays");
 
-                    decodingThread = new Thread(decodingLoop);
-                    decodingThread.IsBackground = true;
+                    decodingThread = new Thread(decodingLoop)
+                    {
+                        IsBackground = true
+                    };
                     decodingThread.Start();
                     break;
                 }
@@ -263,10 +265,7 @@ namespace osu.Framework.Graphics.Video
                 if (availableFrames.Count >= NumberOfPreloadedFrames)
                     decodeFrames = false;
             }
-            if (availableFrames.Count < NumberOfPreloadedFrames)
-                decodeFrames = true;
-            else
-                decodeFrames = false;
+            decodeFrames = availableFrames.Count < NumberOfPreloadedFrames;
 
             var oldIndex = currentFrameIndex;
             var index = availableFrames.BinarySearch(new DecodedFrame { Time = PlaybackPosition });
@@ -275,7 +274,7 @@ namespace osu.Framework.Graphics.Video
             if (index < availableFrames.Count)
             {
                 currentFrameIndex = index;
-                var isInHideCutoff = HideCutoff.HasValue && Math.Abs(availableFrames[index].Time - PlaybackPosition) > (HideCutoff * 1000.0 / AVUtil.av_q2d(stream->avg_frame_rate));
+                var isInHideCutoff = HideCutoff.HasValue && Math.Abs(availableFrames[index].Time - PlaybackPosition) > HideCutoff * 1000.0 / AVUtil.av_q2d(stream->avg_frame_rate);
                 if (isInHideCutoff)
                     Texture = ShowLastFrameDuringHideCutoff ? Texture : null;
                 else
@@ -284,7 +283,7 @@ namespace osu.Framework.Graphics.Video
             else if (availableFrames.Count > 0)
             {
                 currentFrameIndex = availableFrames.Count - 1;
-                var isInHideCutoff = HideCutoff.HasValue && Math.Abs(availableFrames[availableFrames.Count - 1].Time - PlaybackPosition) > (HideCutoff * 1000.0 / AVUtil.av_q2d(stream->avg_frame_rate));
+                var isInHideCutoff = HideCutoff.HasValue && Math.Abs(availableFrames[availableFrames.Count - 1].Time - PlaybackPosition) > HideCutoff * 1000.0 / AVUtil.av_q2d(stream->avg_frame_rate);
                 if (isInHideCutoff)
                     Texture = ShowLastFrameDuringHideCutoff ? Texture : null;
                 else
@@ -390,57 +389,51 @@ namespace osu.Framework.Graphics.Video
         {
             base.Dispose(isDisposing);
 
-            unsafe
+            while (decoderCommands.TryDequeue(out var cmd)) { }
+            if (decodingThread != null)
             {
-                while (decoderCommands.TryDequeue(out var cmd)) { }
-                if (decodingThread != null)
-                {
-                    isDisposed = true; // decodingThread checks this and aborts if it's set
-                    decodingThread.Join();
-                    decodingThread = null;
-                }
-
-                if (formatContext != null)
-                {
-                    fixed (AVFormatContext** ptr = &formatContext)
-                        AVFormat.avformat_close_input(ptr);
-                }
-
-                seekCallback = null;
-                readPacketCallback = null;
-                managedContextBuffer = null;
-
-                if (contextBuffer != null)
-                {
-                    // gets freed by libavformat when closing the input
-                    contextBuffer = null;
-                }
-
-                if (frame != null)
-                {
-                    fixed (AVFrame** ptr = &frame)
-                        AVUtil.av_frame_free(ptr);
-                }
-
-                if (frameRgb != null)
-                {
-                    fixed (AVFrame** ptr = &frameRgb)
-                        AVUtil.av_frame_free(ptr);
-                }
-
-                if (frameRgbBufferPtr != IntPtr.Zero)
-                {
-                    Marshal.FreeHGlobal(frameRgbBufferPtr);
-                    frameRgbBufferPtr = IntPtr.Zero;
-                }
-
-                // do these last to decrease the chance that the decoder writes a single frame into decodedFrames before exiting
-                // even if it does happen, it shouldn't be a big deal since the destructor of the created Texture should eventually cause it to be cleaned up
-                while (decodedFrames.TryDequeue(out var f))
-                    f.Texture.Dispose();
-                foreach (var f in availableFrames)
-                    f.Texture.Dispose();
+                isDisposed = true; // decodingThread checks this and aborts if it's set
+                decodingThread.Join();
+                decodingThread = null;
             }
+
+            if (formatContext != null)
+            {
+                fixed (AVFormatContext** ptr = &formatContext)
+                    AVFormat.avformat_close_input(ptr);
+            }
+
+            seekCallback = null;
+            readPacketCallback = null;
+            managedContextBuffer = null;
+
+            // gets freed by libavformat when closing the input
+            contextBuffer = null;
+
+            if (frame != null)
+            {
+                fixed (AVFrame** ptr = &frame)
+                    AVUtil.av_frame_free(ptr);
+            }
+
+            if (frameRgb != null)
+            {
+                fixed (AVFrame** ptr = &frameRgb)
+                    AVUtil.av_frame_free(ptr);
+            }
+
+            if (frameRgbBufferPtr != IntPtr.Zero)
+            {
+                Marshal.FreeHGlobal(frameRgbBufferPtr);
+                frameRgbBufferPtr = IntPtr.Zero;
+            }
+
+            // do these last to decrease the chance that the decoder writes a single frame into decodedFrames before exiting
+            // even if it does happen, it shouldn't be a big deal since the destructor of the created Texture should eventually cause it to be cleaned up
+            while (decodedFrames.TryDequeue(out var f))
+                f.Texture.Dispose();
+            foreach (var f in availableFrames)
+                f.Texture.Dispose();
         }
     }
 }

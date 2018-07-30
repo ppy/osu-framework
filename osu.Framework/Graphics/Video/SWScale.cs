@@ -8,15 +8,15 @@ namespace osu.Framework.Graphics.Video
 {
     internal static class SWScale
     {
-        private const string dllName = "swscale-5";
+        private const string dll_name = "swscale-5";
 
-        [DllImport(dllName)]
+        [DllImport(dll_name)]
         internal static extern IntPtr sws_getContext(int srcW, int srcH, AVPixelFormat srcFormat, int dstW, int dstH, AVPixelFormat dstFormat, int flags, IntPtr srcFilter, IntPtr dstFilter, IntPtr param);
 
-        [DllImport(dllName)]
+        [DllImport(dll_name)]
         internal static extern unsafe int sws_scale(IntPtr c, byte** srcSlice, int* srcStride, int srcSliceY, int srcSliceH, byte** dst, int* dstStride);
 
-        [DllImport(dllName)]
+        [DllImport(dll_name)]
         internal static extern void sws_freeContext(IntPtr swsContext);
     }
 }
