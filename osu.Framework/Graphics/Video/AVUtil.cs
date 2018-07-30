@@ -30,8 +30,5 @@ namespace osu.Framework.Graphics.Video
 
         [DllImport(dll_name)]
         internal static extern unsafe byte* av_malloc(uint size);
-
-        [DllImport(dll_name)]
-        internal static extern unsafe void av_free(void* ptr);
     }
 }

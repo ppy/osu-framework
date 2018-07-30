@@ -12,7 +12,7 @@ namespace osu.Framework.Graphics.Video
     /// <summary>
     /// Represents a sprite that plays back a video from a stream or a file.
     /// </summary>
-    public unsafe class VideoSprite : Sprite
+    public class VideoSprite : Sprite
     {
         /// <summary>
         /// The duration of the video that is being played. Can only be queried after the decoder has started decoding has loaded. This value may be an estimate by FFmpeg, depending on the video loaded.
@@ -174,8 +174,12 @@ namespace osu.Framework.Graphics.Video
 
         protected override void Dispose(bool isDisposing)
         {
+            if (isDisposed)
+                return;
+
             base.Dispose(isDisposing);
 
+            isDisposed = true;
             decoder.Dispose();
 
             foreach (var f in availableFrames)

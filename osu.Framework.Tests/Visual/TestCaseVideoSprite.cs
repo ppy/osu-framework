@@ -44,7 +44,7 @@ namespace osu.Framework.Tests.Visual
 
                 AddStep("Jump ahead by 10 seconds", () => clock.CurrentTime += 10_000.0);
                 AddStep("Jump back by 10 seconds", () => clock.CurrentTime = Math.Max(0, clock.CurrentTime - 10_000.0));
-                AddToggleStep("Toggle looping", (newState) =>
+                AddToggleStep("Toggle looping", newState =>
                 {
                     videoSprite.Loop = newState;
                     clock.CurrentTime = 0;

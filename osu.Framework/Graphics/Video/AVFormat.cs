@@ -34,9 +34,6 @@ namespace osu.Framework.Graphics.Video
         internal static extern int avformat_find_stream_info(IntPtr ic, IntPtr options);
 
         [DllImport(dll_name)]
-        internal static extern void av_dump_format(IntPtr ic, int index, string url, int is_output);
-
-        [DllImport(dll_name)]
         internal static extern unsafe int av_read_frame(AVFormatContext* s, AVPacket* pkt);
 
         [DllImport(dll_name)]

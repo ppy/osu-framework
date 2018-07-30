@@ -21,7 +21,7 @@ namespace osu.Framework.Graphics.Video
         /// </summary>
         public Texture Texture { get; set; }
 
-        private bool isDisposed = false;
+        private bool isDisposed;
 
         #region Disposal
 

@@ -239,7 +239,7 @@ namespace osu.Framework.Graphics.Video
 
         private void decodingLoop(object state)
         {
-            var exitOnFirstReadFrameError = (state as bool?) ?? false;
+            var exitOnFirstReadFrameError = state as bool? ?? false;
 
             var packet = AVCodec.av_packet_alloc();
             // this should be massively reduced to something like 5-10, currently there is an issue with texture uploads not completing

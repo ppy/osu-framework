@@ -13,10 +13,6 @@ namespace osu.Framework.Graphics.Video
     {
         private const string dll_name = "avcodec-58";
 
-        internal const int AV_INPUT_BUFFER_PADDING_SIZE = 64;
-
-        internal const long AV_NOPTS_VALUE = unchecked((long)0x8000000000000000);
-
         [DllImport(dll_name)]
         internal static extern IntPtr avcodec_find_decoder(AVCodecID id);
 
@@ -28,9 +24,6 @@ namespace osu.Framework.Graphics.Video
 
         [DllImport(dll_name)]
         internal static extern unsafe void av_packet_free(AVPacket** packet);
-
-        [DllImport(dll_name)]
-        internal static extern unsafe void av_packet_unref(AVPacket* pkt);
 
         [DllImport(dll_name)]
         internal static extern unsafe int avcodec_send_packet(IntPtr avctx, AVPacket* avpkt);
