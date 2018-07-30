@@ -3,7 +3,7 @@
 
 namespace osu.Framework.Graphics.Video
 {
-    internal enum AVCodecID : int
+    internal enum AVCodecID
     {
         AV_CODEC_ID_NONE = 0,
 

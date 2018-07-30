@@ -27,7 +27,7 @@ namespace osu.Framework.Graphics.Video
         /// <summary>
         /// True if the video has finished playing, false otherwise.
         /// </summary>
-        public bool FinishedPlaying => Loop ? false : PlaybackPosition > Duration;
+        public bool FinishedPlaying => !Loop && PlaybackPosition > Duration;
 
         /// <summary>
         /// True if the video should loop after finishing its playback, false otherwise.
@@ -83,7 +83,7 @@ namespace osu.Framework.Graphics.Video
         private AVFormat.ReadPacketCallback readPacketCallback;
         private AVFormat.SeekCallback seekCallback;
 
-        private Stream videoStream;
+        private readonly Stream videoStream;
 
         // unmanaged frame data
         private AVFrame* frame;
@@ -252,7 +252,7 @@ namespace osu.Framework.Graphics.Video
                     availableFrames.Clear();
                 }
                 // the current playback position demands that we are more than 2 seconds further than the last available frame, so we should seek forward
-                else if (availableFrames.Count >= 5 && PlaybackPosition > (availableFrames[availableFrames.Count - 1].Time + 2000.0))
+                else if (availableFrames.Count >= 5 && PlaybackPosition > availableFrames[availableFrames.Count - 1].Time + 2000.0)
                 {
                     decoderCommands.Enqueue(() => AVFormat.av_seek_frame(formatContext, stream->index, (long)(PlaybackPosition / timeBaseInSeconds / 1000.0), AVFormat.AVSEEK_FLAG_BACKWARD));
                     availableFrames.Clear();
@@ -267,7 +267,6 @@ namespace osu.Framework.Graphics.Video
             }
             decodeFrames = availableFrames.Count < NumberOfPreloadedFrames;
 
-            var oldIndex = currentFrameIndex;
             var index = availableFrames.BinarySearch(new DecodedFrame { Time = PlaybackPosition });
             if (index < 0)
                 index = ~index;
@@ -363,7 +362,6 @@ namespace osu.Framework.Graphics.Video
                         if (executedCmd)
                             break;
                         Thread.Sleep(16);
-                        continue;
                     }
                     while (!decoderCommands.IsEmpty)
                     {
@@ -389,7 +387,7 @@ namespace osu.Framework.Graphics.Video
         {
             base.Dispose(isDisposing);
 
-            while (decoderCommands.TryDequeue(out var cmd)) { }
+            while (decoderCommands.TryDequeue(out var _)) { }
             if (decodingThread != null)
             {
                 isDisposed = true; // decodingThread checks this and aborts if it's set
