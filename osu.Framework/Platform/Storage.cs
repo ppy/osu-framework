@@ -77,14 +77,14 @@ namespace osu.Framework.Platform
         /// Retrieve a list of directories at the specified path.
         /// </summary>
         /// <param name="path">The path to list.</param>
-        /// <returns>A list of directory names in the path.</returns>
+        /// <returns>A list of directories in the path, relative to the path of this storage.</returns>
         public abstract IEnumerable<string> GetDirectories(string path);
 
         /// <summary>
         /// Retrieve a list of files at the specified path.
         /// </summary>
         /// <param name="path">The path to list.</param>
-        /// <returns>A list of filenames in the path.</returns>
+        /// <returns>A list of files in the path, relative to the path of this storage.</returns>
         public abstract IEnumerable<string> GetFiles(string path);
 
         /// <summary>

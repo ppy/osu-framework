@@ -36,9 +36,9 @@ namespace osu.Framework.Platform
 
         public override void Delete(string path) => FileSafety.FileDelete(GetUsablePathFor(path));
 
-        public override IEnumerable<string> GetDirectories(string path) => Directory.GetDirectories(GetUsablePathFor(path)).Select(Path.GetFileName);
+        public override IEnumerable<string> GetDirectories(string path) => Directory.GetDirectories(GetUsablePathFor(path)).Select(str => str.Substring(GetUsablePathFor("").Length + 1)); // the last path separator character has to be removed, too
 
-        public override IEnumerable<string> GetFiles(string path) => Directory.GetFiles(GetUsablePathFor(path)).Select(Path.GetFileName);
+        public override IEnumerable<string> GetFiles(string path) => Directory.GetFiles(GetUsablePathFor(path)).Select(str => str.Substring(GetUsablePathFor("").Length + 1));
 
         public override void OpenInNativeExplorer() => host.OpenFileExternally(GetUsablePathFor(string.Empty));
 
