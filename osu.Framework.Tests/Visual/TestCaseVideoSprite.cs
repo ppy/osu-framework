@@ -60,7 +60,7 @@ namespace osu.Framework.Tests.Visual
                 clock.CurrentTime += Clock.ElapsedFrameTime;
 
             if (timeText != null)
-                timeText.Text = $"{videoSprite.PlaybackPosition:N2} / {videoSprite.Duration}, Buffer-Frame {videoSprite.CurrentFrameIndex} / {videoSprite.AvailableFrames}, Last Decoded Frame Time: {videoSprite.LastDecodedFrameTime}, Current Frame Time: {videoSprite.CurrentFrameTime}";
+                timeText.Text = $"{videoSprite.PlaybackPosition:N2} / {videoSprite.Duration}, Buffer-Frame {videoSprite.CurrentFrameIndex} / {videoSprite.AvailableFrames}, Current Frame Time: {videoSprite.CurrentFrameTime}";
         }
     }
 }
