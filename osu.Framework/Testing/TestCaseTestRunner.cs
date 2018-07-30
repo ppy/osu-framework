@@ -33,13 +33,12 @@ namespace osu.Framework.Testing
             private Bindable<double> volume;
             private double volumeAtStartup;
 
-            private GameHost host;
+            [Resolved]
+            private GameHost host { get; set; }
 
             [BackgroundDependencyLoader]
-            private void load(GameHost host, FrameworkConfigManager config)
+            private void load(FrameworkConfigManager config)
             {
-                this.host = host;
-
                 volume = config.GetBindable<double>(FrameworkSetting.VolumeUniversal);
                 volumeAtStartup = volume.Value;
                 volume.Value = 0;

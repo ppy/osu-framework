@@ -3,12 +3,14 @@
 
 using System;
 using System.Diagnostics;
+using osu.Framework.Graphics.Shapes;
+using osu.Framework.Input;
+using osu.Framework.Input.Bindings;
+using osu.Framework.Input.EventArgs;
+using osu.Framework.Input.States;
 using osu.Framework.MathUtils;
 using OpenTK;
 using OpenTK.Graphics;
-using osu.Framework.Graphics.Shapes;
-using osu.Framework.Input.EventArgs;
-using osu.Framework.Input.States;
 using OpenTK.Input;
 
 namespace osu.Framework.Graphics.Containers
@@ -19,12 +21,13 @@ namespace osu.Framework.Graphics.Containers
         /// Creates a scroll container.
         /// </summary>
         /// <param name="scrollDirection">The direction in which should be scrolled. Can be vertical or horizontal. Default is vertical.</param>
-        public ScrollContainer(Direction scrollDirection = Direction.Vertical) : base(scrollDirection)
+        public ScrollContainer(Direction scrollDirection = Direction.Vertical)
+            : base(scrollDirection)
         {
         }
     }
 
-    public class ScrollContainer<T> : Container<T>, DelayedLoadWrapper.IOnScreenOptimisingContainer
+    public class ScrollContainer<T> : Container<T>, DelayedLoadWrapper.IOnScreenOptimisingContainer, IKeyBindingHandler<PlatformAction>
         where T : Drawable
     {
         /// <summary>
@@ -159,6 +162,8 @@ namespace osu.Framework.Graphics.Containers
 
         protected virtual bool IsDragging { get; private set; }
 
+        public bool IsHandlingKeyboardScrolling => IsHovered || ReceiveMouseInputAt(GetContainingInputManager().CurrentState.Mouse.Position);
+
         /// <summary>
         /// The direction in which scrolling is supported.
         /// </summary>
@@ -246,6 +251,24 @@ namespace osu.Framework.Graphics.Containers
 
             IsDragging = true;
             return true;
+        }
+
+        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
+        {
+            if (IsHandlingKeyboardScrolling && !IsDragging)
+            {
+                switch (args.Key)
+                {
+                    case Key.PageUp:
+                        ScrollTo(target - displayableContent);
+                        return true;
+                    case Key.PageDown:
+                        ScrollTo(target + displayableContent);
+                        return true;
+                }
+            }
+
+            return base.OnKeyDown(state, args);
         }
 
         protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
@@ -350,6 +373,17 @@ namespace osu.Framework.Graphics.Containers
         }
 
         private void offset(float value, bool animated, double distanceDecay = float.PositiveInfinity) => scrollTo(target + value, animated, distanceDecay);
+
+        /// <summary>
+        /// Scroll to the start of available content.
+        /// </summary>
+        /// <param name="animated">Whether to animate the movement.</param>
+        /// <param name="allowDuringDrag">Whether we should interrupt a user's active drag.</param>
+        public void ScrollToStart(bool animated = true, bool allowDuringDrag = false)
+        {
+            if (!IsDragging || allowDuringDrag)
+                scrollTo(0, animated, DistanceDecayJump);
+        }
 
         /// <summary>
         /// Scroll to the end of available content.
@@ -584,5 +618,25 @@ namespace osu.Framework.Graphics.Containers
                 return true;
             }
         }
+
+        public bool OnPressed(PlatformAction action)
+        {
+            if (!IsHandlingKeyboardScrolling)
+                return false;
+
+            switch (action.ActionType)
+            {
+                case PlatformActionType.LineStart:
+                    ScrollToStart();
+                    return true;
+                case PlatformActionType.LineEnd:
+                    ScrollToEnd();
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        public bool OnReleased(PlatformAction action) => false;
     }
 }
