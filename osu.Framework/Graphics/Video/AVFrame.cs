@@ -9,9 +9,10 @@ namespace osu.Framework.Graphics.Video
     [StructLayout(LayoutKind.Sequential)]
     internal unsafe struct AVFrame
     {
+        // cannot used fixed because fixed-size buffers must not be pointer-types (compiler error)
         internal byte* data0, data1, data2, data3, data4, data5, data6, data7;
 
-        internal int linesize0, linesize1, linesize2, linesize3, linesize4, linesize5, linesize6, linesize7;
+        internal fixed int linesize[8];
 
         internal byte** extended_data;
 
@@ -43,7 +44,7 @@ namespace osu.Framework.Graphics.Video
 
         internal IntPtr opaque;
 
-        internal ulong error0, error1, error2, error3, error4, error5, error6, error7;
+        internal fixed ulong error[8];
 
         internal int repeat_pict;
 
@@ -59,6 +60,7 @@ namespace osu.Framework.Graphics.Video
 
         internal ulong channel_layout;
 
+        // cannot used fixed because fixed-size buffers must not be pointer-types (compiler error)
         internal IntPtr buf0, buf1, buf2, buf3, buf4, buf5, buf6, buf7;
 
         internal IntPtr extended_buf;

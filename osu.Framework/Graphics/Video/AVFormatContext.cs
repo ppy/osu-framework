@@ -25,10 +25,7 @@ namespace osu.Framework.Graphics.Video
 
         internal AVStream** streams;
 
-        // deprecated, but it still exists. might need to remove this if AVFormat gets udpated.
-        // also, this is dumb and retarded and bad, but we can't have this struct be a pointer and use marshalling
-        // at the same time. opting for pointers here, since that makes use of AVFormat easier generally
-        private long filename0, filename1, filename2, filename3, filename4, filename5, filename6, filename7, filename8, filename9, filename10, filename11, filename12, filename13, filename14, filename15, filename16, filename17, filename18, filename19, filename20, filename21, filename22, filename23, filename24, filename25, filename26, filename27, filename28, filename29, filename30, filename31, filename32, filename33, filename34, filename35, filename36, filename37, filename38, filename39, filename40, filename41, filename42, filename43, filename44, filename45, filename46, filename47, filename48, filename49, filename50, filename51, filename52, filename53, filename54, filename55, filename56, filename57, filename58, filename59, filename60, filename61, filename62, filename63, filename64, filename65, filename66, filename67, filename68, filename69, filename70, filename71, filename72, filename73, filename74, filename75, filename76, filename77, filename78, filename79, filename80, filename81, filename82, filename83, filename84, filename85, filename86, filename87, filename88, filename89, filename90, filename91, filename92, filename93, filename94, filename95, filename96, filename97, filename98, filename99, filename100, filename101, filename102, filename103, filename104, filename105, filename106, filename107, filename108, filename109, filename110, filename111, filename112, filename113, filename114, filename115, filename116, filename117, filename118, filename119, filename120, filename121, filename122, filename123, filename124, filename125, filename126, filename127;
+        private fixed byte filename[1024];
 
         internal char* url;
 

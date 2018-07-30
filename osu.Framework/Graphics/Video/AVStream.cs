@@ -71,7 +71,7 @@ namespace osu.Framework.Graphics.Video
 
         internal AVProbeData probe_data;
 
-        internal long pts_buffer0, pts_buffer1, pts_buffer2, pts_buffer3, pts_buffer4, pts_buffer5, pts_buffer6, pts_buffer7, pts_buffer8, pts_buffer9, pts_buffer10, pts_buffer11, pts_buffer12, pts_buffer13, pts_buffer14, pts_buffer15, pts_buffer16;
+        internal fixed long pts_buffer[17];
 
         internal IntPtr index_entries;
 
@@ -107,9 +107,9 @@ namespace osu.Framework.Graphics.Video
 
         internal int update_initial_durations_done;
 
-        internal long pts_reorder_error0, pts_reorder_error1, pts_reorder_error2, pts_reorder_error3, pts_reorder_error4, pts_reorder_error5, pts_reorder_error6, pts_reorder_error7, pts_reorder_error8, pts_reorder_error9, pts_reorder_error10, pts_reorder_error11, pts_reorder_error12, pts_reorder_error13, pts_reorder_error14, pts_reorder_error15, pts_reorder_error16;
+        internal fixed long pts_reorder_error[17];
 
-        internal byte pts_reorder_error_count0, pts_reorder_error_count1, pts_reorder_error_count2, pts_reorder_error_count3, pts_reorder_error_count4, pts_reorder_error_count5, pts_reorder_error_count6, pts_reorder_error_count7, pts_reorder_error_count8, pts_reorder_error_count9, pts_reorder_error_count10, pts_reorder_error_count11, pts_reorder_error_count12, pts_reorder_error_count13, pts_reorder_error_count14, pts_reorder_error_count15, pts_reorder_error_count16;
+        internal fixed byte pts_reorder_error_count[17];
 
         internal long last_dts_for_order_check;
 

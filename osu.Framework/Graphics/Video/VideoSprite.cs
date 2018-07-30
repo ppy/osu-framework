@@ -213,7 +213,7 @@ namespace osu.Framework.Graphics.Video
                     uncompressedFrameSize = AVUtil.av_image_get_buffer_size(AVPixelFormat.AV_PIX_FMT_RGBA, codecParams.width, codecParams.height);
                     frameRgbBufferPtr = Marshal.AllocHGlobal(uncompressedFrameSize);
 
-                    var result = AVUtil.av_image_fill_arrays(&frameRgb->data0, &frameRgb->linesize0, frameRgbBufferPtr, AVPixelFormat.AV_PIX_FMT_RGBA, codecParams.width, codecParams.height, 1);
+                    var result = AVUtil.av_image_fill_arrays(&frameRgb->data0, &frameRgb->linesize[0], frameRgbBufferPtr, AVPixelFormat.AV_PIX_FMT_RGBA, codecParams.width, codecParams.height, 1);
                     if (result < 0)
                         throw new Exception("Could not fill image arrays");
 
@@ -331,7 +331,7 @@ namespace osu.Framework.Graphics.Video
                             if (result == 0)
                             {
                                 swsCtx = SWScale.sws_getContext(codecParams.width, codecParams.height, (AVPixelFormat)frame->format, codecParams.width, codecParams.height, AVPixelFormat.AV_PIX_FMT_RGBA, 0, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);
-                                SWScale.sws_scale(swsCtx, &frame->data0, &frame->linesize0, 0, frame->height, &frameRgb->data0, &frameRgb->linesize0);
+                                SWScale.sws_scale(swsCtx, &frame->data0, &frame->linesize[0], 0, frame->height, &frameRgb->data0, &frameRgb->linesize[0]);
                                 SWScale.sws_freeContext(swsCtx);
                                 swsCtx = IntPtr.Zero;
 
