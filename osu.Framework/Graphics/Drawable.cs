@@ -149,7 +149,7 @@ namespace osu.Framework.Graphics
 
             return (loadTask ?? Task.CompletedTask).ContinueWith(task => game.Schedule(() =>
             {
-                task.ThrowIfFaulted(typeof(RecursiveLoadException));
+                task.ThrowIfFaulted();
                 onLoaded?.Invoke();
                 loadTask = null;
             }));
