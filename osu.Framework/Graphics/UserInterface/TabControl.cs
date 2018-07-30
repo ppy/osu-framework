@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions;
+using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
@@ -162,6 +163,11 @@ namespace osu.Framework.Graphics.UserInterface
         /// <param name="item">The item to remove.</param>
         public void RemoveItem(T item) => removeTab(item);
 
+        /// <summary>
+        /// Removes all items from the control.
+        /// </summary>
+        public void RemoveAllItems() => tabMap.Keys.ToArray().ForEach(item => removeTab(item));
+        
         private TabItem<T> addTab(T value, bool addToDropdown = true)
         {
             // Do not allow duplicate adding
