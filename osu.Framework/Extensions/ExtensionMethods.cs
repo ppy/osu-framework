@@ -13,7 +13,6 @@ using System.Security;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using osu.Framework.Extensions.ExceptionExtensions;
 
 // this is an abusive thing to do, but it increases the visibility of Extension Methods to virtually every file.
 
@@ -196,7 +195,7 @@ namespace osu.Framework.Extensions
         public static void ThrowIfFaulted(this Task task)
         {
             if (!task.IsFaulted) return;
-            task.Exception.Rethrow();
+            throw task.Exception ?? new Exception("Task failed.");
         }
 
         /// <summary>
