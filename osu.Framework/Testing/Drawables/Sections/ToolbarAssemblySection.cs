@@ -4,7 +4,6 @@
 using System.Linq;
 using System.Reflection;
 using osu.Framework.Allocation;
-using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
@@ -15,9 +14,6 @@ namespace osu.Framework.Testing.Drawables.Sections
 {
     public class ToolbarAssemblySection : ToolbarSection
     {
-        private readonly Bindable<Assembly> assembly = new Bindable<Assembly>();
-        private readonly Bindable<bool> runAllSteps = new Bindable<bool>();
-
         private BasicDropdown<Assembly> assemblyDropdown;
 
         public ToolbarAssemblySection()
@@ -26,11 +22,8 @@ namespace osu.Framework.Testing.Drawables.Sections
         }
 
         [BackgroundDependencyLoader]
-        private void load(TestBrowser.AssemblyBindable assembly, TestBrowser.RunAllStepsBindable runAllSteps)
+        private void load(TestBrowser browser)
         {
-            this.assembly.BindTo(assembly);
-            this.runAllSteps.BindTo(runAllSteps);
-
             BasicCheckbox runAllStepsCheckbox;
 
             InternalChild = new FillFlowContainer
@@ -62,8 +55,8 @@ namespace osu.Framework.Testing.Drawables.Sections
                 }
             };
 
-            assemblyDropdown.Current.BindTo(this.assembly);
-            runAllStepsCheckbox.Current.BindTo(this.runAllSteps);
+            assemblyDropdown.Current.BindTo(browser.Assembly);
+            runAllStepsCheckbox.Current.BindTo(browser.RunAllSteps);
         }
 
         public void AddAssembly(string name, Assembly assembly)

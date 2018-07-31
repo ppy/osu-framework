@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Allocation;
-using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
@@ -12,13 +11,9 @@ namespace osu.Framework.Testing.Drawables.Sections
 {
     public class ToolbarRateSection : ToolbarSection
     {
-        private readonly Bindable<double> rate = new Bindable<double>();
-
         [BackgroundDependencyLoader]
-        private void load(TestBrowser.RateBindable rate)
+        private void load(TestBrowser browser)
         {
-            this.rate.BindTo(rate);
-
             BasicSliderBar<double> rateAdjustSlider;
             SpriteText rateText;
 
@@ -54,7 +49,7 @@ namespace osu.Framework.Testing.Drawables.Sections
                 }
             };
 
-            rateAdjustSlider.Current.BindTo(rate);
+            rateAdjustSlider.Current.BindTo(browser.PlaybackRate);
             rateAdjustSlider.Current.BindValueChanged(v => rateText.Text = v.ToString("0%"), true);
         }
     }

@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Allocation;
-using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
@@ -18,13 +17,11 @@ namespace osu.Framework.Testing.Drawables.Sections
 {
     public class ToolbarRecordSection : ToolbarSection
     {
-        private readonly Bindable<TestBrowser.PlaybackState> playback = new Bindable<TestBrowser.PlaybackState>();
-        private readonly BindableInt currentFrame = new BindableInt();
-
         private Button previousButton;
         private Button nextButton;
         private Button recordButton;
         private FillFlowContainer playbackControls;
+        private TestBrowser browser;
 
         public ToolbarRecordSection()
         {
@@ -32,10 +29,9 @@ namespace osu.Framework.Testing.Drawables.Sections
         }
 
         [BackgroundDependencyLoader]
-        private void load(TestBrowser.PlaybackBindable playback, TestBrowser.FrameBindable currentFrame)
+        private void load(TestBrowser browser)
         {
-            this.playback.BindTo(playback);
-            this.currentFrame.BindTo(currentFrame);
+            this.browser = browser;
 
             BasicSliderBar<int> frameSliderBar;
 
@@ -93,37 +89,37 @@ namespace osu.Framework.Testing.Drawables.Sections
                 }
             };
 
-            frameSliderBar.Current.BindTo(this.currentFrame);
-            this.playback.BindValueChanged(updateState, true);
+            frameSliderBar.Current.BindTo(browser.CurrentFrame);
+            browser.RecordState.BindValueChanged(updateState, true);
         }
 
         private void changeState()
         {
-            if (playback.Value == TestBrowser.PlaybackState.Stopped)
-                playback.Value = TestBrowser.PlaybackState.Normal;
+            if (browser.RecordState == RecordState.Stopped)
+                browser.RecordState.Value = RecordState.Normal;
             else
-                playback.Value = playback.Value + 1;
+                browser.RecordState.Value = browser.RecordState.Value + 1;
         }
 
-        private void previousFrame() => currentFrame.Value = currentFrame.Value - 1;
+        private void previousFrame() => browser.CurrentFrame.Value = browser.CurrentFrame.Value - 1;
 
-        private void nextFrame() => currentFrame.Value = currentFrame.Value + 1;
+        private void nextFrame() => browser.CurrentFrame.Value = browser.CurrentFrame.Value + 1;
 
-        private void updateState(TestBrowser.PlaybackState state)
+        private void updateState(RecordState state)
         {
             switch (state)
             {
-                case TestBrowser.PlaybackState.Normal:
+                case RecordState.Normal:
                     recordButton.Text = "record";
                     recordButton.BackgroundColour = Color4.DarkGreen;
                     playbackControls.Hide();
                     break;
-                case TestBrowser.PlaybackState.Recording:
+                case RecordState.Recording:
                     recordButton.Text = "stop";
                     recordButton.BackgroundColour = Color4.DarkRed;
                     playbackControls.Hide();
                     break;
-                case TestBrowser.PlaybackState.Stopped:
+                case RecordState.Stopped:
                     recordButton.Text = "reset";
                     recordButton.BackgroundColour = Color4.DarkSlateGray;
                     playbackControls.Show();
@@ -132,12 +128,12 @@ namespace osu.Framework.Testing.Drawables.Sections
 
             switch (state)
             {
-                case TestBrowser.PlaybackState.Normal:
-                case TestBrowser.PlaybackState.Recording:
+                case RecordState.Normal:
+                case RecordState.Recording:
                     previousButton.Enabled.Value = false;
                     nextButton.Enabled.Value = false;
                     break;
-                case TestBrowser.PlaybackState.Stopped:
+                case RecordState.Stopped:
                     previousButton.Enabled.Value = true;
                     nextButton.Enabled.Value = true;
                     break;

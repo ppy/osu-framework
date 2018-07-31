@@ -28,6 +28,7 @@ using OpenTK.Input;
 
 namespace osu.Framework.Testing
 {
+    [Cached]
     public class TestBrowser : KeyBindingContainer<TestBrowserAction>, IKeyBindingHandler<TestBrowserAction>
     {
         public TestCase CurrentTest { get; private set; }
@@ -80,11 +81,11 @@ namespace osu.Framework.Testing
             leftFlowContainer.AddRange(TestTypes.Where(t => t.Assembly == asm).Select(t => new TestCaseButton(t) { Action = () => LoadTest(t) }));
         }
 
-        private readonly RateBindable rateBindable = new RateBindable();
-        private readonly AssemblyBindable assemblyBindable = new AssemblyBindable();
-        private readonly RunAllStepsBindable runAllStepsBindable = new RunAllStepsBindable();
-        private readonly PlaybackBindable playbackBindable = new PlaybackBindable();
-        private readonly FrameBindable frameBindable = new FrameBindable();
+        internal readonly BindableDouble PlaybackRate = new BindableDouble(1) { MinValue = 0, MaxValue = 2 };
+        internal readonly Bindable<Assembly> Assembly = new Bindable<Assembly>();
+        internal readonly Bindable<bool> RunAllSteps = new Bindable<bool>();
+        internal readonly Bindable<RecordState> RecordState = new Bindable<RecordState>();
+        internal readonly BindableInt CurrentFrame = new BindableInt { MinValue = 0, MaxValue = 0 };
 
         private TestBrowserToolbar toolbar;
         private Container leftContainer;
@@ -223,22 +224,9 @@ namespace osu.Framework.Testing
             foreach (Assembly asm in assemblies)
                 toolbar.AddAssembly(asm.GetName().Name, asm);
 
-            assemblyBindable.BindValueChanged(updateList);
-            runAllStepsBindable.BindValueChanged(v => runTests(null));
-            rateBindable.BindValueChanged(v => rateAdjustClock.Rate = v, true);
-        }
-
-        protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent)
-        {
-            var dependencies = new DependencyContainer(base.CreateChildDependencies(parent));
-
-            dependencies.Cache(rateBindable);
-            dependencies.Cache(assemblyBindable);
-            dependencies.Cache(runAllStepsBindable);
-            dependencies.Cache(playbackBindable);
-            dependencies.Cache(frameBindable);
-
-            return dependencies;
+            Assembly.BindValueChanged(updateList);
+            RunAllSteps.BindValueChanged(v => runTests(null));
+            PlaybackRate.BindValueChanged(v => rateAdjustClock.Rate = v, true);
         }
 
         protected override void Dispose(bool isDisposing)
@@ -253,7 +241,8 @@ namespace osu.Framework.Testing
             compilingNotice.FadeColour(Color4.White);
         });
 
-        private void compileFailed(Exception ex) => Schedule(() => {
+        private void compileFailed(Exception ex) => Schedule(() =>
+        {
             showLogOverlay.Value = true;
             Logger.Error(ex, "Error with dynamic compilation!");
 
@@ -322,13 +311,13 @@ namespace osu.Framework.Testing
 
         public override IEnumerable<KeyBinding> DefaultKeyBindings => new[]
         {
-            new KeyBinding(new [] {InputKey.Control, InputKey.F},TestBrowserAction.Search),
-            new KeyBinding(new [] {InputKey.Control, InputKey.R},TestBrowserAction.Reload), // for macOS
+            new KeyBinding(new[] { InputKey.Control, InputKey.F }, TestBrowserAction.Search),
+            new KeyBinding(new[] { InputKey.Control, InputKey.R }, TestBrowserAction.Reload), // for macOS
 
-            new KeyBinding(new [] {InputKey.Super, InputKey.F},TestBrowserAction.Search), // for macOS
-            new KeyBinding(new [] {InputKey.Super, InputKey.R},TestBrowserAction.Reload), // for macOS
+            new KeyBinding(new[] { InputKey.Super, InputKey.F }, TestBrowserAction.Search), // for macOS
+            new KeyBinding(new[] { InputKey.Super, InputKey.R }, TestBrowserAction.Reload), // for macOS
 
-            new KeyBinding(new [] {InputKey.Control, InputKey.H},TestBrowserAction.ToggleTestList),
+            new KeyBinding(new[] { InputKey.Control, InputKey.H }, TestBrowserAction.ToggleTestList),
         };
 
         public bool OnPressed(TestBrowserAction action)
@@ -376,15 +365,15 @@ namespace osu.Framework.Testing
             else
                 TestTypes.RemoveAll(t => t.Assembly.FullName.Contains(dynamic));
 
-            assemblyBindable.Value = testType.Assembly;
+            Assembly.Value = testType.Assembly;
 
             CurrentTest = newTest;
 
             updateButtons();
 
-            frameBindable.Value = 0;
-            if (playbackBindable.Value == PlaybackState.Stopped)
-                playbackBindable.Value = PlaybackState.Normal;
+            CurrentFrame.Value = 0;
+            if (RecordState.Value == Testing.RecordState.Stopped)
+                RecordState.Value = Testing.RecordState.Normal;
 
             testContentContainer.Add(new ErrorCatchingDelayedLoadWrapper(CurrentTest, isDynamicLoad)
             {
@@ -428,7 +417,7 @@ namespace osu.Framework.Testing
 
         private void runTests(Action onCompletion)
         {
-            if (!interactive || runAllStepsBindable.Value)
+            if (!interactive || RunAllSteps.Value)
                 CurrentTest.RunAllSteps(onCompletion, e => Logger.Log($@"Error on step: {e}"));
             else
                 CurrentTest.RunFirstStep();
@@ -470,53 +459,24 @@ namespace osu.Framework.Testing
                 return false;
             }
         }
+    }
 
-        internal class RateBindable : BindableDouble
-        {
-            public RateBindable()
-                : base(1)
-            {
-                MinValue = 0;
-                MaxValue = 2;
-            }
-        }
+    internal enum RecordState
+    {
+        /// <summary>
+        /// The game is playing back normally.
+        /// </summary>
+        Normal,
 
-        internal class AssemblyBindable : Bindable<Assembly>
-        {
-        }
+        /// <summary>
+        /// Drawn game frames are currently being recorded.
+        /// </summary>
+        Recording,
 
-        internal class RunAllStepsBindable : Bindable<bool>
-        {
-        }
-
-        internal class PlaybackBindable : Bindable<PlaybackState>
-        {
-        }
-
-        internal class FrameBindable : BindableInt
-        {
-            public FrameBindable()
-            {
-                MinValue = 0;
-                MaxValue = 0;
-            }
-        }
-
-        internal enum PlaybackState
-        {
-            /// <summary>
-            /// The game is playing back normally.
-            /// </summary>
-            Normal,
-            /// <summary>
-            /// Drawn game frames are currently being recorded.
-            /// </summary>
-            Recording,
-            /// <summary>
-            /// The default game playback is stopped, recorded frames are being played back.
-            /// </summary>
-            Stopped
-        }
+        /// <summary>
+        /// The default game playback is stopped, recorded frames are being played back.
+        /// </summary>
+        Stopped
     }
 
     public enum TestBrowserAction
