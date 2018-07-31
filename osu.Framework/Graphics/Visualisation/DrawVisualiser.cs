@@ -292,5 +292,11 @@ namespace osu.Framework.Graphics.Visualisation
             target = null;
             targetVisualiser = null;
         }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+            recycleVisualisers();
+        }
     }
 }
