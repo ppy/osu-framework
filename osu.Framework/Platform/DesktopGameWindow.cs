@@ -4,6 +4,7 @@
 using System;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using osu.Framework.Configuration;
 using osu.Framework.Input;
 using OpenTK;
@@ -41,7 +42,9 @@ namespace osu.Framework.Platform
             Move += OnMove;
         }
 
-        public virtual void SetIconFromStream(Stream stream) { }
+        public virtual void SetIconFromStream(Stream stream)
+        {
+        }
 
         public override void SetupWindow(FrameworkConfigManager config)
         {
@@ -78,16 +81,14 @@ namespace osu.Framework.Platform
             if (newSize.Width == display.Width && newSize.Height == display.Height)
                 return;
 
-            DisplayResolution newResolution = display.SelectResolution(
-                newSize.Width,
-                newSize.Height,
-                display.BitsPerPixel,
-                display.RefreshRate
-            );
+            var newResolution = display.AvailableResolutions
+                                              .Where(r => r.Width == newSize.Width && r.Height == newSize.Height)
+                                              .OrderByDescending(r => r.RefreshRate)
+                                              .FirstOrDefault();
 
-            if (newResolution.Width == display.Width && newResolution.Height == display.Height)
+            if (newResolution == null)
             {
-                // we wanted a new resolution but got the old one, which means OpenTK didn't find this resolution
+                // we wanted a new resolution but got nothing, which means OpenTK didn't find this resolution
                 display.RestoreResolution();
             }
             else
