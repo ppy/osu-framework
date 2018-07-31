@@ -117,7 +117,7 @@ namespace osu.Framework.Tests.Visual
             AddStep("Add all items", () => items.AsEnumerable().ForEach(item => removeAllTabControl.AddItem(item.Value)));
             AddAssert("Ensure all items", () => removeAllTabControl.Items.Count() == items.Count);
 
-            AddStep("Remove all items", () => removeAllTabControl.RemoveAllItems());
+            AddStep("Remove all items", () => removeAllTabControl.Clear());
             AddAssert("Ensure no items", () => !removeAllTabControl.Items.Any());
         }
 
