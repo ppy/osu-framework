@@ -32,7 +32,7 @@ namespace osu.Framework.Graphics.Video
         /// <summary>
         /// True if the decoder currently does not decode any more frames, false otherwise.
         /// </summary>
-        public bool IsPaused => state == DecoderState.Paused;
+        public bool IsPaused => pauseDecoder || state == DecoderState.Paused;
 
         /// <summary>
         /// True if the decoder has faulted after starting to decode. You can try to restart a failed decoder by invoking <see cref="StartDecoding"/> again.
@@ -103,12 +103,13 @@ namespace osu.Framework.Graphics.Video
         private IntPtr frameRgbBufferPtr;
         private int uncompressedFrameSize;
 
-
         // active decoder state
         private volatile float lastDecodedFrameTime;
 
         private Task decodingTask;
         private CancellationTokenSource decodingTaskCancellationTokenSource;
+
+        private bool pauseDecoder;
 
         private readonly ConcurrentQueue<DecodedFrame> decodedFrames;
         private readonly ConcurrentQueue<Action> decoderCommands;
@@ -239,10 +240,10 @@ namespace osu.Framework.Graphics.Video
             }
         }
 
-        private void runDecoder(bool exitOnEof)
+        private void runDecoder()
         {
             var cts = new CancellationTokenSource();
-            decodingTask = Task.Run(() => decodingLoop(false, cts.Token), cts.Token);
+            decodingTask = Task.Run(() => decodingLoop(cts.Token), cts.Token);
             decodingTaskCancellationTokenSource = cts;
         }
 
@@ -254,7 +255,7 @@ namespace osu.Framework.Graphics.Video
             // only prepare for decoding if this is our first time starting the decoding process
             if (formatContext == null)
                 prepareDecoding();
-            runDecoder(false);
+            runDecoder();
         }
 
         /// <summary>
@@ -277,6 +278,28 @@ namespace osu.Framework.Graphics.Video
         }
 
         /// <summary>
+        /// Pauses an active decoding process.
+        /// </summary>
+        public void PauseDecoding()
+        {
+            if (decodingTask == null)
+                throw new InvalidOperationException("You have not started a decoding process. You can only pause the decoding process if it has been started.");
+
+            pauseDecoder = true;
+        }
+
+        /// <summary>
+        /// Resumes a paused decoding process
+        /// </summary>
+        public void ResumeDecoding()
+        {
+            if (decodingTask == null)
+                throw new InvalidOperationException("You have not started a decoding process. You can only resume the decoding process if it has been started.");
+
+            pauseDecoder = false;
+        }
+
+        /// <summary>
         /// Gets all frames that have been decoded by the decoder up until the point in time when this method was called. Retrieving decoded frames using this method consumes them, ie calling this method again will never retrieve the same frame twice.
         /// </summary>
         /// <returns>The frames that have been decoded up until the point in time this method was called.</returns>
@@ -289,7 +312,7 @@ namespace osu.Framework.Graphics.Video
             return frames;
         }
 
-        private void decodingLoop(bool exitOnEof, CancellationToken cancellationToken)
+        private void decodingLoop(CancellationToken cancellationToken)
         {
             var packet = ffmpeg.av_packet_alloc();
             // this should be massively reduced to something like 5-10, currently there is an issue with texture uploads not completing
@@ -336,7 +359,7 @@ namespace osu.Framework.Graphics.Video
                     if (readFrameResult == ffmpeg.AVERROR_EOF)
                         state = DecoderState.EndOfStream;
 
-                    while (!IsPaused || readFrameResult < 0)
+                    while (pauseDecoder || readFrameResult < 0)
                     {
                         if (cancellationToken.IsCancellationRequested)
                             return;
@@ -352,6 +375,7 @@ namespace osu.Framework.Graphics.Video
                         }
                         if (executedCmd)
                             break;
+                        state = DecoderState.Paused;
                         Thread.Sleep(16);
                     }
                     while (!decoderCommands.IsEmpty)

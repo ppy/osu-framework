@@ -135,7 +135,10 @@ namespace osu.Framework.Graphics.Video
             }
 
             availableFrames.AddRange(decoder.GetDecodedFrames());
-            decoder.IsPaused = availableFrames.Count < NumberOfPreloadedFrames;
+            if (availableFrames.Count < NumberOfPreloadedFrames && decoder.IsPaused)
+                decoder.ResumeDecoding();
+            if (availableFrames.Count >= NumberOfPreloadedFrames && !decoder.IsPaused)
+                decoder.PauseDecoding();
 
             var index = availableFrames.BinarySearch(new DecodedFrame { Time = PlaybackPosition });
             if (index < 0)
