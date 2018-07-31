@@ -59,6 +59,7 @@ namespace osu.Framework.Tests.Visual
             testResolution(1280, 960);
             testResolution(9999, 9999);
             AddStep("go back to windowed", () => windowMode.Value = WindowMode.Windowed);
+            AddStep("change to borderless", () => windowMode.Value = WindowMode.Borderless);
         }
 
         protected override void Update()
