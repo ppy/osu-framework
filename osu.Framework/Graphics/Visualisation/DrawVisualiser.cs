@@ -118,6 +118,9 @@ namespace osu.Framework.Graphics.Visualisation
                 v.Dispose();
 
             visCache.Clear();
+
+            target = null;
+            targetVisualiser = null;
         }
 
         private Drawable findTargetIn(Drawable d, InputState state)
