@@ -124,6 +124,12 @@ namespace osu.Framework.Graphics.Containers
         internal event Action<Drawable> ChildDied;
 
         /// <summary>
+        /// THIS EVENT PURELY EXISTS FOR THE SCENE GRAPH VISUALIZER. DO NOT USE.
+        /// This event will fire after a child's <see cref="Drawable.Depth"/> is changed.
+        /// </summary>
+        internal event Action<Drawable> ChildDepthChanged;
+
+        /// <summary>
         /// Gets or sets the only child in <see cref="InternalChildren"/>.
         /// </summary>
         protected internal Drawable InternalChild
@@ -367,6 +373,8 @@ namespace osu.Framework.Graphics.Containers
             internalChildren.Add(child);
             if (aliveIndex >= 0) // re-add if it used to be in aliveInternalChildren
                 aliveInternalChildren.Add(child);
+
+            ChildDepthChanged?.Invoke(child);
         }
 
         #endregion

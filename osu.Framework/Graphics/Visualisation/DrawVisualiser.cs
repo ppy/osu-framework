@@ -171,6 +171,8 @@ namespace osu.Framework.Graphics.Visualisation
                 setHighlight(d);
             };
 
+            visualiser.Depth = 0;
+
             treeContainer.Child = targetVisualiser = visualiser;
         }
 

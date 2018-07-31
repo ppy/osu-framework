@@ -166,6 +166,7 @@ namespace osu.Framework.Graphics.Visualisation
                 da.OnAutoSize += onAutoSize;
                 da.ChildBecameAlive += addChild;
                 da.ChildDied += removeChild;
+                da.ChildDepthChanged += depthChanged;
             }
 
             if (Target is FlowContainer<Drawable> df) df.OnLayout += onLayout;
@@ -180,6 +181,7 @@ namespace osu.Framework.Graphics.Visualisation
                 da.OnAutoSize -= onAutoSize;
                 da.ChildBecameAlive -= addChild;
                 da.ChildDied -= removeChild;
+                da.ChildDepthChanged -= depthChanged;
             }
 
             if (Target is FlowContainer<Drawable> df) df.OnLayout -= onLayout;
@@ -198,11 +200,20 @@ namespace osu.Framework.Graphics.Visualisation
 
         private void removeChild(Drawable drawable) => visualiser.GetVisualiserFor(drawable).SetContainer(null);
 
+        private void depthChanged(Drawable drawable)
+        {
+            var vis = visualiser.GetVisualiserFor(drawable);
+
+            vis.currentContainer?.RemoveVisualiser(vis);
+            vis.currentContainer?.AddVisualiser(vis);
+        }
 
         void IContainVisualisedDrawables.AddVisualiser(VisualisedDrawable visualiser)
         {
             visualiser.RequestTarget = d => RequestTarget?.Invoke(d);
             visualiser.HighlightTarget = d => HighlightTarget?.Invoke(d);
+
+            visualiser.Depth = visualiser.Target.Depth;
 
             flow.Add(visualiser);
         }
