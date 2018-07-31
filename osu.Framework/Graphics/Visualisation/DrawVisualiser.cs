@@ -34,7 +34,11 @@ namespace osu.Framework.Graphics.Visualisation
                 overlay = new InfoOverlay(),
                 treeContainer = new TreeContainer
                 {
-                    ChooseTarget = chooseTarget,
+                    ChooseTarget = () =>
+                    {
+                        Searching = true;
+                        Target = null;
+                    },
                     GoUpOneParent = delegate
                     {
                         Drawable lastHighlight = highlightedTarget?.Target;
@@ -98,19 +102,12 @@ namespace osu.Framework.Graphics.Visualisation
         protected override void PopIn()
         {
             this.FadeIn(100);
-
-            if (Target == null)
-                chooseTarget();
+            Searching = Target == null;
         }
 
         protected override void PopOut() => this.FadeOut(100);
 
-        private bool targetSearching;
 
-        private void chooseTarget()
-        {
-            Target = null;
-            targetSearching = true;
         }
 
         private Drawable findTargetIn(Drawable d, InputState state)
@@ -178,6 +175,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         void IContainVisualisedDrawables.RemoveVisualiser(VisualisedDrawable visualiser)
         {
+            target = null;
             targetVisualiser = null;
             treeContainer.Remove(visualiser);
 
@@ -204,11 +202,11 @@ namespace osu.Framework.Graphics.Visualisation
                 {
                     targetVisualiser = GetVisualiserFor(target);
                     targetVisualiser.SetContainer(this);
-
-                    targetSearching = false;
                 }
             }
         }
+
+        public bool Searching { get; private set; }
 
         private void setHighlight(VisualisedDrawable newHighlight)
         {
@@ -235,19 +233,13 @@ namespace osu.Framework.Graphics.Visualisation
             }
         }
 
-        protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
-        {
-            return targetSearching;
-        }
+        protected override bool OnMouseDown(InputState state, MouseDownEventArgs args) => Searching;
 
-        private Drawable findTarget(InputState state)
-        {
-            return findTargetIn(Parent?.Parent, state);
-        }
+        private Drawable findTarget(InputState state) => findTargetIn(Parent?.Parent, state);
 
         protected override bool OnClick(InputState state)
         {
-            if (targetSearching)
+            if (Searching)
             {
                 Target = findTarget(state)?.Parent;
 
@@ -255,6 +247,8 @@ namespace osu.Framework.Graphics.Visualisation
                 {
                     overlay.Target = null;
                     targetVisualiser.ExpandAll();
+
+                    Searching = false;
                     return true;
                 }
             }
@@ -264,7 +258,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         protected override bool OnMouseMove(InputState state)
         {
-            overlay.Target = targetSearching ? findTarget(state) : inputManager.HoveredDrawables.OfType<VisualisedDrawable>().FirstOrDefault()?.Target;
+            overlay.Target = Searching ? findTarget(state) : inputManager.HoveredDrawables.OfType<VisualisedDrawable>().FirstOrDefault()?.Target;
             return base.OnMouseMove(state);
         }
 
