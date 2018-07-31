@@ -88,12 +88,6 @@ namespace osu.Framework.Platform
             if (GLSLVersion == null)
                 GLSLVersion = new Version();
 
-            //Set up OpenGL related characteristics
-            GL.Disable(EnableCap.DepthTest);
-            GL.Disable(EnableCap.StencilTest);
-            GL.Enable(EnableCap.Blend);
-            GL.Enable(EnableCap.ScissorTest);
-
             Logger.Log($@"GL Initialized
                         GL Version:                 {GL.GetString(StringName.Version)}
                         GL Renderer:                {GL.GetString(StringName.Renderer)}
@@ -125,11 +119,11 @@ namespace osu.Framework.Platform
             {
                 cursorState = value;
 
-                Implementation.Cursor = (cursorState & CursorState.Hidden) > 0 ? MouseCursor.Empty : MouseCursor.Default;
+                Implementation.Cursor = cursorState.HasFlag(CursorState.Hidden) ? MouseCursor.Empty : MouseCursor.Default;
 
                 try
                 {
-                    Implementation.CursorGrabbed = (cursorState & CursorState.Confined) > 0;
+                    Implementation.CursorGrabbed = cursorState.HasFlag(CursorState.Confined);
                 }
                 catch
                 {

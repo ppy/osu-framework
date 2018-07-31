@@ -120,7 +120,8 @@ namespace osu.Framework.Graphics.Sprites
 
         private float spaceWidth;
 
-        private FontStore store;
+        [Resolved]
+        private FontStore store { get; set; }
 
         public override bool HandleKeyboardInput => false;
         public override bool HandleMouseInput => false;
@@ -154,10 +155,8 @@ namespace osu.Framework.Graphics.Sprites
         }
 
         [BackgroundDependencyLoader]
-        private void load(FontStore store)
+        private void load()
         {
-            this.store = store;
-
             spaceWidth = CreateCharacterDrawable('.')?.DrawWidth * 2 ?? default_text_size;
 
             validateLayout();

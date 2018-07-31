@@ -11,11 +11,13 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
+using osu.Framework.Input.EventArgs;
+using osu.Framework.Input.States;
 using osu.Framework.Testing;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Input;
-using MouseEventArgs = osu.Framework.Input.MouseEventArgs;
+using MouseEventArgs = osu.Framework.Input.EventArgs.MouseEventArgs;
 using osu.Framework.MathUtils;
 
 namespace osu.Framework.Tests.Visual
@@ -93,12 +95,11 @@ namespace osu.Framework.Tests.Visual
             ((Container)InputManager.Parent).Add(new StateTracker(0));
         }
 
-        protected override Vector2? InitialMousePosition => actionContainer.LayoutRectangle.Centre;
-
         private void initTestCase()
         {
             eventCounts1.Clear();
             eventCounts2.Clear();
+            // InitialMousePosition cannot be used here because the event counters should be resetted after the initial mouse move.
             AddStep("move mouse to center", () => InputManager.MoveMouseTo(actionContainer));
             AddStep("reset event counters", () =>
             {
@@ -319,6 +320,21 @@ namespace osu.Framework.Tests.Visual
             checkEventCount("DoubleClick", 1);
         }
 
+        [Test]
+        public void SeparateMouseDown()
+        {
+            initTestCase();
+
+            AddStep("right down", () => InputManager.PressButton(MouseButton.Right));
+            checkEventCount("MouseDown", 1);
+            AddStep("move away", () => InputManager.MoveMouseTo(outerMarginBox.ScreenSpaceDrawQuad.TopLeft));
+            AddStep("left click", () => InputManager.Click(MouseButton.Left));
+            checkEventCount("MouseDown", 1, true);
+            checkEventCount("MouseUp", 1, true);
+            AddStep("right up", () => InputManager.ReleaseButton(MouseButton.Right));
+            checkEventCount("MouseUp", 1);
+        }
+
         private void waitDoubleClickTime()
         {
             AddWaitStep(2, "wait to don't double click");
@@ -435,11 +451,15 @@ namespace osu.Framework.Tests.Visual
             {
                 base.Update();
 
-                var state = GetContainingInputManager().CurrentState;
+                var inputManager = GetContainingInputManager();
+                if (inputManager != null)
+                {
+                    var state = inputManager.CurrentState;
 
-                source.Text = GetContainingInputManager().ToString();
-                keyboard.Text = state.Keyboard.ToString();
-                mouse.Text = state.Mouse.ToString();
+                    source.Text = inputManager.ToString();
+                    keyboard.Text = state.Keyboard.ToString();
+                    mouse.Text = state.Mouse.ToString();
+                }
             }
 
             public class SmallText : SpriteText

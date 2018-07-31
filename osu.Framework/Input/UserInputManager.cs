@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using osu.Framework.Input.Handlers;
+using osu.Framework.Input.States;
 using osu.Framework.Platform;
 using OpenTK;
 
@@ -23,7 +24,7 @@ namespace osu.Framework.Input
         {
             var mouse = state.Mouse;
             // confine cursor
-            if (Host.Window != null && (Host.Window.CursorState & CursorState.Confined) > 0)
+            if (Host.Window != null && Host.Window.CursorState.HasFlag(CursorState.Confined))
                 mouse.Position = Vector2.Clamp(mouse.Position, Vector2.Zero, new Vector2(Host.Window.Width, Host.Window.Height));
             base.HandleMousePositionChange(state);
         }

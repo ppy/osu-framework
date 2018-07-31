@@ -9,7 +9,9 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
+using osu.Framework.Input.EventArgs;
 using osu.Framework.Input.Handlers.Mouse;
+using osu.Framework.Input.States;
 using osu.Framework.Testing;
 using OpenTK;
 using OpenTK.Graphics;
@@ -88,6 +90,8 @@ namespace osu.Framework.Tests.Visual
                     },
                     new FillFlowContainer
                     {
+                        RelativeSizeAxes = Axes.Both,
+                        Direction = FillDirection.Vertical,
                         Children = new Drawable[]
                         {
                             inputManagerStatus = new SmallText(),
@@ -116,48 +120,48 @@ namespace osu.Framework.Tests.Visual
                 base.Update();
             }
 
-            private int mouseDownCount;
+            public int MouseDownCount;
 
             protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
             {
-                ++mouseDownCount;
-                onMouseDownStatus.Text = $"OnMouseDown {mouseDownCount}: Position={state.Mouse.Position}";
+                ++MouseDownCount;
+                onMouseDownStatus.Text = $"OnMouseDown {MouseDownCount}: Position={state.Mouse.Position}";
                 return true;
             }
 
-            private int mouseUpCount;
+            public int MouseUpCount;
 
             protected override bool OnMouseUp(InputState state, MouseUpEventArgs args)
             {
-                ++mouseUpCount;
-                onMouseUpStatus.Text = $"OnMouseUp {mouseUpCount}: Position={state.Mouse.Position}, PositionMouseDown={state.Mouse.PositionMouseDown}";
+                ++MouseUpCount;
+                onMouseUpStatus.Text = $"OnMouseUp {MouseUpCount}: Position={state.Mouse.Position}, PositionMouseDown={state.Mouse.PositionMouseDown}";
                 return base.OnMouseUp(state, args);
             }
 
-            private int mouseMoveCount;
+            public int MouseMoveCount;
 
             protected override bool OnMouseMove(InputState state)
             {
-                ++mouseMoveCount;
-                onMouseMoveStatus.Text = $"OnMouseMove {mouseMoveCount}: Position={state.Mouse.Position}, Delta={state.Mouse.Delta}";
+                ++MouseMoveCount;
+                onMouseMoveStatus.Text = $"OnMouseMove {MouseMoveCount}: Position={state.Mouse.Position}, Delta={state.Mouse.Delta}";
                 return base.OnMouseMove(state);
             }
 
-            private int scrollCount;
+            public int ScrollCount;
 
             protected override bool OnScroll(InputState state)
             {
-                ++scrollCount;
-                onScrollStatus.Text = $"OnScroll {scrollCount}: Scroll={state.Mouse.Scroll}, ScrollDelta={state.Mouse.ScrollDelta}, HasPreciseScroll={state.Mouse.HasPreciseScroll}";
+                ++ScrollCount;
+                onScrollStatus.Text = $"OnScroll {ScrollCount}: Scroll={state.Mouse.Scroll}, ScrollDelta={state.Mouse.ScrollDelta}, HasPreciseScroll={state.Mouse.HasPreciseScroll}";
                 return base.OnScroll(state);
             }
 
-            private int hoverCount;
+            public int HoverCount;
 
             protected override bool OnHover(InputState state)
             {
-                ++hoverCount;
-                onHoverStatus.Text = $"OnHover {hoverCount}: Position={state.Mouse.Position}";
+                ++HoverCount;
+                onHoverStatus.Text = $"OnHover {HoverCount}: Position={state.Mouse.Position}";
                 return base.OnHover(state);
             }
 
@@ -168,13 +172,12 @@ namespace osu.Framework.Tests.Visual
             }
         }
 
-        private FrameworkConfigManager config;
+        [Resolved]
+        private FrameworkConfigManager config { get; set; }
 
         [BackgroundDependencyLoader]
-        private void load(FrameworkConfigManager config)
+        private void load()
         {
-            this.config = config;
-
             AddSliderStep("Cursor sensivity", 0.5, 5, 1, setCursorSensivityConfig);
             setCursorSensivityConfig(1);
             AddToggleStep("Toggle raw input", setRawInputConfig);

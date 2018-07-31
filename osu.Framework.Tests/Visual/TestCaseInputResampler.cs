@@ -8,6 +8,7 @@ using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Input;
+using osu.Framework.Input.States;
 using osu.Framework.Testing;
 using OpenTK;
 using OpenTK.Graphics;
