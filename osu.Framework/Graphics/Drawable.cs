@@ -6,7 +6,6 @@ using OpenTK.Graphics;
 using OpenTK.Input;
 using osu.Framework.Allocation;
 using osu.Framework.Caching;
-using osu.Framework.Extensions;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
@@ -26,6 +25,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Development;
+using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Input.EventArgs;
 using osu.Framework.Input.States;
 using osu.Framework.MathUtils;
@@ -149,7 +149,9 @@ namespace osu.Framework.Graphics
 
             return (loadTask ?? Task.CompletedTask).ContinueWith(task => game.Schedule(() =>
             {
-                task.ThrowIfFaulted(typeof(RecursiveLoadException));
+                if (task.IsFaulted)
+                    throw task.Exception.AsSingular();
+
                 onLoaded?.Invoke();
                 loadTask = null;
             }));
