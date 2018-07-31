@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace osu.Framework.Graphics.Video
 {
@@ -31,12 +32,12 @@ namespace osu.Framework.Graphics.Video
         /// <summary>
         /// True if the decoder currently does not decode any more frames, false otherwise.
         /// </summary>
-        public bool IsPaused { get; set; }
+        public bool IsPaused => state == DecoderState.Paused;
 
         /// <summary>
         /// True if the decoder has faulted after starting to decode. You can try to restart a failed decoder by invoking <see cref="StartDecoding"/> again.
         /// </summary>
-        public bool IsFaulted { get; private set; }
+        public bool IsFaulted => state == DecoderState.Faulted;
 
         /// <summary>
         /// The timestamp of the last frame that was decoded by this video decoder, or 0 if no frames have been decoded.
@@ -52,6 +53,36 @@ namespace osu.Framework.Graphics.Video
         /// True if the decoder can seek, false otherwise. Determined by the stream this decoder was created with.
         /// </summary>
         public bool CanSeek => videoStream.CanSeek;
+
+        /// <summary>
+        /// Represents the possible states the decoder can be in.
+        /// </summary>
+        public enum DecoderState
+        {
+            /// <summary>
+            /// The decoder is currently paused. This is the default state before the decoder starts operations.
+            /// </summary>
+            Paused = 0,
+            /// <summary>
+            /// The decoder is currently running and decoding frames.
+            /// </summary>
+            Running = 1,
+            /// <summary>
+            /// The decoder has faulted with an exception.
+            /// </summary>
+            Faulted = 2,
+            /// <summary>
+            /// The decoder has reached the end of the video data.
+            /// </summary>
+            EndOfStream = 3
+        }
+
+        private volatile DecoderState state;
+
+        /// <summary>
+        /// The state the decoder is currently in.
+        /// </summary>
+        public DecoderState State => state;
 
         // libav-context-related
         private AVFormatContext* formatContext;
@@ -76,7 +107,8 @@ namespace osu.Framework.Graphics.Video
         // active decoder state
         private volatile float lastDecodedFrameTime;
 
-        private Thread decodingThread;
+        private Task decodingTask;
+        private CancellationTokenSource decodingTaskCancellationTokenSource;
 
         private readonly ConcurrentQueue<DecodedFrame> decodedFrames;
         private readonly ConcurrentQueue<Action> decoderCommands;
@@ -100,7 +132,8 @@ namespace osu.Framework.Graphics.Video
             this.videoStream = videoStream;
             if (!videoStream.CanRead)
                 throw new InvalidOperationException($"The given stream does not support reading. A stream used for a {nameof(VideoDecoder)} must support reading.");
-            IsPaused = true;
+
+            state = DecoderState.Paused;
             decodedFrames = new ConcurrentQueue<DecodedFrame>();
             decoderCommands = new ConcurrentQueue<Action>();
         }
@@ -149,17 +182,6 @@ namespace osu.Framework.Graphics.Video
                 throw new InvalidOperationException("This decoder cannot seek because the underlying stream used to decode the video does not support seeking.");
 
             decoderCommands.Enqueue(() => ffmpeg.av_seek_frame(formatContext, stream->index, (long)(targetTimestamp / timeBaseInSeconds / 1000.0), ffmpeg.AVSEEK_FLAG_BACKWARD));
-        }
-
-        /// <summary>
-        /// Decodes all frames in the video stream synchronously. This may take a long time and use a lot of memory.
-        /// </summary>
-        /// <returns>All decoded frames in the video.</returns>
-        public IEnumerable<DecodedFrame> DecodeAllSynchronously()
-        {
-            prepareDecoding();
-            decodingLoop(true);
-            return GetDecodedFrames();
         }
 
         // sets up libavformat state: creates the AVFormatContext, the frames, etc. to start decoding, but does not actually start the decodingLoop
@@ -217,19 +239,41 @@ namespace osu.Framework.Graphics.Video
             }
         }
 
+        private void runDecoder(bool exitOnEof)
+        {
+            var cts = new CancellationTokenSource();
+            decodingTask = Task.Run(() => decodingLoop(false, cts.Token), cts.Token);
+            decodingTaskCancellationTokenSource = cts;
+        }
+
         /// <summary>
         /// Starts the decoding process. The decoding will happen asynchronously in a separate thread. The decoded frames can be retrieved by using <see cref="GetDecodedFrames"/>.
         /// </summary>
         public void StartDecoding()
         {
-            IsPaused = false;
+            // only prepare for decoding if this is our first time starting the decoding process
+            if (formatContext == null)
+                prepareDecoding();
+            runDecoder(false);
+        }
 
-            prepareDecoding();
-            decodingThread = new Thread(decodingLoop)
-            {
-                IsBackground = true
-            };
-            decodingThread.Start();
+        /// <summary>
+        /// Stops the decoding process. Optionally waits for the decoder thread to terminate.
+        /// </summary>
+        /// <param name="waitForDecoderExit">True if this method should wait for the decoder thread to terminate, false otherwise.</param>
+        public void StopDecoding(bool waitForDecoderExit)
+        {
+            if (decodingTask == null)
+                throw new InvalidOperationException("You cannot stop decoding without having started decoding previously.");
+
+            decodingTaskCancellationTokenSource.Cancel();
+            if (waitForDecoderExit)
+                decodingTask.Wait();
+
+            decodingTask = null;
+            decodingTaskCancellationTokenSource = null;
+
+            state = DecoderState.Paused;
         }
 
         /// <summary>
@@ -245,10 +289,8 @@ namespace osu.Framework.Graphics.Video
             return frames;
         }
 
-        private void decodingLoop(object state)
+        private void decodingLoop(bool exitOnEof, CancellationToken cancellationToken)
         {
-            var exitOnFirstReadFrameError = state as bool? ?? false;
-
             var packet = ffmpeg.av_packet_alloc();
             // this should be massively reduced to something like 5-10, currently there is an issue with texture uploads not completing
             // in a predictable way though, which can cause huge overallocations. Going past the bufferstacks limit essentially breaks
@@ -259,12 +301,13 @@ namespace osu.Framework.Graphics.Video
             {
                 while (true)
                 {
-                    if (isDisposed)
+                    if (cancellationToken.IsCancellationRequested)
                         return;
 
                     int readFrameResult = ffmpeg.av_read_frame(formatContext, packet);
                     if (readFrameResult >= 0)
                     {
+                        state = DecoderState.Running;
                         if (packet->stream_index == stream->index)
                         {
                             if (ffmpeg.avcodec_send_packet(stream->codec, packet) < 0)
@@ -290,12 +333,12 @@ namespace osu.Framework.Graphics.Video
                         }
                     }
 
-                    if (readFrameResult < 0 && exitOnFirstReadFrameError)
-                        return;
+                    if (readFrameResult == ffmpeg.AVERROR_EOF)
+                        state = DecoderState.EndOfStream;
 
                     while (!IsPaused || readFrameResult < 0)
                     {
-                        if (isDisposed)
+                        if (cancellationToken.IsCancellationRequested)
                             return;
                         // make sure we process misc commands even while idling
                         var executedCmd = false;
@@ -313,7 +356,7 @@ namespace osu.Framework.Graphics.Video
                     }
                     while (!decoderCommands.IsEmpty)
                     {
-                        if (isDisposed)
+                        if (cancellationToken.IsCancellationRequested)
                             return;
                         if (decoderCommands.TryDequeue(out var cmd))
                             cmd();
@@ -322,12 +365,15 @@ namespace osu.Framework.Graphics.Video
             }
             catch (Exception)
             {
-                IsFaulted = true;
+                state = DecoderState.Faulted;
             }
             finally
             {
                 ffmpeg.av_packet_free(&packet);
                 ffmpeg.sws_freeContext(swsCtx);
+
+                if (state != DecoderState.Faulted)
+                    state = DecoderState.Paused;
             }
         }
 
@@ -355,11 +401,12 @@ namespace osu.Framework.Graphics.Video
             videoStream = null;
 
             while (decoderCommands.TryDequeue(out var _)) { }
-            if (decodingThread != null)
+            if (decodingTask != null)
             {
-                // decodingThread checks isDisposed this and aborts if it's set, therefore .Join() should generally not cause a significant delay
-                decodingThread.Join();
-                decodingThread = null;
+                decodingTaskCancellationTokenSource.Cancel();
+                decodingTask.Wait();
+                decodingTask = null;
+                decodingTaskCancellationTokenSource = null;
             }
 
             if (formatContext != null)
