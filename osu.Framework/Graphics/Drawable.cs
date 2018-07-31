@@ -1711,8 +1711,8 @@ namespace osu.Framework.Graphics
                     return HandleMouseActionEvent(action);
                 case MouseMoved mouseMove:
                     return HandleMouseMove(mouseMove);
-                case Scrolled scroll:
-                    return HandleScroll(scroll);
+                case MouseScrolled mouseScroll:
+                    return HandleMouseScroll(mouseScroll);
                 default:
                     return false;
             }
@@ -1764,7 +1764,7 @@ namespace osu.Framework.Graphics
 
         protected virtual bool HandleMouseMove(MouseMoved e) => OnMouseMove(e.LegacyInputState);
 
-        protected virtual bool HandleScroll(Scrolled e) => OnScroll(e.LegacyInputState);
+        protected virtual bool HandleMouseScroll(MouseScrolled e) => OnScroll(e.LegacyInputState);
 
         protected virtual bool HandleClick(Clicked e) => OnClick(e.LegacyInputState);
 

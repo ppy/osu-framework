@@ -466,7 +466,7 @@ namespace osu.Framework.Input
 
         private bool handleScroll(InputState state)
         {
-            return PropagateBlockableEvent(PositionalInputQueue, new Scrolled(state, state.Mouse.ScrollDelta));
+            return PropagateBlockableEvent(PositionalInputQueue, new MouseScrolled(state, state.Mouse.ScrollDelta));
         }
 
         private bool handleKeyDown(InputState state, Key key, bool repeat)
