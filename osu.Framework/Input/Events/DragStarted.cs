@@ -2,16 +2,18 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Input.States;
+using OpenTK;
+using OpenTK.Input;
 
 namespace osu.Framework.Input.Events
 {
     /// <summary>
-    /// An event representing a release of a joystick button.
+    /// An event represeting the start of a mouse drag.
     /// </summary>
-    public class JoystickReleaseEvent : JoystickButtonEvent
+    public class DragStarted : DragEvent
     {
-        public JoystickReleaseEvent(InputState state, JoystickButton button)
-            : base(state, button)
+        public DragStarted(InputState state, MouseButton button, Vector2? screenSpaceMouseDownPosition = null)
+            : base(state, button, screenSpaceMouseDownPosition)
         {
         }
     }

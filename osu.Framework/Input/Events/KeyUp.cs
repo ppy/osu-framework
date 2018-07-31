@@ -2,18 +2,17 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Input.States;
-using OpenTK;
 using OpenTK.Input;
 
 namespace osu.Framework.Input.Events
 {
     /// <summary>
-    /// An event representing a release of a mouse button.
+    /// An event representing a release of a keyboard key.
     /// </summary>
-    public class MouseUpEvent : MouseButtonEvent
+    public class KeyUp : KeyboardKeyEvent
     {
-        public MouseUpEvent(InputState state, MouseButton button, Vector2? screenSpaceMouseDownPosition = null)
-            : base(state, button, screenSpaceMouseDownPosition)
+        public KeyUp(InputState state, Key key)
+            : base(state, key)
         {
         }
     }

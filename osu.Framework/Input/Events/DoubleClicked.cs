@@ -8,12 +8,11 @@ using OpenTK.Input;
 namespace osu.Framework.Input.Events
 {
     /// <summary>
-    /// An event represeting the end of a mouse drag.
-    /// Triggered when the mouse button used for dragging is released.
+    /// Represents a mouse double click.
     /// </summary>
-    public class DragEndEvent : MouseButtonEvent
+    public class DoubleClicked : MouseActionEvent
     {
-        public DragEndEvent(InputState state, MouseButton button, Vector2? screenSpaceMouseDownPosition = null)
+        public DoubleClicked(InputState state, MouseButton button, Vector2? screenSpaceMouseDownPosition = null)
             : base(state, button, screenSpaceMouseDownPosition)
         {
         }

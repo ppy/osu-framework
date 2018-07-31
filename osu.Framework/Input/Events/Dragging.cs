@@ -1,15 +1,17 @@
-// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Input.States;
 using OpenTK;
+using OpenTK.Input;
 
 namespace osu.Framework.Input.Events
 {
     /// <summary>
-    /// An event representing a move of the mouse cursor.
+    /// An event represeting a mouse drag.
+    /// Triggered when mouse is moved while dragging.
     /// </summary>
-    public class MouseMoveEvent : MouseEvent
+    public class Dragging : DragEvent
     {
         /// <summary>
         /// The last mouse position before this mouse move in the screen space.
@@ -26,10 +28,10 @@ namespace osu.Framework.Input.Events
         /// </summary>
         public Vector2 Delta => MousePosition - LastMousePosition;
 
-        public MouseMoveEvent(InputState state, Vector2? screenSpaceLastMousePosition = null)
-            : base(state)
+        public Dragging(InputState state, MouseButton button, Vector2? screenSpaceMousePosition = null, Vector2? screenSpaceLastMousePosition = null)
+            : base(state, button, screenSpaceMousePosition)
         {
-            ScreenSpaceLastMousePosition = screenSpaceLastMousePosition ?? ScreenSpaceMousePosition;
+            ScreenSpaceLastMousePosition = screenSpaceLastMousePosition ?? state.Mouse.Position;
         }
     }
 }

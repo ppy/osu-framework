@@ -10,11 +10,11 @@ namespace osu.Framework.Input.Events
     /// <summary>
     /// An event representing a press of a keyboard key.
     /// </summary>
-    public class KeyDownEvent : KeyboardEvent
+    public class KeyDown : KeyboardKeyEvent
     {
         public readonly bool Repeat;
 
-        public KeyDownEvent(InputState state, Key key, bool repeat = false)
+        public KeyDown(InputState state, Key key, bool repeat = false)
             : base(state, key)
         {
             Repeat = repeat;
