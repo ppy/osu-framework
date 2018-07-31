@@ -105,13 +105,13 @@ namespace osu.Framework.Graphics.Video
             decoderCommands = new ConcurrentQueue<Action>();
         }
 
-        private int readPacket(void* opaque, byte* buf, int buf_size)
+        private int readPacket(void* opaque, byte* bufferPtr, int bufferSize)
         {
-            if (buf_size != managedContextBuffer.Length)
-                managedContextBuffer = new byte[buf_size];
+            if (bufferSize != managedContextBuffer.Length)
+                managedContextBuffer = new byte[bufferSize];
 
-            var bytesRead = videoStream.Read(managedContextBuffer, 0, buf_size);
-            Marshal.Copy(managedContextBuffer, 0, (IntPtr)buf, bytesRead);
+            var bytesRead = videoStream.Read(managedContextBuffer, 0, bufferSize);
+            Marshal.Copy(managedContextBuffer, 0, (IntPtr)bufferPtr, bytesRead);
             return bytesRead;
         }
 
