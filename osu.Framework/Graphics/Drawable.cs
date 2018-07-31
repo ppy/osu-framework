@@ -99,6 +99,8 @@ namespace osu.Framework.Graphics
             // stop remotely rendering it.
             proxy?.Dispose();
 
+            OnDispose?.Invoke();
+
             isDisposed = true;
         }
 
@@ -332,6 +334,12 @@ namespace osu.Framework.Graphics
         /// This event is fired after the <see cref="Invalidate(Invalidation, Drawable, bool)"/> method is called.
         /// </summary>
         internal event Action<Drawable> OnInvalidate;
+
+        /// <summary>
+        /// THIS EVENT PURELY EXISTS FOR THE SCENE GRAPH VISUALIZER. DO NOT USE.
+        /// This event is fired after the <see cref="dispose(bool)"/> method is called.
+        /// </summary>
+        internal event Action OnDispose;
 
         private Scheduler scheduler;
         internal Thread MainThread { get; private set; }

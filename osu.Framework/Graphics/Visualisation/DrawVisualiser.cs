@@ -105,9 +105,17 @@ namespace osu.Framework.Graphics.Visualisation
             Searching = Target == null;
         }
 
-        protected override void PopOut() => this.FadeOut(100);
+        protected override void PopOut()
+        {
+            this.FadeOut(100);
 
+            treeContainer.Clear();
 
+            var visualisers = visCache.Values.ToList();
+            foreach (var v in visualisers)
+                v.Dispose();
+
+            visCache.Clear();
         }
 
         private Drawable findTargetIn(Drawable d, InputState state)
@@ -269,7 +277,10 @@ namespace osu.Framework.Graphics.Visualisation
             if (visCache.TryGetValue(drawable, out var existing))
                 return existing;
 
-            return visCache[drawable] = new VisualisedDrawable(drawable);
+            var vis = new VisualisedDrawable(drawable);
+            vis.OnDispose += () => visCache.Remove(vis.Target);
+
+            return visCache[drawable] = vis;
         }
     }
 }

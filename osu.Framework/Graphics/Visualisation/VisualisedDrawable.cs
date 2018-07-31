@@ -160,6 +160,7 @@ namespace osu.Framework.Graphics.Visualisation
         private void attachEvents()
         {
             Target.OnInvalidate += onInvalidate;
+            Target.OnDispose += onDispose;
 
             if (Target is CompositeDrawable da)
             {
@@ -175,6 +176,7 @@ namespace osu.Framework.Graphics.Visualisation
         private void detachEvents()
         {
             Target.OnInvalidate -= onInvalidate;
+            Target.OnDispose -= onDispose;
 
             if (Target is CompositeDrawable da)
             {
@@ -315,6 +317,12 @@ namespace osu.Framework.Graphics.Visualisation
         private void onInvalidate(Drawable d)
         {
             Scheduler.Add(() => activityInvalidate.FadeOutFromOne(1));
+        }
+
+        private void onDispose()
+        {
+            SetContainer(null);
+            Dispose();
         }
 
         private void updateSpecifics()
