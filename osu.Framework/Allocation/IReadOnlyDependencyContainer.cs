@@ -23,9 +23,7 @@ namespace osu.Framework.Allocation
         /// </summary>
         /// <typeparam name="T">The type of the instance to inject dependencies into.</typeparam>
         /// <param name="instance">The instance to inject dependencies into.</param>
-        /// <param name="autoRegister">True if the instance should be automatically registered as injectable if it isn't already.</param>
-        /// <param name="lazy">True if the dependencies should be initialized lazily.</param>
-        void Inject<T>(T instance, bool autoRegister = true, bool lazy = false) where T : class;
+        void Inject<T>(T instance) where T : class;
     }
 
     public static class ReadOnlyDependencyContainerExtensions
