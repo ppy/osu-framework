@@ -376,7 +376,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         private class VisualisedDrawableFlow : FillFlowContainer<VisualisedDrawable>
         {
-            public override IEnumerable<Drawable> FlowingChildren => AliveInternalChildren.Where(d => d.IsPresent);
+            public override IEnumerable<Drawable> FlowingChildren => AliveInternalChildren.Where(d => d.IsPresent).OrderBy(d => -d.Depth).ThenBy(d => ((VisualisedDrawable)d).Target.ChildID);
         }
     }
 }
