@@ -111,15 +111,7 @@ namespace osu.Framework.Graphics.Visualisation
         {
             this.FadeOut(100);
 
-            treeContainer.Clear();
-
-            // We don't really know where the visualised drawables are, so we have to dispose them manually
-            var visualisers = visCache.Values.ToList();
-            foreach (var v in visualisers)
-                v.Dispose();
-
-            target = null;
-            targetVisualiser = null;
+            recycleVisualisers();
         }
 
         private Drawable findTargetIn(Drawable d, InputState state)
@@ -285,6 +277,20 @@ namespace osu.Framework.Graphics.Visualisation
             vis.OnDispose += () => visCache.Remove(vis.Target);
 
             return visCache[drawable] = vis;
+        }
+
+        private void recycleVisualisers()
+        {
+            treeContainer.Clear();
+
+            // We don't really know where the visualised drawables are, so we have to dispose them manually
+            // This is done as an optimisation so that events aren't handled while the visualiser is hidden
+            var visualisers = visCache.Values.ToList();
+            foreach (var v in visualisers)
+                v.Dispose();
+
+            target = null;
+            targetVisualiser = null;
         }
     }
 }
