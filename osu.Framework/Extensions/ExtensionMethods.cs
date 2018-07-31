@@ -8,7 +8,6 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Security.Cryptography;
@@ -193,16 +192,10 @@ namespace osu.Framework.Extensions
             => value.GetType().GetField(value.ToString())
                     .GetCustomAttribute<DescriptionAttribute>()?.Description ?? value.ToString();
 
-        public static void ThrowIfFaulted(this Task task, Type expectedBaseType = null)
+        public static void ThrowIfFaulted(this Task task)
         {
             if (!task.IsFaulted) return;
-
-            Exception e = task.Exception;
-
-            while (e?.InnerException != null && e.GetType() != expectedBaseType)
-                e = e.InnerException;
-
-            ExceptionDispatchInfo.Capture(e).Throw();
+            throw task.Exception ?? new Exception("Task failed.");
         }
 
         /// <summary>

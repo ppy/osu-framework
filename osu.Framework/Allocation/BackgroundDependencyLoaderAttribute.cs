@@ -4,6 +4,7 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.ExceptionServices;
 using JetBrains.Annotations;
 
 namespace osu.Framework.Allocation
@@ -43,8 +44,21 @@ namespace osu.Framework.Allocation
 
                     return (target, dc) =>
                     {
-                        var parameters = parameterGetters.Select(p => p(dc)).ToArray();
-                        method.Invoke(target, parameters);
+                        try
+                        {
+                            var parameters = parameterGetters.Select(p => p(dc)).ToArray();
+                            method.Invoke(target, parameters);
+                        }
+                        catch (TargetInvocationException exc) when (exc.InnerException is DependencyInjectionException die)
+                        {
+                            // When a nested activator has failed (multiple reflection calls)
+                            throw die;
+                        }
+                        catch (TargetInvocationException exc)
+                        {
+                            // When this activator has failed (single invoke call)
+                            throw new DependencyInjectionException { DispatchInfo = ExceptionDispatchInfo.Capture(exc.InnerException) };
+                        }
                     };
                 default:
                     throw new MultipleDependencyLoaderMethodsException(type);
