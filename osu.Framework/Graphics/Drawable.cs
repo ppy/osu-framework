@@ -100,6 +100,7 @@ namespace osu.Framework.Graphics
             proxy?.Dispose();
 
             OnDispose?.Invoke();
+            OnDispose = null;
 
             isDisposed = true;
         }
