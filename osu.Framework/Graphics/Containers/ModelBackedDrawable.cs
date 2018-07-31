@@ -76,13 +76,14 @@ namespace osu.Framework.Graphics.Containers
             Comparer = comparer;
 
             DisplayedDrawable = CreateDrawable(null);
-            AddInternal(CreateDelayedLoadWrapper(DisplayedDrawable, 0));
+            if (DisplayedDrawable != null)
+                AddInternal(CreateDelayedLoadWrapper(DisplayedDrawable, 0));
         }
 
-        private void replaceDrawable(Drawable source, Drawable target, bool placeholder = false)
+        private void replaceDrawable(Drawable source, Drawable target, double duration, bool placeholder = false)
         {
             // we need to make sure we definitely get a transform so that we can fire off OnComplete
-            var transform = ReplaceDrawable(source, target) ?? (source ?? target)?.DelayUntilTransformsFinished();
+            var transform = ReplaceDrawable(source, target, duration) ?? (source ?? target)?.DelayUntilTransformsFinished();
             transform?.OnComplete(d =>
             {
                 if (!placeholder)
@@ -107,15 +108,16 @@ namespace osu.Framework.Graphics.Containers
 
             if (newDrawable == null)
             {
-                replaceDrawable(DisplayedDrawable, null);
+                replaceDrawable(DisplayedDrawable, null, FadeOutDuration);
                 return;
             }
 
             if (FadeOutImmediately)
             {
                 var placeholder = CreateDrawable(null);
-                AddInternal(placeholder);
-                replaceDrawable(DisplayedDrawable, placeholder, true);
+                if (placeholder != null)
+                    AddInternal(placeholder);
+                replaceDrawable(DisplayedDrawable, placeholder, FadeOutDuration, true);
             }
 
             newDrawable.OnLoadComplete = loadedDrawable =>
@@ -125,7 +127,7 @@ namespace osu.Framework.Graphics.Containers
                     loadedDrawable.Expire();
                     return;
                 }
-                replaceDrawable(DisplayedDrawable, loadedDrawable);
+                replaceDrawable(DisplayedDrawable, loadedDrawable, FadeInDuration);
             };
 
             AddInternal(CreateDelayedLoadWrapper(newDrawable, LoadDelay));
@@ -138,9 +140,14 @@ namespace osu.Framework.Graphics.Containers
         protected virtual bool FadeOutImmediately => false;
 
         /// <summary>
-        /// The time in milliseconds that <see cref="Drawable"/>s will fade in and out.
+        /// The time in milliseconds that <see cref="Drawable"/>s will fade in.
         /// </summary>
-        protected virtual double FadeDuration => 1000;
+        protected virtual double FadeInDuration => 1000;
+
+        /// <summary>
+        /// The time in milliseconds that <see cref="Drawable"/>s will fade out.
+        /// </summary>
+        protected virtual double FadeOutDuration => 1000;
 
         /// <summary>
         /// The delay in milliseconds before <see cref="Drawable"/>s will begin loading.
@@ -168,7 +175,8 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>The drawable.</returns>
         /// <param name="source">The <see cref="Drawable"/> to be replaced.</param>
         /// <param name="target">The <see cref="Drawable"/> we are replacing with.</param>
-        protected virtual TransformSequence<Drawable> ReplaceDrawable(Drawable source, Drawable target) =>
-            target?.FadeInFromZero(FadeDuration, Easing.OutQuint) ?? source?.FadeOut(FadeDuration, Easing.OutQuint);
+        /// <param name="duration"></param>
+        protected virtual TransformSequence<Drawable> ReplaceDrawable(Drawable source, Drawable target, double duration) =>
+            target?.FadeInFromZero(duration, Easing.OutQuint) ?? source?.FadeOut(duration, Easing.OutQuint);
     }
 }

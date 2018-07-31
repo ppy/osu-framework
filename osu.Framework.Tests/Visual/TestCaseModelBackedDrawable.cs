@@ -161,7 +161,7 @@ namespace osu.Framework.Tests.Visual
         {
             protected override bool FadeOutImmediately => true;
 
-            protected override double FadeDuration => 0;
+            protected override double FadeOutDuration => 0;
         }
 
         private class DelayedTestModelBackedDrawable : TestModelBackedDrawable
