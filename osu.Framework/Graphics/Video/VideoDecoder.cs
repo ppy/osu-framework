@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using FFmpeg.AutoGen;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.Textures;
@@ -25,7 +26,7 @@ namespace osu.Framework.Graphics.Video
         /// <summary>
         /// The duration of the video that is being decoded. Can only be queried after the decoder has started decoding has loaded. This value may be an estimate by FFmpeg, depending on the video loaded.
         /// </summary>
-        public double Duration => formatContext->duration / AVUtil.AV_TIME_BASE * 1000;
+        public double Duration => formatContext->duration / ffmpeg.AV_TIME_BASE * 1000;
 
         /// <summary>
         /// True if the decoder currently does not decode any more frames, false otherwise.
@@ -45,7 +46,7 @@ namespace osu.Framework.Graphics.Video
         /// <summary>
         /// The frame rate of the video stream this decoder is decoding.
         /// </summary>
-        public double Framerate => AVUtil.av_q2d(stream->avg_frame_rate);
+        public double Framerate => stream->avg_frame_rate.GetValue();
 
         /// <summary>
         /// True if the decoder can seek, false otherwise. Determined by the stream this decoder was created with.
@@ -60,8 +61,8 @@ namespace osu.Framework.Graphics.Video
         private byte[] managedContextBuffer;
         private const int context_buffer_size = 4096;
 
-        private AVFormat.ReadPacketCallback readPacketCallback;
-        private AVFormat.SeekCallback seekCallback;
+        private avio_alloc_context_read_packet readPacketCallback;
+        private avio_alloc_context_seek seekCallback;
 
         private double timeBaseInSeconds;
 
@@ -130,7 +131,7 @@ namespace osu.Framework.Graphics.Video
                 case StdIo.SEEK_SET:
                     videoStream.Seek(offset, SeekOrigin.Begin);
                     break;
-                case AVFormat.AVSEEK_SIZE:
+                case ffmpeg.AVSEEK_SIZE:
                     return videoStream.Length;
                 default:
                     return -1;
@@ -147,7 +148,7 @@ namespace osu.Framework.Graphics.Video
             if (!CanSeek)
                 throw new InvalidOperationException("This decoder cannot seek because the underlying stream used to decode the video does not support seeking.");
 
-            decoderCommands.Enqueue(() => AVFormat.av_seek_frame(formatContext, stream->index, (long)(targetTimestamp / timeBaseInSeconds / 1000.0), AVFormat.AVSEEK_FLAG_BACKWARD));
+            decoderCommands.Enqueue(() => ffmpeg.av_seek_frame(formatContext, stream->index, (long)(targetTimestamp / timeBaseInSeconds / 1000.0), ffmpeg.AVSEEK_FLAG_BACKWARD));
         }
 
         /// <summary>
@@ -164,17 +165,17 @@ namespace osu.Framework.Graphics.Video
         // sets up libavformat state: creates the AVFormatContext, the frames, etc. to start decoding, but does not actually start the decodingLoop
         private void prepareDecoding()
         {
-            var fcPtr = AVFormat.avformat_alloc_context();
+            var fcPtr = ffmpeg.avformat_alloc_context();
             formatContext = fcPtr;
-            contextBuffer = AVUtil.av_malloc(context_buffer_size);
+            contextBuffer = (byte*)ffmpeg.av_malloc(context_buffer_size);
             managedContextBuffer = new byte[context_buffer_size];
             readPacketCallback = readPacket;
             seekCallback = seek;
-            formatContext->pb = AVFormat.avio_alloc_context(contextBuffer, context_buffer_size, 0, null, readPacketCallback, IntPtr.Zero, seekCallback);
-            if (AVFormat.avformat_open_input(&fcPtr, "dummy", IntPtr.Zero, IntPtr.Zero) < 0)
+            formatContext->pb = ffmpeg.avio_alloc_context(contextBuffer, context_buffer_size, 0, null, readPacketCallback, null, seekCallback);
+            if (ffmpeg.avformat_open_input(&fcPtr, "dummy", null, null) < 0)
                 throw new Exception("Error opening file.");
 
-            if (AVFormat.avformat_find_stream_info((IntPtr)formatContext, IntPtr.Zero) < 0)
+            if (ffmpeg.avformat_find_stream_info(formatContext, null) < 0)
                 throw new Exception("Could not find stream info.");
 
             var nStreams = formatContext->nb_streams;
@@ -185,25 +186,32 @@ namespace osu.Framework.Graphics.Video
                 codecParams = *stream->codecpar;
                 if (codecParams.codec_type == AVMediaType.AVMEDIA_TYPE_VIDEO)
                 {
-                    timeBaseInSeconds = AVUtil.av_q2d(stream->time_base);
-                    var codecPtr = AVCodec.avcodec_find_decoder(codecParams.codec_id);
-                    if (codecPtr == IntPtr.Zero)
+                    timeBaseInSeconds = stream->time_base.GetValue();
+                    var codecPtr = ffmpeg.avcodec_find_decoder(codecParams.codec_id);
+                    if (codecPtr == null)
                         throw new Exception("Could not find codec.");
 
 
-                    if (AVCodec.avcodec_open2(stream->codec, codecPtr, IntPtr.Zero) < 0)
+                    if (ffmpeg.avcodec_open2(stream->codec, codecPtr, null) < 0)
                         throw new Exception("Could not open codec.");
 
-                    frame = AVUtil.av_frame_alloc();
-                    frameRgb = AVUtil.av_frame_alloc();
+                    frame = ffmpeg.av_frame_alloc();
+                    frameRgb = ffmpeg.av_frame_alloc();
 
-                    uncompressedFrameSize = AVUtil.av_image_get_buffer_size(AVPixelFormat.AV_PIX_FMT_RGBA, codecParams.width, codecParams.height);
+                    uncompressedFrameSize = ffmpeg.av_image_get_buffer_size(AVPixelFormat.AV_PIX_FMT_RGBA, codecParams.width, codecParams.height, 1);
                     frameRgbBufferPtr = Marshal.AllocHGlobal(uncompressedFrameSize);
 
-                    var result = AVUtil.av_image_fill_arrays(&frameRgb->data0, &frameRgb->linesize[0], frameRgbBufferPtr, AVPixelFormat.AV_PIX_FMT_RGBA, codecParams.width, codecParams.height, 1);
+                    var dataArr4 = *(byte_ptrArray4*)&frameRgb->data;
+                    var linesizeArr4 = *(int_array4*)&frameRgb->linesize;
+                    var result = ffmpeg.av_image_fill_arrays(ref dataArr4, ref linesizeArr4, (byte*)frameRgbBufferPtr, AVPixelFormat.AV_PIX_FMT_RGBA, codecParams.width, codecParams.height, 1);
                     if (result < 0)
                         throw new Exception("Could not fill image arrays");
 
+                    for (uint j = 0; j < byte_ptrArray4.Size; ++j)
+                    {
+                        frameRgb->data[j] = dataArr4[j];
+                        frameRgb->linesize[j] = linesizeArr4[j];
+                    }
                     break;
                 }
             }
@@ -241,12 +249,12 @@ namespace osu.Framework.Graphics.Video
         {
             var exitOnFirstReadFrameError = state as bool? ?? false;
 
-            var packet = AVCodec.av_packet_alloc();
+            var packet = ffmpeg.av_packet_alloc();
             // this should be massively reduced to something like 5-10, currently there is an issue with texture uploads not completing
             // in a predictable way though, which can cause huge overallocations. Going past the bufferstacks limit essentially breaks
             // video playback (~several GB memory usage building up very quickly accompanied by unacceptable framerates).
             var bufferStack = new BufferStack<byte>(300);
-            IntPtr swsCtx = IntPtr.Zero;
+            SwsContext* swsCtx = null;
             try
             {
                 while (true)
@@ -254,25 +262,25 @@ namespace osu.Framework.Graphics.Video
                     if (isDisposed)
                         return;
 
-                    int readFrameResult = AVFormat.av_read_frame(formatContext, packet);
+                    int readFrameResult = ffmpeg.av_read_frame(formatContext, packet);
                     if (readFrameResult >= 0)
                     {
                         if (packet->stream_index == stream->index)
                         {
-                            if (AVCodec.avcodec_send_packet(stream->codec, packet) < 0)
+                            if (ffmpeg.avcodec_send_packet(stream->codec, packet) < 0)
                                 throw new Exception("Error sending packet.");
 
-                            var result = AVCodec.avcodec_receive_frame(stream->codec, frame);
+                            var result = ffmpeg.avcodec_receive_frame(stream->codec, frame);
                             if (result == 0)
                             {
-                                swsCtx = SWScale.sws_getContext(codecParams.width, codecParams.height, (AVPixelFormat)frame->format, codecParams.width, codecParams.height, AVPixelFormat.AV_PIX_FMT_RGBA, 0, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);
-                                SWScale.sws_scale(swsCtx, &frame->data0, &frame->linesize[0], 0, frame->height, &frameRgb->data0, &frameRgb->linesize[0]);
-                                SWScale.sws_freeContext(swsCtx);
-                                swsCtx = IntPtr.Zero;
+                                swsCtx = ffmpeg.sws_getContext(codecParams.width, codecParams.height, (AVPixelFormat)frame->format, codecParams.width, codecParams.height, AVPixelFormat.AV_PIX_FMT_RGBA, 0, null, null, null);
+                                ffmpeg.sws_scale(swsCtx, frame->data, frame->linesize, 0, frame->height, frameRgb->data, frameRgb->linesize);
+                                ffmpeg.sws_freeContext(swsCtx);
+                                swsCtx = null;
 
                                 var tex = new Texture(codecParams.width, codecParams.height, true);
                                 var rawTex = new RawTexture(tex.Width, tex.Height, bufferStack);
-                                Marshal.Copy((IntPtr)frameRgb->data0, rawTex.Data, 0, uncompressedFrameSize);
+                                Marshal.Copy((IntPtr)frameRgb->data[0], rawTex.Data, 0, uncompressedFrameSize);
                                 tex.SetData(new TextureUpload(rawTex));
 
                                 var frameTime = (frame->best_effort_timestamp - stream->start_time) * timeBaseInSeconds;
@@ -318,8 +326,8 @@ namespace osu.Framework.Graphics.Video
             }
             finally
             {
-                AVCodec.av_packet_free(&packet);
-                SWScale.sws_freeContext(swsCtx);
+                ffmpeg.av_packet_free(&packet);
+                ffmpeg.sws_freeContext(swsCtx);
             }
         }
 
@@ -357,7 +365,7 @@ namespace osu.Framework.Graphics.Video
             if (formatContext != null)
             {
                 fixed (AVFormatContext** ptr = &formatContext)
-                    AVFormat.avformat_close_input(ptr);
+                    ffmpeg.avformat_close_input(ptr);
             }
 
             seekCallback = null;
@@ -370,13 +378,13 @@ namespace osu.Framework.Graphics.Video
             if (frame != null)
             {
                 fixed (AVFrame** ptr = &frame)
-                    AVUtil.av_frame_free(ptr);
+                    ffmpeg.av_frame_free(ptr);
             }
 
             if (frameRgb != null)
             {
                 fixed (AVFrame** ptr = &frameRgb)
-                    AVUtil.av_frame_free(ptr);
+                    ffmpeg.av_frame_free(ptr);
             }
 
             if (frameRgbBufferPtr != IntPtr.Zero)
