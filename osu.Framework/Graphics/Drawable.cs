@@ -1703,38 +1703,6 @@ namespace osu.Framework.Graphics
             }
         }
 
-        protected virtual bool HandleMouseEvent(MouseEvent e)
-        {
-            switch (e)
-            {
-                case MouseActionEvent action:
-                    return HandleMouseActionEvent(action);
-                case MouseMoved mouseMove:
-                    return HandleMouseMove(mouseMove);
-                case MouseScrolled mouseScroll:
-                    return HandleMouseScroll(mouseScroll);
-                default:
-                    return false;
-            }
-        }
-
-        protected virtual bool HandleMouseActionEvent(MouseActionEvent e)
-        {
-            switch (e)
-            {
-                case Clicked click:
-                    return HandleClick(click);
-                case DoubleClicked doubleClick:
-                    return HandleDoubleClick(doubleClick);
-                case DragEvent drag:
-                    return HandleDrag(drag);
-                case MouseButtonEvent mouseButton:
-                    return HandleMouseButton(mouseButton);
-                default:
-                    return false;
-            }
-        }
-
         protected virtual void HandleFocus(FocusEvent e)
         {
             switch (e)
@@ -1762,9 +1730,42 @@ namespace osu.Framework.Graphics
             }
         }
 
+
+        protected virtual bool HandleMouseEvent(MouseEvent e)
+        {
+            switch (e)
+            {
+                case MouseActionEvent action:
+                    return HandleMouseActionEvent(action);
+                case MouseMoved mouseMove:
+                    return HandleMouseMove(mouseMove);
+                case MouseScrolled mouseScroll:
+                    return HandleMouseScroll(mouseScroll);
+                default:
+                    return false;
+            }
+        }
+
         protected virtual bool HandleMouseMove(MouseMoved e) => OnMouseMove(e.LegacyInputState);
 
         protected virtual bool HandleMouseScroll(MouseScrolled e) => OnScroll(e.LegacyInputState);
+
+        protected virtual bool HandleMouseActionEvent(MouseActionEvent e)
+        {
+            switch (e)
+            {
+                case Clicked click:
+                    return HandleClick(click);
+                case DoubleClicked doubleClick:
+                    return HandleDoubleClick(doubleClick);
+                case DragEvent drag:
+                    return HandleDrag(drag);
+                case MouseButtonEvent mouseButton:
+                    return HandleMouseButton(mouseButton);
+                default:
+                    return false;
+            }
+        }
 
         protected virtual bool HandleClick(Clicked e) => OnClick(e.LegacyInputState);
 
