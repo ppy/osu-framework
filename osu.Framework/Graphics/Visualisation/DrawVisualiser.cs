@@ -113,11 +113,10 @@ namespace osu.Framework.Graphics.Visualisation
 
             treeContainer.Clear();
 
+            // We don't really know where the visualised drawables are, so we have to dispose them manually
             var visualisers = visCache.Values.ToList();
             foreach (var v in visualisers)
                 v.Dispose();
-
-            visCache.Clear();
 
             target = null;
             targetVisualiser = null;
