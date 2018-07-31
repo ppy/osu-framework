@@ -50,6 +50,8 @@ namespace osu.Framework.Graphics.Visualisation
 
                             Target = parent;
                             lastVisualiser.SetContainer(targetVisualiser);
+
+                            targetVisualiser.Expand();
                         }
 
                         // Rehighlight the last highlight
