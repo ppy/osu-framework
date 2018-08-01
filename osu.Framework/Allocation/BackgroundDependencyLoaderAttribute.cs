@@ -20,6 +20,9 @@ namespace osu.Framework.Allocation
 
         private bool permitNulls { get; }
 
+        /// <summary>
+        /// Marks this method as the initializer for a class in the context of dependency injection.
+        /// </summary>
         public BackgroundDependencyLoaderAttribute()
         {
         }
