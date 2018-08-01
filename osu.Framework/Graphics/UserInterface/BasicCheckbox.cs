@@ -51,14 +51,6 @@ namespace osu.Framework.Graphics.UserInterface
                 AutoSizeAxes = Axes.Both,
                 Children = new Drawable[]
                 {
-                    labelSpriteText = new SpriteText
-                    {
-                        Padding = new MarginPadding
-                        {
-                            Left = 10
-                        },
-                        Depth = float.MinValue
-                    },
                     new Container
                     {
                         BorderColour= Color4.White,
@@ -69,7 +61,15 @@ namespace osu.Framework.Graphics.UserInterface
                         {
                             RelativeSizeAxes = Axes.Both
                         }
-                    }
+                    },
+                    labelSpriteText = new SpriteText
+                    {
+                        Padding = new MarginPadding
+                        {
+                            Left = 10
+                        },
+                        Depth = float.MinValue
+                    },
                 }
             };
 
