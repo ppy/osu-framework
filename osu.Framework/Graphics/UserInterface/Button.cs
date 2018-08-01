@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System.Collections.Generic;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using OpenTK.Graphics;
@@ -9,24 +10,8 @@ using osu.Framework.Input.States;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class Button : ClickableContainer
+    public class Button : ClickableContainer, IFilterable
     {
-        public string Text
-        {
-            get => SpriteText?.Text;
-            set
-            {
-                if (SpriteText != null)
-                    SpriteText.Text = value;
-            }
-        }
-
-        public Color4 BackgroundColour
-        {
-            get => Background.Colour;
-            set => Background.FadeColour(value);
-        }
-
         protected override Container<Drawable> Content => content;
 
         private readonly Container content;
@@ -54,6 +39,22 @@ namespace osu.Framework.Graphics.UserInterface
             });
         }
 
+        public string Text
+        {
+            get => SpriteText?.Text;
+            set
+            {
+                if (SpriteText != null)
+                    SpriteText.Text = value;
+            }
+        }
+
+        public Color4 BackgroundColour
+        {
+            get => Background.Colour;
+            set => Background.FadeColour(value);
+        }
+
         protected virtual SpriteText CreateText() => new SpriteText
         {
             Depth = -1,
@@ -79,6 +80,13 @@ namespace osu.Framework.Graphics.UserInterface
             }
 
             return base.OnClick(state);
+        }
+
+        public IEnumerable<string> FilterTerms => new[] { Text };
+
+        public virtual bool MatchingFilter
+        {
+            set => this.FadeTo(value ? 1 : 0);
         }
     }
 }
