@@ -28,6 +28,7 @@ using OpenTK.Input;
 
 namespace osu.Framework.Testing
 {
+    [Cached]
     public class TestBrowser : KeyBindingContainer<TestBrowserAction>, IKeyBindingHandler<TestBrowserAction>
     {
         public TestCase CurrentTest { get; private set; }
@@ -80,9 +81,13 @@ namespace osu.Framework.Testing
             leftFlowContainer.AddRange(TestTypes.Where(t => t.Assembly == asm).Select(t => new TestCaseButton(t) { Action = () => LoadTest(t) }));
         }
 
-        private BindableDouble rateBindable;
+        internal readonly BindableDouble PlaybackRate = new BindableDouble(1) { MinValue = 0, MaxValue = 2 };
+        internal readonly Bindable<Assembly> Assembly = new Bindable<Assembly>();
+        internal readonly Bindable<bool> RunAllSteps = new Bindable<bool>();
+        internal readonly Bindable<RecordState> RecordState = new Bindable<RecordState>();
+        internal readonly BindableInt CurrentFrame = new BindableInt { MinValue = 0, MaxValue = 0 };
 
-        private Toolbar toolbar;
+        private TestBrowserToolbar toolbar;
         private Container leftContainer;
         private Container mainContainer;
 
@@ -101,12 +106,6 @@ namespace osu.Framework.Testing
             exit = host.Exit;
 
             showLogOverlay = frameworkConfig.GetBindable<bool>(FrameworkSetting.ShowLogOverlay);
-
-            rateBindable = new BindableDouble(1)
-            {
-                MinValue = 0,
-                MaxValue = 2,
-            };
 
             var rateAdjustClock = new StopwatchClock(true);
             var framedClock = new FramedClock(rateAdjustClock);
@@ -166,7 +165,7 @@ namespace osu.Framework.Testing
                     Padding = new MarginPadding { Left = test_list_width },
                     Children = new Drawable[]
                     {
-                        toolbar = new Toolbar
+                        toolbar = new TestBrowserToolbar
                         {
                             RelativeSizeAxes = Axes.X,
                             Height = 50,
@@ -223,14 +222,11 @@ namespace osu.Framework.Testing
             }
 
             foreach (Assembly asm in assemblies)
-                toolbar.AssemblyDropdown.AddDropdownItem(asm.GetName().Name, asm);
+                toolbar.AddAssembly(asm.GetName().Name, asm);
 
-            toolbar.AssemblyDropdown.Current.ValueChanged += updateList;
-            toolbar.RunAllSteps.Current.ValueChanged += v => runTests(null);
-            toolbar.RateAdjustSlider.Current.BindTo(rateBindable);
-
-            rateBindable.ValueChanged += v => rateAdjustClock.Rate = v;
-            rateBindable.TriggerChange();
+            Assembly.BindValueChanged(updateList);
+            RunAllSteps.BindValueChanged(v => runTests(null));
+            PlaybackRate.BindValueChanged(v => rateAdjustClock.Rate = v, true);
         }
 
         protected override void Dispose(bool isDisposing)
@@ -245,7 +241,8 @@ namespace osu.Framework.Testing
             compilingNotice.FadeColour(Color4.White);
         });
 
-        private void compileFailed(Exception ex) => Schedule(() => {
+        private void compileFailed(Exception ex) => Schedule(() =>
+        {
             showLogOverlay.Value = true;
             Logger.Error(ex, "Error with dynamic compilation!");
 
@@ -314,13 +311,13 @@ namespace osu.Framework.Testing
 
         public override IEnumerable<KeyBinding> DefaultKeyBindings => new[]
         {
-            new KeyBinding(new [] {InputKey.Control, InputKey.F},TestBrowserAction.Search),
-            new KeyBinding(new [] {InputKey.Control, InputKey.R},TestBrowserAction.Reload), // for macOS
+            new KeyBinding(new[] { InputKey.Control, InputKey.F }, TestBrowserAction.Search),
+            new KeyBinding(new[] { InputKey.Control, InputKey.R }, TestBrowserAction.Reload), // for macOS
 
-            new KeyBinding(new [] {InputKey.Super, InputKey.F},TestBrowserAction.Search), // for macOS
-            new KeyBinding(new [] {InputKey.Super, InputKey.R},TestBrowserAction.Reload), // for macOS
+            new KeyBinding(new[] { InputKey.Super, InputKey.F }, TestBrowserAction.Search), // for macOS
+            new KeyBinding(new[] { InputKey.Super, InputKey.R }, TestBrowserAction.Reload), // for macOS
 
-            new KeyBinding(new [] {InputKey.Control, InputKey.H},TestBrowserAction.ToggleTestList),
+            new KeyBinding(new[] { InputKey.Control, InputKey.H }, TestBrowserAction.ToggleTestList),
         };
 
         public bool OnPressed(TestBrowserAction action)
@@ -360,23 +357,23 @@ namespace osu.Framework.Testing
 
             var newTest = (TestCase)Activator.CreateInstance(testType);
 
-            var dropdown = toolbar.AssemblyDropdown;
-
             const string dynamic = "dynamic";
-
-            dropdown.RemoveDropdownItem(dropdown.Items.LastOrDefault(i => i.Value.FullName.Contains(dynamic)).Value);
 
             // if we are a dynamically compiled type (via DynamicClassCompiler) we should update the dropdown accordingly.
             if (isDynamicLoad)
-                dropdown.AddDropdownItem($"{dynamic} ({testType.Name})", testType.Assembly);
+                toolbar.AddAssembly($"{dynamic} ({testType.Name})", testType.Assembly);
             else
                 TestTypes.RemoveAll(t => t.Assembly.FullName.Contains(dynamic));
 
-            dropdown.Current.Value = testType.Assembly;
+            Assembly.Value = testType.Assembly;
 
             CurrentTest = newTest;
 
             updateButtons();
+
+            CurrentFrame.Value = 0;
+            if (RecordState.Value == Testing.RecordState.Stopped)
+                RecordState.Value = Testing.RecordState.Normal;
 
             testContentContainer.Add(new ErrorCatchingDelayedLoadWrapper(CurrentTest, isDynamicLoad)
             {
@@ -420,7 +417,7 @@ namespace osu.Framework.Testing
 
         private void runTests(Action onCompletion)
         {
-            if (!interactive || toolbar.RunAllSteps.Current)
+            if (!interactive || RunAllSteps.Value)
                 CurrentTest.RunAllSteps(onCompletion, e => Logger.Log($@"Error on step: {e}"));
             else
                 CurrentTest.RunFirstStep();
@@ -462,110 +459,24 @@ namespace osu.Framework.Testing
                 return false;
             }
         }
+    }
 
-        private class Toolbar : CompositeDrawable
-        {
-            public BasicSliderBar<double> RateAdjustSlider;
+    internal enum RecordState
+    {
+        /// <summary>
+        /// The game is playing back normally.
+        /// </summary>
+        Normal,
 
-            public BasicDropdown<Assembly> AssemblyDropdown;
+        /// <summary>
+        /// Drawn game frames are currently being recorded.
+        /// </summary>
+        Recording,
 
-            public BasicCheckbox RunAllSteps;
-
-            [BackgroundDependencyLoader]
-            private void load()
-            {
-                SpriteText playbackSpeedDisplay;
-                InternalChildren = new Drawable[]
-                {
-                    new Box
-                    {
-                        RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.Black,
-                    },
-                    new Container
-                    {
-                        Padding = new MarginPadding(10),
-                        RelativeSizeAxes = Axes.Both,
-                        Child = new GridContainer
-                        {
-                            RelativeSizeAxes = Axes.Both,
-                            ColumnDimensions = new[]
-                            {
-                                new Dimension(GridSizeMode.AutoSize),
-                                new Dimension(GridSizeMode.Distributed),
-                            },
-                            Content = new[]
-                            {
-                                new Drawable[]
-                                {
-                                    new FillFlowContainer
-                                    {
-                                        Spacing = new Vector2(5),
-                                        Direction = FillDirection.Horizontal,
-                                        RelativeSizeAxes = Axes.Y,
-                                        AutoSizeAxes = Axes.X,
-                                        Children = new Drawable[]
-                                        {
-                                            new SpriteText
-                                            {
-                                                Padding = new MarginPadding(5),
-                                                Text = "Current Assembly:"
-                                            },
-                                            AssemblyDropdown = new BasicDropdown<Assembly>
-                                            {
-                                                Width = 300,
-                                            },
-                                            RunAllSteps = new BasicCheckbox
-                                            {
-                                                LabelText = "Run all steps",
-                                                LabelPadding = new MarginPadding { Left = 5, Right = 10 },
-                                                AutoSizeAxes = Axes.Y,
-                                                Width = 140,
-                                                Anchor = Anchor.CentreLeft,
-                                                Origin = Anchor.CentreLeft,
-                                            },
-                                        }
-                                    },
-                                    new GridContainer
-                                    {
-                                        RelativeSizeAxes = Axes.Both,
-                                        ColumnDimensions = new[]
-                                        {
-                                            new Dimension(GridSizeMode.AutoSize),
-                                            new Dimension(GridSizeMode.Distributed),
-                                            new Dimension(GridSizeMode.AutoSize),
-                                        },
-                                        Content = new[]
-                                        {
-                                            new Drawable[]
-                                            {
-                                                new SpriteText
-                                                {
-                                                    Padding = new MarginPadding(5),
-                                                    Text = "Rate:"
-                                                },
-                                                RateAdjustSlider = new BasicSliderBar<double>
-                                                {
-                                                    RelativeSizeAxes = Axes.Both,
-                                                    Colour = Color4.MediumPurple,
-                                                    SelectionColor = Color4.White,
-                                                },
-                                                playbackSpeedDisplay = new SpriteText
-                                                {
-                                                    Padding = new MarginPadding(5),
-                                                },
-                                            }
-                                        }
-                                    }
-                                }
-                            },
-                        },
-                    },
-                };
-
-                RateAdjustSlider.Current.ValueChanged += v => playbackSpeedDisplay.Text = v.ToString("0%");
-            }
-        }
+        /// <summary>
+        /// The default game playback is stopped, recorded frames are being played back.
+        /// </summary>
+        Stopped
     }
 
     public enum TestBrowserAction
