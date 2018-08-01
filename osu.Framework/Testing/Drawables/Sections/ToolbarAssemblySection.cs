@@ -19,6 +19,7 @@ namespace osu.Framework.Testing.Drawables.Sections
         public ToolbarAssemblySection()
         {
             AutoSizeAxes = Axes.X;
+            Masking = false;
         }
 
         [BackgroundDependencyLoader]
