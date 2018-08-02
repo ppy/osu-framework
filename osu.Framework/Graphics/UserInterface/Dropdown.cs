@@ -135,6 +135,7 @@ namespace osu.Framework.Graphics.UserInterface
         private void Header_SelectionKeyPressed(DropdownHeader.SelectionChange change)
         {
             var dropdownMenuItems = MenuItems.ToList();
+            var visibleMenuItems = Menu.Children.Where(item => !item.IsMaskedAway).Select(drawableItem => drawableItem.Item);
             var selectedIndex = dropdownMenuItems.IndexOf(SelectedItem);
 
             if (!dropdownMenuItems.Any()) return;
@@ -152,6 +153,12 @@ namespace osu.Framework.Graphics.UserInterface
                     break;
                 case DropdownHeader.SelectionChange.Last:
                     SelectedItem = dropdownMenuItems.Last();
+                    break;
+                case DropdownHeader.SelectionChange.FirstVisible:
+                    SelectedItem = (DropdownMenuItem<T>)visibleMenuItems.First();
+                    break;
+                case DropdownHeader.SelectionChange.LastVisible:
+                    SelectedItem = (DropdownMenuItem<T>)visibleMenuItems.Last();
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(change), change, null);
@@ -225,6 +232,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected virtual DropdownMenu CreateMenu() => new DropdownMenu();
 
         #region DropdownMenu
+
         public class DropdownMenu : Menu
         {
             public DropdownMenu()
@@ -261,6 +269,7 @@ namespace osu.Framework.Graphics.UserInterface
             protected override DrawableMenuItem CreateDrawableMenuItem(MenuItem item) => new DrawableDropdownMenuItem(item);
 
             #region DrawableDropdownMenuItem
+
             // must be public due to mono bug(?) https://github.com/ppy/osu/issues/1204
             public class DrawableDropdownMenuItem : DrawableMenuItem
             {
@@ -270,6 +279,7 @@ namespace osu.Framework.Graphics.UserInterface
                 }
 
                 private bool selected;
+
                 public bool IsSelected
                 {
                     get => !Item.Action.Disabled && selected;
@@ -284,6 +294,7 @@ namespace osu.Framework.Graphics.UserInterface
                 }
 
                 private Color4 backgroundColourSelected = Color4.SlateGray;
+
                 public Color4 BackgroundColourSelected
                 {
                     get => backgroundColourSelected;
@@ -295,6 +306,7 @@ namespace osu.Framework.Graphics.UserInterface
                 }
 
                 private Color4 foregroundColourSelected = Color4.White;
+
                 public Color4 ForegroundColourSelected
                 {
                     get => foregroundColourSelected;
@@ -331,8 +343,10 @@ namespace osu.Framework.Graphics.UserInterface
                     Foreground.Colour = IsSelected ? ForegroundColourSelected : ForegroundColour;
                 }
             }
+
             #endregion
         }
+
         #endregion
     }
 }

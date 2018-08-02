@@ -92,6 +92,12 @@ namespace osu.Framework.Graphics.UserInterface
                 case Key.Down:
                     SelectionKeyPressed?.Invoke(SelectionChange.Next);
                     return true;
+                case Key.PageUp:
+                    SelectionKeyPressed?.Invoke(SelectionChange.FirstVisible);
+                    return true;
+                case Key.PageDown:
+                    SelectionKeyPressed?.Invoke(SelectionChange.LastVisible);
+                    return true;
                 default:
                     return base.OnKeyDown(state, args);
             }
@@ -119,7 +125,9 @@ namespace osu.Framework.Graphics.UserInterface
             Previous,
             Next,
             First,
-            Last
+            Last,
+            FirstVisible,
+            LastVisible
         }
     }
 }
