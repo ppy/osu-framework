@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Caching;
 using osu.Framework.Extensions.IEnumerableExtensions;
-using OpenTK.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
@@ -15,6 +14,7 @@ using osu.Framework.Input.States;
 using osu.Framework.MathUtils;
 using osu.Framework.Threading;
 using OpenTK;
+using OpenTK.Graphics;
 using OpenTK.Input;
 
 namespace osu.Framework.Graphics.UserInterface
@@ -55,7 +55,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Gets the item representations contained by this <see cref="Menu"/>.
         /// </summary>
-        protected IReadOnlyList<DrawableMenuItem> Children => ItemsContainer;
+        public IReadOnlyList<DrawableMenuItem> Children => ItemsContainer;
 
         protected readonly Direction Direction;
 
