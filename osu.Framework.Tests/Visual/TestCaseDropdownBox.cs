@@ -15,7 +15,7 @@ using OpenTK.Input;
 
 namespace osu.Framework.Tests.Visual
 {
-    public class TestCaseDropdownBox : TestCase
+    public class TestCaseDropdownBox : ManualInputManagerTestCase
     {
         private const int items_to_add = 10;
 
@@ -79,23 +79,23 @@ namespace osu.Framework.Tests.Visual
             int currentKeyboardInputDropdownIndex() => keyboardInputDropdown.Items.Select(ii => ii.Value).ToList().IndexOf(keyboardInputDropdown.Current);
             var expectedIndex = 0;
 
-            AddStep($"dropdown1: perform {Key.Up} keypress", () =>
+            AddStep($"dropdown3: perform {Key.Up} keypress", () =>
             {
                 expectedIndex = MathHelper.Clamp(currentKeyboardInputDropdownIndex() - 1, 0, keyboardInputDropdown.Items.Count() - 1);
 
                 keyboardInputDropdown.Header.TriggerOnKeyDown(null, new KeyDownEventArgs { Key = Key.Up });
                 keyboardInputDropdown.Header.TriggerOnKeyUp(null, new KeyUpEventArgs { Key = Key.Up });
             });
-            AddAssert("Previous dropdown1 item is selected", () => currentKeyboardInputDropdownIndex() == expectedIndex);
+            AddAssert("Previous dropdown3 item is selected", () => currentKeyboardInputDropdownIndex() == expectedIndex);
 
-            AddStep($"dropdown1: perform {Key.Down} keypress", () =>
+            AddStep($"dropdown3: perform {Key.Down} keypress", () =>
             {
                 expectedIndex = MathHelper.Clamp(currentKeyboardInputDropdownIndex() + 1, 0, keyboardInputDropdown.Items.Count() - 1);
 
                 keyboardInputDropdown.Header.TriggerOnKeyDown(null, new KeyDownEventArgs { Key = Key.Down });
                 keyboardInputDropdown.Header.TriggerOnKeyUp(null, new KeyUpEventArgs { Key = Key.Down });
             });
-            AddAssert("Next dropdown1 item is selected", () => currentKeyboardInputDropdownIndex() == expectedIndex);
+            AddAssert("Next dropdown3 item is selected", () => currentKeyboardInputDropdownIndex() == expectedIndex);
 
             void performPlatformAction(PlatformAction action)
             {
@@ -112,11 +112,11 @@ namespace osu.Framework.Tests.Visual
                 keyboardInputDropdown.Header.HasFocus = tHasFocus;
             }
 
-            AddStep($"dropdown1: perform {PlatformActionType.LineStart} action", () => performPlatformAction(new PlatformAction(PlatformActionType.LineStart)));
-            AddAssert("dropdown1: first item selected", () => currentKeyboardInputDropdownIndex() == 0);
+            AddStep($"dropdown3: perform {PlatformActionType.ListStart} action", () => performPlatformAction(new PlatformAction(PlatformActionType.ListStart)));
+            AddAssert("dropdown3: first item selected", () => currentKeyboardInputDropdownIndex() == 0);
 
-            AddStep($"dropdown1: perform {PlatformActionType.LineEnd} action", () => { performPlatformAction(new PlatformAction(PlatformActionType.LineEnd)); });
-            AddAssert("dropdown1: last item selected", () => currentKeyboardInputDropdownIndex() == keyboardInputDropdown.Items.Count() - 1);
+            AddStep($"dropdown3: perform {PlatformActionType.ListEnd} action", () => { performPlatformAction(new PlatformAction(PlatformActionType.ListEnd)); });
+            AddAssert("dropdown3: last item selected", () => currentKeyboardInputDropdownIndex() == keyboardInputDropdown.Items.Count() - 1);
         }
 
         private void toggleDropdownViaClick(StyledDropdown dropdown) => dropdown.Children.First().TriggerOnClick();
