@@ -231,8 +231,6 @@ namespace osu.Framework.Platform
 
         private void handleException(Exception exception)
         {
-            Logger.Error(exception, $"An {exception.Data["unhandled"]} error has occurred.", recursive: true);
-
             if (ExceptionThrown?.Invoke(exception) != true)
             {
                 AppDomain.CurrentDomain.UnhandledException -= unhandledExceptionHandler;
@@ -242,6 +240,8 @@ namespace osu.Framework.Platform
                 //we want to throw this exception on the input thread to interrupt window and also headless execution.
                 InputThread.Scheduler.Add(() => { captured.Throw(); });
             }
+
+            Logger.Error(exception, $"An {exception.Data["unhandled"]} error has occurred.", recursive: true);
         }
 
         protected virtual void OnActivated() => UpdateThread.Scheduler.Add(() => setActive(true));
