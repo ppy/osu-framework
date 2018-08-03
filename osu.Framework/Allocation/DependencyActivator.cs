@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Runtime.ExceptionServices;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -103,6 +104,14 @@ namespace osu.Framework.Allocation
             : base($"The type {type.ReadableName()} has a dependency on {requestedType.ReadableName()}, but the dependency is not registered.")
         {
         }
+    }
+
+    /// <summary>
+    /// Occurs when dependencies dependency injection into a <see cref="Drawable"/> fails.
+    /// </summary>
+    internal class DependencyInjectionException : Exception
+    {
+        public ExceptionDispatchInfo DispatchInfo;
     }
 
     internal delegate void InjectDependencyDelegate(object target, DependencyContainer dependencies);

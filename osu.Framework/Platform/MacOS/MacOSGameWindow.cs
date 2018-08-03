@@ -208,7 +208,7 @@ namespace osu.Framework.Platform.MacOS
         protected override void UpdateWindowMode(WindowMode newMode) => newWindowMode = newMode;
 
         // Apple recommends not changing the system resolution for fullscreen access
-        protected override void ChangeResolution(Size newSize) => ClientSize = newSize;
+        protected override void ChangeResolution(DisplayDevice display, Size newSize) => ClientSize = newSize;
 
         protected override void RestoreResolution(DisplayDevice displayDevice)
         {

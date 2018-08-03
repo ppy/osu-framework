@@ -15,8 +15,9 @@ namespace osu.Framework.Tests.Visual
     {
         private readonly SpriteText currentActualSize = new SpriteText();
         private readonly SpriteText currentWindowMode = new SpriteText();
+        private readonly SpriteText currentDisplay = new SpriteText();
 
-        private DesktopGameWindow window;
+        private GameWindow window;
         private readonly BindableSize sizeFullscreen = new BindableSize();
         private readonly Bindable<WindowMode> windowMode = new Bindable<WindowMode>();
 
@@ -30,7 +31,8 @@ namespace osu.Framework.Tests.Visual
                 {
                     currentBindableSize,
                     currentActualSize,
-                    currentWindowMode
+                    currentWindowMode,
+                    currentDisplay
                 },
             };
 
@@ -46,7 +48,7 @@ namespace osu.Framework.Tests.Visual
         [BackgroundDependencyLoader]
         private void load(FrameworkConfigManager config, GameHost host)
         {
-            window = (DesktopGameWindow)host.Window;
+            window = host.Window;
             config.BindWith(FrameworkSetting.SizeFullscreen, sizeFullscreen);
             config.BindWith(FrameworkSetting.WindowMode, windowMode);
             currentWindowMode.Text = $"Window Mode: {windowMode}";
@@ -58,9 +60,10 @@ namespace osu.Framework.Tests.Visual
             testResolution(1280, 720);
             AddStep("change to fullscreen", () => windowMode.Value = WindowMode.Fullscreen);
             testResolution(1920, 1080);
-            AddStep("change to borderless", () => windowMode.Value = WindowMode.Borderless);
             testResolution(1280, 960);
+            testResolution(9999, 9999);
             AddStep("go back to windowed", () => windowMode.Value = WindowMode.Windowed);
+            AddStep("change to borderless", () => windowMode.Value = WindowMode.Borderless);
         }
 
         protected override void Update()
@@ -68,6 +71,7 @@ namespace osu.Framework.Tests.Visual
             base.Update();
 
             currentActualSize.Text = $"Window size: {window?.Bounds.Size}";
+            currentDisplay.Text = $"Current display device: {window?.GetCurrentDisplay()}";
         }
     }
 }
