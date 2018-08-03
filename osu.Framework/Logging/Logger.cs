@@ -118,12 +118,10 @@ namespace osu.Framework.Logging
 
         private static void error(Exception e, string description, LoggingTarget? target, string name, bool recursive)
         {
-            log($@"{description}", target, name, LogLevel.Error);
-            log(e.ToString(), target, name, LogLevel.Important);
+            log($@"{description}", target, name, LogLevel.Error, e);
 
-            if (recursive)
-                for (Exception inner = e.InnerException; inner != null; inner = inner.InnerException)
-                    log(inner.ToString(), target, name, LogLevel.Important);
+            if (recursive && e.InnerException != null)
+                error(e.InnerException, $"{description} (inner)", target, name, true);
         }
 
         /// <summary>
@@ -148,14 +146,14 @@ namespace osu.Framework.Logging
             log(message, null, name, level);
         }
 
-        private static void log(string message, LoggingTarget? target, string loggerName, LogLevel level)
+        private static void log(string message, LoggingTarget? target, string loggerName, LogLevel level, Exception exception = null)
         {
             try
             {
                 if (target.HasValue)
-                    GetLogger(target.Value).Add(message, level);
+                    GetLogger(target.Value).Add(message, level, exception);
                 else
-                    GetLogger(loggerName).Add(message, level);
+                    GetLogger(loggerName).Add(message, level, exception);
             }
             catch
             {
@@ -270,10 +268,11 @@ namespace osu.Framework.Logging
         /// </summary>
         /// <param name="message">The message to log. Can include newline (\n) characters to split into multiple lines.</param>
         /// <param name="level">The verbosity level.</param>
-        public void Add(string message = @"", LogLevel level = LogLevel.Verbose) =>
-            add(message, level, OutputToListeners);
+        /// <param name="exception">An optional related exception.</param>
+        public void Add(string message = @"", LogLevel level = LogLevel.Verbose, Exception exception = null) =>
+            add(message, level, exception, OutputToListeners);
 
-        private void add(string message = @"", LogLevel level = LogLevel.Verbose, bool outputToListeners = true)
+        private void add(string message = @"", LogLevel level = LogLevel.Verbose, Exception exception = null, bool outputToListeners = true)
         {
             if (!Enabled || level < Level)
                 return;
@@ -307,7 +306,8 @@ namespace osu.Framework.Logging
                     Level = level,
                     Target = Target,
                     LoggerName = Name,
-                    Message = message
+                    Message = message,
+                    Exception = exception
                 });
 
             if (Target == LoggingTarget.Information)
@@ -437,6 +437,11 @@ namespace osu.Framework.Logging
         /// The message that was logged.
         /// </summary>
         public string Message;
+
+        /// <summary>
+        /// An optional related exception.
+        /// </summary>
+        public Exception Exception;
     }
 
     /// <summary>
