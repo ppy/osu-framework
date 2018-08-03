@@ -216,12 +216,22 @@ namespace osu.Framework.Platform
                 Environment.CurrentDirectory = assemblyPath;
         }
 
-        private void unhandledExceptionHandler(object sender, UnhandledExceptionEventArgs args) => handleException((Exception)args.ExceptionObject);
-        private void unobservedExceptionHandler(object sender, UnobservedTaskExceptionEventArgs args) => handleException(args.Exception);
+        private void unhandledExceptionHandler(object sender, UnhandledExceptionEventArgs args)
+        {
+            var exception = (Exception)args.ExceptionObject;
+            exception.Data.Add("unhandled", "unhandled");
+            handleException(exception);
+        }
+
+        private void unobservedExceptionHandler(object sender, UnobservedTaskExceptionEventArgs args)
+        {
+            args.Exception.Data.Add("unhandled", "unobserved");
+            handleException(args.Exception);
+        }
 
         private void handleException(Exception exception)
         {
-            Logger.Error(exception, @"fatal error:", recursive: true);
+            Logger.Error(exception, $"An {exception.Data["unhandled"]} error has occurred.", recursive: true);
 
             if (ExceptionThrown?.Invoke(exception) != true)
             {
