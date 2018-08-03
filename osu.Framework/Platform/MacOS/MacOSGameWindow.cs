@@ -17,12 +17,16 @@ namespace osu.Framework.Platform.MacOS
     {
         [UnmanagedFunctionPointer(CallingConvention.Winapi)]
         private delegate void FlagsChangedDelegate(IntPtr self, IntPtr cmd, IntPtr notification);
+
         [UnmanagedFunctionPointer(CallingConvention.Winapi)]
         private delegate uint WindowWillUseFullScreenDelegate(IntPtr self, IntPtr cmd, IntPtr window, uint options);
+
         [UnmanagedFunctionPointer(CallingConvention.Winapi)]
         private delegate void WindowDidEnterFullScreenDelegate(IntPtr self, IntPtr cmd, IntPtr notification);
+
         [UnmanagedFunctionPointer(CallingConvention.Winapi)]
         private delegate void WindowDidExitFullScreenDelegate(IntPtr self, IntPtr cmd, IntPtr notification);
+
         [UnmanagedFunctionPointer(CallingConvention.Winapi)]
         private delegate bool WindowShouldZoomToFrameDelegate(IntPtr self, IntPtr cmd, IntPtr nsWindow, RectangleF toFrame);
 
