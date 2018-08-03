@@ -40,6 +40,8 @@ namespace osu.Framework.Platform.MacOS
         private readonly IntPtr selKeyCode = Selector.Get("keyCode");
         private readonly IntPtr selStyleMask = Selector.Get("styleMask");
         private readonly IntPtr selToggleFullScreen = Selector.Get("toggleFullScreen:");
+        private readonly IntPtr selMenuBarVisible = Selector.Get("menuBarVisible");
+        private readonly IntPtr classNSMenu = Class.Get("NSMenu");
 
         private MethodInfo methodKeyDown;
         private MethodInfo methodKeyUp;
@@ -56,6 +58,8 @@ namespace osu.Framework.Platform.MacOS
         }
 
         private NSWindowStyleMask styleMask => (NSWindowStyleMask)Cocoa.SendUint(WindowInfo.Handle, selStyleMask);
+
+        private bool menuBarVisible => Cocoa.SendBool(classNSMenu, selMenuBarVisible);
 
         protected void OnLoad(object sender, EventArgs e)
         {
@@ -131,7 +135,7 @@ namespace osu.Framework.Platform.MacOS
 
             // If the cursor should be hidden, but something in the system has made it appear (such as a notification),
             // invalidate the cursor rects to hide it.  OpenTK has a private function that does this.
-            if (CursorState.HasFlag(CursorState.Hidden) && Cocoa.CGCursorIsVisible())
+            if (CursorState.HasFlag(CursorState.Hidden) && Cocoa.CGCursorIsVisible() && !menuBarVisible)
                 methodInvalidateCursorRects.Invoke(nativeWindow, new object[0]);
         }
 
