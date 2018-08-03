@@ -93,19 +93,8 @@ namespace osu.Framework.Platform.MacOS
             }
         }
 
-        private NSApplicationPresentationOptions presentationOptionsForWindowMode(WindowMode windowMode)
-        {
-            switch (windowMode)
-            {
-                case Configuration.WindowMode.Fullscreen:
-                    return NSApplicationPresentationOptions.HideDock | NSApplicationPresentationOptions.HideMenuBar | NSApplicationPresentationOptions.FullScreen;
-                case Configuration.WindowMode.Borderless:
-                case Configuration.WindowMode.Windowed:
-                    return NSApplicationPresentationOptions.AutoHideDock | NSApplicationPresentationOptions.AutoHideMenuBar | NSApplicationPresentationOptions.FullScreen;
-                default:
-                    return NSApplicationPresentationOptions.Default;
-            }
-        }
+        private NSApplicationPresentationOptions presentationOptionsForWindowMode(WindowMode windowMode) =>
+            NSApplicationPresentationOptions.AutoHideDock | NSApplicationPresentationOptions.AutoHideMenuBar | NSApplicationPresentationOptions.FullScreen;
 
         private uint windowWillUseFullScreen(IntPtr self, IntPtr cmd, IntPtr window, uint options) => (uint)presentationOptionsForWindowMode(newWindowMode ?? WindowMode.Value);
 
