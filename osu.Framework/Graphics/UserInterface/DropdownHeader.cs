@@ -107,10 +107,10 @@ namespace osu.Framework.Graphics.UserInterface
         {
             switch (action.ActionType)
             {
-                case PlatformActionType.LineStart:
+                case PlatformActionType.ListStart:
                     SelectionKeyPressed?.Invoke(SelectionChange.First);
                     return true;
-                case PlatformActionType.LineEnd:
+                case PlatformActionType.ListEnd:
                     SelectionKeyPressed?.Invoke(SelectionChange.Last);
                     return true;
                 default:
