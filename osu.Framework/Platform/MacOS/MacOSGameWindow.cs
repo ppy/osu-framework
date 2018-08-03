@@ -93,10 +93,10 @@ namespace osu.Framework.Platform.MacOS
             }
         }
 
-        private NSApplicationPresentationOptions presentationOptionsForWindowMode(WindowMode windowMode) =>
+        private const NSApplicationPresentationOptions fullscreen_presentation_options =
             NSApplicationPresentationOptions.AutoHideDock | NSApplicationPresentationOptions.AutoHideMenuBar | NSApplicationPresentationOptions.FullScreen;
 
-        private uint windowWillUseFullScreen(IntPtr self, IntPtr cmd, IntPtr window, uint options) => (uint)presentationOptionsForWindowMode(newWindowMode ?? WindowMode.Value);
+        private uint windowWillUseFullScreen(IntPtr self, IntPtr cmd, IntPtr window, uint options) => (uint)fullscreen_presentation_options;
 
         private void windowDidEnterFullScreen(IntPtr self, IntPtr cmd, IntPtr notification)
         {
@@ -120,7 +120,7 @@ namespace osu.Framework.Platform.MacOS
                 if (toggleFullScreen)
                     Cocoa.SendVoid(WindowInfo.Handle, selToggleFullScreen, IntPtr.Zero);
                 else if (currentFullScreen)
-                    NSApplication.PresentationOptions = presentationOptionsForWindowMode(mode.Value);
+                    NSApplication.PresentationOptions = fullscreen_presentation_options;
 
                 WindowMode.Value = mode.Value;
             }
