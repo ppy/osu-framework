@@ -36,9 +36,19 @@ namespace osu.Framework.Platform
 
         public override void Delete(string path) => FileSafety.FileDelete(GetUsablePathFor(path));
 
-        public override IEnumerable<string> GetDirectories(string path) => Directory.GetDirectories(GetUsablePathFor(path)).Select(str => str.Substring(GetUsablePathFor("").Length + 1)); // the last path separator character has to be removed, too
+        public override IEnumerable<string> GetDirectories(string path) => getRelativePaths(Directory.GetDirectories(GetUsablePathFor(path)));
 
-        public override IEnumerable<string> GetFiles(string path) => Directory.GetFiles(GetUsablePathFor(path)).Select(str => str.Substring(GetUsablePathFor("").Length + 1));
+        public override IEnumerable<string> GetFiles(string path) => getRelativePaths(Directory.GetFiles(GetUsablePathFor(path)));
+
+        private IEnumerable<string> getRelativePaths(IEnumerable<string> paths)
+        {
+            string basePath = GetUsablePathFor("");
+            return paths.Select(path =>
+            {
+                if (!path.StartsWith(basePath)) throw new ArgumentException($"\"{path}\" does not start with \"{basePath}\" and is probably malformed");
+                return path.Replace(basePath, "").TrimStart(Path.DirectorySeparatorChar);
+            });
+        }
 
         public override void OpenInNativeExplorer() => host.OpenFileExternally(GetUsablePathFor(string.Empty));
 
