@@ -83,12 +83,11 @@ namespace osu.Framework.Graphics.Shaders
                 if (!shader.Loaded)
                 {
                     StringBuilder logContents = new StringBuilder();
-                    logContents.AppendLine($@"Loading shader {name}:");
+                    logContents.AppendLine($@"Loading shader {name}");
                     logContents.Append(shader.Log);
-                    logContents.AppendLine(@"Parts:");
                     foreach (ShaderPart p in parts)
                         logContents.Append(p.Log);
-                    Logger.Log(logContents.ToString(), LoggingTarget.Runtime, LogLevel.Debug);
+                    Logger.Log(logContents.ToString().Trim('\n'), LoggingTarget.Runtime, LogLevel.Debug);
                 }
 
                 shaderCache[name] = shader;
