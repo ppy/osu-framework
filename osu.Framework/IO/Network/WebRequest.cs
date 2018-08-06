@@ -230,7 +230,7 @@ namespace osu.Framework.IO.Network
             }
             catch (AggregateException ae)
             {
-                ae.RethrowIfSingular();
+                ae.RethrowAsSingular();
             }
         }
 
@@ -372,7 +372,7 @@ namespace osu.Framework.IO.Network
             }
             catch (AggregateException ae)
             {
-                ae.RethrowIfSingular();
+                ae.RethrowAsSingular();
             }
         }
 
