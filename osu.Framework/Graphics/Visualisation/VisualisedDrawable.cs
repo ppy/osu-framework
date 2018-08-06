@@ -200,7 +200,12 @@ namespace osu.Framework.Graphics.Visualisation
             visualiser.GetVisualiserFor(drawable).SetContainer(this);
         }
 
-        private void removeChild(Drawable drawable) => visualiser.GetVisualiserFor(drawable).SetContainer(null);
+        private void removeChild(Drawable drawable)
+        {
+            var vis = visualiser.GetVisualiserFor(drawable);
+            if (vis.currentContainer == this)
+                vis.SetContainer(null);
+        }
 
         private void depthChanged(Drawable drawable)
         {
