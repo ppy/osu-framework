@@ -131,7 +131,7 @@ namespace osu.Framework.Tests.Visual
             checkAtTime(interval * ++i, box => Precision.AlmostEquals(box.X, 0f));
             checkAtTime(interval * (i += 2), box => Precision.AlmostEquals(box.Alpha, 0f));
 
-            checkAtTime(interval * (i -= 2), box => Precision.AlmostEquals(box.Alpha, 1f));
+            checkAtTime(interval * (i - 2), box => Precision.AlmostEquals(box.Alpha, 1f));
 
             AddAssert("check transform count", () => box.Transforms.Count == 7);
         }
@@ -226,7 +226,7 @@ namespace osu.Framework.Tests.Visual
         {
             boxTest(box => { box.RotateTo(0).RotateTo(90, interval).Loop(); });
 
-            int count = 4;
+            const int count = 4;
 
             for (int i = 0; i <= count; i++)
             {
@@ -252,7 +252,7 @@ namespace osu.Framework.Tests.Visual
 
             AddAssert("check transform count", () => box.Transforms.Count == 8);
 
-            int count = 4;
+            const int count = 4;
 
             for (int i = 0; i <= count; i++)
             {
@@ -270,7 +270,6 @@ namespace osu.Framework.Tests.Visual
         }
 
         private Box box;
-        private AnimationContainer animationContainer;
 
         private void checkAtTime(double time, Func<Box, bool> assert)
         {
@@ -289,7 +288,7 @@ namespace osu.Framework.Tests.Visual
         {
             AddStep("add box", () =>
             {
-                Add(animationContainer = new AnimationContainer(startTime)
+                Add(new AnimationContainer(startTime)
                 {
                     Child = box = new Box
                     {
