@@ -183,6 +183,8 @@ namespace osu.Framework.Graphics.Transforms
             foreach (var t in transforms)
             {
                 t.OnAbort = null;
+                t.OnComplete = null;
+
                 if (!t.HasStartValue)
                     t.TargetTransformable.RemoveTransform(t);
             }
