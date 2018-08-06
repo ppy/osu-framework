@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
+// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 
@@ -7,12 +7,11 @@ using osu.Framework.Input.States;
 namespace osu.Framework.Input.Events
 {
     /// <summary>
-    /// An event representing a mouse hover.
-    /// Triggered when mouse cursor is moved onto a drawable.
+    /// An event represeting that a drawable lost the focus.
     /// </summary>
-    public class Hovered : HoverEvent
+    public class FocusLostEvent : UIEvent
     {
-        public Hovered(InputState state)
+        public FocusLostEvent(InputState state)
             : base(state)
         {
         }

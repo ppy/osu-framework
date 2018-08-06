@@ -115,7 +115,7 @@ namespace osu.Framework.Input
         /// </summary>
         public IEnumerable<Drawable> InputQueue => buildInputQueue();
 
-        private readonly Dictionary<MouseButton, MouseActionEventManager> mouseButtonEventManagers = new Dictionary<MouseButton, MouseActionEventManager>();
+        private readonly Dictionary<MouseButton, MouseButtonEventManager> mouseButtonEventManagers = new Dictionary<MouseButton, MouseButtonEventManager>();
 
         protected InputManager()
         {
@@ -132,11 +132,11 @@ namespace osu.Framework.Input
         }
 
         /// <summary>
-        /// Create a <see cref="MouseActionEventManager"/> for a specified mouse button.
+        /// Create a <see cref="MouseButtonEventManager"/> for a specified mouse button.
         /// </summary>
         /// <param name="button">The button to be handled by the returned manager.</param>
-        /// <returns>The <see cref="MouseActionEventManager"/>.</returns>
-        protected virtual MouseActionEventManager CreateButtonManagerFor(MouseButton button)
+        /// <returns>The <see cref="MouseButtonEventManager"/>.</returns>
+        protected virtual MouseButtonEventManager CreateButtonManagerFor(MouseButton button)
         {
             switch (button)
             {
@@ -193,7 +193,7 @@ namespace osu.Framework.Input
             if (previousFocus != null)
             {
                 previousFocus.HasFocus = false;
-                previousFocus.TriggerUIEvent(new FocusLost(state));
+                previousFocus.TriggerEvent(new FocusLostEvent(state));
 
                 if (FocusedDrawable != null) throw new InvalidOperationException($"Focus cannot be changed inside {nameof(OnFocusLost)}");
             }
@@ -205,7 +205,7 @@ namespace osu.Framework.Input
             if (FocusedDrawable != null)
             {
                 FocusedDrawable.HasFocus = true;
-                FocusedDrawable.TriggerUIEvent(new FocusGained(state));
+                FocusedDrawable.TriggerEvent(new FocusEvent(state));
             }
 
             return true;
@@ -232,7 +232,7 @@ namespace osu.Framework.Input
 
             if (CurrentState.Mouse.IsPositionValid)
             {
-                PropagateBlockableEvent(PositionalInputQueue.Where(d => d is IRequireHighFrequencyMousePosition), new MouseMoved(CurrentState));
+                PropagateBlockableEvent(PositionalInputQueue.Where(d => d is IRequireHighFrequencyMousePosition), new MouseMoveEvent(CurrentState));
             }
 
             updateKeyRepeat(CurrentState);
@@ -337,7 +337,7 @@ namespace osu.Framework.Input
                     }
 
                     d.IsHovered = true;
-                    if (d.TriggerUIEvent(new Hovered(state)))
+                    if (d.TriggerEvent(new HoverEvent(state)))
                     {
                         hoverHandledDrawable = d;
                         break;
@@ -349,7 +349,7 @@ namespace osu.Framework.Input
             foreach (Drawable d in lastHoveredDrawables.Except(hoveredDrawables))
             {
                 d.IsHovered = false;
-                d.TriggerUIEvent(new HoverLost(state));
+                d.TriggerEvent(new HoverLostEvent(state));
             }
         }
 
@@ -461,32 +461,32 @@ namespace osu.Framework.Input
 
         private bool handleMouseMove(InputState state, Vector2 lastPosition)
         {
-            return PropagateBlockableEvent(PositionalInputQueue, new MouseMoved(state, lastPosition));
+            return PropagateBlockableEvent(PositionalInputQueue, new MouseMoveEvent(state, lastPosition));
         }
 
         private bool handleScroll(InputState state)
         {
-            return PropagateBlockableEvent(PositionalInputQueue, new MouseScrolled(state, state.Mouse.ScrollDelta));
+            return PropagateBlockableEvent(PositionalInputQueue, new ScrollEvent(state, state.Mouse.ScrollDelta));
         }
 
         private bool handleKeyDown(InputState state, Key key, bool repeat)
         {
-            return PropagateBlockableEvent(InputQueue, new KeyDown(state, key, repeat));
+            return PropagateBlockableEvent(InputQueue, new KeyDownEvent(state, key, repeat));
         }
 
         private bool handleKeyUp(InputState state, Key key)
         {
-            return PropagateBlockableEvent(InputQueue, new KeyUp(state, key));
+            return PropagateBlockableEvent(InputQueue, new KeyUpEvent(state, key));
         }
 
         private bool handleJoystickPress(InputState state, JoystickButton button)
         {
-            return PropagateBlockableEvent(InputQueue, new JoystickButtonDown(state, button));
+            return PropagateBlockableEvent(InputQueue, new JoystickPressEvent(state, button));
         }
 
         private bool handleJoystickRelease(InputState state, JoystickButton button)
         {
-            return PropagateBlockableEvent(InputQueue, new JoystickButtonUp(state, button));
+            return PropagateBlockableEvent(InputQueue, new JoystickReleaseEvent(state, button));
         }
 
         /// <summary>
@@ -497,7 +497,7 @@ namespace osu.Framework.Input
         /// <returns>Whether the event was handled.</returns>
         protected virtual bool PropagateBlockableEvent(IEnumerable<Drawable> drawables, UIEvent e)
         {
-            var handledBy = drawables.FirstOrDefault(target => target.TriggerUIEvent(e));
+            var handledBy = drawables.FirstOrDefault(target => target.TriggerEvent(e));
 
             if (handledBy != null)
                 Logger.Log($"{e} handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
@@ -580,7 +580,7 @@ namespace osu.Framework.Input
             ChangeFocus(InputQueue.FirstOrDefault(target => target.RequestsFocus));
         }
 
-        private class MouseLeftButtonEventManager : MouseActionEventManager
+        private class MouseLeftButtonEventManager : MouseButtonEventManager
         {
             public MouseLeftButtonEventManager(MouseButton button)
                 : base(button)
@@ -594,7 +594,7 @@ namespace osu.Framework.Input
             public override bool ChangeFocusOnClick => true;
         }
 
-        private class MouseMinorButtonEventManager : MouseActionEventManager
+        private class MouseMinorButtonEventManager : MouseButtonEventManager
         {
             public MouseMinorButtonEventManager(MouseButton button)
                 : base(button)

@@ -2,18 +2,16 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Input.States;
-using OpenTK;
-using OpenTK.Input;
 
 namespace osu.Framework.Input.Events
 {
     /// <summary>
-    /// Represents a mouse click.
+    /// An event representing a press of a joystick button.
     /// </summary>
-    public class Clicked : MouseActionEvent
+    public class JoystickPressEvent : JoystickButtonEvent
     {
-        public Clicked(InputState state, MouseButton button, Vector2? screenSpaceMouseDownPosition = null)
-            : base(state, button, screenSpaceMouseDownPosition)
+        public JoystickPressEvent(InputState state, JoystickButton button)
+            : base(state, button)
         {
         }
     }

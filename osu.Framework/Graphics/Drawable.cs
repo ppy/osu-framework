@@ -1683,143 +1683,48 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="e">The event to be handled.</param>
         /// <returns>If the event supports blocking, returning true will make the event to not propagating further.</returns>
-        protected virtual bool HandleUIEvent(UIEvent e)
+        protected virtual bool Handle(UIEvent e)
         {
+            // call a leagacy input handler
             switch (e)
             {
-                case FocusEvent focus:
-                    HandleFocus(focus);
-                    return false;
+                case MouseMoveEvent mouseMove:
+                    return OnMouseMove(mouseMove.LegacyInputState);
                 case HoverEvent hover:
-                    return HandleHover(hover);
-                case MouseEvent mouse:
-                    return HandleMouseEvent(mouse);
-                case KeyboardKeyEvent keyboardKey:
-                    return HandleKeyboardKey(keyboardKey);
-                case JoystickButtonEvent joystickButton:
-                    return HandleJoystickButton(joystickButton);
-                default:
-                    return false;
-            }
-        }
-
-        protected virtual void HandleFocus(FocusEvent e)
-        {
-            switch (e)
-            {
-                case FocusGained gained:
-                    OnFocus(gained.LegacyInputState);
-                    return;
-                case FocusLost lost:
-                    OnFocusLost(lost.LegacyInputState);
-                    return;
-            }
-        }
-
-        protected virtual bool HandleHover(HoverEvent e)
-        {
-            switch (e)
-            {
-                case Hovered hovered:
-                    return OnHover(hovered.LegacyInputState);
-                case HoverLost hoverLost:
+                    return OnHover(hover.LegacyInputState);
+                case HoverLostEvent hoverLost:
                     OnHoverLost(hoverLost.LegacyInputState);
                     return false;
-                default:
-                    return false;
-            }
-        }
-
-
-        protected virtual bool HandleMouseEvent(MouseEvent e)
-        {
-            switch (e)
-            {
-                case MouseActionEvent action:
-                    return HandleMouseActionEvent(action);
-                case MouseMoved mouseMove:
-                    return HandleMouseMove(mouseMove);
-                case MouseScrolled mouseScroll:
-                    return HandleMouseScroll(mouseScroll);
-                default:
-                    return false;
-            }
-        }
-
-        protected virtual bool HandleMouseMove(MouseMoved e) => OnMouseMove(e.LegacyInputState);
-
-        protected virtual bool HandleMouseScroll(MouseScrolled e) => OnScroll(e.LegacyInputState);
-
-        protected virtual bool HandleMouseActionEvent(MouseActionEvent e)
-        {
-            switch (e)
-            {
-                case Clicked click:
-                    return HandleClick(click);
-                case DoubleClicked doubleClick:
-                    return HandleDoubleClick(doubleClick);
-                case DragEvent drag:
-                    return HandleDrag(drag);
-                case MouseButtonEvent mouseButton:
-                    return HandleMouseButton(mouseButton);
-                default:
-                    return false;
-            }
-        }
-
-        protected virtual bool HandleClick(Clicked e) => OnClick(e.LegacyInputState);
-
-        protected virtual bool HandleDoubleClick(DoubleClicked e) => OnDoubleClick(e.LegacyInputState);
-
-        protected virtual bool HandleDrag(DragEvent e)
-        {
-            switch (e)
-            {
-                case DragStarted start:
-                    return OnDragStart(start.LegacyInputState);
-                case Dragging dragging:
-                    return OnDrag(dragging.LegacyInputState);
-                case DragEnded end:
-                    return OnDragEnd(end.LegacyInputState);
-                default:
-                    return false;
-            }
-        }
-
-        protected virtual bool HandleMouseButton(MouseButtonEvent e)
-        {
-            switch (e)
-            {
-                case MouseDown mouseDown:
+                case MouseDownEvent mouseDown:
                     return OnMouseDown(mouseDown.LegacyInputState, new MouseDownEventArgs { Button = mouseDown.Button });
-                case MouseUp mouseUp:
+                case MouseUpEvent mouseUp:
                     return OnMouseUp(mouseUp.LegacyInputState, new MouseUpEventArgs { Button = mouseUp.Button });
-                default:
+                case ClickEvent click:
+                    return OnClick(click.LegacyInputState);
+                case DoubleClickEvent doubleClick:
+                    return OnDoubleClick(doubleClick.LegacyInputState);
+                case DragStartEvent dragStart:
+                    return OnDragStart(dragStart.LegacyInputState);
+                case DragEvent drag:
+                    return OnDrag(drag.LegacyInputState);
+                case DragEndEvent dragEnd:
+                    return OnDragEnd(dragEnd.LegacyInputState);
+                case ScrollEvent scroll:
+                    return OnScroll(scroll.LegacyInputState);
+                case FocusEvent focus:
+                    OnFocus(focus.LegacyInputState);
                     return false;
-            }
-        }
-
-        protected virtual bool HandleKeyboardKey(KeyboardKeyEvent e)
-        {
-            switch (e)
-            {
-                case KeyDown keyDown:
+                case FocusLostEvent focusLost:
+                    OnFocusLost(focusLost.LegacyInputState);
+                    return false;
+                case KeyDownEvent keyDown:
                     return OnKeyDown(keyDown.LegacyInputState, new KeyDownEventArgs { Key = keyDown.Key, Repeat = keyDown.Repeat });
-                case KeyUp keyUp:
+                case KeyUpEvent keyUp:
                     return OnKeyUp(keyUp.LegacyInputState, new KeyUpEventArgs { Key = keyUp.Key });
-                default:
-                    return false;
-            }
-        }
-
-        protected virtual bool HandleJoystickButton(JoystickButtonEvent e)
-        {
-            switch (e)
-            {
-                case JoystickButtonDown joystickButtonDown:
-                    return OnJoystickPress(joystickButtonDown.LegacyInputState, new JoystickEventArgs { Button = joystickButtonDown.Button });
-                case JoystickButtonUp joystickButtonUp:
-                    return OnJoystickRelease(joystickButtonUp.LegacyInputState, new JoystickEventArgs { Button = joystickButtonUp.Button });
+                case JoystickPressEvent joystickPress:
+                    return OnJoystickPress(joystickPress.LegacyInputState, new JoystickEventArgs { Button = joystickPress.Button });
+                case JoystickReleaseEvent joystickRelease:
+                    return OnJoystickRelease(joystickRelease.LegacyInputState, new JoystickEventArgs { Button = joystickRelease.Button });
                 default:
                     return false;
             }
@@ -1830,10 +1735,10 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="e">The event. Its <see cref="UIEvent.Target"/> will be modified.</param>
         /// <returns>The result of event handler.</returns>
-        public bool TriggerUIEvent(UIEvent e)
+        public bool TriggerEvent(UIEvent e)
         {
             e.Target = this;
-            return HandleUIEvent(e);
+            return Handle(e);
         }
 
         #region Legacy event handling

@@ -89,7 +89,7 @@ namespace osu.Framework.Tests.Visual
             private class StyledDropdownMenu : DropdownMenu
             {
                 public void SelectItem(MenuItem item) => Children.FirstOrDefault(c => c.Item == item)?
-                    .TriggerUIEvent(new Clicked(GetContainingInputManager().CurrentState, MouseButton.Left));
+                    .TriggerEvent(new ClickEvent(GetContainingInputManager().CurrentState, MouseButton.Left));
             }
         }
 

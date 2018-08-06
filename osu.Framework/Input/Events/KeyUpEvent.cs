@@ -2,16 +2,17 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Input.States;
+using OpenTK.Input;
 
 namespace osu.Framework.Input.Events
 {
     /// <summary>
-    /// An event representing a release of a joystick button.
+    /// An event representing a release of a keyboard key.
     /// </summary>
-    public class JoystickButtonUp : JoystickButtonEvent
+    public class KeyUpEvent : KeyboardEvent
     {
-        public JoystickButtonUp(InputState state, JoystickButton button)
-            : base(state, button)
+        public KeyUpEvent(InputState state, Key key)
+            : base(state, key)
         {
         }
     }

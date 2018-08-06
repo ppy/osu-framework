@@ -8,11 +8,11 @@ using OpenTK.Input;
 namespace osu.Framework.Input.Events
 {
     /// <summary>
-    /// An event representing a press of a mouse button.
+    /// An event represeting a mouse double click.
     /// </summary>
-    public class MouseDown : MouseButtonEvent
+    public class DoubleClickEvent : MouseButtonEvent
     {
-        public MouseDown(InputState state, MouseButton button, Vector2? screenSpaceMouseDownPosition = null)
+        public DoubleClickEvent(InputState state, MouseButton button, Vector2? screenSpaceMouseDownPosition = null)
             : base(state, button, screenSpaceMouseDownPosition)
         {
         }

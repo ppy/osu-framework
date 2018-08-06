@@ -8,11 +8,11 @@ using OpenTK.Input;
 namespace osu.Framework.Input.Events
 {
     /// <summary>
-    /// An event representing a release of a mouse button.
+    /// An event representing a press of a mouse button.
     /// </summary>
-    public class MouseUp : MouseButtonEvent
+    public class MouseDownEvent : MouseButtonEvent
     {
-        public MouseUp(InputState state, MouseButton button, Vector2? screenSpaceMouseDownPosition = null)
+        public MouseDownEvent(InputState state, MouseButton button, Vector2? screenSpaceMouseDownPosition = null)
             : base(state, button, screenSpaceMouseDownPosition)
         {
         }

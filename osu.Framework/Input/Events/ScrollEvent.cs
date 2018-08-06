@@ -10,12 +10,12 @@ namespace osu.Framework.Input.Events
     /// <summary>
     /// An event representing a change of the mouse wheel.
     /// </summary>
-    public class MouseScrolled : MouseEvent
+    public class ScrollEvent : MouseEvent
     {
         public readonly Vector2 ScrollDelta;
         public readonly bool IsPrecise;
 
-        public MouseScrolled(InputState state, Vector2 scrollDelta, bool isPrecise = false)
+        public ScrollEvent(InputState state, Vector2 scrollDelta, bool isPrecise = false)
             : base(state)
         {
             ScrollDelta = scrollDelta;

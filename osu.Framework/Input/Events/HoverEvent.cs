@@ -7,11 +7,12 @@ using osu.Framework.Input.States;
 namespace osu.Framework.Input.Events
 {
     /// <summary>
-    /// Represents a hover state change.
+    /// An event representing a mouse hover.
+    /// Triggered when mouse cursor is moved onto a drawable.
     /// </summary>
-    public abstract class HoverEvent : MouseEvent
+    public class HoverEvent : MouseEvent
     {
-        protected HoverEvent(InputState state)
+        public HoverEvent(InputState state)
             : base(state)
         {
         }
