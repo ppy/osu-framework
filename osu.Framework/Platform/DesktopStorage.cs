@@ -42,11 +42,11 @@ namespace osu.Framework.Platform
 
         private IEnumerable<string> getRelativePaths(IEnumerable<string> paths)
         {
-            string basePath = GetUsablePathFor("");
-            return paths.Select(path =>
+            string basePath = Path.GetFullPath(GetUsablePathFor(""));
+            return paths.Select(Path.GetFullPath).Select(path =>
             {
                 if (!path.StartsWith(basePath)) throw new ArgumentException($"\"{path}\" does not start with \"{basePath}\" and is probably malformed");
-                return path.Replace(basePath, "").TrimStart(Path.DirectorySeparatorChar);
+                return path.Substring(basePath.Length).TrimStart(Path.DirectorySeparatorChar);
             });
         }
 
