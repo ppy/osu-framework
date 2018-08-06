@@ -2,6 +2,8 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Allocation;
@@ -67,6 +69,17 @@ namespace osu.Framework.Tests.Visual
                    .ScaleTo(1f, interval).MoveTo(new Vector2(0, 0), interval)
                    .Then()
                    .FadeTo(0, interval);
+            }));
+
+            AddStep("Move cancel sequence", () => boxTest(box =>
+            {
+                box.Scale = new Vector2(0.25f);
+                box.Anchor = Anchor.TopLeft;
+                box.Origin = Anchor.TopLeft;
+
+                box.ScaleTo(0.5f, interval).Then().ScaleTo(1, interval);
+
+                Scheduler.AddDelayed(() => { box.ScaleTo(new Vector2(0.1f), 1000); }, interval / 2);
             }));
 
             AddStep("Same type in type", () => boxTest(box =>
@@ -211,7 +224,7 @@ namespace osu.Framework.Tests.Visual
                 };
             }
 
-            private int displayedTransformsCount;
+            private List<Transform> displayedTransforms;
 
             protected override void Update()
             {
@@ -227,12 +240,12 @@ namespace osu.Framework.Tests.Visual
                 maxTimeText.Colour = time > wrapping.MaxTime ? Color4.Gray : (wrapping.Time.Elapsed > 0 ? Color4.Blue : Color4.Red);
                 minTimeText.Colour = time < wrapping.MinTime ? Color4.Gray : (content.Time.Elapsed > 0 ? Color4.Blue : Color4.Red);
 
-                if (ExaminableDrawable.Transforms.Count != displayedTransformsCount)
+                if (displayedTransforms == null || !ExaminableDrawable.Transforms.SequenceEqual(displayedTransforms))
                 {
                     transforms.Clear();
                     foreach (var t in ExaminableDrawable.Transforms)
                         transforms.Add(new DrawableTransform(t));
-                    displayedTransformsCount = ExaminableDrawable.Transforms.Count;
+                    displayedTransforms = new List<Transform>(ExaminableDrawable.Transforms);
                 }
             }
 
