@@ -127,18 +127,18 @@ namespace osu.Framework.Graphics.UserInterface
             Menu.RelativeSizeAxes = Axes.X;
 
             Header.Action = Menu.Toggle;
-            Header.SelectionKeyPressed += Header_SelectionKeyPressed;
+            Header.ChangeSelection += selectionKeyPressed;
 
             Current.ValueChanged += selectionChanged;
         }
 
-        private void Header_SelectionKeyPressed(DropdownHeader.SelectionChange change)
+        private void selectionKeyPressed(DropdownHeader.SelectionChange change)
         {
             var dropdownMenuItems = MenuItems.ToList();
+            if (!dropdownMenuItems.Any()) return;
+
             var visibleMenuItems = Menu.Children.Where(item => !item.IsMaskedAway).Select(drawableItem => drawableItem.Item);
             var selectedIndex = dropdownMenuItems.IndexOf(SelectedItem);
-
-            if (!dropdownMenuItems.Any()) return;
 
             switch (change)
             {
@@ -161,7 +161,7 @@ namespace osu.Framework.Graphics.UserInterface
                     SelectedItem = (DropdownMenuItem<T>)visibleMenuItems.Last();
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(change), change, null);
+                    throw new ArgumentException("Unexpected selection change type.", nameof(change));
             }
         }
 

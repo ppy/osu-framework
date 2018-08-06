@@ -15,7 +15,7 @@ namespace osu.Framework.Graphics.UserInterface
 {
     public abstract class DropdownHeader : ClickableContainer, IKeyBindingHandler<PlatformAction>
     {
-        public event Action<SelectionChange> SelectionKeyPressed;
+        public event Action<SelectionChange> ChangeSelection;
 
         protected Container Background;
         protected Container Foreground;
@@ -87,16 +87,16 @@ namespace osu.Framework.Graphics.UserInterface
             switch (args.Key)
             {
                 case Key.Up:
-                    SelectionKeyPressed?.Invoke(SelectionChange.Previous);
+                    ChangeSelection?.Invoke(SelectionChange.Previous);
                     return true;
                 case Key.Down:
-                    SelectionKeyPressed?.Invoke(SelectionChange.Next);
+                    ChangeSelection?.Invoke(SelectionChange.Next);
                     return true;
                 case Key.PageUp:
-                    SelectionKeyPressed?.Invoke(SelectionChange.FirstVisible);
+                    ChangeSelection?.Invoke(SelectionChange.FirstVisible);
                     return true;
                 case Key.PageDown:
-                    SelectionKeyPressed?.Invoke(SelectionChange.LastVisible);
+                    ChangeSelection?.Invoke(SelectionChange.LastVisible);
                     return true;
                 default:
                     return base.OnKeyDown(state, args);
@@ -108,10 +108,10 @@ namespace osu.Framework.Graphics.UserInterface
             switch (action.ActionType)
             {
                 case PlatformActionType.ListStart:
-                    SelectionKeyPressed?.Invoke(SelectionChange.First);
+                    ChangeSelection?.Invoke(SelectionChange.First);
                     return true;
                 case PlatformActionType.ListEnd:
-                    SelectionKeyPressed?.Invoke(SelectionChange.Last);
+                    ChangeSelection?.Invoke(SelectionChange.Last);
                     return true;
                 default:
                     return false;
