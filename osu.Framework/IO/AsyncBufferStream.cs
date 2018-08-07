@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using OpenTK;
 
 namespace osu.Framework.IO
@@ -33,7 +32,7 @@ namespace osu.Framework.IO
 
         private readonly Stream underlyingStream;
 
-        private CancellationTokenSource cancellationToken;
+        private Thread thread;
 
         /// <summary>
         /// A stream that buffers the underlying stream to contiguous memory, reading until the whole file is eventually memory-backed.
@@ -61,8 +60,7 @@ namespace osu.Framework.IO
                 isLoaded = shared.isLoaded;
             }
 
-            cancellationToken = new CancellationTokenSource();
-            Task.Factory.StartNew(loadRequiredBlocks, cancellationToken.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+            thread = new Thread(loadRequiredBlocks) { IsBackground = true };
         }
 
         ~AsyncBufferStream()
@@ -78,8 +76,6 @@ namespace osu.Framework.IO
             int last = -1;
             while (!isLoaded && !isClosed)
             {
-                cancellationToken.Token.ThrowIfCancellationRequested();
-
                 int curr = nextBlockToLoad;
                 if (curr < 0)
                 {
@@ -137,9 +133,8 @@ namespace osu.Framework.IO
         {
             isDisposed = true;
 
-            cancellationToken?.Cancel();
-            cancellationToken?.Dispose();
-            cancellationToken = null;
+            thread?.Abort();
+            thread = null;
 
             if (!isClosed) Close();
             base.Dispose(disposing);

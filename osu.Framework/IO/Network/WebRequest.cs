@@ -217,6 +217,8 @@ namespace osu.Framework.IO.Network
 
         private const string form_content_type = "multipart/form-data; boundary=" + form_boundary;
 
+        private static readonly ConcurrentExclusiveSchedulerPair scheduler_pair = new ConcurrentExclusiveSchedulerPair(TaskScheduler.Default, 4);
+
         /// <summary>
         /// Performs the request asynchronously.
         /// </summary>
@@ -226,7 +228,7 @@ namespace osu.Framework.IO.Network
                 throw new InvalidOperationException($"The {nameof(WebRequest)} has already been run.");
             try
             {
-                await Task.Factory.StartNew(internalPerform, TaskCreationOptions.LongRunning);
+                await Task.Factory.StartNew(internalPerform, CancellationToken.None, TaskCreationOptions.None, scheduler_pair.ConcurrentScheduler);
             }
             catch (AggregateException ae)
             {

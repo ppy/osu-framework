@@ -7,7 +7,6 @@ using osu.Framework.Timing;
 using System.Diagnostics;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Diagnostics.Runtime;
@@ -30,8 +29,6 @@ namespace osu.Framework.Statistics
 
         private double spikeRecordThreshold;
 
-        private readonly CancellationTokenSource cancellationToken;
-
         public bool Enabled = true;
 
         public BackgroundStackTraceCollector(Thread targetThread, StopwatchClock clock)
@@ -44,16 +41,16 @@ namespace osu.Framework.Statistics
             this.clock = clock;
             this.targetThread = targetThread;
 
-            Task.Factory.StartNew(() =>
+            new Thread(_ =>
             {
-                while (!cancellationToken.IsCancellationRequested)
+                while (!isDisposed)
                 {
                     if (Enabled && targetThread.IsAlive && clock.ElapsedMilliseconds - LastConsumptionTime > spikeRecordThreshold / 2 && backgroundMonitorStackTrace == null)
                         backgroundMonitorStackTrace = getStackTrace(targetThread);
 
                     Thread.Sleep(1);
                 }
-            }, (cancellationToken = new CancellationTokenSource()).Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+            }) { IsBackground = true }.Start();
         }
 
         internal void NewFrame(double elapsedFrameTime, double newSpikeThreshold)
@@ -118,10 +115,7 @@ namespace osu.Framework.Statistics
         protected virtual void Dispose(bool disposing)
         {
             if (!isDisposed)
-            {
                 isDisposed = true;
-                cancellationToken?.Cancel();
-            }
         }
 
         public void Dispose()

@@ -42,7 +42,7 @@ namespace osu.Framework.Platform
             }
         }
 
-        public async Task StartAsync()
+        public async void StartAsync()
         {
             var token = cancelListener.Token;
             try
