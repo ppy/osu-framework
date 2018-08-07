@@ -166,7 +166,7 @@ namespace osu.Framework.Tests.Visual
 
                     addCornerMarkers(box, 10, Color4.YellowGreen);
 
-                    for (int i = 0; i < 50; i++)
+                    for (int i = 0; i < 40; i++)
                     {
                         box.Add(box = new InfofulBoxAutoSize
                         {
