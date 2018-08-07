@@ -57,6 +57,11 @@ namespace osu.Framework.Allocation
             if (!type.IsInstanceOfType(instance))
                 throw new ArgumentException($"{instanceType.ReadableName()} must be a subclass of {type.ReadableName()}.", nameof(instance));
 
+            // We can theoretically make this work by adding a nested dependency container. That would be a pretty big change though.
+            // For now, let's throw an exception as this leads to unexpected behaviours (depends on ordering of processing of attributes vs CreateChildDependencies).
+            if (cache.ContainsKey(type))
+                throw new TypeAlreadyCachedException(type);
+
             cache[type] = instance;
         }
 
@@ -82,5 +87,13 @@ namespace osu.Framework.Allocation
         public void Inject<T>(T instance)
             where T : class
             => DependencyActivator.Activate(instance, this);
+    }
+
+    public class TypeAlreadyCachedException : InvalidOperationException
+    {
+        public TypeAlreadyCachedException(Type type)
+            : base($"An instance of type {type.ReadableName()} has already been cached to the dependency container.")
+        {
+        }
     }
 }

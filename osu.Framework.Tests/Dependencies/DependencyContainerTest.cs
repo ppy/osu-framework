@@ -118,6 +118,18 @@ namespace osu.Framework.Tests.Dependencies
             Assert.AreEqual(receivedObject, testObject2);
         }
 
+        [Test]
+        public void TestMultipleCacheFails()
+        {
+            var testObject1 = new BaseObject { TestValue = 1 };
+            var testObject2 = new BaseObject { TestValue = 2 };
+
+            var dependencies = new DependencyContainer();
+            dependencies.Cache(testObject1);
+
+            Assert.Throws<TypeAlreadyCachedException>(() => dependencies.Cache(testObject2));
+        }
+
         private class BaseObject
         {
             public int TestValue;
