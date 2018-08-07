@@ -128,6 +128,8 @@ namespace osu.Framework.Graphics
         private Task loadTask;
         private readonly object loadLock = new object();
 
+        private static readonly ConcurrentExclusiveSchedulerPair scheduler_pair = new ConcurrentExclusiveSchedulerPair(TaskScheduler.Default, Math.Max(2, Environment.ProcessorCount / 2));
+
         /// <summary>
         /// Loads this Drawable asynchronously.
         /// </summary>
@@ -144,7 +146,7 @@ namespace osu.Framework.Graphics
             {
                 Debug.Assert(loadTask == null);
                 loadState = LoadState.Loading;
-                loadTask = Task.Factory.StartNew(() => Load(target.Clock, target.Dependencies), TaskCreationOptions.LongRunning);
+                loadTask = Task.Factory.StartNew(() => Load(target.Clock, target.Dependencies), CancellationToken.None, TaskCreationOptions.None, scheduler_pair.ConcurrentScheduler);
             }
 
             return (loadTask ?? Task.CompletedTask).ContinueWith(task => game.Schedule(() =>

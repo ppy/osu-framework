@@ -20,7 +20,7 @@ namespace osu.Framework.Platform
     public abstract class DesktopGameHost : GameHost
     {
         private readonly TcpIpcProvider ipcProvider;
-        private readonly Task ipcTask;
+        private readonly Thread ipcThread;
 
         protected DesktopGameHost(string gameName = @"", bool bindIPCPort = false)
             : base(gameName)
@@ -45,7 +45,8 @@ namespace osu.Framework.Platform
                 if (IsPrimaryInstance)
                 {
                     ipcProvider.MessageReceived += OnMessageReceived;
-                    ipcTask = Task.Factory.StartNew(ipcProvider.StartAsync, TaskCreationOptions.LongRunning);
+                    ipcThread = new Thread(ipcProvider.StartAsync) { IsBackground = true };
+                    ipcThread.Start();
                 }
             }
 
@@ -141,7 +142,7 @@ namespace osu.Framework.Platform
         protected override void Dispose(bool isDisposing)
         {
             ipcProvider?.Dispose();
-            ipcTask?.Wait(50);
+            ipcThread?.Join(50);
             base.Dispose(isDisposing);
         }
     }

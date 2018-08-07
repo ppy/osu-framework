@@ -7,6 +7,7 @@ using osu.Framework.Graphics.Textures;
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Logging;
 
@@ -55,6 +56,8 @@ namespace osu.Framework.IO.Stores
             fontLoadTask = readFontMetadataAsync(precache);
         }
 
+        private static readonly ConcurrentExclusiveSchedulerPair scheduler_pair = new ConcurrentExclusiveSchedulerPair(TaskScheduler.Default, Math.Max(1, Environment.ProcessorCount / 4));
+
         private async Task readFontMetadataAsync(bool precache)
         {
             await Task.Factory.StartNew(() =>
@@ -74,7 +77,7 @@ namespace osu.Framework.IO.Stores
                     Logger.Error(ex, $"Couldn't load font asset from {assetName}.");
                     throw;
                 }
-            }, TaskCreationOptions.LongRunning);
+            }, CancellationToken.None, TaskCreationOptions.None, scheduler_pair.ConcurrentScheduler);
 
             fontLoadTask = null;
         }
