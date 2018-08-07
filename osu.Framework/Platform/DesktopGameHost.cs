@@ -46,6 +46,7 @@ namespace osu.Framework.Platform
                 {
                     ipcProvider.MessageReceived += OnMessageReceived;
                     ipcThread = new Thread(ipcProvider.StartAsync) { IsBackground = true };
+                    ipcThread.Start();
                 }
             }
 
