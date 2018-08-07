@@ -33,7 +33,7 @@ namespace osu.Framework.Platform
 
         public readonly BindableBool MapAbsoluteInputToWindow = new BindableBool();
 
-        public override DisplayDevice GetCurrentDisplay() => DisplayDevice.FromRectangle(Bounds);
+        public override DisplayDevice GetCurrentDisplay() => DisplayDevice.FromRectangle(Bounds) ?? DisplayDevice.Default;
 
         protected DesktopGameWindow()
             : base(default_width, default_height)
