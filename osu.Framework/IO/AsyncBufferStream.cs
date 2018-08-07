@@ -32,8 +32,6 @@ namespace osu.Framework.IO
 
         private readonly Stream underlyingStream;
 
-        private Thread thread;
-
         /// <summary>
         /// A stream that buffers the underlying stream to contiguous memory, reading until the whole file is eventually memory-backed.
         /// </summary>
@@ -60,7 +58,8 @@ namespace osu.Framework.IO
                 isLoaded = shared.isLoaded;
             }
 
-            thread = new Thread(loadRequiredBlocks) { IsBackground = true };
+            var thread = new Thread(loadRequiredBlocks) { IsBackground = true };
+            thread.Start();
         }
 
         ~AsyncBufferStream()
@@ -132,9 +131,6 @@ namespace osu.Framework.IO
         protected override void Dispose(bool disposing)
         {
             isDisposed = true;
-
-            thread?.Abort();
-            thread = null;
 
             if (!isClosed) Close();
             base.Dispose(disposing);
