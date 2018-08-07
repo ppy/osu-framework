@@ -529,7 +529,14 @@ namespace osu.Framework.Platform
 
             game.SetHost(this);
 
-            root.Load(SceneGraphClock, Dependencies);
+            try
+            {
+                root.Load(SceneGraphClock, Dependencies);
+            }
+            catch (DependencyInjectionException e)
+            {
+                e.DispatchInfo.Throw();
+            }
 
             //publish bootstrapped scene graph to all threads.
             Root = root;
