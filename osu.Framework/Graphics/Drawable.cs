@@ -83,8 +83,15 @@ namespace osu.Framework.Graphics
             if (isDisposed)
                 return;
 
-            //we can't dispose if we are mid-load, else our children may get in a bad state.
-            loadTask?.Wait();
+            try
+            {
+                //we can't dispose if we are mid-load, else our children may get in a bad state.
+                loadTask?.Wait();
+            }
+            catch
+            {
+                // task may have been cancelled.
+            }
 
             Dispose(isDisposing);
 
@@ -137,14 +144,24 @@ namespace osu.Framework.Graphics
         /// <see cref="Clock"/> and <see cref="Dependencies"/> are inherited from the target.
         /// </param>
         /// <param name="onLoaded">Callback to be invoked on the update thread after loading is complete.</param>
+        /// <param name="cancellationToken">A cancellation token to cancel any async loading tasks.</param>
         /// <returns>The task which is used for loading and callbacks.</returns>
-        internal Task LoadAsync(Game game, Drawable target, Action onLoaded = null)
+        internal Task LoadAsync(Game game, Drawable target, CancellationToken cancellationToken, Action onLoaded = null)
         {
             if (loadState == LoadState.NotLoaded)
             {
                 Debug.Assert(loadTask == null);
                 loadState = LoadState.Loading;
-                loadTask = Task.Factory.StartNew(() => Load(target.Clock, target.Dependencies), TaskCreationOptions.LongRunning);
+                loadTask = Task.Factory.StartNew(() =>
+                {
+                    if (cancellationToken.IsCancellationRequested)
+                        return;
+
+                    if (isDisposed || target.isDisposed)
+                        return;
+
+                    Load(target.Clock, target.Dependencies);
+                }, cancellationToken, TaskCreationOptions.None, target.Dependencies.Get<TaskScheduler>());
             }
 
             return (loadTask ?? Task.CompletedTask).ContinueWith(task => game.Schedule(() =>
@@ -154,7 +171,7 @@ namespace osu.Framework.Graphics
 
                 onLoaded?.Invoke();
                 loadTask = null;
-            }));
+            }), cancellationToken);
         }
 
         private static readonly StopwatchClock perf = new StopwatchClock(true);
@@ -772,6 +789,7 @@ namespace osu.Framework.Graphics
                     v.Y /= fillAspectRatio;
                 }
             }
+
             return v;
         }
 
@@ -808,7 +826,9 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Called whenever the <see cref="RelativeSizeAxes"/> of this drawable is changed, or when the <see cref="Container{T}.AutoSizeAxes"/> are changed if this drawable is a <see cref="Container{T}"/>.
         /// </summary>
-        protected virtual void OnSizingChanged() { }
+        protected virtual void OnSizingChanged()
+        {
+        }
 
         #endregion
 
@@ -1197,6 +1217,7 @@ namespace osu.Framework.Graphics
                 Invalidate(Invalidation.Colour);
             }
         }
+
         #endregion
 
         #region Timekeeping
@@ -1285,6 +1306,7 @@ namespace osu.Framework.Graphics
 
                 search = search.Parent;
             }
+
             return null;
         }
 
@@ -1940,7 +1962,8 @@ namespace osu.Framework.Graphics
             private static readonly ConcurrentDictionary<Type, bool> mouse_cached_values = new ConcurrentDictionary<Type, bool>();
             private static readonly ConcurrentDictionary<Type, bool> keyboard_cached_values = new ConcurrentDictionary<Type, bool>();
 
-            private static readonly string[] mouse_input_methods = {
+            private static readonly string[] mouse_input_methods =
+            {
                 nameof(OnHover),
                 nameof(OnHoverLost),
                 nameof(OnMouseDown),
@@ -1956,7 +1979,8 @@ namespace osu.Framework.Graphics
                 nameof(OnMouseMove)
             };
 
-            private static readonly string[] keyboard_input_methods = {
+            private static readonly string[] keyboard_input_methods =
+            {
                 nameof(OnFocus),
                 nameof(OnFocusLost),
                 nameof(OnKeyDown),
@@ -2200,7 +2224,8 @@ namespace osu.Framework.Graphics
             {
                 double min = double.MaxValue;
                 foreach (Transform t in Transforms)
-                    if (t.StartTime < min) min = t.StartTime;
+                    if (t.StartTime < min)
+                        min = t.StartTime;
                 LifetimeStart = min < int.MaxValue ? min : int.MinValue;
             }
         }
@@ -2266,19 +2291,23 @@ namespace osu.Framework.Graphics
         /// is assumed unless indicated by additional flags.
         /// </summary>
         DrawInfo = 1 << 0,
+
         /// <summary>
         /// <see cref="Drawable.DrawSize"/> has changed.
         /// </summary>
         DrawSize = 1 << 1,
+
         /// <summary>
         /// Captures all other geometry changes than <see cref="Drawable.DrawSize"/>, such as
         /// <see cref="Drawable.Rotation"/>, <see cref="Drawable.Shear"/>, and <see cref="Drawable.DrawPosition"/>.
         /// </summary>
         MiscGeometry = 1 << 2,
+
         /// <summary>
         /// <see cref="Drawable.Colour"/> or <see cref="Drawable.IsPresent"/> has changed.
         /// </summary>
         Colour = 1 << 3,
+
         /// <summary>
         /// <see cref="Drawable.ApplyDrawNode(Graphics.DrawNode)"/> has to be invoked on all old draw nodes.
         /// </summary>
@@ -2288,10 +2317,12 @@ namespace osu.Framework.Graphics
         /// No invalidation.
         /// </summary>
         None = 0,
+
         /// <summary>
         /// <see cref="Drawable.RequiredParentSizeToFit"/> has to be recomputed.
         /// </summary>
         RequiredParentSizeToFit = MiscGeometry | DrawSize,
+
         /// <summary>
         /// All possible things are affected.
         /// </summary>
@@ -2385,17 +2416,20 @@ namespace osu.Framework.Graphics
         /// Not loaded, and no load has been initiated yet.
         /// </summary>
         NotLoaded,
+
         /// <summary>
         /// Currently loading (possibly and usually on a background
-        /// thread via <see cref="Drawable.LoadAsync(Game, Drawable, Action)"/>).
+        /// thread via <see cref="Drawable.LoadAsync(Game, Drawable, CancellationToken, Action)"/>).
         /// </summary>
         Loading,
+
         /// <summary>
         /// Loading is complete, but has not yet been finalized on the update thread
         /// (<see cref="Drawable.LoadComplete"/> has not been called yet, which
         /// always runs on the update thread and requires <see cref="Drawable.IsAlive"/>).
         /// </summary>
         Ready,
+
         /// <summary>
         /// Loading is fully completed and the Drawable is now part of the scene graph.
         /// </summary>
@@ -2411,11 +2445,13 @@ namespace osu.Framework.Graphics
         /// Completely fill the parent with a relative size of 1 at the cost of stretching the aspect ratio (default).
         /// </summary>
         Stretch,
+
         /// <summary>
         /// Always maintains aspect ratio while filling the portion of the parent's size denoted by the relative size.
         /// A relative size of 1 results in completely filling the parent by scaling the smaller axis of the drawable to fill the parent.
         /// </summary>
         Fill,
+
         /// <summary>
         /// Always maintains aspect ratio while fitting into the portion of the parent's size denoted by the relative size.
         /// A relative size of 1 results in fitting exactly into the parent by scaling the larger axis of the drawable to fit into the parent.
