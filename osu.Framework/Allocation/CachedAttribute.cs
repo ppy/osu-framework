@@ -44,7 +44,7 @@ namespace osu.Framework.Allocation
             {
                 var modifier = field.GetAccessModifier();
                 if (modifier != AccessModifier.Private && !field.IsInitOnly)
-                    throw new AccessModifierNotAllowedForCachedValueException(modifier, type, field.Name);
+                    throw new AccessModifierNotAllowedForCachedValueException(modifier, field);
 
                 foreach (var attribute in field.GetCustomAttributes<CachedAttribute>())
                 {

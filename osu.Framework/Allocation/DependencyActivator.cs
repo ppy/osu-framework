@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Runtime.ExceptionServices;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
@@ -107,14 +108,34 @@ namespace osu.Framework.Allocation
     }
 
     /// <summary>
-    /// Occurs when a field was attempted to be cached with an unacceptable access modifier.
-    /// Fields can only be cached if they're private OR readonly public/protected/internal.
+    /// Occurs when a dependency-related operation occurred on a member with an unacceptable access modifier.
     /// </summary>
-    public class AccessModifierNotAllowedForCachedValueException : InvalidOperationException
+    public abstract class AccessModifierNotAllowedForMemberException : InvalidOperationException
     {
-        public AccessModifierNotAllowedForCachedValueException(AccessModifier modifier, Type type, string field)
-            : base($"The access modifier(s) [ {modifier.ToString()} ] are not allowed on \"{type.ReadableName()}.{field}\". "
-                   + "Cached fields must be private OR readonly.")
+        protected AccessModifierNotAllowedForMemberException(AccessModifier modifier, MemberInfo member, string description)
+            : base($"The access modifier(s) [ {modifier.ToString()} ] are not allowed on \"{member.DeclaringType.ReadableName()}.{member.Name}\". {description}")
+        {
+        }
+    }
+
+    /// <summary>
+    /// Occurs when attempting to cache a non-private and non-readonly field with an attached <see cref="CachedAttribute"/>.
+    /// </summary>
+    public class AccessModifierNotAllowedForCachedValueException : AccessModifierNotAllowedForMemberException
+    {
+        public AccessModifierNotAllowedForCachedValueException(AccessModifier modifier, MemberInfo member)
+            : base(modifier, member, $"A field with an attached {nameof(CachedAttribute)} must be private OR readonly.")
+        {
+        }
+    }
+
+    /// <summary>
+    /// Occurs when a method with an attached <see cref="BackgroundDependencyLoaderAttribute"/> isn't private.
+    /// </summary>
+    public class AccessModifierNotAllowedForLoaderMethodException : AccessModifierNotAllowedForMemberException
+    {
+        public AccessModifierNotAllowedForLoaderMethodException(AccessModifier modifier, MemberInfo member)
+            : base(modifier, member, $"A method with an attached {nameof(BackgroundDependencyLoaderAttribute)} must be private.")
         {
         }
     }

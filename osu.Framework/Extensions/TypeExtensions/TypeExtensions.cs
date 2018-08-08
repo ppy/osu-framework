@@ -54,6 +54,24 @@ namespace osu.Framework.Extensions.TypeExtensions
 
             return ret;
         }
+
+        public static AccessModifier GetAccessModifier(this MethodInfo method)
+        {
+            AccessModifier ret = AccessModifier.None;
+
+            if (method.IsPublic)
+                ret |= AccessModifier.Public;
+            if (method.IsAssembly)
+                ret |= AccessModifier.Internal;
+            if (method.IsFamily)
+                ret |= AccessModifier.Protected;
+            if (method.IsPrivate)
+                ret |= AccessModifier.Private;
+            if (method.IsFamilyOrAssembly)
+                ret |= AccessModifier.Protected | AccessModifier.Internal;
+
+            return ret;
+        }
     }
 
     [Flags]
