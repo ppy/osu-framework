@@ -22,7 +22,7 @@ namespace osu.Framework.Allocation
     [AttributeUsage(AttributeTargets.Property)]
     public class ResolvedAttribute : Attribute
     {
-        private const BindingFlags activator_flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+        private const BindingFlags activator_flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly;
 
         /// <summary>
         /// Whether a null value can be accepted if the value does not exist in the cache.

@@ -107,6 +107,19 @@ namespace osu.Framework.Tests.Dependencies
             Assert.Throws<PropertyNotWritableException>(() => createDependencies().Inject(receiver));
         }
 
+        [Test]
+        public void TestWriteToBaseClassWithPublicProperty()
+        {
+            var receiver = new Receiver11();
+
+            BaseObject testObject;
+
+            var dependencies = createDependencies(testObject = new BaseObject());
+
+            Assert.DoesNotThrow(() => dependencies.Inject(receiver));
+            Assert.AreEqual(testObject, receiver.Obj);
+        }
+
         private DependencyContainer createDependencies(params object[] toCache)
         {
             var dependencies = new DependencyContainer();
@@ -185,6 +198,10 @@ namespace osu.Framework.Tests.Dependencies
         {
             [Resolved(CanBeNull = true)]
             public BaseObject Obj { get; }
+        }
+
+        private class Receiver11 : Receiver8
+        {
         }
     }
 }

@@ -17,7 +17,7 @@ namespace osu.Framework.Allocation
     [AttributeUsage(AttributeTargets.Method)]
     public class BackgroundDependencyLoaderAttribute : Attribute
     {
-        private const BindingFlags activator_flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+        private const BindingFlags activator_flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly;
 
         private bool permitNulls { get; }
 

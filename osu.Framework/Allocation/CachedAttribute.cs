@@ -19,7 +19,7 @@ namespace osu.Framework.Allocation
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Field, AllowMultiple = true, Inherited = false)]
     public class CachedAttribute : Attribute
     {
-        private const BindingFlags activator_flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+        private const BindingFlags activator_flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly;
 
         /// <summary>
         /// The type to cache the value as. If null, the value will be cached as the value's most derived type.
