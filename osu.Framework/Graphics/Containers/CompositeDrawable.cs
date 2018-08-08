@@ -564,8 +564,6 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>True when this <see cref="CompositeDrawable"/> and all <see cref="AliveInternalChildren"/> have been fully validated.</returns>
         public override bool ValidateSubTree()
         {
-            const int max_validations = 5;
-
             if (!IsPresent)
                 return true;
 
@@ -585,13 +583,6 @@ namespace osu.Framework.Graphics.Containers
                 moreRequired |= !base.ValidateSubTree();
 
                 validations++;
-
-                // Todo: @tom94 HELP (autosize <-> autosize dependency via child bounds!)
-                if (validations == max_validations)
-                {
-                    moreRequired = false;
-                    Logger.Log($"{this} exceeded maximum allowable validations ({validations})!", LoggingTarget.Debug, LogLevel.Debug);
-                }
             }
 
             // One validation will almost always occur due to autosize - which is computed either when queried or during validation
@@ -641,15 +632,6 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         protected virtual void UpdateAfterAutoSize()
         {
-        }
-
-        public override bool RequiresLayoutValidation => base.RequiresLayoutValidation || !childrenSizeDependencies.IsValid;
-
-        protected override void ValidateLayout()
-        {
-            base.ValidateLayout();
-
-            updateChildrenSizeDependencies();
         }
 
         #endregion
