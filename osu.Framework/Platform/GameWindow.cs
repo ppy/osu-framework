@@ -93,7 +93,7 @@ namespace osu.Framework.Platform
                         GL Renderer:                {GL.GetString(StringName.Renderer)}
                         GL Shader Language version: {GL.GetString(StringName.ShadingLanguageVersion)}
                         GL Vendor:                  {GL.GetString(StringName.Vendor)}
-                        GL Extensions:              {GL.GetString(StringName.Extensions)}", LoggingTarget.Runtime, LogLevel.Important);
+                        GL Extensions:              {GL.GetString(StringName.Extensions)}");
 
             Context.MakeCurrent(null);
         }
@@ -119,11 +119,11 @@ namespace osu.Framework.Platform
             {
                 cursorState = value;
 
-                Implementation.Cursor = (cursorState & CursorState.Hidden) > 0 ? MouseCursor.Empty : MouseCursor.Default;
+                Implementation.Cursor = cursorState.HasFlag(CursorState.Hidden) ? MouseCursor.Empty : MouseCursor.Default;
 
                 try
                 {
-                    Implementation.CursorGrabbed = (cursorState & CursorState.Confined) > 0;
+                    Implementation.CursorGrabbed = cursorState.HasFlag(CursorState.Confined);
                 }
                 catch
                 {

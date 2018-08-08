@@ -48,8 +48,8 @@ namespace osu.Framework.Graphics.Lines
             positions.Clear();
             resetBounds();
 
-            if ((RelativeSizeAxes & Axes.X) == 0) Width = 0;
-            if ((RelativeSizeAxes & Axes.Y) == 0) Height = 0;
+            if (!RelativeSizeAxes.HasFlag(Axes.X)) Width = 0;
+            if (!RelativeSizeAxes.HasFlag(Axes.Y)) Height = 0;
 
             segmentsCache.Invalidate();
             Invalidate(Invalidation.DrawNode);
@@ -79,8 +79,8 @@ namespace osu.Framework.Graphics.Lines
             if (pos.Y + PathWidth > maxY) maxY = pos.Y + PathWidth;
 
             RectangleF b = bounds;
-            if ((RelativeSizeAxes & Axes.X) == 0) Width = b.Width;
-            if ((RelativeSizeAxes & Axes.Y) == 0) Height = b.Height;
+            if (!RelativeSizeAxes.HasFlag(Axes.X)) Width = b.Width;
+            if (!RelativeSizeAxes.HasFlag(Axes.Y)) Height = b.Height;
         }
 
         private void resetBounds()

@@ -13,6 +13,7 @@ using System.Runtime;
 using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
+using NUnit.Framework;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.ES30;
@@ -171,11 +172,19 @@ namespace osu.Framework.Platform
             Dependencies.CacheAs(this);
             Dependencies.CacheAs(Storage = GetStorage(gameName));
 
+            string assemblyPath;
             var assembly = Assembly.GetEntryAssembly();
 
             // when running under nunit + netcore, entry assembly becomes nunit itself (testhost, Version=15.0.0.0), which isn't what we want.
             if (assembly == null || assembly.Location.Contains("testhost"))
-                assembly = Assembly.GetCallingAssembly();
+            {
+                assembly = Assembly.GetExecutingAssembly();
+
+                // From nuget, the executing assembly will also be wrong
+                assemblyPath = TestContext.CurrentContext.TestDirectory;
+            }
+            else
+                assemblyPath = Path.GetDirectoryName(assembly.Location);
 
             Name = gameName;
 
@@ -196,9 +205,8 @@ namespace osu.Framework.Platform
                 (InputThread = new InputThread(null)), //never gets started.
             };
 
-            var path = Path.GetDirectoryName(assembly.Location);
-            if (path != null)
-                Environment.CurrentDirectory = path;
+            if (assemblyPath != null)
+                Environment.CurrentDirectory = assemblyPath;
         }
 
         private void exceptionHandler(object sender, UnhandledExceptionEventArgs e)
@@ -276,12 +284,20 @@ namespace osu.Framework.Platform
             // Ensure we maintain a valid size for any children immediately scaling by the window size
             Root.Size = Vector2.ComponentMax(Vector2.One, Root.Size);
 
-            Root.UpdateSubTree();
+            try
+            {
+                Root.UpdateSubTree();
+            }
+            catch (DependencyInjectionException e)
+            {
+                e.DispatchInfo.Throw();
+            }
+
             Root.UpdateSubTreeMasking(Root, Root.ScreenSpaceDrawQuad.AABBFloat);
             Root.ValidateSubTree();
 
             using (var buffer = DrawRoots.Get(UsageType.Write))
-                buffer.Object = Root.GenerateDrawNodeSubtree(frameCount, buffer.Index);
+                buffer.Object = Root.GenerateDrawNodeSubtree(frameCount, buffer.Index, false);
         }
 
         protected virtual void DrawInitialize()
@@ -514,7 +530,14 @@ namespace osu.Framework.Platform
 
             game.SetHost(this);
 
-            root.Load(SceneGraphClock, Dependencies);
+            try
+            {
+                root.Load(SceneGraphClock, Dependencies);
+            }
+            catch (DependencyInjectionException e)
+            {
+                e.DispatchInfo.Throw();
+            }
 
             //publish bootstrapped scene graph to all threads.
             Root = root;

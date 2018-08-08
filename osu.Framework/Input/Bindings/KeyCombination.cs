@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Input.States;
 using OpenTK;
 using OpenTK.Input;
 
@@ -41,13 +42,28 @@ namespace osu.Framework.Input.Bindings
         /// Check whether the provided pressed keys are valid for this <see cref="KeyCombination"/>.
         /// </summary>
         /// <param name="pressedKeys">The potential pressed keys for this <see cref="KeyCombination"/>.</param>
-        /// <param name="exact">Whether <paramref name="pressedKeys"/> should exactly match the keys required for this <see cref="KeyCombination"/>.</param>
+        /// <param name="matchingMode">The method for handling exact key matches.</param>
         /// <returns>Whether the pressedKeys keys are valid.</returns>
-        public bool IsPressed(KeyCombination pressedKeys, bool exact)
+        public bool IsPressed(KeyCombination pressedKeys, KeyCombinationMatchingMode matchingMode)
         {
-            if (exact)
-                return pressedKeys.Keys.Count() == Keys.Count() && pressedKeys.Keys.All(Keys.Contains);
-            return !Keys.Except(pressedKeys.Keys).Any();
+            switch (matchingMode)
+            {
+                case KeyCombinationMatchingMode.Any:
+                    return !Keys.Except(pressedKeys.Keys).Any();
+
+                case KeyCombinationMatchingMode.Exact:
+                    return pressedKeys.Keys.Count() == Keys.Count() && pressedKeys.Keys.All(Keys.Contains);
+
+                case KeyCombinationMatchingMode.Modifiers:
+                    if (Keys.Except(pressedKeys.Keys).Any())
+                        return false;
+                    var pressedModifiers = pressedKeys.Keys.Where(IsModifierKey);
+                    var requiredModifiers = Keys.Where(IsModifierKey);
+                    return pressedModifiers.Count() == requiredModifiers.Count() && pressedModifiers.All(requiredModifiers.Contains);
+
+                default:
+                    return false;
+            }
         }
 
         public bool Equals(KeyCombination other)
@@ -77,22 +93,24 @@ namespace osu.Framework.Input.Bindings
 
         public string ReadableString() => Keys?.Select(getReadableKey).Aggregate((s1, s2) => $"{s1}+{s2}") ?? string.Empty;
 
+        public static bool IsModifierKey(InputKey key) => key == InputKey.Control || key == InputKey.Shift || key == InputKey.Alt || key == InputKey.Super;
+
         private string getReadableKey(InputKey key)
         {
             if (key >= InputKey.FirstJoystickHatRightButton)
-                return $"Joystick Hat {key - InputKey.FirstJoystickHatRightButton} Right";
+                return $"Joystick Hat {key - InputKey.FirstJoystickHatRightButton + 1} Right";
             if (key >= InputKey.FirstJoystickHatLeftButton)
-                return $"Joystick Hat {key - InputKey.FirstJoystickHatLeftButton} Left";
+                return $"Joystick Hat {key - InputKey.FirstJoystickHatLeftButton + 1} Left";
             if (key >= InputKey.FirstJoystickHatDownButton)
-                return $"Joystick Hat {key - InputKey.FirstJoystickHatDownButton} Down";
+                return $"Joystick Hat {key - InputKey.FirstJoystickHatDownButton + 1} Down";
             if (key >= InputKey.FirstJoystickHatUpButton)
-                return $"Joystick Hat {key - InputKey.FirstJoystickHatUpButton} Up";
+                return $"Joystick Hat {key - InputKey.FirstJoystickHatUpButton + 1} Up";
             if (key >= InputKey.FirstJoystickAxisPositiveButton)
-                return $"Joystick Axis {key - InputKey.FirstJoystickAxisPositiveButton} +";
+                return $"Joystick Axis {key - InputKey.FirstJoystickAxisPositiveButton + 1} +";
             if (key >= InputKey.FirstJoystickAxisNegativeButton)
-                return $"Joystick Axis {key - InputKey.FirstJoystickAxisNegativeButton} -";
+                return $"Joystick Axis {key - InputKey.FirstJoystickAxisNegativeButton + 1} -";
             if (key >= InputKey.FirstJoystickButton)
-                return $"Joystick {key - InputKey.FirstJoystickButton}";
+                return $"Joystick {key - InputKey.FirstJoystickButton + 1}";
 
             switch (key)
             {
@@ -239,7 +257,7 @@ namespace osu.Framework.Input.Bindings
                 return InputKey.FirstJoystickAxisPositiveButton + (button - JoystickButton.FirstAxisPositive);
             if (button >= JoystickButton.FirstAxisNegative)
                 return InputKey.FirstJoystickAxisNegativeButton + (button - JoystickButton.FirstAxisNegative);
-            return InputKey.FirstJoystickButton + (int)button;
+            return InputKey.FirstJoystickButton + (button - JoystickButton.FirstButton);
         }
 
         public static InputKey FromScrollDelta(Vector2 scrollDelta)
@@ -293,5 +311,23 @@ namespace osu.Framework.Input.Bindings
 
             return new KeyCombination(keys);
         }
+    }
+
+    public enum KeyCombinationMatchingMode
+    {
+        /// <summary>
+        /// Matches a <see cref="KeyCombination"/> regardless of any additional key presses.
+        /// </summary>
+        Any,
+
+        /// <summary>
+        /// Matches a <see cref="KeyCombination"/> if there are no additional key presses.
+        /// </summary>
+        Exact,
+
+        /// <summary>
+        /// Matches a <see cref="KeyCombination"/> regardless of any additional key presses, however key modifiers must match exactly.
+        /// </summary>
+        Modifiers,
     }
 }

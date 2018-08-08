@@ -11,7 +11,6 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.Input;
 using osu.Framework.MathUtils;
 using osu.Framework.Statistics;
 using osu.Framework.Threading;
@@ -19,6 +18,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using osu.Framework.Input.EventArgs;
+using osu.Framework.Input.States;
 
 namespace osu.Framework.Graphics.Performance
 {
@@ -94,7 +95,8 @@ namespace osu.Framework.Graphics.Performance
                         break;
                 }
 
-                Active = true;
+                Running = true;
+                Expanded = false;
 
                 StateChanged?.Invoke(State);
             }
@@ -267,37 +269,71 @@ namespace osu.Framework.Graphics.Performance
             timeBars[timeBarIndex].Add(b);
         }
 
-        private bool active = true;
+        private bool running = true;
 
-        public bool Active
+        public bool Running
         {
-            get => active;
+            get => running;
             set
             {
-                if (active == value) return;
+                if (running == value) return;
 
-                active = value || state != FrameStatisticsMode.Full;
+                running = value;
 
-                overlayContainer.FadeTo(active ? 0 : 1, 100);
-                this.FadeTo(active ? alpha_when_active : 1, 100);
-                fpsDisplay.Counting = active;
-                processFrames = active;
-                foreach (CounterBar bar in counterBars.Values)
-                    bar.Active = active;
+                fpsDisplay.Counting = running;
+                processFrames = running;
             }
         }
 
+        private bool expanded;
+
+        public bool Expanded
+        {
+            get => expanded;
+            set
+            {
+                value &= state == FrameStatisticsMode.Full;
+
+                if (expanded == value) return;
+
+                expanded = value;
+
+                overlayContainer.FadeTo(expanded ? 1 : 0, 100);
+                this.FadeTo(expanded ? 1 : alpha_when_active, 100);
+
+                foreach (CounterBar bar in counterBars.Values)
+                    bar.Expanded = expanded;
+            }
+        }
+
+
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
-            if (args.Key == Key.ControlLeft)
-                Active = false;
+            switch (args.Key)
+            {
+                case Key.ControlLeft:
+                    Expanded = true;
+                    break;
+                case Key.ShiftLeft:
+                    Running = false;
+                    break;
+            }
+
             return base.OnKeyDown(state, args);
         }
 
         protected override bool OnKeyUp(InputState state, KeyUpEventArgs args)
         {
-            if (args.Key == Key.ControlLeft)
-                Active = true;
+            switch (args.Key)
+            {
+                case Key.ControlLeft:
+                    Expanded = false;
+                    break;
+                case Key.ShiftLeft:
+                    Running = true;
+                    break;
+            }
+
             return base.OnKeyUp(state, args);
         }
 
@@ -476,28 +512,25 @@ namespace osu.Framework.Graphics.Performance
 
             public string Label;
 
-            private bool active;
+            private bool expanded;
 
-            public bool Active
+            public bool Expanded
             {
-                get => active;
+                get => expanded;
                 set
                 {
-                    if (active == value)
-                        return;
+                    if (expanded == value) return;
+                    expanded = value;
 
-                    active = value;
-
-                    if (active)
-                    {
-                        this.ResizeTo(new Vector2(bar_width, 1), 100);
-                        text.FadeOut(100);
-                    }
-                    else
+                    if (expanded)
                     {
                         this.ResizeTo(new Vector2(bar_width + text.TextSize + 2, 1), 100);
                         text.FadeIn(100);
-                        text.Text = $@"{Label}: {NumberFormatter.PrintWithSiSuffix(this.value)}";
+                    }
+                    else
+                    {
+                        this.ResizeTo(new Vector2(bar_width, 1), 100);
+                        text.FadeOut(100);
                     }
                 }
             }
@@ -541,8 +574,6 @@ namespace osu.Framework.Graphics.Performance
                         Origin = Anchor.BottomRight,
                     }
                 };
-
-                Active = true;
             }
 
             protected override void Update()
@@ -558,6 +589,9 @@ namespace osu.Framework.Graphics.Performance
                     velocity = 0;
                 else
                     velocity += Time.Elapsed * acceleration;
+
+                if (expanded)
+                    text.Text = $@"{Label}: {NumberFormatter.PrintWithSiSuffix(value)}";
             }
         }
     }

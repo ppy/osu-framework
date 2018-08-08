@@ -52,9 +52,16 @@ namespace osu.Framework.Tests.Visual
             };
             items.AsEnumerable().ForEach(item => switchingTabControl.AddItem(item.Value));
 
+            StyledTabControl removeAllTabControl = new StyledTabControl
+            {
+                Position = new Vector2(200, 350),
+                Size = new Vector2(200, 30)
+            };
+
             Add(simpleTabcontrol);
             Add(pinnedAndAutoSort);
             Add(platformActionContainer);
+            Add(removeAllTabControl);
 
             var nextTest = new Func<TestEnum>(() => items.AsEnumerable()
                                                          .Select(item => item.Value)
@@ -106,6 +113,12 @@ namespace osu.Framework.Tests.Visual
 
             AddStep("Switch forward", () => platformActionContainer.TriggerPressed(new PlatformAction(PlatformActionType.DocumentNext)));
             AddAssert("Ensure first tab", () => switchingTabControl.Current.Value == switchingTabControl.VisibleItems.First());
+
+            AddStep("Add all items", () => items.AsEnumerable().ForEach(item => removeAllTabControl.AddItem(item.Value)));
+            AddAssert("Ensure all items", () => removeAllTabControl.Items.Count() == items.Count);
+
+            AddStep("Remove all items", () => removeAllTabControl.Clear());
+            AddAssert("Ensure no items", () => !removeAllTabControl.Items.Any());
         }
 
         private class StyledTabControl : TabControl<TestEnum>

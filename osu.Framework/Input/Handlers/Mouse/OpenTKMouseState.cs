@@ -6,15 +6,15 @@ using OpenTK.Input;
 
 namespace osu.Framework.Input.Handlers.Mouse
 {
-    internal abstract class OpenTKMouseState : MouseState
+    internal abstract class OpenTKMouseState : States.MouseState
     {
         public readonly bool WasActive;
 
-        public OpenTK.Input.MouseState RawState;
+        public MouseState RawState;
 
         public override Vector2 ScrollDelta => WasActive ? base.ScrollDelta : Vector2.Zero;
 
-        protected OpenTKMouseState(OpenTK.Input.MouseState tkState, bool active, Vector2? mappedPosition)
+        protected OpenTKMouseState(MouseState tkState, bool active, Vector2? mappedPosition)
         {
             WasActive = active;
 
@@ -31,7 +31,7 @@ namespace osu.Framework.Input.Handlers.Mouse
             }
 
             Scroll = new Vector2(-tkState.Scroll.X, tkState.Scroll.Y);
-            HasPreciseScroll = (tkState.Flags & MouseStateFlags.HasPreciseScroll) > 0;
+            HasPreciseScroll = tkState.Flags.HasFlag(MouseStateFlags.HasPreciseScroll);
             Position = new Vector2(mappedPosition?.X ?? tkState.X, mappedPosition?.Y ?? tkState.Y);
         }
 

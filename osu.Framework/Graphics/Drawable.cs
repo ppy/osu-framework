@@ -6,7 +6,6 @@ using OpenTK.Graphics;
 using OpenTK.Input;
 using osu.Framework.Allocation;
 using osu.Framework.Caching;
-using osu.Framework.Extensions;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
@@ -26,8 +25,11 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Development;
+using osu.Framework.Extensions.ExceptionExtensions;
+using osu.Framework.Input.EventArgs;
+using osu.Framework.Input.States;
 using osu.Framework.MathUtils;
-using JoystickEventArgs = osu.Framework.Input.JoystickEventArgs;
+using JoystickEventArgs = osu.Framework.Input.EventArgs.JoystickEventArgs;
 
 namespace osu.Framework.Graphics
 {
@@ -112,7 +114,7 @@ namespace osu.Framework.Graphics
 
         /// <summary>
         /// Whether this Drawable is fully loaded.
-        /// Override to false for delaying the load further (e.g. using <see cref="ShouldBeAlive"/>).
+        /// This is true iff <see cref="UpdateSubTree"/> has run once on this <see cref="Drawable"/>.
         /// </summary>
         public bool IsLoaded => loadState >= LoadState.Loaded;
 
@@ -147,7 +149,9 @@ namespace osu.Framework.Graphics
 
             return (loadTask ?? Task.CompletedTask).ContinueWith(task => game.Schedule(() =>
             {
-                task.ThrowIfFaulted(typeof(RecursiveLoadException));
+                if (task.IsFaulted)
+                    throw task.Exception.AsSingular();
+
                 onLoaded?.Invoke();
                 loadTask = null;
             }));
@@ -161,10 +165,10 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="parent">The parent <see cref="IReadOnlyDependencyContainer"/> which should be passed through if we want fallback lookups to work.</param>
         /// <returns>A new dependency container to be stored for this Drawable.</returns>
-        protected virtual IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent) => parent;
+        protected virtual IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent) => DependencyActivator.MergeDependencies(this, parent);
 
         /// <summary>
-        /// Contains all dependencies that can be injected into this Drawable using <see cref="BackgroundDependencyLoader"/>.
+        /// Contains all dependencies that can be injected into this Drawable using <see cref="BackgroundDependencyLoaderAttribute"/>.
         /// Add or override dependencies by calling <see cref="DependencyContainer.Cache{T}(T)"/>.
         /// </summary>
         public IReadOnlyDependencyContainer Dependencies { get; private set; }
@@ -237,15 +241,23 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
-        /// Called after all async loading has completed.
+        /// Invoked after dependency injection has completed for this <see cref="Drawable"/> and all
+        /// children if this is a <see cref="CompositeDrawable"/>.
         /// </summary>
+        /// <remarks>
+        /// This method is invoked in the potentially asynchronous context of <see cref="Load"/> prior to
+        /// this <see cref="Drawable"/> becoming <see cref="IsLoaded"/> = true.
+        /// </remarks>
         protected virtual void LoadAsyncComplete()
         {
         }
 
         /// <summary>
-        /// Play initial animation etc.
+        /// Invoked after this <see cref="Drawable"/> has finished loading.
         /// </summary>
+        /// <remarks>
+        /// This method is invoked on the update thread inside this <see cref="Drawable"/>'s <see cref="UpdateSubTree"/>.
+        /// </remarks>
         protected virtual void LoadComplete()
         {
         }
@@ -556,10 +568,10 @@ namespace osu.Framework.Graphics
                 {
                     offset = Parent.RelativeChildOffset;
 
-                    if ((RelativePositionAxes & Axes.X) == 0)
+                    if (!RelativePositionAxes.HasFlag(Axes.X))
                         offset.X = 0;
 
-                    if ((RelativePositionAxes & Axes.Y) == 0)
+                    if (!RelativePositionAxes.HasFlag(Axes.Y))
                         offset.Y = 0;
                 }
 
@@ -679,8 +691,8 @@ namespace osu.Framework.Graphics
 
                 relativeSizeAxes = value;
 
-                if ((relativeSizeAxes & Axes.X) > 0 && Width == 0) Width = 1;
-                if ((relativeSizeAxes & Axes.Y) > 0 && Height == 0) Height = 1;
+                if (relativeSizeAxes.HasFlag(Axes.X) && Width == 0) Width = 1;
+                if (relativeSizeAxes.HasFlag(Axes.Y) && Height == 0) Height = 1;
 
                 OnSizingChanged();
             }
@@ -772,9 +784,9 @@ namespace osu.Framework.Graphics
             {
                 Vector2 conversion = relativeToAbsoluteFactor;
 
-                if ((relativeAxes & Axes.X) > 0)
+                if (relativeAxes.HasFlag(Axes.X))
                     v.X *= conversion.X;
-                if ((relativeAxes & Axes.Y) > 0)
+                if (relativeAxes.HasFlag(Axes.Y))
                     v.Y *= conversion.Y;
 
                 // FillMode only makes sense if both axes are relatively sized as the general rule
@@ -987,14 +999,14 @@ namespace osu.Framework.Graphics
                     throw new InvalidOperationException(@"Can not obtain relative origin position for custom origins.");
 
                 Vector2 result = Vector2.Zero;
-                if ((origin & Anchor.x1) > 0)
+                if (origin.HasFlag(Anchor.x1))
                     result.X = 0.5f;
-                else if ((origin & Anchor.x2) > 0)
+                else if (origin.HasFlag(Anchor.x2))
                     result.X = 1;
 
-                if ((origin & Anchor.y1) > 0)
+                if (origin.HasFlag(Anchor.y1))
                     result.Y = 0.5f;
-                else if ((origin & Anchor.y2) > 0)
+                else if (origin.HasFlag(Anchor.y2))
                     result.Y = 1;
 
                 return result;
@@ -1073,14 +1085,14 @@ namespace osu.Framework.Graphics
                     return customRelativeAnchorPosition;
 
                 Vector2 result = Vector2.Zero;
-                if ((anchor & Anchor.x1) > 0)
+                if (anchor.HasFlag(Anchor.x1))
                     result.X = 0.5f;
-                else if ((anchor & Anchor.x2) > 0)
+                else if (anchor.HasFlag(Anchor.x2))
                     result.X = 1;
 
-                if ((anchor & Anchor.y1) > 0)
+                if (anchor.HasFlag(Anchor.y1))
                     result.Y = 0.5f;
-                else if ((anchor & Anchor.y2) > 0)
+                else if (anchor.HasFlag(Anchor.y2))
                     result.Y = 1;
 
                 return result;
@@ -1113,14 +1125,14 @@ namespace osu.Framework.Graphics
         {
             Vector2 result = Vector2.Zero;
 
-            if ((anchor & Anchor.x1) > 0)
+            if (anchor.HasFlag(Anchor.x1))
                 result.X = size.X / 2f;
-            else if ((anchor & Anchor.x2) > 0)
+            else if (anchor.HasFlag(Anchor.x2))
                 result.X = size.X;
 
-            if ((anchor & Anchor.y1) > 0)
+            if (anchor.HasFlag(Anchor.y1))
                 result.Y = size.Y / 2f;
-            else if ((anchor & Anchor.y2) > 0)
+            else if (anchor.HasFlag(Anchor.y2))
                 result.Y = size.Y;
 
             return result;
@@ -1573,11 +1585,12 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="frame">The frame which the <see cref="DrawNode"/> subtree should be generated for.</param>
         /// <param name="treeIndex">The index of the <see cref="DrawNode"/> to use.</param>
+        /// <param name="forceNewDrawNode">Whether the creation of a new <see cref="DrawNode"/> should be forced, rather than re-using an existing <see cref="DrawNode"/>.</param>
         /// <returns>A complete and updated <see cref="DrawNode"/>, or null if the <see cref="DrawNode"/> would be invisible.</returns>
-        internal virtual DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex)
+        internal virtual DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex, bool forceNewDrawNode)
         {
             DrawNode node = drawNodes[treeIndex];
-            if (node == null)
+            if (node == null || forceNewDrawNode)
             {
                 drawNodes[treeIndex] = node = CreateDrawNode();
                 FrameStatistics.Increment(StatisticsCounterType.DrawNodeCtor);
