@@ -332,24 +332,11 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 // Our children will be relatively-sized on the axis separate to the menu direction, so we need to compute
                 // that size ourselves, based on the content size of our children, to give them a valid relative size
-
-                float width = 0;
-                float height = 0;
-
-                foreach (var item in Children)
-                {
-                    width = Math.Max(width, item.ContentDrawWidth);
-                    height = Math.Max(height, item.ContentDrawHeight);
-                }
-
                 // When scrolling in one direction, ItemsContainer is auto-sized in that direction and relative-sized in the other
                 // In the case of the auto-sized direction, we want to use its size. In the case of the relative-sized direction, we want
                 // to use the (above) computed size.
-                width = Direction == Direction.Horizontal ? ItemsContainer.Width : width;
-                height = Direction == Direction.Vertical ? ItemsContainer.Height : height;
-
-                width = Math.Min(MaxWidth, width);
-                height = Math.Min(MaxHeight, height);
+                var width = Direction == Direction.Horizontal ? MathHelper.Clamp(ItemsContainer.Width, 0, MaxWidth) : MathHelper.Clamp(Children.Max(item => item.ContentDrawWidth), 0, MaxWidth);
+                var height = Direction == Direction.Vertical ? MathHelper.Clamp(ItemsContainer.Height, 0, MaxHeight) : MathHelper.Clamp(Children.Max(item => item.ContentDrawHeight), 0, MaxHeight);
 
                 // Regardless of the above result, if we are relative-sizing, just use the stored width/height
                 width = RelativeSizeAxes.HasFlag(Axes.X) ? Width : width;
