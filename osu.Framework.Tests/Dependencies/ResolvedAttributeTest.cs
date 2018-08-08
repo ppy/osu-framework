@@ -3,6 +3,7 @@
 
 using NUnit.Framework;
 using osu.Framework.Allocation;
+using osu.Framework.Extensions.IEnumerableExtensions;
 
 namespace osu.Framework.Tests.Dependencies
 {
@@ -12,11 +13,9 @@ namespace osu.Framework.Tests.Dependencies
         [Test]
         public void TestInjectIntoNothing()
         {
-            var dependencies = new DependencyContainer();
-
             var receiver = new Receiver1();
 
-            dependencies.Inject(receiver);
+            createDependencies().Inject(receiver);
 
             Assert.AreEqual(null, receiver.Obj);
         }
@@ -24,14 +23,10 @@ namespace osu.Framework.Tests.Dependencies
         [Test]
         public void TestInjectIntoDependency()
         {
-            var testObject = new BaseObject();
-
-            var dependencies = new DependencyContainer();
-            dependencies.Cache(testObject);
-
             var receiver = new Receiver2();
 
-            dependencies.Inject(receiver);
+            BaseObject testObject;
+            createDependencies(testObject = new BaseObject()).Inject(receiver);
 
             Assert.AreEqual(testObject, receiver.Obj);
         }
@@ -39,37 +34,38 @@ namespace osu.Framework.Tests.Dependencies
         [Test]
         public void TestInjectNullIntoNonNull()
         {
-            var dependencies = new DependencyContainer();
-
             var receiver = new Receiver2();
 
-            Assert.Throws<DependencyNotRegisteredException>(() => dependencies.Inject(receiver));
+            Assert.Throws<DependencyNotRegisteredException>(() => createDependencies().Inject(receiver));
         }
 
         [Test]
         public void TestInjectNullIntoNullable()
         {
-            var dependencies = new DependencyContainer();
-
             var receiver = new Receiver3();
 
-            Assert.DoesNotThrow(() => dependencies.Inject(receiver));
+            Assert.DoesNotThrow(() => createDependencies().Inject(receiver));
         }
 
         [Test]
         public void TestInjectIntoSubClasses()
         {
-            var testObject = new BaseObject();
-
-            var dependencies = new DependencyContainer();
-            dependencies.Cache(testObject);
-
             var receiver = new Receiver4();
 
-            dependencies.Inject(receiver);
+            BaseObject testObject;
+            createDependencies(testObject = new BaseObject()).Inject(receiver);
 
             Assert.AreEqual(testObject, receiver.Obj);
             Assert.AreEqual(testObject, receiver.Obj2);
+        }
+
+        private DependencyContainer createDependencies(params object[] toCache)
+        {
+            var dependencies = new DependencyContainer();
+
+            toCache?.ForEach(o => dependencies.Cache(o));
+
+            return dependencies;
         }
 
         private class BaseObject
