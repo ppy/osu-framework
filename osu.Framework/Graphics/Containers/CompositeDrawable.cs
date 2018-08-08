@@ -563,13 +563,16 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>True when this <see cref="CompositeDrawable"/> and all <see cref="AliveInternalChildren"/> have been fully validated.</returns>
         public override bool ValidateSubTree()
         {
+            // This should never happen, but exists for safety purposes.
+            const int max_iterations = 10;
+
             if (!IsPresent)
                 return true;
 
             int validations = 0;
 
             bool moreRequired = true;
-            while (moreRequired)
+            while (moreRequired && validations < max_iterations)
             {
                 moreRequired = false;
 
@@ -584,8 +587,10 @@ namespace osu.Framework.Graphics.Containers
                 validations++;
             }
 
-            if (validations > 1)
-                Logger.Log($"{this} took {validations} iterations to fully validate.", LoggingTarget.Debug, LogLevel.Debug);
+            if (validations >= max_iterations)
+                Logger.Log($"{this} exceeded the maximum number of allowable validations to fully validate.", LoggingTarget.Performance, LogLevel.Error);
+            else if (validations > 1)
+                Logger.Log($"{this} took {validations} iterations to fully validate.", LoggingTarget.Performance, LogLevel.Important);
 
             return true;
         }
