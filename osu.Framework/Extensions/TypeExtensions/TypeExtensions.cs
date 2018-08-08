@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 namespace osu.Framework.Extensions.TypeExtensions
 {
@@ -35,5 +36,33 @@ namespace osu.Framework.Extensions.TypeExtensions
         }
 
         public static string ReadableName(this Type t) => readableName(t, new HashSet<Type>());
+
+        public static AccessModifier GetAccessModifier(this FieldInfo field)
+        {
+            AccessModifier ret = AccessModifier.None;
+
+            if (field.IsPublic)
+                ret |= AccessModifier.Public;
+            if (field.IsAssembly)
+                ret |= AccessModifier.Internal;
+            if (field.IsFamily)
+                ret |= AccessModifier.Protected;
+            if (field.IsPrivate)
+                ret |= AccessModifier.Private;
+            if (field.IsFamilyOrAssembly)
+                ret |= AccessModifier.Protected | AccessModifier.Internal;
+
+            return ret;
+        }
+    }
+
+    [Flags]
+    public enum AccessModifier
+    {
+        None = 0,
+        Public = 1 << 0,
+        Internal = 1 << 1,
+        Protected = 1 << 2,
+        Private = 1 << 3
     }
 }
