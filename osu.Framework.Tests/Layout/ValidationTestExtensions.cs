@@ -42,9 +42,9 @@ namespace osu.Framework.Tests.Layout
             Set(d, cachedMemberName, obj);
         }
 
-        public static T Get<T>(this Drawable d, string fieldOrPropertyName)
+        public static T Get<T>(this Drawable d, string fieldOrPropertyName, Type searchType = null)
         {
-            Type type = d.GetType();
+            Type type = searchType ?? d.GetType();
 
             while (type != typeof(object))
             {
