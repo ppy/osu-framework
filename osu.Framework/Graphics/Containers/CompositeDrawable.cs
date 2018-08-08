@@ -584,7 +584,6 @@ namespace osu.Framework.Graphics.Containers
                 validations++;
             }
 
-            // One validation will almost always occur due to autosize - which is computed either when queried or during validation
             if (validations > 1)
                 Logger.Log($"{this} took {validations} iterations to fully validate.", LoggingTarget.Debug, LogLevel.Debug);
 
