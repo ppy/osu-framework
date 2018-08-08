@@ -96,41 +96,6 @@ namespace osu.Framework.Tests.Layout.FlowContainerTests
             Assert.AreEqual(new Vector2(50, 100), innerFlow.Size);
         }
 
-        /// <summary>
-        /// Tests that layout in a double flow container hierarchy is correctly validated.
-        /// </summary>
-        [Test]
-        [Ignore("Autosize validations aren't implemented yet.")]
-        public void Test4()
-        {
-            var innerBox1 = new LoadedBox { Size = new Vector2(50) };
-            var innerBox2 = new LoadedBox { Size = new Vector2(50) };
-            var outerBox1 = new LoadedBox { RelativeSizeAxes = Axes.Both };
-
-            var innerFlow = new LoadedFlowContainer
-            {
-                AutoSizeAxes = Axes.Both,
-                Direction = FillDirection.Vertical,
-                Children = new[] { innerBox1, innerBox2 }
-            };
-
-            var outerContainer = new LoadedContainer
-            {
-                AutoSizeAxes = Axes.Both,
-                Children = new Drawable[] { outerBox1, innerFlow }
-            };
-
-            outerContainer.UpdateChildrenLife();
-            innerFlow.UpdateChildrenLife();
-
-            outerContainer.ValidateSubTree();
-
-            Assert.IsTrue(outerContainer.ChildrenSizeDependencies.IsValid);
-            Assert.IsTrue(innerFlow.ChildrenSizeDependencies.IsValid);
-            Assert.IsTrue(innerFlow.Layout.IsValid);
-            Assert.AreEqual(new Vector2(50, 100), outerBox1.DrawSize);
-        }
-
         private class LoadedContainer : Container
         {
             public Cached ChildrenSizeDependencies => this.Get<Cached>("childrenSizeDependencies");
