@@ -83,8 +83,14 @@ namespace osu.Framework.Graphics
             if (isDisposed)
                 return;
 
-            //we can't dispose if we are mid-load, else our children may get in a bad state.
-            loadTask?.Wait();
+            try
+            {
+                //we can't dispose if we are mid-load, else our children may get in a bad state.
+                loadTask?.Wait(loadTaskCancellation);
+            }
+            catch (TaskCanceledException)
+            {
+            }
 
             Dispose(isDisposing);
 
@@ -126,6 +132,8 @@ namespace osu.Framework.Graphics
         public LoadState LoadState => loadState;
 
         private Task loadTask;
+        private CancellationToken loadTaskCancellation;
+
         private readonly object loadLock = new object();
 
         /// <summary>
@@ -136,15 +144,17 @@ namespace osu.Framework.Graphics
         /// The target this Drawable may eventually be loaded into.
         /// <see cref="Clock"/> and <see cref="Dependencies"/> are inherited from the target.
         /// </param>
+        /// <param name="cancellation">A cancellation token.</param>
         /// <param name="onLoaded">Callback to be invoked on the update thread after loading is complete.</param>
         /// <returns>The task which is used for loading and callbacks.</returns>
-        internal Task LoadAsync(Game game, Drawable target, Action onLoaded = null)
+        internal Task LoadAsync(Game game, Drawable target, CancellationToken cancellation, Action onLoaded = null)
         {
             if (loadState == LoadState.NotLoaded)
             {
                 Debug.Assert(loadTask == null);
                 loadState = LoadState.Loading;
-                loadTask = Task.Factory.StartNew(() => Load(target.Clock, target.Dependencies), TaskCreationOptions.LongRunning);
+                loadTask = Task.Factory.StartNew(() => Load(target.Clock, target.Dependencies, cancellation), cancellation, TaskCreationOptions.LongRunning, TaskScheduler.Current);
+                loadTaskCancellation = cancellation;
             }
 
             return (loadTask ?? Task.CompletedTask).ContinueWith(task => game.Schedule(() =>
@@ -154,7 +164,7 @@ namespace osu.Framework.Graphics
 
                 onLoaded?.Invoke();
                 loadTask = null;
-            }));
+            }), cancellation);
         }
 
         private static readonly StopwatchClock perf = new StopwatchClock(true);
@@ -178,7 +188,8 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="clock">The clock we should use by default.</param>
         /// <param name="dependencies">The dependency tree we will inherit by default. May be extended via <see cref="CreateChildDependencies"/></param>
-        internal void Load(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies)
+        /// <param name="cancellation">An optional cancellation token.</param>
+        internal void Load(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies, CancellationToken? cancellation = null)
         {
             // Blocks when loading from another thread already.
             double t0 = perf.CurrentTime;
@@ -207,10 +218,23 @@ namespace osu.Framework.Graphics
 
                 double t1 = perf.CurrentTime;
 
+                if (cancellation != null)
+                {
+                    var cancellationDep = new DependencyContainer(dependencies);
+                    cancellationDep.CacheValueAs(cancellation.Value);
+                    dependencies = cancellationDep;
+                }
+
                 // get our dependencies from our parent, but allow local overriding of our inherited dependency container
                 Dependencies = CreateChildDependencies(dependencies);
 
-                dependencies.Inject(this);
+                try
+                {
+                    dependencies.Inject(this);
+                }
+                catch (OperationCanceledException)
+                {
+                }
 
                 LoadAsyncComplete();
 
@@ -2387,7 +2411,7 @@ namespace osu.Framework.Graphics
         NotLoaded,
         /// <summary>
         /// Currently loading (possibly and usually on a background
-        /// thread via <see cref="Drawable.LoadAsync(Game, Drawable, Action)"/>).
+        /// thread via <see cref="Drawable.LoadAsync(Game,Drawable,CancellationToken,Action)"/>).
         /// </summary>
         Loading,
         /// <summary>
