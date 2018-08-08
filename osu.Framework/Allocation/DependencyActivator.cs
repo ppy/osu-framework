@@ -107,6 +107,19 @@ namespace osu.Framework.Allocation
     }
 
     /// <summary>
+    /// Occurs when a field was attempted to be cached with an unacceptable access modifier.
+    /// Fields can only be cached if they're private OR readonly public/protected/internal.
+    /// </summary>
+    public class AccessModifierNotAllowedForCachedValueException : InvalidOperationException
+    {
+        public AccessModifierNotAllowedForCachedValueException(AccessModifier modifier, Type type, string field)
+            : base($"The access modifier(s) [ {modifier.ToString()} ] are not allowed on \"{type.ReadableName()}.{field}\". "
+                   + "Cached fields must be private OR readonly.")
+        {
+        }
+    }
+
+    /// <summary>
     /// Occurs when dependencies dependency injection into a <see cref="Drawable"/> fails.
     /// </summary>
     internal class DependencyInjectionException : Exception
