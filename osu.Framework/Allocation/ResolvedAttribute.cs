@@ -31,7 +31,7 @@ namespace osu.Framework.Allocation
 
         internal static InjectDependencyDelegate CreateActivator(Type type)
         {
-            var activators = new List<Action<object, DependencyContainer>>();
+            var activators = new List<Action<object, IReadOnlyDependencyContainer>>();
 
             var properties = type.GetProperties(activator_flags).Where(f => f.GetCustomAttribute<ResolvedAttribute>() != null);
             foreach (var property in properties)
@@ -52,7 +52,7 @@ namespace osu.Framework.Allocation
             return (target, dc) => activators.ForEach(a => a(target, dc));
         }
 
-        private static Func<DependencyContainer, object> getDependency(Type type, Type requestingType, bool permitNulls) => dc =>
+        private static Func<IReadOnlyDependencyContainer, object> getDependency(Type type, Type requestingType, bool permitNulls) => dc =>
         {
             var val = dc.Get(type);
             if (val == null && !permitNulls)

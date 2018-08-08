@@ -159,6 +159,6 @@ namespace osu.Framework.Allocation
         public ExceptionDispatchInfo DispatchInfo;
     }
 
-    internal delegate void InjectDependencyDelegate(object target, DependencyContainer dependencies);
+    internal delegate void InjectDependencyDelegate(object target, IReadOnlyDependencyContainer dependencies);
     internal delegate IReadOnlyDependencyContainer CacheDependencyDelegate(object target, IReadOnlyDependencyContainer existingDependencies);
 }

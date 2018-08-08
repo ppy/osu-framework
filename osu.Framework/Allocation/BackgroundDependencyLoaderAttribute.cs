@@ -78,7 +78,7 @@ namespace osu.Framework.Allocation
             }
         }
 
-        private static Func<DependencyContainer, object> getDependency(Type type, Type requestingType, bool permitNulls) => dc =>
+        private static Func<IReadOnlyDependencyContainer, object> getDependency(Type type, Type requestingType, bool permitNulls) => dc =>
         {
             var val = dc.Get(type);
             if (val == null && !permitNulls)
