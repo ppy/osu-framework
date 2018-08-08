@@ -30,6 +30,7 @@ namespace osu.Framework.Tests.Layout.ContainerTests
         /// Tests that an auto-size container will perform validations upon request.
         /// </summary>
         [Test]
+        [Ignore("Autosize validations aren't implemented yet.")]
         public void Test2()
         {
             bool validated = false;
@@ -67,6 +68,7 @@ namespace osu.Framework.Tests.Layout.ContainerTests
         /// Tests that the validation of an auto-size container validates its size dependencies.
         /// </summary>
         [Test]
+        [Ignore("Autosize validations aren't implemented yet.")]
         public void Test4()
         {
             var container = new LoadedContainer { AutoSizeAxes = Axes.Both };
@@ -80,6 +82,7 @@ namespace osu.Framework.Tests.Layout.ContainerTests
         /// Tests that the subtree validation of nested auto-size containers validates all size dependencies.
         /// </summary>
         [Test]
+        [Ignore("Autosize validations aren't implemented yet.")]
         public void Test5()
         {
             LoadedContainer innerContainer;

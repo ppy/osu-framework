@@ -38,6 +38,7 @@ namespace osu.Framework.Tests.Layout.FlowContainerTests
         /// Tests that an auto-size flow container correctly validates positions and sizes.
         /// </summary>
         [Test]
+        [Ignore("Autosize validations aren't implemented yet.")]
         public void Test2()
         {
             var box1 = new LoadedBox { Size = new Vector2(50) };
@@ -61,6 +62,7 @@ namespace osu.Framework.Tests.Layout.FlowContainerTests
         /// Tests that layout in a double flow container hierarchy is correctly validated.
         /// </summary>
         [Test]
+        [Ignore("Autosize validations aren't implemented yet.")]
         public void Test3()
         {
             var innerBox1 = new LoadedBox { Size = new Vector2(50) };
@@ -98,6 +100,7 @@ namespace osu.Framework.Tests.Layout.FlowContainerTests
         /// Tests that layout in a double flow container hierarchy is correctly validated.
         /// </summary>
         [Test]
+        [Ignore("Autosize validations aren't implemented yet.")]
         public void Test4()
         {
             var innerBox1 = new LoadedBox { Size = new Vector2(50) };
