@@ -141,6 +141,17 @@ namespace osu.Framework.Allocation
     }
 
     /// <summary>
+    /// Occurs when the setter of a property with an attached <see cref="ResolvedAttribute"/> isn't private.
+    /// </summary>
+    public class AccessModifierNotAllowedForPropertySetterException : AccessModifierNotAllowedForMemberException
+    {
+        public AccessModifierNotAllowedForPropertySetterException(AccessModifier modifier, MemberInfo member)
+            : base(modifier, member, $"A property with an attached {nameof(ResolvedAttribute)} must have a private setter.")
+        {
+        }
+    }
+
+    /// <summary>
     /// Occurs when dependencies dependency injection into a <see cref="Drawable"/> fails.
     /// </summary>
     internal class DependencyInjectionException : Exception

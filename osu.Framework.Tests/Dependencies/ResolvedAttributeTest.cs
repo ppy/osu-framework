@@ -59,6 +59,46 @@ namespace osu.Framework.Tests.Dependencies
             Assert.AreEqual(testObject, receiver.Obj2);
         }
 
+        [Test]
+        public void TestInvalidPublicAccessor()
+        {
+            var receiver = new Receiver5();
+
+            Assert.Throws<AccessModifierNotAllowedForPropertySetterException>(() => createDependencies().Inject(receiver));
+        }
+
+        [Test]
+        public void TestInvalidExplicitProtectedAccessor()
+        {
+            var receiver = new Receiver6();
+
+            Assert.Throws<AccessModifierNotAllowedForPropertySetterException>(() => createDependencies().Inject(receiver));
+        }
+
+        [Test]
+        public void TestInvalidExplicitPrivateAccessor()
+        {
+            var receiver = new Receiver7();
+
+            Assert.Throws<AccessModifierNotAllowedForPropertySetterException>(() => createDependencies().Inject(receiver));
+        }
+
+        [Test]
+        public void TestExplicitPrivateAccessor()
+        {
+            var receiver = new Receiver8();
+
+            Assert.DoesNotThrow(() => createDependencies().Inject(receiver));
+        }
+
+        [Test]
+        public void TestExplicitInvalidProtectedInternalAccessor()
+        {
+            var receiver = new Receiver9();
+
+            Assert.Throws<AccessModifierNotAllowedForPropertySetterException>(() => createDependencies().Inject(receiver));
+        }
+
         private DependencyContainer createDependencies(params object[] toCache)
         {
             var dependencies = new DependencyContainer();
@@ -105,10 +145,33 @@ namespace osu.Framework.Tests.Dependencies
 
         private class Receiver5
         {
-            [Resolved]
-            private BaseObject obj { get; set; }
+            [Resolved(CanBeNull = true)]
+            public BaseObject Obj { get; set; }
+        }
 
-            public BaseObject Obj => obj;
+        private class Receiver6
+        {
+            [Resolved(CanBeNull = true)]
+            public BaseObject Obj { get; protected set; }
+        }
+
+        private class Receiver7
+        {
+            [Resolved(CanBeNull = true)]
+            public BaseObject Obj { get; internal set; }
+        }
+
+        private class Receiver8
+        {
+            [Resolved(CanBeNull = true)]
+            public BaseObject Obj { get; private set; }
+        }
+
+        private class Receiver9
+        {
+            [Resolved(CanBeNull = true)]
+            public BaseObject Obj { get; protected internal set; }
+        }
         }
     }
 }

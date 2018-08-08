@@ -22,7 +22,7 @@ namespace osu.Framework.Allocation
     [AttributeUsage(AttributeTargets.Property)]
     public class ResolvedAttribute : Attribute
     {
-        private const BindingFlags activator_flags = BindingFlags.NonPublic | BindingFlags.Instance;
+        private const BindingFlags activator_flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
 
         /// <summary>
         /// Whether a null value can be accepted if the value does not exist in the cache.
@@ -38,6 +38,10 @@ namespace osu.Framework.Allocation
             {
                 if (!property.CanWrite)
                     throw new PropertyNotWritableException(type, property.Name);
+
+                var modifier = property.SetMethod.GetAccessModifier();
+                if (modifier != AccessModifier.Private)
+                    throw new AccessModifierNotAllowedForPropertySetterException(modifier, property);
 
                 var attribute = property.GetCustomAttribute<ResolvedAttribute>();
                 var fieldGetter = getDependency(property.PropertyType, type, attribute.CanBeNull);
