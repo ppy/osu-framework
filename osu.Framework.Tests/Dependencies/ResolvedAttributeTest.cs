@@ -99,6 +99,14 @@ namespace osu.Framework.Tests.Dependencies
             Assert.Throws<AccessModifierNotAllowedForPropertySetterException>(() => createDependencies().Inject(receiver));
         }
 
+        [Test]
+        public void TestNoSetter()
+        {
+            var receiver = new Receiver10();
+
+            Assert.Throws<PropertyNotWritableException>(() => createDependencies().Inject(receiver));
+        }
+
         private DependencyContainer createDependencies(params object[] toCache)
         {
             var dependencies = new DependencyContainer();
@@ -172,6 +180,11 @@ namespace osu.Framework.Tests.Dependencies
             [Resolved(CanBeNull = true)]
             public BaseObject Obj { get; protected internal set; }
         }
+
+        private class Receiver10
+        {
+            [Resolved(CanBeNull = true)]
+            public BaseObject Obj { get; }
         }
     }
 }
