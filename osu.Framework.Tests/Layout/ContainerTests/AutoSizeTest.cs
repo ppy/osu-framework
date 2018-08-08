@@ -19,7 +19,7 @@ namespace osu.Framework.Tests.Layout.ContainerTests
         /// Tests that an auto-sized container invalidates its size dependencies when a child is added.
         /// </summary>
         [Test]
-        public void Test1()
+        public void TestAutoSizeInvalidatesWhenChildAdded()
         {
             var container = new TestContainer
             {
@@ -43,7 +43,7 @@ namespace osu.Framework.Tests.Layout.ContainerTests
         /// Tests that an auto-sized container invalidates its size dependencies when a child is removed.
         /// </summary>
         [Test]
-        public void Test2()
+        public void TestAutoSizeInvalidatesWhenChildRemoved()
         {
             Box box;
             var container = new TestContainer
@@ -68,7 +68,7 @@ namespace osu.Framework.Tests.Layout.ContainerTests
         /// Tests that an auto-sized container invalidates its size dependencies when a child performs an <see cref="Invalidation.All"/> invalidation.
         /// </summary>
         [Test]
-        public void Test3()
+        public void TestAutoSizeInvalidatesWhenChildInvalidates()
         {
             Box child;
             var container = new TestContainer
@@ -97,7 +97,7 @@ namespace osu.Framework.Tests.Layout.ContainerTests
         /// <param name="newValue">The value which the target property should take on.</param>
         /// <param name="unobservedProperties">Any properties which should be set but should NOT be taken into account for the test.</param>
         [TestCaseSource(nameof(child_property_cases))]
-        public void Test4(string propertyName, object newValue, params KeyValuePair<string, object>[] unobservedProperties)
+        public void TestAutoSizeInvalidatedWhenChildChanges(string propertyName, object newValue, params KeyValuePair<string, object>[] unobservedProperties)
         {
             Box child;
             var container = new TestContainer
@@ -126,7 +126,7 @@ namespace osu.Framework.Tests.Layout.ContainerTests
         /// Tests that only the most-nested auto-size container invalidates when its child performs a<see cref="Invalidation.RequiredParentSizeToFit"/> invalidation.
         /// </summary>
         [Test]
-        public void Test5()
+        public void TestOnlyMostNestedAutoSizeIsInvalidated()
         {
             Box child;
             TestContainer innerContainer;
@@ -157,7 +157,7 @@ namespace osu.Framework.Tests.Layout.ContainerTests
         /// Tests that autosize layout is validated when its <see cref="CompositeDrawable.Width"/> or <see cref="CompositeDrawable.Height"/> are referenced.
         /// </summary>
         [Test]
-        public void Test6()
+        public void TestAutoSizeValidatedWhenSizeReferenced()
         {
             const float expected_size = 10;
 
@@ -185,7 +185,7 @@ namespace osu.Framework.Tests.Layout.ContainerTests
         /// Tests that nested autosize layout is validated when an autosizing parent's <see cref="CompositeDrawable.Width"/> or <see cref="CompositeDrawable.Height"/> are referenced.
         /// </summary>
         [Test]
-        public void Test7()
+        public void TestAutoSizeValidatedWhenSizeReferenced2()
         {
             const float expected_size = 10;
 

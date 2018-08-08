@@ -12,7 +12,7 @@ namespace osu.Framework.Tests.Layout.NonContainerTests
         /// Tests that a box will never perform validations.
         /// </summary>
         [Test]
-        public void Test1()
+        public void TestBoxNeverValidates()
         {
             bool validated = false;
             var box = new TestBox { LayoutValidated = () => validated = true };

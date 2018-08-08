@@ -16,7 +16,7 @@ namespace osu.Framework.Tests.Layout.FlowContainerTests
         /// Tests that a fixed-size flow container correctly validates positions.
         /// </summary>
         [Test]
-        public void Test1()
+        public void TestFixedSizeValidatesLayout()
         {
             var box1 = new Box { Size = new Vector2(50) };
             var box2 = new Box { Size = new Vector2(50) };
@@ -41,7 +41,7 @@ namespace osu.Framework.Tests.Layout.FlowContainerTests
         /// Tests that an auto-size flow container correctly validates positions and sizes.
         /// </summary>
         [Test]
-        public void Test2()
+        public void TestAutoSizeValidatesLayoutAndSize()
         {
             var box1 = new Box { Size = new Vector2(50) };
             var box2 = new Box { Size = new Vector2(50) };
@@ -68,7 +68,7 @@ namespace osu.Framework.Tests.Layout.FlowContainerTests
         /// Tests that layout in a double flow container hierarchy is correctly validated.
         /// </summary>
         [Test]
-        public void Test3()
+        public void TestNestedFlowValidatesLayoutsAndSizes()
         {
             var innerBox1 = new Box { Size = new Vector2(50) };
             var innerBox2 = new Box { Size = new Vector2(50) };

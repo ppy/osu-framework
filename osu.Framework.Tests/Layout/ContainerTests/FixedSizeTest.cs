@@ -13,7 +13,7 @@ namespace osu.Framework.Tests.Layout.ContainerTests
         /// Tests that a fixed size container does not invalidate its size dependencies when a child is added.
         /// </summary>
         [Test]
-        public void Test1()
+        public void TestFixedSizeNeverInvalidatesWhenChildAdded()
         {
             var container = new TestContainer();
 
@@ -33,7 +33,7 @@ namespace osu.Framework.Tests.Layout.ContainerTests
         /// Tests that a fixed-size container does not invalidate its size dependencies when a child is removed.
         /// </summary>
         [Test]
-        public void Test2()
+        public void TestFixedSizeNeverInvalidatesWhenChildRemoved()
         {
             Box child;
             var container = new TestContainer { Child = child = new Box() };
