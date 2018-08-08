@@ -33,6 +33,12 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected IEnumerable<DropdownMenuItem<T>> MenuItems => itemMap.Values;
 
+        public float MenuHeight
+        {
+            get => Menu.Height;
+            set => Menu.Height = value;
+        }
+
         /// <summary>
         /// Generate menu items by <see cref="KeyValuePair{TKey, TValue}"/>.
         /// The <see cref="KeyValuePair{TKey, TValue}.Key"/> part will become <see cref="MenuItem.Text"/>,
@@ -123,8 +129,6 @@ namespace osu.Framework.Graphics.UserInterface
                 Menu = CreateMenu()
             };
 
-            Menu.RelativeSizeAxes = Axes.X;
-
             Header.Action = Menu.Toggle;
             Current.ValueChanged += selectionChanged;
         }
@@ -200,6 +204,12 @@ namespace osu.Framework.Graphics.UserInterface
         {
             public DropdownMenu()
                 : base(Direction.Vertical)
+            {
+                RelativeSizeAxes = Axes.X;
+                Height = 200;
+            }
+
+            protected override void UpdateAfterChildren()
             {
             }
 
