@@ -2,15 +2,12 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using NUnit.Framework;
-using osu.Framework.Caching;
-using osu.Framework.Graphics;
-using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 
 namespace osu.Framework.Tests.Layout.ContainerTests
 {
     [TestFixture]
-    public class FixedSizeTest
+    public class FixedSizeTest : LayoutTest
     {
         /// <summary>
         /// Tests that a fixed size container does not invalidate its size dependencies when a child is added.
@@ -18,12 +15,18 @@ namespace osu.Framework.Tests.Layout.ContainerTests
         [Test]
         public void Test1()
         {
-            var container = new LoadedContainer();
+            var container = new TestContainer();
 
-            container.ValidateChildrenSizeDependencies();
+            Run(container, i =>
+            {
+                if (i == 0)
+                    return false;
 
-            container.Add(new LoadedBox());
-            Assert.IsTrue(container.ChildrenSizeDependencies.IsValid, "container should not have been invalidated");
+                container.Add(new Box());
+                Assert.IsTrue(container.ChildrenSizeDependencies.IsValid, "container should not have been invalidated");
+
+                return true;
+            });
         }
 
         /// <summary>
@@ -32,34 +35,19 @@ namespace osu.Framework.Tests.Layout.ContainerTests
         [Test]
         public void Test2()
         {
-            LoadedBox child;
-            var container = new LoadedContainer { Child = child = new LoadedBox() };
+            Box child;
+            var container = new TestContainer { Child = child = new Box() };
 
-            container.ValidateChildrenSizeDependencies();
-
-            container.Remove(child);
-            Assert.IsTrue(container.ChildrenSizeDependencies.IsValid, "container should not have been invalidated");
-        }
-
-        private class LoadedContainer : Container
-        {
-            public Cached ChildrenSizeDependencies => this.Get<Cached>("childrenSizeDependencies");
-            public void ValidateChildrenSizeDependencies() => this.Validate("childrenSizeDependencies");
-
-            public LoadedContainer()
+            Run(container, i =>
             {
-                // These tests are running without a gamehost, but we need to fake ourselves to be loaded
-                this.Set("loadState", LoadState.Loaded);
-            }
-        }
+                if (i == 0)
+                    return false;
 
-        private class LoadedBox : Box
-        {
-            public LoadedBox()
-            {
-                // These tests are running without a gamehost, but we need to fake ourselves to be loaded
-                this.Set("loadState", LoadState.Loaded);
-            }
+                container.Remove(child);
+                Assert.IsTrue(container.ChildrenSizeDependencies.IsValid, "container should not have been invalidated");
+
+                return true;
+            });
         }
     }
 }

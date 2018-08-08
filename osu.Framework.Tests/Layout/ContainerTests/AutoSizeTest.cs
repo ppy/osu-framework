@@ -3,7 +3,6 @@
 
 using System.Collections.Generic;
 using NUnit.Framework;
-using osu.Framework.Caching;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
@@ -14,7 +13,7 @@ using OpenTK.Graphics;
 namespace osu.Framework.Tests.Layout.ContainerTests
 {
     [TestFixture]
-    public class AutoSizeTest
+    public class AutoSizeTest : LayoutTest
     {
         /// <summary>
         /// Tests that an auto-sized container invalidates its size dependencies when a child is added.
@@ -22,9 +21,22 @@ namespace osu.Framework.Tests.Layout.ContainerTests
         [Test]
         public void Test1()
         {
-            var container = new LoadedContainer { Child = new LoadedBox() };
+            var container = new TestContainer
+            {
+                AutoSizeAxes = Axes.Both,
+                Child = new Box()
+            };
 
-            Assert.IsFalse(container.ChildrenSizeDependencies.IsValid, "container should have been invalidated");
+            Run(container, i =>
+            {
+                if (i == 0)
+                    return false;
+
+                container.Add(new Box());
+                Assert.IsFalse(container.ChildrenSizeDependencies.IsValid, "container should have been invalidated");
+
+                return true;
+            });
         }
 
         /// <summary>
@@ -33,13 +45,23 @@ namespace osu.Framework.Tests.Layout.ContainerTests
         [Test]
         public void Test2()
         {
-            LoadedBox box;
-            var container = new LoadedContainer { Child = box = new LoadedBox() };
+            Box box;
+            var container = new TestContainer
+            {
+                AutoSizeAxes = Axes.Both,
+                Child = box = new Box()
+            };
 
-            container.ValidateChildrenSizeDependencies();
+            Run(container, i =>
+            {
+                if (i == 0)
+                    return false;
 
-            container.Remove(box);
-            Assert.IsFalse(container.ChildrenSizeDependencies.IsValid, "container should have been invalidated");
+                container.Remove(box);
+                Assert.IsFalse(container.ChildrenSizeDependencies.IsValid, "container should have been invalidated");
+
+                return true;
+            });
         }
 
         /// <summary>
@@ -48,13 +70,23 @@ namespace osu.Framework.Tests.Layout.ContainerTests
         [Test]
         public void Test3()
         {
-            LoadedBox child;
-            var container = new LoadedContainer { Child = child = new LoadedBox() };
+            Box child;
+            var container = new TestContainer
+            {
+                AutoSizeAxes = Axes.Both,
+                Child = child = new Box()
+            };
 
-            container.ValidateChildrenSizeDependencies();
+            Run(container, i =>
+            {
+                if (i == 0)
+                    return false;
 
-            child.Invalidate();
-            Assert.IsFalse(container.ChildrenSizeDependencies.IsValid, "container should have been invalidated");
+                child.Invalidate();
+                Assert.IsFalse(container.ChildrenSizeDependencies.IsValid, "container should have been invalidated");
+
+                return true;
+            });
         }
 
         /// <summary>
@@ -67,17 +99,27 @@ namespace osu.Framework.Tests.Layout.ContainerTests
         [TestCaseSource(nameof(child_property_cases))]
         public void Test4(string propertyName, object newValue, params KeyValuePair<string, object>[] unobservedProperties)
         {
-            LoadedBox child;
-            var container = new LoadedContainer { Child = child = new LoadedBox { Alpha = 0 } };
+            Box child;
+            var container = new TestContainer
+            {
+                AutoSizeAxes = Axes.Both,
+                Child = child = new Box { Alpha = 0 }
+            };
 
             if (unobservedProperties != null)
                 foreach (var kvp in unobservedProperties)
                     child.Set(kvp.Key, kvp.Value);
 
-            container.ValidateChildrenSizeDependencies();
+            Run(container, i =>
+            {
+                if (i == 0)
+                    return false;
 
-            child.Set(propertyName, newValue);
-            Assert.IsFalse(container.ChildrenSizeDependencies.IsValid, "container should have been invalidated");
+                child.Set(propertyName, newValue);
+                Assert.IsFalse(container.ChildrenSizeDependencies.IsValid, "container should have been invalidated");
+
+                return true;
+            });
         }
 
         /// <summary>
@@ -86,19 +128,29 @@ namespace osu.Framework.Tests.Layout.ContainerTests
         [Test]
         public void Test5()
         {
-            LoadedBox child;
-            LoadedContainer innerContainer;
-            var outerContainer = new LoadedContainer
+            Box child;
+            TestContainer innerContainer;
+            var outerContainer = new TestContainer
             {
-                Child = innerContainer = new LoadedContainer { Child = child = new LoadedBox() }
+                AutoSizeAxes = Axes.Both,
+                Child = innerContainer = new TestContainer
+                {
+                    AutoSizeAxes = Axes.Both,
+                    Child = child = new Box()
+                }
             };
 
-            outerContainer.ValidateChildrenSizeDependencies();
-            innerContainer.ValidateChildrenSizeDependencies();
+            Run(outerContainer, i =>
+            {
+                if (i == 0)
+                    return false;
 
-            child.Width = 10;
-            Assert.IsTrue(outerContainer.ChildrenSizeDependencies.IsValid, "invalidation should not propagate to outer container");
-            Assert.IsFalse(innerContainer.ChildrenSizeDependencies.IsValid, "inner container should have been invalidated");
+                child.Width = 10;
+                Assert.IsTrue(outerContainer.ChildrenSizeDependencies.IsValid, "invalidation should not propagate to outer container");
+                Assert.IsFalse(innerContainer.ChildrenSizeDependencies.IsValid, "inner container should have been invalidated");
+
+                return true;
+            });
         }
 
         /// <summary>
@@ -109,18 +161,24 @@ namespace osu.Framework.Tests.Layout.ContainerTests
         {
             const float expected_size = 10;
 
-            LoadedBox child;
-            var container = new LoadedContainer
+            Box child;
+            var container = new TestContainer
             {
                 AutoSizeAxes = Axes.Both,
-                Child = child = new LoadedBox()
+                Child = child = new Box()
             };
 
-            container.UpdateChildrenLife();
+            Run(container, i =>
+            {
+                if (i == 0)
+                    return false;
 
-            child.Size = new Vector2(expected_size);
-            Assert.AreEqual(new Vector2(10), container.Size);
-            Assert.IsTrue(container.ChildrenSizeDependencies.IsValid, "container should be validated");
+                child.Size = new Vector2(expected_size);
+                Assert.AreEqual(new Vector2(10), container.Size);
+                Assert.IsTrue(container.ChildrenSizeDependencies.IsValid, "container should be validated");
+
+                return true;
+            });
         }
 
         /// <summary>
@@ -131,25 +189,31 @@ namespace osu.Framework.Tests.Layout.ContainerTests
         {
             const float expected_size = 10;
 
-            LoadedBox child;
-            LoadedContainer innerContainer;
-            var container = new LoadedContainer
+            Box child;
+            TestContainer innerContainer;
+            var container = new TestContainer
             {
                 AutoSizeAxes = Axes.Both,
-                Child = innerContainer = new LoadedContainer
+                Child = innerContainer = new TestContainer
                 {
                     AutoSizeAxes = Axes.Both,
-                    Child = child = new LoadedBox()
+                    Child = child = new Box()
                 }
             };
 
-            innerContainer.UpdateChildrenLife();
-            container.UpdateChildrenLife();
+            Run(container, i =>
+            {
+                if (i == 0)
+                    return false;
 
-            child.Size = new Vector2(expected_size);
-            Assert.AreEqual(new Vector2(10), container.Size);
-            Assert.IsTrue(container.ChildrenSizeDependencies.IsValid, "container should be validated");
-            Assert.IsTrue(innerContainer.ChildrenSizeDependencies.IsValid, "inner container should be validated");
+                child.Size = new Vector2(expected_size);
+                Assert.AreEqual(new Vector2(10), innerContainer.Size);
+                Assert.AreEqual(new Vector2(10), container.Size);
+                Assert.IsTrue(container.ChildrenSizeDependencies.IsValid, "container should be validated");
+                Assert.IsTrue(innerContainer.ChildrenSizeDependencies.IsValid, "inner container should be validated");
+
+                return true;
+            });
         }
 
         private static readonly object[] child_property_cases =
@@ -170,31 +234,5 @@ namespace osu.Framework.Tests.Layout.ContainerTests
             new object[] { nameof(Drawable.Rotation), 0.5f, null },
             new object[] { nameof(Drawable.Shear), Vector2.One, null },
         };
-
-        private class LoadedContainer : Container
-        {
-            public Cached ChildrenSizeDependencies => this.Get<Cached>("childrenSizeDependencies");
-            public void ValidateChildrenSizeDependencies() => this.Validate("childrenSizeDependencies");
-            public void InvalidateChildrenSizeDependencies() => this.Invalidate("childrenSizeDependencies");
-
-            public LoadedContainer()
-            {
-                AutoSizeAxes = Axes.Both;
-
-                // These tests are running without a gamehost, but we need to fake ourselves to be loaded
-                this.Set("loadState", LoadState.Loaded);
-            }
-
-            public new void UpdateChildrenLife() => base.UpdateChildrenLife();
-        }
-
-        private class LoadedBox : Box
-        {
-            public LoadedBox()
-            {
-                // These tests are running without a gamehost, but we need to fake ourselves to be loaded
-                this.Set("loadState", LoadState.Loaded);
-            }
-        }
     }
 }
