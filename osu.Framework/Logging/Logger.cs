@@ -279,28 +279,21 @@ namespace osu.Framework.Logging
 
             ensureHeader();
 
-            if (outputToListeners && DebugUtils.IsDebugBuild)
-            {
-                var debugLine = $"[{Target?.ToString().ToLower() ?? Name}:{level.ToString().ToLower()}] {message}";
-
-                // fire to all debug listeners (like visual studio's output window)
-                System.Diagnostics.Debug.Print(debugLine);
-
-                // fire for console displays (appveyor/CI).
-                Console.WriteLine(debugLine);
-            }
-
             message = ApplyFilters(message);
 
-            //split each line up.
-            string[] lines = message.Replace(@"\r\n", @"\n").Split('\n');
-            for (int i = 0; i < lines.Length; i++)
-            {
-                string s = lines[i];
-                lines[i] = $@"{DateTime.UtcNow.ToString(NumberFormatInfo.InvariantInfo)}: {s.Trim()}";
-            }
+            string logOutput = message;
+
+            if (exception != null)
+                // add exception output to console / logfile output (but not the LogEntry's message).
+                logOutput += $"\n{ApplyFilters(exception.ToString())}";
+
+            IEnumerable<string> lines = logOutput
+                                        .Replace(@"\r\n", @"\n")
+                                        .Split('\n')
+                                        .Select(s => $@"{DateTime.UtcNow.ToString(NumberFormatInfo.InvariantInfo)}: {s.Trim()}");
 
             if (outputToListeners)
+            {
                 NewEntry?.Invoke(new LogEntry
                 {
                     Level = level,
@@ -309,6 +302,21 @@ namespace osu.Framework.Logging
                     Message = message,
                     Exception = exception
                 });
+
+                if (DebugUtils.IsDebugBuild)
+                {
+                    foreach (var line in lines)
+                    {
+                        var debugLine = $"[{Target?.ToString().ToLower() ?? Name}:{level.ToString().ToLower()}] {line}";
+
+                        // fire to all debug listeners (like visual studio's output window)
+                        System.Diagnostics.Debug.Print(debugLine);
+
+                        // fire for console displays (appveyor/CI).
+                        Console.WriteLine(debugLine);
+                    }
+                }
+            }
 
             if (Target == LoggingTarget.Information)
                 // don't want to log this to a file
