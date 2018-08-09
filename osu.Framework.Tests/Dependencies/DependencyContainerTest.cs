@@ -130,9 +130,35 @@ namespace osu.Framework.Tests.Dependencies
             Assert.Throws<TypeAlreadyCachedException>(() => dependencies.Cache(testObject2));
         }
 
+        /// <summary>
+        /// Special case because "where T : class" also allows interfaces.
+        /// </summary>
+        [Test]
+        public void TestAttemptCacheStruct()
+        {
+            Assert.Throws<ArgumentException>(() => new DependencyContainer().Cache<IBaseInterface>(new BaseStructObject()));
+        }
+
+        /// <summary>
+        /// Special case because "where T : class" also allows interfaces.
+        /// </summary>
+        [Test]
+        public void TestAttemptCacheAsStruct()
+        {
+            Assert.Throws<ArgumentException>(() => new DependencyContainer().CacheAs<IBaseInterface>(new BaseStructObject()));
+        }
+
+        private interface IBaseInterface
+        {
+        }
+
         private class BaseObject
         {
             public int TestValue;
+        }
+
+        private struct BaseStructObject : IBaseInterface
+        {
         }
 
         private class DerivedObject : BaseObject
