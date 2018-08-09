@@ -44,7 +44,7 @@ namespace osu.Framework.Allocation
         /// </summary>
         /// <param name="type">The type to cache <paramref name="instance"/> as.</param>
         /// <param name="instance">The instance to cache. Must be or derive from <paramref name="type"/>.</param>
-        public void CacheAs(Type type, object instance)
+        public void CacheAs<T>(Type type, T instance) where T : class
         {
             if (instance == null)
                 throw new ArgumentNullException(nameof(instance));
