@@ -161,10 +161,7 @@ namespace osu.Framework.IO.Network
 
         public string ContentType;
 
-        protected virtual Stream CreateOutputStream()
-        {
-            return new MemoryStream();
-        }
+        protected virtual Stream CreateOutputStream() => new MemoryStream();
 
         public Stream ResponseStream;
 
@@ -224,9 +221,10 @@ namespace osu.Framework.IO.Network
         {
             if (Completed)
                 throw new InvalidOperationException($"The {nameof(WebRequest)} has already been run.");
+
             try
             {
-                await Task.Factory.StartNew(internalPerform, TaskCreationOptions.LongRunning);
+                await internalPerform();
             }
             catch (AggregateException ae)
             {
@@ -234,9 +232,9 @@ namespace osu.Framework.IO.Network
             }
         }
 
-        private void internalPerform()
+        private async Task internalPerform()
         {
-            using (abortToken = new CancellationTokenSource())
+            using (abortToken = abortToken ?? new CancellationTokenSource()) // don't recreate if already non-null. is used during retry logic.
             using (timeoutToken = new CancellationTokenSource())
             using (var linkedToken = CancellationTokenSource.CreateLinkedTokenSource(abortToken.Token, timeoutToken.Token))
             {
@@ -297,7 +295,7 @@ namespace osu.Framework.IO.Network
                                     formData.Add(byteContent, p.Key, p.Key);
                                 }
 
-                                postContent = formData.ReadAsStreamAsync().Result;
+                                postContent = await formData.ReadAsStreamAsync();
                             }
 
                             requestStream = new LengthTrackingStream(postContent);
@@ -323,7 +321,7 @@ namespace osu.Framework.IO.Network
 
                     using (request)
                     {
-                        response = client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, linkedToken.Token).Result;
+                        response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, linkedToken.Token);
 
                         ResponseStream = CreateOutputStream();
 
@@ -331,13 +329,13 @@ namespace osu.Framework.IO.Network
                         {
                             case HttpMethod.GET:
                                 //GETs are easy
-                                beginResponse(linkedToken.Token);
+                                await beginResponse(linkedToken.Token);
                                 break;
                             case HttpMethod.POST:
                                 reportForwardProgress();
                                 UploadProgress?.Invoke(0, contentLength);
 
-                                beginResponse(linkedToken.Token);
+                                await beginResponse(linkedToken.Token);
                                 break;
                         }
                     }
@@ -383,9 +381,9 @@ namespace osu.Framework.IO.Network
         {
         }
 
-        private void beginResponse(CancellationToken cancellationToken)
+        private async Task beginResponse(CancellationToken cancellationToken)
         {
-            using (var responseStream = response.Content.ReadAsStreamAsync().Result)
+            using (var responseStream = await response.Content.ReadAsStreamAsync())
             {
                 reportForwardProgress();
                 Started?.Invoke();
@@ -396,13 +394,13 @@ namespace osu.Framework.IO.Network
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    int read = responseStream.Read(buffer, 0, buffer_size);
+                    int read = await responseStream.ReadAsync(buffer, 0, buffer_size, cancellationToken);
 
                     reportForwardProgress();
 
                     if (read > 0)
                     {
-                        ResponseStream.Write(buffer, 0, read);
+                        await ResponseStream.WriteAsync(buffer, 0, read, cancellationToken);
                         responseBytesRead += read;
                         DownloadProgress?.Invoke(responseBytesRead, response.Content.Headers.ContentLength ?? responseBytesRead);
                     }
@@ -456,7 +454,7 @@ namespace osu.Framework.IO.Network
                     logger.Add($@"Request to {Url} failed with {e} (retrying {RetryCount}/{MAX_RETRIES}).");
 
                     //do a retry
-                    internalPerform();
+                    internalPerform().Wait();
                     return;
                 }
 
