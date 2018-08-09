@@ -34,12 +34,6 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected IEnumerable<DropdownMenuItem<T>> MenuItems => itemMap.Values;
 
-        public float MenuHeight
-        {
-            get => Menu.Height;
-            set => Menu.Height = Menu.ExcplicitHeight = value;
-        }
-
         /// <summary>
         /// Generate menu items by <see cref="KeyValuePair{TKey, TValue}"/>.
         /// The <see cref="KeyValuePair{TKey, TValue}.Key"/> part will become <see cref="MenuItem.Text"/>,
@@ -204,7 +198,13 @@ namespace osu.Framework.Graphics.UserInterface
         public class DropdownMenu : Menu
         {
             private const float default_height = 200;
-            internal float ExcplicitHeight = default_height;
+            private float excplicitHeight;
+
+            public override float Height
+            {
+                get => base.Height;
+                set => base.Height = excplicitHeight = value;
+            }
 
             public DropdownMenu()
                 : base(Direction.Vertical)
@@ -218,7 +218,7 @@ namespace osu.Framework.Graphics.UserInterface
                 if (!SizeCache.IsValid)
                 {
                     var calculatedHeight = MathHelper.Clamp(ItemsContainer.Height, 0, MaxHeight);
-                    Height = Math.Min(calculatedHeight, ExcplicitHeight);
+                    base.Height = Math.Min(calculatedHeight, excplicitHeight);
                     SizeCache.Validate();
                 }
 
