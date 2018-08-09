@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Threading;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 
@@ -146,6 +147,27 @@ namespace osu.Framework.Tests.Dependencies
         public void TestAttemptCacheAsStruct()
         {
             Assert.Throws<ArgumentException>(() => new DependencyContainer().CacheAs<IBaseInterface>(new BaseStructObject()));
+        }
+
+        /// <summary>
+        /// Special value type that remains internally consistent through copies.
+        /// </summary>
+        [Test]
+        public void TestCacheCancellationToken()
+        {
+            var source = new CancellationTokenSource();
+            var token = source.Token;
+
+            var dependencies = new DependencyContainer();
+
+            Assert.DoesNotThrow(() => dependencies.CacheValue(token));
+
+            var retrieved = dependencies.GetValue<CancellationToken>();
+
+            source.Cancel();
+
+            Assert.IsTrue(token.IsCancellationRequested);
+            Assert.IsTrue(retrieved.IsCancellationRequested);
         }
 
         private interface IBaseInterface

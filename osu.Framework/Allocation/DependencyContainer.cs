@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Threading;
 using osu.Framework.Extensions.TypeExtensions;
 
 namespace osu.Framework.Allocation
@@ -30,14 +31,14 @@ namespace osu.Framework.Allocation
         /// </summary>
         /// <param name="instance">The instance to cache.</param>
         public void Cache<T>(T instance) where T : class
-            => CacheAs(instance.GetType(), instance);
+            => CacheAs(instance.GetType(), instance, false);
 
         /// <summary>
         /// Caches an instance of a type as a type of <typeparamref name="T"/>. This instance will be returned each time you <see cref="Get(Type)"/>.
         /// </summary>
         /// <param name="instance">The instance to cache. Must be or derive from <typeparamref name="T"/>.</param>
         public void CacheAs<T>(T instance) where T : class
-            => CacheAs(typeof(T), instance);
+            => CacheAs(typeof(T), instance, false);
 
         /// <summary>
         /// Caches an instance of a type as a type of <paramref name="type"/>. This instance will be returned each time you <see cref="Get(Type)"/>.
@@ -45,13 +46,44 @@ namespace osu.Framework.Allocation
         /// <param name="type">The type to cache <paramref name="instance"/> as.</param>
         /// <param name="instance">The instance to cache. Must be or derive from <paramref name="type"/>.</param>
         public void CacheAs<T>(Type type, T instance) where T : class
+            => CacheAs(type, instance, false);
+
+        /// <summary>
+        /// Caches an instance of a type as its most derived type. This instance will be returned each time you <see cref="DependencyContainer.Get(Type)"/>.
+        /// </summary>
+        /// <remarks>
+        /// This should only be used when it is guaranteed that the internal state of the type will remain consistent through retrieval.
+        /// (e.g. <see cref="CancellationToken"/> or reference types).
+        /// </remarks>
+        /// <param name="instance">The instance to cache.</param>
+        internal void CacheValue<T>(T instance) => CacheAs(instance.GetType(), instance, true);
+
+        /// <summary>
+        /// Caches an instance of a type as a type of <typeparamref name="T"/>. This instance will be returned each time you <see cref="DependencyContainer.Get(Type)"/>.
+        /// </summary>
+        /// <remarks>
+        /// This should only be used when it is guaranteed that the internal state of the type will remain consistent through retrieval.
+        /// (e.g. <see cref="CancellationToken"/> or reference types).
+        /// </remarks>
+        /// <param name="instance">The instance to cache. Must be or derive from <typeparamref name="T"/>.</param>
+        internal void CacheValueAs<T>(T instance) => CacheAs(typeof(T), instance, true);
+
+        /// <summary>
+        /// Caches an instance of a type as a type of <paramref name="type"/>. This instance will be returned each time you <see cref="Get(Type)"/>.
+        /// </summary>
+        /// <param name="type">The type to cache <paramref name="instance"/> as.</param>
+        /// <param name="instance">The instance to cache. Must be or derive from <paramref name="type"/>.</param>
+        /// <param name="allowValueTypes">Whether value types are allowed to be cached.
+        /// This should only be used when it is guaranteed that the internal state of the type will remain consistent through retrieval.
+        /// (e.g. <see cref="CancellationToken"/> or reference types).</param>
+        internal void CacheAs(Type type, object instance, bool allowValueTypes)
         {
             if (instance == null)
                 throw new ArgumentNullException(nameof(instance));
 
             var instanceType = instance.GetType();
 
-            if (instanceType.IsValueType)
+            if (instanceType.IsValueType && !allowValueTypes)
                 throw new ArgumentException($"{instanceType.ReadableName()} must be a class to be cached as a dependency.", nameof(instance));
 
             if (!type.IsInstanceOfType(instance))

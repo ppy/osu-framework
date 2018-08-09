@@ -36,8 +36,11 @@ namespace osu.Framework.Allocation
         {
             var additionActivators = new List<Action<object, DependencyContainer>>();
 
+            // Types within the framework should be able to cache value types if they desire (e.g. cancellation tokens)
+            var allowValueTypes = type.Assembly == typeof(Drawable).Assembly;
+
             foreach (var attribute in type.GetCustomAttributes<CachedAttribute>())
-                additionActivators.Add((target, dc) => dc.CacheAs(attribute.Type ?? type, target));
+                additionActivators.Add((target, dc) => dc.CacheAs(attribute.Type ?? type, target, allowValueTypes));
 
             foreach (var field in type.GetFields(activator_flags).Where(f => f.GetCustomAttributes<CachedAttribute>().Any()))
             foreach (var attribute in field.GetCustomAttributes<CachedAttribute>())
@@ -45,7 +48,7 @@ namespace osu.Framework.Allocation
                 additionActivators.Add((target, dc) =>
                 {
                     var value = field.GetValue(target);
-                    dc.CacheAs(attribute.Type ?? value.GetType(), value);
+                    dc.CacheAs(attribute.Type ?? value.GetType(), value, allowValueTypes);
                 });
             }
 

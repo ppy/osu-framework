@@ -4,6 +4,7 @@
 using System;
 using NUnit.Framework;
 using osu.Framework.Allocation;
+using osu.Framework.Testing.Dependencies;
 
 namespace osu.Framework.Tests.Dependencies
 {
@@ -127,6 +128,19 @@ namespace osu.Framework.Tests.Dependencies
             var provider = new Provider12();
 
             Assert.Throws<ArgumentException>(() => DependencyActivator.MergeDependencies(provider, new DependencyContainer()));
+        }
+
+        /// <summary>
+        /// Tests caching a struct, where the providing type is within the osu.Framework assembly.
+        /// </summary>
+        [Test]
+        public void TestCacheStructInternal()
+        {
+            var provider = new CachedStructProvider();
+
+            var dependencies = DependencyActivator.MergeDependencies(provider, new DependencyContainer());
+
+            Assert.AreEqual(provider.CachedObject.Value, dependencies.GetValue<CachedStructProvider.Struct>().Value);
         }
 
         private interface IProvidedInterface1
