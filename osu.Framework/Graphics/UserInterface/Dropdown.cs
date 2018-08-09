@@ -5,10 +5,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Configuration;
-using osu.Framework.Graphics.Containers;
-using OpenTK.Graphics;
 using osu.Framework.Extensions.IEnumerableExtensions;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Input.States;
+using OpenTK;
+using OpenTK.Graphics;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -36,7 +37,7 @@ namespace osu.Framework.Graphics.UserInterface
         public float MenuHeight
         {
             get => Menu.Height;
-            set => Menu.Height = value;
+            set => Menu.Height = Menu.ExcplicitHeight = value;
         }
 
         /// <summary>
@@ -202,15 +203,26 @@ namespace osu.Framework.Graphics.UserInterface
         #region DropdownMenu
         public class DropdownMenu : Menu
         {
+            private const float default_height = 200;
+            internal float ExcplicitHeight = default_height;
+
             public DropdownMenu()
                 : base(Direction.Vertical)
             {
                 RelativeSizeAxes = Axes.X;
-                Height = 200;
+                Height = default_height;
             }
 
             protected override void UpdateAfterChildren()
             {
+                if (!SizeCache.IsValid)
+                {
+                    var calculatedHeight = MathHelper.Clamp(ItemsContainer.Height, 0, MaxHeight);
+                    Height = Math.Min(calculatedHeight, ExcplicitHeight);
+                    SizeCache.Validate();
+                }
+
+                base.UpdateAfterChildren();
             }
 
             /// <summary>

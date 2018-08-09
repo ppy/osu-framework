@@ -64,7 +64,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private readonly Box background;
 
-        private Cached sizeCache = new Cached();
+        protected Cached SizeCache = new Cached();
 
         private readonly Container<Menu> submenuContainer;
 
@@ -174,7 +174,7 @@ namespace osu.Framework.Graphics.UserInterface
                     return;
                 maxWidth = value;
 
-                sizeCache.Invalidate();
+                SizeCache.Invalidate();
             }
         }
 
@@ -191,7 +191,7 @@ namespace osu.Framework.Graphics.UserInterface
                     return;
                 maxHeight = value;
 
-                sizeCache.Invalidate();
+                SizeCache.Invalidate();
             }
         }
 
@@ -242,7 +242,7 @@ namespace osu.Framework.Graphics.UserInterface
                     break;
             }
 
-            sizeCache.Invalidate();
+            SizeCache.Invalidate();
         }
 
         /// <summary>
@@ -278,7 +278,7 @@ namespace osu.Framework.Graphics.UserInterface
         public bool Remove(MenuItem item)
         {
             bool result = ItemsContainer.RemoveAll(d => d.Item == item) > 0;
-            sizeCache.Invalidate();
+            SizeCache.Invalidate();
 
             return result;
         }
@@ -320,7 +320,7 @@ namespace osu.Framework.Graphics.UserInterface
         public override void InvalidateFromChild(Invalidation invalidation, Drawable source = null)
         {
             if ((invalidation & Invalidation.RequiredParentSizeToFit) > 0)
-                sizeCache.Invalidate();
+                SizeCache.Invalidate();
             base.InvalidateFromChild(invalidation, source);
         }
 
@@ -328,7 +328,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             base.UpdateAfterChildren();
 
-            if (!sizeCache.IsValid)
+            if (!SizeCache.IsValid)
             {
                 // Our children will be relatively-sized on the axis separate to the menu direction, so we need to compute
                 // that size ourselves, based on the content size of our children, to give them a valid relative size
@@ -349,7 +349,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 UpdateSize(new Vector2(width, height));
 
-                sizeCache.Validate();
+                SizeCache.Validate();
             }
         }
 
