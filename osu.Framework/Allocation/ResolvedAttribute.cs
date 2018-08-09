@@ -22,7 +22,7 @@ namespace osu.Framework.Allocation
     [AttributeUsage(AttributeTargets.Property)]
     public class ResolvedAttribute : Attribute
     {
-        private const BindingFlags activator_flags = BindingFlags.NonPublic | BindingFlags.Instance;
+        private const BindingFlags activator_flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly;
 
         /// <summary>
         /// Whether a null value can be accepted if the value does not exist in the cache.
@@ -31,13 +31,17 @@ namespace osu.Framework.Allocation
 
         internal static InjectDependencyDelegate CreateActivator(Type type)
         {
-            var activators = new List<Action<object, DependencyContainer>>();
+            var activators = new List<Action<object, IReadOnlyDependencyContainer>>();
 
             var properties = type.GetProperties(activator_flags).Where(f => f.GetCustomAttribute<ResolvedAttribute>() != null);
             foreach (var property in properties)
             {
                 if (!property.CanWrite)
                     throw new PropertyNotWritableException(type, property.Name);
+
+                var modifier = property.SetMethod.GetAccessModifier();
+                if (modifier != AccessModifier.Private)
+                    throw new AccessModifierNotAllowedForPropertySetterException(modifier, property);
 
                 var attribute = property.GetCustomAttribute<ResolvedAttribute>();
                 var fieldGetter = getDependency(property.PropertyType, type, attribute.CanBeNull);
@@ -48,7 +52,7 @@ namespace osu.Framework.Allocation
             return (target, dc) => activators.ForEach(a => a(target, dc));
         }
 
-        private static Func<DependencyContainer, object> getDependency(Type type, Type requestingType, bool permitNulls) => dc =>
+        private static Func<IReadOnlyDependencyContainer, object> getDependency(Type type, Type requestingType, bool permitNulls) => dc =>
         {
             var val = dc.Get(type);
             if (val == null && !permitNulls)
