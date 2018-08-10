@@ -9,39 +9,6 @@ namespace osu.Framework.Tests.Layout
 {
     internal static class ValidationTestExtensions
     {
-        public static void Validate(this Drawable d, string cachedMemberName)
-        {
-            var obj = Get<object>(d, cachedMemberName);
-
-            // ReSharper disable once PossibleNullReferenceException
-            obj.GetType().GetField("isValid", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(obj, true);
-
-            Set(d, cachedMemberName, obj);
-        }
-
-        public static void Validate<T>(this Drawable d, string cachedMemberName, T value)
-        {
-            var obj = Get<object>(d, cachedMemberName);
-
-            // ReSharper disable once PossibleNullReferenceException
-            obj.GetType().GetField("isValid", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(obj, true);
-
-            // ReSharper disable once PossibleNullReferenceException
-            obj.GetType().GetField("value", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(obj, value);
-
-            Set(d, cachedMemberName, obj);
-        }
-
-        public static void Invalidate(this Drawable d, string cachedMemberName)
-        {
-            var obj = Get<object>(d, cachedMemberName);
-
-            // ReSharper disable once PossibleNullReferenceException
-            obj.GetType().GetField("isValid", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(obj, false);
-
-            Set(d, cachedMemberName, obj);
-        }
-
         public static T Get<T>(this Drawable d, string fieldOrPropertyName, Type searchType = null)
         {
             Type type = searchType ?? d.GetType();
@@ -88,26 +55,6 @@ namespace osu.Framework.Tests.Layout
             }
 
             throw new Exception($"The property or field {fieldOrPropertyName} could not be reflected.");
-        }
-
-        public static void Invoke(this Drawable d, string methodName, params object[] args)
-        {
-            Type type = d.GetType();
-
-            while (type != typeof(object))
-            {
-                // ReSharper disable once PossibleNullReferenceException
-                var methodInfo = type.GetMethod(methodName, BindingFlags.NonPublic | BindingFlags.Instance);
-                if (methodInfo != null)
-                {
-                    methodInfo.Invoke(d, args);
-                    return;
-                }
-
-                type = type.BaseType;
-            }
-
-            throw new Exception($"The method {methodName} could not be reflected.");
         }
     }
 }
