@@ -3,6 +3,7 @@
 
 using NUnit.Framework;
 using osu.Framework.Allocation;
+using osu.Framework.Extensions.IEnumerableExtensions;
 
 namespace osu.Framework.Tests.Dependencies
 {
@@ -12,11 +13,9 @@ namespace osu.Framework.Tests.Dependencies
         [Test]
         public void TestInjectIntoNothing()
         {
-            var dependencies = new DependencyContainer();
-
             var receiver = new Receiver1();
 
-            dependencies.Inject(receiver);
+            createDependencies().Inject(receiver);
 
             Assert.AreEqual(null, receiver.Obj);
         }
@@ -24,14 +23,10 @@ namespace osu.Framework.Tests.Dependencies
         [Test]
         public void TestInjectIntoDependency()
         {
-            var testObject = new BaseObject();
-
-            var dependencies = new DependencyContainer();
-            dependencies.Cache(testObject);
-
             var receiver = new Receiver2();
 
-            dependencies.Inject(receiver);
+            BaseObject testObject;
+            createDependencies(testObject = new BaseObject()).Inject(receiver);
 
             Assert.AreEqual(testObject, receiver.Obj);
         }
@@ -39,37 +34,99 @@ namespace osu.Framework.Tests.Dependencies
         [Test]
         public void TestInjectNullIntoNonNull()
         {
-            var dependencies = new DependencyContainer();
-
             var receiver = new Receiver2();
 
-            Assert.Throws<DependencyNotRegisteredException>(() => dependencies.Inject(receiver));
+            Assert.Throws<DependencyNotRegisteredException>(() => createDependencies().Inject(receiver));
         }
 
         [Test]
         public void TestInjectNullIntoNullable()
         {
-            var dependencies = new DependencyContainer();
-
             var receiver = new Receiver3();
 
-            Assert.DoesNotThrow(() => dependencies.Inject(receiver));
+            Assert.DoesNotThrow(() => createDependencies().Inject(receiver));
         }
 
         [Test]
         public void TestInjectIntoSubClasses()
         {
-            var testObject = new BaseObject();
-
-            var dependencies = new DependencyContainer();
-            dependencies.Cache(testObject);
-
             var receiver = new Receiver4();
 
-            dependencies.Inject(receiver);
+            BaseObject testObject;
+            createDependencies(testObject = new BaseObject()).Inject(receiver);
 
             Assert.AreEqual(testObject, receiver.Obj);
             Assert.AreEqual(testObject, receiver.Obj2);
+        }
+
+        [Test]
+        public void TestInvalidPublicAccessor()
+        {
+            var receiver = new Receiver5();
+
+            Assert.Throws<AccessModifierNotAllowedForPropertySetterException>(() => createDependencies().Inject(receiver));
+        }
+
+        [Test]
+        public void TestInvalidExplicitProtectedAccessor()
+        {
+            var receiver = new Receiver6();
+
+            Assert.Throws<AccessModifierNotAllowedForPropertySetterException>(() => createDependencies().Inject(receiver));
+        }
+
+        [Test]
+        public void TestInvalidExplicitPrivateAccessor()
+        {
+            var receiver = new Receiver7();
+
+            Assert.Throws<AccessModifierNotAllowedForPropertySetterException>(() => createDependencies().Inject(receiver));
+        }
+
+        [Test]
+        public void TestExplicitPrivateAccessor()
+        {
+            var receiver = new Receiver8();
+
+            Assert.DoesNotThrow(() => createDependencies().Inject(receiver));
+        }
+
+        [Test]
+        public void TestExplicitInvalidProtectedInternalAccessor()
+        {
+            var receiver = new Receiver9();
+
+            Assert.Throws<AccessModifierNotAllowedForPropertySetterException>(() => createDependencies().Inject(receiver));
+        }
+
+        [Test]
+        public void TestNoSetter()
+        {
+            var receiver = new Receiver10();
+
+            Assert.Throws<PropertyNotWritableException>(() => createDependencies().Inject(receiver));
+        }
+
+        [Test]
+        public void TestWriteToBaseClassWithPublicProperty()
+        {
+            var receiver = new Receiver11();
+
+            BaseObject testObject;
+
+            var dependencies = createDependencies(testObject = new BaseObject());
+
+            Assert.DoesNotThrow(() => dependencies.Inject(receiver));
+            Assert.AreEqual(testObject, receiver.Obj);
+        }
+
+        private DependencyContainer createDependencies(params object[] toCache)
+        {
+            var dependencies = new DependencyContainer();
+
+            toCache?.ForEach(o => dependencies.Cache(o));
+
+            return dependencies;
         }
 
         private class BaseObject
@@ -109,10 +166,42 @@ namespace osu.Framework.Tests.Dependencies
 
         private class Receiver5
         {
-            [Resolved]
-            private BaseObject obj { get; set; }
+            [Resolved(CanBeNull = true)]
+            public BaseObject Obj { get; set; }
+        }
 
-            public BaseObject Obj => obj;
+        private class Receiver6
+        {
+            [Resolved(CanBeNull = true)]
+            public BaseObject Obj { get; protected set; }
+        }
+
+        private class Receiver7
+        {
+            [Resolved(CanBeNull = true)]
+            public BaseObject Obj { get; internal set; }
+        }
+
+        private class Receiver8
+        {
+            [Resolved(CanBeNull = true)]
+            public BaseObject Obj { get; private set; }
+        }
+
+        private class Receiver9
+        {
+            [Resolved(CanBeNull = true)]
+            public BaseObject Obj { get; protected internal set; }
+        }
+
+        private class Receiver10
+        {
+            [Resolved(CanBeNull = true)]
+            public BaseObject Obj { get; }
+        }
+
+        private class Receiver11 : Receiver8
+        {
         }
     }
 }
