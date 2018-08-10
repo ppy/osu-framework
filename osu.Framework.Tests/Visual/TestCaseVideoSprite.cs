@@ -37,6 +37,9 @@ namespace osu.Framework.Tests.Visual
                 videoSprite.ShowLastFrameDuringHideCutoff = true;
                 videoSprite.NumberOfPreloadedFrames = 180;
 
+                clock = new ManualClock();
+                videoSprite.Clock = new FramedClock(clock);
+
                 Add(timeText = new SpriteText { Text = "" });
 
                 AddStep("Jump ahead by 10 seconds", () => clock.CurrentTime += 10_000.0);
@@ -52,6 +55,9 @@ namespace osu.Framework.Tests.Visual
         protected override void Update()
         {
             base.Update();
+
+            if (clock != null)
+                clock.CurrentTime += Clock.ElapsedFrameTime;
 
             if (timeText != null)
                 timeText.Text = $"{videoSprite.PlaybackPosition:N2} / {videoSprite.Duration:N2}, Buffer-Frame {videoSprite.CurrentFrameIndex} / {videoSprite.AvailableFrames}, Current Frame Time: {videoSprite.CurrentFrameTime:N2}, Framerate: {videoSprite.FramesPerSecond}, Frame Time Range: {videoSprite.MinFrameTime:N2} - {videoSprite.MaxFrameTime:N2}";

@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Graphics.Textures;
-using System;
 
 namespace osu.Framework.Graphics.Video
 {

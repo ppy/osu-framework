@@ -32,7 +32,7 @@ namespace osu.Framework.Allocation
             this.maxAmountBuffers = maxAmountBuffers;
         }
 
-        private int totalUsage;
+        private volatile int totalUsage;
 
         private T[] findFreeBuffer(int minimumLength)
         {
