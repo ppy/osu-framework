@@ -83,12 +83,11 @@ namespace osu.Framework.Allocation
         /// (e.g. <see cref="CancellationToken"/> or reference types).</param>
         internal void CacheAs(Type type, object instance, bool allowValueTypes)
         {
-            switch (instance)
+            if (instance == null)
             {
-                case null when allowValueTypes:
+                if (allowValueTypes)
                     return;
-                case null:
-                    throw new ArgumentNullException(nameof(instance));
+                throw new ArgumentNullException(nameof(instance));
             }
 
             var instanceType = instance.GetType();

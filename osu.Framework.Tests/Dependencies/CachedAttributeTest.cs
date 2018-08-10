@@ -341,8 +341,10 @@ namespace osu.Framework.Tests.Dependencies
 
         private class Provider18
         {
+#pragma warning disable 649
             [Cached]
             public readonly object Provided1;
+#pragma warning restore 649
         }
     }
 }

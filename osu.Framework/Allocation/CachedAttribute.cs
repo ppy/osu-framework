@@ -55,12 +55,11 @@ namespace osu.Framework.Allocation
                     {
                         var value = field.GetValue(target);
 
-                        switch (value)
+                        if (value == null)
                         {
-                            case null when allowValueTypes:
+                            if (allowValueTypes)
                                 return;
-                            case null:
-                                throw new NullReferenceException($"Attempted to cache a null value: {type.ReadableName()}.{field.Name}.");
+                            throw new NullReferenceException($"Attempted to cache a null value: {type.ReadableName()}.{field.Name}.");
                         }
 
                         dc.CacheAs(attribute.Type ?? value.GetType(), value, allowValueTypes);
