@@ -144,6 +144,12 @@ namespace osu.Framework.Tests.Dependencies
         }
 
         [Test]
+        public void TestGetValueNullInternal()
+        {
+            Assert.AreEqual(default(int), new DependencyContainer().GetValue<int>());
+        }
+
+        [Test]
         public void TestInvalidPublicAccessor()
         {
             var provider = new Provider13();

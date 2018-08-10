@@ -45,7 +45,12 @@ namespace osu.Framework.Allocation
         /// <param name="container">The <see cref="IReadOnlyDependencyContainer"/> to query.</param>
         /// <returns>The requested dependency, or default(<typeparamref name="T"/>) if not found.</returns>
         internal static T GetValue<T>(this IReadOnlyDependencyContainer container)
-            => (T)container.Get(typeof(T));
+        {
+            var result = container.Get(typeof(T));
+            if (result == null)
+                return default(T);
+            return (T)container.Get(typeof(T));
+        }
 
         /// <summary>
         /// Tries to retrieve a cached dependency of type <typeparamref name="T"/>.
