@@ -170,6 +170,38 @@ namespace osu.Framework.Tests.Dependencies
             Assert.IsTrue(retrieved.IsCancellationRequested);
         }
 
+        [Test]
+        public void TestInvalidPublicAccessor()
+        {
+            var receiver = new Receiver6();
+
+            Assert.Throws<AccessModifierNotAllowedForLoaderMethodException>(() => new DependencyContainer().Inject(receiver));
+        }
+
+        [Test]
+        public void TestInvalidProtectedAccessor()
+        {
+            var receiver = new Receiver7();
+
+            Assert.Throws<AccessModifierNotAllowedForLoaderMethodException>(() => new DependencyContainer().Inject(receiver));
+        }
+
+        [Test]
+        public void TestInvalidInternalAccessor()
+        {
+            var receiver = new Receiver8();
+
+            Assert.Throws<AccessModifierNotAllowedForLoaderMethodException>(() => new DependencyContainer().Inject(receiver));
+        }
+
+        [Test]
+        public void TestInvalidProtectedInternalAccessor()
+        {
+            var receiver = new Receiver9();
+
+            Assert.Throws<AccessModifierNotAllowedForLoaderMethodException>(() => new DependencyContainer().Inject(receiver));
+        }
+
         private interface IBaseInterface
         {
         }
@@ -221,6 +253,38 @@ namespace osu.Framework.Tests.Dependencies
 
             [BackgroundDependencyLoader]
             private void load() => Loaded5?.Invoke();
+        }
+
+        private class Receiver6
+        {
+            [BackgroundDependencyLoader]
+            public void Load()
+            {
+            }
+        }
+
+        private class Receiver7
+        {
+            [BackgroundDependencyLoader]
+            protected void Load()
+            {
+            }
+        }
+
+        private class Receiver8
+        {
+            [BackgroundDependencyLoader]
+            internal void Load()
+            {
+            }
+        }
+
+        private class Receiver9
+        {
+            [BackgroundDependencyLoader]
+            protected internal void Load()
+            {
+            }
         }
     }
 }
