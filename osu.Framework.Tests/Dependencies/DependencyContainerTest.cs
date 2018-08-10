@@ -204,7 +204,7 @@ namespace osu.Framework.Tests.Dependencies
         }
 
         [Test]
-        public void TestReceiveInternalStruct()
+        public void TestReceiveStructInternal()
         {
             var receiver = new Receiver10();
 
