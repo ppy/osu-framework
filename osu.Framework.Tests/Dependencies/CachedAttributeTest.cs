@@ -183,6 +183,14 @@ namespace osu.Framework.Tests.Dependencies
             Assert.DoesNotThrow(() => DependencyActivator.MergeDependencies(provider, new DependencyContainer()));
         }
 
+        [Test]
+        public void TestCacheNullReferenceValue()
+        {
+            var provider = new Provider18();
+
+            Assert.Throws<NullReferenceException>(() => DependencyActivator.MergeDependencies(provider, new DependencyContainer()));
+        }
+
         private interface IProvidedInterface1
         {
         }
@@ -307,6 +315,12 @@ namespace osu.Framework.Tests.Dependencies
         {
             [Cached]
             public readonly object Provided1 = new ProvidedType1();
+        }
+
+        private class Provider18
+        {
+            [Cached]
+            public readonly object Provided1;
         }
     }
 }
