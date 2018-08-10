@@ -21,7 +21,14 @@ namespace osu.Framework.Allocation
         /// <summary>
         /// The number of buffers currently in use.
         /// </summary>
-        public int BuffersInUse => totalUsage;
+        public int BuffersInUse
+        {
+            get
+            {
+                lock (freeDataBuffers)
+                    return totalUsage;
+            }
+        }
 
         /// <summary>
         /// Creates a new buffer stack containing a given maximum amount of buffers.
@@ -32,7 +39,7 @@ namespace osu.Framework.Allocation
             this.maxAmountBuffers = maxAmountBuffers;
         }
 
-        private volatile int totalUsage;
+        private int totalUsage;
 
         private T[] findFreeBuffer(int minimumLength)
         {
