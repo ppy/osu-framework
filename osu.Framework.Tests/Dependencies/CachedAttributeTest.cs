@@ -149,6 +149,22 @@ namespace osu.Framework.Tests.Dependencies
             Assert.AreEqual(default(int), new DependencyContainer().GetValue<int>());
         }
 
+        /// <summary>
+        /// Test caching a nullable, where the providing type is within the osu.Framework assembly.
+        /// </summary>
+        [TestCase(null)]
+        [TestCase(10)]
+        public void TestCacheNullableInternal(int? testValue)
+        {
+            var provider = new CachedNullableProvider();
+
+            provider.SetValue(testValue);
+
+            var dependencies = DependencyActivator.MergeDependencies(provider, new DependencyContainer());
+
+            Assert.AreEqual(testValue, dependencies.GetValue<int?>());
+        }
+
         [Test]
         public void TestInvalidPublicAccessor()
         {

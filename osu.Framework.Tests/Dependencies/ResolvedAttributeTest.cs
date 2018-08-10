@@ -134,6 +134,22 @@ namespace osu.Framework.Tests.Dependencies
             Assert.AreEqual(testObject.CachedObject.Value, receiver.Obj.Value);
         }
 
+        [TestCase(null)]
+        [TestCase(10)]
+        public void TestResolveNullableInternal(int? testValue)
+        {
+            var receiver = new Receiver13();
+
+            var testObject = new CachedNullableProvider();
+            testObject.SetValue(testValue);
+
+            var dependencies = DependencyActivator.MergeDependencies(testObject, new DependencyContainer());
+
+            dependencies.Inject(receiver);
+
+            Assert.AreEqual(testValue, receiver.Obj);
+        }
+
         private DependencyContainer createDependencies(params object[] toCache)
         {
             var dependencies = new DependencyContainer();
@@ -222,6 +238,12 @@ namespace osu.Framework.Tests.Dependencies
         {
             [Resolved]
             public CachedStructProvider.Struct Obj { get; private set; }
+        }
+
+        private class Receiver13
+        {
+            [Resolved]
+            public int? Obj { get; private set; }
         }
     }
 }

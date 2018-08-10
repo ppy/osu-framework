@@ -216,6 +216,29 @@ namespace osu.Framework.Tests.Dependencies
             Assert.AreEqual(testObject.CachedObject.Value, receiver.TestObject.Value);
         }
 
+        [TestCase(null)]
+        [TestCase(10)]
+        public void TestResolveNullableInternal(int? testValue)
+        {
+            var receiver = new Receiver11();
+
+            var testObject = new CachedNullableProvider();
+            testObject.SetValue(testValue);
+
+            var dependencies = DependencyActivator.MergeDependencies(testObject, new DependencyContainer());
+
+            dependencies.Inject(receiver);
+
+            Assert.AreEqual(testValue, receiver.TestObject);
+        }
+
+        [Test]
+        public void TestCacheNullInternal()
+        {
+            Assert.DoesNotThrow(() => new DependencyContainer().CacheValue<int?>(null));
+            Assert.DoesNotThrow(() => new DependencyContainer().CacheValueAs<object>(null));
+        }
+
         private interface IBaseInterface
         {
         }
@@ -303,12 +326,18 @@ namespace osu.Framework.Tests.Dependencies
 
         private class Receiver10
         {
-            private CachedStructProvider.Struct testObject;
-
-            public CachedStructProvider.Struct TestObject => testObject;
+            public CachedStructProvider.Struct TestObject { get; private set; }
 
             [BackgroundDependencyLoader]
-            private void load(CachedStructProvider.Struct testObject) => this.testObject = testObject;
+            private void load(CachedStructProvider.Struct testObject) => TestObject = testObject;
+        }
+
+        private class Receiver11
+        {
+            public int? TestObject { get; private set; }
+
+            [BackgroundDependencyLoader]
+            private void load(int? testObject) => TestObject = testObject;
         }
     }
 }

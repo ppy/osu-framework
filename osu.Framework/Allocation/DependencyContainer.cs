@@ -56,7 +56,12 @@ namespace osu.Framework.Allocation
         /// (e.g. <see cref="CancellationToken"/> or reference types).
         /// </remarks>
         /// <param name="instance">The instance to cache.</param>
-        internal void CacheValue<T>(T instance) => CacheAs(instance.GetType(), instance, true);
+        internal void CacheValue<T>(T instance)
+        {
+            if (instance == null)
+                return;
+            CacheAs(instance.GetType(), instance, true);
+        }
 
         /// <summary>
         /// Caches an instance of a type as a type of <typeparamref name="T"/>. This instance will be returned each time you <see cref="DependencyContainer.Get(Type)"/>.
@@ -78,8 +83,13 @@ namespace osu.Framework.Allocation
         /// (e.g. <see cref="CancellationToken"/> or reference types).</param>
         internal void CacheAs(Type type, object instance, bool allowValueTypes)
         {
-            if (instance == null)
-                throw new ArgumentNullException(nameof(instance));
+            switch (instance)
+            {
+                case null when allowValueTypes:
+                    return;
+                case null:
+                    throw new ArgumentNullException(nameof(instance));
+            }
 
             var instanceType = instance.GetType();
 
@@ -106,6 +116,8 @@ namespace osu.Framework.Allocation
         /// <returns>The requested dependency, or null if not found.</returns>
         public object Get(Type type)
         {
+            type = Nullable.GetUnderlyingType(type) ?? type;
+
             if (cache.TryGetValue(type, out object ret))
                 return ret;
             return parentContainer?.Get(type);

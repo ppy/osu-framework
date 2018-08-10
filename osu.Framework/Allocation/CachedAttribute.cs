@@ -54,6 +54,15 @@ namespace osu.Framework.Allocation
                     additionActivators.Add((target, dc) =>
                     {
                         var value = field.GetValue(target);
+
+                        switch (value)
+                        {
+                            case null when allowValueTypes:
+                                return;
+                            case null:
+                                throw new NullReferenceException($"Attempted to cache a null value: {type.ReadableName()}.{field.Name}.");
+                        }
+
                         dc.CacheAs(attribute.Type ?? value.GetType(), value, allowValueTypes);
                     });
                 }
