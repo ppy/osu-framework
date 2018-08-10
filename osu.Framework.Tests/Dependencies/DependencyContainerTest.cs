@@ -5,6 +5,7 @@ using System;
 using System.Threading;
 using NUnit.Framework;
 using osu.Framework.Allocation;
+using osu.Framework.Testing.Dependencies;
 
 namespace osu.Framework.Tests.Dependencies
 {
@@ -202,6 +203,19 @@ namespace osu.Framework.Tests.Dependencies
             Assert.Throws<AccessModifierNotAllowedForLoaderMethodException>(() => new DependencyContainer().Inject(receiver));
         }
 
+        [Test]
+        public void TestReceiveInternalStruct()
+        {
+            var receiver = new Receiver10();
+
+            var testObject = new CachedStructProvider();
+
+            var dependencies = DependencyActivator.MergeDependencies(testObject, new DependencyContainer());
+
+            Assert.DoesNotThrow(() => dependencies.Inject(receiver));
+            Assert.AreEqual(testObject.CachedObject.Value, receiver.TestObject.Value);
+        }
+
         private interface IBaseInterface
         {
         }
@@ -285,6 +299,16 @@ namespace osu.Framework.Tests.Dependencies
             protected internal void Load()
             {
             }
+        }
+
+        private class Receiver10
+        {
+            private CachedStructProvider.Struct testObject;
+
+            public CachedStructProvider.Struct TestObject => testObject;
+
+            [BackgroundDependencyLoader]
+            private void load(CachedStructProvider.Struct testObject) => this.testObject = testObject;
         }
     }
 }
