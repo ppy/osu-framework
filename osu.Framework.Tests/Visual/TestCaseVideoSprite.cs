@@ -35,10 +35,7 @@ namespace osu.Framework.Tests.Visual
                 Add(videoSprite);
                 videoSprite.Loop = true;
                 videoSprite.ShowLastFrameDuringHideCutoff = true;
-                videoSprite.NumberOfPreloadedFrames = 100;
-
-                clock = new ManualClock();
-                videoSprite.Clock = new FramedClock(clock);
+                videoSprite.NumberOfPreloadedFrames = 180;
 
                 Add(timeText = new SpriteText { Text = "" });
 
@@ -56,11 +53,8 @@ namespace osu.Framework.Tests.Visual
         {
             base.Update();
 
-            if (clock != null)
-                clock.CurrentTime += Clock.ElapsedFrameTime;
-
             if (timeText != null)
-                timeText.Text = $"{videoSprite.PlaybackPosition:N2} / {videoSprite.Duration}, Buffer-Frame {videoSprite.CurrentFrameIndex} / {videoSprite.AvailableFrames}, Current Frame Time: {videoSprite.CurrentFrameTime}";
+                timeText.Text = $"{videoSprite.PlaybackPosition:N2} / {videoSprite.Duration:N2}, Buffer-Frame {videoSprite.CurrentFrameIndex} / {videoSprite.AvailableFrames}, Current Frame Time: {videoSprite.CurrentFrameTime:N2}, Framerate: {videoSprite.FramesPerSecond}, Frame Time Range: {videoSprite.MinFrameTime:N2} - {videoSprite.MaxFrameTime:N2}";
         }
     }
 }

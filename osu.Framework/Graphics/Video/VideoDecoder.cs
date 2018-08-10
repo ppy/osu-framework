@@ -74,7 +74,11 @@ namespace osu.Framework.Graphics.Video
             /// <summary>
             /// The decoder has reached the end of the video data.
             /// </summary>
-            EndOfStream = 3
+            EndOfStream = 3,
+            /// <summary>
+            /// The decoder has been completely stopped and cannot be resumed.
+            /// </summary>
+            Stopped = 4,
         }
 
         private volatile DecoderState state;
@@ -111,8 +115,12 @@ namespace osu.Framework.Graphics.Video
 
         private bool pauseDecoder;
 
+        private double? skipOutputUntilTime;
+
         private readonly ConcurrentQueue<DecodedFrame> decodedFrames;
         private readonly ConcurrentQueue<Action> decoderCommands;
+
+        private readonly ConcurrentQueue<Texture> availableTextures;
 
         /// <summary>
         /// Creates a new video decoder that decodes the given video file.
@@ -137,6 +145,7 @@ namespace osu.Framework.Graphics.Video
             state = DecoderState.Paused;
             decodedFrames = new ConcurrentQueue<DecodedFrame>();
             decoderCommands = new ConcurrentQueue<Action>();
+            availableTextures = new ConcurrentQueue<Texture>();
         }
 
         private int readPacket(void* opaque, byte* bufferPtr, int bufferSize)
@@ -182,7 +191,11 @@ namespace osu.Framework.Graphics.Video
             if (!CanSeek)
                 throw new InvalidOperationException("This decoder cannot seek because the underlying stream used to decode the video does not support seeking.");
 
-            decoderCommands.Enqueue(() => ffmpeg.av_seek_frame(formatContext, stream->index, (long)(targetTimestamp / timeBaseInSeconds / 1000.0), ffmpeg.AVSEEK_FLAG_BACKWARD));
+            decoderCommands.Enqueue(() =>
+            {
+                ffmpeg.av_seek_frame(formatContext, stream->index, (long)(targetTimestamp / timeBaseInSeconds / 1000.0), ffmpeg.AVSEEK_FLAG_BACKWARD);
+                skipOutputUntilTime = targetTimestamp;
+            });
         }
 
         // sets up libavformat state: creates the AVFormatContext, the frames, etc. to start decoding, but does not actually start the decodingLoop
@@ -245,6 +258,16 @@ namespace osu.Framework.Graphics.Video
             var cts = new CancellationTokenSource();
             decodingTask = Task.Run(() => decodingLoop(cts.Token), cts.Token);
             decodingTaskCancellationTokenSource = cts;
+        }
+
+        /// <summary>
+        /// Returns the given frames back to the decoder, allowing the decoder to reuse the textures contained in the frames to draw new frames.
+        /// </summary>
+        /// <param name="frames">The frames that should be returned to the decoder.</param>
+        public void ReturnFrames(IEnumerable<DecodedFrame> frames)
+        {
+            foreach (var f in frames)
+                availableTextures.Enqueue(f.Texture);
         }
 
         /// <summary>
@@ -318,7 +341,7 @@ namespace osu.Framework.Graphics.Video
             // this should be massively reduced to something like 5-10, currently there is an issue with texture uploads not completing
             // in a predictable way though, which can cause huge overallocations. Going past the bufferstacks limit essentially breaks
             // video playback (~several GB memory usage building up very quickly accompanied by unacceptable framerates).
-            var bufferStack = new BufferStack<byte>(300);
+            var bufferStack = new BufferStack<byte>(5);
             SwsContext* swsCtx = null;
             try
             {
@@ -326,6 +349,11 @@ namespace osu.Framework.Graphics.Video
                 {
                     if (cancellationToken.IsCancellationRequested)
                         return;
+
+                    while (bufferStack.BuffersInUse > 3)
+                    {
+                        Thread.Sleep(1);
+                    }
 
                     int readFrameResult = ffmpeg.av_read_frame(formatContext, packet);
                     if (readFrameResult >= 0)
@@ -339,19 +367,26 @@ namespace osu.Framework.Graphics.Video
                             var result = ffmpeg.avcodec_receive_frame(stream->codec, frame);
                             if (result == 0)
                             {
-                                swsCtx = ffmpeg.sws_getContext(codecParams.width, codecParams.height, (AVPixelFormat)frame->format, codecParams.width, codecParams.height, AVPixelFormat.AV_PIX_FMT_RGBA, 0, null, null, null);
-                                ffmpeg.sws_scale(swsCtx, frame->data, frame->linesize, 0, frame->height, frameRgb->data, frameRgb->linesize);
-                                ffmpeg.sws_freeContext(swsCtx);
-                                swsCtx = null;
+                                var frameTime = (frame->best_effort_timestamp - stream->start_time) * timeBaseInSeconds * 1000;
+                                if (!skipOutputUntilTime.HasValue || skipOutputUntilTime.Value < frameTime)
+                                {
+                                    skipOutputUntilTime = null;
 
-                                var tex = new Texture(codecParams.width, codecParams.height, true);
-                                var rawTex = new RawTexture(tex.Width, tex.Height, bufferStack);
-                                Marshal.Copy((IntPtr)frameRgb->data[0], rawTex.Data, 0, uncompressedFrameSize);
-                                tex.SetData(new TextureUpload(rawTex));
+                                    swsCtx = ffmpeg.sws_getContext(codecParams.width, codecParams.height, (AVPixelFormat)frame->format, codecParams.width, codecParams.height, AVPixelFormat.AV_PIX_FMT_RGBA, 0, null, null, null);
+                                    ffmpeg.sws_scale(swsCtx, frame->data, frame->linesize, 0, frame->height, frameRgb->data, frameRgb->linesize);
+                                    ffmpeg.sws_freeContext(swsCtx);
+                                    swsCtx = null;
 
-                                var frameTime = (frame->best_effort_timestamp - stream->start_time) * timeBaseInSeconds;
-                                decodedFrames.Enqueue(new DecodedFrame { Time = frameTime * 1000, Texture = tex });
-                                lastDecodedFrameTime = (float)(frameTime * 1000f);
+                                    if (!availableTextures.TryDequeue(out var tex))
+                                        tex = new Texture(codecParams.width, codecParams.height, true);
+
+                                    var rawTex = new RawTexture(tex.Width, tex.Height, bufferStack);
+                                    Marshal.Copy((IntPtr)frameRgb->data[0], rawTex.Data, 0, uncompressedFrameSize);
+                                    tex.SetData(new TextureUpload(rawTex));
+
+                                    decodedFrames.Enqueue(new DecodedFrame { Time = frameTime, Texture = tex });
+                                }
+                                lastDecodedFrameTime = (float)frameTime;
                             }
                         }
                     }
@@ -376,7 +411,7 @@ namespace osu.Framework.Graphics.Video
                         if (executedCmd)
                             break;
                         state = DecoderState.Paused;
-                        Thread.Sleep(16);
+                        Thread.Sleep(1);
                     }
                     while (!decoderCommands.IsEmpty)
                     {
@@ -397,7 +432,9 @@ namespace osu.Framework.Graphics.Video
                 ffmpeg.sws_freeContext(swsCtx);
 
                 if (state != DecoderState.Faulted)
-                    state = DecoderState.Paused;
+                    state = DecoderState.Stopped;
+
+                pauseDecoder = false;
             }
         }
 

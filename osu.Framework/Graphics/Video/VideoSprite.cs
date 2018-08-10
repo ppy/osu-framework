@@ -6,6 +6,7 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Lists;
 using System;
 using System.IO;
+using System.Linq;
 
 namespace osu.Framework.Graphics.Video
 {
@@ -76,7 +77,17 @@ namespace osu.Framework.Graphics.Video
 
         internal double CurrentFrameTime => currentFrameIndex < availableFrames.Count ? availableFrames[currentFrameIndex].Time : 0;
 
+        internal double MinFrameTime => availableFrames.Count == 0 ? 0 : availableFrames[0].Time;
+
+        internal double MaxFrameTime => availableFrames.Count == 0 ? 0 : availableFrames[availableFrames.Count - 1].Time;
+
         internal int AvailableFrames => availableFrames.Count;
+
+        private double currentSecond;
+        private int nFrames;
+        private int fps;
+
+        internal int FramesPerSecond => fps;
 
         private bool isDisposed;
 
@@ -124,12 +135,14 @@ namespace osu.Framework.Graphics.Video
                 if (availableFrames.Count > 0 && availableFrames[0].Time > PlaybackPosition && decoder.LastDecodedFrameTime > PlaybackPosition)
                 {
                     decoder.Seek(PlaybackPosition);
+                    decoder.ReturnFrames(availableFrames);
                     availableFrames.Clear();
                 }
                 // the current playback position demands that we are more than 2 seconds further than the last available frame, so we should seek forward
-                else if (availableFrames.Count >= 5 && PlaybackPosition > availableFrames[availableFrames.Count - 1].Time + 2000.0)
+                else if (availableFrames.Count >= 5 && PlaybackPosition > availableFrames[availableFrames.Count - 1].Time + 5000.0)
                 {
                     decoder.Seek(PlaybackPosition);
+                    decoder.ReturnFrames(availableFrames);
                     availableFrames.Clear();
                 }
             }
@@ -140,9 +153,19 @@ namespace osu.Framework.Graphics.Video
             if (availableFrames.Count >= NumberOfPreloadedFrames && !decoder.IsPaused)
                 decoder.PauseDecoding();
 
+            var newSec = (int)(PlaybackPosition / 1000.0);
+            if (newSec != currentSecond)
+            {
+                currentSecond = newSec;
+                fps = nFrames;
+                nFrames = 0;
+            }
+
             var index = availableFrames.BinarySearch(new DecodedFrame { Time = PlaybackPosition });
             if (index < 0)
                 index = ~index;
+
+            var ft = CurrentFrameTime;
             if (index < availableFrames.Count)
             {
                 currentFrameIndex = index;
@@ -167,11 +190,18 @@ namespace osu.Framework.Graphics.Video
                 Texture = ShowLastFrameDuringHideCutoff ? Texture : null;
             }
 
+            if (ft != CurrentFrameTime)
+                nFrames++;
+
             if (currentFrameIndex > NumberOfPreloadedFrames / 2)
             {
                 int nRemovedFrames = Math.Max(1, NumberOfPreloadedFrames / 4);
+                decoder.ReturnFrames(availableFrames.Take(nRemovedFrames));
                 availableFrames.RemoveRange(0, nRemovedFrames);
                 currentFrameIndex -= nRemovedFrames;
+
+                decoder.ReturnFrames(availableFrames.Where(f => f.Time - 2000.0 > PlaybackPosition));
+                availableFrames.RemoveAll(d => d.Time - 2000.0 > PlaybackPosition);
             }
         }
 
