@@ -9,7 +9,7 @@ namespace osu.Framework.Graphics.Video
     /// <summary>
     /// Represents a frame decoded from a video.
     /// </summary>
-    public class DecodedFrame : IDisposable
+    public class DecodedFrame
     {
         /// <summary>
         /// The timestamp of the frame in the video it was decoded from.
@@ -21,32 +21,8 @@ namespace osu.Framework.Graphics.Video
         /// </summary>
         public Texture Texture { get; set; }
 
-        private bool isDisposed;
-
-        #region Disposal
-
-        ~DecodedFrame()
+        internal DecodedFrame()
         {
-            Dispose(false);
         }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (isDisposed)
-                return;
-
-            isDisposed = true;
-
-            Texture?.Dispose();
-            Texture = null;
-        }
-
-        #endregion
     }
 }
