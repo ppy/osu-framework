@@ -166,18 +166,12 @@ namespace osu.Framework.Tests.Visual
 
         private class CustomEngineSpriteText : SpriteText
         {
+            [Cached(Type = typeof(ILocalisationEngine))]
             private readonly LocalisationEngine engine;
 
             public CustomEngineSpriteText(LocalisationEngine engine)
             {
                 this.engine = engine;
-            }
-
-            protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent)
-            {
-                var deps = base.CreateChildDependencies(parent);
-                ((DependencyContainer)deps).CacheAs<ILocalisationEngine>(engine);
-                return deps;
             }
         }
 
