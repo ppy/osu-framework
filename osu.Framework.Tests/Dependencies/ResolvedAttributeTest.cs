@@ -150,6 +150,21 @@ namespace osu.Framework.Tests.Dependencies
             Assert.AreEqual(testValue, receiver.Obj);
         }
 
+        [Test]
+        public void TestResolveStructWithoutNullPermits()
+        {
+            Assert.Throws<DependencyNotRegisteredException>(() => new DependencyContainer().Inject(new Receiver14()));
+        }
+
+        [Test]
+        public void TestResolveStructWithNullPermits()
+        {
+            var receiver = new Receiver15();
+
+            Assert.DoesNotThrow(() => new DependencyContainer().Inject(receiver));
+            Assert.AreEqual(0, receiver.Obj);
+        }
+
         private DependencyContainer createDependencies(params object[] toCache)
         {
             var dependencies = new DependencyContainer();
@@ -244,6 +259,18 @@ namespace osu.Framework.Tests.Dependencies
         {
             [Resolved]
             public int? Obj { get; private set; }
+        }
+
+        private class Receiver14
+        {
+            [Resolved]
+            public int Obj { get; private set; }
+        }
+
+        private class Receiver15
+        {
+            [Resolved(CanBeNull = true)]
+            public int Obj { get; private set; } = 1;
         }
     }
 }

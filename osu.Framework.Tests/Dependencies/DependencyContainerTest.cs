@@ -239,6 +239,21 @@ namespace osu.Framework.Tests.Dependencies
             Assert.DoesNotThrow(() => new DependencyContainer().CacheValueAs<object>(null));
         }
 
+        [Test]
+        public void TestResolveStructWithoutNullPermits()
+        {
+            Assert.Throws<DependencyNotRegisteredException>(() => new DependencyContainer().Inject(new Receiver12()));
+        }
+
+        [Test]
+        public void TestResolveStructWithNullPermits()
+        {
+            var receiver = new Receiver13();
+
+            Assert.DoesNotThrow(() => new DependencyContainer().Inject(receiver));
+            Assert.AreEqual(0, receiver.TestObject);
+        }
+
         private interface IBaseInterface
         {
         }
@@ -338,6 +353,22 @@ namespace osu.Framework.Tests.Dependencies
 
             [BackgroundDependencyLoader]
             private void load(int? testObject) => TestObject = testObject;
+        }
+
+        private class Receiver12
+        {
+            [BackgroundDependencyLoader]
+            private void load(int testObject)
+            {
+            }
+        }
+
+        private class Receiver13
+        {
+            public int? TestObject { get; private set; } = 1;
+
+            [BackgroundDependencyLoader(true)]
+            private void load(int testObject) => TestObject = testObject;
         }
     }
 }
