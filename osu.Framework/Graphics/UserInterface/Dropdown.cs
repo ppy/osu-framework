@@ -197,28 +197,26 @@ namespace osu.Framework.Graphics.UserInterface
         #region DropdownMenu
         public class DropdownMenu : Menu
         {
-            private const float default_height = 200;
-            private float excplicitHeight;
+            private float? explicitHeight;
 
             public override float Height
             {
                 get => base.Height;
-                set => base.Height = excplicitHeight = value;
+                set => base.Height = (float)(explicitHeight = value);
             }
 
             public DropdownMenu()
                 : base(Direction.Vertical)
             {
                 RelativeSizeAxes = Axes.X;
-                Height = default_height;
             }
 
             protected override void UpdateAfterChildren()
             {
-                if (!SizeCache.IsValid)
+                if (!SizeCache.IsValid && explicitHeight.HasValue)
                 {
                     var calculatedHeight = MathHelper.Clamp(ItemsContainer.Height, 0, MaxHeight);
-                    base.Height = Math.Min(calculatedHeight, excplicitHeight);
+                    base.Height = Math.Min(calculatedHeight, explicitHeight.Value);
                     SizeCache.Validate();
                 }
 
