@@ -415,8 +415,12 @@ namespace osu.Framework.Graphics
         protected virtual bool ComputeIsMaskedAway(RectangleF maskingBounds) => !maskingBounds.IntersectsWith(ScreenSpaceDrawQuad.AABBFloat);
 
         /// <summary>
-        /// Whether layout validation is required for this <see cref="Drawable"/>.
+        /// Whether layout validation is required for this <see cref="Drawable"/>. This determines if <see cref="ValidateLayout"/> is invoked.
         /// </summary>
+        /// <remarks>
+        /// A proper way to implement this is by referring to a <see cref="Cached"/>.<see cref="Cached.IsValid"/> value,
+        /// and then invoking <see cref="Cached"/>.<see cref="Cached.Invalidate"/> from <see cref="ValidateLayout"/>.
+        /// </remarks>
         public virtual bool RequiresLayoutValidation => false;
 
         /// <summary>
@@ -439,6 +443,7 @@ namespace osu.Framework.Graphics
 
         /// <summary>
         /// Validates the layout of this <see cref="Drawable"/>.
+        /// Should update any values required for <see cref="RequiresLayoutValidation"/> to return false.
         /// </summary>
         protected virtual void ValidateLayout()
         {
