@@ -52,6 +52,8 @@ namespace osu.Framework.Platform
 
         public override string GetFullPath(string path, bool createIfNotExisting = false)
         {
+            path = path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+
             var basePath = Path.GetFullPath(Path.Combine(BasePath, BaseName, SubDirectory));
             var resolvedPath = Path.GetFullPath(Path.Combine(basePath, path));
 
