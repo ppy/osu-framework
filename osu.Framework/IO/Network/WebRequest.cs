@@ -51,6 +51,7 @@ namespace osu.Framework.IO.Network
         public bool Aborted { get; private set; }
 
         private bool completed;
+
         /// <summary>
         /// Whether the <see cref="WebRequest"/> has been run.
         /// </summary>
@@ -66,6 +67,7 @@ namespace osu.Framework.IO.Network
                 // This helps with disposal in PerformAsync usages
                 Started = null;
                 Finished = null;
+                Failed = null;
                 DownloadProgress = null;
                 UploadProgress = null;
             }
@@ -342,7 +344,8 @@ namespace osu.Framework.IO.Network
                 }
                 catch (Exception) when (timeoutToken.IsCancellationRequested)
                 {
-                    Complete(new WebException($"Request to {Url} timed out after {timeSinceLastAction / 1000} seconds idle (read {responseBytesRead} bytes, retried {RetryCount} times).", WebExceptionStatus.Timeout));
+                    Complete(new WebException($"Request to {Url} timed out after {timeSinceLastAction / 1000} seconds idle (read {responseBytesRead} bytes, retried {RetryCount} times).",
+                        WebExceptionStatus.Timeout));
                 }
                 catch (Exception) when (abortToken.IsCancellationRequested)
                 {
@@ -473,15 +476,15 @@ namespace osu.Framework.IO.Network
                 e = e == null ? se : new AggregateException(e, se);
             }
 
-            Completed = true;
-
             if (e == null)
             {
                 Finished?.Invoke();
+                Completed = true;
             }
             else
             {
                 Failed?.Invoke(e);
+                Completed = true;
                 Aborted = true;
                 throw e;
             }
