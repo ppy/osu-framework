@@ -53,7 +53,7 @@ namespace osu.Framework.Allocation
                         throw new AccessModifierNotAllowedForLoaderMethodException(modifier, method);
 
                     var permitNulls = method.GetCustomAttribute<BackgroundDependencyLoaderAttribute>().permitNulls;
-                    var parameterGetters = method.GetParameters().Select(p => p.ParameterType).Select(t => getDependency(t, type, permitNulls));
+                    var parameterGetters = method.GetParameters().Select(p => p.ParameterType).Select(t => getDependency(t, type, permitNulls || t.IsNullable()));
 
                     return (target, dc) =>
                     {
