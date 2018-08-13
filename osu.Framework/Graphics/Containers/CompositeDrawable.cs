@@ -590,7 +590,7 @@ namespace osu.Framework.Graphics.Containers
             if (validations >= max_iterations)
                 Logger.Log($"{this} exceeded the maximum number of allowable validations to fully validate.", LoggingTarget.Performance, LogLevel.Error);
             else if (validations > 1)
-                Logger.Log($"{this} took {validations} iterations to fully validate.", LoggingTarget.Performance, LogLevel.Important);
+                Logger.Log($"{this} took {validations} iterations to fully validate.", LoggingTarget.Performance);
 
             return true;
         }
