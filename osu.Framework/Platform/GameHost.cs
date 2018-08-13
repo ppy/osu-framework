@@ -201,6 +201,7 @@ namespace osu.Framework.Platform
                 {
                     OnThreadStart = UpdateInitialize,
                     Monitor = { HandleGC = true },
+                    OnAssertion = e => InputThread.Scheduler.Add(e.Throw)
                 }),
                 (InputThread = new InputThread(null)), //never gets started.
             };

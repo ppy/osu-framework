@@ -6,6 +6,9 @@ using System.Threading;
 using osu.Framework.Statistics;
 using osu.Framework.Timing;
 using System.Collections.Generic;
+using System.Runtime.ExceptionServices;
+using NUnit.Framework;
+using NUnit.Framework.Internal;
 
 namespace osu.Framework.Threading
 {
@@ -18,6 +21,8 @@ namespace osu.Framework.Threading
         public ThrottledFrameClock Clock { get; }
         public Thread Thread { get; }
         public Scheduler Scheduler { get; }
+
+        public Action<ExceptionDispatchInfo> OnAssertion;
 
         private readonly Action onNewFrame;
 
@@ -94,14 +99,24 @@ namespace osu.Framework.Threading
 
         private void runWork()
         {
-            Scheduler.SetCurrentThread();
+            using (new TestExecutionContext.IsolatedContext())
+            {
+                try
+                {
+                    Scheduler.SetCurrentThread();
 
-            OnThreadStart?.Invoke();
+                    OnThreadStart?.Invoke();
 
-            initializedEvent.Set();
+                    initializedEvent.Set();
 
-            while (!exitCompleted)
-                ProcessFrame();
+                    while (!exitCompleted)
+                        ProcessFrame();
+                }
+                catch (AssertionException e)
+                {
+                    OnAssertion?.Invoke(ExceptionDispatchInfo.Capture(e));
+                }
+            }
         }
 
         protected void ProcessFrame()
