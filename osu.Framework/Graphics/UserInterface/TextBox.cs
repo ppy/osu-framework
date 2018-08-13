@@ -238,12 +238,6 @@ namespace osu.Framework.Graphics.UserInterface
 
         public override bool RequiresLayoutValidation => base.RequiresLayoutValidation || !cursorAndLayout.IsValid;
 
-        protected override void UpdateAfterChildren()
-        {
-            base.UpdateAfterChildren();
-            ValidateLayout();
-        }
-
         protected override void ValidateLayout()
         {
             base.ValidateLayout();

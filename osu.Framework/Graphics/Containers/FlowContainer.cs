@@ -199,12 +199,6 @@ namespace osu.Framework.Graphics.Containers
 
         public override bool RequiresLayoutValidation => base.RequiresLayoutValidation || !layout.IsValid;
 
-        protected override void UpdateAfterChildren()
-        {
-            base.UpdateAfterChildren();
-            ValidateLayout();
-        }
-
         protected override void ValidateLayout()
         {
             if (!layout.IsValid)

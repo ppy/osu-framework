@@ -219,6 +219,8 @@ namespace osu.Framework.Graphics.Sprites
         protected override void Update()
         {
             base.Update();
+
+            // Must be done here rather than in UpdateAfterChildren to make sure any children added through the layout validation are processed
             ValidateLayout();
         }
 

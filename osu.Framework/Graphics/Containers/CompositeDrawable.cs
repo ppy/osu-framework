@@ -628,6 +628,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         protected virtual void UpdateAfterChildren()
         {
+            ValidateLayout();
         }
 
         /// <summary>
