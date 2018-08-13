@@ -201,6 +201,7 @@ namespace osu.Framework.Platform
                 {
                     OnThreadStart = UpdateInitialize,
                     Monitor = { HandleGC = true },
+                    OnAssertion = e => InputThread.Scheduler.Add(e.Throw)
                 }),
                 (InputThread = new InputThread(null)), //never gets started.
             };
@@ -529,7 +530,14 @@ namespace osu.Framework.Platform
 
             game.SetHost(this);
 
-            root.Load(SceneGraphClock, Dependencies);
+            try
+            {
+                root.Load(SceneGraphClock, Dependencies);
+            }
+            catch (DependencyInjectionException e)
+            {
+                e.DispatchInfo.Throw();
+            }
 
             //publish bootstrapped scene graph to all threads.
             Root = root;
