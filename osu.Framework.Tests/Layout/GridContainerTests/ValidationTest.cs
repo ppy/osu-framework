@@ -62,6 +62,8 @@ namespace osu.Framework.Tests.Layout.GridContainerTests
 
                         return false;
                     case 1:
+                        box.OnUpdate = null;
+
                         Assert.AreEqual(160, box.DrawWidth);
                         Assert.AreEqual(840, testBox.DrawWidth);
                         return true;
