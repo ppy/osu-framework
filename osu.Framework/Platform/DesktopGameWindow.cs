@@ -33,7 +33,7 @@ namespace osu.Framework.Platform
 
         public readonly BindableBool MapAbsoluteInputToWindow = new BindableBool();
 
-        public override DisplayDevice GetCurrentDisplay() => DisplayDevice.FromRectangle(Bounds);
+        public override DisplayDevice GetCurrentDisplay() => DisplayDevice.FromRectangle(Bounds) ?? DisplayDevice.Default;
 
         protected DesktopGameWindow()
             : base(default_width, default_height)
@@ -53,7 +53,7 @@ namespace osu.Framework.Platform
             sizeFullscreen.ValueChanged += newSize =>
             {
                 if (WindowState == WindowState.Fullscreen)
-                    changeResolution(GetCurrentDisplay(), newSize);
+                    ChangeResolution(GetCurrentDisplay(), newSize);
             };
 
             config.BindWith(FrameworkSetting.WindowedSize, sizeWindowed);
@@ -76,7 +76,7 @@ namespace osu.Framework.Platform
             Exited += onExit;
         }
 
-        private void changeResolution(DisplayDevice display, Size newSize)
+        protected virtual void ChangeResolution(DisplayDevice display, Size newSize)
         {
             if (newSize.Width == display.Width && newSize.Height == display.Height)
                 return;
@@ -89,7 +89,7 @@ namespace osu.Framework.Platform
             if (newResolution == null)
             {
                 // we wanted a new resolution but got nothing, which means OpenTK didn't find this resolution
-                display.RestoreResolution();
+                RestoreResolution(display);
             }
             else
             {
@@ -97,6 +97,8 @@ namespace osu.Framework.Platform
                 ClientSize = newSize;
             }
         }
+
+        protected virtual void RestoreResolution(DisplayDevice displayDevice) => displayDevice.RestoreResolution();
 
         protected void OnResize(object sender, EventArgs e)
         {
@@ -144,20 +146,23 @@ namespace osu.Framework.Platform
 
         private DisplayDevice lastFullscreenDisplay;
 
-        private void windowMode_ValueChanged(WindowMode newMode)
+        private void windowMode_ValueChanged(WindowMode newMode) => UpdateWindowMode(newMode);
+
+        protected virtual void UpdateWindowMode(WindowMode newMode)
         {
             var currentDisplay = GetCurrentDisplay();
 
             switch (newMode)
             {
                 case Configuration.WindowMode.Fullscreen:
-                    changeResolution(currentDisplay, sizeFullscreen);
+                    ChangeResolution(currentDisplay, sizeFullscreen);
                     lastFullscreenDisplay = currentDisplay;
 
                     WindowState = WindowState.Fullscreen;
                     break;
                 case Configuration.WindowMode.Borderless:
-                    lastFullscreenDisplay?.RestoreResolution();
+                    if (lastFullscreenDisplay != null)
+                        RestoreResolution(lastFullscreenDisplay);
                     lastFullscreenDisplay = null;
 
                     WindowState = WindowState.Maximized;
@@ -167,7 +172,8 @@ namespace osu.Framework.Platform
                     ClientSize = new Size(currentDisplay.Bounds.Width + 1, currentDisplay.Bounds.Height + 1);
                     break;
                 default:
-                    lastFullscreenDisplay?.RestoreResolution();
+                    if (lastFullscreenDisplay != null)
+                        RestoreResolution(lastFullscreenDisplay);
                     lastFullscreenDisplay = null;
 
                     WindowState = WindowState.Normal;
@@ -190,7 +196,8 @@ namespace osu.Framework.Platform
                     break;
             }
 
-            lastFullscreenDisplay?.RestoreResolution();
+            if (lastFullscreenDisplay != null)
+                RestoreResolution(lastFullscreenDisplay);
             lastFullscreenDisplay = null;
         }
 

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
 using JetBrains.Annotations;
+using osu.Framework.Extensions.TypeExtensions;
 
 namespace osu.Framework.Allocation
 {
@@ -16,15 +17,22 @@ namespace osu.Framework.Allocation
     [AttributeUsage(AttributeTargets.Method)]
     public class BackgroundDependencyLoaderAttribute : Attribute
     {
-        private const BindingFlags activator_flags = BindingFlags.NonPublic | BindingFlags.Instance;
+        private const BindingFlags activator_flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly;
 
         private bool permitNulls { get; }
 
         /// <summary>
         /// Marks this method as the initializer for a class in the context of dependency injection.
         /// </summary>
+        public BackgroundDependencyLoaderAttribute()
+        {
+        }
+
+        /// <summary>
+        /// Marks this method as the initializer for a class in the context of dependency injection.
+        /// </summary>
         /// <param name="permitNulls">If true, the initializer may be passed null for the dependencies we can't fulfill.</param>
-        public BackgroundDependencyLoaderAttribute(bool permitNulls = false)
+        public BackgroundDependencyLoaderAttribute(bool permitNulls)
         {
             this.permitNulls = permitNulls;
         }
@@ -39,8 +47,13 @@ namespace osu.Framework.Allocation
                     return (_,__) => { };
                 case 1:
                     var method = loaderMethods[0];
+
+                    var modifier = method.GetAccessModifier();
+                    if (modifier != AccessModifier.Private)
+                        throw new AccessModifierNotAllowedForLoaderMethodException(modifier, method);
+
                     var permitNulls = method.GetCustomAttribute<BackgroundDependencyLoaderAttribute>().permitNulls;
-                    var parameterGetters = method.GetParameters().Select(p => p.ParameterType).Select(t => getDependency(t, type, permitNulls));
+                    var parameterGetters = method.GetParameters().Select(p => p.ParameterType).Select(t => getDependency(t, type, permitNulls || t.IsNullable()));
 
                     return (target, dc) =>
                     {
@@ -65,7 +78,7 @@ namespace osu.Framework.Allocation
             }
         }
 
-        private static Func<DependencyContainer, object> getDependency(Type type, Type requestingType, bool permitNulls) => dc =>
+        private static Func<IReadOnlyDependencyContainer, object> getDependency(Type type, Type requestingType, bool permitNulls) => dc =>
         {
             var val = dc.Get(type);
             if (val == null && !permitNulls)
