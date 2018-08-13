@@ -1,6 +1,7 @@
 // Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics;
@@ -38,7 +39,12 @@ namespace osu.Framework.Tests.Visual
                 }
             });
 
-            AddStep("Blank grid", reset);
+            AddStep("Blank grid", () =>
+            {
+                reset();
+                grid.Content = Array.Empty<Drawable[]>();
+            });
+
             AddStep("1-cell (auto)", () =>
             {
                 reset();
@@ -381,7 +387,6 @@ namespace osu.Framework.Tests.Visual
 
         private void reset()
         {
-            grid.ClearInternal();
             grid.RowDimensions = grid.ColumnDimensions = new Dimension[] { };
         }
 
