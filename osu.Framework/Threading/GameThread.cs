@@ -6,6 +6,9 @@ using System.Threading;
 using osu.Framework.Statistics;
 using osu.Framework.Timing;
 using System.Collections.Generic;
+using System.Runtime.ExceptionServices;
+using NUnit.Framework;
+using NUnit.Framework.Internal;
 
 namespace osu.Framework.Threading
 {
@@ -24,6 +27,8 @@ namespace osu.Framework.Threading
         /// While attached, all exceptions will be caught and forwarded. Thread execution will continue indefinitely.
         /// </summary>
         public EventHandler<UnhandledExceptionEventArgs> UnhandledException;
+
+        public Action<ExceptionDispatchInfo> OnAssertion;
 
         private readonly Action onNewFrame;
 
@@ -100,24 +105,32 @@ namespace osu.Framework.Threading
 
         private void runWork()
         {
-            Scheduler.SetCurrentThread();
-
-            OnThreadStart?.Invoke();
-
-            initializedEvent.Set();
-
-            while (!exitCompleted)
+            using (new TestExecutionContext.IsolatedContext())
             {
-                try
+                Scheduler.SetCurrentThread();
+
+                OnThreadStart?.Invoke();
+
+                initializedEvent.Set();
+
+                while (!exitCompleted)
                 {
-                    ProcessFrame();
-                }
-                catch (Exception e)
-                {
-                    if (UnhandledException != null)
-                        UnhandledException.Invoke(this, new UnhandledExceptionEventArgs(e, false));
-                    else
-                        throw;
+                    try
+                    {
+                        ProcessFrame();
+                    }
+                    catch (AssertionException e)
+                    {
+                        OnAssertion?.Invoke(ExceptionDispatchInfo.Capture(e));
+                        return;
+                    }
+                    catch (Exception e)
+                    {
+                        if (UnhandledException != null)
+                            UnhandledException.Invoke(this, new UnhandledExceptionEventArgs(e, false));
+                        else
+                            throw;
+                    }
                 }
             }
         }
