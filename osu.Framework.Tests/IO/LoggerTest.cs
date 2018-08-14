@@ -107,11 +107,11 @@ namespace osu.Framework.Tests.IO
             Assert.Throws<TestException>(() =>
             {
                 using (var host = new HeadlessGameHost())
-                    host.Run(new TestGame());
+                    host.Run(new CrashTestGame());
             });
         }
 
-        private class TestGame : Game
+        private class CrashTestGame : Game
         {
             protected override void Update()
             {
