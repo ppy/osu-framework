@@ -205,7 +205,6 @@ namespace osu.Framework.Platform
                     OnThreadStart = UpdateInitialize,
                     Monitor = { HandleGC = true },
                     UnhandledException = unhandledExceptionHandler,
-                    OnAssertion = e => InputThread.Scheduler.Add(e.Throw)
                 }),
                 (InputThread = new InputThread(null)
                 {

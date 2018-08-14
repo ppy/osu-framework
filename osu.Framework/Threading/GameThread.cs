@@ -6,8 +6,6 @@ using System.Threading;
 using osu.Framework.Statistics;
 using osu.Framework.Timing;
 using System.Collections.Generic;
-using System.Runtime.ExceptionServices;
-using NUnit.Framework;
 using NUnit.Framework.Internal;
 
 namespace osu.Framework.Threading
@@ -27,8 +25,6 @@ namespace osu.Framework.Threading
         /// While attached, all exceptions will be caught and forwarded. Thread execution will continue indefinitely.
         /// </summary>
         public EventHandler<UnhandledExceptionEventArgs> UnhandledException;
-
-        public Action<ExceptionDispatchInfo> OnAssertion;
 
         private readonly Action onNewFrame;
 
@@ -118,11 +114,6 @@ namespace osu.Framework.Threading
                     try
                     {
                         ProcessFrame();
-                    }
-                    catch (AssertionException e)
-                    {
-                        OnAssertion?.Invoke(ExceptionDispatchInfo.Capture(e));
-                        return;
                     }
                     catch (Exception e)
                     {
