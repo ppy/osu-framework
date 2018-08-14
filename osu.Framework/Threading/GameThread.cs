@@ -6,7 +6,6 @@ using System.Threading;
 using osu.Framework.Statistics;
 using osu.Framework.Timing;
 using System.Collections.Generic;
-using NUnit.Framework.Internal;
 
 namespace osu.Framework.Threading
 {
