@@ -101,27 +101,24 @@ namespace osu.Framework.Threading
 
         private void runWork()
         {
-            using (new TestExecutionContext.IsolatedContext())
+            Scheduler.SetCurrentThread();
+
+            OnThreadStart?.Invoke();
+
+            initializedEvent.Set();
+
+            while (!exitCompleted)
             {
-                Scheduler.SetCurrentThread();
-
-                OnThreadStart?.Invoke();
-
-                initializedEvent.Set();
-
-                while (!exitCompleted)
+                try
                 {
-                    try
-                    {
-                        ProcessFrame();
-                    }
-                    catch (Exception e)
-                    {
-                        if (UnhandledException != null)
-                            UnhandledException.Invoke(this, new UnhandledExceptionEventArgs(e, false));
-                        else
-                            throw;
-                    }
+                    ProcessFrame();
+                }
+                catch (Exception e)
+                {
+                    if (UnhandledException != null)
+                        UnhandledException.Invoke(this, new UnhandledExceptionEventArgs(e, false));
+                    else
+                        throw;
                 }
             }
         }
