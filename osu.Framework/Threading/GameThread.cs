@@ -6,9 +6,6 @@ using System.Threading;
 using osu.Framework.Statistics;
 using osu.Framework.Timing;
 using System.Collections.Generic;
-using System.Runtime.ExceptionServices;
-using NUnit.Framework;
-using NUnit.Framework.Internal;
 
 namespace osu.Framework.Threading
 {
@@ -22,7 +19,11 @@ namespace osu.Framework.Threading
         public Thread Thread { get; }
         public Scheduler Scheduler { get; }
 
-        public Action<ExceptionDispatchInfo> OnAssertion;
+        /// <summary>
+        /// Attach a handler to delegate responsibility for per-frame exceptions.
+        /// While attached, all exceptions will be caught and forwarded. Thread execution will continue indefinitely.
+        /// </summary>
+        public EventHandler<UnhandledExceptionEventArgs> UnhandledException;
 
         private readonly Action onNewFrame;
 
@@ -99,22 +100,24 @@ namespace osu.Framework.Threading
 
         private void runWork()
         {
-            using (new TestExecutionContext.IsolatedContext())
+            Scheduler.SetCurrentThread();
+
+            OnThreadStart?.Invoke();
+
+            initializedEvent.Set();
+
+            while (!exitCompleted)
             {
                 try
                 {
-                    Scheduler.SetCurrentThread();
-
-                    OnThreadStart?.Invoke();
-
-                    initializedEvent.Set();
-
-                    while (!exitCompleted)
-                        ProcessFrame();
+                    ProcessFrame();
                 }
-                catch (AssertionException e)
+                catch (Exception e)
                 {
-                    OnAssertion?.Invoke(ExceptionDispatchInfo.Capture(e));
+                    if (UnhandledException != null)
+                        UnhandledException.Invoke(this, new UnhandledExceptionEventArgs(e, false));
+                    else
+                        throw;
                 }
             }
         }

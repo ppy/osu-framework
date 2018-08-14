@@ -118,12 +118,10 @@ namespace osu.Framework.Logging
 
         private static void error(Exception e, string description, LoggingTarget? target, string name, bool recursive)
         {
-            log($@"{description}", target, name, LogLevel.Error);
-            log(e.ToString(), target, name, LogLevel.Important);
+            log($@"{description}", target, name, LogLevel.Error, e);
 
-            if (recursive)
-                for (Exception inner = e.InnerException; inner != null; inner = inner.InnerException)
-                    log(inner.ToString(), target, name, LogLevel.Important);
+            if (recursive && e.InnerException != null)
+                error(e.InnerException, $"{description} (inner)", target, name, true);
         }
 
         /// <summary>
@@ -148,14 +146,14 @@ namespace osu.Framework.Logging
             log(message, null, name, level);
         }
 
-        private static void log(string message, LoggingTarget? target, string loggerName, LogLevel level)
+        private static void log(string message, LoggingTarget? target, string loggerName, LogLevel level, Exception exception = null)
         {
             try
             {
                 if (target.HasValue)
-                    GetLogger(target.Value).Add(message, level);
+                    GetLogger(target.Value).Add(message, level, exception);
                 else
-                    GetLogger(loggerName).Add(message, level);
+                    GetLogger(loggerName).Add(message, level, exception);
             }
             catch
             {
@@ -270,45 +268,55 @@ namespace osu.Framework.Logging
         /// </summary>
         /// <param name="message">The message to log. Can include newline (\n) characters to split into multiple lines.</param>
         /// <param name="level">The verbosity level.</param>
-        public void Add(string message = @"", LogLevel level = LogLevel.Verbose) =>
-            add(message, level, OutputToListeners);
+        /// <param name="exception">An optional related exception.</param>
+        public void Add(string message = @"", LogLevel level = LogLevel.Verbose, Exception exception = null) =>
+            add(message, level, exception, OutputToListeners);
 
-        private void add(string message = @"", LogLevel level = LogLevel.Verbose, bool outputToListeners = true)
+        private void add(string message = @"", LogLevel level = LogLevel.Verbose, Exception exception = null, bool outputToListeners = true)
         {
             if (!Enabled || level < Level)
                 return;
 
             ensureHeader();
 
-            if (outputToListeners && DebugUtils.IsDebugBuild)
-            {
-                var debugLine = $"[{Target?.ToString().ToLower() ?? Name}:{level.ToString().ToLower()}] {message}";
-
-                // fire to all debug listeners (like visual studio's output window)
-                System.Diagnostics.Debug.Print(debugLine);
-
-                // fire for console displays (appveyor/CI).
-                Console.WriteLine(debugLine);
-            }
-
             message = ApplyFilters(message);
 
-            //split each line up.
-            string[] lines = message.Replace(@"\r\n", @"\n").Split('\n');
-            for (int i = 0; i < lines.Length; i++)
-            {
-                string s = lines[i];
-                lines[i] = $@"{DateTime.UtcNow.ToString(NumberFormatInfo.InvariantInfo)}: {s.Trim()}";
-            }
+            string logOutput = message;
+
+            if (exception != null)
+                // add exception output to console / logfile output (but not the LogEntry's message).
+                logOutput += $"\n{ApplyFilters(exception.ToString())}";
+
+            IEnumerable<string> lines = logOutput
+                                        .Replace(@"\r\n", @"\n")
+                                        .Split('\n')
+                                        .Select(s => $@"{DateTime.UtcNow.ToString(NumberFormatInfo.InvariantInfo)}: {s.Trim()}");
 
             if (outputToListeners)
+            {
                 NewEntry?.Invoke(new LogEntry
                 {
                     Level = level,
                     Target = Target,
                     LoggerName = Name,
-                    Message = message
+                    Message = message,
+                    Exception = exception
                 });
+
+                if (DebugUtils.IsDebugBuild)
+                {
+                    foreach (var line in lines)
+                    {
+                        var debugLine = $"[{Target?.ToString().ToLower() ?? Name}:{level.ToString().ToLower()}] {line}";
+
+                        // fire to all debug listeners (like visual studio's output window)
+                        System.Diagnostics.Debug.Print(debugLine);
+
+                        // fire for console displays (appveyor/CI).
+                        Console.WriteLine(debugLine);
+                    }
+                }
+            }
 
             if (Target == LoggingTarget.Information)
                 // don't want to log this to a file
@@ -437,6 +445,11 @@ namespace osu.Framework.Logging
         /// The message that was logged.
         /// </summary>
         public string Message;
+
+        /// <summary>
+        /// An optional related exception.
+        /// </summary>
+        public Exception Exception;
     }
 
     /// <summary>
