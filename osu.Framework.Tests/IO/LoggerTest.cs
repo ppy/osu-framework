@@ -102,6 +102,25 @@ namespace osu.Framework.Tests.IO
         }
 
         [Test]
+        public void TestGameUpdateExceptionNoLogging()
+        {
+            Assert.Throws<TestException>(() =>
+            {
+                using (var host = new HeadlessGameHost())
+                    host.Run(new TestGame());
+            });
+        }
+
+        private class TestGame : Game
+        {
+            protected override void Update()
+            {
+                base.Update();
+                throw new TestException();
+            }
+        }
+
+        [Test]
         public void TestTaskExceptionLogging()
         {
             Exception resolvedException = null;
