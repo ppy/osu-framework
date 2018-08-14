@@ -44,7 +44,7 @@ namespace osu.Framework.Allocation
                     throw new AccessModifierNotAllowedForPropertySetterException(modifier, property);
 
                 var attribute = property.GetCustomAttribute<ResolvedAttribute>();
-                var fieldGetter = getDependency(property.PropertyType, type, attribute.CanBeNull);
+                var fieldGetter = getDependency(property.PropertyType, type, attribute.CanBeNull || property.PropertyType.IsNullable());
 
                 activators.Add((target, dc) => property.SetValue(target, fieldGetter(dc)));
             }
