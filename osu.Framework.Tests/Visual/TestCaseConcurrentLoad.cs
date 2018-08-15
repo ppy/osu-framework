@@ -43,7 +43,8 @@ namespace osu.Framework.Tests.Visual
                 };
             });
 
-            AddAssert("first load is cancelled", () => load1.WasCancelled);
+            AddUntilStep(() => load1.WasCancelled, "first load is cancelled");
+
             AddAssert("second load not cancelled", () => !load2.WasCancelled);
 
             AddUntilStep(() => load2.HasLoaded, "second load complete");
