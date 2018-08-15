@@ -88,7 +88,7 @@ namespace osu.Framework.Graphics
                 //we can't dispose if we are mid-load, else our children may get in a bad state.
                 loadTask?.Wait(loadTaskCancellation);
             }
-            catch (TaskCanceledException)
+            catch (OperationCanceledException)
             {
             }
 
