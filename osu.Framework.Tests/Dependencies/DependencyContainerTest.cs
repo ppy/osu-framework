@@ -254,6 +254,18 @@ namespace osu.Framework.Tests.Dependencies
             Assert.AreEqual(0, receiver.TestObject);
         }
 
+        [Test]
+        public void TestCacheAsNullableInternal()
+        {
+            int? testObject = 5;
+
+            var dependencies = new DependencyContainer();
+            dependencies.CacheValueAs(testObject);
+
+            Assert.AreEqual(5, dependencies.GetValue<int>());
+            Assert.AreEqual(5, dependencies.GetValue<int?>());
+        }
+
         private interface IBaseInterface
         {
         }

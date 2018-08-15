@@ -90,7 +90,10 @@ namespace osu.Framework.Allocation
                 throw new ArgumentNullException(nameof(instance));
             }
 
+            type = Nullable.GetUnderlyingType(type) ?? type;
+
             var instanceType = instance.GetType();
+            instanceType = Nullable.GetUnderlyingType(instanceType) ?? instanceType;
 
             if (instanceType.IsValueType && !allowValueTypes)
                 throw new ArgumentException($"{instanceType.ReadableName()} must be a class to be cached as a dependency.", nameof(instance));
