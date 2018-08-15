@@ -4,7 +4,7 @@
 using System;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Input;
+using osu.Framework.Input.States;
 
 namespace osu.Framework.Graphics.UserInterface
 {

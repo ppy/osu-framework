@@ -20,6 +20,8 @@ using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Platform;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Bindings;
+using osu.Framework.Input.EventArgs;
+using osu.Framework.Input.States;
 using osu.Framework.Timing;
 
 namespace osu.Framework.Graphics.UserInterface
@@ -55,7 +57,8 @@ namespace osu.Framework.Graphics.UserInterface
         //represents the left/right selection coordinates of the word double clicked on when dragging
         private int[] doubleClickWord;
 
-        private AudioManager audio;
+        [Resolved]
+        private AudioManager audio { get; set; }
 
         /// <summary>
         /// Whether this TextBox should accept left and right arrow keys for navigation.
@@ -127,10 +130,8 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         [BackgroundDependencyLoader]
-        private void load(GameHost host, AudioManager audio)
+        private void load(GameHost host)
         {
-            this.audio = audio;
-
             textInput = host.GetTextInput();
             clipboard = host.GetClipboard();
 

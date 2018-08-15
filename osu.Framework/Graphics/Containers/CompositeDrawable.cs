@@ -43,7 +43,8 @@ namespace osu.Framework.Graphics.Containers
             aliveInternalChildren = new SortedList<Drawable>(new ChildComparer(this));
         }
 
-        private Game game;
+        [Resolved]
+        private Game game { get; set; }
 
         /// <summary>
         /// Loads a future child or grand-child of this <see cref="CompositeDrawable"/> asyncronously. <see cref="Drawable.Dependencies"/>
@@ -65,10 +66,8 @@ namespace osu.Framework.Graphics.Containers
         }
 
         [BackgroundDependencyLoader(true)]
-        private void load(Game game, ShaderManager shaders)
+        private void load(ShaderManager shaders)
         {
-            this.game = game;
-
             if (shader == null)
                 shader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
 
@@ -720,10 +719,11 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         /// <param name="frame">The frame which <see cref="DrawNode"/>s should be generated for.</param>
         /// <param name="treeIndex">The index of the currently in-use <see cref="DrawNode"/> tree.</param>
+        /// <param name="forceNewDrawNode">Whether the creation of a new <see cref="DrawNode"/> should be forced, rather than re-using an existing <see cref="DrawNode"/>.</param>
         /// <param name="j">The running index into the target List.</param>
         /// <param name="parentComposite">The <see cref="CompositeDrawable"/> whose children's <see cref="DrawNode"/>s to add.</param>
         /// <param name="target">The target list to fill with DrawNodes.</param>
-        private static void addFromComposite(ulong frame, int treeIndex, ref int j, CompositeDrawable parentComposite, List<DrawNode> target)
+        private static void addFromComposite(ulong frame, int treeIndex, bool forceNewDrawNode, ref int j, CompositeDrawable parentComposite, List<DrawNode> target)
         {
             SortedList<Drawable> current = parentComposite.aliveInternalChildren;
             // ReSharper disable once ForCanBeConvertedToForeach
@@ -740,7 +740,7 @@ namespace osu.Framework.Graphics.Containers
                     if (composite?.CanBeFlattened == true)
                     {
                         if (!composite.IsMaskedAway)
-                            addFromComposite(frame, treeIndex, ref j, composite, target);
+                            addFromComposite(frame, treeIndex, forceNewDrawNode, ref j, composite, target);
 
                         continue;
                     }
@@ -749,7 +749,7 @@ namespace osu.Framework.Graphics.Containers
                         continue;
                 }
 
-                DrawNode next = drawable.GenerateDrawNodeSubtree(frame, treeIndex);
+                DrawNode next = drawable.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode);
                 if (next == null)
                     continue;
 
@@ -768,13 +768,13 @@ namespace osu.Framework.Graphics.Containers
 
         internal virtual bool AddChildDrawNodes => true;
 
-        internal override DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex)
+        internal override DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex, bool forceNewDrawNode)
         {
             // No need for a draw node at all if there are no children and we are not glowing.
             if (aliveInternalChildren.Count == 0 && CanBeFlattened)
                 return null;
 
-            if (!(base.GenerateDrawNodeSubtree(frame, treeIndex) is CompositeDrawNode cNode))
+            if (!(base.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode) is CompositeDrawNode cNode))
                 return null;
 
             if (cNode.Children == null)
@@ -785,7 +785,7 @@ namespace osu.Framework.Graphics.Containers
                 List<DrawNode> target = cNode.Children;
 
                 int j = 0;
-                addFromComposite(frame, treeIndex, ref j, this, target);
+                addFromComposite(frame, treeIndex, forceNewDrawNode, ref j, this, target);
 
                 if (j < target.Count)
                     target.RemoveRange(j, target.Count - j);

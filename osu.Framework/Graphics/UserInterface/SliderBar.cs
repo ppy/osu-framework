@@ -4,10 +4,11 @@
 using System;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Input;
 using OpenTK.Input;
 using OpenTK;
 using System.Diagnostics;
+using osu.Framework.Input.EventArgs;
+using osu.Framework.Input.States;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -46,8 +47,6 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (CurrentNumber == null)
                 throw new NotSupportedException($"We don't support the generic type of {nameof(BindableNumber<T>)}.");
-
-            CurrentNumber.ValueChanged += v => UpdateValue(NormalizedValue);
         }
 
         protected float NormalizedValue
@@ -81,6 +80,11 @@ namespace osu.Framework.Graphics.UserInterface
         protected override void LoadComplete()
         {
             base.LoadComplete();
+
+            CurrentNumber.ValueChanged += _ => UpdateValue(NormalizedValue);
+            CurrentNumber.MinValueChanged += _ => UpdateValue(NormalizedValue);
+            CurrentNumber.MaxValueChanged += _ => UpdateValue(NormalizedValue);
+
             UpdateValue(NormalizedValue);
         }
 

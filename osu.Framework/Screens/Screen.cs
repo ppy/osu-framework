@@ -18,7 +18,8 @@ namespace osu.Framework.Screens
         private readonly Container content;
         private Container childModeContainer;
 
-        protected Game Game;
+        [Resolved]
+        protected Game Game { get; private set; }
 
         protected override Container<Drawable> Content => content;
 
@@ -94,12 +95,6 @@ namespace osu.Framework.Screens
         /// <param name="next">The new Screen</param>
         protected virtual void OnSuspending(Screen next)
         {
-        }
-
-        [BackgroundDependencyLoader]
-        private void load(Game game)
-        {
-            Game = game;
         }
 
         protected override void LoadComplete()
