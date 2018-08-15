@@ -263,6 +263,7 @@ namespace osu.Framework.Tests.Dependencies
             dependencies.CacheValueAs(testObject);
 
             Assert.AreEqual(5, dependencies.GetValue<int>());
+            Assert.AreEqual(5, dependencies.GetValue<int?>());
         }
 
         private interface IBaseInterface
