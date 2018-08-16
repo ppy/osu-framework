@@ -5,6 +5,7 @@ using osu.Framework.Lists;
 using System.Collections.Generic;
 using System;
 using System.Diagnostics;
+using System.Threading;
 using OpenTK;
 using osu.Framework.Graphics.OpenGL;
 using OpenTK.Graphics;
@@ -46,6 +47,8 @@ namespace osu.Framework.Graphics.Containers
         [Resolved]
         private Game game { get; set; }
 
+        private CancellationTokenSource cancellationSource;
+
         /// <summary>
         /// Loads a future child or grand-child of this <see cref="CompositeDrawable"/> asyncronously. <see cref="Drawable.Dependencies"/>
         /// and <see cref="Drawable.Clock"/> are inherited from this <see cref="CompositeDrawable"/>.
@@ -62,11 +65,13 @@ namespace osu.Framework.Graphics.Containers
             if (game == null)
                 throw new InvalidOperationException($"May not invoke {nameof(LoadComponentAsync)} prior to this {nameof(CompositeDrawable)} being loaded.");
 
-            return component.LoadAsync(game, this, () => onLoaded?.Invoke(component));
+            if (cancellationSource == null) cancellationSource = new CancellationTokenSource();
+
+            return component.LoadAsync(game, this, cancellationSource.Token, () => onLoaded?.Invoke(component));
         }
 
         [BackgroundDependencyLoader(true)]
-        private void load(ShaderManager shaders)
+        private void load(ShaderManager shaders, CancellationToken? cancellation)
         {
             if (shader == null)
                 shader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
@@ -74,7 +79,11 @@ namespace osu.Framework.Graphics.Containers
             // We are in a potentially async context, so let's aggressively load all our children
             // regardless of their alive state. this also gives children a clock so they can be checked
             // for their correct alive state in the case LifetimeStart is set to a definite value.
-            internalChildren.ForEach(loadChild);
+            foreach (var c in internalChildren)
+            {
+                cancellation?.ThrowIfCancellationRequested();
+                loadChild(c, cancellation);
+            }
         }
 
         protected override void LoadAsyncComplete()
@@ -87,9 +96,9 @@ namespace osu.Framework.Graphics.Containers
             checkChildrenLife();
         }
 
-        private void loadChild(Drawable child)
+        private void loadChild(Drawable child, CancellationToken? cancellation)
         {
-            child.Load(Clock, Dependencies);
+            child.Load(Clock, Dependencies, cancellation);
             child.Parent = this;
         }
 
@@ -101,6 +110,9 @@ namespace osu.Framework.Graphics.Containers
 
         protected override void Dispose(bool isDisposing)
         {
+            cancellationSource?.Cancel();
+            cancellationSource?.Dispose();
+
             InternalChildren?.ForEach(c => c.Dispose());
 
             OnAutoSize = null;
@@ -187,6 +199,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         private readonly SortedList<Drawable> internalChildren;
+
         /// <summary>
         /// This <see cref="CompositeDrawable"/> list of children. Assigning to this property will dispose all existing children of this <see cref="CompositeDrawable"/>.
         /// </summary>
@@ -323,7 +336,7 @@ namespace osu.Framework.Graphics.Containers
                 drawable.Parent = this;
             // If we're already loaded, we can eagerly allow children to be loaded
             else if (LoadState >= LoadState.Loading)
-                loadChild(drawable);
+                loadChild(drawable, null);
 
             internalChildren.Add(drawable);
 
@@ -433,7 +446,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 if (!child.IsAlive)
                 {
-                    loadChild(child);
+                    loadChild(child, null);
 
                     if (child.LoadState >= LoadState.Ready)
                     {

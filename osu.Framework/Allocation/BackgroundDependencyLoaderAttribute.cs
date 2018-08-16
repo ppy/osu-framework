@@ -69,6 +69,8 @@ namespace osu.Framework.Allocation
                         }
                         catch (TargetInvocationException exc)
                         {
+                            if (exc.InnerException is OperationCanceledException) throw exc.InnerException;
+
                             // When this activator has failed (single invoke call)
                             throw new DependencyInjectionException { DispatchInfo = ExceptionDispatchInfo.Capture(exc.InnerException) };
                         }
