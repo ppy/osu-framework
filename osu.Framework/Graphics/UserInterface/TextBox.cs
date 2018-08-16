@@ -503,17 +503,20 @@ namespace osu.Framework.Graphics.UserInterface
 
             foreach (char c in addText)
             {
-                var ch = addCharacter(c);
+                if (!addCharacter(c, out var ch))
+                    continue;
 
                 var col = (Color4)ch.Colour;
                 ch.FadeColour(col.Opacity(0)).FadeColour(col, caret_move_time * 2, Easing.Out);
             }
         }
 
-        private Drawable addCharacter(char c)
+        private bool addCharacter(char c, out Drawable drawableChar)
         {
+            drawableChar = null;
+
             if (Current.Disabled || char.IsControl(c) || !CanAddCharacter(c))
-                return null;
+                return false;
 
             if (selectionLength > 0)
                 removeCharacterOrSelection();
@@ -524,7 +527,8 @@ namespace osu.Framework.Graphics.UserInterface
                     Background.FlashColour(Color4.Red, 200);
                 else
                     TextFlow.FlashColour(Color4.Red, 200);
-                return null;
+
+                return false;
             }
 
             Drawable ch = AddCharacterToFlow(c);
@@ -534,7 +538,8 @@ namespace osu.Framework.Graphics.UserInterface
 
             cursorAndLayout.Invalidate();
 
-            return ch;
+            drawableChar = ch;
+            return true;
         }
 
         protected virtual SpriteText CreatePlaceholder() => new SpriteText
@@ -580,7 +585,7 @@ namespace osu.Framework.Graphics.UserInterface
                     text = string.Empty;
 
                     foreach (char c in value)
-                        addCharacter(c);
+                        addCharacter(c, out var _);
 
                     selectionStart = MathHelper.Clamp(startBefore, 0, text.Length);
                 });
@@ -905,8 +910,7 @@ namespace osu.Framework.Graphics.UserInterface
             //add any new or changed characters
             for (int i = matchCount; i < s.Length; i++)
             {
-                Drawable dr = addCharacter(s[i]);
-                if (dr != null)
+                if (addCharacter(s[i], out var dr))
                 {
                     dr.Colour = Color4.Aqua;
                     dr.Alpha = 0.6f;
