@@ -1,6 +1,9 @@
 // Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -14,53 +17,70 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Tests.Visual
 {
-    public class TestCaseConcurrentLoad : TestCase
+    public class TestCaseDrawableLoadCancallation : TestCase
     {
-        private SlowFlow load1;
-        private SlowFlow load2;
+        private readonly List<SlowLoader> loaders = new List<SlowLoader>();
 
         protected override void LoadComplete()
         {
             base.LoadComplete();
 
-            AddStep("add slow flow", () =>
-            {
-                Child = load1 = new SlowFlow
-                {
-                    Direction = FillDirection.Full,
-                    RelativeSizeAxes = Axes.Both,
-                    Spacing = new Vector2(5)
-                };
-            });
+            AddStep("add slow loader", () => { Child = createLoader(); });
 
-            AddStep("replace low flow", () =>
-            {
-                Child = load2 = new SlowFlow
-                {
-                    Direction = FillDirection.Full,
-                    RelativeSizeAxes = Axes.Both,
-                    Spacing = new Vector2(5)
-                };
-            });
+            AddStep("replace slow loader", () => { Child = createLoader(); });
+            AddStep("replace slow loader", () => { Child = createLoader(); });
+            AddStep("replace slow loader", () => { Child = createLoader(); });
 
-            AddUntilStep(() => load1.WasCancelled, "first load is cancelled");
+            AddUntilStep(() => loaders.AsEnumerable().Reverse().Skip(1).All(l => l.WasCancelled), "all but last loader cancelled");
 
-            AddAssert("second load not cancelled", () => !load2.WasCancelled);
+            AddAssert("last loader not cancelled", () => !loaders.Last().WasCancelled);
 
-            AddUntilStep(() => load2.HasLoaded, "second load complete");
+            AddUntilStep(() => loaders.Last().HasLoaded, "last loader loaded");
         }
 
-        public class SlowFlow : FillFlowContainer
+        private int id;
+
+        private SlowLoader createLoader()
         {
+            var loader = new SlowLoader(id++);
+            loaders.Add(loader);
+            return loader;
+        }
+
+        public class SlowLoader : CompositeDrawable
+        {
+            private readonly int id;
             private SlowLoadDrawable loadable;
 
             public bool WasCancelled => loadable?.WasCancelled ?? false;
             public bool HasLoaded => loadable?.IsLoaded ?? false;
 
+            public SlowLoader(int id)
+            {
+                this.id = id;
+                RelativeSizeAxes = Axes.Both;
+
+                Anchor = Anchor.Centre;
+                Origin = Anchor.Centre;
+
+                Size = new Vector2(0.9f);
+
+                InternalChildren = new Drawable[]
+                {
+                    new Box
+                    {
+                        Colour = Color4.Navy,
+                        RelativeSizeAxes = Axes.Both,
+                    },
+                };
+            }
+
             protected override void LoadComplete()
             {
                 base.LoadComplete();
-                LoadComponentAsync(loadable = new SlowLoadDrawable(0), Add);
+
+                this.FadeInFromZero(200);
+                LoadComponentAsync(loadable = new SlowLoadDrawable(id), AddInternal);
             }
         }
 
@@ -73,7 +93,14 @@ namespace osu.Framework.Tests.Visual
             public SlowLoadDrawable(int id)
             {
                 this.id = id;
-                Size = new Vector2(50);
+
+                RelativeSizeAxes = Axes.Both;
+
+                Anchor = Anchor.Centre;
+                Origin = Anchor.Centre;
+
+                Size = new Vector2(0.9f);
+
                 InternalChildren = new Drawable[]
                 {
                     new Box
@@ -84,6 +111,8 @@ namespace osu.Framework.Tests.Visual
                     new SpriteText
                     {
                         Text = id.ToString(),
+                        Colour = Color4.Black,
+                        TextSize = 50,
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre
                     }
@@ -93,7 +122,7 @@ namespace osu.Framework.Tests.Visual
             [BackgroundDependencyLoader]
             private void load(CancellationToken? cancellation)
             {
-                int i = 100;
+                int i = Math.Max(1, (int)(100 / Clock.Rate));
 
                 while (i-- > 0)
                 {
@@ -107,6 +136,12 @@ namespace osu.Framework.Tests.Visual
 
                 //await Task.Delay(10000, cancellation ?? CancellationToken.None);
                 Logger.Log($"Load {id} complete!");
+            }
+
+            protected override void LoadComplete()
+            {
+                base.LoadComplete();
+                this.FadeInFromZero(200);
             }
         }
     }
