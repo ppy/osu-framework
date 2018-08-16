@@ -25,7 +25,11 @@ namespace osu.Framework.Tests.Visual
         {
             base.LoadComplete();
 
-            AddStep("add slow loader", () => { Child = createLoader(); });
+            AddStep("add slow loader", () =>
+            {
+                loaders.Clear();
+                Child = createLoader();
+            });
 
             AddStep("replace slow loader", () => { Child = createLoader(); });
             AddStep("replace slow loader", () => { Child = createLoader(); });
