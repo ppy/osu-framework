@@ -40,14 +40,20 @@ namespace osu.Framework.Tests.Visual
             AddStep("take screenshot", takeScreenshot);
         }
 
-        private void takeScreenshot() => host.TakeScreenshotAsync().ContinueWith(t => Schedule(() =>
+        private void takeScreenshot()
         {
-            var image = t.Result;
+            if (host.Window == null)
+                return;
 
-            var tex = new Texture(image.Width, image.Height);
-            tex.SetData(new TextureUpload(new RawTexture(image.Width, image.Height, image.SavePixelData())));
+            host.TakeScreenshotAsync().ContinueWith(t => Schedule(() =>
+            {
+                var image = t.Result;
 
-            display.Texture = tex;
-        }));
+                var tex = new Texture(image.Width, image.Height);
+                tex.SetData(new TextureUpload(new RawTexture(image.Width, image.Height, image.SavePixelData())));
+
+                display.Texture = tex;
+            }));
+        }
     }
 }
