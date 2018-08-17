@@ -46,11 +46,8 @@ namespace osu.Framework.Tests.Visual
             {
                 var image = t.Result;
 
-                var raw = new RawTexture(image.Width, image.Height, image.SavePixelData());
-                var upload = new TextureUpload(raw);
-
                 var tex = new Texture(image.Width, image.Height);
-                tex.SetData(upload);
+                tex.SetData(new TextureUpload(new RawTexture(image.Width, image.Height, image.SavePixelData())));
 
                 display.Texture = tex;
             });
