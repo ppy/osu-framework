@@ -242,9 +242,9 @@ namespace osu.Framework.Input.Bindings
             return handled != null;
         }
 
-        public void TriggerReleased(T released) => PropagateReleased(KeyBindingInputQueue, released);
+        public virtual void TriggerReleased(T released) => PropagateReleased(KeyBindingInputQueue, released);
 
-        public void TriggerPressed(T pressed) => PropagatePressed(KeyBindingInputQueue, pressed);
+        public virtual void TriggerPressed(T pressed) => PropagatePressed(KeyBindingInputQueue, pressed);
     }
 
     /// <summary>
