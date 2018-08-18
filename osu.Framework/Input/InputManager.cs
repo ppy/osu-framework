@@ -316,6 +316,7 @@ namespace osu.Framework.Input
 
             lastHoveredDrawables.Clear();
             lastHoveredDrawables.AddRange(hoveredDrawables);
+
             hoveredDrawables.Clear();
 
             // New drawables shouldn't be hovered if the cursor isn't in the window
@@ -325,6 +326,7 @@ namespace osu.Framework.Input
                 foreach (Drawable d in PositionalInputQueue)
                 {
                     hoveredDrawables.Add(d);
+                    lastHoveredDrawables.Remove(d);
 
                     // Don't need to re-hover those that are already hovered
                     if (d.IsHovered)
@@ -349,7 +351,7 @@ namespace osu.Framework.Input
             }
 
             // Unhover all previously hovered drawables which are no longer hovered.
-            foreach (Drawable d in lastHoveredDrawables.Except(hoveredDrawables))
+            foreach (Drawable d in lastHoveredDrawables)
             {
                 d.IsHovered = false;
                 d.TriggerOnHoverLost(state);
