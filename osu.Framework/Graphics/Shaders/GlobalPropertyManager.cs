@@ -4,21 +4,30 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using OpenTK;
 
 namespace osu.Framework.Graphics.Shaders
 {
     internal static class GlobalPropertyManager
     {
         private static readonly List<Shader> all_shaders = new List<Shader>();
-        private static readonly UniformMapping[] global_properties;
+        private static readonly IUniformMapping[] global_properties;
 
         static GlobalPropertyManager()
         {
             var values = Enum.GetValues(typeof(GlobalProperty)).OfType<GlobalProperty>().ToArray();
 
-            global_properties = new UniformMapping[values.Length];
-            foreach (var v in values)
-                global_properties[(int)v] = new UniformMapping($"g_{v}");
+            global_properties = new IUniformMapping[values.Length];
+
+            global_properties[(int)GlobalProperty.ProjMatrix] = new UniformMapping<Matrix4>("g_ProjMatrix");
+            global_properties[(int)GlobalProperty.MaskingRect] = new UniformMapping<Vector4>("g_MaskingRect");
+            global_properties[(int)GlobalProperty.ToMaskingSpace] = new UniformMapping<Matrix3>("g_ToMaskingSpace");
+            global_properties[(int)GlobalProperty.CornerRadius] = new UniformMapping<float>("g_CornerRadius");
+            global_properties[(int)GlobalProperty.BorderThickness] = new UniformMapping<float>("g_BorderThickness");
+            global_properties[(int)GlobalProperty.BorderColour] = new UniformMapping<Vector4>("g_BorderColour");
+            global_properties[(int)GlobalProperty.MaskingBlendRange] = new UniformMapping<float>("g_MaskingBlendRange");
+            global_properties[(int)GlobalProperty.AlphaExponent] = new UniformMapping<float>("g_AlphaExponent");
+            global_properties[(int)GlobalProperty.DiscardInner] = new UniformMapping<bool>("g_DiscardInner");
         }
 
         /// <summary>
@@ -27,18 +36,18 @@ namespace osu.Framework.Graphics.Shaders
         /// </summary>
         /// <param name="property">The uniform.</param>
         /// <param name="value">The uniform value.</param>
-        public static void Set(GlobalProperty property, object value) => global_properties[(int)property].Value = value;
+        public static void Set<T>(GlobalProperty property, T value)
+            where T : struct => ((UniformMapping<T>)global_properties[(int)property]).UpdateValue(ref value);
 
         public static void InitializeShader(Shader shader)
         {
             // transfer all existing global properties across.
             foreach (var global in global_properties)
             {
-                if (!shader.Uniforms.TryGetValue(global.Name, out UniformBase uniform))
+                if (!shader.Uniforms.TryGetValue(global.Name, out IUniform uniform))
                     continue;
 
-                uniform.Value = global.Value;
-                global.LinkedUniforms.Add(uniform);
+                global.LinkShaderUniform(uniform);
             }
 
             all_shaders.Add(shader);

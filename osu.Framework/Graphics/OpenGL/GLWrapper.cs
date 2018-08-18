@@ -430,11 +430,14 @@ namespace osu.Framework.Graphics.OpenGL
             GlobalPropertyManager.Set(GlobalProperty.CornerRadius, maskingInfo.CornerRadius);
 
             GlobalPropertyManager.Set(GlobalProperty.BorderThickness, maskingInfo.BorderThickness / maskingInfo.BlendRange);
-            GlobalPropertyManager.Set(GlobalProperty.BorderColour, new Vector4(
-                maskingInfo.BorderColour.Linear.R,
-                maskingInfo.BorderColour.Linear.G,
-                maskingInfo.BorderColour.Linear.B,
-                maskingInfo.BorderColour.Linear.A));
+            if (maskingInfo.BorderThickness > 0)
+            {
+                GlobalPropertyManager.Set(GlobalProperty.BorderColour, new Vector4(
+                    maskingInfo.BorderColour.Linear.R,
+                    maskingInfo.BorderColour.Linear.G,
+                    maskingInfo.BorderColour.Linear.B,
+                    maskingInfo.BorderColour.Linear.A));
+            }
 
             GlobalPropertyManager.Set(GlobalProperty.MaskingBlendRange, maskingInfo.BlendRange);
             GlobalPropertyManager.Set(GlobalProperty.AlphaExponent, maskingInfo.AlphaExponent);
@@ -460,16 +463,7 @@ namespace osu.Framework.Graphics.OpenGL
 
             if (isPushing)
             {
-                RectangleI currentScissorRect;
-                if (overwritePreviousScissor)
-                    currentScissorRect = actualRect;
-                else
-                {
-                    currentScissorRect = scissor_rect_stack.Peek();
-                    currentScissorRect.Intersect(actualRect);
-                }
-
-                scissor_rect_stack.Push(currentScissorRect);
+                scissor_rect_stack.Push(overwritePreviousScissor ? actualRect : RectangleI.Intersect(scissor_rect_stack.Peek(), actualRect));
             }
             else
             {
@@ -602,57 +596,57 @@ namespace osu.Framework.Graphics.OpenGL
             currentShader = s;
         }
 
-        public static void SetUniform(int shader, ActiveUniformType type, int location, object value)
+        public static void SetUniform(IUniform uniform)
         {
-            if (shader == currentShader)
+            if (uniform.Owner == currentShader)
                 FlushCurrentBatch();
 
-            switch (type)
+            switch (uniform)
             {
-                case ActiveUniformType.Bool:
-                    GL.Uniform1(location, (bool)value ? 1 : 0);
+                case Uniform<bool> b:
+                    GL.Uniform1(uniform.Location, b.GlobalValue?.Value ?? b.Value ? 1 : 0);
                     break;
-                case ActiveUniformType.Int:
-                    GL.Uniform1(location, (int)value);
+                case Uniform<int> i:
+                    GL.Uniform1(uniform.Location, i.GlobalValue?.Value ?? i.Value);
                     break;
-                case ActiveUniformType.Float:
-                    GL.Uniform1(location, (float)value);
+                case Uniform<float> f:
+                    GL.Uniform1(uniform.Location, f.GlobalValue?.Value ?? f.Value);
                     break;
-                case ActiveUniformType.BoolVec2:
-                case ActiveUniformType.IntVec2:
-                case ActiveUniformType.FloatVec2:
-                    GL.Uniform2(location, (Vector2)value);
+                case Uniform<Vector2> v2:
+                    if (v2.GlobalValue != null)
+                        GL.Uniform2(uniform.Location, ref v2.GlobalValue.Value);
+                    else
+                        GL.Uniform2(uniform.Location, ref v2.Value);
                     break;
-                case ActiveUniformType.FloatMat2:
-                    {
-                        Matrix2 mat = (Matrix2)value;
-                        GL.UniformMatrix2(location, false, ref mat);
-                        break;
-                    }
-                case ActiveUniformType.BoolVec3:
-                case ActiveUniformType.IntVec3:
-                case ActiveUniformType.FloatVec3:
-                    GL.Uniform3(location, (Vector3)value);
+                case Uniform<Vector3> v3:
+                    if (v3.GlobalValue != null)
+                        GL.Uniform3(uniform.Location, ref v3.GlobalValue.Value);
+                    else
+                        GL.Uniform3(uniform.Location, ref v3.Value);
                     break;
-                case ActiveUniformType.FloatMat3:
-                    {
-                        Matrix3 mat = (Matrix3)value;
-                        GL.UniformMatrix3(location, false, ref mat);
-                        break;
-                    }
-                case ActiveUniformType.BoolVec4:
-                case ActiveUniformType.IntVec4:
-                case ActiveUniformType.FloatVec4:
-                    GL.Uniform4(location, (Vector4)value);
+                case Uniform<Vector4> v4:
+                    if (v4.GlobalValue != null)
+                        GL.Uniform4(uniform.Location, ref v4.GlobalValue.Value);
+                    else
+                        GL.Uniform4(uniform.Location, ref v4.Value);
                     break;
-                case ActiveUniformType.FloatMat4:
-                    {
-                        Matrix4 mat = (Matrix4)value;
-                        GL.UniformMatrix4(location, false, ref mat);
-                        break;
-                    }
-                case ActiveUniformType.Sampler2D:
-                    GL.Uniform1(location, (int)value);
+                case Uniform<Matrix2> m2:
+                    if (m2.GlobalValue != null)
+                        GL.UniformMatrix2(uniform.Location, false, ref m2.GlobalValue.Value);
+                    else
+                        GL.UniformMatrix2(uniform.Location, false, ref m2.Value);
+                    break;
+                case Uniform<Matrix3> m3:
+                    if (m3.GlobalValue != null)
+                        GL.UniformMatrix3(uniform.Location, false, ref m3.GlobalValue.Value);
+                    else
+                        GL.UniformMatrix3(uniform.Location, false, ref m3.Value);
+                    break;
+                case Uniform<Matrix4> m4:
+                    if (m4.GlobalValue != null)
+                        GL.UniformMatrix4(uniform.Location, false, ref m4.GlobalValue.Value);
+                    else
+                        GL.UniformMatrix4(uniform.Location, false, ref m4.Value);
                     break;
             }
         }

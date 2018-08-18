@@ -5,32 +5,44 @@ using System.Collections.Generic;
 
 namespace osu.Framework.Graphics.Shaders
 {
+    internal interface IUniformMapping
+    {
+        string Name { get; set; }
+
+        void LinkShaderUniform(IUniform uniform);
+    }
+
+
     /// <summary>
     /// A mapping of a global uniform to many shaders which need to receive updates on a change.
     /// </summary>
-    internal class UniformMapping
+    public class UniformMapping<T> : IUniformMapping
+        where T : struct
     {
-        private object _value;
-        public string Name;
-        public List<UniformBase> LinkedUniforms = new List<UniformBase>();
+        public T Value;
+
+        public List<Uniform<T>> LinkedUniforms = new List<Uniform<T>>();
+
+        public string Name { get; set; }
+
+        public void LinkShaderUniform(IUniform uniform)
+        {
+            var typedUniform = (Uniform<T>)uniform;
+
+            typedUniform.UpdateValue(this);
+            LinkedUniforms.Add(typedUniform);
+        }
 
         public UniformMapping(string name)
         {
             Name = name;
         }
 
-        public object Value
+        public void UpdateValue(ref T newValue)
         {
-            get { return _value; }
-            set
-            {
-                if (_value?.Equals(value) == true)
-                    return;
-
-                _value = value;
-                foreach (var linked in LinkedUniforms)
-                    linked.Value = value;
-            }
+            Value = newValue;
+            foreach (var linked in LinkedUniforms)
+                linked.UpdateValue(this);
         }
     }
 }

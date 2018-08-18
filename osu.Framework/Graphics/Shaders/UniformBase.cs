@@ -1,59 +1,73 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using OpenTK.Graphics.ES30;
 using osu.Framework.Graphics.OpenGL;
 
 namespace osu.Framework.Graphics.Shaders
 {
-    internal class UniformBase
+    public interface IUniform
+    {
+        void Update();
+
+        Shader Owner { get; }
+        int Location { get; }
+    }
+
+    public class Uniform<T> : IUniform
+        where T : struct
     {
         public string Name { get; }
 
-        private object value;
+        public T Value;
 
-        public object Value
+        public UniformMapping<T> GlobalValue;
+
+        public void UpdateValue(UniformMapping<T> global)
         {
-            get => value;
-            set
-            {
-                if (value == this.value)
-                    return;
-
-                this.value = value;
-                HasChanged = true;
-
-                if (owner.IsBound)
-                    Update();
-            }
+            GlobalValue = global;
+            if (Owner.IsBound)
+                Update();
         }
 
-        private readonly int location;
-        private readonly ActiveUniformType type;
+        public void UpdateValue(ref T newValue)
+        {
+            if (newValue.Equals(Value))
+                return;
+
+            Value = newValue;
+            HasChanged = true;
+
+            if (Owner.IsBound)
+                Update();
+        }
+
+        public int Location { get; private set; }
 
         public bool HasChanged { get; private set; } = true;
 
-        private readonly Shader owner;
+        public Shader Owner { get; private set; }
 
-        public UniformBase(Shader owner, string name, int uniformLocation, ActiveUniformType type)
+        public Uniform(Shader owner, string name, int uniformLocation)
         {
-            this.owner = owner;
+            Owner = owner;
             Name = name;
-            location = uniformLocation;
-            this.type = type;
+            Location = uniformLocation;
         }
 
         public void Update()
         {
+            if (GlobalValue != null)
+            {
+                GLWrapper.SetUniform(this);
+                GlobalValue = null;
+            }
+
             if (!HasChanged)
                 return;
 
             HasChanged = false;
 
-            if (Value == null)
-                return;
-
-            GLWrapper.SetUniform(owner, type, location, Value);
+            GLWrapper.SetUniform(this);
         }
     }
 }

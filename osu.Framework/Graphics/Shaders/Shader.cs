@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using osu.Framework.Graphics.OpenGL;
+using OpenTK;
 using OpenTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Shaders
@@ -23,8 +24,8 @@ namespace osu.Framework.Graphics.Shaders
         private readonly string name;
         private int programID = -1;
 
-        internal readonly Dictionary<string, UniformBase> Uniforms = new Dictionary<string, UniformBase>();
-        private UniformBase[] uniformsArray;
+        internal readonly Dictionary<string, IUniform> Uniforms = new Dictionary<string, IUniform>();
+        private IUniform[] uniformsArray;
         private readonly List<ShaderPart> parts;
 
         internal Shader(string name, List<ShaderPart> parts)
@@ -108,13 +109,44 @@ namespace osu.Framework.Graphics.Shaders
             {
                 //Obtain all the shader uniforms
                 GL.GetProgram(this, GetProgramParameterName.ActiveUniforms, out int uniformCount);
-                uniformsArray = new UniformBase[uniformCount];
+                uniformsArray = new IUniform[uniformCount];
 
                 for (int i = 0; i < uniformCount; i++)
                 {
                     GL.GetActiveUniform(this, i, 100, out _, out _, out ActiveUniformType type, out string uniformName);
 
-                    uniformsArray[i] = new UniformBase(this, uniformName, GL.GetUniformLocation(this, uniformName), type);
+                    IUniform uniform;
+                    switch (type)
+                    {
+                        case ActiveUniformType.Bool:
+                            uniform = new Uniform<bool>(this, uniformName, GL.GetUniformLocation(this, uniformName));
+                            break;
+                        case ActiveUniformType.Float:
+                            uniform = new Uniform<float>(this, uniformName, GL.GetUniformLocation(this, uniformName));
+                            break;
+                        case ActiveUniformType.Int:
+                            uniform = new Uniform<int>(this, uniformName, GL.GetUniformLocation(this, uniformName));
+                            break;
+                        case ActiveUniformType.FloatMat3:
+                            uniform = new Uniform<Matrix3>(this, uniformName, GL.GetUniformLocation(this, uniformName));
+                            break;
+                        case ActiveUniformType.FloatMat4:
+                            uniform = new Uniform<Matrix4>(this, uniformName, GL.GetUniformLocation(this, uniformName));
+                            break;
+                        case ActiveUniformType.FloatVec2:
+                            uniform = new Uniform<Vector2>(this, uniformName, GL.GetUniformLocation(this, uniformName));
+                            break;
+                        case ActiveUniformType.FloatVec3:
+                            uniform = new Uniform<Vector3>(this, uniformName, GL.GetUniformLocation(this, uniformName));
+                            break;
+                        case ActiveUniformType.FloatVec4:
+                            uniform = new Uniform<Vector4>(this, uniformName, GL.GetUniformLocation(this, uniformName));
+                            break;
+                        default:
+                            continue;
+                    }
+
+                    uniformsArray[i] = uniform;
                     Uniforms.Add(uniformName, uniformsArray[i]);
                 }
 
@@ -138,8 +170,7 @@ namespace osu.Framework.Graphics.Shaders
             GLWrapper.UseProgram(this);
 
             foreach (var uniform in uniformsArray)
-                if (uniform.HasChanged)
-                    uniform.Update();
+                uniform?.Update();
 
             IsBound = true;
         }
@@ -162,11 +193,11 @@ namespace osu.Framework.Graphics.Shaders
         /// <param name="name">The name of the uniform.</param>
         /// <returns>Returns a base uniform.</returns>
         public Uniform<T> GetUniform<T>(string name)
+            where T : struct
         {
             EnsureLoaded();
-            if (!Uniforms.ContainsKey(name))
-                throw new ArgumentException($"Uniform {name} does not exist in shader {this.name}.", nameof(name));
-            return new Uniform<T>(Uniforms[name]);
+
+            return (Uniform<T>)Uniforms[name];
         }
 
         public static implicit operator int(Shader shader)
