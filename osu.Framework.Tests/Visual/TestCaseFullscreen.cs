@@ -14,6 +14,7 @@ namespace osu.Framework.Tests.Visual
     public class TestCaseFullscreen : TestCase
     {
         private readonly SpriteText currentActualSize = new SpriteText();
+        private readonly SpriteText currentWindowMode = new SpriteText();
         private readonly SpriteText currentDisplay = new SpriteText();
 
         private GameWindow window;
@@ -30,11 +31,13 @@ namespace osu.Framework.Tests.Visual
                 {
                     currentBindableSize,
                     currentActualSize,
+                    currentWindowMode,
                     currentDisplay
                 },
             };
 
             sizeFullscreen.ValueChanged += newSize => currentBindableSize.Text = $"Fullscreen size: {newSize}";
+            windowMode.ValueChanged += newMode => currentWindowMode.Text = $"Window Mode: {newMode}";
         }
 
         private void testResolution(int w, int h)
@@ -48,6 +51,7 @@ namespace osu.Framework.Tests.Visual
             window = host.Window;
             config.BindWith(FrameworkSetting.SizeFullscreen, sizeFullscreen);
             config.BindWith(FrameworkSetting.WindowMode, windowMode);
+            currentWindowMode.Text = $"Window Mode: {windowMode}";
 
             // so the test case doesn't change fullscreen size just when you enter it
             AddStep("nothing", () => { });

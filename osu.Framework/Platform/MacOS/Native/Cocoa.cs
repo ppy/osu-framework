@@ -29,6 +29,9 @@ namespace osu.Framework.Platform.MacOS.Native
         public static extern int SendInt(IntPtr receiver, IntPtr selector);
 
         [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
+        public static extern uint SendUint(IntPtr receiver, IntPtr selector);
+
+        [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
         public static extern int SendInt(IntPtr receiver, IntPtr selector, IntPtr ptr1);
 
         [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
@@ -47,10 +50,16 @@ namespace osu.Framework.Platform.MacOS.Native
         public static extern void SendVoid(IntPtr receiver, IntPtr selector);
 
         [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
+        public static extern void SendVoid(IntPtr receiver, IntPtr selector, uint arg);
+
+        [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
         public static extern void SendVoid(IntPtr receiver, IntPtr selector, IntPtr ptr1);
 
         [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
         public static extern void SendVoid(IntPtr receiver, IntPtr selector, IntPtr ptr1, IntPtr ptr2);
+
+        [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
+        public static extern void SendVoid(IntPtr receiver, IntPtr selector, IntPtr intPtr1, IntPtr intPtr2, IntPtr intPtr3, IntPtr intPtr4);
 
         private static readonly Type type_cocoa = typeof(OpenTK.NativeWindow).Assembly.GetTypes().Single(x => x.Name == "Cocoa");
         private static readonly MethodInfo method_cocoa_from_ns_string = type_cocoa.GetMethod("FromNSString");

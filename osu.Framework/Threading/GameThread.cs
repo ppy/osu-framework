@@ -19,6 +19,12 @@ namespace osu.Framework.Threading
         public Thread Thread { get; }
         public Scheduler Scheduler { get; }
 
+        /// <summary>
+        /// Attach a handler to delegate responsibility for per-frame exceptions.
+        /// While attached, all exceptions will be caught and forwarded. Thread execution will continue indefinitely.
+        /// </summary>
+        public EventHandler<UnhandledExceptionEventArgs> UnhandledException;
+
         private readonly Action onNewFrame;
 
         private bool isActive = true;
@@ -101,7 +107,19 @@ namespace osu.Framework.Threading
             initializedEvent.Set();
 
             while (!exitCompleted)
-                ProcessFrame();
+            {
+                try
+                {
+                    ProcessFrame();
+                }
+                catch (Exception e)
+                {
+                    if (UnhandledException != null)
+                        UnhandledException.Invoke(this, new UnhandledExceptionEventArgs(e, false));
+                    else
+                        throw;
+                }
+            }
         }
 
         protected void ProcessFrame()
