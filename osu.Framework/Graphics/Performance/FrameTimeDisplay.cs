@@ -71,7 +71,7 @@ namespace osu.Framework.Graphics.Performance
                 aimWidth = counter.DrawWidth;
             }
 
-            displayFps = Interpolation.Damp(displayFps, clock.FramesPerSecond, 0.01, Math.Max(clock.ElapsedFrameTime, 0) / 1000);
+            displayFps = Interpolation.Damp(displayFps, clock.FramesPerSecond, 0.01, Math.Max(Clock.ElapsedFrameTime, 0) / 1000);
 
             counter.Text = $"{displayFps:0}fps({clock.AverageFrameTime:0.00}ms)"
                            + $"{(clock.MaximumUpdateHz < 10000 ? clock.MaximumUpdateHz.ToString(CultureInfo.InvariantCulture) : "∞").PadLeft(4)}hz";
