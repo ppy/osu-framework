@@ -438,8 +438,6 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>Whether the child's alive state has changed.</returns>
         private bool checkChildLife(Drawable child)
         {
-            Debug.Assert(internalChildren.Contains(child), "Can only check and react to the life of our own children.");
-
             bool changed = false;
 
             if (child.ShouldBeAlive)
