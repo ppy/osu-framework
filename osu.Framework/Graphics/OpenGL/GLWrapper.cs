@@ -364,7 +364,7 @@ namespace osu.Framework.Graphics.OpenGL
             Ortho = ortho;
 
             ProjectionMatrix = Matrix4.CreateOrthographicOffCenter(Ortho.Left, Ortho.Right, Ortho.Bottom, Ortho.Top, -1, 1);
-            Shader.SetGlobalProperty(@"g_ProjMatrix", ProjectionMatrix);
+            GlobalPropertyManager.Set(GlobalProperty.ProjMatrix, ProjectionMatrix);
 
             UpdateScissorToCurrentViewportAndOrtho();
         }
@@ -386,7 +386,7 @@ namespace osu.Framework.Graphics.OpenGL
             Ortho = actualRect;
 
             ProjectionMatrix = Matrix4.CreateOrthographicOffCenter(Ortho.Left, Ortho.Right, Ortho.Bottom, Ortho.Top, -1, 1);
-            Shader.SetGlobalProperty(@"g_ProjMatrix", ProjectionMatrix);
+            GlobalPropertyManager.Set(GlobalProperty.ProjMatrix, ProjectionMatrix);
 
             UpdateScissorToCurrentViewportAndOrtho();
         }
@@ -420,26 +420,26 @@ namespace osu.Framework.Graphics.OpenGL
         {
             FlushCurrentBatch();
 
-            Shader.SetGlobalProperty(@"g_MaskingRect", new Vector4(
+            GlobalPropertyManager.Set(GlobalProperty.MaskingRect, new Vector4(
                 maskingInfo.MaskingRect.Left,
                 maskingInfo.MaskingRect.Top,
                 maskingInfo.MaskingRect.Right,
                 maskingInfo.MaskingRect.Bottom));
 
-            Shader.SetGlobalProperty(@"g_ToMaskingSpace", maskingInfo.ToMaskingSpace);
-            Shader.SetGlobalProperty(@"g_CornerRadius", maskingInfo.CornerRadius);
+            GlobalPropertyManager.Set(GlobalProperty.ToMaskingSpace, maskingInfo.ToMaskingSpace);
+            GlobalPropertyManager.Set(GlobalProperty.CornerRadius, maskingInfo.CornerRadius);
 
-            Shader.SetGlobalProperty(@"g_BorderThickness", maskingInfo.BorderThickness / maskingInfo.BlendRange);
-            Shader.SetGlobalProperty(@"g_BorderColour", new Vector4(
+            GlobalPropertyManager.Set(GlobalProperty.BorderThickness, maskingInfo.BorderThickness / maskingInfo.BlendRange);
+            GlobalPropertyManager.Set(GlobalProperty.BorderColour, new Vector4(
                 maskingInfo.BorderColour.Linear.R,
                 maskingInfo.BorderColour.Linear.G,
                 maskingInfo.BorderColour.Linear.B,
                 maskingInfo.BorderColour.Linear.A));
 
-            Shader.SetGlobalProperty(@"g_MaskingBlendRange", maskingInfo.BlendRange);
-            Shader.SetGlobalProperty(@"g_AlphaExponent", maskingInfo.AlphaExponent);
+            GlobalPropertyManager.Set(GlobalProperty.MaskingBlendRange, maskingInfo.BlendRange);
+            GlobalPropertyManager.Set(GlobalProperty.AlphaExponent, maskingInfo.AlphaExponent);
 
-            Shader.SetGlobalProperty(@"g_DiscardInner", maskingInfo.Hollow);
+            GlobalPropertyManager.Set(GlobalProperty.DiscardInner, maskingInfo.Hollow);
 
             RectangleI actualRect = maskingInfo.ScreenSpaceAABB;
             actualRect.X += Viewport.X;
