@@ -154,7 +154,7 @@ namespace osu.Framework.Graphics
                 Debug.Assert(loadTask == null);
                 loadState = LoadState.Loading;
                 loadTaskCancellation = cancellation;
-                loadTask = Task.Factory.StartNew(() => Load(target.Clock, target.Dependencies, cancellation), cancellation, TaskCreationOptions.LongRunning, TaskScheduler.Current);
+                loadTask = Task.Run(() => Load(target.Clock, target.Dependencies, cancellation), cancellation);
             }
 
             return (loadTask ?? Task.CompletedTask).ContinueWith(task => game.Schedule(() =>

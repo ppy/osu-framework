@@ -52,31 +52,27 @@ namespace osu.Framework.IO.Stores
 
             fontName = assetName?.Split('/').Last();
 
-            fontLoadTask = readFontMetadataAsync(precache);
+            fontLoadTask = Task.Run(() => readFontMetadata(precache));
+            fontLoadTask.ContinueWith(_ => fontLoadTask = null);
         }
 
-        private async Task readFontMetadataAsync(bool precache)
+        private void readFontMetadata(bool precache)
         {
-            await Task.Factory.StartNew(() =>
+            try
             {
-                try
-                {
-                    font = new BitmapFont();
-                    using (var s = store.GetStream($@"{assetName}.fnt"))
-                        font.LoadText(s);
+                font = new BitmapFont();
+                using (var s = store.GetStream($@"{assetName}.fnt"))
+                    font.LoadText(s);
 
-                    if (precache)
-                        for (int i = 0; i < font.Pages.Length; i++)
-                            getTexturePage(i);
-                }
-                catch (Exception ex)
-                {
-                    Logger.Error(ex, $"Couldn't load font asset from {assetName}.");
-                    throw;
-                }
-            }, TaskCreationOptions.LongRunning);
-
-            fontLoadTask = null;
+                if (precache)
+                    for (int i = 0; i < font.Pages.Length; i++)
+                        getTexturePage(i);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, $"Couldn't load font asset from {assetName}.");
+                throw;
+            }
         }
 
         public bool HasGlyph(char c) => Font.Characters.ContainsKey(c);
@@ -90,18 +86,23 @@ namespace osu.Framework.IO.Stores
             return Font.BaseHeight;
         }
 
-        public RawTexture Get(string name)
+        public RawTexture Get(string name) => GetAsync(name).Result;
+
+        public virtual async Task<RawTexture> GetAsync(string name)
         {
             if (name.Length > 1 && !name.StartsWith($@"{fontName}/", StringComparison.Ordinal))
                 return null;
 
-            try
+            if (fontLoadTask != null)
             {
-                fontLoadTask?.Wait();
-            }
-            catch
-            {
-                return null;
+                try
+                {
+                    await fontLoadTask;
+                }
+                catch
+                {
+                    return null;
+                }
             }
 
             if (!font.Characters.TryGetValue(name.Last(), out Character c))
@@ -121,7 +122,7 @@ namespace osu.Framework.IO.Stores
                 {
                     int desti = y * width * 4 + x * 4;
                     if (x >= c.Offset.X && y >= c.Offset.Y
-                        && x - c.Offset.X < c.Bounds.Width && y - c.Offset.Y < c.Bounds.Height)
+                                        && x - c.Offset.X < c.Bounds.Width && y - c.Offset.Y < c.Bounds.Height)
                     {
                         int srci = (c.Bounds.Y + y - c.Offset.Y) * page.Width * 4
                                    + (c.Bounds.X + x - c.Offset.X) * 4;
