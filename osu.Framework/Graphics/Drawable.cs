@@ -154,7 +154,7 @@ namespace osu.Framework.Graphics
                 Debug.Assert(loadTask == null);
                 loadState = LoadState.Loading;
                 loadTaskCancellation = cancellation;
-                loadTask = Task.Factory.StartNew(() => Load(target.Clock, target.Dependencies, cancellation), cancellation, TaskCreationOptions.LongRunning, TaskScheduler.Current);
+                loadTask = Task.Factory.StartNew(() => Load(target.Clock, target.Dependencies), cancellation, TaskCreationOptions.LongRunning, TaskScheduler.Current);
             }
 
             return (loadTask ?? Task.CompletedTask).ContinueWith(task => game.Schedule(() =>
@@ -174,8 +174,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="clock">The clock we should use by default.</param>
         /// <param name="dependencies">The dependency tree we will inherit by default. May be extended via <see cref="CompositeDrawable.CreateChildDependencies"/></param>
-        /// <param name="cancellation">An optional cancellation token.</param>
-        internal void Load(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies, CancellationToken? cancellation = null)
+        internal void Load(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies)
         {
             // Blocks when loading from another thread already.
             double t0 = perf.CurrentTime;
@@ -203,13 +202,6 @@ namespace osu.Framework.Graphics
                 UpdateClock(clock);
 
                 double t1 = perf.CurrentTime;
-
-                if (cancellation != null)
-                {
-                    var cancellationDep = new DependencyContainer(dependencies);
-                    cancellationDep.CacheValueAs(cancellation.Value);
-                    dependencies = cancellationDep;
-                }
 
                 InjectDependencies(dependencies);
 
