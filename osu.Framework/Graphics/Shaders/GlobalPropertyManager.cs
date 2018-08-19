@@ -53,6 +53,18 @@ namespace osu.Framework.Graphics.Shaders
             all_shaders.Add(shader);
         }
 
-        public static void Remove(Shader shader) => all_shaders.Remove(shader);
+        public static void Remove(Shader shader)
+        {
+            if (!all_shaders.Remove(shader)) return;
+
+            foreach (var global in global_properties)
+            {
+                if (!shader.Uniforms.TryGetValue(global.Name, out IUniform uniform))
+                    continue;
+
+                global.UnlinkShaderUniform(uniform);
+            }
+
+        }
     }
 }

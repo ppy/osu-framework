@@ -10,6 +10,7 @@ namespace osu.Framework.Graphics.Shaders
         string Name { get; set; }
 
         void LinkShaderUniform(IUniform uniform);
+        void UnlinkShaderUniform(IUniform uniform);
     }
 
 
@@ -31,6 +32,12 @@ namespace osu.Framework.Graphics.Shaders
 
             typedUniform.UpdateValue(this);
             LinkedUniforms.Add(typedUniform);
+        }
+
+        public void UnlinkShaderUniform(IUniform uniform)
+        {
+            var typedUniform = (Uniform<T>)uniform;
+            LinkedUniforms.Remove(typedUniform);
         }
 
         public UniformMapping(string name)
