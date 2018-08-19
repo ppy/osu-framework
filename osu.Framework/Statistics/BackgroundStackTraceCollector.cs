@@ -48,7 +48,7 @@ namespace osu.Framework.Statistics
             {
                 if (Enabled && targetThread.IsAlive && clock.ElapsedMilliseconds - LastConsumptionTime > spikeRecordThreshold / 2 && backgroundMonitorStackTrace == null)
                     backgroundMonitorStackTrace = getStackTrace(targetThread);
-            }, $"{targetThread}-StackTraceCollector");
+            }, $"{targetThread}-StackTraceCollector", false);
 
             thread.Start();
         }

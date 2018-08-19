@@ -397,7 +397,7 @@ namespace osu.Framework.Logging
             {
                 if ((Storage != null ? scheduler.Update() : 0) == 0)
                     writer_idle.Set();
-            }, "Logger")
+            }, "Logger", false)
             {
                 ActiveHz = 20,
                 InactiveHz = 10,
