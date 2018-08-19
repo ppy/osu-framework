@@ -97,7 +97,7 @@ namespace osu.Framework.Allocation
     /// <summary>
     /// Occurs when an object requests the resolution of a dependency, but the dependency doesn't exist.
     /// This is caused by the dependency not being registered by parent <see cref="CompositeDrawable"/> through
-    /// <see cref="Drawable.CreateChildDependencies"/> or <see cref="CachedAttribute"/>.
+    /// <see cref="CompositeDrawable.CreateChildDependencies"/> or <see cref="CachedAttribute"/>.
     /// </summary>
     public class DependencyNotRegisteredException : Exception
     {
