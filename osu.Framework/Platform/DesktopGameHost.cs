@@ -50,6 +50,7 @@ namespace osu.Framework.Platform
                         Name = "IPC",
                         IsBackground = true
                     };
+                    ipcThread.Start();
                 }
             }
 
