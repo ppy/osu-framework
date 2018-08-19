@@ -189,7 +189,12 @@ namespace osu.Framework.Graphics.Containers
 
                 var finalPos = positions[i];
                 if (d.Position != finalPos)
-                    d.TransformTo(d.PopulateTransform(new FlowTransform { Rewindable = false }, finalPos, LayoutDuration, LayoutEasing));
+                {
+                    if (LayoutDuration > 0)
+                        d.TransformTo(d.PopulateTransform(new FlowTransform { Rewindable = false }, finalPos, LayoutDuration, LayoutEasing));
+                    else
+                        d.Position = finalPos;
+                }
 
                 ++i;
             }
