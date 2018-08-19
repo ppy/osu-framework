@@ -9,7 +9,6 @@ using System.IO;
 using osu.Framework.Platform;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using osu.Framework.Development;
 using osu.Framework.Threading;
 
@@ -394,17 +393,17 @@ namespace osu.Framework.Logging
 
         static Logger()
         {
-            Task.Factory.StartNew(() =>
+            var thread = new GameThread(() =>
             {
-                while (true)
-                {
-                    if ((Storage != null ? scheduler.Update() : 0) == 0)
-                        writer_idle.Set();
-                    Thread.Sleep(50);
-                }
+                if ((Storage != null ? scheduler.Update() : 0) == 0)
+                    writer_idle.Set();
+            }, "Logger")
+            {
+                ActiveHz = 20,
+                InactiveHz = 10,
+            };
 
-                // ReSharper disable once FunctionNeverReturns
-            }, TaskCreationOptions.LongRunning);
+            thread.Start();
         }
 
         /// <summary>
