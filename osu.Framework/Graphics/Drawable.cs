@@ -142,7 +142,7 @@ namespace osu.Framework.Graphics
         /// <param name="game">The game to load this Drawable on.</param>
         /// <param name="target">
         /// The target this Drawable may eventually be loaded into.
-        /// <see cref="Clock"/> and <see cref="CompositeDrawable.Dependencies"/> are inherited from the target.
+        /// The <see cref="IFrameBasedClock"/> and dependencies via <see cref="IReadOnlyDependencyContainer"/> are inherited from the <see cref="target"/>.
         /// </param>
         /// <param name="cancellation">A cancellation token.</param>
         /// <param name="onLoaded">Callback to be invoked on the update thread after loading is complete.</param>
