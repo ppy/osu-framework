@@ -19,7 +19,8 @@ namespace osu.Framework.Input.Handlers.Joystick
         private ScheduledDelegate scheduled;
 
         private int mostSeenDevices;
-        private List<JoystickDevice> devices = new List<JoystickDevice>();
+
+        private readonly List<JoystickDevice> devices = new List<JoystickDevice>();
 
         public override bool Initialize(GameHost host)
         {
@@ -68,39 +69,34 @@ namespace osu.Framework.Input.Handlers.Joystick
 
         private void refreshDevices()
         {
-            var newDevices = new List<JoystickDevice>();
-
             // Update devices and add them to newDevices if still connected
             foreach (var dev in devices)
             {
                 dev.Refresh();
 
-                if (dev.RawState.IsConnected)
-                {
-                    newDevices.Add(dev);
-                }
-                else
+                if (!dev.RawState.IsConnected)
                 {
                     mostSeenDevices--;
                     if (dev.LastState != null)
                         handleState(dev, new JoystickState());
+
+                    devices.Remove(dev);
                 }
             }
 
             // Find any newly-connected devices
             while (true)
             {
-                var newDevice = new JoystickDevice(mostSeenDevices);
-                if (!newDevice.Capabilities.IsConnected)
+                if (!OpenTK.Input.Joystick.GetCapabilities(mostSeenDevices).IsConnected)
                     break;
+
+                var newDevice = new JoystickDevice(mostSeenDevices);
 
                 Logger.Log($"Connected joystick device: {newDevice.Guid}");
 
-                newDevices.Add(newDevice);
+                devices.Add(newDevice);
                 mostSeenDevices++;
             }
-
-            devices = newDevices;
         }
 
         public override bool IsActive => true;
@@ -200,12 +196,6 @@ namespace osu.Framework.Input.Handlers.Joystick
             public float[] DefaultDeadzones => defaultDeadZones.IsValueCreated ? defaultDeadZones.Value : null;
 
             /// <summary>
-            /// The capabilities for this joystick device.
-            /// This is only queried once when <see cref="JoystickDevice"/> is constructed.
-            /// </summary>
-            public readonly JoystickCapabilities Capabilities;
-
-            /// <summary>
             /// The <see cref="Guid"/> for this <see cref="JoystickDevice"/>.
             /// </summary>
             public readonly Guid Guid;
@@ -216,7 +206,6 @@ namespace osu.Framework.Input.Handlers.Joystick
             {
                 this.deviceIndex = deviceIndex;
 
-                Capabilities = OpenTK.Input.Joystick.GetCapabilities(deviceIndex);
                 Guid = OpenTK.Input.Joystick.GetGuid(deviceIndex);
 
                 Refresh();
