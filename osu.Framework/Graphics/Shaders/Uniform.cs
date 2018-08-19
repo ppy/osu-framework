@@ -5,14 +5,6 @@ using osu.Framework.Graphics.OpenGL;
 
 namespace osu.Framework.Graphics.Shaders
 {
-    public interface IUniform
-    {
-        void Update();
-
-        Shader Owner { get; }
-        int Location { get; }
-    }
-
     public class Uniform<T> : IUniform
         where T : struct
     {

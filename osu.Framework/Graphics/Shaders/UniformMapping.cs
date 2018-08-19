@@ -1,19 +1,10 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
-// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu/master/LICENCE
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Collections.Generic;
 
 namespace osu.Framework.Graphics.Shaders
 {
-    internal interface IUniformMapping
-    {
-        string Name { get; set; }
-
-        void LinkShaderUniform(IUniform uniform);
-        void UnlinkShaderUniform(IUniform uniform);
-    }
-
-
     /// <summary>
     /// A mapping of a global uniform to many shaders which need to receive updates on a change.
     /// </summary>
