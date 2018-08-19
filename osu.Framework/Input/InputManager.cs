@@ -272,9 +272,11 @@ namespace osu.Framework.Input
             return inputs;
         }
 
+        private readonly List<Drawable> inputQueue = new List<Drawable>();
+
         private IEnumerable<Drawable> buildInputQueue()
         {
-            var inputQueue = new List<Drawable>();
+            inputQueue.Clear();
 
             if (this is UserInputManager)
                 FrameStatistics.Increment(StatisticsCounterType.KeyboardQueue);
@@ -293,9 +295,11 @@ namespace osu.Framework.Input
             return inputQueue;
         }
 
+        private readonly List<Drawable> positionalInputQueue = new List<Drawable>();
+
         private IEnumerable<Drawable> buildMouseInputQueue(InputState state)
         {
-            var positionalInputQueue = new List<Drawable>();
+            positionalInputQueue.Clear();
 
             if (this is UserInputManager)
                 FrameStatistics.Increment(StatisticsCounterType.MouseQueue);
