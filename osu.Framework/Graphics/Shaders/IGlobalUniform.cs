@@ -4,14 +4,9 @@
 namespace osu.Framework.Graphics.Shaders
 {
     /// <summary>
-    /// Represents an updateable shader uniform.
+    /// Represents a uniform that is linked to a global source.
     /// </summary>
-    public interface IUniform
+    public interface IGlobalUniform : IUniform
     {
-        void Update();
-
-        Shader Owner { get; }
-        int Location { get; }
-        string Name { get; }
     }
 }

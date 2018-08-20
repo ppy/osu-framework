@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics.Shaders
     {
         public T Value;
 
-        public List<Uniform<T>> LinkedUniforms = new List<Uniform<T>>();
+        public List<GlobalUniform<T>> LinkedUniforms = new List<GlobalUniform<T>>();
 
         public string Name { get; set; }
 
@@ -24,7 +24,7 @@ namespace osu.Framework.Graphics.Shaders
 
         public void LinkShaderUniform(IUniform uniform)
         {
-            var typedUniform = (Uniform<T>)uniform;
+            var typedUniform = (GlobalUniform<T>)uniform;
 
             typedUniform.UpdateValue(this);
             LinkedUniforms.Add(typedUniform);
@@ -32,7 +32,7 @@ namespace osu.Framework.Graphics.Shaders
 
         public void UnlinkShaderUniform(IUniform uniform)
         {
-            var typedUniform = (Uniform<T>)uniform;
+            var typedUniform = (GlobalUniform<T>)uniform;
             LinkedUniforms.Remove(typedUniform);
         }
 

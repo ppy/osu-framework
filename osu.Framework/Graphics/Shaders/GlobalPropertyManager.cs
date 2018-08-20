@@ -65,5 +65,12 @@ namespace osu.Framework.Graphics.Shaders
                 global.UnlinkShaderUniform(uniform);
             }
         }
+
+        /// <summary>
+        /// Check whether a global uniform exists with the specified name.
+        /// </summary>
+        /// <param name="name">The name to check</param>
+        /// <returns>Whether a global exists.</returns>
+        public static bool CheckGlobalExists(string name) => global_properties.Any(m => m.Name == name);
     }
 }

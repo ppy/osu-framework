@@ -107,7 +107,7 @@ namespace osu.Framework.Graphics.Shaders
 
             if (Loaded)
             {
-                //Obtain all the shader uniforms
+                // Obtain all the shader uniforms
                 GL.GetProgram(this, GetProgramParameterName.ActiveUniforms, out int uniformCount);
                 uniformsArray = new IUniform[uniformCount];
 
@@ -115,32 +115,41 @@ namespace osu.Framework.Graphics.Shaders
                 {
                     GL.GetActiveUniform(this, i, 100, out _, out _, out ActiveUniformType type, out string uniformName);
 
+                    IUniform createUniform<T>(string name)
+                        where T : struct
+                    {
+                        int location = GL.GetUniformLocation(this, name);
+
+                        if (GlobalPropertyManager.CheckGlobalExists(name)) return new GlobalUniform<T>(this, name, location);
+                        return new Uniform<T>(this, name, location);
+                    }
+
                     IUniform uniform;
                     switch (type)
                     {
                         case ActiveUniformType.Bool:
-                            uniform = new Uniform<bool>(this, uniformName, GL.GetUniformLocation(this, uniformName));
+                            uniform = createUniform<bool>(uniformName);
                             break;
                         case ActiveUniformType.Float:
-                            uniform = new Uniform<float>(this, uniformName, GL.GetUniformLocation(this, uniformName));
+                            uniform = createUniform<float>(uniformName);
                             break;
                         case ActiveUniformType.Int:
-                            uniform = new Uniform<int>(this, uniformName, GL.GetUniformLocation(this, uniformName));
+                            uniform = createUniform<int>(uniformName);
                             break;
                         case ActiveUniformType.FloatMat3:
-                            uniform = new Uniform<Matrix3>(this, uniformName, GL.GetUniformLocation(this, uniformName));
+                            uniform = createUniform<Matrix3>(uniformName);
                             break;
                         case ActiveUniformType.FloatMat4:
-                            uniform = new Uniform<Matrix4>(this, uniformName, GL.GetUniformLocation(this, uniformName));
+                            uniform = createUniform<Matrix4>(uniformName);
                             break;
                         case ActiveUniformType.FloatVec2:
-                            uniform = new Uniform<Vector2>(this, uniformName, GL.GetUniformLocation(this, uniformName));
+                            uniform = createUniform<Vector2>(uniformName);
                             break;
                         case ActiveUniformType.FloatVec3:
-                            uniform = new Uniform<Vector3>(this, uniformName, GL.GetUniformLocation(this, uniformName));
+                            uniform = createUniform<Vector3>(uniformName);
                             break;
                         case ActiveUniformType.FloatVec4:
-                            uniform = new Uniform<Vector4>(this, uniformName, GL.GetUniformLocation(this, uniformName));
+                            uniform = createUniform<Vector4>(uniformName);
                             break;
                         default:
                             continue;

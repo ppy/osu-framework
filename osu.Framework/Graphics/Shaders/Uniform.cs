@@ -12,15 +12,6 @@ namespace osu.Framework.Graphics.Shaders
 
         public T Value;
 
-        internal UniformMapping<T> GlobalValue;
-
-        internal void UpdateValue(UniformMapping<T> global)
-        {
-            GlobalValue = global;
-            if (Owner.IsBound)
-                Update();
-        }
-
         public void UpdateValue(ref T newValue)
         {
             if (newValue.Equals(Value))
@@ -48,18 +39,10 @@ namespace osu.Framework.Graphics.Shaders
 
         public void Update()
         {
-            if (GlobalValue != null)
-            {
-                GLWrapper.SetUniform(this);
-                GlobalValue = null;
-            }
-
-            if (!HasChanged)
-                return;
-
-            HasChanged = false;
+            if (!HasChanged) return;
 
             GLWrapper.SetUniform(this);
+            HasChanged = false;
         }
     }
 }
