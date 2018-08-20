@@ -6,7 +6,7 @@ namespace osu.Framework.Graphics.Shaders
     /// <summary>
     /// Represents an updateable shader uniform.
     /// </summary>
-    public interface IUniform
+    internal interface IUniform
     {
         void Update();
 

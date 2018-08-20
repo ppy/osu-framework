@@ -3,7 +3,7 @@
 
 namespace osu.Framework.Graphics.Shaders
 {
-    public interface IUniformWithValue<T> : IUniform
+    internal interface IUniformWithValue<T> : IUniform
         where T : struct
     {
         ref T GetValue();
