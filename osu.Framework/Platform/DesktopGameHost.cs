@@ -42,14 +42,17 @@ namespace osu.Framework.Platform
             {
                 ipcProvider = new TcpIpcProvider();
                 IsPrimaryInstance = ipcProvider.Bind();
+
                 if (IsPrimaryInstance)
                 {
                     ipcProvider.MessageReceived += OnMessageReceived;
+
                     ipcThread = new Thread(() => ipcProvider.StartAsync().Wait())
                     {
                         Name = "IPC",
                         IsBackground = true
                     };
+
                     ipcThread.Start();
                 }
             }
