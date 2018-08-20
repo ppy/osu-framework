@@ -57,7 +57,7 @@ namespace osu.Framework.Graphics.Performance
         private readonly Drawable[] legendMapping = new Drawable[FrameStatistics.NUM_PERFORMANCE_COLLECTION_TYPES];
         private readonly Dictionary<StatisticsCounterType, CounterBar> counterBars = new Dictionary<StatisticsCounterType, CounterBar>();
 
-        private readonly FpsDisplay fpsDisplay;
+        private readonly FrameTimeDisplay frameTimeDisplay;
 
         private FrameStatisticsMode state;
 
@@ -182,7 +182,7 @@ namespace osu.Framework.Graphics.Performance
                                     new TimeBar(atlas),
                                 },
                             },
-                            fpsDisplay = new FpsDisplay(monitor.Clock)
+                            frameTimeDisplay = new FrameTimeDisplay(monitor.Clock)
                             {
                                 Anchor = Anchor.BottomRight,
                                 Origin = Anchor.BottomRight,
@@ -278,7 +278,7 @@ namespace osu.Framework.Graphics.Performance
 
                 running = value;
 
-                fpsDisplay.Counting = running;
+                frameTimeDisplay.Counting = running;
 
                 // dequeue all pending frames on state change.
                 while (monitor.PendingFrames.TryDequeue(out _))
