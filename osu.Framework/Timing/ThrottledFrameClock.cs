@@ -4,6 +4,7 @@
 using System;
 using System.Diagnostics;
 using System.Threading;
+using osu.Framework.MathUtils;
 
 namespace osu.Framework.Timing
 {
@@ -22,6 +23,8 @@ namespace osu.Framework.Timing
         /// Allows other threads to process.
         /// </summary>
         public bool AlwaysSleep = true;
+
+        public double SleptTime;
 
         private double minimumFrameTime => 1000.0 / MaximumUpdateHz;
 
@@ -54,7 +57,10 @@ namespace osu.Framework.Timing
 
                     // We don't want re-schedules with Thread.Sleep(0). We already have that case down below.
                     if (timeToSleepFloored > 0)
+                    {
+                        SleptTime = timeToSleepFloored;
                         Thread.Sleep(timeToSleepFloored);
+                    }
 
                     // Sleep is not guaranteed to be an exact time. It only guaranteed to sleep AT LEAST the specified time. We also used some time to compute the above things, so this is also factored in here.
                     double afterSleepTime = SourceTime;
@@ -66,6 +72,8 @@ namespace osu.Framework.Timing
                     // We use the negative spareTime to compensate for framerate jitter slightly.
                     double spareTime = ElapsedFrameTime - targetMilliseconds;
                     accumulatedSleepError = -spareTime;
+
+                    SleptTime = 0;
                 }
             }
 
@@ -73,6 +81,8 @@ namespace osu.Framework.Timing
             if (timeToSleepFloored == 0)
                 Thread.Sleep(0);
         }
+
+        protected override double CalculateAverageFrameTime() => Interpolation.Damp(AverageFrameTime, ElapsedFrameTime - SleptTime, 0.01, Math.Max(ElapsedFrameTime, 0) / 1000);
 
         public override void ProcessFrame()
         {
