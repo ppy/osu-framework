@@ -70,13 +70,15 @@ namespace osu.Framework.Allocation
         private void activate(object obj, DependencyContainer dependencies)
         {
             baseActivator?.activate(obj, dependencies);
-            injectionActivators.ForEach(a => a.Invoke(obj, dependencies));
+            foreach (var a in injectionActivators)
+                a(obj, dependencies);
         }
 
         private IReadOnlyDependencyContainer mergeDependencies(object obj, IReadOnlyDependencyContainer dependencies)
         {
             dependencies = baseActivator?.mergeDependencies(obj, dependencies) ?? dependencies;
-            buildCacheActivators.ForEach(a => dependencies = a.Invoke(obj, dependencies));
+            foreach (var a in buildCacheActivators)
+                dependencies = a(obj, dependencies);
 
             return dependencies;
         }
