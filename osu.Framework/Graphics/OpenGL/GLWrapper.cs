@@ -616,22 +616,22 @@ namespace osu.Framework.Graphics.OpenGL
                     GL.Uniform1(uniform.Location, f.GetValue());
                     break;
                 case IUniformWithValue<Vector2> v2:
-                    GL.Uniform2(uniform.Location, ref v2.GetValueRef());
+                    GL.Uniform2(uniform.Location, ref v2.GetValueByRef());
                     break;
                 case IUniformWithValue<Vector3> v3:
-                    GL.Uniform3(uniform.Location, ref v3.GetValueRef());
+                    GL.Uniform3(uniform.Location, ref v3.GetValueByRef());
                     break;
                 case IUniformWithValue<Vector4> v4:
-                    GL.Uniform4(uniform.Location, ref v4.GetValueRef());
+                    GL.Uniform4(uniform.Location, ref v4.GetValueByRef());
                     break;
                 case IUniformWithValue<Matrix2> m2:
-                    GL.UniformMatrix2(uniform.Location, false, ref m2.GetValueRef());
+                    GL.UniformMatrix2(uniform.Location, false, ref m2.GetValueByRef());
                     break;
                 case IUniformWithValue<Matrix3> m3:
-                    GL.UniformMatrix3(uniform.Location, false, ref m3.GetValueRef());
+                    GL.UniformMatrix3(uniform.Location, false, ref m3.GetValueByRef());
                     break;
                 case IUniformWithValue<Matrix4> m4:
-                    GL.UniformMatrix4(uniform.Location, false, ref m4.GetValueRef());
+                    GL.UniformMatrix4(uniform.Location, false, ref m4.GetValueByRef());
                     break;
             }
         }

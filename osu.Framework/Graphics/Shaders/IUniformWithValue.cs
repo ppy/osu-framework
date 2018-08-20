@@ -6,7 +6,7 @@ namespace osu.Framework.Graphics.Shaders
     internal interface IUniformWithValue<T> : IUniform
         where T : struct
     {
-        ref T GetValueRef();
+        ref T GetValueByRef();
         T GetValue();
     }
 }
