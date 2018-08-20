@@ -47,33 +47,39 @@ namespace osu.Framework.Graphics.Performance
         }
 
         private float aimWidth;
-
         private double displayFps;
 
-        protected override void Update()
+        private const int updates_per_second = 10;
+
+        protected override void LoadComplete()
         {
-            base.Update();
+            base.LoadComplete();
 
-            if (!Counting) return;
+            double lastUpdate = 0;
 
-            if (counter.DrawWidth != aimWidth)
-            {
-                ClearTransforms();
+            Scheduler.AddDelayed(() => {
+                if (!Counting) return;
 
-                if (aimWidth == 0)
-                    Size = counter.DrawSize;
-                else if (Precision.AlmostBigger(counter.DrawWidth, aimWidth))
-                    this.ResizeTo(counter.DrawSize, 200, Easing.InOutSine);
-                else
-                    this.Delay(1500).ResizeTo(counter.DrawSize, 500, Easing.InOutSine);
+                if (!Precision.AlmostEquals(counter.DrawWidth, aimWidth))
+                {
+                    ClearTransforms();
 
-                aimWidth = counter.DrawWidth;
-            }
+                    if (aimWidth == 0)
+                        Size = counter.DrawSize;
+                    else if (Precision.AlmostBigger(counter.DrawWidth, aimWidth))
+                        this.ResizeTo(counter.DrawSize, 200, Easing.InOutSine);
+                    else
+                        this.Delay(1500).ResizeTo(counter.DrawSize, 500, Easing.InOutSine);
 
-            displayFps = Interpolation.Damp(displayFps, clock.FramesPerSecond, 0.01, Math.Max(Clock.ElapsedFrameTime, 0) / 1000);
+                    aimWidth = counter.DrawWidth;
+                }
 
-            counter.Text = $"{displayFps:0}fps({clock.AverageFrameTime:0.00}ms)"
-                           + $"{(clock.MaximumUpdateHz < 10000 ? clock.MaximumUpdateHz.ToString("0") : "∞").PadLeft(4)}hz";
+                displayFps = Interpolation.Damp(displayFps, clock.FramesPerSecond, 0.01, Math.Max(Clock.CurrentTime - lastUpdate, 0) / 1000);
+                lastUpdate = clock.CurrentTime;
+
+                counter.Text = $"{displayFps:0}fps({clock.AverageFrameTime:0.00}ms)"
+                               + $"{(clock.MaximumUpdateHz < 10000 ? clock.MaximumUpdateHz.ToString("0") : "∞").PadLeft(4)}hz";
+            }, 1000.0 / updates_per_second, true);
         }
     }
 }
