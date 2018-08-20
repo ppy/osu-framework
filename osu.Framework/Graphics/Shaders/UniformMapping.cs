@@ -8,7 +8,7 @@ namespace osu.Framework.Graphics.Shaders
     /// <summary>
     /// A mapping of a global uniform to many shaders which need to receive updates on a change.
     /// </summary>
-    public class UniformMapping<T> : IUniformMapping
+    internal class UniformMapping<T> : IUniformMapping
         where T : struct
     {
         public T Value;

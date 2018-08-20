@@ -12,9 +12,9 @@ namespace osu.Framework.Graphics.Shaders
 
         public T Value;
 
-        public UniformMapping<T> GlobalValue;
+        internal UniformMapping<T> GlobalValue;
 
-        public void UpdateValue(UniformMapping<T> global)
+        internal void UpdateValue(UniformMapping<T> global)
         {
             GlobalValue = global;
             if (Owner.IsBound)
