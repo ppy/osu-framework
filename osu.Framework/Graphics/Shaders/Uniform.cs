@@ -8,9 +8,20 @@ namespace osu.Framework.Graphics.Shaders
     public class Uniform<T> : IUniformWithValue<T>
         where T : struct
     {
+        public Shader Owner { get; }
         public string Name { get; }
+        public int Location { get; }
+
+        public bool HasChanged { get; private set; } = true;
 
         public T Value;
+
+        public Uniform(Shader owner, string name, int uniformLocation)
+        {
+            Owner = owner;
+            Name = name;
+            Location = uniformLocation;
+        }
 
         public void UpdateValue(ref T newValue)
         {
@@ -22,19 +33,6 @@ namespace osu.Framework.Graphics.Shaders
 
             if (Owner.IsBound)
                 Update();
-        }
-
-        public int Location { get; private set; }
-
-        public bool HasChanged { get; private set; } = true;
-
-        public Shader Owner { get; private set; }
-
-        public Uniform(Shader owner, string name, int uniformLocation)
-        {
-            Owner = owner;
-            Name = name;
-            Location = uniformLocation;
         }
 
         public void Update()
