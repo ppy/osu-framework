@@ -88,15 +88,17 @@ namespace osu.Framework.Graphics.Containers
             if (game == null)
                 throw new InvalidOperationException($"May not invoke {nameof(LoadComponentAsync)} prior to this {nameof(CompositeDrawable)} being loaded.");
 
+            var dependencies = Dependencies;
+
             if (cancellationSource == null)
             {
                 cancellationSource = new CancellationTokenSource();
-                var deps = new DependencyContainer(Dependencies);
-                deps.CacheValueAs(cancellationSource.Token);
-                Dependencies = deps;
+                var cancellationDeps = new DependencyContainer(Dependencies);
+                cancellationDeps.CacheValueAs(cancellationSource.Token);
+                dependencies = cancellationDeps;
             }
 
-            return component.LoadAsync(game, this, cancellationSource.Token, () => onLoaded?.Invoke(component));
+            return component.LoadAsync(game, Clock, dependencies, cancellationSource.Token, () => onLoaded?.Invoke(component));
         }
 
         [BackgroundDependencyLoader(true)]

@@ -140,21 +140,19 @@ namespace osu.Framework.Graphics
         /// Loads this Drawable asynchronously.
         /// </summary>
         /// <param name="game">The game to load this Drawable on.</param>
-        /// <param name="target">
-        /// The target this Drawable may eventually be loaded into.
-        /// <see cref="Clock"/> and <see cref="CompositeDrawable.Dependencies"/> are inherited from the target.
-        /// </param>
+        /// <param name="clock">The clock to be applied on load.</param>
+        /// <param name="dependencies">The source for DI lookups.</param>
         /// <param name="cancellation">A cancellation token.</param>
         /// <param name="onLoaded">Callback to be invoked on the update thread after loading is complete.</param>
         /// <returns>The task which is used for loading and callbacks.</returns>
-        internal Task LoadAsync(Game game, CompositeDrawable target, CancellationToken cancellation, Action onLoaded = null)
+        internal Task LoadAsync(Game game, IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies, CancellationToken cancellation, Action onLoaded = null)
         {
             if (loadState == LoadState.NotLoaded)
             {
                 Debug.Assert(loadTask == null);
                 loadState = LoadState.Loading;
                 loadTaskCancellation = cancellation;
-                loadTask = Task.Factory.StartNew(() => Load(target.Clock, target.Dependencies), cancellation, TaskCreationOptions.LongRunning, TaskScheduler.Current);
+                loadTask = Task.Factory.StartNew(() => Load(clock, dependencies), cancellation, TaskCreationOptions.LongRunning, TaskScheduler.Current);
             }
 
             return (loadTask ?? Task.CompletedTask).ContinueWith(task => game.Schedule(() =>
@@ -2386,7 +2384,7 @@ namespace osu.Framework.Graphics
         NotLoaded,
         /// <summary>
         /// Currently loading (possibly and usually on a background
-        /// thread via <see cref="Drawable.LoadAsync(Game,CompositeDrawable,CancellationToken,Action)"/>).
+        /// thread via <see cref="Drawable.LoadAsync(Game,IFrameBasedClock,IReadOnlyDependencyContainer,CancellationToken,Action)"/>).
         /// </summary>
         Loading,
         /// <summary>
