@@ -67,7 +67,14 @@ namespace osu.Framework.Allocation
                             switch (ret)
                             {
                                 case Task t:
-                                    t.Wait();
+                                    try
+                                    {
+                                        t.Wait();
+                                    }
+                                    catch (OperationCanceledException)
+                                    {
+                                    }
+
                                     break;
                             }
                         }
