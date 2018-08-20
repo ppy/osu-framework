@@ -24,12 +24,13 @@ namespace osu.Framework.Tests.Visual
     public class TestCaseLayoutInvalidation : GridTestCase
     {
         // disable certain cases to discover more cases
-        public static bool ForbidAutoSizeUndefinedCase = true; // keep (AutoSizeAxes & (Child.RelativeSizeAxes | Child.RelativePositionAxes | Child.BypassAutoSizeAxes)) to 0
+        public static bool ForbidAutoSizeUndefinedCase = true; // keep (AutoSizeAxes & (Child1.BypassAutoSizeAxes & ... & Childn.BypassAutoSizeAxes)) to 0
+        public static bool NoBypassAutosizeAxes = false;
         public static bool NoPadding = false;
+        public static bool NoFillMode = false;
+        // RequiredParentSizeToFit computation with rotation and shear is rather tricky. Leave it for now.
         public static bool NoRotation = true;
         public static bool NoShear = true;
-        public static bool NoBypassAutosizeAxes = true;
-        public static bool NoFillMode = true;
 
         public class Case
         {
@@ -175,18 +176,6 @@ namespace osu.Framework.Tests.Visual
                 },
                 100);
 
-            addCaseStep("AutoSize5",
-                new Scene(new SceneNode(new[] { new SceneNode(new[] { new SceneNode(new SceneNode[] { }) }) })),
-                new[]
-                {
-                    new SceneModification("Root", nameof(AutoSizeAxes), Axes.X),
-                    new SceneModification("Child", nameof(AutoSizeAxes), Axes.X),
-                    new SceneModification("Child", nameof(Anchor), Anchor.Centre),
-                    new SceneModification("GrandChild", nameof(Anchor), Anchor.TopRight),
-                    new SceneModification("Child", nameof(Scale), new Vector2(12, 1))
-                },
-                100);
-
             addCaseStep("Padding",
                 new Scene(new SceneNode(new[] { new SceneNode(new SceneNode[] { }) })),
                 new[]
@@ -195,6 +184,35 @@ namespace osu.Framework.Tests.Visual
                     new SceneModification("Root", nameof(Padding), new MarginPadding { Top = 1 })
                 },
                 100);
+
+            if (!NoRotation)
+            {
+                addCaseStep("Rotation",
+                    new Scene(new SceneNode(new[] { new SceneNode(new SceneNode[] { }) })),
+                    new[]
+                    {
+                        new SceneModification("Root", nameof(AutoSizeAxes), Axes.X),
+                        new SceneModification("Child", nameof(Rotation), -30),
+                        new SceneModification("Child", nameof(RelativeSizeAxes), Axes.Y),
+                        new SceneModification("Root", nameof(Height), 2)
+                    },
+                    100);
+            }
+
+            if (!NoShear)
+            {
+                addCaseStep("Shear",
+                    new Scene(new SceneNode(new[] { new SceneNode(new SceneNode[] { }) })),
+                    new[]
+                    {
+                        new SceneModification("Root", nameof(AutoSizeAxes), Axes.Y),
+                        new SceneModification("Child", nameof(RelativeSizeAxes), Axes.X),
+                        new SceneModification("Child", nameof(Anchor), Anchor.BottomRight),
+                        new SceneModification("Child", nameof(Shear), new Vector2(0, 1)),
+                        new SceneModification("Root", nameof(Width), 2)
+                    },
+                    50);
+            }
         }
 
         public TestCaseLayoutInvalidation()
@@ -203,12 +221,12 @@ namespace osu.Framework.Tests.Visual
             addCaseSteps();
 
             var qc = Config.Quick;
-            var config = new Config(3000, 0, qc.Replay, qc.Name, 1, 300, qc.QuietOnSuccess, qc.Every, qc.EveryShrink, qc.Arbitrary, new MyRunner
+            var config = new Config(300, 0, qc.Replay, qc.Name, 1, 300, qc.QuietOnSuccess, qc.Every, qc.EveryShrink, qc.Arbitrary, new MyRunner
             {
                 OnCounterCaseFound = onCounterCaseFound
             });
 
-            foreach (var i in new[] { 2, 3, 10 })
+            foreach (var i in new[] { 2, 3, 5 })
             {
                 var size = i;
                 AddStep($"quickCheck({i})", () => Check.One(config, prop(size)));
@@ -622,7 +640,7 @@ namespace osu.Framework.Tests.Visual
                 });
             }
 
-            private static readonly float[] positive_float_values = new float[] { 1f, 2f, 0.5f, 1.5f, 3f, 1 / 3f, 2 / 3f, 4 / 3f, 5 / 3f };
+            private static readonly float[] positive_float_values = { 1f, 2f, 0.5f, 1.5f, 3f, 1 / 3f, 2 / 3f, 4 / 3f, 5 / 3f };
             private static readonly float[] float_values = positive_float_values.Prepend(0f).Concat(positive_float_values.Select(x => -x)).ToArray();
 
             private static readonly Gen<float> position = Gen.OneOf(float_values.Select(Gen.Constant));
