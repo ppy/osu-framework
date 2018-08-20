@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics.Shaders
         private const string shader_prefix = @"sh_";
 
         private readonly ConcurrentDictionary<string, ShaderPart> partCache = new ConcurrentDictionary<string, ShaderPart>();
-        private readonly ConcurrentDictionary<Tuple<string, string>, Shader> shaderCache = new ConcurrentDictionary<Tuple<string, string>, Shader>();
+        private readonly ConcurrentDictionary<(string, string), Shader> shaderCache = new ConcurrentDictionary<(string, string), Shader>();
 
         private readonly ResourceStore<byte[]> store;
 
@@ -68,7 +68,7 @@ namespace osu.Framework.Graphics.Shaders
 
         public Shader Load(string vertex, string fragment, bool continuousCompilation = false)
         {
-            var tuple = Tuple.Create(vertex, fragment);
+            var tuple = (vertex, fragment);
 
             if (shaderCache.TryGetValue(tuple, out Shader shader))
                 return shader;
