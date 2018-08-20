@@ -166,8 +166,7 @@ namespace osu.Framework.Graphics.Containers
         internal event Action<Drawable> ChildDied;
 
         /// <summary>
-        /// THIS EVENT PURELY EXISTS FOR THE SCENE GRAPH VISUALIZER. DO NOT USE.
-        /// This event will fire after a child's <see cref="Drawable.Depth"/> is changed.
+        /// Fired after a child's <see cref="Drawable.Depth"/> is changed.
         /// </summary>
         internal event Action<Drawable> ChildDepthChanged;
 
@@ -1319,8 +1318,7 @@ namespace osu.Framework.Graphics.Containers
         public Easing AutoSizeEasing { get; protected set; }
 
         /// <summary>
-        /// THIS EVENT PURELY EXISTS FOR THE SCENE GRAPH VISUALIZER. DO NOT USE.
-        /// This event will fire after our <see cref="Size"/> is updated from autosizing.
+        /// Fired after this <see cref="CompositeDrawable"/>'s <see cref="Size"/> is updated through autosize.
         /// </summary>
         internal event Action OnAutoSize;
 
