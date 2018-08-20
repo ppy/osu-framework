@@ -5,7 +5,7 @@ using osu.Framework.Graphics.OpenGL;
 
 namespace osu.Framework.Graphics.Shaders
 {
-    public class Uniform<T> : IUniform
+    public class Uniform<T> : IUniformWithValue<T>
         where T : struct
     {
         public string Name { get; }
@@ -44,5 +44,7 @@ namespace osu.Framework.Graphics.Shaders
             GLWrapper.SetUniform(this);
             HasChanged = false;
         }
+
+        public ref T GetValue() => ref Value;
     }
 }

@@ -596,76 +596,41 @@ namespace osu.Framework.Graphics.OpenGL
             currentShader = s;
         }
 
-        internal static void SetUniform(IUniform uniform)
+        internal static void SetUniform<T>(IUniformWithValue<T> uniform)
+            where T : struct
         {
             if (uniform.Owner == currentShader)
                 FlushCurrentBatch();
 
-            if (uniform is IGlobalUniform)
+            switch (uniform)
             {
-                switch (uniform)
-                {
-                    case GlobalUniform<bool> b:
-                        GL.Uniform1(uniform.Location, b.PendingChange.Value ? 1 : 0);
-                        break;
-                    case GlobalUniform<int> i:
-                        GL.Uniform1(uniform.Location, i.PendingChange.Value);
-                        break;
-                    case GlobalUniform<float> f:
-                        GL.Uniform1(uniform.Location, f.PendingChange.Value);
-                        break;
-                    case GlobalUniform<Vector2> v2:
-                        GL.Uniform2(uniform.Location, ref v2.PendingChange.Value);
-                        break;
-                    case GlobalUniform<Vector3> v3:
-                        GL.Uniform3(uniform.Location, ref v3.PendingChange.Value);
-                        break;
-                    case GlobalUniform<Vector4> v4:
-                        GL.Uniform4(uniform.Location, ref v4.PendingChange.Value);
-                        break;
-                    case GlobalUniform<Matrix2> m2:
-                        GL.UniformMatrix2(uniform.Location, false, ref m2.PendingChange.Value);
-                        break;
-                    case GlobalUniform<Matrix3> m3:
-                        GL.UniformMatrix3(uniform.Location, false, ref m3.PendingChange.Value);
-                        break;
-                    case GlobalUniform<Matrix4> m4:
-                        GL.UniformMatrix4(uniform.Location, false, ref m4.PendingChange.Value);
-                        break;
-                }
-            }
-            else
-            {
-                switch (uniform)
-                {
-                    case Uniform<bool> b:
-                        GL.Uniform1(uniform.Location, b.Value ? 1 : 0);
-                        break;
-                    case Uniform<int> i:
-                        GL.Uniform1(uniform.Location, i.Value);
-                        break;
-                    case Uniform<float> f:
-                        GL.Uniform1(uniform.Location, f.Value);
-                        break;
-                    case Uniform<Vector2> v2:
-                        GL.Uniform2(uniform.Location, ref v2.Value);
-                        break;
-                    case Uniform<Vector3> v3:
-                        GL.Uniform3(uniform.Location, ref v3.Value);
-                        break;
-                    case Uniform<Vector4> v4:
-                        GL.Uniform4(uniform.Location, ref v4.Value);
-                        break;
-                    case Uniform<Matrix2> m2:
-                        GL.UniformMatrix2(uniform.Location, false, ref m2.Value);
-                        break;
-                    case Uniform<Matrix3> m3:
-                        GL.UniformMatrix3(uniform.Location, false, ref m3.Value);
-                        break;
-                    case Uniform<Matrix4> m4:
-                        GL.UniformMatrix4(uniform.Location, false, ref m4.Value);
-                        break;
-                }
+                case IUniformWithValue<bool> b:
+                    GL.Uniform1(uniform.Location, b.GetValue() ? 1 : 0);
+                    break;
+                case IUniformWithValue<int> i:
+                    GL.Uniform1(uniform.Location, i.GetValue());
+                    break;
+                case IUniformWithValue<float> f:
+                    GL.Uniform1(uniform.Location, f.GetValue());
+                    break;
+                case IUniformWithValue<Vector2> v2:
+                    GL.Uniform2(uniform.Location, ref v2.GetValue());
+                    break;
+                case IUniformWithValue<Vector3> v3:
+                    GL.Uniform3(uniform.Location, ref v3.GetValue());
+                    break;
+                case IUniformWithValue<Vector4> v4:
+                    GL.Uniform4(uniform.Location, ref v4.GetValue());
+                    break;
+                case IUniformWithValue<Matrix2> m2:
+                    GL.UniformMatrix2(uniform.Location, false, ref m2.GetValue());
+                    break;
+                case IUniformWithValue<Matrix3> m3:
+                    GL.UniformMatrix3(uniform.Location, false, ref m3.GetValue());
+                    break;
+                case IUniformWithValue<Matrix4> m4:
+                    GL.UniformMatrix4(uniform.Location, false, ref m4.GetValue());
+                    break;
             }
         }
     }

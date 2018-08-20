@@ -5,7 +5,7 @@ using osu.Framework.Graphics.OpenGL;
 
 namespace osu.Framework.Graphics.Shaders
 {
-    public class GlobalUniform<T> : IGlobalUniform
+    public class GlobalUniform<T> : IUniformWithValue<T>
         where T : struct
     {
         /// <summary>
@@ -35,6 +35,8 @@ namespace osu.Framework.Graphics.Shaders
             GLWrapper.SetUniform(this);
             PendingChange = null;
         }
+
+        public ref T GetValue() => ref PendingChange.Value;
 
         public Shader Owner { get; }
         public int Location { get; }
