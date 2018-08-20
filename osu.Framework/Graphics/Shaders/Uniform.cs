@@ -1,33 +1,49 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using osu.Framework.Graphics.OpenGL;
+
 namespace osu.Framework.Graphics.Shaders
 {
-    public class Uniform<T>
+    public class Uniform<T> : IUniformWithValue<T>
+        where T : struct
     {
-        private readonly UniformBase uniformBase;
+        public Shader Owner { get; }
+        public string Name { get; }
+        public int Location { get; }
 
-        internal Uniform(UniformBase uniformBase)
+        public bool HasChanged { get; private set; } = true;
+
+        public T Value;
+
+        public Uniform(Shader owner, string name, int uniformLocation)
         {
-            this.uniformBase = uniformBase;
+            Owner = owner;
+            Name = name;
+            Location = uniformLocation;
         }
 
-        /// <summary>
-        /// Gets or sets the value of this uniform.
-        /// </summary>
-        public T Value
+        public void UpdateValue(ref T newValue)
         {
-            get => (T)uniformBase.Value;
-            set => uniformBase.Value = value;
+            if (newValue.Equals(Value))
+                return;
+
+            Value = newValue;
+            HasChanged = true;
+
+            if (Owner.IsBound)
+                Update();
         }
 
-        /// <summary>
-        /// Returns the value of the uniform.
-        /// </summary>
-        /// <param name="filterUniform">The uniform to retrieve the value of.</param>
-        public static implicit operator T(Uniform<T> filterUniform)
+        public void Update()
         {
-            return filterUniform.Value;
+            if (!HasChanged) return;
+
+            GLWrapper.SetUniform(this);
+            HasChanged = false;
         }
+
+        ref T IUniformWithValue<T>.GetValueByRef() => ref Value;
+        T IUniformWithValue<T>.GetValue() => Value;
     }
 }
