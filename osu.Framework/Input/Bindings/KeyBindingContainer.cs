@@ -52,11 +52,13 @@ namespace osu.Framework.Input.Bindings
         /// </summary>
         protected virtual IEnumerable<Drawable> KeyBindingInputQueue => childrenInputQueue;
 
+        private readonly List<Drawable> queue = new List<Drawable>();
+
         private List<Drawable> childrenInputQueue
         {
             get
             {
-                var queue = new List<Drawable>();
+                queue.Clear();
                 BuildKeyboardInputQueue(queue, false);
                 queue.Reverse();
 
