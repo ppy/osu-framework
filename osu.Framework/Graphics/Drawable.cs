@@ -514,18 +514,18 @@ namespace osu.Framework.Graphics
                 // Convert coordinates from relative to absolute or vice versa
                 Vector2 conversion = relativeToAbsoluteFactor;
                 if ((value & Axes.X) > (relativePositionAxes & Axes.X))
-                    X = conversion.X == 0 ? 0 : X / conversion.X;
+                    X = Precision.AlmostEquals(conversion.X, 0) ? 0 : X / conversion.X;
                 else if ((relativePositionAxes & Axes.X) > (value & Axes.X))
                     X *= conversion.X;
 
                 if ((value & Axes.Y) > (relativePositionAxes & Axes.Y))
-                    Y = conversion.Y == 0 ? 0 : Y / conversion.Y;
+                    Y = Precision.AlmostEquals(conversion.Y, 0) ? 0 : Y / conversion.Y;
                 else if ((relativePositionAxes & Axes.Y) > (value & Axes.Y))
                     Y *= conversion.Y;
 
                 relativePositionAxes = value;
 
-                // No invalidation necessary as DrawPosition remains invariant.
+                updateBypassAutoSizeAxes();
             }
         }
 
@@ -651,22 +651,22 @@ namespace osu.Framework.Graphics
                     // Convert coordinates from relative to absolute or vice versa
                     Vector2 conversion = relativeToAbsoluteFactor;
                     if ((value & Axes.X) > (relativeSizeAxes & Axes.X))
-                        Width = conversion.X == 0 ? 0 : Width / conversion.X;
+                        Width = Precision.AlmostEquals(conversion.X, 0) ? 0 : Width / conversion.X;
                     else if ((relativeSizeAxes & Axes.X) > (value & Axes.X))
                         Width *= conversion.X;
 
                     if ((value & Axes.Y) > (relativeSizeAxes & Axes.Y))
-                        Height = conversion.Y == 0 ? 0 : Height / conversion.Y;
+                        Height = Precision.AlmostEquals(conversion.Y, 0) ? 0 : Height / conversion.Y;
                     else if ((relativeSizeAxes & Axes.Y) > (value & Axes.Y))
                         Height *= conversion.Y;
-
-                    // No invalidation is necessary as DrawSize remains invariant.
                 }
 
                 relativeSizeAxes = value;
 
                 if (relativeSizeAxes.HasFlag(Axes.X) && Width == 0) Width = 1;
                 if (relativeSizeAxes.HasFlag(Axes.Y) && Height == 0) Height = 1;
+
+                updateBypassAutoSizeAxes();
 
                 OnSizingChanged();
             }
@@ -786,6 +786,20 @@ namespace osu.Framework.Graphics
 
         private Axes bypassAutoSizeAxes;
 
+        private void updateBypassAutoSizeAxes()
+        {
+            var value = RelativePositionAxes | RelativeSizeAxes | bypassAutoSizeAdditionalAxes;
+            if (bypassAutoSizeAxes != value)
+            {
+                if (((Parent?.AutoSizeAxes ?? 0) & ~(bypassAutoSizeAxes & value)) != 0)
+                    Parent?.InvalidateFromChild(Invalidation.RequiredParentSizeToFit, this);
+
+                bypassAutoSizeAxes = value;
+            }
+        }
+
+        private Axes bypassAutoSizeAdditionalAxes;
+
         /// <summary>
         /// Controls which <see cref="Axes"/> are ignored by parent <see cref="Parent"/> automatic sizing.
         /// Most notably, <see cref="RelativePositionAxes"/> and <see cref="RelativeSizeAxes"/> do not affect
@@ -793,14 +807,11 @@ namespace osu.Framework.Graphics
         /// </summary>
         public Axes BypassAutoSizeAxes
         {
-            get => bypassAutoSizeAxes | relativeSizeAxes | relativePositionAxes;
+            get => bypassAutoSizeAxes;
             set
             {
-                if (value == bypassAutoSizeAxes)
-                    return;
-
-                bypassAutoSizeAxes = value;
-                Parent?.InvalidateFromChild(Invalidation.RequiredParentSizeToFit, this);
+                bypassAutoSizeAdditionalAxes = value;
+                updateBypassAutoSizeAxes();
             }
         }
 
