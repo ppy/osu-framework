@@ -16,7 +16,8 @@ namespace osu.Framework.Input.Handlers.Joystick
 {
     public class OpenTKJoystickHandler : InputHandler
     {
-        private ScheduledDelegate scheduled;
+        private ScheduledDelegate scheduledPoll;
+        private ScheduledDelegate scheduledRefreshDevices;
 
         private int mostSeenDevices;
 
@@ -28,10 +29,10 @@ namespace osu.Framework.Input.Handlers.Joystick
             {
                 if (enabled)
                 {
-                    host.InputThread.Scheduler.Add(scheduled = new ScheduledDelegate(delegate
-                    {
-                        refreshDevices();
+                    host.InputThread.Scheduler.Add(scheduledRefreshDevices = new ScheduledDelegate(refreshDevices, 0, 500));
 
+                    host.InputThread.Scheduler.Add(scheduledPoll = new ScheduledDelegate(delegate
+                    {
                         foreach (var device in devices)
                         {
                             if (device.RawState.Equals(device.LastRawState))
@@ -41,11 +42,13 @@ namespace osu.Framework.Input.Handlers.Joystick
                             handleState(device, newState);
                             FrameStatistics.Increment(StatisticsCounterType.JoystickEvents);
                         }
-                    }, 0, 500));
+                    }, 0, 0));
                 }
                 else
                 {
-                    scheduled?.Cancel();
+                    scheduledPoll?.Cancel();
+                    scheduledRefreshDevices?.Cancel();
+
                     foreach (var device in devices)
                     {
                         if (device.LastState != null)
