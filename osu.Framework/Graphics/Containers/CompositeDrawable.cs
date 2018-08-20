@@ -433,7 +433,7 @@ namespace osu.Framework.Graphics.Containers
         /// Checks whether the alive state of a child has changed and processes it. This will add or remove
         /// the child from <see cref="aliveInternalChildren"/> depending on its alive state.
         ///
-        /// This should only ever be called on a drawable's own children.
+        /// This should only ever be called on a <see cref="CompositeDrawable"/>'s own <see cref="internalChildren"/>.
         ///
         /// <para>Note that this does NOT check the load state of this <see cref="CompositeDrawable"/> to check if it can hold any alive children.</para>
         /// </summary>
