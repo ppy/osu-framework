@@ -2,7 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading;
 using osu.Framework.Extensions.TypeExtensions;
 
@@ -13,7 +13,7 @@ namespace osu.Framework.Allocation
     /// </summary>
     public class DependencyContainer : IReadOnlyDependencyContainer
     {
-        private readonly ConcurrentDictionary<Type, object> cache = new ConcurrentDictionary<Type, object>();
+        private readonly Dictionary<Type, object> cache = new Dictionary<Type, object>();
 
         private readonly IReadOnlyDependencyContainer parentContainer;
 
