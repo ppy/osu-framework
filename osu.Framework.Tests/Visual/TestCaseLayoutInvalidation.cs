@@ -562,7 +562,8 @@ namespace osu.Framework.Tests.Visual
 
             private IEnumerable<float> shrink_float(float x)
             {
-                return float_values.Where(y => (y < 0 ? 1 : 0) < (x < 0 ? 1 : 0) || (y < 0 ? 1 : 0) == (x < 0 ? 1 : 0) && Math.Abs(y) < Math.Abs(x));
+                var index = Array.FindIndex(float_values, y => x == y);
+                return index == -1 ? float_values : float_values.Take(index);
             }
 
             private IEnumerable<T[]> shrink_tuple<T>(T[] tuple, Func<T, IEnumerable<T>> shrinkElem)
@@ -612,8 +613,8 @@ namespace osu.Framework.Tests.Visual
                 });
             }
 
-            private static readonly float[] positive_float_values = new float[] { 1 / 3f, 0.5f, 2 / 3f, 1f, 4 / 3f, 1.5f, 5 / 3f, 2f, 2.5f, 3f };
-            private static readonly float[] float_values = positive_float_values.Select(x => -x).Reverse().Concat(positive_float_values.Prepend(0f)).ToArray();
+            private static readonly float[] positive_float_values = new float[] { 1f, 2f, 0.5f, 1.5f, 3f, 1 / 3f, 2 / 3f, 4 / 3f, 5 / 3f };
+            private static readonly float[] float_values = positive_float_values.Prepend(0f).Concat(positive_float_values.Select(x => -x)).ToArray();
 
             private static readonly Gen<float> position = Gen.OneOf(float_values.Select(Gen.Constant));
             private static readonly Gen<float> size = Gen.OneOf(positive_float_values.Select(Gen.Constant));
