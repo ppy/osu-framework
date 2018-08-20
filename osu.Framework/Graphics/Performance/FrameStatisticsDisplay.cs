@@ -47,8 +47,6 @@ namespace osu.Framework.Graphics.Performance
         private int timeBarIndex => currentX / WIDTH;
         private int timeBarX => currentX % WIDTH;
 
-        private bool processFrames = true;
-
         private readonly Container overlayContainer;
         private readonly Drawable labelText;
         private readonly Sprite counterBarBackground;
@@ -281,7 +279,11 @@ namespace osu.Framework.Graphics.Performance
                 running = value;
 
                 frameTimeDisplay.Counting = running;
-                processFrames = running;
+
+                // dequeue all pending frames on state change.
+                while (monitor.PendingFrames.TryDequeue(out _))
+                {
+                }
             }
         }
 
@@ -389,12 +391,13 @@ namespace osu.Framework.Graphics.Performance
         {
             base.Update();
 
-            while (monitor.PendingFrames.TryDequeue(out FrameStatistics frame))
+            if (running)
             {
-                if (processFrames)
+                while (monitor.PendingFrames.TryDequeue(out FrameStatistics frame))
+                {
                     applyFrame(frame);
-
-                monitor.FramesHeap.FreeObject(frame);
+                    monitor.FramesHeap.FreeObject(frame);
+                }
             }
         }
 

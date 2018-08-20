@@ -73,7 +73,8 @@ namespace osu.Framework.Allocation
             return (target, existing) =>
             {
                 var dependencies = new DependencyContainer(existing);
-                additionActivators.ForEach(a => a(target, dependencies));
+                foreach (var a in additionActivators)
+                    a(target, dependencies);
 
                 return dependencies;
             };

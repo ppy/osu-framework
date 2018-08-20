@@ -49,7 +49,11 @@ namespace osu.Framework.Allocation
                 activators.Add((target, dc) => property.SetValue(target, fieldGetter(dc)));
             }
 
-            return (target, dc) => activators.ForEach(a => a(target, dc));
+            return (target, dc) =>
+            {
+                foreach (var a in activators)
+                    a(target, dc);
+            };
         }
 
         private static Func<IReadOnlyDependencyContainer, object> getDependency(Type type, Type requestingType, bool permitNulls) => dc =>
