@@ -55,7 +55,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Gets the item representations contained by this <see cref="Menu"/>.
         /// </summary>
-        public IReadOnlyList<DrawableMenuItem> Children => ItemsContainer;
+        protected internal IReadOnlyList<DrawableMenuItem> Children => ItemsContainer;
 
         protected readonly Direction Direction;
 
@@ -244,6 +244,13 @@ namespace osu.Framework.Graphics.UserInterface
 
             sizeCache.Invalidate();
         }
+
+        /// <summary>
+        /// Scrolls a <see cref="Drawable"/> into view.
+        /// </summary>
+        /// <param name="d">The <see cref="Drawable"/> to scroll into view.</param>
+        /// <param name="animated">Whether to animate the movement.</param>
+        public void ScrollIntoView(Drawable d, bool animated = true) => ContentContainer.ScrollIntoView(d, animated);
 
         /// <summary>
         /// Adds a <see cref="MenuItem"/> to this <see cref="Menu"/>.

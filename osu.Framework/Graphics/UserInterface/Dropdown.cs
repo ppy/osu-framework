@@ -58,6 +58,9 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
+        private IEnumerable<Menu.DrawableMenuItem> drawableMenuItems => Menu.Children;
+        private IEnumerable<Menu.DrawableMenuItem> visibleMenuItems => drawableMenuItems.Where(item => !item.IsMaskedAway);
+
         /// <summary>
         /// Add a menu item directly.
         /// </summary>
@@ -137,32 +140,40 @@ namespace osu.Framework.Graphics.UserInterface
             var dropdownMenuItems = MenuItems.ToList();
             if (!dropdownMenuItems.Any()) return;
 
-            var visibleMenuItems = Menu.Children.Where(item => !item.IsMaskedAway).Select(drawableItem => drawableItem.Item);
             var selectedIndex = dropdownMenuItems.IndexOf(SelectedItem);
 
             switch (change)
             {
                 case DropdownHeader.SelectionChange.Previous:
-                    SelectedItem = dropdownMenuItems[MathHelper.Clamp(selectedIndex - 1, 0, dropdownMenuItems.Count - 1)];
+                    selectedIndex = MathHelper.Clamp(selectedIndex - 1, 0, dropdownMenuItems.Count - 1);
                     break;
                 case DropdownHeader.SelectionChange.Next:
-                    SelectedItem = dropdownMenuItems[MathHelper.Clamp(selectedIndex + 1, 0, dropdownMenuItems.Count - 1)];
+                    selectedIndex = MathHelper.Clamp(selectedIndex + 1, 0, dropdownMenuItems.Count - 1);
                     break;
                 case DropdownHeader.SelectionChange.First:
-                    SelectedItem = dropdownMenuItems.First();
+                    selectedIndex = 0;
                     break;
                 case DropdownHeader.SelectionChange.Last:
-                    SelectedItem = dropdownMenuItems.Last();
+                    selectedIndex = dropdownMenuItems.Count - 1;
                     break;
                 case DropdownHeader.SelectionChange.FirstVisible:
-                    SelectedItem = (DropdownMenuItem<T>)visibleMenuItems.First();
+                    var firstVisibleItem = (DropdownMenuItem<T>)visibleMenuItems.First().Item;
+                    selectedIndex = SelectedItem == firstVisibleItem
+                        ? MathHelper.Clamp(selectedIndex - visibleMenuItems.Count(), 0, dropdownMenuItems.Count - 1)
+                        : dropdownMenuItems.IndexOf(firstVisibleItem);
                     break;
                 case DropdownHeader.SelectionChange.LastVisible:
-                    SelectedItem = (DropdownMenuItem<T>)visibleMenuItems.Last();
+                    var lastVisibleItem = (DropdownMenuItem<T>)visibleMenuItems.Last().Item;
+                    selectedIndex = SelectedItem == lastVisibleItem
+                        ? MathHelper.Clamp(selectedIndex + visibleMenuItems.Count(), 0, dropdownMenuItems.Count - 1)
+                        : dropdownMenuItems.IndexOf(lastVisibleItem);
                     break;
                 default:
                     throw new ArgumentException("Unexpected selection change type.", nameof(change));
             }
+
+            SelectedItem = dropdownMenuItems[selectedIndex];
+            Menu.ScrollIntoView(drawableMenuItems.ElementAt(selectedIndex));
         }
 
         protected override void LoadComplete()
