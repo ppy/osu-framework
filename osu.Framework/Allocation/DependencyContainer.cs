@@ -2,7 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading;
 using osu.Framework.Extensions.TypeExtensions;
 
@@ -13,7 +13,7 @@ namespace osu.Framework.Allocation
     /// </summary>
     public class DependencyContainer : IReadOnlyDependencyContainer
     {
-        private readonly ConcurrentDictionary<Type, object> cache = new ConcurrentDictionary<Type, object>();
+        private readonly Dictionary<Type, object> cache = new Dictionary<Type, object>();
 
         private readonly IReadOnlyDependencyContainer parentContainer;
 
@@ -90,7 +90,10 @@ namespace osu.Framework.Allocation
                 throw new ArgumentNullException(nameof(instance));
             }
 
+            type = Nullable.GetUnderlyingType(type) ?? type;
+
             var instanceType = instance.GetType();
+            instanceType = Nullable.GetUnderlyingType(instanceType) ?? instanceType;
 
             if (instanceType.IsValueType && !allowValueTypes)
                 throw new ArgumentException($"{instanceType.ReadableName()} must be a class to be cached as a dependency.", nameof(instance));

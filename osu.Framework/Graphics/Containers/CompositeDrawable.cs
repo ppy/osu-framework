@@ -5,6 +5,7 @@ using osu.Framework.Lists;
 using System.Collections.Generic;
 using System;
 using System.Diagnostics;
+using System.Threading;
 using OpenTK;
 using osu.Framework.Graphics.OpenGL;
 using OpenTK.Graphics;
@@ -47,7 +48,31 @@ namespace osu.Framework.Graphics.Containers
         private Game game { get; set; }
 
         /// <summary>
-        /// Loads a future child or grand-child of this <see cref="CompositeDrawable"/> asyncronously. <see cref="Drawable.Dependencies"/>
+        /// Create a local dependency container which will be used by our nested children.
+        /// If not overridden, the load-time parent's dependency tree will be used.
+        /// </summary>
+        /// <param name="parent">The parent <see cref="IReadOnlyDependencyContainer"/> which should be passed through if we want fallback lookups to work.</param>
+        /// <returns>A new dependency container to be stored for this Drawable.</returns>
+        protected virtual IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent) => DependencyActivator.MergeDependencies(this, parent);
+
+        /// <summary>
+        /// Contains all dependencies that can be injected into this CompositeDrawable's children using <see cref="BackgroundDependencyLoaderAttribute"/>.
+        /// Add or override dependencies by calling <see cref="DependencyContainer.Cache{T}(T)"/>.
+        /// </summary>
+        public IReadOnlyDependencyContainer Dependencies { get; private set; }
+
+        protected sealed override void InjectDependencies(IReadOnlyDependencyContainer dependencies)
+        {
+            // get our dependencies from our parent, but allow local overriding of our inherited dependency container
+            Dependencies = CreateChildDependencies(dependencies);
+
+            base.InjectDependencies(dependencies);
+        }
+
+        private CancellationTokenSource cancellationSource;
+
+        /// <summary>
+        /// Loads a future child or grand-child of this <see cref="CompositeDrawable"/> asyncronously. <see cref="Dependencies"/>
         /// and <see cref="Drawable.Clock"/> are inherited from this <see cref="CompositeDrawable"/>.
         ///
         /// Note that this will always use the dependencies and clock from this instance. If you must load to a nested container level,
@@ -62,11 +87,21 @@ namespace osu.Framework.Graphics.Containers
             if (game == null)
                 throw new InvalidOperationException($"May not invoke {nameof(LoadComponentAsync)} prior to this {nameof(CompositeDrawable)} being loaded.");
 
-            return component.LoadAsync(game, this, () => onLoaded?.Invoke(component));
+            var dependencies = Dependencies;
+
+            if (cancellationSource == null)
+            {
+                cancellationSource = new CancellationTokenSource();
+                var cancellationDeps = new DependencyContainer(Dependencies);
+                cancellationDeps.CacheValueAs(cancellationSource.Token);
+                dependencies = cancellationDeps;
+            }
+
+            return component.LoadAsync(game, Clock, dependencies, cancellationSource.Token, () => onLoaded?.Invoke(component));
         }
 
         [BackgroundDependencyLoader(true)]
-        private void load(ShaderManager shaders)
+        private void load(ShaderManager shaders, CancellationToken? cancellation)
         {
             if (shader == null)
                 shader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
@@ -74,7 +109,11 @@ namespace osu.Framework.Graphics.Containers
             // We are in a potentially async context, so let's aggressively load all our children
             // regardless of their alive state. this also gives children a clock so they can be checked
             // for their correct alive state in the case LifetimeStart is set to a definite value.
-            internalChildren.ForEach(loadChild);
+            foreach (var c in internalChildren)
+            {
+                cancellation?.ThrowIfCancellationRequested();
+                loadChild(c);
+            }
         }
 
         protected override void LoadAsyncComplete()
@@ -101,6 +140,9 @@ namespace osu.Framework.Graphics.Containers
 
         protected override void Dispose(bool isDisposing)
         {
+            cancellationSource?.Cancel();
+            cancellationSource?.Dispose();
+
             InternalChildren?.ForEach(c => c.Dispose());
 
             OnAutoSize = null;
@@ -193,6 +235,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         private readonly SortedList<Drawable> internalChildren;
+
         /// <summary>
         /// This <see cref="CompositeDrawable"/> list of children. Assigning to this property will dispose all existing children of this <see cref="CompositeDrawable"/>.
         /// </summary>
@@ -427,14 +470,15 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Checks whether the alive state of a child has changed and processes it. This will add or remove
         /// the child from <see cref="aliveInternalChildren"/> depending on its alive state.
+        ///
+        /// This should only ever be called on a <see cref="CompositeDrawable"/>'s own <see cref="internalChildren"/>.
+        ///
         /// <para>Note that this does NOT check the load state of this <see cref="CompositeDrawable"/> to check if it can hold any alive children.</para>
         /// </summary>
         /// <param name="child">The child to check.</param>
         /// <returns>Whether the child's alive state has changed.</returns>
         private bool checkChildLife(Drawable child)
         {
-            Debug.Assert(internalChildren.Contains(child), "Can only check and react to the life of our own children.");
-
             bool changed = false;
 
             if (child.ShouldBeAlive)

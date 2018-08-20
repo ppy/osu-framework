@@ -73,6 +73,10 @@ namespace osu.Framework.Audio.Track
 
             readTask = Task.Run(() =>
             {
+                // for the time being, this code cannot run if there is no bass device available.
+                if (Bass.CurrentDevice <= 0)
+                    return;
+
                 var procs = new DataStreamFileProcedures(data);
 
                 int decodeStream = Bass.CreateStream(StreamSystem.NoBuffer, BassFlags.Decode | BassFlags.Float, procs.BassProcedures, IntPtr.Zero);
@@ -83,6 +87,7 @@ namespace osu.Framework.Audio.Track
 
                 // Each "point" is generated from a number of samples, each sample contains a number of channels
                 int samplesPerPoint = (int)(info.Frequency * resolution * info.Channels);
+
                 int bytesPerPoint = samplesPerPoint * bytes_per_sample;
 
                 points.Capacity = (int)(length / bytesPerPoint);

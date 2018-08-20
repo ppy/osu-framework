@@ -7,10 +7,10 @@ using osu.Framework.Timing;
 using System.Diagnostics;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Diagnostics.Runtime;
+using osu.Framework.Threading;
 
 namespace osu.Framework.Statistics
 {
@@ -30,9 +30,9 @@ namespace osu.Framework.Statistics
 
         private double spikeRecordThreshold;
 
-        private readonly CancellationTokenSource cancellationToken;
-
         public bool Enabled = true;
+
+        private readonly GameThread thread;
 
         public BackgroundStackTraceCollector(Thread targetThread, StopwatchClock clock)
         {
@@ -44,16 +44,13 @@ namespace osu.Framework.Statistics
             this.clock = clock;
             this.targetThread = targetThread;
 
-            Task.Factory.StartNew(() =>
+            thread = new GameThread(() =>
             {
-                while (!cancellationToken.IsCancellationRequested)
-                {
-                    if (Enabled && targetThread.IsAlive && clock.ElapsedMilliseconds - LastConsumptionTime > spikeRecordThreshold / 2 && backgroundMonitorStackTrace == null)
-                        backgroundMonitorStackTrace = getStackTrace(targetThread);
+                if (Enabled && targetThread.IsAlive && clock.ElapsedMilliseconds - LastConsumptionTime > spikeRecordThreshold / 2 && backgroundMonitorStackTrace == null)
+                    backgroundMonitorStackTrace = getStackTrace(targetThread);
+            }, $"{targetThread}-StackTraceCollector", false);
 
-                    Thread.Sleep(1);
-                }
-            }, (cancellationToken = new CancellationTokenSource()).Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+            thread.Start();
         }
 
         internal void NewFrame(double elapsedFrameTime, double newSpikeThreshold)
@@ -104,7 +101,8 @@ namespace osu.Framework.Statistics
             }
         });
 
-        private static IList<ClrStackFrame> getStackTrace(Thread targetThread) => clr_info.Value?.CreateRuntime().Threads.FirstOrDefault(t => t.ManagedThreadId == targetThread.ManagedThreadId)?.StackTrace;
+        private static IList<ClrStackFrame> getStackTrace(Thread targetThread) =>
+            clr_info.Value?.CreateRuntime().Threads.FirstOrDefault(t => t.ManagedThreadId == targetThread.ManagedThreadId)?.StackTrace;
 
         #region IDisposable Support
 
@@ -120,7 +118,7 @@ namespace osu.Framework.Statistics
             if (!isDisposed)
             {
                 isDisposed = true;
-                cancellationToken?.Cancel();
+                thread?.Exit();
             }
         }
 
@@ -129,6 +127,7 @@ namespace osu.Framework.Statistics
             Dispose(true);
             GC.SuppressFinalize(this);
         }
+
         #endregion
     }
 }
