@@ -58,7 +58,7 @@ namespace osu.Framework.Graphics.Shaders
                 GLWrapper.DeleteProgram(this);
                 Loaded = false;
                 programID = -1;
-                GlobalPropertyManager.Remove(this);
+                GlobalPropertyManager.Unregister(this);
             }
         }
 
@@ -150,7 +150,7 @@ namespace osu.Framework.Graphics.Shaders
                     Uniforms.Add(uniformName, uniformsArray[i]);
                 }
 
-                GlobalPropertyManager.InitializeShader(this);
+                GlobalPropertyManager.Register(this);
             }
         }
 

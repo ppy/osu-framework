@@ -39,7 +39,7 @@ namespace osu.Framework.Graphics.Shaders
         public static void Set<T>(GlobalProperty property, T value)
             where T : struct => ((UniformMapping<T>)global_properties[(int)property]).UpdateValue(ref value);
 
-        public static void InitializeShader(Shader shader)
+        public static void Register(Shader shader)
         {
             // transfer all existing global properties across.
             foreach (var global in global_properties)
@@ -53,7 +53,7 @@ namespace osu.Framework.Graphics.Shaders
             all_shaders.Add(shader);
         }
 
-        public static void Remove(Shader shader)
+        public static void Unregister(Shader shader)
         {
             if (!all_shaders.Remove(shader)) return;
 
