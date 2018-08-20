@@ -658,10 +658,6 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="source">The child which caused this invalidation. May be null to indicate that a specific child wasn't specified.</param>
         public virtual void InvalidateFromChild(Invalidation invalidation, Drawable source = null)
         {
-            // We only want to recompute autosize if the child isn't bypassing all of our autosize axes
-            if (source != null && (source.BypassAutoSizeAxes & AutoSizeAxes) == AutoSizeAxes)
-                return;
-
             //Colour captures potential changes in IsPresent. If this ever becomes a bottleneck,
             //Invalidation could be further separated into presence changes.
             if ((invalidation & (Invalidation.RequiredParentSizeToFit | Invalidation.Colour)) > 0)
