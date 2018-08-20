@@ -22,7 +22,7 @@ namespace osu.Framework.Statistics
 
         private FrameStatistics currentFrame;
 
-        private const int max_pending_frames = 100;
+        private const int max_pending_frames = 10;
 
         internal readonly ConcurrentQueue<FrameStatistics> PendingFrames = new ConcurrentQueue<FrameStatistics>();
         internal readonly ObjectStack<FrameStatistics> FramesHeap = new ObjectStack<FrameStatistics>(max_pending_frames);
@@ -106,14 +106,12 @@ namespace osu.Framework.Statistics
                     FrameStatistics.COUNTERS[i] = 0;
                 }
 
-            PendingFrames.Enqueue(currentFrame);
-            if (PendingFrames.Count >= max_pending_frames)
+            if (PendingFrames.Count < max_pending_frames - 1)
             {
-                PendingFrames.TryDequeue(out FrameStatistics oldFrame);
-                FramesHeap.FreeObject(oldFrame);
+                PendingFrames.Enqueue(currentFrame);
+                currentFrame = FramesHeap.ReserveObject();
             }
 
-            currentFrame = FramesHeap.ReserveObject();
             currentFrame.Clear();
 
             if (HandleGC)
@@ -172,6 +170,7 @@ namespace osu.Framework.Statistics
             Dispose(true);
             GC.SuppressFinalize(this);
         }
+
         #endregion
     }
 }

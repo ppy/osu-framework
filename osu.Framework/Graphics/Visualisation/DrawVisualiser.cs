@@ -1,7 +1,9 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Allocation;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
 using osu.Framework.Input;
@@ -10,9 +12,12 @@ using osu.Framework.Input.States;
 
 namespace osu.Framework.Graphics.Visualisation
 {
-    public class DrawVisualiser : OverlayContainer
+    [Cached]
+    internal class DrawVisualiser : OverlayContainer, IContainVisualisedDrawables
     {
+        [Cached]
         private readonly TreeContainer treeContainer;
+
         private VisualisedDrawable highlightedTarget;
 
         private readonly PropertyDisplay propertyDisplay;
@@ -29,19 +34,30 @@ namespace osu.Framework.Graphics.Visualisation
                 overlay = new InfoOverlay(),
                 treeContainer = new TreeContainer
                 {
-                    ChooseTarget = chooseTarget,
+                    ChooseTarget = () =>
+                    {
+                        Searching = true;
+                        Target = null;
+                    },
                     GoUpOneParent = delegate
                     {
                         Drawable lastHighlight = highlightedTarget?.Target;
 
                         var parent = Target?.Parent;
-                        if (parent?.Parent != null)
-                            Target = Target?.Parent;
+                        if (parent != null)
+                        {
+                            var lastVisualiser = targetVisualiser;
+
+                            Target = parent;
+                            lastVisualiser.SetContainer(targetVisualiser);
+
+                            targetVisualiser.Expand();
+                        }
 
                         // Rehighlight the last highlight
                         if (lastHighlight != null)
                         {
-                            VisualisedDrawable visualised = targetDrawable.FindVisualisedDrawable(lastHighlight);
+                            VisualisedDrawable visualised = targetVisualiser.FindVisualisedDrawable(lastHighlight);
                             if (visualised != null)
                             {
                                 propertyDisplay.State = Visibility.Visible;
@@ -51,13 +67,13 @@ namespace osu.Framework.Graphics.Visualisation
                     },
                     ToggleProperties = delegate
                     {
-                        if (targetDrawable == null)
+                        if (targetVisualiser == null)
                             return;
 
                         propertyDisplay.ToggleVisibility();
 
                         if (propertyDisplay.State == Visibility.Visible)
-                            setHighlight(targetDrawable);
+                            setHighlight(targetVisualiser);
                     },
                 },
                 new CursorContainer()
@@ -88,27 +104,14 @@ namespace osu.Framework.Graphics.Visualisation
         protected override void PopIn()
         {
             this.FadeIn(100);
-            if (Target == null)
-                chooseTarget();
-            else
-                createRootVisualisedDrawable();
+            Searching = Target == null;
         }
 
         protected override void PopOut()
         {
             this.FadeOut(100);
 
-            // Don't keep resources for visualizing the target
-            // allocated; unbind callback events.
-            removeRootVisualisedDrawable();
-        }
-
-        private bool targetSearching;
-
-        private void chooseTarget()
-        {
-            Target = null;
-            targetSearching = true;
+            recycleVisualisers();
         }
 
         private Drawable findTargetIn(Drawable d, InputState state)
@@ -152,60 +155,62 @@ namespace osu.Framework.Graphics.Visualisation
             return containedTarget ?? (containsCursor ? d : null);
         }
 
-        private VisualisedDrawable targetDrawable;
-
-        private void removeRootVisualisedDrawable(bool hideProperties = true)
+        void IContainVisualisedDrawables.AddVisualiser(VisualisedDrawable visualiser)
         {
-            if (hideProperties)
-                propertyDisplay.State = Visibility.Hidden;
-
-            if (targetDrawable != null)
+            visualiser.RequestTarget = d =>
             {
-                if (targetDrawable.Parent != null)
-                {
-                    // targetDrawable may have gotten purged from the TreeContainer
-                    treeContainer.Remove(targetDrawable);
-                    targetDrawable.Dispose();
-                }
-                targetDrawable = null;
-            }
-        }
-
-        private void createRootVisualisedDrawable()
-        {
-            removeRootVisualisedDrawable(target == null);
-
-            if (target == null)
-                return;
-
-            targetDrawable = new VisualisedDrawable(target, treeContainer)
-            {
-                RequestTarget = d => Target = d,
-                HighlightTarget = d =>
-                {
-                    propertyDisplay.State = Visibility.Visible;
-
-                    // Either highlight or dehighlight the target, depending on whether
-                    // it is currently highlighted
-                    setHighlight(d);
-
-                }
+                Target = d;
+                targetVisualiser.ExpandAll();
             };
 
-            treeContainer.Add(targetDrawable);
+            visualiser.HighlightTarget = d =>
+            {
+                propertyDisplay.State = Visibility.Visible;
+
+                // Either highlight or dehighlight the target, depending on whether
+                // it is currently highlighted
+                setHighlight(d);
+            };
+
+            visualiser.Depth = 0;
+
+            treeContainer.Child = targetVisualiser = visualiser;
         }
 
-        private Drawable target;
+        void IContainVisualisedDrawables.RemoveVisualiser(VisualisedDrawable visualiser)
+        {
+            target = null;
+            targetVisualiser = null;
+            treeContainer.Remove(visualiser);
 
+            if (Target == null)
+                propertyDisplay.State = Visibility.Hidden;
+        }
+
+        private VisualisedDrawable targetVisualiser;
+        private Drawable target;
         public Drawable Target
         {
             get => target;
             set
             {
+                if (target != null)
+                {
+                    GetVisualiserFor(target).SetContainer(null);
+                    targetVisualiser = null;
+                }
+
                 target = value;
-                createRootVisualisedDrawable();
+
+                if (target != null)
+                {
+                    targetVisualiser = GetVisualiserFor(target);
+                    targetVisualiser.SetContainer(this);
+                }
             }
         }
+
+        public bool Searching { get; private set; }
 
         private void setHighlight(VisualisedDrawable newHighlight)
         {
@@ -232,26 +237,22 @@ namespace osu.Framework.Graphics.Visualisation
             }
         }
 
-        protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
-        {
-            return targetSearching;
-        }
+        protected override bool OnMouseDown(InputState state, MouseDownEventArgs args) => Searching;
 
-        private Drawable findTarget(InputState state)
-        {
-            return findTargetIn(Parent?.Parent, state);
-        }
+        private Drawable findTarget(InputState state) => findTargetIn(Parent?.Parent, state);
 
         protected override bool OnClick(InputState state)
         {
-            if (targetSearching)
+            if (Searching)
             {
                 Target = findTarget(state)?.Parent;
 
                 if (Target != null)
                 {
-                    targetSearching = false;
                     overlay.Target = null;
+                    targetVisualiser.ExpandAll();
+
+                    Searching = false;
                     return true;
                 }
             }
@@ -261,8 +262,41 @@ namespace osu.Framework.Graphics.Visualisation
 
         protected override bool OnMouseMove(InputState state)
         {
-            overlay.Target = targetSearching ? findTarget(state) : inputManager.HoveredDrawables.OfType<VisualisedDrawable>().FirstOrDefault()?.Target;
+            overlay.Target = Searching ? findTarget(state) : inputManager.HoveredDrawables.OfType<VisualisedDrawable>().FirstOrDefault()?.Target;
             return base.OnMouseMove(state);
+        }
+
+        private readonly Dictionary<Drawable, VisualisedDrawable> visCache = new Dictionary<Drawable, VisualisedDrawable>();
+
+        public VisualisedDrawable GetVisualiserFor(Drawable drawable)
+        {
+            if (visCache.TryGetValue(drawable, out var existing))
+                return existing;
+
+            var vis = new VisualisedDrawable(drawable);
+            vis.OnDispose += () => visCache.Remove(vis.Target);
+
+            return visCache[drawable] = vis;
+        }
+
+        private void recycleVisualisers()
+        {
+            treeContainer.Clear();
+
+            // We don't really know where the visualised drawables are, so we have to dispose them manually
+            // This is done as an optimisation so that events aren't handled while the visualiser is hidden
+            var visualisers = visCache.Values.ToList();
+            foreach (var v in visualisers)
+                v.Dispose();
+
+            target = null;
+            targetVisualiser = null;
+        }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+            recycleVisualisers();
         }
     }
 }
