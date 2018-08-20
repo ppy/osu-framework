@@ -40,6 +40,7 @@ namespace osu.Framework.Graphics.Shaders
             PendingChange = null;
         }
 
-        ref T IUniformWithValue<T>.GetValue() => ref PendingChange.Value;
+        ref T IUniformWithValue<T>.GetValueRef() => ref PendingChange.Value;
+        T IUniformWithValue<T>.GetValue() => PendingChange.Value;
     }
 }

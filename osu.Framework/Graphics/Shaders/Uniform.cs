@@ -43,6 +43,7 @@ namespace osu.Framework.Graphics.Shaders
             HasChanged = false;
         }
 
-        ref T IUniformWithValue<T>.GetValue() => ref Value;
+        ref T IUniformWithValue<T>.GetValueRef() => ref Value;
+        T IUniformWithValue<T>.GetValue() => Value;
     }
 }
