@@ -15,7 +15,7 @@ namespace osu.Framework.Graphics.Shaders
 
         public List<GlobalUniform<T>> LinkedUniforms = new List<GlobalUniform<T>>();
 
-        public string Name { get; set; }
+        public string Name { get; }
 
         public UniformMapping(string name)
         {

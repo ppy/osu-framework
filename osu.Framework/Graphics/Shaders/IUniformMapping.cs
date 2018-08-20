@@ -5,7 +5,7 @@ namespace osu.Framework.Graphics.Shaders
 {
     internal interface IUniformMapping
     {
-        string Name { get; set; }
+        string Name { get; }
 
         void LinkShaderUniform(IUniform uniform);
         void UnlinkShaderUniform(IUniform uniform);
