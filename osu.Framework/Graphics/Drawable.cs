@@ -140,21 +140,19 @@ namespace osu.Framework.Graphics
         /// Loads this Drawable asynchronously.
         /// </summary>
         /// <param name="game">The game to load this Drawable on.</param>
-        /// <param name="target">
-        /// The target this Drawable may eventually be loaded into.
-        /// The <see cref="IFrameBasedClock"/> and dependencies via <see cref="IReadOnlyDependencyContainer"/> are inherited from the <see cref="target"/>.
-        /// </param>
+        /// <param name="clock">The clock to be applied on load.</param>
+        /// <param name="dependencies">The source for DI lookups.</param>
         /// <param name="cancellation">A cancellation token.</param>
         /// <param name="onLoaded">Callback to be invoked on the update thread after loading is complete.</param>
         /// <returns>The task which is used for loading and callbacks.</returns>
-        internal Task LoadAsync(Game game, CompositeDrawable target, CancellationToken cancellation, Action onLoaded = null)
+        internal Task LoadAsync(Game game, IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies, CancellationToken cancellation, Action onLoaded = null)
         {
             if (loadState == LoadState.NotLoaded)
             {
                 Debug.Assert(loadTask == null);
                 loadState = LoadState.Loading;
                 loadTaskCancellation = cancellation;
-                loadTask = Task.Factory.StartNew(() => Load(target.Clock, target.Dependencies, cancellation), cancellation, TaskCreationOptions.LongRunning, TaskScheduler.Current);
+                loadTask = Task.Factory.StartNew(() => Load(clock, dependencies), cancellation, TaskCreationOptions.LongRunning, TaskScheduler.Current);
             }
 
             return (loadTask ?? Task.CompletedTask).ContinueWith(task => game.Schedule(() =>
@@ -174,8 +172,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="clock">The clock we should use by default.</param>
         /// <param name="dependencies">The dependency tree we will inherit by default. May be extended via <see cref="CompositeDrawable.CreateChildDependencies"/></param>
-        /// <param name="cancellation">An optional cancellation token.</param>
-        internal void Load(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies, CancellationToken? cancellation = null)
+        internal void Load(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies)
         {
             // Blocks when loading from another thread already.
             double t0 = perf.CurrentTime;
@@ -203,13 +200,6 @@ namespace osu.Framework.Graphics
                 UpdateClock(clock);
 
                 double t1 = perf.CurrentTime;
-
-                if (cancellation != null)
-                {
-                    var cancellationDep = new DependencyContainer(dependencies);
-                    cancellationDep.CacheValueAs(cancellation.Value);
-                    dependencies = cancellationDep;
-                }
 
                 InjectDependencies(dependencies);
 
@@ -2394,7 +2384,7 @@ namespace osu.Framework.Graphics
         NotLoaded,
         /// <summary>
         /// Currently loading (possibly and usually on a background
-        /// thread via <see cref="Drawable.LoadAsync(Game,CompositeDrawable,CancellationToken,Action)"/>).
+        /// thread via <see cref="Drawable.LoadAsync(Game,IFrameBasedClock,IReadOnlyDependencyContainer,CancellationToken,Action)"/>).
         /// </summary>
         Loading,
         /// <summary>
