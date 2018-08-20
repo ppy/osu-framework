@@ -223,7 +223,7 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
-        /// Perform dependency injection on self from provided dependencies.
+        /// Injects dependencies from an <see cref="IReadOnlyDependencyContainer"/> into this <see cref="Drawable"/>.
         /// </summary>
         /// <param name="dependencies">The dependencies to inject.</param>
         protected virtual void InjectDependencies(IReadOnlyDependencyContainer dependencies) => dependencies.Inject(this);

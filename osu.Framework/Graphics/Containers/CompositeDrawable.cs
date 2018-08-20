@@ -69,7 +69,6 @@ namespace osu.Framework.Graphics.Containers
             base.InjectDependencies(dependencies);
         }
 
-
         private CancellationTokenSource cancellationSource;
 
         /// <summary>
