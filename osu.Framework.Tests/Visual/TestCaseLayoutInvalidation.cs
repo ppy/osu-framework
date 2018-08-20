@@ -130,6 +130,62 @@ namespace osu.Framework.Tests.Visual
 
         private void addCaseSteps()
         {
+            addCaseStep("AutoSize1",
+                new Scene(new SceneNode(new[] { new SceneNode(new SceneNode[] { }), new SceneNode(new SceneNode[] { }) })),
+                new[]
+                {
+                    new SceneModification("Root", nameof(AutoSizeAxes), Axes.Y),
+                    new SceneModification("Child2", nameof(Origin), Anchor.BottomCentre),
+                    new SceneModification("Child1", nameof(RelativePositionAxes), Axes.Y)
+                },
+                100);
+
+            addCaseStep("AutoSize2",
+                new Scene(new SceneNode(new[] { new SceneNode(new SceneNode[] { }), new SceneNode(new SceneNode[] { }) })),
+                new[]
+                {
+                    new SceneModification("Root", nameof(AutoSizeAxes), Axes.Y),
+                    new SceneModification("Child1", nameof(RelativeSizeAxes), Axes.Y),
+                    new SceneModification("Child1", nameof(Height), 2),
+                    new SceneModification("Child1", nameof(Height), 2)
+                },
+                50);
+
+            addCaseStep("AutoSize3",
+                new Scene(new SceneNode(new[] { new SceneNode(new SceneNode[] { }), new SceneNode(new SceneNode[] { }) })),
+                new[]
+                {
+                    new SceneModification("Root", nameof(AutoSizeAxes), Axes.X),
+                    new SceneModification("Child1", nameof(Anchor), Anchor.TopRight),
+                    new SceneModification("Child2", nameof(Anchor), Anchor.TopRight),
+                    new SceneModification("Child2", nameof(X), 1),
+                    new SceneModification("Child2", nameof(RelativePositionAxes), Axes.X)
+                },
+                100);
+
+
+            addCaseStep("AutoSize4",
+                new Scene(new SceneNode(new[] { new SceneNode(new SceneNode[] { }), new SceneNode(new SceneNode[] { }) })),
+                new[]
+                {
+                    new SceneModification("Root", nameof(AutoSizeAxes), Axes.X),
+                    new SceneModification("Child1", nameof(Anchor), Anchor.TopRight),
+                    new SceneModification("Child2", nameof(Anchor), Anchor.TopRight),
+                    new SceneModification("Child1", nameof(RelativeSizeAxes), Axes.X)
+                },
+                100);
+
+            addCaseStep("AutoSize5",
+                new Scene(new SceneNode(new[] { new SceneNode(new[] { new SceneNode(new SceneNode[] { }) }) })),
+                new[]
+                {
+                    new SceneModification("Root", nameof(AutoSizeAxes), Axes.X),
+                    new SceneModification("Child", nameof(AutoSizeAxes), Axes.X),
+                    new SceneModification("Child", nameof(Anchor), Anchor.Centre),
+                    new SceneModification("GrandChild", nameof(Anchor), Anchor.TopRight),
+                    new SceneModification("Child", nameof(Scale), new Vector2(12, 1))
+                },
+                100);
         }
 
         public TestCaseLayoutInvalidation()
