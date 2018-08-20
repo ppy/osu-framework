@@ -590,6 +590,8 @@ namespace osu.Framework.Graphics.OpenGL
 
             if (currentShader == s) return;
 
+            FrameStatistics.Increment(StatisticsCounterType.ShaderBinds);
+
             FlushCurrentBatch();
 
             GL.UseProgram(s);
