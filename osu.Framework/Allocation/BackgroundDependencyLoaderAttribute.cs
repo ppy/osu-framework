@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
+using System.Threading.Tasks;
 using JetBrains.Annotations;
 using osu.Framework.Extensions.TypeExtensions;
 
@@ -60,7 +61,15 @@ namespace osu.Framework.Allocation
                         try
                         {
                             var parameters = parameterGetters.Select(p => p(dc)).ToArray();
-                            method.Invoke(target, parameters);
+
+                            var ret = method.Invoke(target, parameters);
+
+                            switch (ret)
+                            {
+                                case Task t:
+                                    t.Wait();
+                                    break;
+                            }
                         }
                         catch (TargetInvocationException exc) when (exc.InnerException is DependencyInjectionException die)
                         {
