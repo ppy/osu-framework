@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
+// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using Cyotek.Drawing.BitmapFont;
@@ -83,16 +83,15 @@ namespace osu.Framework.IO.Stores
             if (name != fontName)
                 return null;
 
+            ensureLoaded().Wait();
+
             return Font.BaseHeight;
         }
 
         public RawTexture Get(string name) => GetAsync(name).Result;
 
-        public virtual async Task<RawTexture> GetAsync(string name)
+        private async Task ensureLoaded()
         {
-            if (name.Length > 1 && !name.StartsWith($@"{fontName}/", StringComparison.Ordinal))
-                return null;
-
             if (fontLoadTask != null)
             {
                 try
@@ -101,9 +100,16 @@ namespace osu.Framework.IO.Stores
                 }
                 catch
                 {
-                    return null;
                 }
             }
+        }
+
+        public virtual async Task<RawTexture> GetAsync(string name)
+        {
+            if (name.Length > 1 && !name.StartsWith($@"{fontName}/", StringComparison.Ordinal))
+                return null;
+
+            await ensureLoaded();
 
             if (!font.Characters.TryGetValue(name.Last(), out Character c))
                 return null;
