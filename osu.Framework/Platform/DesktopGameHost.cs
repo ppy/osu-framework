@@ -45,7 +45,7 @@ namespace osu.Framework.Platform
                 if (IsPrimaryInstance)
                 {
                     ipcProvider.MessageReceived += OnMessageReceived;
-                    ipcThread = new Thread(async () => await ipcProvider.StartAsync())
+                    ipcThread = new Thread(() => ipcProvider.StartAsync().Wait())
                     {
                         Name = "IPC",
                         IsBackground = true
