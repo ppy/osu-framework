@@ -25,7 +25,7 @@ namespace osu.Framework.Tests.Visual
     {
         // disable certain cases to discover more cases
         public static bool ForbidAutoSizeUndefinedCase = true; // keep (AutoSizeAxes & (Child.RelativeSizeAxes | Child.RelativePositionAxes | Child.BypassAutoSizeAxes)) to 0
-        public static bool NoPadding = true;
+        public static bool NoPadding = false;
         public static bool NoRotation = true;
         public static bool NoShear = true;
         public static bool NoBypassAutosizeAxes = true;
@@ -184,6 +184,15 @@ namespace osu.Framework.Tests.Visual
                     new SceneModification("Child", nameof(Anchor), Anchor.Centre),
                     new SceneModification("GrandChild", nameof(Anchor), Anchor.TopRight),
                     new SceneModification("Child", nameof(Scale), new Vector2(12, 1))
+                },
+                100);
+
+            addCaseStep("Padding",
+                new Scene(new SceneNode(new[] { new SceneNode(new SceneNode[] { }) })),
+                new[]
+                {
+                    new SceneModification("Root", nameof(AutoSizeAxes), Axes.Y),
+                    new SceneModification("Root", nameof(Padding), new MarginPadding { Top = 1 })
                 },
                 100);
         }
