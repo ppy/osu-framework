@@ -97,7 +97,7 @@ namespace osu.Framework.Tests.Visual
         {
             public string Get(string name) => $"{name} in {CultureInfo.CurrentCulture.EnglishName}";
 
-            public Task<string> GetAsync(string name) => Task.Run(() => Get(name));
+            public async Task<string> GetAsync(string name) => await Task.Run(() => Get(name));
 
             public Stream GetStream(string name) => throw new NotSupportedException();
 
