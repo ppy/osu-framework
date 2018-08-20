@@ -57,7 +57,8 @@ namespace osu.Framework.Graphics.Performance
 
             double lastUpdate = 0;
 
-            Scheduler.AddDelayed(() => {
+            Scheduler.AddDelayed(() =>
+            {
                 if (!Counting) return;
 
                 if (!Precision.AlmostEquals(counter.DrawWidth, aimWidth))
