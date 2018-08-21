@@ -73,8 +73,10 @@ namespace osu.Framework.Input.Handlers.Joystick
         private void refreshDevices()
         {
             // Update devices and add them to newDevices if still connected
-            foreach (var dev in devices)
+            for (int i = 0; i < devices.Count; i++)
             {
+                var dev = devices[i];
+
                 dev.Refresh();
 
                 if (!dev.RawState.IsConnected)
@@ -83,7 +85,7 @@ namespace osu.Framework.Input.Handlers.Joystick
                     if (dev.LastState != null)
                         handleState(dev, new JoystickState());
 
-                    devices.Remove(dev);
+                    devices.RemoveAt(i--);
                 }
             }
 
