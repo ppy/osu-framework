@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
+// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Lists;
@@ -98,16 +98,21 @@ namespace osu.Framework.Graphics.Containers
                 dependencies = cancellationDeps;
             }
 
-            return Task.Run(async () => await component.LoadAsync(Clock, dependencies, cancellationSource.Token), cancellationSource.Token).ContinueWith(t =>
+            return Task.Run(async () => { await component.LoadAsync(Clock, dependencies, cancellationSource.Token); }, cancellationSource.Token).ContinueWith(t =>
             {
+                if (t.IsCanceled)
+                    return;
+
+                var exception = t.Exception?.AsSingular();
+
                 game.Schedule(() =>
                 {
-                    if (t.IsFaulted)
-                        throw t.Exception.AsSingular();
+                    if (exception != null)
+                        throw exception;
 
                     onLoaded?.Invoke(component);
                 });
-            }, cancellationSource.Token);
+            });
         }
 
         [BackgroundDependencyLoader(true)]
@@ -378,10 +383,28 @@ namespace osu.Framework.Graphics.Containers
             drawable.RemoveCompletedTransforms = RemoveCompletedTransforms;
 
             if (drawable.LoadState >= LoadState.Ready)
+                // If we're already loaded, we can eagerly allow children to be loaded
                 drawable.Parent = this;
-            // If we're already loaded, we can eagerly allow children to be loaded
             else if (LoadState >= LoadState.Loading)
-                loadChild(drawable).Wait();
+            {
+                try
+                {
+                    loadChild(drawable).Wait(cancellationSource?.Token ?? CancellationToken.None);
+                }
+                catch (AggregateException ae)
+                {
+                    ae.Handle(ex =>
+                    {
+                        switch (ex)
+                        {
+                            case OperationCanceledException _:
+                                return true;
+                        }
+
+                        return false;
+                    });
+                }
+            }
 
             internalChildren.Add(drawable);
 
