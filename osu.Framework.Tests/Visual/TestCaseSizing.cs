@@ -23,11 +23,6 @@ namespace osu.Framework.Tests.Visual
         [Test]
         public void TestVariousScenarios()
         {
-            Add(testContainer = new Container
-            {
-                RelativeSizeAxes = Axes.Both,
-            });
-
             string[] testNames =
             {
                 @"Multiple children",
@@ -51,9 +46,6 @@ namespace osu.Framework.Tests.Visual
                 int test = i;
                 AddStep(testNames[i], delegate { loadTest(test); });
             }
-
-            loadTest(0);
-            addCrosshair();
         }
 
         [Test]
@@ -61,31 +53,33 @@ namespace osu.Framework.Tests.Visual
         {
             const float autosize_height = 300;
 
-            Container autoSizeContainer;
-            Box boxSizeReference;
+            Container autoSizeContainer = null;
+            Box boxSizeReference = null;
 
-            Child = autoSizeContainer = new Container
+            AddStep("init", () =>
             {
-                Anchor = Anchor.Centre,
-                Origin = Anchor.Centre,
-                Width = 300,
-                AutoSizeAxes = Axes.Y,
-                Children = new Drawable[]
+                Child = autoSizeContainer = new Container
                 {
-                    new Box
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    Width = 300,
+                    AutoSizeAxes = Axes.Y,
+                    Children = new Drawable[]
                     {
-                        Colour = Color4.Green,
-                        RelativeSizeAxes = Axes.Both
-                    },
-                    boxSizeReference = new Box
-                    {
-                        RelativeSizeAxes = Axes.X,
-                        Height = autosize_height,
-                        Colour = Color4.Red.Opacity(0.2f),
+                        new Box
+                        {
+                            Colour = Color4.Green,
+                            RelativeSizeAxes = Axes.Both
+                        },
+                        boxSizeReference = new Box
+                        {
+                            RelativeSizeAxes = Axes.X,
+                            Height = autosize_height,
+                            Colour = Color4.Red.Opacity(0.2f),
+                        }
                     }
-                }
-            };
-
+                };
+            });
             AddAssert($"height = {autosize_height}", () => Precision.AlmostEquals(autosize_height, autoSizeContainer.DrawHeight));
             AddStep("bypass y", () => boxSizeReference.BypassAutoSizeAxes = Axes.Y);
             AddAssert("height = 0", () => Precision.AlmostEquals(0, autoSizeContainer.DrawHeight));
@@ -130,7 +124,11 @@ namespace osu.Framework.Tests.Visual
 
         private void loadTest(int testType)
         {
-            testContainer.Clear();
+            Child = testContainer = new Container
+            {
+                RelativeSizeAxes = Axes.Both,
+            };
+            addCrosshair();
 
             Container box;
 
