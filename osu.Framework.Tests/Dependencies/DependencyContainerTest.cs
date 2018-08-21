@@ -62,7 +62,7 @@ namespace osu.Framework.Tests.Dependencies
 
             var receiver = new Receiver1();
 
-            Assert.Throws<DependencyNotRegisteredException>(() => dependencies.Inject(receiver).Wait());
+            Assert.ThrowsAsync<DependencyNotRegisteredException>(async () => await dependencies.Inject(receiver));
         }
 
         [Test]
@@ -176,7 +176,7 @@ namespace osu.Framework.Tests.Dependencies
         {
             var receiver = new Receiver6();
 
-            Assert.Throws<AccessModifierNotAllowedForLoaderMethodException>(() => new DependencyContainer().Inject(receiver).Wait());
+            Assert.ThrowsAsync<AccessModifierNotAllowedForLoaderMethodException>(async () => await new DependencyContainer().Inject(receiver));
         }
 
         [Test]
@@ -184,7 +184,7 @@ namespace osu.Framework.Tests.Dependencies
         {
             var receiver = new Receiver7();
 
-            Assert.Throws<AccessModifierNotAllowedForLoaderMethodException>(() => new DependencyContainer().Inject(receiver).Wait());
+            Assert.ThrowsAsync<AccessModifierNotAllowedForLoaderMethodException>(async () => await new DependencyContainer().Inject(receiver));
         }
 
         [Test]
@@ -192,7 +192,7 @@ namespace osu.Framework.Tests.Dependencies
         {
             var receiver = new Receiver8();
 
-            Assert.Throws<AccessModifierNotAllowedForLoaderMethodException>(() => new DependencyContainer().Inject(receiver).Wait());
+            Assert.ThrowsAsync<AccessModifierNotAllowedForLoaderMethodException>(async () => await new DependencyContainer().Inject(receiver));
         }
 
         [Test]
@@ -200,7 +200,7 @@ namespace osu.Framework.Tests.Dependencies
         {
             var receiver = new Receiver9();
 
-            Assert.Throws<AccessModifierNotAllowedForLoaderMethodException>(() => new DependencyContainer().Inject(receiver).Wait());
+            Assert.ThrowsAsync<AccessModifierNotAllowedForLoaderMethodException>(async () => await new DependencyContainer().Inject(receiver));
         }
 
         [Test]
@@ -242,7 +242,7 @@ namespace osu.Framework.Tests.Dependencies
         [Test]
         public void TestResolveStructWithoutNullPermits()
         {
-            Assert.Throws<DependencyNotRegisteredException>(() => new DependencyContainer().Inject(new Receiver12()).Wait());
+            Assert.ThrowsAsync<DependencyNotRegisteredException>(async () => await new DependencyContainer().Inject(new Receiver12()));
         }
 
         [Test]
