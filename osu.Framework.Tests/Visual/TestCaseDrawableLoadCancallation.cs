@@ -1,10 +1,10 @@
 // Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -124,21 +124,18 @@ namespace osu.Framework.Tests.Visual
             }
 
             [BackgroundDependencyLoader]
-            private void load(CancellationToken? cancellation)
+            private async Task load(CancellationToken? cancellation)
             {
-                int i = Math.Max(1, (int)(100 / Clock.Rate));
-
-                while (i-- > 0)
+                try
                 {
-                    Thread.Sleep(10);
-                    if (cancellation?.IsCancellationRequested == true)
-                    {
-                        WasCancelled = true;
-                        return;
-                    }
+                    await Task.Delay((int)(1000 / Clock.Rate), cancellation ?? CancellationToken.None);
+                }
+                catch (TaskCanceledException)
+                {
+                    WasCancelled = true;
+                    throw;
                 }
 
-                //await Task.Delay(10000, cancellation ?? CancellationToken.None);
                 Logger.Log($"Load {id} complete!");
             }
 
