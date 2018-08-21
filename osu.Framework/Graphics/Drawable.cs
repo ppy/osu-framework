@@ -25,7 +25,6 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Development;
-using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Input.EventArgs;
 using osu.Framework.Input.States;
 using osu.Framework.MathUtils;
@@ -148,37 +147,6 @@ namespace osu.Framework.Graphics
 
         private readonly object loadLock = new object();
 
-        /// <summary>
-        /// Loads this Drawable asynchronously (including CPU bound instructions).
-        /// </summary>
-        /// <param name="game">The game to load this Drawable on.</param>
-        /// <param name="clock">The clock to be applied on load.</param>
-        /// <param name="dependencies">The source for DI lookups.</param>
-        /// <param name="cancellation">A cancellation token.</param>
-        /// <param name="onLoaded">Callback to be invoked on the update thread after loading is complete.</param>
-        /// <returns>The task which is used for loading and callbacks.</returns>
-        internal Task LoadInBackground(Game game, IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies, CancellationToken cancellation, Action onLoaded = null)
-        {
-            if (loadState == LoadState.NotLoaded)
-            {
-                Debug.Assert(loadTask == null);
-                loadState = LoadState.Loading;
-                loadTaskCancellation = cancellation;
-                loadTask = Task.Run(() => LoadAsync(clock, dependencies), cancellation);
-            }
-
-            game.Schedule(() =>
-            {
-                if (loadTask?.IsFaulted == true)
-                    throw loadTask.Exception.AsSingular();
-
-                onLoaded?.Invoke();
-                loadTask = null;
-            });
-
-            return loadTask;
-        }
-
         private static readonly StopwatchClock perf = new StopwatchClock(true);
         private static double getPerfTime() => perf.CurrentTime;
 
@@ -187,17 +155,14 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="clock">The clock we should use by default.</param>
         /// <param name="dependencies">The dependency tree we will inherit by default. May be extended via <see cref="CompositeDrawable.CreateChildDependencies"/></param>
-        internal async Task LoadAsync(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies)
+        /// <param name="cancellation">A cancellation token.</param>
+        internal async Task LoadAsync(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies, CancellationToken? cancellation = null)
         {
-            // Blocks when loading from another thread already.
-            double t0 = getPerfTime();
+            if (cancellation.HasValue)
+                loadTaskCancellation = cancellation.Value;
 
             lock (loadLock)
             {
-                double lockDuration = getPerfTime() - t0;
-                if (getPerfTime() > 1000 && lockDuration > 50 && ThreadSafety.IsUpdateThread)
-                    Logger.Log($@"Drawable [{ToString()}] load was blocked for {lockDuration:0.00}ms!", LoggingTarget.Performance);
-
                 switch (loadState)
                 {
                     case LoadState.Ready:
@@ -212,7 +177,27 @@ namespace osu.Framework.Graphics
                         Trace.Assert(false, "Impossible loading state.");
                         break;
                 }
+
+                loadState = LoadState.Loading;
+
+                // only start a new load if one doesn't already exist.
+                loadTask = loadTask ?? loadAsync(clock, dependencies);
             }
+
+            await loadTask;
+
+            lock (loadLock)
+                loadState = LoadState.Ready;
+        }
+
+        private async Task loadAsync(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies)
+        {
+            // Blocks when loading from another thread already.
+            double t0 = getPerfTime();
+
+            double lockDuration = getPerfTime() - t0;
+            if (getPerfTime() > 1000 && lockDuration > 50 && ThreadSafety.IsUpdateThread)
+                Logger.Log($@"Drawable [{ToString()}] load was blocked for {lockDuration:0.00}ms!", LoggingTarget.Performance);
 
             UpdateClock(clock);
 
@@ -225,9 +210,6 @@ namespace osu.Framework.Graphics
             double loadDuration = perf.CurrentTime - t1;
             if (perf.CurrentTime > 1000 && loadDuration > 50 && ThreadSafety.IsUpdateThread)
                 Logger.Log($@"Drawable [{ToString()}] took {loadDuration:0.00}ms to load and was not async!", LoggingTarget.Performance);
-
-            lock (loadLock)
-                loadState = LoadState.Ready;
         }
 
         /// <summary>
@@ -2420,8 +2402,7 @@ namespace osu.Framework.Graphics
         NotLoaded,
 
         /// <summary>
-        /// Currently loading (possibly and usually on a background
-        /// thread via <see cref="Drawable.LoadInBackground"/>).
+        /// Currently loading (possibly and usually on a background thread via <see cref="CompositeDrawable.LoadComponentAsync{TLoadable}"/>).
         /// </summary>
         Loading,
 

@@ -19,6 +19,7 @@ using osu.Framework.Caching;
 using osu.Framework.Threading;
 using osu.Framework.Statistics;
 using System.Threading.Tasks;
+using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.MathUtils;
 
@@ -97,7 +98,16 @@ namespace osu.Framework.Graphics.Containers
                 dependencies = cancellationDeps;
             }
 
-            return component.LoadInBackground(game, Clock, dependencies, cancellationSource.Token, () => onLoaded?.Invoke(component));
+            return Task.Run(async () => await component.LoadAsync(Clock, dependencies, cancellationSource.Token), cancellationSource.Token).ContinueWith(t =>
+            {
+                game.Schedule(() =>
+                {
+                    if (t.IsFaulted)
+                        throw t.Exception.AsSingular();
+
+                    onLoaded?.Invoke(component);
+                });
+            }, cancellationSource.Token);
         }
 
         [BackgroundDependencyLoader(true)]
