@@ -37,7 +37,7 @@ namespace osu.Framework.Graphics.Containers
         #region Contruction and disposal
 
         /// <summary>
-        /// Contructs a <see cref="CompositeDrawable"/> that stores children.
+        /// Constructs a <see cref="CompositeDrawable"/> that stores children.
         /// </summary>
         protected CompositeDrawable()
         {
@@ -73,7 +73,7 @@ namespace osu.Framework.Graphics.Containers
         private CancellationTokenSource cancellationSource;
 
         /// <summary>
-        /// Loads a future child or grand-child of this <see cref="CompositeDrawable"/> asyncronously. <see cref="Dependencies"/>
+        /// Loads a future child or grand-child of this <see cref="CompositeDrawable"/> asynchronously. <see cref="Dependencies"/>
         /// and <see cref="Drawable.Clock"/> are inherited from this <see cref="CompositeDrawable"/>.
         ///
         /// Note that this will always use the dependencies and clock from this instance. If you must load to a nested container level,
