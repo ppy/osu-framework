@@ -97,7 +97,7 @@ namespace osu.Framework.Graphics.Containers
                 dependencies = cancellationDeps;
             }
 
-            return component.LoadAsync(game, Clock, dependencies, cancellationSource.Token, () => onLoaded?.Invoke(component));
+            return component.LoadInBackground(game, Clock, dependencies, cancellationSource.Token, () => onLoaded?.Invoke(component));
         }
 
         [BackgroundDependencyLoader(true)]
@@ -128,7 +128,7 @@ namespace osu.Framework.Graphics.Containers
 
         private async Task loadChild(Drawable child)
         {
-            await child.Load(Clock, Dependencies);
+            await child.LoadAsync(Clock, Dependencies);
             child.Parent = this;
         }
 

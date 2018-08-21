@@ -149,7 +149,7 @@ namespace osu.Framework.Graphics
         private readonly object loadLock = new object();
 
         /// <summary>
-        /// Loads this Drawable asynchronously.
+        /// Loads this Drawable asynchronously (including CPU bound instructions).
         /// </summary>
         /// <param name="game">The game to load this Drawable on.</param>
         /// <param name="clock">The clock to be applied on load.</param>
@@ -157,14 +157,14 @@ namespace osu.Framework.Graphics
         /// <param name="cancellation">A cancellation token.</param>
         /// <param name="onLoaded">Callback to be invoked on the update thread after loading is complete.</param>
         /// <returns>The task which is used for loading and callbacks.</returns>
-        internal async Task LoadAsync(Game game, IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies, CancellationToken cancellation, Action onLoaded = null)
+        internal Task LoadInBackground(Game game, IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies, CancellationToken cancellation, Action onLoaded = null)
         {
             if (loadState == LoadState.NotLoaded)
             {
                 Debug.Assert(loadTask == null);
                 loadState = LoadState.Loading;
                 loadTaskCancellation = cancellation;
-                await (loadTask = Load(clock, dependencies));
+                loadTask = Task.Run(() => LoadAsync(clock, dependencies), cancellation);
             }
 
             game.Schedule(() =>
@@ -175,6 +175,8 @@ namespace osu.Framework.Graphics
                 onLoaded?.Invoke();
                 loadTask = null;
             });
+
+            return loadTask;
         }
 
         private static readonly StopwatchClock perf = new StopwatchClock(true);
@@ -185,7 +187,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="clock">The clock we should use by default.</param>
         /// <param name="dependencies">The dependency tree we will inherit by default. May be extended via <see cref="CompositeDrawable.CreateChildDependencies"/></param>
-        internal async Task Load(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies)
+        internal async Task LoadAsync(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies)
         {
             // Blocks when loading from another thread already.
             double t0 = getPerfTime();
@@ -258,7 +260,7 @@ namespace osu.Framework.Graphics
         /// children if this is a <see cref="CompositeDrawable"/>.
         /// </summary>
         /// <remarks>
-        /// This method is invoked in the potentially asynchronous context of <see cref="Load"/> prior to
+        /// This method is invoked in the potentially asynchronous context of <see cref="LoadAsync"/> prior to
         /// this <see cref="Drawable"/> becoming <see cref="IsLoaded"/> = true.
         /// </remarks>
         protected virtual void LoadAsyncComplete()
@@ -2419,7 +2421,7 @@ namespace osu.Framework.Graphics
 
         /// <summary>
         /// Currently loading (possibly and usually on a background
-        /// thread via <see cref="Drawable.LoadAsync(Game,IFrameBasedClock,IReadOnlyDependencyContainer,CancellationToken,Action)"/>).
+        /// thread via <see cref="Drawable.LoadInBackground"/>).
         /// </summary>
         Loading,
 
