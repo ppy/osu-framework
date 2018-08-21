@@ -61,12 +61,12 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public IReadOnlyDependencyContainer Dependencies { get; private set; }
 
-        protected sealed override void InjectDependencies(IReadOnlyDependencyContainer dependencies)
+        protected sealed override async Task InjectDependencies(IReadOnlyDependencyContainer dependencies)
         {
             // get our dependencies from our parent, but allow local overriding of our inherited dependency container
             Dependencies = CreateChildDependencies(dependencies);
 
-            base.InjectDependencies(dependencies);
+            await base.InjectDependencies(dependencies);
         }
 
         private CancellationTokenSource cancellationSource;
@@ -101,7 +101,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         [BackgroundDependencyLoader(true)]
-        private void load(ShaderManager shaders, CancellationToken? cancellation)
+        private async Task load(ShaderManager shaders, CancellationToken? cancellation)
         {
             if (shader == null)
                 shader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
@@ -112,7 +112,7 @@ namespace osu.Framework.Graphics.Containers
             foreach (var c in internalChildren)
             {
                 cancellation?.ThrowIfCancellationRequested();
-                loadChild(c);
+                await loadChild(c);
             }
         }
 
@@ -126,9 +126,9 @@ namespace osu.Framework.Graphics.Containers
             checkChildrenLife();
         }
 
-        private void loadChild(Drawable child)
+        private async Task loadChild(Drawable child)
         {
-            child.Load(Clock, Dependencies);
+            await child.Load(Clock, Dependencies);
             child.Parent = this;
         }
 
@@ -371,7 +371,7 @@ namespace osu.Framework.Graphics.Containers
                 drawable.Parent = this;
             // If we're already loaded, we can eagerly allow children to be loaded
             else if (LoadState >= LoadState.Loading)
-                loadChild(drawable);
+                loadChild(drawable).Wait();
 
             internalChildren.Add(drawable);
 
@@ -484,7 +484,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 if (!child.IsAlive)
                 {
-                    loadChild(child);
+                    loadChild(child).Wait();
 
                     if (child.LoadState >= LoadState.Ready)
                     {

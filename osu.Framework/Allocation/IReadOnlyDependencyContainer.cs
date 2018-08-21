@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Threading.Tasks;
 
 namespace osu.Framework.Allocation
 {
@@ -23,7 +24,7 @@ namespace osu.Framework.Allocation
         /// </summary>
         /// <typeparam name="T">The type of the instance to inject dependencies into.</typeparam>
         /// <param name="instance">The instance to inject dependencies into.</param>
-        void Inject<T>(T instance) where T : class;
+        Task Inject<T>(T instance) where T : class;
     }
 
     public static class ReadOnlyDependencyContainerExtensions

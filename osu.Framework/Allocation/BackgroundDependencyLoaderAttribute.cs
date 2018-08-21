@@ -38,14 +38,14 @@ namespace osu.Framework.Allocation
             this.permitNulls = permitNulls;
         }
 
-        internal static InjectDependencyDelegate CreateActivator(Type type)
+        internal static InjectDependencyDelegateAsync CreateActivator(Type type)
         {
             var loaderMethods = type.GetMethods(activator_flags).Where(m => m.GetCustomAttribute<BackgroundDependencyLoaderAttribute>() != null).ToArray();
 
             switch (loaderMethods.Length)
             {
                 case 0:
-                    return (_,__) => { };
+                    return (_, __) => Task.CompletedTask;
                 case 1:
                     var method = loaderMethods[0];
 
@@ -56,7 +56,7 @@ namespace osu.Framework.Allocation
                     var permitNulls = method.GetCustomAttribute<BackgroundDependencyLoaderAttribute>().permitNulls;
                     var parameterGetters = method.GetParameters().Select(p => p.ParameterType).Select(t => getDependency(t, type, permitNulls || t.IsNullable()));
 
-                    return (target, dc) =>
+                    return async (target, dc) =>
                     {
                         try
                         {
@@ -67,14 +67,7 @@ namespace osu.Framework.Allocation
                             switch (ret)
                             {
                                 case Task t:
-                                    try
-                                    {
-                                        t.Wait();
-                                    }
-                                    catch (OperationCanceledException)
-                                    {
-                                    }
-
+                                    await t;
                                     break;
                             }
                         }

@@ -16,7 +16,7 @@ namespace osu.Framework.Tests.Dependencies
         {
             var receiver = new Receiver1();
 
-            createDependencies().Inject(receiver);
+            createDependencies().Inject(receiver).Wait();
 
             Assert.AreEqual(null, receiver.Obj);
         }
@@ -27,7 +27,7 @@ namespace osu.Framework.Tests.Dependencies
             var receiver = new Receiver2();
 
             BaseObject testObject;
-            createDependencies(testObject = new BaseObject()).Inject(receiver);
+            createDependencies(testObject = new BaseObject()).Inject(receiver).Wait();
 
             Assert.AreEqual(testObject, receiver.Obj);
         }
@@ -37,7 +37,7 @@ namespace osu.Framework.Tests.Dependencies
         {
             var receiver = new Receiver2();
 
-            Assert.Throws<DependencyNotRegisteredException>(() => createDependencies().Inject(receiver));
+            Assert.Throws<DependencyNotRegisteredException>(() => createDependencies().Inject(receiver).Wait());
         }
 
         [Test]
@@ -45,7 +45,7 @@ namespace osu.Framework.Tests.Dependencies
         {
             var receiver = new Receiver3();
 
-            Assert.DoesNotThrow(() => createDependencies().Inject(receiver));
+            Assert.DoesNotThrow(() => createDependencies().Inject(receiver).Wait());
         }
 
         [Test]
@@ -54,7 +54,7 @@ namespace osu.Framework.Tests.Dependencies
             var receiver = new Receiver4();
 
             BaseObject testObject;
-            createDependencies(testObject = new BaseObject()).Inject(receiver);
+            createDependencies(testObject = new BaseObject()).Inject(receiver).Wait();
 
             Assert.AreEqual(testObject, receiver.Obj);
             Assert.AreEqual(testObject, receiver.Obj2);
@@ -65,7 +65,7 @@ namespace osu.Framework.Tests.Dependencies
         {
             var receiver = new Receiver5();
 
-            Assert.Throws<AccessModifierNotAllowedForPropertySetterException>(() => createDependencies().Inject(receiver));
+            Assert.Throws<AccessModifierNotAllowedForPropertySetterException>(() => createDependencies().Inject(receiver).Wait());
         }
 
         [Test]
@@ -73,7 +73,7 @@ namespace osu.Framework.Tests.Dependencies
         {
             var receiver = new Receiver6();
 
-            Assert.Throws<AccessModifierNotAllowedForPropertySetterException>(() => createDependencies().Inject(receiver));
+            Assert.Throws<AccessModifierNotAllowedForPropertySetterException>(() => createDependencies().Inject(receiver).Wait());
         }
 
         [Test]
@@ -81,7 +81,7 @@ namespace osu.Framework.Tests.Dependencies
         {
             var receiver = new Receiver7();
 
-            Assert.Throws<AccessModifierNotAllowedForPropertySetterException>(() => createDependencies().Inject(receiver));
+            Assert.Throws<AccessModifierNotAllowedForPropertySetterException>(() => createDependencies().Inject(receiver).Wait());
         }
 
         [Test]
@@ -89,7 +89,7 @@ namespace osu.Framework.Tests.Dependencies
         {
             var receiver = new Receiver8();
 
-            Assert.DoesNotThrow(() => createDependencies().Inject(receiver));
+            Assert.DoesNotThrow(() => createDependencies().Inject(receiver).Wait());
         }
 
         [Test]
@@ -97,7 +97,7 @@ namespace osu.Framework.Tests.Dependencies
         {
             var receiver = new Receiver9();
 
-            Assert.Throws<AccessModifierNotAllowedForPropertySetterException>(() => createDependencies().Inject(receiver));
+            Assert.Throws<AccessModifierNotAllowedForPropertySetterException>(() => createDependencies().Inject(receiver).Wait());
         }
 
         [Test]
@@ -105,7 +105,7 @@ namespace osu.Framework.Tests.Dependencies
         {
             var receiver = new Receiver10();
 
-            Assert.Throws<PropertyNotWritableException>(() => createDependencies().Inject(receiver));
+            Assert.Throws<PropertyNotWritableException>(() => createDependencies().Inject(receiver).Wait());
         }
 
         [Test]
@@ -117,7 +117,7 @@ namespace osu.Framework.Tests.Dependencies
 
             var dependencies = createDependencies(testObject = new BaseObject());
 
-            Assert.DoesNotThrow(() => dependencies.Inject(receiver));
+            Assert.DoesNotThrow(() => dependencies.Inject(receiver).Wait());
             Assert.AreEqual(testObject, receiver.Obj);
         }
 
@@ -153,7 +153,7 @@ namespace osu.Framework.Tests.Dependencies
         [Test]
         public void TestResolveStructWithoutNullPermits()
         {
-            Assert.Throws<DependencyNotRegisteredException>(() => new DependencyContainer().Inject(new Receiver14()));
+            Assert.Throws<DependencyNotRegisteredException>(() => new DependencyContainer().Inject(new Receiver14()).Wait());
         }
 
         [Test]
@@ -161,7 +161,7 @@ namespace osu.Framework.Tests.Dependencies
         {
             var receiver = new Receiver15();
 
-            Assert.DoesNotThrow(() => new DependencyContainer().Inject(receiver));
+            Assert.DoesNotThrow(() => new DependencyContainer().Inject(receiver).Wait());
             Assert.AreEqual(0, receiver.Obj);
         }
 
