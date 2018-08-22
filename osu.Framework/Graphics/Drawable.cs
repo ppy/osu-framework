@@ -149,9 +149,6 @@ namespace osu.Framework.Graphics
         /// <param name="cancellation">A cancellation token.</param>
         internal async Task LoadAsync(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies, CancellationToken? cancellation = null)
         {
-            if (cancellation.HasValue)
-                loadTaskCancellation = cancellation.Value;
-
             lock (loadLock)
             {
                 switch (loadState)
@@ -160,19 +157,21 @@ namespace osu.Framework.Graphics
                     case LoadState.Loaded:
                         return;
                     case LoadState.Loading:
+                        if (cancellation.HasValue && cancellation.Value != loadTaskCancellation)
+                            throw new ArgumentException($"{nameof(LoadAsync)} can only be called once with a cancellation token.");
                         break;
                     case LoadState.NotLoaded:
                         loadState = LoadState.Loading;
+                        if (cancellation.HasValue)
+                            loadTaskCancellation = cancellation.Value;
+
+                        // only start a new load if one doesn't already exist.
+                        loadTask = loadTask ?? loadAsync(clock, dependencies);
                         break;
                     default:
                         Trace.Assert(false, "Impossible loading state.");
                         break;
                 }
-
-                loadState = LoadState.Loading;
-
-                // only start a new load if one doesn't already exist.
-                loadTask = loadTask ?? loadAsync(clock, dependencies);
             }
 
             await loadTask;
