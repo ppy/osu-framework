@@ -98,7 +98,7 @@ namespace osu.Framework.Graphics.Containers
                 dependencies = cancellationDeps;
             }
 
-            return Task.Run(async () => { await component.LoadAsync(Clock, dependencies, cancellationSource.Token); }, cancellationSource.Token).ContinueWith(t =>
+            return Task.Run(async () => await component.LoadAsync(Clock, dependencies, cancellationSource.Token), cancellationSource.Token).ContinueWith(t =>
             {
                 if (t.IsCanceled)
                     return;
