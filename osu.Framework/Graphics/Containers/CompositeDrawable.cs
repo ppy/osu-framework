@@ -383,10 +383,10 @@ namespace osu.Framework.Graphics.Containers
             drawable.RemoveCompletedTransforms = RemoveCompletedTransforms;
 
             if (drawable.LoadState >= LoadState.Ready)
-                // If we're already loaded, we can eagerly allow children to be loaded
                 drawable.Parent = this;
             else if (LoadState >= LoadState.Loading)
             {
+                // If we're already loaded, we can eagerly allow children to be loaded
                 try
                 {
                     loadChild(drawable).Wait(cancellationSource?.Token ?? CancellationToken.None);
