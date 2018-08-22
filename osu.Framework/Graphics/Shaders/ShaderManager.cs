@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics.Shaders
         private const string shader_prefix = @"sh_";
 
         private readonly ConcurrentDictionary<string, ShaderPart> partCache = new ConcurrentDictionary<string, ShaderPart>();
-        private readonly ConcurrentDictionary<string, Shader> shaderCache = new ConcurrentDictionary<string, Shader>();
+        private readonly ConcurrentDictionary<(string, string), Shader> shaderCache = new ConcurrentDictionary<(string, string), Shader>();
 
         private readonly ResourceStore<byte[]> store;
 
@@ -68,31 +68,30 @@ namespace osu.Framework.Graphics.Shaders
 
         public Shader Load(string vertex, string fragment, bool continuousCompilation = false)
         {
-            string name = vertex + '/' + fragment;
+            var tuple = (vertex, fragment);
 
-            if (!shaderCache.TryGetValue(name, out Shader shader))
+            if (shaderCache.TryGetValue(tuple, out Shader shader))
+                return shader;
+
+            List<ShaderPart> parts = new List<ShaderPart>
             {
-                List<ShaderPart> parts = new List<ShaderPart>
-                {
-                    createShaderPart(vertex, ShaderType.VertexShader),
-                    createShaderPart(fragment, ShaderType.FragmentShader)
-                };
+                createShaderPart(vertex, ShaderType.VertexShader),
+                createShaderPart(fragment, ShaderType.FragmentShader)
+            };
 
-                shader = new Shader(name, parts);
+            shader = new Shader($"{vertex}/{fragment}", parts);
 
-                if (!shader.Loaded)
-                {
-                    StringBuilder logContents = new StringBuilder();
-                    logContents.AppendLine($@"Loading shader {name}:");
-                    logContents.Append(shader.Log);
-                    logContents.AppendLine(@"Parts:");
-                    foreach (ShaderPart p in parts)
-                        logContents.Append(p.Log);
-                    Logger.Log(logContents.ToString(), LoggingTarget.Runtime, LogLevel.Debug);
-                }
-
-                shaderCache[name] = shader;
+            if (!shader.Loaded)
+            {
+                StringBuilder logContents = new StringBuilder();
+                logContents.AppendLine($@"Loading shader {vertex}/{fragment}");
+                logContents.Append(shader.Log);
+                foreach (ShaderPart p in parts)
+                    logContents.Append(p.Log);
+                Logger.Log(logContents.ToString().Trim('\n'), LoggingTarget.Runtime, LogLevel.Debug);
             }
+
+            shaderCache[tuple] = shader;
 
             return shader;
         }

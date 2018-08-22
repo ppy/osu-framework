@@ -4,6 +4,7 @@
 using System;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using osu.Framework.Configuration;
 using osu.Framework.Input;
 using OpenTK;
@@ -32,7 +33,7 @@ namespace osu.Framework.Platform
 
         public readonly BindableBool MapAbsoluteInputToWindow = new BindableBool();
 
-        public override DisplayDevice GetCurrentDisplay() => DisplayDevice.Default;
+        public override DisplayDevice GetCurrentDisplay() => DisplayDevice.FromRectangle(Bounds) ?? DisplayDevice.Default;
 
         protected DesktopGameWindow()
             : base(default_width, default_height)
@@ -41,7 +42,9 @@ namespace osu.Framework.Platform
             Move += OnMove;
         }
 
-        public virtual void SetIconFromStream(Stream stream) { }
+        public virtual void SetIconFromStream(Stream stream)
+        {
+        }
 
         public override void SetupWindow(FrameworkConfigManager config)
         {
@@ -50,7 +53,7 @@ namespace osu.Framework.Platform
             sizeFullscreen.ValueChanged += newSize =>
             {
                 if (WindowState == WindowState.Fullscreen)
-                    changeResolution(newSize);
+                    ChangeResolution(GetCurrentDisplay(), newSize);
             };
 
             config.BindWith(FrameworkSetting.WindowedSize, sizeWindowed);
@@ -73,31 +76,29 @@ namespace osu.Framework.Platform
             Exited += onExit;
         }
 
-        private void changeResolution(Size newSize)
+        protected virtual void ChangeResolution(DisplayDevice display, Size newSize)
         {
-            var currentDisplay = DisplayDevice.Default;
-
-            if (newSize.Width == currentDisplay.Width && newSize.Height == currentDisplay.Height)
+            if (newSize.Width == display.Width && newSize.Height == display.Height)
                 return;
 
-            DisplayResolution newResolution = currentDisplay.SelectResolution(
-                newSize.Width,
-                newSize.Height,
-                currentDisplay.BitsPerPixel,
-                currentDisplay.RefreshRate
-            );
+            var newResolution = display.AvailableResolutions
+                                              .Where(r => r.Width == newSize.Width && r.Height == newSize.Height)
+                                              .OrderByDescending(r => r.RefreshRate)
+                                              .FirstOrDefault();
 
-            if (newResolution.Width == currentDisplay.Width && newResolution.Height == currentDisplay.Height)
+            if (newResolution == null)
             {
-                // we wanted a new resolution but got the old one, which means OpenTK didn't find this resolution
-                currentDisplay.RestoreResolution();
+                // we wanted a new resolution but got nothing, which means OpenTK didn't find this resolution
+                RestoreResolution(display);
             }
             else
             {
-                currentDisplay.ChangeResolution(newResolution);
+                display.ChangeResolution(newResolution);
                 ClientSize = newSize;
             }
         }
+
+        protected virtual void RestoreResolution(DisplayDevice displayDevice) => displayDevice.RestoreResolution();
 
         protected void OnResize(object sender, EventArgs e)
         {
@@ -143,27 +144,37 @@ namespace osu.Framework.Platform
                 CursorState &= ~CursorState.Confined;
         }
 
-        private void windowMode_ValueChanged(WindowMode newMode)
+        private DisplayDevice lastFullscreenDisplay;
+
+        private void windowMode_ValueChanged(WindowMode newMode) => UpdateWindowMode(newMode);
+
+        protected virtual void UpdateWindowMode(WindowMode newMode)
         {
+            var currentDisplay = GetCurrentDisplay();
+
             switch (newMode)
             {
                 case Configuration.WindowMode.Fullscreen:
-                    changeResolution(sizeFullscreen);
+                    ChangeResolution(currentDisplay, sizeFullscreen);
+                    lastFullscreenDisplay = currentDisplay;
 
                     WindowState = WindowState.Fullscreen;
                     break;
                 case Configuration.WindowMode.Borderless:
-                    DisplayDevice.Default.RestoreResolution();
+                    if (lastFullscreenDisplay != null)
+                        RestoreResolution(lastFullscreenDisplay);
+                    lastFullscreenDisplay = null;
 
                     WindowState = WindowState.Maximized;
                     WindowBorder = WindowBorder.Hidden;
 
                     //must add 1 to enter borderless
-                    ClientSize = new Size(DisplayDevice.Default.Bounds.Width + 1, DisplayDevice.Default.Bounds.Height + 1);
-                    Position = Vector2.Zero;
+                    ClientSize = new Size(currentDisplay.Bounds.Width + 1, currentDisplay.Bounds.Height + 1);
                     break;
                 default:
-                    DisplayDevice.Default.RestoreResolution();
+                    if (lastFullscreenDisplay != null)
+                        RestoreResolution(lastFullscreenDisplay);
+                    lastFullscreenDisplay = null;
 
                     WindowState = WindowState.Normal;
                     WindowBorder = WindowBorder.Resizable;
@@ -185,21 +196,27 @@ namespace osu.Framework.Platform
                     break;
             }
 
-            DisplayDevice.Default.RestoreResolution();
+            if (lastFullscreenDisplay != null)
+                RestoreResolution(lastFullscreenDisplay);
+            lastFullscreenDisplay = null;
         }
 
         public Vector2 Position
         {
             get
             {
-                return new Vector2((float)Location.X / (DisplayDevice.Default.Width - Size.Width),
-                    (float)Location.Y / (DisplayDevice.Default.Height - Size.Height));
+                var display = GetCurrentDisplay();
+
+                return new Vector2((float)Location.X / (display.Width - Size.Width),
+                    (float)Location.Y / (display.Height - Size.Height));
             }
             set
             {
+                var display = GetCurrentDisplay();
+
                 Location = new Point(
-                    (int)Math.Round((DisplayDevice.Default.Width - Size.Width) * value.X),
-                    (int)Math.Round((DisplayDevice.Default.Height - Size.Height) * value.Y));
+                    (int)Math.Round((display.Width - Size.Width) * value.X),
+                    (int)Math.Round((display.Height - Size.Height) * value.Y));
             }
         }
 

@@ -156,12 +156,15 @@ namespace osu.Framework.Graphics.Containers
 
             using (bindFrameBuffer(target, source.Size))
             {
-                Shared.BlurShader.GetUniform<int>(@"g_Radius").Value = kernelRadius;
-                Shared.BlurShader.GetUniform<float>(@"g_Sigma").Value = sigma;
-                Shared.BlurShader.GetUniform<Vector2>(@"g_TexSize").Value = source.Size;
+                Shared.BlurShader.GetUniform<int>(@"g_Radius").UpdateValue(ref kernelRadius);
+                Shared.BlurShader.GetUniform<float>(@"g_Sigma").UpdateValue(ref sigma);
+
+                Vector2 size = source.Size;
+                Shared.BlurShader.GetUniform<Vector2>(@"g_TexSize").UpdateValue(ref size);
 
                 float radians = -MathHelper.DegreesToRadians(blurRotation);
-                Shared.BlurShader.GetUniform<Vector2>(@"g_BlurDirection").Value = new Vector2((float)Math.Cos(radians), (float)Math.Sin(radians));
+                Vector2 blur = new Vector2((float)Math.Cos(radians), (float)Math.Sin(radians));
+                Shared.BlurShader.GetUniform<Vector2>(@"g_BlurDirection").UpdateValue(ref blur);
 
                 Shared.BlurShader.Bind();
                 drawFrameBufferToBackBuffer(source, new RectangleF(0, 0, source.Texture.Width, source.Texture.Height), ColourInfo.SingleColour(Color4.White));

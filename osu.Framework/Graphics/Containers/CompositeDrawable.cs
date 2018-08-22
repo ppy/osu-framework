@@ -5,6 +5,7 @@ using osu.Framework.Lists;
 using System.Collections.Generic;
 using System;
 using System.Diagnostics;
+using System.Threading;
 using OpenTK;
 using osu.Framework.Graphics.OpenGL;
 using OpenTK.Graphics;
@@ -47,7 +48,31 @@ namespace osu.Framework.Graphics.Containers
         private Game game { get; set; }
 
         /// <summary>
-        /// Loads a future child or grand-child of this <see cref="CompositeDrawable"/> asyncronously. <see cref="Drawable.Dependencies"/>
+        /// Create a local dependency container which will be used by our nested children.
+        /// If not overridden, the load-time parent's dependency tree will be used.
+        /// </summary>
+        /// <param name="parent">The parent <see cref="IReadOnlyDependencyContainer"/> which should be passed through if we want fallback lookups to work.</param>
+        /// <returns>A new dependency container to be stored for this Drawable.</returns>
+        protected virtual IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent) => DependencyActivator.MergeDependencies(this, parent);
+
+        /// <summary>
+        /// Contains all dependencies that can be injected into this CompositeDrawable's children using <see cref="BackgroundDependencyLoaderAttribute"/>.
+        /// Add or override dependencies by calling <see cref="DependencyContainer.Cache{T}(T)"/>.
+        /// </summary>
+        public IReadOnlyDependencyContainer Dependencies { get; private set; }
+
+        protected sealed override void InjectDependencies(IReadOnlyDependencyContainer dependencies)
+        {
+            // get our dependencies from our parent, but allow local overriding of our inherited dependency container
+            Dependencies = CreateChildDependencies(dependencies);
+
+            base.InjectDependencies(dependencies);
+        }
+
+        private CancellationTokenSource cancellationSource;
+
+        /// <summary>
+        /// Loads a future child or grand-child of this <see cref="CompositeDrawable"/> asyncronously. <see cref="Dependencies"/>
         /// and <see cref="Drawable.Clock"/> are inherited from this <see cref="CompositeDrawable"/>.
         ///
         /// Note that this will always use the dependencies and clock from this instance. If you must load to a nested container level,
@@ -62,11 +87,21 @@ namespace osu.Framework.Graphics.Containers
             if (game == null)
                 throw new InvalidOperationException($"May not invoke {nameof(LoadComponentAsync)} prior to this {nameof(CompositeDrawable)} being loaded.");
 
-            return component.LoadAsync(game, this, () => onLoaded?.Invoke(component));
+            var dependencies = Dependencies;
+
+            if (cancellationSource == null)
+            {
+                cancellationSource = new CancellationTokenSource();
+                var cancellationDeps = new DependencyContainer(Dependencies);
+                cancellationDeps.CacheValueAs(cancellationSource.Token);
+                dependencies = cancellationDeps;
+            }
+
+            return component.LoadAsync(game, Clock, dependencies, cancellationSource.Token, () => onLoaded?.Invoke(component));
         }
 
         [BackgroundDependencyLoader(true)]
-        private void load(ShaderManager shaders)
+        private void load(ShaderManager shaders, CancellationToken? cancellation)
         {
             if (shader == null)
                 shader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
@@ -74,7 +109,11 @@ namespace osu.Framework.Graphics.Containers
             // We are in a potentially async context, so let's aggressively load all our children
             // regardless of their alive state. this also gives children a clock so they can be checked
             // for their correct alive state in the case LifetimeStart is set to a definite value.
-            internalChildren.ForEach(loadChild);
+            foreach (var c in internalChildren)
+            {
+                cancellation?.ThrowIfCancellationRequested();
+                loadChild(c);
+            }
         }
 
         protected override void LoadAsyncComplete()
@@ -101,6 +140,9 @@ namespace osu.Framework.Graphics.Containers
 
         protected override void Dispose(bool isDisposing)
         {
+            cancellationSource?.Cancel();
+            cancellationSource?.Dispose();
+
             InternalChildren?.ForEach(c => c.Dispose());
 
             OnAutoSize = null;
@@ -122,6 +164,11 @@ namespace osu.Framework.Graphics.Containers
         /// Invoked when a child has left <see cref="AliveInternalChildren"/>.
         /// </summary>
         internal event Action<Drawable> ChildDied;
+
+        /// <summary>
+        /// Fired after a child's <see cref="Drawable.Depth"/> is changed.
+        /// </summary>
+        internal event Action<Drawable> ChildDepthChanged;
 
         /// <summary>
         /// Gets or sets the only child in <see cref="InternalChildren"/>.
@@ -187,6 +234,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         private readonly SortedList<Drawable> internalChildren;
+
         /// <summary>
         /// This <see cref="CompositeDrawable"/> list of children. Assigning to this property will dispose all existing children of this <see cref="CompositeDrawable"/>.
         /// </summary>
@@ -367,6 +415,8 @@ namespace osu.Framework.Graphics.Containers
             internalChildren.Add(child);
             if (aliveIndex >= 0) // re-add if it used to be in aliveInternalChildren
                 aliveInternalChildren.Add(child);
+
+            ChildDepthChanged?.Invoke(child);
         }
 
         #endregion
@@ -419,14 +469,15 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Checks whether the alive state of a child has changed and processes it. This will add or remove
         /// the child from <see cref="aliveInternalChildren"/> depending on its alive state.
+        ///
+        /// This should only ever be called on a <see cref="CompositeDrawable"/>'s own <see cref="internalChildren"/>.
+        ///
         /// <para>Note that this does NOT check the load state of this <see cref="CompositeDrawable"/> to check if it can hold any alive children.</para>
         /// </summary>
         /// <param name="child">The child to check.</param>
         /// <returns>Whether the child's alive state has changed.</returns>
         private bool checkChildLife(Drawable child)
         {
-            Debug.Assert(internalChildren.Contains(child), "Can only check and react to the life of our own children.");
-
             bool changed = false;
 
             if (child.ShouldBeAlive)
@@ -607,10 +658,6 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="source">The child which caused this invalidation. May be null to indicate that a specific child wasn't specified.</param>
         public virtual void InvalidateFromChild(Invalidation invalidation, Drawable source = null)
         {
-            // We only want to recompute autosize if the child isn't bypassing all of our autosize axes
-            if (source != null && (source.BypassAutoSizeAxes & AutoSizeAxes) == AutoSizeAxes)
-                return;
-
             //Colour captures potential changes in IsPresent. If this ever becomes a bottleneck,
             //Invalidation could be further separated into presence changes.
             if ((invalidation & (Invalidation.RequiredParentSizeToFit | Invalidation.Colour)) > 0)
@@ -719,10 +766,11 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         /// <param name="frame">The frame which <see cref="DrawNode"/>s should be generated for.</param>
         /// <param name="treeIndex">The index of the currently in-use <see cref="DrawNode"/> tree.</param>
+        /// <param name="forceNewDrawNode">Whether the creation of a new <see cref="DrawNode"/> should be forced, rather than re-using an existing <see cref="DrawNode"/>.</param>
         /// <param name="j">The running index into the target List.</param>
         /// <param name="parentComposite">The <see cref="CompositeDrawable"/> whose children's <see cref="DrawNode"/>s to add.</param>
         /// <param name="target">The target list to fill with DrawNodes.</param>
-        private static void addFromComposite(ulong frame, int treeIndex, ref int j, CompositeDrawable parentComposite, List<DrawNode> target)
+        private static void addFromComposite(ulong frame, int treeIndex, bool forceNewDrawNode, ref int j, CompositeDrawable parentComposite, List<DrawNode> target)
         {
             SortedList<Drawable> current = parentComposite.aliveInternalChildren;
             // ReSharper disable once ForCanBeConvertedToForeach
@@ -739,7 +787,7 @@ namespace osu.Framework.Graphics.Containers
                     if (composite?.CanBeFlattened == true)
                     {
                         if (!composite.IsMaskedAway)
-                            addFromComposite(frame, treeIndex, ref j, composite, target);
+                            addFromComposite(frame, treeIndex, forceNewDrawNode, ref j, composite, target);
 
                         continue;
                     }
@@ -748,7 +796,7 @@ namespace osu.Framework.Graphics.Containers
                         continue;
                 }
 
-                DrawNode next = drawable.GenerateDrawNodeSubtree(frame, treeIndex);
+                DrawNode next = drawable.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode);
                 if (next == null)
                     continue;
 
@@ -767,13 +815,13 @@ namespace osu.Framework.Graphics.Containers
 
         internal virtual bool AddChildDrawNodes => true;
 
-        internal override DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex)
+        internal override DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex, bool forceNewDrawNode)
         {
             // No need for a draw node at all if there are no children and we are not glowing.
             if (aliveInternalChildren.Count == 0 && CanBeFlattened)
                 return null;
 
-            if (!(base.GenerateDrawNodeSubtree(frame, treeIndex) is CompositeDrawNode cNode))
+            if (!(base.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode) is CompositeDrawNode cNode))
                 return null;
 
             if (cNode.Children == null)
@@ -784,7 +832,7 @@ namespace osu.Framework.Graphics.Containers
                 List<DrawNode> target = cNode.Children;
 
                 int j = 0;
-                addFromComposite(frame, treeIndex, ref j, this, target);
+                addFromComposite(frame, treeIndex, forceNewDrawNode, ref j, this, target);
 
                 if (j < target.Count)
                     target.RemoveRange(j, target.Count - j);
@@ -1266,8 +1314,7 @@ namespace osu.Framework.Graphics.Containers
         public Easing AutoSizeEasing { get; protected set; }
 
         /// <summary>
-        /// THIS EVENT PURELY EXISTS FOR THE SCENE GRAPH VISUALIZER. DO NOT USE.
-        /// This event will fire after our <see cref="Size"/> is updated from autosizing.
+        /// Fired after this <see cref="CompositeDrawable"/>'s <see cref="Size"/> is updated through autosize.
         /// </summary>
         internal event Action OnAutoSize;
 

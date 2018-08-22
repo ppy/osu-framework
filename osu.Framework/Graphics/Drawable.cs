@@ -6,7 +6,6 @@ using OpenTK.Graphics;
 using OpenTK.Input;
 using osu.Framework.Allocation;
 using osu.Framework.Caching;
-using osu.Framework.Extensions;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
@@ -26,6 +25,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Development;
+using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Input.EventArgs;
 using osu.Framework.Input.States;
 using osu.Framework.MathUtils;
@@ -83,8 +83,14 @@ namespace osu.Framework.Graphics
             if (isDisposed)
                 return;
 
-            //we can't dispose if we are mid-load, else our children may get in a bad state.
-            loadTask?.Wait();
+            try
+            {
+                //we can't dispose if we are mid-load, else our children may get in a bad state.
+                loadTask?.Wait(loadTaskCancellation);
+            }
+            catch (OperationCanceledException)
+            {
+            }
 
             Dispose(isDisposing);
 
@@ -98,6 +104,9 @@ namespace osu.Framework.Graphics
             // If this Drawable is disposed, then we need to also
             // stop remotely rendering it.
             proxy?.Dispose();
+
+            OnDispose?.Invoke();
+            OnDispose = null;
 
             isDisposed = true;
         }
@@ -126,56 +135,46 @@ namespace osu.Framework.Graphics
         public LoadState LoadState => loadState;
 
         private Task loadTask;
+        private CancellationToken loadTaskCancellation;
+
         private readonly object loadLock = new object();
 
         /// <summary>
         /// Loads this Drawable asynchronously.
         /// </summary>
         /// <param name="game">The game to load this Drawable on.</param>
-        /// <param name="target">
-        /// The target this Drawable may eventually be loaded into.
-        /// <see cref="Clock"/> and <see cref="Dependencies"/> are inherited from the target.
-        /// </param>
+        /// <param name="clock">The clock to be applied on load.</param>
+        /// <param name="dependencies">The source for DI lookups.</param>
+        /// <param name="cancellation">A cancellation token.</param>
         /// <param name="onLoaded">Callback to be invoked on the update thread after loading is complete.</param>
         /// <returns>The task which is used for loading and callbacks.</returns>
-        internal Task LoadAsync(Game game, Drawable target, Action onLoaded = null)
+        internal Task LoadAsync(Game game, IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies, CancellationToken cancellation, Action onLoaded = null)
         {
             if (loadState == LoadState.NotLoaded)
             {
                 Debug.Assert(loadTask == null);
                 loadState = LoadState.Loading;
-                loadTask = Task.Factory.StartNew(() => Load(target.Clock, target.Dependencies), TaskCreationOptions.LongRunning);
+                loadTaskCancellation = cancellation;
+                loadTask = Task.Factory.StartNew(() => Load(clock, dependencies), cancellation, TaskCreationOptions.LongRunning, TaskScheduler.Current);
             }
 
             return (loadTask ?? Task.CompletedTask).ContinueWith(task => game.Schedule(() =>
             {
-                task.ThrowIfFaulted(typeof(RecursiveLoadException));
+                if (task.IsFaulted)
+                    throw task.Exception.AsSingular();
+
                 onLoaded?.Invoke();
                 loadTask = null;
-            }));
+            }), cancellation);
         }
 
         private static readonly StopwatchClock perf = new StopwatchClock(true);
 
         /// <summary>
-        /// Create a local dependency container which will be used by our nested children.
-        /// If not overridden, the load-time parent's dependency tree will be used.
-        /// </summary>
-        /// <param name="parent">The parent <see cref="IReadOnlyDependencyContainer"/> which should be passed through if we want fallback lookups to work.</param>
-        /// <returns>A new dependency container to be stored for this Drawable.</returns>
-        protected virtual IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent) => DependencyActivator.MergeDependencies(this, parent);
-
-        /// <summary>
-        /// Contains all dependencies that can be injected into this Drawable using <see cref="BackgroundDependencyLoaderAttribute"/>.
-        /// Add or override dependencies by calling <see cref="DependencyContainer.Cache{T}(T)"/>.
-        /// </summary>
-        public IReadOnlyDependencyContainer Dependencies { get; private set; }
-
-        /// <summary>
         /// Loads this drawable, including the gathering of dependencies and initialisation of required resources.
         /// </summary>
         /// <param name="clock">The clock we should use by default.</param>
-        /// <param name="dependencies">The dependency tree we will inherit by default. May be extended via <see cref="CreateChildDependencies"/></param>
+        /// <param name="dependencies">The dependency tree we will inherit by default. May be extended via <see cref="CompositeDrawable.CreateChildDependencies"/></param>
         internal void Load(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies)
         {
             // Blocks when loading from another thread already.
@@ -205,10 +204,7 @@ namespace osu.Framework.Graphics
 
                 double t1 = perf.CurrentTime;
 
-                // get our dependencies from our parent, but allow local overriding of our inherited dependency container
-                Dependencies = CreateChildDependencies(dependencies);
-
-                dependencies.Inject(this);
+                InjectDependencies(dependencies);
 
                 LoadAsyncComplete();
 
@@ -218,6 +214,12 @@ namespace osu.Framework.Graphics
                 loadState = LoadState.Ready;
             }
         }
+
+        /// <summary>
+        /// Injects dependencies from an <see cref="IReadOnlyDependencyContainer"/> into this <see cref="Drawable"/>.
+        /// </summary>
+        /// <param name="dependencies">The dependencies to inject.</param>
+        protected virtual void InjectDependencies(IReadOnlyDependencyContainer dependencies) => dependencies.Inject(this);
 
         /// <summary>
         /// Runs once on the update thread after loading has finished.
@@ -325,11 +327,15 @@ namespace osu.Framework.Graphics
         /// </summary>
         public Action<Drawable> OnLoadComplete;
 
-        /// <summary>
-        /// THIS EVENT PURELY EXISTS FOR THE SCENE GRAPH VISUALIZER. DO NOT USE.
-        /// This event is fired after the <see cref="Invalidate(Invalidation, Drawable, bool)"/> method is called.
+        /// <summary>.
+        /// Fired after the <see cref="Invalidate(Invalidation, Drawable, bool)"/> method is called.
         /// </summary>
         internal event Action<Drawable> OnInvalidate;
+
+        /// <summary>
+        /// Fired after the <see cref="dispose(bool)"/> method is called.
+        /// </summary>
+        internal event Action OnDispose;
 
         private Scheduler scheduler;
         internal Thread MainThread { get; private set; }
@@ -1553,11 +1559,12 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="frame">The frame which the <see cref="DrawNode"/> subtree should be generated for.</param>
         /// <param name="treeIndex">The index of the <see cref="DrawNode"/> to use.</param>
+        /// <param name="forceNewDrawNode">Whether the creation of a new <see cref="DrawNode"/> should be forced, rather than re-using an existing <see cref="DrawNode"/>.</param>
         /// <returns>A complete and updated <see cref="DrawNode"/>, or null if the <see cref="DrawNode"/> would be invisible.</returns>
-        internal virtual DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex)
+        internal virtual DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex, bool forceNewDrawNode)
         {
             DrawNode node = drawNodes[treeIndex];
-            if (node == null)
+            if (node == null || forceNewDrawNode)
             {
                 drawNodes[treeIndex] = node = CreateDrawNode();
                 FrameStatistics.Increment(StatisticsCounterType.DrawNodeCtor);
@@ -2384,7 +2391,7 @@ namespace osu.Framework.Graphics
         NotLoaded,
         /// <summary>
         /// Currently loading (possibly and usually on a background
-        /// thread via <see cref="Drawable.LoadAsync(Game, Drawable, Action)"/>).
+        /// thread via <see cref="Drawable.LoadAsync(Game,IFrameBasedClock,IReadOnlyDependencyContainer,CancellationToken,Action)"/>).
         /// </summary>
         Loading,
         /// <summary>
