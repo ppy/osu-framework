@@ -16,6 +16,11 @@ namespace osu.Framework.IO.Stores
         /// <returns>The object.</returns>
         T Get(string name);
 
+        /// <summary>
+        /// Retrieves an object from the store asynchronously.
+        /// </summary>
+        /// <param name="name">The name of the object.</param>
+        /// <returns>The object.</returns>
         Task<T> GetAsync(string name);
 
         Stream GetStream(string name);
