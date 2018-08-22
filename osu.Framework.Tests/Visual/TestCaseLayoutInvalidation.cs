@@ -29,6 +29,7 @@ namespace osu.Framework.Tests.Visual
             addTest<AutoSizeWithShear>();
             addTest<FillFlow1>();
             addTest<FillFlow2>();
+            addTest<FillFlow2Simplified>();
         }
 
         private void addTest<T>() where T : LayoutInvalidationTest, new()
@@ -43,6 +44,7 @@ namespace osu.Framework.Tests.Visual
                 for (int i = 0; i < 2; i++)
                 {
                     var instance = i == 0 ? instance1 : instance2;
+                    instance.Container.Name = i == 0 ? "WithoutInvalidation" : "WithInvalidation";
                     Cell(i).Child = instance.Container;
                     for (int j = 0; j < instance.Drawables.Length; j++)
                         overlayBoxContainer.Add(new DrawQuadOverlayBox(instance.Drawables[j]) { Colour = RandomColorPalette.Get(j).Opacity(.5f) });
@@ -250,6 +252,38 @@ namespace osu.Framework.Tests.Visual
             }
 
             public override void DoModification() => Child2.Margin = new MarginPadding { Top = 1 };
+        }
+
+        public class FillFlow2Simplified : LayoutInvalidationTest
+        {
+            protected readonly Container Root;
+            protected readonly FillFlowContainer Child;
+            public override Drawable[] Drawables => new[] { Root, Child, Child.Children[0], Child.Children[1] };
+
+            public FillFlow2Simplified()
+            {
+                Container.Child = Root = new Container
+                {
+                    Name = "Root",
+                    Size = new Vector2(1),
+                    Children = new Drawable[]
+                    {
+                        Child = new FillFlowContainer
+                        {
+                            Name = "Child",
+                            Size = new Vector2(1),
+                            Children = new Drawable[] { new Container { Size = new Vector2(1) }, new Container { Size = new Vector2(1) } }
+                        },
+                    },
+                };
+                Child.RelativeSizeAxes = Axes.Both;
+            }
+
+            public override void DoModification()
+            {
+                Root.Invalidate(Invalidation.MiscGeometry);
+                Root.Size = new Vector2(2);
+            }
         }
     }
 }
