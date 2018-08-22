@@ -517,7 +517,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 if (!child.IsAlive)
                 {
-                    loadChild(child).Wait();
+                    loadChild(child).Wait(cancellationSource?.Token ?? CancellationToken.None);
 
                     if (child.LoadState >= LoadState.Ready)
                     {
