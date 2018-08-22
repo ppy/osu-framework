@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using Cyotek.Drawing.BitmapFont;
@@ -22,28 +22,11 @@ namespace osu.Framework.IO.Stores
 
         private readonly ResourceStore<byte[]> store;
 
-        private BitmapFont font;
-
-        protected BitmapFont Font
-        {
-            get
-            {
-                try
-                {
-                    fontLoadTask?.Wait();
-                }
-                catch
-                {
-                    return null;
-                }
-
-                return font;
-            }
-        }
+        protected BitmapFont Font => fontLoadTask.Result;
 
         private readonly TimedExpiryCache<int, RawTexture> texturePages = new TimedExpiryCache<int, RawTexture>();
 
-        private Task fontLoadTask;
+        private readonly Task<BitmapFont> fontLoadTask;
 
         public GlyphStore(ResourceStore<byte[]> store, string assetName = null, bool precache = false)
         {
@@ -52,21 +35,22 @@ namespace osu.Framework.IO.Stores
 
             fontName = assetName?.Split('/').Last();
 
-            fontLoadTask = Task.Run(() => readFontMetadata(precache));
-            fontLoadTask.ContinueWith(_ => fontLoadTask = null);
+            fontLoadTask = Task.Run(() => getFont(precache));
         }
 
-        private void readFontMetadata(bool precache)
+        private BitmapFont getFont(bool precache)
         {
             try
             {
-                font = new BitmapFont();
+                var font = new BitmapFont();
                 using (var s = store.GetStream($@"{assetName}.fnt"))
                     font.LoadText(s);
 
                 if (precache)
                     for (int i = 0; i < font.Pages.Length; i++)
                         getTexturePage(i);
+
+                return font;
             }
             catch (Exception ex)
             {
@@ -83,35 +67,17 @@ namespace osu.Framework.IO.Stores
             if (name != fontName)
                 return null;
 
-            ensureLoaded().Wait();
-
             return Font.BaseHeight;
         }
 
         public RawTexture Get(string name) => GetAsync(name).Result;
-
-        private async Task ensureLoaded()
-        {
-            if (fontLoadTask != null)
-            {
-                try
-                {
-                    await fontLoadTask;
-                }
-                catch
-                {
-                }
-            }
-        }
 
         public virtual async Task<RawTexture> GetAsync(string name)
         {
             if (name.Length > 1 && !name.StartsWith($@"{fontName}/", StringComparison.Ordinal))
                 return null;
 
-            await ensureLoaded();
-
-            if (!font.Characters.TryGetValue(name.Last(), out Character c))
+            if (!(await fontLoadTask).Characters.TryGetValue(name.Last(), out Character c))
                 return null;
 
             RawTexture page = getTexturePage(c.TexturePage);
@@ -155,7 +121,7 @@ namespace osu.Framework.IO.Stores
             if (!texturePages.TryGetValue(texturePage, out RawTexture t))
             {
                 loadedPageCount++;
-                using (var stream = store.GetStream($@"{assetName}_{texturePage.ToString().PadLeft((font.Pages.Length - 1).ToString().Length, '0')}.png"))
+                using (var stream = store.GetStream($@"{assetName}_{texturePage.ToString().PadLeft((Font.Pages.Length - 1).ToString().Length, '0')}.png"))
                     texturePages.Add(texturePage, t = new RawTexture(stream));
             }
 
