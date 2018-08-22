@@ -393,7 +393,7 @@ namespace osu.Framework.Graphics.Containers
                 }
                 catch (AggregateException ae)
                 {
-                    ae.Handle(ex =>
+                    ae.Flatten().Handle(ex =>
                     {
                         switch (ex)
                         {
