@@ -54,15 +54,9 @@ namespace osu.Framework.Testing
             }
         }
 
-        protected internal override void AddInternal(Drawable drawable)
-        {
-            throw new InvalidOperationException();
-        }
-
-        protected internal override void ClearInternal(bool disposeChildren = true)
-        {
-            throw new InvalidOperationException();
-        }
+        protected internal override void AddInternal(Drawable drawable) => throw new InvalidOperationException($"Modifying {nameof(InternalChildren)} will cause critical failure. Use {nameof(Add)} instead.");
+        protected internal override void ClearInternal(bool disposeChildren = true) => throw new InvalidOperationException($"Modifying {nameof(InternalChildren)} will cause critical failure. Use {nameof(Clear)} instead.");
+        protected internal override bool RemoveInternal(Drawable drawable) => throw new InvalidOperationException($"Modifying {nameof(InternalChildren)} will cause critical failure. Use {nameof(Remove)} instead.");
 
         [OneTimeTearDown]
         public void DestroyGameHost()
