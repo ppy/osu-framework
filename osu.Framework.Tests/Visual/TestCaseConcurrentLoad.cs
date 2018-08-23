@@ -1,7 +1,6 @@
 // Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -63,27 +62,6 @@ namespace osu.Framework.Tests.Visual
 
             // due to thread yielding all should be loaded straight after any are loaded.
             AddAssert("check all loaded", () => flow.Children.OfType<DelayedTestBoxAsync>().Count() == panel_count);
-        }
-
-        [Test]
-        public void TestLoadIntoTarget()
-        {
-            var loadable = new DelayedTestBoxAsync();
-            var loadTarget = new LoadTarget(loadable);
-
-            Assert.Throws<InvalidOperationException>(() => loadTarget.PerformAsyncLoad());
-        }
-
-        private class LoadTarget : Container
-        {
-            private readonly Drawable loadable;
-
-            public LoadTarget(Drawable loadable)
-            {
-                this.loadable = loadable;
-            }
-
-            public void PerformAsyncLoad() => LoadComponentAsync(loadable, Add);
         }
 
         private class FillFlowContainerNoInput : FillFlowContainer<Drawable>
