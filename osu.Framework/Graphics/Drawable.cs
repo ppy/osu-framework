@@ -123,6 +123,9 @@ namespace osu.Framework.Graphics
 
         private static readonly ConcurrentDictionary<Type, Action<object>> unbind_action_cache = new ConcurrentDictionary<Type, Action<object>>();
 
+        /// <summary>
+        /// Unbinds all <see cref="Bindable{T}"/>s stored as fields or properties in this <see cref="Drawable"/>.
+        /// </summary>
         private void unbindAllBindables()
         {
             Type type = GetType();
@@ -140,25 +143,18 @@ namespace osu.Framework.Graphics
                     return;
                 }
 
+                // List containing all the delegates to perform the unbinds
                 var actions = new List<Action<object>>();
 
-                var fields = targetType.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-                              .Where(f => typeof(IUnbindable).IsAssignableFrom(f.FieldType));
+                // Generate delegates to unbind fields
+                actions.AddRange(targetType.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                                           .Where(f => typeof(IUnbindable).IsAssignableFrom(f.FieldType))
+                                           .Select(f => new Action<object>(target => ((IUnbindable)f.GetValue(target))?.UnbindAll())));
 
-                foreach (var f in fields)
-                {
-                    var f2 = f;
-                    actions.Add(target => ((IUnbindable)f2.GetValue(target))?.UnbindAll());
-                }
-
-                var properties = targetType.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-                                  .Where(p => typeof(IUnbindable).IsAssignableFrom(p.PropertyType) && p.CanRead);
-
-                foreach (var p in properties)
-                {
-                    var p2 = p;
-                    actions.Add(target => ((IUnbindable)p2.GetValue(target))?.UnbindAll());
-                }
+                // Generate delegates to unbind properties
+                actions.AddRange(targetType.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                                           .Where(p => typeof(IUnbindable).IsAssignableFrom(p.PropertyType))
+                                           .Select(p => new Action<object>(target => ((IUnbindable)p.GetValue(target))?.UnbindAll())));
 
                 unbind_action_cache[targetType] = performUnbind;
                 performUnbind(this);
