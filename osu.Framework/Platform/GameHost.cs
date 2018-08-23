@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -33,7 +32,11 @@ using osu.Framework.Statistics;
 using osu.Framework.Threading;
 using osu.Framework.Timing;
 using osu.Framework.IO.File;
-using Bitmap = System.Drawing.Bitmap;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Advanced;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.Processing.Transforms;
 
 namespace osu.Framework.Platform
 {
@@ -372,26 +375,27 @@ namespace osu.Framework.Platform
         }
 
         /// <summary>
-        /// Make a <see cref="Bitmap"/> object from the current OpenTK screen buffer
+        /// Takes a screenshot of the game. The returned <see cref="Image{TPixel}"/> must be disposed by the caller when applicable.
         /// </summary>
-        /// <returns><see cref="Bitmap"/> object</returns>
-        public async Task<Bitmap> TakeScreenshotAsync()
+        /// <returns>The screenshot as an <see cref="Image{TPixel}"/>.</returns>
+        public async Task<Image<Rgba32>> TakeScreenshotAsync()
         {
             if (Window == null) throw new NullReferenceException(nameof(Window));
 
-            var clientRectangle = new Rectangle(new Point(Window.ClientRectangle.X, Window.ClientRectangle.Y), new Size(Window.ClientSize.Width, Window.ClientSize.Height));
+            var image = new Image<Rgba32>(Window.ClientSize.Width, Window.ClientSize.Height);
 
             bool complete = false;
-
-            var bitmap = new Bitmap(clientRectangle.Width, clientRectangle.Height);
-            BitmapData data = bitmap.LockBits(clientRectangle, ImageLockMode.WriteOnly, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
 
             DrawThread.Scheduler.Add(() =>
             {
                 if (GraphicsContext.CurrentContext == null)
                     throw new GraphicsContextMissingException();
 
-                OpenTK.Graphics.OpenGL.GL.ReadPixels(0, 0, clientRectangle.Width, clientRectangle.Height, OpenTK.Graphics.OpenGL.PixelFormat.Bgr, OpenTK.Graphics.OpenGL.PixelType.UnsignedByte, data.Scan0);
+                OpenTK.Graphics.OpenGL.GL.ReadPixels(0, 0, image.Width, image.Height,
+                    OpenTK.Graphics.OpenGL.PixelFormat.Rgba,
+                    OpenTK.Graphics.OpenGL.PixelType.UnsignedByte,
+                    ref image.DangerousGetPinnableReferenceToPixelBuffer());
+
                 complete = true;
             });
 
@@ -401,10 +405,9 @@ namespace osu.Framework.Platform
                     Thread.Sleep(50);
             });
 
-            bitmap.UnlockBits(data);
-            bitmap.RotateFlip(RotateFlipType.RotateNoneFlipY);
+            image.Mutate(c => c.Flip(FlipMode.Vertical));
 
-            return bitmap;
+            return image;
         }
 
         public ExecutionState ExecutionState { get; private set; }
