@@ -281,6 +281,16 @@ namespace osu.Framework.Tests.Bindables
             Assert.IsFalse(drawable.ValueChanged2, "unbound correctly");
         }
 
+        [Test]
+        public void TestUnbindOnDrawableDisposeCached()
+        {
+            // Build cache
+            var drawable = new TestDrawable();
+            drawable.Dispose();
+
+            TestUnbindOnDrawableDispose();
+        }
+
         private class TestDrawable : Drawable
         {
             public bool ValueChanged;

@@ -121,7 +121,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         public virtual bool DisposeOnDeathRemoval => false;
 
-        private static readonly ConcurrentDictionary<Type, Action> unbind_action_cache = new ConcurrentDictionary<Type, Action>();
+        private static readonly ConcurrentDictionary<Type, Action<object>> unbind_action_cache = new ConcurrentDictionary<Type, Action<object>>();
 
         private void unbindAllBindables()
         {
@@ -132,44 +132,44 @@ namespace osu.Framework.Graphics
                 type = type.BaseType;
             } while (type != null && type != typeof(object));
 
-            void unbind(Type t)
+            void unbind(Type targetType)
             {
-                if (unbind_action_cache.TryGetValue(t, out var existing))
+                if (unbind_action_cache.TryGetValue(targetType, out var existing))
                 {
-                    existing();
+                    existing(this);
                     return;
                 }
 
-                var actions = new List<Action>();
+                var actions = new List<Action<object>>();
 
-                var fields = t.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                var fields = targetType.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly)
                               .Where(f => typeof(IUnbindable).IsAssignableFrom(f.FieldType));
 
                 foreach (var f in fields)
                 {
                     var f2 = f;
-                    actions.Add(() => ((IUnbindable)f2.GetValue(this))?.UnbindAll());
+                    actions.Add(target => ((IUnbindable)f2.GetValue(target))?.UnbindAll());
                 }
 
-                var properties = t.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                var properties = targetType.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly)
                                   .Where(p => typeof(IUnbindable).IsAssignableFrom(p.PropertyType) && p.CanRead);
 
                 foreach (var p in properties)
                 {
                     var p2 = p;
-                    actions.Add(() => ((IUnbindable)p2.GetValue(this))?.UnbindAll());
+                    actions.Add(target => ((IUnbindable)p2.GetValue(target))?.UnbindAll());
                 }
 
-                unbind_action_cache[t] = performUnbind;
-                performUnbind();
+                unbind_action_cache[targetType] = performUnbind;
+                performUnbind(this);
 
-                void performUnbind()
+                void performUnbind(object target)
                 {
                     foreach (var a in actions)
                     {
                         try
                         {
-                            a();
+                            a(target);
                         }
                         catch
                         {
