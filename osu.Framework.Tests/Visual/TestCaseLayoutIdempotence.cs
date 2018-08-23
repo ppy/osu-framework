@@ -18,6 +18,7 @@ namespace osu.Framework.Tests.Visual
         private readonly ManualClock manualClock;
         private readonly Container autoSizeContainer;
         private readonly FillFlowContainer fillFlowContainer;
+
         public TestCaseLayoutIdempotence()
         {
             Box box1, box2;
@@ -28,7 +29,8 @@ namespace osu.Framework.Tests.Visual
             {
                 Clock = new FramedClock(manualClock),
                 AutoSizeEasing = Easing.None,
-                Children = new [] {
+                Children = new[]
+                {
                     new Box
                     {
                         Colour = Color4.Red,
@@ -49,8 +51,8 @@ namespace osu.Framework.Tests.Visual
                 LayoutEasing = Easing.None,
                 Children = new Drawable[]
                 {
-                    new Box {Colour = Color4.Red, Size = new Vector2(100)},
-                    box2 = new Box {Colour = Color4.Blue, Size = new Vector2(100)},
+                    new Box { Colour = Color4.Red, Size = new Vector2(100) },
+                    box2 = new Box { Colour = Color4.Blue, Size = new Vector2(100) },
                 }
             });
 
@@ -86,16 +88,14 @@ namespace osu.Framework.Tests.Visual
             {
                 var ratio = (float)x;
                 var time = ratio * duration;
-                AddStep($"Time = {time}", () =>
-                {
-                    manualClock.CurrentTime = time;
-                });
+                AddStep($"Time = {time}", () => { manualClock.CurrentTime = time; });
                 AddAssert("Check", () => Precision.AlmostEquals(autoSizeContainer.Size, new Vector2(100 * ratio)) &&
                                          Precision.AlmostEquals(box2.Position, new Vector2(100 * (1 - ratio), 100 * ratio)));
             }
         }
 
         private bool timeStopped;
+
         protected override void Update()
         {
             if (!timeStopped) manualClock.CurrentTime = Clock.CurrentTime;
