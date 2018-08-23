@@ -27,7 +27,6 @@ namespace osu.Framework.Tests.Visual
             Add(autoSizeContainer = new Container
             {
                 Clock = new FramedClock(manualClock),
-                AutoSizeDuration = duration,
                 AutoSizeEasing = Easing.None,
                 Children = new [] {
                     new Box
@@ -47,7 +46,6 @@ namespace osu.Framework.Tests.Visual
             {
                 Clock = new FramedClock(manualClock),
                 Position = new Vector2(0, 200),
-                LayoutDuration = duration,
                 LayoutEasing = Easing.None,
                 Children = new Drawable[]
                 {
@@ -63,9 +61,11 @@ namespace osu.Framework.Tests.Visual
                 fillFlowContainer.FinishTransforms();
 
                 autoSizeContainer.AutoSizeAxes = Axes.None;
+                autoSizeContainer.AutoSizeDuration = 0;
                 autoSizeContainer.Size = Vector2.Zero;
                 box1.Size = Vector2.Zero;
 
+                fillFlowContainer.LayoutDuration = 0;
                 fillFlowContainer.Size = new Vector2(200, 200);
             });
             AddStep("Start transformation", () =>
@@ -76,7 +76,10 @@ namespace osu.Framework.Tests.Visual
                 fillFlowContainer.FinishTransforms();
 
                 autoSizeContainer.AutoSizeAxes = Axes.Both;
+                autoSizeContainer.AutoSizeDuration = duration;
                 box1.Size = new Vector2(100);
+
+                fillFlowContainer.LayoutDuration = duration;
                 fillFlowContainer.Width = 100;
             });
             foreach (var x in new[] { .25, .5, .75, 1 })
