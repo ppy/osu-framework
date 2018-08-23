@@ -143,6 +143,9 @@ namespace osu.Framework.Graphics.Containers
 
         private async Task loadChild(Drawable child)
         {
+            if (IsDisposed)
+                throw new ObjectDisposedException(ToString(), "Disposed Drawables may not have children added.");
+
             await child.LoadAsync(Clock, Dependencies);
             child.Parent = this;
         }
@@ -369,6 +372,9 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         protected internal virtual void AddInternal(Drawable drawable)
         {
+            if (IsDisposed)
+                throw new ObjectDisposedException(ToString(), "Disposed Drawables may not have children added.");
+
             if (drawable == null)
                 throw new ArgumentNullException(nameof(drawable), $"null {nameof(Drawable)}s may not be added to {nameof(CompositeDrawable)}.");
 

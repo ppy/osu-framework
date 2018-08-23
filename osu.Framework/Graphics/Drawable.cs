@@ -68,7 +68,7 @@ namespace osu.Framework.Graphics
             GC.SuppressFinalize(this);
         }
 
-        private bool isDisposed;
+        protected bool IsDisposed;
 
         /// <summary>
         /// Disposes this drawable.
@@ -79,7 +79,7 @@ namespace osu.Framework.Graphics
 
         private void dispose(bool isDisposing)
         {
-            if (isDisposed)
+            if (IsDisposed)
                 return;
 
             try
@@ -107,7 +107,7 @@ namespace osu.Framework.Graphics
             OnDispose?.Invoke();
             OnDispose = null;
 
-            isDisposed = true;
+            IsDisposed = true;
         }
 
         /// <summary>
@@ -334,7 +334,7 @@ namespace osu.Framework.Graphics
         /// <returns>False if the drawable should not be updated.</returns>
         public virtual bool UpdateSubTree()
         {
-            if (isDisposed)
+            if (IsDisposed)
                 throw new ObjectDisposedException(ToString(), "Disposed Drawables may never be in the scene graph.");
 
             if (ProcessCustomClock)
@@ -1288,7 +1288,7 @@ namespace osu.Framework.Graphics
             get => parent;
             internal set
             {
-                if (isDisposed)
+                if (IsDisposed)
                     throw new ObjectDisposedException(ToString(), "Disposed Drawables may never get a parent and return to the scene graph.");
 
                 if (value == null)
