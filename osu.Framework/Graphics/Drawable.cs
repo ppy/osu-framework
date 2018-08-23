@@ -85,7 +85,7 @@ namespace osu.Framework.Graphics
             try
             {
                 //we can't dispose if we are mid-load, else our children may get in a bad state.
-                loadTask?.Wait(loadTaskCancellation);
+                loadTask?.Wait();
             }
             catch
             {
@@ -134,7 +134,6 @@ namespace osu.Framework.Graphics
         public LoadState LoadState => loadState;
 
         private Task loadTask;
-        private CancellationToken loadTaskCancellation;
 
         private readonly object loadLock = new object();
 
@@ -146,8 +145,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="clock">The clock we should use by default.</param>
         /// <param name="dependencies">The dependency tree we will inherit by default. May be extended via <see cref="CompositeDrawable.CreateChildDependencies"/></param>
-        /// <param name="cancellation">A cancellation token.</param>
-        internal async Task LoadAsync(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies, CancellationToken? cancellation = null)
+        internal async Task LoadAsync(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies)
         {
             lock (loadLock)
             {
@@ -157,13 +155,9 @@ namespace osu.Framework.Graphics
                     case LoadState.Loaded:
                         return;
                     case LoadState.Loading:
-                        if (cancellation.HasValue && cancellation.Value != loadTaskCancellation)
-                            throw new ArgumentException($"{nameof(LoadAsync)} can only be called once with a cancellation token.");
                         break;
                     case LoadState.NotLoaded:
                         loadState = LoadState.Loading;
-                        if (cancellation.HasValue)
-                            loadTaskCancellation = cancellation.Value;
 
                         // only start a new load if one doesn't already exist.
                         loadTask = loadTask ?? loadAsync(clock, dependencies);
