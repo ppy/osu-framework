@@ -1,9 +1,11 @@
 // Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -18,16 +20,21 @@ namespace osu.Framework.Tests.Visual
     {
         private const int panel_count = 20;
 
-        public TestCaseConcurrentLoad()
-        {
-            FillFlowContainerNoInput flow;
+        private FillFlowContainerNoInput flow;
 
+        [SetUp]
+        public void SetUp()
+        {
             Child = flow = new FillFlowContainerNoInput
             {
                 RelativeSizeAxes = Axes.X,
                 AutoSizeAxes = Axes.Y,
             };
+        }
 
+        [Test]
+        public void LoadManyThreaded()
+        {
             AddStep("load many thread", () =>
             {
                 for (int i = 0; i < panel_count; i++)
@@ -39,7 +46,11 @@ namespace osu.Framework.Tests.Visual
             AddUntilStep(() => flow.Children.OfType<DelayedTestBox>().Any() && flow.Children.OfType<DelayedTestBox>().Count() < panel_count, "check not all loaded");
 
             AddUntilStep(() => flow.Children.Count == panel_count, "wait all loaded");
+        }
 
+        [Test]
+        public void LoadManyAsync()
+        {
             AddStep("load many async", () =>
             {
                 for (int i = 0; i < panel_count; i++)
@@ -52,6 +63,27 @@ namespace osu.Framework.Tests.Visual
 
             // due to thread yielding all should be loaded straight after any are loaded.
             AddAssert("check all loaded", () => flow.Children.OfType<DelayedTestBoxAsync>().Count() == panel_count);
+        }
+
+        [Test]
+        public void TestLoadIntoTarget()
+        {
+            var loadable = new DelayedTestBoxAsync();
+            var loadTarget = new LoadTarget(loadable);
+
+            Assert.Throws<InvalidOperationException>(() => loadTarget.PerformAsyncLoad());
+        }
+
+        private class LoadTarget : Container
+        {
+            private readonly Drawable loadable;
+
+            public LoadTarget(Drawable loadable)
+            {
+                this.loadable = loadable;
+            }
+
+            public void PerformAsyncLoad() => LoadComponentAsync(loadable, Add);
         }
 
         private class FillFlowContainerNoInput : FillFlowContainer<Drawable>
