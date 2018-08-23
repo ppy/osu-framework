@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using osu.Framework.Allocation;
@@ -13,7 +14,7 @@ using osu.Framework.Platform;
 using OpenTK;
 using OpenTK.Graphics;
 
-namespace osu.Framework.Tests.IO
+namespace osu.Framework.Tests.Exceptions
 {
     [TestFixture]
     public class TestLoadExceptions
@@ -25,6 +26,23 @@ namespace osu.Framework.Tests.IO
             var loadTarget = new LoadTarget(loadable);
 
             Assert.Throws<InvalidOperationException>(() => loadTarget.PerformAsyncLoad());
+        }
+
+        [Test]
+        public void TestSingleSyncAdd()
+        {
+            var loadable = new DelayedTestBoxAsync();
+
+            Assert.DoesNotThrow(() =>
+            {
+                runGameWithLogic(g =>
+                {
+                    g.Add(loadable);
+                    Assert.IsTrue(loadable.LoadState == LoadState.Ready);
+                    Assert.AreEqual(loadable.Parent, g);
+                    g.Exit();
+                });
+            });
         }
 
         [Test]
@@ -74,6 +92,50 @@ namespace osu.Framework.Tests.IO
 
                     loadTarget.PerformAsyncLoad();
                     loadTarget.PerformAsyncLoad();
+                });
+            });
+        }
+
+        [Test]
+        public void TestTargetDisposedDuringAsyncLoad()
+        {
+            Assert.Throws<ObjectDisposedException>(() =>
+            {
+                runGameWithLogic(g =>
+                {
+                    var loadable = new DelayedTestBoxAsync();
+                    var loadTarget = new LoadTarget(loadable);
+
+                    g.Add(loadTarget);
+
+                    loadTarget.PerformAsyncLoad();
+
+                    while (loadable.LoadState < LoadState.Loading)
+                        Thread.Sleep(1);
+
+                    loadable.Dispose();
+                });
+            });
+        }
+
+        [Test]
+        public void TestLoadableDisposedDuringAsyncLoad()
+        {
+            Assert.Throws<ObjectDisposedException>(() =>
+            {
+                runGameWithLogic(g =>
+                {
+                    var loadable = new DelayedTestBoxAsync();
+                    var loadTarget = new LoadTarget(loadable);
+
+                    g.Add(loadTarget);
+
+                    loadTarget.PerformAsyncLoad();
+
+                    while (loadable.LoadState < LoadState.Loading)
+                        Thread.Sleep(1);
+
+                    g.Clear();
                 });
             });
         }
