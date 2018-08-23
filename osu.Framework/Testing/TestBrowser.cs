@@ -402,11 +402,21 @@ namespace osu.Framework.Testing
 
                 var setUpMethods = methods.Where(m => m.GetCustomAttributes(typeof(SetUpAttribute), false).Length > 0);
 
-                foreach (var m in methods.Where(m => m.Name != "TestConstructor" && m.GetCustomAttributes(typeof(TestAttribute), false).Length > 0))
+                foreach (var m in methods.Where(m => m.Name != "TestConstructor"))
                 {
-                    var step = CurrentTest.AddStep($"Setup: {m.Name}", () => setUpMethods.ForEach(s => s.Invoke(CurrentTest, null)));
-                    step.LightColour = Color4.Teal;
-                    m.Invoke(CurrentTest, null);
+                    if (m.GetCustomAttributes(typeof(TestAttribute), false).Any())
+                    {
+                        var step = CurrentTest.AddStep($"Setup: {m.Name}", () => setUpMethods.ForEach(s => s.Invoke(CurrentTest, null)));
+                        step.LightColour = Color4.Teal;
+                        m.Invoke(CurrentTest, null);
+                    }
+
+                    foreach (var tc in m.GetCustomAttributes(typeof(TestCaseAttribute), false).OfType<TestCaseAttribute>())
+                    {
+                        var step = CurrentTest.AddStep($"Setup: {m.Name}({string.Join(", ", tc.Arguments)})", () => setUpMethods.ForEach(s => s.Invoke(CurrentTest, null)));
+                        step.LightColour = Color4.Teal;
+                        m.Invoke(CurrentTest, tc.Arguments);
+                    }
                 }
 
                 backgroundCompiler.Checkpoint(CurrentTest);

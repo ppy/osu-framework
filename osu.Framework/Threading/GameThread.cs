@@ -77,7 +77,7 @@ namespace osu.Framework.Threading
 
         public readonly string Name;
 
-        internal GameThread(Action onNewFrame, string name)
+        internal GameThread(Action onNewFrame, string name, bool monitorPerformance = true)
         {
             this.onNewFrame = onNewFrame;
 
@@ -89,7 +89,8 @@ namespace osu.Framework.Threading
 
             Name = name;
             Clock = new ThrottledFrameClock();
-            Monitor = new PerformanceMonitor(Clock, Thread, StatisticsCounters);
+            if (monitorPerformance)
+                Monitor = new PerformanceMonitor(Clock, Thread, StatisticsCounters);
             Scheduler = new Scheduler(null, Clock);
         }
 
@@ -134,15 +135,15 @@ namespace osu.Framework.Threading
                 return;
             }
 
-            Monitor.NewFrame();
+            Monitor?.NewFrame();
 
-            using (Monitor.BeginCollecting(PerformanceCollectionType.Scheduler))
+            using (Monitor?.BeginCollecting(PerformanceCollectionType.Scheduler))
                 Scheduler.Update();
 
-            using (Monitor.BeginCollecting(PerformanceCollectionType.Work))
+            using (Monitor?.BeginCollecting(PerformanceCollectionType.Work))
                 onNewFrame?.Invoke();
 
-            using (Monitor.BeginCollecting(PerformanceCollectionType.Sleep))
+            using (Monitor?.BeginCollecting(PerformanceCollectionType.Sleep))
                 Clock.ProcessFrame();
         }
 
