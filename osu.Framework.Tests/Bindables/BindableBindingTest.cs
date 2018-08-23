@@ -291,6 +291,36 @@ namespace osu.Framework.Tests.Bindables
             TestUnbindOnDrawableDispose();
         }
 
+        [Test]
+        public void TestUnbindOnDrawableDisposeProperty()
+        {
+            var bindable = new Bindable<int>();
+
+            bool valueChanged = false;
+            bindable.ValueChanged += _ => valueChanged = true;
+
+            var drawable = new TestDrawable2 { GetBindable = () => bindable };
+
+            drawable.SetValue(1);
+            Assert.IsTrue(valueChanged, "bound correctly");
+
+            drawable.Dispose();
+            valueChanged = false;
+
+            drawable.SetValue(2);
+            Assert.IsFalse(valueChanged, "unbound correctly");
+        }
+
+        [Test]
+        public void TestUnbindOnDrawableDisposePropertyCached()
+        {
+            // Build cache
+            var drawable = new TestDrawable2();
+            drawable.Dispose();
+
+            TestUnbindOnDrawableDispose();
+        }
+
         private class TestDrawable : Drawable
         {
             public bool ValueChanged;
@@ -321,6 +351,14 @@ namespace osu.Framework.Tests.Bindables
                 bindable.Value = value;
                 base.SetValue(value);
             }
+        }
+
+        private class TestDrawable2 : Drawable
+        {
+            public Func<Bindable<int>> GetBindable;
+            private Bindable<int> bindable => GetBindable();
+
+            public void SetValue(int value) => bindable.Value = value;
         }
     }
 }
