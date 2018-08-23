@@ -149,6 +149,9 @@ namespace osu.Framework.Graphics
         {
             lock (loadLock)
             {
+                if (IsDisposed)
+                    throw new ObjectDisposedException(ToString(), "Attempting to load an already disposed drawable.");
+
                 switch (loadState)
                 {
                     case LoadState.Ready:
