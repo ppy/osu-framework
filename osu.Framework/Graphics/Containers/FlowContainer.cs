@@ -193,7 +193,10 @@ namespace osu.Framework.Graphics.Containers
                     if (LayoutDuration > 0)
                         d.TransformTo(d.PopulateTransform(new FlowTransform { Rewindable = false }, finalPos, LayoutDuration, LayoutEasing));
                     else
+                    {
+                        ClearTransforms(false, nameof(Position));
                         d.Position = finalPos;
+                    }
                 }
 
                 ++i;
