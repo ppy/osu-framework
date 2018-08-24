@@ -188,7 +188,8 @@ namespace osu.Framework.Graphics.Containers
                     throw new InvalidOperationException($"A flow container cannot contain a child with relative positioning (it is {d.RelativePositionAxes}).");
 
                 var finalPos = positions[i];
-                var currentTargetPos = ((FlowTransform)d.Transforms.FirstOrDefault(t => t is FlowTransform))?.EndValue ?? d.Position;
+                var currentTargetPos = d.Transforms.OfType<FlowTransform>().FirstOrDefault()?.EndValue ?? d.Position;
+
                 if (currentTargetPos != finalPos)
                     d.TransformTo(d.PopulateTransform(new FlowTransform { Rewindable = false }, finalPos, LayoutDuration, LayoutEasing));
 
