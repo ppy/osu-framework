@@ -13,13 +13,13 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Tests.Visual
 {
-    public class TestCaseLayoutIdempotence : TestCase
+    public class TestCaseLayoutDurations : TestCase
     {
         private readonly ManualClock manualClock;
         private readonly Container autoSizeContainer;
         private readonly FillFlowContainer fillFlowContainer;
 
-        public TestCaseLayoutIdempotence()
+        public TestCaseLayoutDurations()
         {
             Box box1, box2;
             const float duration = 1000;
@@ -70,6 +70,7 @@ namespace osu.Framework.Tests.Visual
                 fillFlowContainer.LayoutDuration = 0;
                 fillFlowContainer.Size = new Vector2(200, 200);
             });
+
             AddStep("Start transformation", () =>
             {
                 timeStopped = true;
@@ -84,6 +85,7 @@ namespace osu.Framework.Tests.Visual
                 fillFlowContainer.LayoutDuration = duration;
                 fillFlowContainer.Width = 100;
             });
+
             foreach (var x in new[] { .25, .5, .75, 1 })
             {
                 var ratio = (float)x;
