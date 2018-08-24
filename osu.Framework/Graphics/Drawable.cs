@@ -791,10 +791,10 @@ namespace osu.Framework.Graphics
             var value = RelativePositionAxes | RelativeSizeAxes | bypassAutoSizeAdditionalAxes;
             if (bypassAutoSizeAxes != value)
             {
-                if (((Parent?.AutoSizeAxes ?? 0) & ~(bypassAutoSizeAxes & value)) != 0)
-                    Parent?.InvalidateFromChild(Invalidation.RequiredParentSizeToFit, this);
-
+                var changedAxes = bypassAutoSizeAxes ^ value;
                 bypassAutoSizeAxes = value;
+                if (((Parent?.AutoSizeAxes ?? 0) & changedAxes) != 0)
+                    Parent?.InvalidateFromChild(Invalidation.RequiredParentSizeToFit, this);
             }
         }
 
