@@ -550,6 +550,27 @@ namespace osu.Framework.Graphics
             }
         }
 
+        private Vector2 drawPositionOffset;
+
+        /// <summary>
+        /// The positional offet applied to <see cref="DrawPosition"/>.
+        /// A <see cref="FlowContainer{T}"/> uses this property to layout its children.
+        /// </summary>
+        public Vector2 DrawPositionOffset
+        {
+            get => drawPositionOffset;
+            set
+            {
+                if (drawPositionOffset == value) return;
+
+                if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(DrawPositionOffset)} must be finite, but is {value}.");
+
+                drawPositionOffset = value;
+
+                Invalidate(Invalidation.MiscGeometry);
+            }
+        }
+
         private Axes relativePositionAxes;
 
         /// <summary>
@@ -608,7 +629,7 @@ namespace osu.Framework.Graphics
                         offset.Y = 0;
                 }
 
-                return applyRelativeAxes(RelativePositionAxes, Position - offset, FillMode.Stretch);
+                return DrawPositionOffset + applyRelativeAxes(RelativePositionAxes, Position - offset, FillMode.Stretch);
             }
         }
 
