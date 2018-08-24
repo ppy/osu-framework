@@ -21,9 +21,11 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using osu.Framework.Configuration;
 using osu.Framework.Development;
 using osu.Framework.Input.EventArgs;
 using osu.Framework.Input.States;
@@ -93,6 +95,8 @@ namespace osu.Framework.Graphics
 
             Dispose(isDisposing);
 
+            unbindAllBindables();
+
             Parent = null;
 
             scheduler = null;
@@ -115,6 +119,61 @@ namespace osu.Framework.Graphics
         /// its <see cref="Parent"/> due to <see cref="ShouldBeAlive"/> being false.
         /// </summary>
         public virtual bool DisposeOnDeathRemoval => false;
+
+        private static readonly ConcurrentDictionary<Type, Action<object>> unbind_action_cache = new ConcurrentDictionary<Type, Action<object>>();
+
+        /// <summary>
+        /// Unbinds all <see cref="Bindable{T}"/>s stored as fields or properties in this <see cref="Drawable"/>.
+        /// </summary>
+        private void unbindAllBindables()
+        {
+            Type type = GetType();
+            do
+            {
+                unbind(type);
+                type = type.BaseType;
+            } while (type != null && type != typeof(object));
+
+            void unbind(Type targetType)
+            {
+                if (unbind_action_cache.TryGetValue(targetType, out var existing))
+                {
+                    existing(this);
+                    return;
+                }
+
+                // List containing all the delegates to perform the unbinds
+                var actions = new List<Action<object>>();
+
+                // Generate delegates to unbind fields
+                actions.AddRange(targetType.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                                           .Where(f => typeof(IUnbindable).IsAssignableFrom(f.FieldType))
+                                           .Select(f => new Action<object>(target => ((IUnbindable)f.GetValue(target))?.UnbindAll())));
+
+                // Generate delegates to unbind properties
+                actions.AddRange(targetType.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                                           .Where(p => typeof(IUnbindable).IsAssignableFrom(p.PropertyType))
+                                           .Select(p => new Action<object>(target => ((IUnbindable)p.GetValue(target))?.UnbindAll())));
+
+                unbind_action_cache[targetType] = performUnbind;
+                performUnbind(this);
+
+                void performUnbind(object target)
+                {
+                    foreach (var a in actions)
+                    {
+                        try
+                        {
+                            a(target);
+                        }
+                        catch
+                        {
+                            // Execution should continue regardless of whether an unbind failed
+                        }
+                    }
+                }
+            }
+        }
 
         #endregion
 

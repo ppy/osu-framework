@@ -96,6 +96,9 @@ namespace osu.Framework.Testing
 
         private void checkForErrors()
         {
+            if (host.ExecutionState == ExecutionState.Stopping)
+                runTask.Wait();
+
             if (runTask.Exception != null)
                 throw runTask.Exception;
         }
