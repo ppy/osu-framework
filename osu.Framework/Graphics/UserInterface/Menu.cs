@@ -64,7 +64,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private readonly Box background;
 
-        protected Cached SizeCache = new Cached();
+        private Cached sizeCache = new Cached();
 
         private readonly Container<Menu> submenuContainer;
 
@@ -174,7 +174,7 @@ namespace osu.Framework.Graphics.UserInterface
                     return;
                 maxWidth = value;
 
-                SizeCache.Invalidate();
+                sizeCache.Invalidate();
             }
         }
 
@@ -191,7 +191,7 @@ namespace osu.Framework.Graphics.UserInterface
                     return;
                 maxHeight = value;
 
-                SizeCache.Invalidate();
+                sizeCache.Invalidate();
             }
         }
 
@@ -242,7 +242,7 @@ namespace osu.Framework.Graphics.UserInterface
                     break;
             }
 
-            SizeCache.Invalidate();
+            sizeCache.Invalidate();
         }
 
         /// <summary>
@@ -278,7 +278,7 @@ namespace osu.Framework.Graphics.UserInterface
         public bool Remove(MenuItem item)
         {
             bool result = ItemsContainer.RemoveAll(d => d.Item == item) > 0;
-            SizeCache.Invalidate();
+            sizeCache.Invalidate();
 
             return result;
         }
@@ -320,7 +320,7 @@ namespace osu.Framework.Graphics.UserInterface
         public override void InvalidateFromChild(Invalidation invalidation, Drawable source = null)
         {
             if ((invalidation & Invalidation.RequiredParentSizeToFit) > 0)
-                SizeCache.Invalidate();
+                sizeCache.Invalidate();
             base.InvalidateFromChild(invalidation, source);
         }
 
@@ -328,42 +328,46 @@ namespace osu.Framework.Graphics.UserInterface
         {
             base.UpdateAfterChildren();
 
-            if (!SizeCache.IsValid)
+            if (!sizeCache.IsValid)
             {
-                // Our children will be relatively-sized on the axis separate to the menu direction, so we need to compute
-                // that size ourselves, based on the content size of our children, to give them a valid relative size
-
-                float width = 0;
-                float height = 0;
-
-                foreach (var item in Children)
-                {
-                    width = Math.Max(width, item.ContentDrawWidth);
-                    height = Math.Max(height, item.ContentDrawHeight);
-                }
-
-                // When scrolling in one direction, ItemsContainer is auto-sized in that direction and relative-sized in the other
-                // In the case of the auto-sized direction, we want to use its size. In the case of the relative-sized direction, we want
-                // to use the (above) computed size.
-                width = Direction == Direction.Horizontal ? ItemsContainer.Width : width;
-                height = Direction == Direction.Vertical ? ItemsContainer.Height : height;
-
-                width = Math.Min(MaxWidth, width);
-                height = Math.Min(MaxHeight, height);
-
-                // Regardless of the above result, if we are relative-sizing, just use the stored width/height
-                width = RelativeSizeAxes.HasFlag(Axes.X) ? Width : width;
-                height = RelativeSizeAxes.HasFlag(Axes.Y) ? Height : height;
-
-                if (State == MenuState.Closed && Direction == Direction.Horizontal)
-                    width = 0;
-                if (State == MenuState.Closed && Direction == Direction.Vertical)
-                    height = 0;
-
-                UpdateSize(new Vector2(width, height));
-
-                SizeCache.Validate();
+                ComputeSize();
+                sizeCache.Validate();
             }
+        }
+
+        protected virtual void ComputeSize()
+        {
+            // Our children will be relatively-sized on the axis separate to the menu direction, so we need to compute
+            // that size ourselves, based on the content size of our children, to give them a valid relative size
+
+            float width = 0;
+            float height = 0;
+
+            foreach (var item in Children)
+            {
+                width = Math.Max(width, item.ContentDrawWidth);
+                height = Math.Max(height, item.ContentDrawHeight);
+            }
+
+            // When scrolling in one direction, ItemsContainer is auto-sized in that direction and relative-sized in the other
+            // In the case of the auto-sized direction, we want to use its size. In the case of the relative-sized direction, we want
+            // to use the (above) computed size.
+            width = Direction == Direction.Horizontal ? ItemsContainer.Width : width;
+            height = Direction == Direction.Vertical ? ItemsContainer.Height : height;
+
+            width = Math.Min(MaxWidth, width);
+            height = Math.Min(MaxHeight, height);
+
+            // Regardless of the above result, if we are relative-sizing, just use the stored width/height
+            width = RelativeSizeAxes.HasFlag(Axes.X) ? Width : width;
+            height = RelativeSizeAxes.HasFlag(Axes.Y) ? Height : height;
+
+            if (State == MenuState.Closed && Direction == Direction.Horizontal)
+                width = 0;
+            if (State == MenuState.Closed && Direction == Direction.Vertical)
+                height = 0;
+
+            UpdateSize(new Vector2(width, height));
         }
 
         /// <summary>

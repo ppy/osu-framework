@@ -211,16 +211,17 @@ namespace osu.Framework.Graphics.UserInterface
                 RelativeSizeAxes = Axes.X;
             }
 
-            protected override void UpdateAfterChildren()
+            protected override void ComputeSize()
             {
-                if (!SizeCache.IsValid && explicitHeight.HasValue)
+                if (explicitHeight.HasValue)
                 {
                     var calculatedHeight = MathHelper.Clamp(ItemsContainer.Height, 0, MaxHeight);
                     base.Height = Math.Min(calculatedHeight, explicitHeight.Value);
-                    SizeCache.Validate();
                 }
-
-                base.UpdateAfterChildren();
+                else
+                {
+                    base.ComputeSize();
+                }
             }
 
             /// <summary>
