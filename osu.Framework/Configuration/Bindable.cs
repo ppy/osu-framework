@@ -200,7 +200,7 @@ namespace osu.Framework.Configuration
             // check a bound bindable hasn't changed the value again (it will fire its own event)
             bool beforePropagation = disabled;
             if (propagateToBindings) Bindings?.ForEachAlive(b => b.Disabled = disabled);
-            if (Equals(beforePropagation, disabled))
+            if (beforePropagation == disabled)
                 DisabledChanged?.Invoke(disabled);
         }
 

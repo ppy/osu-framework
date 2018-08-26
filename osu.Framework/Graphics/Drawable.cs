@@ -21,9 +21,11 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using osu.Framework.Configuration;
 using osu.Framework.Development;
 using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Input.EventArgs;
@@ -94,6 +96,8 @@ namespace osu.Framework.Graphics
 
             Dispose(isDisposing);
 
+            unbindAllBindables();
+
             Parent = null;
 
             scheduler = null;
@@ -116,6 +120,61 @@ namespace osu.Framework.Graphics
         /// its <see cref="Parent"/> due to <see cref="ShouldBeAlive"/> being false.
         /// </summary>
         public virtual bool DisposeOnDeathRemoval => false;
+
+        private static readonly ConcurrentDictionary<Type, Action<object>> unbind_action_cache = new ConcurrentDictionary<Type, Action<object>>();
+
+        /// <summary>
+        /// Unbinds all <see cref="Bindable{T}"/>s stored as fields or properties in this <see cref="Drawable"/>.
+        /// </summary>
+        private void unbindAllBindables()
+        {
+            Type type = GetType();
+            do
+            {
+                unbind(type);
+                type = type.BaseType;
+            } while (type != null && type != typeof(object));
+
+            void unbind(Type targetType)
+            {
+                if (unbind_action_cache.TryGetValue(targetType, out var existing))
+                {
+                    existing(this);
+                    return;
+                }
+
+                // List containing all the delegates to perform the unbinds
+                var actions = new List<Action<object>>();
+
+                // Generate delegates to unbind fields
+                actions.AddRange(targetType.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                                           .Where(f => typeof(IUnbindable).IsAssignableFrom(f.FieldType))
+                                           .Select(f => new Action<object>(target => ((IUnbindable)f.GetValue(target))?.UnbindAll())));
+
+                // Generate delegates to unbind properties
+                actions.AddRange(targetType.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                                           .Where(p => typeof(IUnbindable).IsAssignableFrom(p.PropertyType))
+                                           .Select(p => new Action<object>(target => ((IUnbindable)p.GetValue(target))?.UnbindAll())));
+
+                unbind_action_cache[targetType] = performUnbind;
+                performUnbind(this);
+
+                void performUnbind(object target)
+                {
+                    foreach (var a in actions)
+                    {
+                        try
+                        {
+                            a(target);
+                        }
+                        catch
+                        {
+                            // Execution should continue regardless of whether an unbind failed
+                        }
+                    }
+                }
+            }
+        }
 
         #endregion
 
@@ -776,6 +835,7 @@ namespace osu.Framework.Graphics
                     v.Y /= fillAspectRatio;
                 }
             }
+
             return v;
         }
 
@@ -823,7 +883,9 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Called whenever the <see cref="RelativeSizeAxes"/> of this drawable is changed, or when the <see cref="Container{T}.AutoSizeAxes"/> are changed if this drawable is a <see cref="Container{T}"/>.
         /// </summary>
-        protected virtual void OnSizingChanged() { }
+        protected virtual void OnSizingChanged()
+        {
+        }
 
         #endregion
 
@@ -1212,6 +1274,7 @@ namespace osu.Framework.Graphics
                 Invalidate(Invalidation.Colour);
             }
         }
+
         #endregion
 
         #region Timekeeping
@@ -1300,6 +1363,7 @@ namespace osu.Framework.Graphics
 
                 search = search.Parent;
             }
+
             return null;
         }
 
@@ -1955,7 +2019,8 @@ namespace osu.Framework.Graphics
             private static readonly ConcurrentDictionary<Type, bool> mouse_cached_values = new ConcurrentDictionary<Type, bool>();
             private static readonly ConcurrentDictionary<Type, bool> keyboard_cached_values = new ConcurrentDictionary<Type, bool>();
 
-            private static readonly string[] mouse_input_methods = {
+            private static readonly string[] mouse_input_methods =
+            {
                 nameof(OnHover),
                 nameof(OnHoverLost),
                 nameof(OnMouseDown),
@@ -1971,7 +2036,8 @@ namespace osu.Framework.Graphics
                 nameof(OnMouseMove)
             };
 
-            private static readonly string[] keyboard_input_methods = {
+            private static readonly string[] keyboard_input_methods =
+            {
                 nameof(OnFocus),
                 nameof(OnFocusLost),
                 nameof(OnKeyDown),
@@ -2215,7 +2281,8 @@ namespace osu.Framework.Graphics
             {
                 double min = double.MaxValue;
                 foreach (Transform t in Transforms)
-                    if (t.StartTime < min) min = t.StartTime;
+                    if (t.StartTime < min)
+                        min = t.StartTime;
                 LifetimeStart = min < int.MaxValue ? min : int.MinValue;
             }
         }
@@ -2281,19 +2348,23 @@ namespace osu.Framework.Graphics
         /// is assumed unless indicated by additional flags.
         /// </summary>
         DrawInfo = 1 << 0,
+
         /// <summary>
         /// <see cref="Drawable.DrawSize"/> has changed.
         /// </summary>
         DrawSize = 1 << 1,
+
         /// <summary>
         /// Captures all other geometry changes than <see cref="Drawable.DrawSize"/>, such as
         /// <see cref="Drawable.Rotation"/>, <see cref="Drawable.Shear"/>, and <see cref="Drawable.DrawPosition"/>.
         /// </summary>
         MiscGeometry = 1 << 2,
+
         /// <summary>
         /// <see cref="Drawable.Colour"/> or <see cref="Drawable.IsPresent"/> has changed.
         /// </summary>
         Colour = 1 << 3,
+
         /// <summary>
         /// <see cref="Drawable.ApplyDrawNode(Graphics.DrawNode)"/> has to be invoked on all old draw nodes.
         /// </summary>
@@ -2303,10 +2374,12 @@ namespace osu.Framework.Graphics
         /// No invalidation.
         /// </summary>
         None = 0,
+
         /// <summary>
         /// <see cref="Drawable.RequiredParentSizeToFit"/> has to be recomputed.
         /// </summary>
         RequiredParentSizeToFit = MiscGeometry | DrawSize,
+
         /// <summary>
         /// All possible things are affected.
         /// </summary>
@@ -2400,17 +2473,20 @@ namespace osu.Framework.Graphics
         /// Not loaded, and no load has been initiated yet.
         /// </summary>
         NotLoaded,
+
         /// <summary>
         /// Currently loading (possibly and usually on a background
         /// thread via <see cref="Drawable.LoadAsync(Game,IFrameBasedClock,IReadOnlyDependencyContainer,CancellationToken,Action)"/>).
         /// </summary>
         Loading,
+
         /// <summary>
         /// Loading is complete, but has not yet been finalized on the update thread
         /// (<see cref="Drawable.LoadComplete"/> has not been called yet, which
         /// always runs on the update thread and requires <see cref="Drawable.IsAlive"/>).
         /// </summary>
         Ready,
+
         /// <summary>
         /// Loading is fully completed and the Drawable is now part of the scene graph.
         /// </summary>
@@ -2426,11 +2502,13 @@ namespace osu.Framework.Graphics
         /// Completely fill the parent with a relative size of 1 at the cost of stretching the aspect ratio (default).
         /// </summary>
         Stretch,
+
         /// <summary>
         /// Always maintains aspect ratio while filling the portion of the parent's size denoted by the relative size.
         /// A relative size of 1 results in completely filling the parent by scaling the smaller axis of the drawable to fill the parent.
         /// </summary>
         Fill,
+
         /// <summary>
         /// Always maintains aspect ratio while fitting into the portion of the parent's size denoted by the relative size.
         /// A relative size of 1 results in fitting exactly into the parent by scaling the larger axis of the drawable to fit into the parent.
