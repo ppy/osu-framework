@@ -70,7 +70,7 @@ namespace osu.Framework.Graphics
             GC.SuppressFinalize(this);
         }
 
-        protected bool IsDisposed;
+        protected bool IsDisposed { get; private set; }
 
         /// <summary>
         /// Disposes this drawable.
