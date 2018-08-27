@@ -4,6 +4,7 @@
 using System;
 using NUnit.Framework;
 using osu.Framework.Configuration;
+using osu.Framework.Graphics;
 
 namespace osu.Framework.Tests.Bindables
 {
@@ -245,6 +246,119 @@ namespace osu.Framework.Tests.Bindables
             // bindable1 should only receive the final value changed, skipping the intermediary (overidden) one.
             Assert.AreEqual(1, changed1);
             Assert.AreEqual(2, changed2);
+        }
+
+        [Test]
+        public void TestUnbindOnDrawableDispose()
+        {
+            var drawable = new TestDrawable();
+
+            drawable.SetValue(1);
+            Assert.IsTrue(drawable.ValueChanged, "bound correctly");
+
+            drawable.Dispose();
+            drawable.ValueChanged = false;
+
+            drawable.SetValue(2);
+            Assert.IsFalse(drawable.ValueChanged, "unbound correctly");
+        }
+
+        [Test]
+        public void TestUnbindOnDrawableDisposeSubClass()
+        {
+            var drawable = new TestSubDrawable();
+
+            drawable.SetValue(1);
+            Assert.IsTrue(drawable.ValueChanged, "bound correctly");
+            Assert.IsTrue(drawable.ValueChanged2, "bound correctly");
+
+            drawable.Dispose();
+            drawable.ValueChanged = false;
+            drawable.ValueChanged2 = false;
+
+            drawable.SetValue(2);
+            Assert.IsFalse(drawable.ValueChanged, "unbound correctly");
+            Assert.IsFalse(drawable.ValueChanged2, "unbound correctly");
+        }
+
+        [Test]
+        public void TestUnbindOnDrawableDisposeCached()
+        {
+            // Build cache
+            var drawable = new TestDrawable();
+            drawable.Dispose();
+
+            TestUnbindOnDrawableDispose();
+        }
+
+        [Test]
+        public void TestUnbindOnDrawableDisposeProperty()
+        {
+            var bindable = new Bindable<int>();
+
+            bool valueChanged = false;
+            bindable.ValueChanged += _ => valueChanged = true;
+
+            var drawable = new TestDrawable2 { GetBindable = () => bindable };
+
+            drawable.SetValue(1);
+            Assert.IsTrue(valueChanged, "bound correctly");
+
+            drawable.Dispose();
+            valueChanged = false;
+
+            drawable.SetValue(2);
+            Assert.IsFalse(valueChanged, "unbound correctly");
+        }
+
+        [Test]
+        public void TestUnbindOnDrawableDisposePropertyCached()
+        {
+            // Build cache
+            var drawable = new TestDrawable2();
+            drawable.Dispose();
+
+            TestUnbindOnDrawableDispose();
+        }
+
+        private class TestDrawable : Drawable
+        {
+            public bool ValueChanged;
+
+            private readonly Bindable<int> bindable = new Bindable<int>();
+
+            public TestDrawable()
+            {
+                bindable.BindValueChanged(_ => ValueChanged = true);
+            }
+
+            public virtual void SetValue(int value) => bindable.Value = value;
+        }
+
+        private class TestSubDrawable : TestDrawable
+        {
+            public bool ValueChanged2;
+
+            private readonly Bindable<int> bindable = new Bindable<int>();
+
+            public TestSubDrawable()
+            {
+                bindable.BindValueChanged(_ => ValueChanged2 = true);
+            }
+
+            public override void SetValue(int value)
+            {
+                bindable.Value = value;
+                base.SetValue(value);
+            }
+        }
+
+        private class TestDrawable2 : Drawable
+        {
+            public Func<Bindable<int>> GetBindable;
+            private Bindable<int> bindable => GetBindable();
+
+            public void SetValue(int value) => bindable.Value = value;
         }
     }
 }

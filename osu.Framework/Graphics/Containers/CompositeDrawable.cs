@@ -5,6 +5,7 @@ using osu.Framework.Lists;
 using System.Collections.Generic;
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using OpenTK;
 using osu.Framework.Graphics.OpenGL;
@@ -1176,7 +1177,7 @@ namespace osu.Framework.Graphics.Containers
                 padding = value;
 
                 foreach (Drawable c in internalChildren)
-                    c.Invalidate(c.InvalidationFromParentSize);
+                    c.Invalidate(c.InvalidationFromParentSize | Invalidation.MiscGeometry);
             }
         }
 
@@ -1451,8 +1452,12 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private void autoSizeResizeTo(Vector2 newSize, double duration = 0, Easing easing = Easing.None) =>
-            this.TransformTo(this.PopulateTransform(new AutoSizeTransform { Rewindable = false }, newSize, duration, easing));
+        private void autoSizeResizeTo(Vector2 newSize, double duration = 0, Easing easing = Easing.None)
+        {
+            var currentTargetSize = ((AutoSizeTransform)Transforms.FirstOrDefault(t => t is AutoSizeTransform))?.EndValue ?? Size;
+            if (currentTargetSize != newSize)
+                this.TransformTo(this.PopulateTransform(new AutoSizeTransform { Rewindable = false }, newSize, duration, easing));
+        }
 
         /// <summary>
         /// A helper property for <see cref="autoSizeResizeTo(Vector2, double, Easing)"/> to change the size of <see cref="CompositeDrawable"/>s with <see cref="AutoSizeAxes"/>.
