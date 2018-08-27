@@ -78,7 +78,7 @@ namespace osu.Framework.Statistics
 
             thread = new Thread(run)
             {
-                Name = $"{targetThread}-StackTraceCollector",
+                Name = $"{targetThread.Name}-StackTraceCollector",
                 IsBackground = true
             };
 
