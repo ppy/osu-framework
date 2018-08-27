@@ -32,8 +32,6 @@ namespace osu.Framework.Statistics
 
         private bool enabled;
 
-        private Thread thread;
-
         /// <summary>
         /// Create a collector for the target thread. Starts in a disabled state (see <see cref="Enabled"/>.
         /// </summary>
@@ -72,11 +70,13 @@ namespace osu.Framework.Statistics
             }
         }
 
+        private CancellationTokenSource cancellation;
+
         private void startThread()
         {
-            Trace.Assert(thread == null);
+            Trace.Assert(cancellation == null);
 
-            thread = new Thread(run)
+            var thread = new Thread(() => run((cancellation = new CancellationTokenSource()).Token))
             {
                 Name = $"{targetThread.Name}-StackTraceCollector",
                 IsBackground = true
@@ -85,9 +85,9 @@ namespace osu.Framework.Statistics
             thread.Start();
         }
 
-        private void run()
+        private void run(CancellationToken cancellation)
         {
-            while (enabled)
+            while (!cancellation.IsCancellationRequested)
             {
                 if (targetThread.IsAlive && clock.ElapsedMilliseconds - LastConsumptionTime > spikeRecordThreshold / 2 && backgroundMonitorStackTrace == null) backgroundMonitorStackTrace = getStackTrace(targetThread);
                 Thread.Sleep(5);
@@ -96,8 +96,9 @@ namespace osu.Framework.Statistics
 
         private void stopThread()
         {
-            thread?.Abort();
-            thread = null;
+            cancellation?.Cancel();
+            cancellation?.Dispose();
+            cancellation = null;
         }
 
         internal void NewFrame(double elapsedFrameTime, double newSpikeThreshold)
