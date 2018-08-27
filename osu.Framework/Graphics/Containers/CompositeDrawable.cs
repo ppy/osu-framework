@@ -101,9 +101,6 @@ namespace osu.Framework.Graphics.Containers
 
             return Task.Run(async () => await component.LoadAsync(Clock, dependencies), cancellationSource.Token).ContinueWith(t =>
             {
-                if (t.IsCanceled)
-                    return;
-
                 var exception = t.Exception?.AsSingular();
 
                 game.Schedule(() =>
@@ -113,7 +110,7 @@ namespace osu.Framework.Graphics.Containers
 
                     onLoaded?.Invoke(component);
                 });
-            });
+            }, cancellationSource.Token);
         }
 
         [BackgroundDependencyLoader(true)]
