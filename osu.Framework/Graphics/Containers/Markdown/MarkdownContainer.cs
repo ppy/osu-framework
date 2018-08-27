@@ -19,7 +19,7 @@ using osu.Framework.Graphics.Textures;
 using OpenTK;
 using OpenTK.Graphics;
 
-namespace osu.Framework.Graphics.Containers
+namespace osu.Framework.Graphics.Containers.Markdown
 {
     /// <summary>
     /// Contains all the markdown component <see cref="IMarkdownObject" /> in <see cref="MarkdownDocument" />
@@ -37,7 +37,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 var markdownText = value;
                 var pipeline = CreateBuilder();
-                var document = Markdown.Parse(markdownText, pipeline);
+                var document = Markdig.Markdown.Parse(markdownText, pipeline);
 
                 markdownContainer.Clear();
                 foreach (var component in document)
