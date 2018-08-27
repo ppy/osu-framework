@@ -4,6 +4,7 @@
 using System;
 using System.Globalization;
 using System.IO;
+using System.Threading.Tasks;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -95,10 +96,10 @@ namespace osu.Framework.Tests.Visual
         private class FakeStorage : IResourceStore<string>
         {
             public string Get(string name) => $"{name} in {CultureInfo.CurrentCulture.EnglishName}";
-            public Stream GetStream(string name)
-            {
-                throw new NotSupportedException();
-            }
+
+            public async Task<string> GetAsync(string name) => await Task.Run(() => Get(name));
+
+            public Stream GetStream(string name) => throw new NotSupportedException();
 
             public void Dispose()
             {

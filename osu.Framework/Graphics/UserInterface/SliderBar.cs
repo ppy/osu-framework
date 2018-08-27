@@ -47,8 +47,6 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (CurrentNumber == null)
                 throw new NotSupportedException($"We don't support the generic type of {nameof(BindableNumber<T>)}.");
-
-            CurrentNumber.ValueChanged += v => UpdateValue(NormalizedValue);
         }
 
         protected float NormalizedValue
@@ -82,6 +80,11 @@ namespace osu.Framework.Graphics.UserInterface
         protected override void LoadComplete()
         {
             base.LoadComplete();
+
+            CurrentNumber.ValueChanged += _ => UpdateValue(NormalizedValue);
+            CurrentNumber.MinValueChanged += _ => UpdateValue(NormalizedValue);
+            CurrentNumber.MaxValueChanged += _ => UpdateValue(NormalizedValue);
+
             UpdateValue(NormalizedValue);
         }
 

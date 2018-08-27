@@ -42,8 +42,8 @@ namespace osu.Framework.Tests.Visual
             {
                 Size = new Vector2(200, 10),
                 Position = new Vector2(25, 25),
-                Color = Color4.White,
-                SelectionColor = Color4.Pink,
+                BackgroundColour = Color4.White,
+                SelectionColour = Color4.Pink,
                 KeyboardStep = 1
             };
 
@@ -57,8 +57,8 @@ namespace osu.Framework.Tests.Visual
                 Size = new Vector2(200, 10),
                 RangePadding = 20,
                 Position = new Vector2(25, 45),
-                Color = Color4.White,
-                SelectionColor = Color4.Pink,
+                BackgroundColour = Color4.White,
+                SelectionColour = Color4.Pink,
                 KeyboardStep = 1,
             });
 

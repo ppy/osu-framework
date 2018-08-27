@@ -1,11 +1,14 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using NUnit.Framework;
+using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.States;
+using osu.Framework.MathUtils;
 using osu.Framework.Testing;
 using OpenTK;
 using OpenTK.Graphics;
@@ -15,15 +18,11 @@ namespace osu.Framework.Tests.Visual
     [System.ComponentModel.Description("potentially challenging size calculations")]
     public class TestCaseSizing : TestCase
     {
-        private readonly Container testContainer;
+        private Container testContainer;
 
-        public TestCaseSizing()
+        [Test]
+        public void TestVariousScenarios()
         {
-            Add(testContainer = new Container
-            {
-                RelativeSizeAxes = Axes.Both,
-            });
-
             string[] testNames =
             {
                 @"Multiple children",
@@ -47,9 +46,45 @@ namespace osu.Framework.Tests.Visual
                 int test = i;
                 AddStep(testNames[i], delegate { loadTest(test); });
             }
+        }
 
-            loadTest(0);
-            addCrosshair();
+        [Test]
+        public void TestBypassAutoSizeAxes()
+        {
+            const float autosize_height = 300;
+
+            Container autoSizeContainer = null;
+            Box boxSizeReference = null;
+
+            AddStep("init", () =>
+            {
+                Child = autoSizeContainer = new Container
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    Width = 300,
+                    AutoSizeAxes = Axes.Y,
+                    Children = new Drawable[]
+                    {
+                        new Box
+                        {
+                            Colour = Color4.Green,
+                            RelativeSizeAxes = Axes.Both
+                        },
+                        boxSizeReference = new Box
+                        {
+                            RelativeSizeAxes = Axes.X,
+                            Height = autosize_height,
+                            Colour = Color4.Red.Opacity(0.2f),
+                        }
+                    }
+                };
+            });
+            AddAssert($"height = {autosize_height}", () => Precision.AlmostEquals(autosize_height, autoSizeContainer.DrawHeight));
+            AddStep("bypass y", () => boxSizeReference.BypassAutoSizeAxes = Axes.Y);
+            AddAssert("height = 0", () => Precision.AlmostEquals(0, autoSizeContainer.DrawHeight));
+            AddStep("bypass none", () => boxSizeReference.BypassAutoSizeAxes = Axes.None);
+            AddAssert($"height = {autosize_height}", () => Precision.AlmostEquals(autosize_height, autoSizeContainer.DrawHeight));
         }
 
         private void addCrosshair()
@@ -89,7 +124,11 @@ namespace osu.Framework.Tests.Visual
 
         private void loadTest(int testType)
         {
-            testContainer.Clear();
+            Child = testContainer = new Container
+            {
+                RelativeSizeAxes = Axes.Both,
+            };
+            addCrosshair();
 
             Container box;
 
@@ -166,7 +205,7 @@ namespace osu.Framework.Tests.Visual
 
                     addCornerMarkers(box, 10, Color4.YellowGreen);
 
-                    for (int i = 0; i < 50; i++)
+                    for (int i = 0; i < 40; i++)
                     {
                         box.Add(box = new InfofulBoxAutoSize
                         {

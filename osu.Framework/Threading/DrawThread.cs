@@ -20,6 +20,7 @@ namespace osu.Framework.Threading
             StatisticsCounterType.VBufOverflow,
             StatisticsCounterType.TextureBinds,
             StatisticsCounterType.DrawCalls,
+            StatisticsCounterType.ShaderBinds,
             StatisticsCounterType.VerticesDraw,
             StatisticsCounterType.VerticesUpl,
             StatisticsCounterType.Pixels,

@@ -16,10 +16,12 @@ namespace osu.Framework.Input.Handlers.Joystick
 {
     public class OpenTKJoystickHandler : InputHandler
     {
-        private ScheduledDelegate scheduled;
+        private ScheduledDelegate scheduledPoll;
+        private ScheduledDelegate scheduledRefreshDevices;
 
         private int mostSeenDevices;
-        private List<JoystickDevice> devices = new List<JoystickDevice>();
+
+        private readonly List<JoystickDevice> devices = new List<JoystickDevice>();
 
         public override bool Initialize(GameHost host)
         {
@@ -27,10 +29,10 @@ namespace osu.Framework.Input.Handlers.Joystick
             {
                 if (enabled)
                 {
-                    host.InputThread.Scheduler.Add(scheduled = new ScheduledDelegate(delegate
-                    {
-                        refreshDevices();
+                    host.InputThread.Scheduler.Add(scheduledRefreshDevices = new ScheduledDelegate(refreshDevices, 0, 500));
 
+                    host.InputThread.Scheduler.Add(scheduledPoll = new ScheduledDelegate(delegate
+                    {
                         foreach (var device in devices)
                         {
                             if (device.RawState.Equals(device.LastRawState))
@@ -44,7 +46,9 @@ namespace osu.Framework.Input.Handlers.Joystick
                 }
                 else
                 {
-                    scheduled?.Cancel();
+                    scheduledPoll?.Cancel();
+                    scheduledRefreshDevices?.Cancel();
+
                     foreach (var device in devices)
                     {
                         if (device.LastState != null)
@@ -68,39 +72,36 @@ namespace osu.Framework.Input.Handlers.Joystick
 
         private void refreshDevices()
         {
-            var newDevices = new List<JoystickDevice>();
-
             // Update devices and add them to newDevices if still connected
-            foreach (var dev in devices)
+            for (int i = 0; i < devices.Count; i++)
             {
+                var dev = devices[i];
+
                 dev.Refresh();
 
-                if (dev.RawState.IsConnected)
-                {
-                    newDevices.Add(dev);
-                }
-                else
+                if (!dev.RawState.IsConnected)
                 {
                     mostSeenDevices--;
                     if (dev.LastState != null)
                         handleState(dev, new JoystickState());
+
+                    devices.RemoveAt(i--);
                 }
             }
 
             // Find any newly-connected devices
             while (true)
             {
-                var newDevice = new JoystickDevice(mostSeenDevices);
-                if (!newDevice.Capabilities.IsConnected)
+                if (!OpenTK.Input.Joystick.GetCapabilities(mostSeenDevices).IsConnected)
                     break;
+
+                var newDevice = new JoystickDevice(mostSeenDevices);
 
                 Logger.Log($"Connected joystick device: {newDevice.Guid}");
 
-                newDevices.Add(newDevice);
+                devices.Add(newDevice);
                 mostSeenDevices++;
             }
-
-            devices = newDevices;
         }
 
         public override bool IsActive => true;
@@ -200,12 +201,6 @@ namespace osu.Framework.Input.Handlers.Joystick
             public float[] DefaultDeadzones => defaultDeadZones.IsValueCreated ? defaultDeadZones.Value : null;
 
             /// <summary>
-            /// The capabilities for this joystick device.
-            /// This is only queried once when <see cref="JoystickDevice"/> is constructed.
-            /// </summary>
-            public readonly JoystickCapabilities Capabilities;
-
-            /// <summary>
             /// The <see cref="Guid"/> for this <see cref="JoystickDevice"/>.
             /// </summary>
             public readonly Guid Guid;
@@ -216,7 +211,6 @@ namespace osu.Framework.Input.Handlers.Joystick
             {
                 this.deviceIndex = deviceIndex;
 
-                Capabilities = OpenTK.Input.Joystick.GetCapabilities(deviceIndex);
                 Guid = OpenTK.Input.Joystick.GetGuid(deviceIndex);
 
                 Refresh();
