@@ -5,7 +5,7 @@ using System;
 using System.ComponentModel;
 using System.Net.Http;
 using osu.Framework.Graphics;
-using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Containers.Markdown;
 using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual

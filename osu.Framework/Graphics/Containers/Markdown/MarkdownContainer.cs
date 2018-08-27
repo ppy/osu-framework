@@ -191,9 +191,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
         }
 
         protected virtual Drawable CreateNotImplementedMarkdown(IMarkdownObject markdownObject)
-        {
-            return new NotImplementedMarkdown(markdownObject);
-        }
+            => new NotImplementedMarkdown(markdownObject);
     }
 
     /// <summary>
@@ -220,9 +218,6 @@ namespace osu.Framework.Graphics.Containers.Markdown
     {
         private readonly MarkdownTableContainer tableContainer;
         private readonly List<List<MarkdownTableCell>> listContainerArray = new List<List<MarkdownTableCell>>();
-
-        protected virtual MarkdownTableCell CreateMarkdownTableCell(TableCell cell, TableColumnDefinition definition, int rowNumber) =>
-            new MarkdownTableCell(cell, definition, rowNumber);
 
         public MarkdownTable(Table table)
         {
@@ -255,6 +250,9 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 Content = listContainerArray.Select(x => x.Select(y => (Drawable)y).ToArray()).ToArray(),
             };
         }
+
+        protected virtual MarkdownTableCell CreateMarkdownTableCell(TableCell cell, TableColumnDefinition definition, int rowNumber) =>
+            new MarkdownTableCell(cell, definition, rowNumber);
 
         private Vector2 lastDrawSize;
         protected override void Update()
@@ -481,12 +479,6 @@ namespace osu.Framework.Graphics.Containers.Markdown
     /// </summary>
     public class MarkdownQuoteBlock : CompositeDrawable
     {
-        protected virtual MarkdownTextFlowContainer CreateMarkdownTextFlowContainer() =>
-            new MarkdownTextFlowContainer
-            {
-                Margin = new MarginPadding { Left = 20 }
-            };
-
         public MarkdownQuoteBlock(QuoteBlock quoteBlock)
         {
             AutoSizeAxes = Axes.Y;
@@ -510,6 +502,12 @@ namespace osu.Framework.Graphics.Containers.Markdown
             if (quoteBlock.LastChild is ParagraphBlock paragraphBlock)
                 textFlowContainer.ParagraphBlock = paragraphBlock;
         }
+
+        protected virtual MarkdownTextFlowContainer CreateMarkdownTextFlowContainer() =>
+            new MarkdownTextFlowContainer
+            {
+                Margin = new MarginPadding { Left = 20 }
+            };
     }
 
     /// <summary>
@@ -520,13 +518,14 @@ namespace osu.Framework.Graphics.Containers.Markdown
     {
         public MarkdownSeperator()
         {
-            Height = 1;
+            AutoSizeAxes = Axes.Y;
             RelativeSizeAxes = Axes.X;
-            InternalChild = new Box();
+            InternalChild = new Box
             {
-                RelativeSizeAxes = Axes.X;
-                Colour = Color4.Gray;
-            }
+                RelativeSizeAxes = Axes.X,
+                Colour = Color4.Gray,
+                Height = 1,
+            };
         }
     }
 
