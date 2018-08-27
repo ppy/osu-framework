@@ -113,7 +113,7 @@ namespace osu.Framework.Tests.Exceptions
                     while (loadable.LoadState < LoadState.Loading)
                         Thread.Sleep(1);
 
-                    loadable.Dispose();
+                    g.Dispose();
                 });
             });
         }
@@ -135,7 +135,7 @@ namespace osu.Framework.Tests.Exceptions
                     while (loadable.LoadState < LoadState.Loading)
                         Thread.Sleep(1);
 
-                    g.Clear();
+                    loadable.Dispose();
                 });
             });
         }
