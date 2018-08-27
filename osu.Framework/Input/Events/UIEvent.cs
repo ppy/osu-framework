@@ -13,7 +13,7 @@ namespace osu.Framework.Input.Events
     /// <summary>
     /// Denotes a UI event.
     /// A UI event is produced for and can be handled by a <see cref="Drawable"/>.
-    /// While an event handling, the <see cref="Target"/> is set to the <see cref="Drawable"/> which is handling the event.
+    /// While handling events, the <see cref="Target"/> is set to the <see cref="Drawable"/> which is handling the event.
     /// </summary>
     public abstract class UIEvent
     {

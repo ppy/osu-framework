@@ -11,7 +11,7 @@ namespace osu.Framework.Input
 {
     /// <summary>
     /// Used for compatibility only. Will be removed after the new way is applied to code.
-    /// This converts positions to a <see cref="Drawable"/>'s parent space choordinate.
+    /// This converts positions to a <see cref="Drawable"/>'s parent space.
     /// </summary>
     internal struct LocalMouseState : IMouseState
     {
