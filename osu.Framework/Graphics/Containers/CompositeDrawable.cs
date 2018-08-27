@@ -1177,7 +1177,7 @@ namespace osu.Framework.Graphics.Containers
                 padding = value;
 
                 foreach (Drawable c in internalChildren)
-                    c.Invalidate(c.InvalidationFromParentSize);
+                    c.Invalidate(c.InvalidationFromParentSize | Invalidation.MiscGeometry);
             }
         }
 
