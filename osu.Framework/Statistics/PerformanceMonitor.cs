@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Allocation;
+using osu.Framework.MathUtils;
 using osu.Framework.Timing;
 using System;
 using System.Collections.Concurrent;
@@ -127,13 +128,18 @@ namespace osu.Framework.Statistics
                 }
             }
 
+            double dampRate = Math.Max(Clock.ElapsedFrameTime, 0) / 1000;
+            averageFrameTime = Interpolation.Damp(averageFrameTime, Clock.ElapsedFrameTime, 0.01, dampRate);
+
             //check for dropped (stutter) frames
-            traceCollector.NewFrame(Clock.ElapsedFrameTime, Math.Max(10, Math.Max(1000 / Clock.MaximumUpdateHz, AverageFrameTime) * 4));
+            traceCollector.NewFrame(Clock.ElapsedFrameTime, Math.Max(10, Math.Max(1000 / Clock.MaximumUpdateHz, averageFrameTime) * 4));
 
             //reset frame totals
             currentCollectionTypeStack.Clear();
             consumeStopwatchElapsedTime();
         }
+
+        private double averageFrameTime;
 
         private double consumeStopwatchElapsedTime()
         {
@@ -145,7 +151,6 @@ namespace osu.Framework.Statistics
         }
 
         internal double FramesPerSecond => Clock.FramesPerSecond;
-        internal double AverageFrameTime => Clock.AverageFrameTime;
 
         #region IDisposable Support
 
