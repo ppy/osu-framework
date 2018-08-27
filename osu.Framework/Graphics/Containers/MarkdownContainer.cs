@@ -51,13 +51,13 @@ namespace osu.Framework.Graphics.Containers
             set => markdownContainer.Spacing = new Vector2(value);
         }
 
-        public virtual MarginPadding MarkdownMargin
+        public MarginPadding MarkdownMargin
         {
             get => markdownContainer.Margin;
             set => markdownContainer.Margin = value;
         }
 
-        public virtual MarginPadding MarkdownPadding
+        public MarginPadding MarkdownPadding
         {
             get => markdownContainer.Padding;
             set => markdownContainer.Padding = value;
@@ -197,31 +197,26 @@ namespace osu.Framework.Graphics.Containers
     }
 
     /// <summary>
-    /// NotExistMarkdown :
-    /// shows the <see cref="IMarkdownObject" /> does not implement in drawable object
+    /// Visualises a message when a <see cref="IMarkdownObject"/> doesn't have a visual implementation.
     /// </summary>
-    public class NotImplementedMarkdown : SpriteText
+    public class NotImplementedMarkdown : CompositeDrawable
     {
         public NotImplementedMarkdown(IMarkdownObject markdownObject)
         {
-            Colour = new Color4(255, 0, 0, 255);
-            TextSize = 21;
-            Text = markdownObject?.GetType() + " Not implemented.";
+            AutoSizeAxes = Axes.Y;
+            InternalChildren = new SpriteText
+            {
+                Colour = new Color4(255, 0, 0, 255),
+                TextSize = 21,
+                Text = markdownObject?.GetType() + " Not implemented."
+            };
         }
     }
 
     /// <summary>
-    /// MarkdownTable : 
-    /// |Operator            | Description
-    /// |--------------------|------------
-    /// | `<left/> + <right/>` | add left to right number 
-    /// | `<left/> - <right/>` | substract right number from left
-    /// | `<left/> * <right/>` | multiply left by right number
-    /// | `<left/> / <right/>` | divide left by right number
-    /// | `<left/> // <right/>`| divide left by right number and round to an integer
-    /// | `<left/> % <right/>` | calculates the modulus of left by right
+    /// Visualises a markdown table, containing <see cref="MarkdownTableCell"/>s.
     /// </summary>
-    public class MarkdownTable : Container
+    public class MarkdownTable : CompositeDrawable
     {
         private readonly MarkdownTableContainer tableContainer;
         private readonly List<List<MarkdownTableCell>> listContainerArray = new List<List<MarkdownTableCell>>();
@@ -253,14 +248,11 @@ namespace osu.Framework.Graphics.Containers
                 listContainerArray.Add(rows);
             }
 
-            Children = new Drawable[]
+            InternalChild = tableContainer = new MarkdownTableContainer
             {
-                tableContainer = new MarkdownTableContainer
-                {
-                    AutoSizeAxes = Axes.Y,
-                    RelativeSizeAxes = Axes.X,
-                    Content = listContainerArray.Select(x=>x.Select(y=>(Drawable)y).ToArray()).ToArray(),
-                }
+                AutoSizeAxes = Axes.Y,
+                RelativeSizeAxes = Axes.X,
+                Content = listContainerArray.Select(x => x.Select(y => (Drawable)y).ToArray()).ToArray(),
             };
         }
 
@@ -270,13 +262,13 @@ namespace osu.Framework.Graphics.Containers
             if (lastDrawSize != DrawSize)
             {
                 lastDrawSize = DrawSize;
-                UpdateColumnDefinitions();
-                UpdateRowDefinitions();
+                updateColumnDefinitions();
+                updateRowDefinitions();
             }
             base.Update();
         }
 
-        protected virtual void UpdateColumnDefinitions()
+        private void updateColumnDefinitions()
         {
             var totalColumn = listContainerArray.Max(x => x.Count);
             var totalRows = listContainerArray.Count;
@@ -321,7 +313,7 @@ namespace osu.Framework.Graphics.Containers
             tableContainer.ColumnDimensions = columnDimensions;
         }
 
-        protected virtual void UpdateRowDefinitions()
+        private void updateRowDefinitions()
         {
             tableContainer.RowDimensions = listContainerArray.Select(x => new Dimension(GridSizeMode.Absolute, x.Max(y => y.TextFlowContainer.DrawHeight + 10))).ToArray();
         }
@@ -335,7 +327,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        public class MarkdownTableCell : Container
+        public class MarkdownTableCell : CompositeDrawable
         {
             public MarkdownTextFlowContainer TextFlowContainer => textFlowContainer;
             private readonly MarkdownTextFlowContainer textFlowContainer;
@@ -343,7 +335,7 @@ namespace osu.Framework.Graphics.Containers
             protected virtual MarkdownTextFlowContainer CreateMarkdownTextFlowContainer() =>
                 new MarkdownTextFlowContainer
                 {
-                    Margin = new MarginPadding { Left = 5, Right = 5, Top = 5, Bottom = 5 }
+                    Padding = new MarginPadding { Left = 5, Right = 5, Top = 5, Bottom = 0 }
                 };
 
             public MarkdownTableCell(TableCell cell, TableColumnDefinition definition, int rowNumber)
@@ -361,7 +353,7 @@ namespace osu.Framework.Graphics.Containers
                     backgroundAlpha = 0.4f;
                 }
 
-                Children = new Drawable[]
+                InternalChildren = new Drawable[]
                 {
                     new Box
                     {
@@ -385,8 +377,7 @@ namespace osu.Framework.Graphics.Containers
                         break;
 
                     case TableColumnAlign.Right:
-                        //TODO : make this work
-                        //textFlowContainer.TextAnchor = Anchor.TopRight;
+                        textFlowContainer.TextAnchor = Anchor.TopRight;
                         break;
 
                     default:
@@ -403,7 +394,7 @@ namespace osu.Framework.Graphics.Containers
     /// foo
     /// ```
     /// </summary>
-    public class MarkdownFencedCodeBlock : Container
+    public class MarkdownFencedCodeBlock : CompositeDrawable
     {
         public MarkdownFencedCodeBlock(FencedCodeBlock fencedCodeBlock)
         {
@@ -411,7 +402,7 @@ namespace osu.Framework.Graphics.Containers
             RelativeSizeAxes = Axes.X;
 
             TextFlowContainer textFlowContainer;
-            Children = new Drawable[]
+            InternalChildren = new Drawable[]
             {
                 new Box
                 {
@@ -443,7 +434,7 @@ namespace osu.Framework.Graphics.Containers
     /// ###Heading3
     /// ###3Heading4
     /// </summary>
-    public class MarkdownHeading : Container
+    public class MarkdownHeading : CompositeDrawable
     {
         protected virtual MarkdownTextFlowContainer CreateMarkdownTextFlowContainer() =>
             new MarkdownTextFlowContainer();
@@ -455,7 +446,7 @@ namespace osu.Framework.Graphics.Containers
 
             MarkdownTextFlowContainer textFlowContainer;
 
-            Children = new Drawable[]
+            InternalChildren = new Drawable[]
             {
                 textFlowContainer = CreateMarkdownTextFlowContainer()
             };
@@ -488,7 +479,7 @@ namespace osu.Framework.Graphics.Containers
     /// MarkdownQuoteBlock :
     /// > NOTE: This document does not describe the `liquid` language.
     /// </summary>
-    public class MarkdownQuoteBlock : Container
+    public class MarkdownQuoteBlock : CompositeDrawable
     {
         protected virtual MarkdownTextFlowContainer CreateMarkdownTextFlowContainer() =>
             new MarkdownTextFlowContainer
@@ -503,7 +494,7 @@ namespace osu.Framework.Graphics.Containers
 
             MarkdownTextFlowContainer textFlowContainer;
 
-            Children = new Drawable[]
+            InternalChildren = new Drawable[]
             {
                 new Box
                 {
@@ -525,25 +516,29 @@ namespace osu.Framework.Graphics.Containers
     /// MarkdownSeperator :
     /// (spacing)
     /// </summary>
-    public class MarkdownSeperator : Box
+    public class MarkdownSeperator : CompositeDrawable
     {
         public MarkdownSeperator()
         {
-            RelativeSizeAxes = Axes.X;
             Height = 1;
-            Colour = Color4.Gray;
+            RelativeSizeAxes = Axes.X;
+            InternalChild = new Box();
+            {
+                RelativeSizeAxes = Axes.X;
+                Colour = Color4.Gray;
+            }
         }
     }
 
     /// <summary>
     /// Load image from url
     /// </summary>
-    public class MarkdownImage : Container
+    public class MarkdownImage : CompositeDrawable
     {
         private readonly Box background;
         public MarkdownImage(string url)
         {
-            Children = new Drawable[]
+            InternalChildren = new Drawable[]
             {
                 background = new Box
                 {
@@ -576,7 +571,7 @@ namespace osu.Framework.Graphics.Containers
             imageContainer.FadeInFromZero(300, Easing.OutQuint);
         }
 
-        protected class ImageContainer : Container
+        protected class ImageContainer : CompositeDrawable
         {
             private readonly string imageUrl;
             private readonly Sprite image;
@@ -586,7 +581,7 @@ namespace osu.Framework.Graphics.Containers
             public ImageContainer(string url)
             {
                 imageUrl = url;
-                Children = new Drawable[]
+                InternalChildren = new Drawable[]
                 {
                     image = new Sprite
                     {
@@ -729,7 +724,7 @@ namespace osu.Framework.Graphics.Containers
         protected virtual void AddBoldText(string text, LiteralInline literalInline)
         {
             //TODO : make real "Bold text"
-            AddDrawanle(new SpriteText
+            AddDrawable(new SpriteText
             {
                 Text = text,
                 Colour = Color4.LightGray
@@ -772,7 +767,7 @@ namespace osu.Framework.Graphics.Containers
             });
         }
 
-        protected IEnumerable<SpriteText> AddDrawanle(Drawable drawable)
+        protected IEnumerable<SpriteText> AddDrawable(Drawable drawable)
         {
             var imageIndex = AddPlaceholder(drawable);
             return base.AddText("[" + imageIndex + "]");
