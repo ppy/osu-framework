@@ -285,7 +285,10 @@ namespace osu.Framework.Input
                 d.BuildKeyboardInputQueue(inputQueue);
 
             if (!unfocusIfNoLongerValid())
-                inputQueue.Append(FocusedDrawable);
+            {
+                inputQueue.Remove(FocusedDrawable);
+                inputQueue.Add(FocusedDrawable);
+            }
 
             // Keyboard and mouse queues were created in back-to-front order.
             // We want input to first reach front-most drawables, so the queues
@@ -482,11 +485,7 @@ namespace osu.Framework.Input
 
         private bool handleKeyUp(InputState state, Key key)
         {
-            IEnumerable<Drawable> queue = InputQueue;
-            if (!unfocusIfNoLongerValid())
-                queue = queue.Prepend(FocusedDrawable);
-
-            return PropagateKeyUp(queue, state, new KeyUpEventArgs { Key = key });
+            return PropagateKeyUp(InputQueue, state, new KeyUpEventArgs { Key = key });
         }
 
         /// <summary>
@@ -508,11 +507,7 @@ namespace osu.Framework.Input
 
         private bool handleJoystickPress(InputState state, JoystickButton button)
         {
-            IEnumerable<Drawable> queue = InputQueue;
-            if (!unfocusIfNoLongerValid())
-                queue = queue.Prepend(FocusedDrawable);
-
-            return PropagateJoystickPress(queue, state, new JoystickEventArgs { Button = button });
+            return PropagateJoystickPress(InputQueue, state, new JoystickEventArgs { Button = button });
         }
 
         protected virtual bool PropagateJoystickPress(IEnumerable<Drawable> drawables, InputState state, JoystickEventArgs args)
@@ -527,11 +522,7 @@ namespace osu.Framework.Input
 
         private bool handleJoystickRelease(InputState state, JoystickButton button)
         {
-            IEnumerable<Drawable> queue = InputQueue;
-            if (!unfocusIfNoLongerValid())
-                queue = queue.Prepend(FocusedDrawable);
-
-            return PropagateJoystickRelease(queue, state, new JoystickEventArgs { Button = button });
+            return PropagateJoystickRelease(InputQueue, state, new JoystickEventArgs { Button = button });
         }
 
         protected virtual bool PropagateJoystickRelease(IEnumerable<Drawable> drawables, InputState state, JoystickEventArgs args)
