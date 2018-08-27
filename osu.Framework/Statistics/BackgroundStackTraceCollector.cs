@@ -10,12 +10,11 @@ using System.Threading;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Diagnostics.Runtime;
-using osu.Framework.Threading;
 
 namespace osu.Framework.Statistics
 {
     /// <summary>
-    /// Spwan a thread to collect real-time stack traces of the targeted thread.
+    /// Spawn a thread to collect real-time stack traces of the targeted thread.
     /// </summary>
     internal class BackgroundStackTraceCollector : IDisposable
     {
@@ -23,34 +22,82 @@ namespace osu.Framework.Statistics
 
         private readonly StopwatchClock clock;
 
-        private readonly Logger logger;
+        private readonly Lazy<Logger> logger;
+
         private readonly Thread targetThread;
 
         internal double LastConsumptionTime;
 
         private double spikeRecordThreshold;
 
-        public bool Enabled = true;
+        private bool enabled;
 
-        private readonly GameThread thread;
+        private Thread thread;
 
+        /// <summary>
+        /// Create a collector for the target thread. Starts in a disabled state (see <see cref="Enabled"/>.
+        /// </summary>
+        /// <param name="targetThread">The thread to monitor.</param>
+        /// <param name="clock">The clock to use for elapsed time checks.</param>
         public BackgroundStackTraceCollector(Thread targetThread, StopwatchClock clock)
         {
             if (Debugger.IsAttached) return;
 
-            logger = Logger.GetLogger($"performance-{targetThread.Name?.ToLower() ?? "unknown"}");
-            logger.OutputToListeners = false;
-
             this.clock = clock;
             this.targetThread = targetThread;
 
-            thread = new GameThread(() =>
+            logger = new Lazy<Logger>(() =>
             {
-                if (Enabled && targetThread.IsAlive && clock.ElapsedMilliseconds - LastConsumptionTime > spikeRecordThreshold / 2 && backgroundMonitorStackTrace == null)
-                    backgroundMonitorStackTrace = getStackTrace(targetThread);
-            }, $"{targetThread}-StackTraceCollector", false);
+                var l = Logger.GetLogger($"performance-{targetThread.Name?.ToLower() ?? "unknown"}");
+                l.OutputToListeners = false;
+                return l;
+            });
+        }
+
+        /// <summary>
+        /// Whether this collector is currently running.
+        /// </summary>
+        public bool Enabled
+        {
+            get { return enabled; }
+            set
+            {
+                if (value == enabled) return;
+
+                enabled = value;
+                if (enabled)
+                    startThread();
+                else
+                    stopThread();
+            }
+        }
+
+        private void startThread()
+        {
+            Trace.Assert(thread == null);
+
+            thread = new Thread(run)
+            {
+                Name = $"{targetThread}-StackTraceCollector",
+                IsBackground = true
+            };
 
             thread.Start();
+        }
+
+        private void run()
+        {
+            while (enabled)
+            {
+                if (targetThread.IsAlive && clock.ElapsedMilliseconds - LastConsumptionTime > spikeRecordThreshold / 2 && backgroundMonitorStackTrace == null) backgroundMonitorStackTrace = getStackTrace(targetThread);
+                Thread.Sleep(5);
+            }
+        }
+
+        private void stopThread()
+        {
+            thread?.Abort();
+            thread = null;
         }
 
         internal void NewFrame(double elapsedFrameTime, double newSpikeThreshold)
@@ -64,7 +111,7 @@ namespace osu.Framework.Statistics
 
             spikeRecordThreshold = newSpikeThreshold;
 
-            if (!Enabled || elapsedFrameTime < currentThreshold || currentThreshold == 0)
+            if (!enabled || elapsedFrameTime < currentThreshold || currentThreshold == 0)
                 return;
 
             StringBuilder logMessage = new StringBuilder();
@@ -86,7 +133,7 @@ namespace osu.Framework.Statistics
             else
                 logMessage.AppendLine(@"| Call stack was not recorded.");
 
-            logger.Add(logMessage.ToString());
+            logger.Value.Add(logMessage.ToString());
         }
 
         private static readonly Lazy<ClrInfo> clr_info = new Lazy<ClrInfo>(delegate
@@ -117,8 +164,8 @@ namespace osu.Framework.Statistics
         {
             if (!isDisposed)
             {
+                Enabled = false; // stops the thread if running.
                 isDisposed = true;
-                thread?.Exit();
             }
         }
 
