@@ -26,13 +26,10 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     public class MarkdownContainer : CompositeDrawable
     {
-
         protected virtual MarkdownPipeline CreateBuilder()
-        {
-            return new MarkdownPipelineBuilder().UseAutoIdentifiers(AutoIdentifierOptions.GitHub)
-                                         .UseEmojiAndSmiley()
-                                         .UseAdvancedExtensions().Build();
-        }
+            => new MarkdownPipelineBuilder().UseAutoIdentifiers(AutoIdentifierOptions.GitHub)
+            .UseEmojiAndSmiley()
+            .UseAdvancedExtensions().Build();
 
         public string Text
         {
@@ -67,9 +64,10 @@ namespace osu.Framework.Graphics.Containers
         }
 
         private const int root_layer_index = 0;
-        private readonly FillFlowContainer markdownContainer;
+        private FillFlowContainer markdownContainer;
 
-        public MarkdownContainer()
+        [BackgroundDependencyLoader]
+        private void load()
         {
             InternalChildren = new Drawable[]
             {
@@ -121,6 +119,12 @@ namespace osu.Framework.Graphics.Containers
                 case ListItemBlock listItemBlock:
                     foreach (var single in listItemBlock)
                         AddMarkdownComponent(single, container, layerIndex);
+                    break;
+                case HtmlBlock _:
+                    //Cannot read Html Syntex in Markdown.
+                    break;
+                case LinkReferenceDefinitionGroup _:
+                    //Link Definition Does not need display.
                     break;
                 default:
                     container.Add(CreateNotImplementedMarkdown(markdownObject));
@@ -190,7 +194,6 @@ namespace osu.Framework.Graphics.Containers
         {
             return new NotImplementedMarkdown(markdownObject);
         }
-
     }
 
     /// <summary>
@@ -537,9 +540,9 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     public class MarkdownImage : Container
     {
+        private readonly Box background;
         public MarkdownImage(string url)
         {
-            Box background;
             Children = new Drawable[]
             {
                 background = new Box
@@ -554,17 +557,31 @@ namespace osu.Framework.Graphics.Containers
                         RelativeSizeAxes = Axes.Both,
                         OnLoadComplete = d =>
                         {
-                            background.FadeTo(0,300,Easing.OutQuint);
-                            d.FadeInFromZero(300, Easing.OutQuint);
+                            if(d is ImageContainer imageContainer)
+                                EffectLoadImageComplete(imageContainer);
                         },
                     })
             };
         }
 
-        private class ImageContainer : Container
+        protected virtual void EffectLoadImageComplete(ImageContainer imageContainer)
+        {
+            var rowImageSize = imageContainer.Image?.Texture?.Size ?? new Vector2();
+            //Resize to image's row size
+            this.ResizeWidthTo(rowImageSize.X, 700, Easing.OutQuint);
+            this.ResizeHeightTo(rowImageSize.Y, 700, Easing.OutQuint);
+
+            //Hide background image
+            background.FadeTo(0, 300, Easing.OutQuint);
+            imageContainer.FadeInFromZero(300, Easing.OutQuint);
+        }
+
+        protected class ImageContainer : Container
         {
             private readonly string imageUrl;
             private readonly Sprite image;
+
+            public Sprite Image => image;
 
             public ImageContainer(string url)
             {
@@ -726,6 +743,8 @@ namespace osu.Framework.Graphics.Containers
 
         protected virtual void AddLinkText(string text, LiteralInline literalInline)
         {
+            //TODO Add Link Text
+            //var linkText = (literalInline.Parent as LinkInline)?.Url;
             AddText(text, t => t.Colour = Color4.DodgerBlue);
         }
 
@@ -748,8 +767,8 @@ namespace osu.Framework.Graphics.Containers
             //insert a image
             AddImage(new MarkdownImage(imageUrl)
             {
-                Width = 300,
-                Height = 240,
+                Width = 40,
+                Height = 40,
             });
         }
 

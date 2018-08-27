@@ -24,27 +24,27 @@ namespace osu.Framework.Extensions.IEnumerableExtensions
         }
 
         /// <summary>
-        /// Get next value in an IEnumearble collection.
+        /// Retrieves the value after a pivot from an <see cref="IEnumerable{T}"/>.
         /// </summary>
         /// <typeparam name="T">The type of the items stored in the collection.</typeparam>
-        /// <param name="guidList">The collection to iterate on.</param>
-        /// <param name="current"></param>
+        /// <param name="collection">The collection to iterate on.</param>
+        /// <param name="current">The pivot value.</param>
         /// <returns></returns>
-        public static T GetNext<T>(this IEnumerable<T> guidList, T current)
+        public static T GetNext<T>(this IEnumerable<T> collection, T current)
         {
-            return guidList.SkipWhile(i => !i.Equals(current)).Skip(1).FirstOrDefault();
+            return collection.SkipWhile(i => !i.Equals(current)).Skip(1).FirstOrDefault();
         }
 
         /// <summary>
-        /// Get pervious value in an IEnumearble collection.
+        /// Retrieves the value before a pivot from an <see cref="IEnumerable{T}"/>.
         /// </summary>
         /// <typeparam name="T">The type of the items stored in the collection.</typeparam>
-        /// <param name="guidList">The collection to iterate on.</param>
-        /// <param name="current"></param>
+        /// <param name="collection">The collection to iterate on.</param>
+        /// <param name="current">The pivot value.</param>
         /// <returns></returns>
-        public static T GetPrevious<T>(this IEnumerable<T> guidList, T current)
+        public static T GetPrevious<T>(this IEnumerable<T> collection, T current)
         {
-            return guidList.TakeWhile(i => !i.Equals(current)).LastOrDefault();
+            return collection.TakeWhile(i => !i.Equals(current)).LastOrDefault();
         }
     }
 }
