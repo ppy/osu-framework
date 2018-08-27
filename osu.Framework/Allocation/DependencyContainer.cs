@@ -2,8 +2,9 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using osu.Framework.Extensions.TypeExtensions;
 
 namespace osu.Framework.Allocation
@@ -13,7 +14,7 @@ namespace osu.Framework.Allocation
     /// </summary>
     public class DependencyContainer : IReadOnlyDependencyContainer
     {
-        private readonly ConcurrentDictionary<Type, object> cache = new ConcurrentDictionary<Type, object>();
+        private readonly Dictionary<Type, object> cache = new Dictionary<Type, object>();
 
         private readonly IReadOnlyDependencyContainer parentContainer;
 
@@ -130,9 +131,9 @@ namespace osu.Framework.Allocation
         /// </summary>
         /// <typeparam name="T">The type of the instance to inject dependencies into.</typeparam>
         /// <param name="instance">The instance to inject dependencies into.</param>
-        public void Inject<T>(T instance)
+        public async Task Inject<T>(T instance)
             where T : class
-            => DependencyActivator.Activate(instance, this);
+            => await DependencyActivator.Activate(instance, this);
     }
 
     public class TypeAlreadyCachedException : InvalidOperationException

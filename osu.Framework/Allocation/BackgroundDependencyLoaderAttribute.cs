@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
+using System.Threading.Tasks;
 using JetBrains.Annotations;
 using osu.Framework.Extensions.TypeExtensions;
 
@@ -37,14 +38,14 @@ namespace osu.Framework.Allocation
             this.permitNulls = permitNulls;
         }
 
-        internal static InjectDependencyDelegate CreateActivator(Type type)
+        internal static InjectDependencyDelegateAsync CreateActivator(Type type)
         {
             var loaderMethods = type.GetMethods(activator_flags).Where(m => m.GetCustomAttribute<BackgroundDependencyLoaderAttribute>() != null).ToArray();
 
             switch (loaderMethods.Length)
             {
                 case 0:
-                    return (_,__) => { };
+                    return (_, __) => Task.CompletedTask;
                 case 1:
                     var method = loaderMethods[0];
 
@@ -55,12 +56,20 @@ namespace osu.Framework.Allocation
                     var permitNulls = method.GetCustomAttribute<BackgroundDependencyLoaderAttribute>().permitNulls;
                     var parameterGetters = method.GetParameters().Select(p => p.ParameterType).Select(t => getDependency(t, type, permitNulls || t.IsNullable()));
 
-                    return (target, dc) =>
+                    return async (target, dc) =>
                     {
                         try
                         {
                             var parameters = parameterGetters.Select(p => p(dc)).ToArray();
-                            method.Invoke(target, parameters);
+
+                            var ret = method.Invoke(target, parameters);
+
+                            switch (ret)
+                            {
+                                case Task t:
+                                    await t;
+                                    break;
+                            }
                         }
                         catch (TargetInvocationException exc) when (exc.InnerException is DependencyInjectionException die)
                         {
@@ -69,6 +78,8 @@ namespace osu.Framework.Allocation
                         }
                         catch (TargetInvocationException exc)
                         {
+                            if (exc.InnerException is OperationCanceledException) throw exc.InnerException;
+
                             // When this activator has failed (single invoke call)
                             throw new DependencyInjectionException { DispatchInfo = ExceptionDispatchInfo.Capture(exc.InnerException) };
                         }
