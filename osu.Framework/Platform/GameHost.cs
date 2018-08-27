@@ -553,7 +553,11 @@ namespace osu.Framework.Platform
 
             try
             {
-                root.Load(SceneGraphClock, Dependencies);
+                root.LoadAsync(SceneGraphClock, Dependencies).Wait();
+            }
+            catch (AggregateException ae) when (ae.InnerException is DependencyInjectionException inner)
+            {
+                inner.DispatchInfo.Throw();
             }
             catch (DependencyInjectionException e)
             {

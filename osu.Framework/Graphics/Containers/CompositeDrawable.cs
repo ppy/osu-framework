@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
+// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Lists;
@@ -20,6 +20,7 @@ using osu.Framework.Caching;
 using osu.Framework.Threading;
 using osu.Framework.Statistics;
 using System.Threading.Tasks;
+using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.MathUtils;
 
@@ -37,7 +38,7 @@ namespace osu.Framework.Graphics.Containers
         #region Contruction and disposal
 
         /// <summary>
-        /// Contructs a <see cref="CompositeDrawable"/> that stores children.
+        /// Constructs a <see cref="CompositeDrawable"/> that stores children.
         /// </summary>
         protected CompositeDrawable()
         {
@@ -62,18 +63,18 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public IReadOnlyDependencyContainer Dependencies { get; private set; }
 
-        protected sealed override void InjectDependencies(IReadOnlyDependencyContainer dependencies)
+        protected sealed override async Task InjectDependencies(IReadOnlyDependencyContainer dependencies)
         {
             // get our dependencies from our parent, but allow local overriding of our inherited dependency container
             Dependencies = CreateChildDependencies(dependencies);
 
-            base.InjectDependencies(dependencies);
+            await base.InjectDependencies(dependencies);
         }
 
         private CancellationTokenSource cancellationSource;
 
         /// <summary>
-        /// Loads a future child or grand-child of this <see cref="CompositeDrawable"/> asyncronously. <see cref="Dependencies"/>
+        /// Loads a future child or grand-child of this <see cref="CompositeDrawable"/> asynchronously. <see cref="Dependencies"/>
         /// and <see cref="Drawable.Clock"/> are inherited from this <see cref="CompositeDrawable"/>.
         ///
         /// Note that this will always use the dependencies and clock from this instance. If you must load to a nested container level,
@@ -98,11 +99,25 @@ namespace osu.Framework.Graphics.Containers
                 dependencies = cancellationDeps;
             }
 
-            return component.LoadAsync(game, Clock, dependencies, cancellationSource.Token, () => onLoaded?.Invoke(component));
+            return Task.Run(async () => await component.LoadAsync(Clock, dependencies), cancellationSource.Token).ContinueWith(t =>
+            {
+                if (t.IsCanceled)
+                    return;
+
+                var exception = t.Exception?.AsSingular();
+
+                game.Schedule(() =>
+                {
+                    if (exception != null)
+                        throw exception;
+
+                    onLoaded?.Invoke(component);
+                });
+            });
         }
 
         [BackgroundDependencyLoader(true)]
-        private void load(ShaderManager shaders, CancellationToken? cancellation)
+        private async Task load(ShaderManager shaders, CancellationToken? cancellation)
         {
             if (shader == null)
                 shader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
@@ -113,7 +128,7 @@ namespace osu.Framework.Graphics.Containers
             foreach (var c in internalChildren)
             {
                 cancellation?.ThrowIfCancellationRequested();
-                loadChild(c);
+                await loadChild(c);
             }
         }
 
@@ -127,9 +142,12 @@ namespace osu.Framework.Graphics.Containers
             checkChildrenLife();
         }
 
-        private void loadChild(Drawable child)
+        private async Task loadChild(Drawable child)
         {
-            child.Load(Clock, Dependencies);
+            if (IsDisposed)
+                throw new ObjectDisposedException(ToString(), "Disposed Drawables may not have children added.");
+
+            await child.LoadAsync(Clock, Dependencies);
             child.Parent = this;
         }
 
@@ -355,6 +373,9 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         protected internal virtual void AddInternal(Drawable drawable)
         {
+            if (IsDisposed)
+                throw new ObjectDisposedException(ToString(), "Disposed Drawables may not have children added.");
+
             if (drawable == null)
                 throw new ArgumentNullException(nameof(drawable), $"null {nameof(Drawable)}s may not be added to {nameof(CompositeDrawable)}.");
 
@@ -370,9 +391,27 @@ namespace osu.Framework.Graphics.Containers
 
             if (drawable.LoadState >= LoadState.Ready)
                 drawable.Parent = this;
-            // If we're already loaded, we can eagerly allow children to be loaded
             else if (LoadState >= LoadState.Loading)
-                loadChild(drawable);
+            {
+                // If we're already loaded, we can eagerly allow children to be loaded
+                try
+                {
+                    loadChild(drawable).Wait(cancellationSource?.Token ?? CancellationToken.None);
+                }
+                catch (AggregateException ae)
+                {
+                    ae.Flatten().Handle(ex =>
+                    {
+                        switch (ex)
+                        {
+                            case OperationCanceledException _:
+                                return true;
+                        }
+
+                        return false;
+                    });
+                }
+            }
 
             internalChildren.Add(drawable);
 
@@ -485,7 +524,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 if (!child.IsAlive)
                 {
-                    loadChild(child);
+                    loadChild(child).Wait(cancellationSource?.Token ?? CancellationToken.None);
 
                     if (child.LoadState >= LoadState.Ready)
                     {

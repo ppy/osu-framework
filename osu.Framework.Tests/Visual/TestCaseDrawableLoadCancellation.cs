@@ -1,10 +1,10 @@
 // Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -17,7 +17,7 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Tests.Visual
 {
-    public class TestCaseDrawableLoadCancallation : TestCase
+    public class TestCaseDrawableLoadCancellation : TestCase
     {
         private readonly List<SlowLoader> loaders = new List<SlowLoader>();
 
@@ -39,6 +39,9 @@ namespace osu.Framework.Tests.Visual
 
             AddAssert("last loader not cancelled", () => !loaders.Last().WasCancelled);
 
+
+            AddStep("allow load to complete", () => loaders.Last().AllowLoadCompletion());
+
             AddUntilStep(() => loaders.Last().HasLoaded, "last loader loaded");
         }
 
@@ -54,10 +57,12 @@ namespace osu.Framework.Tests.Visual
         public class SlowLoader : CompositeDrawable
         {
             private readonly int id;
-            private SlowLoadDrawable loadable;
+            private PausableLoadDrawable loadable;
 
             public bool WasCancelled => loadable?.WasCancelled ?? false;
             public bool HasLoaded => loadable?.IsLoaded ?? false;
+
+            public void AllowLoadCompletion() => loadable?.AllowLoadCompletion();
 
             public SlowLoader(int id)
             {
@@ -84,17 +89,17 @@ namespace osu.Framework.Tests.Visual
                 base.LoadComplete();
 
                 this.FadeInFromZero(200);
-                LoadComponentAsync(loadable = new SlowLoadDrawable(id), AddInternal);
+                LoadComponentAsync(loadable = new PausableLoadDrawable(id), AddInternal);
             }
         }
 
-        public class SlowLoadDrawable : CompositeDrawable
+        public class PausableLoadDrawable : CompositeDrawable
         {
             private readonly int id;
 
             public bool WasCancelled;
 
-            public SlowLoadDrawable(int id)
+            public PausableLoadDrawable(int id)
             {
                 this.id = id;
 
@@ -123,29 +128,43 @@ namespace osu.Framework.Tests.Visual
                 };
             }
 
-            [BackgroundDependencyLoader]
-            private void load(CancellationToken? cancellation)
-            {
-                int i = Math.Max(1, (int)(100 / Clock.Rate));
+            private readonly CancellationTokenSource ourSource = new CancellationTokenSource();
 
-                while (i-- > 0)
+            [BackgroundDependencyLoader]
+            private async Task load(CancellationToken? cancellation)
+            {
+                using (var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(ourSource.Token, cancellation ?? CancellationToken.None))
                 {
-                    Thread.Sleep(10);
-                    if (cancellation?.IsCancellationRequested == true)
+                    try
                     {
-                        WasCancelled = true;
-                        return;
+                        await Task.Delay(99999, linkedSource.Token);
+                    }
+                    catch (TaskCanceledException)
+                    {
+                        if (!ourSource.IsCancellationRequested)
+                        {
+                            WasCancelled = true;
+                            throw;
+                        }
                     }
                 }
 
-                //await Task.Delay(10000, cancellation ?? CancellationToken.None);
                 Logger.Log($"Load {id} complete!");
             }
+
+
+            public void AllowLoadCompletion() => ourSource.Cancel();
 
             protected override void LoadComplete()
             {
                 base.LoadComplete();
                 this.FadeInFromZero(200);
+            }
+
+            protected override void Dispose(bool isDisposing)
+            {
+                base.Dispose(isDisposing);
+                ourSource.Dispose();
             }
         }
     }
