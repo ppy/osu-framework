@@ -11,7 +11,7 @@ using osu.Framework.Platform;
 namespace osu.Framework.Tests.IO
 {
     [TestFixture]
-    public class LoggerTest
+    public class TestLogging
     {
         [Test]
         public void TestExceptionLogging()

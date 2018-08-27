@@ -4,6 +4,7 @@
 using System;
 using System.IO;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace osu.Framework.IO.Stores
 {
@@ -18,7 +19,9 @@ namespace osu.Framework.IO.Stores
             space = Path.GetFileNameWithoutExtension(dllName);
         }
 
-        public byte[] Get(string name)
+        public byte[] Get(string name) => GetAsync(name).Result;
+
+        public virtual async Task<byte[]> GetAsync(string name)
         {
             using (Stream input = GetStream(name))
             {
@@ -26,7 +29,7 @@ namespace osu.Framework.IO.Stores
                     return null;
 
                 byte[] buffer = new byte[input.Length];
-                input.Read(buffer, 0, buffer.Length);
+                await input.ReadAsync(buffer, 0, buffer.Length);
                 return buffer;
             }
         }

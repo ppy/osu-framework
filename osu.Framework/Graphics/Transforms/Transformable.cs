@@ -171,7 +171,8 @@ namespace osu.Framework.Graphics.Transforms
                             transformsLazy.RemoveAt(j--);
                             i--;
 
-                            removalActions.Add(u.OnAbort);
+                            if (u.OnAbort != null)
+                                removalActions.Add(u.OnAbort);
                         }
                         else
                             u.AppliedToEnd = true;
