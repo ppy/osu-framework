@@ -73,11 +73,13 @@ namespace osu.Framework.Timing
             timeUntilNextCalculation -= ElapsedFrameTime;
             timeSinceLastCalculation += ElapsedFrameTime;
 
-            AverageFrameTime = Interpolation.Damp(AverageFrameTime, ElapsedFrameTime, 0.01, Math.Max(ElapsedFrameTime, 0) / 1000);
+            AverageFrameTime = CalculateAverageFrameTime();
 
             LastFrameTime = CurrentTime;
             CurrentTime = SourceTime;
         }
+
+        protected virtual double CalculateAverageFrameTime() => Interpolation.Damp(AverageFrameTime, ElapsedFrameTime, 0.01, Math.Max(ElapsedFrameTime, 0) / 1000);
 
         public override string ToString() => $@"{GetType().ReadableName()} ({Math.Truncate(CurrentTime)}ms, {FramesPerSecond} FPS)";
     }

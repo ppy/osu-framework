@@ -14,6 +14,7 @@ using osu.Framework.IO.Stores;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using osu.Framework.Extensions.IEnumerableExtensions;
 
 namespace osu.Framework.Graphics.Sprites
@@ -155,11 +156,10 @@ namespace osu.Framework.Graphics.Sprites
         }
 
         [BackgroundDependencyLoader]
-        private void load()
+        private async Task load()
         {
-            spaceWidth = CreateCharacterDrawable('.')?.DrawWidth * 2 ?? default_text_size;
-
-            ValidateLayout();
+            spaceWidth = (await CreateCharacterDrawable('.'))?.DrawWidth * 2 ?? default_text_size;
+            await validateLayout();
         }
 
         private Bindable<string> current;
@@ -219,16 +219,14 @@ namespace osu.Framework.Graphics.Sprites
         protected override void Update()
         {
             base.Update();
-
-            // Must be done here rather than in UpdateAfterChildren to make sure any children added through the layout validation are processed
-            ValidateLayout();
+            validateLayout().Wait();
         }
 
-        protected override void ValidateLayout()
+        private async Task validateLayout()
         {
             if (!layout.IsValid)
             {
-                computeLayout();
+                await computeLayout();
                 layout.Validate();
             }
 
@@ -247,7 +245,7 @@ namespace osu.Framework.Graphics.Sprites
         private float lastShadowAlpha;
         private string lastFont;
 
-        private void computeLayout()
+        private async Task computeLayout()
         {
             //adjust shadow alpha based on highest component intensity to avoid muddy display of darker text.
             //squared result for quadratic fall-off seems to give the best result.
@@ -290,7 +288,7 @@ namespace osu.Framework.Graphics.Sprites
             }
 
             if (FixedWidth && !constantWidth.HasValue)
-                constantWidth = CreateCharacterDrawable('D').DrawWidth;
+                constantWidth = (await CreateCharacterDrawable('D')).DrawWidth;
 
             foreach (var k in keepDrawables)
             {
@@ -326,7 +324,7 @@ namespace osu.Framework.Graphics.Sprites
                 }
                 else
                 {
-                    d = CreateCharacterDrawable(c);
+                    d = await CreateCharacterDrawable(c);
 
                     if (fixedWidth)
                     {
@@ -343,7 +341,7 @@ namespace osu.Framework.Graphics.Sprites
 
                     if (shadow && shadowAlpha > 0)
                     {
-                        Drawable shadowDrawable = CreateCharacterDrawable(c);
+                        Drawable shadowDrawable = await CreateCharacterDrawable(c);
                         shadowDrawable.Position = new Vector2(0, 0.06f);
                         shadowDrawable.Anchor = d.Anchor;
                         shadowDrawable.Origin = d.Origin;
@@ -378,9 +376,9 @@ namespace osu.Framework.Graphics.Sprites
         /// </summary>
         /// <param name="c">The character the drawable should be created for.</param>
         /// <returns>The <see cref="Drawable"/> created for the given character.</returns>
-        protected virtual Drawable CreateCharacterDrawable(char c)
+        protected virtual async Task<Drawable> CreateCharacterDrawable(char c)
         {
-            var tex = GetTextureForCharacter(c);
+            var tex = await GetTextureForCharacter(c);
             if (tex != null)
                 return new Sprite { Texture = tex };
 
@@ -392,9 +390,12 @@ namespace osu.Framework.Graphics.Sprites
         /// </summary>
         /// <param name="c">The character to get the texture for.</param>
         /// <returns>The texture for the given character.</returns>
-        protected Texture GetTextureForCharacter(char c)
+        protected async Task<Texture> GetTextureForCharacter(char c)
         {
-            return store?.Get(getTextureName(c)) ?? store?.Get(getTextureName(c, false));
+            if (store == null)
+                return null;
+
+            return await store.GetAsync(getTextureName(c)) ?? await store.GetAsync(getTextureName(c, false));
         }
 
         private string getTextureName(char c, bool useFont = true) => !useFont || string.IsNullOrEmpty(Font) ? c.ToString() : $@"{Font}/{c}";

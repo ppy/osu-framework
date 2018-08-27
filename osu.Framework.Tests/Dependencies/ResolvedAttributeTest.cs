@@ -3,6 +3,8 @@
 
 using NUnit.Framework;
 using osu.Framework.Allocation;
+using osu.Framework.Extensions.IEnumerableExtensions;
+using osu.Framework.Testing.Dependencies;
 
 namespace osu.Framework.Tests.Dependencies
 {
@@ -12,11 +14,9 @@ namespace osu.Framework.Tests.Dependencies
         [Test]
         public void TestInjectIntoNothing()
         {
-            var dependencies = new DependencyContainer();
-
             var receiver = new Receiver1();
 
-            dependencies.Inject(receiver);
+            createDependencies().Inject(receiver).Wait();
 
             Assert.AreEqual(null, receiver.Obj);
         }
@@ -24,14 +24,10 @@ namespace osu.Framework.Tests.Dependencies
         [Test]
         public void TestInjectIntoDependency()
         {
-            var testObject = new BaseObject();
-
-            var dependencies = new DependencyContainer();
-            dependencies.Cache(testObject);
-
             var receiver = new Receiver2();
 
-            dependencies.Inject(receiver);
+            BaseObject testObject;
+            createDependencies(testObject = new BaseObject()).Inject(receiver).Wait();
 
             Assert.AreEqual(testObject, receiver.Obj);
         }
@@ -39,37 +35,143 @@ namespace osu.Framework.Tests.Dependencies
         [Test]
         public void TestInjectNullIntoNonNull()
         {
-            var dependencies = new DependencyContainer();
-
             var receiver = new Receiver2();
 
-            Assert.Throws<DependencyNotRegisteredException>(() => dependencies.Inject(receiver));
+            Assert.ThrowsAsync<DependencyNotRegisteredException>(async () => await createDependencies().Inject(receiver));
         }
 
         [Test]
         public void TestInjectNullIntoNullable()
         {
-            var dependencies = new DependencyContainer();
-
             var receiver = new Receiver3();
 
-            Assert.DoesNotThrow(() => dependencies.Inject(receiver));
+            Assert.DoesNotThrowAsync(async () => await createDependencies().Inject(receiver));
         }
 
         [Test]
         public void TestInjectIntoSubClasses()
         {
-            var testObject = new BaseObject();
-
-            var dependencies = new DependencyContainer();
-            dependencies.Cache(testObject);
-
             var receiver = new Receiver4();
 
-            dependencies.Inject(receiver);
+            BaseObject testObject;
+            createDependencies(testObject = new BaseObject()).Inject(receiver).Wait();
 
             Assert.AreEqual(testObject, receiver.Obj);
             Assert.AreEqual(testObject, receiver.Obj2);
+        }
+
+        [Test]
+        public void TestInvalidPublicAccessor()
+        {
+            var receiver = new Receiver5();
+
+            Assert.ThrowsAsync<AccessModifierNotAllowedForPropertySetterException>(async () => await createDependencies().Inject(receiver));
+        }
+
+        [Test]
+        public void TestInvalidExplicitProtectedAccessor()
+        {
+            var receiver = new Receiver6();
+
+            Assert.ThrowsAsync<AccessModifierNotAllowedForPropertySetterException>(async () => await createDependencies().Inject(receiver));
+        }
+
+        [Test]
+        public void TestInvalidExplicitPrivateAccessor()
+        {
+            var receiver = new Receiver7();
+
+            Assert.ThrowsAsync<AccessModifierNotAllowedForPropertySetterException>(async () => await createDependencies().Inject(receiver));
+        }
+
+        [Test]
+        public void TestExplicitPrivateAccessor()
+        {
+            var receiver = new Receiver8();
+
+            Assert.DoesNotThrowAsync(async () => await createDependencies().Inject(receiver));
+        }
+
+        [Test]
+        public void TestExplicitInvalidProtectedInternalAccessor()
+        {
+            var receiver = new Receiver9();
+
+            Assert.ThrowsAsync<AccessModifierNotAllowedForPropertySetterException>(async () => await createDependencies().Inject(receiver));
+        }
+
+        [Test]
+        public void TestNoSetter()
+        {
+            var receiver = new Receiver10();
+
+            Assert.ThrowsAsync<PropertyNotWritableException>(async () => await createDependencies().Inject(receiver));
+        }
+
+        [Test]
+        public void TestWriteToBaseClassWithPublicProperty()
+        {
+            var receiver = new Receiver11();
+
+            BaseObject testObject;
+
+            var dependencies = createDependencies(testObject = new BaseObject());
+
+            Assert.DoesNotThrowAsync(async () => await dependencies.Inject(receiver));
+            Assert.AreEqual(testObject, receiver.Obj);
+        }
+
+        [Test]
+        public void TestResolveInternalStruct()
+        {
+            var receiver = new Receiver12();
+
+            var testObject = new CachedStructProvider();
+
+            var dependencies = DependencyActivator.MergeDependencies(testObject, new DependencyContainer());
+
+            Assert.DoesNotThrow(() => dependencies.Inject(receiver));
+            Assert.AreEqual(testObject.CachedObject.Value, receiver.Obj.Value);
+        }
+
+        [TestCase(null)]
+        [TestCase(10)]
+        public void TestResolveNullableInternal(int? testValue)
+        {
+            var receiver = new Receiver13();
+
+            var testObject = new CachedNullableProvider();
+            testObject.SetValue(testValue);
+
+            var dependencies = DependencyActivator.MergeDependencies(testObject, new DependencyContainer());
+
+            dependencies.Inject(receiver);
+
+            Assert.AreEqual(testValue, receiver.Obj);
+        }
+
+        [Test]
+        public void TestResolveStructWithoutNullPermits()
+        {
+            Assert.ThrowsAsync<DependencyNotRegisteredException>(async () => await new DependencyContainer().Inject(new Receiver14()));
+        }
+
+        [Test]
+        public void TestResolveStructWithNullPermits()
+        {
+            var receiver = new Receiver15();
+
+            Assert.DoesNotThrowAsync(async () => await new DependencyContainer().Inject(receiver));
+            Assert.AreEqual(0, receiver.Obj);
+        }
+
+        private DependencyContainer createDependencies(params object[] toCache)
+        {
+            var dependencies = new DependencyContainer();
+
+            toCache?.ForEach(o => dependencies.Cache(o));
+
+            return dependencies;
         }
 
         private class BaseObject
@@ -109,10 +211,66 @@ namespace osu.Framework.Tests.Dependencies
 
         private class Receiver5
         {
-            [Resolved]
-            private BaseObject obj { get; set; }
+            [Resolved(CanBeNull = true)]
+            public BaseObject Obj { get; set; }
+        }
 
-            public BaseObject Obj => obj;
+        private class Receiver6
+        {
+            [Resolved(CanBeNull = true)]
+            public BaseObject Obj { get; protected set; }
+        }
+
+        private class Receiver7
+        {
+            [Resolved(CanBeNull = true)]
+            public BaseObject Obj { get; internal set; }
+        }
+
+        private class Receiver8
+        {
+            [Resolved(CanBeNull = true)]
+            public BaseObject Obj { get; private set; }
+        }
+
+        private class Receiver9
+        {
+            [Resolved(CanBeNull = true)]
+            public BaseObject Obj { get; protected internal set; }
+        }
+
+        private class Receiver10
+        {
+            [Resolved(CanBeNull = true)]
+            public BaseObject Obj { get; }
+        }
+
+        private class Receiver11 : Receiver8
+        {
+        }
+
+        private class Receiver12
+        {
+            [Resolved]
+            public CachedStructProvider.Struct Obj { get; private set; }
+        }
+
+        private class Receiver13
+        {
+            [Resolved]
+            public int? Obj { get; private set; }
+        }
+
+        private class Receiver14
+        {
+            [Resolved]
+            public int Obj { get; private set; }
+        }
+
+        private class Receiver15
+        {
+            [Resolved(CanBeNull = true)]
+            public int Obj { get; private set; } = 1;
         }
     }
 }

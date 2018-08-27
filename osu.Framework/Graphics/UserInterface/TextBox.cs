@@ -505,6 +505,11 @@ namespace osu.Framework.Graphics.UserInterface
             foreach (char c in addText)
             {
                 var ch = addCharacter(c);
+                if (ch == null)
+                {
+                    notifyInputError();
+                    continue;
+                }
 
                 var col = (Color4)ch.Colour;
                 ch.FadeColour(col.Opacity(0)).FadeColour(col, caret_move_time * 2, Easing.Out);
@@ -521,10 +526,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (text.Length + 1 > LengthLimit)
             {
-                if (Background.Alpha > 0)
-                    Background.FlashColour(Color4.Red, 200);
-                else
-                    TextFlow.FlashColour(Color4.Red, 200);
+                notifyInputError();
                 return null;
             }
 
@@ -536,6 +538,14 @@ namespace osu.Framework.Graphics.UserInterface
             cursorAndLayout.Invalidate();
 
             return ch;
+        }
+
+        private void notifyInputError()
+        {
+            if (Background.Alpha > 0)
+                Background.FlashColour(Color4.Red, 200);
+            else
+                TextFlow.FlashColour(Color4.Red, 200);
         }
 
         protected virtual SpriteText CreatePlaceholder() => new SpriteText

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace osu.Framework.IO.Stores
 {
@@ -78,7 +79,7 @@ namespace osu.Framework.IO.Stores
         /// </summary>
         /// <param name="name">The name of the object.</param>
         /// <returns>The object.</returns>
-        public virtual T Get(string name)
+        public virtual async Task<T> GetAsync(string name)
         {
             List<string> filenames = GetFilenames(name);
 
@@ -87,7 +88,7 @@ namespace osu.Framework.IO.Stores
             {
                 foreach (string f in filenames)
                 {
-                    T result = store.Get(f);
+                    T result = await store.GetAsync(f);
                     if (result != null)
                         return result;
                 }
@@ -95,6 +96,8 @@ namespace osu.Framework.IO.Stores
 
             return default(T);
         }
+
+        public T Get(string name) => GetAsync(name).Result;
 
         public Stream GetStream(string name)
         {

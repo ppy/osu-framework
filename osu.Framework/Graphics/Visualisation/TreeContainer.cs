@@ -2,7 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Linq;
+using osu.Framework.Allocation;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
@@ -29,6 +29,9 @@ namespace osu.Framework.Graphics.Visualisation
         private const float height = 600;
 
         internal PropertyDisplay PropertyDisplay { get; private set; }
+
+        [Resolved]
+        private DrawVisualiser visualiser { get; set; }
 
         private TreeContainerStatus state;
 
@@ -165,7 +168,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         protected override void Update()
         {
-            waitingText.Alpha = scroll.Children.Any() ? 0 : 1;
+            waitingText.Alpha = visualiser.Searching ? 1 : 0;
             base.Update();
         }
 

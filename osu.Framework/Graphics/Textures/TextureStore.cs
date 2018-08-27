@@ -7,13 +7,14 @@ using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.IO.Stores;
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using OpenTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Textures
 {
     public class TextureStore : ResourceStore<RawTexture>
     {
-        private readonly ConcurrentDictionary<string, Lazy<TextureGL>> textureCache = new ConcurrentDictionary<string, Lazy<TextureGL>>();
+        private readonly ConcurrentDictionary<string, AsyncLazy<TextureGL>> textureCache = new ConcurrentDictionary<string, AsyncLazy<TextureGL>>();
 
         private readonly All filteringMode;
         private readonly TextureAtlas atlas;
@@ -35,9 +36,9 @@ namespace osu.Framework.Graphics.Textures
                 atlas = new TextureAtlas(GLWrapper.MaxTextureSize, GLWrapper.MaxTextureSize, filteringMode: filteringMode);
         }
 
-        private Texture getTexture(string name)
+        private async Task<Texture> getTextureAsync(string name)
         {
-            RawTexture raw = base.Get($@"{name}");
+            RawTexture raw = await base.GetAsync($@"{name}");
             if (raw == null) return null;
 
             Texture tex = atlas != null ? atlas.Add(raw.Width, raw.Height) : new Texture(raw.Width, raw.Height, filteringMode: filteringMode);
@@ -46,18 +47,13 @@ namespace osu.Framework.Graphics.Textures
             return tex;
         }
 
-        /// <summary>
-        /// Retrieves a texture from the store and adds it to the atlas.
-        /// </summary>
-        /// <param name="name">The name of the texture.</param>
-        /// <returns>The texture.</returns>
-        public new virtual Texture Get(string name)
+        public new async Task<Texture> GetAsync(string name)
         {
             if (string.IsNullOrEmpty(name)) return null;
 
-            var cachedTex = textureCache.GetOrAdd(name, n =>
+            var cachedTex = await textureCache.GetOrAdd(name, n =>
                 //Laziness ensure we are only ever creating the texture once (and blocking on other access until it is done).
-                    new Lazy<TextureGL>(() => getTexture(name)?.TextureGL, LazyThreadSafetyMode.ExecutionAndPublication)).Value;
+                new AsyncLazy<TextureGL>(async () => (await getTextureAsync(name))?.TextureGL, LazyThreadSafetyMode.ExecutionAndPublication)).Value;
 
             if (cachedTex == null) return null;
 
@@ -68,6 +64,21 @@ namespace osu.Framework.Graphics.Textures
             };
 
             return tex;
+        }
+
+        /// <summary>
+        /// Retrieves a texture from the store and adds it to the atlas.
+        /// </summary>
+        /// <param name="name">The name of the texture.</param>
+        /// <returns>The texture.</returns>
+        public new virtual Texture Get(string name) => GetAsync(name).Result;
+
+        public class AsyncLazy<T> : Lazy<Task<T>>
+        {
+            public AsyncLazy(Func<Task<T>> taskFactory, LazyThreadSafetyMode safetyMode)
+                : base(() => Task.Factory.StartNew(taskFactory).Unwrap(), safetyMode)
+            {
+            }
         }
     }
 }

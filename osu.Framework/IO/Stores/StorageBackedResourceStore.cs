@@ -3,6 +3,7 @@
 
 using System;
 using System.IO;
+using System.Threading.Tasks;
 using osu.Framework.Platform;
 
 namespace osu.Framework.IO.Stores
@@ -19,20 +20,19 @@ namespace osu.Framework.IO.Stores
             this.storage = storage;
         }
 
-        public byte[] Get(string name)
+        public byte[] Get(string name) => GetAsync(name).Result;
+
+        public virtual async Task<byte[]> GetAsync(string name)
         {
             using (Stream stream = storage.GetStream(name))
             {
                 byte[] buffer = new byte[stream.Length];
-                stream.Read(buffer, 0, buffer.Length);
+                await stream.ReadAsync(buffer, 0, buffer.Length);
                 return buffer;
             }
         }
 
-        public Stream GetStream(string name)
-        {
-            return storage.GetStream(name);
-        }
+        public Stream GetStream(string name) => storage.GetStream(name);
 
         #region IDisposable Support
 
