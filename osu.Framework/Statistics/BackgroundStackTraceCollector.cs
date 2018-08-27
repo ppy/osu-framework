@@ -60,7 +60,7 @@ namespace osu.Framework.Statistics
             get { return enabled; }
             set
             {
-                if (value == enabled) return;
+                if (value == enabled || targetThread == null) return;
 
                 enabled = value;
                 if (enabled)
