@@ -38,7 +38,8 @@ namespace osu.Framework.Tests.Visual
                 @"Inner Margin",
                 @"Drawable Margin",
                 @"Relative Inside Autosize",
-                @"Negative sizing"
+                @"Negative sizing",
+                @"Weird edge case"
             };
 
             for (int i = 0; i < testNames.Length; i++)
@@ -973,6 +974,52 @@ namespace osu.Framework.Tests.Visual
                             }
                         });
 
+                        break;
+                    }
+                case 14:
+                    {
+                        Container entity = new Container
+                        {
+                            Origin = Anchor.Centre,
+                            Depth = -20,
+                            X = 1000f,
+                            Y = 1000f,
+                            AutoSizeAxes = Axes.Both,
+                            Children = new Drawable[]
+                                {
+                                    new SpriteText
+                                    {
+                                        Text = "Test Text",
+                                        Depth = -1f,
+                                        Colour = Color4.White,
+                                        Anchor = Anchor.Centre,
+                                        Origin = Anchor.Centre
+                                    }
+                                }
+                        };
+                        Container map = new Container
+                        {
+                            Width = 20000f,
+                            Height = 20000f,
+                            X = -1000f,
+                            Y = -1000f,
+                            Anchor = Anchor.Centre,
+                        };
+                        testContainer.Add(map);
+                        Schedule(() =>
+                        {
+                            Logging.Logger.Log($"Entity-Size before add = {entity.Size}");
+                            map.Add(entity);
+                            Logging.Logger.Log($"Entity-Size after add = {entity.Size}");
+                            Schedule(() =>
+                            {
+                                Logging.Logger.Log($"Entity-Size 1 frame after add = {entity.Size}");
+                                Schedule(() =>
+                                {
+                                    Logging.Logger.Log($"Entity-Size 2 frames after add = {entity.Size}");
+                                });
+                            });
+                        });
                         break;
                     }
             }
