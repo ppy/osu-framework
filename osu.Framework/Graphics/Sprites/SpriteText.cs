@@ -222,6 +222,14 @@ namespace osu.Framework.Graphics.Sprites
             validateLayout().Wait();
         }
 
+        public override bool RequiresLayoutValidation => base.RequiresLayoutValidation || !layout.IsValid;
+
+        protected override void ValidateLayout()
+        {
+            base.ValidateLayout();
+            validateLayout().Wait();
+        }
+
         private async Task validateLayout()
         {
             if (!layout.IsValid)
@@ -229,8 +237,6 @@ namespace osu.Framework.Graphics.Sprites
                 await computeLayout();
                 layout.Validate();
             }
-
-            base.ValidateLayout();
         }
 
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
