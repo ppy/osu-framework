@@ -17,7 +17,7 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Tests.Visual
 {
-    public class TestCaseDrawableLoadCancallation : TestCase
+    public class TestCaseDrawableLoadCancellation : TestCase
     {
         private readonly List<SlowLoader> loaders = new List<SlowLoader>();
 
@@ -39,6 +39,9 @@ namespace osu.Framework.Tests.Visual
 
             AddAssert("last loader not cancelled", () => !loaders.Last().WasCancelled);
 
+
+            AddStep("allow load to complete", () => loaders.Last().AllowLoadCompletion());
+
             AddUntilStep(() => loaders.Last().HasLoaded, "last loader loaded");
         }
 
@@ -54,10 +57,12 @@ namespace osu.Framework.Tests.Visual
         public class SlowLoader : CompositeDrawable
         {
             private readonly int id;
-            private SlowLoadDrawable loadable;
+            private PausableLoadDrawable loadable;
 
             public bool WasCancelled => loadable?.WasCancelled ?? false;
             public bool HasLoaded => loadable?.IsLoaded ?? false;
+
+            public void AllowLoadCompletion() => loadable?.AllowLoadCompletion();
 
             public SlowLoader(int id)
             {
@@ -84,17 +89,17 @@ namespace osu.Framework.Tests.Visual
                 base.LoadComplete();
 
                 this.FadeInFromZero(200);
-                LoadComponentAsync(loadable = new SlowLoadDrawable(id), AddInternal);
+                LoadComponentAsync(loadable = new PausableLoadDrawable(id), AddInternal);
             }
         }
 
-        public class SlowLoadDrawable : CompositeDrawable
+        public class PausableLoadDrawable : CompositeDrawable
         {
             private readonly int id;
 
             public bool WasCancelled;
 
-            public SlowLoadDrawable(int id)
+            public PausableLoadDrawable(int id)
             {
                 this.id = id;
 
@@ -123,26 +128,43 @@ namespace osu.Framework.Tests.Visual
                 };
             }
 
+            private readonly CancellationTokenSource ourSource = new CancellationTokenSource();
+
             [BackgroundDependencyLoader]
             private async Task load(CancellationToken? cancellation)
             {
-                try
+                using (var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(ourSource.Token, cancellation ?? CancellationToken.None))
                 {
-                    await Task.Delay((int)(1000 / Clock.Rate), cancellation ?? CancellationToken.None);
-                }
-                catch (TaskCanceledException)
-                {
-                    WasCancelled = true;
-                    throw;
+                    try
+                    {
+                        await Task.Delay(99999, linkedSource.Token);
+                    }
+                    catch (TaskCanceledException)
+                    {
+                        if (!ourSource.IsCancellationRequested)
+                        {
+                            WasCancelled = true;
+                            throw;
+                        }
+                    }
                 }
 
                 Logger.Log($"Load {id} complete!");
             }
 
+
+            public void AllowLoadCompletion() => ourSource.Cancel();
+
             protected override void LoadComplete()
             {
                 base.LoadComplete();
                 this.FadeInFromZero(200);
+            }
+
+            protected override void Dispose(bool isDisposing)
+            {
+                base.Dispose(isDisposing);
+                ourSource.Dispose();
             }
         }
     }
