@@ -4,7 +4,6 @@
 using System;
 using System.Diagnostics;
 using System.Threading;
-using osu.Framework.MathUtils;
 
 namespace osu.Framework.Timing
 {
@@ -19,34 +18,30 @@ namespace osu.Framework.Timing
         public double MaximumUpdateHz = 1000.0;
 
         /// <summary>
-        /// If true, we will perform a Thread.Sleep even if the period is absolute zero.
-        /// Allows other threads to process.
+        /// The time spent in a Thread.Sleep state during the last frame.
         /// </summary>
-        public bool AlwaysSleep = true;
-
-        public double SleptTime;
-
-        private double minimumFrameTime => 1000.0 / MaximumUpdateHz;
+        public double SleptTime { get; private set; }
 
         private double accumulatedSleepError;
 
         private void throttle()
         {
-            int timeToSleepFloored = 0;
+            bool shouldYield = true;
 
             //If we are limiting to a specific rate, and not enough time has passed for the next frame to be accepted we should pause here.
-            if (MaximumUpdateHz > 0 && minimumFrameTime > 0)
+            if (MaximumUpdateHz > 0)
             {
-                double targetMilliseconds = minimumFrameTime;
+                double targetMilliseconds = MaximumUpdateHz > 0 ? 1000.0 / MaximumUpdateHz : 0;
+
                 if (ElapsedFrameTime < targetMilliseconds)
                 {
-                    // Using ticks for sleeping is pointless due to them being rounded to milliseconds internally anyways (in windows at least).
-                    double timeToSleep = targetMilliseconds - ElapsedFrameTime;
-                    timeToSleepFloored = (int)Math.Floor(timeToSleep);
+                    double excessFrameTime = targetMilliseconds - ElapsedFrameTime;
+
+                    int timeToSleepFloored = (int)Math.Floor(excessFrameTime);
 
                     Trace.Assert(timeToSleepFloored >= 0);
 
-                    accumulatedSleepError += timeToSleep - timeToSleepFloored;
+                    accumulatedSleepError += excessFrameTime - timeToSleepFloored;
                     int accumulatedSleepErrorCompensation = (int)Math.Round(accumulatedSleepError);
 
                     // Can't sleep a negative amount of time
@@ -58,12 +53,13 @@ namespace osu.Framework.Timing
                     // We don't want re-schedules with Thread.Sleep(0). We already have that case down below.
                     if (timeToSleepFloored > 0)
                     {
-                        SleptTime = timeToSleepFloored;
                         Thread.Sleep(timeToSleepFloored);
+                        shouldYield = false;
                     }
 
                     // Sleep is not guaranteed to be an exact time. It only guaranteed to sleep AT LEAST the specified time. We also used some time to compute the above things, so this is also factored in here.
                     double afterSleepTime = SourceTime;
+                    SleptTime = afterSleepTime - CurrentTime;
                     accumulatedSleepError += timeToSleepFloored - (afterSleepTime - CurrentTime);
                     CurrentTime = afterSleepTime;
                 }
@@ -71,23 +67,19 @@ namespace osu.Framework.Timing
                 {
                     // We use the negative spareTime to compensate for framerate jitter slightly.
                     double spareTime = ElapsedFrameTime - targetMilliseconds;
-                    accumulatedSleepError = -spareTime;
-
                     SleptTime = 0;
+                    accumulatedSleepError = -spareTime;
                 }
             }
 
             // Call the scheduler to give lower-priority background processes a chance to do stuff.
-            if (timeToSleepFloored == 0)
+            if (shouldYield)
                 Thread.Sleep(0);
         }
-
-        protected override double CalculateAverageFrameTime() => Interpolation.Damp(AverageFrameTime, ElapsedFrameTime - SleptTime, 0.01, Math.Max(ElapsedFrameTime, 0) / 1000);
 
         public override void ProcessFrame()
         {
             base.ProcessFrame();
-
             throttle();
         }
     }

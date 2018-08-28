@@ -522,7 +522,6 @@ namespace osu.Framework.Tests.Visual
                 public double Rate => trackingClock.Rate;
                 public bool IsRunning => trackingClock.IsRunning;
                 public double ElapsedFrameTime => (reversed ? -1 : 1) * trackingClock.ElapsedFrameTime;
-                public double AverageFrameTime => trackingClock.AverageFrameTime;
                 public double FramesPerSecond => trackingClock.FramesPerSecond;
                 public FrameTimeInfo TimeInfo => new FrameTimeInfo { Current = CurrentTime, Elapsed = ElapsedFrameTime };
 
