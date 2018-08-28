@@ -101,8 +101,11 @@ namespace osu.Framework.Audio.Track
             Trace.Assert(Bass.LastError == Errors.OK);
         }
 
+        private const int amplitude_length = 256; // half of DataFlag specification below.
+
         protected override void UpdateState()
         {
+            bool wasRunning = isRunning;
             isRunning = Bass.ChannelIsActive(activeStream) == PlaybackState.Playing;
 
             double currentTimeLocal = Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetPosition(activeStream)) * 1000;
@@ -112,7 +115,7 @@ namespace osu.Framework.Audio.Track
             var rightChannel = isPlayed ? Bass.ChannelGetLevelRight(activeStream) / 32768f : -1;
 
             if (CurrentAmplitudesInternal.FrequencyAmplitudes == null)
-                CurrentAmplitudesInternal.FrequencyAmplitudes = new float[256];
+                CurrentAmplitudesInternal.FrequencyAmplitudes = new float[amplitude_length];
 
             if (leftChannel >= 0 && rightChannel >= 0)
             {
@@ -125,6 +128,12 @@ namespace osu.Framework.Audio.Track
             {
                 CurrentAmplitudesInternal.LeftChannel = 0;
                 CurrentAmplitudesInternal.RightChannel = 0;
+
+                if (wasRunning && !isRunning)
+                {
+                    for (int i = 0; i < amplitude_length; i++)
+                        CurrentAmplitudesInternal.FrequencyAmplitudes[i] = 0;
+                }
             }
 
             base.UpdateState();
