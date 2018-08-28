@@ -15,27 +15,20 @@ namespace osu.Framework.Graphics.Containers.Markdown
     /// </summary>
     public class MarkdownImage : CompositeDrawable
     {
-        private readonly Box background;
+        private readonly Drawable background;
         public MarkdownImage(string url)
         {
-            InternalChildren = new Drawable[]
+            ImageContainer imageContainer;
+            InternalChildren = new[]
             {
-                background = new Box
-                {
-                    RelativeSizeAxes = Axes.Both,
-                    Colour = Color4.LightGray,
-                    Alpha = 0.3f
-                },
-                new DelayedLoadWrapper(
-                    new ImageContainer(url)
-                    {
-                        RelativeSizeAxes = Axes.Both,
-                        OnLoadComplete = d =>
-                        {
-                            if(d is ImageContainer imageContainer)
-                                EffectLoadImageComplete(imageContainer);
-                        },
-                    })
+                background = CreateBackground(),
+                new DelayedLoadWrapper(imageContainer = CreateImageContainer(url))
+            };
+
+            imageContainer.OnLoadComplete = d =>
+            {
+                if (d is ImageContainer)
+                    EffectLoadImageComplete(imageContainer);
             };
         }
 
@@ -49,6 +42,24 @@ namespace osu.Framework.Graphics.Containers.Markdown
             //Hide background image
             background.FadeTo(0, 300, Easing.OutQuint);
             imageContainer.FadeInFromZero(300, Easing.OutQuint);
+        }
+
+        protected virtual Drawable CreateBackground()
+        {
+            return new Box
+            {
+                RelativeSizeAxes = Axes.Both,
+                Colour = Color4.LightGray,
+                Alpha = 0.3f
+            };
+        }
+
+        protected virtual ImageContainer CreateImageContainer(string url)
+        {
+            return new ImageContainer(url)
+            {
+                RelativeSizeAxes = Axes.Both,
+            };
         }
 
         protected class ImageContainer : CompositeDrawable
@@ -80,11 +91,16 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 if (!string.IsNullOrEmpty(imageUrl))
                     texture = textures.Get(imageUrl);
 
-                //TODO : get default texture
-                //if (texture == null)
-                //    texture = textures.Get(@"Markdown/default-image");
+                //get default texture
+                if (texture == null)
+                    texture = GetNotFoundTexture(textures);
 
                 image.Texture = texture;
+            }
+
+            protected virtual Texture GetNotFoundTexture(TextureStore textures)
+            {
+                return null;
             }
         }
     }

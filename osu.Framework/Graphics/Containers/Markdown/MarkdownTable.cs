@@ -5,10 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Markdig.Extensions.Tables;
-using Markdig.Syntax;
-using osu.Framework.Graphics.Shapes;
 using OpenTK;
-using OpenTK.Graphics;
 
 namespace osu.Framework.Graphics.Containers.Markdown
 {
@@ -51,9 +48,6 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 Content = listContainerArray.Select(x => x.Select(y => (Drawable)y).ToArray()).ToArray(),
             };
         }
-
-        protected virtual MarkdownTableCell CreateMarkdownTableCell(TableCell cell, TableColumnDefinition definition, int rowNumber) =>
-            new MarkdownTableCell(cell, definition, rowNumber);
 
         private Vector2 lastDrawSize;
         protected override void Update()
@@ -117,72 +111,17 @@ namespace osu.Framework.Graphics.Containers.Markdown
             tableContainer.RowDimensions = listContainerArray.Select(x => new Dimension(GridSizeMode.Absolute, x.Max(y => y.TextFlowContainer.DrawHeight + 10))).ToArray();
         }
 
+        protected virtual MarkdownTableCell CreateMarkdownTableCell(TableCell cell, TableColumnDefinition definition, int rowNumber)
+        {
+            return new MarkdownTableCell(cell, definition, rowNumber);
+        }
+
         private class MarkdownTableContainer : GridContainer
         {
             public new Axes AutoSizeAxes
             {
                 get => base.AutoSizeAxes;
                 set => base.AutoSizeAxes = value;
-            }
-        }
-
-        public class MarkdownTableCell : CompositeDrawable
-        {
-            public MarkdownTextFlowContainer TextFlowContainer => textFlowContainer;
-            private readonly MarkdownTextFlowContainer textFlowContainer;
-
-            protected virtual MarkdownTextFlowContainer CreateMarkdownTextFlowContainer() =>
-                new MarkdownTextFlowContainer
-                {
-                    Padding = new MarginPadding { Left = 5, Right = 5, Top = 5, Bottom = 0 }
-                };
-
-            public MarkdownTableCell(TableCell cell, TableColumnDefinition definition, int rowNumber)
-            {
-                RelativeSizeAxes = Axes.Both;
-                BorderThickness = 1.8f;
-                BorderColour = Color4.White;
-                Masking = true;
-
-                var backgroundColor = rowNumber % 2 != 0 ? Color4.White : Color4.LightGray;
-                var backgroundAlpha = 0.3f;
-                if (rowNumber == 0)
-                {
-                    backgroundColor = Color4.White;
-                    backgroundAlpha = 0.4f;
-                }
-
-                InternalChildren = new Drawable[]
-                {
-                    new Box
-                    {
-                        RelativeSizeAxes = Axes.Both,
-                        Colour = backgroundColor,
-                        Alpha = backgroundAlpha
-                    },
-                    textFlowContainer = CreateMarkdownTextFlowContainer()
-                };
-
-                foreach (var block in cell)
-                {
-                    var single = (ParagraphBlock)block;
-                    textFlowContainer.ParagraphBlock = single;
-                }
-
-                switch (definition.Alignment)
-                {
-                    case TableColumnAlign.Center:
-                        textFlowContainer.TextAnchor = Anchor.TopCentre;
-                        break;
-
-                    case TableColumnAlign.Right:
-                        textFlowContainer.TextAnchor = Anchor.TopRight;
-                        break;
-
-                    default:
-                        textFlowContainer.TextAnchor = Anchor.TopLeft;
-                        break;
-                }
             }
         }
     }
