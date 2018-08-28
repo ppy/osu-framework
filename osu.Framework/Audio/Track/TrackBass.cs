@@ -111,20 +111,20 @@ namespace osu.Framework.Audio.Track
             var leftChannel = isPlayed ? Bass.ChannelGetLevelLeft(activeStream) / 32768f : -1;
             var rightChannel = isPlayed ? Bass.ChannelGetLevelRight(activeStream) / 32768f : -1;
 
+            if (CurrentAmplitudesInternal.FrequencyAmplitudes == null)
+                CurrentAmplitudesInternal.FrequencyAmplitudes = new float[256];
+
             if (leftChannel >= 0 && rightChannel >= 0)
             {
-                currentAmplitudes.LeftChannel = leftChannel;
-                currentAmplitudes.RightChannel = rightChannel;
+                CurrentAmplitudesInternal.LeftChannel = leftChannel;
+                CurrentAmplitudesInternal.RightChannel = rightChannel;
 
-                float[] tempFrequencyData = new float[256];
-                Bass.ChannelGetData(activeStream, tempFrequencyData, (int)DataFlags.FFT512);
-                currentAmplitudes.FrequencyAmplitudes = tempFrequencyData;
+                Bass.ChannelGetData(activeStream, CurrentAmplitudesInternal.FrequencyAmplitudes, (int)DataFlags.FFT512);
             }
             else
             {
-                currentAmplitudes.LeftChannel = 0;
-                currentAmplitudes.RightChannel = 0;
-                currentAmplitudes.FrequencyAmplitudes = new float[256];
+                CurrentAmplitudesInternal.LeftChannel = 0;
+                CurrentAmplitudesInternal.RightChannel = 0;
             }
 
             base.UpdateState();
@@ -248,9 +248,5 @@ namespace osu.Framework.Audio.Track
             get => Frequency.Value;
             set => Frequency.Value = value;
         }
-
-        private TrackAmplitudes currentAmplitudes;
-
-        public override TrackAmplitudes CurrentAmplitudes => currentAmplitudes;
     }
 }

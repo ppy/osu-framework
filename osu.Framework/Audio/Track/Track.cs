@@ -119,7 +119,9 @@ namespace osu.Framework.Audio.Track
         /// LeftChannel and RightChannel represent the maximum current amplitude of all of the left and right channels respectively.
         /// The most recent values are returned. Synchronisation between channels should not be expected.
         /// </summary>
-        public virtual TrackAmplitudes CurrentAmplitudes => new TrackAmplitudes();
+        public TrackAmplitudes CurrentAmplitudes => CurrentAmplitudesInternal;
+
+        protected TrackAmplitudes CurrentAmplitudesInternal = new TrackAmplitudes();
 
         protected override void UpdateState()
         {
