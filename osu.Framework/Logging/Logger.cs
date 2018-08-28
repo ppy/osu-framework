@@ -391,19 +391,19 @@ namespace osu.Framework.Logging
 
         private static readonly ManualResetEvent writer_idle = new ManualResetEvent(true);
 
+        private static readonly Timer timer;
+
         static Logger()
         {
-            var thread = new GameThread(() =>
+            // timer has a very low overhead.
+            timer = new Timer(_ =>
             {
                 if ((Storage != null ? scheduler.Update() : 0) == 0)
                     writer_idle.Set();
-            }, "Logger", false)
-            {
-                ActiveHz = 20,
-                InactiveHz = 10,
-            };
 
-            thread.Start();
+                // reschedule every 50ms. avoids overlapping callbacks.
+                timer.Change(50, Timeout.Infinite);
+            }, null, 0, Timeout.Infinite);
         }
 
         /// <summary>
