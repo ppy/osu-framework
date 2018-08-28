@@ -22,15 +22,16 @@ namespace osu.Framework.Tests.Visual
     {
         private readonly List<SlowLoader> loaders = new List<SlowLoader>();
 
+        [SetUp]
+        public void SetUp()
+        {
+            loaders.Clear();
+            Child = createLoader();
+        }
+
         [Test]
         public void TestConcurrentLoad()
         {
-            AddStep("add slow loader", () =>
-            {
-                loaders.Clear();
-                Child = createLoader();
-            });
-
             AddStep("replace slow loader", () => { Child = createLoader(); });
             AddStep("replace slow loader", () => { Child = createLoader(); });
             AddStep("replace slow loader", () => { Child = createLoader(); });
