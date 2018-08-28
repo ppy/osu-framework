@@ -15,7 +15,12 @@ namespace osu.Framework.Graphics.Containers.Markdown
         public NotImplementedMarkdown(IMarkdownObject markdownObject)
         {
             AutoSizeAxes = Axes.Y;
-            InternalChildren = new SpriteText
+            InternalChild = CreateNotImplementDrawable(markdownObject);
+        }
+
+        protected virtual Drawable CreateNotImplementDrawable(IMarkdownObject markdownObject)
+        {
+            return new SpriteText
             {
                 Colour = new Color4(255, 0, 0, 255),
                 TextSize = 21,

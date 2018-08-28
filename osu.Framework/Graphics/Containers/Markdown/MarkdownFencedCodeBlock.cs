@@ -24,18 +24,8 @@ namespace osu.Framework.Graphics.Containers.Markdown
             TextFlowContainer textFlowContainer;
             InternalChildren = new Drawable[]
             {
-                new Box
-                {
-                    RelativeSizeAxes = Axes.Both,
-                    Colour = Color4.Gray,
-                    Alpha = 0.5f
-                },
-                textFlowContainer = new TextFlowContainer
-                {
-                    RelativeSizeAxes = Axes.X,
-                    AutoSizeAxes = Axes.Y,
-                    Margin = new MarginPadding { Left = 10, Right = 10, Top = 10, Bottom = 10 }
-                }
+                CreateBackground(),
+                textFlowContainer = CreateTextArea(),
             };
 
             var lines = fencedCodeBlock.Lines.Lines.Take(fencedCodeBlock.Lines.Count);
@@ -44,6 +34,26 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 var lineString = sligneLine.ToString();
                 textFlowContainer.AddParagraph(lineString);
             }
+        }
+
+        protected virtual Drawable CreateBackground()
+        {
+            return new Box
+            {
+                RelativeSizeAxes = Axes.Both,
+                Colour = Color4.Gray,
+                Alpha = 0.5f
+            };
+        }
+
+        protected virtual TextFlowContainer CreateTextArea()
+        {
+            return new TextFlowContainer
+            {
+                RelativeSizeAxes = Axes.X,
+                AutoSizeAxes = Axes.Y,
+                Margin = new MarginPadding { Left = 10, Right = 10, Top = 10, Bottom = 10 }
+            };
         }
     }
 }

@@ -22,14 +22,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
 
             InternalChildren = new Drawable[]
             {
-                new Box
-                {
-                    Colour = Color4.Gray,
-                    Width = 5,
-                    Anchor = Anchor.CentreLeft,
-                    Origin = Anchor.CentreLeft,
-                    RelativeSizeAxes = Axes.Y
-                },
+                CreateBackground(),
                 textFlowContainer = CreateMarkdownTextFlowContainer()
             };
 
@@ -37,10 +30,24 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 textFlowContainer.ParagraphBlock = paragraphBlock;
         }
 
-        protected virtual MarkdownTextFlowContainer CreateMarkdownTextFlowContainer() =>
-            new MarkdownTextFlowContainer
+        protected virtual Drawable CreateBackground()
+        {
+            return new Box
+            {
+                Colour = Color4.Gray,
+                Width = 5,
+                Anchor = Anchor.CentreLeft,
+                Origin = Anchor.CentreLeft,
+                RelativeSizeAxes = Axes.Y
+            };
+        }
+
+        protected virtual MarkdownTextFlowContainer CreateMarkdownTextFlowContainer()
+        {
+            return new MarkdownTextFlowContainer
             {
                 Margin = new MarginPadding { Left = 20 }
             };
+        }
     }
 }

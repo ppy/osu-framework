@@ -16,9 +16,6 @@ namespace osu.Framework.Graphics.Containers.Markdown
     /// </summary>
     public class MarkdownHeading : CompositeDrawable
     {
-        protected virtual MarkdownTextFlowContainer CreateMarkdownTextFlowContainer() =>
-            new MarkdownTextFlowContainer();
-
         public MarkdownHeading(HeadingBlock headingBlock)
         {
             AutoSizeAxes = Axes.Y;
@@ -32,26 +29,28 @@ namespace osu.Framework.Graphics.Containers.Markdown
             };
 
             var level = headingBlock.Level;
-            Vector2 scale = new Vector2(1);
+            textFlowContainer.Scale = new Vector2(GetFontSizeByLevel(level));
+            textFlowContainer.AddInlineText(headingBlock.Inline);
+        }
 
+        protected virtual MarkdownTextFlowContainer CreateMarkdownTextFlowContainer() =>
+            new MarkdownTextFlowContainer();
+
+        protected float GetFontSizeByLevel(int level)
+        {
             switch (level)
             {
                 case 1:
-                    scale = new Vector2(2.7f);
-                    break;
+                    return 2.7f;
                 case 2:
-                    scale = new Vector2(2);
-                    break;
+                    return 2;
                 case 3:
-                    scale = new Vector2(1.5f);
-                    break;
+                    return 1.5f;
                 case 4:
-                    scale = new Vector2(1.3f);
-                    break;
+                    return 1.3f;
+                default:
+                    return 1;
             }
-
-            textFlowContainer.Scale = scale;
-            textFlowContainer.AddInlineText(headingBlock.Inline);
         }
     }
 }

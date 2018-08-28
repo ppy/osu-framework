@@ -16,7 +16,12 @@ namespace osu.Framework.Graphics.Containers.Markdown
         {
             AutoSizeAxes = Axes.Y;
             RelativeSizeAxes = Axes.X;
-            InternalChild = new Box
+            InternalChild = CreateSeperator();
+        }
+
+        protected virtual Drawable CreateSeperator()
+        {
+            return new Box
             {
                 RelativeSizeAxes = Axes.X,
                 Colour = Color4.Gray,
