@@ -71,17 +71,34 @@ namespace osu.Framework.Allocation
                                     break;
                             }
                         }
-                        catch (TargetInvocationException exc) when (exc.InnerException is DependencyInjectionException die)
+                        catch (TargetInvocationException exc) // During non-await invocations
                         {
-                            // When a nested activator has failed (multiple reflection calls)
-                            throw die;
-                        }
-                        catch (TargetInvocationException exc)
-                        {
-                            if (exc.InnerException is OperationCanceledException) throw exc.InnerException;
+                            switch (exc.InnerException)
+                            {
+                                case OperationCanceledException _:
+                                    // This activator is cancelled - propagate the cancellation as-is (it will be handled silently)
+                                    throw exc.InnerException;
+                                case DependencyInjectionException die:
+                                    // A nested activator has failed (multiple Invoke() calls) - propagate the original error
+                                    throw die;
+                            }
 
-                            // When this activator has failed (single invoke call)
+                            // This activator has failed (single reflection call) - preserve the original stacktrace while notifying of the error
                             throw new DependencyInjectionException { DispatchInfo = ExceptionDispatchInfo.Capture(exc.InnerException) };
+                        }
+                        catch (Exception exc) // During await invocations
+                        {
+                            switch (exc)
+                            {
+                                case OperationCanceledException _ :
+                                    // This or a nested activator was canceled - propagate the cancellation as-is (it will be handled silently)
+                                case DependencyInjectionException _:
+                                    // This or a nested activator has failed - propagate the original error
+                                    throw;
+                            }
+
+                            // This activator has failed - preserve the original stacktrace while notifying of the error
+                            throw new DependencyInjectionException { DispatchInfo = ExceptionDispatchInfo.Capture(exc) };
                         }
                     };
                 default:
