@@ -185,6 +185,12 @@ namespace osu.Framework.Tests.Exceptions
             });
         }
 
+        [Test]
+        public void TestSyncLoadException()
+        {
+            Assert.Throws<AsyncTestException>(() => runGameWithLogic(g => g.Add(new DelayedTestBoxAsync(true))));
+        }
+
         [SuppressMessage("ReSharper", "AccessToDisposedClosure")]
         private void runGameWithLogic(Action<Game> logic, Func<Game, bool> exitCondition = null)
         {
