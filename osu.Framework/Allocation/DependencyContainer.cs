@@ -131,9 +131,38 @@ namespace osu.Framework.Allocation
         /// </summary>
         /// <typeparam name="T">The type of the instance to inject dependencies into.</typeparam>
         /// <param name="instance">The instance to inject dependencies into.</param>
+        /// <exception cref="DependencyInjectionException">When any user error has occurred.
+        /// Rethrow <see cref="DependencyInjectionException.DispatchInfo"/> when appropriate to retrieve the original exception.</exception>
+        /// <exception cref="OperationCanceledException">When the injection process was cancelled.</exception>
         public async Task Inject<T>(T instance)
             where T : class
             => await DependencyActivator.Activate(instance, this);
+
+        /// <summary>
+        /// Invokes a delegate and re-throws any source exception wrapped by a <see cref="DependencyInjectionException"/>.
+        /// </summary>
+        /// <param name="action">The delegate to invoke.</param>
+        public static void UnwrapExceptions(Action action)
+        {
+            try
+            {
+                action();
+            }
+            catch (AggregateException ae)
+            {
+                foreach (var e in ae.Flatten().InnerExceptions)
+                {
+                    if (e is DependencyInjectionException die)
+                        die.DispatchInfo.Throw();
+
+                    throw e;
+                }
+            }
+            catch (DependencyInjectionException die)
+            {
+                die.DispatchInfo.Throw();
+            }
+        }
     }
 
     public class TypeAlreadyCachedException : InvalidOperationException
