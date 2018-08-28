@@ -79,7 +79,7 @@ namespace osu.Framework.Tests.Visual
 
         private void check(float ratio) =>
             AddAssert($"Check @{ratio}", () => Precision.AlmostEquals(autoSizeContainer.Size, new Vector2(changed_value * ratio)) &&
-                                               Precision.AlmostEquals(box2.Position, new Vector2(changed_value * (1 - ratio), changed_value * ratio)));
+                                               Precision.AlmostEquals(box2.DrawPosition, new Vector2(changed_value * (1 - ratio), changed_value * ratio)));
 
         private void skipTo(float ratio) => AddStep($"skip to {ratio}", () => { manualClock.CurrentTime = duration * ratio; });
 

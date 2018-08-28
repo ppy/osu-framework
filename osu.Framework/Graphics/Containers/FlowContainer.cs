@@ -190,7 +190,7 @@ namespace osu.Framework.Graphics.Containers
                 var finalPos = positions[i];
 
                 var existingTransform = d.Transforms.OfType<FlowTransform>().FirstOrDefault();
-                Vector2 currentTargetPos = existingTransform?.EndValue ?? d.Position;
+                Vector2 currentTargetPos = existingTransform?.EndValue ?? d.DrawPositionOffset;
 
                 if (currentTargetPos != finalPos)
                 {
@@ -199,7 +199,7 @@ namespace osu.Framework.Graphics.Containers
                     else
                     {
                         if (existingTransform != null) d.ClearTransforms(false, nameof(FlowTransform));
-                        d.Position = finalPos;
+                        d.DrawPositionOffset = finalPos;
                     }
                 }
 
@@ -225,7 +225,7 @@ namespace osu.Framework.Graphics.Containers
         private class FlowTransform : TransformCustom<Vector2, Drawable>
         {
             public FlowTransform()
-                : base(nameof(Position))
+                : base(nameof(DrawPositionOffset))
             {
             }
         }

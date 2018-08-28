@@ -61,10 +61,10 @@ namespace osu.Framework.Tests.Visual
             });
 
             AddStep("Run to end", () => manualContainer.PerformUpdate(null));
-            AddAssert("Box2 @ (150, 0)", () => Precision.AlmostEquals(new Vector2(150, 0), box2.Position));
+            AddAssert("Box2 @ (150, 0)", () => Precision.AlmostEquals(new Vector2(150, 0), box2.DrawPosition));
 
             AddStep("Rewind", () => manualContainer.PerformUpdate(() => manualContainer.ApplyTransformsAt(-1, true)));
-            AddAssert("Box2 @ (150, 0)", () => Precision.AlmostEquals(new Vector2(150, 0), box2.Position));
+            AddAssert("Box2 @ (150, 0)", () => Precision.AlmostEquals(new Vector2(150, 0), box2.DrawPosition));
         }
 
         private class ManualUpdateSubTreeContainer : Container

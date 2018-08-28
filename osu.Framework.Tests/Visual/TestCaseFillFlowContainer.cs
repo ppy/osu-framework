@@ -284,6 +284,22 @@ namespace osu.Framework.Tests.Visual
                 }
             });
 
+            AddToggleStep("Randomly set child position", state =>
+            {
+                if (state)
+                {
+                    foreach (var child in fillContainer.Children)
+                    {
+                        child.Position = new Vector2(RNG.NextSingle() * 2 - 1, RNG.NextSingle() * 2 - 1) * child.Size / 2;
+                    }
+                }
+                else
+                {
+                    foreach (var child in fillContainer.Children)
+                        child.Position = new Vector2();
+                }
+            });
+
             AddToggleStep("Stop adding children", state => { doNotAddChildren = state; });
 
             scheduledAdder?.Cancel();
