@@ -171,7 +171,19 @@ namespace osu.Framework.Graphics.Containers
             }
             catch (AggregateException ae)
             {
-                ae.Flatten().Handle(e => e is OperationCanceledException);
+                ae.Flatten().Handle(e =>
+                {
+                    switch (e)
+                    {
+                        case DependencyInjectionException die:
+                            die.DispatchInfo.Throw();
+                            return true;
+                        case OperationCanceledException _:
+                            return true;
+                    }
+
+                    return false;
+                });
             }
         }
 
