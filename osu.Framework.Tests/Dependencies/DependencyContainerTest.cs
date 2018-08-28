@@ -62,7 +62,7 @@ namespace osu.Framework.Tests.Dependencies
 
             var receiver = new Receiver1();
 
-            Assert.ThrowsAsync<DependencyNotRegisteredException>(async () => await dependencies.Inject(receiver));
+            Assert.Throws<DependencyNotRegisteredException>(() => DependencyContainer.UnwrapExceptions(dependencies.Inject(receiver).Wait));
         }
 
         [Test]
@@ -242,7 +242,7 @@ namespace osu.Framework.Tests.Dependencies
         [Test]
         public void TestResolveStructWithoutNullPermits()
         {
-            Assert.ThrowsAsync<DependencyNotRegisteredException>(async () => await new DependencyContainer().Inject(new Receiver12()));
+            Assert.Throws<DependencyNotRegisteredException>(() => DependencyContainer.UnwrapExceptions(new DependencyContainer().Inject(new Receiver12()).Wait));
         }
 
         [Test]

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -21,16 +22,16 @@ namespace osu.Framework.Tests.Visual
     {
         private readonly List<SlowLoader> loaders = new List<SlowLoader>();
 
-        protected override void LoadComplete()
+        [SetUp]
+        public void SetUp()
         {
-            base.LoadComplete();
+            loaders.Clear();
+            Child = createLoader();
+        }
 
-            AddStep("add slow loader", () =>
-            {
-                loaders.Clear();
-                Child = createLoader();
-            });
-
+        [Test]
+        public void TestConcurrentLoad()
+        {
             AddStep("replace slow loader", () => { Child = createLoader(); });
             AddStep("replace slow loader", () => { Child = createLoader(); });
             AddStep("replace slow loader", () => { Child = createLoader(); });
