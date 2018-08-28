@@ -150,16 +150,13 @@ namespace osu.Framework.Allocation
             }
             catch (AggregateException ae)
             {
-                ae.Flatten().Handle(e =>
+                foreach (var e in ae.Flatten().InnerExceptions)
                 {
                     if (e is DependencyInjectionException die)
-                    {
                         die.DispatchInfo.Throw();
-                        return true;
-                    }
 
-                    return false;
-                });
+                    throw e;
+                }
             }
             catch (DependencyInjectionException die)
             {
