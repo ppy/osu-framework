@@ -125,7 +125,7 @@ namespace osu.Framework.Graphics.Containers
             foreach (var c in internalChildren)
             {
                 cancellation?.ThrowIfCancellationRequested();
-                await loadChild(c);
+                await loadChildAsync(c);
             }
         }
 
@@ -139,13 +139,39 @@ namespace osu.Framework.Graphics.Containers
             checkChildrenLife();
         }
 
-        private async Task loadChild(Drawable child)
+        /// <summary>
+        /// Loads a <see cref="Drawable"/> child. This will throw in the event of the load being cancelled.
+        /// </summary>
+        /// <param name="child">The <see cref="Drawable"/> child to load.</param>
+        /// <returns>The async task.</returns>
+        /// <exception cref="ObjectDisposedException">If <paramref name="child"/> is disposed.</exception>
+        private async Task loadChildAsync(Drawable child)
         {
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString(), "Disposed Drawables may not have children added.");
 
             await child.LoadAsync(Clock, Dependencies);
             child.Parent = this;
+        }
+
+        /// <summary>
+        /// Loads a <see cref="Drawable"/> child. This will not throw in the event of the load being cancelled.
+        /// </summary>
+        /// <param name="child">The <see cref="Drawable"/> child to load.</param>
+        /// <exception cref="ObjectDisposedException">If <paramref name="child"/> is disposed.</exception>
+        private void loadChild(Drawable child)
+        {
+            try
+            {
+                loadChildAsync(child).Wait(cancellationSource?.Token ?? CancellationToken.None);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (AggregateException ae)
+            {
+                ae.Flatten().Handle(e => e is OperationCanceledException);
+            }
         }
 
         protected override void LoadComplete()
@@ -391,23 +417,7 @@ namespace osu.Framework.Graphics.Containers
             else if (LoadState >= LoadState.Loading)
             {
                 // If we're already loaded, we can eagerly allow children to be loaded
-                try
-                {
-                    loadChild(drawable).Wait(cancellationSource?.Token ?? CancellationToken.None);
-                }
-                catch (AggregateException ae)
-                {
-                    ae.Flatten().Handle(ex =>
-                    {
-                        switch (ex)
-                        {
-                            case OperationCanceledException _:
-                                return true;
-                        }
-
-                        return false;
-                    });
-                }
+                loadChild(drawable);
             }
 
             internalChildren.Add(drawable);
@@ -521,7 +531,8 @@ namespace osu.Framework.Graphics.Containers
             {
                 if (!child.IsAlive)
                 {
-                    loadChild(child).Wait(cancellationSource?.Token ?? CancellationToken.None);
+                    // If we're already loaded, we can eagerly allow children to be loaded
+                    loadChild(child);
 
                     if (child.LoadState >= LoadState.Ready)
                     {
