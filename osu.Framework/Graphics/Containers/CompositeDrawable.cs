@@ -146,6 +146,8 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="child">The <see cref="Drawable"/> child to load.</param>
         /// <returns>The async task.</returns>
         /// <exception cref="ObjectDisposedException">If <paramref name="child"/> is disposed.</exception>
+        /// <exception cref="OperationCanceledException">When the loading process was cancelled.</exception>
+        /// <exception cref="DependencyInjectionException">When a user error occurred during dependency injection.</exception>
         private async Task loadChildAsync(Drawable child)
         {
             if (IsDisposed)
@@ -159,7 +161,7 @@ namespace osu.Framework.Graphics.Containers
         /// Loads a <see cref="Drawable"/> child. This will not throw in the event of the load being cancelled.
         /// </summary>
         /// <param name="child">The <see cref="Drawable"/> child to load.</param>
-        /// <exception cref="ObjectDisposedException">If <paramref name="child"/> is disposed.</exception>
+        /// <exception cref="DependencyInjectionException">When a user error occurred during dependency injection.</exception>
         private void loadChild(Drawable child)
         {
             try
@@ -176,8 +178,7 @@ namespace osu.Framework.Graphics.Containers
                     switch (e)
                     {
                         case DependencyInjectionException die:
-                            die.DispatchInfo.Throw();
-                            return true;
+                            throw die;
                         case OperationCanceledException _:
                             return true;
                     }
