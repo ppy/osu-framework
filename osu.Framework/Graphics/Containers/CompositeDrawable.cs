@@ -108,7 +108,8 @@ namespace osu.Framework.Graphics.Containers
                     if (exception != null)
                         throw exception;
 
-                    onLoaded?.Invoke(component);
+                    if (!cancellationSource.IsCancellationRequested)
+                        onLoaded?.Invoke(component);
                 });
             }, cancellationSource.Token);
         }
