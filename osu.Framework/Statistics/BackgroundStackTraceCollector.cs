@@ -89,7 +89,8 @@ namespace osu.Framework.Statistics
         {
             while (!cancellation.IsCancellationRequested)
             {
-                if (targetThread.IsAlive && clock.ElapsedMilliseconds - LastConsumptionTime > spikeRecordThreshold / 2 && backgroundMonitorStackTrace == null) backgroundMonitorStackTrace = getStackTrace(targetThread);
+                if (targetThread.IsAlive && clock.ElapsedMilliseconds - LastConsumptionTime > spikeRecordThreshold / 2 && backgroundMonitorStackTrace == null)
+                    backgroundMonitorStackTrace = getStackTrace(targetThread);
                 Thread.Sleep(5);
             }
         }
