@@ -60,7 +60,7 @@ namespace osu.Framework.Tests.Visual
             private readonly int id;
             private PausableLoadDrawable loadable;
 
-            public bool WasCancelled => loadable?.WasCancelled ?? false;
+            public bool WasCancelled => loadable?.IsLoading == false;
             public bool HasLoaded => loadable?.IsLoaded ?? false;
 
             public void AllowLoadCompletion() => loadable?.AllowLoadCompletion();
@@ -98,7 +98,7 @@ namespace osu.Framework.Tests.Visual
         {
             private readonly int id;
 
-            public bool WasCancelled;
+            public bool IsLoading;
 
             public PausableLoadDrawable(int id)
             {
@@ -134,6 +134,8 @@ namespace osu.Framework.Tests.Visual
             [BackgroundDependencyLoader]
             private async Task load(CancellationToken? cancellation)
             {
+                IsLoading = true;
+
                 using (var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(ourSource.Token, cancellation ?? CancellationToken.None))
                 {
                     try
@@ -144,7 +146,7 @@ namespace osu.Framework.Tests.Visual
                     {
                         if (!ourSource.IsCancellationRequested)
                         {
-                            WasCancelled = true;
+                            IsLoading = false;
                             throw;
                         }
                     }
@@ -152,7 +154,6 @@ namespace osu.Framework.Tests.Visual
 
                 Logger.Log($"Load {id} complete!");
             }
-
 
             public void AllowLoadCompletion() => ourSource.Cancel();
 
