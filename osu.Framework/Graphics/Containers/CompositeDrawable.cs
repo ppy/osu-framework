@@ -122,7 +122,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         [BackgroundDependencyLoader(true)]
-        private async Task load(ShaderManager shaders)
+        private async Task load(ShaderManager shaders, CancellationToken? cancellation)
         {
             if (shader == null)
                 shader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
@@ -130,7 +130,11 @@ namespace osu.Framework.Graphics.Containers
             // We are in a potentially async context, so let's aggressively load all our children
             // regardless of their alive state. this also gives children a clock so they can be checked
             // for their correct alive state in the case LifetimeStart is set to a definite value.
-            await Task.WhenAll(internalChildren.Select(loadChildAsync));
+            foreach (var c in internalChildren)
+            {
+                cancellation?.ThrowIfCancellationRequested();
+                await loadChildAsync(c);
+            }
         }
 
         protected override void LoadAsyncComplete()
