@@ -73,6 +73,8 @@ namespace osu.Framework.Graphics.Containers
 
         private CancellationTokenSource cancellationSource;
 
+        private static readonly SemaphoreSlim semaphore = new SemaphoreSlim(2, 2);
+
         /// <summary>
         /// Loads a future child or grand-child of this <see cref="CompositeDrawable"/> asynchronously. <see cref="Dependencies"/>
         /// and <see cref="Drawable.Clock"/> are inherited from this <see cref="CompositeDrawable"/>.
@@ -99,7 +101,12 @@ namespace osu.Framework.Graphics.Containers
                 dependencies = cancellationDeps;
             }
 
-            return Task.Run(async () => await component.LoadAsync(Clock, dependencies), cancellationSource.Token).ContinueWith(t =>
+            return Task.Run(async () =>
+            {
+                await semaphore.WaitAsync();
+                await component.LoadAsync(Clock, dependencies);
+                semaphore.Release();
+            }, cancellationSource.Token).ContinueWith(t =>
             {
                 var exception = t.Exception?.AsSingular();
 
