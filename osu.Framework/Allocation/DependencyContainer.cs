@@ -134,9 +134,9 @@ namespace osu.Framework.Allocation
         /// <exception cref="DependencyInjectionException">When any user error has occurred.
         /// Rethrow <see cref="DependencyInjectionException.DispatchInfo"/> when appropriate to retrieve the original exception.</exception>
         /// <exception cref="OperationCanceledException">When the injection process was cancelled.</exception>
-        public async Task Inject<T>(T instance)
+        public Task Inject<T>(T instance)
             where T : class
-            => await DependencyActivator.Activate(instance, this);
+            => DependencyActivator.Activate(instance, this);
 
         /// <summary>
         /// Invokes a delegate and re-throws any source exception wrapped by a <see cref="DependencyInjectionException"/>.
