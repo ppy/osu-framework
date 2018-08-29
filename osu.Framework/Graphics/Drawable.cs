@@ -204,36 +204,20 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="clock">The clock we should use by default.</param>
         /// <param name="dependencies">The dependency tree we will inherit by default. May be extended via <see cref="CompositeDrawable.CreateChildDependencies"/></param>
-        internal async Task LoadAsync(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies)
+        internal Task LoadAsync(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies)
         {
+            if (IsDisposed)
+                throw new ObjectDisposedException(ToString(), "Attempting to load an already disposed drawable.");
+
+            if (loadTask != null)
+                return loadTask;
+
+            Trace.Assert(loadState == LoadState.NotLoaded);
             lock (loadLock)
             {
-                if (IsDisposed)
-                    throw new ObjectDisposedException(ToString(), "Attempting to load an already disposed drawable.");
-
-                switch (loadState)
-                {
-                    case LoadState.Ready:
-                    case LoadState.Loaded:
-                        return;
-                    case LoadState.Loading:
-                        break;
-                    case LoadState.NotLoaded:
-                        loadState = LoadState.Loading;
-
-                        // only start a new load if one doesn't already exist.
-                        loadTask = loadTask ?? loadAsync(clock, dependencies);
-                        break;
-                    default:
-                        Trace.Assert(false, "Impossible loading state.");
-                        break;
-                }
+                loadState = LoadState.Loading;
+                return loadTask = loadAsync(clock, dependencies).ContinueWith(_ => loadState = LoadState.Ready);
             }
-
-            await loadTask;
-
-            lock (loadLock)
-                loadState = LoadState.Ready;
         }
 
         private async Task loadAsync(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies)
