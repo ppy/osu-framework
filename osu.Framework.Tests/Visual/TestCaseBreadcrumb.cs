@@ -51,13 +51,13 @@ namespace osu.Framework.Tests.Visual
                 return navigation.InternalChildren.Count == testValues.Length ;
             });
 
-            const int testIndex = 2;
+            const int test_index = 2;
 
-            AddStep($"Click on {testValues[testIndex]} one of the elements", () => { navigation.InternalChildren[testIndex].TriggerOnClick(); });
+            AddStep($"Click on {testValues[test_index]} one of the elements", () => { navigation.InternalChildren[test_index].TriggerOnClick(); });
 
-            AddAssert($"Assert that the breadcrumps got truncated to {testValues[testIndex]}", () =>
+            AddAssert($"Assert that the breadcrumps got truncated to {testValues[test_index]}", () =>
             {
-                for (int i = 0; i < testIndex + 1; i++)
+                for (int i = 0; i < test_index + 1; i++)
                 {
                     Breadcrumb child = (Breadcrumb) navigation.InternalChildren[i];
 
@@ -65,7 +65,7 @@ namespace osu.Framework.Tests.Visual
                         return false;
                 }
 
-                return navigation.InternalChildren.Count == testIndex + 1;
+                return navigation.InternalChildren.Count == test_index + 1;
             });
         }
     }
