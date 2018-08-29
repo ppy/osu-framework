@@ -36,7 +36,7 @@ namespace osu.Framework.IO.Stores
             FontName = assetName?.Split('/').Last();
         }
 
-        public Task LoadFont() => fontLoadTask ?? (fontLoadTask = Task.Run(() =>
+        public Task LoadFontAsync() => fontLoadTask ?? (fontLoadTask = Task.Factory.StartNew(() =>
         {
             try
             {
@@ -51,7 +51,7 @@ namespace osu.Framework.IO.Stores
                 Logger.Error(ex, $"Couldn't load font asset from {assetName}.");
                 throw;
             }
-        }));
+        }, TaskCreationOptions.PreferFairness));
 
         public bool HasGlyph(char c) => Font.Characters.ContainsKey(c);
         public int GetBaseHeight() => Font.BaseHeight;

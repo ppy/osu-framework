@@ -50,7 +50,7 @@ namespace osu.Framework.IO.Stores
                 try
                 {
                     Logger.Log($"Font {store.FontName}...", LoggingTarget.Debug);
-                    await store.LoadFont();
+                    await store.LoadFontAsync();
                     Logger.Log($"Font {store.FontName} ✓", LoggingTarget.Debug);
                 }
                 catch (OperationCanceledException)
