@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
@@ -77,8 +78,7 @@ namespace osu.Framework.Allocation
             foreach (var a in injectionActivators)
                 a(obj, dependencies);
 
-            foreach (var a in injectionActivatorsAsync)
-                await a(obj, dependencies);
+            await Task.WhenAll(injectionActivatorsAsync.Select(a => a(obj, dependencies)));
         }
 
         private IReadOnlyDependencyContainer mergeDependencies(object obj, IReadOnlyDependencyContainer dependencies)
