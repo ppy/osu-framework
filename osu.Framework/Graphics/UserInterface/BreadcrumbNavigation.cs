@@ -47,6 +47,7 @@ namespace osu.Framework.Graphics.UserInterface
                     throw new ArgumentNullException(nameof(value));
 
                 Clear();
+
                 AddRange(value.Select(CreateBreadcrumb));
             }
         }
