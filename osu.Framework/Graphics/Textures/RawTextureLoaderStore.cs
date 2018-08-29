@@ -17,24 +17,21 @@ namespace osu.Framework.Graphics.Textures
             (store as ResourceStore<byte[]>)?.AddExtension(@"jpg");
         }
 
-        public override async Task<RawTexture> GetAsync(string name)
+        public override Task<RawTexture> GetAsync(string name)
         {
-            return await Task.Run(() =>
+            try
             {
-                try
+                using (var stream = store.GetStream(name))
                 {
-                    using (var stream = store.GetStream(name))
-                    {
-                        if (stream == null) return null;
+                    if (stream != null)
+                        return Task.FromResult(new RawTexture(stream));
+                }
+            }
+            catch
+            {
+            }
 
-                        return new RawTexture(stream);
-                    }
-                }
-                catch
-                {
-                    return null;
-                }
-            });
+            return Task.FromResult<RawTexture>(null);
         }
     }
 }
