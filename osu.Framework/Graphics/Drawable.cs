@@ -192,7 +192,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         public LoadState LoadState => loadState;
 
-        private Task loadTask;
+        private volatile Task loadTask;
 
         private readonly object loadLock = new object();
 
@@ -212,12 +212,17 @@ namespace osu.Framework.Graphics
             if (loadTask != null)
                 return loadTask;
 
-            Trace.Assert(loadState == LoadState.NotLoaded);
             lock (loadLock)
             {
-                loadState = LoadState.Loading;
-                return loadTask = loadAsync(clock, dependencies).ContinueWith(_ => loadState = LoadState.Ready);
+                if (loadTask == null)
+                {
+                    Trace.Assert(loadState == LoadState.NotLoaded);
+                    loadState = LoadState.Loading;
+                    loadTask = loadAsync(clock, dependencies).ContinueWith(_ => loadState = LoadState.Ready);
+                }
             }
+
+            return loadTask;
         }
 
         private async Task loadAsync(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies)
