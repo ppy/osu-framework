@@ -16,7 +16,7 @@ namespace osu.Framework.IO.Stores
     {
         private readonly string assetName;
 
-        private readonly string fontName;
+        public readonly string FontName;
 
         private const float default_size = 96;
 
@@ -26,29 +26,23 @@ namespace osu.Framework.IO.Stores
 
         private readonly TimedExpiryCache<int, RawTexture> texturePages = new TimedExpiryCache<int, RawTexture>();
 
-        private readonly Task<BitmapFont> fontLoadTask;
+        private Task<BitmapFont> fontLoadTask;
 
-        public GlyphStore(ResourceStore<byte[]> store, string assetName = null, bool precache = false)
+        public GlyphStore(ResourceStore<byte[]> store, string assetName = null)
         {
             this.store = store;
             this.assetName = assetName;
 
-            fontName = assetName?.Split('/').Last();
-
-            fontLoadTask = Task.Run(() => getFont(precache));
+            FontName = assetName?.Split('/').Last();
         }
 
-        private BitmapFont getFont(bool precache)
+        public Task LoadFont() => fontLoadTask ?? (fontLoadTask = Task.Run(() =>
         {
             try
             {
                 var font = new BitmapFont();
                 using (var s = store.GetStream($@"{assetName}.fnt"))
                     font.LoadText(s);
-
-                if (precache)
-                    for (int i = 0; i < font.Pages.Length; i++)
-                        getTexturePage(i);
 
                 return font;
             }
@@ -57,14 +51,14 @@ namespace osu.Framework.IO.Stores
                 Logger.Error(ex, $"Couldn't load font asset from {assetName}.");
                 throw;
             }
-        }
+        }));
 
         public bool HasGlyph(char c) => Font.Characters.ContainsKey(c);
         public int GetBaseHeight() => Font.BaseHeight;
 
         public int? GetBaseHeight(string name)
         {
-            if (name != fontName)
+            if (name != FontName)
                 return null;
 
             return Font.BaseHeight;
@@ -74,7 +68,7 @@ namespace osu.Framework.IO.Stores
 
         public virtual async Task<RawTexture> GetAsync(string name)
         {
-            if (name.Length > 1 && !name.StartsWith($@"{fontName}/", StringComparison.Ordinal))
+            if (name.Length > 1 && !name.StartsWith($@"{FontName}/", StringComparison.Ordinal))
                 return null;
 
             if (!(await fontLoadTask).Characters.TryGetValue(name.Last(), out Character c))
