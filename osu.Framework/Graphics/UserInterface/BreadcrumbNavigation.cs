@@ -33,7 +33,7 @@ namespace osu.Framework.Graphics.UserInterface
             breadcrumb.Clicked += () => updateItems(InternalChildren.ToList().IndexOf(breadcrumb));
 
             return breadcrumb;
-        } 
+        }
 
         /// <summary>
         /// The items displayed the breadcrumb navigation.
@@ -66,7 +66,5 @@ namespace osu.Framework.Graphics.UserInterface
 
             Items = Items.Take(newIndex + 1).ToList();
         }
-
-        
     }
 }
