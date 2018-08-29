@@ -22,11 +22,13 @@ namespace osu.Framework.IO.Stores
 
         private readonly ResourceStore<byte[]> store;
 
-        protected BitmapFont Font => fontLoadTask.Result;
+        protected BitmapFont Font => completionSource.Task.Result;
 
         private readonly TimedExpiryCache<int, RawTexture> texturePages = new TimedExpiryCache<int, RawTexture>();
 
-        private Task<BitmapFont> fontLoadTask;
+        private readonly TaskCompletionSource<BitmapFont> completionSource = new TaskCompletionSource<BitmapFont>();
+
+        private Task fontLoadTask;
 
         public GlyphStore(ResourceStore<byte[]> store, string assetName = null)
         {
@@ -44,7 +46,7 @@ namespace osu.Framework.IO.Stores
                 using (var s = store.GetStream($@"{assetName}.fnt"))
                     font.LoadText(s);
 
-                return font;
+                completionSource.SetResult(font);
             }
             catch (Exception ex)
             {
@@ -71,7 +73,7 @@ namespace osu.Framework.IO.Stores
             if (name.Length > 1 && !name.StartsWith($@"{FontName}/", StringComparison.Ordinal))
                 return null;
 
-            if (!(await fontLoadTask).Characters.TryGetValue(name.Last(), out Character c))
+            if (!(await completionSource.Task).Characters.TryGetValue(name.Last(), out Character c))
                 return null;
 
             RawTexture page = getTexturePage(c.TexturePage);
