@@ -9,7 +9,7 @@ namespace osu.Framework.Tests.Visual
 {
     public class TestCaseBreadcrumb : FrameworkTestCase
     {
-        private string[] testValues = new[]
+        private readonly string[] testValues =
         {
             "c://",
             "Windows",
@@ -19,10 +19,10 @@ namespace osu.Framework.Tests.Visual
             "hosts"
         };
 
-        private readonly BreadcrumbNavigation navigation;
-
         public TestCaseBreadcrumb()
         {
+            BreadcrumbNavigation navigation;
+
             Children = new Drawable[]
             {
                 navigation = new BreadcrumbNavigation
@@ -51,7 +51,7 @@ namespace osu.Framework.Tests.Visual
                 return navigation.InternalChildren.Count == testValues.Length ;
             });
 
-            int testIndex = 2;
+            const int testIndex = 2;
 
             AddStep($"Click on {testValues[testIndex]} one of the elements", () => { navigation.InternalChildren[testIndex].TriggerOnClick(); });
 
