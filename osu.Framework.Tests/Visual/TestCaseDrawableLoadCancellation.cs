@@ -94,8 +94,6 @@ namespace osu.Framework.Tests.Visual
             }
         }
 
-
-
         public class PausableLoadDrawable : CompositeDrawable
         {
             private readonly int id;
@@ -156,7 +154,6 @@ namespace osu.Framework.Tests.Visual
 
                 Logger.Log($"Load {id} complete!");
             }
-
 
             public void AllowLoadCompletion() => ourSource.Cancel();
 
