@@ -141,10 +141,7 @@ namespace osu.Framework.Platform
             return defaultEnabled.Concat(defaultDisabled);
         }
 
-        public override async Task SendMessageAsync(IpcMessage message)
-        {
-            await ipcProvider.SendMessageAsync(message);
-        }
+        public override Task SendMessageAsync(IpcMessage message) => ipcProvider.SendMessageAsync(message);
 
         protected override void Dispose(bool isDisposing)
         {

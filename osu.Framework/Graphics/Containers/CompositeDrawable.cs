@@ -148,13 +148,12 @@ namespace osu.Framework.Graphics.Containers
         /// <exception cref="ObjectDisposedException">If <paramref name="child"/> is disposed.</exception>
         /// <exception cref="OperationCanceledException">When the loading process was cancelled.</exception>
         /// <exception cref="DependencyInjectionException">When a user error occurred during dependency injection.</exception>
-        private async Task loadChildAsync(Drawable child)
+        private Task loadChildAsync(Drawable child)
         {
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString(), "Disposed Drawables may not have children added.");
 
-            await child.LoadAsync(Clock, Dependencies);
-            child.Parent = this;
+            return child.LoadAsync(Clock, Dependencies).ContinueWith(_ => child.Parent = this);
         }
 
         /// <summary>

@@ -155,16 +155,13 @@ namespace osu.Framework.Audio.Track
             StopAsync().Wait();
         }
 
-        public async Task StopAsync()
+        public Task StopAsync() => EnqueueAction(() =>
         {
-            await EnqueueAction(() =>
-            {
-                if (Bass.ChannelIsActive(activeStream) == PlaybackState.Playing)
-                    Bass.ChannelPause(activeStream);
+            if (Bass.ChannelIsActive(activeStream) == PlaybackState.Playing)
+                Bass.ChannelPause(activeStream);
 
-                isPlayed = false;
-            });
-        }
+            isPlayed = false;
+        });
 
         private int direction;
 
@@ -181,16 +178,13 @@ namespace osu.Framework.Audio.Track
             StartAsync().Wait();
         }
 
-        public async Task StartAsync()
+        public Task StartAsync() => EnqueueAction(() =>
         {
-            await EnqueueAction(() =>
-            {
-                if (Bass.ChannelPlay(activeStream))
-                    isPlayed = true;
-                else
-                    isRunning = false;
-            });
-        }
+            if (Bass.ChannelPlay(activeStream))
+                isPlayed = true;
+            else
+                isRunning = false;
+        });
 
         public override bool Seek(double seek) => SeekAsync(seek).Result;
 
