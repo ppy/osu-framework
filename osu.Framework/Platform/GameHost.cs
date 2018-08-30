@@ -550,7 +550,7 @@ namespace osu.Framework.Platform
 
             game.SetHost(this);
 
-            DependencyContainer.UnwrapExceptions(root.LoadAsync(SceneGraphClock, Dependencies).Wait);
+            root.Load(SceneGraphClock, Dependencies);
 
             //publish bootstrapped scene graph to all threads.
             Root = root;

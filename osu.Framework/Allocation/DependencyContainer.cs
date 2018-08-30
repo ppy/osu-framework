@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
 using osu.Framework.Extensions.TypeExtensions;
 
 namespace osu.Framework.Allocation
@@ -134,7 +133,7 @@ namespace osu.Framework.Allocation
         /// <exception cref="DependencyInjectionException">When any user error has occurred.
         /// Rethrow <see cref="DependencyInjectionException.DispatchInfo"/> when appropriate to retrieve the original exception.</exception>
         /// <exception cref="OperationCanceledException">When the injection process was cancelled.</exception>
-        public Task Inject<T>(T instance)
+        public void Inject<T>(T instance)
             where T : class
             => DependencyActivator.Activate(instance, this);
 

@@ -34,7 +34,7 @@ namespace osu.Framework.Tests.Dependencies
                 }
             };
 
-            dependencies.Inject(receiver).Wait();
+            dependencies.Inject(receiver);
 
             Assert.AreEqual(typeof(BaseObject), receivedBase.GetType());
             Assert.AreEqual(typeof(DerivedObject), receivedDerived.GetType());
@@ -52,7 +52,7 @@ namespace osu.Framework.Tests.Dependencies
 
             var receiver = new Receiver2();
 
-            Assert.DoesNotThrow(() => dependencies.Inject(receiver).Wait());
+            Assert.DoesNotThrow(() => dependencies.Inject(receiver));
         }
 
         [Test]
@@ -62,7 +62,7 @@ namespace osu.Framework.Tests.Dependencies
 
             var receiver = new Receiver1();
 
-            Assert.Throws<DependencyNotRegisteredException>(() => DependencyContainer.UnwrapExceptions(dependencies.Inject(receiver).Wait));
+            Assert.Throws<DependencyNotRegisteredException>(() => dependencies.Inject(receiver));
         }
 
         [Test]
@@ -72,7 +72,7 @@ namespace osu.Framework.Tests.Dependencies
 
             var receiver = new Receiver3();
 
-            Assert.DoesNotThrow(() => dependencies.Inject(receiver).Wait());
+            Assert.DoesNotThrow(() => dependencies.Inject(receiver));
         }
 
         [Test]
@@ -88,7 +88,7 @@ namespace osu.Framework.Tests.Dependencies
                 Loaded5 = () => derivedCount = ++count
             };
 
-            dependencies.Inject(receiver).Wait();
+            dependencies.Inject(receiver);
 
             Assert.AreEqual(1, baseCount);
             Assert.AreEqual(2, derivedCount);
@@ -113,10 +113,10 @@ namespace osu.Framework.Tests.Dependencies
                 OnLoad = o => receivedObject = o
             };
 
-            dependencies1.Inject(receiver).Wait();
+            dependencies1.Inject(receiver);
             Assert.AreEqual(receivedObject, testObject1);
 
-            dependencies2.Inject(receiver).Wait();
+            dependencies2.Inject(receiver);
             Assert.AreEqual(receivedObject, testObject2);
         }
 
@@ -176,7 +176,7 @@ namespace osu.Framework.Tests.Dependencies
         {
             var receiver = new Receiver6();
 
-            Assert.ThrowsAsync<AccessModifierNotAllowedForLoaderMethodException>(async () => await new DependencyContainer().Inject(receiver));
+            Assert.Throws<AccessModifierNotAllowedForLoaderMethodException>(() => new DependencyContainer().Inject(receiver));
         }
 
         [Test]
@@ -184,7 +184,7 @@ namespace osu.Framework.Tests.Dependencies
         {
             var receiver = new Receiver7();
 
-            Assert.ThrowsAsync<AccessModifierNotAllowedForLoaderMethodException>(async () => await new DependencyContainer().Inject(receiver));
+            Assert.Throws<AccessModifierNotAllowedForLoaderMethodException>(() => new DependencyContainer().Inject(receiver));
         }
 
         [Test]
@@ -192,7 +192,7 @@ namespace osu.Framework.Tests.Dependencies
         {
             var receiver = new Receiver8();
 
-            Assert.ThrowsAsync<AccessModifierNotAllowedForLoaderMethodException>(async () => await new DependencyContainer().Inject(receiver));
+            Assert.Throws<AccessModifierNotAllowedForLoaderMethodException>(() => new DependencyContainer().Inject(receiver));
         }
 
         [Test]
@@ -200,7 +200,7 @@ namespace osu.Framework.Tests.Dependencies
         {
             var receiver = new Receiver9();
 
-            Assert.ThrowsAsync<AccessModifierNotAllowedForLoaderMethodException>(async () => await new DependencyContainer().Inject(receiver));
+            Assert.Throws<AccessModifierNotAllowedForLoaderMethodException>(() => new DependencyContainer().Inject(receiver));
         }
 
         [Test]
@@ -242,7 +242,7 @@ namespace osu.Framework.Tests.Dependencies
         [Test]
         public void TestResolveStructWithoutNullPermits()
         {
-            Assert.Throws<DependencyNotRegisteredException>(() => DependencyContainer.UnwrapExceptions(new DependencyContainer().Inject(new Receiver12()).Wait));
+            Assert.Throws<DependencyNotRegisteredException>(() => new DependencyContainer().Inject(new Receiver12()));
         }
 
         [Test]
@@ -250,7 +250,7 @@ namespace osu.Framework.Tests.Dependencies
         {
             var receiver = new Receiver13();
 
-            Assert.DoesNotThrow(() => new DependencyContainer().Inject(receiver).Wait());
+            Assert.DoesNotThrow(() => new DependencyContainer().Inject(receiver));
             Assert.AreEqual(0, receiver.TestObject);
         }
 
