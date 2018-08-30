@@ -20,6 +20,7 @@ using osu.Framework.Caching;
 using osu.Framework.Threading;
 using osu.Framework.Statistics;
 using System.Threading.Tasks;
+using osu.Framework.Extensions;
 using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Extensions.MatrixExtensions;
 using osu.Framework.Graphics.Primitives;
@@ -74,6 +75,8 @@ namespace osu.Framework.Graphics.Containers
 
         private CancellationTokenSource cancellationSource;
 
+        private static readonly SemaphoreSlim semaphore = new SemaphoreSlim(2, 2);
+
         /// <summary>
         /// Loads a future child or grand-child of this <see cref="CompositeDrawable"/> asynchronously. <see cref="Dependencies"/>
         /// and <see cref="Drawable.Clock"/> are inherited from this <see cref="CompositeDrawable"/>.
@@ -100,7 +103,18 @@ namespace osu.Framework.Graphics.Containers
                 dependencies = cancellationDeps;
             }
 
-            return Task.Run(async () => await component.LoadAsync(Clock, dependencies), cancellationSource.Token).ContinueWith(t =>
+            return Task.Run(async () =>
+            {
+                await semaphore.WaitAsync();
+                try
+                {
+                    await component.LoadAsync(Clock, dependencies);
+                }
+                finally
+                {
+                    semaphore.Release();
+                }
+            }, cancellationSource.Token).ContinueWith(t =>
             {
                 var exception = t.Exception?.AsSingular();
 
@@ -149,13 +163,16 @@ namespace osu.Framework.Graphics.Containers
         /// <exception cref="ObjectDisposedException">If <paramref name="child"/> is disposed.</exception>
         /// <exception cref="OperationCanceledException">When the loading process was cancelled.</exception>
         /// <exception cref="DependencyInjectionException">When a user error occurred during dependency injection.</exception>
-        private async Task loadChildAsync(Drawable child)
+        private Task loadChildAsync(Drawable child)
         {
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString(), "Disposed Drawables may not have children added.");
 
-            await child.LoadAsync(Clock, Dependencies);
-            child.Parent = this;
+            return child.LoadAsync(Clock, Dependencies).ContinueWith(t =>
+            {
+                t.ThrowIfFaulted();
+                child.Parent = this;
+            });
         }
 
         /// <summary>

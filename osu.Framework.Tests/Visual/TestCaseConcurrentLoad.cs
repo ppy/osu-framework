@@ -17,7 +17,7 @@ namespace osu.Framework.Tests.Visual
 {
     public class TestCaseConcurrentLoad : TestCase
     {
-        private const int panel_count = 20;
+        private const int panel_count = 6;
 
         private FillFlowContainerNoInput flow;
 
@@ -32,6 +32,7 @@ namespace osu.Framework.Tests.Visual
         }
 
         [Test]
+        [Ignore("pointless with LoadComponentAsync concurrency limiting")]
         public void LoadManyThreaded()
         {
             AddStep("load many thread", () =>
@@ -48,6 +49,7 @@ namespace osu.Framework.Tests.Visual
         }
 
         [Test]
+        [Ignore("pointless with LoadComponentAsync concurrency limiting")]
         public void LoadManyAsync()
         {
             AddStep("load many async", () =>

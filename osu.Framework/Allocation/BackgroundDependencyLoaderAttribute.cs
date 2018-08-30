@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
+using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Extensions.TypeExtensions;
 
 namespace osu.Framework.Allocation
@@ -88,6 +89,9 @@ namespace osu.Framework.Allocation
                         }
                         catch (Exception exc) // During await invocations
                         {
+                            if (exc is AggregateException ae) // Can be thrown by task cancellations
+                                exc = ae.AsSingular();
+
                             switch (exc)
                             {
                                 case OperationCanceledException _ :

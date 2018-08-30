@@ -50,8 +50,8 @@ namespace osu.Framework.Allocation
         /// </summary>
         /// <param name="obj">The object to inject the dependencies into.</param>
         /// <param name="dependencies">The dependencies to use for injection.</param>
-        public static async Task Activate(object obj, DependencyContainer dependencies)
-            => await getActivator(obj.GetType()).activate(obj, dependencies);
+        public static Task Activate(object obj, DependencyContainer dependencies)
+            => getActivator(obj.GetType()).activate(obj, dependencies);
 
         /// <summary>
         /// Merges existing dependencies with new dependencies from an object into a new <see cref="IReadOnlyDependencyContainer"/>.
