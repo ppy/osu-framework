@@ -14,7 +14,6 @@ using osu.Framework.IO.Stores;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using osu.Framework.Extensions.IEnumerableExtensions;
 
 namespace osu.Framework.Graphics.Sprites
@@ -156,10 +155,10 @@ namespace osu.Framework.Graphics.Sprites
         }
 
         [BackgroundDependencyLoader]
-        private async Task load()
+        private void load()
         {
-            spaceWidth = (await CreateCharacterDrawable('.'))?.DrawWidth * 2 ?? default_text_size;
-            await validateLayout();
+            spaceWidth = CreateCharacterDrawable('.')?.DrawWidth * 2 ?? default_text_size;
+            validateLayout();
         }
 
         private Bindable<string> current;
@@ -219,14 +218,14 @@ namespace osu.Framework.Graphics.Sprites
         protected override void Update()
         {
             base.Update();
-            validateLayout().Wait();
+            validateLayout();
         }
 
-        private async Task validateLayout()
+        private void validateLayout()
         {
             if (!layout.IsValid)
             {
-                await computeLayout();
+                computeLayout();
                 layout.Validate();
             }
         }
@@ -243,14 +242,14 @@ namespace osu.Framework.Graphics.Sprites
         private float lastShadowAlpha;
         private string lastFont;
 
-        private async Task computeLayout()
+        private void computeLayout()
         {
             //adjust shadow alpha based on highest component intensity to avoid muddy display of darker text.
             //squared result for quadratic fall-off seems to give the best result.
             var avgColour = (Color4)DrawInfo.Colour.AverageColour;
             float shadowAlpha = (float)Math.Pow(Math.Max(Math.Max(avgColour.R, avgColour.G), avgColour.B), 2);
 
-            //we can't keep existing drawabled if our shadow has changed, as the shadow is applied in the add-loop.
+            //we can't keep existing drawables if our shadow has changed, as the shadow is applied in the add-loop.
             //this could potentially be optimised if necessary.
             bool allowKeepingExistingDrawables = shadowAlpha == lastShadowAlpha && font == lastFont;
 
@@ -286,7 +285,7 @@ namespace osu.Framework.Graphics.Sprites
             }
 
             if (FixedWidth && !constantWidth.HasValue)
-                constantWidth = (await CreateCharacterDrawable('D')).DrawWidth;
+                constantWidth = CreateCharacterDrawable('D').DrawWidth;
 
             foreach (var k in keepDrawables)
             {
@@ -322,7 +321,7 @@ namespace osu.Framework.Graphics.Sprites
                 }
                 else
                 {
-                    d = await CreateCharacterDrawable(c);
+                    d = CreateCharacterDrawable(c);
 
                     if (fixedWidth)
                     {
@@ -339,7 +338,7 @@ namespace osu.Framework.Graphics.Sprites
 
                     if (shadow && shadowAlpha > 0)
                     {
-                        Drawable shadowDrawable = await CreateCharacterDrawable(c);
+                        Drawable shadowDrawable = CreateCharacterDrawable(c);
                         shadowDrawable.Position = new Vector2(0, 0.06f);
                         shadowDrawable.Anchor = d.Anchor;
                         shadowDrawable.Origin = d.Origin;
@@ -374,9 +373,9 @@ namespace osu.Framework.Graphics.Sprites
         /// </summary>
         /// <param name="c">The character the drawable should be created for.</param>
         /// <returns>The <see cref="Drawable"/> created for the given character.</returns>
-        protected virtual async Task<Drawable> CreateCharacterDrawable(char c)
+        protected virtual Drawable CreateCharacterDrawable(char c)
         {
-            var tex = await GetTextureForCharacter(c);
+            var tex = GetTextureForCharacter(c);
             if (tex != null)
                 return new Sprite { Texture = tex };
 
@@ -388,12 +387,12 @@ namespace osu.Framework.Graphics.Sprites
         /// </summary>
         /// <param name="c">The character to get the texture for.</param>
         /// <returns>The texture for the given character.</returns>
-        protected async Task<Texture> GetTextureForCharacter(char c)
+        protected Texture GetTextureForCharacter(char c)
         {
             if (store == null)
                 return null;
 
-            return await store.GetAsync(getTextureName(c)) ?? await store.GetAsync(getTextureName(c, false));
+            return store.Get(getTextureName(c)) ?? store.Get(getTextureName(c, false));
         }
 
         private string getTextureName(char c, bool useFont = true) => !useFont || string.IsNullOrEmpty(Font) ? c.ToString() : $@"{Font}/{c}";
