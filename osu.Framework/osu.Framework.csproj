@@ -19,6 +19,7 @@
     <PackageReleaseNotes>Automated release.</PackageReleaseNotes>
     <copyright>Copyright (c) 2007-2018 ppy Pty Ltd contact@ppy.sh</copyright>
     <PackageTags>osu game framework</PackageTags>
+    <LangVersion>7.2</LangVersion>
   </PropertyGroup>
   <ItemGroup Label="Package References">
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0004" />

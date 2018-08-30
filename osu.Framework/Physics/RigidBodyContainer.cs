@@ -94,7 +94,7 @@ namespace osu.Framework.Physics
         /// </summary>
         protected float ComputeI()
         {
-            Matrix3x2 mat = MatrixExtensions.Mult(DrawInfo.Matrix, Parent.DrawInfo.MatrixInverse);
+            MatrixExtensions.Mult(DrawInfo.Matrix, Parent.DrawInfo.MatrixInverse, out Matrix3x2 mat);
             Vector2 size = DrawSize;
 
             // Inertial moment for a linearly transformed rectangle with a given size around its center.
@@ -166,8 +166,9 @@ namespace osu.Framework.Physics
             }
 
             // To simulation space
-            Matrix3x2 mat = MatrixExtensions.Mult(DrawInfo.Matrix, ScreenToSimulationSpace);
-            Matrix2 normMat = MatrixExtensions.RemoveTranslation(MatrixExtensions.Invert(mat));
+            MatrixExtensions.Mult(DrawInfo.Matrix, ScreenToSimulationSpace, out Matrix3x2 mat);
+            MatrixExtensions.Invert(mat, out Matrix3x2 invMat);
+            Matrix2 normMat = MatrixExtensions.RemoveTranslation(invMat);
             normMat.Transpose();
 
             for (int i = 0; i < Vertices.Count; ++i)
