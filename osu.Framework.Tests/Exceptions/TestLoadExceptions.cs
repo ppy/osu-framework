@@ -235,9 +235,9 @@ namespace osu.Framework.Tests.Exceptions
             }
 
             [BackgroundDependencyLoader]
-            private async Task load()
+            private void load()
             {
-                await Task.Delay((int)(1000 / Clock.Rate));
+                Task.Delay((int)(1000 / Clock.Rate)).Wait();
                 if (throws)
                     throw new AsyncTestException();
             }

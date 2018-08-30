@@ -6,7 +6,6 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
 using JetBrains.Annotations;
-using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Extensions.TypeExtensions;
 
 namespace osu.Framework.Allocation
@@ -76,23 +75,6 @@ namespace osu.Framework.Allocation
 
                             // This activator has failed (single reflection call) - preserve the original stacktrace while notifying of the error
                             throw new DependencyInjectionException { DispatchInfo = ExceptionDispatchInfo.Capture(exc.InnerException) };
-                        }
-                        catch (Exception exc) // During await invocations
-                        {
-                            if (exc is AggregateException ae) // Can be thrown by task cancellations
-                                exc = ae.AsSingular();
-
-                            switch (exc)
-                            {
-                                case OperationCanceledException _ :
-                                    // This or a nested activator was canceled - propagate the cancellation as-is (it will be handled silently)
-                                case DependencyInjectionException _:
-                                    // This or a nested activator has failed - propagate the original error
-                                    throw;
-                            }
-
-                            // This activator has failed - preserve the original stacktrace while notifying of the error
-                            throw new DependencyInjectionException { DispatchInfo = ExceptionDispatchInfo.Capture(exc) };
                         }
                     };
                 default:
