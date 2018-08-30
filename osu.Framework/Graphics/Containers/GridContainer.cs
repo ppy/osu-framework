@@ -130,7 +130,7 @@ namespace osu.Framework.Graphics.Containers
                 for (int c = 0; c < cellColumns; c++)
                 {
                     // Add cell
-                    cells[r, c] = new CellContainer();
+                    cells[r, c] = new CellContainer { OnChildInvalidation = i => InvalidateFromChild(i) };
 
                     // Allow empty rows
                     if (Content[r] == null)
@@ -290,10 +290,15 @@ namespace osu.Framework.Graphics.Containers
             /// </summary>
             public bool DistributedHeight;
 
+            /// <summary>
+            /// Invoked whenever the child invalidates this <see cref="CellContainer"/>.
+            /// </summary>
+            public Action<Invalidation> OnChildInvalidation;
+
             public override void InvalidateFromChild(Invalidation invalidation, Drawable source = null)
             {
                 if ((invalidation & (Invalidation.RequiredParentSizeToFit | Invalidation.Colour)) > 0)
-                    Parent.InvalidateFromChild(invalidation);
+                    OnChildInvalidation?.Invoke(invalidation);
                 base.InvalidateFromChild(invalidation, source);
             }
         }
