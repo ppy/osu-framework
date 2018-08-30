@@ -57,15 +57,8 @@ namespace osu.Framework.Graphics.Textures
                 //Laziness ensure we are only ever creating the texture once (and blocking on other access until it is done).
                 new AsyncLazy<TextureGL>(async () => (await getTextureAsync(name))?.TextureGL, LazyThreadSafetyMode.ExecutionAndPublication)).Value;
 
-            if (cachedTex == null) return null;
-
             //use existing TextureGL (but provide a new texture instance).
-            var tex = new Texture(cachedTex)
-            {
-                ScaleAdjust = ScaleAdjust
-            };
-
-            return tex;
+            return cachedTex == null ? null : new Texture(cachedTex) { ScaleAdjust = ScaleAdjust };
         }
 
         /// <summary>

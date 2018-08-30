@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
+// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using OpenTK;
@@ -27,6 +27,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Configuration;
 using osu.Framework.Development;
+using osu.Framework.Extensions;
 using osu.Framework.Input.EventArgs;
 using osu.Framework.Input.States;
 using osu.Framework.MathUtils;
@@ -192,7 +193,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         public LoadState LoadState => loadState;
 
-        private Task loadTask;
+        private volatile Task loadTask;
 
         private readonly object loadLock = new object();
 
@@ -204,36 +205,29 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="clock">The clock we should use by default.</param>
         /// <param name="dependencies">The dependency tree we will inherit by default. May be extended via <see cref="CompositeDrawable.CreateChildDependencies"/></param>
-        internal async Task LoadAsync(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies)
+        internal Task LoadAsync(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies)
         {
+            if (IsDisposed)
+                throw new ObjectDisposedException(ToString(), "Attempting to load an already disposed drawable.");
+
+            if (loadTask != null)
+                return loadTask;
+
             lock (loadLock)
             {
-                if (IsDisposed)
-                    throw new ObjectDisposedException(ToString(), "Attempting to load an already disposed drawable.");
-
-                switch (loadState)
+                if (loadTask == null)
                 {
-                    case LoadState.Ready:
-                    case LoadState.Loaded:
-                        return;
-                    case LoadState.Loading:
-                        break;
-                    case LoadState.NotLoaded:
-                        loadState = LoadState.Loading;
-
-                        // only start a new load if one doesn't already exist.
-                        loadTask = loadTask ?? loadAsync(clock, dependencies);
-                        break;
-                    default:
-                        Trace.Assert(false, "Impossible loading state.");
-                        break;
+                    Trace.Assert(loadState == LoadState.NotLoaded);
+                    loadState = LoadState.Loading;
+                    loadTask = loadAsync(clock, dependencies).ContinueWith(t =>
+                    {
+                        t.ThrowIfFaulted();
+                        loadState = LoadState.Ready;
+                    });
                 }
             }
 
-            await loadTask;
-
-            lock (loadLock)
-                loadState = LoadState.Ready;
+            return loadTask;
         }
 
         private async Task loadAsync(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies)
@@ -262,7 +256,7 @@ namespace osu.Framework.Graphics
         /// Injects dependencies from an <see cref="IReadOnlyDependencyContainer"/> into this <see cref="Drawable"/>.
         /// </summary>
         /// <param name="dependencies">The dependencies to inject.</param>
-        protected virtual async Task InjectDependencies(IReadOnlyDependencyContainer dependencies) => await dependencies.Inject(this);
+        protected virtual Task InjectDependencies(IReadOnlyDependencyContainer dependencies) => dependencies.Inject(this);
 
         /// <summary>
         /// Runs once on the update thread after loading has finished.

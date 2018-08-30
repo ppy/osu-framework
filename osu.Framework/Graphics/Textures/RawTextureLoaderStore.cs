@@ -17,23 +17,24 @@ namespace osu.Framework.Graphics.Textures
             (store as ResourceStore<byte[]>)?.AddExtension(@"jpg");
         }
 
-        public override async Task<RawTexture> GetAsync(string name)
+        public override Task<RawTexture> GetAsync(string name)
         {
-            return await Task.Run(() =>
+            // TODO: this code is currently running non-asynchronously due to ImageSharp not supporting async loads.
+            return Task.Run(() =>
             {
                 try
                 {
                     using (var stream = store.GetStream(name))
                     {
-                        if (stream == null) return null;
-
-                        return new RawTexture(stream);
+                        if (stream != null)
+                            return new RawTexture(stream);
                     }
                 }
                 catch
                 {
-                    return null;
                 }
+
+                return null;
             });
         }
     }
