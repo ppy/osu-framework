@@ -20,6 +20,7 @@ using osu.Framework.Caching;
 using osu.Framework.Threading;
 using osu.Framework.Statistics;
 using System.Threading.Tasks;
+using osu.Framework.Extensions;
 using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.MathUtils;
@@ -166,7 +167,11 @@ namespace osu.Framework.Graphics.Containers
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString(), "Disposed Drawables may not have children added.");
 
-            return child.LoadAsync(Clock, Dependencies).ContinueWith(_ => child.Parent = this);
+            return child.LoadAsync(Clock, Dependencies).ContinueWith(t =>
+            {
+                t.ThrowIfFaulted();
+                child.Parent = this;
+            });
         }
 
         /// <summary>

@@ -27,6 +27,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Configuration;
 using osu.Framework.Development;
+using osu.Framework.Extensions;
 using osu.Framework.Input.EventArgs;
 using osu.Framework.Input.States;
 using osu.Framework.MathUtils;
@@ -218,7 +219,11 @@ namespace osu.Framework.Graphics
                 {
                     Trace.Assert(loadState == LoadState.NotLoaded);
                     loadState = LoadState.Loading;
-                    loadTask = loadAsync(clock, dependencies).ContinueWith(_ => loadState = LoadState.Ready);
+                    loadTask = loadAsync(clock, dependencies).ContinueWith(t =>
+                    {
+                        t.ThrowIfFaulted();
+                        loadState = LoadState.Ready;
+                    });
                 }
             }
 
