@@ -19,19 +19,23 @@ namespace osu.Framework.Graphics.Textures
 
         public override Task<RawTexture> GetAsync(string name)
         {
-            try
+            // TODO: this code is currently running non-asynchronously due to ImageSharp not supporting async loads.
+            return Task.Run(() =>
             {
-                using (var stream = store.GetStream(name))
+                try
                 {
-                    if (stream != null)
-                        return Task.FromResult(new RawTexture(stream));
+                    using (var stream = store.GetStream(name))
+                    {
+                        if (stream != null)
+                            return new RawTexture(stream);
+                    }
                 }
-            }
-            catch
-            {
-            }
+                catch
+                {
+                }
 
-            return Task.FromResult<RawTexture>(null);
+                return null;
+            });
         }
     }
 }

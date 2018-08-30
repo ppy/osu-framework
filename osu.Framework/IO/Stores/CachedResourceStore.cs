@@ -74,17 +74,17 @@ namespace osu.Framework.IO.Stores
         /// </summary>
         /// <param name="name">The name of the object.</param>
         /// <returns>The object.</returns>
-        public override Task<T> GetAsync(string name)
+        public override async Task<T> GetAsync(string name)
         {
             if (cache.TryGetValue(name, out T result))
-                return Task.FromResult(result);
+                return result;
 
-            result = Get(name);
+            result = await GetAsync(name);
 
             if (result != null)
                 cache[name] = result;
 
-            return Task.FromResult(result);
+            return result;
         }
 
         /// <summary>
