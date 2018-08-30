@@ -85,19 +85,36 @@ namespace osu.Framework.IO.Stores
 
             // Cache miss - get the resource
             foreach (IResourceStore<T> store in stores)
+            foreach (string f in filenames)
             {
-                foreach (string f in filenames)
-                {
-                    T result = await store.GetAsync(f);
-                    if (result != null)
-                        return result;
-                }
+                T result = await store.GetAsync(f);
+                if (result != null)
+                    return result;
             }
 
             return default(T);
         }
 
-        public T Get(string name) => GetAsync(name).Result;
+        /// <summary>
+        /// Retrieves an object from the store.
+        /// </summary>
+        /// <param name="name">The name of the object.</param>
+        /// <returns>The object.</returns>
+        public T Get(string name)
+        {
+            List<string> filenames = GetFilenames(name);
+
+            // Cache miss - get the resource
+            foreach (IResourceStore<T> store in stores)
+            foreach (string f in filenames)
+            {
+                T result = store.Get(f);
+                if (result != null)
+                    return result;
+            }
+
+            return default(T);
+        }
 
         public Stream GetStream(string name)
         {
