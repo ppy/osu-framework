@@ -79,7 +79,7 @@ namespace osu.Framework.IO.Stores
             if (cache.TryGetValue(name, out T result))
                 return result;
 
-            result = await GetAsync(name);
+            result = await base.GetAsync(name);
 
             if (result != null)
                 cache[name] = result;
