@@ -110,7 +110,7 @@ namespace osu.Framework.Extensions.MatrixExtensions
             m.M31 = m31;
         }
 
-        public static void Invert(in Matrix3x2 value, out Matrix3x2 result)
+        public static Matrix3x2 Invert(Matrix3x2 value)
         {
             float d11 = value.M22;
             float d12 = value.M21;
@@ -120,8 +120,7 @@ namespace osu.Framework.Extensions.MatrixExtensions
 
             if (Math.Abs(det) == 0.0f)
             {
-                result = Matrix3x2.Zero;
-                return;
+                return Matrix3x2.Zero;
             }
 
             det = 1f / det;
@@ -130,35 +129,37 @@ namespace osu.Framework.Extensions.MatrixExtensions
             float d22 = value.M11;
             float d23 = value.M11 * value.M32 + value.M12 * -value.M31;
 
-            result.Row0.X = +d11 * det;
-            result.Row0.Y = -d21 * det;
-            result.Row1.X = -d12 * det;
-            result.Row1.Y = +d22 * det;
-            result.Row2.X = +d13 * det;
-            result.Row2.Y = -d23 * det;
+            return new Matrix3x2(
+                +d11 * det,
+                -d21 * det,
+                -d12 * det,
+                +d22 * det,
+                +d13 * det,
+                -d23 * det);
         }
 
-        public static void Mult(in Matrix3x2 a, in Matrix3x2 b, out Matrix3x2 result)
+        public static Matrix3x2 Mult(Matrix3x2 a, Matrix3x2 b)
         {
-            result.Row0.X = a.M11 * b.M11 + a.M12 * b.M21;
-            result.Row0.Y = a.M11 * b.M12 + a.M12 * b.M22;
-            result.Row1.X = a.M21 * b.M11 + a.M22 * b.M21;
-            result.Row1.Y = a.M21 * b.M12 + a.M22 * b.M22;
-            result.Row2.X = a.M31 * b.M11 + a.M32 * b.M21 + b.M31;
-            result.Row2.Y = a.M31 * b.M12 + a.M32 * b.M22 + b.M32;
+            return new Matrix3x2(
+                a.M11 * b.M11 + a.M12 * b.M21,
+                a.M11 * b.M12 + a.M12 * b.M22,
+                a.M21 * b.M11 + a.M22 * b.M21,
+                a.M21 * b.M12 + a.M22 * b.M22,
+                a.M31 * b.M11 + a.M32 * b.M21 + b.M31,
+                a.M31 * b.M12 + a.M32 * b.M22 + b.M32);
         }
 
-        public static Matrix3 ToMatrix3(in Matrix3x2 m)
+        public static Matrix3 ToMatrix3(Matrix3x2 m)
         {
             return new Matrix3(m.M11, m.M12, 0, m.M21, m.M22, 0, m.M31, m.M32, 1);
         }
 
-        public static Matrix2 RemoveTranslation(in Matrix3x2 m)
+        public static Matrix2 RemoveTranslation(Matrix3x2 m)
         {
             return new Matrix2(m.M11, m.M12, m.M21, m.M22);
         }
 
-        public static Vector3 ExtractScale(in Matrix3x2 m)
+        public static Vector3 ExtractScale(Matrix3x2 m)
         {
             return new Vector3(m.Row0.Length, m.Row1.Length, m.Row2.Length);
         }
