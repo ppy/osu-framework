@@ -17,6 +17,7 @@ namespace osu.Framework.Graphics.Textures
         private readonly ConcurrentDictionary<string, AsyncLazy<TextureGL>> textureCache = new ConcurrentDictionary<string, AsyncLazy<TextureGL>>();
 
         private readonly All filteringMode;
+        private readonly bool manualMipmaps;
         private readonly TextureAtlas atlas;
 
         /// <summary>
@@ -25,10 +26,11 @@ namespace osu.Framework.Graphics.Textures
         /// </summary>
         public float ScaleAdjust = 2;
 
-        public TextureStore(IResourceStore<RawTexture> store = null, bool useAtlas = true, All filteringMode = All.Linear)
+        public TextureStore(IResourceStore<RawTexture> store = null, bool useAtlas = true, All filteringMode = All.Linear, bool manualMipmaps = false)
             : base(store)
         {
             this.filteringMode = filteringMode;
+            this.manualMipmaps = manualMipmaps;
             AddExtension(@"png");
             AddExtension(@"jpg");
 
@@ -41,7 +43,7 @@ namespace osu.Framework.Graphics.Textures
             RawTexture raw = await base.GetAsync($@"{name}");
             if (raw == null) return null;
 
-            Texture tex = atlas != null ? atlas.Add(raw.Width, raw.Height) : new Texture(raw.Width, raw.Height, filteringMode: filteringMode);
+            Texture tex = atlas != null ? atlas.Add(raw.Width, raw.Height) : new Texture(raw.Width, raw.Height, manualMipmaps, filteringMode);
             tex.SetData(new TextureUpload(raw));
 
             return tex;
