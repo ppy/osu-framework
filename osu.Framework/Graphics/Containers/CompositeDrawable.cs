@@ -104,8 +104,14 @@ namespace osu.Framework.Graphics.Containers
             return Task.Run(async () =>
             {
                 await semaphore.WaitAsync();
-                await component.LoadAsync(Clock, dependencies);
-                semaphore.Release();
+                try
+                {
+                    await component.LoadAsync(Clock, dependencies);
+                }
+                finally
+                {
+                    semaphore.Release();
+                }
             }, cancellationSource.Token).ContinueWith(t =>
             {
                 var exception = t.Exception?.AsSingular();
