@@ -10,10 +10,9 @@ namespace osu.Framework.Graphics.Containers.Markdown
 {
     public class MarkdownTableCell : CompositeDrawable
     {
-        public MarkdownTextFlowContainer TextFlowContainer => textFlowContainer;
-        private readonly MarkdownTextFlowContainer textFlowContainer;
+        public readonly MarkdownTextFlowContainer TextFlowContainer;
 
-        public MarkdownTableCell(TableCell cell, TableColumnDefinition definition, int rowNumber)
+        public MarkdownTableCell(TableCell cell, TableColumnDefinition definition, int rowNumber,int columnNumber)
         {
             RelativeSizeAxes = Axes.Both;
             BorderThickness = 1.8f;
@@ -22,33 +21,33 @@ namespace osu.Framework.Graphics.Containers.Markdown
 
             InternalChildren = new []
             {
-                CreateBackground(rowNumber),
-                textFlowContainer = CreateMarkdownTextFlowContainer()
+                CreateBackground(rowNumber,columnNumber),
+                TextFlowContainer = CreateMarkdownTextFlowContainer()
             };
 
             foreach (var block in cell)
             {
                 var single = (ParagraphBlock)block;
-                textFlowContainer.ParagraphBlock = single;
+                TextFlowContainer.ParagraphBlock = single;
             }
 
             switch (definition.Alignment)
             {
                 case TableColumnAlign.Center:
-                    textFlowContainer.TextAnchor = Anchor.TopCentre;
+                    TextFlowContainer.TextAnchor = Anchor.TopCentre;
                     break;
 
                 case TableColumnAlign.Right:
-                    textFlowContainer.TextAnchor = Anchor.TopRight;
+                    TextFlowContainer.TextAnchor = Anchor.TopRight;
                     break;
 
                 default:
-                    textFlowContainer.TextAnchor = Anchor.TopLeft;
+                    TextFlowContainer.TextAnchor = Anchor.TopLeft;
                     break;
             }
         }
 
-        protected virtual Drawable CreateBackground(int rowNumber)
+        protected virtual Drawable CreateBackground(int rowNumber, int columnNumber)
         {
             var backgroundColor = rowNumber % 2 != 0 ? Color4.White : Color4.LightGray;
             var backgroundAlpha = 0.3f;

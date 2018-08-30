@@ -183,5 +183,4 @@ namespace osu.Framework.Graphics.Containers.Markdown
         protected virtual Drawable CreateNotImplementedMarkdown(IMarkdownObject markdownObject)
             => new NotImplementedMarkdown(markdownObject);
     }
-    
 }

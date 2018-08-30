@@ -35,7 +35,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
                         var columnDimensions = table.ColumnDefinitions[columnIndex];
                         var tableCell = (TableCell)tableRow[columnIndex];
                         if (tableCell != null)
-                            rows.Add(CreateMarkdownTableCell(tableCell, columnDimensions, listContainerArray.Count));
+                            rows.Add(CreateMarkdownTableCell(tableCell, columnDimensions, listContainerArray.Count, columnIndex));
                     }
 
                 listContainerArray.Add(rows);
@@ -72,7 +72,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
             {
                 for (int column = 0; column < totalColumn; column++)
                 {
-                    var colimnTextTotalWidth = listContainerArray[row][column].TextFlowContainer.TotalTextWidth();
+                    var colimnTextTotalWidth = listContainerArray[row][column].TextFlowContainer.TotalTextWidth;
 
                     //get max width
                     listcolumnMaxWidth[column] = Math.Max(listcolumnMaxWidth[column], colimnTextTotalWidth);
@@ -111,16 +111,15 @@ namespace osu.Framework.Graphics.Containers.Markdown
             tableContainer.RowDimensions = listContainerArray.Select(x => new Dimension(GridSizeMode.Absolute, x.Max(y => y.TextFlowContainer.DrawHeight + 10))).ToArray();
         }
 
-        protected virtual MarkdownTableCell CreateMarkdownTableCell(TableCell cell, TableColumnDefinition definition, int rowNumber)
+        protected virtual MarkdownTableCell CreateMarkdownTableCell(TableCell cell, TableColumnDefinition definition, int rowNumber,int columnNumber)
         {
-            return new MarkdownTableCell(cell, definition, rowNumber);
+            return new MarkdownTableCell(cell, definition, rowNumber, columnNumber);
         }
 
         private class MarkdownTableContainer : GridContainer
         {
             public new Axes AutoSizeAxes
             {
-                get => base.AutoSizeAxes;
                 set => base.AutoSizeAxes = value;
             }
         }

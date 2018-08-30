@@ -33,15 +33,17 @@ namespace osu.Framework.Graphics.Containers.Markdown
             }
         }
 
+        public float TotalTextWidth => FlowingChildren.Sum(x => x.BoundingBox.Size.X);
+
         public MarkdownTextFlowContainer()
         {
             RelativeSizeAxes = Axes.X;
             AutoSizeAxes = Axes.Y;
         }
 
-        public IEnumerable<SpriteText> AddImage(MarkdownImage image)
+        protected IEnumerable<SpriteText> AddDrawable(Drawable drawable)
         {
-            var imageIndex = AddPlaceholder(image);
+            var imageIndex = AddPlaceholder(drawable);
             return base.AddText("[" + imageIndex + "]");
         }
 
@@ -64,11 +66,16 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 if (single is LiteralInline literalInline)
                 {
                     var text = literalInline.Content.ToString();
+
                     if (lnline.GetNext(literalInline) is HtmlInline
                         && lnline.GetPrevious(literalInline) is HtmlInline)
-                        AddText(text, t => t.Colour = Color4.MediumPurple);
+                    {
+                        AddHtmlInLineText(text, literalInline);
+                    }
                     else if (lnline.GetNext(literalInline) is HtmlEntityInline)
-                        AddText(text, t => t.Colour = Color4.GreenYellow);
+                    {
+                        AddHtmlEntityInlineText(text, literalInline);
+                    }
                     else if (literalInline.Parent is EmphasisInline emphasisInline)
                     {
                         if (emphasisInline.IsDouble)
@@ -94,7 +101,9 @@ namespace osu.Framework.Graphics.Containers.Markdown
                             AddLinkText(text, literalInline);
                     }
                     else
-                        AddText(text);
+                    {
+                        AddDefalutLiteralInlineText(text, literalInline);
+                    }
                 }
                 else if (single is CodeInline codeInline)
                 {
@@ -117,14 +126,25 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 }
                 else
                 {
-                    AddText(single.GetType() + " Not implemented.", t => t.Colour = Color4.Red);
+                    AddNotImpiementedInlineText(single);
                 }
 
                 //generate child
-                if (single is ContainerInline containerInline) AddInlineText(containerInline);
+                if (single is ContainerInline containerInline)
+                    AddInlineText(containerInline);
             }
 
             return this;
+        }
+
+        protected virtual void AddHtmlInLineText(string text, LiteralInline literalInline)
+        {
+            AddText(text, t => t.Colour = Color4.MediumPurple);
+        }
+
+        protected virtual void AddHtmlEntityInlineText(string text, LiteralInline literalInline)
+        {
+            AddText(text, t => t.Colour = Color4.GreenYellow);
         }
 
         protected virtual void AddBoldText(string text, LiteralInline literalInline)
@@ -166,32 +186,16 @@ namespace osu.Framework.Graphics.Containers.Markdown
         {
             var imageUrl = linkInline.Url;
             //insert a image
-            AddImage(new MarkdownImage(imageUrl)
+            AddDrawable(new MarkdownImage(imageUrl)
             {
                 Width = 40,
                 Height = 40,
             });
         }
 
-        protected IEnumerable<SpriteText> AddDrawable(Drawable drawable)
+        protected virtual void AddNotImpiementedInlineText(Inline inline)
         {
-            var imageIndex = AddPlaceholder(drawable);
-            return base.AddText("[" + imageIndex + "]");
-        }
-
-        public bool IsChangeLine()
-        {
-            if (FlowingChildren.Any())
-            {
-                var fortRowX = FlowingChildren.FirstOrDefault()?.BoundingBox.Size.X;
-                return FlowingChildren.Any(x => x.BoundingBox.X != fortRowX);
-            }
-            return true;
-        }
-
-        public float TotalTextWidth()
-        {
-            return FlowingChildren.Sum(x => x.BoundingBox.Size.X);
+            AddText(inline.GetType() + " Not implemented.", t => t.Colour = Color4.Red);
         }
     }
 }
