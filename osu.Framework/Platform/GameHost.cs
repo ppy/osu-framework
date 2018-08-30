@@ -397,6 +397,7 @@ namespace osu.Framework.Platform
                 complete = true;
             });
 
+            // this is required as attempting to use a TaskCompletionSource blocks the thread calling SetResult on some configurations.
             await Task.Run(() =>
             {
                 while (!complete)
