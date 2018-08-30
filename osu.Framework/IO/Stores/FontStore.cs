@@ -49,9 +49,9 @@ namespace osu.Framework.IO.Stores
 
                 try
                 {
-                    Logger.Log($"Font {store.FontName}...", LoggingTarget.Debug);
+                    Logger.Log($"Loading Font {store.FontName}...", LoggingTarget.Debug);
                     await store.LoadFontAsync();
-                    Logger.Log($"Font {store.FontName} ✓", LoggingTarget.Debug);
+                    Logger.Log($"Loaded Font {store.FontName}!", LoggingTarget.Debug);
                 }
                 catch (OperationCanceledException)
                 {
