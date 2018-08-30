@@ -110,7 +110,7 @@ namespace osu.Framework.Extensions.MatrixExtensions
             m.M31 = m31;
         }
 
-        public static Matrix3x2 Invert(Matrix3x2 value)
+        public static void Invert(ref Matrix3x2 value, out Matrix3x2 result)
         {
             float d11 = value.M22;
             float d12 = value.M21;
@@ -120,7 +120,8 @@ namespace osu.Framework.Extensions.MatrixExtensions
 
             if (Math.Abs(det) == 0.0f)
             {
-                return Matrix3x2.Zero;
+                result = Matrix3x2.Zero;
+                return;
             }
 
             det = 1f / det;
@@ -129,24 +130,35 @@ namespace osu.Framework.Extensions.MatrixExtensions
             float d22 = value.M11;
             float d23 = value.M11 * value.M32 + value.M12 * -value.M31;
 
-            return new Matrix3x2(
-                +d11 * det,
-                -d21 * det,
-                -d12 * det,
-                +d22 * det,
-                +d13 * det,
-                -d23 * det);
+            result.Row0.X = +d11 * det;
+            result.Row0.Y = -d21 * det;
+            result.Row1.X = -d12 * det;
+            result.Row1.Y = +d22 * det;
+            result.Row2.X = +d13 * det;
+            result.Row2.Y = -d23 * det;
+        }
+
+        public static Matrix3x2 Invert(Matrix3x2 value)
+        {
+            Invert(ref value, out Matrix3x2 result);
+            return result;
+        }
+
+
+        public static void Mult(ref Matrix3x2 a, ref Matrix3x2 b, out Matrix3x2 result)
+        {
+            result.Row0.X = a.M11 * b.M11 + a.M12 * b.M21;
+            result.Row0.Y = a.M11 * b.M12 + a.M12 * b.M22;
+            result.Row1.X = a.M21 * b.M11 + a.M22 * b.M21;
+            result.Row1.Y = a.M21 * b.M12 + a.M22 * b.M22;
+            result.Row2.X = a.M31 * b.M11 + a.M32 * b.M21 + b.M31;
+            result.Row2.Y = a.M31 * b.M12 + a.M32 * b.M22 + b.M32;
         }
 
         public static Matrix3x2 Mult(Matrix3x2 a, Matrix3x2 b)
         {
-            return new Matrix3x2(
-                a.M11 * b.M11 + a.M12 * b.M21,
-                a.M11 * b.M12 + a.M12 * b.M22,
-                a.M21 * b.M11 + a.M22 * b.M21,
-                a.M21 * b.M12 + a.M22 * b.M22,
-                a.M31 * b.M11 + a.M32 * b.M21 + b.M31,
-                a.M31 * b.M12 + a.M32 * b.M22 + b.M32);
+            Mult(ref a, ref b, out Matrix3x2 result);
+            return result;
         }
 
         public static Matrix3 ToMatrix3(Matrix3x2 m)
