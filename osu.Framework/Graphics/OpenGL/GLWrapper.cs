@@ -6,6 +6,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using osu.Framework.Development;
+using osu.Framework.Extensions.MatrixExtensions;
 using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.Shaders;
@@ -111,7 +112,7 @@ namespace osu.Framework.Graphics.OpenGL
             {
                 ScreenSpaceAABB = new RectangleI(0, 0, (int)size.X, (int)size.Y),
                 MaskingRect = new RectangleF(0, 0, size.X, size.Y),
-                ToMaskingSpace = Matrix3.Identity,
+                ToMaskingSpace = MatrixExtensions.TruncatedIdentityMatrix,
                 BlendRange = 1,
                 AlphaExponent = 1,
             }, true);
@@ -426,7 +427,7 @@ namespace osu.Framework.Graphics.OpenGL
                 maskingInfo.MaskingRect.Right,
                 maskingInfo.MaskingRect.Bottom));
 
-            GlobalPropertyManager.Set(GlobalProperty.ToMaskingSpace, maskingInfo.ToMaskingSpace);
+            GlobalPropertyManager.Set(GlobalProperty.ToMaskingSpace, MatrixExtensions.ToMatrix3(maskingInfo.ToMaskingSpace));
             GlobalPropertyManager.Set(GlobalProperty.CornerRadius, maskingInfo.CornerRadius);
 
             GlobalPropertyManager.Set(GlobalProperty.BorderThickness, maskingInfo.BorderThickness / maskingInfo.BlendRange);
@@ -647,7 +648,7 @@ namespace osu.Framework.Graphics.OpenGL
         /// space of the container doing the masking).
         /// It is used by a shader to determine which pixels to discard.
         /// </summary>
-        public Matrix3 ToMaskingSpace;
+        public Matrix3x2 ToMaskingSpace;
 
         public float CornerRadius;
 

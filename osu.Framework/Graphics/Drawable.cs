@@ -1490,7 +1490,7 @@ namespace osu.Framework.Graphics
 
                 // Cannot use ToParentSpace here, because ToParentSpace depends on DrawInfo to be completed
                 // ReSharper disable once PossibleNullReferenceException
-                Quad interp = Quad.FromRectangle(DrawRectangle) * (di.Matrix * Parent.DrawInfo.MatrixInverse);
+                Quad interp = Quad.FromRectangle(DrawRectangle) * di.Matrix * Parent.DrawInfo.MatrixInverse;
                 Vector2 parentSize = Parent.DrawSize;
 
                 interp.TopLeft = Vector2.Divide(interp.TopLeft, parentSize);
@@ -1689,7 +1689,7 @@ namespace osu.Framework.Graphics
             if (other == this)
                 return input;
 
-            return Quad.FromRectangle(input) * (DrawInfo.Matrix * other.DrawInfo.MatrixInverse);
+            return Quad.FromRectangle(input) * DrawInfo.Matrix * other.DrawInfo.MatrixInverse;
         }
 
         /// <summary>

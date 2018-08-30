@@ -4,6 +4,7 @@
 using OpenTK;
 using System;
 using System.Collections.Generic;
+using osu.Framework.Extensions.MatrixExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
@@ -84,16 +85,16 @@ namespace osu.Framework.Physics
         /// </summary>
         protected List<Vector2> Normals = new List<Vector2>();
 
-        protected Matrix3 ScreenToSimulationSpace => Simulation.DrawInfo.MatrixInverse;
+        protected Matrix3x2 ScreenToSimulationSpace => Simulation.DrawInfo.MatrixInverse;
 
-        protected Matrix3 SimulationToScreenSpace => Simulation.DrawInfo.Matrix;
+        protected Matrix3x2 SimulationToScreenSpace => Simulation.DrawInfo.Matrix;
 
         /// <summary>
         /// Computes the moment of inertia.
         /// </summary>
         protected float ComputeI()
         {
-            Matrix3 mat = DrawInfo.Matrix * Parent.DrawInfo.MatrixInverse;
+            Matrix3x2 mat = MatrixExtensions.Mult(DrawInfo.Matrix, Parent.DrawInfo.MatrixInverse);
             Vector2 size = DrawSize;
 
             // Inertial moment for a linearly transformed rectangle with a given size around its center.
@@ -165,18 +166,14 @@ namespace osu.Framework.Physics
             }
 
             // To simulation space
-            Matrix3 mat = DrawInfo.Matrix * ScreenToSimulationSpace;
-            Matrix3 normMat = mat.Inverted();
+            Matrix3x2 mat = MatrixExtensions.Mult(DrawInfo.Matrix, ScreenToSimulationSpace);
+            Matrix2 normMat = MatrixExtensions.RemoveTranslation(MatrixExtensions.Invert(mat));
             normMat.Transpose();
-
-            // Remove translation
-            normMat.M31 = normMat.M32 = normMat.M13 = normMat.M23 = 0;
-            Vector2 translation = Vector2Extensions.Transform(Vector2.Zero, normMat);
 
             for (int i = 0; i < Vertices.Count; ++i)
             {
                 Vertices[i] = Vector2Extensions.Transform(Vertices[i], mat);
-                Normals[i] = (Vector2Extensions.Transform(Normals[i], normMat) - translation).Normalized();
+                Normals[i] = Vector2Extensions.Transform(Normals[i], normMat).Normalized();
             }
         }
 
@@ -251,8 +248,7 @@ namespace osu.Framework.Physics
         /// </summary>
         public void ReadState()
         {
-            Matrix3 mat = Parent.DrawInfo.Matrix * ScreenToSimulationSpace;
-            Centre = Vector2Extensions.Transform(BoundingBox.Centre, mat);
+            Centre = Vector2Extensions.Transform(Vector2Extensions.Transform(BoundingBox.Centre, Parent.DrawInfo.Matrix), ScreenToSimulationSpace);
             RotationRadians = MathHelper.DegreesToRadians(Rotation); // TODO: Fix rotations
 
             MomentOfInertia = ComputeI();
@@ -264,8 +260,7 @@ namespace osu.Framework.Physics
         /// </summary>
         public virtual void ApplyState()
         {
-            Matrix3 mat = SimulationToScreenSpace * Parent.DrawInfo.MatrixInverse;
-            Position = Vector2Extensions.Transform(Centre, mat) + (Position - BoundingBox.Centre);
+            Position = Vector2Extensions.Transform(Vector2Extensions.Transform(Centre, SimulationToScreenSpace), Parent.DrawInfo.MatrixInverse) + (Position - BoundingBox.Centre);
             Rotation = MathHelper.RadiansToDegrees(RotationRadians); // TODO: Fix rotations
         }
 

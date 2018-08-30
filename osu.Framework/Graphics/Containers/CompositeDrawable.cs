@@ -21,6 +21,7 @@ using osu.Framework.Threading;
 using osu.Framework.Statistics;
 using System.Threading.Tasks;
 using osu.Framework.Extensions.ExceptionExtensions;
+using osu.Framework.Extensions.MatrixExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.MathUtils;
 
@@ -776,7 +777,7 @@ namespace osu.Framework.Graphics.Containers
             if (!Masking && (BorderThickness != 0.0f || EdgeEffect.Type != EdgeEffectType.None))
                 throw new InvalidOperationException("Can not have border effects/edge effects if masking is disabled.");
 
-            Vector3 scale = DrawInfo.MatrixInverse.ExtractScale();
+            Vector3 scale = MatrixExtensions.ExtractScale(DrawInfo.MatrixInverse);
 
             n.MaskingInfo = !Masking
                 ? (MaskingInfo?)null

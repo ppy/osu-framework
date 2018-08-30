@@ -8,35 +8,29 @@ namespace osu.Framework.Extensions.MatrixExtensions
 {
     public static class MatrixExtensions
     {
-        public static void TranslateFromLeft(ref Matrix3 m, Vector2 v)
+        public static void TranslateFromLeft(ref Matrix3x2 m, Vector2 v)
         {
             m.Row2 += m.Row0 * v.X + m.Row1 * v.Y;
         }
 
-        public static void TranslateFromRight(ref Matrix3 m, Vector2 v)
+        public static void TranslateFromRight(ref Matrix3x2 m, Vector2 v)
         {
             //m.Column0 += m.Column2 * v.X;
-            m.M11 += m.M13 * v.X;
-            m.M21 += m.M23 * v.X;
-            m.M31 += m.M33 * v.X;
-
-            //m.Column1 += m.Column2 * v.Y;
-            m.M12 += m.M13 * v.Y;
-            m.M22 += m.M23 * v.Y;
-            m.M32 += m.M33 * v.Y;
+            m.M31 += v.X;
+            m.M32 += v.Y;
         }
 
-        public static void RotateFromLeft(ref Matrix3 m, float radians)
+        public static void RotateFromLeft(ref Matrix3x2 m, float radians)
         {
             float cos = (float)Math.Cos(radians);
             float sin = (float)Math.Sin(radians);
 
-            Vector3 row0 = m.Row0 * cos + m.Row1 * sin;
+            Vector2 row0 = m.Row0 * cos + m.Row1 * sin;
             m.Row1 = m.Row1 * cos - m.Row0 * sin;
             m.Row0 = row0;
         }
 
-        public static void RotateFromRight(ref Matrix3 m, float radians)
+        public static void RotateFromRight(ref Matrix3x2 m, float radians)
         {
             float cos = (float)Math.Cos(radians);
             float sin = (float)Math.Sin(radians);
@@ -57,13 +51,13 @@ namespace osu.Framework.Extensions.MatrixExtensions
             m.M31 = m31;
         }
 
-        public static void ScaleFromLeft(ref Matrix3 m, Vector2 v)
+        public static void ScaleFromLeft(ref Matrix3x2 m, Vector2 v)
         {
             m.Row0 *= v.X;
             m.Row1 *= v.Y;
         }
 
-        public static void ScaleFromRight(ref Matrix3 m, Vector2 v)
+        public static void ScaleFromRight(ref Matrix3x2 m, Vector2 v)
         {
             //m.Column0 *= v.X;
             m.M11 *= v.X;
@@ -83,9 +77,9 @@ namespace osu.Framework.Extensions.MatrixExtensions
         /// </summary>
         /// <param name="m">The matrix to apply the shearing operation to.</param>
         /// <param name="v">The X and Y amounts of shearing.</param>
-        public static void ShearFromLeft(ref Matrix3 m, Vector2 v)
+        public static void ShearFromLeft(ref Matrix3x2 m, Vector2 v)
         {
-            Vector3 row0 = m.Row0 + m.Row1 * v.Y + m.Row0 * v.X * v.Y;
+            Vector2 row0 = m.Row0 + m.Row1 * v.Y + m.Row0 * v.X * v.Y;
             m.Row1 += m.Row0 * v.X;
             m.Row0 = row0;
         }
@@ -97,7 +91,7 @@ namespace osu.Framework.Extensions.MatrixExtensions
         /// </summary>
         /// <param name="m">The matrix to apply the shearing operation to.</param>
         /// <param name="v">The X and Y amounts of shearing.</param>
-        public static void ShearFromRight(ref Matrix3 m, Vector2 v)
+        public static void ShearFromRight(ref Matrix3x2 m, Vector2 v)
         {
             float xy = v.X * v.Y;
 
@@ -116,39 +110,60 @@ namespace osu.Framework.Extensions.MatrixExtensions
             m.M31 = m31;
         }
 
-        public static void FastInvert(ref Matrix3 value)
+        public static Matrix3x2 Invert(Matrix3x2 value)
         {
-            float d11 = value.M22 * value.M33 + value.M23 * -value.M32;
-            float d12 = value.M21 * value.M33 + value.M23 * -value.M31;
+            float d11 = value.M22;
+            float d12 = value.M21;
             float d13 = value.M21 * value.M32 + value.M22 * -value.M31;
 
-            float det = value.M11 * d11 - value.M12 * d12 + value.M13 * d13;
+            float det = value.M11 * d11 - value.M12 * d12;
 
             if (Math.Abs(det) == 0.0f)
             {
-                value = Matrix3.Zero;
-                return;
+                return Matrix3x2.Zero;
             }
 
             det = 1f / det;
 
-            float d21 = value.M12 * value.M33 + value.M13 * -value.M32;
-            float d22 = value.M11 * value.M33 + value.M13 * -value.M31;
+            float d21 = value.M12;
+            float d22 = value.M11;
             float d23 = value.M11 * value.M32 + value.M12 * -value.M31;
 
-            float d31 = value.M12 * value.M23 - value.M13 * value.M22;
-            float d32 = value.M11 * value.M23 - value.M13 * value.M21;
-            float d33 = value.M11 * value.M22 - value.M12 * value.M21;
-
-            value.M11 = +d11 * det;
-            value.M12 = -d21 * det;
-            value.M13 = +d31 * det;
-            value.M21 = -d12 * det;
-            value.M22 = +d22 * det;
-            value.M23 = -d32 * det;
-            value.M31 = +d13 * det;
-            value.M32 = -d23 * det;
-            value.M33 = +d33 * det;
+            return new Matrix3x2(
+                +d11 * det,
+                -d21 * det,
+                -d12 * det,
+                +d22 * det,
+                +d13 * det,
+                -d23 * det);
         }
+
+        public static Matrix3x2 Mult(Matrix3x2 a, Matrix3x2 b)
+        {
+            return new Matrix3x2(
+                a.M11 * b.M11 + a.M12 * b.M21,
+                a.M11 * b.M12 + a.M12 * b.M22,
+                a.M21 * b.M11 + a.M22 * b.M21,
+                a.M21 * b.M12 + a.M22 * b.M22,
+                a.M31 * b.M11 + a.M32 * b.M21 + b.M31,
+                a.M31 * b.M12 + a.M32 * b.M22 + b.M32);
+        }
+
+        public static Matrix3 ToMatrix3(Matrix3x2 m)
+        {
+            return new Matrix3(m.M11, m.M12, 0, m.M21, m.M22, 0, m.M31, m.M32, 1);
+        }
+
+        public static Matrix2 RemoveTranslation(Matrix3x2 m)
+        {
+            return new Matrix2(m.M11, m.M12, m.M21, m.M22);
+        }
+
+        public static Vector3 ExtractScale(Matrix3x2 m)
+        {
+            return new Vector3(m.Row0.Length, m.Row1.Length, m.Row2.Length);
+        }
+
+        public static Matrix3x2 TruncatedIdentityMatrix = new Matrix3x2(1, 0, 0, 1, 0, 0);
     }
 }
