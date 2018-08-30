@@ -382,7 +382,7 @@ namespace osu.Framework.Platform
 
             var image = new Image<Rgba32>(Window.ClientSize.Width, Window.ClientSize.Height);
 
-            var tcs = new TaskCompletionSource<bool>();
+            bool complete = false;
 
             DrawThread.Scheduler.Add(() =>
             {
@@ -394,11 +394,14 @@ namespace osu.Framework.Platform
                     OpenTK.Graphics.OpenGL.PixelType.UnsignedByte,
                     ref image.DangerousGetPinnableReferenceToPixelBuffer());
 
-                // ReSharper disable once AccessToDisposedClosure
-                tcs.TrySetResult(true);
+                complete = true;
             });
 
-            await tcs.Task;
+            await Task.Run(() =>
+            {
+                while (!complete)
+                    Thread.Sleep(50);
+            });
 
             image.Mutate(c => c.Flip(FlipMode.Vertical));
 
