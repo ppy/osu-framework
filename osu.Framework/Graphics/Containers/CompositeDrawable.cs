@@ -71,23 +71,24 @@ namespace osu.Framework.Graphics.Containers
             base.InjectDependencies(dependencies);
         }
 
-        private CancellationTokenSource cancellationSource;
+        private CancellationTokenSource disposalCancellationSource;
 
         private static readonly SemaphoreSlim semaphore = new SemaphoreSlim(2, 2);
 
-        /// <summary>
-        /// Loads a future child or grand-child of this <see cref="CompositeDrawable"/> asynchronously. <see cref="Dependencies"/>
-        /// and <see cref="Drawable.Clock"/> are inherited from this <see cref="CompositeDrawable"/>.
+        ///  <summary>
+        ///  Loads a future child or grand-child of this <see cref="CompositeDrawable"/> asynchronously. <see cref="Dependencies"/>
+        ///  and <see cref="Drawable.Clock"/> are inherited from this <see cref="CompositeDrawable"/>.
         ///
-        /// Note that this will always use the dependencies and clock from this instance. If you must load to a nested container level,
-        /// consider using <see cref="DelayedLoadWrapper"/>
-        /// </summary>
-        /// <typeparam name="TLoadable">The type of the future future child or grand-child to be loaded.</typeparam>
-        /// <param name="component">The child or grand-child to be loaded.</param>
-        /// <param name="onLoaded">Callback to be invoked on the update thread after loading is complete.</param>
+        ///  Note that this will always use the dependencies and clock from this instance. If you must load to a nested container level,
+        ///  consider using <see cref="DelayedLoadWrapper"/>
+        ///  </summary>
+        ///  <typeparam name="TLoadable">The type of the future future child or grand-child to be loaded.</typeparam>
+        ///  <param name="component">The child or grand-child to be loaded.</param>
+        ///  <param name="onLoaded">Callback to be invoked on the update thread after loading is complete.</param>
+        /// <param name="cancellation">An optional cancellation token.</param>
         /// <returns>The task which is used for loading and callbacks.</returns>
-        protected Task LoadComponentAsync<TLoadable>(TLoadable component, Action<TLoadable> onLoaded = null) where TLoadable : Drawable
-            => LoadComponentsAsync(component.Yield(), l => onLoaded?.Invoke(l.First()));
+        protected Task LoadComponentAsync<TLoadable>(TLoadable component, Action<TLoadable> onLoaded = null, CancellationToken cancellation = default(CancellationToken)) where TLoadable : Drawable
+            => LoadComponentsAsync(component.Yield(), l => onLoaded?.Invoke(l.First()), cancellation);
 
         /// <summary>
         /// Loads several future child or grand-child of this <see cref="CompositeDrawable"/> asynchronously. <see cref="Dependencies"/>
@@ -99,48 +100,64 @@ namespace osu.Framework.Graphics.Containers
         /// <typeparam name="TLoadable">The type of the future future child or grand-child to be loaded.</typeparam>
         /// <param name="components">The children or grand-children to be loaded.</param>
         /// <param name="onLoaded">Callback to be invoked on the update thread after loading is complete.</param>
+        /// <param name="cancellation">An optional cancellation token.</param>
         /// <returns>The task which is used for loading and callbacks.</returns>
-        protected Task LoadComponentsAsync<TLoadable>(IEnumerable<TLoadable> components, Action<IEnumerable<TLoadable>> onLoaded = null) where TLoadable : Drawable
+        protected Task LoadComponentsAsync<TLoadable>(IEnumerable<TLoadable> components, Action<IEnumerable<TLoadable>> onLoaded = null, CancellationToken cancellation = default(CancellationToken))
+            where TLoadable : Drawable
         {
             if (game == null)
                 throw new InvalidOperationException($"May not invoke {nameof(LoadComponentAsync)} prior to this {nameof(CompositeDrawable)} being loaded.");
 
-            var dependencies = Dependencies;
+            if (IsDisposed)
+                throw new ObjectDisposedException(ToString());
 
-            if (cancellationSource == null)
-            {
-                cancellationSource = new CancellationTokenSource();
-                var cancellationDeps = new DependencyContainer(Dependencies);
-                cancellationDeps.CacheValueAs(cancellationSource.Token);
-                dependencies = cancellationDeps;
-            }
+            if (disposalCancellationSource == null)
+                disposalCancellationSource = new CancellationTokenSource();
+
+            var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(disposalCancellationSource.Token, cancellation);
+
+            var deps = new DependencyContainer(Dependencies);
+            deps.CacheValueAs(linkedSource.Token);
 
             return Task.Run(async () =>
             {
-                await semaphore.WaitAsync();
+                await semaphore.WaitAsync(linkedSource.Token);
 
                 try
                 {
                     foreach (var c in components)
-                        c.Load(Clock, dependencies);
+                        c.Load(Clock, deps);
                 }
                 finally
                 {
                     semaphore.Release();
                 }
-            }, cancellationSource.Token).ContinueWith(t =>
+            }, linkedSource.Token).ContinueWith(t =>
             {
                 var exception = t.Exception?.AsSingular();
 
+                if (linkedSource.Token.IsCancellationRequested)
+                {
+                    linkedSource.Dispose();
+                    return;
+                }
+
                 game.Schedule(() =>
                 {
-                    if (exception != null)
-                        throw exception;
+                    try
+                    {
+                        if (exception != null)
+                            throw exception;
 
-                    if (!cancellationSource.IsCancellationRequested)
-                        onLoaded?.Invoke(components);
+                        if (!linkedSource.Token.IsCancellationRequested)
+                            onLoaded?.Invoke(components);
+                    }
+                    finally
+                    {
+                        linkedSource.Dispose();
+                    }
                 });
-            }, cancellationSource.Token);
+            }, CancellationToken.None);
         }
 
         [BackgroundDependencyLoader(true)]
@@ -208,8 +225,8 @@ namespace osu.Framework.Graphics.Containers
 
         protected override void Dispose(bool isDisposing)
         {
-            cancellationSource?.Cancel();
-            cancellationSource?.Dispose();
+            disposalCancellationSource?.Cancel();
+            disposalCancellationSource?.Dispose();
 
             InternalChildren?.ForEach(c => c.Dispose());
 
@@ -423,7 +440,7 @@ namespace osu.Framework.Graphics.Containers
         protected internal virtual void AddInternal(Drawable drawable)
         {
             if (IsDisposed)
-                throw new ObjectDisposedException(ToString(), "Disposed Drawables may not have children added.");
+                throw new ObjectDisposedException(ToString(), $"Disposed Drawables may not have children added. ({disposalCancellationSource.IsCancellationRequested})");
 
             if (drawable == null)
                 throw new ArgumentNullException(nameof(drawable), $"null {nameof(Drawable)}s may not be added to {nameof(CompositeDrawable)}.");
