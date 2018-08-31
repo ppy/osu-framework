@@ -90,6 +90,10 @@ namespace osu.Framework.Graphics.Containers
         protected Task LoadComponentAsync<TLoadable>(TLoadable component, Action<TLoadable> onLoaded = null, CancellationToken cancellation = default(CancellationToken)) where TLoadable : Drawable
             => LoadComponentsAsync(component.Yield(), l => onLoaded?.Invoke(l.First()), cancellation);
 
+        private static readonly ThreadedTaskScheduler threaded_scheduler = new ThreadedTaskScheduler(4);
+
+        private static readonly TaskFactory threaded_factory = new TaskFactory(threaded_scheduler);
+
         /// <summary>
         /// Loads several future child or grand-child of this <see cref="CompositeDrawable"/> asynchronously. <see cref="Dependencies"/>
         /// and <see cref="Drawable.Clock"/> are inherited from this <see cref="CompositeDrawable"/>.
@@ -119,9 +123,9 @@ namespace osu.Framework.Graphics.Containers
             var deps = new DependencyContainer(Dependencies);
             deps.CacheValueAs(linkedSource.Token);
 
-            return Task.Run(async () =>
+            return threaded_factory.StartNew(() =>
             {
-                await semaphore.WaitAsync(linkedSource.Token);
+                semaphore.Wait(linkedSource.Token);
 
                 try
                 {
@@ -132,7 +136,7 @@ namespace osu.Framework.Graphics.Containers
                 {
                     semaphore.Release();
                 }
-            }, linkedSource.Token).ContinueWith(t =>
+            }, linkedSource.Token, TaskCreationOptions.HideScheduler, threaded_scheduler).ContinueWith(t =>
             {
                 var exception = t.Exception?.AsSingular();
 
