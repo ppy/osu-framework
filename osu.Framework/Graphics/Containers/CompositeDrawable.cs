@@ -88,7 +88,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="cancellation">An optional cancellation token.</param>
         /// <returns>The task which is used for loading and callbacks.</returns>
         protected Task LoadComponentAsync<TLoadable>(TLoadable component, Action<TLoadable> onLoaded = null, CancellationToken cancellation = default(CancellationToken)) where TLoadable : Drawable
-            => LoadComponentsAsync(component.Yield(), l => onLoaded?.Invoke(l.First()), cancellation);
+            => LoadComponentsAsync(component.Yield(), l => onLoaded?.Invoke(l.Single()), cancellation);
 
         private static readonly ThreadedTaskScheduler threaded_scheduler = new ThreadedTaskScheduler(4);
 
