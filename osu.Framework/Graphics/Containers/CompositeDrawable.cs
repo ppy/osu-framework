@@ -73,7 +73,7 @@ namespace osu.Framework.Graphics.Containers
 
         private CancellationTokenSource disposalCancellationSource;
 
-        private static readonly SemaphoreSlim semaphore = new SemaphoreSlim(2, 2);
+        private static readonly ThreadedTaskScheduler threaded_scheduler = new ThreadedTaskScheduler(4);
 
         ///  <summary>
         ///  Loads a future child or grand-child of this <see cref="CompositeDrawable"/> asynchronously. <see cref="Dependencies"/>
@@ -89,10 +89,6 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>The task which is used for loading and callbacks.</returns>
         protected Task LoadComponentAsync<TLoadable>(TLoadable component, Action<TLoadable> onLoaded = null, CancellationToken cancellation = default(CancellationToken)) where TLoadable : Drawable
             => LoadComponentsAsync(component.Yield(), l => onLoaded?.Invoke(l.Single()), cancellation);
-
-        private static readonly ThreadedTaskScheduler threaded_scheduler = new ThreadedTaskScheduler(4);
-
-        private static readonly TaskFactory threaded_factory = new TaskFactory(threaded_scheduler);
 
         /// <summary>
         /// Loads several future child or grand-child of this <see cref="CompositeDrawable"/> asynchronously. <see cref="Dependencies"/>
@@ -123,19 +119,10 @@ namespace osu.Framework.Graphics.Containers
             var deps = new DependencyContainer(Dependencies);
             deps.CacheValueAs(linkedSource.Token);
 
-            return threaded_factory.StartNew(() =>
+            return Task.Factory.StartNew(() =>
             {
-                semaphore.Wait(linkedSource.Token);
-
-                try
-                {
-                    foreach (var c in components)
-                        c.Load(Clock, deps);
-                }
-                finally
-                {
-                    semaphore.Release();
-                }
+                foreach (var c in components)
+                    c.Load(Clock, deps);
             }, linkedSource.Token, TaskCreationOptions.HideScheduler, threaded_scheduler).ContinueWith(t =>
             {
                 var exception = t.Exception?.AsSingular();
