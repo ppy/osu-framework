@@ -20,7 +20,6 @@ using osu.Framework.Caching;
 using osu.Framework.Threading;
 using osu.Framework.Statistics;
 using System.Threading.Tasks;
-using osu.Framework.Extensions;
 using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.MathUtils;
@@ -64,12 +63,12 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public IReadOnlyDependencyContainer Dependencies { get; private set; }
 
-        protected sealed override async Task InjectDependencies(IReadOnlyDependencyContainer dependencies)
+        protected sealed override void InjectDependencies(IReadOnlyDependencyContainer dependencies)
         {
             // get our dependencies from our parent, but allow local overriding of our inherited dependency container
             Dependencies = CreateChildDependencies(dependencies);
 
-            await base.InjectDependencies(dependencies);
+            base.InjectDependencies(dependencies);
         }
 
         private CancellationTokenSource cancellationSource;
@@ -105,9 +104,10 @@ namespace osu.Framework.Graphics.Containers
             return Task.Run(async () =>
             {
                 await semaphore.WaitAsync();
+
                 try
                 {
-                    await component.LoadAsync(Clock, dependencies);
+                    component.Load(Clock, dependencies);
                 }
                 finally
                 {
@@ -129,7 +129,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         [BackgroundDependencyLoader(true)]
-        private async Task load(ShaderManager shaders, CancellationToken? cancellation)
+        private void load(ShaderManager shaders, CancellationToken? cancellation)
         {
             if (shader == null)
                 shader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
@@ -140,7 +140,7 @@ namespace osu.Framework.Graphics.Containers
             foreach (var c in internalChildren)
             {
                 cancellation?.ThrowIfCancellationRequested();
-                await loadChildAsync(c);
+                loadChild(c);
             }
         }
 
@@ -155,26 +155,6 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Loads a <see cref="Drawable"/> child. This will throw in the event of the load being cancelled.
-        /// </summary>
-        /// <param name="child">The <see cref="Drawable"/> child to load.</param>
-        /// <returns>The async task.</returns>
-        /// <exception cref="ObjectDisposedException">If <paramref name="child"/> is disposed.</exception>
-        /// <exception cref="OperationCanceledException">When the loading process was cancelled.</exception>
-        /// <exception cref="DependencyInjectionException">When a user error occurred during dependency injection.</exception>
-        private Task loadChildAsync(Drawable child)
-        {
-            if (IsDisposed)
-                throw new ObjectDisposedException(ToString(), "Disposed Drawables may not have children added.");
-
-            return child.LoadAsync(Clock, Dependencies).ContinueWith(t =>
-            {
-                t.ThrowIfFaulted();
-                child.Parent = this;
-            });
-        }
-
-        /// <summary>
         /// Loads a <see cref="Drawable"/> child. This will not throw in the event of the load being cancelled.
         /// </summary>
         /// <param name="child">The <see cref="Drawable"/> child to load.</param>
@@ -183,7 +163,12 @@ namespace osu.Framework.Graphics.Containers
         {
             try
             {
-                loadChildAsync(child).Wait(cancellationSource?.Token ?? CancellationToken.None);
+                if (IsDisposed)
+                    throw new ObjectDisposedException(ToString(), "Disposed Drawables may not have children added.");
+
+                child.Load(Clock, Dependencies);
+
+                child.Parent = this;
             }
             catch (OperationCanceledException)
             {

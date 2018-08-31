@@ -14,7 +14,7 @@ namespace osu.Framework.Graphics.Textures
 {
     public class TextureStore : ResourceStore<RawTexture>
     {
-        private readonly ConcurrentDictionary<string, AsyncLazy<TextureGL>> textureCache = new ConcurrentDictionary<string, AsyncLazy<TextureGL>>();
+        private readonly ConcurrentDictionary<string, Lazy<TextureGL>> textureCache = new ConcurrentDictionary<string, Lazy<TextureGL>>();
 
         private readonly All filteringMode;
         private readonly bool manualMipmaps;
@@ -38,9 +38,12 @@ namespace osu.Framework.Graphics.Textures
                 atlas = new TextureAtlas(GLWrapper.MaxTextureSize, GLWrapper.MaxTextureSize, filteringMode: filteringMode);
         }
 
-        private async Task<Texture> getTextureAsync(string name)
+        private async Task<Texture> getTextureAsync(string name) => loadRaw(await base.GetAsync(name));
+
+        private Texture getTexture(string name) => loadRaw(base.Get(name));
+
+        private Texture loadRaw(RawTexture raw)
         {
-            RawTexture raw = await base.GetAsync($@"{name}");
             if (raw == null) return null;
 
             Texture tex = atlas != null ? atlas.Add(raw.Width, raw.Height) : new Texture(raw.Width, raw.Height, manualMipmaps, filteringMode);
@@ -49,31 +52,23 @@ namespace osu.Framework.Graphics.Textures
             return tex;
         }
 
-        public new async Task<Texture> GetAsync(string name)
-        {
-            if (string.IsNullOrEmpty(name)) return null;
-
-            var cachedTex = await textureCache.GetOrAdd(name, n =>
-                //Laziness ensure we are only ever creating the texture once (and blocking on other access until it is done).
-                new AsyncLazy<TextureGL>(async () => (await getTextureAsync(name))?.TextureGL, LazyThreadSafetyMode.ExecutionAndPublication)).Value;
-
-            //use existing TextureGL (but provide a new texture instance).
-            return cachedTex == null ? null : new Texture(cachedTex) { ScaleAdjust = ScaleAdjust };
-        }
+        public new Task<Texture> GetAsync(string name) => Task.Run(() => Get(name)); // TODO: best effort. need to re-think textureCache data structure to fix this.
 
         /// <summary>
         /// Retrieves a texture from the store and adds it to the atlas.
         /// </summary>
         /// <param name="name">The name of the texture.</param>
         /// <returns>The texture.</returns>
-        public new virtual Texture Get(string name) => GetAsync(name).Result;
-
-        public class AsyncLazy<T> : Lazy<Task<T>>
+        public new virtual Texture Get(string name)
         {
-            public AsyncLazy(Func<Task<T>> taskFactory, LazyThreadSafetyMode safetyMode)
-                : base(() => Task.Factory.StartNew(taskFactory).Unwrap(), safetyMode)
-            {
-            }
+            if (string.IsNullOrEmpty(name)) return null;
+
+            var cachedTex = textureCache.GetOrAdd(name, n =>
+                //Laziness ensure we are only ever creating the texture once (and blocking on other access until it is done).
+                new Lazy<TextureGL>(() => getTexture(name)?.TextureGL, LazyThreadSafetyMode.ExecutionAndPublication)).Value;
+
+            //use existing TextureGL (but provide a new texture instance).
+            return cachedTex == null ? null : new Texture(cachedTex) { ScaleAdjust = ScaleAdjust };
         }
     }
 }

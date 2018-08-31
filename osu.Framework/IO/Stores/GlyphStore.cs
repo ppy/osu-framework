@@ -66,7 +66,16 @@ namespace osu.Framework.IO.Stores
             return Font.BaseHeight;
         }
 
-        public RawTexture Get(string name) => GetAsync(name).Result;
+        public RawTexture Get(string name)
+        {
+            if (name.Length > 1 && !name.StartsWith($@"{FontName}/", StringComparison.Ordinal))
+                return null;
+
+            if (!Font.Characters.TryGetValue(name.Last(), out Character c))
+                return null;
+
+            return loadCharacter(c);
+        }
 
         public virtual async Task<RawTexture> GetAsync(string name)
         {
@@ -76,6 +85,11 @@ namespace osu.Framework.IO.Stores
             if (!(await completionSource.Task).Characters.TryGetValue(name.Last(), out Character c))
                 return null;
 
+            return loadCharacter(c);
+        }
+
+        private RawTexture loadCharacter(Character c)
+        {
             RawTexture page = getTexturePage(c.TexturePage);
             loadedGlyphCount++;
 
