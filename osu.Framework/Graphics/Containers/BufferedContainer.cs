@@ -277,7 +277,7 @@ namespace osu.Framework.Graphics.Containers
 
             // Our own draw node should contain our correct color, hence we have
             // to undo our overridden DrawInfo getter here.
-            n.DrawInfo.Colour = base.DrawInfo.Colour;
+            n.DrawColourInfo.Colour = base.DrawColourInfo.Colour;
 
             // Only need to generate child draw nodes if the framebuffers will get redrawn this time around
             addChildDrawNodes = n.RequiresRedraw;
@@ -362,11 +362,11 @@ namespace osu.Framework.Graphics.Containers
             childrenUpdateVersion = updateVersion;
         }
 
-        public override DrawInfo DrawInfo
+        public override DrawColourInfo DrawColourInfo
         {
             get
             {
-                DrawInfo result = base.DrawInfo;
+                DrawColourInfo result = base.DrawColourInfo;
 
                 // When drawing our children to the frame buffer we do not
                 // want their colour to be polluted by their parent (us!)

@@ -3,6 +3,7 @@
 
 using osu.Framework.Graphics.OpenGL;
 using System;
+using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Vertices;
 
 namespace osu.Framework.Graphics
@@ -19,6 +20,8 @@ namespace osu.Framework.Graphics
         /// </summary>
         public DrawInfo DrawInfo;
 
+        public DrawColourInfo DrawColourInfo;
+
         /// <summary>
         /// Identifies the state of this draw node with an invalidation state of its corresponding
         /// <see cref="Drawable"/>. Whenever the invalidation state of this draw node disagrees
@@ -34,7 +37,7 @@ namespace osu.Framework.Graphics
         /// textured sprites.</param>
         public virtual void Draw(Action<TexturedVertex2D> vertexAction)
         {
-            GLWrapper.SetBlend(DrawInfo.Blending);
+            GLWrapper.SetBlend(DrawColourInfo.Blending);
         }
     }
 }

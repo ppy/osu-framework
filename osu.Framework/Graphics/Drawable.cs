@@ -32,6 +32,7 @@ using osu.Framework.Input.EventArgs;
 using osu.Framework.Input.States;
 using osu.Framework.MathUtils;
 using JoystickEventArgs = osu.Framework.Input.EventArgs.JoystickEventArgs;
+using System.Runtime.CompilerServices;
 
 namespace osu.Framework.Graphics
 {
@@ -1452,48 +1453,11 @@ namespace osu.Framework.Graphics
 
             Vector2 pos = DrawPosition + AnchorPosition;
             Vector2 drawScale = DrawScale;
-            BlendingParameters localBlending = Blending;
 
             if (Parent != null)
-            {
                 pos += Parent.ChildOffset;
 
-                if (localBlending.Mode == BlendingMode.Inherit)
-                    localBlending.Mode = Parent.Blending.Mode;
-
-                if (localBlending.RGBEquation == BlendingEquation.Inherit)
-                    localBlending.RGBEquation = Parent.Blending.RGBEquation;
-
-                if (localBlending.AlphaEquation == BlendingEquation.Inherit)
-                    localBlending.AlphaEquation = Parent.Blending.AlphaEquation;
-            }
-
             di.ApplyTransform(pos, drawScale, Rotation, Shear, OriginPosition);
-            di.Blending = new BlendingInfo(localBlending);
-
-            ColourInfo drawInfoColour = alpha != 1 ? colour.MultiplyAlpha(alpha) : colour;
-
-            // No need for a Parent null check here, because null parents always have
-            // a single colour (white).
-            if (di.Colour.HasSingleColour)
-                di.Colour.ApplyChild(drawInfoColour);
-            else
-            {
-                Debug.Assert(Parent != null,
-                    $"The {nameof(di)} of null parents should always have the single colour white, and therefore this branch should never be hit.");
-
-                // Cannot use ToParentSpace here, because ToParentSpace depends on DrawInfo to be completed
-                // ReSharper disable once PossibleNullReferenceException
-                Quad interp = Quad.FromRectangle(DrawRectangle) * (di.Matrix * Parent.DrawInfo.MatrixInverse);
-                Vector2 parentSize = Parent.DrawSize;
-
-                interp.TopLeft = Vector2.Divide(interp.TopLeft, parentSize);
-                interp.TopRight = Vector2.Divide(interp.TopRight, parentSize);
-                interp.BottomLeft = Vector2.Divide(interp.BottomLeft, parentSize);
-                interp.BottomRight = Vector2.Divide(interp.BottomRight, parentSize);
-
-                di.Colour.ApplyChild(drawInfoColour, interp);
-            }
 
             return di;
         }
@@ -1504,6 +1468,60 @@ namespace osu.Framework.Graphics
         /// </summary>
         public virtual DrawInfo DrawInfo => drawInfoBacking.IsValid ? drawInfoBacking : (drawInfoBacking.Value = computeDrawInfo());
 
+        private Cached<DrawColourInfo> drawColourInfoBacking;
+
+        public virtual DrawColourInfo DrawColourInfo
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => drawColourInfoBacking.IsValid? drawColourInfoBacking : (drawColourInfoBacking.Value = computeDrawColourInfo());
+        }
+
+        private DrawColourInfo computeDrawColourInfo()
+        {
+            DrawColourInfo ci = Parent?.DrawColourInfo ?? new DrawColourInfo(null);
+
+            BlendingParameters localBlending = Blending;
+
+            if (Parent != null)
+            {
+                if (localBlending.Mode == BlendingMode.Inherit)
+                    localBlending.Mode = Parent.Blending.Mode;
+
+                if (localBlending.RGBEquation == BlendingEquation.Inherit)
+                    localBlending.RGBEquation = Parent.Blending.RGBEquation;
+
+                if (localBlending.AlphaEquation == BlendingEquation.Inherit)
+                    localBlending.AlphaEquation = Parent.Blending.AlphaEquation;
+            }
+
+            ci.Blending = new BlendingInfo(localBlending);
+
+            ColourInfo drawInfoColour = alpha != 1 ? colour.MultiplyAlpha(alpha) : colour;
+
+            // No need for a Parent null check here, because null parents always have
+            // a single colour (white).
+            if (ci.Colour.HasSingleColour)
+                ci.Colour.ApplyChild(drawInfoColour);
+            else
+            {
+                Debug.Assert(Parent != null,
+                    $"The {nameof(ci)} of null parents should always have the single colour white, and therefore this branch should never be hit.");
+
+                // Cannot use ToParentSpace here, because ToParentSpace depends on DrawInfo to be completed
+                // ReSharper disable once PossibleNullReferenceException
+                Quad interp = Quad.FromRectangle(DrawRectangle) * (DrawInfo.Matrix * Parent.DrawInfo.MatrixInverse);
+                Vector2 parentSize = Parent.DrawSize;
+
+                interp.TopLeft = Vector2.Divide(interp.TopLeft, parentSize);
+                interp.TopRight = Vector2.Divide(interp.TopRight, parentSize);
+                interp.BottomLeft = Vector2.Divide(interp.BottomLeft, parentSize);
+                interp.BottomRight = Vector2.Divide(interp.BottomRight, parentSize);
+
+                ci.Colour.ApplyChild(drawInfoColour, interp);
+            }
+
+            return ci;
+        }
 
         private Cached<Vector2> requiredParentSizeToFitBacking;
 
@@ -1586,6 +1604,9 @@ namespace osu.Framework.Graphics
                 alreadyInvalidated &= !drawSizeBacking.Invalidate();
             }
 
+            if ((invalidation & Invalidation.Colour) > 0)
+                alreadyInvalidated &= !drawColourInfoBacking.Invalidate();
+
             if (!alreadyInvalidated || (invalidation & Invalidation.DrawNode) > 0)
                 invalidationID = invalidation_counter.Increment();
 
@@ -1645,6 +1666,7 @@ namespace osu.Framework.Graphics
         protected virtual void ApplyDrawNode(DrawNode node)
         {
             node.DrawInfo = DrawInfo;
+            node.DrawColourInfo = DrawColourInfo;
             node.InvalidationID = invalidationID;
         }
 
