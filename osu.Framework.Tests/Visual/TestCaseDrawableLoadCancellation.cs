@@ -1,6 +1,7 @@
 // Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -44,6 +45,25 @@ namespace osu.Framework.Tests.Visual
             AddStep("allow load to complete", () => loaders.Last().AllowLoadCompletion());
 
             AddUntilStep(() => loaders.Last().HasLoaded, "last loader loaded");
+        }
+
+        [Test]
+        public void TestLoadAsyncCancel()
+        {
+            bool loaded = false;
+
+            PausableLoadDrawable loader = null;
+            CancellationTokenSource cancellationSource = null;
+
+            AddStep("start async load", () => LoadComponentAsync(loader = new PausableLoadDrawable(0), _ => loaded = true, (cancellationSource = new CancellationTokenSource()).Token));
+
+            AddAssert("load started", () => loader.IsLoading);
+
+            AddStep("cancel", () => cancellationSource.Cancel());
+
+            AddAssert("load cancelled", () => !loader.IsLoading);
+            AddAssert("didn't callback", () => !loaded);
+
         }
 
         private int id;
@@ -132,7 +152,7 @@ namespace osu.Framework.Tests.Visual
             private readonly CancellationTokenSource ourSource = new CancellationTokenSource();
 
             [BackgroundDependencyLoader]
-            private async Task load(CancellationToken? cancellation)
+            private void load(CancellationToken? cancellation)
             {
                 IsLoading = true;
 
@@ -140,9 +160,9 @@ namespace osu.Framework.Tests.Visual
                 {
                     try
                     {
-                        await Task.Delay(99999, linkedSource.Token);
+                        Task.Delay(99999, linkedSource.Token).Wait(linkedSource.Token);
                     }
-                    catch (TaskCanceledException)
+                    catch (OperationCanceledException)
                     {
                         if (!ourSource.IsCancellationRequested)
                         {

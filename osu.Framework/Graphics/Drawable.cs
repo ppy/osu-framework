@@ -1586,10 +1586,10 @@ namespace osu.Framework.Graphics
         /// <returns>If the invalidate was actually necessary.</returns>
         public virtual bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
-            if (invalidation == Invalidation.None || !IsLoaded)
+            if (invalidation == Invalidation.None || Parent == null)
                 return false;
 
-            if (shallPropagate && Parent != null && source != Parent)
+            if (shallPropagate && source != Parent)
             {
                 var parentInvalidation = invalidation;
 
