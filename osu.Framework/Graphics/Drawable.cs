@@ -30,7 +30,6 @@ using osu.Framework.Input.EventArgs;
 using osu.Framework.Input.States;
 using osu.Framework.MathUtils;
 using JoystickEventArgs = osu.Framework.Input.EventArgs.JoystickEventArgs;
-using System.Runtime.CompilerServices;
 
 namespace osu.Framework.Graphics
 {
@@ -1464,18 +1463,16 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
-        /// Contains a linear transformation, colour information, and blending information
-        /// of this drawable.
+        /// Contains the linear transformation of this <see cref="Drawable"/> that is used during draw.
         /// </summary>
         public virtual DrawInfo DrawInfo => drawInfoBacking.IsValid ? drawInfoBacking : (drawInfoBacking.Value = computeDrawInfo());
 
         private Cached<DrawColourInfo> drawColourInfoBacking;
 
-        public virtual DrawColourInfo DrawColourInfo
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => drawColourInfoBacking.IsValid? drawColourInfoBacking : (drawColourInfoBacking.Value = computeDrawColourInfo());
-        }
+        /// <summary>
+        /// Contains the colour and blending information of this <see cref="Drawable"/> that are used during draw.
+        /// </summary>
+        public virtual DrawColourInfo DrawColourInfo => drawColourInfoBacking.IsValid? drawColourInfoBacking : (drawColourInfoBacking.Value = computeDrawColourInfo());
 
         private DrawColourInfo computeDrawColourInfo()
         {
@@ -1497,12 +1494,10 @@ namespace osu.Framework.Graphics
 
             ci.Blending = new BlendingInfo(localBlending);
 
-            ColourInfo drawInfoColour = alpha != 1 ? colour.MultiplyAlpha(alpha) : colour;
+            ColourInfo ourColour = alpha != 1 ? colour.MultiplyAlpha(alpha) : colour;
 
-            // No need for a Parent null check here, because null parents always have
-            // a single colour (white).
             if (ci.Colour.HasSingleColour)
-                ci.Colour.ApplyChild(drawInfoColour);
+                ci.Colour.ApplyChild(ourColour);
             else
             {
                 Debug.Assert(Parent != null,
@@ -1518,7 +1513,7 @@ namespace osu.Framework.Graphics
                 interp.BottomLeft = Vector2.Divide(interp.BottomLeft, parentSize);
                 interp.BottomRight = Vector2.Divide(interp.BottomRight, parentSize);
 
-                ci.Colour.ApplyChild(drawInfoColour, interp);
+                ci.Colour.ApplyChild(ourColour, interp);
             }
 
             return ci;
