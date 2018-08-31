@@ -1604,11 +1604,19 @@ namespace osu.Framework.Graphics
                 return false;
 
             if (shallPropagate && Parent != null && source != Parent)
-                Parent.InvalidateFromChild(invalidation, this);
+            {
+                var parentInvalidation = invalidation;
+
+                // Colour doesn't affect parent's properties
+                parentInvalidation &= ~Invalidation.Colour;
+
+                if (parentInvalidation > 0)
+                    Parent.InvalidateFromChild(invalidation, this);
+            }
 
             bool alreadyInvalidated = true;
 
-            // Either ScreenSize OR ScreenPosition OR Colour
+            // Either ScreenSize OR ScreenPosition OR Presence
             if ((invalidation & (Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.Presence)) > 0)
             {
                 if ((invalidation & Invalidation.RequiredParentSizeToFit) > 0)
