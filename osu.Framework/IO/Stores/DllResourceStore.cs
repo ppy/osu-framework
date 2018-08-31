@@ -19,7 +19,18 @@ namespace osu.Framework.IO.Stores
             space = Path.GetFileNameWithoutExtension(dllName);
         }
 
-        public byte[] Get(string name) => GetAsync(name).Result;
+        public byte[] Get(string name)
+        {
+            using (Stream input = GetStream(name))
+            {
+                if (input == null)
+                    return null;
+
+                byte[] buffer = new byte[input.Length];
+                input.Read(buffer, 0, buffer.Length);
+                return buffer;
+            }
+        }
 
         public virtual async Task<byte[]> GetAsync(string name)
         {
