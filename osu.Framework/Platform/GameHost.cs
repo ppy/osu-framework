@@ -310,7 +310,14 @@ namespace osu.Framework.Platform
             // Ensure we maintain a valid size for any children immediately scaling by the window size
             Root.Size = Vector2.ComponentMax(Vector2.One, Root.Size);
 
-            DependencyContainer.UnwrapExceptions(Root.UpdateSubTreeAsRoot);
+            try
+            {
+                Root.UpdateSubTreeAsRoot();
+            }
+            catch (DependencyInjectionException die)
+            {
+                die.DispatchInfo.Throw();
+            }
 
             Root.UpdateSubTreeMasking(Root, Root.ScreenSpaceDrawQuad.AABBFloat);
 

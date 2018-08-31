@@ -136,32 +136,6 @@ namespace osu.Framework.Allocation
         public void Inject<T>(T instance)
             where T : class
             => DependencyActivator.Activate(instance, this);
-
-        /// <summary>
-        /// Invokes a delegate and re-throws any source exception wrapped by a <see cref="DependencyInjectionException"/>.
-        /// </summary>
-        /// <param name="action">The delegate to invoke.</param>
-        public static void UnwrapExceptions(Action action)
-        {
-            try
-            {
-                action();
-            }
-            catch (AggregateException ae)
-            {
-                foreach (var e in ae.Flatten().InnerExceptions)
-                {
-                    if (e is DependencyInjectionException die)
-                        die.DispatchInfo.Throw();
-
-                    throw e;
-                }
-            }
-            catch (DependencyInjectionException die)
-            {
-                die.DispatchInfo.Throw();
-            }
-        }
     }
 
     public class TypeAlreadyCachedException : InvalidOperationException
