@@ -293,7 +293,8 @@ namespace osu.Framework.Graphics.Containers
             public override void InvalidateFromChild(Invalidation invalidation, Drawable source = null)
             {
                 if ((invalidation & (Invalidation.RequiredParentSizeToFit | Invalidation.Colour)) > 0)
-                    Parent.InvalidateFromChild(invalidation);
+                    Parent?.InvalidateFromChild(invalidation, this);
+
                 base.InvalidateFromChild(invalidation, source);
             }
         }
