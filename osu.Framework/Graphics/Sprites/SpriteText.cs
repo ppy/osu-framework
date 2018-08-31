@@ -38,7 +38,7 @@ namespace osu.Framework.Graphics.Sprites
         /// </summary>
         public bool UseFullGlyphHeight = true;
 
-        public override bool IsPresent => base.IsPresent && (!string.IsNullOrEmpty(text) || !layout.IsValid);
+        public override bool IsPresent => base.IsPresent && (!string.IsNullOrEmpty(text) || !textCache.IsValid);
 
         /// <summary>
         /// True if the text should be wrapped if it gets too wide. Note that \n does NOT cause a line break. If you need explicit line breaks, use <see cref="TextFlowContainer"/> instead.
@@ -60,7 +60,7 @@ namespace osu.Framework.Graphics.Sprites
             set
             {
                 font = value;
-                layout.Invalidate();
+                textCache.Invalidate();
             }
         }
 
@@ -77,7 +77,7 @@ namespace osu.Framework.Graphics.Sprites
                 if (shadow == value) return;
 
                 shadow = value;
-                layout.Invalidate(); // Trigger a layout refresh
+                textCache.Invalidate(); // Trigger a layout refresh
             }
         }
 
@@ -94,7 +94,7 @@ namespace osu.Framework.Graphics.Sprites
             {
                 shadowColour = value;
                 if (shadow)
-                    layout.Invalidate();
+                    textCache.Invalidate();
             }
         }
 
@@ -116,7 +116,7 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        private Cached layout = new Cached();
+        private Cached textCache = new Cached();
 
         private float spaceWidth;
 
@@ -150,7 +150,7 @@ namespace osu.Framework.Graphics.Sprites
 
                 textSize = value;
 
-                layout.Invalidate();
+                textCache.Invalidate();
             }
         }
 
@@ -189,7 +189,7 @@ namespace osu.Framework.Graphics.Sprites
                 return;
 
             text = newText ?? string.Empty;
-            layout.Invalidate();
+            textCache.Invalidate();
         }
 
         private string text = string.Empty;
@@ -223,17 +223,17 @@ namespace osu.Framework.Graphics.Sprites
 
         private void validateLayout()
         {
-            if (!layout.IsValid)
+            if (!textCache.IsValid)
             {
                 computeLayout();
-                layout.Validate();
+                textCache.Validate();
             }
         }
 
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
             if ((invalidation & Invalidation.Colour) > 0 && Shadow)
-                layout.Invalidate(); //we may need to recompute the shadow alpha if our text colour has changed (see shadowAlpha).
+                textCache.Invalidate(); //we may need to recompute the shadow alpha if our text colour has changed (see shadowAlpha).
 
             return base.Invalidate(invalidation, source, shallPropagate);
         }
