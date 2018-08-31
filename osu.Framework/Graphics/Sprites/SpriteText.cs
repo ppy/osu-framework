@@ -280,7 +280,7 @@ namespace osu.Framework.Graphics.Sprites
                 lastText = string.Empty;
 
                 // We're going to become not present, so parents need to be signalled to recompute size/layout
-                Invalidate(InvalidationFromParentSize | Invalidation.Colour);
+                Invalidate(InvalidationFromParentSize | Invalidation.Presence);
 
                 return;
             }

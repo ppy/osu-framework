@@ -897,7 +897,7 @@ namespace osu.Framework.Graphics
 
                 scale = value;
 
-                Invalidate(Invalidation.MiscGeometry);
+                Invalidate(Invalidation.MiscGeometry | Invalidation.Presence);
             }
         }
 
@@ -1206,9 +1206,9 @@ namespace osu.Framework.Graphics
             {
                 if (alpha == value) return;
 
-                Invalidate(Invalidation.Colour);
-
                 alpha = value;
+
+                Invalidate(Invalidation.Colour | Invalidation.Presence);
             }
         }
 
@@ -1232,11 +1232,11 @@ namespace osu.Framework.Graphics
             get => alwaysPresent;
             set
             {
-                if (alwaysPresent == value) return;
-
-                Invalidate(Invalidation.Colour);
-
+                if (alwaysPresent == value)
+                    return;
                 alwaysPresent = value;
+
+                Invalidate(Invalidation.Presence);
             }
         }
 
@@ -1253,8 +1253,8 @@ namespace osu.Framework.Graphics
             {
                 if (blending.Equals(value))
                     return;
-
                 blending = value;
+
                 Invalidate(Invalidation.Colour);
             }
         }
@@ -1373,7 +1373,7 @@ namespace osu.Framework.Graphics
                     throw new InvalidOperationException("May not add a drawable to multiple containers.");
 
                 parent = value;
-                Invalidate(InvalidationFromParentSize | Invalidation.Colour);
+                Invalidate(InvalidationFromParentSize | Invalidation.Presence);
 
                 if (parent != null)
                 {
@@ -1576,7 +1576,7 @@ namespace osu.Framework.Graphics
             bool alreadyInvalidated = true;
 
             // Either ScreenSize OR ScreenPosition OR Colour
-            if ((invalidation & (Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.Colour)) > 0)
+            if ((invalidation & (Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.Presence)) > 0)
             {
                 if ((invalidation & Invalidation.RequiredParentSizeToFit) > 0)
                     alreadyInvalidated &= !requiredParentSizeToFitBacking.Invalidate();
@@ -2345,7 +2345,7 @@ namespace osu.Framework.Graphics
         MiscGeometry = 1 << 2,
 
         /// <summary>
-        /// <see cref="Drawable.Colour"/> or <see cref="Drawable.IsPresent"/> has changed.
+        /// <see cref="Drawable.Colour"/> has changed.
         /// </summary>
         Colour = 1 << 3,
 
@@ -2353,6 +2353,11 @@ namespace osu.Framework.Graphics
         /// <see cref="Drawable.ApplyDrawNode(Graphics.DrawNode)"/> has to be invoked on all old draw nodes.
         /// </summary>
         DrawNode = 1 << 4,
+
+        /// <summary>
+        /// <see cref="Drawable.IsPresent"/> has changed.
+        /// </summary>
+        Presence = 1 << 5,
 
         /// <summary>
         /// No invalidation.
@@ -2367,7 +2372,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// All possible things are affected.
         /// </summary>
-        All = DrawNode | RequiredParentSizeToFit | Colour | DrawInfo,
+        All = DrawNode | RequiredParentSizeToFit | Colour | DrawInfo | Presence,
     }
 
     /// <summary>

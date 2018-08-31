@@ -325,7 +325,7 @@ namespace osu.Framework.Graphics.Containers
                 ++updateVersion;
 
             // We actually only care about Invalidation.MiscGeometry | Invalidation.DrawInfo, but must match the blanket invalidation logic in Drawable.Invalidate
-            if ((invalidation & (Invalidation.Colour | Invalidation.RequiredParentSizeToFit | Invalidation.DrawInfo)) > 0)
+            if ((invalidation & (Invalidation.Presence | Invalidation.RequiredParentSizeToFit | Invalidation.DrawInfo)) > 0)
                 screenSpaceSizeBacking.Invalidate();
 
             return base.Invalidate(invalidation, source, shallPropagate);
