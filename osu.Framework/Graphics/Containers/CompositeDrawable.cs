@@ -444,7 +444,7 @@ namespace osu.Framework.Graphics.Containers
         protected internal virtual void AddInternal(Drawable drawable)
         {
             if (IsDisposed)
-                throw new ObjectDisposedException(ToString(), $"Disposed Drawables may not have children added.");
+                throw new ObjectDisposedException(ToString(), "Disposed Drawables may not have children added.");
 
             if (drawable == null)
                 throw new ArgumentNullException(nameof(drawable), $"null {nameof(Drawable)}s may not be added to {nameof(CompositeDrawable)}.");

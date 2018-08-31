@@ -21,7 +21,7 @@ namespace osu.Framework.Extensions.IEnumerableExtensions
             foreach (var item in collection)
                 action(item);
         }
-        
+
         /// <summary>
         /// Wraps this object instance into an <see cref="IEnumerable{T}"/>
         /// consisting of a single item.
