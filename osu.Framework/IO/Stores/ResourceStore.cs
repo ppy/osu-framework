@@ -100,7 +100,7 @@ namespace osu.Framework.IO.Stores
         /// </summary>
         /// <param name="name">The name of the object.</param>
         /// <returns>The object.</returns>
-        public T Get(string name)
+        public virtual T Get(string name)
         {
             List<string> filenames = GetFilenames(name);
 
