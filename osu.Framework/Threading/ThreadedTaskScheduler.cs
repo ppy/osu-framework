@@ -16,7 +16,7 @@ namespace osu.Framework.Threading
     /// </summary>
     public sealed class ThreadedTaskScheduler : TaskScheduler, IDisposable
     {
-        private BlockingCollection<Task> tasks;
+        private readonly BlockingCollection<Task> tasks;
 
         private readonly ImmutableArray<Thread> threads;
 
@@ -33,13 +33,7 @@ namespace osu.Framework.Threading
 
             threads = Enumerable.Range(0, numberOfThreads).Select(i =>
             {
-                var thread = new Thread(() =>
-                {
-                    // Continually get the next task and try to execute it.
-                    // This will continue until the scheduler is disposed and no more tasks remain.
-                    foreach (var t in tasks.GetConsumingEnumerable())
-                        TryExecuteTask(t);
-                })
+                var thread = new Thread(processTasks)
                 {
                     Name = "LoadComponentThreadPool",
                     IsBackground = true
@@ -52,6 +46,15 @@ namespace osu.Framework.Threading
         }
 
         /// <summary>
+        /// Continually get the next task and try to execute it.
+        /// This will continue as a blocking operation until the scheduler is disposed and no more tasks remain.
+        /// </summary>
+        private void processTasks()
+        {
+            foreach (var t in tasks.GetConsumingEnumerable()) TryExecuteTask(t);
+        }
+
+        /// <summary>
         /// Queues a Task to be executed by this scheduler.
         /// </summary>
         /// <param name="task">The task to be executed.</param>
@@ -61,10 +64,7 @@ namespace osu.Framework.Threading
         /// Provides a list of the scheduled tasks for the debugger to consume.
         /// </summary>
         /// <returns>An enumerable of all tasks currently scheduled.</returns>
-        protected override IEnumerable<Task> GetScheduledTasks()
-        {
-            return tasks.ToArray();
-        }
+        protected override IEnumerable<Task> GetScheduledTasks() => tasks.ToArray();
 
         /// <summary>
         /// Determines whether a Task may be inlined.
@@ -86,15 +86,12 @@ namespace osu.Framework.Threading
         /// </summary>
         public void Dispose()
         {
-            if (tasks == null) return;
-
             tasks.CompleteAdding();
 
             foreach (var thread in threads)
                 thread.Join();
 
             tasks.Dispose();
-            tasks = null;
         }
     }
 }
