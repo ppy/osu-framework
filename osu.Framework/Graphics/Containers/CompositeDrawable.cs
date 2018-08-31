@@ -758,7 +758,10 @@ namespace osu.Framework.Graphics.Containers
                     childInvalidation |= Invalidation.DrawInfo;
 
                 // Other geometry things like rotation, shearing, etc don't affect child properties.
-                childInvalidation &= ~(Invalidation.MiscGeometry | Invalidation.Presence);
+                childInvalidation &= ~Invalidation.MiscGeometry;
+
+                // Presence also doesn't affect child properties
+                childInvalidation &= ~Invalidation.Presence;
 
                 // Relative positioning can however affect child geometry
                 // ReSharper disable once PossibleNullReferenceException
