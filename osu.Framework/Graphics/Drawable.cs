@@ -896,9 +896,14 @@ namespace osu.Framework.Graphics
 
                 if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(Scale)} must be finite, but is {value}.");
 
+                bool wasPresent = IsPresent;
+
                 scale = value;
 
-                Invalidate(Invalidation.MiscGeometry | Invalidation.Presence);
+                if (IsPresent != wasPresent)
+                    Invalidate(Invalidation.MiscGeometry | Invalidation.Presence);
+                else
+                    Invalidate(Invalidation.MiscGeometry);
             }
         }
 
@@ -1205,11 +1210,17 @@ namespace osu.Framework.Graphics
             get => alpha;
             set
             {
-                if (alpha == value) return;
+                if (alpha == value)
+                    return;
+
+                bool wasPresent = IsPresent;
 
                 alpha = value;
 
-                Invalidate(Invalidation.Colour | Invalidation.Presence);
+                if (IsPresent != wasPresent)
+                    Invalidate(Invalidation.Colour | Invalidation.Presence);
+                else
+                    Invalidate(Invalidation.Colour);
             }
         }
 
@@ -1235,9 +1246,13 @@ namespace osu.Framework.Graphics
             {
                 if (alwaysPresent == value)
                     return;
+
+                bool wasPresent = IsPresent;
+
                 alwaysPresent = value;
 
-                Invalidate(Invalidation.Presence);
+                if (IsPresent != wasPresent)
+                    Invalidate(Invalidation.Presence);
             }
         }
 
