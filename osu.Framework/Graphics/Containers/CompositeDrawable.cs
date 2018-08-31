@@ -83,10 +83,24 @@ namespace osu.Framework.Graphics.Containers
         /// consider using <see cref="DelayedLoadWrapper"/>
         /// </summary>
         /// <typeparam name="TLoadable">The type of the future future child or grand-child to be loaded.</typeparam>
-        /// <param name="component">The type of the future future child or grand-child to be loaded.</param>
+        /// <param name="component">The child or grand-child to be loaded.</param>
         /// <param name="onLoaded">Callback to be invoked on the update thread after loading is complete.</param>
         /// <returns>The task which is used for loading and callbacks.</returns>
         protected Task LoadComponentAsync<TLoadable>(TLoadable component, Action<TLoadable> onLoaded = null) where TLoadable : Drawable
+            => LoadComponentsAsync(component.Yield(), l => onLoaded?.Invoke(l.First()));
+
+        /// <summary>
+        /// Loads several future child or grand-child of this <see cref="CompositeDrawable"/> asynchronously. <see cref="Dependencies"/>
+        /// and <see cref="Drawable.Clock"/> are inherited from this <see cref="CompositeDrawable"/>.
+        ///
+        /// Note that this will always use the dependencies and clock from this instance. If you must load to a nested container level,
+        /// consider using <see cref="DelayedLoadWrapper"/>
+        /// </summary>
+        /// <typeparam name="TLoadable">The type of the future future child or grand-child to be loaded.</typeparam>
+        /// <param name="components">The children or grand-children to be loaded.</param>
+        /// <param name="onLoaded">Callback to be invoked on the update thread after loading is complete.</param>
+        /// <returns>The task which is used for loading and callbacks.</returns>
+        protected Task LoadComponentsAsync<TLoadable>(IEnumerable<TLoadable> components, Action<IEnumerable<TLoadable>> onLoaded = null) where TLoadable : Drawable
         {
             if (game == null)
                 throw new InvalidOperationException($"May not invoke {nameof(LoadComponentAsync)} prior to this {nameof(CompositeDrawable)} being loaded.");
@@ -107,7 +121,8 @@ namespace osu.Framework.Graphics.Containers
 
                 try
                 {
-                    component.Load(Clock, dependencies);
+                    foreach (var c in components)
+                        c.Load(Clock, dependencies);
                 }
                 finally
                 {
@@ -123,7 +138,7 @@ namespace osu.Framework.Graphics.Containers
                         throw exception;
 
                     if (!cancellationSource.IsCancellationRequested)
-                        onLoaded?.Invoke(component);
+                        onLoaded?.Invoke(components);
                 });
             }, cancellationSource.Token);
         }
