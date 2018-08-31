@@ -24,10 +24,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
-using System.Threading.Tasks;
 using osu.Framework.Configuration;
 using osu.Framework.Development;
-using osu.Framework.Extensions;
 using osu.Framework.Input.EventArgs;
 using osu.Framework.Input.States;
 using osu.Framework.MathUtils;
@@ -85,34 +83,29 @@ namespace osu.Framework.Graphics
             if (IsDisposed)
                 return;
 
-            try
+            //we can't dispose if we are mid-load, else our children may get in a bad state.
+            lock (loadLock)
             {
-                //we can't dispose if we are mid-load, else our children may get in a bad state.
-                loadTask?.Wait();
+                Dispose(isDisposing);
+
+                unbindAllBindables();
+
+                Parent = null;
+
+                scheduler = null;
+
+                OnUpdate = null;
+                OnInvalidate = null;
+
+                // If this Drawable is disposed, then we need to also
+                // stop remotely rendering it.
+                proxy?.Dispose();
+
+                OnDispose?.Invoke();
+                OnDispose = null;
+
+                IsDisposed = true;
             }
-            catch
-            {
-            }
-
-            Dispose(isDisposing);
-
-            unbindAllBindables();
-
-            Parent = null;
-
-            scheduler = null;
-
-            OnUpdate = null;
-            OnInvalidate = null;
-
-            // If this Drawable is disposed, then we need to also
-            // stop remotely rendering it.
-            proxy?.Dispose();
-
-            OnDispose?.Invoke();
-            OnDispose = null;
-
-            IsDisposed = true;
         }
 
         /// <summary>
@@ -193,8 +186,6 @@ namespace osu.Framework.Graphics
         /// </summary>
         public LoadState LoadState => loadState;
 
-        private volatile Task loadTask;
-
         private readonly object loadLock = new object();
 
         private static readonly StopwatchClock perf = new StopwatchClock(true);
@@ -205,32 +196,27 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="clock">The clock we should use by default.</param>
         /// <param name="dependencies">The dependency tree we will inherit by default. May be extended via <see cref="CompositeDrawable.CreateChildDependencies"/></param>
-        internal Task LoadAsync(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies)
+        internal void Load(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies)
         {
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString(), "Attempting to load an already disposed drawable.");
 
-            if (loadTask != null)
-                return loadTask;
-
             lock (loadLock)
             {
-                if (loadTask == null)
+                if (loadState == LoadState.NotLoaded)
                 {
                     Trace.Assert(loadState == LoadState.NotLoaded);
+
                     loadState = LoadState.Loading;
-                    loadTask = loadAsync(clock, dependencies).ContinueWith(t =>
-                    {
-                        t.ThrowIfFaulted();
-                        loadState = LoadState.Ready;
-                    });
+
+                    load(clock, dependencies);
+
+                    loadState = LoadState.Ready;
                 }
             }
-
-            return loadTask;
         }
 
-        private async Task loadAsync(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies)
+        private void load(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies)
         {
             // Blocks when loading from another thread already.
             double t0 = getPerfTime();
@@ -243,7 +229,7 @@ namespace osu.Framework.Graphics
 
             double t1 = getPerfTime();
 
-            await InjectDependencies(dependencies);
+            InjectDependencies(dependencies);
 
             LoadAsyncComplete();
 
@@ -256,7 +242,7 @@ namespace osu.Framework.Graphics
         /// Injects dependencies from an <see cref="IReadOnlyDependencyContainer"/> into this <see cref="Drawable"/>.
         /// </summary>
         /// <param name="dependencies">The dependencies to inject.</param>
-        protected virtual Task InjectDependencies(IReadOnlyDependencyContainer dependencies) => dependencies.Inject(this);
+        protected virtual void InjectDependencies(IReadOnlyDependencyContainer dependencies) => dependencies.Inject(this);
 
         /// <summary>
         /// Runs once on the update thread after loading has finished.
@@ -282,7 +268,7 @@ namespace osu.Framework.Graphics
         /// children if this is a <see cref="CompositeDrawable"/>.
         /// </summary>
         /// <remarks>
-        /// This method is invoked in the potentially asynchronous context of <see cref="LoadAsync"/> prior to
+        /// This method is invoked in the potentially asynchronous context of <see cref="Load"/> prior to
         /// this <see cref="Drawable"/> becoming <see cref="IsLoaded"/> = true.
         /// </remarks>
         protected virtual void LoadAsyncComplete()
