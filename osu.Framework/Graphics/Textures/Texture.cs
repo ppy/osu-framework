@@ -63,7 +63,6 @@ namespace osu.Framework.Graphics.Textures
             Dispose(false);
         }
 
-
         public void Dispose()
         {
             Dispose(true);
