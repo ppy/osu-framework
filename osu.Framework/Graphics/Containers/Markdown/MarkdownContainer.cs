@@ -160,7 +160,10 @@ namespace osu.Framework.Graphics.Containers.Markdown
 
         protected virtual MarkdownTable CreateMarkdownTable(Table table)
         {
-            return new MarkdownTable(table);
+            return new MarkdownTable(table)
+            {
+                RightSpacing = 100
+            };
         }
 
         protected virtual FillFlowContainer CreateChildFillFlowContainer()

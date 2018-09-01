@@ -16,12 +16,12 @@ namespace osu.Framework.Graphics.Containers.Markdown
         private readonly MarkdownTableContainer tableContainer;
         private readonly List<List<MarkdownTableCell>> listContainerArray = new List<List<MarkdownTableCell>>();
 
+        public float RightSpacing { get; set; }
+
         public MarkdownTable(Table table)
         {
             AutoSizeAxes = Axes.Y;
             RelativeSizeAxes = Axes.X;
-            Padding = new MarginPadding { Right = 100 };
-            Margin = new MarginPadding { Right = 100 };
 
             foreach (var block in table)
             {
@@ -48,20 +48,6 @@ namespace osu.Framework.Graphics.Containers.Markdown
             };
         }
 
-        /*
-        private Vector2 lastDrawSize;
-        protected override void Update()
-        {
-            if (lastDrawSize != DrawSize)
-            {
-                lastDrawSize = DrawSize;
-                updateColumnDefinitions();
-                updateRowDefinitions();
-            }
-            base.Update();
-        }
-        */
-
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
             var reault = base.Invalidate(invalidation, source, shallPropagate);
@@ -70,7 +56,6 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 updateColumnDefinitions();
                 updateRowDefinitions();
             }
-            
             return reault;
         }
 
@@ -100,7 +85,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
             var columnDimensions = new Dimension[totalColumn];
 
             //if max width < DrawWidth, means set absolute value to each column
-            if (listcolumnMaxWidth.Sum() < DrawWidth - Margin.Right)
+            if (listcolumnMaxWidth.Sum() < DrawWidth - RightSpacing)
             {
                 //not relative , define value instead
                 tableContainer.RelativeSizeAxes = Axes.None;
