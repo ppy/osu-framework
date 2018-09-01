@@ -55,7 +55,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             int amountPoints = (int)Math.Ceiling(Math.Abs(Angle) / step);
 
-            Matrix3 transformationMatrix = DrawInfo.Matrix;
+            Matrix3x2 transformationMatrix = DrawInfo.Matrix;
             MatrixExtensions.ScaleFromLeft(ref transformationMatrix, DrawSize);
 
             Vector2 current = origin + pointOnCircle(start_angle) * 0.5f;

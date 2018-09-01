@@ -12,15 +12,15 @@ namespace osu.Framework.Graphics
 {
     public struct DrawInfo : IEquatable<DrawInfo>
     {
-        public Matrix3 Matrix;
-        public Matrix3 MatrixInverse;
+        public Matrix3x2 Matrix;
+        public Matrix3x2 MatrixInverse;
         public ColourInfo Colour;
         public BlendingInfo Blending;
 
-        public DrawInfo(Matrix3? matrix = null, Matrix3? matrixInverse = null, ColourInfo? colour = null, BlendingInfo? blending = null)
+        public DrawInfo(Matrix3x2? matrix = null, Matrix3x2? matrixInverse = null, ColourInfo? colour = null, BlendingInfo? blending = null)
         {
-            Matrix = matrix ?? Matrix3.Identity;
-            MatrixInverse = matrixInverse ?? Matrix3.Identity;
+            Matrix = matrix ?? MatrixExtensions.TruncatedIdentityMatrix;
+            MatrixInverse = matrixInverse ?? MatrixExtensions.TruncatedIdentityMatrix;
             Colour = colour ?? ColourInfo.SingleColour(Color4.White);
             Blending = blending ?? new BlendingInfo();
         }
@@ -67,11 +67,7 @@ namespace osu.Framework.Graphics
                 MatrixExtensions.TranslateFromRight(ref MatrixInverse, origin);
             }
 
-            //========================================================================================
-            //== Uncomment the following 2 lines to use a ground-truth matrix inverse for debugging ==
-            //========================================================================================
-            //target.MatrixInverse = target.Matrix;
-            //MatrixExtensions.FastInvert(ref target.MatrixInverse);
+            // MatrixInverse = MatrixExtensions.Invert(Matrix);
         }
 
         public bool Equals(DrawInfo other)

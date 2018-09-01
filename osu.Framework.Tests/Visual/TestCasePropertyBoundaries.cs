@@ -68,23 +68,17 @@ namespace osu.Framework.Tests.Visual
         private bool checkDrawInfo(DrawInfo drawInfo)
         {
             return checkFloat(drawInfo.Matrix.M11)
-                    && checkFloat(drawInfo.Matrix.M12)
-                    && checkFloat(drawInfo.Matrix.M13)
-                    && checkFloat(drawInfo.Matrix.M21)
-                    && checkFloat(drawInfo.Matrix.M22)
-                    && checkFloat(drawInfo.Matrix.M23)
-                    && checkFloat(drawInfo.Matrix.M31)
-                    && checkFloat(drawInfo.Matrix.M32)
-                    && checkFloat(drawInfo.Matrix.M33)
-                    && checkFloat(drawInfo.MatrixInverse.M11)
-                    && checkFloat(drawInfo.MatrixInverse.M12)
-                    && checkFloat(drawInfo.MatrixInverse.M13)
-                    && checkFloat(drawInfo.MatrixInverse.M21)
-                    && checkFloat(drawInfo.MatrixInverse.M22)
-                    && checkFloat(drawInfo.MatrixInverse.M23)
-                    && checkFloat(drawInfo.MatrixInverse.M31)
-                    && checkFloat(drawInfo.MatrixInverse.M32)
-                    && checkFloat(drawInfo.MatrixInverse.M33);
+                   && checkFloat(drawInfo.Matrix.M12)
+                   && checkFloat(drawInfo.Matrix.M21)
+                   && checkFloat(drawInfo.Matrix.M22)
+                   && checkFloat(drawInfo.Matrix.M31)
+                   && checkFloat(drawInfo.Matrix.M32)
+                   && checkFloat(drawInfo.MatrixInverse.M11)
+                   && checkFloat(drawInfo.MatrixInverse.M12)
+                   && checkFloat(drawInfo.MatrixInverse.M21)
+                   && checkFloat(drawInfo.MatrixInverse.M22)
+                   && checkFloat(drawInfo.MatrixInverse.M31)
+                   && checkFloat(drawInfo.MatrixInverse.M32);
         }
 
         private bool checkFloat(float value) => !float.IsNaN(value) && !float.IsInfinity(value) && !float.IsNegativeInfinity(value);
