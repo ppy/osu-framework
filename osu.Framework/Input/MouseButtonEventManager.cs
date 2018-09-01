@@ -156,6 +156,7 @@ namespace osu.Framework.Input
                     HandleMouseDragEnd(state);
 
                 MouseDownPosition = null;
+                MouseDownInputQueue = null;
             }
         }
 
