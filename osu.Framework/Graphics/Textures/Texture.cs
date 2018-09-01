@@ -20,12 +20,15 @@ namespace osu.Framework.Graphics.Textures
         {
             get
             {
-                if (whitePixel == null)
-                {
-                    TextureAtlas atlas = new TextureAtlas(3, 3, true);
-                    whitePixel = atlas.GetWhitePixel();
-                    whitePixel.SetData(new TextureUpload(new byte[] { 255, 255, 255, 255 }));
-                }
+                if (whitePixel != null) return whitePixel;
+
+                // in case no other textures are used in the project, create a new atlas as a fallback source for the white pixel area (used to draw boxes etc.)
+                TextureAtlas atlas = new TextureAtlas(3, 3, true);
+
+                atlas.Reset();
+
+                whitePixel = new TextureWhitePixel(new TextureGLAtlasWhite(atlas.AtlasTexture));
+                whitePixel.SetData(new TextureUpload(new byte[] { 255, 255, 255, 255 }));
 
                 return whitePixel;
             }
