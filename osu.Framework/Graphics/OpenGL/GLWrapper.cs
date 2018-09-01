@@ -71,14 +71,18 @@ namespace osu.Framework.Graphics.OpenGL
                 h.UpdateThread.Scheduler.Add(() => reset_scheduler.Add(disposalAction.Invoke));
         }
 
-        internal static void Reset(Vector2 size)
+        internal static void Reset(Vector2 size, int maxExpensiveOperations = 1)
         {
             Trace.Assert(shader_stack.Count == 0);
 
             reset_scheduler.Update();
 
-            if (expensive_operations_queue.TryDequeue(out Action action))
+            int executedOperations = 0;
+            while (executedOperations < maxExpensiveOperations && expensive_operations_queue.TryDequeue(out Action action))
+            {
                 action.Invoke();
+                ++executedOperations;
+            }
 
             lastBoundTexture = null;
 

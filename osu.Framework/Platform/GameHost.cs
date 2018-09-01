@@ -52,6 +52,11 @@ namespace osu.Framework.Platform
 
         public LocalisationEngine Localisation { get; private set; }
 
+        /// <summary>
+        /// The maximum number of allowed expensive GPU operations (shader/texture load fe) per frame. Default is 1.
+        /// </summary>
+        public int MaxExpensiveGPUOperationsPerFrame { get; set; } = 1;
+
         private void setActive(bool isActive)
         {
             threads.ForEach(t => t.IsActive = isActive);
@@ -165,11 +170,6 @@ namespace osu.Framework.Platform
         protected GameHost(string gameName = @"")
         {
             toolkit = Toolkit.Init();
-
-            // for the time being, we need to ensure there are enough threads available to avoid deadlocking on incorrect async usages.
-            ThreadPool.GetMinThreads(out int worker, out int completion);
-            if (worker < 8)
-                ThreadPool.SetMinThreads(8, completion);
 
             AppDomain.CurrentDomain.UnhandledException += unhandledExceptionHandler;
             TaskScheduler.UnobservedTaskException += unobservedExceptionHandler;
@@ -312,11 +312,11 @@ namespace osu.Framework.Platform
 
             try
             {
-                Root.UpdateSubTreeAsRoot();
+                Root.UpdateSubTree();
             }
-            catch (DependencyInjectionException die)
+            catch (DependencyInjectionException e)
             {
-                die.DispatchInfo.Throw();
+                e.DispatchInfo.Throw();
             }
 
             Root.UpdateSubTreeMasking(Root, Root.ScreenSpaceDrawQuad.AABBFloat);
@@ -332,7 +332,7 @@ namespace osu.Framework.Platform
 
             setVSyncMode();
 
-            GLWrapper.Reset(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
+            GLWrapper.Reset(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height), MaxExpensiveGPUOperationsPerFrame);
             GLWrapper.ClearColour(Color4.Black);
         }
 
@@ -356,7 +356,7 @@ namespace osu.Framework.Platform
 
                     using (drawMonitor.BeginCollecting(PerformanceCollectionType.GLReset))
                     {
-                        GLWrapper.Reset(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
+                        GLWrapper.Reset(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height), MaxExpensiveGPUOperationsPerFrame);
                         GLWrapper.ClearColour(Color4.Black);
                     }
 
@@ -404,7 +404,6 @@ namespace osu.Framework.Platform
                 complete = true;
             });
 
-            // this is required as attempting to use a TaskCompletionSource blocks the thread calling SetResult on some configurations.
             await Task.Run(() =>
             {
                 while (!complete)
@@ -557,7 +556,14 @@ namespace osu.Framework.Platform
 
             game.SetHost(this);
 
-            root.Load(SceneGraphClock, Dependencies);
+            try
+            {
+                root.Load(SceneGraphClock, Dependencies);
+            }
+            catch (DependencyInjectionException e)
+            {
+                e.DispatchInfo.Throw();
+            }
 
             //publish bootstrapped scene graph to all threads.
             Root = root;
