@@ -160,7 +160,7 @@ namespace osu.Framework.Graphics.Sprites
         [BackgroundDependencyLoader]
         private void load()
         {
-            spaceWidth = CreateCharacterDrawable('.')?.DrawWidth * 2 ?? default_text_size;
+            spaceWidth = GetTextureForCharacter('.')?.DisplayWidth * 2 ?? default_text_size;
             validateLayout();
         }
 
@@ -287,7 +287,7 @@ namespace osu.Framework.Graphics.Sprites
             }
 
             if (FixedWidth && !constantWidth.HasValue)
-                constantWidth = CreateCharacterDrawable('D').DrawWidth;
+                constantWidth = GetTextureForCharacter('D').DisplayWidth;
 
             foreach (var k in keepDrawables)
             {
