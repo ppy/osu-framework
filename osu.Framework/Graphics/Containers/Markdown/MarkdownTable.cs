@@ -51,7 +51,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
             var reault = base.Invalidate(invalidation, source, shallPropagate);
-            if ((invalidation & Invalidation.DrawSize) > 0)
+            if ((invalidation & Invalidation.DrawSize) > 0 && Parent!=null)
             {
                 updateColumnDefinitions();
                 updateRowDefinitions();
@@ -88,7 +88,6 @@ namespace osu.Framework.Graphics.Containers.Markdown
             if (listcolumnMaxWidth.Sum() < DrawWidth - RightSpacing)
             {
                 //not relative , define value instead
-                tableContainer.RelativeSizeAxes = Axes.None;
                 for (int column = 0; column < totalColumn; column++)
                 {
                     columnDimensions[column] = new Dimension(GridSizeMode.Absolute, listcolumnMaxWidth[column]);
@@ -97,7 +96,6 @@ namespace osu.Framework.Graphics.Containers.Markdown
             else
             {
                 //set to relative
-                tableContainer.RelativeSizeAxes = Axes.X;
                 var totalWidth = listcolumnMaxWidth.Sum();
                 for (int column = 0; column < totalColumn; column++)
                 {
