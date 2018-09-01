@@ -113,7 +113,7 @@ namespace osu.Framework.Tests.Exceptions
                     while (loadable.LoadState < LoadState.Loading)
                         Thread.Sleep(1);
 
-                    loadable.Dispose();
+                    g.Dispose();
                 });
             });
         }
@@ -135,9 +135,60 @@ namespace osu.Framework.Tests.Exceptions
                     while (loadable.LoadState < LoadState.Loading)
                         Thread.Sleep(1);
 
-                    g.Clear();
+                    loadable.Dispose();
                 });
             });
+        }
+
+        /// <summary>
+        /// The async load completion callback is scheduled on the <see cref="Game"/>. The callback is generally used to add the child to the container,
+        /// however it is possible for the container to be disposed when this occurs due to being scheduled on the <see cref="Game"/>. If this occurs,
+        /// the cancellation is invoked and the completion task should not be run.
+        ///
+        /// This is a very timing-dependent test which performs the following sequence:
+        /// LoadAsync -> schedule Callback -> dispose parent -> invoke scheduled callback
+        /// </summary>
+        [Test]
+        public void TestDisposeAfterLoad()
+        {
+            Assert.DoesNotThrow(() =>
+            {
+                var loadTarget = new LoadTarget(new DelayedTestBoxAsync());
+
+                bool allowDispose = false;
+                bool disposeTriggered = false;
+                bool updatedAfterDispose = false;
+
+                runGameWithLogic(g =>
+                {
+                    g.Add(loadTarget);
+                    loadTarget.PerformAsyncLoad().ContinueWith(t => allowDispose = true);
+                }, g =>
+                {
+                    // The following code is done here for a very specific reason, but can occur naturally in normal use
+                    // This delegate is essentially the first item in the game's scheduler, so it will always run PRIOR to the async callback
+
+                    if (disposeTriggered)
+                        updatedAfterDispose = true;
+
+                    if (allowDispose)
+                    {
+                        // Async load has complete, the callback has been scheduled but NOT run yet
+                        // Dispose the parent container - this is done by clearing the game
+                        g.Clear(true);
+                        disposeTriggered = true;
+                    }
+
+                    // After disposing the parent, one update loop is required
+                    return updatedAfterDispose;
+                });
+            });
+        }
+
+        [Test]
+        public void TestSyncLoadException()
+        {
+            Assert.Throws<AsyncTestException>(() => runGameWithLogic(g => g.Add(new DelayedTestBoxAsync(true))));
         }
 
         [SuppressMessage("ReSharper", "AccessToDisposedClosure")]
@@ -184,9 +235,9 @@ namespace osu.Framework.Tests.Exceptions
             }
 
             [BackgroundDependencyLoader]
-            private async Task load()
+            private void load()
             {
-                await Task.Delay((int)(1000 / Clock.Rate));
+                Task.Delay((int)(1000 / Clock.Rate)).Wait();
                 if (throws)
                     throw new AsyncTestException();
             }

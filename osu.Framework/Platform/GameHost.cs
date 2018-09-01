@@ -166,6 +166,11 @@ namespace osu.Framework.Platform
         {
             toolkit = Toolkit.Init();
 
+            // for the time being, we need to ensure there are enough threads available to avoid deadlocking on incorrect async usages.
+            ThreadPool.GetMinThreads(out int worker, out int completion);
+            if (worker < 8)
+                ThreadPool.SetMinThreads(8, completion);
+
             AppDomain.CurrentDomain.UnhandledException += unhandledExceptionHandler;
             TaskScheduler.UnobservedTaskException += unobservedExceptionHandler;
 
@@ -307,11 +312,11 @@ namespace osu.Framework.Platform
 
             try
             {
-                Root.UpdateSubTree();
+                Root.UpdateSubTreeAsRoot();
             }
-            catch (DependencyInjectionException e)
+            catch (DependencyInjectionException die)
             {
-                e.DispatchInfo.Throw();
+                die.DispatchInfo.Throw();
             }
 
             Root.UpdateSubTreeMasking(Root, Root.ScreenSpaceDrawQuad.AABBFloat);
@@ -399,6 +404,7 @@ namespace osu.Framework.Platform
                 complete = true;
             });
 
+            // this is required as attempting to use a TaskCompletionSource blocks the thread calling SetResult on some configurations.
             await Task.Run(() =>
             {
                 while (!complete)
@@ -551,18 +557,7 @@ namespace osu.Framework.Platform
 
             game.SetHost(this);
 
-            try
-            {
-                root.LoadAsync(SceneGraphClock, Dependencies).Wait();
-            }
-            catch (AggregateException ae) when (ae.InnerException is DependencyInjectionException inner)
-            {
-                inner.DispatchInfo.Throw();
-            }
-            catch (DependencyInjectionException e)
-            {
-                e.DispatchInfo.Throw();
-            }
+            root.Load(SceneGraphClock, Dependencies);
 
             //publish bootstrapped scene graph to all threads.
             Root = root;

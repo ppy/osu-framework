@@ -5,7 +5,6 @@ using System;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
-using System.Threading.Tasks;
 using JetBrains.Annotations;
 using osu.Framework.Extensions.TypeExtensions;
 
@@ -38,14 +37,14 @@ namespace osu.Framework.Allocation
             this.permitNulls = permitNulls;
         }
 
-        internal static InjectDependencyDelegateAsync CreateActivator(Type type)
+        internal static InjectDependencyDelegate CreateActivator(Type type)
         {
             var loaderMethods = type.GetMethods(activator_flags).Where(m => m.GetCustomAttribute<BackgroundDependencyLoaderAttribute>() != null).ToArray();
 
             switch (loaderMethods.Length)
             {
                 case 0:
-                    return (_, __) => Task.CompletedTask;
+                    return (_, __) => { };
                 case 1:
                     var method = loaderMethods[0];
 
@@ -56,31 +55,25 @@ namespace osu.Framework.Allocation
                     var permitNulls = method.GetCustomAttribute<BackgroundDependencyLoaderAttribute>().permitNulls;
                     var parameterGetters = method.GetParameters().Select(p => p.ParameterType).Select(t => getDependency(t, type, permitNulls || t.IsNullable()));
 
-                    return async (target, dc) =>
+                    return (target, dc) =>
                     {
                         try
                         {
-                            var parameters = parameterGetters.Select(p => p(dc)).ToArray();
-
-                            var ret = method.Invoke(target, parameters);
-
-                            switch (ret)
+                            method.Invoke(target, parameterGetters.Select(p => p(dc)).ToArray());
+                        }
+                        catch (TargetInvocationException exc) // During non-await invocations
+                        {
+                            switch (exc.InnerException)
                             {
-                                case Task t:
-                                    await t;
-                                    break;
+                                case OperationCanceledException _:
+                                    // This activator is cancelled - propagate the cancellation as-is (it will be handled silently)
+                                    throw exc.InnerException;
+                                case DependencyInjectionException die:
+                                    // A nested activator has failed (multiple Invoke() calls) - propagate the original error
+                                    throw die;
                             }
-                        }
-                        catch (TargetInvocationException exc) when (exc.InnerException is DependencyInjectionException die)
-                        {
-                            // When a nested activator has failed (multiple reflection calls)
-                            throw die;
-                        }
-                        catch (TargetInvocationException exc)
-                        {
-                            if (exc.InnerException is OperationCanceledException) throw exc.InnerException;
 
-                            // When this activator has failed (single invoke call)
+                            // This activator has failed (single reflection call) - preserve the original stacktrace while notifying of the error
                             throw new DependencyInjectionException { DispatchInfo = ExceptionDispatchInfo.Capture(exc.InnerException) };
                         }
                     };

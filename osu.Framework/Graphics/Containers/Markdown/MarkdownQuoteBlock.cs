@@ -20,7 +20,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
 
             MarkdownTextFlowContainer textFlowContainer;
 
-            InternalChildren = new Drawable[]
+            InternalChildren = new []
             {
                 CreateBackground(),
                 textFlowContainer = CreateMarkdownTextFlowContainer()

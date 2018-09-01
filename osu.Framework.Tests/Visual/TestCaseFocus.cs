@@ -8,11 +8,14 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Input;
+using osu.Framework.Input.EventArgs;
 using osu.Framework.Input.States;
 using osu.Framework.Testing;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Input;
+using JoystickEventArgs = osu.Framework.Input.EventArgs.JoystickEventArgs;
 
 namespace osu.Framework.Tests.Visual
 {
@@ -162,6 +165,32 @@ namespace osu.Framework.Tests.Visual
             checkFocused(() => focusBottomLeft);
         }
 
+        [Test]
+        public void InputPropagation()
+        {
+            AddStep("Focus bottom left", () =>
+            {
+                InputManager.MoveMouseTo(focusBottomLeft);
+                InputManager.Click(MouseButton.Left);
+            });
+            AddStep("Press a key (blocking)", () =>
+            {
+                InputManager.PressKey(Key.A);
+                InputManager.ReleaseKey(Key.A);
+            });
+            AddAssert("Received the key", () =>
+                focusBottomLeft.KeyDownCount == 1 && focusBottomLeft.KeyUpCount == 1 &&
+                focusBottomRight.KeyDownCount == 0 && focusBottomRight.KeyUpCount == 1);
+            AddStep("Press a joystick (non blocking)", () =>
+            {
+                InputManager.PressJoystickButton(JoystickButton.Button1);
+                InputManager.ReleaseJoystickButton(JoystickButton.Button1);
+            });
+            AddAssert("Received the joystick button", () =>
+                focusBottomLeft.JoystickPressCount == 1 && focusBottomLeft.JoystickReleaseCount == 1 &&
+                focusBottomRight.JoystickPressCount == 1 && focusBottomRight.JoystickReleaseCount == 1);
+        }
+
         private void checkFocused(Func<Drawable> d) => AddAssert("check focus", () => d().HasFocus);
         private void checkNotFocused(Func<Drawable> d) => AddAssert("check not focus", () => !d().HasFocus);
 
@@ -265,6 +294,7 @@ namespace osu.Framework.Tests.Visual
         public class FocusBox : CompositeDrawable
         {
             protected Box Box;
+            public int KeyDownCount, KeyUpCount, JoystickPressCount, JoystickReleaseCount;
 
             public FocusBox()
             {
@@ -293,6 +323,31 @@ namespace osu.Framework.Tests.Visual
             {
                 base.OnFocusLost(state);
                 Box.FadeTo(0.5f);
+            }
+
+            // only KeyDown is blocking
+            protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
+            {
+                ++KeyDownCount;
+                return true;
+            }
+
+            protected override bool OnKeyUp(InputState state, KeyUpEventArgs args)
+            {
+                ++KeyUpCount;
+                return base.OnKeyUp(state, args);
+            }
+
+            protected override bool OnJoystickPress(InputState state, JoystickEventArgs args)
+            {
+                ++JoystickPressCount;
+                return base.OnJoystickPress(state, args);
+            }
+
+            protected override bool OnJoystickRelease(InputState state, JoystickEventArgs args)
+            {
+                ++JoystickReleaseCount;
+                return base.OnJoystickRelease(state, args);
             }
         }
     }

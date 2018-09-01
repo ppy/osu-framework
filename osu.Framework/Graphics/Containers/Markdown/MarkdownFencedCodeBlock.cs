@@ -22,7 +22,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
             RelativeSizeAxes = Axes.X;
 
             TextFlowContainer textFlowContainer;
-            InternalChildren = new Drawable[]
+            InternalChildren = new []
             {
                 CreateBackground(),
                 textFlowContainer = CreateTextArea(),

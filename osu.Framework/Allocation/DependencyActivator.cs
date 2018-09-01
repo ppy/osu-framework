@@ -6,7 +6,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
-using System.Threading.Tasks;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -27,7 +26,6 @@ namespace osu.Framework.Allocation
     {
         private static readonly ConcurrentDictionary<Type, DependencyActivator> activator_cache = new ConcurrentDictionary<Type, DependencyActivator>();
 
-        private readonly List<InjectDependencyDelegateAsync> injectionActivatorsAsync = new List<InjectDependencyDelegateAsync>();
         private readonly List<InjectDependencyDelegate> injectionActivators = new List<InjectDependencyDelegate>();
         private readonly List<CacheDependencyDelegate> buildCacheActivators = new List<CacheDependencyDelegate>();
 
@@ -36,7 +34,7 @@ namespace osu.Framework.Allocation
         private DependencyActivator(Type type)
         {
             injectionActivators.Add(ResolvedAttribute.CreateActivator(type));
-            injectionActivatorsAsync.Add(BackgroundDependencyLoaderAttribute.CreateActivator(type));
+            injectionActivators.Add(BackgroundDependencyLoaderAttribute.CreateActivator(type));
             buildCacheActivators.Add(CachedAttribute.CreateActivator(type));
 
             if (type.BaseType != typeof(object))
@@ -50,8 +48,8 @@ namespace osu.Framework.Allocation
         /// </summary>
         /// <param name="obj">The object to inject the dependencies into.</param>
         /// <param name="dependencies">The dependencies to use for injection.</param>
-        public static async Task Activate(object obj, DependencyContainer dependencies)
-            => await getActivator(obj.GetType()).activate(obj, dependencies);
+        public static void Activate(object obj, DependencyContainer dependencies)
+            => getActivator(obj.GetType()).activate(obj, dependencies);
 
         /// <summary>
         /// Merges existing dependencies with new dependencies from an object into a new <see cref="IReadOnlyDependencyContainer"/>.
@@ -69,16 +67,12 @@ namespace osu.Framework.Allocation
             return existing;
         }
 
-        private async Task activate(object obj, DependencyContainer dependencies)
+        private void activate(object obj, DependencyContainer dependencies)
         {
-            if (baseActivator != null)
-                await baseActivator.activate(obj, dependencies);
+            baseActivator?.activate(obj, dependencies);
 
             foreach (var a in injectionActivators)
                 a(obj, dependencies);
-
-            foreach (var a in injectionActivatorsAsync)
-                await a(obj, dependencies);
         }
 
         private IReadOnlyDependencyContainer mergeDependencies(object obj, IReadOnlyDependencyContainer dependencies)
@@ -167,8 +161,6 @@ namespace osu.Framework.Allocation
     {
         public ExceptionDispatchInfo DispatchInfo;
     }
-
-    internal delegate Task InjectDependencyDelegateAsync(object target, IReadOnlyDependencyContainer dependencies);
 
     internal delegate void InjectDependencyDelegate(object target, IReadOnlyDependencyContainer dependencies);
 

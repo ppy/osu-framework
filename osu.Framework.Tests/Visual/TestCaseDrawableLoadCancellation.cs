@@ -1,10 +1,12 @@
 // Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -21,16 +23,16 @@ namespace osu.Framework.Tests.Visual
     {
         private readonly List<SlowLoader> loaders = new List<SlowLoader>();
 
-        protected override void LoadComplete()
+        [SetUp]
+        public void SetUp()
         {
-            base.LoadComplete();
+            loaders.Clear();
+            Child = createLoader();
+        }
 
-            AddStep("add slow loader", () =>
-            {
-                loaders.Clear();
-                Child = createLoader();
-            });
-
+        [Test]
+        public void TestConcurrentLoad()
+        {
             AddStep("replace slow loader", () => { Child = createLoader(); });
             AddStep("replace slow loader", () => { Child = createLoader(); });
             AddStep("replace slow loader", () => { Child = createLoader(); });
@@ -43,6 +45,25 @@ namespace osu.Framework.Tests.Visual
             AddStep("allow load to complete", () => loaders.Last().AllowLoadCompletion());
 
             AddUntilStep(() => loaders.Last().HasLoaded, "last loader loaded");
+        }
+
+        [Test]
+        public void TestLoadAsyncCancel()
+        {
+            bool loaded = false;
+
+            PausableLoadDrawable loader = null;
+            CancellationTokenSource cancellationSource = null;
+
+            AddStep("start async load", () => LoadComponentAsync(loader = new PausableLoadDrawable(0), _ => loaded = true, (cancellationSource = new CancellationTokenSource()).Token));
+
+            AddAssert("load started", () => loader.IsLoading);
+
+            AddStep("cancel", () => cancellationSource.Cancel());
+
+            AddAssert("load cancelled", () => !loader.IsLoading);
+            AddAssert("didn't callback", () => !loaded);
+
         }
 
         private int id;
@@ -59,7 +80,7 @@ namespace osu.Framework.Tests.Visual
             private readonly int id;
             private PausableLoadDrawable loadable;
 
-            public bool WasCancelled => loadable?.WasCancelled ?? false;
+            public bool WasCancelled => loadable?.IsLoading == false;
             public bool HasLoaded => loadable?.IsLoaded ?? false;
 
             public void AllowLoadCompletion() => loadable?.AllowLoadCompletion();
@@ -97,7 +118,7 @@ namespace osu.Framework.Tests.Visual
         {
             private readonly int id;
 
-            public bool WasCancelled;
+            public bool IsLoading;
 
             public PausableLoadDrawable(int id)
             {
@@ -131,19 +152,21 @@ namespace osu.Framework.Tests.Visual
             private readonly CancellationTokenSource ourSource = new CancellationTokenSource();
 
             [BackgroundDependencyLoader]
-            private async Task load(CancellationToken? cancellation)
+            private void load(CancellationToken? cancellation)
             {
+                IsLoading = true;
+
                 using (var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(ourSource.Token, cancellation ?? CancellationToken.None))
                 {
                     try
                     {
-                        await Task.Delay(99999, linkedSource.Token);
+                        Task.Delay(99999, linkedSource.Token).Wait(linkedSource.Token);
                     }
-                    catch (TaskCanceledException)
+                    catch (OperationCanceledException)
                     {
                         if (!ourSource.IsCancellationRequested)
                         {
-                            WasCancelled = true;
+                            IsLoading = false;
                             throw;
                         }
                     }
@@ -151,7 +174,6 @@ namespace osu.Framework.Tests.Visual
 
                 Logger.Log($"Load {id} complete!");
             }
-
 
             public void AllowLoadCompletion() => ourSource.Cancel();
 

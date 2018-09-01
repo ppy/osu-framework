@@ -49,7 +49,7 @@ namespace osu.Framework.Audio.Sample
             }
         }
 
-        public async Task<SampleChannel> GetAsync(string name) => await Task.Run(() => Get(name));
+        public Task<SampleChannel> GetAsync(string name) => Task.Run(() => Get(name));
 
         public override void UpdateDevice(int deviceIndex)
         {

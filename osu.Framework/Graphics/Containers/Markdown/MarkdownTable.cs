@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Markdig.Extensions.Tables;
-using OpenTK;
 
 namespace osu.Framework.Graphics.Containers.Markdown
 {
@@ -49,6 +48,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
             };
         }
 
+        /*
         private Vector2 lastDrawSize;
         protected override void Update()
         {
@@ -60,9 +60,25 @@ namespace osu.Framework.Graphics.Containers.Markdown
             }
             base.Update();
         }
+        */
+
+        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
+        {
+            var reault = base.Invalidate(invalidation, source, shallPropagate);
+            if ((invalidation & Invalidation.DrawSize) > 0)
+            {
+                updateColumnDefinitions();
+                updateRowDefinitions();
+            }
+            
+            return reault;
+        }
 
         private void updateColumnDefinitions()
         {
+            if(!listContainerArray.Any())
+                return;
+
             var totalColumn = listContainerArray.Max(x => x.Count);
             var totalRows = listContainerArray.Count;
 
@@ -108,6 +124,9 @@ namespace osu.Framework.Graphics.Containers.Markdown
 
         private void updateRowDefinitions()
         {
+            if (!listContainerArray.Any())
+                return;
+
             tableContainer.RowDimensions = listContainerArray.Select(x => new Dimension(GridSizeMode.Absolute, x.Max(y => y.TextFlowContainer.DrawHeight + 10))).ToArray();
         }
 
