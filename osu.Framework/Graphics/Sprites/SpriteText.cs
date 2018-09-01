@@ -352,7 +352,8 @@ namespace osu.Framework.Graphics.Sprites
                 Add(characterDrawable);
             }
 
-            computeShadowColour();
+            if (shadow)
+                shadowCache.Invalidate();
 
             lastText = text;
         }
