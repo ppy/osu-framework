@@ -55,7 +55,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// The maximum number of allowed expensive GPU operations (shader/texture load fe) per frame. Default is 1.
         /// </summary>
-        public int MaxExpensiveGPUOperationsPerFrame { get; set; } = 1;
+        public int MaxExpensiveGpuOperationsPerFrame { get; set; } = 1;
 
         private void setActive(bool isActive)
         {
@@ -332,7 +332,7 @@ namespace osu.Framework.Platform
 
             setVSyncMode();
 
-            GLWrapper.Reset(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height), MaxExpensiveGPUOperationsPerFrame);
+            GLWrapper.Reset(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height), MaxExpensiveGpuOperationsPerFrame);
             GLWrapper.ClearColour(Color4.Black);
         }
 
@@ -356,7 +356,7 @@ namespace osu.Framework.Platform
 
                     using (drawMonitor.BeginCollecting(PerformanceCollectionType.GLReset))
                     {
-                        GLWrapper.Reset(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height), MaxExpensiveGPUOperationsPerFrame);
+                        GLWrapper.Reset(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height), MaxExpensiveGpuOperationsPerFrame);
                         GLWrapper.ClearColour(Color4.Black);
                     }
 
