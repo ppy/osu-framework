@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Textures;
 using OpenTK;
@@ -136,17 +137,12 @@ namespace osu.Framework.Graphics.Lines
 
         private readonly PathDrawNodeSharedData pathDrawNodeSharedData = new PathDrawNodeSharedData();
 
-        public bool CanDisposeTexture { get; protected set; }
-
         #region Disposal
 
         protected override void Dispose(bool isDisposing)
         {
-            if (CanDisposeTexture)
-            {
-                texture?.Dispose();
-                texture = null;
-            }
+            (texture as IDisposable)?.Dispose();
+            texture = null;
 
             base.Dispose(isDisposing);
         }
@@ -189,8 +185,7 @@ namespace osu.Framework.Graphics.Lines
                 if (value == texture)
                     return;
 
-                if (texture != null && CanDisposeTexture)
-                    texture.Dispose();
+                (texture as IDisposable)?.Dispose();
 
                 texture = value;
                 Invalidate(Invalidation.DrawNode);

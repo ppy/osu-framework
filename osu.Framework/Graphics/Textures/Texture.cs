@@ -12,7 +12,7 @@ using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Graphics.Textures
 {
-    public class Texture : IDisposable
+    public class Texture
     {
         private static TextureWhitePixel whitePixel;
 
@@ -44,10 +44,6 @@ namespace osu.Framework.Graphics.Textures
         /// </summary>
         public float ScaleAdjust = 1;
 
-        public bool Disposable = true;
-
-        public bool IsDisposed { get; private set; }
-
         public float DisplayWidth => Width / ScaleAdjust;
         public float DisplayHeight => Height / ScaleAdjust;
 
@@ -64,28 +60,6 @@ namespace osu.Framework.Graphics.Textures
             : this(new TextureGLSingle(width, height, manualMipmaps, filteringMode))
         {
         }
-
-        #region Disposal
-
-        ~Texture()
-        {
-            Dispose(false);
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool isDisposing)
-        {
-            if (IsDisposed)
-                return;
-            IsDisposed = true;
-        }
-
-        #endregion
 
         public int Width
         {

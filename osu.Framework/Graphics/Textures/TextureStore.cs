@@ -52,9 +52,8 @@ namespace osu.Framework.Graphics.Textures
 
             var glTexture = atlas != null ? atlas.Add(raw.Width, raw.Height) : new TextureGLSingle(raw.Width, raw.Height, manualMipmaps, filteringMode);
 
-            Texture tex = new Texture(glTexture);
+            Texture tex = new Texture(glTexture) { ScaleAdjust = ScaleAdjust };
 
-            tex.ScaleAdjust = ScaleAdjust;
             tex.SetData(new TextureUpload(raw));
 
             return tex;
