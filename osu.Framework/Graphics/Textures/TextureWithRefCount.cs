@@ -3,7 +3,6 @@
 
 using System;
 using osu.Framework.Graphics.OpenGL.Textures;
-using OpenTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Textures
 {
@@ -14,12 +13,6 @@ namespace osu.Framework.Graphics.Textures
     {
         public TextureWithRefCount(TextureGL textureGl)
             : base(textureGl)
-        {
-            TextureGL.Reference();
-        }
-
-        public TextureWithRefCount(int width, int height, bool manualMipmaps = false, All filteringMode = All.Linear)
-            : base(width, height, manualMipmaps, filteringMode)
         {
             TextureGL.Reference();
         }
