@@ -21,7 +21,7 @@ namespace osu.Framework.Tests.Visual
 
         public TestCaseDropdownBox()
         {
-            StyledDropdown styledDropdown, styledDropdownMenu2, keyboardInputDropdown;
+            StyledDropdown styledDropdown, styledDropdownMenu2, keyboardInputDropdown1, keyboardInputDropdown2;
 
             var testItems = new string[10];
             int i = 0;
@@ -31,28 +31,37 @@ namespace osu.Framework.Tests.Visual
             Add(styledDropdown = new StyledDropdown
             {
                 Width = 150,
-                Position = new Vector2(200, 70),
+                Position = new Vector2(50, 70),
                 Items = testItems.Select(item => new KeyValuePair<string, string>(item, item)),
             });
 
             Add(styledDropdownMenu2 = new StyledDropdown
             {
                 Width = 150,
-                Position = new Vector2(400, 70),
+                Position = new Vector2(250, 70),
                 Items = testItems.Select(item => new KeyValuePair<string, string>(item, item)),
             });
 
             PlatformActionContainer platformActionContainer;
 
+            Add(keyboardInputDropdown1 = new StyledDropdown
+            {
+                Width = 150,
+                Position = new Vector2(450, 70),
+                Items = testItems.Select(item => new KeyValuePair<string, string>(item, item)),
+            });
+            keyboardInputDropdown1.Menu.Height = 80;
+
             Add(platformActionContainer = new PlatformActionContainer
             {
-                Child = keyboardInputDropdown = new StyledDropdown
+                Child = keyboardInputDropdown2 = new StyledDropdown
                 {
                     Width = 150,
-                    Position = new Vector2(600, 70),
+                    Position = new Vector2(650, 70),
                     Items = testItems.Select(item => new KeyValuePair<string, string>(item, item)),
                 }
             });
+            keyboardInputDropdown2.Menu.Height = 80;
 
             AddStep("click dropdown1", () => toggleDropdownViaClick(styledDropdown));
             AddAssert("dropdown is open", () => styledDropdown.Menu.State == MenuState.Open);
@@ -76,47 +85,58 @@ namespace osu.Framework.Tests.Visual
             AddAssert("dropdown1 is closed", () => styledDropdown.Menu.State == MenuState.Closed);
             AddAssert("dropdown2 is open", () => styledDropdownMenu2.Menu.State == MenuState.Open);
 
-            int currentKeyboardInputDropdownIndex() => keyboardInputDropdown.Items.Select(ii => ii.Value).ToList().IndexOf(keyboardInputDropdown.Current);
-            var expectedIndex = 0;
-
-            AddStep($"dropdown3: perform {Key.Up} keypress", () =>
+            AddStep("Select last item using down key", () =>
             {
-                expectedIndex = MathHelper.Clamp(currentKeyboardInputDropdownIndex() - 1, 0, keyboardInputDropdown.Items.Count() - 1);
-
-                keyboardInputDropdown.Header.TriggerOnKeyDown(null, new KeyDownEventArgs { Key = Key.Up });
-                keyboardInputDropdown.Header.TriggerOnKeyUp(null, new KeyUpEventArgs { Key = Key.Up });
+                while (keyboardInputDropdown1.SelectedItem != keyboardInputDropdown1.DrawableMenuItems.Last().Item)
+                {
+                    keyboardInputDropdown1.Header.TriggerOnKeyDown(null, new KeyDownEventArgs { Key = Key.Down });
+                    keyboardInputDropdown1.Header.TriggerOnKeyUp(null, new KeyUpEventArgs { Key = Key.Down });
+                }
             });
-            AddAssert("Previous dropdown3 item is selected", () => currentKeyboardInputDropdownIndex() == expectedIndex);
 
-            AddStep($"dropdown3: perform {Key.Down} keypress", () =>
+            AddAssert("Last item is selected and visible", () =>
             {
-                expectedIndex = MathHelper.Clamp(currentKeyboardInputDropdownIndex() + 1, 0, keyboardInputDropdown.Items.Count() - 1);
-
-                keyboardInputDropdown.Header.TriggerOnKeyDown(null, new KeyDownEventArgs { Key = Key.Down });
-                keyboardInputDropdown.Header.TriggerOnKeyUp(null, new KeyUpEventArgs { Key = Key.Down });
+                return keyboardInputDropdown1.SelectedItem == keyboardInputDropdown1.DrawableMenuItems.Last().Item
+                       && keyboardInputDropdown1.VisibleMenuItems.Select(d => d.Item).Contains(keyboardInputDropdown1.SelectedItem);
             });
-            AddAssert("Next dropdown3 item is selected", () => currentKeyboardInputDropdownIndex() == expectedIndex);
+
+            AddStep("Select first item using up key", () =>
+            {
+                while (keyboardInputDropdown1.SelectedItem != keyboardInputDropdown1.DrawableMenuItems.First().Item)
+                {
+                    keyboardInputDropdown1.Header.TriggerOnKeyDown(null, new KeyDownEventArgs { Key = Key.Up });
+                    keyboardInputDropdown1.Header.TriggerOnKeyUp(null, new KeyUpEventArgs { Key = Key.Up });
+                }
+            });
+
+            AddAssert("First item is selected and visible", () =>
+            {
+                return keyboardInputDropdown1.SelectedItem == keyboardInputDropdown1.DrawableMenuItems.First().Item
+                       && keyboardInputDropdown1.VisibleMenuItems.Select(d => d.Item).Contains(keyboardInputDropdown1.SelectedItem);
+            });
 
             void performPlatformAction(PlatformAction action)
             {
-                var tIsHovered = keyboardInputDropdown.Header.IsHovered;
-                var tHasFocus = keyboardInputDropdown.Header.HasFocus;
+                var tIsHovered = keyboardInputDropdown2.Header.IsHovered;
+                var tHasFocus = keyboardInputDropdown2.Header.HasFocus;
 
-                keyboardInputDropdown.Header.IsHovered = true;
-                keyboardInputDropdown.Header.HasFocus = true;
+                keyboardInputDropdown2.Header.IsHovered = true;
+                keyboardInputDropdown2.Header.HasFocus = true;
 
                 platformActionContainer.TriggerPressed(action);
                 platformActionContainer.TriggerReleased(action);
 
-                keyboardInputDropdown.Header.IsHovered = tIsHovered;
-                keyboardInputDropdown.Header.HasFocus = tHasFocus;
+                keyboardInputDropdown2.Header.IsHovered = tIsHovered;
+                keyboardInputDropdown2.Header.HasFocus = tHasFocus;
             }
 
-            AddStep($"dropdown3: perform {PlatformActionType.ListStart} action", () => performPlatformAction(new PlatformAction(PlatformActionType.ListStart)));
-            AddAssert("dropdown3: first item selected", () => currentKeyboardInputDropdownIndex() == 0);
+            AddStep("Select last item", () => performPlatformAction(new PlatformAction(PlatformActionType.ListEnd)));
 
-            AddStep($"dropdown3: perform {PlatformActionType.ListEnd} action", () => { performPlatformAction(new PlatformAction(PlatformActionType.ListEnd)); });
-            AddAssert("dropdown3: last item selected", () => currentKeyboardInputDropdownIndex() == keyboardInputDropdown.Items.Count() - 1);
+            AddAssert("Last item selected", () => keyboardInputDropdown2.SelectedItem == keyboardInputDropdown2.DrawableMenuItems.Last().Item);
+
+            AddStep("Select first item", () => performPlatformAction(new PlatformAction(PlatformActionType.ListStart)));
+
+            AddAssert("First item selected", () => keyboardInputDropdown2.SelectedItem == keyboardInputDropdown2.DrawableMenuItems.First().Item);
         }
 
         private void toggleDropdownViaClick(StyledDropdown dropdown) => dropdown.Children.First().TriggerOnClick();
@@ -128,6 +148,11 @@ namespace osu.Framework.Tests.Visual
             protected override DropdownMenu CreateMenu() => new StyledDropdownMenu();
 
             protected override DropdownHeader CreateHeader() => new StyledDropdownHeader();
+
+            internal IEnumerable<Menu.DrawableMenuItem> DrawableMenuItems => Menu.Children;
+            internal IEnumerable<Menu.DrawableMenuItem> VisibleMenuItems => DrawableMenuItems.Where(item => !item.IsMaskedAway);
+            internal new DropdownMenuItem<string> SelectedItem => base.SelectedItem;
+            internal int SelectedIndex => DrawableMenuItems.Select(d => d.Item).ToList().IndexOf(SelectedItem);
 
             public void SelectItem(MenuItem item) => ((StyledDropdownMenu)Menu).SelectItem(item);
 
