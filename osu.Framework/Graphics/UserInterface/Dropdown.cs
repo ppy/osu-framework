@@ -58,9 +58,6 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        private IEnumerable<Menu.DrawableMenuItem> drawableMenuItems => Menu.Children;
-        private IEnumerable<Menu.DrawableMenuItem> visibleMenuItems => drawableMenuItems.Where(item => !item.IsMaskedAway);
-
         /// <summary>
         /// Add a menu item directly.
         /// </summary>
@@ -156,24 +153,11 @@ namespace osu.Framework.Graphics.UserInterface
                 case DropdownHeader.SelectionChange.Last:
                     selectedIndex = dropdownMenuItems.Count - 1;
                     break;
-                case DropdownHeader.SelectionChange.FirstVisible:
-                    var firstVisibleItem = (DropdownMenuItem<T>)visibleMenuItems.First().Item;
-                    selectedIndex = SelectedItem == firstVisibleItem
-                        ? MathHelper.Clamp(selectedIndex - visibleMenuItems.Count(), 0, dropdownMenuItems.Count - 1)
-                        : dropdownMenuItems.IndexOf(firstVisibleItem);
-                    break;
-                case DropdownHeader.SelectionChange.LastVisible:
-                    var lastVisibleItem = (DropdownMenuItem<T>)visibleMenuItems.Last().Item;
-                    selectedIndex = SelectedItem == lastVisibleItem
-                        ? MathHelper.Clamp(selectedIndex + visibleMenuItems.Count(), 0, dropdownMenuItems.Count - 1)
-                        : dropdownMenuItems.IndexOf(lastVisibleItem);
-                    break;
                 default:
                     throw new ArgumentException("Unexpected selection change type.", nameof(change));
             }
 
             SelectedItem = dropdownMenuItems[selectedIndex];
-            Menu.ScrollIntoView(drawableMenuItems.ElementAt(selectedIndex));
         }
 
         protected override void LoadComplete()
@@ -257,7 +241,11 @@ namespace osu.Framework.Graphics.UserInterface
             /// <param name="item">The item to select.</param>
             public void SelectItem(DropdownMenuItem<T> item)
             {
-                Children.OfType<DrawableDropdownMenuItem>().ForEach(c => c.IsSelected = c.Item == item);
+                Children.OfType<DrawableDropdownMenuItem>().ForEach(c =>
+                {
+                    if (c.IsSelected = c.Item == item)
+                        ContentContainer.ScrollIntoView(c);
+                });
             }
 
             /// <summary>
