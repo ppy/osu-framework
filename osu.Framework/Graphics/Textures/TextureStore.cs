@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
+// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Collections.Concurrent;
@@ -26,7 +26,8 @@ namespace osu.Framework.Graphics.Textures
         /// </summary>
         public readonly float ScaleAdjust;
 
-        public TextureStore(IResourceStore<RawTexture> store = null, bool useAtlas = true, All filteringMode = All.Linear, bool manualMipmaps = false, float scaleAdjust = 2)
+        public TextureStore(IResourceStore<RawTexture> store = null, bool useAtlas = true, All filteringMode = All.Linear, bool manualMipmaps = false,
+                            float scaleAdjust = 2)
             : base(store)
         {
             this.filteringMode = filteringMode;
@@ -49,7 +50,9 @@ namespace osu.Framework.Graphics.Textures
         {
             if (raw == null) return null;
 
-            Texture tex = atlas != null ? atlas.Add(raw.Width, raw.Height) : new Texture(raw.Width, raw.Height, manualMipmaps, filteringMode);
+            var glTexture = atlas != null ? atlas.Add(raw.Width, raw.Height) : new TextureGLSingle(raw.Width, raw.Height, manualMipmaps, filteringMode);
+
+            Texture tex = new Texture(glTexture);
 
             tex.ScaleAdjust = ScaleAdjust;
             tex.SetData(new TextureUpload(raw));
@@ -72,7 +75,12 @@ namespace osu.Framework.Graphics.Textures
                 //Laziness ensure we are only ever creating the texture once (and blocking on other access until it is done).
                 new Lazy<Texture>(() => getTexture(name), LazyThreadSafetyMode.ExecutionAndPublication)).Value;
 
-            //use existing TextureGL (but provide a new texture instance).
+            if (cachedTex?.TextureGL?.IsDisposed == true)
+            {
+                textureCache.TryRemove(name, out _);
+                return Get(name);
+            }
+
             return cachedTex;
         }
     }

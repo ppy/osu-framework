@@ -40,7 +40,7 @@ namespace osu.Framework.Graphics.Sprites
         /// <summary>
         /// True if the <see cref="Texture"/> should be disposed when this sprite gets disposed.
         /// </summary>
-        public bool CanDisposeTexture { get; protected set; }
+        public virtual bool CanDisposeTexture => texture is TextureWithRefCount;
 
         #region Disposal
 

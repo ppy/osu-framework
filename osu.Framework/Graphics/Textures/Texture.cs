@@ -34,7 +34,8 @@ namespace osu.Framework.Graphics.Textures
             }
         }
 
-        public TextureGL TextureGL;
+        public virtual TextureGL TextureGL { get; set; }
+
         public string Filename;
         public string AssetName;
 
@@ -44,12 +45,20 @@ namespace osu.Framework.Graphics.Textures
         public float ScaleAdjust = 1;
 
         public bool Disposable = true;
+
         public bool IsDisposed { get; private set; }
 
         public float DisplayWidth => Width / ScaleAdjust;
         public float DisplayHeight => Height / ScaleAdjust;
 
-        public Texture(TextureGL textureGl) => TextureGL = textureGl ?? throw new ArgumentNullException(nameof(textureGl));
+        /// <summary>
+        /// Create a new texture.
+        /// </summary>
+        /// <param name="textureGl">The GL texture.</param>
+        public Texture(TextureGL textureGl)
+        {
+            TextureGL = textureGl ?? throw new ArgumentNullException(nameof(textureGl));
+        }
 
         public Texture(int width, int height, bool manualMipmaps = false, All filteringMode = All.Linear)
             : this(new TextureGLSingle(width, height, manualMipmaps, filteringMode))
