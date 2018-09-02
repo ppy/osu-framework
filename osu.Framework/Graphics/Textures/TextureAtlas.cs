@@ -97,7 +97,7 @@ namespace osu.Framework.Graphics.Textures
             return res;
         }
 
-        internal Texture Add(int width, int height)
+        internal TextureGL Add(int width, int height)
         {
             lock (textureRetrievalLock)
             {
@@ -108,7 +108,7 @@ namespace osu.Framework.Graphics.Textures
                 RectangleI bounds = new RectangleI(position.X, position.Y, width, height);
                 subTextureBounds.Add(bounds);
 
-                return new Texture(new TextureGLSub(bounds, AtlasTexture));
+                return new TextureGLSub(bounds, AtlasTexture);
             }
         }
     }
