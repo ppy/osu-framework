@@ -28,6 +28,17 @@ namespace osu.Framework.Graphics.Textures
 
         private int mipmapLevels => (int)Math.Log(atlasWidth, 2);
 
+        internal TextureWhitePixel WhitePixel
+        {
+            get
+            {
+                if (AtlasTexture == null)
+                    Reset();
+
+                return new TextureWhitePixel(new TextureGLAtlasWhite(AtlasTexture));
+            }
+        }
+
         private readonly bool manualMipmaps;
         private readonly All filteringMode;
         private readonly object textureRetrievalLock = new object();
