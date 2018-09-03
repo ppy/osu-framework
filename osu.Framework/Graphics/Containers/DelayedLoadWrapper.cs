@@ -116,7 +116,13 @@ namespace osu.Framework.Graphics.Containers
         {
             Quad ScreenSpaceDrawQuad { get; }
 
-            Func<Action, ScheduledDelegate> ScheduleCheckAction { get; }
+            /// <summary>
+            /// Schedule a repeating action from a child to perform checks even when the child is potentially masked.
+            /// Repeats every frame until manually cancelled. 
+            /// </summary>
+            /// <param name="action">The action to perform.</param>
+            /// <returns>The scheduled delegate.</returns>
+            ScheduledDelegate ScheduleCheckAction(Action action);
         }
     }
 }

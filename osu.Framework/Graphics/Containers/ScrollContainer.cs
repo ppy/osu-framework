@@ -639,7 +639,6 @@ namespace osu.Framework.Graphics.Containers
         }
 
         public bool OnReleased(PlatformAction action) => false;
-
-        public Func<Action, ScheduledDelegate> ScheduleCheckAction => a => Scheduler.AddDelayed(a, 0, true);
+        public ScheduledDelegate ScheduleCheckAction(Action action) => Scheduler.AddDelayed(action, 0, true);
     }
 }
