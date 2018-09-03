@@ -95,7 +95,7 @@ namespace osu.Framework.Graphics.UserInterface
                             RelativeSizeAxes = Axes.Both,
                             Colour = Color4.Black
                         },
-                        ContentContainer = new ScrollContainer<Container<DrawableMenuItem>>(direction)
+                        ContentContainer = new MenuScrollContainer(direction)
                         {
                             RelativeSizeAxes = Axes.Both,
                             Masking = false,
@@ -575,6 +575,8 @@ namespace osu.Framework.Graphics.UserInterface
             /// </summary>
             protected readonly Drawable Background;
 
+            protected readonly Drawable PreselectionBackground;
+
             /// <summary>
             /// The foreground of this <see cref="DrawableMenuItem"/>. This contains the content of this <see cref="DrawableMenuItem"/>.
             /// </summary>
@@ -587,6 +589,7 @@ namespace osu.Framework.Graphics.UserInterface
                 InternalChildren = new[]
                 {
                     Background = CreateBackground(),
+                    PreselectionBackground = CreatePreselectionBackground(),
                     Foreground = new Container
                     {
                         AutoSizeAxes = Axes.Both,
@@ -757,6 +760,8 @@ namespace osu.Framework.Graphics.UserInterface
             /// </summary>
             protected virtual Drawable CreateBackground() => new Box { RelativeSizeAxes = Axes.Both };
 
+            protected virtual Drawable CreatePreselectionBackground() => new Box { RelativeSizeAxes = Axes.Both, Colour = Color4.DeepPink, Alpha = 0 };
+
             /// <summary>
             /// Creates the content which will be displayed in this <see cref="DrawableMenuItem"/>.
             /// If the <see cref="Drawable"/> returned implements <see cref="IHasText"/>, the text will be automatically
@@ -770,7 +775,18 @@ namespace osu.Framework.Graphics.UserInterface
                 TextSize = 17,
             };
         }
+
         #endregion
+
+        public class MenuScrollContainer : ScrollContainer<Container<DrawableMenuItem>>
+        {
+            public override bool HandleKeyboardInput => false;
+
+            public MenuScrollContainer(Direction direction)
+                : base(direction)
+            {
+            }
+        }
     }
 
     public enum MenuState

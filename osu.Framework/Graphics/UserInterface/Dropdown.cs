@@ -7,9 +7,13 @@ using System.Linq;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Input;
+using osu.Framework.Input.Bindings;
+using osu.Framework.Input.EventArgs;
 using osu.Framework.Input.States;
 using OpenTK;
 using OpenTK.Graphics;
+using OpenTK.Input;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -128,8 +132,14 @@ namespace osu.Framework.Graphics.UserInterface
 
             Header.Action = Menu.Toggle;
             Header.ChangeSelection += selectionKeyPressed;
+            Menu.ChangeSelection += menuSelectionKeyPressed;
 
             Current.ValueChanged += selectionChanged;
+        }
+
+        private void menuSelectionKeyPressed(int selectedIndex)
+        {
+            SelectedItem = MenuItems.ElementAt(selectedIndex);
         }
 
         private void selectionKeyPressed(DropdownHeader.SelectionChange change)
@@ -228,12 +238,25 @@ namespace osu.Framework.Graphics.UserInterface
 
         #region DropdownMenu
 
-        public class DropdownMenu : Menu
+        public class DropdownMenu : Menu, IKeyBindingHandler<PlatformAction>
         {
             public DropdownMenu()
                 : base(Direction.Vertical)
             {
+                StateChanged += clearPreselection;
             }
+
+
+            private void clearPreselection(MenuState obj)
+            {
+                if (obj == MenuState.Closed)
+                    PreselectItem(null);
+            }
+
+            protected internal IEnumerable<DrawableDropdownMenuItem> DrawableMenuItems => Children.OfType<DrawableDropdownMenuItem>();
+            protected internal IEnumerable<DrawableDropdownMenuItem> VisibleMenuItems => DrawableMenuItems.Where(item => !item.IsMaskedAway);
+
+            public event Action<int> ChangeSelection;
 
             /// <summary>
             /// Selects an item from this <see cref="DropdownMenu"/>.
@@ -243,7 +266,22 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 Children.OfType<DrawableDropdownMenuItem>().ForEach(c =>
                 {
+                    // ReSharper disable once AssignmentInConditionalExpression
                     if (c.IsSelected = c.Item == item)
+                        ContentContainer.ScrollIntoView(c);
+                });
+            }
+
+            /// <summary>
+            /// Preselects an item from this <see cref="DropdownMenu"/>.
+            /// </summary>
+            /// <param name="item">The item to select.</param>
+            public void PreselectItem(DropdownMenuItem<T> item)
+            {
+                Children.OfType<DrawableDropdownMenuItem>().ForEach(c =>
+                {
+                    // ReSharper disable once AssignmentInConditionalExpression
+                    if (c.IsPreSelected = c.Item == item)
                         ContentContainer.ScrollIntoView(c);
                 });
             }
@@ -289,6 +327,24 @@ namespace osu.Framework.Graphics.UserInterface
                         selected = value;
 
                         OnSelectChange();
+                    }
+                }
+
+                private bool preSelected;
+
+                public bool IsPreSelected
+                {
+                    get => preSelected;
+                    set
+                    {
+                        if (preSelected == value)
+                            return;
+                        preSelected = value;
+
+                        if (value)
+                            PreselectionBackground.Show();
+                        else
+                            PreselectionBackground.Hide();
                     }
                 }
 
@@ -344,6 +400,61 @@ namespace osu.Framework.Graphics.UserInterface
             }
 
             #endregion
+
+            protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
+            {
+                var drawableMenuItemsList = DrawableMenuItems.ToList();
+                var preselectedItem = drawableMenuItemsList.FirstOrDefault(i => i.IsPreSelected) ?? drawableMenuItemsList.First(i => i.IsSelected);
+                var preselectedIndex = drawableMenuItemsList.IndexOf(preselectedItem);
+
+                int clampIndex(int index) => MathHelper.Clamp(index, 0, drawableMenuItemsList.Count - 1);
+
+                switch (args.Key)
+                {
+                    case Key.Up:
+                        PreselectItem((DropdownMenuItem<T>)Items[clampIndex(preselectedIndex - 1)]);
+                        return true;
+                    case Key.Down:
+                        PreselectItem((DropdownMenuItem<T>)Items[clampIndex(preselectedIndex + 1)]);
+                        return true;
+                    case Key.PageUp:
+                        var firstVisibleItem = VisibleMenuItems.First();
+                        preselectedIndex = preselectedItem == firstVisibleItem
+                            ? clampIndex(preselectedIndex - VisibleMenuItems.Count())
+                            : drawableMenuItemsList.IndexOf(firstVisibleItem);
+                        PreselectItem((DropdownMenuItem<T>)Items[preselectedIndex]);
+                        return true;
+                    case Key.PageDown:
+                        var lastVisibleItem = VisibleMenuItems.Last();
+                        preselectedIndex = preselectedItem == lastVisibleItem
+                            ? clampIndex(preselectedIndex + VisibleMenuItems.Count())
+                            : drawableMenuItemsList.IndexOf(lastVisibleItem);
+                        PreselectItem((DropdownMenuItem<T>)Items[preselectedIndex]);
+                        return true;
+                    case Key.Enter:
+                        ChangeSelection?.Invoke(preselectedIndex);
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+
+            public bool OnPressed(PlatformAction action)
+            {
+                switch (action.ActionType)
+                {
+                    case PlatformActionType.ListStart:
+                        PreselectItem((DropdownMenuItem<T>)Items.First());
+                        return true;
+                    case PlatformActionType.ListEnd:
+                        PreselectItem((DropdownMenuItem<T>)Items.Last());
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+
+            public bool OnReleased(PlatformAction action) => false;
         }
 
         #endregion

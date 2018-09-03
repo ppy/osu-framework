@@ -87,7 +87,7 @@ namespace osu.Framework.Tests.Visual
 
             AddStep("Select last item using down key", () =>
             {
-                while (keyboardInputDropdown1.SelectedItem != keyboardInputDropdown1.DrawableMenuItems.Last().Item)
+                while (keyboardInputDropdown1.SelectedItem != keyboardInputDropdown1.Menu.DrawableMenuItems.Last().Item)
                 {
                     keyboardInputDropdown1.Header.TriggerOnKeyDown(null, new KeyDownEventArgs { Key = Key.Down });
                     keyboardInputDropdown1.Header.TriggerOnKeyUp(null, new KeyUpEventArgs { Key = Key.Down });
@@ -96,13 +96,13 @@ namespace osu.Framework.Tests.Visual
 
             AddAssert("Last item is selected and visible", () =>
             {
-                return keyboardInputDropdown1.SelectedItem == keyboardInputDropdown1.DrawableMenuItems.Last().Item
-                       && keyboardInputDropdown1.VisibleMenuItems.Select(d => d.Item).Contains(keyboardInputDropdown1.SelectedItem);
+                return keyboardInputDropdown1.SelectedItem == keyboardInputDropdown1.Menu.DrawableMenuItems.Last().Item
+                       && keyboardInputDropdown1.Menu.VisibleMenuItems.Select(d => d.Item).Contains(keyboardInputDropdown1.SelectedItem);
             });
 
             AddStep("Select first item using up key", () =>
             {
-                while (keyboardInputDropdown1.SelectedItem != keyboardInputDropdown1.DrawableMenuItems.First().Item)
+                while (keyboardInputDropdown1.SelectedItem != keyboardInputDropdown1.Menu.DrawableMenuItems.First().Item)
                 {
                     keyboardInputDropdown1.Header.TriggerOnKeyDown(null, new KeyDownEventArgs { Key = Key.Up });
                     keyboardInputDropdown1.Header.TriggerOnKeyUp(null, new KeyUpEventArgs { Key = Key.Up });
@@ -111,8 +111,8 @@ namespace osu.Framework.Tests.Visual
 
             AddAssert("First item is selected and visible", () =>
             {
-                return keyboardInputDropdown1.SelectedItem == keyboardInputDropdown1.DrawableMenuItems.First().Item
-                       && keyboardInputDropdown1.VisibleMenuItems.Select(d => d.Item).Contains(keyboardInputDropdown1.SelectedItem);
+                return keyboardInputDropdown1.SelectedItem == keyboardInputDropdown1.Menu.DrawableMenuItems.First().Item
+                       && keyboardInputDropdown1.Menu.VisibleMenuItems.Select(d => d.Item).Contains(keyboardInputDropdown1.SelectedItem);
             });
 
             void performPlatformAction(PlatformAction action)
@@ -132,11 +132,11 @@ namespace osu.Framework.Tests.Visual
 
             AddStep("Select last item", () => performPlatformAction(new PlatformAction(PlatformActionType.ListEnd)));
 
-            AddAssert("Last item selected", () => keyboardInputDropdown2.SelectedItem == keyboardInputDropdown2.DrawableMenuItems.Last().Item);
+            AddAssert("Last item selected", () => keyboardInputDropdown2.SelectedItem == keyboardInputDropdown2.Menu.DrawableMenuItems.Last().Item);
 
             AddStep("Select first item", () => performPlatformAction(new PlatformAction(PlatformActionType.ListStart)));
 
-            AddAssert("First item selected", () => keyboardInputDropdown2.SelectedItem == keyboardInputDropdown2.DrawableMenuItems.First().Item);
+            AddAssert("First item selected", () => keyboardInputDropdown2.SelectedItem == keyboardInputDropdown2.Menu.DrawableMenuItems.First().Item);
         }
 
         private void toggleDropdownViaClick(StyledDropdown dropdown) => dropdown.Children.First().TriggerOnClick();
@@ -149,10 +149,7 @@ namespace osu.Framework.Tests.Visual
 
             protected override DropdownHeader CreateHeader() => new StyledDropdownHeader();
 
-            internal IEnumerable<Menu.DrawableMenuItem> DrawableMenuItems => Menu.Children;
-            internal IEnumerable<Menu.DrawableMenuItem> VisibleMenuItems => DrawableMenuItems.Where(item => !item.IsMaskedAway);
             internal new DropdownMenuItem<string> SelectedItem => base.SelectedItem;
-            internal int SelectedIndex => DrawableMenuItems.Select(d => d.Item).ToList().IndexOf(SelectedItem);
 
             public void SelectItem(MenuItem item) => ((StyledDropdownMenu)Menu).SelectItem(item);
 
