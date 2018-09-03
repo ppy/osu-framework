@@ -53,6 +53,7 @@ namespace osu.Framework.Tests.IO
         /// Tests async execution is correctly yielding during IO wait time.
         /// </summary>
         [Test]
+        [Ignore("failing too often on appveyor")]
         public void TestConcurrency()
         {
             const int request_count = 10;

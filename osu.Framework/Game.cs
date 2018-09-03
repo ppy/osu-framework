@@ -125,10 +125,7 @@ namespace osu.Framework
             Shaders = new ShaderManager(new NamespacedResourceStore<byte[]>(Resources, @"Shaders"));
             dependencies.Cache(Shaders);
 
-            Fonts = new FontStore(new GlyphStore(Resources, @"Fonts/OpenSans"))
-            {
-                ScaleAdjust = 100
-            };
+            Fonts = new FontStore(new GlyphStore(Resources, @"Fonts/OpenSans"));
             dependencies.Cache(Fonts);
         }
 

@@ -70,6 +70,7 @@ namespace osu.Framework.Allocation
         private void activate(object obj, DependencyContainer dependencies)
         {
             baseActivator?.activate(obj, dependencies);
+
             foreach (var a in injectionActivators)
                 a(obj, dependencies);
         }
@@ -162,5 +163,6 @@ namespace osu.Framework.Allocation
     }
 
     internal delegate void InjectDependencyDelegate(object target, IReadOnlyDependencyContainer dependencies);
+
     internal delegate IReadOnlyDependencyContainer CacheDependencyDelegate(object target, IReadOnlyDependencyContainer existingDependencies);
 }

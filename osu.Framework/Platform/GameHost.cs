@@ -309,9 +309,9 @@ namespace osu.Framework.Platform
             {
                 Root.UpdateSubTree();
             }
-            catch (DependencyInjectionException e)
+            catch (DependencyInjectionException die)
             {
-                e.DispatchInfo.Throw();
+                die.DispatchInfo.Throw();
             }
 
             Root.UpdateSubTreeMasking(Root, Root.ScreenSpaceDrawQuad.AABBFloat);
@@ -399,6 +399,7 @@ namespace osu.Framework.Platform
                 complete = true;
             });
 
+            // this is required as attempting to use a TaskCompletionSource blocks the thread calling SetResult on some configurations.
             await Task.Run(() =>
             {
                 while (!complete)
@@ -555,9 +556,9 @@ namespace osu.Framework.Platform
             {
                 root.Load(SceneGraphClock, Dependencies);
             }
-            catch (DependencyInjectionException e)
+            catch (DependencyInjectionException die)
             {
-                e.DispatchInfo.Throw();
+                die.DispatchInfo.Throw();
             }
 
             //publish bootstrapped scene graph to all threads.
