@@ -37,16 +37,11 @@ namespace osu.Framework.Graphics.Sprites
         /// </summary>
         public Vector2 EdgeSmoothness = Vector2.Zero;
 
-        /// <summary>
-        /// True if the <see cref="Texture"/> should be disposed when this sprite gets disposed.
-        /// </summary>
-        public virtual bool CanDisposeTexture => texture is TextureWithRefCount;
-
         #region Disposal
 
         protected override void Dispose(bool isDisposing)
         {
-            (texture as IDisposable)?.Dispose();
+            texture.Dispose();
             texture = null;
 
             base.Dispose(isDisposing);
@@ -82,7 +77,7 @@ namespace osu.Framework.Graphics.Sprites
         private Texture texture;
 
         /// <summary>
-        /// The texture that this sprite should draw. If <see cref="CanDisposeTexture"/> is true and the texture gets replaced, the old texture will be disposed.
+        /// The texture that this sprite should draw. Any previous texture will be disposed.
         /// If this sprite's <see cref="Drawable.Size"/> is <see cref="Vector2.Zero"/> (eg if it has not been set previously), the <see cref="Drawable.Size"/>
         /// of this sprite will be set to the size of the texture.
         /// <see cref="Drawable.FillAspectRatio"/> is automatically set to the aspect ratio of the given texture or 1 if the texture is null.
@@ -95,7 +90,7 @@ namespace osu.Framework.Graphics.Sprites
                 if (value == texture)
                     return;
 
-                (texture as IDisposable)?.Dispose();
+                texture.Dispose();
 
                 texture = value;
                 FillAspectRatio = (float)(texture?.Width ?? 1) / (texture?.Height ?? 1);

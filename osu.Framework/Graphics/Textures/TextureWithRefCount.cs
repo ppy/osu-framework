@@ -9,7 +9,7 @@ namespace osu.Framework.Graphics.Textures
     /// <summary>
     /// A texture which updates the reference count of the underlying <see cref="TextureGL"/> on ctor and disposal.
     /// </summary>
-    public class TextureWithRefCount : Texture, IDisposable
+    public class TextureWithRefCount : Texture
     {
         public TextureWithRefCount(TextureGL textureGl)
             : base(textureGl)
@@ -19,25 +19,19 @@ namespace osu.Framework.Graphics.Textures
 
         #region Disposal
 
-        public bool IsDisposed { get; private set; }
-
         ~TextureWithRefCount()
         {
+            // Finalizer implemented here rather than Texture to avoid GC overhead.
             Dispose(false);
         }
 
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool isDisposing)
+        protected override void Dispose(bool isDisposing)
         {
             if (IsDisposed)
-                return;
-            IsDisposed = true;
+                throw new ObjectDisposedException($"{nameof(TextureWithRefCount)} should never be disposed more than once");
+
             TextureGL?.Dereference();
+            if (isDisposing) GC.SuppressFinalize(this);
         }
 
         #endregion

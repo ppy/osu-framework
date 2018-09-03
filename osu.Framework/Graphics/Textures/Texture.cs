@@ -12,7 +12,7 @@ using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Graphics.Textures
 {
-    public class Texture
+    public class Texture : IDisposable
     {
         private static TextureWhitePixel whitePixel;
 
@@ -34,7 +34,7 @@ namespace osu.Framework.Graphics.Textures
             }
         }
 
-        public virtual TextureGL TextureGL { get; set; }
+        public TextureGL TextureGL { get; set; }
 
         public string Filename;
         public string AssetName;
@@ -115,5 +115,24 @@ namespace osu.Framework.Graphics.Textures
         }
 
         public override string ToString() => $@"{AssetName} ({Width}, {Height})";
+
+        #region Disposal
+
+        public bool IsDisposed { get; private set; }
+
+        // Intentionally no finalizer implementation as our disposal is NOOP. Finalizer is implemented in TextureWithRefCount usage.
+
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+
+        protected virtual void Dispose(bool isDisposing)
+        {
+            if (IsDisposed) return;
+            IsDisposed = true;
+        }
+
+        #endregion
     }
 }
