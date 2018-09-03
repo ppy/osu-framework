@@ -13,12 +13,8 @@ namespace osu.Framework.IO.Stores
     {
         private readonly List<GlyphStore> glyphStores = new List<GlyphStore>();
 
-        public FontStore()
-        {
-        }
-
-        public FontStore(GlyphStore glyphStore)
-            : base(glyphStore)
+        public FontStore(GlyphStore glyphStore, float scaleAdjust = 100)
+            : base(glyphStore, scaleAdjust: scaleAdjust)
         {
         }
 
