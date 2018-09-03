@@ -373,12 +373,6 @@ namespace osu.Framework.Graphics
         protected Scheduler Scheduler => scheduler.Value;
 
         /// <summary>
-        /// Updates this <see cref="Drawable"/> and all <see cref="Drawable"/>s further down the scene graph.
-        /// Only used by the game host.
-        /// </summary>
-        internal void UpdateSubTreeAsRoot() => UpdateSubTree();
-
-        /// <summary>
         /// Updates this Drawable and all Drawables further down the scene graph.
         /// Called once every frame.
         /// </summary>
