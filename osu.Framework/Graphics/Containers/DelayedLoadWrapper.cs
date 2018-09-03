@@ -89,7 +89,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected bool IsIntersecting => isIntersectingBacking.IsValid ? isIntersectingBacking : (isIntersectingBacking.Value = checkScrollIntersection());
 
-        protected IOnScreenOptimisingContainer OptimisingContainer { get; private set; }
+        internal IOnScreenOptimisingContainer OptimisingContainer { get; private set; }
 
         private bool checkScrollIntersection()
         {
@@ -112,7 +112,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// A container which acts as a masking parent for on-screen delayed load optimisations.
         /// </summary>
-        public interface IOnScreenOptimisingContainer
+        internal interface IOnScreenOptimisingContainer
         {
             Quad ScreenSpaceDrawQuad { get; }
 
