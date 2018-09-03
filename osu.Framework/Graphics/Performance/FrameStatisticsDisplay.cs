@@ -144,7 +144,7 @@ namespace osu.Framework.Graphics.Performance
                                     {
                                         counterBarBackground = new Sprite
                                         {
-                                            Texture = atlas.Add(1, HEIGHT),
+                                            Texture = new Texture(atlas.Add(1, HEIGHT)),
                                             RelativeSizeAxes = Axes.Both,
                                             Size = new Vector2(1, 1),
                                         },
@@ -501,7 +501,7 @@ namespace osu.Framework.Graphics.Performance
                 Size = new Vector2(WIDTH, HEIGHT);
                 Child = Sprite = new Sprite();
 
-                Sprite.Texture = atlas.Add(WIDTH, HEIGHT);
+                Sprite.Texture = new Texture(atlas.Add(WIDTH, HEIGHT));
             }
 
             public override bool HandleKeyboardInput => false;
