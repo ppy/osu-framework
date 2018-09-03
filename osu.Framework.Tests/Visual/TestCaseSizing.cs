@@ -20,8 +20,7 @@ namespace osu.Framework.Tests.Visual
     {
         private Container testContainer;
 
-        [Test]
-        public void TestVariousScenarios()
+        public TestCaseSizing()
         {
             string[] testNames =
             {
