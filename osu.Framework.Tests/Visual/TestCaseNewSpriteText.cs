@@ -114,6 +114,8 @@ namespace osu.Framework.Tests.Visual
 
                     pos.X += tex.DisplayWidth * TextSize;
                 }
+
+                Size = new Vector2(pos.X, TextSize);
             }
 #endregion
 
