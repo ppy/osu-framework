@@ -25,14 +25,16 @@ namespace osu.Framework.Tests.Visual
             addTest<AutoSize2>();
             addTest<AutoSize3>();
             addTest<PaddingChange>();
-            addTest<AutoSizeWithRotation>();
+            addTest<AutoSizeWithRotation1>();
+            addTest<AutoSizeWithRotation2>(2);
+            addTest<AutoSizeWithRotation3>(3);
             addTest<AutoSizeWithShear>();
             addTest<FillFlow1>();
             addTest<FillFlow2>();
             addTest<FillFlow2Simplified>();
         }
 
-        private void addTest<T>() where T : LayoutInvalidationTest, new()
+        private void addTest<T>(int numUpdates = 1) where T : LayoutInvalidationTest, new()
         {
             var name = typeof(T).Name;
             T instance1 = null, instance2 = null;
@@ -50,13 +52,13 @@ namespace osu.Framework.Tests.Visual
                         overlayBoxContainer.Add(new DrawQuadOverlayBox(instance.Drawables[j]) { Colour = RandomColorPalette.Get(j).Opacity(.5f) });
                 }
             });
-            AddStep($"{name} update", () =>
+            AddRepeatStep($"{name} update", () =>
             {
                 instance1.DoModification();
                 instance2.DoModification();
                 foreach (var d in instance2.Drawables)
                     d.Invalidate();
-            });
+            }, numUpdates);
             AddStep($"{name} check", () =>
             {
                 var state1 = instance1.GetRoundedDrawVectors();
@@ -175,9 +177,9 @@ namespace osu.Framework.Tests.Visual
             public override void DoModification() => Root.Padding = new MarginPadding { Top = 1 };
         }
 
-        public class AutoSizeWithRotation : Size2Case
+        public class AutoSizeWithRotation1 : Size2Case
         {
-            public AutoSizeWithRotation()
+            public AutoSizeWithRotation1()
             {
                 Root.AutoSizeAxes = Axes.X;
                 Child.RelativeSizeAxes = Axes.Y;
@@ -187,6 +189,78 @@ namespace osu.Framework.Tests.Visual
             public override void DoModification() => Root.Height = 2;
         }
 
+        public class AutoSizeWithRotation2 : LayoutInvalidationTest
+        {
+            protected readonly Container Root, Child1, Child2;
+            public override Drawable[] Drawables => new Drawable[] { Root, Child1, Child2 };
+
+            public AutoSizeWithRotation2()
+            {
+                Container.Child = Root = new Container
+                {
+                    Name = "Root",
+                    Size = new Vector2(1),
+                    Children = new Drawable[]
+                    {
+                        Child1 = new Container
+                        {
+                            Name = "Child1",
+                            Size = new Vector2(1),
+                        },
+                        Child2 = new Container
+                        {
+                            Name = "Child2",
+                            Size = new Vector2(1)
+                        }
+                    },
+                };
+                Root.AutoSizeAxes = Axes.Both;
+                Child1.RelativeSizeAxes = Axes.Y;
+                Child1.Rotation = -45;
+            }
+
+            public override void DoModification() => Child2.Height = 2;
+        }
+
+        public class AutoSizeWithRotation3 : LayoutInvalidationTest
+        {
+            protected readonly Container Root, Child1, Child2, Child3;
+            public override Drawable[] Drawables => new Drawable[] { Root, Child1, Child2, Child3 };
+
+            public AutoSizeWithRotation3()
+            {
+                Container.Child = Root = new Container
+                {
+                    Name = "Root",
+                    Size = new Vector2(1),
+                    Children = new Drawable[]
+                    {
+                        Child1 = new Container
+                        {
+                            Name = "Child1",
+                            Size = new Vector2(1),
+                        },
+                        Child2 = new Container
+                        {
+                            Name = "Child2",
+                            Size = new Vector2(1)
+                        },
+                        Child3 = new Container
+                        {
+                            Name = "Child3",
+                            Size = new Vector2(1)
+                        }
+                    },
+                };
+                Root.AutoSizeAxes = Axes.Both;
+                Child1.RelativeSizeAxes = Axes.Y;
+                Child1.Rotation = -45;
+                Child3.RelativeSizeAxes = Axes.X;
+                Child3.Rotation = 90;
+            }
+
+            public override void DoModification() => Child2.Height = 2;
+        }
         public class AutoSizeWithShear : Size2Case
         {
             public AutoSizeWithShear()
