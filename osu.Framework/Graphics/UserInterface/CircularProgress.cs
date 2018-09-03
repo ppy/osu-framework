@@ -1,7 +1,6 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics.Shaders;
@@ -29,7 +28,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override void Dispose(bool isDisposing)
         {
-            (texture as IDisposable)?.Dispose();
+            texture?.Dispose();
             texture = null;
 
             base.Dispose(isDisposing);
@@ -76,9 +75,9 @@ namespace osu.Framework.Graphics.UserInterface
                 if (value == texture)
                     return;
 
-                (texture as IDisposable)?.Dispose();
-
+                texture?.Dispose();
                 texture = value;
+
                 Invalidate(Invalidation.DrawNode);
             }
         }
