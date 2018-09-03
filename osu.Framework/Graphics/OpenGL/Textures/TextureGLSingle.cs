@@ -64,6 +64,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             GLWrapper.ScheduleDisposal(unload);
         }
 
+        private int uploadedBytes;
+
         /// <summary>
         /// Removes texture from GL memory.
         /// </summary>
@@ -75,6 +77,9 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 return;
 
             GL.DeleteTextures(1, new[] { disposableId });
+
+            if (uploadedBytes > 0)
+                GC.RemoveMemoryPressure(uploadedBytes);
 
             textureId = 0;
         }
@@ -210,7 +215,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             FrameStatistics.Add(StatisticsCounterType.Pixels, (long)vertexTriangle.ConservativeArea);
         }
 
-        public override void DrawQuad(Quad vertexQuad, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null)
+        public override void DrawQuad(Quad vertexQuad, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null,
+                                      Vector2? blendRangeOverride = null)
         {
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString(), "Can not draw a quad with a disposed texture.");
@@ -371,7 +377,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                         {
                             initializeLevel(upload.Level, width, height);
 
-                            GL.TexSubImage2D(TextureTarget2d.Texture2D, upload.Level, upload.Bounds.X, upload.Bounds.Y, upload.Bounds.Width, upload.Bounds.Height, upload.Format, PixelType.UnsignedByte,
+                            GL.TexSubImage2D(TextureTarget2d.Texture2D, upload.Level, upload.Bounds.X, upload.Bounds.Y, upload.Bounds.Width, upload.Bounds.Height, upload.Format,
+                                PixelType.UnsignedByte,
                                 dataPointer);
                         }
                     }
@@ -420,7 +427,13 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         private void initializeLevel(int level, int width, int height)
         {
-            byte[] transparentWhite = new byte[width * height * 4];
+            int bytes = width * height * 4;
+
+            GC.AddMemoryPressure(bytes);
+            uploadedBytes += bytes;
+
+            byte[] transparentWhite = new byte[bytes];
+
             GCHandle h0 = GCHandle.Alloc(transparentWhite, GCHandleType.Pinned);
             GL.TexImage2D(TextureTarget2d.Texture2D, level, TextureComponentCount.Srgb8Alpha8, width, height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, h0.AddrOfPinnedObject());
             h0.Free();
