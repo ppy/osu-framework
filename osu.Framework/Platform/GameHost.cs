@@ -307,7 +307,7 @@ namespace osu.Framework.Platform
 
             try
             {
-                Root.UpdateSubTreeAsRoot();
+                Root.UpdateSubTree();
             }
             catch (DependencyInjectionException die)
             {
@@ -552,7 +552,14 @@ namespace osu.Framework.Platform
 
             game.SetHost(this);
 
-            root.Load(SceneGraphClock, Dependencies);
+            try
+            {
+                root.Load(SceneGraphClock, Dependencies);
+            }
+            catch (DependencyInjectionException die)
+            {
+                die.DispatchInfo.Throw();
+            }
 
             //publish bootstrapped scene graph to all threads.
             Root = root;
