@@ -140,7 +140,7 @@ namespace osu.Framework.Graphics.Lines
 
         protected override void Dispose(bool isDisposing)
         {
-            texture.Dispose();
+            texture?.Dispose();
             texture = null;
 
             base.Dispose(isDisposing);
@@ -184,9 +184,9 @@ namespace osu.Framework.Graphics.Lines
                 if (value == texture)
                     return;
 
-                texture.Dispose();
-
+                texture?.Dispose();
                 texture = value;
+
                 Invalidate(Invalidation.DrawNode);
             }
         }

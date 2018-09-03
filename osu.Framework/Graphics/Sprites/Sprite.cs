@@ -41,7 +41,7 @@ namespace osu.Framework.Graphics.Sprites
 
         protected override void Dispose(bool isDisposing)
         {
-            texture.Dispose();
+            texture?.Dispose();
             texture = null;
 
             base.Dispose(isDisposing);
@@ -90,7 +90,7 @@ namespace osu.Framework.Graphics.Sprites
                 if (value == texture)
                     return;
 
-                texture.Dispose();
+                texture?.Dispose();
 
                 texture = value;
                 FillAspectRatio = (float)(texture?.Width ?? 1) / (texture?.Height ?? 1);
