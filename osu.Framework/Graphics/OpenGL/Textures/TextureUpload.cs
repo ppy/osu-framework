@@ -5,6 +5,8 @@ using System;
 using OpenTK.Graphics.ES30;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Textures;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Graphics.OpenGL.Textures
 {
@@ -33,6 +35,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// </summary>
         public readonly byte[] Data;
 
+        public Image<Rgba32> ImageData;
+
         /// <summary>
         /// The backing texture. A handle is kept to avoid early GC.
         /// </summary>
@@ -54,6 +58,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         public TextureUpload(RawTexture texture)
         {
             this.texture = texture;
+
+            ImageData = texture.ImageData;
             Data = texture.Data;
         }
 

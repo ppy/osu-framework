@@ -11,7 +11,6 @@ using osu.Framework.Platform;
 using osu.Framework.Testing;
 using OpenTK;
 using OpenTK.Graphics;
-using SixLabors.ImageSharp;
 
 namespace osu.Framework.Tests.Visual
 {
@@ -50,7 +49,7 @@ namespace osu.Framework.Tests.Visual
                 var image = t.Result;
 
                 var tex = new Texture(image.Width, image.Height);
-                tex.SetData(new TextureUpload(new RawTexture(image.Width, image.Height, image.SavePixelData())));
+                tex.SetData(new TextureUpload(new RawTexture(image)));
 
                 display.Texture = tex;
             }));

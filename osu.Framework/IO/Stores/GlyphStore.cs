@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using osu.Framework.Logging;
+using SixLabors.ImageSharp.Advanced;
 
 namespace osu.Framework.IO.Stores
 {
@@ -98,30 +99,63 @@ namespace osu.Framework.IO.Stores
             int length = width * height * 4;
             byte[] pixels = new byte[length];
 
-            for (int y = 0; y < height; y++)
+            if (page.ImageData != null)
             {
-                for (int x = 0; x < width; x++)
+                var span = page.ImageData.GetPixelSpan();
+
+                for (int y = 0; y < height; y++)
                 {
-                    int desti = y * width * 4 + x * 4;
-                    if (x >= c.Offset.X && y >= c.Offset.Y
-                                        && x - c.Offset.X < c.Bounds.Width && y - c.Offset.Y < c.Bounds.Height)
+                    for (int x = 0; x < width; x++)
                     {
-                        int srci = (c.Bounds.Y + y - c.Offset.Y) * page.Width * 4
-                                   + (c.Bounds.X + x - c.Offset.X) * 4;
-                        pixels[desti] = page.Data[srci];
-                        pixels[desti + 1] = page.Data[srci + 1];
-                        pixels[desti + 2] = page.Data[srci + 2];
-                        pixels[desti + 3] = page.Data[srci + 3];
-                    }
-                    else
-                    {
-                        pixels[desti] = 255;
-                        pixels[desti + 1] = 255;
-                        pixels[desti + 2] = 255;
-                        pixels[desti + 3] = 0;
+                        int desti = y * width * 4 + x * 4;
+                        if (x >= c.Offset.X && y >= c.Offset.Y
+                                            && x - c.Offset.X < c.Bounds.Width && y - c.Offset.Y < c.Bounds.Height)
+                        {
+                            int srci = (c.Bounds.Y + y - c.Offset.Y) * page.Width + (c.Bounds.X + x - c.Offset.X);
+                            var col = span[srci];
+                            pixels[desti] = col.R;
+                            pixels[desti + 1] = col.G;
+                            pixels[desti + 2] = col.B;
+                            pixels[desti + 3] = col.A;
+                        }
+                        else
+                        {
+                            pixels[desti] = 255;
+                            pixels[desti + 1] = 255;
+                            pixels[desti + 2] = 255;
+                            pixels[desti + 3] = 0;
+                        }
                     }
                 }
             }
+            else
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    for (int x = 0; x < width; x++)
+                    {
+                        int desti = y * width * 4 + x * 4;
+                        if (x >= c.Offset.X && y >= c.Offset.Y
+                                            && x - c.Offset.X < c.Bounds.Width && y - c.Offset.Y < c.Bounds.Height)
+                        {
+                            int srci = (c.Bounds.Y + y - c.Offset.Y) * page.Width * 4
+                                       + (c.Bounds.X + x - c.Offset.X) * 4;
+                            pixels[desti] = page.Data[srci];
+                            pixels[desti + 1] = page.Data[srci + 1];
+                            pixels[desti + 2] = page.Data[srci + 2];
+                            pixels[desti + 3] = page.Data[srci + 3];
+                        }
+                        else
+                        {
+                            pixels[desti] = 255;
+                            pixels[desti + 1] = 255;
+                            pixels[desti + 2] = 255;
+                            pixels[desti + 3] = 0;
+                        }
+                    }
+                }
+            }
+
 
             return new RawTexture(width, height, pixels);
         }

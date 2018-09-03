@@ -5,6 +5,7 @@ using System;
 using System.IO;
 using osu.Framework.Allocation;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 using PixelFormat = OpenTK.Graphics.ES30.PixelFormat;
 
 namespace osu.Framework.Graphics.Textures
@@ -40,14 +41,15 @@ namespace osu.Framework.Graphics.Textures
         /// Create a raw texture from an arbitrary image stream.
         /// </summary>
         /// <param name="stream">The image content.</param>
-        public RawTexture(Stream stream)
+        public RawTexture(Stream stream) : this(Image.Load(stream))
         {
-            using (var img = Image.Load(stream))
-            {
-                Width = img.Width;
-                Height = img.Height;
-                Data = img.SavePixelData();
-            }
+        }
+
+        public RawTexture(Image<Rgba32> image)
+        {
+            ImageData = image;
+            Width = ImageData.Width;
+            Height = ImageData.Height;
         }
 
         /// <summary>
@@ -96,8 +98,12 @@ namespace osu.Framework.Graphics.Textures
 
         private bool disposed;
 
+        public Image<Rgba32> ImageData;
+
         protected virtual void Dispose(bool disposing)
         {
+            ImageData?.Dispose();
+
             if (!disposed)
             {
                 disposed = true;
