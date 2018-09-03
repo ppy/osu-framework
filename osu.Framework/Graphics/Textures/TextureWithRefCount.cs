@@ -27,10 +27,10 @@ namespace osu.Framework.Graphics.Textures
 
         protected override void Dispose(bool isDisposing)
         {
-            base.Dispose(isDisposing);
-
             if (IsDisposed)
                 throw new ObjectDisposedException($"{nameof(TextureWithRefCount)} should never be disposed more than once");
+
+            base.Dispose(isDisposing);
 
             TextureGL?.Dereference();
             if (isDisposing) GC.SuppressFinalize(this);
