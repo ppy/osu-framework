@@ -166,11 +166,6 @@ namespace osu.Framework.Platform
         {
             toolkit = Toolkit.Init();
 
-            // for the time being, we need to ensure there are enough threads available to avoid deadlocking on incorrect async usages.
-            ThreadPool.GetMinThreads(out int worker, out int completion);
-            if (worker < 8)
-                ThreadPool.SetMinThreads(8, completion);
-
             AppDomain.CurrentDomain.UnhandledException += unhandledExceptionHandler;
             TaskScheduler.UnobservedTaskException += unobservedExceptionHandler;
 
