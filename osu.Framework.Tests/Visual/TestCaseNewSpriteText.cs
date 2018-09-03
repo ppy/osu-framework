@@ -10,10 +10,12 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
+using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
 using osu.Framework.Testing;
 using OpenTK;
+using OpenTK.Graphics;
 
 namespace osu.Framework.Tests.Visual
 {
@@ -21,12 +23,59 @@ namespace osu.Framework.Tests.Visual
     {
         public TestCaseNewSpriteText()
         {
-            Add(new NewSpriteText
+            var pairs = new List<Drawable[]>
             {
-                Anchor = Anchor.Centre,
-                Origin = Anchor.Centre,
-                Text = "Hello world!"
-            });
+                new Drawable[] { new TestOldSpriteText { Text = "Old" }, new TestOldSpriteText { Text = "New" }},
+                new Drawable[] { new TestOldSpriteText { Text = "Basic: Hello world!" }, new TestNewSpriteText { Text = "Basic: Hello world!" } },
+                new Drawable[] { new TestOldSpriteText { TextSize = 15, Text = "Text size = 15" }, new TestNewSpriteText { TextSize = 15, Text = "Text size = 15" } },
+                new Drawable[] { new TestOldSpriteText { Colour = Color4.Green, Text = "Colour = green" }, new TestNewSpriteText { Colour = Color4.Green, Text = "Colour = green" } },
+                new Drawable[] { new TestOldSpriteText { Rotation = 45, Text = "Rotation = 45" }, new TestNewSpriteText { Rotation = 45, Text = "Rotation = 45" } },
+                new Drawable[] { new TestOldSpriteText { Scale = new Vector2(2), Text = "Scale = 2" }, new TestNewSpriteText { Scale = new Vector2(2), Text = "Scale = 2" } },
+                new Drawable[] { new TestOldSpriteText { Scale = new Vector2(2), Text = "Scale = 2" }, new TestNewSpriteText { Scale = new Vector2(2), Text = "Scale = 2" }, }
+            };
+
+            var rowDimensions = new List<Dimension>();
+            for (int i = 0; i < pairs.Count; i++)
+                rowDimensions.Add(new Dimension(GridSizeMode.AutoSize));
+
+            Child = new AutoSizeGridContainer
+            {
+                AutoSizeAxes = Axes.Y,
+                Content = pairs.ToArray(),
+                RowDimensions = rowDimensions.ToArray(),
+                ColumnDimensions = new[]
+                {
+                    new Dimension(GridSizeMode.AutoSize),
+                    new Dimension(GridSizeMode.Absolute, 300),
+                }
+            };
+        }
+
+        private class TestOldSpriteText : SpriteText
+        {
+            public TestOldSpriteText()
+            {
+                Anchor = Anchor.TopCentre;
+                Origin = Anchor.TopCentre;
+            }
+        }
+
+        private class TestNewSpriteText : NewSpriteText
+        {
+            public TestNewSpriteText()
+            {
+                Anchor = Anchor.TopCentre;
+                Origin = Anchor.TopCentre;
+            }
+        }
+
+        private class AutoSizeGridContainer : GridContainer
+        {
+            public new Axes AutoSizeAxes
+            {
+                get => base.AutoSizeAxes;
+                set => base.AutoSizeAxes = value;
+            }
         }
 
         private class NewSpriteText : CompositeDrawable
