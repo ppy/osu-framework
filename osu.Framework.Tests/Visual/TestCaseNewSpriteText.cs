@@ -26,13 +26,12 @@ namespace osu.Framework.Tests.Visual
         {
             var pairs = new List<Drawable[]>
             {
-                new Drawable[] { new TestOldSpriteText { Text = "Old" }, new TestOldSpriteText { Text = "New" }},
+                new Drawable[] { new TestOldSpriteText { Text = "Old" }, new TestOldSpriteText { Text = "New" } },
                 new Drawable[] { new TestOldSpriteText { Text = "Basic: Hello world!" }, new TestNewSpriteText { Text = "Basic: Hello world!" } },
-                new Drawable[] { new TestOldSpriteText { TextSize = 15, Text = "Text size = 15" }, new TestNewSpriteText { TextSize = 15, Text = "Text size = 15" } },
-                new Drawable[] { new TestOldSpriteText { Colour = Color4.Green, Text = "Colour = green" }, new TestNewSpriteText { Colour = Color4.Green, Text = "Colour = green" } },
-                new Drawable[] { new TestOldSpriteText { Rotation = 45, Text = "Rotation = 45" }, new TestNewSpriteText { Rotation = 45, Text = "Rotation = 45" } },
-                new Drawable[] { new TestOldSpriteText { Scale = new Vector2(2), Text = "Scale = 2" }, new TestNewSpriteText { Scale = new Vector2(2), Text = "Scale = 2" } },
-                new Drawable[] { new TestOldSpriteText { Scale = new Vector2(2), Text = "Scale = 2" }, new TestNewSpriteText { Scale = new Vector2(2), Text = "Scale = 2" }, },
+                new Drawable[] { new TestOldSpriteText { Text = "Text size = 15", TextSize = 15 }, new TestNewSpriteText { Text = "Text size = 15", TextSize = 15 } },
+                new Drawable[] { new TestOldSpriteText { Text = "Colour = green", Colour = Color4.Green }, new TestNewSpriteText { Text = "Colour = green", Colour = Color4.Green } },
+                new Drawable[] { new TestOldSpriteText { Text = "Rotation = 45", Rotation = 45 }, new TestNewSpriteText { Text = "Rotation = 45", Rotation = 45 } },
+                new Drawable[] { new TestOldSpriteText { Text = "Scale = 2", Scale = new Vector2(2) }, new TestNewSpriteText { Text = "Scale = 2", Scale = new Vector2(2) } },
                 new Drawable[]
                 {
                     new CircularContainer
@@ -41,7 +40,7 @@ namespace osu.Framework.Tests.Visual
                         Origin = Anchor.Centre,
                         Masking = true,
                         AutoSizeAxes = Axes.Both,
-                        Child = new TestOldSpriteText { Text = "||||||||||||" }
+                        Child = new TestOldSpriteText { Text = "||MASKED||" }
                     },
                     new CircularContainer
                     {
@@ -49,7 +48,7 @@ namespace osu.Framework.Tests.Visual
                         Origin = Anchor.Centre,
                         Masking = true,
                         AutoSizeAxes = Axes.Both,
-                        Child = new TestNewSpriteText { Text = "||||||||||||" }
+                        Child = new TestNewSpriteText { Text = "||MASKED||" }
                     }
                 }
             };
