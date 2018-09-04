@@ -40,7 +40,6 @@ namespace osu.Framework.Graphics.Sprites
                 text = value;
 
                 charactersCache.Invalidate();
-                Invalidate(Invalidation.DrawNode, shallPropagate: false);
             }
         }
 
@@ -60,7 +59,6 @@ namespace osu.Framework.Graphics.Sprites
 
                 charactersCache.Invalidate();
                 shadowOffsetCache.Invalidate();
-                Invalidate(Invalidation.DrawNode, shallPropagate: false);
             }
         }
 
@@ -79,7 +77,6 @@ namespace osu.Framework.Graphics.Sprites
                 font = value;
 
                 charactersCache.Invalidate();
-                Invalidate(Invalidation.DrawNode, shallPropagate: false);
             }
         }
 
@@ -98,7 +95,6 @@ namespace osu.Framework.Graphics.Sprites
                 allowMultiline = value;
 
                 charactersCache.Invalidate();
-                Invalidate(Invalidation.DrawNode, shallPropagate: false);
             }
         }
 
@@ -116,7 +112,7 @@ namespace osu.Framework.Graphics.Sprites
                     return;
                 shadow = value;
 
-                Invalidate(Invalidation.DrawNode, shallPropagate: false);
+                Invalidate(Invalidation.DrawNode);
             }
         }
 
@@ -134,7 +130,7 @@ namespace osu.Framework.Graphics.Sprites
                     return;
                 shadowColour = value;
 
-                Invalidate(Invalidation.DrawNode, shallPropagate: false);
+                Invalidate(Invalidation.DrawNode);
             }
         }
 
@@ -154,7 +150,6 @@ namespace osu.Framework.Graphics.Sprites
                 useFullGlyphHeight = value;
 
                 charactersCache.Invalidate();
-                Invalidate(Invalidation.DrawNode, shallPropagate: false);
             }
         }
 
@@ -173,7 +168,6 @@ namespace osu.Framework.Graphics.Sprites
                 fixedWidth = value;
 
                 charactersCache.Invalidate();
-                Invalidate(Invalidation.DrawNode, shallPropagate: false);
             }
         }
 
@@ -265,7 +259,6 @@ namespace osu.Framework.Graphics.Sprites
                 spacing = value;
 
                 charactersCache.Invalidate();
-                Invalidate(Invalidation.DrawNode, shallPropagate: false);
             }
         }
 
@@ -287,7 +280,6 @@ namespace osu.Framework.Graphics.Sprites
                 padding = value;
 
                 charactersCache.Invalidate();
-                Invalidate(Invalidation.DrawNode, shallPropagate: false);
             }
         }
 
@@ -296,107 +288,112 @@ namespace osu.Framework.Graphics.Sprites
         #region Characters
 
         private Cached charactersCache = new Cached();
-        private readonly List<CharacterPart> charactersBacking = new List<CharacterPart>();
+        private readonly List<CharacterPart> characters = new List<CharacterPart>();
 
-        private List<CharacterPart> characters
+        protected override void Update()
         {
-            get
+            base.Update();
+
+            if (!charactersCache.IsValid)
             {
                 computeCharacters();
-                return charactersBacking;
+                charactersCache.Validate();
             }
         }
 
         private void computeCharacters()
         {
-            if (charactersCache.IsValid)
-                return;
-
-            charactersBacking.Clear();
-
-            if (string.IsNullOrEmpty(Text))
-                return;
-
-            float maxWidth = float.PositiveInfinity;
-            if ((RelativeSizeAxes & Axes.X) > 0 || explicitWidth != null)
-                maxWidth = DrawWidth - Padding.Right;
+            characters.Clear();
 
             Vector2 currentPos = new Vector2(Padding.Left, Padding.Top);
-            float currentRowHeight = 0;
 
-            foreach (var character in Text)
+            try
             {
-                // Unscaled size (i.e. not multiplied by TextSize)
-                Vector2 textureSize;
-                Texture texture = null;
+                if (string.IsNullOrEmpty(Text))
+                    return;
 
-                // Retrieve the texture + size
-                if (char.IsWhiteSpace(character))
+                float maxWidth = float.PositiveInfinity;
+                if ((RelativeSizeAxes & Axes.X) > 0 || explicitWidth != null)
+                    maxWidth = DrawWidth - Padding.Right;
+
+                float currentRowHeight = 0;
+
+                foreach (var character in Text)
                 {
-                    float size = FixedWidth ? constantWidth : spaceWidth;
+                    // Unscaled size (i.e. not multiplied by TextSize)
+                    Vector2 textureSize;
+                    Texture texture = null;
 
-                    if (character == 0x3000)
+                    // Retrieve the texture + size
+                    if (char.IsWhiteSpace(character))
                     {
-                        // Double-width space
-                        size *= 2;
+                        float size = FixedWidth ? constantWidth : spaceWidth;
+
+                        if (character == 0x3000)
+                        {
+                            // Double-width space
+                            size *= 2;
+                        }
+
+                        textureSize = new Vector2(size);
+                    }
+                    else
+                    {
+                        texture = GetTextureForCharacter(character);
+                        textureSize = new Vector2(texture.DisplayWidth, texture.DisplayHeight);
                     }
 
-                    textureSize = new Vector2(size);
-                }
-                else
-                {
-                    texture = GetTextureForCharacter(character);
-                    textureSize = new Vector2(texture.DisplayWidth, texture.DisplayHeight);
-                }
+                    bool useFixedWidth = FixedWidth && !FixedWidthExceptionCharacters.Contains(character);
 
-                bool useFixedWidth = FixedWidth && !FixedWidthExceptionCharacters.Contains(character);
+                    // Scaled glyph size to be used for positioning
+                    Vector2 glyphSize = new Vector2(useFixedWidth ? constantWidth : textureSize.X, UseFullGlyphHeight ? 1 : textureSize.Y) * TextSize;
 
-                // Scaled glyph size to be used for positioning
-                Vector2 glyphSize = new Vector2(useFixedWidth ? constantWidth : textureSize.X, UseFullGlyphHeight ? 1 : textureSize.Y) * TextSize;
+                    // Texture size scaled by TextSize
+                    Vector2 scaledTextureSize = textureSize * TextSize;
 
-                // Texture size scaled by TextSize
-                Vector2 scaledTextureSize = textureSize * TextSize;
-
-                // Check if we need to go onto the next line
-                if (AllowMultiline && currentPos.X + glyphSize.X >= maxWidth)
-                {
-                    currentPos.X = Padding.Left;
-                    currentPos.Y += currentRowHeight + spacing.Y;
-                    currentRowHeight = 0;
-                }
-
-                // The height of the row depends on whether we want to use the full glyph height or not
-                currentRowHeight = Math.Max(currentRowHeight, glyphSize.Y);
-
-                if (char.IsWhiteSpace(character))
-                    currentPos.X += glyphSize.X + spacing.X;
-                else
-                {
-                    float offset = (glyphSize.X - scaledTextureSize.X) / 2;
-                    var drawQuad = ToScreenSpace(new RectangleF(new Vector2(currentPos.X + offset, currentPos.Y), scaledTextureSize));
-
-                    charactersBacking.Add(new CharacterPart
+                    // Check if we need to go onto the next line
+                    if (AllowMultiline && currentPos.X + glyphSize.X >= maxWidth)
                     {
-                        Texture = texture,
-                        DrawQuad = drawQuad
-                    });
+                        currentPos.X = Padding.Left;
+                        currentPos.Y += currentRowHeight + spacing.Y;
+                        currentRowHeight = 0;
+                    }
 
-                    currentPos.X += glyphSize.X + spacing.X;
+                    // The height of the row depends on whether we want to use the full glyph height or not
+                    currentRowHeight = Math.Max(currentRowHeight, glyphSize.Y);
+
+                    if (char.IsWhiteSpace(character))
+                        currentPos.X += glyphSize.X + spacing.X;
+                    else
+                    {
+                        float offset = (glyphSize.X - scaledTextureSize.X) / 2;
+                        var drawQuad = ToScreenSpace(new RectangleF(new Vector2(currentPos.X + offset, currentPos.Y), scaledTextureSize));
+
+                        characters.Add(new CharacterPart
+                        {
+                            Texture = texture,
+                            DrawQuad = drawQuad
+                        });
+
+                        currentPos.X += glyphSize.X + spacing.X;
+                    }
                 }
+
+                // When we added the last character, we also added the spacing, but we should remove it to get the correct size
+                currentPos.X -= spacing.X;
+
+                // The last row needs to be included in the height
+                currentPos.Y += currentRowHeight;
             }
+            finally
+            {
+                if (explicitWidth == null && (RelativeSizeAxes & Axes.X) == 0)
+                    base.Width = characters.Count == 0 ? 0 : currentPos.X + Padding.Right;
+                if (explicitHeight == null && (RelativeSizeAxes & Axes.Y) == 0)
+                    base.Height = characters.Count == 0 ? 0 : currentPos.Y + Padding.Bottom;
 
-            // When we added the last character, we also added the spacing, but we should remove it to get the correct size
-            currentPos.X -= spacing.X;
-
-            // The last row needs to be included in the height
-            currentPos.Y += currentRowHeight;
-
-            if (explicitWidth == null && (RelativeSizeAxes & Axes.X) == 0)
-                base.Width = currentPos.X + Padding.Right;
-            if (explicitHeight == null && (RelativeSizeAxes & Axes.Y) == 0)
-                base.Height = currentPos.Y + Padding.Bottom;
-
-            charactersCache.Validate();
+                Invalidate(Invalidation.DrawNode, shallPropagate: false);
+            }
         }
 
         private Cached<float> constantWidthCache;
@@ -411,7 +408,7 @@ namespace osu.Framework.Graphics.Sprites
 
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
-            if ((invalidation & (Invalidation.RequiredParentSizeToFit | Invalidation.DrawInfo)) > 0)
+            if (source == Parent && (invalidation & Invalidation.DrawInfo) > 0)
             {
                 charactersCache.Invalidate();
                 shadowOffsetCache.Invalidate();
@@ -435,6 +432,7 @@ namespace osu.Framework.Graphics.Sprites
             var n = (NewSpriteTextDrawNode)node;
 
             n.Shared = sharedData;
+
             n.Parts.Clear();
             n.Parts.AddRange(characters);
 
@@ -507,6 +505,9 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        public IEnumerable<string> FilterTerms { get { yield return Text; } }
+        public IEnumerable<string> FilterTerms
+        {
+            get { yield return Text; }
+        }
     }
 }
