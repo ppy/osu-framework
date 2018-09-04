@@ -78,7 +78,7 @@ namespace osu.Framework.Tests.Visual
             }
         }
 
-        private class NewSpriteText : CompositeDrawable
+        private class NewSpriteText : Drawable
         {
             private const float default_text_size = 20;
 
@@ -97,6 +97,8 @@ namespace osu.Framework.Tests.Visual
             private void load(ShaderManager shaders)
             {
                 spaceWidth = GetTextureForCharacter('.')?.DisplayWidth * 2 ?? default_text_size;
+                sharedData.TextureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
+                sharedData.RoundedTextureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
             }
 
             protected override void Update()
@@ -134,7 +136,7 @@ namespace osu.Framework.Tests.Visual
                 if (string.IsNullOrEmpty(Text))
                     return;
 
-                var pos = ChildOffset;
+                float pos = 0;
 
                 foreach (var character in Text)
                 {
@@ -148,12 +150,12 @@ namespace osu.Framework.Tests.Visual
                             width *= 2;
                         }
 
-                        pos.X += width * TextSize;
+                        pos += width * TextSize;
                         continue;
                     }
 
                     var tex = GetTextureForCharacter(character);
-                    var drawQuad = ToScreenSpace(new RectangleF(pos, new Vector2(tex.DisplayWidth, tex.DisplayHeight) * TextSize));
+                    var drawQuad = ToScreenSpace(new RectangleF(new Vector2(pos, 0), new Vector2(tex.DisplayWidth, tex.DisplayHeight) * TextSize));
 
                     charactersBacking.Add(new CharacterPart
                     {
@@ -161,15 +163,15 @@ namespace osu.Framework.Tests.Visual
                         DrawQuad = drawQuad
                     });
 
-                    pos.X += tex.DisplayWidth * TextSize;
+                    pos += tex.DisplayWidth * TextSize;
                 }
 
-                Size = new Vector2(pos.X, TextSize);
+                Size = new Vector2(pos, TextSize);
             }
 #endregion
 
 #region DrawNode
-            protected override bool CanBeFlattened => false; // We need to have a draw node without explicitly having children
+            private readonly NewSpriteTextDrawNodeSharedData sharedData = new NewSpriteTextDrawNodeSharedData();
 
             protected override DrawNode CreateDrawNode() => new NewSpriteTextDrawNode();
 
@@ -179,6 +181,7 @@ namespace osu.Framework.Tests.Visual
 
                 var n = (NewSpriteTextDrawNode)node;
 
+                n.Shared = sharedData;
                 n.Parts.Clear();
                 n.Parts.AddRange(characters);
             }
@@ -200,13 +203,27 @@ namespace osu.Framework.Tests.Visual
             private string getTextureName(char c, bool useFont = true) => !useFont || string.IsNullOrEmpty(Font) ? c.ToString() : $@"{Font}/{c}";
         }
 
-        private class NewSpriteTextDrawNode : CompositeDrawNode
+        private class NewSpriteTextDrawNodeSharedData
         {
+            public Shader TextureShader;
+            public Shader RoundedTextureShader;
+        }
+
+        private class NewSpriteTextDrawNode : DrawNode
+        {
+            public NewSpriteTextDrawNodeSharedData Shared;
+
             public readonly List<CharacterPart> Parts = new List<CharacterPart>();
+
+            private bool needsRoundedShader => GLWrapper.IsMaskingActive;
 
             public override void Draw(Action<TexturedVertex2D> vertexAction)
             {
                 base.Draw(vertexAction);
+
+                Shader shader = needsRoundedShader ? Shared.RoundedTextureShader : Shared.TextureShader;
+
+                shader.Bind();
 
                 for (int i = 0; i < Parts.Count; i++)
                 {
@@ -215,6 +232,8 @@ namespace osu.Framework.Tests.Visual
                         DrawInfo.Colour,
                         vertexAction: vertexAction);
                 }
+
+                shader.Unbind();
             }
         }
 
