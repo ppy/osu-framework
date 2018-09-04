@@ -26,7 +26,7 @@ namespace osu.Framework.Graphics.Textures
                 using (var stream = store.GetStream(name))
                 {
                     if (stream != null)
-                        return new RawTexture(stream);
+                        return new RawTextureImage(stream);
                 }
             }
             catch

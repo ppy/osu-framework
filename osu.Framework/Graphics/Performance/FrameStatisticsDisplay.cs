@@ -20,6 +20,7 @@ using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Input.EventArgs;
 using osu.Framework.Input.States;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Graphics.Performance
 {
@@ -37,7 +38,7 @@ namespace osu.Framework.Graphics.Performance
         private const float alpha_when_active = 0.75f;
 
         private readonly TimeBar[] timeBars;
-        private readonly BufferStack<byte> textureBufferStack;
+        private readonly BufferStack<Rgba32> textureBufferStack;
 
         private static readonly Color4[] garbage_collect_colors = { Color4.Green, Color4.Yellow, Color4.Red };
         private readonly PerformanceMonitor monitor;
@@ -228,29 +229,29 @@ namespace osu.Framework.Graphics.Performance
                 }
             };
 
-            textureBufferStack = new BufferStack<byte>(timeBars.Length * WIDTH);
+            textureBufferStack = new BufferStack<Rgba32>(timeBars.Length * WIDTH);
         }
 
         [BackgroundDependencyLoader]
         private void load()
         {
             //initialise background
-            byte[] column = new byte[HEIGHT * 4];
-            byte[] fullBackground = new byte[WIDTH * HEIGHT * 4];
+            Rgba32[] column = new Rgba32[HEIGHT];
+            Rgba32[] fullBackground = new Rgba32[WIDTH * HEIGHT];
 
             addArea(null, null, HEIGHT, column, amount_ms_steps);
 
             for (int i = 0; i < HEIGHT; i++)
             for (int k = 0; k < WIDTH; k++)
-                Buffer.BlockCopy(column, i * 4, fullBackground, i * WIDTH * 4 + k * 4, 4);
+                fullBackground[k] = column[i];
 
             addArea(null, null, HEIGHT, column, amount_count_steps);
 
-            counterBarBackground?.Texture.SetData(new TextureUpload(column));
+            counterBarBackground?.Texture.SetData(new TextureUpload(new RawTextureRgba32(1, HEIGHT, column)));
             Schedule(() =>
             {
                 foreach (var t in timeBars)
-                    t.Sprite.Texture.SetData(new TextureUpload(fullBackground));
+                    t.Sprite.Texture.SetData(new TextureUpload(new RawTextureRgba32(WIDTH, HEIGHT, fullBackground)));
             });
         }
 
@@ -348,7 +349,8 @@ namespace osu.Framework.Graphics.Performance
         private void applyFrameTime(FrameStatistics frame)
         {
             TimeBar timeBar = timeBars[timeBarIndex];
-            TextureUpload upload = new TextureUpload(new RawTexture(1, HEIGHT, textureBufferStack))
+            var raw = new RawTextureBufferStack(1, HEIGHT, textureBufferStack);
+            TextureUpload upload = new TextureUpload(raw)
             {
                 Bounds = new RectangleI(timeBarX, 0, 1, HEIGHT)
             };
@@ -356,8 +358,8 @@ namespace osu.Framework.Graphics.Performance
             int currentHeight = HEIGHT;
 
             for (int i = 0; i < FrameStatistics.NUM_PERFORMANCE_COLLECTION_TYPES; i++)
-                currentHeight = addArea(frame, (PerformanceCollectionType)i, currentHeight, upload.Data, amount_ms_steps);
-            addArea(frame, null, currentHeight, upload.Data, amount_ms_steps);
+                currentHeight = addArea(frame, (PerformanceCollectionType)i, currentHeight, raw.Data, amount_ms_steps);
+            addArea(frame, null, currentHeight, raw.Data, amount_ms_steps);
 
             timeBar.Sprite.Texture.SetData(upload);
 
@@ -447,9 +449,9 @@ namespace osu.Framework.Graphics.Performance
             }
         }
 
-        private int addArea(FrameStatistics frame, PerformanceCollectionType? frameTimeType, int currentHeight, byte[] textureData, int amountSteps)
+        private int addArea(FrameStatistics frame, PerformanceCollectionType? frameTimeType, int currentHeight, Rgba32[] textureData, int amountSteps)
         {
-            Trace.Assert(textureData.Length >= HEIGHT * 4, $"textureData is too small ({textureData.Length}) to hold area data.");
+            Trace.Assert(textureData.Length >= HEIGHT, $"textureData is too small ({textureData.Length}) to hold area data.");
 
             int drawHeight;
 
@@ -480,11 +482,10 @@ namespace osu.Framework.Graphics.Performance
                 else if (acceptableRange)
                     brightnessAdjust *= 0.8f;
 
-                int index = i * 4;
-                textureData[index] = (byte)(255 * col.R * brightnessAdjust);
-                textureData[index + 1] = (byte)(255 * col.G * brightnessAdjust);
-                textureData[index + 2] = (byte)(255 * col.B * brightnessAdjust);
-                textureData[index + 3] = (byte)(255 * col.A);
+                textureData[i].R= (byte)(255 * col.R * brightnessAdjust);
+                textureData[i].G= (byte)(255 * col.G * brightnessAdjust);
+                textureData[i].B= (byte)(255 * col.B * brightnessAdjust);
+                textureData[i].A= (byte)(255 * col.A);
 
                 currentHeight--;
             }

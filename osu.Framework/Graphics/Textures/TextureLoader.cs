@@ -24,9 +24,9 @@ namespace osu.Framework.Graphics.Textures
 
             try
             {
-                RawTexture data = new RawTexture(stream);
+                RawTexture data = new RawTextureImage(stream);
                 Texture tex = atlas == null ? new Texture(data.Width, data.Height) : new Texture(atlas.Add(data.Width, data.Height));
-                tex.SetData(new TextureUpload(data.Data));
+                tex.SetData(new TextureUpload(data));
                 return tex;
             }
             catch (ArgumentException)
@@ -67,7 +67,7 @@ namespace osu.Framework.Graphics.Textures
 
             Texture tex = atlas == null ? new Texture(width, height) : new Texture(atlas.Add(width, height));
 
-            var upload = new TextureUpload(data) { Format = format };
+            var upload = new TextureUpload(new RawTextureRgba32(width, height, data)) { Format = format };
             tex.SetData(upload);
             return tex;
         }

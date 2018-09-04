@@ -2,18 +2,15 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.IO;
-using osu.Framework.Allocation;
-using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using PixelFormat = OpenTK.Graphics.ES30.PixelFormat;
 
 namespace osu.Framework.Graphics.Textures
 {
     /// <summary>
-    /// Texture data in a raw byte format.
+    /// Texture data in a raw Rgba32 format.
     /// </summary>
-    public class RawTexture : IDisposable
+    public abstract class RawTexture : IDisposable
     {
         /// <summary>
         /// The width of the texture data.
@@ -30,85 +27,10 @@ namespace osu.Framework.Graphics.Textures
         /// </summary>
         public readonly PixelFormat PixelFormat = PixelFormat.Rgba;
 
-        /// <summary>
-        /// The texture data.
-        /// </summary>
-        public byte[] Data;
-
-        private readonly BufferStack<byte> bufferStack;
-
-        /// <summary>
-        /// Create a raw texture from an arbitrary image stream.
-        /// </summary>
-        /// <param name="stream">The image content.</param>
-        public RawTexture(Stream stream) : this(Image.Load(stream))
-        {
-        }
-
-        public RawTexture(Image<Rgba32> image)
-        {
-            ImageData = image;
-            Width = ImageData.Width;
-            Height = ImageData.Height;
-        }
-
-        /// <summary>
-        /// Create an empty raw texture with an optional <see cref="BufferStack{T}"/>. backing.
-        /// </summary>
-        /// <param name="width">The width of the texture.</param>
-        /// <param name="height">The height of the texture.</param>
-        /// <param name="bufferStack">The buffer stack to retrieve the byte[] from.</param>
-        public RawTexture(int width, int height, BufferStack<byte> bufferStack = null)
-        {
-            int size = width * height * 4;
-
-            Width = width;
-            Height = height;
-
-            if (bufferStack != null)
-            {
-                this.bufferStack = bufferStack;
-                Data = this.bufferStack.ReserveBuffer(size);
-            }
-            else
-            {
-                Data = new byte[size];
-            }
-        }
-
-        /// <summary>
-        /// Create an empty raw texture with an optional <see cref="BufferStack{T}"/>. backing.
-        /// </summary>
-        /// <param name="width">The width of the texture.</param>
-        /// <param name="height">The heightof the texture.</param>
-        /// <param name="data">The raw texture data.</param>
-        public RawTexture(int width, int height, byte[] data)
-        {
-            int size = width * height * 4;
-
-            if (size != data.Length)
-                throw new InvalidOperationException("Provided data does not match dimensions");
-
-            Data = data;
-            Width = width;
-            Height = height;
-        }
-
         #region IDisposable Support
-
-        private bool disposed;
-
-        public Image<Rgba32> ImageData;
 
         protected virtual void Dispose(bool disposing)
         {
-            ImageData?.Dispose();
-
-            if (!disposed)
-            {
-                disposed = true;
-                bufferStack?.FreeBuffer(Data);
-            }
         }
 
         ~RawTexture()
@@ -123,5 +45,7 @@ namespace osu.Framework.Graphics.Textures
         }
 
         #endregion
+
+        public abstract ReadOnlySpan<Rgba32> GetImageData();
     }
 }

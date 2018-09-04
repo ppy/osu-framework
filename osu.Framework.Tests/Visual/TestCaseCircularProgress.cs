@@ -10,6 +10,7 @@ using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Testing;
 using OpenTK.Graphics;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Tests.Visual
 {
@@ -30,33 +31,35 @@ namespace osu.Framework.Tests.Visual
         public TestCaseCircularProgress()
         {
             const int width = 128;
-            byte[] data = new byte[width * 4];
+            Rgba32[] data = new Rgba32[width];
 
             gradientTextureHorizontal = new Texture(width, 1, true);
             for (int i = 0; i < width; ++i)
             {
                 float brightness = (float)i / (width - 1);
-                int index = i * 4;
-                data[index + 0] = (byte)(128 + (1 - brightness) * 127);
-                data[index + 1] = (byte)(128 + brightness * 127);
-                data[index + 2] = 128;
-                data[index + 3] = 255;
+                data[i] = new Rgba32(
+                    (byte)(128 + (1 - brightness) * 127),
+                    (byte)(128 + brightness * 127),
+                    128,
+                    255);
             }
-            gradientTextureHorizontal.SetData(new TextureUpload(data));
+
+            gradientTextureHorizontal.SetData(new TextureUpload(new RawTextureRgba32(width, 1, data)));
 
             gradientTextureVertical = new Texture(1, width, true);
             for (int i = 0; i < width; ++i)
             {
                 float brightness = (float)i / (width - 1);
-                int index = i * 4;
-                data[index + 0] = (byte)(128 + (1 - brightness) * 127);
-                data[index + 1] = (byte)(128 + brightness * 127);
-                data[index + 2] = 128;
-                data[index + 3] = 255;
+                data[i] = new Rgba32(
+                    (byte)(128 + (1 - brightness) * 127),
+                    (byte)(128 + brightness * 127),
+                    128,
+                    255);
             }
-            gradientTextureVertical.SetData(new TextureUpload(data));
 
-            byte[] data2 = new byte[width * width * 4];
+            gradientTextureVertical.SetData(new TextureUpload(new RawTextureRgba32(width, 1, data)));
+
+            data = new Rgba32[width * width];
             gradientTextureBoth = new Texture(width, width, true);
             for (int i = 0; i < width; ++i)
             {
@@ -64,15 +67,15 @@ namespace osu.Framework.Tests.Visual
                 {
                     float brightness = (float)i / (width - 1);
                     float brightness2 = (float)j / (width - 1);
-                    int index = i * 4 * width + j * 4;
-                    data2[index + 0] = (byte)(128 + (1 + brightness - brightness2) / 2 * 127);
-                    data2[index + 1] = (byte)(128 + (1 + brightness2 - brightness) / 2 * 127);
-                    data2[index + 2] = (byte)(128 + (brightness + brightness2) / 2 * 127);
-                    data2[index + 3] = 255;
+                    data[i * width + j] = new Rgba32(
+                        (byte)(128 + (1 + brightness - brightness2) / 2 * 127),
+                        (byte)(128 + (1 + brightness2 - brightness) / 2 * 127),
+                        (byte)(128 + (brightness + brightness2) / 2 * 127),
+                        255);
                 }
             }
-            gradientTextureBoth.SetData(new TextureUpload(data2));
 
+            gradientTextureBoth.SetData(new TextureUpload(new RawTextureRgba32(width, width, data)));
 
             Children = new Drawable[]
             {

@@ -8,6 +8,7 @@ using OpenTK.Graphics.ES30;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Logging;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Graphics.Textures
 {
@@ -69,9 +70,9 @@ namespace osu.Framework.Graphics.Textures
             {
                 // add an empty white rect to use for solid box drawing (shader optimisation).
                 // see Texture.WhitePixel for usage.
-                var raw = new RawTexture(whiteTex.Width, whiteTex.Height);
+                var raw = new RawTextureRgba32(whiteTex.Width, whiteTex.Height);
                 for (int i = 0; i < raw.Data.Length; i++)
-                    raw.Data[i] = 255;
+                    raw.Data[i] = Rgba32.White;
                 whiteTex.SetData(new TextureUpload(raw));
             }
         }

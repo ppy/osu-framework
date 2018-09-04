@@ -12,6 +12,7 @@ using osu.Framework.Input.States;
 using osu.Framework.Testing;
 using OpenTK;
 using OpenTK.Graphics;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Tests.Visual
 {
@@ -22,17 +23,13 @@ namespace osu.Framework.Tests.Visual
         {
             const int width = 2;
             Texture gradientTexture = new Texture(width, 1, true);
-            byte[] data = new byte[width * 4];
+            Rgba32[] data = new Rgba32[width];
             for (int i = 0; i < width; ++i)
             {
-                float brightness = (float)i / (width - 1);
-                int index = i * 4;
-                data[index + 0] = (byte)(brightness * 255);
-                data[index + 1] = (byte)(brightness * 255);
-                data[index + 2] = (byte)(brightness * 255);
-                data[index + 3] = 255;
+                var brightnessByte = (byte)((float)i / (width - 1) * 255);
+                data[i] = new Rgba32(brightnessByte, brightnessByte, brightnessByte);
             }
-            gradientTexture.SetData(new TextureUpload(data));
+            gradientTexture.SetData(new TextureUpload(new RawTextureRgba32(width, 1, data)));
 
             SpriteText[] text = new SpriteText[6];
 

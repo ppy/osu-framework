@@ -12,7 +12,6 @@ using OpenTK.Graphics.ES30;
 using osu.Framework.Statistics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Vertices;
-using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Graphics.OpenGL.Textures
@@ -325,30 +324,9 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             {
                 while (uploadQueue.TryDequeue(out TextureUpload upload))
                 {
-                    if (upload.ImageData != null)
-                    {
-                        fixed (Rgba32* ptr = &MemoryMarshal.GetReference(upload.ImageData.GetPixelSpan()))
-                            doUpload(upload, (IntPtr)ptr);
-                        didUpload = true;
-                    }
-                    else
-                    {
-                        IntPtr dataPointer;
-                        if (upload.Data.Length == 0)
-                        {
-                            dataPointer = IntPtr.Zero;
-                            doUpload(upload, dataPointer);
-                        }
-                        else
-                        {
-                            GCHandle h0 = GCHandle.Alloc(upload.Data, GCHandleType.Pinned);
-                            dataPointer = h0.AddrOfPinnedObject();
-                            doUpload(upload, dataPointer);
-                            didUpload = true;
-                            h0.Free();
-                        }
-                    }
-
+                    fixed (Rgba32* ptr = &MemoryMarshal.GetReference(upload.Data))
+                        doUpload(upload, (IntPtr)ptr);
+                    didUpload = true;
                     upload.Dispose();
                 }
             }

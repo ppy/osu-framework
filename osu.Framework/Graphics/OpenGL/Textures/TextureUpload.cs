@@ -5,7 +5,6 @@ using System;
 using OpenTK.Graphics.ES30;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Textures;
-using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Graphics.OpenGL.Textures
@@ -30,26 +29,12 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// </summary>
         public RectangleI Bounds;
 
-        /// <summary>
-        /// The upload data.
-        /// </summary>
-        public readonly byte[] Data;
-
-        public Image<Rgba32> ImageData;
+        public ReadOnlySpan<Rgba32> Data => texture.GetImageData();
 
         /// <summary>
         /// The backing texture. A handle is kept to avoid early GC.
         /// </summary>
         private readonly RawTexture texture;
-
-        /// <summary>
-        /// Create an upload with arbitrary raw data.
-        /// </summary>
-        /// <param name="data"></param>
-        public TextureUpload(byte[] data)
-        {
-            Data = data;
-        }
 
         /// <summary>
         /// Create an upload from a <see cref="RawTexture"/>. This is the preferred method.
@@ -58,9 +43,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         public TextureUpload(RawTexture texture)
         {
             this.texture = texture;
-
-            ImageData = texture.ImageData;
-            Data = texture.Data;
         }
 
         #region IDisposable Support

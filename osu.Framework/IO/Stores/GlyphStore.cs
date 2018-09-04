@@ -9,7 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using osu.Framework.Logging;
-using SixLabors.ImageSharp.Advanced;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.IO.Stores
 {
@@ -25,7 +25,7 @@ namespace osu.Framework.IO.Stores
 
         protected BitmapFont Font => completionSource.Task.Result;
 
-        private readonly TimedExpiryCache<int, RawTexture> texturePages = new TimedExpiryCache<int, RawTexture>();
+        private readonly TimedExpiryCache<int, RawTextureImage> texturePages = new TimedExpiryCache<int, RawTextureImage>();
 
         private readonly TaskCompletionSource<BitmapFont> completionSource = new TaskCompletionSource<BitmapFont>();
 
@@ -91,82 +91,40 @@ namespace osu.Framework.IO.Stores
 
         private RawTexture loadCharacter(Character c)
         {
-            RawTexture page = getTexturePage(c.TexturePage);
+            var page = getTexturePage(c.TexturePage);
             loadedGlyphCount++;
 
             int width = c.Bounds.Width + c.Offset.X + 1;
             int height = c.Bounds.Height + c.Offset.Y + 1;
-            int length = width * height * 4;
-            byte[] pixels = new byte[length];
+            int length = width * height;
+            
+            var pixels = new Rgba32[length];
+            
+            var span = page.GetImageData();
 
-            if (page.ImageData != null)
+            for (int y = 0; y < height; y++)
             {
-                var span = page.ImageData.GetPixelSpan();
+                for (int x = 0; x < width; x++)
+                {
+                    int dest = y * width + x;
 
-                for (int y = 0; y < height; y++)
-                {
-                    for (int x = 0; x < width; x++)
-                    {
-                        int desti = y * width * 4 + x * 4;
-                        if (x >= c.Offset.X && y >= c.Offset.Y
-                                            && x - c.Offset.X < c.Bounds.Width && y - c.Offset.Y < c.Bounds.Height)
-                        {
-                            int srci = (c.Bounds.Y + y - c.Offset.Y) * page.Width + (c.Bounds.X + x - c.Offset.X);
-                            var col = span[srci];
-                            pixels[desti] = col.R;
-                            pixels[desti + 1] = col.G;
-                            pixels[desti + 2] = col.B;
-                            pixels[desti + 3] = col.A;
-                        }
-                        else
-                        {
-                            pixels[desti] = 255;
-                            pixels[desti + 1] = 255;
-                            pixels[desti + 2] = 255;
-                            pixels[desti + 3] = 0;
-                        }
-                    }
-                }
-            }
-            else
-            {
-                for (int y = 0; y < height; y++)
-                {
-                    for (int x = 0; x < width; x++)
-                    {
-                        int desti = y * width * 4 + x * 4;
-                        if (x >= c.Offset.X && y >= c.Offset.Y
-                                            && x - c.Offset.X < c.Bounds.Width && y - c.Offset.Y < c.Bounds.Height)
-                        {
-                            int srci = (c.Bounds.Y + y - c.Offset.Y) * page.Width * 4
-                                       + (c.Bounds.X + x - c.Offset.X) * 4;
-                            pixels[desti] = page.Data[srci];
-                            pixels[desti + 1] = page.Data[srci + 1];
-                            pixels[desti + 2] = page.Data[srci + 2];
-                            pixels[desti + 3] = page.Data[srci + 3];
-                        }
-                        else
-                        {
-                            pixels[desti] = 255;
-                            pixels[desti + 1] = 255;
-                            pixels[desti + 2] = 255;
-                            pixels[desti + 3] = 0;
-                        }
-                    }
+                    if (x >= c.Offset.X && y >= c.Offset.Y && x - c.Offset.X < c.Bounds.Width && y - c.Offset.Y < c.Bounds.Height)
+                        pixels[dest] = span[(c.Bounds.Y + y - c.Offset.Y) * page.Width + (c.Bounds.X + x - c.Offset.X)];
+                    else
+                        pixels[dest] = new Rgba32(255, 255, 255, 0);
                 }
             }
 
-
-            return new RawTexture(width, height, pixels);
+            return new RawTextureRgba32(width, height, pixels);
         }
 
-        private RawTexture getTexturePage(int texturePage)
+        private RawTextureImage getTexturePage(int texturePage)
         {
-            if (!texturePages.TryGetValue(texturePage, out RawTexture t))
+            if (!texturePages.TryGetValue(texturePage, out RawTextureImage t))
             {
                 loadedPageCount++;
                 using (var stream = store.GetStream($@"{assetName}_{texturePage.ToString().PadLeft((Font.Pages.Length - 1).ToString().Length, '0')}.png"))
-                    texturePages.Add(texturePage, t = new RawTexture(stream));
+                    texturePages.Add(texturePage, t = new RawTextureImage(stream));
             }
 
             return t;

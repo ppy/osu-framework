@@ -49,7 +49,7 @@ namespace osu.Framework.Tests.Visual
                 var image = t.Result;
 
                 var tex = new Texture(image.Width, image.Height);
-                tex.SetData(new TextureUpload(new RawTexture(image)));
+                tex.SetData(new TextureUpload(new RawTextureImage(image)));
 
                 display.Texture = tex;
             }));
