@@ -11,9 +11,9 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Graphics.Sprites
 {
-    public class NewSpriteTextDrawNode : DrawNode
+    internal class SpriteTextDrawNode : DrawNode
     {
-        internal NewSpriteTextDrawNodeSharedData Shared;
+        internal SpriteTextDrawNodeSharedData Shared;
 
         public bool Shadow;
         public Color4 ShadowColour;
@@ -54,7 +54,7 @@ namespace osu.Framework.Graphics.Sprites
         }
     }
 
-    internal class NewSpriteTextDrawNodeSharedData
+    internal class SpriteTextDrawNodeSharedData
     {
         public Shader TextureShader;
         public Shader RoundedTextureShader;
