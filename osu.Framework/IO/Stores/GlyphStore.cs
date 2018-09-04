@@ -97,9 +97,9 @@ namespace osu.Framework.IO.Stores
             int width = c.Bounds.Width + c.Offset.X + 1;
             int height = c.Bounds.Height + c.Offset.Y + 1;
             int length = width * height;
-            
+
             var pixels = new Rgba32[length];
-            
+
             var span = page.GetImageData();
 
             for (int y = 0; y < height; y++)
