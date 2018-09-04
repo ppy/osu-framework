@@ -176,46 +176,157 @@ namespace osu.Framework.Tests.Visual
             private static readonly Vector2 shadow_offset = new Vector2(0, 0.06f);
             private static readonly char[] default_fixed_width_exceptions = { '.', ':', ',' };
 
+            private string text;
+
             /// <summary>
             /// Gets or sets the text to be displayed.
             /// </summary>
-            public string Text;
+            public string Text
+            {
+                get => text;
+                set
+                {
+                    if (text == value)
+                        return;
+                    text = value;
+
+                    charactersCache.Invalidate();
+                    Invalidate(Invalidation.DrawNode, shallPropagate: false);
+                }
+            }
+
+            private float textSize = default_text_size;
 
             /// <summary>
             /// The size of the text in local space. This means that if TextSize is set to 16, a single line will have a height of 16.
             /// </summary>
-            public float TextSize = default_text_size;
+            public float TextSize
+            {
+                get => textSize;
+                set
+                {
+                    if (textSize == value)
+                        return;
+                    textSize = value;
+
+                    charactersCache.Invalidate();
+                    shadowOffsetCache.Invalidate();
+                    Invalidate(Invalidation.DrawNode, shallPropagate: false);
+                }
+            }
+
+            private string font;
 
             /// <summary>
             /// The name of the font to use when looking up textures for the individual characters.
             /// </summary>
-            public string Font;
+            public string Font
+            {
+                get => font;
+                set
+                {
+                    if (font == value)
+                        return;
+                    font = value;
+
+                    charactersCache.Invalidate();
+                    Invalidate(Invalidation.DrawNode, shallPropagate: false);
+                }
+            }
+
+            private bool allowMultiline = true;
 
             /// <summary>
             /// True if the text should be wrapped if it gets too wide. Note that \n does NOT cause a line break. If you need explicit line breaks, use <see cref="TextFlowContainer"/> instead.
             /// </summary>
-            public bool AllowMultiline = true;
+            public bool AllowMultiline
+            {
+                get => allowMultiline;
+                set
+                {
+                    if (allowMultiline == value)
+                        return;
+                    allowMultiline = value;
+
+                    charactersCache.Invalidate();
+                    Invalidate(Invalidation.DrawNode, shallPropagate: false);
+                }
+            }
+
+            private bool shadow;
 
             /// <summary>
             /// True if a shadow should be displayed around the text.
             /// </summary>
-            public bool Shadow;
+            public bool Shadow
+            {
+                get => shadow;
+                set
+                {
+                    if (shadow == value)
+                        return;
+                    shadow = value;
+
+                    Invalidate(Invalidation.DrawNode, shallPropagate: false);
+                }
+            }
+
+            private Color4 shadowColour = new Color4(0, 0, 0, 0.2f);
 
             /// <summary>
             /// The colour of the shadow displayed around the text. A shadow will only be displayed if the <see cref="Shadow"/> property is set to true.
             /// </summary>
-            public Color4 ShadowColour = new Color4(0, 0, 0, 0.2f);
+            public Color4 ShadowColour
+            {
+                get => shadowColour;
+                set
+                {
+                    if (shadowColour == value)
+                        return;
+                    shadowColour = value;
+
+                    Invalidate(Invalidation.DrawNode, shallPropagate: false);
+                }
+            }
+
+            private bool useFullGlyphHeight = true;
 
             /// <summary>
             /// True if the <see cref="NewSpriteText"/>'s vertical size should be equal to <see cref="TextSize"/> (the full height) or precisely the size of used characters.
             /// Set to false to allow better centering of individual characters/numerals/etc.
             /// </summary>
-            public bool UseFullGlyphHeight = true;
+            public bool UseFullGlyphHeight
+            {
+                get => useFullGlyphHeight;
+                set
+                {
+                    if (useFullGlyphHeight == value)
+                        return;
+                    useFullGlyphHeight = value;
+
+                    charactersCache.Invalidate();
+                    Invalidate(Invalidation.DrawNode, shallPropagate: false);
+                }
+            }
+
+            private bool fixedWidth;
 
             /// <summary>
             /// True if all characters should be spaced apart the same distance.
             /// </summary>
-            public bool FixedWidth;
+            public bool FixedWidth
+            {
+                get => fixedWidth;
+                set
+                {
+                    if (fixedWidth == value)
+                        return;
+                    fixedWidth = value;
+
+                    charactersCache.Invalidate();
+                    Invalidate(Invalidation.DrawNode, shallPropagate: false);
+                }
+            }
 
             /// <summary>
             /// An array of characters which should not get a fixed width in a <see cref="FixedWidth"/> instance.
@@ -233,15 +344,6 @@ namespace osu.Framework.Tests.Visual
                 spaceWidth = GetTextureForCharacter('.')?.DisplayWidth * 2 ?? default_text_size;
                 sharedData.TextureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
                 sharedData.RoundedTextureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
-            }
-
-            protected override void Update()
-            {
-                base.Update();
-
-                // Temporary
-                Invalidate();
-                charactersCache.Invalidate();
             }
 
             #region Sizing
@@ -409,6 +511,21 @@ namespace osu.Framework.Tests.Visual
 
             private Cached<Vector2> shadowOffsetCache;
             private Vector2 shadowOffset => shadowOffsetCache.IsValid ? shadowOffsetCache.Value : (shadowOffsetCache.Value = ToScreenSpace(shadow_offset * TextSize) - ToScreenSpace(Vector2.Zero));
+
+            #endregion
+
+            #region Invalidation
+
+            public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
+            {
+                if ((invalidation & (Invalidation.RequiredParentSizeToFit | Invalidation.DrawInfo)) > 0)
+                {
+                    charactersCache.Invalidate();
+                    shadowOffsetCache.Invalidate();
+                }
+
+                return base.Invalidate(invalidation, source, shallPropagate);
+            }
 
             #endregion
 
