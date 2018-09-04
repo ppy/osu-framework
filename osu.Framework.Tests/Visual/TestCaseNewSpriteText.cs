@@ -113,6 +113,57 @@ namespace osu.Framework.Tests.Visual
                             new TestNewSpriteText { Text = "Shadow = true", Shadow = true }
                         }
                     }
+                },
+                new Drawable[] { new TestOldSpriteText { Text = "Spacing = 5", Spacing = new Vector2(5) }, new TestNewSpriteText { Text = "Spacing = 5", Spacing = new Vector2(5) } },
+                new Drawable[]
+                {
+                    new Container
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        AutoSizeAxes = Axes.Both,
+                        Children = new Drawable[]
+                        {
+                            new Box { RelativeSizeAxes = Axes.Both, Colour = Color4.SlateGray },
+                            new TestOldSpriteText { Text = "Padded (autosize)", Padding = new MarginPadding(10) },
+                        }
+                    },
+                    new Container
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        AutoSizeAxes = Axes.Both,
+                        Children = new Drawable[]
+                        {
+                            new Box { RelativeSizeAxes = Axes.Both, Colour = Color4.SlateGray },
+                            new TestNewSpriteText { Text = "Padded (autosize)", Padding = new MarginPadding(10) },
+                        }
+                    }
+                },
+                new Drawable[]
+                {
+                    new Container
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        AutoSizeAxes = Axes.Both,
+                        Children = new Drawable[]
+                        {
+                            new Box { RelativeSizeAxes = Axes.Both, Colour = Color4.SlateGray },
+                            new TestOldSpriteText { Text = "Padded (fixed size)", AutoSizeAxes = Axes.Y, Width = 50, Padding = new MarginPadding(10) },
+                        }
+                    },
+                    new Container
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        AutoSizeAxes = Axes.Both,
+                        Children = new Drawable[]
+                        {
+                            new Box { RelativeSizeAxes = Axes.Both, Colour = Color4.SlateGray },
+                            new TestNewSpriteText { Text = "Padded (fixed size)", Width = 50, Padding = new MarginPadding(10) },
+                        }
+                    }
                 }
             };
 

@@ -13,6 +13,7 @@ using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.IO.Stores;
+using osu.Framework.MathUtils;
 using OpenTK;
 using OpenTK.Graphics;
 
@@ -268,6 +269,28 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
+        private MarginPadding padding;
+
+        /// <summary>
+        /// Shrinks the space which may be occupied by characters of this <see cref="NewSpriteText"/> by the specified amount on each side.
+        /// </summary>
+        public MarginPadding Padding
+        {
+            get => padding;
+            set
+            {
+                if (padding.Equals(value))
+                    return;
+
+                if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(Padding)} must be finite, but is {value}.");
+
+                padding = value;
+
+                charactersCache.Invalidate();
+                Invalidate(Invalidation.DrawNode, shallPropagate: false);
+            }
+        }
+
         #endregion
 
         #region Characters
@@ -296,9 +319,9 @@ namespace osu.Framework.Graphics.Sprites
 
             float maxWidth = float.PositiveInfinity;
             if ((RelativeSizeAxes & Axes.X) > 0 || explicitWidth != null)
-                maxWidth = DrawWidth;
+                maxWidth = DrawWidth - Padding.Right;
 
-            Vector2 currentPos = Vector2.Zero;
+            Vector2 currentPos = new Vector2(Padding.Left, Padding.Top);
             float currentRowHeight = 0;
 
             foreach (var character in Text)
@@ -337,7 +360,7 @@ namespace osu.Framework.Graphics.Sprites
                 // Check if we need to go onto the next line
                 if (AllowMultiline && currentPos.X + glyphSize.X >= maxWidth)
                 {
-                    currentPos.X = 0;
+                    currentPos.X = Padding.Left;
                     currentPos.Y += currentRowHeight + spacing.Y;
                     currentRowHeight = 0;
                 }
@@ -369,9 +392,9 @@ namespace osu.Framework.Graphics.Sprites
             currentPos.Y += currentRowHeight;
 
             if (explicitWidth == null && (RelativeSizeAxes & Axes.X) == 0)
-                base.Width = currentPos.X;
+                base.Width = currentPos.X + Padding.Right;
             if (explicitHeight == null && (RelativeSizeAxes & Axes.Y) == 0)
-                base.Height = currentPos.Y;
+                base.Height = currentPos.Y + Padding.Bottom;
 
             charactersCache.Validate();
         }
