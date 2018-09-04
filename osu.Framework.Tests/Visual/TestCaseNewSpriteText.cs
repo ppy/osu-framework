@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Caching;
 using osu.Framework.Graphics;
@@ -173,6 +174,7 @@ namespace osu.Framework.Tests.Visual
         {
             private const float default_text_size = 20;
             private static readonly Vector2 shadow_offset = new Vector2(0, 0.06f);
+            private static readonly char[] default_fixed_width_exceptions = { '.', ':', ',' };
 
             public string Text;
 
@@ -196,6 +198,11 @@ namespace osu.Framework.Tests.Visual
             /// True if all characters should be spaced apart the same distance.
             /// </summary>
             public bool FixedWidth;
+
+            /// <summary>
+            /// An array of characters which should not get a fixed width in a <see cref="FixedWidth"/> instance.
+            /// </summary>
+            protected virtual char[] FixedWidthExceptionCharacters => default_fixed_width_exceptions;
 
             [Resolved]
             private FontStore store { get; set; }
@@ -332,8 +339,10 @@ namespace osu.Framework.Tests.Visual
                         textureSize = new Vector2(texture.DisplayWidth, texture.DisplayHeight);
                     }
 
+                    bool useFixedWidth = FixedWidth && !FixedWidthExceptionCharacters.Contains(character);
+
                     // Scaled glyph size to be used for positioning
-                    Vector2 glyphSize = new Vector2(FixedWidth ? constantWidth : textureSize.X, UseFullGlyphHeight ? 1 : textureSize.Y) * TextSize;
+                    Vector2 glyphSize = new Vector2(useFixedWidth ? constantWidth : textureSize.X, UseFullGlyphHeight ? 1 : textureSize.Y) * TextSize;
 
                     // Texture size scaled by TextSize
                     Vector2 scaledTextureSize = textureSize * TextSize;
