@@ -249,6 +249,25 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
+        private Vector2 spacing;
+
+        /// <summary>
+        /// Gets or sets the spacing between characters of this <see cref="NewSpriteText"/>.
+        /// </summary>
+        public Vector2 Spacing
+        {
+            get => spacing;
+            set
+            {
+                if (spacing == value)
+                    return;
+                spacing = value;
+
+                charactersCache.Invalidate();
+                Invalidate(Invalidation.DrawNode, shallPropagate: false);
+            }
+        }
+
         #endregion
 
         #region Characters
@@ -319,7 +338,7 @@ namespace osu.Framework.Graphics.Sprites
                 if (AllowMultiline && currentPos.X + glyphSize.X >= maxWidth)
                 {
                     currentPos.X = 0;
-                    currentPos.Y += currentRowHeight;
+                    currentPos.Y += currentRowHeight + spacing.Y;
                     currentRowHeight = 0;
                 }
 
@@ -327,7 +346,7 @@ namespace osu.Framework.Graphics.Sprites
                 currentRowHeight = Math.Max(currentRowHeight, glyphSize.Y);
 
                 if (char.IsWhiteSpace(character))
-                    currentPos.X += glyphSize.X;
+                    currentPos.X += glyphSize.X + spacing.X;
                 else
                 {
                     float offset = (glyphSize.X - scaledTextureSize.X) / 2;
@@ -339,9 +358,12 @@ namespace osu.Framework.Graphics.Sprites
                         DrawQuad = drawQuad
                     });
 
-                    currentPos.X += glyphSize.X;
+                    currentPos.X += glyphSize.X + spacing.X;
                 }
             }
+
+            // When we added the last character, we also added the spacing, but we should remove it to get the correct size
+            currentPos.X -= spacing.X;
 
             // The last row needs to be included in the height
             currentPos.Y += currentRowHeight;
