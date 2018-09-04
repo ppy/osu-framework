@@ -8,6 +8,7 @@
     <AssemblyName>osu.Framework</AssemblyName>
     <Description>A 2D application/game framework written with rhythm games in mind.</Description>
     <Product>osu!framework</Product>
+    <LangVersion>7.2</LangVersion>
   </PropertyGroup>
   <PropertyGroup Label="Nuget">
     <Title>osu!framework</Title>
