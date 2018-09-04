@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.IO;
 using System.Runtime.InteropServices;
 using osu.Framework.Development;
 using osu.Framework.Graphics.Batches;
@@ -52,6 +53,30 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             Height = height;
             this.manualMipmaps = manualMipmaps;
             this.filteringMode = filteringMode;
+        }
+
+        /// <summary>
+        /// Creates a texture from a data stream representing a bitmap.
+        /// </summary>
+        /// <param name="stream">The data stream containing the texture data.</param>
+        /// <param name="atlas">The atlas to add the texture to.</param>
+        /// <returns>The created texture.</returns>
+        public static Texture FromStream(Stream stream, TextureAtlas atlas = null)
+        {
+            if (stream == null || stream.Length == 0)
+                return null;
+
+            try
+            {
+                var data = new TextureUpload(stream);
+                Texture tex = atlas == null ? new Texture(data.Width, data.Height) : new Texture(atlas.Add(data.Width, data.Height));
+                tex.SetData(data);
+                return tex;
+            }
+            catch (ArgumentException)
+            {
+                return null;
+            }
         }
 
         #region Disposal
