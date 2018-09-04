@@ -176,16 +176,34 @@ namespace osu.Framework.Tests.Visual
             private static readonly Vector2 shadow_offset = new Vector2(0, 0.06f);
             private static readonly char[] default_fixed_width_exceptions = { '.', ':', ',' };
 
+            /// <summary>
+            /// Gets or sets the text to be displayed.
+            /// </summary>
             public string Text;
 
+            /// <summary>
+            /// The size of the text in local space. This means that if TextSize is set to 16, a single line will have a height of 16.
+            /// </summary>
             public float TextSize = default_text_size;
 
+            /// <summary>
+            /// The name of the font to use when looking up textures for the individual characters.
+            /// </summary>
             public string Font;
 
+            /// <summary>
+            /// True if the text should be wrapped if it gets too wide. Note that \n does NOT cause a line break. If you need explicit line breaks, use <see cref="TextFlowContainer"/> instead.
+            /// </summary>
             public bool AllowMultiline = true;
 
+            /// <summary>
+            /// True if a shadow should be displayed around the text.
+            /// </summary>
             public bool Shadow;
 
+            /// <summary>
+            /// The colour of the shadow displayed around the text. A shadow will only be displayed if the <see cref="Shadow"/> property is set to true.
+            /// </summary>
             public Color4 ShadowColour = new Color4(0, 0, 0, 0.2f);
 
             /// <summary>
