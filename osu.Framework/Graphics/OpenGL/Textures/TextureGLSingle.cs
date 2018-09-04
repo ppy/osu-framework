@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using osu.Framework.Development;
 using osu.Framework.Graphics.Batches;
@@ -13,6 +12,7 @@ using OpenTK.Graphics.ES30;
 using osu.Framework.Statistics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Vertices;
+using osu.Framework.Graphics.Textures;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Graphics.OpenGL.Textures
@@ -280,7 +280,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             if (upload.Bounds.IsEmpty && upload.Data.Length > 0)
             {
                 upload.Bounds = new RectangleI(0, 0, width, height);
-                Debug.Assert(width * height == upload.Data.Length);
+                if (width * height != upload.Data.Length)
+                    throw new InvalidOperationException($"Size of texture upload ({width}x{height}) does not match data length ({upload.Data.Length})");
             }
 
             IsTransparent = false;

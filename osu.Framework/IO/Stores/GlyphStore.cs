@@ -3,17 +3,19 @@
 
 using Cyotek.Drawing.BitmapFont;
 using osu.Framework.Allocation;
-using osu.Framework.Graphics.Textures;
 using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using osu.Framework.Graphics.Textures;
 using osu.Framework.Logging;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.IO.Stores
 {
-    public class GlyphStore : IResourceStore<RawTexture>
+    public class GlyphStore : IResourceStore<TextureUpload>
     {
         private readonly string assetName;
 
@@ -25,7 +27,7 @@ namespace osu.Framework.IO.Stores
 
         protected BitmapFont Font => completionSource.Task.Result;
 
-        private readonly TimedExpiryCache<int, RawTextureImage> texturePages = new TimedExpiryCache<int, RawTextureImage>();
+        private readonly TimedExpiryCache<int, TextureUpload> texturePages = new TimedExpiryCache<int, TextureUpload>();
 
         private readonly TaskCompletionSource<BitmapFont> completionSource = new TaskCompletionSource<BitmapFont>();
 
@@ -67,7 +69,7 @@ namespace osu.Framework.IO.Stores
             return Font.BaseHeight;
         }
 
-        public RawTexture Get(string name)
+        public TextureUpload Get(string name)
         {
             if (name.Length > 1 && !name.StartsWith($@"{FontName}/", StringComparison.Ordinal))
                 return null;
@@ -78,7 +80,7 @@ namespace osu.Framework.IO.Stores
             return loadCharacter(c);
         }
 
-        public virtual async Task<RawTexture> GetAsync(string name)
+        public virtual async Task<TextureUpload> GetAsync(string name)
         {
             if (name.Length > 1 && !name.StartsWith($@"{FontName}/", StringComparison.Ordinal))
                 return null;
@@ -89,18 +91,18 @@ namespace osu.Framework.IO.Stores
             return loadCharacter(c);
         }
 
-        private RawTexture loadCharacter(Character c)
+        private TextureUpload loadCharacter(Character c)
         {
             var page = getTexturePage(c.TexturePage);
             loadedGlyphCount++;
 
             int width = c.Bounds.Width + c.Offset.X + 1;
             int height = c.Bounds.Height + c.Offset.Y + 1;
-            int length = width * height;
 
-            var pixels = new Rgba32[length];
+            var image = new Image<Rgba32>(width, height);
 
-            var span = page.GetImageData();
+            var pixels = image.GetPixelSpan();
+            var span = page.Data;
 
             for (int y = 0; y < height; y++)
             {
@@ -115,16 +117,16 @@ namespace osu.Framework.IO.Stores
                 }
             }
 
-            return new RawTextureRgba32(width, height, pixels);
+            return new TextureUpload(image);
         }
 
-        private RawTextureImage getTexturePage(int texturePage)
+        private TextureUpload getTexturePage(int texturePage)
         {
-            if (!texturePages.TryGetValue(texturePage, out RawTextureImage t))
+            if (!texturePages.TryGetValue(texturePage, out TextureUpload t))
             {
                 loadedPageCount++;
                 using (var stream = store.GetStream($@"{assetName}_{texturePage.ToString().PadLeft((Font.Pages.Length - 1).ToString().Length, '0')}.png"))
-                    texturePages.Add(texturePage, t = new RawTextureImage(stream));
+                    texturePages.Add(texturePage, t = new TextureUpload(stream));
             }
 
             return t;

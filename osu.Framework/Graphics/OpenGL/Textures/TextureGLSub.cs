@@ -6,6 +6,7 @@ using osu.Framework.Graphics.Primitives;
 using OpenTK;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Vertices;
+using osu.Framework.Graphics.Textures;
 
 namespace osu.Framework.Graphics.OpenGL.Textures
 {

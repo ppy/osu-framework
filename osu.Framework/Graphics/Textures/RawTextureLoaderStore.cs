@@ -6,27 +6,27 @@ using osu.Framework.IO.Stores;
 
 namespace osu.Framework.Graphics.Textures
 {
-    public class RawTextureLoaderStore : ResourceStore<RawTexture>
+    public class TextureUploadLoaderStore : ResourceStore<TextureUpload>
     {
         private IResourceStore<byte[]> store { get; }
 
-        public RawTextureLoaderStore(IResourceStore<byte[]> store)
+        public TextureUploadLoaderStore(IResourceStore<byte[]> store)
         {
             this.store = store;
             (store as ResourceStore<byte[]>)?.AddExtension(@"png");
             (store as ResourceStore<byte[]>)?.AddExtension(@"jpg");
         }
 
-        public override Task<RawTexture> GetAsync(string name) => Task.Run(() => Get(name));
+        public override Task<TextureUpload> GetAsync(string name) => Task.Run(() => Get(name));
 
-        public override RawTexture Get(string name)
+        public override TextureUpload Get(string name)
         {
             try
             {
                 using (var stream = store.GetStream(name))
                 {
                     if (stream != null)
-                        return new RawTextureImage(stream);
+                        return new TextureUpload(stream);
                 }
             }
             catch

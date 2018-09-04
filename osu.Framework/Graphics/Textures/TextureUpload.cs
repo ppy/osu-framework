@@ -2,12 +2,15 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using OpenTK.Graphics.ES30;
+using System.IO;
+using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.Primitives;
-using osu.Framework.Graphics.Textures;
+using OpenTK.Graphics.ES30;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 
-namespace osu.Framework.Graphics.OpenGL.Textures
+namespace osu.Framework.Graphics.Textures
 {
     /// <summary>
     /// Low level class for queueing texture uploads to the GPU.
@@ -29,20 +32,41 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// </summary>
         public RectangleI Bounds;
 
-        public ReadOnlySpan<Rgba32> Data => texture.GetImageData();
+        // ReSharper disable once MergeConditionalExpression (can't merge; compile error)
+        public ReadOnlySpan<Rgba32> Data => image != null ? image.GetPixelSpan() : Span<Rgba32>.Empty;
+
+        public int Width => image?.Width ?? 0;
+
+        public int Height => image?.Height ?? 0;
 
         /// <summary>
         /// The backing texture. A handle is kept to avoid early GC.
         /// </summary>
-        private readonly RawTexture texture;
+        private readonly Image<Rgba32> image;
 
         /// <summary>
-        /// Create an upload from a <see cref="RawTexture"/>. This is the preferred method.
+        /// Create an upload from a <see cref="TextureUpload"/>. This is the preferred method.
         /// </summary>
-        /// <param name="texture">The texture to upload.</param>
-        public TextureUpload(RawTexture texture)
+        /// <param name="image">The texture to upload.</param>
+        public TextureUpload(Image<Rgba32> image)
         {
-            this.texture = texture;
+            this.image = image;
+        }
+
+        /// <summary>
+        /// Create an upload from an arbitrary image stream.
+        /// </summary>
+        /// <param name="stream">The image content.</param>
+        public TextureUpload(Stream stream)
+            : this(Image.Load(stream))
+        {
+        }
+
+        /// <summary>
+        /// Create an empty upload. Used by <see cref="FrameBuffer"/> for initialisation.
+        /// </summary>
+        internal TextureUpload()
+        {
         }
 
         #region IDisposable Support
@@ -54,7 +78,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             if (!disposed)
             {
                 disposed = true;
-                texture?.Dispose();
+                image?.Dispose();
             }
         }
 
