@@ -6,11 +6,11 @@ using osu.Framework.IO.Stores;
 
 namespace osu.Framework.Graphics.Textures
 {
-    public class TextureUploadLoaderStore : ResourceStore<TextureUpload>
+    public class TextureLoaderStore : ResourceStore<TextureUpload>
     {
         private IResourceStore<byte[]> store { get; }
 
-        public TextureUploadLoaderStore(IResourceStore<byte[]> store)
+        public TextureLoaderStore(IResourceStore<byte[]> store)
         {
             this.store = store;
             (store as ResourceStore<byte[]>)?.AddExtension(@"png");

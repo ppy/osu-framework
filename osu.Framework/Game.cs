@@ -99,8 +99,8 @@ namespace osu.Framework
             Resources = new ResourceStore<byte[]>();
             Resources.AddStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(@"osu.Framework.dll"), @"Resources"));
 
-            Textures = new TextureStore(new TextureUploadLoaderStore(new NamespacedResourceStore<byte[]>(Resources, @"Textures")));
-            Textures.AddStore(new TextureUploadLoaderStore(new OnlineStore()));
+            Textures = new TextureStore(new TextureLoaderStore(new NamespacedResourceStore<byte[]>(Resources, @"Textures")));
+            Textures.AddStore(new TextureLoaderStore(new OnlineStore()));
             dependencies.Cache(Textures);
 
             var tracks = new ResourceStore<byte[]>(Resources);
