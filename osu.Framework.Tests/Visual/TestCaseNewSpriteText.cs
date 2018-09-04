@@ -424,6 +424,11 @@ namespace osu.Framework.Tests.Visual
             }
 
             private string getTextureName(char c, bool useFont = true) => !useFont || string.IsNullOrEmpty(Font) ? c.ToString() : $@"{Font}/{c}";
+
+            public override string ToString()
+            {
+                return $@"""{Text}"" " + base.ToString();
+            }
         }
 
         private class NewSpriteTextDrawNodeSharedData
