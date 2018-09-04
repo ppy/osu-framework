@@ -2,7 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 using osu.Framework.Development;
@@ -37,7 +37,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             default_triangle_action = triangleBatch.AddAction;
         }
 
-        private readonly ConcurrentQueue<TextureUpload> uploadQueue = new ConcurrentQueue<TextureUpload>();
+        private readonly Queue<TextureUpload> uploadQueue = new Queue<TextureUpload>();
 
         private int internalWidth;
         private int internalHeight;
@@ -45,6 +45,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         private readonly All filteringMode;
         private TextureWrapMode internalWrapMode;
 
+        // ReSharper disable once InconsistentlySynchronizedField (no need to lock here. we don't really care if the value is stale).
         public override bool Loaded => textureId > 0 || uploadQueue.Count > 0;
 
         public TextureGLSingle(int width, int height, bool manualMipmaps = false, All filteringMode = All.Linear)
@@ -85,8 +86,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         {
             base.Dispose(isDisposing);
 
-            while (uploadQueue.TryDequeue(out TextureUpload u))
-                u.Dispose();
+            while (getNextUpload(out var upload))
+                upload.Dispose();
 
             GLWrapper.ScheduleDisposal(unload);
         }
@@ -311,10 +312,13 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
             IsTransparent = false;
 
-            bool requireUpload = uploadQueue.Count == 0;
-            uploadQueue.Enqueue(upload);
-            if (requireUpload)
-                GLWrapper.EnqueueTextureUpload(this);
+            lock (uploadQueue)
+            {
+                bool requireUpload = uploadQueue.Count == 0;
+                uploadQueue.Enqueue(upload);
+                if (requireUpload)
+                    GLWrapper.EnqueueTextureUpload(this);
+            }
         }
 
         public override bool Bind()
@@ -340,7 +344,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         private bool manualMipmaps;
 
-        internal override bool Upload()
+        internal override unsafe bool Upload()
         {
             // We should never run raw OGL calls on another thread than the main thread due to race conditions.
             ThreadSafety.EnsureDrawThread();
@@ -350,16 +354,14 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
             bool didUpload = false;
 
-            unsafe
-            {
-                while (uploadQueue.TryDequeue(out TextureUpload upload))
+            while (getNextUpload(out TextureUpload upload))
+                using (upload)
                 {
                     fixed (Rgba32* ptr = &MemoryMarshal.GetReference(upload.Data))
                         doUpload(upload, (IntPtr)ptr);
+
                     didUpload = true;
-                    upload.Dispose();
                 }
-            }
 
             if (didUpload && !manualMipmaps)
             {
@@ -368,6 +370,21 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             }
 
             return didUpload;
+        }
+
+        private bool getNextUpload(out TextureUpload upload)
+        {
+            lock (uploadQueue)
+            {
+                if (uploadQueue.Count == 0)
+                {
+                    upload = null;
+                    return false;
+                }
+
+                upload = uploadQueue.Dequeue();
+                return true;
+            }
         }
 
         private void doUpload(ITextureUpload upload, IntPtr dataPointer)
@@ -407,8 +424,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                     initializeLevel(upload.Level, width, height);
 
                     GL.TexSubImage2D(TextureTarget2d.Texture2D, upload.Level, upload.Bounds.X, upload.Bounds.Y, upload.Bounds.Width, upload.Bounds.Height, upload.Format,
-                        PixelType.UnsignedByte,
-                        dataPointer);
+                        PixelType.UnsignedByte, dataPointer);
                 }
             }
             // Just update content of the current texture
@@ -435,8 +451,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 int div = (int)Math.Pow(2, upload.Level);
 
                 GL.TexSubImage2D(TextureTarget2d.Texture2D, upload.Level, upload.Bounds.X / div, upload.Bounds.Y / div, upload.Bounds.Width / div, upload.Bounds.Height / div,
-                    upload.Format,
-                    PixelType.UnsignedByte, dataPointer);
+                    upload.Format, PixelType.UnsignedByte, dataPointer);
             }
         }
 
