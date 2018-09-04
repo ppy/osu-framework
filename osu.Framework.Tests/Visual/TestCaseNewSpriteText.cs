@@ -70,6 +70,25 @@ namespace osu.Framework.Tests.Visual
                         AutoSizeAxes = Axes.Y,
                         Child = new TestNewSpriteText { Text = "Relative size", RelativeSizeAxes = Axes.X }
                     },
+                },
+                new Drawable[]
+                {
+                    new Container
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        Width = 50,
+                        AutoSizeAxes = Axes.Y,
+                        Child = new TestOldSpriteText { Text = "GlyphHeight = false", AutoSizeAxes = Axes.Y, RelativeSizeAxes = Axes.X, UseFullGlyphHeight = false }
+                    },
+                    new Container
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        Width = 50,
+                        AutoSizeAxes = Axes.Y,
+                        Child = new TestNewSpriteText { Text = "GlyphHeight = false", RelativeSizeAxes = Axes.X, UseFullGlyphHeight = false }
+                    },
                 }
             };
 
@@ -126,6 +145,12 @@ namespace osu.Framework.Tests.Visual
             public float TextSize = default_text_size;
 
             public string Font;
+
+            /// <summary>
+            /// Whether to make the <see cref="NewSpriteText"/>'s vertical size equal to <see cref="TextSize"/> (the full height) or precisely the size of used characters.
+            /// Set to false to allow better centering of individual characters/numerals/etc.
+            /// </summary>
+            public bool UseFullGlyphHeight = true;
 
             [Resolved]
             private FontStore store { get; set; }
@@ -236,52 +261,66 @@ namespace osu.Framework.Tests.Visual
                     maxWidth = DrawWidth;
 
                 Vector2 currentPos = Vector2.Zero;
+                float currentRowHeight = 0;
 
                 foreach (var character in Text)
                 {
+                    // Unscaled size (i.e. not multiplied by TextSize)
+                    Vector2 charSize;
+                    Texture charTexture = null;
+
+                    // Retrieve the texture + size
                     if (char.IsWhiteSpace(character))
                     {
-                        float width = spaceWidth * TextSize;
+                        float size = spaceWidth;
 
                         if (character == 0x3000)
                         {
                             // Double-width space
-                            width *= 2;
+                            size *= 2;
                         }
 
-                        if (currentPos.X + width >= maxWidth)
-                        {
-                            currentPos.X = 0;
-                            currentPos.Y += TextSize;
-                        }
-
-                        currentPos.X += width;
-
-                        continue;
+                        charSize = new Vector2(size);
+                    }
+                    else
+                    {
+                        charTexture = GetTextureForCharacter(character);
+                        charSize = new Vector2(charTexture.DisplayWidth, charTexture.DisplayHeight);
                     }
 
-                    var tex = GetTextureForCharacter(character);
+                    // Size scaled by TextSize
+                    Vector2 scaledSize = charSize * TextSize;
 
-                    var textureSize = new Vector2(tex.DisplayWidth, tex.DisplayHeight) * TextSize;
-
-                    if (currentPos.X + textureSize.X >= maxWidth)
+                    // Check if we need to go onto the next line
+                    if (currentPos.X + scaledSize.X >= maxWidth)
                     {
                         currentPos.X = 0;
-                        currentPos.Y += TextSize;
+                        currentPos.Y += currentRowHeight;
+                        currentRowHeight = 0;
                     }
 
-                    var drawQuad = ToScreenSpace(new RectangleF(currentPos, textureSize));
+                    // The height of the row depends on whether we want to use the full glyph height or not
+                    float glyphHeight = UseFullGlyphHeight ? 1 : charSize.Y;
+                    currentRowHeight = Math.Max(currentRowHeight, glyphHeight * TextSize);
 
-                    charactersBacking.Add(new CharacterPart
+                    if (char.IsWhiteSpace(character))
+                        currentPos.X += scaledSize.X;
+                    else
                     {
-                        Texture = tex,
-                        DrawQuad = drawQuad
-                    });
+                        var drawQuad = ToScreenSpace(new RectangleF(currentPos, scaledSize));
 
-                    currentPos.X += textureSize.X;
+                        charactersBacking.Add(new CharacterPart
+                        {
+                            Texture = charTexture,
+                            DrawQuad = drawQuad
+                        });
+
+                        currentPos.X += scaledSize.X;
+                    }
                 }
 
-                currentPos.Y += TextSize;
+                // The last row needs to be included in the height
+                currentPos.Y += currentRowHeight;
 
                 if (explicitWidth == null && (RelativeSizeAxes & Axes.X) == 0)
                     base.Width = currentPos.X;
