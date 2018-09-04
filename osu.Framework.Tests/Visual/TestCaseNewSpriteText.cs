@@ -89,7 +89,9 @@ namespace osu.Framework.Tests.Visual
                         AutoSizeAxes = Axes.Y,
                         Child = new TestNewSpriteText { Text = "GlyphHeight = false", RelativeSizeAxes = Axes.X, UseFullGlyphHeight = false }
                     },
-                }
+                },
+                new Drawable[] { new TestOldSpriteText { Text = "FixedWidth = true", FixedWidth = true }, new TestNewSpriteText { Text = "FixedWidth = true", FixedWidth = true } },
+                new Drawable[] { new TestOldSpriteText { Text = "Scale = -1", Y = 20, Scale = new Vector2(-1) }, new TestNewSpriteText { Text = "Scale = -1", Y = 20, Scale = new Vector2(-1) } }
             };
 
             var rowDimensions = new List<Dimension>();
@@ -147,10 +149,15 @@ namespace osu.Framework.Tests.Visual
             public string Font;
 
             /// <summary>
-            /// Whether to make the <see cref="NewSpriteText"/>'s vertical size equal to <see cref="TextSize"/> (the full height) or precisely the size of used characters.
+            /// True if the <see cref="NewSpriteText"/>'s vertical size should be equal to <see cref="TextSize"/> (the full height) or precisely the size of used characters.
             /// Set to false to allow better centering of individual characters/numerals/etc.
             /// </summary>
             public bool UseFullGlyphHeight = true;
+
+            /// <summary>
+            /// True if all characters should be spaced apart the same distance.
+            /// </summary>
+            public bool FixedWidth;
 
             [Resolved]
             private FontStore store { get; set; }
@@ -266,13 +273,13 @@ namespace osu.Framework.Tests.Visual
                 foreach (var character in Text)
                 {
                     // Unscaled size (i.e. not multiplied by TextSize)
-                    Vector2 charSize;
-                    Texture charTexture = null;
+                    Vector2 textureSize;
+                    Texture texture = null;
 
                     // Retrieve the texture + size
                     if (char.IsWhiteSpace(character))
                     {
-                        float size = spaceWidth;
+                        float size = FixedWidth ? constantWidth : spaceWidth;
 
                         if (character == 0x3000)
                         {
@@ -280,19 +287,22 @@ namespace osu.Framework.Tests.Visual
                             size *= 2;
                         }
 
-                        charSize = new Vector2(size);
+                        textureSize = new Vector2(size);
                     }
                     else
                     {
-                        charTexture = GetTextureForCharacter(character);
-                        charSize = new Vector2(charTexture.DisplayWidth, charTexture.DisplayHeight);
+                        texture = GetTextureForCharacter(character);
+                        textureSize = new Vector2(texture.DisplayWidth, texture.DisplayHeight);
                     }
 
-                    // Size scaled by TextSize
-                    Vector2 scaledSize = charSize * TextSize;
+                    // Scaled glyph size to be used for positioning
+                    Vector2 glyphSize = new Vector2(FixedWidth ? constantWidth : textureSize.X, UseFullGlyphHeight ? 1 : textureSize.Y) * TextSize;
+
+                    // Texture size scaled by TextSize
+                    Vector2 scaledTextureSize = textureSize * TextSize;
 
                     // Check if we need to go onto the next line
-                    if (currentPos.X + scaledSize.X >= maxWidth)
+                    if (currentPos.X + glyphSize.X >= maxWidth)
                     {
                         currentPos.X = 0;
                         currentPos.Y += currentRowHeight;
@@ -300,22 +310,22 @@ namespace osu.Framework.Tests.Visual
                     }
 
                     // The height of the row depends on whether we want to use the full glyph height or not
-                    float glyphHeight = UseFullGlyphHeight ? 1 : charSize.Y;
-                    currentRowHeight = Math.Max(currentRowHeight, glyphHeight * TextSize);
+                    currentRowHeight = Math.Max(currentRowHeight, glyphSize.Y);
 
                     if (char.IsWhiteSpace(character))
-                        currentPos.X += scaledSize.X;
+                        currentPos.X += glyphSize.X;
                     else
                     {
-                        var drawQuad = ToScreenSpace(new RectangleF(currentPos, scaledSize));
+                        float offset = (glyphSize.X - scaledTextureSize.X) / 2;
+                        var drawQuad = ToScreenSpace(new RectangleF(new Vector2(currentPos.X + offset, currentPos.Y), scaledTextureSize));
 
                         charactersBacking.Add(new CharacterPart
                         {
-                            Texture = charTexture,
+                            Texture = texture,
                             DrawQuad = drawQuad
                         });
 
-                        currentPos.X += scaledSize.X;
+                        currentPos.X += glyphSize.X;
                     }
                 }
 
@@ -329,6 +339,12 @@ namespace osu.Framework.Tests.Visual
 
                 charactersCache.Validate();
             }
+
+            private Cached<float> constantWidthCache;
+
+            private float constantWidth => constantWidthCache.IsValid ? constantWidthCache.Value : (constantWidthCache.Value = computeConstantWidth());
+
+            private float computeConstantWidth() => GetTextureForCharacter('D')?.DisplayWidth ?? 0;
 
             #endregion
 
