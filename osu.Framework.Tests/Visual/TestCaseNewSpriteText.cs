@@ -50,6 +50,26 @@ namespace osu.Framework.Tests.Visual
                         AutoSizeAxes = Axes.Both,
                         Child = new TestNewSpriteText { Text = "||MASKED||" }
                     }
+                },
+                new Drawable[] { new TestOldSpriteText { Text = "Explicit width", AutoSizeAxes = Axes.Y, Width = 50 }, new TestNewSpriteText { Text = "Explicit width", Width = 50 } },
+                new Drawable[]
+                {
+                    new Container
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        Width = 50,
+                        AutoSizeAxes = Axes.Y,
+                        Child = new TestOldSpriteText { Text = "Relative size", AutoSizeAxes = Axes.Y, RelativeSizeAxes = Axes.X }
+                    },
+                    new Container
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        Width = 50,
+                        AutoSizeAxes = Axes.Y,
+                        Child = new TestNewSpriteText { Text = "Relative size", RelativeSizeAxes = Axes.X }
+                    },
                 }
             };
 
@@ -129,39 +149,99 @@ namespace osu.Framework.Tests.Visual
                 charactersCache.Invalidate();
             }
 
-#region Characters
-            private readonly List<CharacterPart> charactersBacking = new List<CharacterPart>();
+            #region Sizing
+
+            private float? explicitWidth;
+
+            /// <summary>
+            /// Gets or sets the width of this <see cref="NewSpriteText"/>. The <see cref="NewSpriteText"/> will maintain this width when set.
+            /// </summary>
+            public override float Width
+            {
+                get => base.Width;
+                set
+                {
+                    if (explicitWidth == value)
+                        return;
+
+                    base.Width = value;
+                    explicitWidth = value;
+
+                    charactersCache.Invalidate();
+                }
+            }
+
+            private float? explicitHeight;
+
+            /// <summary>
+            /// Gets or sets the height of this <see cref="NewSpriteText"/>. The <see cref="NewSpriteText"/> will maintain this height when set.
+            /// </summary>
+            public override float Height
+            {
+                get => base.Height;
+                set
+                {
+                    if (explicitHeight == value)
+                        return;
+
+                    base.Height = value;
+                    explicitHeight = value;
+
+                    charactersCache.Invalidate();
+                }
+            }
+
+            /// <summary>
+            /// Gets or sets the size of this <see cref="NewSpriteText"/>. The <see cref="NewSpriteText"/> will maintain this size when set.
+            /// </summary>
+            public override Vector2 Size
+            {
+                get => new Vector2(Width, Height);
+                set
+                {
+                    Width = value.X;
+                    Height = value.Y;
+                }
+            }
+
+            #endregion
+
+            #region Characters
 
             private Cached charactersCache = new Cached();
+
+            private readonly List<CharacterPart> charactersBacking = new List<CharacterPart>();
 
             private List<CharacterPart> characters
             {
                 get
                 {
-                    if (!charactersCache.IsValid)
-                    {
-                        computeCharacters();
-                        charactersCache.Validate();
-                    }
-
+                    computeCharacters();
                     return charactersBacking;
                 }
             }
 
             private void computeCharacters()
             {
+                if (charactersCache.IsValid)
+                    return;
+
                 charactersBacking.Clear();
 
                 if (string.IsNullOrEmpty(Text))
                     return;
 
-                float pos = 0;
+                float maxWidth = float.PositiveInfinity;
+                if ((RelativeSizeAxes & Axes.X) > 0 || explicitWidth != null)
+                    maxWidth = DrawWidth;
+
+                Vector2 currentPos = Vector2.Zero;
 
                 foreach (var character in Text)
                 {
                     if (char.IsWhiteSpace(character))
                     {
-                        float width = spaceWidth;
+                        float width = spaceWidth * TextSize;
 
                         if (character == 0x3000)
                         {
@@ -169,12 +249,28 @@ namespace osu.Framework.Tests.Visual
                             width *= 2;
                         }
 
-                        pos += width * TextSize;
+                        if (currentPos.X + width >= maxWidth)
+                        {
+                            currentPos.X = 0;
+                            currentPos.Y += TextSize;
+                        }
+
+                        currentPos.X += width;
+
                         continue;
                     }
 
                     var tex = GetTextureForCharacter(character);
-                    var drawQuad = ToScreenSpace(new RectangleF(new Vector2(pos, 0), new Vector2(tex.DisplayWidth, tex.DisplayHeight) * TextSize));
+
+                    var textureSize = new Vector2(tex.DisplayWidth, tex.DisplayHeight) * TextSize;
+
+                    if (currentPos.X + textureSize.X >= maxWidth)
+                    {
+                        currentPos.X = 0;
+                        currentPos.Y += TextSize;
+                    }
+
+                    var drawQuad = ToScreenSpace(new RectangleF(currentPos, textureSize));
 
                     charactersBacking.Add(new CharacterPart
                     {
@@ -182,14 +278,23 @@ namespace osu.Framework.Tests.Visual
                         DrawQuad = drawQuad
                     });
 
-                    pos += tex.DisplayWidth * TextSize;
+                    currentPos.X += textureSize.X;
                 }
 
-                Size = new Vector2(pos, TextSize);
-            }
-#endregion
+                currentPos.Y += TextSize;
 
-#region DrawNode
+                if (explicitWidth == null && (RelativeSizeAxes & Axes.X) == 0)
+                    base.Width = currentPos.X;
+                if (explicitHeight == null && (RelativeSizeAxes & Axes.Y) == 0)
+                    base.Height = currentPos.Y;
+
+                charactersCache.Validate();
+            }
+
+            #endregion
+
+            #region DrawNode
+
             private readonly NewSpriteTextDrawNodeSharedData sharedData = new NewSpriteTextDrawNodeSharedData();
 
             protected override DrawNode CreateDrawNode() => new NewSpriteTextDrawNode();
@@ -204,7 +309,8 @@ namespace osu.Framework.Tests.Visual
                 n.Parts.Clear();
                 n.Parts.AddRange(characters);
             }
-#endregion
+
+            #endregion
 
             /// <summary>
             /// Gets the texture for the given character.
