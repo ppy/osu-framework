@@ -7,6 +7,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Caching;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
@@ -31,7 +32,26 @@ namespace osu.Framework.Tests.Visual
                 new Drawable[] { new TestOldSpriteText { Colour = Color4.Green, Text = "Colour = green" }, new TestNewSpriteText { Colour = Color4.Green, Text = "Colour = green" } },
                 new Drawable[] { new TestOldSpriteText { Rotation = 45, Text = "Rotation = 45" }, new TestNewSpriteText { Rotation = 45, Text = "Rotation = 45" } },
                 new Drawable[] { new TestOldSpriteText { Scale = new Vector2(2), Text = "Scale = 2" }, new TestNewSpriteText { Scale = new Vector2(2), Text = "Scale = 2" } },
-                new Drawable[] { new TestOldSpriteText { Scale = new Vector2(2), Text = "Scale = 2" }, new TestNewSpriteText { Scale = new Vector2(2), Text = "Scale = 2" }, }
+                new Drawable[] { new TestOldSpriteText { Scale = new Vector2(2), Text = "Scale = 2" }, new TestNewSpriteText { Scale = new Vector2(2), Text = "Scale = 2" }, },
+                new Drawable[]
+                {
+                    new CircularContainer
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        Masking = true,
+                        AutoSizeAxes = Axes.Both,
+                        Child = new TestOldSpriteText { Text = "||||||||||||" }
+                    },
+                    new CircularContainer
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        Masking = true,
+                        AutoSizeAxes = Axes.Both,
+                        Child = new TestNewSpriteText { Text = "||||||||||||" }
+                    }
+                }
             };
 
             var rowDimensions = new List<Dimension>();
@@ -45,7 +65,7 @@ namespace osu.Framework.Tests.Visual
                 RowDimensions = rowDimensions.ToArray(),
                 ColumnDimensions = new[]
                 {
-                    new Dimension(GridSizeMode.AutoSize),
+                    new Dimension(GridSizeMode.Absolute, 300),
                     new Dimension(GridSizeMode.Absolute, 300),
                 }
             };
