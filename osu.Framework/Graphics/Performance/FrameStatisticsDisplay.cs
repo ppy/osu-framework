@@ -248,7 +248,7 @@ namespace osu.Framework.Graphics.Performance
             Schedule(() =>
             {
                 foreach (var t in timeBars)
-                    t.Sprite.Texture.SetData(new TextureUpload(fullBackground));
+                    t.Sprite.Texture.SetData(new TextureUpload(fullBackground.Clone()));
             });
         }
 

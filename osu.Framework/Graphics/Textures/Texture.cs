@@ -77,9 +77,14 @@ namespace osu.Framework.Graphics.Textures
 
         public Vector2 Size => new Vector2(Width, Height);
 
-        public void SetData(TextureUpload data)
+        /// <summary>
+        /// Queue a <see cref="TextureUpload"/> to be uploaded on the draw thread.
+        /// The provided upload will be disposed after the upload is completed.
+        /// </summary>
+        /// <param name="upload"></param>
+        public void SetData(TextureUpload upload)
         {
-            TextureGL?.SetData(data);
+            TextureGL?.SetData(upload);
         }
 
         protected virtual RectangleF TextureBounds(RectangleF? textureRect = null)
