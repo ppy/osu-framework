@@ -11,6 +11,7 @@ using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
+using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
@@ -54,6 +55,11 @@ namespace osu.Framework.Tests.Visual
                 new Drawable[] { new TestOldSpriteText { Text = "Explicit width", AutoSizeAxes = Axes.Y, Width = 50 }, new TestNewSpriteText { Text = "Explicit width", Width = 50 } },
                 new Drawable[]
                 {
+                    new TestOldSpriteText { Text = "AllowMultiline = false", AutoSizeAxes = Axes.Y, Width = 50, AllowMultiline = false },
+                    new TestNewSpriteText { Text = "AllowMultiline = false", Width = 50, AllowMultiline = false }
+                },
+                new Drawable[]
+                {
                     new Container
                     {
                         Anchor = Anchor.Centre,
@@ -91,7 +97,32 @@ namespace osu.Framework.Tests.Visual
                     },
                 },
                 new Drawable[] { new TestOldSpriteText { Text = "FixedWidth = true", FixedWidth = true }, new TestNewSpriteText { Text = "FixedWidth = true", FixedWidth = true } },
-                new Drawable[] { new TestOldSpriteText { Text = "Scale = -1", Y = 20, Scale = new Vector2(-1) }, new TestNewSpriteText { Text = "Scale = -1", Y = 20, Scale = new Vector2(-1) } }
+                new Drawable[] { new TestOldSpriteText { Text = "Scale = -1", Y = 20, Scale = new Vector2(-1) }, new TestNewSpriteText { Text = "Scale = -1", Y = 20, Scale = new Vector2(-1) } },
+                new Drawable[]
+                {
+                    new Container
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        AutoSizeAxes = Axes.Both,
+                        Children = new Drawable[]
+                        {
+                            new Box { RelativeSizeAxes = Axes.Both },
+                            new TestOldSpriteText { Text = "Shadow = true", Shadow = true }
+                        }
+                    },
+                    new Container
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        AutoSizeAxes = Axes.Both,
+                        Children = new Drawable[]
+                        {
+                            new Box { RelativeSizeAxes = Axes.Both },
+                            new TestNewSpriteText { Text = "Shadow = true", Shadow = true }
+                        }
+                    }
+                }
             };
 
             var rowDimensions = new List<Dimension>();
@@ -141,12 +172,19 @@ namespace osu.Framework.Tests.Visual
         private class NewSpriteText : Drawable
         {
             private const float default_text_size = 20;
+            private static readonly Vector2 shadow_offset = new Vector2(0, 0.06f);
 
             public string Text;
 
             public float TextSize = default_text_size;
 
             public string Font;
+
+            public bool AllowMultiline = true;
+
+            public bool Shadow;
+
+            public Color4 ShadowColour = new Color4(0, 0, 0, 0.2f);
 
             /// <summary>
             /// True if the <see cref="NewSpriteText"/>'s vertical size should be equal to <see cref="TextSize"/> (the full height) or precisely the size of used characters.
@@ -241,7 +279,6 @@ namespace osu.Framework.Tests.Visual
             #region Characters
 
             private Cached charactersCache = new Cached();
-
             private readonly List<CharacterPart> charactersBacking = new List<CharacterPart>();
 
             private List<CharacterPart> characters
@@ -302,7 +339,7 @@ namespace osu.Framework.Tests.Visual
                     Vector2 scaledTextureSize = textureSize * TextSize;
 
                     // Check if we need to go onto the next line
-                    if (currentPos.X + glyphSize.X >= maxWidth)
+                    if (AllowMultiline && currentPos.X + glyphSize.X >= maxWidth)
                     {
                         currentPos.X = 0;
                         currentPos.Y += currentRowHeight;
@@ -341,10 +378,10 @@ namespace osu.Framework.Tests.Visual
             }
 
             private Cached<float> constantWidthCache;
+            private float constantWidth => constantWidthCache.IsValid ? constantWidthCache.Value : (constantWidthCache.Value = GetTextureForCharacter('D')?.DisplayWidth ?? 0);
 
-            private float constantWidth => constantWidthCache.IsValid ? constantWidthCache.Value : (constantWidthCache.Value = computeConstantWidth());
-
-            private float computeConstantWidth() => GetTextureForCharacter('D')?.DisplayWidth ?? 0;
+            private Cached<Vector2> shadowOffsetCache;
+            private Vector2 shadowOffset => shadowOffsetCache.IsValid ? shadowOffsetCache.Value : (shadowOffsetCache.Value = ToScreenSpace(shadow_offset * TextSize) - ToScreenSpace(Vector2.Zero));
 
             #endregion
 
@@ -363,6 +400,12 @@ namespace osu.Framework.Tests.Visual
                 n.Shared = sharedData;
                 n.Parts.Clear();
                 n.Parts.AddRange(characters);
+
+                n.Shadow = Shadow;
+                n.ShadowColour = ShadowColour;
+
+                if (Shadow)
+                    n.ShadowOffset = shadowOffset;
             }
 
             #endregion
@@ -393,6 +436,10 @@ namespace osu.Framework.Tests.Visual
         {
             public NewSpriteTextDrawNodeSharedData Shared;
 
+            public bool Shadow;
+            public Color4 ShadowColour;
+            public Vector2 ShadowOffset;
+
             public readonly List<CharacterPart> Parts = new List<CharacterPart>();
 
             private bool needsRoundedShader => GLWrapper.IsMaskingActive;
@@ -407,10 +454,21 @@ namespace osu.Framework.Tests.Visual
 
                 for (int i = 0; i < Parts.Count; i++)
                 {
-                    Parts[i].Texture.DrawQuad(
-                        Parts[i].DrawQuad,
-                        DrawInfo.Colour,
-                        vertexAction: vertexAction);
+                    if (Shadow)
+                    {
+                        var shadowColour = DrawInfo.Colour;
+                        shadowColour.ApplyChild(ShadowColour);
+
+                        var shadowQuad = Parts[i].DrawQuad;
+                        shadowQuad.TopLeft += ShadowOffset;
+                        shadowQuad.TopRight += ShadowOffset;
+                        shadowQuad.BottomLeft += ShadowOffset;
+                        shadowQuad.BottomRight += ShadowOffset;
+
+                        Parts[i].Texture.DrawQuad(shadowQuad, shadowColour, vertexAction: vertexAction);
+                    }
+
+                    Parts[i].Texture.DrawQuad(Parts[i].DrawQuad, DrawInfo.Colour, vertexAction: vertexAction);
                 }
 
                 shader.Unbind();
