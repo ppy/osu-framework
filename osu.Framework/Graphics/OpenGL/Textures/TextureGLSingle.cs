@@ -370,7 +370,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             return didUpload;
         }
 
-        private void doUpload(TextureUpload upload, IntPtr dataPointer)
+        private void doUpload(ITextureUpload upload, IntPtr dataPointer)
         {
             // Do we need to generate a new texture?
             if (textureId <= 0 || internalWidth != width || internalHeight != height)

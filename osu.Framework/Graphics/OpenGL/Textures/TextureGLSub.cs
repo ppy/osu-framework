@@ -101,8 +101,12 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 upload.Bounds = bounds;
             else
             {
-                upload.Bounds.X += bounds.X;
-                upload.Bounds.Y += bounds.Y;
+                var adjustedBounds = upload.Bounds;
+
+                adjustedBounds.X += bounds.X;
+                adjustedBounds.Y += bounds.Y;
+
+                upload.Bounds = adjustedBounds;
             }
 
             parent?.SetData(upload);

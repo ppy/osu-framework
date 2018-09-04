@@ -15,22 +15,22 @@ namespace osu.Framework.Graphics.Textures
     /// <summary>
     /// Low level class for queueing texture uploads to the GPU.
     /// </summary>
-    public class TextureUpload : IDisposable
+    public class TextureUpload : ITextureUpload, IDisposable
     {
         /// <summary>
         /// The target mipmap level to upload into.
         /// </summary>
-        public int Level;
+        public int Level { get; set; }
 
         /// <summary>
         /// The texture format for this upload.
         /// </summary>
-        public PixelFormat Format = PixelFormat.Rgba;
+        public PixelFormat Format => PixelFormat.Rgba;
 
         /// <summary>
         /// The target bounds for this upload. If not specified, will assume to be (0, 0, width, height).
         /// </summary>
-        public RectangleI Bounds;
+        public RectangleI Bounds { get; set; }
 
         // ReSharper disable once MergeConditionalExpression (can't merge; compile error)
         public ReadOnlySpan<Rgba32> Data => image != null ? image.GetPixelSpan() : Span<Rgba32>.Empty;
