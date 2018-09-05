@@ -428,9 +428,9 @@ namespace osu.Framework.Graphics.Sprites
             finally
             {
                 if (requiresAutoSizedWidth)
-                    base.Width = charactersBacking.Count == 0 ? 0 : currentPos.X + Padding.Right;
+                    base.Width = currentPos.X == 0 ? 0 : currentPos.X + Padding.Right;
                 if (requiresAutoSizedHeight)
-                    base.Height = charactersBacking.Count == 0 ? 0 : currentPos.Y + Padding.Bottom;
+                    base.Height = currentPos.Y == 0 ? 0 : currentPos.Y + Padding.Bottom;
 
                 isComputingCharacters = false;
                 charactersCache.Validate();
