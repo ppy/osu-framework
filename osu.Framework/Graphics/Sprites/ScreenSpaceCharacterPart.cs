@@ -7,14 +7,14 @@ using osu.Framework.Graphics.Textures;
 namespace osu.Framework.Graphics.Sprites
 {
     /// <summary>
-    /// A character of a <see cref="SpriteText"/> provided with local space coordinates.
+    /// A character of a <see cref="SpriteText"/> provided with screen space draw coordinates.
     /// </summary>
-    internal struct CharacterPart
+    internal struct ScreenSpaceCharacterPart
     {
         /// <summary>
-        /// The local-space rectangle for the character to be drawn in.
+        /// The screen-space quad for the character to be drawn in.
         /// </summary>
-        public RectangleF DrawRectangle;
+        public Quad DrawQuad;
 
         /// <summary>
         /// The texture to draw the character with.
