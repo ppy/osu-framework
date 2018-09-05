@@ -1494,8 +1494,8 @@ namespace osu.Framework.Graphics
         {
             if (Parent == null) return Vector2.Zero;
 
-            var originalFlag = Parent.IgnoreAutoSizeForChildSize;
-            Parent.IgnoreAutoSizeForChildSize = true;
+            var originalFlag = Parent.ComputingChildRequiredParentSizeToFit;
+            Parent.ComputingChildRequiredParentSizeToFit = true;
 
             try
             {
@@ -1528,7 +1528,7 @@ namespace osu.Framework.Graphics
             }
             finally
             {
-                Parent.IgnoreAutoSizeForChildSize = originalFlag;
+                Parent.ComputingChildRequiredParentSizeToFit = originalFlag;
             }
         }
 

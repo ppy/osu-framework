@@ -1264,7 +1264,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        internal bool IgnoreAutoSizeForChildSize;
+        internal bool ComputingChildRequiredParentSizeToFit;
 
         /// <summary>
         /// The size of the coordinate space revealed to <see cref="InternalChildren"/>.
@@ -1274,11 +1274,11 @@ namespace osu.Framework.Graphics.Containers
         {
             get
             {
-                if (!IgnoreAutoSizeForChildSize) return DrawSize - Padding.Total;
-                var size = ApplyRelativeAxes(RelativeSizeAxes, BaseSize, FillMode);
-                if ((AutoSizeAxes & Axes.X) != 0) size.X = 0;
-                if ((AutoSizeAxes & Axes.Y) != 0) size.Y = 0;
-                return size - Padding.Total;
+                if (!ComputingChildRequiredParentSizeToFit) return DrawSize - Padding.Total;
+                var size = new Vector2(
+                    (AutoSizeAxes & Axes.X) != 0 ? 0 : BaseSize.X,
+                    (AutoSizeAxes & Axes.Y) != 0 ? 0 : BaseSize.Y);
+                return ApplyRelativeAxes(RelativeSizeAxes, size, FillMode.Stretch);
             }
         }
 
@@ -1286,7 +1286,7 @@ namespace osu.Framework.Graphics.Containers
         /// Positional offset applied to <see cref="InternalChildren"/>.
         /// Captures the effect of e.g. <see cref="Padding"/>.
         /// </summary>
-        public Vector2 ChildOffset => new Vector2(Padding.Left, Padding.Top);
+        public Vector2 ChildOffset => !ComputingChildRequiredParentSizeToFit ? new Vector2(Padding.Left, Padding.Top) : Vector2.Zero;
 
         private Vector2 relativeChildSize = Vector2.One;
 
@@ -1469,45 +1469,29 @@ namespace osu.Framework.Graphics.Containers
 
         private Vector2 computeAutoSize()
         {
-            MarginPadding originalPadding = Padding;
-            MarginPadding originalMargin = Margin;
+            Vector2 maxRequiredSize = Vector2.Zero;
 
-            try
+            // Find the maximum width/height of children
+            foreach (Drawable c in AliveInternalChildren)
             {
-                Padding = new MarginPadding();
-                Margin = new MarginPadding();
+                if (!c.IsPresent)
+                    continue;
 
-                if (AutoSizeAxes == Axes.None) return DrawSize;
+                var axes = AutoSizeAxes & ~c.BypassAutoSizeAxes;
+                if (axes == Axes.None)
+                    continue;
 
-                Vector2 maxBoundSize = Vector2.Zero;
+                Vector2 cBound = c.RequiredParentSizeToFit;
 
-                // Find the maximum width/height of children
-                foreach (Drawable c in AliveInternalChildren)
-                {
-                    if (!c.IsPresent)
-                        continue;
-
-                    Vector2 cBound = c.RequiredParentSizeToFit;
-
-                    if (!c.BypassAutoSizeAxes.HasFlag(Axes.X))
-                        maxBoundSize.X = Math.Max(maxBoundSize.X, cBound.X);
-
-                    if (!c.BypassAutoSizeAxes.HasFlag(Axes.Y))
-                        maxBoundSize.Y = Math.Max(maxBoundSize.Y, cBound.Y);
-                }
-
-                if (!AutoSizeAxes.HasFlag(Axes.X))
-                    maxBoundSize.X = BaseSize.X;
-                if (!AutoSizeAxes.HasFlag(Axes.Y))
-                    maxBoundSize.Y = BaseSize.Y;
-
-                return new Vector2(maxBoundSize.X, maxBoundSize.Y);
+                if (axes.HasFlag(Axes.X))
+                    maxRequiredSize.X = Math.Max(maxRequiredSize.X, cBound.X);
+                if (axes.HasFlag(Axes.Y))
+                    maxRequiredSize.Y = Math.Max(maxRequiredSize.Y, cBound.Y);
             }
-            finally
-            {
-                Padding = originalPadding;
-                Margin = originalMargin;
-            }
+
+            return new Vector2(
+                !AutoSizeAxes.HasFlag(Axes.X) ? BaseSize.X : maxRequiredSize.X + Padding.TotalHorizontal,
+                !AutoSizeAxes.HasFlag(Axes.Y) ? BaseSize.Y : maxRequiredSize.Y + Padding.TotalVertical);
         }
 
         private void updateAutoSize()
@@ -1515,12 +1499,9 @@ namespace osu.Framework.Graphics.Containers
             if (AutoSizeAxes == Axes.None)
                 return;
 
-            Vector2 b = computeAutoSize() + Padding.Total;
+            Vector2 newSize = computeAutoSize();
 
-            autoSizeResizeTo(new Vector2(
-                AutoSizeAxes.HasFlag(Axes.X) ? b.X : base.Width,
-                AutoSizeAxes.HasFlag(Axes.Y) ? b.Y : base.Height
-            ), AutoSizeDuration, AutoSizeEasing);
+            autoSizeResizeTo(newSize, AutoSizeDuration, AutoSizeEasing);
 
             //note that this is called before autoSize becomes valid. may be something to consider down the line.
             //might work better to add an OnRefresh event in Cached<> and invoke there.
