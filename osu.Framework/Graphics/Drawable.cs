@@ -114,7 +114,7 @@ namespace osu.Framework.Graphics
         /// Whether this Drawable should be disposed when it is automatically removed from
         /// its <see cref="Parent"/> due to <see cref="ShouldBeAlive"/> being false.
         /// </summary>
-        public virtual bool DisposeOnDeathRemoval => false;
+        public virtual bool DisposeOnDeathRemoval => RemoveCompletedTransforms;
 
         private static readonly ConcurrentDictionary<Type, Action<object>> unbind_action_cache = new ConcurrentDictionary<Type, Action<object>>();
 
@@ -575,7 +575,7 @@ namespace osu.Framework.Graphics
                         offset.Y = 0;
                 }
 
-                return applyRelativeAxes(RelativePositionAxes, Position - offset, FillMode.Stretch);
+                return ApplyRelativeAxes(RelativePositionAxes, Position - offset, FillMode.Stretch);
             }
         }
 
@@ -703,7 +703,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Absolute size of this Drawable in the <see cref="Parent"/>'s coordinate system.
         /// </summary>
-        public Vector2 DrawSize => drawSizeBacking.IsValid ? drawSizeBacking : (drawSizeBacking.Value = applyRelativeAxes(RelativeSizeAxes, Size, FillMode));
+        public Vector2 DrawSize => drawSizeBacking.IsValid ? drawSizeBacking : (drawSizeBacking.Value = ApplyRelativeAxes(RelativeSizeAxes, Size, FillMode));
 
         /// <summary>
         /// X component of <see cref="DrawSize"/>.
@@ -778,7 +778,7 @@ namespace osu.Framework.Graphics
         /// <param name="v">The coordinates to convert.</param>
         /// <param name="fillMode">The <see cref="FillMode"/> to be used.</param>
         /// <returns>Absolute coordinates in <see cref="Parent"/>'s space.</returns>
-        private Vector2 applyRelativeAxes(Axes relativeAxes, Vector2 v, FillMode fillMode)
+        protected Vector2 ApplyRelativeAxes(Axes relativeAxes, Vector2 v, FillMode fillMode)
         {
             if (relativeAxes != Axes.None)
             {
