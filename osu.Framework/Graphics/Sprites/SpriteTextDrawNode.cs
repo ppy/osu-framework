@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Shaders;
@@ -16,7 +17,7 @@ namespace osu.Framework.Graphics.Sprites
         internal SpriteTextDrawNodeSharedData Shared;
 
         public bool Shadow;
-        public Color4 ShadowColour;
+        public ColourInfo ShadowColour;
         public Vector2 ShadowOffset;
 
         internal readonly List<ScreenSpaceCharacterPart> Parts = new List<ScreenSpaceCharacterPart>();
@@ -31,13 +32,18 @@ namespace osu.Framework.Graphics.Sprites
 
             shader.Bind();
 
+            var avgColour = (Color4)DrawInfo.Colour.AverageColour;
+            float shadowAlpha = (float)Math.Pow(Math.Max(Math.Max(avgColour.R, avgColour.G), avgColour.B), 2);
+
+            //adjust shadow alpha based on highest component intensity to avoid muddy display of darker text.
+            //squared result for quadratic fall-off seems to give the best result.
+            var shadowColour = DrawInfo.Colour;
+            shadowColour.ApplyChild(ShadowColour.MultiplyAlpha(shadowAlpha));
+
             for (int i = 0; i < Parts.Count; i++)
             {
                 if (Shadow)
                 {
-                    var shadowColour = DrawInfo.Colour;
-                    shadowColour.ApplyChild(ShadowColour);
-
                     var shadowQuad = Parts[i].DrawQuad;
                     shadowQuad.TopLeft += ShadowOffset;
                     shadowQuad.TopRight += ShadowOffset;
