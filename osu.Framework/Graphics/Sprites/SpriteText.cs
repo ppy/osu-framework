@@ -38,7 +38,7 @@ namespace osu.Framework.Graphics.Sprites
         /// </summary>
         public bool UseFullGlyphHeight = true;
 
-        public override bool IsPresent => base.IsPresent && (!string.IsNullOrEmpty(text) || !layout.IsValid);
+        public override bool IsPresent => base.IsPresent && (!string.IsNullOrEmpty(text) || !textCache.IsValid);
 
         /// <summary>
         /// True if the text should be wrapped if it gets too wide. Note that \n does NOT cause a line break. If you need explicit line breaks, use <see cref="TextFlowContainer"/> instead.
@@ -60,7 +60,7 @@ namespace osu.Framework.Graphics.Sprites
             set
             {
                 font = value;
-                layout.Invalidate();
+                textCache.Invalidate();
             }
         }
 
@@ -74,10 +74,12 @@ namespace osu.Framework.Graphics.Sprites
             get => shadow;
             set
             {
-                if (shadow == value) return;
-
+                if (shadow == value)
+                    return;
                 shadow = value;
-                layout.Invalidate(); // Trigger a layout refresh
+
+                // Trigger a layout refresh because the shadows aren't in the hierarchy yet
+                textCache.Invalidate();
             }
         }
 
@@ -94,7 +96,7 @@ namespace osu.Framework.Graphics.Sprites
             {
                 shadowColour = value;
                 if (shadow)
-                    layout.Invalidate();
+                    shadowCache.Invalidate();
             }
         }
 
@@ -116,7 +118,8 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        private Cached layout = new Cached();
+        private Cached textCache = new Cached();
+        private Cached shadowCache = new Cached();
 
         private float spaceWidth;
 
@@ -146,19 +149,18 @@ namespace osu.Framework.Graphics.Sprites
             get => textSize;
             set
             {
-                if (textSize == value) return;
-
+                if (textSize == value)
+                    return;
                 textSize = value;
 
-                layout.Invalidate();
+                textCache.Invalidate();
             }
         }
 
         [BackgroundDependencyLoader]
         private void load()
         {
-            spaceWidth = CreateCharacterDrawable('.')?.DrawWidth * 2 ?? default_text_size;
-
+            spaceWidth = GetTextureForCharacter('.')?.DisplayWidth * 2 ?? default_text_size;
             validateLayout();
         }
 
@@ -190,7 +192,7 @@ namespace osu.Framework.Graphics.Sprites
                 return;
 
             text = newText ?? string.Empty;
-            layout.Invalidate();
+            textCache.Invalidate();
         }
 
         private string text = string.Empty;
@@ -224,37 +226,36 @@ namespace osu.Framework.Graphics.Sprites
 
         private void validateLayout()
         {
-            if (!layout.IsValid)
+            if (!textCache.IsValid)
             {
                 computeLayout();
-                layout.Validate();
+                textCache.Validate();
+            }
+
+            if (!shadowCache.IsValid)
+            {
+                computeShadowColour();
+                shadowCache.Validate();
             }
         }
 
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
             if ((invalidation & Invalidation.Colour) > 0 && Shadow)
-                layout.Invalidate(); //we may need to recompute the shadow alpha if our text colour has changed (see shadowAlpha).
+                shadowCache.Invalidate();
 
             return base.Invalidate(invalidation, source, shallPropagate);
         }
 
         private string lastText;
-        private float lastShadowAlpha;
         private string lastFont;
 
         private void computeLayout()
         {
-            //adjust shadow alpha based on highest component intensity to avoid muddy display of darker text.
-            //squared result for quadratic fall-off seems to give the best result.
-            var avgColour = (Color4)DrawInfo.Colour.AverageColour;
-            float shadowAlpha = (float)Math.Pow(Math.Max(Math.Max(avgColour.R, avgColour.G), avgColour.B), 2);
-
-            //we can't keep existing drawabled if our shadow has changed, as the shadow is applied in the add-loop.
+            //we can't keep existing drawables if our shadow has changed, as the shadow is applied in the add-loop.
             //this could potentially be optimised if necessary.
-            bool allowKeepingExistingDrawables = shadowAlpha == lastShadowAlpha && font == lastFont;
+            bool allowKeepingExistingDrawables = font == lastFont;
 
-            lastShadowAlpha = shadowAlpha;
             lastFont = font;
 
             //keep sprites which haven't changed since last layout.
@@ -286,7 +287,7 @@ namespace osu.Framework.Graphics.Sprites
             }
 
             if (FixedWidth && !constantWidth.HasValue)
-                constantWidth = CreateCharacterDrawable('D').DrawWidth;
+                constantWidth = GetTextureForCharacter('D').DisplayWidth;
 
             foreach (var k in keepDrawables)
             {
@@ -300,7 +301,7 @@ namespace osu.Framework.Graphics.Sprites
 
                 bool fixedWidth = FixedWidth && !FixedWidthExceptionCharacters.Contains(c);
 
-                Drawable d;
+                Drawable characterDrawable;
 
                 if (char.IsWhiteSpace(c))
                 {
@@ -313,7 +314,7 @@ namespace osu.Framework.Graphics.Sprites
                             break;
                     }
 
-                    d = new Container
+                    characterDrawable = new CharacterContainer
                     {
                         Size = new Vector2(width),
                         Scale = new Vector2(TextSize),
@@ -322,40 +323,59 @@ namespace osu.Framework.Graphics.Sprites
                 }
                 else
                 {
-                    d = CreateCharacterDrawable(c);
+                    characterDrawable = CreateCharacterDrawable(c);
 
                     if (fixedWidth)
                     {
-                        d.Anchor = Anchor.TopCentre;
-                        d.Origin = Anchor.TopCentre;
+                        characterDrawable.Anchor = Anchor.TopCentre;
+                        characterDrawable.Origin = Anchor.TopCentre;
                     }
 
-                    var ctn = new Container
-                    {
-                        Size = new Vector2(fixedWidth ? constantWidth.GetValueOrDefault() : d.DrawSize.X, UseFullGlyphHeight ? 1 : d.DrawSize.Y),
-                        Scale = new Vector2(TextSize),
-                        Child = d
-                    };
+                    Drawable shadowDrawable = null;
 
-                    if (shadow && shadowAlpha > 0)
+                    if (shadow)
                     {
-                        Drawable shadowDrawable = CreateCharacterDrawable(c);
+                        shadowDrawable = CreateCharacterDrawable(c);
                         shadowDrawable.Position = new Vector2(0, 0.06f);
-                        shadowDrawable.Anchor = d.Anchor;
-                        shadowDrawable.Origin = d.Origin;
-                        shadowDrawable.Alpha = shadowAlpha;
-                        shadowDrawable.Colour = shadowColour;
+                        shadowDrawable.Anchor = characterDrawable.Anchor;
+                        shadowDrawable.Origin = characterDrawable.Origin;
                         shadowDrawable.Depth = float.MaxValue;
-                        ctn.Add(shadowDrawable);
                     }
 
-                    d = ctn;
+                    characterDrawable = new CharacterContainer(characterDrawable, shadowDrawable)
+                    {
+                        Size = new Vector2(fixedWidth ? constantWidth.GetValueOrDefault() : characterDrawable.DrawSize.X, UseFullGlyphHeight ? 1 : characterDrawable.DrawSize.Y),
+                        Scale = new Vector2(TextSize),
+                    };
                 }
 
-                Add(d);
+                Add(characterDrawable);
             }
 
+            if (shadow)
+                shadowCache.Invalidate();
+
             lastText = text;
+        }
+
+        private void computeShadowColour()
+        {
+            if (!shadow)
+                return;
+
+            //adjust shadow alpha based on highest component intensity to avoid muddy display of darker text.
+            //squared result for quadratic fall-off seems to give the best result.
+            var avgColour = (Color4)DrawInfo.Colour.AverageColour;
+            float shadowAlpha = (float)Math.Pow(Math.Max(Math.Max(avgColour.R, avgColour.G), avgColour.B), 2);
+
+            foreach (var character in Children.Cast<CharacterContainer>())
+            {
+                if (character.Shadow == null)
+                    continue;
+
+                character.Shadow.Alpha = shadowAlpha;
+                character.Shadow.Colour = shadowColour;
+            }
         }
 
         /// <summary>
@@ -390,7 +410,10 @@ namespace osu.Framework.Graphics.Sprites
         /// <returns>The texture for the given character.</returns>
         protected Texture GetTextureForCharacter(char c)
         {
-            return store?.Get(getTextureName(c)) ?? store?.Get(getTextureName(c, false));
+            if (store == null)
+                return null;
+
+            return store.Get(getTextureName(c)) ?? store.Get(getTextureName(c, false));
         }
 
         private string getTextureName(char c, bool useFont = true) => !useFont || string.IsNullOrEmpty(Font) ? c.ToString() : $@"{Font}/{c}";
@@ -398,6 +421,22 @@ namespace osu.Framework.Graphics.Sprites
         public override string ToString()
         {
             return $@"""{Text}"" " + base.ToString();
+        }
+
+        private class CharacterContainer : CompositeDrawable
+        {
+            public readonly Drawable Shadow;
+
+            public CharacterContainer(Drawable character = null, Drawable shadow = null)
+            {
+                Shadow = shadow;
+
+                if (character != null)
+                    AddInternal(character);
+
+                if (shadow != null)
+                    AddInternal(shadow);
+            }
         }
     }
 }

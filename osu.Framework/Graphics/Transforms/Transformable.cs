@@ -39,14 +39,12 @@ namespace osu.Framework.Graphics.Transforms
         /// </summary>
         protected double TransformDelay { get; private set; }
 
-        private SortedList<Transform> transformsLazy;
-
-        private SortedList<Transform> transforms => transformsLazy ?? (transformsLazy = new SortedList<Transform>(Transform.COMPARER));
+        private readonly Lazy<SortedList<Transform>> transformsLazy = new Lazy<SortedList<Transform>>(() => new SortedList<Transform>(Transform.COMPARER));
 
         /// <summary>
         /// A lazily-initialized list of <see cref="Transform"/>s applied to this object.
         /// </summary>
-        public IReadOnlyList<Transform> Transforms => transforms;
+        public IReadOnlyList<Transform> Transforms => transformsLazy.IsValueCreated ? (IReadOnlyList<Transform>)transformsLazy.Value : Array.Empty<Transform>();
 
         /// <summary>
         /// The end time in milliseconds of the latest transform enqueued for this <see cref="Transformable"/>.
@@ -80,8 +78,7 @@ namespace osu.Framework.Graphics.Transforms
             updateTransforms(Time.Current);
         }
 
-        private List<Action> removalActionsLazy;
-        private List<Action> removalActions => removalActionsLazy ?? (removalActionsLazy = new List<Action>());
+        private readonly Lazy<List<Action>> removalActions = new Lazy<List<Action>>(() => new List<Action>());
 
         private double lastUpdateTransformsTime;
 
@@ -94,8 +91,10 @@ namespace osu.Framework.Graphics.Transforms
             bool rewinding = lastUpdateTransformsTime > time;
             lastUpdateTransformsTime = time;
 
-            if (transformsLazy == null)
+            if (!transformsLazy.IsValueCreated)
                 return;
+
+            var transforms = transformsLazy.Value;
 
             if (rewinding && !RemoveCompletedTransforms)
             {
@@ -104,9 +103,9 @@ namespace osu.Framework.Graphics.Transforms
                 // Under the case that completed transforms are not removed, reversing the clock is permitted.
                 // We need to first look back through all the transforms and apply the start values of the ones that were previously
                 // applied, but now exist in the future relative to the current time.
-                for (int i = transformsLazy.Count - 1; i >= 0; i--)
+                for (int i = transforms.Count - 1; i >= 0; i--)
                 {
-                    var t = transformsLazy[i];
+                    var t = transforms[i];
 
                     // rewind logic needs to only run on transforms which have been applied at least once.
                     if (!t.Applied)
@@ -139,9 +138,9 @@ namespace osu.Framework.Graphics.Transforms
                 }
             }
 
-            for (int i = 0; i < transformsLazy.Count; ++i)
+            for (int i = 0; i < transforms.Count; ++i)
             {
-                var t = transformsLazy[i];
+                var t = transforms[i];
 
                 var tCanRewind = !RemoveCompletedTransforms && t.Rewindable;
 
@@ -157,7 +156,7 @@ namespace osu.Framework.Graphics.Transforms
                     // be safely removed.
                     for (int j = 0; j < i; ++j)
                     {
-                        var u = transformsLazy[j];
+                        var u = transforms[j];
                         if (u.TargetMember != t.TargetMember) continue;
 
                         if (!u.AppliedToEnd)
@@ -168,10 +167,11 @@ namespace osu.Framework.Graphics.Transforms
 
                         if (!tCanRewind)
                         {
-                            transformsLazy.RemoveAt(j--);
+                            transforms.RemoveAt(j--);
                             i--;
 
-                            removalActions.Add(u.OnAbort);
+                            if (u.OnAbort != null)
+                                removalActions.Value.Add(u.OnAbort);
                         }
                         else
                             u.AppliedToEnd = true;
@@ -193,7 +193,7 @@ namespace osu.Framework.Graphics.Transforms
                     if (t.AppliedToEnd)
                     {
                         if (!tCanRewind)
-                            transformsLazy.RemoveAt(i--);
+                            transforms.RemoveAt(i--);
 
                         if (t.IsLooping)
                         {
@@ -214,10 +214,10 @@ namespace osu.Framework.Graphics.Transforms
 
                             // this could be added back at a lower index than where we are currently iterating, but
                             // running the same transform twice isn't a huge deal.
-                            transformsLazy.Add(t);
+                            transforms.Add(t);
                         }
                         else if (t.OnComplete != null)
-                            removalActions.Add(t.OnComplete);
+                            removalActions.Value.Add(t.OnComplete);
                     }
                 }
             }
@@ -227,12 +227,10 @@ namespace osu.Framework.Graphics.Transforms
 
         private void invokePendingRemovalActions()
         {
-            if (removalActionsLazy?.Count > 0)
+            if (removalActions.IsValueCreated && removalActions.Value.Count > 0)
             {
-                Debug.Assert(removalActionsLazy != null);
-
-                var toRemove = removalActionsLazy.ToArray();
-                removalActionsLazy.Clear();
+                var toRemove = removalActions.Value.ToArray();
+                removalActions.Value.Clear();
 
                 foreach (var action in toRemove)
                     action();
@@ -245,7 +243,7 @@ namespace osu.Framework.Graphics.Transforms
         /// <param name="toRemove">The <see cref="Transform"/> to remove.</param>
         public void RemoveTransform(Transform toRemove)
         {
-            if (transformsLazy == null || !transformsLazy.Remove(toRemove))
+            if (!transformsLazy.IsValueCreated || !transformsLazy.Value.Remove(toRemove))
                 return;
 
             toRemove.OnAbort?.Invoke();
@@ -272,19 +270,19 @@ namespace osu.Framework.Graphics.Transforms
         /// </param>
         public virtual void ClearTransformsAfter(double time, bool propagateChildren = false, string targetMember = null)
         {
-            if (transformsLazy == null)
+            if (!transformsLazy.IsValueCreated)
                 return;
 
             Transform[] toAbort;
             if (targetMember == null)
             {
-                toAbort = transformsLazy.Where(t => t.StartTime >= time).ToArray();
-                transformsLazy.RemoveAll(t => t.StartTime >= time);
+                toAbort = transformsLazy.Value.Where(t => t.StartTime >= time).ToArray();
+                transformsLazy.Value.RemoveAll(t => t.StartTime >= time);
             }
             else
             {
-                toAbort = transformsLazy.Where(t => t.StartTime >= time && t.TargetMember == targetMember).ToArray();
-                transformsLazy.RemoveAll(t => t.StartTime >= time && t.TargetMember == targetMember);
+                toAbort = transformsLazy.Value.Where(t => t.StartTime >= time && t.TargetMember == targetMember).ToArray();
+                transformsLazy.Value.RemoveAll(t => t.StartTime >= time && t.TargetMember == targetMember);
             }
 
             foreach (var t in toAbort)
@@ -315,7 +313,7 @@ namespace osu.Framework.Graphics.Transforms
         /// </param>
         public virtual void FinishTransforms(bool propagateChildren = false, string targetMember = null)
         {
-            if (transformsLazy == null)
+            if (!transformsLazy.IsValueCreated)
                 return;
 
             Func<Transform, bool> toFlushPredicate;
@@ -325,9 +323,9 @@ namespace osu.Framework.Graphics.Transforms
                 toFlushPredicate = t => !t.IsLooping && t.TargetMember == targetMember;
 
             // Flush is undefined for endlessly looping transforms
-            var toFlush = transformsLazy.Where(toFlushPredicate).ToArray();
+            var toFlush = transformsLazy.Value.Where(toFlushPredicate).ToArray();
 
-            transformsLazy.RemoveAll(t => toFlushPredicate(t));
+            transformsLazy.Value.RemoveAll(t => toFlushPredicate(t));
 
             foreach (Transform t in toFlush)
             {
@@ -424,6 +422,8 @@ namespace osu.Framework.Graphics.Transforms
                 return;
             }
 
+            var transforms = transformsLazy.Value;
+
             Debug.Assert(!(transform.TransformID == 0 && transforms.Contains(transform)), $"Zero-id {nameof(Transform)}s should never be contained already.");
 
             // This contains check may be optimized away in the future, should it become a bottleneck
@@ -434,14 +434,14 @@ namespace osu.Framework.Graphics.Transforms
             int insertionIndex = transforms.Add(transform);
 
             // Remove all existing following transforms touching the same property as this one.
-            for (int i = insertionIndex + 1; i < transformsLazy.Count; ++i)
+            for (int i = insertionIndex + 1; i < transforms.Count; ++i)
             {
-                var t = transformsLazy[i];
+                var t = transforms[i];
                 if (t.TargetMember == transform.TargetMember)
                 {
-                    transformsLazy.RemoveAt(i--);
+                    transforms.RemoveAt(i--);
                     if (t.OnAbort != null)
-                        removalActions.Add(t.OnAbort);
+                        removalActions.Value.Add(t.OnAbort);
                 }
             }
 
