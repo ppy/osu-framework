@@ -552,7 +552,7 @@ namespace osu.Framework.Graphics.Sprites
             if (store == null)
                 return null;
 
-            return store.Get(getTextureName(c)) ?? store.Get(getTextureName(c, false)) ?? GetFallbackTextureForCharacter(c);
+            return store.GetCharacter(Font, c) ?? store.GetCharacter(null, c) ?? GetFallbackTextureForCharacter(c);
         }
 
         /// <summary>
@@ -561,8 +561,6 @@ namespace osu.Framework.Graphics.Sprites
         /// <param name="c">The character which doesn't exist in the current font.</param>
         /// <returns>The texture for the given character.</returns>
         protected virtual Texture GetFallbackTextureForCharacter(char c) => GetTextureForCharacter('?');
-
-        private string getTextureName(char c, bool useFont = true) => !useFont || string.IsNullOrEmpty(Font) ? c.ToString() : $@"{Font}/{c}";
 
         public override string ToString()
         {
