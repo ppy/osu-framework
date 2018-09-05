@@ -1264,11 +1264,23 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        internal bool IgnoreAutoSizeForChildSize;
+
         /// <summary>
         /// The size of the coordinate space revealed to <see cref="InternalChildren"/>.
         /// Captures the effect of e.g. <see cref="Padding"/>.
         /// </summary>
-        public Vector2 ChildSize => DrawSize - new Vector2(Padding.TotalHorizontal, Padding.TotalVertical);
+        public Vector2 ChildSize
+        {
+            get
+            {
+                if (!IgnoreAutoSizeForChildSize) return DrawSize - Padding.Total;
+                var size = ApplyRelativeAxes(RelativeSizeAxes, BaseSize, FillMode);
+                if ((AutoSizeAxes & Axes.X) != 0) size.X = 0;
+                if ((AutoSizeAxes & Axes.Y) != 0) size.Y = 0;
+                return size - Padding.Total;
+            }
+        }
 
         /// <summary>
         /// Positional offset applied to <see cref="InternalChildren"/>.
@@ -1404,13 +1416,11 @@ namespace osu.Framework.Graphics.Containers
 
         private Cached childrenSizeDependencies = new Cached();
 
-        internal bool IgnoreAutoSize;
-
         public override float Width
         {
             get
             {
-                if (!IgnoreAutoSize && !StaticCached.BypassCache && AutoSizeAxes.HasFlag(Axes.X))
+                if (!StaticCached.BypassCache && AutoSizeAxes.HasFlag(Axes.X))
                     updateChildrenSizeDependencies();
                 return base.Width;
             }
@@ -1427,7 +1437,7 @@ namespace osu.Framework.Graphics.Containers
         {
             get
             {
-                if (!IgnoreAutoSize && !StaticCached.BypassCache && AutoSizeAxes.HasFlag(Axes.Y))
+                if (!StaticCached.BypassCache && AutoSizeAxes.HasFlag(Axes.Y))
                     updateChildrenSizeDependencies();
                 return base.Height;
             }
@@ -1444,7 +1454,7 @@ namespace osu.Framework.Graphics.Containers
         {
             get
             {
-                if (!IgnoreAutoSize && !StaticCached.BypassCache && AutoSizeAxes != Axes.None)
+                if (!StaticCached.BypassCache && AutoSizeAxes != Axes.None)
                     updateChildrenSizeDependencies();
                 return base.Size;
             }

@@ -1494,10 +1494,8 @@ namespace osu.Framework.Graphics
         {
             if (Parent == null) return Vector2.Zero;
 
-            var originalSize = Parent.BaseSize;
-            var originalIgnoreAutoSize = Parent.IgnoreAutoSize;
-            Parent.BaseSize = Vector2.Zero;
-            Parent.IgnoreAutoSize = true;
+            var originalFlag = Parent.IgnoreAutoSizeForChildSize;
+            Parent.IgnoreAutoSizeForChildSize = true;
 
             try
             {
@@ -1530,8 +1528,7 @@ namespace osu.Framework.Graphics
             }
             finally
             {
-                Parent.BaseSize = originalSize;
-                Parent.IgnoreAutoSize = originalIgnoreAutoSize;
+                Parent.IgnoreAutoSizeForChildSize = originalFlag;
             }
         }
 
@@ -1687,14 +1684,24 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="input">A vector in local coordinates.</param>
         /// <returns>The vector in Parent's coordinates.</returns>
-        public Vector2 ToParentSpace(Vector2 input) => ToSpaceOfOtherDrawable(input, Parent);
+        public Vector2 ToParentSpace(Vector2 input)
+        {
+            var di = new DrawInfo(null);
+            di.ApplyTransform(DrawPosition + AnchorPosition + (Parent?.ChildOffset ?? Vector2.Zero), DrawScale, Rotation, Shear, OriginPosition);
+            return Vector2Extensions.Transform(input, di.Matrix);
+        }
 
         /// <summary>
         /// Accepts a rectangle in local coordinates and converts it to a quad in Parent's space.
         /// </summary>
         /// <param name="input">A rectangle in local coordinates.</param>
         /// <returns>The quad in Parent's coordinates.</returns>
-        public Quad ToParentSpace(RectangleF input) => ToSpaceOfOtherDrawable(input, Parent);
+        public Quad ToParentSpace(RectangleF input)
+        {
+            var di = new DrawInfo(null);
+            di.ApplyTransform(DrawPosition + AnchorPosition + (Parent?.ChildOffset ?? Vector2.Zero), DrawScale, Rotation, Shear, OriginPosition);
+            return Quad.FromRectangle(input) * di.Matrix;
+        }
 
         /// <summary>
         /// Accepts a vector in local coordinates and converts it to coordinates in screen space.
