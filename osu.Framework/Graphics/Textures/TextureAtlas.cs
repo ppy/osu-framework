@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics.Textures
         private const int padding = (1 << TextureGLSingle.MAX_MIPMAP_LEVELS) + Sprite.MAX_EDGE_SMOOTHNESS * 2;
 
         private readonly List<RectangleI> subTextureBounds = new List<RectangleI>();
-        private TextureGLSingle atlasTexture;
+        internal TextureGLSingle AtlasTexture;
 
         private readonly int atlasWidth;
         private readonly int atlasHeight;
@@ -27,6 +27,17 @@ namespace osu.Framework.Graphics.Textures
         private int currentY;
 
         private int mipmapLevels => (int)Math.Log(atlasWidth, 2);
+
+        internal TextureWhitePixel WhitePixel
+        {
+            get
+            {
+                if (AtlasTexture == null)
+                    Reset();
+
+                return new TextureWhitePixel(new TextureGLAtlasWhite(AtlasTexture));
+            }
+        }
 
         private readonly bool manualMipmaps;
         private readonly All filteringMode;
@@ -49,14 +60,15 @@ namespace osu.Framework.Graphics.Textures
             if (atlasWidth == 0 || atlasHeight == 0)
                 return;
 
-            if (atlasTexture == null)
+            if (AtlasTexture == null)
                 Logger.Log($"New TextureAtlas initialised {atlasWidth}x{atlasHeight}", LoggingTarget.Runtime, LogLevel.Debug);
 
-            atlasTexture = new TextureGLAtlas(atlasWidth, atlasHeight, manualMipmaps, filteringMode);
+            AtlasTexture = new TextureGLAtlas(atlasWidth, atlasHeight, manualMipmaps, filteringMode);
 
             using (var whiteTex = Add(3, 3))
             {
-                //add an empty white rect to use for solid box drawing (shader optimisation).
+                // add an empty white rect to use for solid box drawing (shader optimisation).
+                // see Texture.WhitePixel for usage.
                 var raw = new RawTexture(whiteTex.Width, whiteTex.Height);
                 for (int i = 0; i < raw.Data.Length; i++)
                     raw.Data[i] = 255;
@@ -96,27 +108,19 @@ namespace osu.Framework.Graphics.Textures
             return res;
         }
 
-        internal Texture Add(int width, int height)
+        internal TextureGL Add(int width, int height)
         {
             lock (textureRetrievalLock)
             {
-                if (atlasTexture == null)
+                if (AtlasTexture == null)
                     Reset();
 
                 Vector2I position = findPosition(width, height);
                 RectangleI bounds = new RectangleI(position.X, position.Y, width, height);
                 subTextureBounds.Add(bounds);
 
-                return new Texture(new TextureGLSub(bounds, atlasTexture));
+                return new TextureGLSub(bounds, AtlasTexture);
             }
-        }
-
-        internal TextureWhitePixel GetWhitePixel()
-        {
-            if (atlasTexture == null)
-                Reset();
-
-            return new TextureWhitePixel(new TextureGLAtlasWhite(atlasTexture));
         }
     }
 }
