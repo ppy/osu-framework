@@ -518,10 +518,12 @@ namespace osu.Framework.Graphics.Sprites
             n.Parts.AddRange(screenSpaceCharacters);
 
             n.Shadow = Shadow;
-            n.ShadowColour = ShadowColour;
 
             if (Shadow)
+            {
+                n.ShadowColour = ShadowColour;
                 n.ShadowOffset = shadowOffset;
+            }
         }
 
         #endregion
