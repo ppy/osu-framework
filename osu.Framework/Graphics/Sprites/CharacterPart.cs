@@ -8,6 +8,12 @@ namespace osu.Framework.Graphics.Sprites
 {
     internal struct CharacterPart
     {
+        public RectangleF DrawRectangle;
+        public Texture Texture;
+    }
+
+    internal struct ScreenSpaceCharacterPart
+    {
         public Quad DrawQuad;
         public Texture Texture;
     }

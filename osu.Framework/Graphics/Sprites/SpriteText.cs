@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Caching;
@@ -39,7 +40,7 @@ namespace osu.Framework.Graphics.Sprites
                     return;
                 text = value;
 
-                charactersCache.Invalidate();
+                invalidate(true);
             }
         }
 
@@ -57,7 +58,7 @@ namespace osu.Framework.Graphics.Sprites
                     return;
                 textSize = value;
 
-                charactersCache.Invalidate();
+                invalidate(true);
                 shadowOffsetCache.Invalidate();
             }
         }
@@ -76,7 +77,7 @@ namespace osu.Framework.Graphics.Sprites
                     return;
                 font = value;
 
-                charactersCache.Invalidate();
+                invalidate(true);
             }
         }
 
@@ -94,7 +95,7 @@ namespace osu.Framework.Graphics.Sprites
                     return;
                 allowMultiline = value;
 
-                charactersCache.Invalidate();
+                invalidate(true);
             }
         }
 
@@ -149,7 +150,7 @@ namespace osu.Framework.Graphics.Sprites
                     return;
                 useFullGlyphHeight = value;
 
-                charactersCache.Invalidate();
+                invalidate(true);
             }
         }
 
@@ -167,7 +168,7 @@ namespace osu.Framework.Graphics.Sprites
                     return;
                 fixedWidth = value;
 
-                charactersCache.Invalidate();
+                invalidate(true);
             }
         }
 
@@ -191,6 +192,10 @@ namespace osu.Framework.Graphics.Sprites
 
         #region Sizing
 
+        private bool requiresAutoSizedWidth => explicitWidth == null && (RelativeSizeAxes & Axes.X) == 0;
+
+        private bool requiresAutoSizedHeight => explicitHeight == null && (RelativeSizeAxes & Axes.Y) == 0;
+
         private float? explicitWidth;
 
         /// <summary>
@@ -198,7 +203,12 @@ namespace osu.Framework.Graphics.Sprites
         /// </summary>
         public override float Width
         {
-            get => base.Width;
+            get
+            {
+                if (requiresAutoSizedWidth)
+                    computeCharacters();
+                return base.Width;
+            }
             set
             {
                 if (explicitWidth == value)
@@ -207,7 +217,7 @@ namespace osu.Framework.Graphics.Sprites
                 base.Width = value;
                 explicitWidth = value;
 
-                charactersCache.Invalidate();
+                invalidate(true);
             }
         }
 
@@ -218,7 +228,12 @@ namespace osu.Framework.Graphics.Sprites
         /// </summary>
         public override float Height
         {
-            get => base.Height;
+            get
+            {
+                if (requiresAutoSizedHeight)
+                    computeCharacters();
+                return base.Height;
+            }
             set
             {
                 if (explicitHeight == value)
@@ -227,7 +242,7 @@ namespace osu.Framework.Graphics.Sprites
                 base.Height = value;
                 explicitHeight = value;
 
-                charactersCache.Invalidate();
+                invalidate(true);
             }
         }
 
@@ -236,7 +251,12 @@ namespace osu.Framework.Graphics.Sprites
         /// </summary>
         public override Vector2 Size
         {
-            get => new Vector2(Width, Height);
+            get
+            {
+                if (requiresAutoSizedWidth || requiresAutoSizedHeight)
+                    computeCharacters();
+                return base.Size;
+            }
             set
             {
                 Width = value.X;
@@ -258,7 +278,7 @@ namespace osu.Framework.Graphics.Sprites
                     return;
                 spacing = value;
 
-                charactersCache.Invalidate();
+                invalidate(true);
             }
         }
 
@@ -279,7 +299,7 @@ namespace osu.Framework.Graphics.Sprites
 
                 padding = value;
 
-                charactersCache.Invalidate();
+                invalidate(true);
             }
         }
 
@@ -288,22 +308,28 @@ namespace osu.Framework.Graphics.Sprites
         #region Characters
 
         private Cached charactersCache = new Cached();
-        private readonly List<CharacterPart> characters = new List<CharacterPart>();
+        private readonly List<CharacterPart> charactersBacking = new List<CharacterPart>();
 
-        protected override void Update()
+        private List<CharacterPart> characters
         {
-            base.Update();
-
-            if (!charactersCache.IsValid)
+            get
             {
                 computeCharacters();
-                charactersCache.Validate();
+                return charactersBacking;
             }
         }
 
+        private bool isComputingCharacters;
+
         private void computeCharacters()
         {
-            characters.Clear();
+            if (charactersCache.IsValid)
+                return;
+
+            Debug.Assert(!isComputingCharacters, "Cyclic invocation of computeCharacters()!");
+            isComputingCharacters = true;
+
+            charactersBacking.Clear();
 
             Vector2 currentPos = new Vector2(Padding.Left, Padding.Top);
 
@@ -313,8 +339,8 @@ namespace osu.Framework.Graphics.Sprites
                     return;
 
                 float maxWidth = float.PositiveInfinity;
-                if ((RelativeSizeAxes & Axes.X) > 0 || explicitWidth != null)
-                    maxWidth = DrawWidth - Padding.Right;
+                if (!requiresAutoSizedWidth)
+                    maxWidth = ApplyRelativeAxes(RelativeSizeAxes, new Vector2(base.Width, base.Height), FillMode).X - Padding.Right;
 
                 float currentRowHeight = 0;
 
@@ -362,21 +388,19 @@ namespace osu.Framework.Graphics.Sprites
                     // The height of the row depends on whether we want to use the full glyph height or not
                     currentRowHeight = Math.Max(currentRowHeight, glyphSize.Y);
 
-                    if (char.IsWhiteSpace(character))
-                        currentPos.X += glyphSize.X + spacing.X;
-                    else
+                    if (!char.IsWhiteSpace(character))
                     {
+                        // If we have fixed width, we'll need to centre the texture to the glyph size
                         float offset = (glyphSize.X - scaledTextureSize.X) / 2;
-                        var drawQuad = ToScreenSpace(new RectangleF(new Vector2(currentPos.X + offset, currentPos.Y), scaledTextureSize));
 
-                        characters.Add(new CharacterPart
+                        charactersBacking.Add(new CharacterPart
                         {
                             Texture = texture,
-                            DrawQuad = drawQuad
+                            DrawRectangle = new RectangleF(new Vector2(currentPos.X + offset, currentPos.Y), scaledTextureSize),
                         });
-
-                        currentPos.X += glyphSize.X + spacing.X;
                     }
+
+                    currentPos.X += glyphSize.X + spacing.X;
                 }
 
                 // When we added the last character, we also added the spacing, but we should remove it to get the correct size
@@ -387,13 +411,45 @@ namespace osu.Framework.Graphics.Sprites
             }
             finally
             {
-                if (explicitWidth == null && (RelativeSizeAxes & Axes.X) == 0)
-                    base.Width = characters.Count == 0 ? 0 : currentPos.X + Padding.Right;
-                if (explicitHeight == null && (RelativeSizeAxes & Axes.Y) == 0)
-                    base.Height = characters.Count == 0 ? 0 : currentPos.Y + Padding.Bottom;
+                if (requiresAutoSizedWidth)
+                    base.Width = charactersBacking.Count == 0 ? 0 : currentPos.X + Padding.Right;
+                if (requiresAutoSizedHeight)
+                    base.Height = charactersBacking.Count == 0 ? 0 : currentPos.Y + Padding.Bottom;
 
-                Invalidate(Invalidation.DrawNode, shallPropagate: false);
+                isComputingCharacters = false;
+                charactersCache.Validate();
             }
+        }
+
+        private Cached screenSpaceCharactersCache = new Cached();
+        private readonly List<ScreenSpaceCharacterPart> screenSpaceCharactersBacking = new List<ScreenSpaceCharacterPart>();
+
+        private List<ScreenSpaceCharacterPart> screenSpaceCharacters
+        {
+            get
+            {
+                computeScreenSpaceCharacters();
+                return screenSpaceCharactersBacking;
+            }
+        }
+
+        private void computeScreenSpaceCharacters()
+        {
+            if (screenSpaceCharactersCache.IsValid)
+                return;
+
+            screenSpaceCharactersBacking.Clear();
+
+            foreach (var character in characters)
+            {
+                screenSpaceCharactersBacking.Add(new ScreenSpaceCharacterPart
+                {
+                    DrawQuad = ToScreenSpace(character.DrawRectangle),
+                    Texture = character.Texture
+                });
+            }
+
+            screenSpaceCharactersCache.Validate();
         }
 
         private Cached<float> constantWidthCache;
@@ -406,15 +462,35 @@ namespace osu.Framework.Graphics.Sprites
 
         #region Invalidation
 
+        private void invalidate(bool layout = false)
+        {
+            if (layout)
+                charactersCache.Invalidate();
+            screenSpaceCharactersCache.Invalidate();
+
+            Invalidate(Invalidation.DrawNode, shallPropagate: false);
+        }
+
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
-            if (source == Parent && (invalidation & Invalidation.DrawInfo) > 0)
-            {
-                charactersCache.Invalidate();
-                shadowOffsetCache.Invalidate();
-            }
+            base.Invalidate(invalidation, source, shallPropagate);
 
-            return base.Invalidate(invalidation, source, shallPropagate);
+            if (source == Parent)
+            {
+                // Colour captures presence changes
+                if ((invalidation & (Invalidation.DrawSize | Invalidation.Colour)) > 0)
+                    invalidate(true);
+
+                if ((invalidation & Invalidation.DrawInfo) > 0)
+                {
+                    invalidate();
+                    shadowOffsetCache.Invalidate();
+                }
+            }
+            else if ((invalidation & Invalidation.MiscGeometry) > 0)
+                invalidate();
+
+            return true;
         }
 
         #endregion
@@ -434,7 +510,7 @@ namespace osu.Framework.Graphics.Sprites
             n.Shared = sharedData;
 
             n.Parts.Clear();
-            n.Parts.AddRange(characters);
+            n.Parts.AddRange(screenSpaceCharacters);
 
             n.Shadow = Shadow;
             n.ShadowColour = ShadowColour;

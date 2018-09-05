@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics.Sprites
         public Color4 ShadowColour;
         public Vector2 ShadowOffset;
 
-        internal readonly List<CharacterPart> Parts = new List<CharacterPart>();
+        internal readonly List<ScreenSpaceCharacterPart> Parts = new List<ScreenSpaceCharacterPart>();
 
         private bool needsRoundedShader => GLWrapper.IsMaskingActive;
 
