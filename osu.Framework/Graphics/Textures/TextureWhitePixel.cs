@@ -4,7 +4,6 @@
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.Primitives;
-using System;
 
 namespace osu.Framework.Graphics.Textures
 {
@@ -13,13 +12,6 @@ namespace osu.Framework.Graphics.Textures
         public TextureWhitePixel(TextureGL textureGl)
             : base(textureGl)
         {
-        }
-
-        protected override void Dispose(bool isDisposing)
-        {
-            if (isDisposing)
-                throw new InvalidOperationException($"May not dispose {nameof(TextureWhitePixel)} explicitly.");
-            base.Dispose(false);
         }
 
         protected override RectangleF TextureBounds(RectangleF? textureRect = null)
