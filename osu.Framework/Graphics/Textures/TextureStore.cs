@@ -28,7 +28,7 @@ namespace osu.Framework.Graphics.Textures
 
         private readonly Func<string, Lazy<Texture>> lazyCreator; // used avoid allocations on lookups.
 
-        public TextureStore(IResourceStore<RawTexture> store = null, bool useAtlas = true, All filteringMode = All.Linear, bool manualMipmaps = false, float scaleAdjust = 2)
+        public TextureStore(IResourceStore<TextureUpload> store = null, bool useAtlas = true, All filteringMode = All.Linear, bool manualMipmaps = false, float scaleAdjust = 2)
             : base(store)
         {
             this.filteringMode = filteringMode;

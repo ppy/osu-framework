@@ -17,7 +17,7 @@ namespace osu.Framework.Tests.Visual
 
         public TestCaseRefCountTexture()
         {
-            largeStore = new LargeTextureStore(new RawTextureLoaderStore(new OnlineStore()));
+            largeStore = new LargeTextureStore(new TextureLoaderStore(new OnlineStore()));
 
             Avatar avatar1 = null;
             Avatar avatar2 = null;
