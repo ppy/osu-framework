@@ -368,7 +368,7 @@ namespace osu.Framework.Graphics.Sprites
                     else
                     {
                         texture = GetTextureForCharacter(character);
-                        textureSize = new Vector2(texture.DisplayWidth, texture.DisplayHeight);
+                        textureSize = texture == null ? new Vector2(FixedWidth ? constantWidth : spaceWidth) : new Vector2(texture.DisplayWidth, texture.DisplayHeight);
                     }
 
                     bool useFixedWidth = FixedWidth && !FixedWidthExceptionCharacters.Contains(character);
@@ -390,7 +390,7 @@ namespace osu.Framework.Graphics.Sprites
                     // The height of the row depends on whether we want to use the full glyph height or not
                     currentRowHeight = Math.Max(currentRowHeight, glyphSize.Y);
 
-                    if (!char.IsWhiteSpace(character))
+                    if (!char.IsWhiteSpace(character) && texture != null)
                     {
                         // If we have fixed width, we'll need to centre the texture to the glyph size
                         float offset = (glyphSize.X - scaledTextureSize.X) / 2;
