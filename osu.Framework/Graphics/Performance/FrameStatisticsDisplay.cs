@@ -191,7 +191,7 @@ namespace osu.Framework.Graphics.Performance
                             {
                                 RelativeSizeAxes = Axes.Both,
                                 Alpha = 0,
-                                Children = new[]
+                                Children = new Drawable[]
                                 {
                                     new FillFlowContainer
                                     {
