@@ -363,6 +363,7 @@ namespace osu.Framework.Tests.Visual
         private class NonAliveContainer : Container
         {
             protected internal override bool ShouldBeAlive => false;
+            public override bool DisposeOnDeathRemoval => false;
         }
 
         private class Visualiser : Container

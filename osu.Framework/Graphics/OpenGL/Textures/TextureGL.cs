@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Threading;
 using osu.Framework.Graphics.Primitives;
 using OpenTK.Graphics.ES30;
 using OpenTK;
@@ -23,7 +24,17 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             Dispose(false);
         }
 
-        protected bool IsDisposed;
+        private int refCount;
+
+        public void Reference() => Interlocked.Increment(ref refCount);
+
+        public void Dereference()
+        {
+            if (Interlocked.Decrement(ref refCount) == 0)
+                Dispose();
+        }
+
+        public bool IsDisposed { get; private set; }
 
         protected virtual void Dispose(bool isDisposing)
         {

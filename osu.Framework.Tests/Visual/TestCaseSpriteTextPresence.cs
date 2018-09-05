@@ -92,6 +92,23 @@ namespace osu.Framework.Tests.Visual
             AddAssert("height == 0", () => Precision.AlmostEquals(0, container.Height));
         }
 
+        /// <summary>
+        /// Tests that the <see cref="Drawable.IsPresent"/> state of the <see cref="SpriteText"/> doesn't change during flow layout.
+        /// </summary>
+        [Test]
+        public void TestPresenceRemainsTheSameDuringFlow()
+        {
+            AddStep("reset", () =>
+            {
+                Child = new FillFlowContainer
+                {
+                    Child = new SpriteText()
+                };
+            });
+
+            AddWaitStep(2, "wait for some update frames");
+        }
+
         private class AlwaysPresentSpriteText : SpriteText
         {
             public override bool IsPresent => true;
