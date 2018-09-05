@@ -26,12 +26,15 @@ namespace osu.Framework.Graphics.Textures
         /// </summary>
         public readonly float ScaleAdjust;
 
-        public TextureStore(IResourceStore<RawTexture> store = null, bool useAtlas = true, All filteringMode = All.Linear, bool manualMipmaps = false,
-                            float scaleAdjust = 2)
+        private readonly Func<string, Lazy<Texture>> lazyCreator; // used avoid allocations on lookups.
+
+        public TextureStore(IResourceStore<RawTexture> store = null, bool useAtlas = true, All filteringMode = All.Linear, bool manualMipmaps = false, float scaleAdjust = 2)
             : base(store)
         {
             this.filteringMode = filteringMode;
             this.manualMipmaps = manualMipmaps;
+
+            lazyCreator = name => new Lazy<Texture>(() => getTexture(name), LazyThreadSafetyMode.ExecutionAndPublication);
 
             ScaleAdjust = scaleAdjust;
 
@@ -70,9 +73,8 @@ namespace osu.Framework.Graphics.Textures
         {
             if (string.IsNullOrEmpty(name)) return null;
 
-            var cachedTex = textureCache.GetOrAdd(name, n =>
-                //Laziness ensure we are only ever creating the texture once (and blocking on other access until it is done).
-                new Lazy<Texture>(() => getTexture(name), LazyThreadSafetyMode.ExecutionAndPublication)).Value;
+            //Laziness ensure we are only ever creating the texture once (and blocking on other access until it is done).
+            var cachedTex = textureCache.GetOrAdd(name, lazyCreator).Value;
 
             if (cachedTex?.TextureGL?.IsDisposed == true)
             {
