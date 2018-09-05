@@ -1,7 +1,6 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Animations;
@@ -55,11 +54,11 @@ namespace osu.Framework.Tests.Visual
         private class AvatarAnimation : TextureAnimation
         {
             [BackgroundDependencyLoader]
-            private async Task load(TextureStore textures)
+            private void load(TextureStore textures)
             {
-                AddFrame(await textures.GetAsync("https://a.ppy.sh/2"), 500);
-                AddFrame(await textures.GetAsync("https://a.ppy.sh/3"), 500);
-                AddFrame(await textures.GetAsync("https://a.ppy.sh/1876669"), 500);
+                AddFrame(textures.Get("https://a.ppy.sh/2"), 500);
+                AddFrame(textures.Get("https://a.ppy.sh/3"), 500);
+                AddFrame(textures.Get("https://a.ppy.sh/1876669"), 500);
             }
         }
     }

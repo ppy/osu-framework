@@ -136,17 +136,12 @@ namespace osu.Framework.Graphics.Lines
 
         private readonly PathDrawNodeSharedData pathDrawNodeSharedData = new PathDrawNodeSharedData();
 
-        public bool CanDisposeTexture { get; protected set; }
-
         #region Disposal
 
         protected override void Dispose(bool isDisposing)
         {
-            if (CanDisposeTexture)
-            {
-                texture?.Dispose();
-                texture = null;
-            }
+            texture?.Dispose();
+            texture = null;
 
             base.Dispose(isDisposing);
         }
@@ -189,10 +184,9 @@ namespace osu.Framework.Graphics.Lines
                 if (value == texture)
                     return;
 
-                if (texture != null && CanDisposeTexture)
-                    texture.Dispose();
-
+                texture?.Dispose();
                 texture = value;
+
                 Invalidate(Invalidation.DrawNode);
             }
         }
