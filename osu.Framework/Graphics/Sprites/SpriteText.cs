@@ -26,6 +26,19 @@ namespace osu.Framework.Graphics.Sprites
         private static readonly Vector2 shadow_offset = new Vector2(0, 0.06f);
         private static readonly char[] default_fixed_width_exceptions = { '.', ':', ',' };
 
+        [Resolved]
+        private FontStore store { get; set; }
+
+        private float spaceWidth;
+
+        [BackgroundDependencyLoader]
+        private void load(ShaderManager shaders)
+        {
+            spaceWidth = GetTextureForCharacter('.')?.DisplayWidth * 2 ?? default_text_size;
+            sharedData.TextureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
+            sharedData.RoundedTextureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
+        }
+
         private string text;
 
         /// <summary>
@@ -177,21 +190,6 @@ namespace osu.Framework.Graphics.Sprites
         /// </summary>
         protected virtual char[] FixedWidthExceptionCharacters => default_fixed_width_exceptions;
 
-        [Resolved]
-        private FontStore store { get; set; }
-
-        private float spaceWidth;
-
-        [BackgroundDependencyLoader]
-        private void load(ShaderManager shaders)
-        {
-            spaceWidth = GetTextureForCharacter('.')?.DisplayWidth * 2 ?? default_text_size;
-            sharedData.TextureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
-            sharedData.RoundedTextureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
-        }
-
-        #region Sizing
-
         private bool requiresAutoSizedWidth => explicitWidth == null && (RelativeSizeAxes & Axes.X) == 0;
 
         private bool requiresAutoSizedHeight => explicitHeight == null && (RelativeSizeAxes & Axes.Y) == 0;
@@ -303,13 +301,14 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        #endregion
-
         #region Characters
 
         private Cached charactersCache = new Cached();
         private readonly List<CharacterPart> charactersBacking = new List<CharacterPart>();
 
+        /// <summary>
+        /// The characters in local space.
+        /// </summary>
         private List<CharacterPart> characters
         {
             get
@@ -427,6 +426,9 @@ namespace osu.Framework.Graphics.Sprites
         private Cached screenSpaceCharactersCache = new Cached();
         private readonly List<ScreenSpaceCharacterPart> screenSpaceCharactersBacking = new List<ScreenSpaceCharacterPart>();
 
+        /// <summary>
+        /// The characters in screen space. These are ready to be drawn.
+        /// </summary>
         private List<ScreenSpaceCharacterPart> screenSpaceCharacters
         {
             get
@@ -537,6 +539,11 @@ namespace osu.Framework.Graphics.Sprites
             return store.Get(getTextureName(c)) ?? store.Get(getTextureName(c, false)) ?? GetFallbackTextureForCharacter(c);
         }
 
+        /// <summary>
+        /// Gets a <see cref="Texture"/> that represents a character which doesn't exist in the current font.
+        /// </summary>
+        /// <param name="c">The character which doesn't exist in the current font.</param>
+        /// <returns>The texture for the given character.</returns>
         protected virtual Texture GetFallbackTextureForCharacter(char c) => GetTextureForCharacter('?');
 
         private string getTextureName(char c, bool useFont = true) => !useFont || string.IsNullOrEmpty(Font) ? c.ToString() : $@"{Font}/{c}";
@@ -571,6 +578,9 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
+        /// <summary>
+        /// Gets the base height of the font used by this text. If the font of this text is invalid, 0 is returned.
+        /// </summary>
         public float LineBaseHeight
         {
             get
