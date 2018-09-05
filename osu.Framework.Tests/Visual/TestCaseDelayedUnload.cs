@@ -12,11 +12,11 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Tests.Visual
 {
-    public class TestCaseDelayedLoad : TestCase
+    public class TestCaseDelayedUnload : TestCase
     {
-        private const int panel_count = 2048;
+        private const int panel_count = 1024;
 
-        public TestCaseDelayedLoad()
+        public TestCaseDelayedUnload()
         {
             FillFlowContainerNoInput flow;
             ScrollContainer scroll;
@@ -43,25 +43,32 @@ namespace osu.Framework.Tests.Visual
                     Size = new Vector2(128),
                     Children = new Drawable[]
                     {
-                        new DelayedLoadWrapper(new Container
+                        new DelayedLoadUnloadWrapper(() => new Container
                         {
                             RelativeSizeAxes = Axes.Both,
                             Children = new Drawable[]
                             {
-                                new TestBox { RelativeSizeAxes = Axes.Both }
+                                new TestBox{ RelativeSizeAxes = Axes.Both }
                             }
-                        }),
+                        }, 500, 2000),
                         new SpriteText { Text = i.ToString() },
                     }
                 });
 
             var childrenWithAvatarsLoaded = flow.Children.Where(c => c.Children.OfType<DelayedLoadWrapper>().First().Content?.IsLoaded ?? false);
 
-            AddWaitStep(10);
+            int loadedCountInitial = 0;
+            int loadedCountSecondary = 0;
+
+            AddUntilStep(() => (loadedCountInitial = childrenWithAvatarsLoaded.Count()) > 5, "wait some loaded");
+
             AddStep("scroll down", () => scroll.ScrollToEnd());
-            AddWaitStep(10);
-            AddAssert("some loaded", () => childrenWithAvatarsLoaded.Count() > 5);
+
+            AddUntilStep(() => (loadedCountSecondary = childrenWithAvatarsLoaded.Count()) > loadedCountInitial, "wait more loaded");
+
             AddAssert("not too many loaded", () => childrenWithAvatarsLoaded.Count() < panel_count / 4);
+
+            AddUntilStep(() => childrenWithAvatarsLoaded.Count() < loadedCountSecondary, "wait some unloaded");
         }
 
         private class FillFlowContainerNoInput : FillFlowContainer<Container>

@@ -78,7 +78,7 @@ namespace osu.Framework.Input
         /// <summary>
         /// The drawable which is clicked by the last click.
         /// </summary>
-        protected Drawable ClickedDrawable;
+        protected WeakReference<Drawable> ClickedDrawable = new WeakReference<Drawable>(null);
 
         /// <summary>
         /// Whether a drag operation has started and <see cref="DraggedDrawable"/> has been searched for.
@@ -156,6 +156,7 @@ namespace osu.Framework.Input
                     HandleMouseDragEnd(state);
 
                 MouseDownPosition = null;
+                MouseDownInputQueue = null;
             }
         }
 
@@ -202,10 +203,12 @@ namespace osu.Framework.Input
 
             // click pass, triggering an OnClick on all drawables up to the first which returns true.
             // an extra IsHovered check is performed because we are using an outdated queue (for valid reasons which we need to document).
-            ClickedDrawable = intersectingQueue.FirstOrDefault(t => t.CanReceiveMouseInput && t.ReceiveMouseInputAt(state.Mouse.Position) && t.TriggerOnClick(state));
+            var clicked = intersectingQueue.FirstOrDefault(t => t.CanReceiveMouseInput && t.ReceiveMouseInputAt(state.Mouse.Position) && t.TriggerOnClick(state));
+
+            ClickedDrawable.SetTarget(clicked);
 
             if (ChangeFocusOnClick)
-                RequestFocus?.Invoke(ClickedDrawable);
+                RequestFocus?.Invoke(clicked);
 
             if (ClickedDrawable != null)
                 Logger.Log($"MouseClick handled by {ClickedDrawable}.", LoggingTarget.Runtime, LogLevel.Debug);
@@ -215,11 +218,12 @@ namespace osu.Framework.Input
 
         protected virtual bool HandleMouseDoubleClick(InputState state)
         {
-            if (ClickedDrawable == null) return false;
+            if (!ClickedDrawable.TryGetTarget(out Drawable clicked))
+                return false;
 
             setPositionMouseDown(state);
 
-            return ClickedDrawable.ReceiveMouseInputAt(state.Mouse.Position) && ClickedDrawable.TriggerOnDoubleClick(state);
+            return clicked.ReceiveMouseInputAt(state.Mouse.Position) && clicked.TriggerOnDoubleClick(state);
         }
 
         protected virtual bool HandleMouseDrag(InputState state)

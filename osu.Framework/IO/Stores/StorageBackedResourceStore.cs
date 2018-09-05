@@ -24,6 +24,8 @@ namespace osu.Framework.IO.Stores
         {
             using (Stream stream = storage.GetStream(name))
             {
+                if (stream == null) return null;
+
                 byte[] buffer = new byte[stream.Length];
                 stream.Read(buffer, 0, buffer.Length);
                 return buffer;
@@ -34,6 +36,8 @@ namespace osu.Framework.IO.Stores
         {
             using (Stream stream = storage.GetStream(name))
             {
+                if (stream == null) return null;
+
                 byte[] buffer = new byte[stream.Length];
                 await stream.ReadAsync(buffer, 0, buffer.Length);
                 return buffer;

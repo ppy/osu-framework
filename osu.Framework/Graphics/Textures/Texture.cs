@@ -14,24 +14,13 @@ namespace osu.Framework.Graphics.Textures
 {
     public class Texture : IDisposable
     {
-        private static TextureWhitePixel whitePixel;
+        // in case no other textures are used in the project, create a new atlas as a fallback source for the white pixel area (used to draw boxes etc.)
+        private static readonly Lazy<TextureWhitePixel> white_pixel = new Lazy<TextureWhitePixel>(() => new TextureAtlas(3, 3, true).WhitePixel);
 
-        public static Texture WhitePixel
-        {
-            get
-            {
-                if (whitePixel == null)
-                {
-                    TextureAtlas atlas = new TextureAtlas(3, 3, true);
-                    whitePixel = atlas.GetWhitePixel();
-                    whitePixel.SetData(new TextureUpload(new byte[] { 255, 255, 255, 255 }));
-                }
+        public static Texture WhitePixel => white_pixel.Value;
 
-                return whitePixel;
-            }
-        }
+        public TextureGL TextureGL { get; }
 
-        public TextureGL TextureGL;
         public string Filename;
         public string AssetName;
 
@@ -40,41 +29,22 @@ namespace osu.Framework.Graphics.Textures
         /// </summary>
         public float ScaleAdjust = 1;
 
-        public bool Disposable = true;
-        public bool IsDisposed { get; private set; }
-
         public float DisplayWidth => Width / ScaleAdjust;
         public float DisplayHeight => Height / ScaleAdjust;
 
-        public Texture(TextureGL textureGl) => TextureGL = textureGl ?? throw new ArgumentNullException(nameof(textureGl));
+        /// <summary>
+        /// Create a new texture.
+        /// </summary>
+        /// <param name="textureGl">The GL texture.</param>
+        public Texture(TextureGL textureGl)
+        {
+            TextureGL = textureGl ?? throw new ArgumentNullException(nameof(textureGl));
+        }
 
         public Texture(int width, int height, bool manualMipmaps = false, All filteringMode = All.Linear)
             : this(new TextureGLSingle(width, height, manualMipmaps, filteringMode))
         {
         }
-
-        #region Disposal
-
-        ~Texture()
-        {
-            Dispose(false);
-        }
-
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool isDisposing)
-        {
-            if (IsDisposed)
-                return;
-            IsDisposed = true;
-        }
-
-        #endregion
 
         public int Width
         {
@@ -130,5 +100,24 @@ namespace osu.Framework.Graphics.Textures
         }
 
         public override string ToString() => $@"{AssetName} ({Width}, {Height})";
+
+        #region Disposal
+
+        public bool IsDisposed { get; private set; }
+
+        // Intentionally no finalizer implementation as our disposal is NOOP. Finalizer is implemented in TextureWithRefCount usage.
+
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+
+        protected virtual void Dispose(bool isDisposing)
+        {
+            if (IsDisposed) return;
+            IsDisposed = true;
+        }
+
+        #endregion
     }
 }

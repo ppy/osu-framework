@@ -6,6 +6,7 @@ using osu.Framework.Graphics.Textures;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using osu.Framework.Logging;
+using System.Collections.Concurrent;
 
 namespace osu.Framework.IO.Stores
 {
@@ -13,13 +14,18 @@ namespace osu.Framework.IO.Stores
     {
         private readonly List<GlyphStore> glyphStores = new List<GlyphStore>();
 
-        public FontStore()
-        {
-        }
+        private readonly Func<(string, char), Texture> cachedTextureLookup;
 
-        public FontStore(GlyphStore glyphStore)
-            : base(glyphStore)
+        /// <summary>
+        /// A local cache to avoid string allocation overhead. Can be changed to (string,char)=>string if this ever becomes an issue,
+        /// but as long as we directly inherit <see cref="TextureStore"/> this is a slight optimisation.
+        /// </summary>
+        private readonly ConcurrentDictionary<(string, char), Texture> namespacedTextureCache = new ConcurrentDictionary<(string, char), Texture>();
+
+        public FontStore(GlyphStore glyphStore, float scaleAdjust = 100)
+            : base(glyphStore, scaleAdjust: scaleAdjust)
         {
+            cachedTextureLookup = t => string.IsNullOrEmpty(t.Item1) ? Get(t.Item2.ToString()) : Get(t.Item1 + "/" + t.Item2);
         }
 
         public override void AddStore(IResourceStore<RawTexture> store)
@@ -94,5 +100,7 @@ namespace osu.Framework.IO.Stores
             base.Dispose(disposing);
             glyphStores.ForEach(g => g.Dispose());
         }
+
+        public Texture GetCharacter(string fontName, char charName) => namespacedTextureCache.GetOrAdd((fontName, charName), cachedTextureLookup);
     }
 }
