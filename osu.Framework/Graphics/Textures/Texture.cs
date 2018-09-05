@@ -19,7 +19,8 @@ namespace osu.Framework.Graphics.Textures
 
         public static Texture WhitePixel => white_pixel.Value;
 
-        public TextureGL TextureGL;
+        public TextureGL TextureGL { get; }
+
         public string Filename;
         public string AssetName;
 
@@ -28,40 +29,22 @@ namespace osu.Framework.Graphics.Textures
         /// </summary>
         public float ScaleAdjust = 1;
 
-        public bool Disposable = true;
-        public bool IsDisposed { get; private set; }
-
         public float DisplayWidth => Width / ScaleAdjust;
         public float DisplayHeight => Height / ScaleAdjust;
 
-        public Texture(TextureGL textureGl) => TextureGL = textureGl ?? throw new ArgumentNullException(nameof(textureGl));
+        /// <summary>
+        /// Create a new texture.
+        /// </summary>
+        /// <param name="textureGl">The GL texture.</param>
+        public Texture(TextureGL textureGl)
+        {
+            TextureGL = textureGl ?? throw new ArgumentNullException(nameof(textureGl));
+        }
 
         public Texture(int width, int height, bool manualMipmaps = false, All filteringMode = All.Linear)
             : this(new TextureGLSingle(width, height, manualMipmaps, filteringMode))
         {
         }
-
-        #region Disposal
-
-        ~Texture()
-        {
-            Dispose(false);
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool isDisposing)
-        {
-            if (IsDisposed)
-                return;
-            IsDisposed = true;
-        }
-
-        #endregion
 
         public int Width
         {
@@ -117,5 +100,24 @@ namespace osu.Framework.Graphics.Textures
         }
 
         public override string ToString() => $@"{AssetName} ({Width}, {Height})";
+
+        #region Disposal
+
+        public bool IsDisposed { get; private set; }
+
+        // Intentionally no finalizer implementation as our disposal is NOOP. Finalizer is implemented in TextureWithRefCount usage.
+
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+
+        protected virtual void Dispose(bool isDisposing)
+        {
+            if (IsDisposed) return;
+            IsDisposed = true;
+        }
+
+        #endregion
     }
 }
