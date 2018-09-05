@@ -1492,34 +1492,46 @@ namespace osu.Framework.Graphics
 
         private Vector2 computeRequiredParentSizeToFit()
         {
-            // Auxilary variables required for the computation
-            Vector2 ap = AnchorPosition;
-            Vector2 rap = RelativeAnchorPosition;
+            if (Parent == null) return Vector2.Zero;
 
-            Vector2 ratio1 = new Vector2(
-                rap.X <= 0 ? 0 : 1 / rap.X,
-                rap.Y <= 0 ? 0 : 1 / rap.Y);
+            var originalSize = Parent.BaseSize;
+            Parent.BaseSize = Vector2.Zero;
 
-            Vector2 ratio2 = new Vector2(
-                rap.X >= 1 ? 0 : 1 / (1 - rap.X),
-                rap.Y >= 1 ? 0 : 1 / (1 - rap.Y));
+            try
+            {
+                // Auxilary variables required for the computation
+                Vector2 ap = AnchorPosition;
+                Vector2 rap = RelativeAnchorPosition;
 
-            RectangleF bbox = BoundingBox;
+                Vector2 ratio1 = new Vector2(
+                    rap.X <= 0 ? 0 : 1 / rap.X,
+                    rap.Y <= 0 ? 0 : 1 / rap.Y);
 
-            // Compute the required size of the parent such that we fit in snugly when positioned
-            // at our relative anchor in the parent.
-            Vector2 topLeftOffset = ap - bbox.TopLeft;
-            Vector2 topLeftSize1 = topLeftOffset * ratio1;
-            Vector2 topLeftSize2 = -topLeftOffset * ratio2;
+                Vector2 ratio2 = new Vector2(
+                    rap.X >= 1 ? 0 : 1 / (1 - rap.X),
+                    rap.Y >= 1 ? 0 : 1 / (1 - rap.Y));
 
-            Vector2 bottomRightOffset = ap - bbox.BottomRight;
-            Vector2 bottomRightSize1 = bottomRightOffset * ratio1;
-            Vector2 bottomRightSize2 = -bottomRightOffset * ratio2;
+                RectangleF bbox = BoundingBox;
 
-            // Expand bounds according to clipped offset
-            return Vector2.ComponentMax(
-                Vector2.ComponentMax(topLeftSize1, topLeftSize2),
-                Vector2.ComponentMax(bottomRightSize1, bottomRightSize2));
+                // Compute the required size of the parent such that we fit in snugly when positioned
+                // at our relative anchor in the parent.
+                Vector2 topLeftOffset = ap - bbox.TopLeft;
+                Vector2 topLeftSize1 = topLeftOffset * ratio1;
+                Vector2 topLeftSize2 = -topLeftOffset * ratio2;
+
+                Vector2 bottomRightOffset = ap - bbox.BottomRight;
+                Vector2 bottomRightSize1 = bottomRightOffset * ratio1;
+                Vector2 bottomRightSize2 = -bottomRightOffset * ratio2;
+
+                // Expand bounds according to clipped offset
+                return Vector2.ComponentMax(
+                    Vector2.ComponentMax(topLeftSize1, topLeftSize2),
+                    Vector2.ComponentMax(bottomRightSize1, bottomRightSize2));
+            }
+            finally
+            {
+                Parent.BaseSize = originalSize;
+            }
         }
 
         /// <summary>
