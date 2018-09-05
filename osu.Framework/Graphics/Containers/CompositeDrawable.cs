@@ -1371,7 +1371,7 @@ namespace osu.Framework.Graphics.Containers
         public virtual Axes AutoSizeAxes
         {
             get => autoSizeAxes;
-            protected internal set
+            protected set
             {
                 if (value == autoSizeAxes)
                     return;
@@ -1404,11 +1404,13 @@ namespace osu.Framework.Graphics.Containers
 
         private Cached childrenSizeDependencies = new Cached();
 
+        internal bool IgnoreAutoSize;
+
         public override float Width
         {
             get
             {
-                if (!StaticCached.BypassCache && AutoSizeAxes.HasFlag(Axes.X))
+                if (!IgnoreAutoSize && !StaticCached.BypassCache && AutoSizeAxes.HasFlag(Axes.X))
                     updateChildrenSizeDependencies();
                 return base.Width;
             }
@@ -1425,7 +1427,7 @@ namespace osu.Framework.Graphics.Containers
         {
             get
             {
-                if (!StaticCached.BypassCache && AutoSizeAxes.HasFlag(Axes.Y))
+                if (!IgnoreAutoSize && !StaticCached.BypassCache && AutoSizeAxes.HasFlag(Axes.Y))
                     updateChildrenSizeDependencies();
                 return base.Height;
             }
@@ -1442,7 +1444,7 @@ namespace osu.Framework.Graphics.Containers
         {
             get
             {
-                if (!StaticCached.BypassCache && AutoSizeAxes != Axes.None)
+                if (!IgnoreAutoSize && !StaticCached.BypassCache && AutoSizeAxes != Axes.None)
                     updateChildrenSizeDependencies();
                 return base.Size;
             }

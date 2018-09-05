@@ -1495,14 +1495,12 @@ namespace osu.Framework.Graphics
             if (Parent == null) return Vector2.Zero;
 
             var originalSize = Parent.BaseSize;
-            var originalAutoSizeAxes = Parent.AutoSizeAxes;
+            var originalIgnoreAutoSize = Parent.IgnoreAutoSize;
             Parent.BaseSize = Vector2.Zero;
-            Parent.AutoSizeAxes = Axes.None;
+            Parent.IgnoreAutoSize = true;
 
             try
             {
-                // Auxilary variables required for the computation
-                Vector2 ap = AnchorPosition;
                 Vector2 rap = RelativeAnchorPosition;
 
                 Vector2 ratio1 = new Vector2(
@@ -1517,11 +1515,11 @@ namespace osu.Framework.Graphics
 
                 // Compute the required size of the parent such that we fit in snugly when positioned
                 // at our relative anchor in the parent.
-                Vector2 topLeftOffset = ap - bbox.TopLeft;
+                Vector2 topLeftOffset = -bbox.TopLeft;
                 Vector2 topLeftSize1 = topLeftOffset * ratio1;
                 Vector2 topLeftSize2 = -topLeftOffset * ratio2;
 
-                Vector2 bottomRightOffset = ap - bbox.BottomRight;
+                Vector2 bottomRightOffset = -bbox.BottomRight;
                 Vector2 bottomRightSize1 = bottomRightOffset * ratio1;
                 Vector2 bottomRightSize2 = -bottomRightOffset * ratio2;
 
@@ -1533,7 +1531,7 @@ namespace osu.Framework.Graphics
             finally
             {
                 Parent.BaseSize = originalSize;
-                Parent.AutoSizeAxes = originalAutoSizeAxes;
+                Parent.IgnoreAutoSize = originalIgnoreAutoSize;
             }
         }
 
