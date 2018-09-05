@@ -531,8 +531,10 @@ namespace osu.Framework.Graphics.Sprites
             if (store == null)
                 return null;
 
-            return store.Get(getTextureName(c)) ?? store.Get(getTextureName(c, false));
+            return store.Get(getTextureName(c)) ?? store.Get(getTextureName(c, false)) ?? GetFallbackTextureForCharacter(c);
         }
+
+        protected virtual Texture GetFallbackTextureForCharacter(char c) => GetTextureForCharacter('?');
 
         private string getTextureName(char c, bool useFont = true) => !useFont || string.IsNullOrEmpty(Font) ? c.ToString() : $@"{Font}/{c}";
 
