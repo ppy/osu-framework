@@ -20,6 +20,9 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Graphics.Sprites
 {
+    /// <summary>
+    /// A container for simple text rendering purposes. If more complex text rendering is required, use <see cref="TextFlowContainer"/> instead.
+    /// </summary>
     public class SpriteText : Drawable, IHasCurrentValue<string>, IHasLineBaseHeight, IHasText, IHasFilterTerms, IFillFlowContainer
     {
         private const float default_text_size = 20;
