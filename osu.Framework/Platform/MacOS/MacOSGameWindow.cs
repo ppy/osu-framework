@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -206,6 +207,17 @@ namespace osu.Framework.Platform.MacOS
 
         // Apple recommends not changing the system resolution for fullscreen access
         protected override void ChangeResolution(DisplayDevice display, Size newSize) => ClientSize = newSize;
+
+        public override IEnumerable<DisplayResolution> AvailableResolutions
+        {
+            get
+            {
+                // only return the current resolution for reasons mentioned above.
+                var display = GetCurrentDisplay();
+                return display.AvailableResolutions.Where(dr =>
+                    dr.Width == display.Width && dr.Height == display.Height && dr.BitsPerPixel == display.BitsPerPixel && dr.RefreshRate == display.RefreshRate);
+            }
+        }
 
         protected override void RestoreResolution(DisplayDevice displayDevice)
         {

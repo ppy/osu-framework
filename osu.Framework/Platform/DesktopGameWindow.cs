@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -34,6 +35,8 @@ namespace osu.Framework.Platform
         public readonly BindableBool MapAbsoluteInputToWindow = new BindableBool();
 
         public override DisplayDevice GetCurrentDisplay() => DisplayDevice.FromRectangle(Bounds) ?? DisplayDevice.Default;
+
+        public override IEnumerable<DisplayResolution> AvailableResolutions => GetCurrentDisplay().AvailableResolutions;
 
         protected DesktopGameWindow()
             : base(default_width, default_height)
