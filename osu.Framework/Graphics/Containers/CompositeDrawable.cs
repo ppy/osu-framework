@@ -1371,7 +1371,7 @@ namespace osu.Framework.Graphics.Containers
         public virtual Axes AutoSizeAxes
         {
             get => autoSizeAxes;
-            protected set
+            protected internal set
             {
                 if (value == autoSizeAxes)
                     return;
@@ -1408,7 +1408,7 @@ namespace osu.Framework.Graphics.Containers
         {
             get
             {
-                if (!StaticCached.BypassCache && !isComputingChildrenSizeDependencies && AutoSizeAxes.HasFlag(Axes.X))
+                if (!StaticCached.BypassCache && AutoSizeAxes.HasFlag(Axes.X))
                     updateChildrenSizeDependencies();
                 return base.Width;
             }
@@ -1425,7 +1425,7 @@ namespace osu.Framework.Graphics.Containers
         {
             get
             {
-                if (!StaticCached.BypassCache && !isComputingChildrenSizeDependencies && AutoSizeAxes.HasFlag(Axes.Y))
+                if (!StaticCached.BypassCache && AutoSizeAxes.HasFlag(Axes.Y))
                     updateChildrenSizeDependencies();
                 return base.Height;
             }
@@ -1438,13 +1438,11 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private bool isComputingChildrenSizeDependencies;
-
         public override Vector2 Size
         {
             get
             {
-                if (!StaticCached.BypassCache && !isComputingChildrenSizeDependencies && AutoSizeAxes != Axes.None)
+                if (!StaticCached.BypassCache && AutoSizeAxes != Axes.None)
                     updateChildrenSizeDependencies();
                 return base.Size;
             }
@@ -1487,9 +1485,9 @@ namespace osu.Framework.Graphics.Containers
                 }
 
                 if (!AutoSizeAxes.HasFlag(Axes.X))
-                    maxBoundSize.X = DrawSize.X;
+                    maxBoundSize.X = BaseSize.X;
                 if (!AutoSizeAxes.HasFlag(Axes.Y))
-                    maxBoundSize.Y = DrawSize.Y;
+                    maxBoundSize.Y = BaseSize.Y;
 
                 return new Vector2(maxBoundSize.X, maxBoundSize.Y);
             }
@@ -1519,25 +1517,16 @@ namespace osu.Framework.Graphics.Containers
 
         private void updateChildrenSizeDependencies()
         {
-            isComputingChildrenSizeDependencies = true;
-
-            try
+            if (!childrenSizeDependencies.IsValid)
             {
-                if (!childrenSizeDependencies.IsValid)
-                {
-                    updateAutoSize();
-                    childrenSizeDependencies.Validate();
-                }
-            }
-            finally
-            {
-                isComputingChildrenSizeDependencies = false;
+                updateAutoSize();
+                childrenSizeDependencies.Validate();
             }
         }
 
         private void autoSizeResizeTo(Vector2 newSize, double duration = 0, Easing easing = Easing.None)
         {
-            var currentTargetSize = ((AutoSizeTransform)Transforms.FirstOrDefault(t => t is AutoSizeTransform))?.EndValue ?? Size;
+            var currentTargetSize = ((AutoSizeTransform)Transforms.FirstOrDefault(t => t is AutoSizeTransform))?.EndValue ?? BaseSize;
             if (currentTargetSize != newSize)
                 this.TransformTo(this.PopulateTransform(new AutoSizeTransform { Rewindable = false }, newSize, duration, easing));
         }

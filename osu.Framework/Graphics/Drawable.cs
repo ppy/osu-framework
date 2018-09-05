@@ -1495,7 +1495,9 @@ namespace osu.Framework.Graphics
             if (Parent == null) return Vector2.Zero;
 
             var originalSize = Parent.BaseSize;
+            var originalAutoSizeAxes = Parent.AutoSizeAxes;
             Parent.BaseSize = Vector2.Zero;
+            Parent.AutoSizeAxes = Axes.None;
 
             try
             {
@@ -1531,6 +1533,7 @@ namespace osu.Framework.Graphics
             finally
             {
                 Parent.BaseSize = originalSize;
+                Parent.AutoSizeAxes = originalAutoSizeAxes;
             }
         }
 
