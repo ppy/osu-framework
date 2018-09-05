@@ -8,12 +8,14 @@ using System.Runtime.InteropServices;
 using osu.Framework.Development;
 using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Primitives;
-using OpenTK;
 using OpenTK.Graphics.ES30;
 using osu.Framework.Statistics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Textures;
+using OpenTK;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Graphics.OpenGL.Textures
@@ -455,12 +457,11 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             }
         }
 
-        private void initializeLevel(int level, int width, int height)
+        private unsafe void initializeLevel(int level, int width, int height)
         {
-            byte[] transparentWhite = new byte[width * height * 4];
-            GCHandle h0 = GCHandle.Alloc(transparentWhite, GCHandleType.Pinned);
-            GL.TexImage2D(TextureTarget2d.Texture2D, level, TextureComponentCount.Srgb8Alpha8, width, height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, h0.AddrOfPinnedObject());
-            h0.Free();
+            using (var image = new Image<Rgba32>(width, height))
+                fixed (void* buffer = &MemoryMarshal.GetReference(image.GetPixelSpan()))
+                    GL.TexImage2D(TextureTarget2d.Texture2D, level, TextureComponentCount.Srgb8Alpha8, width, height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, (IntPtr)buffer);
         }
     }
 }
