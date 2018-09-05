@@ -304,6 +304,8 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
+        public override bool IsPresent => base.IsPresent && (!string.IsNullOrEmpty(text) || !charactersCache.IsValid);
+
         #region Characters
 
         private Cached charactersCache = new Cached();
