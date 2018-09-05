@@ -639,6 +639,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         public bool OnReleased(PlatformAction action) => false;
-        public ScheduledDelegate ScheduleCheckAction(Action action) => Scheduler.AddDelayed(action, 0, true);
+
+        ScheduledDelegate DelayedLoadWrapper.IOnScreenOptimisingContainer.ScheduleCheckAction(Action action) => Scheduler.AddDelayed(action, 0, true);
     }
 }
