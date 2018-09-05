@@ -56,6 +56,15 @@ namespace osu.Framework.Graphics.Sprites
                     return;
                 text = value;
 
+                if (string.IsNullOrEmpty(text))
+                {
+                    // We'll become not present and won't update the characters to set the size to 0, so do it manually
+                    if (requiresAutoSizedWidth)
+                        base.Width = 0;
+                    if (requiresAutoSizedHeight)
+                        base.Height = 0;
+                }
+
                 invalidate(true);
             }
         }
@@ -304,7 +313,7 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        public override bool IsPresent => base.IsPresent && (!string.IsNullOrEmpty(text) || !charactersCache.IsValid);
+        public override bool IsPresent => base.IsPresent && (AlwaysPresent || !string.IsNullOrEmpty(text));
 
         #region Characters
 
