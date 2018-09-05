@@ -132,14 +132,15 @@ namespace osu.Framework.Graphics.UserInterface
 
             Header.Action = Menu.Toggle;
             Header.ChangeSelection += selectionKeyPressed;
-            Menu.ChangeSelection += menuSelectionKeyPressed;
+            Menu.ChangePreselection += preselectionKeyPressed;
 
             Current.ValueChanged += selectionChanged;
         }
 
-        private void menuSelectionKeyPressed(int selectedIndex)
+        private void preselectionKeyPressed(int selectedIndex)
         {
             SelectedItem = MenuItems.ElementAt(selectedIndex);
+            Menu.State = MenuState.Closed;
         }
 
         private void selectionKeyPressed(DropdownHeader.SelectionChange change)
@@ -256,7 +257,7 @@ namespace osu.Framework.Graphics.UserInterface
             protected internal IEnumerable<DrawableDropdownMenuItem> DrawableMenuItems => Children.OfType<DrawableDropdownMenuItem>();
             protected internal IEnumerable<DrawableDropdownMenuItem> VisibleMenuItems => DrawableMenuItems.Where(item => !item.IsMaskedAway);
 
-            public event Action<int> ChangeSelection;
+            public event Action<int> ChangePreselection;
 
             /// <summary>
             /// Selects an item from this <see cref="DropdownMenu"/>.
@@ -432,7 +433,7 @@ namespace osu.Framework.Graphics.UserInterface
                         PreselectItem((DropdownMenuItem<T>)Items[preselectedIndex]);
                         return true;
                     case Key.Enter:
-                        ChangeSelection?.Invoke(preselectedIndex);
+                        ChangePreselection?.Invoke(preselectedIndex);
                         return true;
                     default:
                         return false;
