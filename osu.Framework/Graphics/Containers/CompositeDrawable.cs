@@ -1270,17 +1270,7 @@ namespace osu.Framework.Graphics.Containers
         /// The size of the coordinate space revealed to <see cref="InternalChildren"/>.
         /// Captures the effect of e.g. <see cref="Padding"/>.
         /// </summary>
-        public Vector2 ChildSize
-        {
-            get
-            {
-                if (!ComputingChildRequiredParentSizeToFit) return DrawSize - Padding.Total;
-                var size = new Vector2(
-                    (AutoSizeAxes & Axes.X) != 0 ? 0 : BaseSize.X,
-                    (AutoSizeAxes & Axes.Y) != 0 ? 0 : BaseSize.Y);
-                return ApplyRelativeAxes(RelativeSizeAxes, size, FillMode.Stretch);
-            }
-        }
+        public Vector2 ChildSize => !ComputingChildRequiredParentSizeToFit ? DrawSize - Padding.Total : Vector2.Zero;
 
         /// <summary>
         /// Positional offset applied to <see cref="InternalChildren"/>.
