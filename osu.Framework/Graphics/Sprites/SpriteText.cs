@@ -323,13 +323,16 @@ namespace osu.Framework.Graphics.Sprites
 
         private void computeCharacters()
         {
+            if (store == null)
+                return;
+
             if (charactersCache.IsValid)
                 return;
 
+            charactersBacking.Clear();
+
             Debug.Assert(!isComputingCharacters, "Cyclic invocation of computeCharacters()!");
             isComputingCharacters = true;
-
-            charactersBacking.Clear();
 
             Vector2 currentPos = new Vector2(Padding.Left, Padding.Top);
 
