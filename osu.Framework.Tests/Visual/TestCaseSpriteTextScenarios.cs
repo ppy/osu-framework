@@ -16,7 +16,7 @@ namespace osu.Framework.Tests.Visual
     public class TestCaseSpriteTextScenarios : GridTestCase
     {
         public TestCaseSpriteTextScenarios()
-            : base(4, 4)
+            : base(5, 4)
         {
             Cell(0, 0).Child = new SpriteText { Text = "Basic: Hello world!" };
 
@@ -187,6 +187,23 @@ namespace osu.Framework.Tests.Visual
                         Shadow = true,
                         Colour = Color4.Red,
                         ShadowColour = Color4.Pink.Opacity(0.5f)
+                    }
+                }
+            };
+
+            Cell(4, 0).Child = new Container
+            {
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre,
+                AutoSizeAxes = Axes.Both,
+                Children = new Drawable[]
+                {
+                    new Box { RelativeSizeAxes = Axes.Both },
+                    new SpriteText
+                    {
+                        Margin = new MarginPadding(-10),
+                        Text = "Negative margins",
+                        Colour = Color4.Red,
                     }
                 }
             };
