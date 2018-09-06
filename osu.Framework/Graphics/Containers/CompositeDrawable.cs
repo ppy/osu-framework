@@ -1266,16 +1266,23 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
+        /// It is true while a child is computing <see cref="Drawable.RequiredParentSizeToFit"/>.
+        /// While it is true, this <see cref="CompositeDrawable"/> behaves as its size exposed to children is zero
+        /// in order to prevent an unwanted dependency.
+        /// </summary>
+        internal bool IsChildComputingRequiredParentSizeToFit;
+
+        /// <summary>
         /// The size of the coordinate space revealed to <see cref="InternalChildren"/>.
         /// Captures the effect of e.g. <see cref="Padding"/>.
         /// </summary>
-        public Vector2 ChildSize => DrawSize - new Vector2(Padding.TotalHorizontal, Padding.TotalVertical);
+        public Vector2 ChildSize => !IsChildComputingRequiredParentSizeToFit ? DrawSize - Padding.Total : Vector2.Zero;
 
         /// <summary>
         /// Positional offset applied to <see cref="InternalChildren"/>.
         /// Captures the effect of e.g. <see cref="Padding"/>.
         /// </summary>
-        public Vector2 ChildOffset => new Vector2(Padding.Left, Padding.Top);
+        public Vector2 ChildOffset => !IsChildComputingRequiredParentSizeToFit ? new Vector2(Padding.Left, Padding.Top) : Vector2.Zero;
 
         private Vector2 relativeChildSize = Vector2.One;
 
@@ -1409,7 +1416,7 @@ namespace osu.Framework.Graphics.Containers
         {
             get
             {
-                if (!StaticCached.BypassCache && !isComputingChildrenSizeDependencies && AutoSizeAxes.HasFlag(Axes.X))
+                if (!StaticCached.BypassCache && AutoSizeAxes.HasFlag(Axes.X))
                     updateChildrenSizeDependencies();
                 return base.Width;
             }
@@ -1426,7 +1433,7 @@ namespace osu.Framework.Graphics.Containers
         {
             get
             {
-                if (!StaticCached.BypassCache && !isComputingChildrenSizeDependencies && AutoSizeAxes.HasFlag(Axes.Y))
+                if (!StaticCached.BypassCache && AutoSizeAxes.HasFlag(Axes.Y))
                     updateChildrenSizeDependencies();
                 return base.Height;
             }
@@ -1439,13 +1446,11 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private bool isComputingChildrenSizeDependencies;
-
         public override Vector2 Size
         {
             get
             {
-                if (!StaticCached.BypassCache && !isComputingChildrenSizeDependencies && AutoSizeAxes != Axes.None)
+                if (!StaticCached.BypassCache && AutoSizeAxes != Axes.None)
                     updateChildrenSizeDependencies();
                 return base.Size;
             }
@@ -1460,45 +1465,29 @@ namespace osu.Framework.Graphics.Containers
 
         private Vector2 computeAutoSize()
         {
-            MarginPadding originalPadding = Padding;
-            MarginPadding originalMargin = Margin;
+            Vector2 maxRequiredSize = Vector2.Zero;
 
-            try
+            // Find the maximum width/height of children
+            foreach (Drawable c in AliveInternalChildren)
             {
-                Padding = new MarginPadding();
-                Margin = new MarginPadding();
+                if (!c.IsPresent)
+                    continue;
 
-                if (AutoSizeAxes == Axes.None) return DrawSize;
+                var axes = AutoSizeAxes & ~c.BypassAutoSizeAxes;
+                if (axes == Axes.None)
+                    continue;
 
-                Vector2 maxBoundSize = Vector2.Zero;
+                Vector2 cBound = c.RequiredParentSizeToFit;
 
-                // Find the maximum width/height of children
-                foreach (Drawable c in AliveInternalChildren)
-                {
-                    if (!c.IsPresent)
-                        continue;
-
-                    Vector2 cBound = c.RequiredParentSizeToFit;
-
-                    if (!c.BypassAutoSizeAxes.HasFlag(Axes.X))
-                        maxBoundSize.X = Math.Max(maxBoundSize.X, cBound.X);
-
-                    if (!c.BypassAutoSizeAxes.HasFlag(Axes.Y))
-                        maxBoundSize.Y = Math.Max(maxBoundSize.Y, cBound.Y);
-                }
-
-                if (!AutoSizeAxes.HasFlag(Axes.X))
-                    maxBoundSize.X = DrawSize.X;
-                if (!AutoSizeAxes.HasFlag(Axes.Y))
-                    maxBoundSize.Y = DrawSize.Y;
-
-                return new Vector2(maxBoundSize.X, maxBoundSize.Y);
+                if (axes.HasFlag(Axes.X))
+                    maxRequiredSize.X = Math.Max(maxRequiredSize.X, cBound.X);
+                if (axes.HasFlag(Axes.Y))
+                    maxRequiredSize.Y = Math.Max(maxRequiredSize.Y, cBound.Y);
             }
-            finally
-            {
-                Padding = originalPadding;
-                Margin = originalMargin;
-            }
+
+            return new Vector2(
+                !AutoSizeAxes.HasFlag(Axes.X) ? BaseSize.X : maxRequiredSize.X + Padding.TotalHorizontal,
+                !AutoSizeAxes.HasFlag(Axes.Y) ? BaseSize.Y : maxRequiredSize.Y + Padding.TotalVertical);
         }
 
         private void updateAutoSize()
@@ -1506,12 +1495,9 @@ namespace osu.Framework.Graphics.Containers
             if (AutoSizeAxes == Axes.None)
                 return;
 
-            Vector2 b = computeAutoSize() + Padding.Total;
+            Vector2 newSize = computeAutoSize();
 
-            autoSizeResizeTo(new Vector2(
-                AutoSizeAxes.HasFlag(Axes.X) ? b.X : base.Width,
-                AutoSizeAxes.HasFlag(Axes.Y) ? b.Y : base.Height
-            ), AutoSizeDuration, AutoSizeEasing);
+            autoSizeResizeTo(newSize, AutoSizeDuration, AutoSizeEasing);
 
             //note that this is called before autoSize becomes valid. may be something to consider down the line.
             //might work better to add an OnRefresh event in Cached<> and invoke there.
@@ -1520,25 +1506,16 @@ namespace osu.Framework.Graphics.Containers
 
         private void updateChildrenSizeDependencies()
         {
-            isComputingChildrenSizeDependencies = true;
-
-            try
+            if (!childrenSizeDependencies.IsValid)
             {
-                if (!childrenSizeDependencies.IsValid)
-                {
-                    updateAutoSize();
-                    childrenSizeDependencies.Validate();
-                }
-            }
-            finally
-            {
-                isComputingChildrenSizeDependencies = false;
+                updateAutoSize();
+                childrenSizeDependencies.Validate();
             }
         }
 
         private void autoSizeResizeTo(Vector2 newSize, double duration = 0, Easing easing = Easing.None)
         {
-            var currentTargetSize = ((AutoSizeTransform)Transforms.FirstOrDefault(t => t is AutoSizeTransform))?.EndValue ?? Size;
+            var currentTargetSize = ((AutoSizeTransform)Transforms.FirstOrDefault(t => t is AutoSizeTransform))?.EndValue ?? BaseSize;
             if (currentTargetSize != newSize)
                 this.TransformTo(this.PopulateTransform(new AutoSizeTransform { Rewindable = false }, newSize, duration, easing));
         }
@@ -1546,7 +1523,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// A helper property for <see cref="autoSizeResizeTo(Vector2, double, Easing)"/> to change the size of <see cref="CompositeDrawable"/>s with <see cref="AutoSizeAxes"/>.
         /// </summary>
-        private Vector2 baseSize
+        internal Vector2 BaseSize
         {
             get => new Vector2(base.Width, base.Height);
             set
@@ -1559,7 +1536,7 @@ namespace osu.Framework.Graphics.Containers
         private class AutoSizeTransform : TransformCustom<Vector2, CompositeDrawable>
         {
             public AutoSizeTransform()
-                : base(nameof(baseSize))
+                : base(nameof(BaseSize))
             {
             }
         }

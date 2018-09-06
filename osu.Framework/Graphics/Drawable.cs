@@ -1518,34 +1518,49 @@ namespace osu.Framework.Graphics
 
         private Vector2 computeRequiredParentSizeToFit()
         {
-            // Auxilary variables required for the computation
-            Vector2 ap = AnchorPosition;
-            Vector2 rap = RelativeAnchorPosition;
+            if (Parent == null) return Vector2.Zero;
 
-            Vector2 ratio1 = new Vector2(
-                rap.X <= 0 ? 0 : 1 / rap.X,
-                rap.Y <= 0 ? 0 : 1 / rap.Y);
+            var originalFlag = Parent.IsChildComputingRequiredParentSizeToFit;
+            // If DrawSize is accessed while Parent.IsChildComputingRequiredParentSizeToFit is true,
+            // a wrong value is cached for DrawSize.
+            // We need to invalidate DrawSize after for such case.
+            var originalDrawSizeBacking = drawSizeBacking;
+            Parent.IsChildComputingRequiredParentSizeToFit = true;
 
-            Vector2 ratio2 = new Vector2(
-                rap.X >= 1 ? 0 : 1 / (1 - rap.X),
-                rap.Y >= 1 ? 0 : 1 / (1 - rap.Y));
+            try
+            {
+                Vector2 rap = RelativeAnchorPosition;
 
-            RectangleF bbox = BoundingBox;
+                Vector2 ratio1 = new Vector2(
+                    rap.X <= 0 ? 0 : 1 / rap.X,
+                    rap.Y <= 0 ? 0 : 1 / rap.Y);
 
-            // Compute the required size of the parent such that we fit in snugly when positioned
-            // at our relative anchor in the parent.
-            Vector2 topLeftOffset = ap - bbox.TopLeft;
-            Vector2 topLeftSize1 = topLeftOffset * ratio1;
-            Vector2 topLeftSize2 = -topLeftOffset * ratio2;
+                Vector2 ratio2 = new Vector2(
+                    rap.X >= 1 ? 0 : 1 / (1 - rap.X),
+                    rap.Y >= 1 ? 0 : 1 / (1 - rap.Y));
 
-            Vector2 bottomRightOffset = ap - bbox.BottomRight;
-            Vector2 bottomRightSize1 = bottomRightOffset * ratio1;
-            Vector2 bottomRightSize2 = -bottomRightOffset * ratio2;
+                RectangleF bbox = BoundingBox;
 
-            // Expand bounds according to clipped offset
-            return Vector2.ComponentMax(
-                Vector2.ComponentMax(topLeftSize1, topLeftSize2),
-                Vector2.ComponentMax(bottomRightSize1, bottomRightSize2));
+                // Compute the required size of the parent such that we fit in snugly when positioned
+                // at our relative anchor in the parent.
+                Vector2 topLeftOffset = -bbox.TopLeft;
+                Vector2 topLeftSize1 = topLeftOffset * ratio1;
+                Vector2 topLeftSize2 = -topLeftOffset * ratio2;
+
+                Vector2 bottomRightOffset = -bbox.BottomRight;
+                Vector2 bottomRightSize1 = bottomRightOffset * ratio1;
+                Vector2 bottomRightSize2 = -bottomRightOffset * ratio2;
+
+                // Expand bounds according to clipped offset
+                return Vector2.ComponentMax(
+                    Vector2.ComponentMax(topLeftSize1, topLeftSize2),
+                    Vector2.ComponentMax(bottomRightSize1, bottomRightSize2));
+            }
+            finally
+            {
+                Parent.IsChildComputingRequiredParentSizeToFit = originalFlag;
+                drawSizeBacking = originalDrawSizeBacking;
+            }
         }
 
         /// <summary>
@@ -1717,14 +1732,24 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="input">A vector in local coordinates.</param>
         /// <returns>The vector in Parent's coordinates.</returns>
-        public Vector2 ToParentSpace(Vector2 input) => ToSpaceOfOtherDrawable(input, Parent);
+        public Vector2 ToParentSpace(Vector2 input)
+        {
+            var di = new DrawInfo(null);
+            di.ApplyTransform(DrawPosition + AnchorPosition + (Parent?.ChildOffset ?? Vector2.Zero), DrawScale, Rotation, Shear, OriginPosition);
+            return Vector2Extensions.Transform(input, di.Matrix);
+        }
 
         /// <summary>
         /// Accepts a rectangle in local coordinates and converts it to a quad in Parent's space.
         /// </summary>
         /// <param name="input">A rectangle in local coordinates.</param>
         /// <returns>The quad in Parent's coordinates.</returns>
-        public Quad ToParentSpace(RectangleF input) => ToSpaceOfOtherDrawable(input, Parent);
+        public Quad ToParentSpace(RectangleF input)
+        {
+            var di = new DrawInfo(null);
+            di.ApplyTransform(DrawPosition + AnchorPosition + (Parent?.ChildOffset ?? Vector2.Zero), DrawScale, Rotation, Shear, OriginPosition);
+            return Quad.FromRectangle(input) * di.Matrix;
+        }
 
         /// <summary>
         /// Accepts a vector in local coordinates and converts it to coordinates in screen space.
