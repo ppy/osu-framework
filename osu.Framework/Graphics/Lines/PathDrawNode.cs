@@ -188,7 +188,7 @@ namespace osu.Framework.Graphics.Lines
         {
             base.Draw(vertexAction);
 
-            if (Texture == null || Texture.IsDisposed || Segments.Count == 0)
+            if (Texture?.TextureGL?.IsDisposed != false || Segments.Count == 0)
                 return;
 
             GLWrapper.SetDepthTest(true);

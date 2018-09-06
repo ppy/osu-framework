@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
+// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Collections.Concurrent;
@@ -14,7 +14,7 @@ namespace osu.Framework.Graphics.Textures
 {
     public class TextureStore : ResourceStore<RawTexture>
     {
-        private readonly ConcurrentDictionary<string, Lazy<TextureGL>> textureCache = new ConcurrentDictionary<string, Lazy<TextureGL>>();
+        private readonly ConcurrentDictionary<string, Lazy<Texture>> textureCache = new ConcurrentDictionary<string, Lazy<Texture>>();
 
         private readonly All filteringMode;
         private readonly bool manualMipmaps;
@@ -24,13 +24,20 @@ namespace osu.Framework.Graphics.Textures
         /// Decides at what resolution multiple this texturestore is providing sprites at.
         /// ie. if we are providing high resolution (at 2x the resolution of standard 1366x768) sprites this should be 2.
         /// </summary>
-        public float ScaleAdjust = 2;
+        public readonly float ScaleAdjust;
 
-        public TextureStore(IResourceStore<RawTexture> store = null, bool useAtlas = true, All filteringMode = All.Linear, bool manualMipmaps = false)
+        private readonly Func<string, Lazy<Texture>> lazyCreator; // used avoid allocations on lookups.
+
+        public TextureStore(IResourceStore<RawTexture> store = null, bool useAtlas = true, All filteringMode = All.Linear, bool manualMipmaps = false, float scaleAdjust = 2)
             : base(store)
         {
             this.filteringMode = filteringMode;
             this.manualMipmaps = manualMipmaps;
+
+            lazyCreator = name => new Lazy<Texture>(() => getTexture(name), LazyThreadSafetyMode.ExecutionAndPublication);
+
+            ScaleAdjust = scaleAdjust;
+
             AddExtension(@"png");
             AddExtension(@"jpg");
 
@@ -46,7 +53,10 @@ namespace osu.Framework.Graphics.Textures
         {
             if (raw == null) return null;
 
-            Texture tex = atlas != null ? atlas.Add(raw.Width, raw.Height) : new Texture(raw.Width, raw.Height, manualMipmaps, filteringMode);
+            var glTexture = atlas != null ? atlas.Add(raw.Width, raw.Height) : new TextureGLSingle(raw.Width, raw.Height, manualMipmaps, filteringMode);
+
+            Texture tex = new Texture(glTexture) { ScaleAdjust = ScaleAdjust };
+
             tex.SetData(new TextureUpload(raw));
 
             return tex;
@@ -63,12 +73,16 @@ namespace osu.Framework.Graphics.Textures
         {
             if (string.IsNullOrEmpty(name)) return null;
 
-            var cachedTex = textureCache.GetOrAdd(name, n =>
-                //Laziness ensure we are only ever creating the texture once (and blocking on other access until it is done).
-                new Lazy<TextureGL>(() => getTexture(name)?.TextureGL, LazyThreadSafetyMode.ExecutionAndPublication)).Value;
+            //Laziness ensure we are only ever creating the texture once (and blocking on other access until it is done).
+            var cachedTex = textureCache.GetOrAdd(name, lazyCreator).Value;
 
-            //use existing TextureGL (but provide a new texture instance).
-            return cachedTex == null ? null : new Texture(cachedTex) { ScaleAdjust = ScaleAdjust };
+            if (cachedTex?.TextureGL?.IsDisposed == true)
+            {
+                textureCache.TryRemove(name, out _);
+                return Get(name);
+            }
+
+            return cachedTex;
         }
     }
 }

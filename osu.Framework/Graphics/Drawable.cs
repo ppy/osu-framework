@@ -51,8 +51,7 @@ namespace osu.Framework.Graphics
 
         protected Drawable()
         {
-            handleKeyboardInput = HandleInputCache.HandleKeyboardInput(this);
-            handleMouseInput = HandleInputCache.HandleMouseInput(this);
+            scheduler = new Lazy<Scheduler>(() => new Scheduler(MainThread, Clock));
         }
 
         ~Drawable()
@@ -112,7 +111,7 @@ namespace osu.Framework.Graphics
         /// Whether this Drawable should be disposed when it is automatically removed from
         /// its <see cref="Parent"/> due to <see cref="ShouldBeAlive"/> being false.
         /// </summary>
-        public virtual bool DisposeOnDeathRemoval => false;
+        public virtual bool DisposeOnDeathRemoval => RemoveCompletedTransforms;
 
         private static readonly ConcurrentDictionary<Type, Action<object>> unbind_action_cache = new ConcurrentDictionary<Type, Action<object>>();
 
@@ -229,6 +228,9 @@ namespace osu.Framework.Graphics
 
             double t1 = getPerfTime();
 
+            handleKeyboardInput = HandleInputCache.HandleKeyboardInput(this);
+            handleMouseInput = HandleInputCache.HandleMouseInput(this);
+
             InjectDependencies(dependencies);
 
             LoadAsyncComplete();
@@ -252,7 +254,7 @@ namespace osu.Framework.Graphics
             if (loadState < LoadState.Ready) return false;
 
             MainThread = Thread.CurrentThread;
-            scheduler?.SetCurrentThread(MainThread);
+            if (scheduler.IsValueCreated) scheduler.Value.SetCurrentThread(MainThread);
 
             loadState = LoadState.Loaded;
             Invalidate();
@@ -360,20 +362,15 @@ namespace osu.Framework.Graphics
         /// </summary>
         internal event Action OnDispose;
 
-        private Scheduler scheduler;
+        private Lazy<Scheduler> scheduler;
+
         internal Thread MainThread { get; private set; }
 
         /// <summary>
         /// A lazily-initialized scheduler used to schedule tasks to be invoked in future <see cref="Update"/>s calls.
         /// The tasks are invoked at the beginning of the <see cref="Update"/> method before anything else.
         /// </summary>
-        protected Scheduler Scheduler => scheduler ?? (scheduler = new Scheduler(MainThread, Clock));
-
-        /// <summary>
-        /// Updates this <see cref="Drawable"/> and all <see cref="Drawable"/>s further down the scene graph.
-        /// Only used by the game host.
-        /// </summary>
-        internal void UpdateSubTreeAsRoot() => UpdateSubTree();
+        protected Scheduler Scheduler => scheduler.Value;
 
         /// <summary>
         /// Updates this Drawable and all Drawables further down the scene graph.
@@ -401,9 +398,9 @@ namespace osu.Framework.Graphics
             if (!IsPresent)
                 return true;
 
-            if (scheduler != null)
+            if (scheduler.IsValueCreated)
             {
-                int amountScheduledTasks = scheduler.Update();
+                int amountScheduledTasks = scheduler.Value.Update();
                 FrameStatistics.Add(StatisticsCounterType.ScheduleInvk, amountScheduledTasks);
             }
 
@@ -578,7 +575,7 @@ namespace osu.Framework.Graphics
                         offset.Y = 0;
                 }
 
-                return applyRelativeAxes(RelativePositionAxes, Position - offset, FillMode.Stretch);
+                return ApplyRelativeAxes(RelativePositionAxes, Position - offset, FillMode.Stretch);
             }
         }
 
@@ -706,7 +703,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Absolute size of this Drawable in the <see cref="Parent"/>'s coordinate system.
         /// </summary>
-        public Vector2 DrawSize => drawSizeBacking.IsValid ? drawSizeBacking : (drawSizeBacking.Value = applyRelativeAxes(RelativeSizeAxes, Size, FillMode));
+        public Vector2 DrawSize => drawSizeBacking.IsValid ? drawSizeBacking : (drawSizeBacking.Value = ApplyRelativeAxes(RelativeSizeAxes, Size, FillMode));
 
         /// <summary>
         /// X component of <see cref="DrawSize"/>.
@@ -781,7 +778,7 @@ namespace osu.Framework.Graphics
         /// <param name="v">The coordinates to convert.</param>
         /// <param name="fillMode">The <see cref="FillMode"/> to be used.</param>
         /// <returns>Absolute coordinates in <see cref="Parent"/>'s space.</returns>
-        private Vector2 applyRelativeAxes(Axes relativeAxes, Vector2 v, FillMode fillMode)
+        protected Vector2 ApplyRelativeAxes(Axes relativeAxes, Vector2 v, FillMode fillMode)
         {
             if (relativeAxes != Axes.None)
             {
@@ -1291,7 +1288,7 @@ namespace osu.Framework.Graphics
         internal virtual void UpdateClock(IFrameBasedClock clock)
         {
             this.clock = customClock ?? clock;
-            scheduler?.UpdateClock(this.clock);
+            if (scheduler.IsValueCreated) scheduler.Value.UpdateClock(this.clock);
         }
 
         /// <summary>
@@ -1581,10 +1578,10 @@ namespace osu.Framework.Graphics
         /// <returns>If the invalidate was actually necessary.</returns>
         public virtual bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
-            if (invalidation == Invalidation.None || Parent == null)
+            if (invalidation == Invalidation.None || LoadState < LoadState.Ready)
                 return false;
 
-            if (shallPropagate && source != Parent)
+            if (shallPropagate && Parent != null && source != Parent)
             {
                 var parentInvalidation = invalidation;
 
@@ -2007,7 +2004,7 @@ namespace osu.Framework.Graphics
         /// is propagated up the scene graph to the next eligible Drawable.</returns>
         protected virtual bool OnMouseMove(InputState state) => false;
 
-        private readonly bool handleKeyboardInput, handleMouseInput;
+        private bool handleKeyboardInput, handleMouseInput;
 
         /// <summary>
         /// Whether this <see cref="Drawable"/> handles keyboard input.

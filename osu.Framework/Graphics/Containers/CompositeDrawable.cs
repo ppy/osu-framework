@@ -42,6 +42,8 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         protected CompositeDrawable()
         {
+            schedulerAfterChildren = new Lazy<Scheduler>(() => new Scheduler(MainThread, Clock));
+
             internalChildren = new SortedList<Drawable>(new ChildComparer(this));
             aliveInternalChildren = new SortedList<Drawable>(new ChildComparer(this));
         }
@@ -210,7 +212,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected override void LoadComplete()
         {
-            schedulerAfterChildren?.SetCurrentThread(MainThread);
+            if (schedulerAfterChildren.IsValueCreated) schedulerAfterChildren.Value.SetCurrentThread(MainThread);
             base.LoadComplete();
         }
 
@@ -504,9 +506,9 @@ namespace osu.Framework.Graphics.Containers
 
         #region Updating (per-frame periodic)
 
-        private Scheduler schedulerAfterChildren;
+        private Lazy<Scheduler> schedulerAfterChildren;
 
-        protected Scheduler SchedulerAfterChildren => schedulerAfterChildren ?? (schedulerAfterChildren = new Scheduler(MainThread, Clock));
+        protected Scheduler SchedulerAfterChildren => schedulerAfterChildren.Value;
 
         /// <summary>
         /// Updates the life status of <see cref="InternalChildren"/> according to their
@@ -608,7 +610,7 @@ namespace osu.Framework.Graphics.Containers
             foreach (Drawable child in internalChildren)
                 child.UpdateClock(Clock);
 
-            schedulerAfterChildren?.UpdateClock(Clock);
+            if (schedulerAfterChildren.IsValueCreated) schedulerAfterChildren.Value.UpdateClock(Clock);
         }
 
         /// <summary>
@@ -642,9 +644,9 @@ namespace osu.Framework.Graphics.Containers
                 c.UpdateSubTree();
             }
 
-            if (schedulerAfterChildren != null)
+            if (schedulerAfterChildren.IsValueCreated)
             {
-                int amountScheduledTasks = schedulerAfterChildren.Update();
+                int amountScheduledTasks = schedulerAfterChildren.Value.Update();
                 FrameStatistics.Add(StatisticsCounterType.ScheduleInvk, amountScheduledTasks);
             }
 
