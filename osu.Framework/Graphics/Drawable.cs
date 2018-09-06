@@ -91,8 +91,6 @@ namespace osu.Framework.Graphics
 
                 Parent = null;
 
-                scheduler = null;
-
                 OnUpdate = null;
                 OnInvalidate = null;
 
