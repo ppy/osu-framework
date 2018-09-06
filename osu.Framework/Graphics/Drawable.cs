@@ -91,8 +91,6 @@ namespace osu.Framework.Graphics
 
                 Parent = null;
 
-                scheduler = null;
-
                 OnUpdate = null;
                 OnInvalidate = null;
 
@@ -362,7 +360,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         internal event Action OnDispose;
 
-        private Lazy<Scheduler> scheduler;
+        private readonly Lazy<Scheduler> scheduler;
 
         internal Thread MainThread { get; private set; }
 
