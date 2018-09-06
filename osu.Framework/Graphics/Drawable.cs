@@ -52,9 +52,6 @@ namespace osu.Framework.Graphics
         protected Drawable()
         {
             scheduler = new Lazy<Scheduler>(() => new Scheduler(MainThread, Clock));
-
-            handleKeyboardInput = HandleInputCache.HandleKeyboardInput(this);
-            handleMouseInput = HandleInputCache.HandleMouseInput(this);
         }
 
         ~Drawable()
@@ -230,6 +227,9 @@ namespace osu.Framework.Graphics
             UpdateClock(clock);
 
             double t1 = getPerfTime();
+
+            handleKeyboardInput = HandleInputCache.HandleKeyboardInput(this);
+            handleMouseInput = HandleInputCache.HandleMouseInput(this);
 
             InjectDependencies(dependencies);
 
@@ -1964,7 +1964,7 @@ namespace osu.Framework.Graphics
         /// is propagated up the scene graph to the next eligible Drawable.</returns>
         protected virtual bool OnMouseMove(InputState state) => false;
 
-        private readonly bool handleKeyboardInput, handleMouseInput;
+        private bool handleKeyboardInput, handleMouseInput;
 
         /// <summary>
         /// Whether this <see cref="Drawable"/> handles keyboard input.
