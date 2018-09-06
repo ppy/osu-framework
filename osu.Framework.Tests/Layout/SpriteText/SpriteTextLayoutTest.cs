@@ -58,7 +58,6 @@ namespace osu.Framework.Tests.Layout.SpriteText
             new object[] { nameof(TestSpriteText.Scale), new Vector2(40), false, true, false },
             new object[] { nameof(TestSpriteText.Shear), new Vector2(40), false, true, false },
             new object[] { nameof(TestSpriteText.Padding), new MarginPadding(10), true, true, false },
-            // Todo: This might be wrong for negative margins, but we only get a MiscGeometry invalidation...
             new object[] { nameof(TestSpriteText.Margin), new MarginPadding(10), false, true, false },
             new object[] { nameof(TestSpriteText.Spacing), new Vector2(10), true, true, false },
             new object[] { nameof(TestSpriteText.Font), "newFont", true, true, false },
