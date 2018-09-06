@@ -504,7 +504,7 @@ namespace osu.Framework.Graphics.Sprites
             if (source == Parent)
             {
                 // Colour captures presence changes
-                if ((invalidation & (Invalidation.DrawSize | Invalidation.Colour)) > 0)
+                if ((invalidation & (Invalidation.DrawSize | Invalidation.Presence)) > 0)
                     invalidate(true);
 
                 if ((invalidation & Invalidation.DrawInfo) > 0)
