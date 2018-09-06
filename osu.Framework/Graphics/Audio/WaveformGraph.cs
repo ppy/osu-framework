@@ -191,9 +191,9 @@ namespace osu.Framework.Graphics.Audio
             n.Shared = sharedData;
             n.Points = generatedWaveform?.GetPoints();
             n.Channels = generatedWaveform?.GetChannels() ?? 0;
-            n.LowColour = lowColour ?? DrawInfo.Colour;
-            n.MidColour = midColour ?? DrawInfo.Colour;
-            n.HighColour = highColour ?? DrawInfo.Colour;
+            n.LowColour = lowColour ?? DrawColourInfo.Colour;
+            n.MidColour = midColour ?? DrawColourInfo.Colour;
+            n.HighColour = highColour ?? DrawColourInfo.Colour;
 
             base.ApplyDrawNode(node);
         }
@@ -274,7 +274,7 @@ namespace osu.Framework.Graphics.Audio
                     if (leftX > localMaskingRectangle.Right)
                         break; // X is always increasing
 
-                    Color4 colour = DrawInfo.Colour;
+                    Color4 colour = DrawColourInfo.Colour;
 
                     // colouring is applied in the order of interest to a viewer.
                     colour = Interpolation.ValueAt(points[i].MidIntensity / midMax, colour, MidColour, 0, 1);

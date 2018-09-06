@@ -742,9 +742,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="source">The child which caused this invalidation. May be null to indicate that a specific child wasn't specified.</param>
         public virtual void InvalidateFromChild(Invalidation invalidation, Drawable source = null)
         {
-            //Colour captures potential changes in IsPresent. If this ever becomes a bottleneck,
-            //Invalidation could be further separated into presence changes.
-            if ((invalidation & (Invalidation.RequiredParentSizeToFit | Invalidation.Colour)) > 0)
+            if ((invalidation & (Invalidation.RequiredParentSizeToFit | Invalidation.Presence)) > 0)
                 childrenSizeDependencies.Invalidate();
         }
 
@@ -771,6 +769,9 @@ namespace osu.Framework.Graphics.Containers
 
                 // Other geometry things like rotation, shearing, etc don't affect child properties.
                 childInvalidation &= ~Invalidation.MiscGeometry;
+
+                // Presence also doesn't affect child properties
+                childInvalidation &= ~Invalidation.Presence;
 
                 // Relative positioning can however affect child geometry
                 // ReSharper disable once PossibleNullReferenceException

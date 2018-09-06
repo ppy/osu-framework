@@ -36,12 +36,12 @@ namespace osu.Framework.Graphics.Sprites
 
                 shader.Bind();
 
-                var avgColour = (Color4)DrawInfo.Colour.AverageColour;
+                var avgColour = (Color4)DrawColourInfo.Colour.AverageColour;
                 float shadowAlpha = (float)Math.Pow(Math.Max(Math.Max(avgColour.R, avgColour.G), avgColour.B), 2);
 
                 //adjust shadow alpha based on highest component intensity to avoid muddy display of darker text.
                 //squared result for quadratic fall-off seems to give the best result.
-                var shadowColour = DrawInfo.Colour;
+                var shadowColour = DrawColourInfo.Colour;
                 shadowColour.ApplyChild(ShadowColour.MultiplyAlpha(shadowAlpha));
 
                 for (int i = 0; i < Parts.Count; i++)
@@ -57,7 +57,7 @@ namespace osu.Framework.Graphics.Sprites
                         Parts[i].Texture.DrawQuad(shadowQuad, shadowColour, vertexAction: vertexAction);
                     }
 
-                    Parts[i].Texture.DrawQuad(Parts[i].DrawQuad, DrawInfo.Colour, vertexAction: vertexAction);
+                    Parts[i].Texture.DrawQuad(Parts[i].DrawQuad, DrawColourInfo.Colour, vertexAction: vertexAction);
                 }
 
                 shader.Unbind();
