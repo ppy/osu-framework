@@ -78,7 +78,7 @@ namespace osu.Framework.Input
         /// <summary>
         /// The drawable which is clicked by the last click.
         /// </summary>
-        protected Drawable ClickedDrawable;
+        protected WeakReference<Drawable> ClickedDrawable = new WeakReference<Drawable>(null);
 
         /// <summary>
         /// Whether a drag operation has started and <see cref="DraggedDrawable"/> has been searched for.
@@ -156,6 +156,7 @@ namespace osu.Framework.Input
                     HandleMouseDragEnd(state);
 
                 MouseDownPosition = null;
+                MouseDownInputQueue = null;
             }
         }
 
@@ -191,19 +192,22 @@ namespace osu.Framework.Input
 
             // click pass, triggering an OnClick on all drawables up to the first which returns true.
             // an extra IsHovered check is performed because we are using an outdated queue (for valid reasons which we need to document).
-            ClickedDrawable = PropagateMouseButtonEvent(drawables, new ClickEvent(state, Button, MouseDownPosition));
+            var clicked = PropagateMouseButtonEvent(drawables, new ClickEvent(state, Button, MouseDownPosition));
+            ClickedDrawable.SetTarget(clicked);
 
             if (ChangeFocusOnClick)
-                RequestFocus?.Invoke(ClickedDrawable);
+                RequestFocus?.Invoke(clicked);
 
             return ClickedDrawable != null;
         }
 
         protected virtual bool HandleMouseDoubleClick(InputState state)
         {
-            if (ClickedDrawable == null || !ClickedDrawable.ReceiveMouseInputAt(state.Mouse.Position)) return false;
-
-            return PropagateMouseButtonEvent(new[] { ClickedDrawable }, new DoubleClickEvent(state, Button, MouseDownPosition)) != null;
+            if (!ClickedDrawable.TryGetTarget(out Drawable clicked))
+                return false;
+            if (!clicked.ReceiveMouseInputAt(state.Mouse.Position))
+                return false;
+            return PropagateMouseButtonEvent(new[] { clicked }, new DoubleClickEvent(state, Button, MouseDownPosition)) != null;
         }
 
         protected virtual bool HandleMouseDrag(InputState state, Vector2 lastPosition)

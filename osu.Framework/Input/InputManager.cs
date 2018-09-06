@@ -225,6 +225,10 @@ namespace osu.Framework.Input
         {
             unfocusIfNoLongerValid();
 
+            // aggressively clear to avoid holding references.
+            inputQueue.Clear();
+            positionalInputQueue.Clear();
+
             foreach (var result in GetPendingInputs())
             {
                 result.Apply(CurrentState, this);

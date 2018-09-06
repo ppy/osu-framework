@@ -20,12 +20,24 @@ namespace osu.Framework.IO.Stores
             this.storage = storage;
         }
 
-        public byte[] Get(string name) => GetAsync(name).Result;
+        public byte[] Get(string name)
+        {
+            using (Stream stream = storage.GetStream(name))
+            {
+                if (stream == null) return null;
+
+                byte[] buffer = new byte[stream.Length];
+                stream.Read(buffer, 0, buffer.Length);
+                return buffer;
+            }
+        }
 
         public virtual async Task<byte[]> GetAsync(string name)
         {
             using (Stream stream = storage.GetStream(name))
             {
+                if (stream == null) return null;
+
                 byte[] buffer = new byte[stream.Length];
                 await stream.ReadAsync(buffer, 0, buffer.Length);
                 return buffer;

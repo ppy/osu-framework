@@ -16,7 +16,7 @@ namespace osu.Framework.Allocation
     /// Properties marked with this attribute must be private and have a setter.
     /// </summary>
     /// <remarks>
-    /// The value of the property is resolved upon <see cref="Drawable.LoadAsync"/> for the target <see cref="Drawable"/>.
+    /// The value of the property is resolved upon <see cref="Drawable.Load"/> for the target <see cref="Drawable"/>.
     /// </remarks>
     [MeansImplicitUse]
     [AttributeUsage(AttributeTargets.Property)]

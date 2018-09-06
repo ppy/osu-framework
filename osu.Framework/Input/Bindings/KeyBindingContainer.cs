@@ -66,6 +66,14 @@ namespace osu.Framework.Input.Bindings
             }
         }
 
+        protected override void Update()
+        {
+            base.Update();
+
+            // aggressively clear to avoid holding references.
+            queue.Clear();
+        }
+
         /// <summary>
         /// Override to enable or disable sending of repeated actions (disabled by default).
         /// Each repeated action will have its own pressed/released event pair.

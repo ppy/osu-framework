@@ -20,8 +20,7 @@ namespace osu.Framework.Tests.Visual
     {
         private Container testContainer;
 
-        [Test]
-        public void TestVariousScenarios()
+        public TestCaseSizing()
         {
             string[] testNames =
             {
@@ -85,6 +84,36 @@ namespace osu.Framework.Tests.Visual
             AddAssert("height = 0", () => Precision.AlmostEquals(0, autoSizeContainer.DrawHeight));
             AddStep("bypass none", () => boxSizeReference.BypassAutoSizeAxes = Axes.None);
             AddAssert($"height = {autosize_height}", () => Precision.AlmostEquals(autosize_height, autoSizeContainer.DrawHeight));
+        }
+
+        [Test]
+        public void TestParentInvalidations()
+        {
+            Container child = null;
+            Vector2 initialSize = Vector2.Zero;
+
+            AddStep("add child", () =>
+            {
+                Child = child = new Container
+                {
+                    AutoSizeAxes = Axes.Both,
+                    Child = new Container
+                    {
+                        // These two properties are important, as they make the parent's autosize 0
+                        Anchor = Anchor.TopLeft,
+                        Origin = Anchor.BottomRight,
+                        AutoSizeAxes = Axes.Both,
+                        Child = new Box { Size = new Vector2(100) },
+                    }
+                };
+
+                // Should already be 0
+                initialSize = child.Size;
+            });
+
+            // Upon LoadComplete(), one invalidation occurs which causes autosize to recompute
+            // Since nothing has changed since the previous frame, the size of the child should remain the same
+            AddAssert("size is the same after one frame", () => child.Size == initialSize);
         }
 
         private void addCrosshair()

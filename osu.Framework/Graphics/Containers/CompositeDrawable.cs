@@ -42,6 +42,8 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         protected CompositeDrawable()
         {
+            schedulerAfterChildren = new Lazy<Scheduler>(() => new Scheduler(MainThread, Clock));
+
             internalChildren = new SortedList<Drawable>(new ChildComparer(this));
             aliveInternalChildren = new SortedList<Drawable>(new ChildComparer(this));
         }
@@ -63,59 +65,96 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public IReadOnlyDependencyContainer Dependencies { get; private set; }
 
-        protected sealed override async Task InjectDependencies(IReadOnlyDependencyContainer dependencies)
+        protected sealed override void InjectDependencies(IReadOnlyDependencyContainer dependencies)
         {
             // get our dependencies from our parent, but allow local overriding of our inherited dependency container
             Dependencies = CreateChildDependencies(dependencies);
 
-            await base.InjectDependencies(dependencies);
+            base.InjectDependencies(dependencies);
         }
 
-        private CancellationTokenSource cancellationSource;
+        private CancellationTokenSource disposalCancellationSource;
+
+        private static readonly ThreadedTaskScheduler threaded_scheduler = new ThreadedTaskScheduler(4);
+
+        ///  <summary>
+        ///  Loads a future child or grand-child of this <see cref="CompositeDrawable"/> asynchronously. <see cref="Dependencies"/>
+        ///  and <see cref="Drawable.Clock"/> are inherited from this <see cref="CompositeDrawable"/>.
+        ///
+        ///  Note that this will always use the dependencies and clock from this instance. If you must load to a nested container level,
+        ///  consider using <see cref="DelayedLoadWrapper"/>
+        ///  </summary>
+        ///  <typeparam name="TLoadable">The type of the future future child or grand-child to be loaded.</typeparam>
+        ///  <param name="component">The child or grand-child to be loaded.</param>
+        ///  <param name="onLoaded">Callback to be invoked on the update thread after loading is complete.</param>
+        /// <param name="cancellation">An optional cancellation token.</param>
+        /// <returns>The task which is used for loading and callbacks.</returns>
+        protected Task LoadComponentAsync<TLoadable>(TLoadable component, Action<TLoadable> onLoaded = null, CancellationToken cancellation = default(CancellationToken)) where TLoadable : Drawable
+            => LoadComponentsAsync(component.Yield(), l => onLoaded?.Invoke(l.Single()), cancellation);
 
         /// <summary>
-        /// Loads a future child or grand-child of this <see cref="CompositeDrawable"/> asynchronously. <see cref="Dependencies"/>
+        /// Loads several future child or grand-child of this <see cref="CompositeDrawable"/> asynchronously. <see cref="Dependencies"/>
         /// and <see cref="Drawable.Clock"/> are inherited from this <see cref="CompositeDrawable"/>.
         ///
         /// Note that this will always use the dependencies and clock from this instance. If you must load to a nested container level,
         /// consider using <see cref="DelayedLoadWrapper"/>
         /// </summary>
         /// <typeparam name="TLoadable">The type of the future future child or grand-child to be loaded.</typeparam>
-        /// <param name="component">The type of the future future child or grand-child to be loaded.</param>
+        /// <param name="components">The children or grand-children to be loaded.</param>
         /// <param name="onLoaded">Callback to be invoked on the update thread after loading is complete.</param>
+        /// <param name="cancellation">An optional cancellation token.</param>
         /// <returns>The task which is used for loading and callbacks.</returns>
-        protected Task LoadComponentAsync<TLoadable>(TLoadable component, Action<TLoadable> onLoaded = null) where TLoadable : Drawable
+        protected Task LoadComponentsAsync<TLoadable>(IEnumerable<TLoadable> components, Action<IEnumerable<TLoadable>> onLoaded = null, CancellationToken cancellation = default(CancellationToken))
+            where TLoadable : Drawable
         {
             if (game == null)
                 throw new InvalidOperationException($"May not invoke {nameof(LoadComponentAsync)} prior to this {nameof(CompositeDrawable)} being loaded.");
 
-            var dependencies = Dependencies;
+            if (IsDisposed)
+                throw new ObjectDisposedException(ToString());
 
-            if (cancellationSource == null)
+            if (disposalCancellationSource == null)
+                disposalCancellationSource = new CancellationTokenSource();
+
+            var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(disposalCancellationSource.Token, cancellation);
+
+            var deps = new DependencyContainer(Dependencies);
+            deps.CacheValueAs(linkedSource.Token);
+
+            return Task.Factory.StartNew(() =>
             {
-                cancellationSource = new CancellationTokenSource();
-                var cancellationDeps = new DependencyContainer(Dependencies);
-                cancellationDeps.CacheValueAs(cancellationSource.Token);
-                dependencies = cancellationDeps;
-            }
-
-            return Task.Run(async () => await component.LoadAsync(Clock, dependencies), cancellationSource.Token).ContinueWith(t =>
+                foreach (var c in components)
+                    c.Load(Clock, deps);
+            }, linkedSource.Token, TaskCreationOptions.HideScheduler, threaded_scheduler).ContinueWith(t =>
             {
                 var exception = t.Exception?.AsSingular();
 
+                if (linkedSource.Token.IsCancellationRequested)
+                {
+                    linkedSource.Dispose();
+                    return;
+                }
+
                 game.Schedule(() =>
                 {
-                    if (exception != null)
-                        throw exception;
+                    try
+                    {
+                        if (exception != null)
+                            throw exception;
 
-                    if (!cancellationSource.IsCancellationRequested)
-                        onLoaded?.Invoke(component);
+                        if (!linkedSource.Token.IsCancellationRequested)
+                            onLoaded?.Invoke(components);
+                    }
+                    finally
+                    {
+                        linkedSource.Dispose();
+                    }
                 });
-            }, cancellationSource.Token);
+            }, CancellationToken.None);
         }
 
         [BackgroundDependencyLoader(true)]
-        private async Task load(ShaderManager shaders, CancellationToken? cancellation)
+        private void load(ShaderManager shaders, CancellationToken? cancellation)
         {
             if (shader == null)
                 shader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
@@ -126,7 +165,7 @@ namespace osu.Framework.Graphics.Containers
             foreach (var c in internalChildren)
             {
                 cancellation?.ThrowIfCancellationRequested();
-                await loadChildAsync(c);
+                loadChild(c);
             }
         }
 
@@ -141,23 +180,6 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Loads a <see cref="Drawable"/> child. This will throw in the event of the load being cancelled.
-        /// </summary>
-        /// <param name="child">The <see cref="Drawable"/> child to load.</param>
-        /// <returns>The async task.</returns>
-        /// <exception cref="ObjectDisposedException">If <paramref name="child"/> is disposed.</exception>
-        /// <exception cref="OperationCanceledException">When the loading process was cancelled.</exception>
-        /// <exception cref="DependencyInjectionException">When a user error occurred during dependency injection.</exception>
-        private async Task loadChildAsync(Drawable child)
-        {
-            if (IsDisposed)
-                throw new ObjectDisposedException(ToString(), "Disposed Drawables may not have children added.");
-
-            await child.LoadAsync(Clock, Dependencies);
-            child.Parent = this;
-        }
-
-        /// <summary>
         /// Loads a <see cref="Drawable"/> child. This will not throw in the event of the load being cancelled.
         /// </summary>
         /// <param name="child">The <see cref="Drawable"/> child to load.</param>
@@ -166,7 +188,12 @@ namespace osu.Framework.Graphics.Containers
         {
             try
             {
-                loadChildAsync(child).Wait(cancellationSource?.Token ?? CancellationToken.None);
+                if (IsDisposed)
+                    throw new ObjectDisposedException(ToString(), "Disposed Drawables may not have children added.");
+
+                child.Load(Clock, Dependencies);
+
+                child.Parent = this;
             }
             catch (OperationCanceledException)
             {
@@ -185,14 +212,14 @@ namespace osu.Framework.Graphics.Containers
 
         protected override void LoadComplete()
         {
-            schedulerAfterChildren?.SetCurrentThread(MainThread);
+            if (schedulerAfterChildren.IsValueCreated) schedulerAfterChildren.Value.SetCurrentThread(MainThread);
             base.LoadComplete();
         }
 
         protected override void Dispose(bool isDisposing)
         {
-            cancellationSource?.Cancel();
-            cancellationSource?.Dispose();
+            disposalCancellationSource?.Cancel();
+            disposalCancellationSource?.Dispose();
 
             InternalChildren?.ForEach(c => c.Dispose());
 
@@ -479,9 +506,9 @@ namespace osu.Framework.Graphics.Containers
 
         #region Updating (per-frame periodic)
 
-        private Scheduler schedulerAfterChildren;
+        private Lazy<Scheduler> schedulerAfterChildren;
 
-        protected Scheduler SchedulerAfterChildren => schedulerAfterChildren ?? (schedulerAfterChildren = new Scheduler(MainThread, Clock));
+        protected Scheduler SchedulerAfterChildren => schedulerAfterChildren.Value;
 
         /// <summary>
         /// Updates the life status of <see cref="InternalChildren"/> according to their
@@ -583,7 +610,7 @@ namespace osu.Framework.Graphics.Containers
             foreach (Drawable child in internalChildren)
                 child.UpdateClock(Clock);
 
-            schedulerAfterChildren?.UpdateClock(Clock);
+            if (schedulerAfterChildren.IsValueCreated) schedulerAfterChildren.Value.UpdateClock(Clock);
         }
 
         /// <summary>
@@ -617,9 +644,9 @@ namespace osu.Framework.Graphics.Containers
                 c.UpdateSubTree();
             }
 
-            if (schedulerAfterChildren != null)
+            if (schedulerAfterChildren.IsValueCreated)
             {
-                int amountScheduledTasks = schedulerAfterChildren.Update();
+                int amountScheduledTasks = schedulerAfterChildren.Value.Update();
                 FrameStatistics.Add(StatisticsCounterType.ScheduleInvk, amountScheduledTasks);
             }
 

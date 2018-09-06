@@ -76,18 +76,15 @@ namespace osu.Framework.IO.Stores
         /// <returns>The object.</returns>
         public override async Task<T> GetAsync(string name)
         {
-            return await Task.Run(() =>
-            {
-                if (cache.TryGetValue(name, out T result))
-                    return result;
-
-                result = Get(name);
-
-                if (result != null)
-                    cache[name] = result;
-
+            if (cache.TryGetValue(name, out T result))
                 return result;
-            });
+
+            result = await base.GetAsync(name);
+
+            if (result != null)
+                cache[name] = result;
+
+            return result;
         }
 
         /// <summary>

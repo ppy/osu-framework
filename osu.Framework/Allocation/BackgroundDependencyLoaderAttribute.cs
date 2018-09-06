@@ -5,7 +5,6 @@ using System;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
-using System.Threading.Tasks;
 using JetBrains.Annotations;
 using osu.Framework.Extensions.TypeExtensions;
 
@@ -38,14 +37,14 @@ namespace osu.Framework.Allocation
             this.permitNulls = permitNulls;
         }
 
-        internal static InjectDependencyDelegateAsync CreateActivator(Type type)
+        internal static InjectDependencyDelegate CreateActivator(Type type)
         {
             var loaderMethods = type.GetMethods(activator_flags).Where(m => m.GetCustomAttribute<BackgroundDependencyLoaderAttribute>() != null).ToArray();
 
             switch (loaderMethods.Length)
             {
                 case 0:
-                    return (_, __) => Task.CompletedTask;
+                    return (_, __) => { };
                 case 1:
                     var method = loaderMethods[0];
 
@@ -56,20 +55,11 @@ namespace osu.Framework.Allocation
                     var permitNulls = method.GetCustomAttribute<BackgroundDependencyLoaderAttribute>().permitNulls;
                     var parameterGetters = method.GetParameters().Select(p => p.ParameterType).Select(t => getDependency(t, type, permitNulls || t.IsNullable()));
 
-                    return async (target, dc) =>
+                    return (target, dc) =>
                     {
                         try
                         {
-                            var parameters = parameterGetters.Select(p => p(dc)).ToArray();
-
-                            var ret = method.Invoke(target, parameters);
-
-                            switch (ret)
-                            {
-                                case Task t:
-                                    await t;
-                                    break;
-                            }
+                            method.Invoke(target, parameterGetters.Select(p => p(dc)).ToArray());
                         }
                         catch (TargetInvocationException exc) // During non-await invocations
                         {
@@ -85,20 +75,6 @@ namespace osu.Framework.Allocation
 
                             // This activator has failed (single reflection call) - preserve the original stacktrace while notifying of the error
                             throw new DependencyInjectionException { DispatchInfo = ExceptionDispatchInfo.Capture(exc.InnerException) };
-                        }
-                        catch (Exception exc) // During await invocations
-                        {
-                            switch (exc)
-                            {
-                                case OperationCanceledException _ :
-                                    // This or a nested activator was canceled - propagate the cancellation as-is (it will be handled silently)
-                                case DependencyInjectionException _:
-                                    // This or a nested activator has failed - propagate the original error
-                                    throw;
-                            }
-
-                            // This activator has failed - preserve the original stacktrace while notifying of the error
-                            throw new DependencyInjectionException { DispatchInfo = ExceptionDispatchInfo.Capture(exc) };
                         }
                     };
                 default:

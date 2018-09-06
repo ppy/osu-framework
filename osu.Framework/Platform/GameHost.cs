@@ -305,7 +305,14 @@ namespace osu.Framework.Platform
             // Ensure we maintain a valid size for any children immediately scaling by the window size
             Root.Size = Vector2.ComponentMax(Vector2.One, Root.Size);
 
-            DependencyContainer.UnwrapExceptions(Root.UpdateSubTreeAsRoot);
+            try
+            {
+                Root.UpdateSubTree();
+            }
+            catch (DependencyInjectionException die)
+            {
+                die.DispatchInfo.Throw();
+            }
 
             Root.UpdateSubTreeMasking(Root, Root.ScreenSpaceDrawQuad.AABBFloat);
 
@@ -392,6 +399,7 @@ namespace osu.Framework.Platform
                 complete = true;
             });
 
+            // this is required as attempting to use a TaskCompletionSource blocks the thread calling SetResult on some configurations.
             await Task.Run(() =>
             {
                 while (!complete)
@@ -544,7 +552,14 @@ namespace osu.Framework.Platform
 
             game.SetHost(this);
 
-            DependencyContainer.UnwrapExceptions(root.LoadAsync(SceneGraphClock, Dependencies).Wait);
+            try
+            {
+                root.Load(SceneGraphClock, Dependencies);
+            }
+            catch (DependencyInjectionException die)
+            {
+                die.DispatchInfo.Throw();
+            }
 
             //publish bootstrapped scene graph to all threads.
             Root = root;

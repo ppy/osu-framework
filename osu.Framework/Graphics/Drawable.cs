@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
+// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using OpenTK;
@@ -23,7 +23,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
-using System.Threading.Tasks;
 using osu.Framework.Configuration;
 using osu.Framework.Development;
 using osu.Framework.Input.EventArgs;
@@ -52,6 +51,8 @@ namespace osu.Framework.Graphics
 
         protected Drawable()
         {
+            scheduler = new Lazy<Scheduler>(() => new Scheduler(MainThread, Clock));
+
             handleKeyboardInput = HandleInputCache.HandleKeyboardInput(this);
             handleMouseInput = HandleInputCache.HandleMouseInput(this);
         }
@@ -84,41 +85,36 @@ namespace osu.Framework.Graphics
             if (IsDisposed)
                 return;
 
-            try
+            //we can't dispose if we are mid-load, else our children may get in a bad state.
+            lock (loadLock)
             {
-                //we can't dispose if we are mid-load, else our children may get in a bad state.
-                loadTask?.Wait();
+                Dispose(isDisposing);
+
+                unbindAllBindables();
+
+                Parent = null;
+
+                scheduler = null;
+
+                OnUpdate = null;
+                OnInvalidate = null;
+
+                // If this Drawable is disposed, then we need to also
+                // stop remotely rendering it.
+                proxy?.Dispose();
+
+                OnDispose?.Invoke();
+                OnDispose = null;
+
+                IsDisposed = true;
             }
-            catch
-            {
-            }
-
-            Dispose(isDisposing);
-
-            unbindAllBindables();
-
-            Parent = null;
-
-            scheduler = null;
-
-            OnUpdate = null;
-            OnInvalidate = null;
-
-            // If this Drawable is disposed, then we need to also
-            // stop remotely rendering it.
-            proxy?.Dispose();
-
-            OnDispose?.Invoke();
-            OnDispose = null;
-
-            IsDisposed = true;
         }
 
         /// <summary>
         /// Whether this Drawable should be disposed when it is automatically removed from
         /// its <see cref="Parent"/> due to <see cref="ShouldBeAlive"/> being false.
         /// </summary>
-        public virtual bool DisposeOnDeathRemoval => false;
+        public virtual bool DisposeOnDeathRemoval => RemoveCompletedTransforms;
 
         private static readonly ConcurrentDictionary<Type, Action<object>> unbind_action_cache = new ConcurrentDictionary<Type, Action<object>>();
 
@@ -192,8 +188,6 @@ namespace osu.Framework.Graphics
         /// </summary>
         public LoadState LoadState => loadState;
 
-        private Task loadTask;
-
         private readonly object loadLock = new object();
 
         private static readonly StopwatchClock perf = new StopwatchClock(true);
@@ -204,39 +198,27 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="clock">The clock we should use by default.</param>
         /// <param name="dependencies">The dependency tree we will inherit by default. May be extended via <see cref="CompositeDrawable.CreateChildDependencies"/></param>
-        internal async Task LoadAsync(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies)
+        internal void Load(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies)
         {
+            if (IsDisposed)
+                throw new ObjectDisposedException(ToString(), "Attempting to load an already disposed drawable.");
+
             lock (loadLock)
             {
-                if (IsDisposed)
-                    throw new ObjectDisposedException(ToString(), "Attempting to load an already disposed drawable.");
-
-                switch (loadState)
+                if (loadState == LoadState.NotLoaded)
                 {
-                    case LoadState.Ready:
-                    case LoadState.Loaded:
-                        return;
-                    case LoadState.Loading:
-                        break;
-                    case LoadState.NotLoaded:
-                        loadState = LoadState.Loading;
+                    Trace.Assert(loadState == LoadState.NotLoaded);
 
-                        // only start a new load if one doesn't already exist.
-                        loadTask = loadTask ?? loadAsync(clock, dependencies);
-                        break;
-                    default:
-                        Trace.Assert(false, "Impossible loading state.");
-                        break;
+                    loadState = LoadState.Loading;
+
+                    load(clock, dependencies);
+
+                    loadState = LoadState.Ready;
                 }
             }
-
-            await loadTask;
-
-            lock (loadLock)
-                loadState = LoadState.Ready;
         }
 
-        private async Task loadAsync(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies)
+        private void load(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies)
         {
             // Blocks when loading from another thread already.
             double t0 = getPerfTime();
@@ -249,7 +231,7 @@ namespace osu.Framework.Graphics
 
             double t1 = getPerfTime();
 
-            await InjectDependencies(dependencies);
+            InjectDependencies(dependencies);
 
             LoadAsyncComplete();
 
@@ -262,7 +244,7 @@ namespace osu.Framework.Graphics
         /// Injects dependencies from an <see cref="IReadOnlyDependencyContainer"/> into this <see cref="Drawable"/>.
         /// </summary>
         /// <param name="dependencies">The dependencies to inject.</param>
-        protected virtual async Task InjectDependencies(IReadOnlyDependencyContainer dependencies) => await dependencies.Inject(this);
+        protected virtual void InjectDependencies(IReadOnlyDependencyContainer dependencies) => dependencies.Inject(this);
 
         /// <summary>
         /// Runs once on the update thread after loading has finished.
@@ -272,7 +254,7 @@ namespace osu.Framework.Graphics
             if (loadState < LoadState.Ready) return false;
 
             MainThread = Thread.CurrentThread;
-            scheduler?.SetCurrentThread(MainThread);
+            if (scheduler.IsValueCreated) scheduler.Value.SetCurrentThread(MainThread);
 
             loadState = LoadState.Loaded;
             Invalidate();
@@ -288,7 +270,7 @@ namespace osu.Framework.Graphics
         /// children if this is a <see cref="CompositeDrawable"/>.
         /// </summary>
         /// <remarks>
-        /// This method is invoked in the potentially asynchronous context of <see cref="LoadAsync"/> prior to
+        /// This method is invoked in the potentially asynchronous context of <see cref="Load"/> prior to
         /// this <see cref="Drawable"/> becoming <see cref="IsLoaded"/> = true.
         /// </remarks>
         protected virtual void LoadAsyncComplete()
@@ -380,20 +362,15 @@ namespace osu.Framework.Graphics
         /// </summary>
         internal event Action OnDispose;
 
-        private Scheduler scheduler;
+        private Lazy<Scheduler> scheduler;
+
         internal Thread MainThread { get; private set; }
 
         /// <summary>
         /// A lazily-initialized scheduler used to schedule tasks to be invoked in future <see cref="Update"/>s calls.
         /// The tasks are invoked at the beginning of the <see cref="Update"/> method before anything else.
         /// </summary>
-        protected Scheduler Scheduler => scheduler ?? (scheduler = new Scheduler(MainThread, Clock));
-
-        /// <summary>
-        /// Updates this <see cref="Drawable"/> and all <see cref="Drawable"/>s further down the scene graph.
-        /// Only used by the game host.
-        /// </summary>
-        internal void UpdateSubTreeAsRoot() => UpdateSubTree();
+        protected Scheduler Scheduler => scheduler.Value;
 
         /// <summary>
         /// Updates this Drawable and all Drawables further down the scene graph.
@@ -421,9 +398,9 @@ namespace osu.Framework.Graphics
             if (!IsPresent)
                 return true;
 
-            if (scheduler != null)
+            if (scheduler.IsValueCreated)
             {
-                int amountScheduledTasks = scheduler.Update();
+                int amountScheduledTasks = scheduler.Value.Update();
                 FrameStatistics.Add(StatisticsCounterType.ScheduleInvk, amountScheduledTasks);
             }
 
@@ -598,7 +575,7 @@ namespace osu.Framework.Graphics
                         offset.Y = 0;
                 }
 
-                return applyRelativeAxes(RelativePositionAxes, Position - offset, FillMode.Stretch);
+                return ApplyRelativeAxes(RelativePositionAxes, Position - offset, FillMode.Stretch);
             }
         }
 
@@ -726,7 +703,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Absolute size of this Drawable in the <see cref="Parent"/>'s coordinate system.
         /// </summary>
-        public Vector2 DrawSize => drawSizeBacking.IsValid ? drawSizeBacking : (drawSizeBacking.Value = applyRelativeAxes(RelativeSizeAxes, Size, FillMode));
+        public Vector2 DrawSize => drawSizeBacking.IsValid ? drawSizeBacking : (drawSizeBacking.Value = ApplyRelativeAxes(RelativeSizeAxes, Size, FillMode));
 
         /// <summary>
         /// X component of <see cref="DrawSize"/>.
@@ -801,7 +778,7 @@ namespace osu.Framework.Graphics
         /// <param name="v">The coordinates to convert.</param>
         /// <param name="fillMode">The <see cref="FillMode"/> to be used.</param>
         /// <returns>Absolute coordinates in <see cref="Parent"/>'s space.</returns>
-        private Vector2 applyRelativeAxes(Axes relativeAxes, Vector2 v, FillMode fillMode)
+        protected Vector2 ApplyRelativeAxes(Axes relativeAxes, Vector2 v, FillMode fillMode)
         {
             if (relativeAxes != Axes.None)
             {
@@ -1296,7 +1273,7 @@ namespace osu.Framework.Graphics
         internal virtual void UpdateClock(IFrameBasedClock clock)
         {
             this.clock = customClock ?? clock;
-            scheduler?.UpdateClock(this.clock);
+            if (scheduler.IsValueCreated) scheduler.Value.UpdateClock(this.clock);
         }
 
         /// <summary>
@@ -1573,7 +1550,7 @@ namespace osu.Framework.Graphics
         /// <returns>If the invalidate was actually necessary.</returns>
         public virtual bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
-            if (invalidation == Invalidation.None || !IsLoaded)
+            if (invalidation == Invalidation.None || LoadState < LoadState.Ready)
                 return false;
 
             if (shallPropagate && Parent != null && source != Parent)
