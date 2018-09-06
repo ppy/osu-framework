@@ -9,20 +9,6 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Graphics.Colour
 {
-    public struct DrawColourInfo : IEquatable<DrawColourInfo>
-    {
-        public ColourInfo Colour;
-        public BlendingInfo Blending;
-
-        public DrawColourInfo(ColourInfo? colour = null, BlendingInfo? blending = null)
-        {
-            Colour = colour ?? ColourInfo.SingleColour(Color4.White);
-            Blending = blending ?? new BlendingInfo();
-        }
-
-        public bool Equals(DrawColourInfo other) => Colour.Equals(other.Colour) && Blending.Equals(other.Blending);
-    }
-
     /// <summary>
     /// ColourInfo contains information about the colours of all 4 vertices of a quad.
     /// These colours are always stored in linear space.

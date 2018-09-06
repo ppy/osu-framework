@@ -3,7 +3,6 @@
 
 using osu.Framework.Graphics.OpenGL;
 using System;
-using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Vertices;
 
 namespace osu.Framework.Graphics
