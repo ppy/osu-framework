@@ -67,9 +67,9 @@ namespace osu.Framework.Graphics.Sprites
                 {
                     // We'll become not present and won't update the characters to set the size to 0, so do it manually
                     if (requiresAutoSizedWidth)
-                        base.Width = 0;
+                        base.Width = Padding.TotalHorizontal;
                     if (requiresAutoSizedHeight)
-                        base.Height = 0;
+                        base.Height = Padding.TotalVertical;
                 }
 
                 invalidate(true);
@@ -435,9 +435,9 @@ namespace osu.Framework.Graphics.Sprites
             finally
             {
                 if (requiresAutoSizedWidth)
-                    base.Width = charactersBacking.Count == 0 ? 0 : currentPos.X + Padding.Right;
+                    base.Width = currentPos.X + Padding.Right;
                 if (requiresAutoSizedHeight)
-                    base.Height = charactersBacking.Count == 0 ? 0 : currentPos.Y + Padding.Bottom;
+                    base.Height = currentPos.Y + Padding.Bottom;
 
                 isComputingCharacters = false;
                 charactersCache.Validate();
