@@ -40,6 +40,13 @@ namespace osu.Framework.Graphics.Sprites
             spaceWidth = GetTextureForCharacter('.')?.DisplayWidth * 2 ?? 1;
             sharedData.TextureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
             sharedData.RoundedTextureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
+
+            // Pre-cache the characters in the texture store
+            if (!string.IsNullOrEmpty(Text))
+            {
+                foreach (var character in Text)
+                    GetTextureForCharacter(character);
+            }
         }
 
         private string text;
