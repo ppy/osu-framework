@@ -360,7 +360,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         internal event Action OnDispose;
 
-        private Lazy<Scheduler> scheduler;
+        private readonly Lazy<Scheduler> scheduler;
 
         internal Thread MainThread { get; private set; }
 
