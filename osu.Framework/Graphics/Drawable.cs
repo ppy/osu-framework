@@ -1603,6 +1603,11 @@ namespace osu.Framework.Graphics
                 alreadyInvalidated &= !screenSpaceDrawQuadBacking.Invalidate();
                 alreadyInvalidated &= !drawInfoBacking.Invalidate();
                 alreadyInvalidated &= !drawSizeBacking.Invalidate();
+
+                // If we change size/position and have a non-singular colour, we need to invalidate the colour also,
+                // as we'll need to do some interpolation that's dependent on our draw info
+                if ((invalidation & Invalidation.Colour) == 0 && (!Colour.HasSingleColour || drawColourInfoBacking.IsValid && !drawColourInfoBacking.Value.Colour.HasSingleColour))
+                    invalidation |= Invalidation.Colour;
             }
 
             if ((invalidation & Invalidation.Colour) > 0)
