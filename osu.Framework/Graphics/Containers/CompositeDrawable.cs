@@ -1264,19 +1264,24 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        internal bool ComputingChildRequiredParentSizeToFit;
+        /// <summary>
+        /// It is true while a child is computing <see cref="Drawable.RequiredParentSizeToFit"/>.
+        /// While it is true, this <see cref="CompositeDrawable"/> behaves as its size exposed to children is zero
+        /// in order to prevent an unwanted dependency.
+        /// </summary>
+        internal bool IsChildComputingRequiredParentSizeToFit;
 
         /// <summary>
         /// The size of the coordinate space revealed to <see cref="InternalChildren"/>.
         /// Captures the effect of e.g. <see cref="Padding"/>.
         /// </summary>
-        public Vector2 ChildSize => !ComputingChildRequiredParentSizeToFit ? DrawSize - Padding.Total : Vector2.Zero;
+        public Vector2 ChildSize => !IsChildComputingRequiredParentSizeToFit ? DrawSize - Padding.Total : Vector2.Zero;
 
         /// <summary>
         /// Positional offset applied to <see cref="InternalChildren"/>.
         /// Captures the effect of e.g. <see cref="Padding"/>.
         /// </summary>
-        public Vector2 ChildOffset => !ComputingChildRequiredParentSizeToFit ? new Vector2(Padding.Left, Padding.Top) : Vector2.Zero;
+        public Vector2 ChildOffset => !IsChildComputingRequiredParentSizeToFit ? new Vector2(Padding.Left, Padding.Top) : Vector2.Zero;
 
         private Vector2 relativeChildSize = Vector2.One;
 

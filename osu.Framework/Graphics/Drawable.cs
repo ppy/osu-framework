@@ -1494,10 +1494,12 @@ namespace osu.Framework.Graphics
         {
             if (Parent == null) return Vector2.Zero;
 
-            var originalFlag = Parent.ComputingChildRequiredParentSizeToFit;
-            // if DrawSize is validated while Parent.ComputingChildRequiredParentSizeToFit is true, it should be invalidated.
+            var originalFlag = Parent.IsChildComputingRequiredParentSizeToFit;
+            // If DrawSize is accessed while Parent.IsChildComputingRequiredParentSizeToFit is true,
+            // a wrong value is cached for DrawSize.
+            // We need to invalidate DrawSize after for such case.
             var originalDrawSizeBacking = drawSizeBacking;
-            Parent.ComputingChildRequiredParentSizeToFit = true;
+            Parent.IsChildComputingRequiredParentSizeToFit = true;
 
             try
             {
@@ -1530,7 +1532,7 @@ namespace osu.Framework.Graphics
             }
             finally
             {
-                Parent.ComputingChildRequiredParentSizeToFit = originalFlag;
+                Parent.IsChildComputingRequiredParentSizeToFit = originalFlag;
                 drawSizeBacking = originalDrawSizeBacking;
             }
         }
