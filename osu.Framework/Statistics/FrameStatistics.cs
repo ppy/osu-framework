@@ -55,6 +55,7 @@ namespace osu.Framework.Statistics
         VBufOverflow,
         TextureBinds,
         DrawCalls,
+        ShaderBinds,
         VerticesDraw,
         VerticesUpl,
         Pixels,

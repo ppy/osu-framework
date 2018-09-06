@@ -47,8 +47,6 @@ namespace osu.Framework.Graphics.Performance
         private int timeBarIndex => currentX / WIDTH;
         private int timeBarX => currentX % WIDTH;
 
-        private bool processFrames = true;
-
         private readonly Container overlayContainer;
         private readonly Drawable labelText;
         private readonly Sprite counterBarBackground;
@@ -59,7 +57,7 @@ namespace osu.Framework.Graphics.Performance
         private readonly Drawable[] legendMapping = new Drawable[FrameStatistics.NUM_PERFORMANCE_COLLECTION_TYPES];
         private readonly Dictionary<StatisticsCounterType, CounterBar> counterBars = new Dictionary<StatisticsCounterType, CounterBar>();
 
-        private readonly FpsDisplay fpsDisplay;
+        private readonly FrameTimeDisplay frameTimeDisplay;
 
         private FrameStatisticsMode state;
 
@@ -146,7 +144,7 @@ namespace osu.Framework.Graphics.Performance
                                     {
                                         counterBarBackground = new Sprite
                                         {
-                                            Texture = atlas.Add(1, HEIGHT),
+                                            Texture = new Texture(atlas.Add(1, HEIGHT)),
                                             RelativeSizeAxes = Axes.Both,
                                             Size = new Vector2(1, 1),
                                         },
@@ -184,7 +182,7 @@ namespace osu.Framework.Graphics.Performance
                                     new TimeBar(atlas),
                                 },
                             },
-                            fpsDisplay = new FpsDisplay(monitor.Clock)
+                            frameTimeDisplay = new FrameTimeDisplay(monitor.Clock)
                             {
                                 Anchor = Anchor.BottomRight,
                                 Origin = Anchor.BottomRight,
@@ -193,7 +191,7 @@ namespace osu.Framework.Graphics.Performance
                             {
                                 RelativeSizeAxes = Axes.Both,
                                 Alpha = 0,
-                                Children = new[]
+                                Children = new Drawable[]
                                 {
                                     new FillFlowContainer
                                     {
@@ -280,8 +278,12 @@ namespace osu.Framework.Graphics.Performance
 
                 running = value;
 
-                fpsDisplay.Counting = running;
-                processFrames = running;
+                frameTimeDisplay.Counting = running;
+
+                // dequeue all pending frames on state change.
+                while (monitor.PendingFrames.TryDequeue(out _))
+                {
+                }
             }
         }
 
@@ -389,12 +391,13 @@ namespace osu.Framework.Graphics.Performance
         {
             base.Update();
 
-            while (monitor.PendingFrames.TryDequeue(out FrameStatistics frame))
+            if (running)
             {
-                if (processFrames)
+                while (monitor.PendingFrames.TryDequeue(out FrameStatistics frame))
+                {
                     applyFrame(frame);
-
-                monitor.FramesHeap.FreeObject(frame);
+                    monitor.FramesHeap.FreeObject(frame);
+                }
             }
         }
 
@@ -498,7 +501,7 @@ namespace osu.Framework.Graphics.Performance
                 Size = new Vector2(WIDTH, HEIGHT);
                 Child = Sprite = new Sprite();
 
-                Sprite.Texture = atlas.Add(WIDTH, HEIGHT);
+                Sprite.Texture = new Texture(atlas.Add(WIDTH, HEIGHT));
             }
 
             public override bool HandleKeyboardInput => false;

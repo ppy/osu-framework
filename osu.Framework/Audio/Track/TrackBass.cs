@@ -75,13 +75,21 @@ namespace osu.Framework.Audio.Track
                     Bass.ChannelSetAttribute(activeStream, ChannelAttribute.TempoSequenceMilliseconds, 30);
                 }
 
-                Length = Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetLength(activeStream)) * 1000;
+                // will be -1 in case of an error
+                double seconds = Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetLength(activeStream));
 
-                Bass.ChannelGetAttribute(activeStream, ChannelAttribute.Frequency, out float frequency);
-                initialFrequency = frequency;
-                bitrate = (int)Bass.ChannelGetAttribute(activeStream, ChannelAttribute.Bitrate);
+                bool success = seconds >= 0;
 
-                isLoaded = true;
+                if (success)
+                {
+                    Length = seconds * 1000;
+
+                    Bass.ChannelGetAttribute(activeStream, ChannelAttribute.Frequency, out float frequency);
+                    initialFrequency = frequency;
+                    bitrate = (int)Bass.ChannelGetAttribute(activeStream, ChannelAttribute.Bitrate);
+
+                    isLoaded = true;
+                }
             });
 
             InvalidateState();
@@ -147,16 +155,13 @@ namespace osu.Framework.Audio.Track
             StopAsync().Wait();
         }
 
-        public async Task StopAsync()
+        public Task StopAsync() => EnqueueAction(() =>
         {
-            await EnqueueAction(() =>
-            {
-                if (Bass.ChannelIsActive(activeStream) == PlaybackState.Playing)
-                    Bass.ChannelPause(activeStream);
+            if (Bass.ChannelIsActive(activeStream) == PlaybackState.Playing)
+                Bass.ChannelPause(activeStream);
 
-                isPlayed = false;
-            });
-        }
+            isPlayed = false;
+        });
 
         private int direction;
 
@@ -173,16 +178,13 @@ namespace osu.Framework.Audio.Track
             StartAsync().Wait();
         }
 
-        public async Task StartAsync()
+        public Task StartAsync() => EnqueueAction(() =>
         {
-            await EnqueueAction(() =>
-            {
-                if (Bass.ChannelPlay(activeStream))
-                    isPlayed = true;
-                else
-                    isRunning = false;
-            });
-        }
+            if (Bass.ChannelPlay(activeStream))
+                isPlayed = true;
+            else
+                isRunning = false;
+        });
 
         public override bool Seek(double seek) => SeekAsync(seek).Result;
 

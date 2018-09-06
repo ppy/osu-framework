@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System.Threading.Tasks;
 using osu.Framework.IO.Stores;
 
 namespace osu.Framework.Graphics.Textures
@@ -16,21 +17,23 @@ namespace osu.Framework.Graphics.Textures
             (store as ResourceStore<byte[]>)?.AddExtension(@"jpg");
         }
 
+        public override Task<RawTexture> GetAsync(string name) => Task.Run(() => Get(name));
+
         public override RawTexture Get(string name)
         {
             try
             {
                 using (var stream = store.GetStream(name))
                 {
-                    if (stream == null) return null;
-
-                    return new RawTexture(stream);
+                    if (stream != null)
+                        return new RawTexture(stream);
                 }
             }
             catch
             {
-                return null;
             }
+
+            return null;
         }
     }
 }
