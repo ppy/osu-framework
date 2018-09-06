@@ -1371,7 +1371,7 @@ namespace osu.Framework.Graphics
                     throw new InvalidOperationException("May not add a drawable to multiple containers.");
 
                 parent = value;
-                Invalidate(InvalidationFromParentSize | Invalidation.Presence);
+                Invalidate(InvalidationFromParentSize | Invalidation.Colour | Invalidation.Presence);
 
                 if (parent != null)
                 {
