@@ -23,13 +23,13 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             Dispose(false);
         }
 
-        private int refCount;
+        internal int ReferenceCount;
 
-        public void Reference() => Interlocked.Increment(ref refCount);
+        public void Reference() => Interlocked.Increment(ref ReferenceCount);
 
         public void Dereference()
         {
-            if (Interlocked.Decrement(ref refCount) == 0)
+            if (Interlocked.Decrement(ref ReferenceCount) == 0)
                 Dispose();
         }
 

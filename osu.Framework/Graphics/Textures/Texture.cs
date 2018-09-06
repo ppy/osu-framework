@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics.Textures
 
         public static Texture WhitePixel => white_pixel.Value;
 
-        public TextureGL TextureGL { get; }
+        public virtual TextureGL TextureGL { get; }
 
         public string Filename;
         public string AssetName;
