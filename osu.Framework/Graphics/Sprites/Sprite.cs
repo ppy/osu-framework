@@ -91,8 +91,8 @@ namespace osu.Framework.Graphics.Sprites
                     return;
 
                 texture?.Dispose();
-
                 texture = value;
+
                 FillAspectRatio = (float)(texture?.Width ?? 1) / (texture?.Height ?? 1);
                 Invalidate(Invalidation.DrawNode);
 

@@ -40,6 +40,13 @@ namespace osu.Framework.Graphics.Sprites
             spaceWidth = GetTextureForCharacter('.')?.DisplayWidth * 2 ?? 1;
             sharedData.TextureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
             sharedData.RoundedTextureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
+
+            // Pre-cache the characters in the texture store
+            if (!string.IsNullOrEmpty(Text))
+            {
+                foreach (var character in Text)
+                    GetTextureForCharacter(character);
+            }
         }
 
         private string text;
@@ -60,9 +67,9 @@ namespace osu.Framework.Graphics.Sprites
                 {
                     // We'll become not present and won't update the characters to set the size to 0, so do it manually
                     if (requiresAutoSizedWidth)
-                        base.Width = 0;
+                        base.Width = Padding.TotalHorizontal;
                     if (requiresAutoSizedHeight)
-                        base.Height = 0;
+                        base.Height = Padding.TotalVertical;
                 }
 
                 invalidate(true);
@@ -428,9 +435,9 @@ namespace osu.Framework.Graphics.Sprites
             finally
             {
                 if (requiresAutoSizedWidth)
-                    base.Width = charactersBacking.Count == 0 ? 0 : currentPos.X + Padding.Right;
+                    base.Width = currentPos.X + Padding.Right;
                 if (requiresAutoSizedHeight)
-                    base.Height = charactersBacking.Count == 0 ? 0 : currentPos.Y + Padding.Bottom;
+                    base.Height = currentPos.Y + Padding.Bottom;
 
                 isComputingCharacters = false;
                 charactersCache.Validate();
@@ -497,7 +504,7 @@ namespace osu.Framework.Graphics.Sprites
             if (source == Parent)
             {
                 // Colour captures presence changes
-                if ((invalidation & (Invalidation.DrawSize | Invalidation.Colour)) > 0)
+                if ((invalidation & (Invalidation.DrawSize | Invalidation.Presence)) > 0)
                     invalidate(true);
 
                 if ((invalidation & Invalidation.DrawInfo) > 0)

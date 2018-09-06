@@ -237,21 +237,21 @@ namespace osu.Framework.Graphics.Containers
 
             if (DrawOriginal && EffectPlacement == EffectPlacement.InFront)
             {
-                GLWrapper.SetBlend(DrawInfo.Blending);
-                drawFrameBufferToBackBuffer(Shared.FrameBuffers[originalIndex], drawRectangle, DrawInfo.Colour);
+                GLWrapper.SetBlend(DrawColourInfo.Blending);
+                drawFrameBufferToBackBuffer(Shared.FrameBuffers[originalIndex], drawRectangle, DrawColourInfo.Colour);
             }
 
             // Blit the final framebuffer to screen.
             GLWrapper.SetBlend(new BlendingInfo(EffectBlending));
 
-            ColourInfo effectColour = DrawInfo.Colour;
+            ColourInfo effectColour = DrawColourInfo.Colour;
             effectColour.ApplyChild(EffectColour);
             drawFrameBufferToBackBuffer(Shared.FrameBuffers[0], drawRectangle, effectColour);
 
             if (DrawOriginal && EffectPlacement == EffectPlacement.Behind)
             {
-                GLWrapper.SetBlend(DrawInfo.Blending);
-                drawFrameBufferToBackBuffer(Shared.FrameBuffers[originalIndex], drawRectangle, DrawInfo.Colour);
+                GLWrapper.SetBlend(DrawColourInfo.Blending);
+                drawFrameBufferToBackBuffer(Shared.FrameBuffers[originalIndex], drawRectangle, DrawColourInfo.Colour);
             }
 
             Shader.Unbind();
