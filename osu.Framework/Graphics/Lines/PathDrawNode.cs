@@ -44,9 +44,9 @@ namespace osu.Framework.Graphics.Lines
 
         private Vector2 relativePosition(Vector2 localPos) => Vector2.Divide(localPos, DrawSize);
 
-        private Color4 colourAt(Vector2 localPos) => DrawInfo.Colour.HasSingleColour
-            ? (Color4)DrawInfo.Colour
-            : DrawInfo.Colour.Interpolate(relativePosition(localPos)).Linear;
+        private Color4 colourAt(Vector2 localPos) => DrawColourInfo.Colour.HasSingleColour
+            ? (Color4)DrawColourInfo.Colour
+            : DrawColourInfo.Colour.Interpolate(relativePosition(localPos)).Linear;
 
         private void addLineCap(Vector2 origin, float theta, float thetaDiff)
         {
@@ -188,7 +188,7 @@ namespace osu.Framework.Graphics.Lines
         {
             base.Draw(vertexAction);
 
-            if (Texture == null || Texture.IsDisposed || Segments.Count == 0)
+            if (Texture?.TextureGL?.IsDisposed != false || Segments.Count == 0)
                 return;
 
             GLWrapper.SetDepthTest(true);

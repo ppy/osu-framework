@@ -30,7 +30,7 @@ namespace osu.Framework.Graphics.Sprites
 
         protected virtual void Blit(Action<TexturedVertex2D> vertexAction)
         {
-            Texture.DrawQuad(ScreenSpaceDrawQuad, DrawInfo.Colour, null, vertexAction,
+            Texture.DrawQuad(ScreenSpaceDrawQuad, DrawColourInfo.Colour, null, vertexAction,
                 new Vector2(InflationAmount.X / DrawRectangle.Width, InflationAmount.Y / DrawRectangle.Height));
         }
 
@@ -38,7 +38,7 @@ namespace osu.Framework.Graphics.Sprites
         {
             base.Draw(vertexAction);
 
-            if (Texture == null || Texture.IsDisposed)
+            if (Texture?.TextureGL?.IsDisposed != false)
                 return;
 
             Shader shader = needsRoundedShader ? RoundedTextureShader : TextureShader;

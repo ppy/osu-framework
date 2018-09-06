@@ -310,11 +310,11 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         internal override bool Upload()
         {
+            if (IsDisposed)
+                return false;
+
             // We should never run raw OGL calls on another thread than the main thread due to race conditions.
             ThreadSafety.EnsureDrawThread();
-
-            if (IsDisposed)
-                throw new ObjectDisposedException(ToString(), "Can not upload data to a disposed texture.");
 
             bool didUpload = false;
 

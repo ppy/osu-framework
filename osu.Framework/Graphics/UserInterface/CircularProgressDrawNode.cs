@@ -41,9 +41,9 @@ namespace osu.Framework.Graphics.UserInterface
         private float angleToUnitInterval(float angle) => angle / MathHelper.TwoPi + (angle >= 0 ? 0 : 1);
 
         // Gets colour at the localPos position in the unit square of our Colour gradient box.
-        private Color4 colourAt(Vector2 localPos) => DrawInfo.Colour.HasSingleColour
-            ? (Color4)DrawInfo.Colour
-            : DrawInfo.Colour.Interpolate(localPos).Linear;
+        private Color4 colourAt(Vector2 localPos) => DrawColourInfo.Colour.HasSingleColour
+            ? (Color4)DrawColourInfo.Colour
+            : DrawColourInfo.Colour.Interpolate(localPos).Linear;
 
         private static readonly Vector2 origin = new Vector2(0.5f, 0.5f);
         private void updateVertexBuffer()
@@ -120,7 +120,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             base.Draw(vertexAction);
 
-            if (Texture == null || Texture.IsDisposed)
+            if (Texture?.TextureGL?.IsDisposed != false)
                 return;
 
             Shader shader = needsRoundedShader ? RoundedTextureShader : TextureShader;
