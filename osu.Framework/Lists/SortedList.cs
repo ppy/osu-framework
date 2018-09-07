@@ -155,7 +155,7 @@ namespace osu.Framework.Lists
             private SortedList<T> list;
             private int currentIndex;
 
-            public Enumerator(SortedList<T> list)
+            internal Enumerator(SortedList<T> list)
             {
                 this.list = list;
                 currentIndex = -1; // The first MoveNext() should bring the iterator to 0
