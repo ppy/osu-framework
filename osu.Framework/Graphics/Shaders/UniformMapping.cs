@@ -39,8 +39,11 @@ namespace osu.Framework.Graphics.Shaders
         public void UpdateValue(ref T newValue)
         {
             Value = newValue;
-            foreach (var linked in LinkedUniforms)
-                linked.UpdateValue(this);
+
+            // Iterate by index to remove an enumerator allocation
+            // ReSharper disable once ForCanBeConvertedToForeach
+            for (int i = 0; i < LinkedUniforms.Count; i++)
+                LinkedUniforms[i].UpdateValue(this);
         }
     }
 }
