@@ -35,7 +35,15 @@ namespace osu.Framework.Graphics.Lines
             var localPos = ToLocalSpace(screenSpacePos);
             var pathWidthSquared = PathWidth * PathWidth;
 
-            return segments.Any(s => s.DistanceSquaredToPoint(localPos) <= pathWidthSquared);
+            var list = segments;
+
+            foreach (var t in list)
+            {
+                if (t.DistanceSquaredToPoint(localPos) <= pathWidthSquared)
+                    return true;
+            }
+
+            return false;
         }
 
         public Vector2 PositionInBoundingBox(Vector2 pos) => pos - new Vector2(minX, minY);
