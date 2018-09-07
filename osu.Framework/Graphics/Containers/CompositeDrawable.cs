@@ -89,7 +89,7 @@ namespace osu.Framework.Graphics.Containers
         ///  <param name="onLoaded">Callback to be invoked on the update thread after loading is complete.</param>
         /// <param name="cancellation">An optional cancellation token.</param>
         /// <returns>The task which is used for loading and callbacks.</returns>
-        protected Task LoadComponentAsync<TLoadable>(TLoadable component, Action<TLoadable> onLoaded = null, CancellationToken cancellation = default(CancellationToken)) where TLoadable : Drawable
+        protected Task LoadComponentAsync<TLoadable>(TLoadable component, Action<TLoadable> onLoaded = null, CancellationToken cancellation = default) where TLoadable : Drawable
             => LoadComponentsAsync(component.Yield(), l => onLoaded?.Invoke(l.Single()), cancellation);
 
         /// <summary>
@@ -104,7 +104,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="onLoaded">Callback to be invoked on the update thread after loading is complete.</param>
         /// <param name="cancellation">An optional cancellation token.</param>
         /// <returns>The task which is used for loading and callbacks.</returns>
-        protected Task LoadComponentsAsync<TLoadable>(IEnumerable<TLoadable> components, Action<IEnumerable<TLoadable>> onLoaded = null, CancellationToken cancellation = default(CancellationToken))
+        protected Task LoadComponentsAsync<TLoadable>(IEnumerable<TLoadable> components, Action<IEnumerable<TLoadable>> onLoaded = null, CancellationToken cancellation = default)
             where TLoadable : Drawable
         {
             if (game == null)
