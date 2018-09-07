@@ -8,6 +8,8 @@ using OpenTK.Graphics.ES30;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Logging;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Graphics.Textures
 {
@@ -66,14 +68,7 @@ namespace osu.Framework.Graphics.Textures
             AtlasTexture = new TextureGLAtlas(atlasWidth, atlasHeight, manualMipmaps, filteringMode);
 
             using (var whiteTex = Add(3, 3))
-            {
-                // add an empty white rect to use for solid box drawing (shader optimisation).
-                // see Texture.WhitePixel for usage.
-                var raw = new RawTexture(whiteTex.Width, whiteTex.Height);
-                for (int i = 0; i < raw.Data.Length; i++)
-                    raw.Data[i] = 255;
-                whiteTex.SetData(new TextureUpload(raw));
-            }
+                whiteTex.SetData(new TextureUpload(new Image<Rgba32>(SixLabors.ImageSharp.Configuration.Default, whiteTex.Width, whiteTex.Height, Rgba32.White)));
         }
 
         private Vector2I findPosition(int width, int height)

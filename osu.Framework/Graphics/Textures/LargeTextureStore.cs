@@ -10,7 +10,7 @@ namespace osu.Framework.Graphics.Textures
     /// </summary>
     public class LargeTextureStore : TextureStore
     {
-        public LargeTextureStore(IResourceStore<RawTexture> store = null)
+        public LargeTextureStore(IResourceStore<TextureUpload> store = null)
             : base(store, false)
         {
         }

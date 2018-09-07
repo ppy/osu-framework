@@ -2,16 +2,20 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using osu.Framework.Development;
 using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Primitives;
-using OpenTK;
 using OpenTK.Graphics.ES30;
 using osu.Framework.Statistics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Vertices;
+using osu.Framework.Graphics.Textures;
+using OpenTK;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Advanced;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Graphics.OpenGL.Textures
 {
@@ -34,7 +38,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             default_triangle_action = triangleBatch.AddAction;
         }
 
-        private readonly ConcurrentQueue<TextureUpload> uploadQueue = new ConcurrentQueue<TextureUpload>();
+        private readonly Queue<TextureUpload> uploadQueue = new Queue<TextureUpload>();
 
         private int internalWidth;
         private int internalHeight;
@@ -42,6 +46,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         private readonly All filteringMode;
         private TextureWrapMode internalWrapMode;
 
+        // ReSharper disable once InconsistentlySynchronizedField (no need to lock here. we don't really care if the value is stale).
         public override bool Loaded => textureId > 0 || uploadQueue.Count > 0;
 
         public TextureGLSingle(int width, int height, bool manualMipmaps = false, All filteringMode = All.Linear)
@@ -58,8 +63,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         {
             base.Dispose(isDisposing);
 
-            while (uploadQueue.TryDequeue(out TextureUpload u))
-                u.Dispose();
+            while (tryGetNextUpload(out var upload))
+                upload.Dispose();
 
             GLWrapper.ScheduleDisposal(unload);
         }
@@ -210,7 +215,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             FrameStatistics.Add(StatisticsCounterType.Pixels, (long)vertexTriangle.ConservativeArea);
         }
 
-        public override void DrawQuad(Quad vertexQuad, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null)
+        public override void DrawQuad(Quad vertexQuad, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null,
+                                      Vector2? blendRangeOverride = null)
         {
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString(), "Can not draw a quad with a disposed texture.");
@@ -274,15 +280,22 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString(), "Can not set data of a disposed texture.");
 
-            if (upload.Bounds.IsEmpty)
+            if (upload.Bounds.IsEmpty && upload.Data.Length > 0)
+            {
                 upload.Bounds = new RectangleI(0, 0, width, height);
+                if (width * height != upload.Data.Length)
+                    throw new InvalidOperationException($"Size of texture upload ({width}x{height}) does not match data length ({upload.Data.Length})");
+            }
 
             IsTransparent = false;
 
-            bool requireUpload = uploadQueue.Count == 0;
-            uploadQueue.Enqueue(upload);
-            if (requireUpload)
-                GLWrapper.EnqueueTextureUpload(this);
+            lock (uploadQueue)
+            {
+                bool requireUpload = uploadQueue.Count == 0;
+                uploadQueue.Enqueue(upload);
+                if (requireUpload)
+                    GLWrapper.EnqueueTextureUpload(this);
+            }
         }
 
         public override bool Bind()
@@ -308,7 +321,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         private bool manualMipmaps;
 
-        internal override bool Upload()
+        internal override unsafe bool Upload()
         {
             if (IsDisposed)
                 return false;
@@ -318,96 +331,14 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
             bool didUpload = false;
 
-            while (uploadQueue.TryDequeue(out TextureUpload upload))
-            {
-                IntPtr dataPointer;
-                GCHandle? h0;
+            while (tryGetNextUpload(out TextureUpload upload))
+                using (upload)
+                {
+                    fixed (Rgba32* ptr = &MemoryMarshal.GetReference(upload.Data))
+                        doUpload(upload, (IntPtr)ptr);
 
-                if (upload.Data.Length == 0)
-                {
-                    h0 = null;
-                    dataPointer = IntPtr.Zero;
-                }
-                else
-                {
-                    h0 = GCHandle.Alloc(upload.Data, GCHandleType.Pinned);
-                    dataPointer = h0.Value.AddrOfPinnedObject();
                     didUpload = true;
                 }
-
-                try
-                {
-                    // Do we need to generate a new texture?
-                    if (textureId <= 0 || internalWidth != width || internalHeight != height)
-                    {
-                        internalWidth = width;
-                        internalHeight = height;
-
-                        // We only need to generate a new texture if we don't have one already. Otherwise just re-use the current one.
-                        if (textureId <= 0)
-                        {
-                            int[] textures = new int[1];
-                            GL.GenTextures(1, textures);
-
-                            textureId = textures[0];
-
-                            GLWrapper.BindTexture(this);
-                            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter,
-                                (int)(manualMipmaps ? filteringMode : (filteringMode == All.Linear ? All.LinearMipmapLinear : All.Nearest)));
-                            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)filteringMode);
-
-                            // 33085 is GL_TEXTURE_MAX_LEVEL, which is not available within TextureParameterName.
-                            // It controls the amount of mipmap levels generated by GL.GenerateMipmap later on.
-                            GL.TexParameter(TextureTarget.Texture2D, (TextureParameterName)33085, MAX_MIPMAP_LEVELS);
-
-                            updateWrapMode();
-                        }
-                        else
-                            GLWrapper.BindTexture(this);
-
-                        if (width == upload.Bounds.Width && height == upload.Bounds.Height || dataPointer == IntPtr.Zero)
-                            GL.TexImage2D(TextureTarget2d.Texture2D, upload.Level, TextureComponentCount.Srgb8Alpha8, width, height, 0, upload.Format, PixelType.UnsignedByte, dataPointer);
-                        else
-                        {
-                            initializeLevel(upload.Level, width, height);
-
-                            GL.TexSubImage2D(TextureTarget2d.Texture2D, upload.Level, upload.Bounds.X, upload.Bounds.Y, upload.Bounds.Width, upload.Bounds.Height, upload.Format, PixelType.UnsignedByte,
-                                dataPointer);
-                        }
-                    }
-                    // Just update content of the current texture
-                    else if (dataPointer != IntPtr.Zero)
-                    {
-                        GLWrapper.BindTexture(this);
-
-                        if (!manualMipmaps && upload.Level > 0)
-                        {
-                            //allocate mipmap levels
-                            int level = 1;
-                            int d = 2;
-
-                            while (width / d > 0)
-                            {
-                                initializeLevel(level, width / d, height / d);
-                                level++;
-                                d *= 2;
-                            }
-
-                            manualMipmaps = true;
-                        }
-
-                        int div = (int)Math.Pow(2, upload.Level);
-
-                        GL.TexSubImage2D(TextureTarget2d.Texture2D, upload.Level, upload.Bounds.X / div, upload.Bounds.Y / div, upload.Bounds.Width / div, upload.Bounds.Height / div, upload.Format,
-                            PixelType.UnsignedByte, dataPointer);
-                    }
-                }
-                finally
-                {
-                    h0?.Free();
-                    upload.Dispose();
-                }
-            }
 
             if (didUpload && !manualMipmaps)
             {
@@ -418,12 +349,94 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             return didUpload;
         }
 
-        private void initializeLevel(int level, int width, int height)
+        private bool tryGetNextUpload(out TextureUpload upload)
         {
-            byte[] transparentWhite = new byte[width * height * 4];
-            GCHandle h0 = GCHandle.Alloc(transparentWhite, GCHandleType.Pinned);
-            GL.TexImage2D(TextureTarget2d.Texture2D, level, TextureComponentCount.Srgb8Alpha8, width, height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, h0.AddrOfPinnedObject());
-            h0.Free();
+            lock (uploadQueue)
+            {
+                if (uploadQueue.Count == 0)
+                {
+                    upload = null;
+                    return false;
+                }
+
+                upload = uploadQueue.Dequeue();
+                return true;
+            }
+        }
+
+        private void doUpload(ITextureUpload upload, IntPtr dataPointer)
+        {
+            // Do we need to generate a new texture?
+            if (textureId <= 0 || internalWidth != width || internalHeight != height)
+            {
+                internalWidth = width;
+                internalHeight = height;
+
+                // We only need to generate a new texture if we don't have one already. Otherwise just re-use the current one.
+                if (textureId <= 0)
+                {
+                    int[] textures = new int[1];
+                    GL.GenTextures(1, textures);
+
+                    textureId = textures[0];
+
+                    GLWrapper.BindTexture(this);
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter,
+                        (int)(manualMipmaps ? filteringMode : (filteringMode == All.Linear ? All.LinearMipmapLinear : All.Nearest)));
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)filteringMode);
+
+                    // 33085 is GL_TEXTURE_MAX_LEVEL, which is not available within TextureParameterName.
+                    // It controls the amount of mipmap levels generated by GL.GenerateMipmap later on.
+                    GL.TexParameter(TextureTarget.Texture2D, (TextureParameterName)33085, MAX_MIPMAP_LEVELS);
+
+                    updateWrapMode();
+                }
+                else
+                    GLWrapper.BindTexture(this);
+
+                if (width == upload.Bounds.Width && height == upload.Bounds.Height || dataPointer == IntPtr.Zero)
+                    GL.TexImage2D(TextureTarget2d.Texture2D, upload.Level, TextureComponentCount.Srgb8Alpha8, width, height, 0, upload.Format, PixelType.UnsignedByte, dataPointer);
+                else
+                {
+                    initializeLevel(upload.Level, width, height);
+
+                    GL.TexSubImage2D(TextureTarget2d.Texture2D, upload.Level, upload.Bounds.X, upload.Bounds.Y, upload.Bounds.Width, upload.Bounds.Height, upload.Format,
+                        PixelType.UnsignedByte, dataPointer);
+                }
+            }
+            // Just update content of the current texture
+            else if (dataPointer != IntPtr.Zero)
+            {
+                GLWrapper.BindTexture(this);
+
+                if (!manualMipmaps && upload.Level > 0)
+                {
+                    //allocate mipmap levels
+                    int level = 1;
+                    int d = 2;
+
+                    while (width / d > 0)
+                    {
+                        initializeLevel(level, width / d, height / d);
+                        level++;
+                        d *= 2;
+                    }
+
+                    manualMipmaps = true;
+                }
+
+                int div = (int)Math.Pow(2, upload.Level);
+
+                GL.TexSubImage2D(TextureTarget2d.Texture2D, upload.Level, upload.Bounds.X / div, upload.Bounds.Y / div, upload.Bounds.Width / div, upload.Bounds.Height / div,
+                    upload.Format, PixelType.UnsignedByte, dataPointer);
+            }
+        }
+
+        private unsafe void initializeLevel(int level, int width, int height)
+        {
+            using (var image = new Image<Rgba32>(width, height))
+                fixed (void* buffer = &MemoryMarshal.GetReference(image.GetPixelSpan()))
+                    GL.TexImage2D(TextureTarget2d.Texture2D, level, TextureComponentCount.Srgb8Alpha8, width, height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, (IntPtr)buffer);
         }
     }
 }

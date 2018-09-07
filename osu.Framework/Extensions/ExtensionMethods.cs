@@ -32,7 +32,7 @@ namespace osu.Framework.Extensions
         /// <returns>The matched item, or the default value for the type if no item was matched.</returns>
         public static T Find<T>(this List<T> list, Predicate<T> match, int startIndex)
         {
-            if (!list.IsValidIndex(startIndex)) return default(T);
+            if (!list.IsValidIndex(startIndex)) return default;
 
             int val = list.FindIndex(startIndex, list.Count - startIndex - 1, match);
 
@@ -76,7 +76,7 @@ namespace osu.Framework.Extensions
         /// <returns></returns>
         public static TValue GetOrDefault<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, TKey lookup)
         {
-            return dictionary.TryGetValue(lookup, out TValue outVal) ? outVal : default(TValue);
+            return dictionary.TryGetValue(lookup, out TValue outVal) ? outVal : default;
         }
 
         public static bool IsValidIndex<T>(this List<T> list, int index)

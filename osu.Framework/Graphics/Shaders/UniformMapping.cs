@@ -39,8 +39,9 @@ namespace osu.Framework.Graphics.Shaders
         public void UpdateValue(ref T newValue)
         {
             Value = newValue;
-            foreach (var linked in LinkedUniforms)
-                linked.UpdateValue(this);
+
+            for (int i = 0; i < LinkedUniforms.Count; i++)
+                LinkedUniforms[i].UpdateValue(this);
         }
     }
 }
