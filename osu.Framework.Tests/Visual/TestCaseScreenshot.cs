@@ -4,14 +4,12 @@
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Platform;
 using osu.Framework.Testing;
 using OpenTK;
 using OpenTK.Graphics;
-using SixLabors.ImageSharp;
 
 namespace osu.Framework.Tests.Visual
 {
@@ -50,7 +48,7 @@ namespace osu.Framework.Tests.Visual
                 var image = t.Result;
 
                 var tex = new Texture(image.Width, image.Height);
-                tex.SetData(new TextureUpload(new RawTexture(image.Width, image.Height, image.SavePixelData())));
+                tex.SetData(new TextureUpload(image));
 
                 display.Texture = tex;
             }));
