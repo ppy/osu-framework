@@ -1473,7 +1473,7 @@ namespace osu.Framework.Graphics.Containers
                 Vector2 maxBoundSize = Vector2.Zero;
 
                 // Find the maximum width/height of children
-                foreach (Drawable c in AliveInternalChildren)
+                foreach (Drawable c in aliveInternalChildren)
                 {
                     if (!c.IsPresent)
                         continue;
