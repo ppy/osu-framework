@@ -131,9 +131,11 @@ namespace osu.Framework.Lists
 
         void ICollection<T>.Add(T item) => Add(item);
 
-        public IEnumerator<T> GetEnumerator() => list.GetEnumerator();
+        public Enumerator GetEnumerator() => new Enumerator(this);
 
-        IEnumerator IEnumerable.GetEnumerator() => list.GetEnumerator();
+        IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         public void SerializeTo(JsonWriter writer, JsonSerializer serializer)
         {
@@ -147,6 +149,31 @@ namespace osu.Framework.Lists
         }
 
         #endregion
+
+        public struct Enumerator : IEnumerator<T>
+        {
+            private SortedList<T> list;
+            private int currentIndex;
+
+            public Enumerator(SortedList<T> list)
+            {
+                this.list = list;
+                currentIndex = -1; // The first MoveNext() should bring the iterator to 0
+            }
+
+            public bool MoveNext() => ++currentIndex < list.Count;
+
+            public void Reset() => currentIndex = 0;
+
+            public T Current => list[currentIndex];
+
+            object IEnumerator.Current => Current;
+
+            public void Dispose()
+            {
+                list = null;
+            }
+        }
     }
 
     [JsonConverter(typeof(SortedListConverter))]
