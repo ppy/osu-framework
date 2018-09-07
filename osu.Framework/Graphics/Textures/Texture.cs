@@ -46,7 +46,7 @@ namespace osu.Framework.Graphics.Textures
             : this(new TextureGLSingle(width, height, manualMipmaps, filteringMode))
         {
         }
-        
+
         /// <summary>
         /// Creates a texture from a data stream representing a bitmap.
         /// </summary>
