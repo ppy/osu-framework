@@ -63,7 +63,6 @@ namespace osu.Framework.Graphics.Batches
             if (disposing)
                 foreach (VertexBuffer<T> vbo in VertexBuffers)
                     vbo.Dispose();
-            GLWrapper.UnregisterVertexBatch(this);
         }
 
         #endregion

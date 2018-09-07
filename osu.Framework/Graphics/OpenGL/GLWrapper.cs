@@ -17,6 +17,7 @@ using osu.Framework.Statistics;
 using osu.Framework.MathUtils;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Colour;
+using osu.Framework.Lists;
 using osu.Framework.Platform;
 
 namespace osu.Framework.Graphics.OpenGL
@@ -87,8 +88,7 @@ namespace osu.Framework.Graphics.OpenGL
             lastBlendingInfo = new BlendingInfo();
             lastBlendingEnabledState = null;
 
-            foreach (IVertexBatch b in all_batches)
-                b.ResetCounters();
+            all_batches.ForEachAlive(b => b.ResetCounters());
 
             lastFrameBuffer = 0;
 
@@ -171,7 +171,7 @@ namespace osu.Framework.Graphics.OpenGL
 
         private static IVertexBatch lastActiveBatch;
 
-        private static readonly List<IVertexBatch> all_batches = new List<IVertexBatch>();
+        private static readonly WeakList<IVertexBatch> all_batches = new WeakList<IVertexBatch>();
 
         /// <summary>
         /// Sets the last vertex batch used for drawing.
@@ -195,12 +195,6 @@ namespace osu.Framework.Graphics.OpenGL
         /// </summary>
         /// <param name="batch">The batch to register.</param>
         internal static void RegisterVertexBatch(IVertexBatch batch) => reset_scheduler.Add(() => all_batches.Add(batch));
-
-        /// <summary>
-        /// Stops tracking a <see cref="IVertexBatch"/>. This should be invoked once when a <see cref="IVertexBatch"/> is no longer in use.
-        /// </summary>
-        /// <param name="batch">The batch to unregister.</param>
-        internal static void UnregisterVertexBatch(IVertexBatch batch) => reset_scheduler.Add(() => all_batches.Remove(batch));
 
         private static TextureGL lastBoundTexture;
 
