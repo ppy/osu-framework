@@ -174,7 +174,7 @@ namespace osu.Framework.Platform
                     //must add 1 to enter borderless
                     ClientSize = new Size(currentDisplay.Bounds.Width + 1, currentDisplay.Bounds.Height + 1);
                     break;
-                default:
+                case Configuration.WindowMode.Windowed:
                     if (lastFullscreenDisplay != null)
                         RestoreResolution(lastFullscreenDisplay);
                     lastFullscreenDisplay = null;
