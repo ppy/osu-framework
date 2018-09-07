@@ -311,8 +311,10 @@ namespace osu.Framework.Input
             if (this is UserInputManager)
                 FrameStatistics.Increment(StatisticsCounterType.MouseQueue);
 
-            foreach (Drawable d in AliveInternalChildren)
-                d.BuildMouseInputQueue(state.Mouse.Position, positionalInputQueue);
+            // for-loop is used to avoid boxing the enumerator
+            // ReSharper disable once ForCanBeConvertedToForeach
+            for (int i = 0; i < AliveInternalChildren.Count; i++)
+                AliveInternalChildren[i].BuildMouseInputQueue(state.Mouse.Position, positionalInputQueue);
 
             positionalInputQueue.Reverse();
             return positionalInputQueue;
