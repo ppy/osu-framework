@@ -12,6 +12,8 @@ namespace osu.Framework.Allocation
     ///     // ...
     /// }</code>
     /// The using block will automatically dispose the returned instance, doing the necessary cleanup work.
+    ///
+    /// This is a struct version of <see cref="InvokeOnDisposal"/> to be used when allocations are to be minimised.
     /// </summary>
     public struct ValueInvokeOnDisposal : IDisposable
     {
