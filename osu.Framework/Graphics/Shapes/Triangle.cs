@@ -23,7 +23,7 @@ namespace osu.Framework.Graphics.Shapes
             Texture = Texture.WhitePixel;
         }
 
-        public override RectangleF BoundingBox => toTriangle(ToParentSpace(LayoutRectangle)).AABBFloat;
+        public override RectangleF BoundingBoxBeforeParentAutoSize => toTriangle(ToParentSpaceBeforeParentAutoSize(LayoutRectangleBeforeParentAutoSize)).AABBFloat;
 
         private static Primitives.Triangle toTriangle(Quad q) => new Primitives.Triangle(
             (q.TopLeft + q.TopRight) / 2,

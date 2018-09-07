@@ -536,7 +536,7 @@ namespace osu.Framework.Graphics
                     return;
 
                 // Convert coordinates from relative to absolute or vice versa
-                Vector2 conversion = relativeToAbsoluteFactor;
+                Vector2 conversion = Parent?.RelativeToAbsoluteFactor ?? Vector2.One;
                 if ((value & Axes.X) > (relativePositionAxes & Axes.X))
                     X = Precision.AlmostEquals(conversion.X, 0) ? 0 : X / conversion.X;
                 else if ((relativePositionAxes & Axes.X) > (value & Axes.X))
@@ -673,7 +673,7 @@ namespace osu.Framework.Graphics
                 else
                 {
                     // Convert coordinates from relative to absolute or vice versa
-                    Vector2 conversion = relativeToAbsoluteFactor;
+                    Vector2 conversion = Parent?.RelativeToAbsoluteFactor ?? Vector2.One;
                     if ((value & Axes.X) > (relativeSizeAxes & Axes.X))
                         Width = Precision.AlmostEquals(conversion.X, 0) ? 0 : Width / conversion.X;
                     else if ((relativeSizeAxes & Axes.X) > (value & Axes.X))
@@ -767,47 +767,28 @@ namespace osu.Framework.Graphics
             }
         }
 
-        /// <summary>
-        /// Helper function for converting potentially relative coordinates in the
-        /// <see cref="Parent"/>'s space to absolute coordinates based on which
-        /// axes are relative. <see cref="Axes"/>
-        /// </summary>
-        /// <param name="relativeAxes">Describes which axes are relative.</param>
-        /// <param name="v">The coordinates to convert.</param>
-        /// <param name="fillMode">The <see cref="FillMode"/> to be used.</param>
-        /// <returns>Absolute coordinates in <see cref="Parent"/>'s space.</returns>
-        protected Vector2 ApplyRelativeAxes(Axes relativeAxes, Vector2 v, FillMode fillMode)
+        private Vector2 applyRelativeAxes(Axes relativeAxes, Vector2 v, FillMode fillMode, Vector2 conversionFactor)
         {
-            if (relativeAxes != Axes.None)
+            if (relativeAxes.HasFlag(Axes.X))
+                v.X *= conversionFactor.X;
+            if (relativeAxes.HasFlag(Axes.Y))
+                v.Y *= conversionFactor.Y;
+
+            // FillMode only makes sense if both axes are relatively sized as the general rule
+            // for n-dimensional aspect preservation is to simply take the minimum or the maximum
+            // scale among all active axes. For single axes the minimum / maximum is just the
+            // value itself.
+            if (relativeAxes == Axes.Both && fillMode != FillMode.Stretch)
             {
-                Vector2 conversion = relativeToAbsoluteFactor;
-
-                if (relativeAxes.HasFlag(Axes.X))
-                    v.X *= conversion.X;
-                if (relativeAxes.HasFlag(Axes.Y))
-                    v.Y *= conversion.Y;
-
-                // FillMode only makes sense if both axes are relatively sized as the general rule
-                // for n-dimensional aspect preservation is to simply take the minimum or the maximum
-                // scale among all active axes. For single axes the minimum / maximum is just the
-                // value itself.
-                if (relativeAxes == Axes.Both && fillMode != FillMode.Stretch)
-                {
-                    if (fillMode == FillMode.Fill)
-                        v = new Vector2(Math.Max(v.X, v.Y * fillAspectRatio));
-                    else if (fillMode == FillMode.Fit)
-                        v = new Vector2(Math.Min(v.X, v.Y * fillAspectRatio));
-                    v.Y /= fillAspectRatio;
-                }
+                if (fillMode == FillMode.Fill)
+                    v = new Vector2(Math.Max(v.X, v.Y * fillAspectRatio));
+                else if (fillMode == FillMode.Fit)
+                    v = new Vector2(Math.Min(v.X, v.Y * fillAspectRatio));
+                v.Y /= fillAspectRatio;
             }
 
             return v;
         }
-
-        /// <summary>
-        /// Conversion factor from relative to absolute coordinates in the <see cref="Parent"/>'s space.
-        /// </summary>
-        private Vector2 relativeToAbsoluteFactor => Parent?.RelativeToAbsoluteFactor ?? Vector2.One;
 
         private Axes bypassAutoSizeAxes;
 
@@ -841,9 +822,57 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
+        /// Helper function for converting potentially relative coordinates in the
+        /// <see cref="Parent"/>'s space to absolute coordinates based on which
+        /// axes are relative. <see cref="Axes"/>
+        /// </summary>
+        /// <param name="relativeAxes">Describes which axes are relative.</param>
+        /// <param name="v">The coordinates to convert.</param>
+        /// <param name="fillMode">The <see cref="FillMode"/> to be used.</param>
+        /// <returns>Absolute coordinates in <see cref="Parent"/>'s space.</returns>
+        protected Vector2 ApplyRelativeAxes(Axes relativeAxes, Vector2 v, FillMode fillMode) =>
+            relativeAxes == Axes.None ? v : applyRelativeAxes(relativeAxes, v, fillMode, Parent?.RelativeToAbsoluteFactor ?? Vector2.One);
+
+        protected Vector2 ApplyRelativeAxesBeforeParentAutoSize(Axes relativeAxes, Vector2 v, FillMode fillMode) =>
+            relativeAxes == Axes.None ? v : applyRelativeAxes(relativeAxes, v, fillMode, Parent?.RelativeToAbsoluteFactorBeforeAutoSize ?? Vector2.One);
+
+        private Cached<Vector2> drawSizeBeforeParentAutoSizeBacking;
+
+        protected Vector2 DrawSizeBeforeParentAutoSize => drawSizeBeforeParentAutoSizeBacking.IsValid ? drawSizeBeforeParentAutoSizeBacking.Value :
+            drawSizeBeforeParentAutoSizeBacking.Value = ApplyRelativeAxesBeforeParentAutoSize(RelativeSizeAxes, Size, FillMode);
+
+        protected Vector2 DrawPositionBeforeParentAutoSize => ApplyRelativeAxesBeforeParentAutoSize(RelativePositionAxes, Position, FillMode);
+
+        protected Vector2 LayoutSizeBeforeParentAutoSize => DrawSizeBeforeParentAutoSize + margin.Total;
+
+        protected RectangleF LayoutRectangleBeforeParentAutoSize => new RectangleF(new Vector2(-margin.Left, -margin.Top), LayoutSizeBeforeParentAutoSize);
+
+        protected Vector2 AnchorPositionBeforeParentAutoSize => RelativeAnchorPosition * Parent?.ChildSizeBeforeAutoSize ?? Vector2.Zero;
+
+        protected Vector2 OriginPositionBeforeParentAutoSize => computeOriginPosition(LayoutSizeBeforeParentAutoSize);
+
+        protected Matrix3 ToParentSpaceMatrixBeforeParentAutoSize
+        {
+            get
+            {
+                var di = new DrawInfo(null);
+                var translation = DrawPositionBeforeParentAutoSize + AnchorPositionBeforeParentAutoSize + (Parent?.ChildOffset ?? Vector2.Zero);
+                di.ApplyTransform(translation, DrawScale, Rotation, Shear, OriginPositionBeforeParentAutoSize);
+                return di.Matrix;
+            }
+        }
+
+        protected Vector2 ToParentSpaceBeforeParentAutoSize(Vector2 input) => Vector2Extensions.Transform(input, ToParentSpaceMatrixBeforeParentAutoSize);
+
+        protected Quad ToParentSpaceBeforeParentAutoSize(RectangleF input) => Quad.FromRectangle(input) * ToParentSpaceMatrixBeforeParentAutoSize;
+
+        /// <summary>
         /// Computes the bounding box of this drawable in its parent's space.
         /// </summary>
-        public virtual RectangleF BoundingBox => ToParentSpace(LayoutRectangle).AABBFloat;
+        public virtual RectangleF BoundingBoxBeforeParentAutoSize => ToParentSpaceBeforeParentAutoSize(LayoutRectangleBeforeParentAutoSize).AABBFloat;
+
+        // todo: fixme
+        public RectangleF BoundingBox => BoundingBoxBeforeParentAutoSize;
 
         /// <summary>
         /// Called whenever the <see cref="RelativeSizeAxes"/> of this drawable is changed, or when the <see cref="Container{T}.AutoSizeAxes"/> are changed if this drawable is a <see cref="Container{T}"/>.
@@ -1030,6 +1059,19 @@ namespace osu.Framework.Graphics
             }
         }
 
+        private Vector2 computeOriginPosition(Vector2 layoutSize)
+        {
+            Vector2 result;
+            if (Origin == Anchor.Custom)
+                result = customOrigin;
+            else if (Origin == Anchor.TopLeft)
+                result = Vector2.Zero;
+            else
+                result = computeAnchorPosition(layoutSize, Origin);
+
+            return result - new Vector2(margin.Left, margin.Top);
+        }
+
         /// <summary>
         /// The origin of the local coordinate system of this Drawable
         /// in absolute coordinates expressed in the coordinate system with origin at the
@@ -1037,18 +1079,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         public virtual Vector2 OriginPosition
         {
-            get
-            {
-                Vector2 result;
-                if (Origin == Anchor.Custom)
-                    result = customOrigin;
-                else if (Origin == Anchor.TopLeft)
-                    result = Vector2.Zero;
-                else
-                    result = computeAnchorPosition(LayoutSize, Origin);
-
-                return result - new Vector2(margin.Left, margin.Top);
-            }
+            get => computeOriginPosition(LayoutSize);
 
             set
             {
@@ -1467,7 +1498,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Contains the colour and blending information of this <see cref="Drawable"/> that are used during draw.
         /// </summary>
-        public virtual DrawColourInfo DrawColourInfo => drawColourInfoBacking.IsValid? drawColourInfoBacking : (drawColourInfoBacking.Value = computeDrawColourInfo());
+        public virtual DrawColourInfo DrawColourInfo => drawColourInfoBacking.IsValid ? drawColourInfoBacking : (drawColourInfoBacking.Value = computeDrawColourInfo());
 
         private DrawColourInfo computeDrawColourInfo()
         {
@@ -1519,7 +1550,7 @@ namespace osu.Framework.Graphics
         private Vector2 computeRequiredParentSizeToFit()
         {
             // Auxilary variables required for the computation
-            Vector2 ap = AnchorPosition;
+            Vector2 ap = AnchorPositionBeforeParentAutoSize;
             Vector2 rap = RelativeAnchorPosition;
 
             Vector2 ratio1 = new Vector2(
@@ -1530,7 +1561,7 @@ namespace osu.Framework.Graphics
                 rap.X >= 1 ? 0 : 1 / (1 - rap.X),
                 rap.Y >= 1 ? 0 : 1 / (1 - rap.Y));
 
-            RectangleF bbox = BoundingBox;
+            RectangleF bbox = BoundingBoxBeforeParentAutoSize;
 
             // Compute the required size of the parent such that we fit in snugly when positioned
             // at our relative anchor in the parent.
@@ -1601,6 +1632,7 @@ namespace osu.Framework.Graphics
                 alreadyInvalidated &= !screenSpaceDrawQuadBacking.Invalidate();
                 alreadyInvalidated &= !drawInfoBacking.Invalidate();
                 alreadyInvalidated &= !drawSizeBacking.Invalidate();
+                alreadyInvalidated &= !drawSizeBeforeParentAutoSizeBacking.Invalidate();
 
                 // If we change size/position and have a non-singular colour, we need to invalidate the colour also,
                 // as we'll need to do some interpolation that's dependent on our draw info

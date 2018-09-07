@@ -363,7 +363,12 @@ namespace osu.Framework.Graphics.Sprites
 
                 float maxWidth = float.PositiveInfinity;
                 if (!requiresAutoSizedWidth)
-                    maxWidth = ApplyRelativeAxes(RelativeSizeAxes, new Vector2(base.Width, base.Height), FillMode).X - Padding.Right;
+                {
+                    // If x axis is auto sized (directly or indirectly), allow infinite expansion for the axis.
+                    var drawWidthBeforeAutoSize = ApplyRelativeAxesBeforeParentAutoSize(RelativeSizeAxes, new Vector2(base.Width, base.Height), FillMode).X;
+                    if (drawWidthBeforeAutoSize != 0)
+                        maxWidth = drawWidthBeforeAutoSize - Padding.Right;
+                }
 
                 float currentRowHeight = 0;
 

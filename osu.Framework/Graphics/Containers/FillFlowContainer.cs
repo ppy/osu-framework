@@ -99,12 +99,10 @@ namespace osu.Framework.Graphics.Containers
             var max = MaximumSize;
             if (max == Vector2.Zero)
             {
-                var s = ChildSize;
-
-                // If we are autosize and haven't specified a maximum size, we should allow infinite expansion.
-                // If we are inheriting then we need to use the parent size (our ActualSize).
-                max.X = AutoSizeAxes.HasFlag(Axes.X) ? float.MaxValue : s.X;
-                max.Y = AutoSizeAxes.HasFlag(Axes.Y) ? float.MaxValue : s.Y;
+                // If an axis is auto sized (directly or indirectly), allow infinite expansion for the axis.
+                max = ChildSizeBeforeAutoSize;
+                if (max.X == 0) max.X = float.MaxValue;
+                if (max.Y == 0) max.Y = float.MaxValue;
             }
 
             var children = FlowingChildren.ToArray();
@@ -135,7 +133,7 @@ namespace osu.Framework.Graphics.Containers
                 // Populate running variables with sane initial values.
                 if (i == 0)
                 {
-                    size = c.BoundingBox.Size;
+                    size = c.BoundingBoxBeforeParentAutoSize.Size;
                     rowBeginOffset = spacingFactor(c).X * size.X;
                 }
 
@@ -173,7 +171,7 @@ namespace osu.Framework.Graphics.Containers
                     stride = (Vector2.One - spacingFactor(c)) * size;
 
                     c = children[i + 1];
-                    size = c.BoundingBox.Size;
+                    size = c.BoundingBoxBeforeParentAutoSize.Size;
 
                     stride += spacingFactor(c) * size;
                 }
