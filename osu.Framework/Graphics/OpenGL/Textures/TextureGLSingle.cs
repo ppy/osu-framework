@@ -63,7 +63,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         {
             base.Dispose(isDisposing);
 
-            while (getNextUpload(out var upload))
+            while (tryGetNextUpload(out var upload))
                 upload.Dispose();
 
             GLWrapper.ScheduleDisposal(unload);
@@ -331,7 +331,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
             bool didUpload = false;
 
-            while (getNextUpload(out TextureUpload upload))
+            while (tryGetNextUpload(out TextureUpload upload))
                 using (upload)
                 {
                     fixed (Rgba32* ptr = &MemoryMarshal.GetReference(upload.Data))
@@ -349,7 +349,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             return didUpload;
         }
 
-        private bool getNextUpload(out TextureUpload upload)
+        private bool tryGetNextUpload(out TextureUpload upload)
         {
             lock (uploadQueue)
             {
