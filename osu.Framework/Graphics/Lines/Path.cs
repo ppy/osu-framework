@@ -35,14 +35,9 @@ namespace osu.Framework.Graphics.Lines
             var localPos = ToLocalSpace(screenSpacePos);
             var pathWidthSquared = PathWidth * PathWidth;
 
-            var list = segments;
-
-            foreach (var t in list)
-            {
+            foreach (var t in segments)
                 if (t.DistanceSquaredToPoint(localPos) <= pathWidthSquared)
                     return true;
-            }
-
             return false;
         }
 
