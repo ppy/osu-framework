@@ -52,9 +52,6 @@ namespace osu.Framework.Graphics
         protected Drawable()
         {
             scheduler = new Lazy<Scheduler>(() => new Scheduler(MainThread, Clock));
-
-            handleKeyboardInput = HandleInputCache.HandleKeyboardInput(this);
-            handleMouseInput = HandleInputCache.HandleMouseInput(this);
         }
 
         ~Drawable()
@@ -93,8 +90,6 @@ namespace osu.Framework.Graphics
                 unbindAllBindables();
 
                 Parent = null;
-
-                scheduler = null;
 
                 OnUpdate = null;
                 OnInvalidate = null;
@@ -231,6 +226,9 @@ namespace osu.Framework.Graphics
 
             double t1 = getPerfTime();
 
+            handleKeyboardInput = HandleInputCache.HandleKeyboardInput(this);
+            handleMouseInput = HandleInputCache.HandleMouseInput(this);
+
             InjectDependencies(dependencies);
 
             LoadAsyncComplete();
@@ -362,7 +360,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         internal event Action OnDispose;
 
-        private Lazy<Scheduler> scheduler;
+        private readonly Lazy<Scheduler> scheduler;
 
         internal Thread MainThread { get; private set; }
 
@@ -878,9 +876,14 @@ namespace osu.Framework.Graphics
 
                 if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(Scale)} must be finite, but is {value}.");
 
+                bool wasPresent = IsPresent;
+
                 scale = value;
 
-                Invalidate(Invalidation.MiscGeometry);
+                if (IsPresent != wasPresent)
+                    Invalidate(Invalidation.MiscGeometry | Invalidation.Presence);
+                else
+                    Invalidate(Invalidation.MiscGeometry);
             }
         }
 
@@ -1187,11 +1190,17 @@ namespace osu.Framework.Graphics
             get => alpha;
             set
             {
-                if (alpha == value) return;
+                if (alpha == value)
+                    return;
 
-                Invalidate(Invalidation.Colour);
+                bool wasPresent = IsPresent;
 
                 alpha = value;
+
+                if (IsPresent != wasPresent)
+                    Invalidate(Invalidation.Colour | Invalidation.Presence);
+                else
+                    Invalidate(Invalidation.Colour);
             }
         }
 
@@ -1215,11 +1224,15 @@ namespace osu.Framework.Graphics
             get => alwaysPresent;
             set
             {
-                if (alwaysPresent == value) return;
+                if (alwaysPresent == value)
+                    return;
 
-                Invalidate(Invalidation.Colour);
+                bool wasPresent = IsPresent;
 
                 alwaysPresent = value;
+
+                if (IsPresent != wasPresent)
+                    Invalidate(Invalidation.Presence);
             }
         }
 
@@ -1236,8 +1249,8 @@ namespace osu.Framework.Graphics
             {
                 if (blending.Equals(value))
                     return;
-
                 blending = value;
+
                 Invalidate(Invalidation.Colour);
             }
         }
@@ -1356,7 +1369,7 @@ namespace osu.Framework.Graphics
                     throw new InvalidOperationException("May not add a drawable to multiple containers.");
 
                 parent = value;
-                Invalidate(InvalidationFromParentSize | Invalidation.Colour);
+                Invalidate(InvalidationFromParentSize | Invalidation.Colour | Invalidation.Presence);
 
                 if (parent != null)
                 {
@@ -1435,12 +1448,35 @@ namespace osu.Framework.Graphics
 
             Vector2 pos = DrawPosition + AnchorPosition;
             Vector2 drawScale = DrawScale;
+
+            if (Parent != null)
+                pos += Parent.ChildOffset;
+
+            di.ApplyTransform(pos, drawScale, Rotation, Shear, OriginPosition);
+
+            return di;
+        }
+
+        /// <summary>
+        /// Contains the linear transformation of this <see cref="Drawable"/> that is used during draw.
+        /// </summary>
+        public virtual DrawInfo DrawInfo => drawInfoBacking.IsValid ? drawInfoBacking : (drawInfoBacking.Value = computeDrawInfo());
+
+        private Cached<DrawColourInfo> drawColourInfoBacking;
+
+        /// <summary>
+        /// Contains the colour and blending information of this <see cref="Drawable"/> that are used during draw.
+        /// </summary>
+        public virtual DrawColourInfo DrawColourInfo => drawColourInfoBacking.IsValid? drawColourInfoBacking : (drawColourInfoBacking.Value = computeDrawColourInfo());
+
+        private DrawColourInfo computeDrawColourInfo()
+        {
+            DrawColourInfo ci = Parent?.DrawColourInfo ?? new DrawColourInfo(null);
+
             BlendingParameters localBlending = Blending;
 
             if (Parent != null)
             {
-                pos += Parent.ChildOffset;
-
                 if (localBlending.Mode == BlendingMode.Inherit)
                     localBlending.Mode = Parent.Blending.Mode;
 
@@ -1451,23 +1487,20 @@ namespace osu.Framework.Graphics
                     localBlending.AlphaEquation = Parent.Blending.AlphaEquation;
             }
 
-            di.ApplyTransform(pos, drawScale, Rotation, Shear, OriginPosition);
-            di.Blending = new BlendingInfo(localBlending);
+            ci.Blending = new BlendingInfo(localBlending);
 
-            ColourInfo drawInfoColour = alpha != 1 ? colour.MultiplyAlpha(alpha) : colour;
+            ColourInfo ourColour = alpha != 1 ? colour.MultiplyAlpha(alpha) : colour;
 
-            // No need for a Parent null check here, because null parents always have
-            // a single colour (white).
-            if (di.Colour.HasSingleColour)
-                di.Colour.ApplyChild(drawInfoColour);
+            if (ci.Colour.HasSingleColour)
+                ci.Colour.ApplyChild(ourColour);
             else
             {
                 Debug.Assert(Parent != null,
-                    $"The {nameof(di)} of null parents should always have the single colour white, and therefore this branch should never be hit.");
+                    $"The {nameof(ci)} of null parents should always have the single colour white, and therefore this branch should never be hit.");
 
                 // Cannot use ToParentSpace here, because ToParentSpace depends on DrawInfo to be completed
                 // ReSharper disable once PossibleNullReferenceException
-                Quad interp = Quad.FromRectangle(DrawRectangle) * (di.Matrix * Parent.DrawInfo.MatrixInverse);
+                Quad interp = Quad.FromRectangle(DrawRectangle) * (DrawInfo.Matrix * Parent.DrawInfo.MatrixInverse);
                 Vector2 parentSize = Parent.DrawSize;
 
                 interp.TopLeft = Vector2.Divide(interp.TopLeft, parentSize);
@@ -1475,18 +1508,11 @@ namespace osu.Framework.Graphics
                 interp.BottomLeft = Vector2.Divide(interp.BottomLeft, parentSize);
                 interp.BottomRight = Vector2.Divide(interp.BottomRight, parentSize);
 
-                di.Colour.ApplyChild(drawInfoColour, interp);
+                ci.Colour.ApplyChild(ourColour, interp);
             }
 
-            return di;
+            return ci;
         }
-
-        /// <summary>
-        /// Contains a linear transformation, colour information, and blending information
-        /// of this drawable.
-        /// </summary>
-        public virtual DrawInfo DrawInfo => drawInfoBacking.IsValid ? drawInfoBacking : (drawInfoBacking.Value = computeDrawInfo());
-
 
         private Cached<Vector2> requiredParentSizeToFitBacking;
 
@@ -1554,12 +1580,20 @@ namespace osu.Framework.Graphics
                 return false;
 
             if (shallPropagate && Parent != null && source != Parent)
-                Parent.InvalidateFromChild(invalidation, this);
+            {
+                var parentInvalidation = invalidation;
+
+                // Colour doesn't affect parent's properties
+                parentInvalidation &= ~Invalidation.Colour;
+
+                if (parentInvalidation > 0)
+                    Parent.InvalidateFromChild(invalidation, this);
+            }
 
             bool alreadyInvalidated = true;
 
-            // Either ScreenSize OR ScreenPosition OR Colour
-            if ((invalidation & (Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.Colour)) > 0)
+            // Either ScreenSize OR ScreenPosition OR Presence
+            if ((invalidation & (Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.Presence)) > 0)
             {
                 if ((invalidation & Invalidation.RequiredParentSizeToFit) > 0)
                     alreadyInvalidated &= !requiredParentSizeToFitBacking.Invalidate();
@@ -1567,7 +1601,15 @@ namespace osu.Framework.Graphics
                 alreadyInvalidated &= !screenSpaceDrawQuadBacking.Invalidate();
                 alreadyInvalidated &= !drawInfoBacking.Invalidate();
                 alreadyInvalidated &= !drawSizeBacking.Invalidate();
+
+                // If we change size/position and have a non-singular colour, we need to invalidate the colour also,
+                // as we'll need to do some interpolation that's dependent on our draw info
+                if ((invalidation & Invalidation.Colour) == 0 && (!Colour.HasSingleColour || drawColourInfoBacking.IsValid && !drawColourInfoBacking.Value.Colour.HasSingleColour))
+                    invalidation |= Invalidation.Colour;
             }
+
+            if ((invalidation & Invalidation.Colour) > 0)
+                alreadyInvalidated &= !drawColourInfoBacking.Invalidate();
 
             if (!alreadyInvalidated || (invalidation & Invalidation.DrawNode) > 0)
                 invalidationID = invalidation_counter.Increment();
@@ -1628,6 +1670,7 @@ namespace osu.Framework.Graphics
         protected virtual void ApplyDrawNode(DrawNode node)
         {
             node.DrawInfo = DrawInfo;
+            node.DrawColourInfo = DrawColourInfo;
             node.InvalidationID = invalidationID;
         }
 
@@ -1964,7 +2007,7 @@ namespace osu.Framework.Graphics
         /// is propagated up the scene graph to the next eligible Drawable.</returns>
         protected virtual bool OnMouseMove(InputState state) => false;
 
-        private readonly bool handleKeyboardInput, handleMouseInput;
+        private bool handleKeyboardInput, handleMouseInput;
 
         /// <summary>
         /// Whether this <see cref="Drawable"/> handles keyboard input.
@@ -2328,7 +2371,7 @@ namespace osu.Framework.Graphics
         MiscGeometry = 1 << 2,
 
         /// <summary>
-        /// <see cref="Drawable.Colour"/> or <see cref="Drawable.IsPresent"/> has changed.
+        /// <see cref="Drawable.Colour"/> has changed.
         /// </summary>
         Colour = 1 << 3,
 
@@ -2336,6 +2379,11 @@ namespace osu.Framework.Graphics
         /// <see cref="Drawable.ApplyDrawNode(Graphics.DrawNode)"/> has to be invoked on all old draw nodes.
         /// </summary>
         DrawNode = 1 << 4,
+
+        /// <summary>
+        /// <see cref="Drawable.IsPresent"/> has changed.
+        /// </summary>
+        Presence = 1 << 5,
 
         /// <summary>
         /// No invalidation.
@@ -2350,7 +2398,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// All possible things are affected.
         /// </summary>
-        All = DrawNode | RequiredParentSizeToFit | Colour | DrawInfo,
+        All = DrawNode | RequiredParentSizeToFit | Colour | DrawInfo | Presence,
     }
 
     /// <summary>

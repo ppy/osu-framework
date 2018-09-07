@@ -635,8 +635,6 @@ namespace osu.Framework.Graphics.Containers
 
             UpdateAfterChildrenLife();
 
-            // We iterate by index to gain performance
-            // ReSharper disable once ForCanBeConvertedToForeach
             for (int i = 0; i < aliveInternalChildren.Count; ++i)
             {
                 Drawable c = aliveInternalChildren[i];
@@ -679,9 +677,6 @@ namespace osu.Framework.Graphics.Containers
             {
                 var childMaskingBounds = ComputeChildMaskingBounds(maskingBounds);
 
-
-                // We iterate by index to gain performance
-                // ReSharper disable once ForCanBeConvertedToForeach
                 for (int i = 0; i < aliveInternalChildren.Count; i++)
                     aliveInternalChildren[i].UpdateSubTreeMasking(this, childMaskingBounds);
             }
@@ -742,9 +737,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="source">The child which caused this invalidation. May be null to indicate that a specific child wasn't specified.</param>
         public virtual void InvalidateFromChild(Invalidation invalidation, Drawable source = null)
         {
-            //Colour captures potential changes in IsPresent. If this ever becomes a bottleneck,
-            //Invalidation could be further separated into presence changes.
-            if ((invalidation & (Invalidation.RequiredParentSizeToFit | Invalidation.Colour)) > 0)
+            if ((invalidation & (Invalidation.RequiredParentSizeToFit | Invalidation.Presence)) > 0)
                 childrenSizeDependencies.Invalidate();
         }
 
@@ -755,14 +748,9 @@ namespace osu.Framework.Graphics.Containers
 
             if (!shallPropagate) return true;
 
-            // This way of looping turns out to be slightly faster than a foreach
-            // or directly indexing a SortedList<T>. This part of the code is often
-            // hot, so an optimization like this makes sense here.
-            SortedList<Drawable> current = internalChildren;
-            // ReSharper disable once ForCanBeConvertedToForeach
-            for (int i = 0; i < current.Count; ++i)
+            for (int i = 0; i < internalChildren.Count; ++i)
             {
-                Drawable c = current[i];
+                Drawable c = internalChildren[i];
                 Debug.Assert(c != source);
 
                 Invalidation childInvalidation = invalidation;
@@ -771,6 +759,9 @@ namespace osu.Framework.Graphics.Containers
 
                 // Other geometry things like rotation, shearing, etc don't affect child properties.
                 childInvalidation &= ~Invalidation.MiscGeometry;
+
+                // Presence also doesn't affect child properties
+                childInvalidation &= ~Invalidation.Presence;
 
                 // Relative positioning can however affect child geometry
                 // ReSharper disable once PossibleNullReferenceException
@@ -856,11 +847,10 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="target">The target list to fill with DrawNodes.</param>
         private static void addFromComposite(ulong frame, int treeIndex, bool forceNewDrawNode, ref int j, CompositeDrawable parentComposite, List<DrawNode> target)
         {
-            SortedList<Drawable> current = parentComposite.aliveInternalChildren;
-            // ReSharper disable once ForCanBeConvertedToForeach
-            for (int i = 0; i < current.Count; ++i)
+            SortedList<Drawable> children = parentComposite.aliveInternalChildren;
+            for (int i = 0; i < children.Count; ++i)
             {
-                Drawable drawable = current[i];
+                Drawable drawable = children[i];
 
                 if (!drawable.IsProxy)
                 {
@@ -1061,8 +1051,6 @@ namespace osu.Framework.Graphics.Containers
             if (!base.BuildKeyboardInputQueue(queue, allowBlocking))
                 return false;
 
-            // We iterate by index to gain performance
-            // ReSharper disable once ForCanBeConvertedToForeach
             for (int i = 0; i < aliveInternalChildren.Count; ++i)
                 aliveInternalChildren[i].BuildKeyboardInputQueue(queue, allowBlocking);
 
@@ -1074,8 +1062,6 @@ namespace osu.Framework.Graphics.Containers
             if (!base.BuildMouseInputQueue(screenSpaceMousePos, queue) && (!CanReceiveMouseInput || Masking))
                 return false;
 
-            // We iterate by index to gain performance
-            // ReSharper disable once ForCanBeConvertedToForeach
             for (int i = 0; i < aliveInternalChildren.Count; ++i)
                 aliveInternalChildren[i].BuildMouseInputQueue(screenSpaceMousePos, queue);
 
@@ -1472,7 +1458,7 @@ namespace osu.Framework.Graphics.Containers
                 Vector2 maxBoundSize = Vector2.Zero;
 
                 // Find the maximum width/height of children
-                foreach (Drawable c in AliveInternalChildren)
+                foreach (Drawable c in aliveInternalChildren)
                 {
                     if (!c.IsPresent)
                         continue;
