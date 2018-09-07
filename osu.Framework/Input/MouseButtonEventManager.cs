@@ -210,10 +210,10 @@ namespace osu.Framework.Input
             if (ChangeFocusOnClick)
                 RequestFocus?.Invoke(clicked);
 
-            if (ClickedDrawable != null)
-                Logger.Log($"MouseClick handled by {ClickedDrawable}.", LoggingTarget.Runtime, LogLevel.Debug);
+            if (clicked != null)
+                Logger.Log($"MouseClick handled by {clicked}.", LoggingTarget.Runtime, LogLevel.Debug);
 
-            return ClickedDrawable != null;
+            return clicked != null;
         }
 
         protected virtual bool HandleMouseDoubleClick(InputState state)
