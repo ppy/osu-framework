@@ -163,7 +163,7 @@ namespace osu.Framework.Lists
 
             public bool MoveNext() => ++currentIndex < list.Count;
 
-            public void Reset() => currentIndex = 0;
+            public void Reset() => currentIndex = -1;
 
             public T Current => list[currentIndex];
 
