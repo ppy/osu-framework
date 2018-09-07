@@ -15,7 +15,7 @@ using OpenTK.Input;
 
 namespace osu.Framework.Tests.Visual
 {
-    public class TestCaseDropdownBox : ManualInputManagerTestCase
+    public class TestCaseDropdownBox : TestCase
     {
         private const int items_to_add = 10;
 

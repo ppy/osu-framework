@@ -438,7 +438,7 @@ namespace osu.Framework.Graphics.UserInterface
                         ChangePreselection?.Invoke(preselectedIndex);
                         return true;
                     default:
-                        return false;
+                        return base.OnKeyDown(state, args);
                 }
             }
 
