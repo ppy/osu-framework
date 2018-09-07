@@ -12,7 +12,7 @@ using OpenTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Textures
 {
-    public class TextureStore : ResourceStore<RawTexture>
+    public class TextureStore : ResourceStore<TextureUpload>
     {
         private readonly ConcurrentDictionary<string, Lazy<Texture>> textureCache = new ConcurrentDictionary<string, Lazy<Texture>>();
 
@@ -28,7 +28,7 @@ namespace osu.Framework.Graphics.Textures
 
         private readonly Func<string, Lazy<Texture>> lazyCreator; // used avoid allocations on lookups.
 
-        public TextureStore(IResourceStore<RawTexture> store = null, bool useAtlas = true, All filteringMode = All.Linear, bool manualMipmaps = false, float scaleAdjust = 2)
+        public TextureStore(IResourceStore<TextureUpload> store = null, bool useAtlas = true, All filteringMode = All.Linear, bool manualMipmaps = false, float scaleAdjust = 2)
             : base(store)
         {
             this.filteringMode = filteringMode;
@@ -49,15 +49,14 @@ namespace osu.Framework.Graphics.Textures
 
         private Texture getTexture(string name) => loadRaw(base.Get(name));
 
-        private Texture loadRaw(RawTexture raw)
+        private Texture loadRaw(TextureUpload upload)
         {
-            if (raw == null) return null;
+            if (upload == null) return null;
 
-            var glTexture = atlas != null ? atlas.Add(raw.Width, raw.Height) : new TextureGLSingle(raw.Width, raw.Height, manualMipmaps, filteringMode);
+            var glTexture = atlas != null ? atlas.Add(upload.Width, upload.Height) : new TextureGLSingle(upload.Width, upload.Height, manualMipmaps, filteringMode);
 
             Texture tex = new Texture(glTexture) { ScaleAdjust = ScaleAdjust };
-
-            tex.SetData(new TextureUpload(raw));
+            tex.SetData(upload);
 
             return tex;
         }

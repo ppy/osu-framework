@@ -72,7 +72,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public bool RequiresRedraw => UpdateVersion > Shared.DrawVersion;
 
-        private InvokeOnDisposal establishFrameBufferViewport(Vector2 roundedSize)
+        private ValueInvokeOnDisposal establishFrameBufferViewport(Vector2 roundedSize)
         {
             // Disable masking for generating the frame buffer since masking will be re-applied
             // when actually drawing later on anyways. This allows more information to be captured
@@ -91,14 +91,16 @@ namespace osu.Framework.Graphics.Containers
             // Match viewport to FrameBuffer such that we don't draw unnecessary pixels.
             GLWrapper.PushViewport(new RectangleI(0, 0, (int)roundedSize.X, (int)roundedSize.Y));
 
-            return new InvokeOnDisposal(delegate
-            {
-                GLWrapper.PopViewport();
-                GLWrapper.PopMaskingInfo();
-            });
+            return new ValueInvokeOnDisposal(returnViewport);
         }
 
-        private InvokeOnDisposal bindFrameBuffer(FrameBuffer frameBuffer, Vector2 requestedSize)
+        private void returnViewport()
+        {
+            GLWrapper.PopViewport();
+            GLWrapper.PopMaskingInfo();
+        }
+
+        private ValueInvokeOnDisposal bindFrameBuffer(FrameBuffer frameBuffer, Vector2 requestedSize)
         {
             if (!frameBuffer.IsInitialized)
                 frameBuffer.Initialize(true, FilteringMode);
@@ -113,7 +115,7 @@ namespace osu.Framework.Graphics.Containers
 
             frameBuffer.Bind();
 
-            return new InvokeOnDisposal(frameBuffer.Unbind);
+            return new ValueInvokeOnDisposal(frameBuffer.Unbind);
         }
 
         private void drawFrameBufferToBackBuffer(FrameBuffer frameBuffer, RectangleF drawRectangle, ColourInfo colourInfo)
