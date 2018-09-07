@@ -99,10 +99,11 @@ namespace osu.Framework.Graphics.Containers
             var max = MaximumSize;
             if (max == Vector2.Zero)
             {
-                // If an axis is auto sized (directly or indirectly), allow infinite expansion for the axis.
                 max = ChildSizeBeforeAutoSize;
-                if (max.X == 0) max.X = float.MaxValue;
-                if (max.Y == 0) max.Y = float.MaxValue;
+                // If an axis is auto sized (directly or indirectly), allow infinite expansion for the axis.
+                var axes = DirectlyOrIndirectlyAutoSizedAxes;
+                if (axes.HasFlag(Axes.X)) max.X = float.MaxValue;
+                if (axes.HasFlag(Axes.Y)) max.Y = float.MaxValue;
             }
 
             var children = FlowingChildren.ToArray();

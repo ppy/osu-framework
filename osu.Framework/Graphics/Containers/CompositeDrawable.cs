@@ -1329,24 +1329,29 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public Vector2 RelativeToAbsoluteFactor => Vector2.Divide(ChildSize, RelativeChildSize);
 
-        // An axis is auto-sized (directly or indirectly) if and only if:
-        //   AutoSizeAxes is set for the axis or
-        //   RelativeSizeAxes is set for the axis and parent is auto-sized for the axis.
-        // XXXBeforeAutoSize properties return zero for auto-sized axes.
+        // todo: doing invalidations
+        private Cached<Axes> directlyOrIndirectlyAutoSizedAxesBacking;
+
+        /// <summary>
+        /// An axis is directly or indirectly auto-sized if and only if:
+        /// <see cref="AutoSizeAxes"/> is set for the axis or
+        /// <see cref="RelativeSizeAxes"/> is set for the axis and parent is directly or indirectly auto-sized for the axis.
+        /// </summary>
+        public Axes DirectlyOrIndirectlyAutoSizedAxes
+        {
+            get
+            {
+                if (directlyOrIndirectlyAutoSizedAxesBacking.IsValid) return directlyOrIndirectlyAutoSizedAxesBacking.Value;
+                return directlyOrIndirectlyAutoSizedAxesBacking.Value =
+                    AutoSizeAxes | (RelativeSizeAxes == Axes.None || Parent == null ? Axes.None : RelativeSizeAxes & Parent.DirectlyOrIndirectlyAutoSizedAxes);
+            }
+        }
 
         protected Vector2 SizeBeforeAutoSize => new Vector2(AutoSizeAxes.HasFlag(Axes.X) ? 0 : base.Width, AutoSizeAxes.HasFlag(Axes.Y) ? 0 : base.Height);
 
         protected Vector2 DrawSizeBeforeAutoSize => ApplyRelativeAxesBeforeParentAutoSize(RelativeSizeAxes, SizeBeforeAutoSize, FillMode);
 
-        public Vector2 ChildSizeBeforeAutoSize
-        {
-            get
-            {
-                var s = DrawSizeBeforeAutoSize;
-                // preserve zeros for auto-sized axes.
-                return new Vector2(s.X == 0 ? 0 : s.X - Padding.TotalHorizontal, s.Y == 0 ? 0 : s.Y - Padding.TotalVertical);
-            }
-        }
+        public Vector2 ChildSizeBeforeAutoSize => DrawSizeBeforeAutoSize - Padding.Total;
 
         public Vector2 RelativeToAbsoluteFactorBeforeAutoSize => Vector2.Divide(ChildSizeBeforeAutoSize, RelativeChildSize);
 
