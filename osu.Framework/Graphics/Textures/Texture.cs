@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.IO;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.Primitives;
 using OpenTK;
@@ -44,6 +45,30 @@ namespace osu.Framework.Graphics.Textures
         public Texture(int width, int height, bool manualMipmaps = false, All filteringMode = All.Linear)
             : this(new TextureGLSingle(width, height, manualMipmaps, filteringMode))
         {
+        }
+        
+        /// <summary>
+        /// Creates a texture from a data stream representing a bitmap.
+        /// </summary>
+        /// <param name="stream">The data stream containing the texture data.</param>
+        /// <param name="atlas">The atlas to add the texture to.</param>
+        /// <returns>The created texture.</returns>
+        public static Texture FromStream(Stream stream, TextureAtlas atlas = null)
+        {
+            if (stream == null || stream.Length == 0)
+                return null;
+
+            try
+            {
+                var data = new TextureUpload(stream);
+                Texture tex = atlas == null ? new Texture(data.Width, data.Height) : new Texture(atlas.Add(data.Width, data.Height));
+                tex.SetData(data);
+                return tex;
+            }
+            catch (ArgumentException)
+            {
+                return null;
+            }
         }
 
         public int Width
