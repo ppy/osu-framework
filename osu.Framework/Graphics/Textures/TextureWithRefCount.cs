@@ -2,6 +2,8 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using osu.Framework.Graphics.OpenGL.Textures;
 
 namespace osu.Framework.Graphics.Textures
@@ -14,7 +16,20 @@ namespace osu.Framework.Graphics.Textures
         public TextureWithRefCount(TextureGL textureGl)
             : base(textureGl)
         {
-            TextureGL.Reference();
+            textureGl.Reference();
+        }
+
+        internal int ReferenceCount => base.TextureGL.ReferenceCount;
+
+        public sealed override TextureGL TextureGL
+        {
+            get
+            {
+                var tex = base.TextureGL;
+                if (tex.ReferenceCount <= 0)
+                    throw new InvalidOperationException($"Attempting to access a {nameof(TextureWithRefCount)}'s underlying texture after all references are lost.");
+                return tex;
+            }
         }
 
         #region Disposal
@@ -25,14 +40,16 @@ namespace osu.Framework.Graphics.Textures
             Dispose(false);
         }
 
+        private readonly List<StackTrace> stackTraces = new List<StackTrace>();
+
         protected override void Dispose(bool isDisposing)
         {
             if (IsDisposed)
-                throw new ObjectDisposedException($"{nameof(TextureWithRefCount)} should never be disposed more than once");
+                return;
 
             base.Dispose(isDisposing);
 
-            TextureGL?.Dereference();
+            base.TextureGL.Dereference();
             if (isDisposing) GC.SuppressFinalize(this);
         }
 

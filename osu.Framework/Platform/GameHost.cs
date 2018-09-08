@@ -10,6 +10,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime;
 using System.Runtime.ExceptionServices;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
@@ -36,7 +37,6 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
-using SixLabors.ImageSharp.Processing.Transforms;
 
 namespace osu.Framework.Platform
 {
@@ -394,7 +394,7 @@ namespace osu.Framework.Platform
                 OpenTK.Graphics.OpenGL.GL.ReadPixels(0, 0, image.Width, image.Height,
                     OpenTK.Graphics.OpenGL.PixelFormat.Rgba,
                     OpenTK.Graphics.OpenGL.PixelType.UnsignedByte,
-                    ref image.DangerousGetPinnableReferenceToPixelBuffer());
+                    ref MemoryMarshal.GetReference(image.GetPixelSpan()));
 
                 complete = true;
             });
