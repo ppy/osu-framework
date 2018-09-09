@@ -41,6 +41,8 @@ namespace osu.Framework.Graphics.Batches
             this.maxBuffers = maxBuffers;
 
             AddAction = Add;
+
+            GLWrapper.RegisterVertexBatch(this);
         }
 
         #region Disposal
@@ -61,6 +63,7 @@ namespace osu.Framework.Graphics.Batches
             if (disposing)
                 foreach (VertexBuffer<T> vbo in VertexBuffers)
                     vbo.Dispose();
+            GLWrapper.UnregisterVertexBatch(this);
         }
 
         #endregion

@@ -82,7 +82,7 @@ namespace osu.Framework.Configuration
         /// Creates a new bindable instance.
         /// </summary>
         /// <param name="value">The initial value.</param>
-        public Bindable(T value = default(T))
+        public Bindable(T value = default)
         {
             this.value = value;
         }
