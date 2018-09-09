@@ -17,23 +17,23 @@ namespace osu.Framework.Tests.Visual
 
         public TestCaseRefCountTexture()
         {
-            largeStore = new LargeTextureStore(new RawTextureLoaderStore(new OnlineStore()));
+            largeStore = new LargeTextureStore(new TextureLoaderStore(new OnlineStore()));
 
             Avatar avatar1 = null;
             Avatar avatar2 = null;
-            Texture texture = null;
+            TextureWithRefCount texture = null;
 
             AddStep("add disposable sprite", () => avatar1 = addSprite("https://a.ppy.sh/3"));
             AddStep("add disposable sprite", () => avatar2 = addSprite("https://a.ppy.sh/3"));
 
-            AddUntilStep(() => (texture = avatar1.Texture) != null, "wait for texture load");
+            AddUntilStep(() => (texture = (TextureWithRefCount)avatar1.Texture) != null, "wait for texture load");
 
             AddAssert("textures share gl texture", () => avatar1.Texture.TextureGL == avatar2.Texture.TextureGL);
             AddAssert("textures have different refcount textures", () => avatar1.Texture != avatar2.Texture);
 
             AddStep("remove delayed from children", Clear);
 
-            AddUntilStep(() => texture.TextureGL.IsDisposed, "gl textures disposed");
+            AddUntilStep(() => texture.ReferenceCount == 0, "gl textures disposed");
         }
 
         private Avatar addSprite(string url)

@@ -62,6 +62,7 @@ void main(void)
 {
 	float dist = distanceFromRoundedRect();
 	float alphaFactor = 1.0;
+	vec4 texel = texture2D(m_Sampler, v_TexCoord, -0.9);
 
 	// Discard inner pixels
 	if (g_DiscardInner)
@@ -108,6 +109,6 @@ void main(void)
 	}
 
 	gl_FragColor = toSRGB(
-		colourWeight * vec4(v_Colour.rgb, v_Colour.a * alphaFactor) * texture2D(m_Sampler, v_TexCoord, -0.9) +
+		colourWeight * vec4(v_Colour.rgb, v_Colour.a * alphaFactor) * texel +
 		(1.0 - colourWeight) * g_BorderColour);
 }

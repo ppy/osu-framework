@@ -9,7 +9,7 @@ namespace osu.Framework.Graphics.Textures
     {
         private readonly string prefix;
 
-        public PrefixTextureStore(string prefix, IResourceStore<RawTexture> stores)
+        public PrefixTextureStore(string prefix, IResourceStore<TextureUpload> stores)
             : base(stores)
         {
             this.prefix = prefix;
