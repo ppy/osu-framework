@@ -367,9 +367,11 @@ namespace osu.Framework.Graphics.Sprites
 
                 float currentRowHeight = 0;
 
+                var fixedWidthCharacters = FixedWidth ? FixedWidthExceptionCharacters : null;
+
                 foreach (var character in Text)
                 {
-                    bool useFixedWidth = FixedWidth && !FixedWidthExceptionCharacters.Contains(character);
+                    bool useFixedWidth = FixedWidth && !(fixedWidthCharacters?.Contains(character) ?? false);
 
                     // Unscaled size (i.e. not multiplied by TextSize)
                     Vector2 textureSize;
