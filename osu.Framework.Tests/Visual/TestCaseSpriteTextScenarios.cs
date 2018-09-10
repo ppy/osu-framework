@@ -191,12 +191,17 @@ namespace osu.Framework.Tests.Visual
                 }
             };
 
-            Cell(0, 4).Child = new SpriteText
+            Cell(0, 4).Child = new NoFixedWidthSpaceText { Text = "No fixed width spaces" };
+        }
+
+        private class NoFixedWidthSpaceText : SpriteText
+        {
+            public NoFixedWidthSpaceText()
             {
-                Text = "No fixed width spaces",
-                FixedWidth = true,
-                FixedWidthExceptionCharacters = { ' ' }
-            };
+                FixedWidth = true;
+            }
+
+            protected override bool UseFixedWidthForCharacter(char c) => c != ' ';
         }
     }
 }
