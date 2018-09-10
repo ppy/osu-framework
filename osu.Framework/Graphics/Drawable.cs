@@ -836,10 +836,7 @@ namespace osu.Framework.Graphics
         protected Vector2 ApplyRelativeAxesBeforeParentAutoSize(Axes relativeAxes, Vector2 v, FillMode fillMode) =>
             relativeAxes == Axes.None ? v : applyRelativeAxes(relativeAxes, v, fillMode, Parent?.RelativeToAbsoluteFactorBeforeAutoSize ?? Vector2.One);
 
-        private Cached<Vector2> drawSizeBeforeParentAutoSizeBacking;
-
-        protected Vector2 DrawSizeBeforeParentAutoSize => drawSizeBeforeParentAutoSizeBacking.IsValid ? drawSizeBeforeParentAutoSizeBacking.Value :
-            drawSizeBeforeParentAutoSizeBacking.Value = ApplyRelativeAxesBeforeParentAutoSize(RelativeSizeAxes, Size, FillMode);
+        protected Vector2 DrawSizeBeforeParentAutoSize => ApplyRelativeAxesBeforeParentAutoSize(RelativeSizeAxes, Size, FillMode);
 
         protected Vector2 DrawPositionBeforeParentAutoSize => ApplyRelativeAxesBeforeParentAutoSize(RelativePositionAxes, Position, FillMode);
 
