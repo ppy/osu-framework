@@ -836,10 +836,7 @@ namespace osu.Framework.Graphics
         protected Vector2 ApplyRelativeAxesBeforeParentAutoSize(Axes relativeAxes, Vector2 v, FillMode fillMode) =>
             relativeAxes == Axes.None ? v : applyRelativeAxes(relativeAxes, v, fillMode, Parent?.RelativeToAbsoluteFactorBeforeAutoSize ?? Vector2.One);
 
-        private Cached<Vector2> drawSizeBeforeParentAutoSizeBacking;
-
-        protected Vector2 DrawSizeBeforeParentAutoSize => drawSizeBeforeParentAutoSizeBacking.IsValid ? drawSizeBeforeParentAutoSizeBacking.Value :
-            drawSizeBeforeParentAutoSizeBacking.Value = ApplyRelativeAxesBeforeParentAutoSize(RelativeSizeAxes, Size, FillMode);
+        protected Vector2 DrawSizeBeforeParentAutoSize => ApplyRelativeAxesBeforeParentAutoSize(RelativeSizeAxes, Size, FillMode);
 
         protected Vector2 DrawPositionBeforeParentAutoSize => ApplyRelativeAxesBeforeParentAutoSize(RelativePositionAxes, Position, FillMode);
 
@@ -1632,7 +1629,6 @@ namespace osu.Framework.Graphics
                 alreadyInvalidated &= !screenSpaceDrawQuadBacking.Invalidate();
                 alreadyInvalidated &= !drawInfoBacking.Invalidate();
                 alreadyInvalidated &= !drawSizeBacking.Invalidate();
-                alreadyInvalidated &= !drawSizeBeforeParentAutoSizeBacking.Invalidate();
 
                 // If we change size/position and have a non-singular colour, we need to invalidate the colour also,
                 // as we'll need to do some interpolation that's dependent on our draw info
