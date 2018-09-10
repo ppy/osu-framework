@@ -564,7 +564,7 @@ namespace osu.Framework.Graphics.Sprites
 
         /// <summary>
         /// Whether the visual representation of a character should use fixed width when <see cref="FixedWidth"/> is true.
-        /// By default, this includes the following characters: . , :
+        /// By default, this includes the following characters, commonly used in numerical formatting: '.' ',' ':' and ' '
         /// </summary>
         /// <param name="c">The character.</param>
         /// <returns>Whether the visual representation of <paramref name="c"/> should use a fixed width.</returns>
