@@ -3,8 +3,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Diagnostics;
-using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Caching;
 using osu.Framework.Configuration;
@@ -33,6 +34,11 @@ namespace osu.Framework.Graphics.Sprites
         private FontStore store { get; set; }
 
         private float spaceWidth;
+
+        public SpriteText()
+        {
+            FixedWidthExceptionCharacters = new ObservableCollection<char>(default_fixed_width_exceptions);
+        }
 
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
@@ -204,10 +210,32 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
+        private ObservableCollection<char> fixedWidthExceptionCharacters;
+
         /// <summary>
-        /// An array of characters which should not get a fixed width in a <see cref="FixedWidth"/> instance.
+        /// A list of characters which should not get a fixed width in a <see cref="FixedWidth"/> instance.
         /// </summary>
-        protected virtual char[] FixedWidthExceptionCharacters => default_fixed_width_exceptions;
+        public ObservableCollection<char> FixedWidthExceptionCharacters
+        {
+            get => fixedWidthExceptionCharacters;
+            set
+            {
+                if (ReferenceEquals(fixedWidthExceptionCharacters, value))
+                    return;
+
+                if (fixedWidthExceptionCharacters != null)
+                    fixedWidthExceptionCharacters.CollectionChanged -= onChange;
+
+                fixedWidthExceptionCharacters = value;
+
+                if (fixedWidthExceptionCharacters != null)
+                    fixedWidthExceptionCharacters.CollectionChanged += onChange;
+
+                invalidate(true);
+
+                void onChange(object sender, NotifyCollectionChangedEventArgs args) => invalidate(true);
+            }
+        }
 
         private bool requiresAutoSizedWidth => explicitWidth == null && (RelativeSizeAxes & Axes.X) == 0;
 
@@ -367,11 +395,9 @@ namespace osu.Framework.Graphics.Sprites
 
                 float currentRowHeight = 0;
 
-                var fixedWidthCharacters = FixedWidth ? FixedWidthExceptionCharacters : null;
-
                 foreach (var character in Text)
                 {
-                    bool useFixedWidth = FixedWidth && !(fixedWidthCharacters?.Contains(character) ?? false);
+                    bool useFixedWidth = FixedWidth && !(fixedWidthExceptionCharacters?.Contains(character) ?? false);
 
                     // Unscaled size (i.e. not multiplied by TextSize)
                     Vector2 textureSize;
@@ -622,6 +648,12 @@ namespace osu.Framework.Graphics.Sprites
         public IEnumerable<string> FilterTerms
         {
             get { yield return Text; }
+        }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+            FixedWidthExceptionCharacters = null;
         }
     }
 }

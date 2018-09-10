@@ -1,9 +1,7 @@
 // Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System.Linq;
 using osu.Framework.Extensions.Color4Extensions;
-using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -193,21 +191,12 @@ namespace osu.Framework.Tests.Visual
                 }
             };
 
-            Cell(0, 4).Child = new SpriteTextWithNoSpaceFixedWidth
+            Cell(0, 4).Child = new SpriteText
             {
                 Text = "No fixed width spaces",
                 FixedWidth = true,
+                FixedWidthExceptionCharacters = { ' ' }
             };
-        }
-
-        private class SpriteTextWithNoSpaceFixedWidth : SpriteText
-        {
-            public SpriteTextWithNoSpaceFixedWidth()
-            {
-                FixedWidthExceptionCharacters = base.FixedWidthExceptionCharacters.Concat(' '.Yield()).ToArray();
-            }
-
-            protected override char[] FixedWidthExceptionCharacters { get; }
         }
     }
 }
