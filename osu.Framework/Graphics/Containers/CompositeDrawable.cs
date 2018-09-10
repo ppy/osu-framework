@@ -594,7 +594,7 @@ namespace osu.Framework.Graphics.Containers
                     RemoveInternal(child);
 
                     if (child.DisposeOnDeathRemoval)
-                        child.Dispose();
+                        Task.Run(() => child.Dispose());
                 }
             }
 
