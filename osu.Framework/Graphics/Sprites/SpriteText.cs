@@ -575,6 +575,7 @@ namespace osu.Framework.Graphics.Sprites
                 case '.':
                 case ',':
                 case ':':
+                case ' ':
                     return false;
             }
 
