@@ -113,7 +113,7 @@ namespace osu.Framework.Tests.Visual
             {
                 Text = "Scale = -1",
                 Y = 20,
-                Scale =new Vector2(-1)
+                Scale = new Vector2(-1)
             };
 
             Cell(0, 3).Child = new Container
