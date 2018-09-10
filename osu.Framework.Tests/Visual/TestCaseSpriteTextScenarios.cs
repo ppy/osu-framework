@@ -1,7 +1,9 @@
 // Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System.Linq;
 using osu.Framework.Extensions.Color4Extensions;
+using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -16,7 +18,7 @@ namespace osu.Framework.Tests.Visual
     public class TestCaseSpriteTextScenarios : GridTestCase
     {
         public TestCaseSpriteTextScenarios()
-            : base(4, 4)
+            : base(4, 5)
         {
             Cell(0, 0).Child = new SpriteText { Text = "Basic: Hello world!" };
 
@@ -190,6 +192,22 @@ namespace osu.Framework.Tests.Visual
                     }
                 }
             };
+
+            Cell(0, 4).Child = new SpriteTextWithNoSpaceFixedWidth
+            {
+                Text = "No fixed width spaces",
+                FixedWidth = true,
+            };
+        }
+
+        private class SpriteTextWithNoSpaceFixedWidth : SpriteText
+        {
+            public SpriteTextWithNoSpaceFixedWidth()
+            {
+                FixedWidthExceptionCharacters = base.FixedWidthExceptionCharacters.Concat(' '.Yield()).ToArray();
+            }
+
+            protected override char[] FixedWidthExceptionCharacters { get; }
         }
     }
 }

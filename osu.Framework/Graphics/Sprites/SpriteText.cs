@@ -369,6 +369,8 @@ namespace osu.Framework.Graphics.Sprites
 
                 foreach (var character in Text)
                 {
+                    bool useFixedWidth = FixedWidth && !FixedWidthExceptionCharacters.Contains(character);
+
                     // Unscaled size (i.e. not multiplied by TextSize)
                     Vector2 textureSize;
                     Texture texture = null;
@@ -376,7 +378,7 @@ namespace osu.Framework.Graphics.Sprites
                     // Retrieve the texture + size
                     if (char.IsWhiteSpace(character))
                     {
-                        float size = FixedWidth ? constantWidth : spaceWidth;
+                        float size = useFixedWidth ? constantWidth : spaceWidth;
 
                         if (character == 0x3000)
                         {
@@ -389,10 +391,8 @@ namespace osu.Framework.Graphics.Sprites
                     else
                     {
                         texture = GetTextureForCharacter(character);
-                        textureSize = texture == null ? new Vector2(FixedWidth ? constantWidth : spaceWidth) : new Vector2(texture.DisplayWidth, texture.DisplayHeight);
+                        textureSize = texture == null ? new Vector2(useFixedWidth ? constantWidth : spaceWidth) : new Vector2(texture.DisplayWidth, texture.DisplayHeight);
                     }
-
-                    bool useFixedWidth = FixedWidth && !FixedWidthExceptionCharacters.Contains(character);
 
                     // Scaled glyph size to be used for positioning
                     Vector2 glyphSize = new Vector2(useFixedWidth ? constantWidth : textureSize.X, UseFullGlyphHeight ? 1 : textureSize.Y) * TextSize;
