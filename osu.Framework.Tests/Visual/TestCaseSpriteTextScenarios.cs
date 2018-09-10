@@ -16,7 +16,7 @@ namespace osu.Framework.Tests.Visual
     public class TestCaseSpriteTextScenarios : GridTestCase
     {
         public TestCaseSpriteTextScenarios()
-            : base(4, 4)
+            : base(4, 5)
         {
             Cell(0, 0).Child = new SpriteText { Text = "Basic: Hello world!" };
 
@@ -113,7 +113,7 @@ namespace osu.Framework.Tests.Visual
             {
                 Text = "Scale = -1",
                 Y = 20,
-                Scale =new Vector2(-1)
+                Scale = new Vector2(-1)
             };
 
             Cell(0, 3).Child = new Container
@@ -190,6 +190,18 @@ namespace osu.Framework.Tests.Visual
                     }
                 }
             };
+
+            Cell(0, 4).Child = new NoFixedWidthSpaceText { Text = "No fixed width spaces" };
+        }
+
+        private class NoFixedWidthSpaceText : SpriteText
+        {
+            public NoFixedWidthSpaceText()
+            {
+                FixedWidth = true;
+            }
+
+            protected override bool UseFixedWidthForCharacter(char c) => c != ' ';
         }
     }
 }
