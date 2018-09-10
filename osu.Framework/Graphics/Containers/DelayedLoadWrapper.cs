@@ -103,11 +103,13 @@ namespace osu.Framework.Graphics.Containers
             return OptimisingContainer?.ScreenSpaceDrawQuad.Intersects(ScreenSpaceDrawQuad) ?? true;
         }
 
-        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
-        {
-            isIntersectingBacking.Invalidate();
-            return base.Invalidate(invalidation, source, shallPropagate);
-        }
+        // todo: invalidation
+
+        //protected override Invalidation DoInvalidation(Invalidation invalidation)
+        //{
+        //    isIntersectingBacking.Invalidate();
+        //    return base.DoInvalidation(invalidation);
+        //}
 
         /// <summary>
         /// A container which acts as a masking parent for on-screen delayed load optimisations.
@@ -118,7 +120,7 @@ namespace osu.Framework.Graphics.Containers
 
             /// <summary>
             /// Schedule a repeating action from a child to perform checks even when the child is potentially masked.
-            /// Repeats every frame until manually cancelled. 
+            /// Repeats every frame until manually cancelled.
             /// </summary>
             /// <param name="action">The action to perform.</param>
             /// <returns>The scheduled delegate.</returns>

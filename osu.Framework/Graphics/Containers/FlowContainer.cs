@@ -43,7 +43,7 @@ namespace osu.Framework.Graphics.Containers
 
         private Cached layout = new Cached();
 
-        protected void InvalidateLayout() => layout.Invalidate();
+        protected void InvalidateLayout() => Invalidate(Invalidation.ChildrenLayout);
 
         private Vector2 maximumSize;
 
@@ -65,12 +65,20 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool RequiresChildrenUpdate => base.RequiresChildrenUpdate || !layout.IsValid;
 
-        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
+        protected override Invalidation InvalidateFromInvalidation(Invalidation invalidation)
         {
-            if ((invalidation & Invalidation.DrawSize) > 0)
-                InvalidateLayout();
+            var propagatingInvalidation = base.InvalidateFromInvalidation(invalidation);
 
-            return base.Invalidate(invalidation, source, shallPropagate);
+            if ((invalidation & Invalidation.ChildrenLayout) != 0)
+                propagatingInvalidation |= InvalidateChildrenLayout();
+
+            return propagatingInvalidation;
+        }
+
+        protected Invalidation InvalidateChildrenLayout()
+        {
+            if (!layout.Invalidate()) return Invalidation.None;
+            return Invalidation.ChildrenLayout | InvalidateAutoSize();
         }
 
         private readonly Dictionary<Drawable, float> layoutChildren = new Dictionary<Drawable, float>();
@@ -140,12 +148,12 @@ namespace osu.Framework.Graphics.Containers
             return changed;
         }
 
-        public override void InvalidateFromChild(Invalidation invalidation, Drawable source = null)
+        public override void PropagateInvalidationFromChild(Invalidation childInvalidation, Drawable child, Invalidation invalidation)
         {
-            if ((invalidation & (Invalidation.RequiredParentSizeToFit | Invalidation.Presence)) > 0)
-                InvalidateLayout();
+            if ((childInvalidation & (Invalidation.LegacyRequiredParentSizeToFit | Invalidation.Presence)) > 0)
+                invalidation |= Invalidation.DrawSize;
 
-            base.InvalidateFromChild(invalidation, source);
+            base.PropagateInvalidationFromChild(childInvalidation, child, invalidation);
         }
 
         /// <summary>

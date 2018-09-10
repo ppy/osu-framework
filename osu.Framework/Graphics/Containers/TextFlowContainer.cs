@@ -121,12 +121,7 @@ namespace osu.Framework.Graphics.Containers
         public override bool HandleKeyboardInput => false;
         public override bool HandleMouseInput => false;
 
-        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
-        {
-            if ((invalidation & Invalidation.DrawSize) > 0)
-                layout.Invalidate();
-            return base.Invalidate(invalidation, source, shallPropagate);
-        }
+        // todo: invalidation
 
         protected override void UpdateAfterChildren()
         {

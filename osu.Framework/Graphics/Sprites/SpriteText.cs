@@ -499,31 +499,9 @@ namespace osu.Framework.Graphics.Sprites
             if (layout)
                 charactersCache.Invalidate();
             screenSpaceCharactersCache.Invalidate();
-
-            Invalidate(Invalidation.DrawNode, shallPropagate: false);
         }
 
-        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
-        {
-            base.Invalidate(invalidation, source, shallPropagate);
-
-            if (source == Parent)
-            {
-                // Colour captures presence changes
-                if ((invalidation & (Invalidation.DrawSize | Invalidation.Presence)) > 0)
-                    invalidate(true);
-
-                if ((invalidation & Invalidation.DrawInfo) > 0)
-                {
-                    invalidate();
-                    shadowOffsetCache.Invalidate();
-                }
-            }
-            else if ((invalidation & Invalidation.MiscGeometry) > 0)
-                invalidate();
-
-            return true;
-        }
+        // todo: invalidation
 
         #endregion
 

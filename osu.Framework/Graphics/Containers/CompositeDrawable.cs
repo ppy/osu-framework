@@ -378,8 +378,7 @@ namespace osu.Framework.Graphics.Containers
             drawable.Parent = null;
             drawable.IsAlive = false;
 
-            if (AutoSizeAxes != Axes.None)
-                InvalidateFromChild(Invalidation.RequiredParentSizeToFit, drawable);
+            PropagateInvalidationFromChild(Invalidation.All, drawable, Invalidation.None);
 
             return true;
         }
@@ -417,8 +416,7 @@ namespace osu.Framework.Graphics.Containers
             internalChildren.Clear();
             aliveInternalChildren.Clear();
 
-            if (AutoSizeAxes != Axes.None)
-                InvalidateFromChild(Invalidation.RequiredParentSizeToFit);
+            PropagateInvalidationFromChild(Invalidation.All, null, Invalidation.None);
         }
 
         /// <summary>
@@ -458,8 +456,7 @@ namespace osu.Framework.Graphics.Containers
 
             internalChildren.Add(drawable);
 
-            if (AutoSizeAxes != Axes.None)
-                InvalidateFromChild(Invalidation.RequiredParentSizeToFit, drawable);
+            PropagateInvalidationFromChild(Invalidation.All, drawable, Invalidation.None);
         }
 
         /// <summary>
@@ -730,49 +727,39 @@ namespace osu.Framework.Graphics.Containers
 
         #region Invalidation
 
-        /// <summary>
-        /// Informs this <see cref="CompositeDrawable"/> that a child has been invalidated.
-        /// </summary>
-        /// <param name="invalidation">The type of invalidation applied to the child.</param>
-        /// <param name="source">The child which caused this invalidation. May be null to indicate that a specific child wasn't specified.</param>
-        public virtual void InvalidateFromChild(Invalidation invalidation, Drawable source = null)
+        protected override Invalidation InvalidateFromInvalidation(Invalidation invalidation)
         {
-            if ((invalidation & (Invalidation.RequiredParentSizeToFit | Invalidation.Presence)) > 0)
-                childrenSizeDependencies.Invalidate();
+            var propagatingInvalidation = base.InvalidateFromInvalidation(invalidation);
+
+            if ((invalidation & Invalidation.AutoSize) != 0)
+                propagatingInvalidation |= InvalidateAutoSize();
+
+            return propagatingInvalidation;
         }
 
-        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
+        protected Invalidation InvalidateAutoSize()
         {
-            if (!base.Invalidate(invalidation, source, shallPropagate))
-                return false;
+            if (!childrenSizeDependencies.Invalidate()) return Invalidation.None;
+            return Invalidation.AutoSize | InvalidateDrawSize() | InvalidateRequiredParentSizeToFit();
+        }
 
-            if (!shallPropagate) return true;
+        protected sealed override void PropagateInvalidation(Invalidation propagatingInvalidation)
+        {
+            base.PropagateInvalidation(propagatingInvalidation);
 
-            for (int i = 0; i < internalChildren.Count; ++i)
+            foreach (var child in internalChildren)
             {
-                Drawable c = internalChildren[i];
-                Debug.Assert(c != source);
-
-                Invalidation childInvalidation = invalidation;
-                if ((invalidation & Invalidation.RequiredParentSizeToFit) > 0)
-                    childInvalidation |= Invalidation.DrawInfo;
-
-                // Other geometry things like rotation, shearing, etc don't affect child properties.
-                childInvalidation &= ~Invalidation.MiscGeometry;
-
-                // Relative positioning can however affect child geometry
-                // ReSharper disable once PossibleNullReferenceException
-                if (c.RelativePositionAxes != Axes.None && (invalidation & Invalidation.DrawSize) > 0)
-                    childInvalidation |= Invalidation.MiscGeometry;
-
-                // No draw size changes if relative size axes does not propagate it downward.
-                if (c.RelativeSizeAxes == Axes.None)
-                    childInvalidation &= ~Invalidation.DrawSize;
-
-                c.Invalidate(childInvalidation, this);
+                child.PropagateInvalidationFromParent(propagatingInvalidation, Invalidation.None);
             }
+        }
 
-            return true;
+        public virtual void PropagateInvalidationFromChild(Invalidation childInvalidation, Drawable child, Invalidation invalidation)
+        {
+            if ((childInvalidation & (Invalidation.RequiredParentSizeToFit | Invalidation.Presence)) != 0)
+                invalidation |= Invalidation.AutoSize;
+
+            if (invalidation != Invalidation.None)
+                Invalidate(invalidation);
         }
 
         #endregion
@@ -1243,7 +1230,7 @@ namespace osu.Framework.Graphics.Containers
                 padding = value;
 
                 foreach (Drawable c in internalChildren)
-                    c.Invalidate(c.InvalidationFromParentSize | Invalidation.MiscGeometry);
+                    c.Invalidate(c.InvalidationFromParentSize | Invalidation.LegacyMiscGeometry);
             }
         }
 
@@ -1525,12 +1512,8 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         protected Vector2 BaseSize
         {
-            get => new Vector2(base.Width, base.Height);
-            set
-            {
-                base.Width = value.X;
-                base.Height = value.Y;
-            }
+            get => base.Size;
+            set => base.Size = value;
         }
 
         private class AutoSizeTransform : TransformCustom<Vector2, CompositeDrawable>

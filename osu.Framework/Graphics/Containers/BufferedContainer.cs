@@ -319,17 +319,7 @@ namespace osu.Framework.Graphics.Containers
         private Vector2 lastScreenSpaceSize;
         private Cached screenSpaceSizeBacking = new Cached();
 
-        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
-        {
-            if ((invalidation & Invalidation.DrawNode) > 0)
-                ++updateVersion;
-
-            // We actually only care about Invalidation.MiscGeometry | Invalidation.DrawInfo, but must match the blanket invalidation logic in Drawable.Invalidate
-            if ((invalidation & (Invalidation.Presence | Invalidation.RequiredParentSizeToFit | Invalidation.DrawInfo)) > 0)
-                screenSpaceSizeBacking.Invalidate();
-
-            return base.Invalidate(invalidation, source, shallPropagate);
-        }
+        // todo: invalidation
 
         private long childrenUpdateVersion = -1;
         protected override bool RequiresChildrenUpdate => base.RequiresChildrenUpdate && childrenUpdateVersion != updateVersion;
