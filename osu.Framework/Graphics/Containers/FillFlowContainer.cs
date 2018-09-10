@@ -94,6 +94,16 @@ namespace osu.Framework.Graphics.Containers
             return result;
         }
 
+        public override void PropagateInvalidationFromChild(Invalidation childInvalidation, Drawable child, Invalidation selfInvalidation = Invalidation.None)
+        {
+            // todo: introduce Invalidation.BoundingBoxBeforeParentAutoSize?
+            // must capture child.Anchor change
+            if ((childInvalidation & Invalidation.RequiredParentSizeToFit) != 0)
+                selfInvalidation |= Invalidation.ChildrenLayout;
+
+            base.PropagateInvalidationFromChild(childInvalidation, child, selfInvalidation);
+        }
+
         protected override IEnumerable<Vector2> ComputeLayoutPositions()
         {
             var max = MaximumSize;

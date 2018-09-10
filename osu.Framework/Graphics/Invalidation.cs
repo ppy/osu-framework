@@ -20,16 +20,18 @@ namespace osu.Framework.Graphics
         DrawInfo = 1 << 4,
         RequiredParentSizeToFit = 1 << 5,
         DrawSize = 1 << 6,
+        LayoutRectangle = 1 << 7,
 
         // CompositeDrawable
-        AutoSize = 1 << 7,
+        AutoSize = 1 << 9,
+        ChildSizeBeforeAutoSize = 1 << 10,
+        ChildSize = 1 << 11,
+        AliveInternalChildren = 1 << 12,
 
         // FlowContainer
-        ChildrenLayout = 1 << 8,
+        ChildrenLayout = 1 << 13,
 
-        // legacy compatibility
-        LegacyRequiredParentSizeToFit = RequiredParentSizeToFit | DrawSize,
-        LegacyMiscGeometry = RequiredParentSizeToFit | DrawInfo,
+
 
         All = ~0,
     }

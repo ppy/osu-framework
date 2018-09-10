@@ -41,7 +41,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private Cached layout = new Cached();
+        private Cached<bool> layout = new Cached<bool> { Name = "ChildrenLayout" };
 
         protected void InvalidateLayout() => Invalidate(Invalidation.ChildrenLayout);
 
@@ -148,12 +148,12 @@ namespace osu.Framework.Graphics.Containers
             return changed;
         }
 
-        public override void PropagateInvalidationFromChild(Invalidation childInvalidation, Drawable child, Invalidation invalidation)
+        public override void PropagateInvalidationFromChild(Invalidation childInvalidation, Drawable child, Invalidation selfInvalidation = Invalidation.None)
         {
-            if ((childInvalidation & (Invalidation.LegacyRequiredParentSizeToFit | Invalidation.Presence)) > 0)
-                invalidation |= Invalidation.DrawSize;
+            if ((childInvalidation & Invalidation.Presence) != 0)
+                selfInvalidation |= Invalidation.ChildrenLayout;
 
-            base.PropagateInvalidationFromChild(childInvalidation, child, invalidation);
+            base.PropagateInvalidationFromChild(childInvalidation, child, selfInvalidation);
         }
 
         /// <summary>
@@ -221,11 +221,11 @@ namespace osu.Framework.Graphics.Containers
         {
             base.UpdateAfterChildren();
 
-            if (!layout.IsValid)
+            layout.Compute(() =>
             {
                 performLayout();
-                layout.Validate();
-            }
+                return true;
+            });
         }
 
         private class FlowTransform : TransformCustom<Vector2, Drawable>

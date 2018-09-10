@@ -90,14 +90,6 @@ namespace osu.Framework.Graphics.Containers
         //    return base.DoInvalidation(invalidation);
         //}
 
-        public override void PropagateInvalidationFromChild(Invalidation childInvalidation, Drawable child, Invalidation invalidation)
-        {
-            if ((childInvalidation & Invalidation.LegacyRequiredParentSizeToFit | Invalidation.Presence) > 0)
-                invalidation |= Invalidation.DrawSize;
-
-            base.PropagateInvalidationFromChild(childInvalidation, child, invalidation);
-        }
-
         private Cached cellContent = new Cached();
         private Cached cellLayout = new Cached();
 
@@ -291,13 +283,7 @@ namespace osu.Framework.Graphics.Containers
             /// </summary>
             public bool DistributedHeight;
 
-            public override void PropagateInvalidationFromChild(Invalidation childInvalidation, Drawable child, Invalidation invalidation)
-            {
-                if ((childInvalidation & (Invalidation.LegacyRequiredParentSizeToFit | Invalidation.Presence)) > 0)
-                    invalidation |= Invalidation.DrawSize;
-
-                base.PropagateInvalidationFromChild(childInvalidation, child, invalidation);
-            }
+            // todo
         }
     }
 

@@ -26,6 +26,7 @@ using System.Reflection;
 using System.Threading;
 using osu.Framework.Configuration;
 using osu.Framework.Development;
+using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.EventArgs;
 using osu.Framework.Input.States;
 using osu.Framework.MathUtils;
@@ -472,7 +473,7 @@ namespace osu.Framework.Graphics
 
                 position = value;
 
-                Invalidate(Invalidation.LegacyMiscGeometry);
+                Invalidate(Invalidation.RequiredParentSizeToFit | Invalidation.DrawInfo);
             }
         }
 
@@ -493,7 +494,7 @@ namespace osu.Framework.Graphics
 
                 x = value;
 
-                Invalidate(Invalidation.LegacyMiscGeometry);
+                Invalidate(Invalidation.RequiredParentSizeToFit | Invalidation.DrawInfo);
             }
         }
 
@@ -511,7 +512,7 @@ namespace osu.Framework.Graphics
 
                 y = value;
 
-                Invalidate(Invalidation.LegacyMiscGeometry);
+                Invalidate(Invalidation.RequiredParentSizeToFit | Invalidation.DrawInfo);
             }
         }
 
@@ -669,7 +670,7 @@ namespace osu.Framework.Graphics
                 // In some cases we cannot easily preserve our size, and so we simply invalidate and
                 // leave correct sizing to the user.
                 if (fillMode != FillMode.Stretch && (value == Axes.Both || relativeSizeAxes == Axes.Both))
-                    Invalidate(Invalidation.DrawSize);
+                    Invalidate(Invalidation.RequiredParentSizeToFit | Invalidation.DrawSize);
                 else
                 {
                     // Convert coordinates from relative to absolute or vice versa
@@ -696,12 +697,14 @@ namespace osu.Framework.Graphics
             }
         }
 
-        private Cached<Vector2> drawSizeBacking;
+        private Cached<Vector2> drawSizeBacking = new Cached<Vector2> { Name = nameof(DrawSize) };
 
         /// <summary>
         /// Absolute size of this Drawable in the <see cref="Parent"/>'s coordinate system.
         /// </summary>
-        public Vector2 DrawSize => drawSizeBacking.IsValid ? drawSizeBacking : (drawSizeBacking.Value = ApplyRelativeAxes(RelativeSizeAxes, Size, FillMode));
+        public Vector2 DrawSize => drawSizeBacking.Compute(computeDrawSize);
+
+        private Vector2 computeDrawSize() => ApplyRelativeAxes(RelativeSizeAxes, Size, FillMode);
 
         /// <summary>
         /// X component of <see cref="DrawSize"/>.
@@ -731,7 +734,7 @@ namespace osu.Framework.Graphics
 
                 margin = value;
 
-                Invalidate(Invalidation.LegacyMiscGeometry);
+                Invalidate(Invalidation.RequiredParentSizeToFit | Invalidation.DrawInfo | Invalidation.LayoutRectangle);
             }
         }
 
@@ -800,7 +803,7 @@ namespace osu.Framework.Graphics
                 var changedAxes = bypassAutoSizeAxes ^ value;
                 bypassAutoSizeAxes = value;
                 if (((Parent?.AutoSizeAxes ?? 0) & changedAxes) != 0)
-                    Parent?.PropagateInvalidationFromChild(Invalidation.LegacyRequiredParentSizeToFit, this, Invalidation.None);
+                    Parent?.Invalidate(Invalidation.AutoSize);
             }
         }
 
@@ -907,9 +910,9 @@ namespace osu.Framework.Graphics
                 scale = value;
 
                 if (IsPresent != wasPresent)
-                    Invalidate(Invalidation.LegacyMiscGeometry | Invalidation.Presence);
+                    Invalidate(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.Presence);
                 else
-                    Invalidate(Invalidation.LegacyMiscGeometry);
+                    Invalidate(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit);
             }
         }
 
@@ -977,7 +980,7 @@ namespace osu.Framework.Graphics
 
                 shear = value;
 
-                Invalidate(Invalidation.LegacyMiscGeometry);
+                Invalidate(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit);
             }
         }
 
@@ -996,7 +999,7 @@ namespace osu.Framework.Graphics
 
                 rotation = value;
 
-                Invalidate(Invalidation.LegacyMiscGeometry);
+                Invalidate(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit);
             }
         }
 
@@ -1022,7 +1025,7 @@ namespace osu.Framework.Graphics
                     throw new ArgumentException("Cannot set origin to 0.", nameof(value));
 
                 origin = value;
-                Invalidate(Invalidation.LegacyMiscGeometry);
+                Invalidate(Invalidation.DrawInfo);
             }
         }
 
@@ -1108,7 +1111,7 @@ namespace osu.Framework.Graphics
                     throw new ArgumentException("Cannot set anchor to 0.", nameof(value));
 
                 anchor = value;
-                Invalidate(Invalidation.LegacyMiscGeometry);
+                Invalidate(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit);
             }
         }
 
@@ -1394,7 +1397,7 @@ namespace osu.Framework.Graphics
                     throw new InvalidOperationException("May not add a drawable to multiple containers.");
 
                 parent = value;
-                Invalidate(InvalidationFromParentSize | Invalidation.DrawColourInfo | Invalidation.Presence);
+                PropagateInvalidationFromParent(Invalidation.All);
 
                 if (parent != null)
                 {
@@ -1456,16 +1459,16 @@ namespace osu.Framework.Graphics
         /// </summary>
         internal bool IsMaskedAway { get; private set; }
 
-        private Cached<Quad> screenSpaceDrawQuadBacking;
+        private Cached<Quad> screenSpaceDrawQuadBacking = new Cached<Quad> { Name = nameof(ScreenSpaceDrawQuad) };
 
         protected virtual Quad ComputeScreenSpaceDrawQuad() => ToScreenSpace(DrawRectangle);
 
         /// <summary>
         /// The screen-space quad this drawable occupies.
         /// </summary>
-        public virtual Quad ScreenSpaceDrawQuad => screenSpaceDrawQuadBacking.IsValid ? screenSpaceDrawQuadBacking : (screenSpaceDrawQuadBacking.Value = ComputeScreenSpaceDrawQuad());
+        public virtual Quad ScreenSpaceDrawQuad => screenSpaceDrawQuadBacking.Compute(ComputeScreenSpaceDrawQuad);
 
-        private Cached<DrawInfo> drawInfoBacking;
+        private Cached<DrawInfo> drawInfoBacking = new Cached<DrawInfo> { Name = nameof(DrawInfo) };
 
         private DrawInfo computeDrawInfo()
         {
@@ -1485,14 +1488,14 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Contains the linear transformation of this <see cref="Drawable"/> that is used during draw.
         /// </summary>
-        public virtual DrawInfo DrawInfo => drawInfoBacking.IsValid ? drawInfoBacking : (drawInfoBacking.Value = computeDrawInfo());
+        public virtual DrawInfo DrawInfo => drawInfoBacking.Compute(computeDrawInfo);
 
-        private Cached<DrawColourInfo> drawColourInfoBacking;
+        private Cached<DrawColourInfo> drawColourInfoBacking = new Cached<DrawColourInfo> { Name = nameof(DrawColourInfo) };
 
         /// <summary>
         /// Contains the colour and blending information of this <see cref="Drawable"/> that are used during draw.
         /// </summary>
-        public virtual DrawColourInfo DrawColourInfo => drawColourInfoBacking.IsValid ? drawColourInfoBacking : (drawColourInfoBacking.Value = computeDrawColourInfo());
+        public virtual DrawColourInfo DrawColourInfo => drawColourInfoBacking.Compute(computeDrawColourInfo);
 
         private DrawColourInfo computeDrawColourInfo()
         {
@@ -1539,7 +1542,7 @@ namespace osu.Framework.Graphics
             return ci;
         }
 
-        private Cached<Vector2> requiredParentSizeToFitBacking;
+        private Cached<Vector2> requiredParentSizeToFitBacking = new Cached<Vector2> { Name = nameof(RequiredParentSizeToFit) };
 
         private Vector2 computeRequiredParentSizeToFit()
         {
@@ -1583,7 +1586,7 @@ namespace osu.Framework.Graphics
         /// zero in that dimension; i.e. we no longer fit into the parent.
         /// This behavior is prominent with non-centre and non-custom <see cref="Anchor"/> values.
         /// </summary>
-        public Vector2 RequiredParentSizeToFit => requiredParentSizeToFitBacking.IsValid ? requiredParentSizeToFitBacking : (requiredParentSizeToFitBacking.Value = computeRequiredParentSizeToFit());
+        public Vector2 RequiredParentSizeToFit => requiredParentSizeToFitBacking.Compute(computeRequiredParentSizeToFit);
 
 
         private static readonly AtomicCounter invalidation_counter = new AtomicCounter();
@@ -1613,6 +1616,9 @@ namespace osu.Framework.Graphics
             if ((invalidation & Invalidation.RequiredParentSizeToFit) != 0)
                 propagatingInvalidation |= InvalidateRequiredParentSizeToFit();
 
+            if ((invalidation & Invalidation.LayoutRectangle) != 0)
+                propagatingInvalidation |= InvalidateLayoutRectangle();
+
             if ((invalidation & Invalidation.DrawSize) != 0)
                 propagatingInvalidation |= InvalidateDrawSize();
 
@@ -1623,7 +1629,7 @@ namespace osu.Framework.Graphics
         {
             var propagatingInvalidation = InvalidateFromInvalidation(invalidation);
 
-            Console.WriteLine($"{this} Invalidate {invalidation} => propagating {propagatingInvalidation}");
+            //Console.WriteLine($"Invalidate {this} {invalidation} => propagating {propagatingInvalidation}");
 
             if (propagatingInvalidation != Invalidation.None)
                 PropagateInvalidation(propagatingInvalidation);
@@ -1653,7 +1659,7 @@ namespace osu.Framework.Graphics
 
         protected Invalidation InvalidateDrawColourInfo()
         {
-            if (!drawInfoBacking.Invalidate()) return Invalidation.None;
+            if (!drawColourInfoBacking.Invalidate()) return Invalidation.None;
             return Invalidation.DrawColourInfo | InvalidateDrawNode();
         }
 
@@ -1669,51 +1675,47 @@ namespace osu.Framework.Graphics
             return Invalidation.RequiredParentSizeToFit;
         }
 
+        protected Invalidation InvalidateLayoutRectangle()
+        {
+            return Invalidation.LayoutRectangle;
+        }
+
         protected Invalidation InvalidateDrawSize()
         {
             if (!drawSizeBacking.Invalidate()) return Invalidation.None;
             // todo: if origin is topleft, DrawSize shouldn't affect DrawInfo
-            return Invalidation.DrawSize | InvalidateDrawInfo();
+            return Invalidation.DrawSize | InvalidateDrawInfo() | InvalidateLayoutRectangle();
         }
 
         protected virtual void PropagateInvalidation(Invalidation propagatingInvalidation)
         {
-            Parent?.PropagateInvalidationFromChild(propagatingInvalidation, this, Invalidation.None);
+            Parent?.PropagateInvalidationFromChild(propagatingInvalidation, this);
         }
 
-        public virtual void PropagateInvalidationFromParent(Invalidation parentInvalidation, Invalidation invalidation)
+        public virtual void PropagateInvalidationFromParent(Invalidation parentInvalidation, Invalidation selfInvalidation = Invalidation.None)
         {
-            if ((parentInvalidation & Invalidation.DrawSize) != 0)
-            {
-                invalidation |= Invalidation.DrawSize;
-                invalidation |= Invalidation.DrawInfo;
-            }
-
             if ((parentInvalidation & Invalidation.DrawInfo) != 0)
-            {
-                invalidation |= Invalidation.DrawInfo;
-            }
+                selfInvalidation |= Invalidation.DrawInfo;
 
             if ((parentInvalidation & Invalidation.DrawColourInfo) != 0)
-            {
-                invalidation |= Invalidation.DrawColourInfo;
-            }
+                selfInvalidation |= Invalidation.DrawColourInfo;
 
-            if (invalidation != Invalidation.None)
-                Invalidate(invalidation);
-        }
-
-        public Invalidation InvalidationFromParentSize
-        {
-            get
+            if ((parentInvalidation & Invalidation.ChildSize) != 0)
             {
-                Invalidation result = Invalidation.DrawInfo;
                 if (RelativeSizeAxes != Axes.None)
-                    result |= Invalidation.DrawSize;
-                if (RelativePositionAxes != Axes.None)
-                    result |= Invalidation.LegacyMiscGeometry;
-                return result;
+                    selfInvalidation |= Invalidation.DrawSize;
+                if (RelativePositionAxes != Axes.None || Anchor != Anchor.TopLeft)
+                    selfInvalidation |= Invalidation.DrawInfo;
             }
+
+            if ((parentInvalidation & Invalidation.ChildSizeBeforeAutoSize) != 0)
+            {
+                if (RelativePositionAxes != Axes.None || Anchor != Anchor.TopLeft)
+                    selfInvalidation |= Invalidation.RequiredParentSizeToFit;
+            }
+
+            if (selfInvalidation != Invalidation.None)
+                Invalidate(selfInvalidation);
         }
 
         #endregion

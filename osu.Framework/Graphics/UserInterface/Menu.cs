@@ -317,13 +317,14 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         protected virtual void AnimateClose() => Hide();
 
-        public override void PropagateInvalidationFromChild(Invalidation childInvalidation, Drawable child, Invalidation invalidation)
-        {
-            if ((childInvalidation & Invalidation.LegacyRequiredParentSizeToFit) > 0)
-                sizeCache.Invalidate();
+        // todo: invalidation
+        //public override void PropagateInvalidationFromChild(Invalidation childInvalidation, Drawable child, Invalidation invalidation)
+        //{
+        //    if ((childInvalidation & Invalidation.LegacyRequiredParentSizeToFit) > 0)
+        //        sizeCache.Invalidate();
 
-            base.PropagateInvalidationFromChild(childInvalidation, child, invalidation);
-        }
+        //    base.PropagateInvalidationFromChild(childInvalidation, child, invalidation);
+        //}
 
         protected override void UpdateAfterChildren()
         {
