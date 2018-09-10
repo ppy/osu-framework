@@ -564,10 +564,22 @@ namespace osu.Framework.Graphics.Sprites
 
         /// <summary>
         /// Whether the visual representation of a character should use fixed width when <see cref="FixedWidth"/> is true.
+        /// By default, this includes the following characters: . , :
         /// </summary>
         /// <param name="c">The character.</param>
         /// <returns>Whether the visual representation of <paramref name="c"/> should use a fixed width.</returns>
-        protected virtual bool UseFixedWidthForCharacter(char c) => true;
+        protected virtual bool UseFixedWidthForCharacter(char c)
+        {
+            switch (c)
+            {
+                case '.':
+                case ',':
+                case ':':
+                    return false;
+            }
+
+            return true;
+        }
 
         public override string ToString()
         {
