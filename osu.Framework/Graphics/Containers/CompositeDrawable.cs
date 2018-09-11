@@ -1261,7 +1261,7 @@ namespace osu.Framework.Graphics.Containers
 
                 padding = value;
 
-                PropagateInvalidation(InvalidateChildSize());
+                PropagateInvalidation(InvalidateChildSizeBeforeAutoSize());
             }
         }
 
