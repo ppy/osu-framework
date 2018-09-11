@@ -618,7 +618,7 @@ namespace osu.Framework.Graphics.Containers
         /// If the return value is false, then children are not updated and
         /// <see cref="UpdateAfterChildren"/> is not called.
         /// </summary>
-        protected virtual bool RequiresChildrenUpdate => !IsMaskedAway; //todo || !childrenSizeDependencies.IsValid;
+        protected virtual bool RequiresChildrenUpdate => !IsMaskedAway || !autoSizeCache.IsValid;
 
         public override bool UpdateSubTree()
         {
@@ -1247,7 +1247,7 @@ namespace osu.Framework.Graphics.Containers
 
                 padding = value;
 
-                PropagateInvalidation(InvalidateChildSizeBeforeAutoSize());
+                PropagateInvalidation(InvalidateChildSize());
             }
         }
 
@@ -1304,7 +1304,7 @@ namespace osu.Framework.Graphics.Containers
 
                 relativeChildOffset = value;
 
-                PropagateInvalidation(InvalidateChildSizeBeforeAutoSize());
+                PropagateInvalidation(InvalidateChildSize());
             }
         }
 
@@ -1453,40 +1453,31 @@ namespace osu.Framework.Graphics.Containers
 
         private Vector2 computeAutoSize()
         {
-            var originalPadding = Padding;
-            try
+            Vector2 maxRequiredSize = Vector2.Zero;
+
+            // Find the maximum width/height of children
+            foreach (Drawable c in aliveInternalChildren)
             {
-                //Padding = new MarginPadding();
+                if (!c.IsPresent)
+                    continue;
 
-                Vector2 maxRequiredSize = Vector2.Zero;
+                var axes = AutoSizeAxes & ~c.BypassAutoSizeAxes;
+                if (axes == Axes.None)
+                    continue;
 
-                // Find the maximum width/height of children
-                foreach (Drawable c in aliveInternalChildren)
-                {
-                    if (!c.IsPresent)
-                        continue;
+                Vector2 cBound = c.RequiredParentSizeToFit;
 
-                    var axes = AutoSizeAxes & ~c.BypassAutoSizeAxes;
-                    if (axes == Axes.None)
-                        continue;
-
-                    Vector2 cBound = c.RequiredParentSizeToFit;
-
-                    if (axes.HasFlag(Axes.X))
-                        maxRequiredSize.X = Math.Max(maxRequiredSize.X, cBound.X);
-                    if (axes.HasFlag(Axes.Y))
-                        maxRequiredSize.Y = Math.Max(maxRequiredSize.Y, cBound.Y);
-                }
-
-                return new Vector2(
-                    !AutoSizeAxes.HasFlag(Axes.X) ? base.Width : maxRequiredSize.X + originalPadding.TotalHorizontal,
-                    !AutoSizeAxes.HasFlag(Axes.Y) ? base.Height : maxRequiredSize.Y + originalPadding.TotalVertical);
+                if (axes.HasFlag(Axes.X))
+                    maxRequiredSize.X = Math.Max(maxRequiredSize.X, cBound.X);
+                if (axes.HasFlag(Axes.Y))
+                    maxRequiredSize.Y = Math.Max(maxRequiredSize.Y, cBound.Y);
             }
-            finally
-            {
-                //Padding = originalPadding;
-                OnAutoSize?.Invoke();
-            }
+
+            OnAutoSize?.Invoke();
+
+            return new Vector2(
+                !AutoSizeAxes.HasFlag(Axes.X) ? base.Width : maxRequiredSize.X + Padding.TotalHorizontal,
+                !AutoSizeAxes.HasFlag(Axes.Y) ? base.Height : maxRequiredSize.Y + Padding.TotalVertical);
         }
 
         // todo: auto size transformation

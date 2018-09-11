@@ -862,12 +862,13 @@ namespace osu.Framework.Graphics
 
         protected Vector2 OriginPositionBeforeParentAutoSize => computeOriginPosition(LayoutSizeBeforeParentAutoSize);
 
+        // Parent.ChildOffset is ignored
         protected Matrix3 ToParentSpaceMatrixBeforeParentAutoSize
         {
             get
             {
                 var di = new DrawInfo(null);
-                var translation = DrawPositionBeforeParentAutoSize + AnchorPositionBeforeParentAutoSize + (Parent?.ChildOffset ?? Vector2.Zero);
+                var translation = DrawPositionBeforeParentAutoSize + AnchorPositionBeforeParentAutoSize;
                 di.ApplyTransform(translation, DrawScale, Rotation, Shear, OriginPositionBeforeParentAutoSize);
                 return di.Matrix;
             }
@@ -1404,7 +1405,7 @@ namespace osu.Framework.Graphics
                 parent = value;
                 InvalidateFromParent(Invalidation.All);
 
-                if (parent != null)
+                if (parent?.Clock != null)
                 {
                     //we should already have a clock at this point (from our LoadRequested invocation)
                     //this just ensures we have the most recent parent clock.
@@ -1689,7 +1690,7 @@ namespace osu.Framework.Graphics
 
             if ((parentInvalidation & Invalidation.ChildSizeBeforeAutoSize) != 0)
             {
-                if (RelativePositionAxes != Axes.None || Anchor != Anchor.TopLeft)
+                if ((RelativePositionAxes | RelativeSizeAxes) != Axes.None || Anchor != Anchor.TopLeft)
                     selfInvalidation |= InvalidateRequiredParentSizeToFit();
             }
 

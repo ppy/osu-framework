@@ -13,7 +13,7 @@ namespace osu.Framework.Caching
     {
         internal static bool BypassCache = false;
 
-        internal static bool CheckInvalidationPropagation = true;
+        internal static bool CheckInvalidationPropagation = false;
     }
 
     public struct Cached<T>
@@ -116,7 +116,6 @@ namespace osu.Framework.Caching
     {
         private static readonly ThreadLocal<string> checking = new ThreadLocal<string>(() => null);
         private static readonly ThreadLocal<int> computing_depth = new ThreadLocal<int>(() => 0);
-        private static readonly ThreadLocal<StackTrace> checking_stack_trace = new ThreadLocal<StackTrace>(() => null);
 
         public static T Compute<T>(this ref Cached<T> cache, Func<T> func)
         {
@@ -125,14 +124,13 @@ namespace osu.Framework.Caching
                 if (StaticCached.CheckInvalidationPropagation && checking.Value == null)
                 {
                     checking.Value = cache.GetDescription();
-                    //checking_stack_trace.Value = new StackTrace();
 
                     var value = func();
 
                     Assert.IsTrue(cache.IsValid, $"{checking.Value} is invalidated while computing itself");
 
                     if (cache.IsValid)
-                        Assert.AreEqual(cache.Value, value, $"{checking.Value} is not invalidated when necessary");
+                        Assert.AreEqual(cache.Value, value, $"{checking.Value} was not invalidated when necessary");
                     else
                         cache.Value = value;
 
