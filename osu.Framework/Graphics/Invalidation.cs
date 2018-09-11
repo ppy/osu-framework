@@ -23,6 +23,7 @@ namespace osu.Framework.Graphics
         // CompositeDrawable
         ChildSize = 1 << 10,
         ChildSizeBeforeAutoSize = 1 << 11,
+        RelativeChildSizeAndOffset = 1 << 12,
 
         All = ~0,
     }

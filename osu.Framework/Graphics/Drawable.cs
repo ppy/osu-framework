@@ -772,14 +772,7 @@ namespace osu.Framework.Graphics
         /// Absolutely sized rectangle for layout in the <see cref="Parent"/>'s coordinate system.
         /// Based on <see cref="LayoutSize"/> and <see cref="margin"/>.
         /// </summary>
-        public RectangleF LayoutRectangle
-        {
-            get
-            {
-                Vector2 s = LayoutSize;
-                return new RectangleF(-margin.Left, -margin.Top, s.X, s.Y);
-            }
-        }
+        public RectangleF LayoutRectangle => new RectangleF(-margin.TopLeft, LayoutSize);
 
         private Vector2 applyRelativeAxes(Axes relativeAxes, Vector2 v, FillMode fillMode, Vector2 conversionFactor)
         {
@@ -856,11 +849,11 @@ namespace osu.Framework.Graphics
 
         protected Vector2 LayoutSizeBeforeParentAutoSize => DrawSizeBeforeParentAutoSize + margin.Total;
 
-        protected RectangleF LayoutRectangleBeforeParentAutoSize => new RectangleF(new Vector2(-margin.Left, -margin.Top), LayoutSizeBeforeParentAutoSize);
+        protected RectangleF LayoutRectangleBeforeParentAutoSize => new RectangleF(-margin.TopLeft, LayoutSizeBeforeParentAutoSize);
 
-        protected Vector2 AnchorPositionBeforeParentAutoSize => RelativeAnchorPosition * Parent?.ChildSizeBeforeAutoSize ?? Vector2.Zero;
+        protected Vector2 AnchorPositionBeforeParentAutoSize => Anchor == Anchor.TopLeft ? Vector2.Zero : RelativeAnchorPosition * Parent?.ChildSizeBeforeAutoSize ?? Vector2.Zero;
 
-        protected Vector2 OriginPositionBeforeParentAutoSize => computeOriginPosition(LayoutSizeBeforeParentAutoSize);
+        protected Vector2 OriginPositionBeforeParentAutoSize => Origin == Anchor.TopLeft ? -margin.TopLeft : computeOriginPosition(LayoutSizeBeforeParentAutoSize);
 
         // Parent.ChildOffset is ignored
         protected Matrix3 ToParentSpaceMatrixBeforeParentAutoSize
@@ -1076,7 +1069,7 @@ namespace osu.Framework.Graphics
             else
                 result = computeAnchorPosition(layoutSize, Origin);
 
-            return result - new Vector2(margin.Left, margin.Top);
+            return result - margin.TopLeft;
         }
 
         /// <summary>
@@ -1086,7 +1079,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         public virtual Vector2 OriginPosition
         {
-            get => Origin == Anchor.TopLeft ? Vector2.Zero : computeOriginPosition(LayoutSize);
+            get => Origin == Anchor.TopLeft ? -margin.TopLeft : computeOriginPosition(LayoutSize);
 
             set
             {
@@ -1678,7 +1671,7 @@ namespace osu.Framework.Graphics
             if ((parentInvalidation & Invalidation.DrawColourInfo) != 0)
                 selfInvalidation |= InvalidateDrawColourInfo();
 
-            if ((parentInvalidation & Invalidation.ChildSize) != 0)
+            if ((parentInvalidation & (Invalidation.ChildSize | Invalidation.RelativeChildSizeAndOffset)) != 0)
             {
                 if (RelativeSizeAxes != Axes.None)
                     selfInvalidation |= InvalidateDrawSize();
@@ -1686,7 +1679,7 @@ namespace osu.Framework.Graphics
                     selfInvalidation |= InvalidateDrawInfo();
             }
 
-            if ((parentInvalidation & Invalidation.ChildSizeBeforeAutoSize) != 0)
+            if ((parentInvalidation & (Invalidation.ChildSizeBeforeAutoSize | Invalidation.RelativeChildSizeAndOffset)) != 0)
             {
                 if ((RelativePositionAxes | RelativeSizeAxes) != Axes.None || Anchor != Anchor.TopLeft)
                     selfInvalidation |= InvalidateRequiredParentSizeToFit();

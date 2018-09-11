@@ -94,6 +94,13 @@ namespace osu.Framework.Graphics.Containers
             return result;
         }
 
+        protected override void PropagateInvalidation(Invalidation invalidation)
+        {
+            if ((invalidation & Invalidation.ChildSizeBeforeAutoSize) != 0)
+                invalidation |= InvalidateChildrenLayout();
+            base.PropagateInvalidation(invalidation);
+        }
+
         public override void InvalidateFromChild(Invalidation childInvalidation, Drawable child, Invalidation selfInvalidation = Invalidation.None)
         {
             // todo: must capture child.Anchor change

@@ -731,14 +731,19 @@ namespace osu.Framework.Graphics.Containers
         [MustUseReturnValue]
         protected Invalidation InvalidateChildSize()
         {
+            if (!childSizeBacking.Invalidate()) return Invalidation.None;
             return Invalidation.ChildSize;
         }
 
         [MustUseReturnValue]
         protected Invalidation InvalidateChildSizeBeforeAutoSize()
         {
+            if (!childSizeBeforeAutoSizeBacking.Invalidate()) return Invalidation.None;
             return Invalidation.ChildSizeBeforeAutoSize | InvalidateChildSize();
         }
+
+        [MustUseReturnValue]
+        protected Invalidation InvalidateRelativeChildSizeAndOffset() => Invalidation.RelativeChildSizeAndOffset;
 
         [MustUseReturnValue]
         protected Invalidation InvalidateAliveInternalChildren()
@@ -1260,7 +1265,9 @@ namespace osu.Framework.Graphics.Containers
         /// The size of the coordinate space revealed to <see cref="InternalChildren"/>.
         /// Captures the effect of e.g. <see cref="Padding"/>.
         /// </summary>
-        public Vector2 ChildSize => DrawSize - Padding.Total;
+        public Vector2 ChildSize => childSizeBacking.Compute(computeChildSize);
+        private Cached<Vector2> childSizeBacking = new Cached<Vector2> { Name = nameof(ChildSize) };
+        private Vector2 computeChildSize() => DrawSize - Padding.Total;
 
         /// <summary>
         /// Positional offset applied to <see cref="InternalChildren"/>.
@@ -1287,7 +1294,7 @@ namespace osu.Framework.Graphics.Containers
 
                 relativeChildSize = value;
 
-                PropagateInvalidation(InvalidateChildSizeBeforeAutoSize());
+                PropagateInvalidation(InvalidateRelativeChildSizeAndOffset());
             }
         }
 
@@ -1309,7 +1316,7 @@ namespace osu.Framework.Graphics.Containers
 
                 relativeChildOffset = value;
 
-                PropagateInvalidation(InvalidateChildSize());
+                PropagateInvalidation(InvalidateRelativeChildSizeAndOffset());
             }
         }
 
@@ -1329,7 +1336,9 @@ namespace osu.Framework.Graphics.Containers
 
         protected Vector2 DrawSizeBeforeAutoSize => ApplyRelativeAxesBeforeParentAutoSize(RelativeSizeAxes, SizeBeforeAutoSize, FillMode);
 
-        public Vector2 ChildSizeBeforeAutoSize => DrawSizeBeforeAutoSize - Padding.Total;
+        public Vector2 ChildSizeBeforeAutoSize => childSizeBeforeAutoSizeBacking.Compute(computeChildSizeBeforeAutoSize);
+        private Cached<Vector2> childSizeBeforeAutoSizeBacking = new Cached<Vector2> { Name = nameof(ChildSizeBeforeAutoSize) };
+        private Vector2 computeChildSizeBeforeAutoSize() => DrawSizeBeforeAutoSize - Padding.Total;
 
         public Vector2 RelativeToAbsoluteFactorBeforeAutoSize => Vector2.Divide(ChildSizeBeforeAutoSize, RelativeChildSize);
 

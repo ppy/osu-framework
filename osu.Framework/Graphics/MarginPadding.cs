@@ -72,6 +72,11 @@ namespace osu.Framework.Graphics
         public Vector2 Total => new Vector2(TotalHorizontal, TotalVertical);
 
         /// <summary>
+        /// Gets (Left, Top)
+        /// </summary>
+        public Vector2 TopLeft => new Vector2(Left, Top);
+
+        /// <summary>
         /// Initializes all four sides (<see cref="Left"/>, <see cref="Right"/>, <see cref="Top"/> and <see cref="Bottom"/>) to the given value.
         /// </summary>
         /// <param name="allSides">The absolute size of the space that should be left around every side of the <see cref="Drawable"/>.</param>
