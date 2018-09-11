@@ -291,32 +291,4 @@ namespace osu.Framework.Configuration
             serializer.Populate(reader, this);
         }
     }
-
-    internal class BindableJsonConverter : JsonConverter
-    {
-        public override bool CanConvert(Type objectType) => typeof(ISerializableBindable).IsAssignableFrom(objectType);
-
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-        {
-            var bindable = (ISerializableBindable)value;
-            bindable.SerializeTo(writer, serializer);
-        }
-
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-        {
-            if (!(existingValue is ISerializableBindable bindable))
-                bindable = (ISerializableBindable)Activator.CreateInstance(objectType, true);
-
-            bindable.DeserializeFrom(reader, serializer);
-
-            return bindable;
-        }
-    }
-
-    [JsonConverter(typeof(BindableJsonConverter))]
-    internal interface ISerializableBindable
-    {
-        void SerializeTo(JsonWriter writer, JsonSerializer serializer);
-        void DeserializeFrom(JsonReader reader, JsonSerializer serializer);
-    }
 }
