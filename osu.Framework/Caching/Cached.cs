@@ -1,19 +1,20 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+// Uncomment this line to enable checks of invalidation propagation
+// #define CheckInvalidationPropagation
+
 using osu.Framework.Statistics;
 using System;
-using System.Diagnostics;
-using System.Threading;
+#if CheckInvalidationPropagation
 using NUnit.Framework;
+#endif
 
 namespace osu.Framework.Caching
 {
     public static class StaticCached
     {
         internal static bool BypassCache = false;
-
-        internal static bool CheckInvalidationPropagation = true;
     }
 
     public struct Cached<T>
@@ -23,16 +24,6 @@ namespace osu.Framework.Caching
         private bool isValid;
 
         public bool IsValid => !StaticCached.BypassCache && isValid;
-
-        public static implicit operator T(Cached<T> value) => value.Value;
-
-        public string Name { get; set; }
-
-        public bool IsComputing;
-
-        public StackTrace LastInvalidation;
-
-        public StackTrace LastValidation;
 
         public T Value
         {
@@ -45,8 +36,6 @@ namespace osu.Framework.Caching
 
             set
             {
-                //LastValidation = new StackTrace();
-
                 this.value = value;
                 isValid = true;
                 FrameStatistics.Increment(StatisticsCounterType.Refreshes);
@@ -59,13 +48,8 @@ namespace osu.Framework.Caching
         /// <returns>True if we invalidated from a valid state.</returns>
         public bool Invalidate()
         {
-            Assert.IsFalse(IsComputing, $"{GetDescription()} is invalidated while computing itself");
-
             if (isValid)
             {
-                //Console.WriteLine($"{GetDescription()} invalidated");
-                //LastInvalidation = new StackTrace();
-
                 isValid = false;
                 FrameStatistics.Increment(StatisticsCounterType.Invalidations);
                 return true;
@@ -74,13 +58,14 @@ namespace osu.Framework.Caching
             return false;
         }
 
-        public string GetDescription()
-        {
-            if (!string.IsNullOrEmpty(Name))
-                return Name;
-            else
-                return $"Cached value of type {typeof(T)}";
-        }
+#if !CheckInvalidationPropagation
+        // ReSharper disable once ValueParameterNotUsed
+        public string Name { set {} }
+#else
+        public string Name { get; set; }
+        public bool IsComputing { get; set; }
+        public string GetDescription() => !string.IsNullOrEmpty(Name) ? Name : $"Cached<{typeof(T)}>";
+#endif
     }
 
     public struct Cached
@@ -110,58 +95,83 @@ namespace osu.Framework.Caching
             isValid = true;
             FrameStatistics.Increment(StatisticsCounterType.Refreshes);
         }
+
+#if !CheckInvalidationPropagation
+        // ReSharper disable once ValueParameterNotUsed
+        public string Name { set {} }
+#else
+        public string Name { get; set; }
+        public bool IsComputing { get; set; }
+        public string GetDescription() => !string.IsNullOrEmpty(Name) ? Name : "Cached";
+#endif
     }
 
     public static class CachedExtensions
     {
-        private static readonly ThreadLocal<string> checking = new ThreadLocal<string>(() => null);
-        private static readonly ThreadLocal<int> computing_depth = new ThreadLocal<int>(() => 0);
+#if !CheckInvalidationPropagation
+        public static T Compute<T>(this ref Cached<T> cache, Func<T> func) =>
+            cache.IsValid ? cache.Value : (cache.Value = func());
+
+        public static void Compute(this ref Cached cache, Action action)
+        {
+            if (!cache.IsValid)
+            {
+                action();
+                cache.Validate();
+            }
+        }
+#else
+        private static string checking;
 
         public static T Compute<T>(this ref Cached<T> cache, Func<T> func)
         {
             if (cache.IsValid)
             {
-                if (StaticCached.CheckInvalidationPropagation && checking.Value == null)
+                if (checking == null)
                 {
-                    checking.Value = cache.GetDescription();
-
+                    checking = cache.GetDescription();
                     var value = func();
-
-                    Assert.IsTrue(cache.IsValid, $"{checking.Value} is invalidated while computing itself");
-
                     if (cache.IsValid)
-                        Assert.AreEqual(cache.Value, value, $"{checking.Value} was not invalidated when necessary");
+                        Assert.AreEqual(cache.Value, value, $"{checking} was not invalidated when necessary");
                     else
                         cache.Value = value;
-
-                    checking.Value = null;
-
-                    return value;
+                    checking = null;
                 }
 
                 return cache.Value;
             }
             else
             {
-                if (checking.Value != null)
-                {
-                    Assert.Fail($"{checking.Value} is depends on {cache.GetDescription()} but not properly invalidated");
-                }
-
+                Assert.IsNull(checking, $"{checking} is depends on {cache.GetDescription()} but not properly invalidated");
                 Assert.IsFalse(cache.IsComputing, $"{cache.GetDescription()} has a circular dependency");
-
-                //Console.WriteLine($"{string.Concat(Enumerable.Repeat(' ', computing_depth.Value))}{cache.GetDescription()} computing... (");
                 cache.IsComputing = true;
-                computing_depth.Value += 1;
-
-                var value = cache.Value = func();
-
-                computing_depth.Value -= 1;
+                var result = func();
                 cache.IsComputing = false;
-                //Console.WriteLine($"{string.Concat(Enumerable.Repeat(' ', computing_depth.Value))}){cache.GetDescription()} computed");
-
-                return value;
+                return cache.Value = result;
             }
         }
+
+        public static void Compute(this ref Cached cache, Action action)
+        {
+            if (cache.IsValid)
+            {
+                if (checking == null)
+                {
+                    checking = cache.GetDescription();
+                    action();
+                    checking = null;
+                }
+            }
+            else
+            {
+                Assert.IsNull(checking, $"{checking} is depends on {cache.GetDescription()} but not properly invalidated");
+                Assert.IsFalse(cache.IsComputing, $"{cache.GetDescription()} has a circular dependency");
+                cache.IsComputing = true;
+                action();
+                cache.IsComputing = false;
+            }
+            cache.Validate();
+        }
+#endif
     }
 }

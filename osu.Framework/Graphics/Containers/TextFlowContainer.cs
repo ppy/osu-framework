@@ -119,7 +119,7 @@ namespace osu.Framework.Graphics.Containers
         public override bool HandleKeyboardInput => false;
         public override bool HandleMouseInput => false;
 
-        private Cached<bool> childrenSpacingCache = new Cached<bool> { Name = $"{nameof(TextFlowContainer)}.childrenSpacing"};
+        private Cached childrenSpacingCache = new Cached { Name = $"{nameof(TextFlowContainer)}.childrenSpacing"};
 
         [MustUseReturnValue]
         protected Invalidation InvalidateChildrenSpacing()
@@ -132,8 +132,7 @@ namespace osu.Framework.Graphics.Containers
         {
             if ((childInvalidation & Invalidation.BoundingBoxSizeBeforeParentAutoSize) != 0 && !(child is NewLineContainer))
             {
-                if (childrenSpacingCache.IsValid)   // todo: find a way to resolve "invalidation during computation"
-                    selfInvalidation |= InvalidateChildrenSpacing();
+                selfInvalidation |= InvalidateChildrenSpacing();
             }
 
             base.InvalidateFromChild(childInvalidation, child, selfInvalidation);
@@ -141,11 +140,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected override IEnumerable<Vector2> ComputeLayoutPositions()
         {
-            childrenSpacingCache.Compute(() =>
-            {
-                setChildrenSpacing();
-                return true;
-            });
+            childrenSpacingCache.Compute(setChildrenSpacing);
             return base.ComputeLayoutPositions();
         }
 

@@ -321,7 +321,7 @@ namespace osu.Framework.Graphics.Sprites
 
         #region Characters
 
-        private Cached<bool> charactersCache = new Cached<bool> { Name = $"{nameof(SpriteText)}.{nameof(characters)}" };
+        private Cached charactersCache = new Cached { Name = $"{nameof(SpriteText)}.{nameof(characters)}" };
         private readonly List<CharacterPart> charactersBacking = new List<CharacterPart>();
 
         /// <summary>
@@ -331,11 +331,7 @@ namespace osu.Framework.Graphics.Sprites
         {
             get
             {
-                charactersCache.Compute(() =>
-                {
-                    computeCharacters();
-                    return true;
-                });
+                charactersCache.Compute(computeCharacters);
                 return charactersBacking;
             }
         }
@@ -440,7 +436,7 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        private Cached<bool> screenSpaceCharactersCache = new Cached<bool> { Name = $"{nameof(SpriteText)}.{nameof(screenSpaceCharacters)}" };
+        private Cached screenSpaceCharactersCache = new Cached { Name = $"{nameof(SpriteText)}.{nameof(screenSpaceCharacters)}" };
         private readonly List<ScreenSpaceCharacterPart> screenSpaceCharactersBacking = new List<ScreenSpaceCharacterPart>();
 
         /// <summary>
@@ -450,11 +446,7 @@ namespace osu.Framework.Graphics.Sprites
         {
             get
             {
-                screenSpaceCharactersCache.Compute(() =>
-                {
-                    computeScreenSpaceCharacters();
-                    return true;
-                });
+                screenSpaceCharactersCache.Compute(computeScreenSpaceCharacters);
                 return screenSpaceCharactersBacking;
             }
         }

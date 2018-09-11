@@ -74,15 +74,15 @@ namespace osu.Framework.Graphics.Containers
         [BackgroundDependencyLoader]
         private void load()
         {
-            layoutCellContent();
+            validateCellContent();
         }
 
         protected override void Update()
         {
             base.Update();
 
-            layoutCellContent();
-            layoutCellLayout();
+            validateCellContent();
+            validateCellLayout();
         }
 
         protected override void PropagateInvalidation(Invalidation invalidation)
@@ -99,30 +99,16 @@ namespace osu.Framework.Graphics.Containers
         [MustUseReturnValue]
         protected Invalidation InvalidateCellContent() => !cellContent.Invalidate() ? 0 : InvalidateCellLayout();
 
-        private Cached<bool> cellContent = new Cached<bool> { Name = "GridContainer.cellContent" };
-        private Cached<bool> cellLayout = new Cached<bool> { Name = "GridContainer.cellLayout" };
+        private Cached cellContent = new Cached { Name = "GridContainer.cellContent" };
+        private Cached cellLayout = new Cached { Name = "GridContainer.cellLayout" };
 
         private CellContainer[,] cells = new CellContainer[0, 0];
         private int cellRows => cells.GetLength(0);
         private int cellColumns => cells.GetLength(1);
 
-        private void layoutCellContent()
-        {
-            cellContent.Compute(() =>
-            {
-                computeCellContent();
-                return true;
-            });
-        }
+        private void validateCellContent() => cellContent.Compute(computeCellContent);
 
-        private void layoutCellLayout()
-        {
-            cellLayout.Compute(() =>
-            {
-                computeCellLayout();
-                return true;
-            });
-        }
+        private void validateCellLayout() => cellLayout.Compute(computeCellLayout);
 
         /// <summary>
         /// Moves content from <see cref="Content"/> into cells.
@@ -173,7 +159,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         private void computeCellLayout()
         {
-            layoutCellContent();
+            validateCellContent();
 
             foreach (var cell in cells)
             {
@@ -321,8 +307,7 @@ namespace osu.Framework.Graphics.Containers
                 {
                     if (Parent is GridContainer p)
                     {
-                        if (p.cellLayout.IsValid)   // todo: find a way to resolve "invalidation during computation"
-                            p.PropagateInvalidation(p.InvalidateCellLayout());
+                        p.PropagateInvalidation(p.InvalidateCellLayout());
                     }
                 }
 

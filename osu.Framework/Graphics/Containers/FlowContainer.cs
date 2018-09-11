@@ -42,9 +42,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private Cached<bool> layout = new Cached<bool> { Name = "ChildrenLayout" };
-
-        internal bool IsComputingLayout => layout.IsComputing;
+        private Cached layout = new Cached { Name = "ChildrenLayout" };
 
         protected void InvalidateLayout() => PropagateInvalidation(InvalidateChildrenLayout());
 
@@ -221,14 +219,7 @@ namespace osu.Framework.Graphics.Containers
             ValidateLayout();
         }
 
-        public void ValidateLayout()
-        {
-            layout.Compute(() =>
-            {
-                performLayout();
-                return true;
-            });
-        }
+        public void ValidateLayout() => layout.Compute(performLayout);
 
         private class FlowTransform : TransformCustom<Vector2, Drawable>
         {

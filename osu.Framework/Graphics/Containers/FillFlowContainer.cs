@@ -105,8 +105,7 @@ namespace osu.Framework.Graphics.Containers
         {
             if ((childInvalidation & (Invalidation.BoundingBoxSizeBeforeParentAutoSize | Invalidation.Anchor)) != 0)
             {
-                if (!IsComputingLayout)   // todo: find a way to resolve "invalidation during computation"
-                    selfInvalidation |= InvalidateChildrenLayout();
+                selfInvalidation |= InvalidateChildrenLayout();
             }
 
             base.InvalidateFromChild(childInvalidation, child, selfInvalidation);
