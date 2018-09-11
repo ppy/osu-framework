@@ -60,6 +60,7 @@ namespace osu.Framework.Graphics.Sprites
             {
                 if (text == value)
                     return;
+                bool wasPresent = IsPresent;
                 text = value;
 
                 if (string.IsNullOrEmpty(text))
@@ -71,7 +72,7 @@ namespace osu.Framework.Graphics.Sprites
                         base.Height = Padding.TotalVertical;
                 }
 
-                PropagateInvalidation(InvalidateCharacters());
+                PropagateInvalidation(InvalidateCharacters() | (IsPresent != wasPresent ? InvalidatePresence() : 0));
             }
         }
 
