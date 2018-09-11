@@ -75,7 +75,7 @@ namespace osu.Framework.Graphics.Textures
             //Laziness ensure we are only ever creating the texture once (and blocking on other access until it is done).
             var cachedTex = textureCache.GetOrAdd(name, lazyCreator).Value;
 
-            if (cachedTex?.TextureGL?.IsDisposed == true)
+            if (cachedTex?.Available == false)
             {
                 textureCache.TryRemove(name, out _);
                 return Get(name);
