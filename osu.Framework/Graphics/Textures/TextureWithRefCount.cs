@@ -31,7 +31,8 @@ namespace osu.Framework.Graphics.Textures
         }
 
         // Can't reference our own TextureGL here as an exception may be thrown
-        public sealed override bool Available => !IsDisposed && !base.TextureGL.IsDisposed;
+        public sealed override bool Available => !isDisposed && !base.TextureGL.IsDisposed;
+        private bool isDisposed;
 
         #region Disposal
 
@@ -43,10 +44,11 @@ namespace osu.Framework.Graphics.Textures
 
         protected override void Dispose(bool isDisposing)
         {
-            if (IsDisposed)
-                return;
-
             base.Dispose(isDisposing);
+
+            if (isDisposed)
+                return;
+            isDisposed = true;
 
             base.TextureGL.Dereference();
             if (isDisposing) GC.SuppressFinalize(this);
