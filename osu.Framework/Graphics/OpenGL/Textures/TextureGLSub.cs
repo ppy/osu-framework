@@ -90,7 +90,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             return parent.Bind();
         }
 
-        public override void SetData(TextureUpload upload)
+        public override void SetData(ITextureUpload upload)
         {
             if (upload.Bounds.Width > bounds.Width || upload.Bounds.Height > bounds.Height)
                 throw new ArgumentOutOfRangeException(

@@ -90,7 +90,7 @@ namespace osu.Framework.Graphics.Textures
         /// The provided upload will be disposed after the upload is completed.
         /// </summary>
         /// <param name="upload"></param>
-        public void SetData(TextureUpload upload)
+        public void SetData(ITextureUpload upload)
         {
             TextureGL?.SetData(upload);
         }

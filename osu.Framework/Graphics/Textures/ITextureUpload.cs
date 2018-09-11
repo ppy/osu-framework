@@ -8,11 +8,11 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Graphics.Textures
 {
-    public interface ITextureUpload
+    public interface ITextureUpload : IDisposable
     {
         ReadOnlySpan<Rgba32> Data { get; }
         int Level { get; }
-        RectangleI Bounds { get; }
+        RectangleI Bounds { get; set; }
         PixelFormat Format { get; }
     }
 }
