@@ -2,8 +2,9 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using Newtonsoft.Json;
+using osu.Framework.Configuration;
 
-namespace osu.Framework.Configuration
+namespace osu.Framework.IO.Serialization
 {
     /// <summary>
     /// An interface which allows <see cref="Bindable{T}"/> to be json serialized/deserialized.

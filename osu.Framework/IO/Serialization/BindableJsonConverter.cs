@@ -3,8 +3,9 @@
 
 using System;
 using Newtonsoft.Json;
+using osu.Framework.Configuration;
 
-namespace osu.Framework.Configuration
+namespace osu.Framework.IO.Serialization
 {
     /// <summary>
     /// A converter used for serializing/deserializing <see cref="Bindable{T}"/> objects.

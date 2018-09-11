@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
+using osu.Framework.IO.Serialization;
 using osu.Framework.Lists;
 
 namespace osu.Framework.Configuration
