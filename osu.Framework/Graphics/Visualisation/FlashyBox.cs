@@ -23,5 +23,11 @@ namespace osu.Framework.Graphics.Visualisation
         }
 
         public override Quad ScreenSpaceDrawQuad => target == null ? new Quad() : getScreenSpaceQuad(target);
+
+        protected override void Update()
+        {
+            ForceRedraw();
+            base.Update();
+        }
     }
 }
