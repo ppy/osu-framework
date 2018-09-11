@@ -1380,7 +1380,7 @@ namespace osu.Framework.Graphics.Containers
                     throw new InvalidOperationException("No axis can be relatively sized and automatically sized at the same time.");
 
                 autoSizeAxes = value;
-                PropagateInvalidation(InvalidateAutoSize());
+                PropagateInvalidation(InvalidateSize() | InvalidateAutoSize());
                 OnSizingChanged();
             }
         }
@@ -1416,7 +1416,6 @@ namespace osu.Framework.Graphics.Containers
                     throw new InvalidOperationException($"The width of a {nameof(CompositeDrawable)} with {nameof(AutoSizeAxes)} should only be manually set if it is relative to its parent.");
                 base.Width = value;
 
-                // todo: move this to PropagateInvalidation self propagation?
                 if ((RelativeSizeAxes & Axes.X) == 0 || (DirectlyOrIndirectlyAutoSizedAxes & Axes.X) == 0)
                     PropagateInvalidation(InvalidateChildSizeBeforeAutoSize());
             }
