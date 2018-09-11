@@ -42,7 +42,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private Cached<bool> layout = new Cached<bool> { Name = "ChildrenLayout" };
+        protected Cached<bool> layout = new Cached<bool> { Name = "ChildrenLayout" };
 
         protected void InvalidateLayout() => PropagateInvalidation(InvalidateChildrenLayout());
 

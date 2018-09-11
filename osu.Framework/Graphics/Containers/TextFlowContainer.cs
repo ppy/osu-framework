@@ -7,6 +7,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using JetBrains.Annotations;
+using OpenTK;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -29,7 +31,7 @@ namespace osu.Framework.Graphics.Containers
                 if (value == firstLineIndent) return;
                 firstLineIndent = value;
 
-                layout.Invalidate();
+                PropagateInvalidation(InvalidateChildrenSpacing());
             }
         }
 
@@ -44,9 +46,10 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 if (value == contentIndent) return;
+                var padding = Padding;
+                padding.Left += value - contentIndent;
                 contentIndent = value;
-
-                layout.Invalidate();
+                Padding = padding;
             }
         }
 
@@ -63,8 +66,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 if (value == paragraphSpacing) return;
                 paragraphSpacing = value;
-
-                layout.Invalidate();
+                PropagateInvalidation(InvalidateChildrenSpacing());
             }
         }
 
@@ -81,8 +83,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 if (value == lineSpacing) return;
                 lineSpacing = value;
-
-                layout.Invalidate();
+                PropagateInvalidation(InvalidateChildrenSpacing());
             }
         }
 
@@ -98,10 +99,7 @@ namespace osu.Framework.Graphics.Containers
                 if (textAnchor == value)
                     return;
                 textAnchor = value;
-
-                // Todo: This is temporary for now because we don't have an easy way to re-flow the container...
-                if (IsLoaded)
-                    throw new InvalidOperationException($"{nameof(TextAnchor)} may not change after the {nameof(TextFlowContainer)} is loaded.");
+                PropagateInvalidation(InvalidateChildrenSpacing());
             }
         }
 
@@ -121,17 +119,34 @@ namespace osu.Framework.Graphics.Containers
         public override bool HandleKeyboardInput => false;
         public override bool HandleMouseInput => false;
 
-        // todo: invalidation
+        private Cached<bool> childrenSpacingCache = new Cached<bool> { Name = $"{nameof(TextFlowContainer)}.childrenSpacing"};
 
-        protected override void UpdateAfterChildren()
+        [MustUseReturnValue]
+        protected Invalidation InvalidateChildrenSpacing()
         {
-            base.UpdateAfterChildren();
+            if (!childrenSpacingCache.Invalidate()) return Invalidation.None;
+            return InvalidateChildrenLayout();
+        }
 
-            if (!layout.IsValid)
+        public override void InvalidateFromChild(Invalidation childInvalidation, Drawable child, Invalidation selfInvalidation = Invalidation.None)
+        {
+            if ((childInvalidation & Invalidation.BoundingBoxSizeBeforeParentAutoSize) != 0 && !(child is NewLineContainer))
             {
-                computeLayout();
-                layout.Validate();
+                if (childrenSpacingCache.IsValid)   // todo: find a way to resolve "invalidation during computation"
+                    selfInvalidation |= InvalidateChildrenSpacing();
             }
+
+            base.InvalidateFromChild(childInvalidation, child, selfInvalidation);
+        }
+
+        protected override IEnumerable<Vector2> ComputeLayoutPositions()
+        {
+            childrenSpacingCache.Compute(() =>
+            {
+                setChildrenSpacing();
+                return true;
+            });
+            return base.ComputeLayoutPositions();
         }
 
         protected override int Compare(Drawable x, Drawable y)
@@ -264,9 +279,7 @@ namespace osu.Framework.Graphics.Containers
             return words.ToArray();
         }
 
-        private Cached layout = new Cached();
-
-        private void computeLayout()
+        private void setChildrenSpacing()
         {
             var childrenByLine = new List<List<Drawable>>();
             var curLine = new List<Drawable>();
@@ -283,12 +296,6 @@ namespace osu.Framework.Graphics.Containers
                 }
                 else
                 {
-                    if (c.X == 0)
-                    {
-                        if (curLine.Count > 0)
-                            childrenByLine.Add(curLine);
-                        curLine = new List<Drawable>();
-                    }
                     curLine.Add(c);
                 }
             }
@@ -296,11 +303,10 @@ namespace osu.Framework.Graphics.Containers
             if (curLine.Count > 0)
                 childrenByLine.Add(curLine);
 
-            bool isFirstLine = true;
+            bool isFirstChild = true;
             float lastLineHeight = 0f;
             foreach (var line in childrenByLine)
             {
-                bool isFirstChild = true;
                 IEnumerable<float> lineBaseHeightValues = line.OfType<IHasLineBaseHeight>().Select(l => l.LineBaseHeight);
                 float lineBaseHeight = lineBaseHeightValues.Any() ? lineBaseHeightValues.Max() : 0f;
                 float currentLineHeight = 0f;
@@ -316,23 +322,19 @@ namespace osu.Framework.Graphics.Containers
 
                     float childLineBaseHeight = (c as IHasLineBaseHeight)?.LineBaseHeight ?? 0f;
                     MarginPadding margin = new MarginPadding { Top = (childLineBaseHeight != 0f ? lineBaseHeight - childLineBaseHeight : 0f) + lineSpacingValue };
-                    if (isFirstLine)
-                        margin.Left = FirstLineIndent;
-                    else if (isFirstChild)
-                        margin.Left = ContentIndent;
+                    if (isFirstChild)
+                        margin.Left = FirstLineIndent - ContentIndent;
 
                     c.Margin = margin;
 
-                    if (c.Height > currentLineHeight)
-                        currentLineHeight = c.Height;
+                    var height = c.BoundingBoxBeforeParentAutoSize.Height;
+                    currentLineHeight = Math.Max(currentLineHeight, height);
 
                     isFirstChild = false;
                 }
 
                 if (currentLineHeight != 0f)
                     lastLineHeight = currentLineHeight;
-
-                isFirstLine = false;
             }
         }
 

@@ -13,7 +13,7 @@ namespace osu.Framework.Caching
     {
         internal static bool BypassCache = false;
 
-        internal static bool CheckInvalidationPropagation = false;
+        internal static bool CheckInvalidationPropagation = true;
     }
 
     public struct Cached<T>

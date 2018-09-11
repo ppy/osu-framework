@@ -309,8 +309,10 @@ namespace osu.Framework.Graphics.Containers
                 if ((childInvalidation & Invalidation.BoundingBoxSizeBeforeParentAutoSize) != 0)
                 {
                     if (Parent is GridContainer p)
-                        if (!p.cellLayout.IsComputing)
+                    {
+                        if (p.cellLayout.IsValid)   // todo: find a way to resolve "invalidation during computation"
                             p.PropagateInvalidation(p.InvalidateCellLayout());
+                    }
                 }
 
                 base.InvalidateFromChild(childInvalidation, child, selfInvalidation);

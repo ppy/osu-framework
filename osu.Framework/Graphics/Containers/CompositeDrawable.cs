@@ -773,7 +773,7 @@ namespace osu.Framework.Graphics.Containers
         {
             if ((parentInvalidation & Invalidation.ChildSizeBeforeAutoSize) != 0)
             {
-                if (DirectlyOrIndirectlyAutoSizedAxes != Axes.Both)
+                if (RelativeSizeAxes != Axes.None && (RelativeSizeAxes & ~(Parent?.DirectlyOrIndirectlyAutoSizedAxes ?? 0)) != Axes.None)
                     selfInvalidation |= InvalidateChildSizeBeforeAutoSize();
             }
 
