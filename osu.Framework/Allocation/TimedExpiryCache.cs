@@ -59,7 +59,7 @@ namespace osu.Framework.Allocation
         {
             if (!dictionary.TryGetValue(key, out TimedObject<TValue> timed))
             {
-                value = default(TValue);
+                value = default;
                 return false;
             }
 
