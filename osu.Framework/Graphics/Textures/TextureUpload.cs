@@ -15,7 +15,7 @@ namespace osu.Framework.Graphics.Textures
     /// <summary>
     /// Low level class for queueing texture uploads to the GPU.
     /// </summary>
-    public class TextureUpload : ITextureUpload, IDisposable
+    public class TextureUpload : ITextureUpload
     {
         /// <summary>
         /// The target mipmap level to upload into.
