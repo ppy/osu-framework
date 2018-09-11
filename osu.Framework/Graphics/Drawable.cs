@@ -1697,26 +1697,13 @@ namespace osu.Framework.Graphics
             PropagateInvalidation(selfInvalidation);
         }
 
-        // legacy compatibility only. shouldn't used
-        [Obsolete("Use PropagateInvalidation(InvalidateXXX()) instead")]
-        public void Invalidate(Invalidation legacyInvalidation = Invalidation.All)
-        {
-            const Invalidation legacy_mask = Invalidation.DrawNode;
-
-            if (legacyInvalidation == Invalidation.None) return;
-
-            if (legacyInvalidation != Invalidation.All && (legacyInvalidation & ~legacy_mask) != 0)
-                throw new NotImplementedException($"Invalidate({legacyInvalidation}) is no longer supported");
-
-            if ((legacyInvalidation & Invalidation.DrawNode) != 0)
-                PropagateInvalidation(InvalidateDrawNode());
-        }
-
         internal virtual Invalidation InvalidateAll() =>
             InvalidateDrawNode() | InvalidatePresence() | InvalidateScreenSpaceDrawQuad() |
             InvalidateDrawColourInfo() | InvalidateDrawInfo() |
             InvalidateRequiredParentSizeToFit() | InvalidateBoundingBoxSizeBeforeParentAutoSize() |
             InvalidateDrawSize();
+
+        protected void ForceRedraw() => PropagateInvalidation(InvalidateDrawNode());
 
         #endregion
 

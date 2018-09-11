@@ -144,8 +144,7 @@ namespace osu.Framework.Graphics.Sprites
                 if (shadow == value)
                     return;
                 shadow = value;
-
-                PropagateInvalidation(InvalidateDrawNode());
+                ForceRedraw();
             }
         }
 
@@ -162,8 +161,7 @@ namespace osu.Framework.Graphics.Sprites
                 if (shadowColour == value)
                     return;
                 shadowColour = value;
-
-                PropagateInvalidation(InvalidateDrawNode());
+                ForceRedraw();
             }
         }
 

@@ -92,8 +92,7 @@ namespace osu.Framework.Graphics.Audio
                 if (lowColour == value)
                     return;
                 lowColour = value;
-
-                PropagateInvalidation(InvalidateDrawNode());
+                ForceRedraw();
             }
         }
 
@@ -111,8 +110,7 @@ namespace osu.Framework.Graphics.Audio
                 if (midColour == value)
                     return;
                 midColour = value;
-
-                PropagateInvalidation(InvalidateDrawNode());
+                ForceRedraw();
             }
         }
 
@@ -130,8 +128,7 @@ namespace osu.Framework.Graphics.Audio
                 if (highColour == value)
                     return;
                 highColour = value;
-
-                PropagateInvalidation(InvalidateDrawNode());
+                ForceRedraw();
             }
         }
 
@@ -164,7 +161,7 @@ namespace osu.Framework.Graphics.Audio
                 Waveform.GenerateResampledAsync((int)Math.Max(0, Math.Ceiling(DrawWidth * Scale.X) * Resolution), token).ContinueWith(w =>
                 {
                     generatedWaveform = w.Result;
-                    Schedule(() => PropagateInvalidation(InvalidateDrawNode()));
+                    Schedule(ForceRedraw);
                 }, token);
             });
         }

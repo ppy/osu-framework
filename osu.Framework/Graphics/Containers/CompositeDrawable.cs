@@ -1094,7 +1094,7 @@ namespace osu.Framework.Graphics.Containers
                     return;
 
                 masking = value;
-                PropagateInvalidation(InvalidateDrawNode());
+                ForceRedraw();
             }
         }
 
@@ -1116,7 +1116,7 @@ namespace osu.Framework.Graphics.Containers
                     return;
 
                 maskingSmoothness = value;
-                PropagateInvalidation(InvalidateDrawNode());
+                ForceRedraw();
             }
         }
 
@@ -1160,7 +1160,7 @@ namespace osu.Framework.Graphics.Containers
                     return;
 
                 borderThickness = value;
-                PropagateInvalidation(InvalidateDrawNode());
+                ForceRedraw();
             }
         }
 
@@ -1179,7 +1179,7 @@ namespace osu.Framework.Graphics.Containers
                     return;
 
                 borderColour = value;
-                PropagateInvalidation(InvalidateDrawNode());
+                ForceRedraw();
             }
         }
 
@@ -1199,7 +1199,7 @@ namespace osu.Framework.Graphics.Containers
                     return;
 
                 edgeEffect = value;
-                PropagateInvalidation(InvalidateDrawNode());
+                ForceRedraw();
             }
         }
 

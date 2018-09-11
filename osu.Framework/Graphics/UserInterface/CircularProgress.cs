@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         public CircularProgress()
         {
-            Current.ValueChanged += newValue => PropagateInvalidation(InvalidateDrawNode());
+            Current.ValueChanged += newValue => ForceRedraw();
         }
 
         private Shader roundedTextureShader;
@@ -77,8 +77,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 texture?.Dispose();
                 texture = value;
-
-                PropagateInvalidation(InvalidateDrawNode());
+                ForceRedraw();
             }
         }
 
@@ -95,7 +94,7 @@ namespace osu.Framework.Graphics.UserInterface
             set
             {
                 innerRadius = MathHelper.Clamp(value, 0, 1);
-                PropagateInvalidation(InvalidateDrawNode());
+                ForceRedraw();
             }
         }
     }
