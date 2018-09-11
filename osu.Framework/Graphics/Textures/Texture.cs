@@ -133,7 +133,8 @@ namespace osu.Framework.Graphics.Textures
 
         #region Disposal
 
-        public bool IsDisposed { get; private set; }
+        public virtual bool IsDisposed => isDisposed;
+        private bool isDisposed;
 
         // Intentionally no finalizer implementation as our disposal is NOOP. Finalizer is implemented in TextureWithRefCount usage.
 
@@ -144,8 +145,9 @@ namespace osu.Framework.Graphics.Textures
 
         protected virtual void Dispose(bool isDisposing)
         {
-            if (IsDisposed) return;
-            IsDisposed = true;
+            if (isDisposed)
+                return;
+            isDisposed = true;
         }
 
         #endregion

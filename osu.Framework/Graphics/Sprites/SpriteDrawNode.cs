@@ -38,7 +38,7 @@ namespace osu.Framework.Graphics.Sprites
         {
             base.Draw(vertexAction);
 
-            if (Texture?.TextureGL?.IsDisposed != false)
+            if (Texture?.IsDisposed != false)
                 return;
 
             Shader shader = needsRoundedShader ? RoundedTextureShader : TextureShader;

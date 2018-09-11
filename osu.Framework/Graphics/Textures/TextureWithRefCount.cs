@@ -2,8 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using osu.Framework.Graphics.OpenGL.Textures;
 
 namespace osu.Framework.Graphics.Textures
@@ -34,13 +32,14 @@ namespace osu.Framework.Graphics.Textures
 
         #region Disposal
 
+        // We can't reference our own TextureGL here as we may throw an exception
+        public sealed override bool IsDisposed => base.IsDisposed || base.TextureGL.IsDisposed;
+
         ~TextureWithRefCount()
         {
             // Finalizer implemented here rather than Texture to avoid GC overhead.
             Dispose(false);
         }
-
-        private readonly List<StackTrace> stackTraces = new List<StackTrace>();
 
         protected override void Dispose(bool isDisposing)
         {

@@ -126,7 +126,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             base.Draw(vertexAction);
 
-            if (Texture?.TextureGL?.IsDisposed != false)
+            if (Texture?.IsDisposed != false)
                 return;
 
             Shader shader = needsRoundedShader ? RoundedTextureShader : TextureShader;
