@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using JetBrains.Annotations;
+using Newtonsoft.Json;
 using osu.Framework.Lists;
 
 namespace osu.Framework.Configuration
@@ -12,7 +14,7 @@ namespace osu.Framework.Configuration
     /// A generic implementation of a <see cref="IBindable"/>
     /// </summary>
     /// <typeparam name="T">The type of our stored <see cref="Value"/>.</typeparam>
-    public class Bindable<T> : IBindable<T>, IBindable
+    public class Bindable<T> : IBindable<T>, IBindable, ISerializableBindable
     {
         /// <summary>
         /// An event which is raised when <see cref="Value"/> has changed (or manually via <see cref="TriggerValueChange"/>).
@@ -76,6 +78,14 @@ namespace osu.Framework.Configuration
 
                 TriggerValueChange();
             }
+        }
+
+        /// <summary>
+        /// Creates a new bindable instance. This is used for deserialization of bindables.
+        /// </summary>
+        [UsedImplicitly]
+        private Bindable()
+        {
         }
 
         /// <summary>
@@ -265,5 +275,48 @@ namespace osu.Framework.Configuration
             copy.BindTo(this);
             return copy;
         }
+
+        void ISerializableBindable.SerializeTo(JsonWriter writer, JsonSerializer serializer)
+        {
+            writer.WriteStartObject();
+
+            writer.WritePropertyName("value");
+            serializer.Serialize(writer, Value);
+
+            writer.WriteEndObject();
+        }
+
+        void ISerializableBindable.DeserializeFrom(JsonReader reader, JsonSerializer serializer)
+        {
+            serializer.Populate(reader, this);
+        }
+    }
+
+    internal class BindableJsonConverter : JsonConverter
+    {
+        public override bool CanConvert(Type objectType) => typeof(ISerializableBindable).IsAssignableFrom(objectType);
+
+        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        {
+            var bindable = (ISerializableBindable)value;
+            bindable.SerializeTo(writer, serializer);
+        }
+
+        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        {
+            if (!(existingValue is ISerializableBindable bindable))
+                bindable = (ISerializableBindable)Activator.CreateInstance(objectType, true);
+
+            bindable.DeserializeFrom(reader, serializer);
+
+            return bindable;
+        }
+    }
+
+    [JsonConverter(typeof(BindableJsonConverter))]
+    internal interface ISerializableBindable
+    {
+        void SerializeTo(JsonWriter writer, JsonSerializer serializer);
+        void DeserializeFrom(JsonReader reader, JsonSerializer serializer);
     }
 }
