@@ -90,7 +90,7 @@ namespace osu.Framework.Tests.Bindables
                 Value = new CustomObj
                 {
                     Bindable1 = { Value = 1337 },
-                    Bindable2 = { Value = 1337 },
+                    Bindable2 = { Value = 1338 },
                 }
             };
 

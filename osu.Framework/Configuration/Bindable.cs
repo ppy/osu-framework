@@ -279,17 +279,12 @@ namespace osu.Framework.Configuration
 
         void ISerializableBindable.SerializeTo(JsonWriter writer, JsonSerializer serializer)
         {
-            writer.WriteStartObject();
-
-            writer.WritePropertyName("value");
             serializer.Serialize(writer, Value);
-
-            writer.WriteEndObject();
         }
 
         void ISerializableBindable.DeserializeFrom(JsonReader reader, JsonSerializer serializer)
         {
-            serializer.Populate(reader, this);
+            Value = serializer.Deserialize<T>(reader);
         }
     }
 }
