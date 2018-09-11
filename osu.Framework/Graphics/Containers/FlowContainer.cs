@@ -81,6 +81,14 @@ namespace osu.Framework.Graphics.Containers
             return Invalidation.ChildrenLayout | InvalidateAutoSize();
         }
 
+        public override void PropagateInvalidationFromChild(Invalidation childInvalidation, Drawable child, Invalidation selfInvalidation = Invalidation.None)
+        {
+            if ((childInvalidation & Invalidation.Presence) != 0)
+                selfInvalidation |= Invalidation.ChildrenLayout;
+
+            base.PropagateInvalidationFromChild(childInvalidation, child, selfInvalidation);
+        }
+
         private readonly Dictionary<Drawable, float> layoutChildren = new Dictionary<Drawable, float>();
 
         protected internal override void AddInternal(Drawable drawable)
@@ -146,14 +154,6 @@ namespace osu.Framework.Graphics.Containers
                 InvalidateLayout();
 
             return changed;
-        }
-
-        public override void PropagateInvalidationFromChild(Invalidation childInvalidation, Drawable child, Invalidation selfInvalidation = Invalidation.None)
-        {
-            if ((childInvalidation & Invalidation.Presence) != 0)
-                selfInvalidation |= Invalidation.ChildrenLayout;
-
-            base.PropagateInvalidationFromChild(childInvalidation, child, selfInvalidation);
         }
 
         /// <summary>

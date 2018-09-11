@@ -211,6 +211,16 @@ namespace osu.Framework.Graphics.Sprites
 
         private bool requiresAutoSizedHeight => explicitHeight == null && (RelativeSizeAxes & Axes.Y) == 0;
 
+        private Vector2 autoSizeCache;
+        private Vector2 autoSize
+        {
+            get
+            {
+                var _ = characters;
+                return autoSizeCache;
+            }
+        }
+
         private float? explicitWidth;
 
         /// <summary>
@@ -218,12 +228,8 @@ namespace osu.Framework.Graphics.Sprites
         /// </summary>
         public override float Width
         {
-            get
-            {
-                if (requiresAutoSizedWidth)
-                    computeCharacters();
-                return base.Width;
-            }
+            get => requiresAutoSizedWidth ? autoSize.X : base.Width;
+
             set
             {
                 if (explicitWidth == value)
@@ -243,12 +249,8 @@ namespace osu.Framework.Graphics.Sprites
         /// </summary>
         public override float Height
         {
-            get
-            {
-                if (requiresAutoSizedHeight)
-                    computeCharacters();
-                return base.Height;
-            }
+            get => requiresAutoSizedHeight ? autoSize.Y : base.Height;
+
             set
             {
                 if (explicitHeight == value)
@@ -266,12 +268,8 @@ namespace osu.Framework.Graphics.Sprites
         /// </summary>
         public override Vector2 Size
         {
-            get
-            {
-                if (requiresAutoSizedWidth || requiresAutoSizedHeight)
-                    computeCharacters();
-                return base.Size;
-            }
+            get => new Vector2(Width, Height);
+
             set
             {
                 Width = value.X;
@@ -435,9 +433,9 @@ namespace osu.Framework.Graphics.Sprites
             finally
             {
                 if (requiresAutoSizedWidth)
-                    base.Width = currentPos.X + Padding.Right;
+                    autoSizeCache.X = currentPos.X + Padding.Right;
                 if (requiresAutoSizedHeight)
-                    base.Height = currentPos.Y + Padding.Bottom;
+                    autoSizeCache.Y = currentPos.Y + Padding.Bottom;
             }
         }
 

@@ -921,9 +921,9 @@ namespace osu.Framework.Graphics
                 scale = value;
 
                 if (IsPresent != wasPresent)
-                    Invalidate(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.Presence);
+                    Invalidate(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.BoundingBoxBeforeParentAutoSize | Invalidation.Presence);
                 else
-                    Invalidate(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit);
+                    Invalidate(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.BoundingBoxBeforeParentAutoSize);
             }
         }
 
@@ -991,7 +991,7 @@ namespace osu.Framework.Graphics
 
                 shear = value;
 
-                Invalidate(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit);
+                Invalidate(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.BoundingBoxBeforeParentAutoSize);
             }
         }
 
@@ -1010,7 +1010,7 @@ namespace osu.Framework.Graphics
 
                 rotation = value;
 
-                Invalidate(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit);
+                Invalidate(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.BoundingBoxBeforeParentAutoSize);
             }
         }
 
@@ -1627,6 +1627,9 @@ namespace osu.Framework.Graphics
             if ((invalidation & Invalidation.RequiredParentSizeToFit) != 0)
                 propagatingInvalidation |= InvalidateRequiredParentSizeToFit();
 
+            if ((invalidation & Invalidation.BoundingBoxBeforeParentAutoSize) != 0)
+                propagatingInvalidation |= InvalidateBoundingBoxBeforeParentAutoSize();
+
             if ((invalidation & Invalidation.DrawSize) != 0)
                 propagatingInvalidation |= InvalidateDrawSize();
 
@@ -1683,6 +1686,11 @@ namespace osu.Framework.Graphics
         {
             if (!requiredParentSizeToFitBacking.Invalidate()) return Invalidation.None;
             return Invalidation.RequiredParentSizeToFit;
+        }
+
+        protected Invalidation InvalidateBoundingBoxBeforeParentAutoSize()
+        {
+            return Invalidation.BoundingBoxBeforeParentAutoSize;
         }
 
         protected Invalidation InvalidateDrawSize()

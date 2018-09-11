@@ -14,7 +14,7 @@ namespace osu.Framework.Caching
     {
         internal static bool BypassCache = false;
 
-        internal static bool CheckInvalidationPropagation = true;
+        internal static bool CheckInvalidationPropagation = false;
     }
 
     public struct Cached<T>
@@ -46,7 +46,7 @@ namespace osu.Framework.Caching
 
             set
             {
-                LastValidation = new StackTrace();
+                //LastValidation = new StackTrace();
 
                 this.value = value;
                 isValid = true;
@@ -65,7 +65,7 @@ namespace osu.Framework.Caching
             if (isValid)
             {
                 //Console.WriteLine($"{GetDescription()} invalidated");
-                LastInvalidation = new StackTrace();
+                //LastInvalidation = new StackTrace();
 
                 isValid = false;
                 FrameStatistics.Increment(StatisticsCounterType.Invalidations);
@@ -152,7 +152,7 @@ namespace osu.Framework.Caching
 
                 Assert.IsFalse(cache.IsComputing, $"{cache.GetDescription()} has a circular dependency");
 
-                Console.WriteLine($"{string.Concat(Enumerable.Repeat(' ', computing_depth.Value))}{cache.GetDescription()} computing... (");
+                //Console.WriteLine($"{string.Concat(Enumerable.Repeat(' ', computing_depth.Value))}{cache.GetDescription()} computing... (");
                 cache.IsComputing = true;
                 computing_depth.Value += 1;
 
@@ -160,7 +160,7 @@ namespace osu.Framework.Caching
 
                 computing_depth.Value -= 1;
                 cache.IsComputing = false;
-                Console.WriteLine($"{string.Concat(Enumerable.Repeat(' ', computing_depth.Value))}){cache.GetDescription()} computed");
+                //Console.WriteLine($"{string.Concat(Enumerable.Repeat(' ', computing_depth.Value))}){cache.GetDescription()} computed");
 
                 return value;
             }

@@ -317,14 +317,15 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         protected virtual void AnimateClose() => Hide();
 
-        // todo: invalidation
-        //public override void PropagateInvalidationFromChild(Invalidation childInvalidation, Drawable child, Invalidation invalidation)
-        //{
-        //    if ((childInvalidation & Invalidation.LegacyRequiredParentSizeToFit) > 0)
-        //        sizeCache.Invalidate();
+        // todo: Make sizeCache similar to CompositeDrawable's autoSize
 
-        //    base.PropagateInvalidationFromChild(childInvalidation, child, invalidation);
-        //}
+        public override void PropagateInvalidationFromChild(Invalidation childInvalidation, Drawable child, Invalidation selfInvalidation = Invalidation.None)
+        {
+            if ((childInvalidation & Invalidation.DrawSize) != 0)
+                sizeCache.Invalidate();
+
+            base.PropagateInvalidationFromChild(childInvalidation, child, selfInvalidation);
+        }
 
         protected override void UpdateAfterChildren()
         {
@@ -364,7 +365,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 UpdateSize(new Vector2(width, height));
 
-                sizeCache.Value = true;//.Validate();
+                sizeCache.Value = true;
             }
         }
 

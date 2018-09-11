@@ -617,7 +617,7 @@ namespace osu.Framework.Graphics.Containers
         /// If the return value is false, then children are not updated and
         /// <see cref="UpdateAfterChildren"/> is not called.
         /// </summary>
-        protected virtual bool RequiresChildrenUpdate => !IsMaskedAway || !childrenSizeDependencies.IsValid;
+        protected virtual bool RequiresChildrenUpdate => !IsMaskedAway;//todo || !childrenSizeDependencies.IsValid;
 
         public override bool UpdateSubTree()
         {
@@ -649,8 +649,6 @@ namespace osu.Framework.Graphics.Containers
 
             UpdateAfterChildren();
 
-            updateChildrenSizeDependencies();
-            UpdateAfterAutoSize();
             return true;
         }
 
@@ -718,13 +716,6 @@ namespace osu.Framework.Graphics.Containers
         {
         }
 
-        /// <summary>
-        /// Invoked after all autosize calculations have taken place.
-        /// </summary>
-        protected virtual void UpdateAfterAutoSize()
-        {
-        }
-
         #endregion
 
         #region Invalidation
@@ -755,7 +746,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected Invalidation InvalidateAutoSize()
         {
-            if (!childrenSizeDependencies.Invalidate()) return Invalidation.None;
+            if (!autoSizeCache.Invalidate()) return Invalidation.None;
             return Invalidation.AutoSize | InvalidateDrawSize() | InvalidateRequiredParentSizeToFit();
         }
 
@@ -1426,16 +1417,13 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         internal event Action OnAutoSize;
 
-        private Cached<bool> childrenSizeDependencies = new Cached<bool> { Name = "AutoSize" };
+        private Cached<Vector2> autoSizeCache = new Cached<Vector2> { Name = "AutoSize" };
+
+        private Vector2 autoSize => autoSizeCache.Compute(computeAutoSize);
 
         public override float Width
         {
-            get
-            {
-                if (!StaticCached.BypassCache && AutoSizeAxes.HasFlag(Axes.X))
-                    updateChildrenSizeDependencies();
-                return base.Width;
-            }
+            get => (AutoSizeAxes & Axes.X) != 0 ? autoSize.X : base.Width;
 
             set
             {
@@ -1450,12 +1438,7 @@ namespace osu.Framework.Graphics.Containers
 
         public override float Height
         {
-            get
-            {
-                if (!StaticCached.BypassCache && AutoSizeAxes.HasFlag(Axes.Y))
-                    updateChildrenSizeDependencies();
-                return base.Height;
-            }
+            get => (AutoSizeAxes & Axes.Y) != 0 ? autoSize.Y : base.Height;
 
             set
             {
@@ -1470,12 +1453,7 @@ namespace osu.Framework.Graphics.Containers
 
         public override Vector2 Size
         {
-            get
-            {
-                if (!StaticCached.BypassCache && AutoSizeAxes != Axes.None)
-                    updateChildrenSizeDependencies();
-                return base.Size;
-            }
+            get => new Vector2(Width, Height);
 
             set
             {
@@ -1493,7 +1471,7 @@ namespace osu.Framework.Graphics.Containers
             var originalPadding = Padding;
             try
             {
-                Padding = new MarginPadding();
+                //Padding = new MarginPadding();
 
                 Vector2 maxRequiredSize = Vector2.Zero;
 
@@ -1516,61 +1494,54 @@ namespace osu.Framework.Graphics.Containers
                 }
 
                 return new Vector2(
-                    !AutoSizeAxes.HasFlag(Axes.X) ? BaseSize.X : maxRequiredSize.X + originalPadding.TotalHorizontal,
-                    !AutoSizeAxes.HasFlag(Axes.Y) ? BaseSize.Y : maxRequiredSize.Y + originalPadding.TotalVertical);
+                    !AutoSizeAxes.HasFlag(Axes.X) ? base.Width : maxRequiredSize.X + originalPadding.TotalHorizontal,
+                    !AutoSizeAxes.HasFlag(Axes.Y) ? base.Height : maxRequiredSize.Y + originalPadding.TotalVertical);
             }
             finally
             {
-                Padding = originalPadding;
+                //Padding = originalPadding;
+                OnAutoSize?.Invoke();
             }
         }
 
-        private void updateAutoSize()
-        {
-            if (AutoSizeAxes == Axes.None)
-                return;
+        // todo: auto size transformation
+        //private void updateAutoSize()
+        //{
+        //    if (AutoSizeAxes == Axes.None)
+        //        return;
 
-            Vector2 newSize = computeAutoSize();
+        //    Vector2 newSize = autoSize;
 
-            autoSizeResizeTo(newSize, AutoSizeDuration, AutoSizeEasing);
+        //    autoSizeResizeTo(newSize, AutoSizeDuration, AutoSizeEasing);
 
-            //note that this is called before autoSize becomes valid. may be something to consider down the line.
-            //might work better to add an OnRefresh event in Cached<> and invoke there.
-            OnAutoSize?.Invoke();
-        }
+        //    //note that this is called before autoSize becomes valid. may be something to consider down the line.
+        //    //might work better to add an OnRefresh event in Cached<> and invoke there.
+        //    OnAutoSize?.Invoke();
+        //}
 
-        private void updateChildrenSizeDependencies()
-        {
-            childrenSizeDependencies.Compute(() =>
-            {
-                updateAutoSize();
-                return true;
-            });
-        }
+        //private void autoSizeResizeTo(Vector2 newSize, double duration = 0, Easing easing = Easing.None)
+        //{
+        //    var currentTargetSize = ((AutoSizeTransform)Transforms.FirstOrDefault(t => t is AutoSizeTransform))?.EndValue ?? BaseSize;
+        //    if (currentTargetSize != newSize)
+        //        this.TransformTo(this.PopulateTransform(new AutoSizeTransform { Rewindable = false }, newSize, duration, easing));
+        //}
 
-        private void autoSizeResizeTo(Vector2 newSize, double duration = 0, Easing easing = Easing.None)
-        {
-            var currentTargetSize = ((AutoSizeTransform)Transforms.FirstOrDefault(t => t is AutoSizeTransform))?.EndValue ?? BaseSize;
-            if (currentTargetSize != newSize)
-                this.TransformTo(this.PopulateTransform(new AutoSizeTransform { Rewindable = false }, newSize, duration, easing));
-        }
+        ///// <summary>
+        ///// A helper property for <see cref="autoSizeResizeTo(Vector2, double, Easing)"/> to change the size of <see cref="CompositeDrawable"/>s with <see cref="AutoSizeAxes"/>.
+        ///// </summary>
+        //protected Vector2 BaseSize
+        //{
+        //    get => base.Size;
+        //    set => base.Size = value;
+        //}
 
-        /// <summary>
-        /// A helper property for <see cref="autoSizeResizeTo(Vector2, double, Easing)"/> to change the size of <see cref="CompositeDrawable"/>s with <see cref="AutoSizeAxes"/>.
-        /// </summary>
-        protected Vector2 BaseSize
-        {
-            get => base.Size;
-            set => base.Size = value;
-        }
-
-        private class AutoSizeTransform : TransformCustom<Vector2, CompositeDrawable>
-        {
-            public AutoSizeTransform()
-                : base(nameof(BaseSize))
-            {
-            }
-        }
+        //private class AutoSizeTransform : TransformCustom<Vector2, CompositeDrawable>
+        //{
+        //    public AutoSizeTransform()
+        //        : base(nameof(BaseSize))
+        //    {
+        //    }
+        //}
 
         #endregion
     }
