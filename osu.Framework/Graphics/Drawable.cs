@@ -1086,7 +1086,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         public virtual Vector2 OriginPosition
         {
-            get => computeOriginPosition(LayoutSize);
+            get => Origin == Anchor.TopLeft ? Vector2.Zero : computeOriginPosition(LayoutSize);
 
             set
             {
@@ -1168,7 +1168,7 @@ namespace osu.Framework.Graphics
         /// to the <see cref="Parent"/> in the coordinate system with origin at the top
         /// left corner of the <see cref="Parent"/>'s <see cref="DrawRectangle"/>.
         /// </summary>
-        public Vector2 AnchorPosition => RelativeAnchorPosition * Parent?.ChildSize ?? Vector2.Zero;
+        public Vector2 AnchorPosition => Anchor == Anchor.TopLeft ? Vector2.Zero : RelativeAnchorPosition * Parent?.ChildSize ?? Vector2.Zero;
 
         /// <summary>
         /// Helper function to compute an absolute position given an absolute size and
@@ -1617,8 +1617,7 @@ namespace osu.Framework.Graphics
         protected Invalidation InvalidateScreenSpaceDrawQuad()
         {
             if (!screenSpaceDrawQuadBacking.Invalidate()) return Invalidation.None;
-            // todo: DrawNode invalidation is only necessary for Sprite etc.
-            return Invalidation.ScreenSpaceDrawQuad | InvalidateDrawNode();
+            return Invalidation.ScreenSpaceDrawQuad;
         }
 
         [MustUseReturnValue]
@@ -1632,7 +1631,7 @@ namespace osu.Framework.Graphics
         protected Invalidation InvalidateDrawInfo()
         {
             if (!drawInfoBacking.Invalidate()) return Invalidation.None;
-            return Invalidation.DrawInfo | InvalidateScreenSpaceDrawQuad();
+            return Invalidation.DrawInfo | InvalidateScreenSpaceDrawQuad() | InvalidateDrawNode();
         }
 
         [MustUseReturnValue]
@@ -1652,8 +1651,7 @@ namespace osu.Framework.Graphics
         protected Invalidation InvalidateDrawSize()
         {
             if (!drawSizeBacking.Invalidate()) return Invalidation.None;
-            // todo: if origin is topleft, DrawSize shouldn't affect DrawInfo
-            return Invalidation.DrawSize | InvalidateScreenSpaceDrawQuad() | InvalidateDrawInfo();
+            return Invalidation.DrawSize | InvalidateScreenSpaceDrawQuad() | (Origin == Anchor.TopLeft ? 0 : InvalidateDrawInfo());
         }
 
         [MustUseReturnValue]

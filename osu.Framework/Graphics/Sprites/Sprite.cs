@@ -49,6 +49,13 @@ namespace osu.Framework.Graphics.Sprites
 
         #endregion
 
+        protected override void PropagateInvalidation(Invalidation invalidation)
+        {
+            if ((invalidation & Invalidation.ScreenSpaceDrawQuad) != 0)
+                invalidation |= InvalidateDrawNode();
+            base.PropagateInvalidation(invalidation);
+        }
+
         protected override DrawNode CreateDrawNode() => new SpriteDrawNode();
 
         protected override void ApplyDrawNode(DrawNode node)
