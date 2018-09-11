@@ -94,13 +94,13 @@ namespace osu.Framework.Graphics.Containers
             return result;
         }
 
-        public override void PropagateInvalidationFromChild(Invalidation childInvalidation, Drawable child, Invalidation selfInvalidation = Invalidation.None)
+        public override void InvalidateFromChild(Invalidation childInvalidation, Drawable child, Invalidation selfInvalidation = Invalidation.None)
         {
             // todo: must capture child.Anchor change
             if ((childInvalidation & Invalidation.BoundingBoxSizeBeforeParentAutoSize) != 0)
-                selfInvalidation |= Invalidation.ChildrenLayout;
+                selfInvalidation |= InvalidateChildrenLayout();
 
-            base.PropagateInvalidationFromChild(childInvalidation, child, selfInvalidation);
+            base.InvalidateFromChild(childInvalidation, child, selfInvalidation);
         }
 
         protected override IEnumerable<Vector2> ComputeLayoutPositions()

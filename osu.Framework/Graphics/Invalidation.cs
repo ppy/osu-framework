@@ -5,15 +5,11 @@ using System;
 
 namespace osu.Framework.Graphics
 {
-    /// <summary>
-    /// Specifies which type of properties are being invalidated.
-    /// </summary>
     [Flags]
     public enum Invalidation
     {
         None = 0,
 
-        DrawNode = 1 << 0,
         Presence = 1 << 1,
         ScreenSpaceDrawQuad = 1 << 2,
         DrawColourInfo = 1 << 3,
@@ -21,16 +17,14 @@ namespace osu.Framework.Graphics
         RequiredParentSizeToFit = 1 << 5,
         BoundingBoxSizeBeforeParentAutoSize = 1 << 6,
         DrawSize = 1 << 7,
+        BypassAutoSizeAxes = 1 << 8,
 
         // CompositeDrawable
-        AutoSize = 1 << 9,
-        ChildSizeBeforeAutoSize = 1 << 10,
-        ChildSize = 1 << 11,
-        AliveInternalChildren = 1 << 12,
+        ChildSize = 1 << 10,
+        ChildSizeBeforeAutoSize = 1 << 11,
 
-        // FlowContainer
-        ChildrenLayout = 1 << 13,
-
+        // legacy compatibility
+        DrawNode = 1 << 30,
 
         All = ~0,
     }

@@ -319,12 +319,12 @@ namespace osu.Framework.Graphics.UserInterface
 
         // todo: Make sizeCache similar to CompositeDrawable's autoSize
 
-        public override void PropagateInvalidationFromChild(Invalidation childInvalidation, Drawable child, Invalidation selfInvalidation = Invalidation.None)
+        public override void InvalidateFromChild(Invalidation childInvalidation, Drawable child, Invalidation selfInvalidation = Invalidation.None)
         {
             if ((childInvalidation & Invalidation.DrawSize) != 0)
                 sizeCache.Invalidate();
 
-            base.PropagateInvalidationFromChild(childInvalidation, child, selfInvalidation);
+            base.InvalidateFromChild(childInvalidation, child, selfInvalidation);
         }
 
         protected override void UpdateAfterChildren()

@@ -6,6 +6,7 @@ using osu.Framework.Caching;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using JetBrains.Annotations;
 using osu.Framework.Graphics.Transforms;
 
 namespace osu.Framework.Graphics.Containers
@@ -43,7 +44,7 @@ namespace osu.Framework.Graphics.Containers
 
         private Cached<bool> layout = new Cached<bool> { Name = "ChildrenLayout" };
 
-        protected void InvalidateLayout() => Invalidate(Invalidation.ChildrenLayout);
+        protected void InvalidateLayout() => PropagateInvalidation(InvalidateChildrenLayout());
 
         private Vector2 maximumSize;
 
@@ -59,34 +60,25 @@ namespace osu.Framework.Graphics.Containers
                 if (maximumSize == value) return;
 
                 maximumSize = value;
-                Invalidate(Invalidation.DrawSize);
+                InvalidateLayout();
             }
         }
 
         protected override bool RequiresChildrenUpdate => base.RequiresChildrenUpdate || !layout.IsValid;
 
-        protected override Invalidation InvalidateFromInvalidation(Invalidation invalidation)
-        {
-            var propagatingInvalidation = base.InvalidateFromInvalidation(invalidation);
-
-            if ((invalidation & Invalidation.ChildrenLayout) != 0)
-                propagatingInvalidation |= InvalidateChildrenLayout();
-
-            return propagatingInvalidation;
-        }
-
+        [MustUseReturnValue]
         protected Invalidation InvalidateChildrenLayout()
         {
             if (!layout.Invalidate()) return Invalidation.None;
-            return Invalidation.ChildrenLayout | InvalidateAutoSize();
+            return InvalidateAutoSize();
         }
 
-        public override void PropagateInvalidationFromChild(Invalidation childInvalidation, Drawable child, Invalidation selfInvalidation = Invalidation.None)
+        public override void InvalidateFromChild(Invalidation childInvalidation, Drawable child, Invalidation selfInvalidation = Invalidation.None)
         {
             if ((childInvalidation & Invalidation.Presence) != 0)
-                selfInvalidation |= Invalidation.ChildrenLayout;
+                selfInvalidation |= InvalidateChildrenLayout();
 
-            base.PropagateInvalidationFromChild(childInvalidation, child, selfInvalidation);
+            base.InvalidateFromChild(childInvalidation, child, selfInvalidation);
         }
 
         private readonly Dictionary<Drawable, float> layoutChildren = new Dictionary<Drawable, float>();
@@ -185,7 +177,8 @@ namespace osu.Framework.Graphics.Containers
                 // in the vertical direction. Now, we can add relatively sized children with FillMode.Fit to make sure their
                 // aspect ratio is preserved while still allowing them to flow vertically. This special case can not result
                 // in an autosize-related feedback loop, and we can thus simply allow it.
-                if ((d.RelativeSizeAxes & AutoSizeAxes) != 0 && (d.FillMode != FillMode.Fit || d.RelativeSizeAxes != Axes.Both || d.Size.X > RelativeChildSize.X || d.Size.Y > RelativeChildSize.Y || AutoSizeAxes == Axes.Both))
+                if ((d.RelativeSizeAxes & AutoSizeAxes) != 0 && (d.FillMode != FillMode.Fit || d.RelativeSizeAxes != Axes.Both || d.Size.X > RelativeChildSize.X || d.Size.Y > RelativeChildSize.Y
+                                                                 || AutoSizeAxes == Axes.Both))
                     throw new InvalidOperationException(
                         "Drawables inside a flow container may not have a relative size axis that the flow container is auto sizing for." +
                         $"The flow container is set to autosize in {AutoSizeAxes} axes and the child is set to relative size in {d.RelativeSizeAxes} axes.");

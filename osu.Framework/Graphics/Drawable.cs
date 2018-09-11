@@ -24,6 +24,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using JetBrains.Annotations;
 using osu.Framework.Configuration;
 using osu.Framework.Development;
 using osu.Framework.Input.EventArgs;
@@ -255,7 +256,6 @@ namespace osu.Framework.Graphics
             if (scheduler.IsValueCreated) scheduler.Value.SetCurrentThread(MainThread);
 
             loadState = LoadState.Loaded;
-            Invalidate();
             LoadComplete();
 
             OnLoadComplete?.Invoke(this);
@@ -351,7 +351,7 @@ namespace osu.Framework.Graphics
         public Action<Drawable> OnLoadComplete;
 
         /// <summary>.
-        /// Fired after the <see cref="Invalidate"/> method is called.
+        /// Fired before the <see cref="PropagateInvalidation"/> method is called.
         /// </summary>
         internal event Action<Drawable> OnInvalidate;
 
@@ -472,7 +472,7 @@ namespace osu.Framework.Graphics
 
                 position = value;
 
-                Invalidate(Invalidation.RequiredParentSizeToFit | Invalidation.DrawInfo);
+                PropagateInvalidation(InvalidatePosition());
             }
         }
 
@@ -493,7 +493,7 @@ namespace osu.Framework.Graphics
 
                 x = value;
 
-                Invalidate(Invalidation.RequiredParentSizeToFit | Invalidation.DrawInfo);
+                PropagateInvalidation(InvalidatePosition());
             }
         }
 
@@ -511,7 +511,7 @@ namespace osu.Framework.Graphics
 
                 y = value;
 
-                Invalidate(Invalidation.RequiredParentSizeToFit | Invalidation.DrawInfo);
+                PropagateInvalidation(InvalidatePosition());
             }
         }
 
@@ -602,7 +602,7 @@ namespace osu.Framework.Graphics
 
                 size = value;
 
-                Invalidate(Invalidation.RequiredParentSizeToFit | Invalidation.BoundingBoxSizeBeforeParentAutoSize | Invalidation.DrawSize);
+                PropagateInvalidation(InvalidateSize());
             }
         }
 
@@ -623,7 +623,7 @@ namespace osu.Framework.Graphics
 
                 width = value;
 
-                Invalidate(Invalidation.RequiredParentSizeToFit | Invalidation.BoundingBoxSizeBeforeParentAutoSize | Invalidation.DrawSize);
+                PropagateInvalidation(InvalidateSize());
             }
         }
 
@@ -641,7 +641,7 @@ namespace osu.Framework.Graphics
 
                 height = value;
 
-                Invalidate(Invalidation.RequiredParentSizeToFit | Invalidation.BoundingBoxSizeBeforeParentAutoSize | Invalidation.DrawSize);
+                PropagateInvalidation(InvalidateSize());
             }
         }
 
@@ -681,7 +681,7 @@ namespace osu.Framework.Graphics
                 // In some cases we cannot easily preserve our size, and so we simply invalidate and
                 // leave correct sizing to the user.
                 if (fillMode != FillMode.Stretch && (value == Axes.Both || relativeSizeAxes == Axes.Both))
-                    Invalidate(Invalidation.RequiredParentSizeToFit | Invalidation.BoundingBoxSizeBeforeParentAutoSize | Invalidation.DrawSize);
+                    PropagateInvalidation(InvalidateMiscGeometry());
                 else
                 {
                     // Convert coordinates from relative to absolute or vice versa
@@ -745,7 +745,7 @@ namespace osu.Framework.Graphics
 
                 margin = value;
 
-                Invalidate(Invalidation.RequiredParentSizeToFit | Invalidation.BoundingBoxSizeBeforeParentAutoSize | Invalidation.DrawInfo | Invalidation.DrawSize);
+                PropagateInvalidation(InvalidateRequiredParentSizeToFit() | InvalidateBoundingBoxSizeBeforeParentAutoSize());
             }
         }
 
@@ -813,8 +813,8 @@ namespace osu.Framework.Graphics
             {
                 var changedAxes = bypassAutoSizeAxes ^ value;
                 bypassAutoSizeAxes = value;
-                if (((Parent?.AutoSizeAxes ?? 0) & changedAxes) != 0)
-                    Parent?.Invalidate(Invalidation.AutoSize);
+                if (Parent != null && (Parent.AutoSizeAxes & changedAxes) != 0)
+                    Parent.InvalidateFromChild(Invalidation.BypassAutoSizeAxes, this);
             }
         }
 
@@ -920,10 +920,7 @@ namespace osu.Framework.Graphics
 
                 scale = value;
 
-                if (IsPresent != wasPresent)
-                    Invalidate(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.BoundingBoxSizeBeforeParentAutoSize | Invalidation.Presence);
-                else
-                    Invalidate(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.BoundingBoxSizeBeforeParentAutoSize);
+                PropagateInvalidation(InvalidateMiscGeometry() | (IsPresent != wasPresent ? InvalidatePresence() : 0));
             }
         }
 
@@ -946,7 +943,7 @@ namespace osu.Framework.Graphics
                 fillAspectRatio = value;
 
                 if (fillMode != FillMode.Stretch && RelativeSizeAxes == Axes.Both)
-                    Invalidate(Invalidation.DrawSize);
+                    PropagateInvalidation(InvalidateMiscGeometry());
             }
         }
 
@@ -966,7 +963,7 @@ namespace osu.Framework.Graphics
                 if (fillMode == value) return;
                 fillMode = value;
 
-                Invalidate(Invalidation.DrawSize);
+                PropagateInvalidation(InvalidateMiscGeometry());
             }
         }
 
@@ -990,8 +987,7 @@ namespace osu.Framework.Graphics
                 if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(Shear)} must be finite, but is {value}.");
 
                 shear = value;
-
-                Invalidate(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.BoundingBoxSizeBeforeParentAutoSize);
+                PropagateInvalidation(InvalidateMiscGeometry());
             }
         }
 
@@ -1009,8 +1005,7 @@ namespace osu.Framework.Graphics
                 if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(Rotation)} must be finite, but is {value}.");
 
                 rotation = value;
-
-                Invalidate(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.BoundingBoxSizeBeforeParentAutoSize);
+                PropagateInvalidation(InvalidateMiscGeometry());
             }
         }
 
@@ -1036,7 +1031,7 @@ namespace osu.Framework.Graphics
                     throw new ArgumentException("Cannot set origin to 0.", nameof(value));
 
                 origin = value;
-                Invalidate(Invalidation.DrawInfo);
+                PropagateInvalidation(InvalidateDrawInfo());
             }
         }
 
@@ -1122,7 +1117,7 @@ namespace osu.Framework.Graphics
                     throw new ArgumentException("Cannot set anchor to 0.", nameof(value));
 
                 anchor = value;
-                Invalidate(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit);
+                PropagateInvalidation(InvalidateDrawInfo() | InvalidateRequiredParentSizeToFit());
             }
         }
 
@@ -1163,6 +1158,7 @@ namespace osu.Framework.Graphics
 
                 customRelativeAnchorPosition = value;
                 Anchor = Anchor.Custom;
+                PropagateInvalidation(InvalidateDrawInfo() | InvalidateRequiredParentSizeToFit());
             }
         }
 
@@ -1217,7 +1213,7 @@ namespace osu.Framework.Graphics
 
                 colour = value;
 
-                Invalidate(Invalidation.DrawColourInfo);
+                PropagateInvalidation(InvalidateDrawColourInfo());
             }
         }
 
@@ -1235,11 +1231,10 @@ namespace osu.Framework.Graphics
                 if (alpha == value)
                     return;
 
-                bool wasVisible = alpha > visibility_cutoff;
+                bool wasPresent = IsPresent;
                 alpha = value;
 
-                bool isVisible = alpha > visibility_cutoff;
-                Invalidate(Invalidation.DrawColourInfo | (wasVisible != isVisible ? Invalidation.Presence : Invalidation.None));
+                PropagateInvalidation(InvalidateDrawColourInfo() | (IsPresent != wasPresent ? Invalidation.Presence : 0));
             }
         }
 
@@ -1267,11 +1262,10 @@ namespace osu.Framework.Graphics
                     return;
 
                 bool wasPresent = IsPresent;
-
                 alwaysPresent = value;
 
                 if (IsPresent != wasPresent)
-                    Invalidate(Invalidation.Presence);
+                    PropagateInvalidation(InvalidatePresence());
             }
         }
 
@@ -1290,7 +1284,7 @@ namespace osu.Framework.Graphics
                     return;
                 blending = value;
 
-                Invalidate(Invalidation.DrawColourInfo);
+                PropagateInvalidation(InvalidateDrawColourInfo());
             }
         }
 
@@ -1408,7 +1402,7 @@ namespace osu.Framework.Graphics
                     throw new InvalidOperationException("May not add a drawable to multiple containers.");
 
                 parent = value;
-                PropagateInvalidationFromParent(Invalidation.All);
+                InvalidateFromParent(Invalidation.All);
 
                 if (parent != null)
                 {
@@ -1605,64 +1599,20 @@ namespace osu.Framework.Graphics
         // Make sure we start out with a value of 1 such that ApplyDrawNode is always called at least once
         private long invalidationID = invalidation_counter.Increment();
 
-        protected virtual Invalidation InvalidateFromInvalidation(Invalidation invalidation)
-        {
-            Invalidation propagatingInvalidation = Invalidation.None;
-
-            if ((invalidation & Invalidation.DrawNode) != 0)
-                propagatingInvalidation |= InvalidateDrawNode();
-
-            if ((invalidation & Invalidation.Presence) != 0)
-                propagatingInvalidation |= InvalidatePresence();
-
-            if ((invalidation & Invalidation.ScreenSpaceDrawQuad) != 0)
-                propagatingInvalidation |= InvalidateScreenSpaceDrawQuad();
-
-            if ((invalidation & Invalidation.DrawColourInfo) != 0)
-                propagatingInvalidation |= InvalidateDrawColourInfo();
-
-            if ((invalidation & Invalidation.DrawInfo) != 0)
-                propagatingInvalidation |= InvalidateDrawInfo();
-
-            if ((invalidation & Invalidation.RequiredParentSizeToFit) != 0)
-                propagatingInvalidation |= InvalidateRequiredParentSizeToFit();
-
-            if ((invalidation & Invalidation.BoundingBoxSizeBeforeParentAutoSize) != 0)
-                propagatingInvalidation |= InvalidateBoundingBoxSizeBeforeParentAutoSize();
-
-            if ((invalidation & Invalidation.DrawSize) != 0)
-                propagatingInvalidation |= InvalidateDrawSize();
-
-            return propagatingInvalidation;
-        }
-
-        public void Invalidate(Invalidation invalidation = Invalidation.All)
-        {
-            if (invalidation == Invalidation.None) return;
-
-            var propagatingInvalidation = InvalidateFromInvalidation(invalidation);
-
-            // Console.WriteLine($"Invalidate {this} {invalidation} => propagating {propagatingInvalidation}");
-
-            if (propagatingInvalidation != Invalidation.None)
-                PropagateInvalidation(propagatingInvalidation);
-
-            OnInvalidate?.Invoke(this);
-        }
-
+        [MustUseReturnValue]
         protected Invalidation InvalidateDrawNode()
         {
             invalidationID = invalidation_counter.Increment();
-            // no propagation is necessary because this property is private.
             return Invalidation.None;
         }
 
+        [MustUseReturnValue]
         protected Invalidation InvalidatePresence()
         {
-            // propagate unconditionanlly because this is not cached
             return Invalidation.Presence;
         }
 
+        [MustUseReturnValue]
         protected Invalidation InvalidateScreenSpaceDrawQuad()
         {
             if (!screenSpaceDrawQuadBacking.Invalidate()) return Invalidation.None;
@@ -1670,29 +1620,34 @@ namespace osu.Framework.Graphics
             return Invalidation.ScreenSpaceDrawQuad | InvalidateDrawNode();
         }
 
+        [MustUseReturnValue]
         protected Invalidation InvalidateDrawColourInfo()
         {
             if (!drawColourInfoBacking.Invalidate()) return Invalidation.None;
             return Invalidation.DrawColourInfo | InvalidateDrawNode();
         }
 
+        [MustUseReturnValue]
         protected Invalidation InvalidateDrawInfo()
         {
             if (!drawInfoBacking.Invalidate()) return Invalidation.None;
             return Invalidation.DrawInfo | InvalidateScreenSpaceDrawQuad();
         }
 
+        [MustUseReturnValue]
         protected Invalidation InvalidateRequiredParentSizeToFit()
         {
             if (!requiredParentSizeToFitBacking.Invalidate()) return Invalidation.None;
             return Invalidation.RequiredParentSizeToFit;
         }
 
+        [MustUseReturnValue]
         protected Invalidation InvalidateBoundingBoxSizeBeforeParentAutoSize()
         {
             return Invalidation.BoundingBoxSizeBeforeParentAutoSize;
         }
 
+        [MustUseReturnValue]
         protected Invalidation InvalidateDrawSize()
         {
             if (!drawSizeBacking.Invalidate()) return Invalidation.None;
@@ -1700,35 +1655,60 @@ namespace osu.Framework.Graphics
             return Invalidation.DrawSize | InvalidateScreenSpaceDrawQuad() | InvalidateDrawInfo();
         }
 
-        protected virtual void PropagateInvalidation(Invalidation propagatingInvalidation)
+        [MustUseReturnValue]
+        protected Invalidation InvalidateMiscGeometry() => InvalidateDrawInfo() | InvalidateRequiredParentSizeToFit() | InvalidateBoundingBoxSizeBeforeParentAutoSize();
+
+        [MustUseReturnValue]
+        protected Invalidation InvalidatePosition() => InvalidateDrawInfo() | InvalidateRequiredParentSizeToFit();
+
+        [MustUseReturnValue]
+        protected  Invalidation InvalidateSize() => InvalidateMiscGeometry() | InvalidateDrawSize();
+
+        protected virtual void PropagateInvalidation(Invalidation invalidation)
         {
-            Parent?.PropagateInvalidationFromChild(propagatingInvalidation, this);
+            OnInvalidate?.Invoke(this);
+            if (invalidation != Invalidation.None)
+                Parent?.InvalidateFromChild(invalidation, this);
         }
 
-        public virtual void PropagateInvalidationFromParent(Invalidation parentInvalidation, Invalidation selfInvalidation = Invalidation.None)
+        public virtual void InvalidateFromParent(Invalidation parentInvalidation, Invalidation selfInvalidation = Invalidation.None)
         {
             if ((parentInvalidation & Invalidation.DrawInfo) != 0)
-                selfInvalidation |= Invalidation.DrawInfo;
+                selfInvalidation |= InvalidateDrawInfo();
 
             if ((parentInvalidation & Invalidation.DrawColourInfo) != 0)
-                selfInvalidation |= Invalidation.DrawColourInfo;
+                selfInvalidation |= InvalidateDrawColourInfo();
 
             if ((parentInvalidation & Invalidation.ChildSize) != 0)
             {
                 if (RelativeSizeAxes != Axes.None)
-                    selfInvalidation |= Invalidation.DrawSize;
+                    selfInvalidation |= InvalidateDrawSize();
                 if (RelativePositionAxes != Axes.None || Anchor != Anchor.TopLeft)
-                    selfInvalidation |= Invalidation.DrawInfo;
+                    selfInvalidation |= InvalidateDrawInfo();
             }
 
             if ((parentInvalidation & Invalidation.ChildSizeBeforeAutoSize) != 0)
             {
                 if (RelativePositionAxes != Axes.None || Anchor != Anchor.TopLeft)
-                    selfInvalidation |= Invalidation.RequiredParentSizeToFit;
+                    selfInvalidation |= InvalidateRequiredParentSizeToFit();
             }
 
-            if (selfInvalidation != Invalidation.None)
-                Invalidate(selfInvalidation);
+            PropagateInvalidation(selfInvalidation);
+        }
+
+        // legacy compatibility only. shouldn't used
+        [Obsolete("Use PropagateInvalidation(InvalidateXXX()) instead")]
+        public void Invalidate(Invalidation legacyInvalidation = Invalidation.All)
+        {
+            const Invalidation legacy_mask = Invalidation.DrawNode;
+
+            if (legacyInvalidation == Invalidation.None) return;
+
+            if (legacyInvalidation != Invalidation.All && (legacyInvalidation & ~legacy_mask) != 0)
+                throw new NotImplementedException($"Invalidate({legacyInvalidation}) is no longer supported");
+
+            if ((legacyInvalidation & Invalidation.DrawNode) != 0)
+                PropagateInvalidation(InvalidateDrawNode());
         }
 
         #endregion

@@ -3,6 +3,7 @@
 
 using System;
 using System.Linq;
+using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using OpenTK;
 using osu.Framework.Caching;
@@ -15,6 +16,7 @@ namespace osu.Framework.Graphics.Containers
     public class GridContainer : CompositeDrawable
     {
         private Drawable[][] content;
+
         /// <summary>
         /// The content of this <see cref="GridContainer"/>, arranged in a 2D grid array, where each array
         /// of <see cref="Drawable"/>s represents a row and each element of that array represents a column.
@@ -36,6 +38,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         private Dimension[] rowDimensions;
+
         /// <summary>
         /// Explicit dimensions for rows. Each index of this array applies to the respective row index inside <see cref="Content"/>.
         /// </summary>
@@ -52,6 +55,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         private Dimension[] columnDimensions;
+
         /// <summary>
         /// Explicit dimensions for columns. Each index of this array applies to the respective column index inside <see cref="Content"/>.
         /// </summary>
@@ -81,21 +85,19 @@ namespace osu.Framework.Graphics.Containers
             layoutCellLayout();
         }
 
-        protected override Invalidation InvalidateFromInvalidation(Invalidation invalidation)
+        protected override void PropagateInvalidation(Invalidation invalidation)
         {
-            var propagatingInvalidation = base.InvalidateFromInvalidation(invalidation);
+            if ((invalidation & Invalidation.ChildSizeBeforeAutoSize) != 0)
+                invalidation |= InvalidateCellLayout();
 
-            if (((invalidation | propagatingInvalidation) & Invalidation.ChildSizeBeforeAutoSize) != 0)
-                propagatingInvalidation |= InvalidateCellLayout();
-
-            return propagatingInvalidation;
+            base.PropagateInvalidation(invalidation);
         }
 
-        protected Invalidation InvalidateCellLayout() => !cellLayout.Invalidate() ? 0 :
-            InvalidateDrawSize() | InvalidateRequiredParentSizeToFit() | InvalidateBoundingBoxSizeBeforeParentAutoSize();
+        [MustUseReturnValue]
+        protected Invalidation InvalidateCellLayout() => !cellLayout.Invalidate() ? 0 : InvalidateDrawSize() | InvalidateRequiredParentSizeToFit() | InvalidateBoundingBoxSizeBeforeParentAutoSize();
 
-        protected Invalidation InvalidateCellContent() => !cellContent.Invalidate() ? 0 :
-            InvalidateCellLayout();
+        [MustUseReturnValue]
+        protected Invalidation InvalidateCellContent() => !cellContent.Invalidate() ? 0 : InvalidateCellLayout();
 
         private Cached<bool> cellContent = new Cached<bool> { Name = "GridContainer.cellContent" };
         private Cached<bool> cellLayout = new Cached<bool> { Name = "GridContainer.cellLayout" };
@@ -141,29 +143,29 @@ namespace osu.Framework.Graphics.Containers
             // Create the new cell containers and add content
             cells = new CellContainer[requiredRows, requiredColumns];
             for (int r = 0; r < cellRows; r++)
-                for (int c = 0; c < cellColumns; c++)
-                {
-                    // Add cell
-                    cells[r, c] = new CellContainer();
+            for (int c = 0; c < cellColumns; c++)
+            {
+                // Add cell
+                cells[r, c] = new CellContainer();
 
-                    // Allow empty rows
-                    if (Content[r] == null)
-                        continue;
+                // Allow empty rows
+                if (Content[r] == null)
+                    continue;
 
-                    // Allow non-square grids
-                    if (c >= Content[r].Length)
-                        continue;
+                // Allow non-square grids
+                if (c >= Content[r].Length)
+                    continue;
 
-                    // Allow empty cells
-                    if (Content[r][c] == null)
-                        continue;
+                // Allow empty cells
+                if (Content[r][c] == null)
+                    continue;
 
-                    // Add content
-                    cells[r, c].Add(Content[r][c]);
-                    cells[r, c].Depth = Content[r][c].Depth;
+                // Add content
+                cells[r, c].Add(Content[r][c]);
+                cells[r, c].Depth = Content[r][c].Depth;
 
-                    AddInternal(cells[r, c]);
-                }
+                AddInternal(cells[r, c]);
+            }
         }
 
         /// <summary>
@@ -272,18 +274,18 @@ namespace osu.Framework.Graphics.Containers
 
             // Add size to distributed columns/rows and add adjust cell positions
             for (int r = 0; r < cellRows; r++)
-                for (int c = 0; c < cellColumns; c++)
-                {
-                    if (cells[r, c].DistributedWidth)
-                        cells[r, c].Width = distributedSize.X;
-                    if (cells[r, c].DistributedHeight)
-                        cells[r, c].Height = distributedSize.Y;
+            for (int c = 0; c < cellColumns; c++)
+            {
+                if (cells[r, c].DistributedWidth)
+                    cells[r, c].Width = distributedSize.X;
+                if (cells[r, c].DistributedHeight)
+                    cells[r, c].Height = distributedSize.Y;
 
-                    if (c > 0)
-                        cells[r, c].X = cells[r, c - 1].X + cells[r, c - 1].Width;
-                    if (r > 0)
-                        cells[r, c].Y = cells[r - 1, c].Y + cells[r - 1, c].Height;
-                }
+                if (c > 0)
+                    cells[r, c].X = cells[r, c - 1].X + cells[r, c - 1].Width;
+                if (r > 0)
+                    cells[r, c].Y = cells[r - 1, c].Y + cells[r - 1, c].Height;
+            }
         }
 
         /// <summary>
@@ -301,7 +303,7 @@ namespace osu.Framework.Graphics.Containers
             /// </summary>
             public bool DistributedHeight;
 
-            public override void PropagateInvalidationFromChild(Invalidation childInvalidation, Drawable child, Invalidation selfInvalidation = Invalidation.None)
+            public override void InvalidateFromChild(Invalidation childInvalidation, Drawable child, Invalidation selfInvalidation = Invalidation.None)
             {
                 // todo: only invalidate when this is an auto sized cell
                 if ((childInvalidation & Invalidation.BoundingBoxSizeBeforeParentAutoSize) != 0)
@@ -310,7 +312,8 @@ namespace osu.Framework.Graphics.Containers
                         if (!p.cellLayout.IsComputing)
                             p.PropagateInvalidation(p.InvalidateCellLayout());
                 }
-                base.PropagateInvalidationFromChild(childInvalidation, child, selfInvalidation);
+
+                base.InvalidateFromChild(childInvalidation, child, selfInvalidation);
             }
         }
     }
@@ -349,14 +352,17 @@ namespace osu.Framework.Graphics.Containers
         /// other elements which use <see cref="GridSizeMode.Distributed"/>.
         /// </summary>
         Distributed,
+
         /// <summary>
         /// This element should be sized relative to the dimensions of the <see cref="GridContainer"/>.
         /// </summary>
         Relative,
+
         /// <summary>
         /// This element has a size independent of the <see cref="GridContainer"/>.
         /// </summary>
         Absolute,
+
         /// <summary>
         /// This element will be sized to the maximum size along its span.
         /// </summary>

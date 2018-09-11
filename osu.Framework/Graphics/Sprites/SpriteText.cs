@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Caching;
 using osu.Framework.Configuration;
@@ -144,7 +145,7 @@ namespace osu.Framework.Graphics.Sprites
                     return;
                 shadow = value;
 
-                Invalidate(Invalidation.DrawNode);
+                PropagateInvalidation(InvalidateDrawNode());
             }
         }
 
@@ -162,7 +163,7 @@ namespace osu.Framework.Graphics.Sprites
                     return;
                 shadowColour = value;
 
-                Invalidate(Invalidation.DrawNode);
+                PropagateInvalidation(InvalidateDrawNode());
             }
         }
 
@@ -213,6 +214,7 @@ namespace osu.Framework.Graphics.Sprites
         private bool requiresAutoSizedHeight => explicitHeight == null && (RelativeSizeAxes & Axes.Y) == 0;
 
         private Vector2 autoSizeCache;
+
         private Vector2 autoSize
         {
             get
@@ -321,7 +323,7 @@ namespace osu.Framework.Graphics.Sprites
 
         #region Characters
 
-        private Cached<bool> charactersCache = new Cached<bool> { Name = nameof(characters) };
+        private Cached<bool> charactersCache = new Cached<bool> { Name = $"{nameof(SpriteText)}.{nameof(characters)}" };
         private readonly List<CharacterPart> charactersBacking = new List<CharacterPart>();
 
         /// <summary>
@@ -440,7 +442,7 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        private Cached<bool> screenSpaceCharactersCache = new Cached<bool> { Name = "screenSpaceCharacters" };
+        private Cached<bool> screenSpaceCharactersCache = new Cached<bool> { Name = $"{nameof(SpriteText)}.{nameof(screenSpaceCharacters)}" };
         private readonly List<ScreenSpaceCharacterPart> screenSpaceCharactersBacking = new List<ScreenSpaceCharacterPart>();
 
         /// <summary>
@@ -473,11 +475,11 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        private Cached<float> constantWidthCache = new Cached<float> { Name = nameof(constantWidth) };
+        private Cached<float> constantWidthCache = new Cached<float> { Name = $"{nameof(SpriteText)}.{nameof(constantWidth)}" };
         private float constantWidth => constantWidthCache.Compute(computeConstantWidth);
         private float computeConstantWidth() => GetTextureForCharacter('D')?.DisplayWidth ?? 0;
 
-        private Cached<Vector2> shadowOffsetCache = new Cached<Vector2> { Name = nameof(shadowOffset) };
+        private Cached<Vector2> shadowOffsetCache = new Cached<Vector2> { Name = $"{nameof(SpriteText)}.{nameof(shadowOffset)}" };
         private Vector2 shadowOffset => shadowOffsetCache.Compute(computeShadowOffset);
         private Vector2 computeShadowOffset() => ToScreenSpace(shadow_offset * TextSize) - ToScreenSpace(Vector2.Zero);
 
@@ -485,12 +487,20 @@ namespace osu.Framework.Graphics.Sprites
 
         #region Invalidation
 
+        [MustUseReturnValue]
         protected Invalidation InvalidateScreenSpaceCharacters() => !screenSpaceCharactersCache.Invalidate() ? 0 : InvalidateDrawNode();
-        protected Invalidation InvalidateCharacters() => !charactersCache.Invalidate() ? 0 : InvalidateScreenSpaceCharacters() | InvalidateDrawSize() | InvalidateRequiredParentSizeToFit();
+
+        [MustUseReturnValue]
+        protected Invalidation InvalidateCharacters() => !charactersCache.Invalidate() ? 0 :
+            InvalidateScreenSpaceCharacters() | InvalidateDrawSize() | InvalidateRequiredParentSizeToFit() | InvalidateBoundingBoxSizeBeforeParentAutoSize();
+
+        [MustUseReturnValue]
         protected Invalidation InvalidateConstantWidth() => !constantWidthCache.Invalidate() ? 0 : InvalidateCharacters();
+
+        [MustUseReturnValue]
         protected Invalidation InvalidateShadowOffset() => !shadowOffsetCache.Invalidate() ? 0 : InvalidateDrawNode();
 
-        public override void PropagateInvalidationFromParent(Invalidation parentInvalidation, Invalidation selfInvalidation = Invalidation.None)
+        public override void InvalidateFromParent(Invalidation parentInvalidation, Invalidation selfInvalidation = Invalidation.None)
         {
             if ((parentInvalidation & Invalidation.ChildSizeBeforeAutoSize) != 0)
                 selfInvalidation |= InvalidateCharacters();
@@ -498,7 +508,7 @@ namespace osu.Framework.Graphics.Sprites
             if ((parentInvalidation & Invalidation.DrawInfo) != 0)
                 selfInvalidation |= InvalidateScreenSpaceCharacters() | InvalidateShadowOffset();
 
-            base.PropagateInvalidationFromParent(parentInvalidation, selfInvalidation);
+            base.InvalidateFromParent(parentInvalidation, selfInvalidation);
         }
 
         #endregion

@@ -4,7 +4,6 @@
 using osu.Framework.Statistics;
 using System;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using NUnit.Framework;
 
@@ -14,7 +13,7 @@ namespace osu.Framework.Caching
     {
         internal static bool BypassCache = false;
 
-        internal static bool CheckInvalidationPropagation = false;
+        internal static bool CheckInvalidationPropagation = true;
     }
 
     public struct Cached<T>
@@ -141,6 +140,7 @@ namespace osu.Framework.Caching
 
                     return value;
                 }
+
                 return cache.Value;
             }
             else
