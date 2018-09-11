@@ -179,6 +179,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 cell.DistributedWidth = true;
                 cell.DistributedHeight = true;
+                cell.IsAutoSized = false;
             }
 
             var childSize = ChildSizeBeforeAutoSize;
@@ -212,7 +213,10 @@ namespace osu.Framework.Graphics.Containers
                             break;
                         case GridSizeMode.AutoSize:
                             for (int r = 0; r < cellRows; r++)
+                            {
+                                cells[r, i].IsAutoSized = true;
                                 cellWidth = Math.Max(cellWidth, Content[r]?[i]?.BoundingBoxBeforeParentAutoSize.Width ?? 0);
+                            }
                             break;
                     }
 
@@ -250,7 +254,10 @@ namespace osu.Framework.Graphics.Containers
                             break;
                         case GridSizeMode.AutoSize:
                             for (int c = 0; c < cellColumns; c++)
+                            {
+                                cells[i, c].IsAutoSized = true;
                                 cellHeight = Math.Max(cellHeight, Content[i]?[c]?.BoundingBoxBeforeParentAutoSize.Height ?? 0);
+                            }
                             break;
                     }
 
@@ -303,10 +310,14 @@ namespace osu.Framework.Graphics.Containers
             /// </summary>
             public bool DistributedHeight;
 
+            /// <summary>
+            /// Whether this <see cref="CellContainer"/> uses <see cref="GridSizeMode.AutoSize"/> for its width or height.
+            /// </summary>
+            public bool IsAutoSized;
+
             public override void InvalidateFromChild(Invalidation childInvalidation, Drawable child, Invalidation selfInvalidation = Invalidation.None)
             {
-                // todo: only invalidate when this is an auto sized cell
-                if ((childInvalidation & Invalidation.BoundingBoxSizeBeforeParentAutoSize) != 0)
+                if (IsAutoSized && (childInvalidation & Invalidation.BoundingBoxSizeBeforeParentAutoSize) != 0)
                 {
                     if (Parent is GridContainer p)
                     {
