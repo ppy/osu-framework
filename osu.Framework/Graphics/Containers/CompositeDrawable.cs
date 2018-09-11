@@ -1420,13 +1420,15 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         internal event Action OnAutoSize;
 
-        private Cached<Vector2> autoSizeCache = new Cached<Vector2> { Name = "AutoSize" };
-
-        private Vector2 autoSize => autoSizeCache.Compute(computeAutoSize);
+        private Cached autoSizeCache = new Cached { Name = "AutoSize" };
 
         public override float Width
         {
-            get => (AutoSizeAxes & Axes.X) != 0 ? autoSize.X : base.Width;
+            get
+            {
+                if ((AutoSizeAxes & Axes.X) != 0) validateAutoSize();
+                return base.Width;
+            }
 
             set
             {
@@ -1442,7 +1444,11 @@ namespace osu.Framework.Graphics.Containers
 
         public override float Height
         {
-            get => (AutoSizeAxes & Axes.Y) != 0 ? autoSize.Y : base.Height;
+            get
+            {
+                if((AutoSizeAxes & Axes.Y) != 0) validateAutoSize();
+                return base.Height;
+            }
 
             set
             {
@@ -1458,7 +1464,11 @@ namespace osu.Framework.Graphics.Containers
 
         public override Vector2 Size
         {
-            get => new Vector2(Width, Height);
+            get
+            {
+                if (AutoSizeAxes != Axes.None) validateAutoSize();
+                return new Vector2(base.Width, base.Height);
+            }
 
             set
             {
@@ -1501,44 +1511,52 @@ namespace osu.Framework.Graphics.Containers
                 !AutoSizeAxes.HasFlag(Axes.Y) ? base.Height : maxRequiredSize.Y + Padding.TotalVertical);
         }
 
-        // todo: auto size transformation
-        //private void updateAutoSize()
-        //{
-        //    if (AutoSizeAxes == Axes.None)
-        //        return;
+        private void validateAutoSize()
+        {
+            autoSizeCache.Compute(updateAutoSize);
+        }
 
-        //    Vector2 newSize = autoSize;
+        private void updateAutoSize()
+        {
+            if (AutoSizeAxes == Axes.None)
+                return;
 
-        //    autoSizeResizeTo(newSize, AutoSizeDuration, AutoSizeEasing);
+            Vector2 newSize = computeAutoSize();
 
-        //    //note that this is called before autoSize becomes valid. may be something to consider down the line.
-        //    //might work better to add an OnRefresh event in Cached<> and invoke there.
-        //    OnAutoSize?.Invoke();
-        //}
+            autoSizeResizeTo(newSize, AutoSizeDuration, AutoSizeEasing);
 
-        //private void autoSizeResizeTo(Vector2 newSize, double duration = 0, Easing easing = Easing.None)
-        //{
-        //    var currentTargetSize = ((AutoSizeTransform)Transforms.FirstOrDefault(t => t is AutoSizeTransform))?.EndValue ?? BaseSize;
-        //    if (currentTargetSize != newSize)
-        //        this.TransformTo(this.PopulateTransform(new AutoSizeTransform { Rewindable = false }, newSize, duration, easing));
-        //}
+            //note that this is called before autoSize becomes valid. may be something to consider down the line.
+            //might work better to add an OnRefresh event in Cached<> and invoke there.
+            OnAutoSize?.Invoke();
+        }
 
-        ///// <summary>
-        ///// A helper property for <see cref="autoSizeResizeTo(Vector2, double, Easing)"/> to change the size of <see cref="CompositeDrawable"/>s with <see cref="AutoSizeAxes"/>.
-        ///// </summary>
-        //protected Vector2 BaseSize
-        //{
-        //    get => base.Size;
-        //    set => base.Size = value;
-        //}
+        private void autoSizeResizeTo(Vector2 newSize, double duration = 0, Easing easing = Easing.None)
+        {
+            var currentTargetSize = ((AutoSizeTransform)Transforms.FirstOrDefault(t => t is AutoSizeTransform))?.EndValue ?? baseSize;
+            if (currentTargetSize != newSize)
+                this.TransformTo(this.PopulateTransform(new AutoSizeTransform { Rewindable = false }, newSize, duration, easing));
+        }
 
-        //private class AutoSizeTransform : TransformCustom<Vector2, CompositeDrawable>
-        //{
-        //    public AutoSizeTransform()
-        //        : base(nameof(BaseSize))
-        //    {
-        //    }
-        //}
+        /// <summary>
+        /// A helper property for <see cref="autoSizeResizeTo(Vector2, double, Easing)"/> to change the size of <see cref="CompositeDrawable"/>s with <see cref="AutoSizeAxes"/>.
+        /// </summary>
+        private Vector2 baseSize
+        {
+            get => base.Size;
+            set
+            {
+                base.Width = value.X;
+                base.Height = value.Y;
+            }
+        }
+
+        private class AutoSizeTransform : TransformCustom<Vector2, CompositeDrawable>
+        {
+            public AutoSizeTransform()
+                : base(nameof(baseSize))
+            {
+            }
+        }
 
         #endregion
     }
