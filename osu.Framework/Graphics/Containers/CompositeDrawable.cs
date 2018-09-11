@@ -747,7 +747,7 @@ namespace osu.Framework.Graphics.Containers
         protected Invalidation InvalidateAutoSize()
         {
             if (!autoSizeCache.Invalidate()) return Invalidation.None;
-            return Invalidation.AutoSize | InvalidateDrawSize() | InvalidateRequiredParentSizeToFit();
+            return Invalidation.AutoSize | InvalidateDrawSize() | InvalidateRequiredParentSizeToFit() | InvalidateBoundingBoxSizeBeforeParentAutoSize();
         }
 
         protected Invalidation InvalidateChildSizeBeforeAutoSize()

@@ -602,7 +602,7 @@ namespace osu.Framework.Graphics
 
                 size = value;
 
-                Invalidate(Invalidation.RequiredParentSizeToFit | Invalidation.DrawSize);
+                Invalidate(Invalidation.RequiredParentSizeToFit | Invalidation.BoundingBoxSizeBeforeParentAutoSize | Invalidation.DrawSize);
             }
         }
 
@@ -623,7 +623,7 @@ namespace osu.Framework.Graphics
 
                 width = value;
 
-                Invalidate(Invalidation.RequiredParentSizeToFit | Invalidation.DrawSize);
+                Invalidate(Invalidation.RequiredParentSizeToFit | Invalidation.BoundingBoxSizeBeforeParentAutoSize | Invalidation.DrawSize);
             }
         }
 
@@ -641,7 +641,7 @@ namespace osu.Framework.Graphics
 
                 height = value;
 
-                Invalidate(Invalidation.RequiredParentSizeToFit | Invalidation.DrawSize);
+                Invalidate(Invalidation.RequiredParentSizeToFit | Invalidation.BoundingBoxSizeBeforeParentAutoSize | Invalidation.DrawSize);
             }
         }
 
@@ -681,7 +681,7 @@ namespace osu.Framework.Graphics
                 // In some cases we cannot easily preserve our size, and so we simply invalidate and
                 // leave correct sizing to the user.
                 if (fillMode != FillMode.Stretch && (value == Axes.Both || relativeSizeAxes == Axes.Both))
-                    Invalidate(Invalidation.RequiredParentSizeToFit | Invalidation.DrawSize);
+                    Invalidate(Invalidation.RequiredParentSizeToFit | Invalidation.BoundingBoxSizeBeforeParentAutoSize | Invalidation.DrawSize);
                 else
                 {
                     // Convert coordinates from relative to absolute or vice versa
@@ -745,7 +745,7 @@ namespace osu.Framework.Graphics
 
                 margin = value;
 
-                Invalidate(Invalidation.RequiredParentSizeToFit | Invalidation.DrawInfo | Invalidation.DrawSize);
+                Invalidate(Invalidation.RequiredParentSizeToFit | Invalidation.BoundingBoxSizeBeforeParentAutoSize | Invalidation.DrawInfo | Invalidation.DrawSize);
             }
         }
 
@@ -921,9 +921,9 @@ namespace osu.Framework.Graphics
                 scale = value;
 
                 if (IsPresent != wasPresent)
-                    Invalidate(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.BoundingBoxBeforeParentAutoSize | Invalidation.Presence);
+                    Invalidate(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.BoundingBoxSizeBeforeParentAutoSize | Invalidation.Presence);
                 else
-                    Invalidate(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.BoundingBoxBeforeParentAutoSize);
+                    Invalidate(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.BoundingBoxSizeBeforeParentAutoSize);
             }
         }
 
@@ -991,7 +991,7 @@ namespace osu.Framework.Graphics
 
                 shear = value;
 
-                Invalidate(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.BoundingBoxBeforeParentAutoSize);
+                Invalidate(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.BoundingBoxSizeBeforeParentAutoSize);
             }
         }
 
@@ -1010,7 +1010,7 @@ namespace osu.Framework.Graphics
 
                 rotation = value;
 
-                Invalidate(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.BoundingBoxBeforeParentAutoSize);
+                Invalidate(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.BoundingBoxSizeBeforeParentAutoSize);
             }
         }
 
@@ -1627,8 +1627,8 @@ namespace osu.Framework.Graphics
             if ((invalidation & Invalidation.RequiredParentSizeToFit) != 0)
                 propagatingInvalidation |= InvalidateRequiredParentSizeToFit();
 
-            if ((invalidation & Invalidation.BoundingBoxBeforeParentAutoSize) != 0)
-                propagatingInvalidation |= InvalidateBoundingBoxBeforeParentAutoSize();
+            if ((invalidation & Invalidation.BoundingBoxSizeBeforeParentAutoSize) != 0)
+                propagatingInvalidation |= InvalidateBoundingBoxSizeBeforeParentAutoSize();
 
             if ((invalidation & Invalidation.DrawSize) != 0)
                 propagatingInvalidation |= InvalidateDrawSize();
@@ -1688,9 +1688,9 @@ namespace osu.Framework.Graphics
             return Invalidation.RequiredParentSizeToFit;
         }
 
-        protected Invalidation InvalidateBoundingBoxBeforeParentAutoSize()
+        protected Invalidation InvalidateBoundingBoxSizeBeforeParentAutoSize()
         {
-            return Invalidation.BoundingBoxBeforeParentAutoSize;
+            return Invalidation.BoundingBoxSizeBeforeParentAutoSize;
         }
 
         protected Invalidation InvalidateDrawSize()

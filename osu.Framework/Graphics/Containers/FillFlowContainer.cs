@@ -97,7 +97,7 @@ namespace osu.Framework.Graphics.Containers
         public override void PropagateInvalidationFromChild(Invalidation childInvalidation, Drawable child, Invalidation selfInvalidation = Invalidation.None)
         {
             // todo: must capture child.Anchor change
-            if ((childInvalidation & Invalidation.BoundingBoxBeforeParentAutoSize) != 0)
+            if ((childInvalidation & Invalidation.BoundingBoxSizeBeforeParentAutoSize) != 0)
                 selfInvalidation |= Invalidation.ChildrenLayout;
 
             base.PropagateInvalidationFromChild(childInvalidation, child, selfInvalidation);

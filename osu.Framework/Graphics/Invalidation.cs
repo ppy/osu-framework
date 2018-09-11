@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics
         DrawColourInfo = 1 << 3,
         DrawInfo = 1 << 4,
         RequiredParentSizeToFit = 1 << 5,
-        BoundingBoxBeforeParentAutoSize = 1 << 6,
+        BoundingBoxSizeBeforeParentAutoSize = 1 << 6,
         DrawSize = 1 << 7,
 
         // CompositeDrawable

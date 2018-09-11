@@ -31,7 +31,7 @@ namespace osu.Framework.Graphics.Containers
                     return;
                 content = value;
 
-                cellContent.Invalidate();
+                PropagateInvalidation(InvalidateCellContent());
             }
         }
 
@@ -47,7 +47,7 @@ namespace osu.Framework.Graphics.Containers
                     return;
                 rowDimensions = value;
 
-                cellLayout.Invalidate();
+                PropagateInvalidation(InvalidateCellLayout());
             }
         }
 
@@ -63,48 +63,70 @@ namespace osu.Framework.Graphics.Containers
                     return;
                 columnDimensions = value;
 
-                cellLayout.Invalidate();
+                PropagateInvalidation(InvalidateCellLayout());
             }
         }
 
         [BackgroundDependencyLoader]
         private void load()
         {
-            layoutContent();
+            layoutCellContent();
         }
 
         protected override void Update()
         {
             base.Update();
 
-            layoutContent();
-            layoutCells();
+            layoutCellContent();
+            layoutCellLayout();
         }
 
-        // todo: invalidation
-        //protected override Invalidation DoInvalidation(Invalidation invalidation)
-        //{
-        //    if ((invalidation & (Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit)) > 0)
-        //        cellLayout.Invalidate();
+        protected override Invalidation InvalidateFromInvalidation(Invalidation invalidation)
+        {
+            var propagatingInvalidation = base.InvalidateFromInvalidation(invalidation);
 
-        //    return base.DoInvalidation(invalidation);
-        //}
+            if (((invalidation | propagatingInvalidation) & Invalidation.ChildSizeBeforeAutoSize) != 0)
+                propagatingInvalidation |= InvalidateCellLayout();
 
-        private Cached cellContent = new Cached();
-        private Cached cellLayout = new Cached();
+            return propagatingInvalidation;
+        }
+
+        protected Invalidation InvalidateCellLayout() => !cellLayout.Invalidate() ? 0 :
+            InvalidateDrawSize() | InvalidateRequiredParentSizeToFit() | InvalidateBoundingBoxSizeBeforeParentAutoSize();
+
+        protected Invalidation InvalidateCellContent() => !cellContent.Invalidate() ? 0 :
+            InvalidateCellLayout();
+
+        private Cached<bool> cellContent = new Cached<bool> { Name = "GridContainer.cellContent" };
+        private Cached<bool> cellLayout = new Cached<bool> { Name = "GridContainer.cellLayout" };
 
         private CellContainer[,] cells = new CellContainer[0, 0];
         private int cellRows => cells.GetLength(0);
         private int cellColumns => cells.GetLength(1);
 
+        private void layoutCellContent()
+        {
+            cellContent.Compute(() =>
+            {
+                computeCellContent();
+                return true;
+            });
+        }
+
+        private void layoutCellLayout()
+        {
+            cellLayout.Compute(() =>
+            {
+                computeCellLayout();
+                return true;
+            });
+        }
+
         /// <summary>
         /// Moves content from <see cref="Content"/> into cells.
         /// </summary>
-        private void layoutContent()
+        private void computeCellContent()
         {
-            if (cellContent.IsValid)
-                return;
-
             int requiredRows = Content?.Length ?? 0;
             int requiredColumns = requiredRows == 0 ? 0 : Content.Max(c => c?.Length ?? 0);
 
@@ -115,7 +137,6 @@ namespace osu.Framework.Graphics.Containers
             // It's easier to just re-construct the cell containers instead of resizing
             // If this becomes a bottleneck we can transition to using lists, but this keeps the structure clean...
             ClearInternal();
-            cellLayout.Invalidate();
 
             // Create the new cell containers and add content
             cells = new CellContainer[requiredRows, requiredColumns];
@@ -143,23 +164,22 @@ namespace osu.Framework.Graphics.Containers
 
                     AddInternal(cells[r, c]);
                 }
-
-            cellContent.Validate();
         }
 
         /// <summary>
         /// Repositions/resizes cells.
         /// </summary>
-        private void layoutCells()
+        private void computeCellLayout()
         {
-            if (cellLayout.IsValid)
-                return;
+            layoutCellContent();
 
             foreach (var cell in cells)
             {
                 cell.DistributedWidth = true;
                 cell.DistributedHeight = true;
             }
+
+            var childSize = ChildSizeBeforeAutoSize;
 
             int autoSizedRows = cellRows;
             int autoSizedColumns = cellColumns;
@@ -183,14 +203,14 @@ namespace osu.Framework.Graphics.Containers
                         case GridSizeMode.Distributed:
                             continue;
                         case GridSizeMode.Relative:
-                            cellWidth = d.Size * DrawWidth;
+                            cellWidth = d.Size * childSize.X;
                             break;
                         case GridSizeMode.Absolute:
                             cellWidth = d.Size;
                             break;
                         case GridSizeMode.AutoSize:
                             for (int r = 0; r < cellRows; r++)
-                                cellWidth = Math.Max(cellWidth, Content[r]?[i]?.BoundingBox.Width ?? 0);
+                                cellWidth = Math.Max(cellWidth, Content[r]?[i]?.BoundingBoxBeforeParentAutoSize.Width ?? 0);
                             break;
                     }
 
@@ -221,14 +241,14 @@ namespace osu.Framework.Graphics.Containers
                         case GridSizeMode.Distributed:
                             continue;
                         case GridSizeMode.Relative:
-                            cellHeight = d.Size * DrawHeight;
+                            cellHeight = d.Size * childSize.Y;
                             break;
                         case GridSizeMode.Absolute:
                             cellHeight = d.Size;
                             break;
                         case GridSizeMode.AutoSize:
                             for (int c = 0; c < cellColumns; c++)
-                                cellHeight = Math.Max(cellHeight, Content[i]?[c]?.BoundingBox.Height ?? 0);
+                                cellHeight = Math.Max(cellHeight, Content[i]?[c]?.BoundingBoxBeforeParentAutoSize.Height ?? 0);
                             break;
                     }
 
@@ -246,8 +266,8 @@ namespace osu.Framework.Graphics.Containers
             // Compute the size which all distributed columns/rows should take on
             var distributedSize = new Vector2
             (
-                Math.Max(0, DrawWidth - definedWidth) / autoSizedColumns,
-                Math.Max(0, DrawHeight - definedHeight) / autoSizedRows
+                Math.Max(0, childSize.X - definedWidth) / autoSizedColumns,
+                Math.Max(0, childSize.Y - definedHeight) / autoSizedRows
             );
 
             // Add size to distributed columns/rows and add adjust cell positions
@@ -264,8 +284,6 @@ namespace osu.Framework.Graphics.Containers
                     if (r > 0)
                         cells[r, c].Y = cells[r - 1, c].Y + cells[r - 1, c].Height;
                 }
-
-            cellLayout.Validate();
         }
 
         /// <summary>
@@ -283,7 +301,17 @@ namespace osu.Framework.Graphics.Containers
             /// </summary>
             public bool DistributedHeight;
 
-            // todo
+            public override void PropagateInvalidationFromChild(Invalidation childInvalidation, Drawable child, Invalidation selfInvalidation = Invalidation.None)
+            {
+                // todo: only invalidate when this is an auto sized cell
+                if ((childInvalidation & Invalidation.BoundingBoxSizeBeforeParentAutoSize) != 0)
+                {
+                    if (Parent is GridContainer p)
+                        if (!p.cellLayout.IsComputing)
+                            p.PropagateInvalidation(p.InvalidateCellLayout());
+                }
+                base.PropagateInvalidationFromChild(childInvalidation, child, selfInvalidation);
+            }
         }
     }
 
