@@ -1,12 +1,13 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-// Uncomment this line to enable checks of invalidation propagation
-// #define CheckInvalidationPropagation
+// Uncomment following line to enable checks of invalidation propagation
+//#define CheckInvalidationPropagation
 
 using osu.Framework.Statistics;
 using System;
 #if CheckInvalidationPropagation
+using osu.Framework.Development;
 using NUnit.Framework;
 #endif
 
@@ -118,7 +119,7 @@ namespace osu.Framework.Caching
         {
             if (cache.IsValid)
             {
-                if (checking == null)
+                if (checking == null && ThreadSafety.IsUpdateThread)
                 {
                     checking = cache.GetDescription();
                     var value = func();
@@ -146,7 +147,7 @@ namespace osu.Framework.Caching
         {
             if (cache.IsValid)
             {
-                if (checking == null)
+                if (checking == null && ThreadSafety.IsUpdateThread)
                 {
                     checking = cache.GetDescription();
                     action();
