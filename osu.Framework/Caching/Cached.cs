@@ -21,6 +21,20 @@ namespace osu.Framework.Caching
     {
         private T value;
 
+        private bool isValid;
+
+        public bool IsValid => !StaticCached.BypassCache && isValid;
+
+        public static implicit operator T(Cached<T> value) => value.Value;
+
+        public string Name { get; set; }
+
+        public bool IsComputing;
+
+        public StackTrace LastInvalidation;
+
+        public StackTrace LastValidation;
+
         public T Value
         {
             get
@@ -32,21 +46,13 @@ namespace osu.Framework.Caching
 
             set
             {
+                LastValidation = new StackTrace();
+
                 this.value = value;
                 isValid = true;
                 FrameStatistics.Increment(StatisticsCounterType.Refreshes);
             }
         }
-
-        private bool isValid;
-
-        public bool IsValid => !StaticCached.BypassCache && isValid;
-
-        public static implicit operator T(Cached<T> value) => value.Value;
-
-        public string Name { get; set; }
-
-        public bool IsComputing;
 
         /// <summary>
         /// Invalidate the cache of this object.
@@ -54,11 +60,12 @@ namespace osu.Framework.Caching
         /// <returns>True if we invalidated from a valid state.</returns>
         public bool Invalidate()
         {
-            //Assert.IsFalse(IsComputing, $"{GetDescription()} is invalidated while computing itself");
+            Assert.IsFalse(IsComputing, $"{GetDescription()} is invalidated while computing itself");
 
             if (isValid)
             {
                 //Console.WriteLine($"{GetDescription()} invalidated");
+                LastInvalidation = new StackTrace();
 
                 isValid = false;
                 FrameStatistics.Increment(StatisticsCounterType.Invalidations);
@@ -123,10 +130,12 @@ namespace osu.Framework.Caching
 
                     var value = func();
 
-                    //Assert.IsTrue(cache.IsValid, $"{checking.Value} is invalidated while computing itself");
+                    Assert.IsTrue(cache.IsValid, $"{checking.Value} is invalidated while computing itself");
 
                     if (cache.IsValid)
                         Assert.AreEqual(cache.Value, value, $"{checking.Value} is not invalidated when necessary");
+                    else
+                        cache.Value = value;
 
                     checking.Value = null;
 
@@ -143,7 +152,7 @@ namespace osu.Framework.Caching
 
                 Assert.IsFalse(cache.IsComputing, $"{cache.GetDescription()} has a circular dependency");
 
-                //Console.WriteLine($"{string.Concat(Enumerable.Repeat(' ', computing_depth.Value))}{cache.GetDescription()} computing... (");
+                Console.WriteLine($"{string.Concat(Enumerable.Repeat(' ', computing_depth.Value))}{cache.GetDescription()} computing... (");
                 cache.IsComputing = true;
                 computing_depth.Value += 1;
 
@@ -151,7 +160,7 @@ namespace osu.Framework.Caching
 
                 computing_depth.Value -= 1;
                 cache.IsComputing = false;
-                //Console.WriteLine($"{string.Concat(Enumerable.Repeat(' ', computing_depth.Value))}){cache.GetDescription()} computed");
+                Console.WriteLine($"{string.Concat(Enumerable.Repeat(' ', computing_depth.Value))}){cache.GetDescription()} computed");
 
                 return value;
             }

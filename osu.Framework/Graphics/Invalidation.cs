@@ -20,7 +20,6 @@ namespace osu.Framework.Graphics
         DrawInfo = 1 << 4,
         RequiredParentSizeToFit = 1 << 5,
         DrawSize = 1 << 6,
-        LayoutRectangle = 1 << 7,
 
         // CompositeDrawable
         AutoSize = 1 << 9,
@@ -30,7 +29,6 @@ namespace osu.Framework.Graphics
 
         // FlowContainer
         ChildrenLayout = 1 << 13,
-
 
 
         All = ~0,

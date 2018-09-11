@@ -26,7 +26,6 @@ using System.Reflection;
 using System.Threading;
 using osu.Framework.Configuration;
 using osu.Framework.Development;
-using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.EventArgs;
 using osu.Framework.Input.States;
 using osu.Framework.MathUtils;
@@ -646,6 +645,18 @@ namespace osu.Framework.Graphics
             }
         }
 
+        protected float WidthWithNoInvalidation
+        {
+            get => width;
+            set => width = value;
+        }
+
+        protected float HeightWithNoInvalidation
+        {
+            get => height;
+            set => height = value;
+        }
+
         private Axes relativeSizeAxes;
 
         /// <summary>
@@ -734,7 +745,7 @@ namespace osu.Framework.Graphics
 
                 margin = value;
 
-                Invalidate(Invalidation.RequiredParentSizeToFit | Invalidation.DrawInfo | Invalidation.LayoutRectangle);
+                Invalidate(Invalidation.RequiredParentSizeToFit | Invalidation.DrawInfo | Invalidation.DrawSize);
             }
         }
 
@@ -1616,9 +1627,6 @@ namespace osu.Framework.Graphics
             if ((invalidation & Invalidation.RequiredParentSizeToFit) != 0)
                 propagatingInvalidation |= InvalidateRequiredParentSizeToFit();
 
-            if ((invalidation & Invalidation.LayoutRectangle) != 0)
-                propagatingInvalidation |= InvalidateLayoutRectangle();
-
             if ((invalidation & Invalidation.DrawSize) != 0)
                 propagatingInvalidation |= InvalidateDrawSize();
 
@@ -1627,9 +1635,11 @@ namespace osu.Framework.Graphics
 
         public void Invalidate(Invalidation invalidation = Invalidation.All)
         {
+            if (invalidation == Invalidation.None) return;
+
             var propagatingInvalidation = InvalidateFromInvalidation(invalidation);
 
-            //Console.WriteLine($"Invalidate {this} {invalidation} => propagating {propagatingInvalidation}");
+            // Console.WriteLine($"Invalidate {this} {invalidation} => propagating {propagatingInvalidation}");
 
             if (propagatingInvalidation != Invalidation.None)
                 PropagateInvalidation(propagatingInvalidation);
@@ -1675,16 +1685,11 @@ namespace osu.Framework.Graphics
             return Invalidation.RequiredParentSizeToFit;
         }
 
-        protected Invalidation InvalidateLayoutRectangle()
-        {
-            return Invalidation.LayoutRectangle;
-        }
-
         protected Invalidation InvalidateDrawSize()
         {
             if (!drawSizeBacking.Invalidate()) return Invalidation.None;
             // todo: if origin is topleft, DrawSize shouldn't affect DrawInfo
-            return Invalidation.DrawSize | InvalidateDrawInfo() | InvalidateLayoutRectangle();
+            return Invalidation.DrawSize | InvalidateScreenSpaceDrawQuad() | InvalidateDrawInfo();
         }
 
         protected virtual void PropagateInvalidation(Invalidation propagatingInvalidation)

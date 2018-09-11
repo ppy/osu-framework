@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Caching;
@@ -72,7 +71,7 @@ namespace osu.Framework.Graphics.Sprites
                         base.Height = Padding.TotalVertical;
                 }
 
-                invalidate(true);
+                PropagateInvalidation(InvalidateCharacters());
             }
         }
 
@@ -90,8 +89,7 @@ namespace osu.Framework.Graphics.Sprites
                     return;
                 textSize = value;
 
-                invalidate(true);
-                shadowOffsetCache.Invalidate();
+                PropagateInvalidation(InvalidateCharacters() | InvalidateShadowOffset());
             }
         }
 
@@ -109,7 +107,7 @@ namespace osu.Framework.Graphics.Sprites
                     return;
                 font = value;
 
-                invalidate(true);
+                PropagateInvalidation(InvalidateCharacters() | InvalidateConstantWidth() | InvalidateShadowOffset());
             }
         }
 
@@ -127,7 +125,7 @@ namespace osu.Framework.Graphics.Sprites
                     return;
                 allowMultiline = value;
 
-                invalidate(true);
+                PropagateInvalidation(InvalidateCharacters());
             }
         }
 
@@ -182,7 +180,7 @@ namespace osu.Framework.Graphics.Sprites
                     return;
                 useFullGlyphHeight = value;
 
-                invalidate(true);
+                PropagateInvalidation(InvalidateCharacters());
             }
         }
 
@@ -200,7 +198,7 @@ namespace osu.Framework.Graphics.Sprites
                     return;
                 fixedWidth = value;
 
-                invalidate(true);
+                PropagateInvalidation(InvalidateCharacters());
             }
         }
 
@@ -234,7 +232,7 @@ namespace osu.Framework.Graphics.Sprites
                 base.Width = value;
                 explicitWidth = value;
 
-                invalidate(true);
+                PropagateInvalidation(InvalidateCharacters());
             }
         }
 
@@ -259,7 +257,7 @@ namespace osu.Framework.Graphics.Sprites
                 base.Height = value;
                 explicitHeight = value;
 
-                invalidate(true);
+                PropagateInvalidation(InvalidateCharacters());
             }
         }
 
@@ -295,7 +293,7 @@ namespace osu.Framework.Graphics.Sprites
                     return;
                 spacing = value;
 
-                invalidate(true);
+                PropagateInvalidation(InvalidateCharacters());
             }
         }
 
@@ -316,7 +314,7 @@ namespace osu.Framework.Graphics.Sprites
 
                 padding = value;
 
-                invalidate(true);
+                PropagateInvalidation(InvalidateCharacters());
             }
         }
 
@@ -324,7 +322,7 @@ namespace osu.Framework.Graphics.Sprites
 
         #region Characters
 
-        private Cached charactersCache = new Cached();
+        private Cached<bool> charactersCache = new Cached<bool> { Name = nameof(characters) };
         private readonly List<CharacterPart> charactersBacking = new List<CharacterPart>();
 
         /// <summary>
@@ -334,25 +332,21 @@ namespace osu.Framework.Graphics.Sprites
         {
             get
             {
-                computeCharacters();
+                charactersCache.Compute(() =>
+                {
+                    computeCharacters();
+                    return true;
+                });
                 return charactersBacking;
             }
         }
 
-        private bool isComputingCharacters;
-
         private void computeCharacters()
         {
-            if (store == null)
-                return;
-
-            if (charactersCache.IsValid)
-                return;
-
             charactersBacking.Clear();
 
-            Debug.Assert(!isComputingCharacters, "Cyclic invocation of computeCharacters()!");
-            isComputingCharacters = true;
+            if (store == null)
+                return;
 
             Vector2 currentPos = new Vector2(Padding.Left, Padding.Top);
 
@@ -444,13 +438,10 @@ namespace osu.Framework.Graphics.Sprites
                     base.Width = currentPos.X + Padding.Right;
                 if (requiresAutoSizedHeight)
                     base.Height = currentPos.Y + Padding.Bottom;
-
-                isComputingCharacters = false;
-                charactersCache.Validate();
             }
         }
 
-        private Cached screenSpaceCharactersCache = new Cached();
+        private Cached<bool> screenSpaceCharactersCache = new Cached<bool> { Name = "screenSpaceCharacters" };
         private readonly List<ScreenSpaceCharacterPart> screenSpaceCharactersBacking = new List<ScreenSpaceCharacterPart>();
 
         /// <summary>
@@ -460,16 +451,17 @@ namespace osu.Framework.Graphics.Sprites
         {
             get
             {
-                computeScreenSpaceCharacters();
+                screenSpaceCharactersCache.Compute(() =>
+                {
+                    computeScreenSpaceCharacters();
+                    return true;
+                });
                 return screenSpaceCharactersBacking;
             }
         }
 
         private void computeScreenSpaceCharacters()
         {
-            if (screenSpaceCharactersCache.IsValid)
-                return;
-
             screenSpaceCharactersBacking.Clear();
 
             foreach (var character in characters)
@@ -480,28 +472,35 @@ namespace osu.Framework.Graphics.Sprites
                     Texture = character.Texture
                 });
             }
-
-            screenSpaceCharactersCache.Validate();
         }
 
-        private Cached<float> constantWidthCache;
-        private float constantWidth => constantWidthCache.IsValid ? constantWidthCache.Value : (constantWidthCache.Value = GetTextureForCharacter('D')?.DisplayWidth ?? 0);
+        private Cached<float> constantWidthCache = new Cached<float> { Name = nameof(constantWidth) };
+        private float constantWidth => constantWidthCache.Compute(computeConstantWidth);
+        private float computeConstantWidth() => GetTextureForCharacter('D')?.DisplayWidth ?? 0;
 
-        private Cached<Vector2> shadowOffsetCache;
-        private Vector2 shadowOffset => shadowOffsetCache.IsValid ? shadowOffsetCache.Value : (shadowOffsetCache.Value = ToScreenSpace(shadow_offset * TextSize) - ToScreenSpace(Vector2.Zero));
+        private Cached<Vector2> shadowOffsetCache = new Cached<Vector2> { Name = nameof(shadowOffset) };
+        private Vector2 shadowOffset => shadowOffsetCache.Compute(computeShadowOffset);
+        private Vector2 computeShadowOffset() => ToScreenSpace(shadow_offset * TextSize) - ToScreenSpace(Vector2.Zero);
 
         #endregion
 
         #region Invalidation
 
-        private void invalidate(bool layout = false)
-        {
-            if (layout)
-                charactersCache.Invalidate();
-            screenSpaceCharactersCache.Invalidate();
-        }
+        protected Invalidation InvalidateScreenSpaceCharacters() => !screenSpaceCharactersCache.Invalidate() ? 0 : InvalidateDrawNode();
+        protected Invalidation InvalidateCharacters() => !charactersCache.Invalidate() ? 0 : InvalidateScreenSpaceCharacters() | InvalidateDrawSize() | InvalidateRequiredParentSizeToFit();
+        protected Invalidation InvalidateConstantWidth() => !constantWidthCache.Invalidate() ? 0 : InvalidateCharacters();
+        protected Invalidation InvalidateShadowOffset() => !shadowOffsetCache.Invalidate() ? 0 : InvalidateDrawNode();
 
-        // todo: invalidation
+        public override void PropagateInvalidationFromParent(Invalidation parentInvalidation, Invalidation selfInvalidation = Invalidation.None)
+        {
+            if ((parentInvalidation & Invalidation.ChildSizeBeforeAutoSize) != 0)
+                selfInvalidation |= InvalidateCharacters();
+
+            if ((parentInvalidation & Invalidation.DrawInfo) != 0)
+                selfInvalidation |= InvalidateScreenSpaceCharacters() | InvalidateShadowOffset();
+
+            base.PropagateInvalidationFromParent(parentInvalidation, selfInvalidation);
+        }
 
         #endregion
 

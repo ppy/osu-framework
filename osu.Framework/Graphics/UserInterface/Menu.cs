@@ -64,7 +64,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private readonly Box background;
 
-        private Cached sizeCache = new Cached();
+        private Cached<bool> sizeCache = new Cached<bool> { Name = "Menu.Size" };
 
         private readonly Container<Menu> submenuContainer;
 
@@ -364,7 +364,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 UpdateSize(new Vector2(width, height));
 
-                sizeCache.Validate();
+                sizeCache.Value = true;//.Validate();
             }
         }
 

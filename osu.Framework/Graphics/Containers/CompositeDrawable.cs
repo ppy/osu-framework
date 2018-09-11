@@ -1271,7 +1271,7 @@ namespace osu.Framework.Graphics.Containers
 
                 padding = value;
 
-                Invalidate(Invalidation.ChildSize);
+                Invalidate(Invalidation.ChildSizeBeforeAutoSize | Invalidation.ChildSize);
             }
         }
 
@@ -1493,7 +1493,7 @@ namespace osu.Framework.Graphics.Containers
             var originalPadding = Padding;
             try
             {
-//                Padding = new MarginPadding();
+                Padding = new MarginPadding();
 
                 Vector2 maxRequiredSize = Vector2.Zero;
 
@@ -1521,7 +1521,7 @@ namespace osu.Framework.Graphics.Containers
             }
             finally
             {
-//                Padding = originalPadding;
+                Padding = originalPadding;
             }
         }
 

@@ -53,7 +53,7 @@ namespace osu.Framework.Graphics.Visualisation
 
             var properties = (IEnumerable<MemberInfo>)type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
                                                           // Only properties which we can read
-                                                          .Where(p => p.CanRead);
+                                                          .Where(p => p.CanRead && p.Name != "Child" && p.Name != "InternalChild");
 
             var fields = (IEnumerable<MemberInfo>)type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
                                                       // Exclude the backing fields of properties
