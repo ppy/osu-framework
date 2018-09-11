@@ -1111,7 +1111,7 @@ namespace osu.Framework.Graphics
                     throw new ArgumentException("Cannot set anchor to 0.", nameof(value));
 
                 anchor = value;
-                PropagateInvalidation(InvalidateDrawInfo() | InvalidateRequiredParentSizeToFit());
+                PropagateInvalidation(InvalidateDrawInfo() | InvalidateRequiredParentSizeToFit() | Invalidation.Anchor);
             }
         }
 

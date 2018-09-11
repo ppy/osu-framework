@@ -103,8 +103,7 @@ namespace osu.Framework.Graphics.Containers
 
         public override void InvalidateFromChild(Invalidation childInvalidation, Drawable child, Invalidation selfInvalidation = Invalidation.None)
         {
-            // todo: must capture child.Anchor change
-            if ((childInvalidation & Invalidation.BoundingBoxSizeBeforeParentAutoSize) != 0)
+            if ((childInvalidation & (Invalidation.BoundingBoxSizeBeforeParentAutoSize | Invalidation.Anchor)) != 0)
             {
                 if (!IsComputingLayout)   // todo: find a way to resolve "invalidation during computation"
                     selfInvalidation |= InvalidateChildrenLayout();
