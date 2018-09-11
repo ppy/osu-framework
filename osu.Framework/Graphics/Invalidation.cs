@@ -10,6 +10,7 @@ namespace osu.Framework.Graphics
     {
         None = 0,
 
+        DrawNode = 1 << 0,
         Presence = 1 << 1,
         ScreenSpaceDrawQuad = 1 << 2,
         DrawColourInfo = 1 << 3,
@@ -22,9 +23,6 @@ namespace osu.Framework.Graphics
         // CompositeDrawable
         ChildSize = 1 << 10,
         ChildSizeBeforeAutoSize = 1 << 11,
-
-        // legacy compatibility
-        DrawNode = 1 << 30,
 
         All = ~0,
     }

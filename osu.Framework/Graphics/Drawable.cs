@@ -1603,7 +1603,7 @@ namespace osu.Framework.Graphics
         protected Invalidation InvalidateDrawNode()
         {
             invalidationID = invalidation_counter.Increment();
-            return Invalidation.None;
+            return Invalidation.DrawNode;
         }
 
         [MustUseReturnValue]

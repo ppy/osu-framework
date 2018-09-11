@@ -130,7 +130,7 @@ namespace osu.Framework.Graphics.Containers
                     return;
 
                 effectColour = value;
-                Invalidate(Invalidation.DrawNode);
+                PropagateInvalidation(InvalidateDrawNode());
             }
         }
 
@@ -150,7 +150,7 @@ namespace osu.Framework.Graphics.Containers
                     return;
 
                 effectBlending = value;
-                Invalidate(Invalidation.DrawNode);
+                PropagateInvalidation(InvalidateDrawNode());
             }
         }
 
@@ -169,7 +169,7 @@ namespace osu.Framework.Graphics.Containers
                     return;
 
                 effectPlacement = value;
-                Invalidate(Invalidation.DrawNode);
+                PropagateInvalidation(InvalidateDrawNode());
             }
         }
 
@@ -203,7 +203,7 @@ namespace osu.Framework.Graphics.Containers
         /// Forces a redraw of the framebuffer before it is blitted the next time.
         /// Only relevant if <see cref="CacheDrawnFrameBuffer"/> is true.
         /// </summary>
-        public void ForceRedraw() => Invalidate(Invalidation.DrawNode);
+        public void ForceRedraw() => PropagateInvalidation(InvalidateDrawNode());
 
         /// <summary>
         /// In order to signal the draw thread to re-draw the buffered container we version it.
@@ -319,10 +319,19 @@ namespace osu.Framework.Graphics.Containers
         private Vector2 lastScreenSpaceSize;
         private Cached screenSpaceSizeBacking = new Cached();
 
-        // todo: invalidation
-
         private long childrenUpdateVersion = -1;
         protected override bool RequiresChildrenUpdate => base.RequiresChildrenUpdate && childrenUpdateVersion != updateVersion;
+
+        protected override void PropagateInvalidation(Invalidation invalidation)
+        {
+            if ((invalidation & Invalidation.DrawNode) != 0)
+                ++ updateVersion;
+
+            if ((invalidation & Invalidation.ScreenSpaceDrawQuad) != 0)
+                screenSpaceSizeBacking.Invalidate();
+
+            base.PropagateInvalidation(invalidation);
+        }
 
         protected override void Update()
         {
@@ -330,7 +339,9 @@ namespace osu.Framework.Graphics.Containers
 
             // Invalidate drawn frame buffer every frame.
             if (!CacheDrawnFrameBuffer)
+            {
                 ForceRedraw();
+            }
             else if (!screenSpaceSizeBacking.IsValid)
             {
                 var screenSpaceSize = ScreenSpaceDrawQuad.AABBFloat.Size;
