@@ -1654,7 +1654,7 @@ namespace osu.Framework.Graphics
         protected Invalidation InvalidatePosition() => InvalidateDrawInfo() | InvalidateRequiredParentSizeToFit();
 
         [MustUseReturnValue]
-        protected  Invalidation InvalidateSize() => InvalidateMiscGeometry() | InvalidateDrawSize();
+        protected Invalidation InvalidateSize() => Invalidation.Size | InvalidateMiscGeometry() | InvalidateDrawSize();
 
         protected virtual void PropagateInvalidation(Invalidation invalidation)
         {

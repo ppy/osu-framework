@@ -20,14 +20,15 @@ namespace osu.Framework.Graphics
         DrawSize = 1 << 7,
         BypassAutoSizeAxes = 1 << 8,
         Anchor = 1 << 9,
+        Size = 1 << 10,
 
         // CompositeDrawable
-        ChildSize = 1 << 10,
-        ChildSizeBeforeAutoSize = 1 << 11,
-        RelativeChildSizeAndOffset = 1 << 12,
+        ChildSize = 1 << 11,
+        ChildSizeBeforeAutoSize = 1 << 12,
+        RelativeChildSizeAndOffset = 1 << 13,
 
         MaskPropagateFromParent = DrawColourInfo | DrawInfo | DrawSize | ChildSize | ChildSizeBeforeAutoSize | RelativeChildSizeAndOffset,
-        MaskPropagateFromChild = Presence | RequiredParentSizeToFit | BoundingBoxSizeBeforeParentAutoSize | BypassAutoSizeAxes | Anchor,
+        MaskPropagateFromChild = Presence | RequiredParentSizeToFit | BoundingBoxSizeBeforeParentAutoSize | DrawSize | BypassAutoSizeAxes | Anchor,
 
         All = ~0,
     }
