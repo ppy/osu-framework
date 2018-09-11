@@ -293,11 +293,6 @@ namespace osu.Framework.Tests.Visual
                     if (fillContainer.Parent == null)
                         scheduledAdder.Cancel();
 
-                    if (doNotAddChildren)
-                    {
-                        fillContainer.Invalidate();
-                    }
-
                     if (fillContainer.Children.Count < 1000 && !doNotAddChildren)
                     {
                         fillContainer.Add(new Container

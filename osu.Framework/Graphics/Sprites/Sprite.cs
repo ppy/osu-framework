@@ -94,7 +94,7 @@ namespace osu.Framework.Graphics.Sprites
                 texture = value;
 
                 FillAspectRatio = (float)(texture?.Width ?? 1) / (texture?.Height ?? 1);
-                Invalidate(Invalidation.DrawNode);
+                PropagateInvalidation(InvalidateDrawNode());
 
                 if (Size == Vector2.Zero)
                     Size = new Vector2(texture?.DisplayWidth ?? 0, texture?.DisplayHeight ?? 0);

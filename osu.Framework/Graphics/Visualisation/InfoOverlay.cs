@@ -79,13 +79,5 @@ namespace osu.Framework.Graphics.Visualisation
             shape.FlashColour(Color4.White, 250);
             childShape.FlashColour(Color4.White, 250);
         }
-
-        protected override void Update()
-        {
-            base.Update();
-
-            foreach (FlashyBox c in Children)
-                c.Invalidate(Invalidation.DrawNode);
-        }
     }
 }

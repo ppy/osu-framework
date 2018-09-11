@@ -56,7 +56,7 @@ namespace osu.Framework.Tests.Visual
 
             AddAssert("Check size before invalidate (1/2)", () => fitBox.DrawSize == expectedSize);
             AddAssert("Check size before invalidate (2/2)", () => fitBox.DrawSize == expectedSize);
-            AddStep("Invalidate", () => fitBox.Invalidate());
+            AddStep("Invalidate", () => fitBox.InvalidateAll());
             AddAssert("Check size after invalidate (1/2)", () => fitBox.DrawSize == expectedSize);
             AddAssert("Check size after invalidate (2/2)", () => fitBox.DrawSize == expectedSize);
         }

@@ -166,8 +166,8 @@ namespace osu.Framework.Tests.Visual
             {
                 if (!paused) manualClock.CurrentTime = Clock.CurrentTime;
 
-                autoSizeContainer.Children[0].Invalidate();
-                fillFlowContainer.Invalidate();
+                autoSizeContainer.Children[0].InvalidateAll();
+                fillFlowContainer.InvalidateAll();
             }
 
             base.Update();

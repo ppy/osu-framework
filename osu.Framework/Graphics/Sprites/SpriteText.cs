@@ -511,6 +511,11 @@ namespace osu.Framework.Graphics.Sprites
             base.InvalidateFromParent(parentInvalidation, selfInvalidation);
         }
 
+        internal override Invalidation InvalidateAll() =>
+            base.InvalidateAll() |
+            InvalidateScreenSpaceCharacters() | InvalidateCharacters() |
+            InvalidateConstantWidth() | InvalidateShadowOffset();
+
         #endregion
 
         #region DrawNode

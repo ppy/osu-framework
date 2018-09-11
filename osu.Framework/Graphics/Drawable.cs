@@ -1712,6 +1712,12 @@ namespace osu.Framework.Graphics
                 PropagateInvalidation(InvalidateDrawNode());
         }
 
+        internal virtual Invalidation InvalidateAll() =>
+            InvalidateDrawNode() | InvalidatePresence() | InvalidateScreenSpaceDrawQuad() |
+            InvalidateDrawColourInfo() | InvalidateDrawInfo() |
+            InvalidateRequiredParentSizeToFit() | InvalidateBoundingBoxSizeBeforeParentAutoSize() |
+            InvalidateDrawSize();
+
         #endregion
 
         #region DrawNode

@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using OpenTK;
 using System.Linq;
-using osu.Framework.Graphics.Sprites;
 using osu.Framework.MathUtils;
 
 namespace osu.Framework.Graphics.Containers
@@ -100,7 +99,7 @@ namespace osu.Framework.Graphics.Containers
             // todo: must capture child.Anchor change
             if ((childInvalidation & Invalidation.BoundingBoxSizeBeforeParentAutoSize) != 0)
             {
-                if (layout.IsValid)   // todo: find a way to resolve "invalidation during computation"
+                if (!IsComputingLayout)   // todo: find a way to resolve "invalidation during computation"
                     selfInvalidation |= InvalidateChildrenLayout();
             }
 

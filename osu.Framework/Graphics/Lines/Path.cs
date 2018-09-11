@@ -26,7 +26,7 @@ namespace osu.Framework.Graphics.Lines
                 recomputeBounds();
 
                 segmentsCache.Invalidate();
-                Invalidate(Invalidation.DrawNode);
+                PropagateInvalidation(InvalidateDrawNode());
             }
         }
 
@@ -55,7 +55,7 @@ namespace osu.Framework.Graphics.Lines
             if (!RelativeSizeAxes.HasFlag(Axes.Y)) Height = 0;
 
             segmentsCache.Invalidate();
-            Invalidate(Invalidation.DrawNode);
+            PropagateInvalidation(InvalidateDrawNode());
         }
 
         public void AddVertex(Vector2 pos)
@@ -64,7 +64,7 @@ namespace osu.Framework.Graphics.Lines
             expandBounds(pos);
 
             segmentsCache.Invalidate();
-            Invalidate(Invalidation.DrawNode);
+            PropagateInvalidation(InvalidateDrawNode());
         }
 
         private float minX;
@@ -111,7 +111,7 @@ namespace osu.Framework.Graphics.Lines
                 recomputeBounds();
 
                 segmentsCache.Invalidate();
-                Invalidate(Invalidation.DrawNode);
+                PropagateInvalidation(InvalidateDrawNode());
             }
         }
 
@@ -190,7 +190,7 @@ namespace osu.Framework.Graphics.Lines
                 texture?.Dispose();
                 texture = value;
 
-                Invalidate(Invalidation.DrawNode);
+                PropagateInvalidation(InvalidateDrawNode());
             }
         }
     }

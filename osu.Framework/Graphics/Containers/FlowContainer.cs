@@ -42,7 +42,9 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        protected Cached<bool> layout = new Cached<bool> { Name = "ChildrenLayout" };
+        private Cached<bool> layout = new Cached<bool> { Name = "ChildrenLayout" };
+
+        internal bool IsComputingLayout => layout.IsComputing;
 
         protected void InvalidateLayout() => PropagateInvalidation(InvalidateChildrenLayout());
 
@@ -80,6 +82,9 @@ namespace osu.Framework.Graphics.Containers
 
             base.InvalidateFromChild(childInvalidation, child, selfInvalidation);
         }
+
+        internal override Invalidation InvalidateAll() =>
+            base.InvalidateAll() | InvalidateChildrenLayout();
 
         private readonly Dictionary<Drawable, float> layoutChildren = new Dictionary<Drawable, float>();
 
@@ -213,7 +218,11 @@ namespace osu.Framework.Graphics.Containers
         protected override void UpdateAfterChildren()
         {
             base.UpdateAfterChildren();
+            ValidateLayout();
+        }
 
+        public void ValidateLayout()
+        {
             layout.Compute(() =>
             {
                 performLayout();

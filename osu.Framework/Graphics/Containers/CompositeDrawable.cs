@@ -780,6 +780,11 @@ namespace osu.Framework.Graphics.Containers
             base.InvalidateFromParent(parentInvalidation, selfInvalidation);
         }
 
+        internal override Invalidation InvalidateAll() =>
+            base.InvalidateAll() |
+            InvalidateAutoSize() | InvalidateChildSize() | InvalidateChildSizeBeforeAutoSize() |
+            InvalidateAliveInternalChildren();
+
         #endregion
 
         #region DrawNode

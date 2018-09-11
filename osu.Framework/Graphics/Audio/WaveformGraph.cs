@@ -93,7 +93,7 @@ namespace osu.Framework.Graphics.Audio
                     return;
                 lowColour = value;
 
-                Invalidate(Invalidation.DrawNode);
+                PropagateInvalidation(InvalidateDrawNode());
             }
         }
 
@@ -112,7 +112,7 @@ namespace osu.Framework.Graphics.Audio
                     return;
                 midColour = value;
 
-                Invalidate(Invalidation.DrawNode);
+                PropagateInvalidation(InvalidateDrawNode());
             }
         }
 
@@ -131,11 +131,17 @@ namespace osu.Framework.Graphics.Audio
                     return;
                 highColour = value;
 
-                Invalidate(Invalidation.DrawNode);
+                PropagateInvalidation(InvalidateDrawNode());
             }
         }
 
-        // todo: invalidation
+        protected override void PropagateInvalidation(Invalidation invalidation)
+        {
+            // must capture Scale change
+            if ((invalidation & (Invalidation.DrawSize | Invalidation.BoundingBoxSizeBeforeParentAutoSize)) != 0)
+                generate();
+            base.PropagateInvalidation(invalidation);
+        }
 
         private CancellationTokenSource cancelSource = new CancellationTokenSource();
         private ScheduledDelegate scheduledGenerate;
@@ -158,7 +164,7 @@ namespace osu.Framework.Graphics.Audio
                 Waveform.GenerateResampledAsync((int)Math.Max(0, Math.Ceiling(DrawWidth * Scale.X) * Resolution), token).ContinueWith(w =>
                 {
                     generatedWaveform = w.Result;
-                    Schedule(() => Invalidate(Invalidation.DrawNode));
+                    Schedule(() => PropagateInvalidation(InvalidateDrawNode()));
                 }, token);
             });
         }
