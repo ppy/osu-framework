@@ -3,6 +3,7 @@
 
 using System;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using osu.Framework.Caching;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Threading;
@@ -77,6 +78,24 @@ namespace osu.Framework.Graphics.Containers
             AddInternal(content);
         }
 
+        protected override void LoadComplete()
+        {
+            if (OptimisingContainer == null)
+            {
+                CompositeDrawable cursor = this;
+                while (OptimisingContainer == null && (cursor = cursor.Parent) != null)
+                    OptimisingContainer = cursor as IOnScreenOptimisingContainer;
+
+                if (OptimisingContainer != null)
+                {
+                    PropagateInvalidation(InvalidateIsIntersecting());
+                    OptimisingContainer.OnScreenSpaceDrawQuadInvalidated = () => PropagateInvalidation(InvalidateIsIntersecting());
+                }
+            }
+
+            base.LoadComplete();
+        }
+
         /// <summary>
         /// True if the load task for our content has been started.
         /// Will remain true even after load is completed.
@@ -85,31 +104,28 @@ namespace osu.Framework.Graphics.Containers
 
         public bool DelayedLoadCompleted => InternalChildren.Count > 0;
 
-        private Cached<bool> isIntersectingBacking;
-
-        protected bool IsIntersecting => isIntersectingBacking.IsValid ? isIntersectingBacking : (isIntersectingBacking.Value = checkScrollIntersection());
+        private Cached<bool> isIntersectingBacking = new Cached<bool> { Name = $"{nameof(DelayedLoadWrapper)}.{nameof(IsIntersecting)}" };
+        protected bool IsIntersecting => isIntersectingBacking.Compute(checkScrollIntersection);
 
         internal IOnScreenOptimisingContainer OptimisingContainer { get; private set; }
 
-        private bool checkScrollIntersection()
-        {
-            if (OptimisingContainer == null)
-            {
-                CompositeDrawable cursor = this;
-                while (OptimisingContainer == null && (cursor = cursor.Parent) != null)
-                    OptimisingContainer = cursor as IOnScreenOptimisingContainer;
-            }
+        private bool checkScrollIntersection() =>
+            OptimisingContainer?.ScreenSpaceDrawQuad.Intersects(ScreenSpaceDrawQuad) ?? true;
 
-            return OptimisingContainer?.ScreenSpaceDrawQuad.Intersects(ScreenSpaceDrawQuad) ?? true;
+        [MustUseReturnValue]
+        protected Invalidation InvalidateIsIntersecting()
+        {
+            if (!isIntersectingBacking.Invalidate()) return Invalidation.None;
+            // no dependency (delayed load is always performed on Update())
+            return Invalidation.None;
         }
 
-        // todo: invalidation
-
-        //protected override Invalidation DoInvalidation(Invalidation invalidation)
-        //{
-        //    isIntersectingBacking.Invalidate();
-        //    return base.DoInvalidation(invalidation);
-        //}
+        protected override void PropagateInvalidation(Invalidation invalidation)
+        {
+            if ((invalidation & Invalidation.ScreenSpaceDrawQuad) != 0)
+                invalidation |= InvalidateIsIntersecting();
+            base.PropagateInvalidation(invalidation);
+        }
 
         /// <summary>
         /// A container which acts as a masking parent for on-screen delayed load optimisations.
@@ -117,6 +133,8 @@ namespace osu.Framework.Graphics.Containers
         internal interface IOnScreenOptimisingContainer
         {
             Quad ScreenSpaceDrawQuad { get; }
+
+            Action OnScreenSpaceDrawQuadInvalidated { set; }
 
             /// <summary>
             /// Schedule a repeating action from a child to perform checks even when the child is potentially masked.

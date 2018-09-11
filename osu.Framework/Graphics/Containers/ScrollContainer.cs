@@ -517,6 +517,15 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        public Action OnScreenSpaceDrawQuadInvalidated { get; set; }
+
+        protected override void PropagateInvalidation(Invalidation invalidation)
+        {
+            if ((invalidation & Invalidation.ScreenSpaceDrawQuad) != 0)
+                OnScreenSpaceDrawQuadInvalidated?.Invoke();
+            base.PropagateInvalidation(invalidation);
+        }
+
         /// <summary>
         /// Creates the scrollbar for this <see cref="ScrollContainer"/>.
         /// </summary>
