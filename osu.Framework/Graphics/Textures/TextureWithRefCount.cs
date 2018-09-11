@@ -30,10 +30,10 @@ namespace osu.Framework.Graphics.Textures
             }
         }
 
-        #region Disposal
+        // Can't reference our own TextureGL here as an exception may be thrown
+        public sealed override bool Available => !base.TextureGL.IsDisposed;
 
-        // We can't reference our own TextureGL here as we may throw an exception
-        public sealed override bool IsDisposed => base.IsDisposed || base.TextureGL.IsDisposed;
+        #region Disposal
 
         ~TextureWithRefCount()
         {

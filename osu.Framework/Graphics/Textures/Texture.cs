@@ -131,10 +131,14 @@ namespace osu.Framework.Graphics.Textures
 
         public override string ToString() => $@"{AssetName} ({Width}, {Height})";
 
+        /// <summary>
+        /// Whether <see cref="TextureGL"/> is in a usable state.
+        /// </summary>
+        public virtual bool Available => !TextureGL.IsDisposed;
+
         #region Disposal
 
-        public virtual bool IsDisposed => isDisposed;
-        private bool isDisposed;
+        public bool IsDisposed { get; private set; }
 
         // Intentionally no finalizer implementation as our disposal is NOOP. Finalizer is implemented in TextureWithRefCount usage.
 
@@ -145,9 +149,9 @@ namespace osu.Framework.Graphics.Textures
 
         protected virtual void Dispose(bool isDisposing)
         {
-            if (isDisposed)
+            if (IsDisposed)
                 return;
-            isDisposed = true;
+            IsDisposed = true;
         }
 
         #endregion
