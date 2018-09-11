@@ -758,9 +758,13 @@ namespace osu.Framework.Graphics.Containers
             if ((invalidation & Invalidation.DrawSize) != 0)
                 invalidation |= InvalidateChildSize();
 
-            foreach (var child in internalChildren)
+            var masked = invalidation & Invalidation.MaskPropagateFromParent;
+            if (masked != Invalidation.None)
             {
-                child.InvalidateFromParent(invalidation);
+                foreach (var child in internalChildren)
+                {
+                    child.InvalidateFromParent(masked);
+                }
             }
 
             base.PropagateInvalidation(invalidation);
@@ -1428,6 +1432,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 if ((AutoSizeAxes & Axes.X) != 0)
                     throw new InvalidOperationException($"The width of a {nameof(CompositeDrawable)} with {nameof(AutoSizeAxes)} should only be manually set if it is relative to its parent.");
+                if (base.Width == value) return;
                 base.Width = value;
 
                 if ((RelativeSizeAxes & Axes.X) == 0 || (DirectlyOrIndirectlyAutoSizedAxes & Axes.X) == 0)
@@ -1443,6 +1448,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 if ((AutoSizeAxes & Axes.Y) != 0)
                     throw new InvalidOperationException($"The height of a {nameof(CompositeDrawable)} with {nameof(AutoSizeAxes)} should only be manually set if it is relative to its parent.");
+                if (base.Height == value) return;
                 base.Height = value;
 
                 if ((RelativeSizeAxes & Axes.Y) == 0 || (DirectlyOrIndirectlyAutoSizedAxes & Axes.Y) == 0)
@@ -1458,6 +1464,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 if ((AutoSizeAxes & Axes.Both) != 0)
                     throw new InvalidOperationException($"The Size of a {nameof(CompositeDrawable)} with {nameof(AutoSizeAxes)} should only be manually set if it is relative to its parent.");
+                if (base.Size == value) return;
                 base.Size = value;
 
                 if (DirectlyOrIndirectlyAutoSizedAxes != Axes.Both)

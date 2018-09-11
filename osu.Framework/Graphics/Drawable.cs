@@ -1659,8 +1659,10 @@ namespace osu.Framework.Graphics
         protected virtual void PropagateInvalidation(Invalidation invalidation)
         {
             OnInvalidate?.Invoke(this);
-            if (invalidation != Invalidation.None)
-                Parent?.InvalidateFromChild(invalidation, this);
+
+            var masked = invalidation & Invalidation.MaskPropagateFromChild;
+            if (masked != Invalidation.None)
+                Parent?.InvalidateFromChild(masked, this);
         }
 
         public virtual void InvalidateFromParent(Invalidation parentInvalidation, Invalidation selfInvalidation = Invalidation.None)

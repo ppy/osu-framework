@@ -25,6 +25,9 @@ namespace osu.Framework.Graphics
         ChildSizeBeforeAutoSize = 1 << 11,
         RelativeChildSizeAndOffset = 1 << 12,
 
+        MaskPropagateFromParent = DrawColourInfo | DrawInfo | DrawSize | ChildSize | ChildSizeBeforeAutoSize | RelativeChildSizeAndOffset,
+        MaskPropagateFromChild = Presence | RequiredParentSizeToFit | BoundingBoxSizeBeforeParentAutoSize | BypassAutoSizeAxes,
+
         All = ~0,
     }
 }
