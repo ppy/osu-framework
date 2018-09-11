@@ -1525,9 +1525,7 @@ namespace osu.Framework.Graphics
                 Debug.Assert(Parent != null,
                     $"The {nameof(ci)} of null parents should always have the single colour white, and therefore this branch should never be hit.");
 
-                // Cannot use ToParentSpace here, because ToParentSpace depends on DrawInfo to be completed
-                // ReSharper disable once PossibleNullReferenceException
-                Quad interp = Quad.FromRectangle(DrawRectangle) * (DrawInfo.Matrix * Parent.DrawInfo.MatrixInverse);
+                Quad interp = ToParentSpace(DrawRectangle);
                 Vector2 parentSize = Parent.DrawSize;
 
                 interp.TopLeft = Vector2.Divide(interp.TopLeft, parentSize);
@@ -1624,7 +1622,7 @@ namespace osu.Framework.Graphics
         protected Invalidation InvalidateDrawInfo()
         {
             if (!drawInfoBacking.Invalidate()) return Invalidation.None;
-            return Invalidation.DrawInfo | InvalidateScreenSpaceDrawQuad() | InvalidateDrawNode();
+            return Invalidation.DrawInfo | InvalidateDrawColourInfo() | InvalidateScreenSpaceDrawQuad() | InvalidateDrawNode();
         }
 
         [MustUseReturnValue]
@@ -1644,7 +1642,7 @@ namespace osu.Framework.Graphics
         protected Invalidation InvalidateDrawSize()
         {
             if (!drawSizeBacking.Invalidate()) return Invalidation.None;
-            return Invalidation.DrawSize | InvalidateScreenSpaceDrawQuad() | (Origin == Anchor.TopLeft ? 0 : InvalidateDrawInfo());
+            return Invalidation.DrawSize | InvalidateDrawColourInfo() | InvalidateScreenSpaceDrawQuad() | (Origin == Anchor.TopLeft ? 0 : InvalidateDrawInfo());
         }
 
         [MustUseReturnValue]
@@ -1668,9 +1666,8 @@ namespace osu.Framework.Graphics
         public virtual void InvalidateFromParent(Invalidation parentInvalidation, Invalidation selfInvalidation = Invalidation.None)
         {
             if ((parentInvalidation & Invalidation.DrawInfo) != 0)
-                selfInvalidation |= InvalidateDrawInfo();
-
-            if ((parentInvalidation & Invalidation.DrawColourInfo) != 0)
+                selfInvalidation |= InvalidateDrawColourInfo() | InvalidateDrawInfo();
+            else if ((parentInvalidation & Invalidation.DrawColourInfo) != 0)
                 selfInvalidation |= InvalidateDrawColourInfo();
 
             if ((parentInvalidation & (Invalidation.ChildSize | Invalidation.RelativeChildSizeAndOffset)) != 0)
