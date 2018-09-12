@@ -11,7 +11,7 @@ namespace osu.Framework.Graphics
         None = 0,
 
         DrawNode = 1 << 0,
-        Presence = 1 << 1,
+        IsPresent = 1 << 1,
         ScreenSpaceDrawQuad = 1 << 2,
         DrawColourInfo = 1 << 3,
         DrawInfo = 1 << 4,
@@ -28,7 +28,7 @@ namespace osu.Framework.Graphics
         RelativeChildSizeAndOffset = 1 << 13,
 
         MaskPropagateFromParent = DrawColourInfo | DrawInfo | DrawSize | ChildSize | ChildSizeBeforeAutoSize | RelativeChildSizeAndOffset,
-        MaskPropagateFromChild = Presence | RequiredParentSizeToFit | BoundingBoxSizeBeforeParentAutoSize | DrawSize | BypassAutoSizeAxes | Anchor,
+        MaskPropagateFromChild = IsPresent | RequiredParentSizeToFit | BoundingBoxSizeBeforeParentAutoSize | DrawSize | BypassAutoSizeAxes | Anchor,
 
         All = ~0,
     }

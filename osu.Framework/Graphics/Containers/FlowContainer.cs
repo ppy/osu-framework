@@ -75,7 +75,7 @@ namespace osu.Framework.Graphics.Containers
 
         public override void InvalidateFromChild(Invalidation childInvalidation, Drawable child, Invalidation selfInvalidation = Invalidation.None)
         {
-            if ((childInvalidation & Invalidation.Presence) != 0)
+            if ((childInvalidation & Invalidation.IsPresent) != 0)
                 selfInvalidation |= InvalidateChildrenLayout();
 
             base.InvalidateFromChild(childInvalidation, child, selfInvalidation);

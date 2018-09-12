@@ -73,7 +73,7 @@ namespace osu.Framework.Graphics.Sprites
                         base.Height = Padding.TotalVertical;
                 }
 
-                PropagateInvalidation(InvalidateCharacters() | (IsPresent != wasPresent ? InvalidatePresence() : 0));
+                PropagateInvalidation(InvalidateCharacters() | (IsPresent != wasPresent ? InvalidateIsPresent() : 0));
             }
         }
 

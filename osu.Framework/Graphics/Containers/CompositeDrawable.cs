@@ -771,7 +771,7 @@ namespace osu.Framework.Graphics.Containers
 
         public virtual void InvalidateFromChild(Invalidation childInvalidation, Drawable child, Invalidation selfInvalidation = Invalidation.None)
         {
-            if ((childInvalidation & (Invalidation.RequiredParentSizeToFit | Invalidation.Presence | Invalidation.BypassAutoSizeAxes)) != 0)
+            if ((childInvalidation & (Invalidation.RequiredParentSizeToFit | Invalidation.IsPresent | Invalidation.BypassAutoSizeAxes)) != 0)
                 selfInvalidation |= InvalidateAutoSize();
 
             PropagateInvalidation(selfInvalidation);

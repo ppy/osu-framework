@@ -914,7 +914,7 @@ namespace osu.Framework.Graphics
 
                 scale = value;
 
-                PropagateInvalidation(InvalidateMiscGeometry() | (IsPresent != wasPresent ? InvalidatePresence() : 0));
+                PropagateInvalidation(InvalidateMiscGeometry() | (IsPresent != wasPresent ? InvalidateIsPresent() : 0));
             }
         }
 
@@ -1228,7 +1228,7 @@ namespace osu.Framework.Graphics
                 bool wasPresent = IsPresent;
                 alpha = value;
 
-                PropagateInvalidation(InvalidateDrawColourInfo() | (IsPresent != wasPresent ? Invalidation.Presence : 0));
+                PropagateInvalidation(InvalidateDrawColourInfo() | (IsPresent != wasPresent ? Invalidation.IsPresent : 0));
             }
         }
 
@@ -1259,7 +1259,7 @@ namespace osu.Framework.Graphics
                 alwaysPresent = value;
 
                 if (IsPresent != wasPresent)
-                    PropagateInvalidation(InvalidatePresence());
+                    PropagateInvalidation(InvalidateIsPresent());
             }
         }
 
@@ -1599,9 +1599,9 @@ namespace osu.Framework.Graphics
         }
 
         [MustUseReturnValue]
-        protected Invalidation InvalidatePresence()
+        protected Invalidation InvalidateIsPresent()
         {
-            return Invalidation.Presence;
+            return Invalidation.IsPresent;
         }
 
         [MustUseReturnValue]
@@ -1689,7 +1689,7 @@ namespace osu.Framework.Graphics
 
         [MustUseReturnValue]
         protected virtual Invalidation InvalidateAll() =>
-            InvalidateDrawNode() | InvalidatePresence() | InvalidateScreenSpaceDrawQuad() |
+            InvalidateDrawNode() | InvalidateIsPresent() | InvalidateScreenSpaceDrawQuad() |
             InvalidateDrawColourInfo() | InvalidateDrawInfo() |
             InvalidateRequiredParentSizeToFit() | InvalidateBoundingBoxSizeBeforeParentAutoSize() |
             InvalidateDrawSize();
