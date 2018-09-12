@@ -45,6 +45,8 @@ namespace osu.Framework.Input
         private double keyboardRepeatTime;
         private Key? keyboardRepeatKey;
 
+        public double LastInputHandlingTime { get; private set; }
+
         /// <summary>
         /// The initial input state. <see cref="CurrentState"/> is always equal (as a reference) to the value returned from this.
         /// <see cref="InputState.Mouse"/>, <see cref="InputState.Keyboard"/> and <see cref="InputState.Joystick"/> should be non-null.
@@ -398,6 +400,8 @@ namespace osu.Framework.Input
                 keyboardRepeatKey = null;
                 keyboardRepeatTime = 0;
             }
+
+            LastInputHandlingTime = Clock.CurrentTime;
         }
 
         public virtual void HandleJoystickButtonStateChange(InputState state, JoystickButton button, ButtonStateChangeKind kind)
@@ -410,6 +414,8 @@ namespace osu.Framework.Input
             {
                 handleJoystickRelease(state, button);
             }
+
+            LastInputHandlingTime = Clock.CurrentTime;
         }
 
         public virtual void HandleMousePositionChange(InputState state)
@@ -424,17 +430,21 @@ namespace osu.Framework.Input
 
             foreach (var manager in mouseButtonEventManagers.Values)
                 manager.HandlePositionChange(state);
+
+            LastInputHandlingTime = Clock.CurrentTime;
         }
 
         public virtual void HandleMouseScrollChange(InputState state)
         {
             handleScroll(state);
+            LastInputHandlingTime = Clock.CurrentTime;
         }
 
         public void HandleMouseButtonStateChange(InputState state, MouseButton button, ButtonStateChangeKind kind)
         {
             if (mouseButtonEventManagers.TryGetValue(button, out var manager))
                 manager.HandleButtonStateChange(state, kind, Time.Current);
+            LastInputHandlingTime = Clock.CurrentTime;
         }
 
         public virtual void HandleCustomInput(InputState state, IInput input)
