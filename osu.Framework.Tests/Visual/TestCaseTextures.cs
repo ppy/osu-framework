@@ -32,7 +32,7 @@ namespace osu.Framework.Tests.Visual
             AddStep("add disposable sprite", () => avatar1 = addSprite("https://a.ppy.sh/3"));
             AddStep("add disposable sprite", () => avatar2 = addSprite("https://a.ppy.sh/3"));
 
-            AddUntilStep(() => (texture = (TextureWithRefCount)avatar1.Texture) != null, "wait for texture load");
+            AddUntilStep(() => (texture = (TextureWithRefCount)avatar1.Texture) != null && avatar2.Texture != null, "wait for texture load");
 
             AddAssert("textures share gl texture", () => avatar1.Texture.TextureGL == avatar2.Texture.TextureGL);
             AddAssert("textures have different refcount textures", () => avatar1.Texture != avatar2.Texture);
