@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using FsCheck;
 using JetBrains.Annotations;
@@ -32,7 +31,6 @@ namespace osu.Framework.Tests.Visual
         public static bool NoShear = false;
 
         public static bool NoFillFlowContainer = false;
-        public static bool NoGridContainer = true;
 
         public static bool RepeatQuickCheck = false;
 
@@ -307,17 +305,6 @@ namespace osu.Framework.Tests.Visual
             protected override bool ComputeIsMaskedAway(RectangleF maskingBounds) => false;
         }
 
-        public class TestGridContainer : GridContainer
-        {
-            public TestGridContainer()
-            {
-                Size = new Vector2(1);
-            }
-
-            public override string ToString() => $"Grid {Name} {DrawPosition} {DrawSize}";
-            protected override bool ComputeIsMaskedAway(RectangleF maskingBounds) => false;
-        }
-
         public class TestFillFlowContainer : FillFlowContainer
         {
             public TestFillFlowContainer()
@@ -413,33 +400,6 @@ namespace osu.Framework.Tests.Visual
             public override string GetCode() => $"new {nameof(ContainerNode)}({GetChildrenArrayCreationCode()})";
         }
 
-        public class GridContainerNode : SceneNode
-        {
-            public readonly int Rows, Columns;
-
-            public GridContainerNode(int rows, int columns, IEnumerable<SceneNode> children = null)
-                : base(children)
-            {
-                Trace.Assert(Children.Length <= rows * columns);
-                Rows = rows;
-                Columns = columns;
-            }
-
-            public override Drawable CreateInstanceTree(List<Drawable> resultDrawables)
-            {
-                var gridContainer = new TestGridContainer { Name = Name };
-                resultDrawables.Add(gridContainer);
-
-                var content = new Drawable[Rows][];
-                for (int i = 0; i < Rows; i++)
-                    content[i] = Children.Skip(i * Columns).Take(Columns).Select(c => c.CreateInstanceTree(resultDrawables)).ToArray();
-
-                return gridContainer;
-            }
-
-            public override string GetCode() => $"new {nameof(GridContainerNode)}({Columns},{Columns},{GetChildrenArrayCreationCode()})";
-        }
-
         public class FillFlowContainerNode : SceneNode
         {
             public FillFlowContainerNode(IEnumerable<SceneNode> children = null)
@@ -521,28 +481,6 @@ namespace osu.Framework.Tests.Visual
             }
         }
 
-        public class ArbitraryDimensionList : Arbitrary<Dimension[]>
-        {
-            public readonly int Length;
-
-            public ArbitraryDimensionList(int length)
-            {
-                Length = length;
-            }
-
-            public override Gen<Dimension[]> Generator => Gen.Sequence(Enumerable.Repeat(dimension, Length).ToArray());
-
-            private static readonly Gen<Dimension> dimension = Gen.OneOf(new[]
-            {
-                new Dimension(GridSizeMode.Distributed),
-                new Dimension(GridSizeMode.Relative, .5f),
-                new Dimension(GridSizeMode.Absolute, .5f),
-                new Dimension(GridSizeMode.Absolute, 1f),
-                new Dimension(GridSizeMode.Absolute, 2f),
-                new Dimension(GridSizeMode.AutoSize),
-            }.Select(Gen.Constant));
-        }
-
         public class ArbitraryScene : Arbitrary<Scene>
         {
             public readonly int SizeLo, SizeUp;
@@ -560,9 +498,6 @@ namespace osu.Framework.Tests.Visual
                 {
                     Gen.Constant((SceneNode)new ContainerNode(children)).Yield(),
                     NoFillFlowContainer ? Enumerable.Empty<Gen<SceneNode>>() : Gen.Constant((SceneNode)new FillFlowContainerNode(children)).Yield(),
-                    NoGridContainer
-                        ? Enumerable.Empty<Gen<SceneNode>>()
-                        : Gen.Choose(1, Math.Max(1, children.Length)).Select(rows => (SceneNode)new GridContainerNode(rows, (children.Length - 1) / rows + 1, children)).Yield()
                 }.SelectMany(x => x)
             ));
 
@@ -656,7 +591,6 @@ namespace osu.Framework.Tests.Visual
                     var node = scene.Nodes[nodeIndex];
                     var genPair =
                         node is FillFlowContainerNode ? for_fillflow_container :
-                        node is GridContainerNode grid ? for_grid_container(grid.Rows, grid.Columns) :
                         for_container;
                     return genPair.Select(pair => new SceneModification(node.Name, pair.PropertyName, pair.Value));
                 });
@@ -685,13 +619,6 @@ namespace osu.Framework.Tests.Visual
             private static readonly Gen<Axes> axes = Gen.OneOf(new[] { Axes.None, Axes.X, Axes.Y, Axes.Both }.Select(Gen.Constant));
             private static readonly Gen<FillMode> fillmode = Gen.OneOf(new[] { FillMode.Fill, FillMode.Fit, FillMode.Stretch }.Select(Gen.Constant));
             private static readonly Gen<FillDirection> filldirection = Gen.OneOf(new[] { FillDirection.Horizontal, FillDirection.Vertical, FillDirection.Full }.Select(Gen.Constant));
-
-            private static readonly Gen<Dimension> dimension = Gen.OneOf(
-                Gen.Constant(new Dimension(GridSizeMode.Distributed)),
-                Gen.Constant(new Dimension(GridSizeMode.AutoSize)),
-                size.Select(x => new Dimension(GridSizeMode.Absolute, x)),
-                size.Select(x => new Dimension(GridSizeMode.Relative, x))
-            );
 
             private static Gen<Vector2> vec(Gen<float> gen)
             {
@@ -740,12 +667,6 @@ namespace osu.Framework.Tests.Visual
                 entry(nameof(TestFillFlowContainer.Direction), filldirection),
                 entry(nameof(TestFillFlowContainer.Spacing), vec(size)),
                 entry(nameof(TestFillFlowContainer.MaximumSize), vec(size))
-            );
-
-            private static Gen<Entry> for_grid_container(int rows, int columns) => Gen.OneOf(
-                for_container,
-                entry(nameof(TestGridContainer.RowDimensions), Gen.ListOf(rows, dimension).Select(x => x.ToArray())),
-                entry(nameof(TestGridContainer.ColumnDimensions), Gen.ListOf(columns, dimension).Select(x => x.ToArray()))
             );
         }
 
