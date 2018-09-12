@@ -14,12 +14,12 @@ using osu.Framework.Statistics;
 using osu.Framework.Threading;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Input.EventArgs;
 using osu.Framework.Input.States;
 using OpenTK;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Graphics.Performance
@@ -236,13 +236,13 @@ namespace osu.Framework.Graphics.Performance
             var column = new Image<Rgba32>(1, HEIGHT);
             var fullBackground = new Image<Rgba32>(WIDTH, HEIGHT);
 
-            addArea(null, null, HEIGHT, column, amount_ms_steps);
+            addArea(null, null, HEIGHT, column.GetPixelSpan(), amount_ms_steps);
 
             for (int i = 0; i < HEIGHT; i++)
             for (int k = 0; k < WIDTH; k++)
                 fullBackground[k, i] = column[0, i];
 
-            addArea(null, null, HEIGHT, column, amount_count_steps);
+            addArea(null, null, HEIGHT, column.GetPixelSpan(), amount_count_steps);
 
             counterBarBackground?.Texture.SetData(new TextureUpload(column));
             Schedule(() =>
@@ -343,11 +343,12 @@ namespace osu.Framework.Graphics.Performance
                 addEvent(gcLevel);
         }
 
+        private readonly BufferStack<Rgba32> timeBarImages = new BufferStack<Rgba32>(100);
+
         private void applyFrameTime(FrameStatistics frame)
         {
             TimeBar timeBar = timeBars[timeBarIndex];
-            var image = new Image<Rgba32>(1, HEIGHT);
-            TextureUpload upload = new TextureUpload(image)
+            var upload = new BufferStackTextureUpload(1, HEIGHT, timeBarImages)
             {
                 Bounds = new RectangleI(timeBarX, 0, 1, HEIGHT)
             };
@@ -355,8 +356,8 @@ namespace osu.Framework.Graphics.Performance
             int currentHeight = HEIGHT;
 
             for (int i = 0; i < FrameStatistics.NUM_PERFORMANCE_COLLECTION_TYPES; i++)
-                currentHeight = addArea(frame, (PerformanceCollectionType)i, currentHeight, image, amount_ms_steps);
-            addArea(frame, null, currentHeight, image, amount_ms_steps);
+                currentHeight = addArea(frame, (PerformanceCollectionType)i, currentHeight, upload.RawData, amount_ms_steps);
+            addArea(frame, null, currentHeight, upload.RawData, amount_ms_steps);
 
             timeBar.Sprite.Texture.SetData(upload);
 
@@ -446,10 +447,8 @@ namespace osu.Framework.Graphics.Performance
             }
         }
 
-        private int addArea(FrameStatistics frame, PerformanceCollectionType? frameTimeType, int currentHeight, Image<Rgba32> image, int amountSteps)
+        private int addArea(FrameStatistics frame, PerformanceCollectionType? frameTimeType, int currentHeight, Span<Rgba32> image, int amountSteps)
         {
-            Debug.Assert(image.Height >= HEIGHT, $"textureData is too small ({image.Height}) to hold area data.");
-
             int drawHeight;
 
             if (!frameTimeType.HasValue)
@@ -479,7 +478,7 @@ namespace osu.Framework.Graphics.Performance
                 else if (acceptableRange)
                     brightnessAdjust *= 0.8f;
 
-                image[i, 0] = new Rgba32(col.R * brightnessAdjust, col.G * brightnessAdjust, col.B * brightnessAdjust, col.A);
+                image[i] = new Rgba32(col.R * brightnessAdjust, col.G * brightnessAdjust, col.B * brightnessAdjust, col.A);
 
                 currentHeight--;
             }
