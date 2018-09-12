@@ -1,12 +1,10 @@
 // Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System.Collections.Concurrent;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.IO.Stores;
-using System;
-using System.Threading;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using OpenTK.Graphics.ES30;
 
@@ -14,27 +12,23 @@ namespace osu.Framework.Graphics.Textures
 {
     public class TextureStore : ResourceStore<TextureUpload>
     {
-        private readonly ConcurrentDictionary<string, Lazy<Texture>> textureCache = new ConcurrentDictionary<string, Lazy<Texture>>();
+        private readonly Dictionary<string, Texture> textureCache = new Dictionary<string, Texture>();
 
         private readonly All filteringMode;
         private readonly bool manualMipmaps;
         private readonly TextureAtlas atlas;
 
         /// <summary>
-        /// Decides at what resolution multiple this texturestore is providing sprites at.
+        /// Decides at what resolution multiple this <see cref="TextureStore"/> is providing sprites at.
         /// ie. if we are providing high resolution (at 2x the resolution of standard 1366x768) sprites this should be 2.
         /// </summary>
         public readonly float ScaleAdjust;
-
-        private readonly Func<string, Lazy<Texture>> lazyCreator; // used avoid allocations on lookups.
 
         public TextureStore(IResourceStore<TextureUpload> store = null, bool useAtlas = true, All filteringMode = All.Linear, bool manualMipmaps = false, float scaleAdjust = 2)
             : base(store)
         {
             this.filteringMode = filteringMode;
             this.manualMipmaps = manualMipmaps;
-
-            lazyCreator = name => new Lazy<Texture>(() => getTexture(name), LazyThreadSafetyMode.ExecutionAndPublication);
 
             ScaleAdjust = scaleAdjust;
 
@@ -72,16 +66,14 @@ namespace osu.Framework.Graphics.Textures
         {
             if (string.IsNullOrEmpty(name)) return null;
 
-            //Laziness ensure we are only ever creating the texture once (and blocking on other access until it is done).
-            var cachedTex = textureCache.GetOrAdd(name, lazyCreator).Value;
-
-            if (cachedTex?.Available == false)
+            lock (textureCache)
             {
-                textureCache.TryRemove(name, out _);
-                return Get(name);
-            }
+                // refresh the texture if no longer available (may have been previously disposed).
+                if (!textureCache.TryGetValue(name, out var tex) || tex?.Available == false)
+                    textureCache[name] = tex = getTexture(name);
 
-            return cachedTex;
+                return tex;
+            }
         }
     }
 }
