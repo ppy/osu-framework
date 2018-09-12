@@ -1260,7 +1260,7 @@ namespace osu.Framework.Graphics.Containers
 
                 padding = value;
 
-                PropagateInvalidation(InvalidateChildSizeBeforeAutoSize());
+                PropagateInvalidation(InvalidateAutoSize() | InvalidateChildSizeBeforeAutoSize());
             }
         }
 
@@ -1397,7 +1397,7 @@ namespace osu.Framework.Graphics.Containers
                     throw new InvalidOperationException("No axis can be relatively sized and automatically sized at the same time.");
 
                 autoSizeAxes = value;
-                PropagateInvalidation(InvalidateSize() | InvalidateAutoSize());
+                PropagateInvalidation(InvalidateSize() | InvalidateAutoSize() | InvalidateChildSizeBeforeAutoSize());
                 OnSizingChanged();
             }
         }
