@@ -535,21 +535,36 @@ namespace osu.Framework.Graphics
                 if (value == relativePositionAxes)
                     return;
 
-                // Convert coordinates from relative to absolute or vice versa
-                Vector2 conversion = Parent?.RelativeToAbsoluteFactor ?? Vector2.One;
-                if ((value & Axes.X) > (relativePositionAxes & Axes.X))
-                    X = Precision.AlmostEquals(conversion.X, 0) ? 0 : X / conversion.X;
-                else if ((relativePositionAxes & Axes.X) > (value & Axes.X))
-                    X *= conversion.X;
+                bool drawPositionChanged = false;
+                void convert(ref float component, float factor, bool wasRelative, bool isRelative)
+                {
+                    if (wasRelative == isRelative) return;
+                    if (wasRelative)
+                    {
+                        component *= factor;
+                    }
+                    else if (Precision.AlmostEquals(factor, 0))
+                    {
+                        component = 0;
+                        drawPositionChanged = true;
+                    }
+                    else
+                    {
+                        component /= factor;
+                    }
+                }
 
-                if ((value & Axes.Y) > (relativePositionAxes & Axes.Y))
-                    Y = Precision.AlmostEquals(conversion.Y, 0) ? 0 : Y / conversion.Y;
-                else if ((relativePositionAxes & Axes.Y) > (value & Axes.Y))
-                    Y *= conversion.Y;
+                Vector2 conversion = Parent?.RelativeToAbsoluteFactor ?? Vector2.One;
+                convert(ref x, conversion.X, (relativePositionAxes & Axes.X) != 0, (value & Axes.X) != 0);
+                convert(ref y, conversion.Y, (relativePositionAxes & Axes.Y) != 0, (value & Axes.Y) != 0);
 
                 relativePositionAxes = value;
 
-                updateBypassAutoSizeAxes();
+                var invalidation = Invalidation.None;
+                invalidation |= InvalidateRequiredParentSizeToFit();
+                if (drawPositionChanged) invalidation |= InvalidateDrawInfo();
+                invalidation |= InvalidateBypassAutoSizeAxes();
+                PropagateInvalidation(invalidation);
             }
         }
 
@@ -645,18 +660,6 @@ namespace osu.Framework.Graphics
             }
         }
 
-        protected float WidthWithNoInvalidation
-        {
-            get => width;
-            set => width = value;
-        }
-
-        protected float HeightWithNoInvalidation
-        {
-            get => height;
-            set => height = value;
-        }
-
         private Axes relativeSizeAxes;
 
         /// <summary>
@@ -678,31 +681,66 @@ namespace osu.Framework.Graphics
                 if (value == relativeSizeAxes)
                     return;
 
-                // In some cases we cannot easily preserve our size, and so we simply invalidate and
-                // leave correct sizing to the user.
+                bool drawSizeChanged = false;
+                bool sizeChanged = false;
+
                 if (fillMode != FillMode.Stretch && (value == Axes.Both || relativeSizeAxes == Axes.Both))
-                    PropagateInvalidation(InvalidateMiscGeometry() | InvalidateDrawSize());
+                {
+                    // In some cases we cannot easily preserve our size, and so we simply invalidate and
+                    // leave correct sizing to the user.
+                    drawSizeChanged = true;
+                }
                 else
                 {
                     // Convert coordinates from relative to absolute or vice versa
-                    Vector2 conversion = Parent?.RelativeToAbsoluteFactor ?? Vector2.One;
-                    if ((value & Axes.X) > (relativeSizeAxes & Axes.X))
-                        Width = Precision.AlmostEquals(conversion.X, 0) ? 0 : Width / conversion.X;
-                    else if ((relativeSizeAxes & Axes.X) > (value & Axes.X))
-                        Width *= conversion.X;
+                    void convert(ref float component, float factor, bool wasRelative, bool isRelative)
+                    {
+                        if (wasRelative == isRelative) return;
+                        if (wasRelative)
+                        {
+                            component *= factor;
+                            sizeChanged = true;
+                        }
+                        else if (Precision.AlmostEquals(factor, 0))
+                        {
+                            component = 0;
+                            drawSizeChanged = true;
+                        }
+                        else
+                        {
+                            component /= factor;
+                            sizeChanged = true;
+                        }
+                    }
 
-                    if ((value & Axes.Y) > (relativeSizeAxes & Axes.Y))
-                        Height = Precision.AlmostEquals(conversion.Y, 0) ? 0 : Height / conversion.Y;
-                    else if ((relativeSizeAxes & Axes.Y) > (value & Axes.Y))
-                        Height *= conversion.Y;
+                    Vector2 conversion = Parent?.RelativeToAbsoluteFactor ?? Vector2.One;
+                    convert(ref width, conversion.X, (relativeSizeAxes & Axes.X) != 0, (value & Axes.X) != 0);
+                    convert(ref height, conversion.Y, (relativeSizeAxes & Axes.Y) != 0, (value & Axes.Y) != 0);
                 }
 
                 relativeSizeAxes = value;
 
-                if (relativeSizeAxes.HasFlag(Axes.X) && Width == 0) Width = 1;
-                if (relativeSizeAxes.HasFlag(Axes.Y) && Height == 0) Height = 1;
+                if (relativeSizeAxes.HasFlag(Axes.X) && width == 0)
+                {
+                    width = 1;
+                    drawSizeChanged = true;
+                    sizeChanged = true;
+                }
 
-                updateBypassAutoSizeAxes();
+                if (relativeSizeAxes.HasFlag(Axes.Y) && height == 0)
+                {
+                    height = 1;
+                    drawSizeChanged = true;
+                    sizeChanged = true;
+                }
+
+                var invalidation = Invalidation.None;
+                invalidation |= InvalidateRequiredParentSizeToFit();
+                invalidation |= InvalidateBoundingBoxSizeBeforeParentAutoSize();
+                if (drawSizeChanged) invalidation |= InvalidateDrawSize();
+                invalidation |= InvalidateBypassAutoSizeAxes();
+                if (sizeChanged) invalidation |= InvalidateSize();
+                PropagateInvalidation(invalidation);
 
                 OnSizingChanged();
             }
@@ -797,20 +835,6 @@ namespace osu.Framework.Graphics
             return v;
         }
 
-        private Axes bypassAutoSizeAxes;
-
-        private void updateBypassAutoSizeAxes()
-        {
-            var value = RelativePositionAxes | RelativeSizeAxes | bypassAutoSizeAdditionalAxes;
-            if (bypassAutoSizeAxes != value)
-            {
-                var changedAxes = bypassAutoSizeAxes ^ value;
-                bypassAutoSizeAxes = value;
-                if (Parent != null && (Parent.AutoSizeAxes & changedAxes) != 0)
-                    Parent.InvalidateFromChild(Invalidation.BypassAutoSizeAxes, this);
-            }
-        }
-
         private Axes bypassAutoSizeAdditionalAxes;
 
         /// <summary>
@@ -820,11 +844,11 @@ namespace osu.Framework.Graphics
         /// </summary>
         public Axes BypassAutoSizeAxes
         {
-            get => bypassAutoSizeAxes;
+            get => RelativePositionAxes | RelativeSizeAxes | bypassAutoSizeAdditionalAxes;
             set
             {
                 bypassAutoSizeAdditionalAxes = value;
-                updateBypassAutoSizeAxes();
+                PropagateInvalidation(InvalidateBypassAutoSizeAxes());
             }
         }
 
@@ -1642,6 +1666,12 @@ namespace osu.Framework.Graphics
         {
             if (!drawSizeBacking.Invalidate()) return Invalidation.None;
             return Invalidation.DrawSize | InvalidateDrawColourInfo() | InvalidateScreenSpaceDrawQuad() | (Origin == Anchor.TopLeft ? 0 : InvalidateDrawInfo());
+        }
+
+        [MustUseReturnValue]
+        protected Invalidation InvalidateBypassAutoSizeAxes()
+        {
+            return Invalidation.BypassAutoSizeAxes;
         }
 
         [MustUseReturnValue]

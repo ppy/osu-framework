@@ -781,7 +781,7 @@ namespace osu.Framework.Graphics.Containers
         {
             if ((parentInvalidation & Invalidation.ChildSizeBeforeAutoSize) != 0)
             {
-                if (RelativeSizeAxes != Axes.None && (RelativeSizeAxes & ~(Parent?.DirectlyOrIndirectlyAutoSizedAxes ?? 0)) != Axes.None)
+                if (RelativeSizeAxes != Axes.None)
                     selfInvalidation |= InvalidateChildSizeBeforeAutoSize();
             }
 
@@ -1372,7 +1372,9 @@ namespace osu.Framework.Graphics.Containers
                 if ((AutoSizeAxes & value) != 0)
                     throw new InvalidOperationException("No axis can be relatively sized and automatically sized at the same time.");
 
+                if (base.RelativeSizeAxes == value) return;
                 base.RelativeSizeAxes = value;
+                PropagateInvalidation(InvalidateChildSizeBeforeAutoSize());
             }
         }
 
@@ -1439,8 +1441,7 @@ namespace osu.Framework.Graphics.Containers
                 if (base.Width == value) return;
                 base.Width = value;
 
-                if ((RelativeSizeAxes & Axes.X) == 0 || (DirectlyOrIndirectlyAutoSizedAxes & Axes.X) == 0)
-                    PropagateInvalidation(InvalidateChildSizeBeforeAutoSize());
+                PropagateInvalidation(InvalidateChildSizeBeforeAutoSize());
             }
         }
 
@@ -1459,8 +1460,7 @@ namespace osu.Framework.Graphics.Containers
                 if (base.Height == value) return;
                 base.Height = value;
 
-                if ((RelativeSizeAxes & Axes.Y) == 0 || (DirectlyOrIndirectlyAutoSizedAxes & Axes.Y) == 0)
-                    PropagateInvalidation(InvalidateChildSizeBeforeAutoSize());
+                PropagateInvalidation(InvalidateChildSizeBeforeAutoSize());
             }
         }
 
@@ -1479,8 +1479,7 @@ namespace osu.Framework.Graphics.Containers
                 if (base.Size == value) return;
                 base.Size = value;
 
-                if (DirectlyOrIndirectlyAutoSizedAxes != Axes.Both)
-                    PropagateInvalidation(InvalidateChildSizeBeforeAutoSize());
+                PropagateInvalidation(InvalidateChildSizeBeforeAutoSize());
             }
         }
 
