@@ -204,17 +204,6 @@ namespace osu.Framework.Graphics.Sprites
 
         private bool requiresAutoSizedHeight => explicitHeight == null && (RelativeSizeAxes & Axes.Y) == 0;
 
-        private Vector2 autoSizeCache;
-
-        private Vector2 autoSize
-        {
-            get
-            {
-                var _ = characters;
-                return autoSizeCache;
-            }
-        }
-
         private float? explicitWidth;
 
         /// <summary>
@@ -222,7 +211,12 @@ namespace osu.Framework.Graphics.Sprites
         /// </summary>
         public override float Width
         {
-            get => requiresAutoSizedWidth ? autoSize.X : base.Width;
+            get
+            {
+                if (requiresAutoSizedWidth)
+                    validateCharactersAndAutoSize();
+                return base.Width;
+            }
 
             set
             {
@@ -243,7 +237,12 @@ namespace osu.Framework.Graphics.Sprites
         /// </summary>
         public override float Height
         {
-            get => requiresAutoSizedHeight ? autoSize.Y : base.Height;
+            get
+            {
+                if (requiresAutoSizedHeight)
+                    validateCharactersAndAutoSize();
+                return base.Height;
+            }
 
             set
             {
@@ -314,7 +313,7 @@ namespace osu.Framework.Graphics.Sprites
 
         #region Characters
 
-        private Cached charactersCache = new Cached { Name = $"{nameof(SpriteText)}.{nameof(characters)}" };
+        private Cached<Vector2> charactersAndAutoSizeCache = new Cached<Vector2> { Name = $"{nameof(SpriteText)}.charactersAndAutoSize" };
         private readonly List<CharacterPart> charactersBacking = new List<CharacterPart>();
 
         /// <summary>
@@ -324,109 +323,108 @@ namespace osu.Framework.Graphics.Sprites
         {
             get
             {
-                charactersCache.Compute(computeCharacters);
+                validateCharactersAndAutoSize();
                 return charactersBacking;
             }
         }
 
-        private void computeCharacters()
+        private void validateCharactersAndAutoSize()
+        {
+            var size = charactersAndAutoSizeCache.Compute(computeCharactersAndAutoSize);
+
+            if (requiresAutoSizedWidth)
+                base.Width = size.X;
+            if (requiresAutoSizedHeight)
+                base.Height = size.Y;
+        }
+
+        // returns bounding box size
+        private Vector2 computeCharactersAndAutoSize()
         {
             charactersBacking.Clear();
 
-            if (store == null)
-                return;
+            if (store == null || string.IsNullOrEmpty(Text)) return Padding.Total;
 
             Vector2 currentPos = new Vector2(Padding.Left, Padding.Top);
 
-            try
+            float maxWidth = float.PositiveInfinity;
+            if (!requiresAutoSizedWidth)
             {
-                if (string.IsNullOrEmpty(Text))
-                    return;
-
-                float maxWidth = float.PositiveInfinity;
-                if (!requiresAutoSizedWidth)
+                // If x axis is auto sized directly or indirectly, allow infinite expansion for the axis.
+                if (!(Parent != null && RelativeSizeAxes.HasFlag(Axes.X) && Parent.DirectlyOrIndirectlyAutoSizedAxes.HasFlag(Axes.X)))
                 {
-                    // If x axis is auto sized directly or indirectly, allow infinite expansion for the axis.
-                    if (!(Parent != null && RelativeSizeAxes.HasFlag(Axes.X) && Parent.DirectlyOrIndirectlyAutoSizedAxes.HasFlag(Axes.X)))
+                    maxWidth = ApplyRelativeAxesBeforeParentAutoSize(RelativeSizeAxes, new Vector2(base.Width, base.Height), FillMode).X - Padding.Right;
+                }
+            }
+
+            float currentRowHeight = 0;
+
+            foreach (var character in Text)
+            {
+                bool useFixedWidth = FixedWidth && UseFixedWidthForCharacter(character);
+
+                // Unscaled size (i.e. not multiplied by TextSize)
+                Vector2 textureSize;
+                Texture texture = null;
+
+                // Retrieve the texture + size
+                if (char.IsWhiteSpace(character))
+                {
+                    float size = useFixedWidth ? constantWidth : spaceWidth;
+
+                    if (character == 0x3000)
                     {
-                        maxWidth = ApplyRelativeAxesBeforeParentAutoSize(RelativeSizeAxes, new Vector2(base.Width, base.Height), FillMode).X - Padding.Right;
+                        // Double-width space
+                        size *= 2;
                     }
+
+                    textureSize = new Vector2(size);
+                }
+                else
+                {
+                    texture = GetTextureForCharacter(character);
+                    textureSize = texture == null ? new Vector2(useFixedWidth ? constantWidth : spaceWidth) : new Vector2(texture.DisplayWidth, texture.DisplayHeight);
                 }
 
-                float currentRowHeight = 0;
+                // Scaled glyph size to be used for positioning
+                Vector2 glyphSize = new Vector2(useFixedWidth ? constantWidth : textureSize.X, UseFullGlyphHeight ? 1 : textureSize.Y) * TextSize;
 
-                foreach (var character in Text)
+                // Texture size scaled by TextSize
+                Vector2 scaledTextureSize = textureSize * TextSize;
+
+                // Check if we need to go onto the next line
+                if (AllowMultiline && currentPos.X + glyphSize.X >= maxWidth)
                 {
-                    bool useFixedWidth = FixedWidth && UseFixedWidthForCharacter(character);
-
-                    // Unscaled size (i.e. not multiplied by TextSize)
-                    Vector2 textureSize;
-                    Texture texture = null;
-
-                    // Retrieve the texture + size
-                    if (char.IsWhiteSpace(character))
-                    {
-                        float size = useFixedWidth ? constantWidth : spaceWidth;
-
-                        if (character == 0x3000)
-                        {
-                            // Double-width space
-                            size *= 2;
-                        }
-
-                        textureSize = new Vector2(size);
-                    }
-                    else
-                    {
-                        texture = GetTextureForCharacter(character);
-                        textureSize = texture == null ? new Vector2(useFixedWidth ? constantWidth : spaceWidth) : new Vector2(texture.DisplayWidth, texture.DisplayHeight);
-                    }
-
-                    // Scaled glyph size to be used for positioning
-                    Vector2 glyphSize = new Vector2(useFixedWidth ? constantWidth : textureSize.X, UseFullGlyphHeight ? 1 : textureSize.Y) * TextSize;
-
-                    // Texture size scaled by TextSize
-                    Vector2 scaledTextureSize = textureSize * TextSize;
-
-                    // Check if we need to go onto the next line
-                    if (AllowMultiline && currentPos.X + glyphSize.X >= maxWidth)
-                    {
-                        currentPos.X = Padding.Left;
-                        currentPos.Y += currentRowHeight + spacing.Y;
-                        currentRowHeight = 0;
-                    }
-
-                    // The height of the row depends on whether we want to use the full glyph height or not
-                    currentRowHeight = Math.Max(currentRowHeight, glyphSize.Y);
-
-                    if (!char.IsWhiteSpace(character) && texture != null)
-                    {
-                        // If we have fixed width, we'll need to centre the texture to the glyph size
-                        float offset = (glyphSize.X - scaledTextureSize.X) / 2;
-
-                        charactersBacking.Add(new CharacterPart
-                        {
-                            Texture = texture,
-                            DrawRectangle = new RectangleF(new Vector2(currentPos.X + offset, currentPos.Y), scaledTextureSize),
-                        });
-                    }
-
-                    currentPos.X += glyphSize.X + spacing.X;
+                    currentPos.X = Padding.Left;
+                    currentPos.Y += currentRowHeight + spacing.Y;
+                    currentRowHeight = 0;
                 }
 
-                // When we added the last character, we also added the spacing, but we should remove it to get the correct size
-                currentPos.X -= spacing.X;
+                // The height of the row depends on whether we want to use the full glyph height or not
+                currentRowHeight = Math.Max(currentRowHeight, glyphSize.Y);
 
-                // The last row needs to be included in the height
-                currentPos.Y += currentRowHeight;
+                if (!char.IsWhiteSpace(character) && texture != null)
+                {
+                    // If we have fixed width, we'll need to centre the texture to the glyph size
+                    float offset = (glyphSize.X - scaledTextureSize.X) / 2;
+
+                    charactersBacking.Add(new CharacterPart
+                    {
+                        Texture = texture,
+                        DrawRectangle = new RectangleF(new Vector2(currentPos.X + offset, currentPos.Y), scaledTextureSize),
+                    });
+                }
+
+                currentPos.X += glyphSize.X + spacing.X;
             }
-            finally
-            {
-                if (requiresAutoSizedWidth)
-                    autoSizeCache.X = currentPos.X + Padding.Right;
-                if (requiresAutoSizedHeight)
-                    autoSizeCache.Y = currentPos.Y + Padding.Bottom;
-            }
+
+            // When we added the last character, we also added the spacing, but we should remove it to get the correct size
+            currentPos.X -= spacing.X;
+
+            // The last row needs to be included in the height
+            currentPos.Y += currentRowHeight;
+
+            return currentPos + new Vector2(Padding.Right, Padding.Bottom);
         }
 
         private Cached screenSpaceCharactersCache = new Cached { Name = $"{nameof(SpriteText)}.{nameof(screenSpaceCharacters)}" };
@@ -474,7 +472,7 @@ namespace osu.Framework.Graphics.Sprites
         protected Invalidation InvalidateScreenSpaceCharacters() => !screenSpaceCharactersCache.Invalidate() ? 0 : InvalidateDrawNode();
 
         [MustUseReturnValue]
-        protected Invalidation InvalidateCharacters() => !charactersCache.Invalidate()
+        protected Invalidation InvalidateCharacters() => !charactersAndAutoSizeCache.Invalidate()
             ? 0
             : InvalidateScreenSpaceCharacters() | InvalidateDrawSize() | InvalidateRequiredParentSizeToFit() | InvalidateBoundingBoxSizeBeforeParentAutoSize();
 
