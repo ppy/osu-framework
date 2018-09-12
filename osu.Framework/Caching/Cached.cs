@@ -2,7 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 // Uncomment following line to enable checks of invalidation propagation
-#define CheckInvalidationPropagation
+//#define CheckInvalidationPropagation
 
 using osu.Framework.Statistics;
 using System;
