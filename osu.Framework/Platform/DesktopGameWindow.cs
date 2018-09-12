@@ -85,9 +85,9 @@ namespace osu.Framework.Platform
                 return;
 
             var newResolution = display.AvailableResolutions
-                                              .Where(r => r.Width == newSize.Width && r.Height == newSize.Height)
-                                              .OrderByDescending(r => r.RefreshRate)
-                                              .FirstOrDefault();
+                                       .Where(r => r.Width == newSize.Width && r.Height == newSize.Height)
+                                       .OrderByDescending(r => r.RefreshRate)
+                                       .FirstOrDefault();
 
             if (newResolution == null)
             {
@@ -173,7 +173,9 @@ namespace osu.Framework.Platform
 
                     //must add 1 to enter borderless
                     ClientSize = new Size(currentDisplay.Bounds.Width + 1, currentDisplay.Bounds.Height + 1);
-                    Position = Vector2.Zero;
+                    Position = new Vector2(
+                        Position.X > 0 ? currentDisplay.Bounds.X : -currentDisplay.Bounds.X,
+                        Position.Y > 0 ? currentDisplay.Bounds.Y : -currentDisplay.Bounds.Y);
                     break;
                 case Configuration.WindowMode.Windowed:
                     if (lastFullscreenDisplay != null)
