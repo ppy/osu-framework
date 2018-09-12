@@ -38,7 +38,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             default_triangle_action = triangleBatch.AddAction;
         }
 
-        private readonly Queue<TextureUpload> uploadQueue = new Queue<TextureUpload>();
+        private readonly Queue<ITextureUpload> uploadQueue = new Queue<ITextureUpload>();
 
         private int internalWidth;
         private int internalHeight;
@@ -275,7 +275,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)internalWrapMode);
         }
 
-        public override void SetData(TextureUpload upload)
+        public override void SetData(ITextureUpload upload)
         {
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString(), "Can not set data of a disposed texture.");
@@ -331,7 +331,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
             bool didUpload = false;
 
-            while (tryGetNextUpload(out TextureUpload upload))
+            while (tryGetNextUpload(out ITextureUpload upload))
                 using (upload)
                 {
                     fixed (Rgba32* ptr = &MemoryMarshal.GetReference(upload.Data))
@@ -349,7 +349,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             return didUpload;
         }
 
-        private bool tryGetNextUpload(out TextureUpload upload)
+        private bool tryGetNextUpload(out ITextureUpload upload)
         {
             lock (uploadQueue)
             {

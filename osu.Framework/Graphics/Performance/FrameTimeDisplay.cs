@@ -35,13 +35,12 @@ namespace osu.Framework.Graphics.Performance
                     Colour = Color4.Black,
                     Alpha = 0.75f
                 },
-                counter = new SpriteText
+                counter = new CounterText
                 {
                     Anchor = Anchor.TopRight,
                     Origin = Anchor.TopRight,
                     Spacing = new Vector2(-1, 0),
                     Text = @"...",
-                    FixedWidth = true,
                 }
             });
         }
@@ -86,6 +85,27 @@ namespace osu.Framework.Graphics.Performance
                 counter.Text = $"{displayFps:0}fps({displayFrameTime:0.00}ms)"
                                + $"{(clock.MaximumUpdateHz < 10000 ? clock.MaximumUpdateHz.ToString("0") : "∞").PadLeft(4)}hz";
             }, 1000.0 / updates_per_second, true);
+        }
+
+        private class CounterText : SpriteText
+        {
+            public CounterText()
+            {
+                FixedWidth = true;
+            }
+
+            protected override bool UseFixedWidthForCharacter(char c)
+            {
+                switch (c)
+                {
+                    case ',':
+                    case '.':
+                    case ' ':
+                        return false;
+                }
+
+                return true;
+            }
         }
     }
 }
