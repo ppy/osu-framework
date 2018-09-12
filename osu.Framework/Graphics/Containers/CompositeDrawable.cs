@@ -379,8 +379,7 @@ namespace osu.Framework.Graphics.Containers
             drawable.Parent = null;
             drawable.IsAlive = false;
 
-            InvalidateFromChild(Invalidation.All, drawable, InvalidateAliveInternalChildren());
-
+            InvalidateFromChild(Invalidation.MaskPropagateFromChild, drawable, InvalidateAliveInternalChildren());
             return true;
         }
 
@@ -417,7 +416,7 @@ namespace osu.Framework.Graphics.Containers
             internalChildren.Clear();
             aliveInternalChildren.Clear();
 
-            InvalidateFromChild(Invalidation.All, null, InvalidateAliveInternalChildren());
+            InvalidateFromChild(Invalidation.MaskPropagateFromChild, null, InvalidateAliveInternalChildren());
         }
 
         /// <summary>
@@ -457,7 +456,7 @@ namespace osu.Framework.Graphics.Containers
 
             internalChildren.Add(drawable);
 
-            InvalidateFromChild(Invalidation.All, drawable, InvalidateAliveInternalChildren());
+            InvalidateFromChild(Invalidation.MaskPropagateFromChild, drawable, InvalidateAliveInternalChildren());
         }
 
         /// <summary>
@@ -789,7 +788,7 @@ namespace osu.Framework.Graphics.Containers
             base.InvalidateFromParent(parentInvalidation, selfInvalidation);
         }
 
-        internal override Invalidation InvalidateAll() =>
+        protected override Invalidation InvalidateAll() =>
             base.InvalidateAll() |
             InvalidateAutoSize() | InvalidateChildSize() | InvalidateChildSizeBeforeAutoSize() |
             InvalidateAliveInternalChildren();
@@ -1386,7 +1385,7 @@ namespace osu.Framework.Graphics.Containers
         /// It is not allowed to manually set <see cref="Size"/> (or <see cref="Width"/> / <see cref="Height"/>)
         /// on any <see cref="Axes"/> which are automatically sized.
         /// </summary>
-        public virtual Axes AutoSizeAxes
+        public Axes AutoSizeAxes
         {
             get => autoSizeAxes;
             protected set
@@ -1402,6 +1401,8 @@ namespace osu.Framework.Graphics.Containers
                 OnSizingChanged();
             }
         }
+
+        protected virtual Axes ComputedSizeAxes => AutoSizeAxes;
 
         /// <summary>
         /// The duration which automatic sizing should take. If zero, then it is instantaneous.
@@ -1426,7 +1427,7 @@ namespace osu.Framework.Graphics.Containers
         {
             get
             {
-                if ((AutoSizeAxes & Axes.X) != 0) validateAutoSize();
+                if ((ComputedSizeAxes & Axes.X) != 0) validateAutoSize();
                 return base.Width;
             }
 
@@ -1446,7 +1447,7 @@ namespace osu.Framework.Graphics.Containers
         {
             get
             {
-                if((AutoSizeAxes & Axes.Y) != 0) validateAutoSize();
+                if((ComputedSizeAxes & Axes.Y) != 0) validateAutoSize();
                 return base.Height;
             }
 
@@ -1466,7 +1467,7 @@ namespace osu.Framework.Graphics.Containers
         {
             get
             {
-                if (AutoSizeAxes != Axes.None) validateAutoSize();
+                if (ComputedSizeAxes != Axes.None) validateAutoSize();
                 return new Vector2(base.Width, base.Height);
             }
 
@@ -1482,7 +1483,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private Vector2 computeAutoSize()
+        protected virtual Vector2 ComputeAutoSize()
         {
             Vector2 maxRequiredSize = Vector2.Zero;
 
@@ -1511,49 +1512,40 @@ namespace osu.Framework.Graphics.Containers
                 !AutoSizeAxes.HasFlag(Axes.Y) ? base.Height : maxRequiredSize.Y + Padding.TotalVertical);
         }
 
-        private void validateAutoSize()
-        {
-            autoSizeCache.Compute(updateAutoSize);
-        }
+        private void validateAutoSize() => autoSizeCache.Compute(updateAutoSize);
 
         private void updateAutoSize()
         {
-            if (AutoSizeAxes == Axes.None)
+            if (ComputedSizeAxes == Axes.None)
                 return;
 
-            Vector2 newSize = computeAutoSize();
+            Vector2 newSize = ComputeAutoSize();
 
-            autoSizeResizeTo(newSize, AutoSizeDuration, AutoSizeEasing);
+            AutoSizeResizeTo(newSize);
 
-            //note that this is called before autoSize becomes valid. may be something to consider down the line.
-            //might work better to add an OnRefresh event in Cached<> and invoke there.
             OnAutoSize?.Invoke();
         }
 
-        private void autoSizeResizeTo(Vector2 newSize, double duration = 0, Easing easing = Easing.None)
+        protected virtual void AutoSizeResizeTo(Vector2 newSize)
         {
-            var currentTargetSize = ((AutoSizeTransform)Transforms.FirstOrDefault(t => t is AutoSizeTransform))?.EndValue ?? baseSize;
+            var currentTargetSize = ((AutoSizeTransform)Transforms.FirstOrDefault(t => t is AutoSizeTransform))?.EndValue ?? BaseSize;
             if (currentTargetSize != newSize)
-                this.TransformTo(this.PopulateTransform(new AutoSizeTransform { Rewindable = false }, newSize, duration, easing));
+                this.TransformTo(this.PopulateTransform(new AutoSizeTransform { Rewindable = false }, newSize, AutoSizeDuration, AutoSizeEasing));
         }
 
         /// <summary>
-        /// A helper property for <see cref="autoSizeResizeTo(Vector2, double, Easing)"/> to change the size of <see cref="CompositeDrawable"/>s with <see cref="AutoSizeAxes"/>.
+        /// A helper property for <see cref="AutoSizeResizeTo(Vector2)"/> to change the size of <see cref="CompositeDrawable"/>s with <see cref="AutoSizeAxes"/>.
         /// </summary>
-        private Vector2 baseSize
+        protected Vector2 BaseSize
         {
             get => base.Size;
-            set
-            {
-                base.Width = value.X;
-                base.Height = value.Y;
-            }
+            set => base.Size = value;
         }
 
         private class AutoSizeTransform : TransformCustom<Vector2, CompositeDrawable>
         {
             public AutoSizeTransform()
-                : base(nameof(baseSize))
+                : base(nameof(BaseSize))
             {
             }
         }

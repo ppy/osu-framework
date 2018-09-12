@@ -81,7 +81,7 @@ namespace osu.Framework.Graphics.Containers
             base.InvalidateFromChild(childInvalidation, child, selfInvalidation);
         }
 
-        internal override Invalidation InvalidateAll() =>
+        protected override Invalidation InvalidateAll() =>
             base.InvalidateAll() | InvalidateChildrenLayout();
 
         private readonly Dictionary<Drawable, float> layoutChildren = new Dictionary<Drawable, float>();

@@ -501,7 +501,7 @@ namespace osu.Framework.Graphics.Sprites
             base.InvalidateFromParent(parentInvalidation, selfInvalidation);
         }
 
-        internal override Invalidation InvalidateAll() =>
+        protected override Invalidation InvalidateAll() =>
             base.InvalidateAll() |
             InvalidateScreenSpaceCharacters() | InvalidateCharacters() |
             InvalidateConstantWidth() | InvalidateShadowOffset();
