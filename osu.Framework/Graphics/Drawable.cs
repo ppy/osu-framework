@@ -681,7 +681,7 @@ namespace osu.Framework.Graphics
                 // In some cases we cannot easily preserve our size, and so we simply invalidate and
                 // leave correct sizing to the user.
                 if (fillMode != FillMode.Stretch && (value == Axes.Both || relativeSizeAxes == Axes.Both))
-                    PropagateInvalidation(InvalidateMiscGeometry());
+                    PropagateInvalidation(InvalidateMiscGeometry() | InvalidateDrawSize());
                 else
                 {
                     // Convert coordinates from relative to absolute or vice versa
@@ -936,8 +936,7 @@ namespace osu.Framework.Graphics
 
                 fillAspectRatio = value;
 
-                if (fillMode != FillMode.Stretch && RelativeSizeAxes == Axes.Both)
-                    PropagateInvalidation(InvalidateMiscGeometry());
+                PropagateInvalidation(InvalidateMiscGeometry() | InvalidateDrawSize());
             }
         }
 
@@ -957,7 +956,7 @@ namespace osu.Framework.Graphics
                 if (fillMode == value) return;
                 fillMode = value;
 
-                PropagateInvalidation(InvalidateMiscGeometry());
+                PropagateInvalidation(InvalidateMiscGeometry() | InvalidateDrawSize());
             }
         }
 
@@ -1025,7 +1024,7 @@ namespace osu.Framework.Graphics
                     throw new ArgumentException("Cannot set origin to 0.", nameof(value));
 
                 origin = value;
-                PropagateInvalidation(InvalidateDrawInfo());
+                PropagateInvalidation(InvalidateDrawInfo() | InvalidateRequiredParentSizeToFit());
             }
         }
 

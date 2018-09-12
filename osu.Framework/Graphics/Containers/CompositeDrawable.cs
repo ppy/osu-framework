@@ -738,7 +738,7 @@ namespace osu.Framework.Graphics.Containers
         protected Invalidation InvalidateChildSizeBeforeAutoSize()
         {
             if (!childSizeBeforeAutoSizeBacking.Invalidate()) return Invalidation.None;
-            return Invalidation.ChildSizeBeforeAutoSize | InvalidateChildSize();
+            return Invalidation.ChildSizeBeforeAutoSize;
         }
 
         [MustUseReturnValue]
@@ -1260,7 +1260,7 @@ namespace osu.Framework.Graphics.Containers
 
                 padding = value;
 
-                PropagateInvalidation(InvalidateAutoSize() | InvalidateChildSizeBeforeAutoSize());
+                PropagateInvalidation(InvalidateAutoSize() | InvalidateChildSize() | InvalidateChildSizeBeforeAutoSize());
             }
         }
 
@@ -1269,6 +1269,7 @@ namespace osu.Framework.Graphics.Containers
         /// Captures the effect of e.g. <see cref="Padding"/>.
         /// </summary>
         public Vector2 ChildSize => childSizeBacking.Compute(computeChildSize);
+
         private Cached<Vector2> childSizeBacking = new Cached<Vector2> { Name = nameof(ChildSize) };
         private Vector2 computeChildSize() => DrawSize - Padding.Total;
 
@@ -1447,7 +1448,7 @@ namespace osu.Framework.Graphics.Containers
         {
             get
             {
-                if((ComputedSizeAxes & Axes.Y) != 0) validateAutoSize();
+                if ((ComputedSizeAxes & Axes.Y) != 0) validateAutoSize();
                 return base.Height;
             }
 
