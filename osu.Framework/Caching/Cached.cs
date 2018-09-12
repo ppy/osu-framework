@@ -2,7 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 // Uncomment following line to enable checks of invalidation propagation
-//#define CheckInvalidationPropagation
+#define CheckInvalidationPropagation
 
 using osu.Framework.Statistics;
 using System;
@@ -134,8 +134,12 @@ namespace osu.Framework.Caching
             }
             else
             {
-                Assert.IsNull(checking, $"{checking} is depends on {cache.GetDescription()} but not properly invalidated");
-                Assert.IsFalse(cache.IsComputing, $"{cache.GetDescription()} has a circular dependency");
+                if (ThreadSafety.IsUpdateThread)
+                {
+                    Assert.IsNull(checking, $"{checking} is depends on {cache.GetDescription()} but not properly invalidated");
+                    Assert.IsFalse(cache.IsComputing, $"{cache.GetDescription()} has a circular dependency");
+                }
+
                 cache.IsComputing = true;
                 var result = func();
                 cache.IsComputing = false;
@@ -156,8 +160,12 @@ namespace osu.Framework.Caching
             }
             else
             {
-                Assert.IsNull(checking, $"{checking} is depends on {cache.GetDescription()} but not properly invalidated");
-                Assert.IsFalse(cache.IsComputing, $"{cache.GetDescription()} has a circular dependency");
+                if (ThreadSafety.IsUpdateThread)
+                {
+                    Assert.IsNull(checking, $"{checking} is depends on {cache.GetDescription()} but not properly invalidated");
+                    Assert.IsFalse(cache.IsComputing, $"{cache.GetDescription()} has a circular dependency");
+                }
+
                 cache.IsComputing = true;
                 action();
                 cache.IsComputing = false;

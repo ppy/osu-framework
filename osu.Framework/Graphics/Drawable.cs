@@ -1396,7 +1396,7 @@ namespace osu.Framework.Graphics
                     throw new InvalidOperationException("May not add a drawable to multiple containers.");
 
                 parent = value;
-                InvalidateFromParent(Invalidation.All);
+                InvalidateFromParent(Invalidation.MaskPropagateFromParent);
 
                 if (parent?.Clock != null)
                 {
@@ -1687,11 +1687,14 @@ namespace osu.Framework.Graphics
             PropagateInvalidation(selfInvalidation);
         }
 
-        internal virtual Invalidation InvalidateAll() =>
+        [MustUseReturnValue]
+        protected virtual Invalidation InvalidateAll() =>
             InvalidateDrawNode() | InvalidatePresence() | InvalidateScreenSpaceDrawQuad() |
             InvalidateDrawColourInfo() | InvalidateDrawInfo() |
             InvalidateRequiredParentSizeToFit() | InvalidateBoundingBoxSizeBeforeParentAutoSize() |
             InvalidateDrawSize();
+
+        internal void PropagateInvalidateAll() => PropagateInvalidation(InvalidateAll());
 
         protected void ForceRedraw() => PropagateInvalidation(InvalidateDrawNode());
 
