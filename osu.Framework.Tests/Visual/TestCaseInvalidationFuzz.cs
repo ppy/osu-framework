@@ -30,6 +30,8 @@ namespace osu.Framework.Tests.Visual
         public static bool NoRotation = false;
         public static bool NoShear = false;
 
+        public static bool RepeatQuickCheck = false;
+
         private Action currentCaseAction;
         private readonly Container<DrawQuadOverlayBox> overlayBoxContainer;
 
@@ -42,6 +44,15 @@ namespace osu.Framework.Tests.Visual
                 {
                     OnCounterCaseFound = onCounterCaseFound
                 });
+                if (RepeatQuickCheck)
+                {
+                    AddRepeatStep("repeat quickCheck", () =>
+                    {
+                        Check.One(config, prop(3));
+                        Check.One(config, prop(5));
+                        Check.One(config, prop(10));
+                    }, 10000000);
+                }
 
                 foreach (var i in new[] { 2, 3, 5 })
                 {
@@ -118,6 +129,9 @@ namespace osu.Framework.Tests.Visual
         {
             AddStep($"{testCase.Name} init", () =>
             {
+                foreach (var m in testCase.Modifications)
+                    Console.WriteLine($"{m};");
+
                 var result = runTest(testCase.Scene, testCase.Modifications);
                 SetCase(testCase);
 
@@ -285,7 +299,7 @@ namespace osu.Framework.Tests.Visual
                 Size = new Vector2(1);
             }
 
-            public override string ToString() => $"{Name} ({DrawPosition.X:#,0},{DrawPosition.Y:#,0}) {DrawSize.X:#,0}x{DrawSize.Y:#,0}";
+            public override string ToString() => $"{Name} {DrawPosition} {DrawSize}";
             protected override bool ComputeIsMaskedAway(RectangleF maskingBounds) => false;
         }
 
@@ -296,7 +310,7 @@ namespace osu.Framework.Tests.Visual
                 Size = new Vector2(1);
             }
 
-            public override string ToString() => $"Grid {Name} ({DrawPosition.X:#,0},{DrawPosition.Y:#,0}) {DrawSize.X:#,0}x{DrawSize.Y:#,0}";
+            public override string ToString() => $"Grid {Name} {DrawPosition} {DrawSize}";
             protected override bool ComputeIsMaskedAway(RectangleF maskingBounds) => false;
         }
 
@@ -307,7 +321,7 @@ namespace osu.Framework.Tests.Visual
                 Size = new Vector2(1);
             }
 
-            public override string ToString() => $"FillFlow {Name} ({DrawPosition.X:#,0},{DrawPosition.Y:#,0}) {DrawSize.X:#,0}x{DrawSize.Y:#,0}";
+            public override string ToString() => $"FillFlow {Name} {DrawPosition} {DrawSize}";
             protected override bool ComputeIsMaskedAway(RectangleF maskingBounds) => false;
         }
 

@@ -30,14 +30,19 @@ namespace osu.Framework.Tests.Visual
             addTest<FillModeChange>();
             addTest<OriginChange>();
             addTest<AutoSizeWithRotation1>();
-            addTest<AutoSizeWithRotation2>(2);
-            addTest<AutoSizeWithRotation3>(3);
+            addTest<AutoSizeWithRotation2>();
+            addTest<AutoSizeWithRotation3>();
             addTest<AutoSizeWithShear>();
+            addTest<AutoSizeExtras1>();
+            addTest<AutoSizeExtras2>();
+            addTest<AutoSizeExtras3>();
+            addTest<AutoSizeExtras4>();
+            addTest<AutoSizeExtras5>();
             addTest<FillFlow1>();
             addTest<FillFlow2>();
         }
 
-        private void addTest<T>(int numUpdates = 1) where T : LayoutInvalidationTest, new()
+        private void addTest<T>() where T : LayoutInvalidationTest, new()
         {
             var name = typeof(T).Name;
             T instance1 = null, instance2 = null;
@@ -55,13 +60,13 @@ namespace osu.Framework.Tests.Visual
                         overlayBoxContainer.Add(new DrawQuadOverlayBox(instance.Drawables[j]) { Colour = RandomColorPalette.Get(j).Opacity(.5f) });
                 }
             });
-            AddRepeatStep($"{name} update", () =>
+            AddStep($"{name} update", () =>
             {
                 instance1.DoModification();
                 instance2.DoModification();
                 foreach (var d in instance2.Drawables)
                     d.PropagateInvalidateAll();
-            }, numUpdates);
+            });
             AddStep($"{name} check", () =>
             {
                 var state1 = instance1.GetRoundedDrawVectors();
@@ -114,12 +119,34 @@ namespace osu.Framework.Tests.Visual
             }
         }
 
-        public abstract class Size3Case : LayoutInvalidationTest
+        public abstract class Size3Case1 : LayoutInvalidationTest
+        {
+            protected readonly Container Root, Child, GrandChild;
+            public override Drawable[] Drawables => new Drawable[] { Root, Child, GrandChild };
+
+            protected Size3Case1()
+            {
+                Container.Child = Root = new Container
+                {
+                    Name = "Root",
+                    Size = new Vector2(1),
+                    Child = Child = new Container
+                    {
+                        Name = "Child",
+                        Size = new Vector2(1),
+                        Child = GrandChild = new Container { Name = "GrandChild", Size = new Vector2(1) }
+                    },
+                };
+            }
+        }
+
+
+        public abstract class Size3Case2 : LayoutInvalidationTest
         {
             protected readonly Container Root, Child1, Child2;
             public override Drawable[] Drawables => new Drawable[] { Root, Child1, Child2 };
 
-            protected Size3Case()
+            protected Size3Case2()
             {
                 Container.Child = Root = new Container
                 {
@@ -134,7 +161,7 @@ namespace osu.Framework.Tests.Visual
             }
         }
 
-        public class AutoSize1 : Size3Case
+        public class AutoSize1 : Size3Case2
         {
             public AutoSize1()
             {
@@ -145,7 +172,7 @@ namespace osu.Framework.Tests.Visual
             public override void DoModification() => Child1.RelativePositionAxes = Axes.Y;
         }
 
-        public class AutoSize2 : Size3Case
+        public class AutoSize2 : Size3Case2
         {
             public AutoSize2()
             {
@@ -158,7 +185,7 @@ namespace osu.Framework.Tests.Visual
             public override void DoModification() => Child2.RelativePositionAxes = Axes.X;
         }
 
-        public class AutoSize3 : Size3Case
+        public class AutoSize3 : Size3Case2
         {
             public AutoSize3()
             {
@@ -236,31 +263,10 @@ namespace osu.Framework.Tests.Visual
             public override void DoModification() => Root.Height = 2;
         }
 
-        public class AutoSizeWithRotation2 : LayoutInvalidationTest
+        public class AutoSizeWithRotation2 : Size3Case2
         {
-            protected readonly Container Root, Child1, Child2;
-            public override Drawable[] Drawables => new Drawable[] { Root, Child1, Child2 };
-
             public AutoSizeWithRotation2()
             {
-                Container.Child = Root = new Container
-                {
-                    Name = "Root",
-                    Size = new Vector2(1),
-                    Children = new Drawable[]
-                    {
-                        Child1 = new Container
-                        {
-                            Name = "Child1",
-                            Size = new Vector2(1),
-                        },
-                        Child2 = new Container
-                        {
-                            Name = "Child2",
-                            Size = new Vector2(1)
-                        }
-                    },
-                };
                 Root.AutoSizeAxes = Axes.Both;
                 Child1.RelativeSizeAxes = Axes.Y;
                 Child1.Rotation = -45;
@@ -320,6 +326,72 @@ namespace osu.Framework.Tests.Visual
             }
 
             public override void DoModification() => Root.Height = 2;
+        }
+
+        public class AutoSizeExtras1 : Size3Case1
+        {
+            public AutoSizeExtras1()
+            {
+                Root.AutoSizeAxes = Axes.Y;
+                Child.AutoSizeAxes = Axes.X;
+                GrandChild.RelativeSizeAxes = Axes.Y;
+                GrandChild.Margin = new MarginPadding { Bottom = -1 };
+                GrandChild.Shear = new Vector2(1, 0);
+            }
+
+            public override void DoModification() => Child.RelativeSizeAxes = Axes.Y;
+        }
+
+        public class AutoSizeExtras2 : Size3Case1
+        {
+            public AutoSizeExtras2()
+            {
+                Root.AutoSizeAxes = Axes.Y;
+                Child.AutoSizeAxes = Axes.X;
+                Child.RelativeSizeAxes = Axes.Y;
+                GrandChild.RelativeSizeAxes = Axes.Y;
+                GrandChild.Rotation = 90;
+            }
+
+            public override void DoModification() => Root.Padding = new MarginPadding { Bottom = 1 };
+        }
+
+        public class AutoSizeExtras3 : Size3Case1
+        {
+            public AutoSizeExtras3()
+            {
+                Child.AutoSizeAxes = Axes.Both;
+                GrandChild.Shear = new Vector2(-1, 0);
+            }
+
+            public override void DoModification() => GrandChild.RelativeSizeAxes = Axes.Y;
+        }
+
+        public class AutoSizeExtras4 : Size3Case1
+        {
+            public AutoSizeExtras4()
+            {
+                Root.AutoSizeAxes = Axes.Y;
+                Root.Padding = new MarginPadding { Bottom = 1 };
+                Child.RelativeSizeAxes = Axes.Y;
+                Child.AutoSizeAxes = Axes.X;
+                GrandChild.RelativeSizeAxes = Axes.Y;
+                GrandChild.Rotation = 90;
+            }
+
+            public override void DoModification() => Child.Height = 2;
+        }
+
+        public class AutoSizeExtras5 : Size3Case2
+        {
+            public AutoSizeExtras5()
+            {
+                Root.AutoSizeAxes = Axes.Both;
+                Child1.X = 1;
+                Child1.RelativePositionAxes = Axes.X;
+            }
+
+            public override void DoModification() => Child1.RelativePositionAxes = Axes.None;
         }
 
         public class FillFlow1 : LayoutInvalidationTest
