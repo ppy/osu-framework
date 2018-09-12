@@ -40,6 +40,8 @@ namespace osu.Framework.Tests.Visual
             addTest<AutoSizeExtras5>();
             addTest<FillFlow1>();
             addTest<FillFlow2>();
+            addTest<FillFlowAnchorChange>();
+            addTest<FillFlowOriginChange>();
         }
 
         private void addTest<T>() where T : LayoutInvalidationTest, new()
@@ -447,5 +449,38 @@ namespace osu.Framework.Tests.Visual
 
             public override void DoModification() => Child2.Margin = new MarginPadding { Top = 1 };
         }
+
+        public abstract class FillFlowSiz2Case : LayoutInvalidationTest
+        {
+            protected readonly FillFlowContainer Root;
+            protected readonly Container Child;
+            public override Drawable[] Drawables => new Drawable[] { Root, Child };
+
+            protected FillFlowSiz2Case()
+            {
+                Container.Child = Root = new FillFlowContainer
+                {
+                    Name = "Root",
+                    Size = new Vector2(1),
+                    Child = Child = new Container { Name = "Child", Size = new Vector2(1) },
+                };
+            }
+        }
+
+        public class FillFlowAnchorChange : FillFlowSiz2Case
+        {
+            public override void DoModification() => Child.Anchor = Anchor.TopRight;
+        }
+
+        public class FillFlowOriginChange : FillFlowSiz2Case
+        {
+            public FillFlowOriginChange()
+            {
+                Child.Anchor = Anchor.Centre;
+            }
+
+            public override void DoModification() => Child.Origin = Anchor.TopCentre;
+        }
+
     }
 }

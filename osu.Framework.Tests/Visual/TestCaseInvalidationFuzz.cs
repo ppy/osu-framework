@@ -9,6 +9,7 @@ using FsCheck;
 using JetBrains.Annotations;
 using Microsoft.FSharp.Collections;
 using Microsoft.FSharp.Core;
+using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
@@ -29,6 +30,9 @@ namespace osu.Framework.Tests.Visual
         public static bool NoFillMode = false;
         public static bool NoRotation = false;
         public static bool NoShear = false;
+
+        public static bool NoFillFlowContainer = false;
+        public static bool NoGridContainer = true;
 
         public static bool RepeatQuickCheck = false;
 
@@ -552,9 +556,14 @@ namespace osu.Framework.Tests.Visual
             public override Gen<Scene> Generator => Gen.Choose(SizeLo, SizeUp).SelectMany(gen).Select(root => new Scene(root));
 
             private static Gen<SceneNode> gen(int treeSize) => genChildren(treeSize - 1).SelectMany(children => Gen.OneOf(
-                Gen.Constant((SceneNode)new ContainerNode(children))
-                //                Gen.Constant((SceneNode)new FillFlowContainerNode(children)),
-                //                Gen.Choose(1, Math.Max(1, children.Length)).Select(rows => (SceneNode)new GridContainerNode(rows, (children.Length - 1) / rows + 1, children))
+                new[]
+                {
+                    Gen.Constant((SceneNode)new ContainerNode(children)).Yield(),
+                    NoFillFlowContainer ? Enumerable.Empty<Gen<SceneNode>>() : Gen.Constant((SceneNode)new FillFlowContainerNode(children)).Yield(),
+                    NoGridContainer
+                        ? Enumerable.Empty<Gen<SceneNode>>()
+                        : Gen.Choose(1, Math.Max(1, children.Length)).Select(rows => (SceneNode)new GridContainerNode(rows, (children.Length - 1) / rows + 1, children)).Yield()
+                }.SelectMany(x => x)
             ));
 
             private static Gen<FSharpList<SceneNode>> genChildren(int treeSize)
