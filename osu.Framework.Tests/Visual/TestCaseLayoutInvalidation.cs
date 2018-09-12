@@ -24,7 +24,11 @@ namespace osu.Framework.Tests.Visual
             addTest<AutoSize1>();
             addTest<AutoSize2>();
             addTest<AutoSize3>();
-            addTest<PaddingChange>();
+            addTest<PaddingChange1>();
+            addTest<PaddingChange2>();
+            addTest<PaddingChange3>();
+            addTest<FillModeChange>();
+            addTest<OriginChange>();
             addTest<AutoSizeWithRotation1>();
             addTest<AutoSizeWithRotation2>(2);
             addTest<AutoSizeWithRotation3>(3);
@@ -166,14 +170,58 @@ namespace osu.Framework.Tests.Visual
             public override void DoModification() => Child1.RelativeSizeAxes = Axes.X;
         }
 
-        public class PaddingChange : Size2Case
+        public class PaddingChange1 : Size2Case
         {
-            public PaddingChange()
+            public PaddingChange1()
             {
                 Root.AutoSizeAxes = Axes.Y;
             }
 
             public override void DoModification() => Root.Padding = new MarginPadding { Top = 1 };
+        }
+
+        public class PaddingChange2 : Size2Case
+        {
+            public PaddingChange2()
+            {
+                Root.RelativeSizeAxes = Axes.Y;
+            }
+
+            public override void DoModification() => Root.Padding = new MarginPadding { Top = 1 };
+        }
+
+        public class PaddingChange3 : Size2Case
+        {
+            public PaddingChange3()
+            {
+                Root.AutoSizeAxes = Axes.X;
+                Child.RelativeSizeAxes = Axes.Y;
+                Child.Rotation = 45;
+            }
+
+            public override void DoModification() => Root.Padding = new MarginPadding { Top = 2 };
+        }
+
+        public class FillModeChange : Size2Case
+        {
+            public FillModeChange()
+            {
+                Root.Padding = new MarginPadding { Right = 1 };
+                Child.RelativeSizeAxes = Axes.Both;
+                Child.FillMode = FillMode.Fill;
+            }
+
+            public override void DoModification() => Child.FillMode = FillMode.Stretch;
+        }
+
+        public class OriginChange : Size2Case
+        {
+            public OriginChange()
+            {
+                Root.AutoSizeAxes = Axes.Y;
+            }
+
+            public override void DoModification() => Child.Origin = Anchor.CentreLeft;
         }
 
         public class AutoSizeWithRotation1 : Size2Case
@@ -260,6 +308,7 @@ namespace osu.Framework.Tests.Visual
 
             public override void DoModification() => Child2.Height = 2;
         }
+
         public class AutoSizeWithShear : Size2Case
         {
             public AutoSizeWithShear()
