@@ -2,9 +2,13 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using osu.Framework.Graphics.Containers;
 
 namespace osu.Framework.Graphics
 {
+    /// <summary>
+    /// Represents a set of invalidation (possible change of properties) of <see cref="CompositeDrawable"/>.
+    /// </summary>
     [Flags]
     public enum Invalidation
     {
@@ -26,9 +30,18 @@ namespace osu.Framework.Graphics
         // CompositeDrawable
         ChildSize = 1 << 12,
         ChildSizeBeforeAutoSize = 1 << 13,
-        RelativeChildSizeAndOffset = 1 << 14,
+        RelativeChildSizeAndOffset = 1 << 14,   // RelativeChildSize or RelativeChildOffset
 
+        /// <summary>
+        /// All properties which invalidation can be propagated from parent to child.
+        /// Consequently, a dependency of child to parent property must be one of them.
+        /// </summary>
         MaskPropagateFromParent = DrawColourInfo | DrawInfo | DrawSize | ChildSize | ChildSizeBeforeAutoSize | RelativeChildSizeAndOffset,
+
+        /// <summary>
+        /// All properties which invalidation can be propagated from child to parent.
+        /// Consequently, a dependency of parent to child property must be one of them.
+        /// </summary>
         MaskPropagateFromChild = IsPresent | RequiredParentSizeToFit | BoundingBoxSizeBeforeParentAutoSize | BypassAutoSizeAxes | Anchor | Origin,
 
         All = ~0,

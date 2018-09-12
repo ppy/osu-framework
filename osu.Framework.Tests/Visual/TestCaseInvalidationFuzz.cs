@@ -19,6 +19,9 @@ using OpenTK;
 
 namespace osu.Framework.Tests.Visual
 {
+    /// <summary>
+    /// QuickCheck to check if any necessary invalidation is missing.
+    /// </summary>
     public class TestCaseInvalidationFuzz : GridTestCase
     {
         // disable certain cases to discover more cases
@@ -29,16 +32,19 @@ namespace osu.Framework.Tests.Visual
         public static bool NoFillMode = false;
         public static bool NoRotation = false;
         public static bool NoShear = false;
-
         public static bool NoFillFlowContainer = false;
-
-        public static bool RepeatQuickCheck = false;
+        // Enable this to run the test forever
+        public bool RepeatQuickCheck = false;
 
         private Action currentCaseAction;
-        private readonly Container<DrawQuadOverlayBox> overlayBoxContainer;
+        private Container<DrawQuadOverlayBox> overlayBoxContainer;
 
         public TestCaseInvalidationFuzz()
             : base(1, 2)
+        {
+        }
+
+        protected override void LoadComplete()
         {
             var qc = Config.Quick;
             {
@@ -64,6 +70,8 @@ namespace osu.Framework.Tests.Visual
             }
 
             Add(overlayBoxContainer = new Container<DrawQuadOverlayBox>());
+
+            base.LoadComplete();
         }
 
         public class Case

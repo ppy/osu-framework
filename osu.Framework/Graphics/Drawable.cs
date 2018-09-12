@@ -350,7 +350,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         public Action<Drawable> OnLoadComplete;
 
-        /// <summary>.
+        /// <summary>
         /// Fired before the <see cref="PropagateInvalidation"/> method is called.
         /// </summary>
         internal event Action<Drawable> OnInvalidate;
@@ -1699,6 +1699,11 @@ namespace osu.Framework.Graphics
         protected Invalidation InvalidatePosition() => InvalidateDrawInfo() | InvalidateRequiredParentSizeToFit();
 
 
+        /// <summary>
+        /// Propagate invalidation (possible change of properties) represented by <paramref name="invalidation"/> to parent or children or subclass.
+        /// After one or many InvalidateX methods are called, this method must be called with the bitwise-or sum of the return values of InvalidateX calls.
+        /// </summary>
+        /// <param name="invalidation">Propagating invalidation</param>
         protected virtual void PropagateInvalidation(Invalidation invalidation)
         {
             OnInvalidate?.Invoke(this);
@@ -1708,6 +1713,12 @@ namespace osu.Framework.Graphics
                 Parent?.InvalidateFromChild(masked, this);
         }
 
+        /// <summary>
+        /// Indicates some properties of <see cref="Parent"/> has been invalidated.
+        /// If this <see cref="Drawable"/> has dependency on those properties, dependent properties are invalidated and propagated further.
+        /// </summary>
+        /// <param name="parentInvalidation">Denotes which properies are invalidated for the parent.</param>
+        /// <param name="selfInvalidation">This is added to propagating invalidation and an overriden method can use this to pass invalidation to base method.</param>
         public virtual void InvalidateFromParent(Invalidation parentInvalidation, Invalidation selfInvalidation = Invalidation.None)
         {
             if ((parentInvalidation & Invalidation.DrawInfo) != 0)
@@ -1741,8 +1752,15 @@ namespace osu.Framework.Graphics
         InvalidateBypassAutoSizeAxes() | InvalidateAnchor() | InvalidateOrigin() |
             InvalidateSize();
 
+        /// <summary>
+        /// Invalidate all properties and propagate this invalidation.
+        /// Should only be used for testing purpose.
+        /// </summary>
         internal void PropagateInvalidateAll() => PropagateInvalidation(InvalidateAll());
 
+        /// <summary>
+        /// Forces a new version of <see cref="DrawNode"/> and <see cref="ApplyDrawNode"/> to be called.
+        /// </summary>
         protected void ForceRedraw() => PropagateInvalidation(InvalidateDrawNode());
 
         #endregion

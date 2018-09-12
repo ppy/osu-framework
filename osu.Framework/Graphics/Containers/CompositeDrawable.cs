@@ -769,6 +769,13 @@ namespace osu.Framework.Graphics.Containers
             base.PropagateInvalidation(invalidation);
         }
 
+        /// <summary>
+        /// Indicates some properties of a child has been invalidated.
+        /// If this <see cref="Drawable"/> has dependency on those properties, dependent properties are invalidated and propagated further.
+        /// </summary>
+        /// <param name="childInvalidation">Denotes which properies are invalidated for <paramref name="child"/></param>
+        /// <param name="child">Source of invalidation.</param>
+        /// <param name="selfInvalidation">This is added to propagating invalidation and an overriden method can use this to pass invalidation to base method</param>
         public virtual void InvalidateFromChild(Invalidation childInvalidation, Drawable child, Invalidation selfInvalidation = Invalidation.None)
         {
             if ((childInvalidation & (Invalidation.RequiredParentSizeToFit | Invalidation.IsPresent | Invalidation.BypassAutoSizeAxes)) != 0)
@@ -1405,6 +1412,9 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        /// <summary>
+        /// Indicates what axes should be computed by <see cref="ComputeAutoSize"/>.
+        /// </summary>
         protected virtual Axes ComputedSizeAxes => AutoSizeAxes;
 
         /// <summary>

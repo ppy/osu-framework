@@ -13,6 +13,10 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Tests.Visual
 {
+    /// <summary>
+    /// A collection of regression testing for layout invalidation issues.
+    /// Most cases are found by <see cref="TestCaseInvalidationFuzz"/>.
+    /// </summary>
     public class TestCaseLayoutInvalidation : GridTestCase
     {
         private readonly Container<DrawQuadOverlayBox> overlayBoxContainer;

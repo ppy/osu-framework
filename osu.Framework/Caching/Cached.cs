@@ -101,9 +101,15 @@ namespace osu.Framework.Caching
     public static class CachedExtensions
     {
 #if !CheckInvalidationPropagation
+        /// <summary>
+        /// Compute <paramref name="func"/> with caching <paramref name="cache"/>.
+        /// </summary>
         public static T Compute<T>(this ref Cached<T> cache, Func<T> func) =>
             cache.IsValid ? cache.Value : (cache.Value = func());
 
+        /// <summary>
+        /// Run <paramref name="action"/> if <paramref name="cache"/> is invalid.
+        /// </summary>
         public static void Compute(this ref Cached cache, Action action)
         {
             if (!cache.IsValid)
