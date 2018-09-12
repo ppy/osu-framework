@@ -1048,7 +1048,7 @@ namespace osu.Framework.Graphics
                     throw new ArgumentException("Cannot set origin to 0.", nameof(value));
 
                 origin = value;
-                PropagateInvalidation(InvalidateDrawInfo() | InvalidateRequiredParentSizeToFit());
+                PropagateInvalidation(InvalidateDrawInfo() | InvalidateRequiredParentSizeToFit() | InvalidateOrigin());
             }
         }
 
@@ -1134,7 +1134,7 @@ namespace osu.Framework.Graphics
                     throw new ArgumentException("Cannot set anchor to 0.", nameof(value));
 
                 anchor = value;
-                PropagateInvalidation(InvalidateDrawInfo() | InvalidateRequiredParentSizeToFit() | Invalidation.Anchor);
+                PropagateInvalidation(InvalidateDrawInfo() | InvalidateRequiredParentSizeToFit() | InvalidateAnchor());
             }
         }
 
@@ -1675,13 +1675,29 @@ namespace osu.Framework.Graphics
         }
 
         [MustUseReturnValue]
+        protected Invalidation InvalidateAnchor()
+        {
+            return Invalidation.Anchor;
+        }
+
+        [MustUseReturnValue]
+        protected Invalidation InvalidateOrigin()
+        {
+            return Invalidation.Origin;
+        }
+
+        [MustUseReturnValue]
+        protected Invalidation InvalidateSize()
+        {
+            return Invalidation.Size | InvalidateMiscGeometry() | InvalidateDrawSize();
+        }
+
+        [MustUseReturnValue]
         protected Invalidation InvalidateMiscGeometry() => InvalidateDrawInfo() | InvalidateRequiredParentSizeToFit() | InvalidateBoundingBoxSizeBeforeParentAutoSize();
 
         [MustUseReturnValue]
         protected Invalidation InvalidatePosition() => InvalidateDrawInfo() | InvalidateRequiredParentSizeToFit();
 
-        [MustUseReturnValue]
-        protected Invalidation InvalidateSize() => Invalidation.Size | InvalidateMiscGeometry() | InvalidateDrawSize();
 
         protected virtual void PropagateInvalidation(Invalidation invalidation)
         {
@@ -1721,7 +1737,9 @@ namespace osu.Framework.Graphics
             InvalidateDrawNode() | InvalidateIsPresent() | InvalidateScreenSpaceDrawQuad() |
             InvalidateDrawColourInfo() | InvalidateDrawInfo() |
             InvalidateRequiredParentSizeToFit() | InvalidateBoundingBoxSizeBeforeParentAutoSize() |
-            InvalidateDrawSize();
+            InvalidateDrawSize() |
+        InvalidateBypassAutoSizeAxes() | InvalidateAnchor() | InvalidateOrigin() |
+            InvalidateSize();
 
         internal void PropagateInvalidateAll() => PropagateInvalidation(InvalidateAll());
 
