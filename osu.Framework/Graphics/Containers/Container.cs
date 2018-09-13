@@ -57,6 +57,9 @@ namespace osu.Framework.Graphics.Containers
         /// The publicly accessible list of children. Forwards to the children of <see cref="Content"/>.
         /// If <see cref="Content"/> is this container, then returns <see cref="CompositeDrawable.InternalChildren"/>.
         /// Assigning to this property will dispose all existing children of this Container.
+        /// <remarks>
+        /// If a foreach loop is used, iterate over the <see cref="Container"/> directly rather than its <see cref="Children"/>.
+        /// </remarks>
         /// </summary>
         public IReadOnlyList<T> Children
         {
