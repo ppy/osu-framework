@@ -88,6 +88,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         private Anchor textAnchor = Anchor.TopLeft;
+
         /// <summary>
         /// The <see cref="Anchor"/> which text should flow from.
         /// </summary>
@@ -119,7 +120,7 @@ namespace osu.Framework.Graphics.Containers
         public override bool HandleKeyboardInput => false;
         public override bool HandleMouseInput => false;
 
-        private Cached childrenSpacingCache = new Cached { Name = $"{nameof(TextFlowContainer)}.childrenSpacing"};
+        private Cached childrenSpacingCache = new Cached { Name = $"{nameof(TextFlowContainer)}.childrenSpacing" };
 
         [MustUseReturnValue]
         protected Invalidation InvalidateChildrenSpacing()
@@ -140,7 +141,12 @@ namespace osu.Framework.Graphics.Containers
 
         protected override IEnumerable<Vector2> ComputeLayoutPositions()
         {
-            childrenSpacingCache.ValidateWith(setChildrenSpacing);
+            if (!childrenSpacingCache.IsValid)
+            {
+                setChildrenSpacing();
+                childrenSpacingCache.Validate();
+            }
+
             return base.ComputeLayoutPositions();
         }
 

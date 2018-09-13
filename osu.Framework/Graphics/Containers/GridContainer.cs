@@ -108,12 +108,20 @@ namespace osu.Framework.Graphics.Containers
 
         private void validateCellContent()
         {
-            cellContent.ValidateWith(computeCellContent);
+            if (!cellContent.IsValid)
+            {
+                computeCellContent();
+                cellContent.Validate();
+            }
         }
 
         private void validateCellLayout()
         {
-            cellLayout.ValidateWith(computeCellLayout);
+            if (!cellLayout.IsValid)
+            {
+                computeCellLayout();
+                cellLayout.Validate();
+            }
         }
 
         /// <summary>
@@ -209,6 +217,7 @@ namespace osu.Framework.Graphics.Containers
                                 cells[r, i].IsAutoSized = true;
                                 cellWidth = Math.Max(cellWidth, Content[r]?[i]?.BoundingBoxBeforeParentAutoSize.Width ?? 0);
                             }
+
                             break;
                     }
 
@@ -250,6 +259,7 @@ namespace osu.Framework.Graphics.Containers
                                 cells[i, c].IsAutoSized = true;
                                 cellHeight = Math.Max(cellHeight, Content[i]?[c]?.BoundingBoxBeforeParentAutoSize.Height ?? 0);
                             }
+
                             break;
                     }
 
