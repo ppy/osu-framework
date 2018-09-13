@@ -442,7 +442,6 @@ namespace osu.Framework.Graphics.Sprites
                     computeScreenSpaceCharacters();
                     screenSpaceCharactersCache.Validate();
                 }
-                
                 return screenSpaceCharactersBacking;
             }
         }
