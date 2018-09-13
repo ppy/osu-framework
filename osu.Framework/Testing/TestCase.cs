@@ -40,7 +40,7 @@ namespace osu.Framework.Testing
         {
             isNUnitRunning = true;
 
-            host = new HeadlessGameHost($"test-{Guid.NewGuid()}", realtime: false);
+            host = new HeadlessGameHost($"{GetType().Name}-{Guid.NewGuid()}", realtime: false);
             runner = CreateRunner();
 
             if (!(runner is Game game))
