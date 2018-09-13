@@ -10,7 +10,7 @@ using osu.Framework.IO.Serialization;
 
 namespace osu.Framework.Lists
 {
-    public class SortedList<T> : ICollection<T>, IReadOnlyList<T>, ISortedList
+    public class SortedList<T> : ICollection<T>, IReadOnlyList<T>, ISerializableSortedList
     {
         private readonly List<T> list;
 
@@ -137,12 +137,12 @@ namespace osu.Framework.Lists
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        public void SerializeTo(JsonWriter writer, JsonSerializer serializer)
+        void ISerializableSortedList.SerializeTo(JsonWriter writer, JsonSerializer serializer)
         {
             serializer.Serialize(writer, list);
         }
 
-        public void DeserializeFrom(JsonReader reader, JsonSerializer serializer)
+        void ISerializableSortedList.DeserializeFrom(JsonReader reader, JsonSerializer serializer)
         {
             serializer.Populate(reader, list);
             list.Sort(Comparer);
@@ -174,12 +174,5 @@ namespace osu.Framework.Lists
                 list = null;
             }
         }
-    }
-
-    [JsonConverter(typeof(SortedListConverter))]
-    internal interface ISortedList
-    {
-        void SerializeTo(JsonWriter writer, JsonSerializer serializer);
-        void DeserializeFrom(JsonReader reader, JsonSerializer serializer);
     }
 }
