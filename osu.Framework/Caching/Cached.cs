@@ -104,13 +104,13 @@ namespace osu.Framework.Caching
         /// <summary>
         /// Compute <paramref name="func"/> with caching <paramref name="cache"/>.
         /// </summary>
-        public static T Compute<T>(this ref Cached<T> cache, Func<T> func) =>
+        public static T ComputeWith<T>(this ref Cached<T> cache, Func<T> func) =>
             cache.IsValid ? cache.Value : (cache.Value = func());
 
         /// <summary>
         /// Run <paramref name="action"/> if <paramref name="cache"/> is invalid.
         /// </summary>
-        public static void Compute(this ref Cached cache, Action action)
+        public static void ValidateWith(this ref Cached cache, Action action)
         {
             if (!cache.IsValid)
             {
@@ -121,7 +121,7 @@ namespace osu.Framework.Caching
 #else
         private static string checking;
 
-        public static T Compute<T>(this ref Cached<T> cache, Func<T> func)
+        public static T ComputeWith<T>(this ref Cached<T> cache, Func<T> func)
         {
             if (cache.IsValid)
             {
@@ -153,7 +153,7 @@ namespace osu.Framework.Caching
             }
         }
 
-        public static void Compute(this ref Cached cache, Action action)
+        public static void ValidateWith(this ref Cached cache, Action action)
         {
             if (cache.IsValid)
             {

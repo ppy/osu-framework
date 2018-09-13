@@ -219,7 +219,7 @@ namespace osu.Framework.Graphics.Containers
             ValidateLayout();
         }
 
-        public void ValidateLayout() => layout.Compute(performLayout);
+        public void ValidateLayout() => layout.ValidateWith(performLayout);
 
         private class FlowTransform : TransformCustom<Vector2, Drawable>
         {

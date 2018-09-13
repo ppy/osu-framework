@@ -330,7 +330,7 @@ namespace osu.Framework.Graphics.Sprites
 
         private void validateCharactersAndAutoSize()
         {
-            var size = charactersAndAutoSizeCache.Compute(computeCharactersAndAutoSize);
+            var size = charactersAndAutoSizeCache.ComputeWith(computeCharactersAndAutoSize);
 
             if (requiresAutoSizedWidth)
                 base.Width = size.X;
@@ -437,7 +437,7 @@ namespace osu.Framework.Graphics.Sprites
         {
             get
             {
-                screenSpaceCharactersCache.Compute(computeScreenSpaceCharacters);
+                screenSpaceCharactersCache.ValidateWith(computeScreenSpaceCharacters);
                 return screenSpaceCharactersBacking;
             }
         }
@@ -457,11 +457,11 @@ namespace osu.Framework.Graphics.Sprites
         }
 
         private Cached<float> constantWidthCache = new Cached<float> { Name = $"{nameof(SpriteText)}.{nameof(constantWidth)}" };
-        private float constantWidth => constantWidthCache.Compute(computeConstantWidth);
+        private float constantWidth => constantWidthCache.ComputeWith(computeConstantWidth);
         private float computeConstantWidth() => GetTextureForCharacter('D')?.DisplayWidth ?? 0;
 
         private Cached<Vector2> shadowOffsetCache = new Cached<Vector2> { Name = $"{nameof(SpriteText)}.{nameof(shadowOffset)}" };
-        private Vector2 shadowOffset => shadowOffsetCache.Compute(computeShadowOffset);
+        private Vector2 shadowOffset => shadowOffsetCache.ComputeWith(computeShadowOffset);
         private Vector2 computeShadowOffset() => ToScreenSpace(shadow_offset * TextSize) - ToScreenSpace(Vector2.Zero);
 
         #endregion

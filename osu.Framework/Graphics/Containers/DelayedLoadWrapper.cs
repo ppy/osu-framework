@@ -105,7 +105,7 @@ namespace osu.Framework.Graphics.Containers
         public bool DelayedLoadCompleted => InternalChildren.Count > 0;
 
         private Cached<bool> isIntersectingBacking = new Cached<bool> { Name = $"{nameof(DelayedLoadWrapper)}.{nameof(IsIntersecting)}" };
-        protected bool IsIntersecting => isIntersectingBacking.Compute(checkScrollIntersection);
+        protected bool IsIntersecting => isIntersectingBacking.ComputeWith(checkScrollIntersection);
 
         internal IOnScreenOptimisingContainer OptimisingContainer { get; private set; }
 

@@ -140,7 +140,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected override IEnumerable<Vector2> ComputeLayoutPositions()
         {
-            childrenSpacingCache.Compute(setChildrenSpacing);
+            childrenSpacingCache.ValidateWith(setChildrenSpacing);
             return base.ComputeLayoutPositions();
         }
 

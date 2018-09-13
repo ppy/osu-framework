@@ -1275,7 +1275,7 @@ namespace osu.Framework.Graphics.Containers
         /// The size of the coordinate space revealed to <see cref="InternalChildren"/>.
         /// Captures the effect of e.g. <see cref="Padding"/>.
         /// </summary>
-        public Vector2 ChildSize => childSizeBacking.Compute(computeChildSize);
+        public Vector2 ChildSize => childSizeBacking.ComputeWith(computeChildSize);
 
         private Cached<Vector2> childSizeBacking = new Cached<Vector2> { Name = nameof(ChildSize) };
         private Vector2 computeChildSize() => DrawSize - Padding.Total;
@@ -1347,7 +1347,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected Vector2 DrawSizeBeforeAutoSize => ApplyRelativeAxesBeforeParentAutoSize(RelativeSizeAxes, SizeBeforeAutoSize, FillMode);
 
-        public Vector2 ChildSizeBeforeAutoSize => childSizeBeforeAutoSizeBacking.Compute(computeChildSizeBeforeAutoSize);
+        public Vector2 ChildSizeBeforeAutoSize => childSizeBeforeAutoSizeBacking.ComputeWith(computeChildSizeBeforeAutoSize);
         private Cached<Vector2> childSizeBeforeAutoSizeBacking = new Cached<Vector2> { Name = nameof(ChildSizeBeforeAutoSize) };
         private Vector2 computeChildSizeBeforeAutoSize() => DrawSizeBeforeAutoSize - Padding.Total;
 
@@ -1522,7 +1522,7 @@ namespace osu.Framework.Graphics.Containers
                 !AutoSizeAxes.HasFlag(Axes.Y) ? base.Height : maxRequiredSize.Y + Padding.TotalVertical);
         }
 
-        private void validateAutoSize() => autoSizeCache.Compute(updateAutoSize);
+        private void validateAutoSize() => autoSizeCache.ValidateWith(updateAutoSize);
 
         private void updateAutoSize()
         {

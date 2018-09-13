@@ -106,9 +106,9 @@ namespace osu.Framework.Graphics.Containers
         private int cellRows => cells.GetLength(0);
         private int cellColumns => cells.GetLength(1);
 
-        private void validateCellContent() => cellContent.Compute(computeCellContent);
+        private void validateCellContent() => cellContent.ValidateWith(computeCellContent);
 
-        private void validateCellLayout() => cellLayout.Compute(computeCellLayout);
+        private void validateCellLayout() => cellLayout.ValidateWith(computeCellLayout);
 
         /// <summary>
         /// Moves content from <see cref="Content"/> into cells.
