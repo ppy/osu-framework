@@ -1522,7 +1522,10 @@ namespace osu.Framework.Graphics.Containers
                 !AutoSizeAxes.HasFlag(Axes.Y) ? base.Height : maxRequiredSize.Y + Padding.TotalVertical);
         }
 
-        private void validateAutoSize() => autoSizeCache.ValidateWith(updateAutoSize);
+        private void validateAutoSize()
+        {
+            autoSizeCache.ValidateWith(updateAutoSize);
+        }
 
         private void updateAutoSize()
         {
