@@ -2474,7 +2474,7 @@ namespace osu.Framework.Graphics
             if (parent == null)
                 return shortClass;
 
-            return $@"{shortClass}";
+            return $@"{shortClass} ({DrawPosition.X:#,0},{DrawPosition.Y:#,0}) {DrawSize.X:#,0}x{DrawSize.Y:#,0}";
         }
     }
 
