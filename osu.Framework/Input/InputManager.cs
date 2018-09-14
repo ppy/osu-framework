@@ -221,6 +221,8 @@ namespace osu.Framework.Input
 
         internal override bool BuildMouseInputQueue(Vector2 screenSpaceMousePos, List<Drawable> queue) => false;
 
+        private bool isHoverEventUpdated = false;
+
         protected override void Update()
         {
             unfocusIfNoLongerValid();
@@ -229,13 +231,28 @@ namespace osu.Framework.Input
             inputQueue.Clear();
             positionalInputQueue.Clear();
 
+            isHoverEventUpdated = false;
+
             foreach (var result in GetPendingInputs())
             {
                 result.Apply(CurrentState, this);
             }
 
             updateKeyRepeat(CurrentState);
-            // No update hovered state here
+
+            // If we don`t have mouse or our mouse not move, we still check them per frame.
+            if (!isHoverEventUpdated)
+            {
+                if (CurrentState.Mouse.IsPositionValid)
+                {
+                    foreach (var d in PositionalInputQueue)
+                        if (d is IRequireHighFrequencyMousePosition)
+                            if (d.TriggerOnMouseMove(CurrentState))
+                                break;
+                }
+
+                updateHoverEvents(CurrentState);
+            }
 
             if (FocusedDrawable == null)
                 focusTopMostRequestingDrawable();
@@ -426,6 +443,8 @@ namespace osu.Framework.Input
 
             // Update hover states right after mouse move.
             updateHoverEvents(state);
+            // Tell update() that I already updated hover event.
+            isHoverEventUpdated = true;
         }
 
         public virtual void HandleMouseScrollChange(InputState state)
