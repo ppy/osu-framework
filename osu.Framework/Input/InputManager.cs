@@ -248,7 +248,7 @@ namespace osu.Framework.Input
 
             updateKeyRepeat(CurrentState);
 
-            // If we don`t have mouse or our mouse not move, we still check them per frame.
+            // If we don't have mouse or our mouse not move, we still check them per frame.
             if (!isHoverEventUpdated)
                 updateHoverEvents(CurrentState);
 
