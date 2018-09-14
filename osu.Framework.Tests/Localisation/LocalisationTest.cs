@@ -29,16 +29,11 @@ namespace osu.Framework.Tests.Localisation
         public void TestNotLocalised()
         {
             const string not_localised = "not localised.";
-            const string not_localised_2 = "also not localised";
 
-            var localisable = new LocalisableString(string.Empty, false);
+            var localisable = new LocalisableString(not_localised, false);
             var localisedText = engine.GetLocalisedBindable(localisable);
 
-            localisable.Text.Value = not_localised;
             Assert.AreEqual(not_localised, localisedText.Value);
-
-            localisable.Text.Value = not_localised_2;
-            Assert.AreEqual(not_localised_2, localisedText.Value);
         }
 
         [Test]
@@ -46,10 +41,9 @@ namespace osu.Framework.Tests.Localisation
         {
             engine.AddLanguage("ja-JP", new FakeStorage("ja-JP"));
 
-            var localisable = new LocalisableString(string.Empty);
+            var localisable = new LocalisableString(FakeStorage.LOCALISABLE_STRING_EN);
             var localisedText = engine.GetLocalisedBindable(localisable);
 
-            localisable.Text.Value = FakeStorage.LOCALISABLE_STRING_EN;
             Assert.AreEqual(FakeStorage.LOCALISABLE_STRING_EN, localisedText.Value);
 
             config.Set(FrameworkSetting.Locale, "ja-JP");
@@ -63,10 +57,9 @@ namespace osu.Framework.Tests.Localisation
 
             config.Set(FrameworkSetting.Locale, "ja-JP");
 
-            var localisable = new LocalisableString(string.Empty);
+            var localisable = new LocalisableString(FakeStorage.LOCALISABLE_STRING_EN);
             var localisedText = engine.GetLocalisedBindable(localisable);
 
-            localisable.Text.Value = FakeStorage.LOCALISABLE_STRING_EN;
             Assert.AreEqual(FakeStorage.LOCALISABLE_STRING_JA, localisedText.Value);
         }
 

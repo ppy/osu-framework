@@ -20,10 +20,6 @@ namespace osu.Framework.Localisation
             {
                 this.localisable = localisable;
 
-                localisable.Text.BindValueChanged(_ => updateValue());
-                localisable.Localised.BindValueChanged(_ => updateValue());
-                localisable.Args.BindValueChanged(_ => updateValue());
-
                 Storage.BindValueChanged(_ => updateValue(), true);
             }
 
@@ -40,11 +36,11 @@ namespace osu.Framework.Localisation
                 if (localisable.Localised)
                     newText = Storage.Value.Get(newText);
 
-                if (localisable.Args.Value != null && !string.IsNullOrEmpty(newText))
+                if (localisable.Args != null && !string.IsNullOrEmpty(newText))
                 {
                     try
                     {
-                        newText = string.Format(newText, localisable.Args.Value);
+                        newText = string.Format(newText, localisable.Args);
                     }
                     catch (FormatException)
                     {
