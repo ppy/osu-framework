@@ -234,17 +234,8 @@ namespace osu.Framework.Input
                 result.Apply(CurrentState, this);
             }
 
-            if (CurrentState.Mouse.IsPositionValid)
-            {
-                foreach (var d in PositionalInputQueue)
-                    if (d is IRequireHighFrequencyMousePosition)
-                        if (d.TriggerOnMouseMove(CurrentState))
-                            break;
-            }
-
             updateKeyRepeat(CurrentState);
-
-            updateHoverEvents(CurrentState);
+            // No update hovered state here
 
             if (FocusedDrawable == null)
                 focusTopMostRequestingDrawable();
@@ -424,6 +415,17 @@ namespace osu.Framework.Input
 
             foreach (var manager in mouseButtonEventManagers.Values)
                 manager.HandlePositionChange(state);
+
+            // Deal with informations of mouse right after mouse move.
+            if (state.Mouse.IsPositionValid) {
+                foreach (var d in PositionalInputQueue)
+                    if (d is IRequireHighFrequencyMousePosition)
+                        if (d.TriggerOnMouseMove(state))
+                            break;
+            }
+
+            // Update hover states right after mouse move.
+            updateHoverEvents(state);
         }
 
         public virtual void HandleMouseScrollChange(InputState state)
