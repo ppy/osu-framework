@@ -221,7 +221,7 @@ namespace osu.Framework.Input
 
         internal override bool BuildMouseInputQueue(Vector2 screenSpaceMousePos, List<Drawable> queue) => false;
 
-        private bool isHoverEventUpdated = false;
+        private bool isHoverEventUpdated;
 
         protected override void Update()
         {
@@ -238,21 +238,18 @@ namespace osu.Framework.Input
                 result.Apply(CurrentState, this);
             }
 
+            if (CurrentState.Mouse.IsPositionValid) {
+                foreach (var d in PositionalInputQueue)
+                    if (d is IRequireHighFrequencyMousePosition)
+                        if (d.TriggerOnMouseMove(CurrentState))
+                            break;
+            }
+
             updateKeyRepeat(CurrentState);
 
             // If we don`t have mouse or our mouse not move, we still check them per frame.
             if (!isHoverEventUpdated)
-            {
-                if (CurrentState.Mouse.IsPositionValid)
-                {
-                    foreach (var d in PositionalInputQueue)
-                        if (d is IRequireHighFrequencyMousePosition)
-                            if (d.TriggerOnMouseMove(CurrentState))
-                                break;
-                }
-
                 updateHoverEvents(CurrentState);
-            }
 
             if (FocusedDrawable == null)
                 focusTopMostRequestingDrawable();
@@ -377,6 +374,8 @@ namespace osu.Framework.Input
                 d.IsHovered = false;
                 d.TriggerOnHoverLost(state);
             }
+
+            isHoverEventUpdated = true;
         }
 
         private bool isModifierKey(Key k)
@@ -433,18 +432,7 @@ namespace osu.Framework.Input
             foreach (var manager in mouseButtonEventManagers.Values)
                 manager.HandlePositionChange(state);
 
-            // Deal with informations of mouse right after mouse move.
-            if (state.Mouse.IsPositionValid) {
-                foreach (var d in PositionalInputQueue)
-                    if (d is IRequireHighFrequencyMousePosition)
-                        if (d.TriggerOnMouseMove(state))
-                            break;
-            }
-
-            // Update hover states right after mouse move.
             updateHoverEvents(state);
-            // Tell update() that I already updated hover event.
-            isHoverEventUpdated = true;
         }
 
         public virtual void HandleMouseScrollChange(InputState state)
