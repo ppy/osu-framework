@@ -35,7 +35,7 @@ namespace osu.Framework.Localisation
         }
 
         /// <summary>
-        /// Creates and tracks a <see cref="Bindable{T}"/> according to information provided in <paramref name="localisable"/>, with the ability to dynamically update the bindable.
+        /// Creates a <see cref="Bindable{T}"/> which automatically updates its text according to information provided in <paramref name="localisable"/>.
         /// </summary>
         /// <param name="localisable">Provides information about the text and expected type of localisation.</param>
         /// <returns>A <see cref="Bindable{T}"/> that contains the localised text as specified by the input <paramref name="localisable"/>.</returns>
@@ -49,7 +49,7 @@ namespace osu.Framework.Localisation
         }
 
         /// <summary>
-        /// Creates and tracks a <see cref="Bindable{T}"/> that is one of two given string values, based on the value of <see cref="FrameworkSetting.ShowUnicode"/>.
+        /// Creates a <see cref="Bindable{T}"/> which automatically switches its text according to <see cref="FrameworkSetting.ShowUnicode"/>.
         /// </summary>
         /// <param name="unicode">The unicode text to be used when <see cref="FrameworkSetting.ShowUnicode"/> is true.</param>
         /// <param name="nonUnicode">The non-unicode text to be used when <see cref="FrameworkSetting.ShowUnicode"/> is false.</param>
