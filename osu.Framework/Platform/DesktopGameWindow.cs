@@ -173,6 +173,8 @@ namespace osu.Framework.Platform
 
                     //must add 1 to enter borderless
                     ClientSize = new Size(currentDisplay.Bounds.Width + 1, currentDisplay.Bounds.Height + 1);
+
+                    // This Position check is required for understanding in which direction(to the right or to the left) from the Primary screen the window was moved.
                     Position = new Vector2(
                         Position.X > 0 ? currentDisplay.Bounds.X : -currentDisplay.Bounds.X,
                         Position.Y > 0 ? currentDisplay.Bounds.Y : -currentDisplay.Bounds.Y);
