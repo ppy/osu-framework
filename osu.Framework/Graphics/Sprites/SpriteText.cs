@@ -13,6 +13,7 @@ using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.IO.Stores;
+using osu.Framework.Localisation;
 using osu.Framework.MathUtils;
 using OpenTK;
 using OpenTK.Graphics;
@@ -30,29 +31,32 @@ namespace osu.Framework.Graphics.Sprites
         [Resolved]
         private FontStore store { get; set; }
 
+        [Resolved(CanBeNull = true)]
+        private LocalisationEngine localisation { get; set; }
+
         private float spaceWidth;
 
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
         {
+            // This is the first time we're getting the localisation
+            updateDisplayedTextBindable();
+
             spaceWidth = GetTextureForCharacter('.')?.DisplayWidth * 2 ?? 1;
             sharedData.TextureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
             sharedData.RoundedTextureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
 
             // Pre-cache the characters in the texture store
-            if (!string.IsNullOrEmpty(Text))
-            {
-                foreach (var character in Text)
-                    GetTextureForCharacter(character);
-            }
+            foreach (var character in displayedText)
+                GetTextureForCharacter(character);
         }
 
-        private string text;
+        private LocalisableString text = string.Empty;
 
         /// <summary>
         /// Gets or sets the text to be displayed.
         /// </summary>
-        public string Text
+        public LocalisableString Text
         {
             get => text;
             set
@@ -61,7 +65,27 @@ namespace osu.Framework.Graphics.Sprites
                     return;
                 text = value;
 
-                if (string.IsNullOrEmpty(text))
+                if (localisation != null)
+                    updateDisplayedTextBindable();
+            }
+        }
+
+        private IBindable<string> displayedTextBindable = new Bindable<string>(string.Empty);
+
+        private void updateDisplayedTextBindable()
+        {
+            var newBindable = localisation?.GetLocalisedBindable(Text) ?? new Bindable<string>(Text);
+
+            if (displayedTextBindable != null)
+                displayedTextBindable.ValueChanged -= textChanged;
+
+            displayedTextBindable = newBindable;
+
+            displayedTextBindable.BindValueChanged(textChanged, true);
+
+            void textChanged(string newText)
+            {
+                if (string.IsNullOrEmpty(newText))
                 {
                     // We'll become not present and won't update the characters to set the size to 0, so do it manually
                     if (requiresAutoSizedWidth)
@@ -73,6 +97,15 @@ namespace osu.Framework.Graphics.Sprites
                 invalidate(true);
             }
         }
+
+        private string displayedText => displayedTextBindable.Value;
+
+        string IHasText.Text
+        {
+            get => Text;
+            set => Text = value;
+        }
+
 
         private float textSize = default_text_size;
 
@@ -313,7 +346,7 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        public override bool IsPresent => base.IsPresent && (AlwaysPresent || !string.IsNullOrEmpty(text));
+        public override bool IsPresent => base.IsPresent && (AlwaysPresent || !string.IsNullOrEmpty(displayedText));
 
         #region Characters
 
@@ -351,7 +384,7 @@ namespace osu.Framework.Graphics.Sprites
 
             try
             {
-                if (string.IsNullOrEmpty(Text))
+                if (string.IsNullOrEmpty(displayedText))
                     return;
 
                 float maxWidth = float.PositiveInfinity;
@@ -360,7 +393,7 @@ namespace osu.Framework.Graphics.Sprites
 
                 float currentRowHeight = 0;
 
-                foreach (var character in Text)
+                foreach (var character in displayedText)
                 {
                     bool useFixedWidth = FixedWidth && UseFixedWidthForCharacter(character);
 
@@ -584,7 +617,7 @@ namespace osu.Framework.Graphics.Sprites
 
         public override string ToString()
         {
-            return $@"""{Text}"" " + base.ToString();
+            return $@"""{displayedText}"" " + base.ToString();
         }
 
         private Bindable<string> current;
@@ -623,16 +656,16 @@ namespace osu.Framework.Graphics.Sprites
                 if (baseHeight.HasValue)
                     return baseHeight.Value * TextSize;
 
-                if (string.IsNullOrEmpty(Text))
+                if (string.IsNullOrEmpty(displayedText))
                     return 0;
 
-                return store.GetBaseHeight(Text[0]).GetValueOrDefault() * TextSize;
+                return store.GetBaseHeight(displayedText[0]).GetValueOrDefault() * TextSize;
             }
         }
 
         public IEnumerable<string> FilterTerms
         {
-            get { yield return Text; }
+            get { yield return displayedText; }
         }
     }
 }
