@@ -31,7 +31,7 @@ namespace osu.Framework.Graphics.Sprites
         [Resolved]
         private FontStore store { get; set; }
 
-        [Resolved(CanBeNull = true)]
+        [Resolved]
         private LocalisationEngine localisation { get; set; }
 
         private float spaceWidth;
