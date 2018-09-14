@@ -7,7 +7,7 @@ using osu.Framework.Configuration;
 namespace osu.Framework.Localisation
 {
     /// <summary>
-    /// A class containing all necessary information to apply any (or any amount) of these changes to a string: Unicode preference, Localisation, Formatting (in this order).
+    /// A class containing representing a string that can be localised and formatted.
     /// </summary>
     public class LocalisableString
     {
@@ -27,7 +27,7 @@ namespace osu.Framework.Localisation
         public Bindable<object[]> Args { get; }
 
         /// <summary>
-        /// Create a <see cref="LocalisableString"/> instance containing all information needed to set a Unicode preference, localise, or format a string.
+        /// Creates a new <see cref="LocalisableString"/>.
         /// </summary>
         /// <param name="text">The text to be used for localisation and/or formatting.</param>
         /// <param name="localised">Whether this string should be localised.</param>

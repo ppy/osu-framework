@@ -15,22 +15,21 @@ namespace osu.Framework.Localisation
         private readonly Bindable<bool> preferUnicode;
         private readonly Bindable<string> locale;
 
-        private readonly Dictionary<string, IResourceStore<string>> storages = new Dictionary<string, IResourceStore<string>>();
-        private IResourceStore<string> current;
+        private readonly List<LocaleMapping> locales = new List<LocaleMapping>();
 
-        public virtual IEnumerable<string> SupportedLocales => storages.Keys;
+        private IResourceStore<string> current;
 
         public LocalisationEngine(FrameworkConfigManager config)
         {
             preferUnicode = config.GetBindable<bool>(FrameworkSetting.ShowUnicode);
 
             locale = config.GetBindable<string>(FrameworkSetting.Locale);
-            locale.BindValueChanged(updateLocale, true);
+            locale.BindValueChanged(updateLocale);
         }
 
         public void AddLanguage(string language, IResourceStore<string> storage)
         {
-            storages.Add(language, storage);
+            locales.Add(new LocaleMapping { Name = language, Storage = storage });
             locale.TriggerChange();
         }
 
@@ -65,42 +64,45 @@ namespace osu.Framework.Localisation
 
         private void updateLocale(string newValue)
         {
-            var locales = SupportedLocales.ToList();
-            string validLocale = null;
+            if (locales.Count == 0)
+                return;
 
-            if (locales.Contains(newValue))
-                validLocale = newValue;
-            else
+            var validLocale = locales.FirstOrDefault(l => l.Name == newValue);
+
+            if (validLocale == null)
             {
                 var culture = string.IsNullOrEmpty(newValue) ? CultureInfo.CurrentCulture : new CultureInfo(newValue);
 
                 for (var c = culture; !c.Equals(CultureInfo.InvariantCulture); c = c.Parent)
                 {
-                    if (locales.Contains(c.Name))
-                    {
-                        validLocale = c.Name;
+                    validLocale = locales.FirstOrDefault(l => l.Name == c.Name);
+                    if (validLocale != null)
                         break;
-                    }
                 }
 
                 if (validLocale == null)
                     validLocale = locales[0];
             }
 
-            if (validLocale != newValue)
-                locale.Value = validLocale;
+            if (validLocale.Name != newValue)
+                locale.Value = validLocale.Name;
             else
             {
-                var culture = new CultureInfo(validLocale);
+                var culture = new CultureInfo(validLocale.Name);
+
                 CultureInfo.DefaultThreadCurrentCulture = culture;
                 CultureInfo.DefaultThreadCurrentUICulture = culture;
 
-                current = storages[locale];
+                current = validLocale.Storage;
             }
         }
 
         private string getLocalised(string key) => current.Get(key);
 
-
+        private class LocaleMapping
+        {
+            public string Name;
+            public IResourceStore<string> Storage;
+        }
     }
 }
