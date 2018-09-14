@@ -238,7 +238,8 @@ namespace osu.Framework.Input
                 result.Apply(CurrentState, this);
             }
 
-            if (CurrentState.Mouse.IsPositionValid) {
+            if (CurrentState.Mouse.IsPositionValid)
+            {
                 foreach (var d in PositionalInputQueue)
                     if (d is IRequireHighFrequencyMousePosition)
                         if (d.TriggerOnMouseMove(CurrentState))
