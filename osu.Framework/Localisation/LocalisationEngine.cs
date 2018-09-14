@@ -10,7 +10,7 @@ using JetBrains.Annotations;
 
 namespace osu.Framework.Localisation
 {
-    public partial class LocalisationEngine : ILocalisationEngine
+    public partial class LocalisationEngine
     {
         private readonly List<LocaleMapping> locales = new List<LocaleMapping>();
 

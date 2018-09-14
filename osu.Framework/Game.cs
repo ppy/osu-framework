@@ -39,7 +39,7 @@ namespace osu.Framework
 
         public FontStore Fonts;
 
-        public ILocalisationEngine Localisation;
+        public LocalisationEngine Localisation;
 
         private readonly Container content;
         private PerformanceOverlay performanceContainer;
@@ -50,8 +50,6 @@ namespace osu.Framework
         protected override Container<Drawable> Content => content;
 
         protected internal virtual UserInputManager CreateUserInputManager() => new UserInputManager();
-
-        protected virtual ILocalisationEngine CreateLocalisationEngine(FrameworkConfigManager config) => new LocalisationEngine(config);
 
         protected Game()
         {
@@ -133,8 +131,8 @@ namespace osu.Framework
             Fonts = new FontStore(new GlyphStore(Resources, @"Fonts/OpenSans"));
             dependencies.Cache(Fonts);
 
-            Localisation = CreateLocalisationEngine(config);
-            dependencies.CacheAs(Localisation);
+            Localisation = new LocalisationEngine(config);
+            dependencies.Cache(Localisation);
         }
 
         protected override void LoadComplete()
