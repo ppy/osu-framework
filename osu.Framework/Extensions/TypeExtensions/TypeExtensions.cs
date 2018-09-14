@@ -72,6 +72,12 @@ namespace osu.Framework.Extensions.TypeExtensions
 
             return ret;
         }
+
+        /// <summary>
+        /// Determines whether the specified type is a <see cref="Nullable{T}"/> type.
+        /// </summary>
+        /// <remarks>See: https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/nullable-types/how-to-identify-a-nullable-type</remarks>
+        public static bool IsNullable(this Type type) => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>);
     }
 
     [Flags]

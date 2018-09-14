@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Allocation;
+using osu.Framework.MathUtils;
 using osu.Framework.Timing;
 using System;
 using System.Collections.Concurrent;
@@ -22,7 +23,7 @@ namespace osu.Framework.Statistics
 
         private FrameStatistics currentFrame;
 
-        private const int max_pending_frames = 100;
+        private const int max_pending_frames = 10;
 
         internal readonly ConcurrentQueue<FrameStatistics> PendingFrames = new ConcurrentQueue<FrameStatistics>();
         internal readonly ObjectStack<FrameStatistics> FramesHeap = new ObjectStack<FrameStatistics>(max_pending_frames);
@@ -106,14 +107,12 @@ namespace osu.Framework.Statistics
                     FrameStatistics.COUNTERS[i] = 0;
                 }
 
-            PendingFrames.Enqueue(currentFrame);
-            if (PendingFrames.Count >= max_pending_frames)
+            if (PendingFrames.Count < max_pending_frames - 1)
             {
-                PendingFrames.TryDequeue(out FrameStatistics oldFrame);
-                FramesHeap.FreeObject(oldFrame);
+                PendingFrames.Enqueue(currentFrame);
+                currentFrame = FramesHeap.ReserveObject();
             }
 
-            currentFrame = FramesHeap.ReserveObject();
             currentFrame.Clear();
 
             if (HandleGC)
@@ -129,13 +128,18 @@ namespace osu.Framework.Statistics
                 }
             }
 
+            double dampRate = Math.Max(Clock.ElapsedFrameTime, 0) / 1000;
+            averageFrameTime = Interpolation.Damp(averageFrameTime, Clock.ElapsedFrameTime, 0.01, dampRate);
+
             //check for dropped (stutter) frames
-            traceCollector.NewFrame(Clock.ElapsedFrameTime, Math.Max(10, Math.Max(1000 / Clock.MaximumUpdateHz, AverageFrameTime) * 4));
+            traceCollector.NewFrame(Clock.ElapsedFrameTime, Math.Max(10, Math.Max(1000 / Clock.MaximumUpdateHz, averageFrameTime) * 4));
 
             //reset frame totals
             currentCollectionTypeStack.Clear();
             consumeStopwatchElapsedTime();
         }
+
+        private double averageFrameTime;
 
         private double consumeStopwatchElapsedTime()
         {
@@ -147,7 +151,6 @@ namespace osu.Framework.Statistics
         }
 
         internal double FramesPerSecond => Clock.FramesPerSecond;
-        internal double AverageFrameTime => Clock.AverageFrameTime;
 
         #region IDisposable Support
 
@@ -172,6 +175,7 @@ namespace osu.Framework.Statistics
             Dispose(true);
             GC.SuppressFinalize(this);
         }
+
         #endregion
     }
 }

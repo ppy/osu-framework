@@ -4,6 +4,7 @@
 using System;
 using NUnit.Framework;
 using osu.Framework.Allocation;
+using osu.Framework.Testing.Dependencies;
 
 namespace osu.Framework.Tests.Dependencies
 {
@@ -129,6 +130,41 @@ namespace osu.Framework.Tests.Dependencies
             Assert.Throws<ArgumentException>(() => DependencyActivator.MergeDependencies(provider, new DependencyContainer()));
         }
 
+        /// <summary>
+        /// Tests caching a struct, where the providing type is within the osu.Framework assembly.
+        /// </summary>
+        [Test]
+        public void TestCacheStructInternal()
+        {
+            var provider = new CachedStructProvider();
+
+            var dependencies = DependencyActivator.MergeDependencies(provider, new DependencyContainer());
+
+            Assert.AreEqual(provider.CachedObject.Value, dependencies.GetValue<CachedStructProvider.Struct>().Value);
+        }
+
+        [Test]
+        public void TestGetValueNullInternal()
+        {
+            Assert.AreEqual(default(int), new DependencyContainer().GetValue<int>());
+        }
+
+        /// <summary>
+        /// Test caching a nullable, where the providing type is within the osu.Framework assembly.
+        /// </summary>
+        [TestCase(null)]
+        [TestCase(10)]
+        public void TestCacheNullableInternal(int? testValue)
+        {
+            var provider = new CachedNullableProvider();
+
+            provider.SetValue(testValue);
+
+            var dependencies = DependencyActivator.MergeDependencies(provider, new DependencyContainer());
+
+            Assert.AreEqual(testValue, dependencies.GetValue<int?>());
+        }
+
         [Test]
         public void TestInvalidPublicAccessor()
         {
@@ -167,6 +203,14 @@ namespace osu.Framework.Tests.Dependencies
             var provider = new Provider17();
 
             Assert.DoesNotThrow(() => DependencyActivator.MergeDependencies(provider, new DependencyContainer()));
+        }
+
+        [Test]
+        public void TestCacheNullReferenceValue()
+        {
+            var provider = new Provider18();
+
+            Assert.Throws<NullReferenceException>(() => DependencyActivator.MergeDependencies(provider, new DependencyContainer()));
         }
 
         private interface IProvidedInterface1
@@ -293,6 +337,14 @@ namespace osu.Framework.Tests.Dependencies
         {
             [Cached]
             public readonly object Provided1 = new ProvidedType1();
+        }
+
+        private class Provider18
+        {
+#pragma warning disable 649
+            [Cached]
+            public readonly object Provided1;
+#pragma warning restore 649
         }
     }
 }

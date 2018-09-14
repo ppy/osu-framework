@@ -3,9 +3,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NUnit.Framework;
 using osu.Framework.IO.Network;
@@ -44,6 +47,52 @@ namespace osu.Framework.Tests.IO
             Assert.IsTrue(responseObject.Url == url);
 
             Assert.IsFalse(hasThrown);
+        }
+
+        /// <summary>
+        /// Tests async execution is correctly yielding during IO wait time.
+        /// </summary>
+        [Test]
+        [Ignore("failing too often on appveyor")]
+        public void TestConcurrency()
+        {
+            const int request_count = 10;
+            const int induced_delay = 5;
+
+            int finished = 0;
+
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+
+            List<long> startTimes = new List<long>();
+
+            List<Task> running = new List<Task>();
+            for (int i = 0; i < request_count; i++)
+            {
+                var request = new DelayedWebRequest
+                {
+                    Method = HttpMethod.GET,
+                    Delay = induced_delay
+                };
+
+                request.Started += () => startTimes.Add(sw.ElapsedMilliseconds);
+                request.Finished += () => Interlocked.Increment(ref finished);
+                request.Failed += _ => Interlocked.Increment(ref finished);
+                running.Add(request.PerformAsync());
+            }
+
+            Task.WaitAll(running.ToArray());
+
+            // in the case threads are not yielding, the time taken will be greater than double the induced delay (after considering latency).
+            Assert.Less(sw.ElapsedMilliseconds, induced_delay * 2 * 1000);
+
+            Assert.AreEqual(request_count, startTimes.Count);
+
+            // another case would be requests starting too late into the test. just to make sure.
+            for (int i = 0; i < request_count; i++)
+                Assert.Less(startTimes[i] - startTimes[0], induced_delay * 1000);
+
+            Assert.AreEqual(request_count, finished);
         }
 
         [Test, Retry(5)]

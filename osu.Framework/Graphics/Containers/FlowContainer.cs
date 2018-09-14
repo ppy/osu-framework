@@ -142,9 +142,7 @@ namespace osu.Framework.Graphics.Containers
 
         public override void InvalidateFromChild(Invalidation invalidation, Drawable source = null)
         {
-            //Colour captures potential changes in IsPresent. If this ever becomes a bottleneck,
-            //Invalidation could be further separated into presence changes.
-            if ((invalidation & (Invalidation.RequiredParentSizeToFit | Invalidation.Colour)) > 0)
+            if ((invalidation & (Invalidation.RequiredParentSizeToFit | Invalidation.Presence)) > 0)
                 InvalidateLayout();
 
             base.InvalidateFromChild(invalidation, source);
@@ -188,8 +186,20 @@ namespace osu.Framework.Graphics.Containers
                     throw new InvalidOperationException($"A flow container cannot contain a child with relative positioning (it is {d.RelativePositionAxes}).");
 
                 var finalPos = positions[i];
-                if (d.Position != finalPos)
-                    d.TransformTo(d.PopulateTransform(new FlowTransform { Rewindable = false }, finalPos, LayoutDuration, LayoutEasing));
+
+                var existingTransform = d.Transforms.OfType<FlowTransform>().FirstOrDefault();
+                Vector2 currentTargetPos = existingTransform?.EndValue ?? d.Position;
+
+                if (currentTargetPos != finalPos)
+                {
+                    if (LayoutDuration > 0)
+                        d.TransformTo(d.PopulateTransform(new FlowTransform { Rewindable = false }, finalPos, LayoutDuration, LayoutEasing));
+                    else
+                    {
+                        if (existingTransform != null) d.ClearTransforms(false, nameof(FlowTransform));
+                        d.Position = finalPos;
+                    }
+                }
 
                 ++i;
             }

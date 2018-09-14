@@ -44,7 +44,7 @@ namespace osu.Framework.Allocation
             switch (loaderMethods.Length)
             {
                 case 0:
-                    return (_,__) => { };
+                    return (_, __) => { };
                 case 1:
                     var method = loaderMethods[0];
 
@@ -53,23 +53,27 @@ namespace osu.Framework.Allocation
                         throw new AccessModifierNotAllowedForLoaderMethodException(modifier, method);
 
                     var permitNulls = method.GetCustomAttribute<BackgroundDependencyLoaderAttribute>().permitNulls;
-                    var parameterGetters = method.GetParameters().Select(p => p.ParameterType).Select(t => getDependency(t, type, permitNulls));
+                    var parameterGetters = method.GetParameters().Select(p => p.ParameterType).Select(t => getDependency(t, type, permitNulls || t.IsNullable()));
 
                     return (target, dc) =>
                     {
                         try
                         {
-                            var parameters = parameterGetters.Select(p => p(dc)).ToArray();
-                            method.Invoke(target, parameters);
+                            method.Invoke(target, parameterGetters.Select(p => p(dc)).ToArray());
                         }
-                        catch (TargetInvocationException exc) when (exc.InnerException is DependencyInjectionException die)
+                        catch (TargetInvocationException exc) // During non-await invocations
                         {
-                            // When a nested activator has failed (multiple reflection calls)
-                            throw die;
-                        }
-                        catch (TargetInvocationException exc)
-                        {
-                            // When this activator has failed (single invoke call)
+                            switch (exc.InnerException)
+                            {
+                                case OperationCanceledException _:
+                                    // This activator is cancelled - propagate the cancellation as-is (it will be handled silently)
+                                    throw exc.InnerException;
+                                case DependencyInjectionException die:
+                                    // A nested activator has failed (multiple Invoke() calls) - propagate the original error
+                                    throw die;
+                            }
+
+                            // This activator has failed (single reflection call) - preserve the original stacktrace while notifying of the error
                             throw new DependencyInjectionException { DispatchInfo = ExceptionDispatchInfo.Capture(exc.InnerException) };
                         }
                     };

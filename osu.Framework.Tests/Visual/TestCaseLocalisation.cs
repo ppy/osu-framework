@@ -5,6 +5,7 @@ using System;
 using System.Globalization;
 using System.IO;
 using NUnit.Framework;
+using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics;
@@ -196,6 +197,8 @@ namespace osu.Framework.Tests.Visual
             {
                 this.config = config;
             }
+
+            public async Task<string> GetAsync(string name) => await Task.Run(() => Get(name));
 
             public string Get(string name)
             {

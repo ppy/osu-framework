@@ -1,10 +1,12 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
+// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Lists;
 using System.Collections.Generic;
 using System;
 using System.Diagnostics;
+using System.Linq;
+using System.Threading;
 using OpenTK;
 using osu.Framework.Graphics.OpenGL;
 using OpenTK.Graphics;
@@ -18,6 +20,7 @@ using osu.Framework.Caching;
 using osu.Framework.Threading;
 using osu.Framework.Statistics;
 using System.Threading.Tasks;
+using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.MathUtils;
 
@@ -35,10 +38,12 @@ namespace osu.Framework.Graphics.Containers
         #region Contruction and disposal
 
         /// <summary>
-        /// Contructs a <see cref="CompositeDrawable"/> that stores children.
+        /// Constructs a <see cref="CompositeDrawable"/> that stores children.
         /// </summary>
         protected CompositeDrawable()
         {
+            schedulerAfterChildren = new Lazy<Scheduler>(() => new Scheduler(MainThread, Clock));
+
             internalChildren = new SortedList<Drawable>(new ChildComparer(this));
             aliveInternalChildren = new SortedList<Drawable>(new ChildComparer(this));
         }
@@ -47,26 +52,109 @@ namespace osu.Framework.Graphics.Containers
         private Game game { get; set; }
 
         /// <summary>
-        /// Loads a future child or grand-child of this <see cref="CompositeDrawable"/> asyncronously. <see cref="Drawable.Dependencies"/>
+        /// Create a local dependency container which will be used by our nested children.
+        /// If not overridden, the load-time parent's dependency tree will be used.
+        /// </summary>
+        /// <param name="parent">The parent <see cref="IReadOnlyDependencyContainer"/> which should be passed through if we want fallback lookups to work.</param>
+        /// <returns>A new dependency container to be stored for this Drawable.</returns>
+        protected virtual IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent) => DependencyActivator.MergeDependencies(this, parent);
+
+        /// <summary>
+        /// Contains all dependencies that can be injected into this CompositeDrawable's children using <see cref="BackgroundDependencyLoaderAttribute"/>.
+        /// Add or override dependencies by calling <see cref="DependencyContainer.Cache{T}(T)"/>.
+        /// </summary>
+        public IReadOnlyDependencyContainer Dependencies { get; private set; }
+
+        protected sealed override void InjectDependencies(IReadOnlyDependencyContainer dependencies)
+        {
+            // get our dependencies from our parent, but allow local overriding of our inherited dependency container
+            Dependencies = CreateChildDependencies(dependencies);
+
+            base.InjectDependencies(dependencies);
+        }
+
+        private CancellationTokenSource disposalCancellationSource;
+
+        private static readonly ThreadedTaskScheduler threaded_scheduler = new ThreadedTaskScheduler(4);
+
+        ///  <summary>
+        ///  Loads a future child or grand-child of this <see cref="CompositeDrawable"/> asynchronously. <see cref="Dependencies"/>
+        ///  and <see cref="Drawable.Clock"/> are inherited from this <see cref="CompositeDrawable"/>.
+        ///
+        ///  Note that this will always use the dependencies and clock from this instance. If you must load to a nested container level,
+        ///  consider using <see cref="DelayedLoadWrapper"/>
+        ///  </summary>
+        ///  <typeparam name="TLoadable">The type of the future future child or grand-child to be loaded.</typeparam>
+        ///  <param name="component">The child or grand-child to be loaded.</param>
+        ///  <param name="onLoaded">Callback to be invoked on the update thread after loading is complete.</param>
+        /// <param name="cancellation">An optional cancellation token.</param>
+        /// <returns>The task which is used for loading and callbacks.</returns>
+        protected Task LoadComponentAsync<TLoadable>(TLoadable component, Action<TLoadable> onLoaded = null, CancellationToken cancellation = default) where TLoadable : Drawable
+            => LoadComponentsAsync(component.Yield(), l => onLoaded?.Invoke(l.Single()), cancellation);
+
+        /// <summary>
+        /// Loads several future child or grand-child of this <see cref="CompositeDrawable"/> asynchronously. <see cref="Dependencies"/>
         /// and <see cref="Drawable.Clock"/> are inherited from this <see cref="CompositeDrawable"/>.
         ///
         /// Note that this will always use the dependencies and clock from this instance. If you must load to a nested container level,
         /// consider using <see cref="DelayedLoadWrapper"/>
         /// </summary>
         /// <typeparam name="TLoadable">The type of the future future child or grand-child to be loaded.</typeparam>
-        /// <param name="component">The type of the future future child or grand-child to be loaded.</param>
+        /// <param name="components">The children or grand-children to be loaded.</param>
         /// <param name="onLoaded">Callback to be invoked on the update thread after loading is complete.</param>
+        /// <param name="cancellation">An optional cancellation token.</param>
         /// <returns>The task which is used for loading and callbacks.</returns>
-        protected Task LoadComponentAsync<TLoadable>(TLoadable component, Action<TLoadable> onLoaded = null) where TLoadable : Drawable
+        protected Task LoadComponentsAsync<TLoadable>(IEnumerable<TLoadable> components, Action<IEnumerable<TLoadable>> onLoaded = null, CancellationToken cancellation = default)
+            where TLoadable : Drawable
         {
             if (game == null)
                 throw new InvalidOperationException($"May not invoke {nameof(LoadComponentAsync)} prior to this {nameof(CompositeDrawable)} being loaded.");
 
-            return component.LoadAsync(game, this, () => onLoaded?.Invoke(component));
+            if (IsDisposed)
+                throw new ObjectDisposedException(ToString());
+
+            if (disposalCancellationSource == null)
+                disposalCancellationSource = new CancellationTokenSource();
+
+            var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(disposalCancellationSource.Token, cancellation);
+
+            var deps = new DependencyContainer(Dependencies);
+            deps.CacheValueAs(linkedSource.Token);
+
+            return Task.Factory.StartNew(() =>
+            {
+                foreach (var c in components)
+                    c.Load(Clock, deps);
+            }, linkedSource.Token, TaskCreationOptions.HideScheduler, threaded_scheduler).ContinueWith(t =>
+            {
+                var exception = t.Exception?.AsSingular();
+
+                if (linkedSource.Token.IsCancellationRequested)
+                {
+                    linkedSource.Dispose();
+                    return;
+                }
+
+                game.Schedule(() =>
+                {
+                    try
+                    {
+                        if (exception != null)
+                            throw exception;
+
+                        if (!linkedSource.Token.IsCancellationRequested)
+                            onLoaded?.Invoke(components);
+                    }
+                    finally
+                    {
+                        linkedSource.Dispose();
+                    }
+                });
+            }, CancellationToken.None);
         }
 
         [BackgroundDependencyLoader(true)]
-        private void load(ShaderManager shaders)
+        private void load(ShaderManager shaders, CancellationToken? cancellation)
         {
             if (shader == null)
                 shader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
@@ -74,7 +162,11 @@ namespace osu.Framework.Graphics.Containers
             // We are in a potentially async context, so let's aggressively load all our children
             // regardless of their alive state. this also gives children a clock so they can be checked
             // for their correct alive state in the case LifetimeStart is set to a definite value.
-            internalChildren.ForEach(loadChild);
+            foreach (var c in internalChildren)
+            {
+                cancellation?.ThrowIfCancellationRequested();
+                loadChild(c);
+            }
         }
 
         protected override void LoadAsyncComplete()
@@ -87,20 +179,48 @@ namespace osu.Framework.Graphics.Containers
             checkChildrenLife();
         }
 
+        /// <summary>
+        /// Loads a <see cref="Drawable"/> child. This will not throw in the event of the load being cancelled.
+        /// </summary>
+        /// <param name="child">The <see cref="Drawable"/> child to load.</param>
+        /// <exception cref="DependencyInjectionException">When a user error occurred during dependency injection.</exception>
         private void loadChild(Drawable child)
         {
-            child.Load(Clock, Dependencies);
-            child.Parent = this;
+            try
+            {
+                if (IsDisposed)
+                    throw new ObjectDisposedException(ToString(), "Disposed Drawables may not have children added.");
+
+                child.Load(Clock, Dependencies);
+
+                child.Parent = this;
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (AggregateException ae)
+            {
+                foreach (var e in ae.Flatten().InnerExceptions)
+                {
+                    if (e is OperationCanceledException)
+                        continue;
+
+                    throw e;
+                }
+            }
         }
 
         protected override void LoadComplete()
         {
-            schedulerAfterChildren?.SetCurrentThread(MainThread);
+            if (schedulerAfterChildren.IsValueCreated) schedulerAfterChildren.Value.SetCurrentThread(MainThread);
             base.LoadComplete();
         }
 
         protected override void Dispose(bool isDisposing)
         {
+            disposalCancellationSource?.Cancel();
+            disposalCancellationSource?.Dispose();
+
             InternalChildren?.ForEach(c => c.Dispose());
 
             OnAutoSize = null;
@@ -122,6 +242,11 @@ namespace osu.Framework.Graphics.Containers
         /// Invoked when a child has left <see cref="AliveInternalChildren"/>.
         /// </summary>
         internal event Action<Drawable> ChildDied;
+
+        /// <summary>
+        /// Fired after a child's <see cref="Drawable.Depth"/> is changed.
+        /// </summary>
+        internal event Action<Drawable> ChildDepthChanged;
 
         /// <summary>
         /// Gets or sets the only child in <see cref="InternalChildren"/>.
@@ -187,6 +312,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         private readonly SortedList<Drawable> internalChildren;
+
         /// <summary>
         /// This <see cref="CompositeDrawable"/> list of children. Assigning to this property will dispose all existing children of this <see cref="CompositeDrawable"/>.
         /// </summary>
@@ -306,6 +432,9 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         protected internal virtual void AddInternal(Drawable drawable)
         {
+            if (IsDisposed)
+                throw new ObjectDisposedException(ToString(), "Disposed Drawables may not have children added.");
+
             if (drawable == null)
                 throw new ArgumentNullException(nameof(drawable), $"null {nameof(Drawable)}s may not be added to {nameof(CompositeDrawable)}.");
 
@@ -321,9 +450,11 @@ namespace osu.Framework.Graphics.Containers
 
             if (drawable.LoadState >= LoadState.Ready)
                 drawable.Parent = this;
-            // If we're already loaded, we can eagerly allow children to be loaded
             else if (LoadState >= LoadState.Loading)
+            {
+                // If we're already loaded, we can eagerly allow children to be loaded
                 loadChild(drawable);
+            }
 
             internalChildren.Add(drawable);
 
@@ -367,15 +498,17 @@ namespace osu.Framework.Graphics.Containers
             internalChildren.Add(child);
             if (aliveIndex >= 0) // re-add if it used to be in aliveInternalChildren
                 aliveInternalChildren.Add(child);
+
+            ChildDepthChanged?.Invoke(child);
         }
 
         #endregion
 
         #region Updating (per-frame periodic)
 
-        private Scheduler schedulerAfterChildren;
+        private Lazy<Scheduler> schedulerAfterChildren;
 
-        protected Scheduler SchedulerAfterChildren => schedulerAfterChildren ?? (schedulerAfterChildren = new Scheduler(MainThread, Clock));
+        protected Scheduler SchedulerAfterChildren => schedulerAfterChildren.Value;
 
         /// <summary>
         /// Updates the life status of <see cref="InternalChildren"/> according to their
@@ -419,20 +552,22 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Checks whether the alive state of a child has changed and processes it. This will add or remove
         /// the child from <see cref="aliveInternalChildren"/> depending on its alive state.
+        ///
+        /// This should only ever be called on a <see cref="CompositeDrawable"/>'s own <see cref="internalChildren"/>.
+        ///
         /// <para>Note that this does NOT check the load state of this <see cref="CompositeDrawable"/> to check if it can hold any alive children.</para>
         /// </summary>
         /// <param name="child">The child to check.</param>
         /// <returns>Whether the child's alive state has changed.</returns>
         private bool checkChildLife(Drawable child)
         {
-            Debug.Assert(internalChildren.Contains(child), "Can only check and react to the life of our own children.");
-
             bool changed = false;
 
             if (child.ShouldBeAlive)
             {
                 if (!child.IsAlive)
                 {
+                    // If we're already loaded, we can eagerly allow children to be loaded
                     loadChild(child);
 
                     if (child.LoadState >= LoadState.Ready)
@@ -459,7 +594,7 @@ namespace osu.Framework.Graphics.Containers
                     RemoveInternal(child);
 
                     if (child.DisposeOnDeathRemoval)
-                        child.Dispose();
+                        Task.Run(() => child.Dispose());
                 }
             }
 
@@ -475,7 +610,7 @@ namespace osu.Framework.Graphics.Containers
             foreach (Drawable child in internalChildren)
                 child.UpdateClock(Clock);
 
-            schedulerAfterChildren?.UpdateClock(Clock);
+            if (schedulerAfterChildren.IsValueCreated) schedulerAfterChildren.Value.UpdateClock(Clock);
         }
 
         /// <summary>
@@ -500,8 +635,6 @@ namespace osu.Framework.Graphics.Containers
 
             UpdateAfterChildrenLife();
 
-            // We iterate by index to gain performance
-            // ReSharper disable once ForCanBeConvertedToForeach
             for (int i = 0; i < aliveInternalChildren.Count; ++i)
             {
                 Drawable c = aliveInternalChildren[i];
@@ -509,9 +642,9 @@ namespace osu.Framework.Graphics.Containers
                 c.UpdateSubTree();
             }
 
-            if (schedulerAfterChildren != null)
+            if (schedulerAfterChildren.IsValueCreated)
             {
-                int amountScheduledTasks = schedulerAfterChildren.Update();
+                int amountScheduledTasks = schedulerAfterChildren.Value.Update();
                 FrameStatistics.Add(StatisticsCounterType.ScheduleInvk, amountScheduledTasks);
             }
 
@@ -544,9 +677,6 @@ namespace osu.Framework.Graphics.Containers
             {
                 var childMaskingBounds = ComputeChildMaskingBounds(maskingBounds);
 
-
-                // We iterate by index to gain performance
-                // ReSharper disable once ForCanBeConvertedToForeach
                 for (int i = 0; i < aliveInternalChildren.Count; i++)
                     aliveInternalChildren[i].UpdateSubTreeMasking(this, childMaskingBounds);
             }
@@ -607,13 +737,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="source">The child which caused this invalidation. May be null to indicate that a specific child wasn't specified.</param>
         public virtual void InvalidateFromChild(Invalidation invalidation, Drawable source = null)
         {
-            // We only want to recompute autosize if the child isn't bypassing all of our autosize axes
-            if (source != null && (source.BypassAutoSizeAxes & AutoSizeAxes) == AutoSizeAxes)
-                return;
-
-            //Colour captures potential changes in IsPresent. If this ever becomes a bottleneck,
-            //Invalidation could be further separated into presence changes.
-            if ((invalidation & (Invalidation.RequiredParentSizeToFit | Invalidation.Colour)) > 0)
+            if ((invalidation & (Invalidation.RequiredParentSizeToFit | Invalidation.Presence)) > 0)
                 childrenSizeDependencies.Invalidate();
         }
 
@@ -624,14 +748,9 @@ namespace osu.Framework.Graphics.Containers
 
             if (!shallPropagate) return true;
 
-            // This way of looping turns out to be slightly faster than a foreach
-            // or directly indexing a SortedList<T>. This part of the code is often
-            // hot, so an optimization like this makes sense here.
-            SortedList<Drawable> current = internalChildren;
-            // ReSharper disable once ForCanBeConvertedToForeach
-            for (int i = 0; i < current.Count; ++i)
+            for (int i = 0; i < internalChildren.Count; ++i)
             {
-                Drawable c = current[i];
+                Drawable c = internalChildren[i];
                 Debug.Assert(c != source);
 
                 Invalidation childInvalidation = invalidation;
@@ -725,11 +844,10 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="target">The target list to fill with DrawNodes.</param>
         private static void addFromComposite(ulong frame, int treeIndex, bool forceNewDrawNode, ref int j, CompositeDrawable parentComposite, List<DrawNode> target)
         {
-            SortedList<Drawable> current = parentComposite.aliveInternalChildren;
-            // ReSharper disable once ForCanBeConvertedToForeach
-            for (int i = 0; i < current.Count; ++i)
+            SortedList<Drawable> children = parentComposite.aliveInternalChildren;
+            for (int i = 0; i < children.Count; ++i)
             {
-                Drawable drawable = current[i];
+                Drawable drawable = children[i];
 
                 if (!drawable.IsProxy)
                 {
@@ -930,8 +1048,6 @@ namespace osu.Framework.Graphics.Containers
             if (!base.BuildKeyboardInputQueue(queue, allowBlocking))
                 return false;
 
-            // We iterate by index to gain performance
-            // ReSharper disable once ForCanBeConvertedToForeach
             for (int i = 0; i < aliveInternalChildren.Count; ++i)
                 aliveInternalChildren[i].BuildKeyboardInputQueue(queue, allowBlocking);
 
@@ -943,8 +1059,6 @@ namespace osu.Framework.Graphics.Containers
             if (!base.BuildMouseInputQueue(screenSpaceMousePos, queue) && (!CanReceiveMouseInput || Masking))
                 return false;
 
-            // We iterate by index to gain performance
-            // ReSharper disable once ForCanBeConvertedToForeach
             for (int i = 0; i < aliveInternalChildren.Count; ++i)
                 aliveInternalChildren[i].BuildMouseInputQueue(screenSpaceMousePos, queue);
 
@@ -1129,7 +1243,7 @@ namespace osu.Framework.Graphics.Containers
                 padding = value;
 
                 foreach (Drawable c in internalChildren)
-                    c.Invalidate(c.InvalidationFromParentSize);
+                    c.Invalidate(c.InvalidationFromParentSize | Invalidation.MiscGeometry);
             }
         }
 
@@ -1267,8 +1381,7 @@ namespace osu.Framework.Graphics.Containers
         public Easing AutoSizeEasing { get; protected set; }
 
         /// <summary>
-        /// THIS EVENT PURELY EXISTS FOR THE SCENE GRAPH VISUALIZER. DO NOT USE.
-        /// This event will fire after our <see cref="Size"/> is updated from autosizing.
+        /// Fired after this <see cref="CompositeDrawable"/>'s <see cref="Size"/> is updated through autosize.
         /// </summary>
         internal event Action OnAutoSize;
 
@@ -1342,7 +1455,7 @@ namespace osu.Framework.Graphics.Containers
                 Vector2 maxBoundSize = Vector2.Zero;
 
                 // Find the maximum width/height of children
-                foreach (Drawable c in AliveInternalChildren)
+                foreach (Drawable c in aliveInternalChildren)
                 {
                     if (!c.IsPresent)
                         continue;
@@ -1405,8 +1518,12 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private void autoSizeResizeTo(Vector2 newSize, double duration = 0, Easing easing = Easing.None) =>
-            this.TransformTo(this.PopulateTransform(new AutoSizeTransform { Rewindable = false }, newSize, duration, easing));
+        private void autoSizeResizeTo(Vector2 newSize, double duration = 0, Easing easing = Easing.None)
+        {
+            var currentTargetSize = ((AutoSizeTransform)Transforms.FirstOrDefault(t => t is AutoSizeTransform))?.EndValue ?? Size;
+            if (currentTargetSize != newSize)
+                this.TransformTo(this.PopulateTransform(new AutoSizeTransform { Rewindable = false }, newSize, duration, easing));
+        }
 
         /// <summary>
         /// A helper property for <see cref="autoSizeResizeTo(Vector2, double, Easing)"/> to change the size of <see cref="CompositeDrawable"/>s with <see cref="AutoSizeAxes"/>.

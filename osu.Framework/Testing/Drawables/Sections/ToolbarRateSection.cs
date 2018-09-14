@@ -42,7 +42,6 @@ namespace osu.Framework.Testing.Drawables.Sections
                         rateText = new SpriteText
                         {
                             Padding = new MarginPadding(5),
-                            AutoSizeAxes = Axes.None,
                             Width = 60,
                         },
                     }

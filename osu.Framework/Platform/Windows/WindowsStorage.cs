@@ -16,7 +16,7 @@ namespace osu.Framework.Platform.Windows
             BasePath = Regex.Replace(BasePath, @"^([a-zA-Z]):\\", @"\\?\$1:\");
         }
 
-        public override void OpenInNativeExplorer() => Process.Start("explorer.exe", GetUsablePathFor(string.Empty));
+        public override void OpenInNativeExplorer() => Process.Start("explorer.exe", GetFullPath(string.Empty));
 
         protected override string LocateBasePath() => Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
     }

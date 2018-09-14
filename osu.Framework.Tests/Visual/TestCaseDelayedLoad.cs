@@ -48,7 +48,7 @@ namespace osu.Framework.Tests.Visual
                             RelativeSizeAxes = Axes.Both,
                             Children = new Drawable[]
                             {
-                                new TestBox{ RelativeSizeAxes = Axes.Both }
+                                new TestBox { RelativeSizeAxes = Axes.Both }
                             }
                         }),
                         new SpriteText { Text = i.ToString() },
@@ -69,25 +69,25 @@ namespace osu.Framework.Tests.Visual
             public override bool HandleKeyboardInput => false;
             public override bool HandleMouseInput => false;
         }
-    }
 
-    public class TestBox : Container
-    {
-        public TestBox()
+        public class TestBox : Container
         {
-            RelativeSizeAxes = Axes.Both;
-        }
-
-        [BackgroundDependencyLoader]
-        private void load()
-        {
-            Child = new SpriteText
+            public TestBox()
             {
-                Colour = Color4.Yellow,
-                Text = @"loaded",
-                Anchor = Anchor.Centre,
-                Origin = Anchor.Centre,
-            };
+                RelativeSizeAxes = Axes.Both;
+            }
+
+            [BackgroundDependencyLoader]
+            private void load()
+            {
+                Child = new SpriteText
+                {
+                    Colour = Color4.Yellow,
+                    Text = @"loaded",
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                };
+            }
         }
     }
 }

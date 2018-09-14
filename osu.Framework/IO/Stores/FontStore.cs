@@ -1,8 +1,12 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
 using osu.Framework.Graphics.Textures;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using osu.Framework.Logging;
+using System.Collections.Concurrent;
 
 namespace osu.Framework.IO.Stores
 {
@@ -10,23 +14,58 @@ namespace osu.Framework.IO.Stores
     {
         private readonly List<GlyphStore> glyphStores = new List<GlyphStore>();
 
-        public FontStore()
+        private readonly Func<(string, char), Texture> cachedTextureLookup;
+
+        /// <summary>
+        /// A local cache to avoid string allocation overhead. Can be changed to (string,char)=>string if this ever becomes an issue,
+        /// but as long as we directly inherit <see cref="TextureStore"/> this is a slight optimisation.
+        /// </summary>
+        private readonly ConcurrentDictionary<(string, char), Texture> namespacedTextureCache = new ConcurrentDictionary<(string, char), Texture>();
+
+        public FontStore(GlyphStore glyphStore, float scaleAdjust = 100)
+            : base(glyphStore, scaleAdjust: scaleAdjust)
         {
+            cachedTextureLookup = t => string.IsNullOrEmpty(t.Item1) ? Get(t.Item2.ToString()) : Get(t.Item1 + "/" + t.Item2);
         }
 
-        public FontStore(GlyphStore glyphStore)
-            : base(glyphStore)
-        {
-        }
-
-        public override void AddStore(IResourceStore<RawTexture> store)
+        public override void AddStore(IResourceStore<TextureUpload> store)
         {
             if (store is GlyphStore gs)
+            {
                 glyphStores.Add(gs);
+                queueLoad(gs);
+            }
+
             base.AddStore(store);
         }
 
-        public override void RemoveStore(IResourceStore<RawTexture> store)
+        private Task childStoreLoadTasks;
+
+        /// <summary>
+        /// Append child stores to a single threaded load task.
+        /// </summary>
+        private void queueLoad(GlyphStore store)
+        {
+            var previousLoadStream = childStoreLoadTasks;
+
+            childStoreLoadTasks = Task.Run(async () =>
+            {
+                if (previousLoadStream != null)
+                    await previousLoadStream;
+
+                try
+                {
+                    Logger.Log($"Loading Font {store.FontName}...", LoggingTarget.Debug);
+                    await store.LoadFontAsync();
+                    Logger.Log($"Loaded Font {store.FontName}!", LoggingTarget.Debug);
+                }
+                catch (OperationCanceledException)
+                {
+                }
+            });
+        }
+
+        public override void RemoveStore(IResourceStore<TextureUpload> store)
         {
             if (store is GlyphStore gs)
                 glyphStores.Remove(gs);
@@ -61,5 +100,7 @@ namespace osu.Framework.IO.Stores
             base.Dispose(disposing);
             glyphStores.ForEach(g => g.Dispose());
         }
+
+        public Texture GetCharacter(string fontName, char charName) => namespacedTextureCache.GetOrAdd((fontName, charName), cachedTextureLookup);
     }
 }

@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
+// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using OpenTK;
@@ -21,11 +21,11 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
-using System.Threading.Tasks;
+using osu.Framework.Configuration;
 using osu.Framework.Development;
-using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Input.EventArgs;
 using osu.Framework.Input.States;
 using osu.Framework.MathUtils;
@@ -51,8 +51,7 @@ namespace osu.Framework.Graphics
 
         protected Drawable()
         {
-            handleKeyboardInput = HandleInputCache.HandleKeyboardInput(this);
-            handleMouseInput = HandleInputCache.HandleMouseInput(this);
+            scheduler = new Lazy<Scheduler>(() => new Scheduler(MainThread, Clock));
         }
 
         ~Drawable()
@@ -69,7 +68,7 @@ namespace osu.Framework.Graphics
             GC.SuppressFinalize(this);
         }
 
-        private bool isDisposed;
+        protected bool IsDisposed { get; private set; }
 
         /// <summary>
         /// Disposes this drawable.
@@ -80,33 +79,92 @@ namespace osu.Framework.Graphics
 
         private void dispose(bool isDisposing)
         {
-            if (isDisposed)
+            if (IsDisposed)
                 return;
 
             //we can't dispose if we are mid-load, else our children may get in a bad state.
-            loadTask?.Wait();
+            lock (loadLock)
+            {
+                Dispose(isDisposing);
 
-            Dispose(isDisposing);
+                unbindAllBindables();
 
-            Parent = null;
+                Parent = null;
 
-            scheduler = null;
+                OnUpdate = null;
+                OnInvalidate = null;
 
-            OnUpdate = null;
-            OnInvalidate = null;
+                // If this Drawable is disposed, then we need to also
+                // stop remotely rendering it.
+                proxy?.Dispose();
 
-            // If this Drawable is disposed, then we need to also
-            // stop remotely rendering it.
-            proxy?.Dispose();
+                OnDispose?.Invoke();
+                OnDispose = null;
 
-            isDisposed = true;
+                IsDisposed = true;
+            }
         }
 
         /// <summary>
         /// Whether this Drawable should be disposed when it is automatically removed from
         /// its <see cref="Parent"/> due to <see cref="ShouldBeAlive"/> being false.
         /// </summary>
-        public virtual bool DisposeOnDeathRemoval => false;
+        public virtual bool DisposeOnDeathRemoval => RemoveCompletedTransforms;
+
+        private static readonly ConcurrentDictionary<Type, Action<object>> unbind_action_cache = new ConcurrentDictionary<Type, Action<object>>();
+
+        /// <summary>
+        /// Unbinds all <see cref="Bindable{T}"/>s stored as fields or properties in this <see cref="Drawable"/>.
+        /// </summary>
+        private void unbindAllBindables()
+        {
+            Type type = GetType();
+            do
+            {
+                unbind(type);
+                type = type.BaseType;
+            } while (type != null && type != typeof(object));
+
+            void unbind(Type targetType)
+            {
+                if (unbind_action_cache.TryGetValue(targetType, out var existing))
+                {
+                    existing(this);
+                    return;
+                }
+
+                // List containing all the delegates to perform the unbinds
+                var actions = new List<Action<object>>();
+
+                // Generate delegates to unbind fields
+                actions.AddRange(targetType.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                                           .Where(f => typeof(IUnbindable).IsAssignableFrom(f.FieldType))
+                                           .Select(f => new Action<object>(target => ((IUnbindable)f.GetValue(target))?.UnbindAll())));
+
+                // Generate delegates to unbind properties
+                actions.AddRange(targetType.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                                           .Where(p => typeof(IUnbindable).IsAssignableFrom(p.PropertyType))
+                                           .Select(p => new Action<object>(target => ((IUnbindable)p.GetValue(target))?.UnbindAll())));
+
+                unbind_action_cache[targetType] = performUnbind;
+                performUnbind(this);
+
+                void performUnbind(object target)
+                {
+                    foreach (var a in actions)
+                    {
+                        try
+                        {
+                            a(target);
+                        }
+                        catch
+                        {
+                            // Execution should continue regardless of whether an unbind failed
+                        }
+                    }
+                }
+            }
+        }
 
         #endregion
 
@@ -125,101 +183,66 @@ namespace osu.Framework.Graphics
         /// </summary>
         public LoadState LoadState => loadState;
 
-        private Task loadTask;
         private readonly object loadLock = new object();
 
-        /// <summary>
-        /// Loads this Drawable asynchronously.
-        /// </summary>
-        /// <param name="game">The game to load this Drawable on.</param>
-        /// <param name="target">
-        /// The target this Drawable may eventually be loaded into.
-        /// <see cref="Clock"/> and <see cref="Dependencies"/> are inherited from the target.
-        /// </param>
-        /// <param name="onLoaded">Callback to be invoked on the update thread after loading is complete.</param>
-        /// <returns>The task which is used for loading and callbacks.</returns>
-        internal Task LoadAsync(Game game, Drawable target, Action onLoaded = null)
-        {
-            if (loadState == LoadState.NotLoaded)
-            {
-                Debug.Assert(loadTask == null);
-                loadState = LoadState.Loading;
-                loadTask = Task.Factory.StartNew(() => Load(target.Clock, target.Dependencies), TaskCreationOptions.LongRunning);
-            }
-
-            return (loadTask ?? Task.CompletedTask).ContinueWith(task => game.Schedule(() =>
-            {
-                if (task.IsFaulted)
-                    throw task.Exception.AsSingular();
-
-                onLoaded?.Invoke();
-                loadTask = null;
-            }));
-        }
-
         private static readonly StopwatchClock perf = new StopwatchClock(true);
-
-        /// <summary>
-        /// Create a local dependency container which will be used by our nested children.
-        /// If not overridden, the load-time parent's dependency tree will be used.
-        /// </summary>
-        /// <param name="parent">The parent <see cref="IReadOnlyDependencyContainer"/> which should be passed through if we want fallback lookups to work.</param>
-        /// <returns>A new dependency container to be stored for this Drawable.</returns>
-        protected virtual IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent) => DependencyActivator.MergeDependencies(this, parent);
-
-        /// <summary>
-        /// Contains all dependencies that can be injected into this Drawable using <see cref="BackgroundDependencyLoaderAttribute"/>.
-        /// Add or override dependencies by calling <see cref="DependencyContainer.Cache{T}(T)"/>.
-        /// </summary>
-        public IReadOnlyDependencyContainer Dependencies { get; private set; }
+        private static double getPerfTime() => perf.CurrentTime;
 
         /// <summary>
         /// Loads this drawable, including the gathering of dependencies and initialisation of required resources.
         /// </summary>
         /// <param name="clock">The clock we should use by default.</param>
-        /// <param name="dependencies">The dependency tree we will inherit by default. May be extended via <see cref="CreateChildDependencies"/></param>
+        /// <param name="dependencies">The dependency tree we will inherit by default. May be extended via <see cref="CompositeDrawable.CreateChildDependencies"/></param>
         internal void Load(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies)
         {
-            // Blocks when loading from another thread already.
-            double t0 = perf.CurrentTime;
+            if (IsDisposed)
+                throw new ObjectDisposedException(ToString(), "Attempting to load an already disposed drawable.");
+
             lock (loadLock)
             {
-                double lockDuration = perf.CurrentTime - t0;
-                if (perf.CurrentTime > 1000 && lockDuration > 50 && ThreadSafety.IsUpdateThread)
-                    Logger.Log($@"Drawable [{ToString()}] load was blocked for {lockDuration:0.00}ms!", LoggingTarget.Performance);
-
-                switch (loadState)
+                if (loadState == LoadState.NotLoaded)
                 {
-                    case LoadState.Ready:
-                    case LoadState.Loaded:
-                        return;
-                    case LoadState.Loading:
-                        break;
-                    case LoadState.NotLoaded:
-                        loadState = LoadState.Loading;
-                        break;
-                    default:
-                        Trace.Assert(false, "Impossible loading state.");
-                        break;
+                    Trace.Assert(loadState == LoadState.NotLoaded);
+
+                    loadState = LoadState.Loading;
+
+                    load(clock, dependencies);
+
+                    loadState = LoadState.Ready;
                 }
-
-                UpdateClock(clock);
-
-                double t1 = perf.CurrentTime;
-
-                // get our dependencies from our parent, but allow local overriding of our inherited dependency container
-                Dependencies = CreateChildDependencies(dependencies);
-
-                dependencies.Inject(this);
-
-                LoadAsyncComplete();
-
-                double loadDuration = perf.CurrentTime - t1;
-                if (perf.CurrentTime > 1000 && loadDuration > 50 && ThreadSafety.IsUpdateThread)
-                    Logger.Log($@"Drawable [{ToString()}] took {loadDuration:0.00}ms to load and was not async!", LoggingTarget.Performance);
-                loadState = LoadState.Ready;
             }
         }
+
+        private void load(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies)
+        {
+            // Blocks when loading from another thread already.
+            double t0 = getPerfTime();
+
+            double lockDuration = getPerfTime() - t0;
+            if (getPerfTime() > 1000 && lockDuration > 50 && ThreadSafety.IsUpdateThread)
+                Logger.Log($@"Drawable [{ToString()}] load was blocked for {lockDuration:0.00}ms!", LoggingTarget.Performance);
+
+            UpdateClock(clock);
+
+            double t1 = getPerfTime();
+
+            handleKeyboardInput = HandleInputCache.HandleKeyboardInput(this);
+            handleMouseInput = HandleInputCache.HandleMouseInput(this);
+
+            InjectDependencies(dependencies);
+
+            LoadAsyncComplete();
+
+            double loadDuration = perf.CurrentTime - t1;
+            if (perf.CurrentTime > 1000 && loadDuration > 50 && ThreadSafety.IsUpdateThread)
+                Logger.Log($@"Drawable [{ToString()}] took {loadDuration:0.00}ms to load and was not async!", LoggingTarget.Performance);
+        }
+
+        /// <summary>
+        /// Injects dependencies from an <see cref="IReadOnlyDependencyContainer"/> into this <see cref="Drawable"/>.
+        /// </summary>
+        /// <param name="dependencies">The dependencies to inject.</param>
+        protected virtual void InjectDependencies(IReadOnlyDependencyContainer dependencies) => dependencies.Inject(this);
 
         /// <summary>
         /// Runs once on the update thread after loading has finished.
@@ -229,7 +252,7 @@ namespace osu.Framework.Graphics
             if (loadState < LoadState.Ready) return false;
 
             MainThread = Thread.CurrentThread;
-            scheduler?.SetCurrentThread(MainThread);
+            if (scheduler.IsValueCreated) scheduler.Value.SetCurrentThread(MainThread);
 
             loadState = LoadState.Loaded;
             Invalidate();
@@ -327,20 +350,25 @@ namespace osu.Framework.Graphics
         /// </summary>
         public Action<Drawable> OnLoadComplete;
 
-        /// <summary>
-        /// THIS EVENT PURELY EXISTS FOR THE SCENE GRAPH VISUALIZER. DO NOT USE.
-        /// This event is fired after the <see cref="Invalidate(Invalidation, Drawable, bool)"/> method is called.
+        /// <summary>.
+        /// Fired after the <see cref="Invalidate(Invalidation, Drawable, bool)"/> method is called.
         /// </summary>
         internal event Action<Drawable> OnInvalidate;
 
-        private Scheduler scheduler;
+        /// <summary>
+        /// Fired after the <see cref="dispose(bool)"/> method is called.
+        /// </summary>
+        internal event Action OnDispose;
+
+        private readonly Lazy<Scheduler> scheduler;
+
         internal Thread MainThread { get; private set; }
 
         /// <summary>
         /// A lazily-initialized scheduler used to schedule tasks to be invoked in future <see cref="Update"/>s calls.
         /// The tasks are invoked at the beginning of the <see cref="Update"/> method before anything else.
         /// </summary>
-        protected Scheduler Scheduler => scheduler ?? (scheduler = new Scheduler(MainThread, Clock));
+        protected Scheduler Scheduler => scheduler.Value;
 
         /// <summary>
         /// Updates this Drawable and all Drawables further down the scene graph.
@@ -349,7 +377,7 @@ namespace osu.Framework.Graphics
         /// <returns>False if the drawable should not be updated.</returns>
         public virtual bool UpdateSubTree()
         {
-            if (isDisposed)
+            if (IsDisposed)
                 throw new ObjectDisposedException(ToString(), "Disposed Drawables may never be in the scene graph.");
 
             if (ProcessCustomClock)
@@ -368,9 +396,9 @@ namespace osu.Framework.Graphics
             if (!IsPresent)
                 return true;
 
-            if (scheduler != null)
+            if (scheduler.IsValueCreated)
             {
-                int amountScheduledTasks = scheduler.Update();
+                int amountScheduledTasks = scheduler.Value.Update();
                 FrameStatistics.Add(StatisticsCounterType.ScheduleInvk, amountScheduledTasks);
             }
 
@@ -510,18 +538,18 @@ namespace osu.Framework.Graphics
                 // Convert coordinates from relative to absolute or vice versa
                 Vector2 conversion = relativeToAbsoluteFactor;
                 if ((value & Axes.X) > (relativePositionAxes & Axes.X))
-                    X = conversion.X == 0 ? 0 : X / conversion.X;
+                    X = Precision.AlmostEquals(conversion.X, 0) ? 0 : X / conversion.X;
                 else if ((relativePositionAxes & Axes.X) > (value & Axes.X))
                     X *= conversion.X;
 
                 if ((value & Axes.Y) > (relativePositionAxes & Axes.Y))
-                    Y = conversion.Y == 0 ? 0 : Y / conversion.Y;
+                    Y = Precision.AlmostEquals(conversion.Y, 0) ? 0 : Y / conversion.Y;
                 else if ((relativePositionAxes & Axes.Y) > (value & Axes.Y))
                     Y *= conversion.Y;
 
                 relativePositionAxes = value;
 
-                // No invalidation necessary as DrawPosition remains invariant.
+                updateBypassAutoSizeAxes();
             }
         }
 
@@ -545,7 +573,7 @@ namespace osu.Framework.Graphics
                         offset.Y = 0;
                 }
 
-                return applyRelativeAxes(RelativePositionAxes, Position - offset, FillMode.Stretch);
+                return ApplyRelativeAxes(RelativePositionAxes, Position - offset, FillMode.Stretch);
             }
         }
 
@@ -647,22 +675,22 @@ namespace osu.Framework.Graphics
                     // Convert coordinates from relative to absolute or vice versa
                     Vector2 conversion = relativeToAbsoluteFactor;
                     if ((value & Axes.X) > (relativeSizeAxes & Axes.X))
-                        Width = conversion.X == 0 ? 0 : Width / conversion.X;
+                        Width = Precision.AlmostEquals(conversion.X, 0) ? 0 : Width / conversion.X;
                     else if ((relativeSizeAxes & Axes.X) > (value & Axes.X))
                         Width *= conversion.X;
 
                     if ((value & Axes.Y) > (relativeSizeAxes & Axes.Y))
-                        Height = conversion.Y == 0 ? 0 : Height / conversion.Y;
+                        Height = Precision.AlmostEquals(conversion.Y, 0) ? 0 : Height / conversion.Y;
                     else if ((relativeSizeAxes & Axes.Y) > (value & Axes.Y))
                         Height *= conversion.Y;
-
-                    // No invalidation is necessary as DrawSize remains invariant.
                 }
 
                 relativeSizeAxes = value;
 
                 if (relativeSizeAxes.HasFlag(Axes.X) && Width == 0) Width = 1;
                 if (relativeSizeAxes.HasFlag(Axes.Y) && Height == 0) Height = 1;
+
+                updateBypassAutoSizeAxes();
 
                 OnSizingChanged();
             }
@@ -673,7 +701,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Absolute size of this Drawable in the <see cref="Parent"/>'s coordinate system.
         /// </summary>
-        public Vector2 DrawSize => drawSizeBacking.IsValid ? drawSizeBacking : (drawSizeBacking.Value = applyRelativeAxes(RelativeSizeAxes, Size, FillMode));
+        public Vector2 DrawSize => drawSizeBacking.IsValid ? drawSizeBacking : (drawSizeBacking.Value = ApplyRelativeAxes(RelativeSizeAxes, Size, FillMode));
 
         /// <summary>
         /// X component of <see cref="DrawSize"/>.
@@ -748,7 +776,7 @@ namespace osu.Framework.Graphics
         /// <param name="v">The coordinates to convert.</param>
         /// <param name="fillMode">The <see cref="FillMode"/> to be used.</param>
         /// <returns>Absolute coordinates in <see cref="Parent"/>'s space.</returns>
-        private Vector2 applyRelativeAxes(Axes relativeAxes, Vector2 v, FillMode fillMode)
+        protected Vector2 ApplyRelativeAxes(Axes relativeAxes, Vector2 v, FillMode fillMode)
         {
             if (relativeAxes != Axes.None)
             {
@@ -772,6 +800,7 @@ namespace osu.Framework.Graphics
                     v.Y /= fillAspectRatio;
                 }
             }
+
             return v;
         }
 
@@ -782,6 +811,20 @@ namespace osu.Framework.Graphics
 
         private Axes bypassAutoSizeAxes;
 
+        private void updateBypassAutoSizeAxes()
+        {
+            var value = RelativePositionAxes | RelativeSizeAxes | bypassAutoSizeAdditionalAxes;
+            if (bypassAutoSizeAxes != value)
+            {
+                var changedAxes = bypassAutoSizeAxes ^ value;
+                bypassAutoSizeAxes = value;
+                if (((Parent?.AutoSizeAxes ?? 0) & changedAxes) != 0)
+                    Parent?.InvalidateFromChild(Invalidation.RequiredParentSizeToFit, this);
+            }
+        }
+
+        private Axes bypassAutoSizeAdditionalAxes;
+
         /// <summary>
         /// Controls which <see cref="Axes"/> are ignored by parent <see cref="Parent"/> automatic sizing.
         /// Most notably, <see cref="RelativePositionAxes"/> and <see cref="RelativeSizeAxes"/> do not affect
@@ -789,14 +832,11 @@ namespace osu.Framework.Graphics
         /// </summary>
         public Axes BypassAutoSizeAxes
         {
-            get => bypassAutoSizeAxes | relativeSizeAxes | relativePositionAxes;
+            get => bypassAutoSizeAxes;
             set
             {
-                if (value == bypassAutoSizeAxes)
-                    return;
-
-                bypassAutoSizeAxes = value;
-                Parent?.InvalidateFromChild(Invalidation.RequiredParentSizeToFit, this);
+                bypassAutoSizeAdditionalAxes = value;
+                updateBypassAutoSizeAxes();
             }
         }
 
@@ -808,7 +848,9 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Called whenever the <see cref="RelativeSizeAxes"/> of this drawable is changed, or when the <see cref="Container{T}.AutoSizeAxes"/> are changed if this drawable is a <see cref="Container{T}"/>.
         /// </summary>
-        protected virtual void OnSizingChanged() { }
+        protected virtual void OnSizingChanged()
+        {
+        }
 
         #endregion
 
@@ -834,9 +876,14 @@ namespace osu.Framework.Graphics
 
                 if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(Scale)} must be finite, but is {value}.");
 
+                bool wasPresent = IsPresent;
+
                 scale = value;
 
-                Invalidate(Invalidation.MiscGeometry);
+                if (IsPresent != wasPresent)
+                    Invalidate(Invalidation.MiscGeometry | Invalidation.Presence);
+                else
+                    Invalidate(Invalidation.MiscGeometry);
             }
         }
 
@@ -1143,11 +1190,17 @@ namespace osu.Framework.Graphics
             get => alpha;
             set
             {
-                if (alpha == value) return;
+                if (alpha == value)
+                    return;
 
-                Invalidate(Invalidation.Colour);
+                bool wasPresent = IsPresent;
 
                 alpha = value;
+
+                if (IsPresent != wasPresent)
+                    Invalidate(Invalidation.Colour | Invalidation.Presence);
+                else
+                    Invalidate(Invalidation.Colour);
             }
         }
 
@@ -1171,11 +1224,15 @@ namespace osu.Framework.Graphics
             get => alwaysPresent;
             set
             {
-                if (alwaysPresent == value) return;
+                if (alwaysPresent == value)
+                    return;
 
-                Invalidate(Invalidation.Colour);
+                bool wasPresent = IsPresent;
 
                 alwaysPresent = value;
+
+                if (IsPresent != wasPresent)
+                    Invalidate(Invalidation.Presence);
             }
         }
 
@@ -1192,11 +1249,12 @@ namespace osu.Framework.Graphics
             {
                 if (blending.Equals(value))
                     return;
-
                 blending = value;
+
                 Invalidate(Invalidation.Colour);
             }
         }
+
         #endregion
 
         #region Timekeeping
@@ -1228,7 +1286,7 @@ namespace osu.Framework.Graphics
         internal virtual void UpdateClock(IFrameBasedClock clock)
         {
             this.clock = customClock ?? clock;
-            scheduler?.UpdateClock(this.clock);
+            if (scheduler.IsValueCreated) scheduler.Value.UpdateClock(this.clock);
         }
 
         /// <summary>
@@ -1285,6 +1343,7 @@ namespace osu.Framework.Graphics
 
                 search = search.Parent;
             }
+
             return null;
         }
 
@@ -1298,7 +1357,7 @@ namespace osu.Framework.Graphics
             get => parent;
             internal set
             {
-                if (isDisposed)
+                if (IsDisposed)
                     throw new ObjectDisposedException(ToString(), "Disposed Drawables may never get a parent and return to the scene graph.");
 
                 if (value == null)
@@ -1310,7 +1369,7 @@ namespace osu.Framework.Graphics
                     throw new InvalidOperationException("May not add a drawable to multiple containers.");
 
                 parent = value;
-                Invalidate(InvalidationFromParentSize | Invalidation.Colour);
+                Invalidate(InvalidationFromParentSize | Invalidation.Colour | Invalidation.Presence);
 
                 if (parent != null)
                 {
@@ -1389,12 +1448,35 @@ namespace osu.Framework.Graphics
 
             Vector2 pos = DrawPosition + AnchorPosition;
             Vector2 drawScale = DrawScale;
+
+            if (Parent != null)
+                pos += Parent.ChildOffset;
+
+            di.ApplyTransform(pos, drawScale, Rotation, Shear, OriginPosition);
+
+            return di;
+        }
+
+        /// <summary>
+        /// Contains the linear transformation of this <see cref="Drawable"/> that is used during draw.
+        /// </summary>
+        public virtual DrawInfo DrawInfo => drawInfoBacking.IsValid ? drawInfoBacking : (drawInfoBacking.Value = computeDrawInfo());
+
+        private Cached<DrawColourInfo> drawColourInfoBacking;
+
+        /// <summary>
+        /// Contains the colour and blending information of this <see cref="Drawable"/> that are used during draw.
+        /// </summary>
+        public virtual DrawColourInfo DrawColourInfo => drawColourInfoBacking.IsValid? drawColourInfoBacking : (drawColourInfoBacking.Value = computeDrawColourInfo());
+
+        private DrawColourInfo computeDrawColourInfo()
+        {
+            DrawColourInfo ci = Parent?.DrawColourInfo ?? new DrawColourInfo(null);
+
             BlendingParameters localBlending = Blending;
 
             if (Parent != null)
             {
-                pos += Parent.ChildOffset;
-
                 if (localBlending.Mode == BlendingMode.Inherit)
                     localBlending.Mode = Parent.Blending.Mode;
 
@@ -1405,23 +1487,20 @@ namespace osu.Framework.Graphics
                     localBlending.AlphaEquation = Parent.Blending.AlphaEquation;
             }
 
-            di.ApplyTransform(pos, drawScale, Rotation, Shear, OriginPosition);
-            di.Blending = new BlendingInfo(localBlending);
+            ci.Blending = new BlendingInfo(localBlending);
 
-            ColourInfo drawInfoColour = alpha != 1 ? colour.MultiplyAlpha(alpha) : colour;
+            ColourInfo ourColour = alpha != 1 ? colour.MultiplyAlpha(alpha) : colour;
 
-            // No need for a Parent null check here, because null parents always have
-            // a single colour (white).
-            if (di.Colour.HasSingleColour)
-                di.Colour.ApplyChild(drawInfoColour);
+            if (ci.Colour.HasSingleColour)
+                ci.Colour.ApplyChild(ourColour);
             else
             {
                 Debug.Assert(Parent != null,
-                    $"The {nameof(di)} of null parents should always have the single colour white, and therefore this branch should never be hit.");
+                    $"The {nameof(ci)} of null parents should always have the single colour white, and therefore this branch should never be hit.");
 
                 // Cannot use ToParentSpace here, because ToParentSpace depends on DrawInfo to be completed
                 // ReSharper disable once PossibleNullReferenceException
-                Quad interp = Quad.FromRectangle(DrawRectangle) * (di.Matrix * Parent.DrawInfo.MatrixInverse);
+                Quad interp = Quad.FromRectangle(DrawRectangle) * (DrawInfo.Matrix * Parent.DrawInfo.MatrixInverse);
                 Vector2 parentSize = Parent.DrawSize;
 
                 interp.TopLeft = Vector2.Divide(interp.TopLeft, parentSize);
@@ -1429,18 +1508,11 @@ namespace osu.Framework.Graphics
                 interp.BottomLeft = Vector2.Divide(interp.BottomLeft, parentSize);
                 interp.BottomRight = Vector2.Divide(interp.BottomRight, parentSize);
 
-                di.Colour.ApplyChild(drawInfoColour, interp);
+                ci.Colour.ApplyChild(ourColour, interp);
             }
 
-            return di;
+            return ci;
         }
-
-        /// <summary>
-        /// Contains a linear transformation, colour information, and blending information
-        /// of this drawable.
-        /// </summary>
-        public virtual DrawInfo DrawInfo => drawInfoBacking.IsValid ? drawInfoBacking : (drawInfoBacking.Value = computeDrawInfo());
-
 
         private Cached<Vector2> requiredParentSizeToFitBacking;
 
@@ -1504,16 +1576,24 @@ namespace osu.Framework.Graphics
         /// <returns>If the invalidate was actually necessary.</returns>
         public virtual bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
-            if (invalidation == Invalidation.None || !IsLoaded)
+            if (invalidation == Invalidation.None || LoadState < LoadState.Ready)
                 return false;
 
             if (shallPropagate && Parent != null && source != Parent)
-                Parent.InvalidateFromChild(invalidation, this);
+            {
+                var parentInvalidation = invalidation;
+
+                // Colour doesn't affect parent's properties
+                parentInvalidation &= ~Invalidation.Colour;
+
+                if (parentInvalidation > 0)
+                    Parent.InvalidateFromChild(invalidation, this);
+            }
 
             bool alreadyInvalidated = true;
 
-            // Either ScreenSize OR ScreenPosition OR Colour
-            if ((invalidation & (Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.Colour)) > 0)
+            // Either ScreenSize OR ScreenPosition OR Presence
+            if ((invalidation & (Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.Presence)) > 0)
             {
                 if ((invalidation & Invalidation.RequiredParentSizeToFit) > 0)
                     alreadyInvalidated &= !requiredParentSizeToFitBacking.Invalidate();
@@ -1521,7 +1601,15 @@ namespace osu.Framework.Graphics
                 alreadyInvalidated &= !screenSpaceDrawQuadBacking.Invalidate();
                 alreadyInvalidated &= !drawInfoBacking.Invalidate();
                 alreadyInvalidated &= !drawSizeBacking.Invalidate();
+
+                // If we change size/position and have a non-singular colour, we need to invalidate the colour also,
+                // as we'll need to do some interpolation that's dependent on our draw info
+                if ((invalidation & Invalidation.Colour) == 0 && (!Colour.HasSingleColour || drawColourInfoBacking.IsValid && !drawColourInfoBacking.Value.Colour.HasSingleColour))
+                    invalidation |= Invalidation.Colour;
             }
+
+            if ((invalidation & Invalidation.Colour) > 0)
+                alreadyInvalidated &= !drawColourInfoBacking.Invalidate();
 
             if (!alreadyInvalidated || (invalidation & Invalidation.DrawNode) > 0)
                 invalidationID = invalidation_counter.Increment();
@@ -1582,6 +1670,7 @@ namespace osu.Framework.Graphics
         protected virtual void ApplyDrawNode(DrawNode node)
         {
             node.DrawInfo = DrawInfo;
+            node.DrawColourInfo = DrawColourInfo;
             node.InvalidationID = invalidationID;
         }
 
@@ -1918,7 +2007,7 @@ namespace osu.Framework.Graphics
         /// is propagated up the scene graph to the next eligible Drawable.</returns>
         protected virtual bool OnMouseMove(InputState state) => false;
 
-        private readonly bool handleKeyboardInput, handleMouseInput;
+        private bool handleKeyboardInput, handleMouseInput;
 
         /// <summary>
         /// Whether this <see cref="Drawable"/> handles keyboard input.
@@ -1940,7 +2029,8 @@ namespace osu.Framework.Graphics
             private static readonly ConcurrentDictionary<Type, bool> mouse_cached_values = new ConcurrentDictionary<Type, bool>();
             private static readonly ConcurrentDictionary<Type, bool> keyboard_cached_values = new ConcurrentDictionary<Type, bool>();
 
-            private static readonly string[] mouse_input_methods = {
+            private static readonly string[] mouse_input_methods =
+            {
                 nameof(OnHover),
                 nameof(OnHoverLost),
                 nameof(OnMouseDown),
@@ -1956,7 +2046,8 @@ namespace osu.Framework.Graphics
                 nameof(OnMouseMove)
             };
 
-            private static readonly string[] keyboard_input_methods = {
+            private static readonly string[] keyboard_input_methods =
+            {
                 nameof(OnFocus),
                 nameof(OnFocusLost),
                 nameof(OnKeyDown),
@@ -2200,7 +2291,8 @@ namespace osu.Framework.Graphics
             {
                 double min = double.MaxValue;
                 foreach (Transform t in Transforms)
-                    if (t.StartTime < min) min = t.StartTime;
+                    if (t.StartTime < min)
+                        min = t.StartTime;
                 LifetimeStart = min < int.MaxValue ? min : int.MinValue;
             }
         }
@@ -2266,36 +2358,47 @@ namespace osu.Framework.Graphics
         /// is assumed unless indicated by additional flags.
         /// </summary>
         DrawInfo = 1 << 0,
+
         /// <summary>
         /// <see cref="Drawable.DrawSize"/> has changed.
         /// </summary>
         DrawSize = 1 << 1,
+
         /// <summary>
         /// Captures all other geometry changes than <see cref="Drawable.DrawSize"/>, such as
         /// <see cref="Drawable.Rotation"/>, <see cref="Drawable.Shear"/>, and <see cref="Drawable.DrawPosition"/>.
         /// </summary>
         MiscGeometry = 1 << 2,
+
         /// <summary>
-        /// <see cref="Drawable.Colour"/> or <see cref="Drawable.IsPresent"/> has changed.
+        /// <see cref="Drawable.Colour"/> has changed.
         /// </summary>
         Colour = 1 << 3,
+
         /// <summary>
         /// <see cref="Drawable.ApplyDrawNode(Graphics.DrawNode)"/> has to be invoked on all old draw nodes.
         /// </summary>
         DrawNode = 1 << 4,
 
         /// <summary>
+        /// <see cref="Drawable.IsPresent"/> has changed.
+        /// </summary>
+        Presence = 1 << 5,
+
+        /// <summary>
         /// No invalidation.
         /// </summary>
         None = 0,
+
         /// <summary>
         /// <see cref="Drawable.RequiredParentSizeToFit"/> has to be recomputed.
         /// </summary>
         RequiredParentSizeToFit = MiscGeometry | DrawSize,
+
         /// <summary>
         /// All possible things are affected.
         /// </summary>
-        All = DrawNode | RequiredParentSizeToFit | Colour | DrawInfo,
+        All = DrawNode | RequiredParentSizeToFit | Colour | DrawInfo | Presence,
     }
 
     /// <summary>
@@ -2385,17 +2488,19 @@ namespace osu.Framework.Graphics
         /// Not loaded, and no load has been initiated yet.
         /// </summary>
         NotLoaded,
+
         /// <summary>
-        /// Currently loading (possibly and usually on a background
-        /// thread via <see cref="Drawable.LoadAsync(Game, Drawable, Action)"/>).
+        /// Currently loading (possibly and usually on a background thread via <see cref="CompositeDrawable.LoadComponentAsync{TLoadable}"/>).
         /// </summary>
         Loading,
+
         /// <summary>
         /// Loading is complete, but has not yet been finalized on the update thread
         /// (<see cref="Drawable.LoadComplete"/> has not been called yet, which
         /// always runs on the update thread and requires <see cref="Drawable.IsAlive"/>).
         /// </summary>
         Ready,
+
         /// <summary>
         /// Loading is fully completed and the Drawable is now part of the scene graph.
         /// </summary>
@@ -2411,11 +2516,13 @@ namespace osu.Framework.Graphics
         /// Completely fill the parent with a relative size of 1 at the cost of stretching the aspect ratio (default).
         /// </summary>
         Stretch,
+
         /// <summary>
         /// Always maintains aspect ratio while filling the portion of the parent's size denoted by the relative size.
         /// A relative size of 1 results in completely filling the parent by scaling the smaller axis of the drawable to fill the parent.
         /// </summary>
         Fill,
+
         /// <summary>
         /// Always maintains aspect ratio while fitting into the portion of the parent's size denoted by the relative size.
         /// A relative size of 1 results in fitting exactly into the parent by scaling the larger axis of the drawable to fit into the parent.

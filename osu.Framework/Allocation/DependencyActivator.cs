@@ -70,13 +70,16 @@ namespace osu.Framework.Allocation
         private void activate(object obj, DependencyContainer dependencies)
         {
             baseActivator?.activate(obj, dependencies);
-            injectionActivators.ForEach(a => a.Invoke(obj, dependencies));
+
+            foreach (var a in injectionActivators)
+                a(obj, dependencies);
         }
 
         private IReadOnlyDependencyContainer mergeDependencies(object obj, IReadOnlyDependencyContainer dependencies)
         {
             dependencies = baseActivator?.mergeDependencies(obj, dependencies) ?? dependencies;
-            buildCacheActivators.ForEach(a => dependencies = a.Invoke(obj, dependencies));
+            foreach (var a in buildCacheActivators)
+                dependencies = a(obj, dependencies);
 
             return dependencies;
         }
@@ -97,7 +100,7 @@ namespace osu.Framework.Allocation
     /// <summary>
     /// Occurs when an object requests the resolution of a dependency, but the dependency doesn't exist.
     /// This is caused by the dependency not being registered by parent <see cref="CompositeDrawable"/> through
-    /// <see cref="Drawable.CreateChildDependencies"/> or <see cref="CachedAttribute"/>.
+    /// <see cref="CompositeDrawable.CreateChildDependencies"/> or <see cref="CachedAttribute"/>.
     /// </summary>
     public class DependencyNotRegisteredException : Exception
     {
@@ -160,5 +163,6 @@ namespace osu.Framework.Allocation
     }
 
     internal delegate void InjectDependencyDelegate(object target, IReadOnlyDependencyContainer dependencies);
+
     internal delegate IReadOnlyDependencyContainer CacheDependencyDelegate(object target, IReadOnlyDependencyContainer existingDependencies);
 }

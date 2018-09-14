@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -92,6 +93,8 @@ namespace osu.Framework.Testing.Drawables.Steps
             }
             catch (Exception e)
             {
+                if (e.InnerException is DependencyInjectionException die)
+                    e = die.DispatchInfo.SourceException;
                 Logging.Logger.Error(e, $"Step {this} triggered an error");
             }
 
