@@ -28,17 +28,14 @@ namespace osu.Framework.Tests.Localisation
         [Test]
         public void TestNotLocalised()
         {
-            const string not_localised = "not localised.";
-            const string not_localised_2 = "also not localised.";
-
             var localisedText = engine.GetLocalisedString();
-            localisedText.Original = new LocalisableString(not_localised, false);
+            localisedText.Original = FakeStorage.LOCALISABLE_STRING_EN;
 
-            Assert.AreEqual(not_localised, localisedText.Value);
+            Assert.AreEqual(FakeStorage.LOCALISABLE_STRING_EN, localisedText.Value);
 
-            localisedText.Original = new LocalisableString(not_localised_2, false);
+            localisedText.Original = FakeStorage.LOCALISABLE_STRING_JA;
 
-            Assert.AreEqual(not_localised_2, localisedText.Value);
+            Assert.AreEqual(FakeStorage.LOCALISABLE_STRING_JA, localisedText.Value);
         }
 
         [Test]

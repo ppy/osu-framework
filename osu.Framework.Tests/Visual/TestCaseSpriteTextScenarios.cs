@@ -210,8 +210,8 @@ namespace osu.Framework.Tests.Visual
                     Spacing = new Vector2(0, 10),
                     Children = new[]
                     {
-                        new SpriteText { Text = new LocalisableString(FakeStorage.LOCALISABLE_STRING_EN, false) },
                         new SpriteText { Text = FakeStorage.LOCALISABLE_STRING_EN },
+                        new SpriteText { Text = new LocalisableString(FakeStorage.LOCALISABLE_STRING_EN) },
                     }
                 }
             };

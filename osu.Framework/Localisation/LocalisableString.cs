@@ -48,6 +48,6 @@ namespace osu.Framework.Localisation
 
         public static implicit operator string(LocalisableString localisable) => localisable.Text;
 
-        public static implicit operator LocalisableString(string text) => new LocalisableString(text);
+        public static implicit operator LocalisableString(string text) => new LocalisableString(text, false);
     }
 }
