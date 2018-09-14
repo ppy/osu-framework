@@ -33,14 +33,13 @@ namespace osu.Framework.Localisation
         }
 
         /// <summary>
-        /// Creates a <see cref="Bindable{T}"/> which automatically updates its text according to information provided in <paramref name="localisable"/>.
+        /// Creates a <see cref="ILocalisedString"/> which automatically updates its text according to information provided in <see cref="ILocalisedString.Original"/>.
         /// </summary>
-        /// <param name="localisable">Provides information about the text and expected type of localisation.</param>
-        /// <returns>A <see cref="Bindable{T}"/> that contains the localised text as specified by the input <paramref name="localisable"/>.</returns>
+        /// <returns>The <see cref="ILocalisedString"/>.</returns>
         [NotNull]
-        public IBindable<string> GetLocalisedBindable([NotNull] LocalisableString localisable)
+        public ILocalisedString GetLocalisedString()
         {
-            var bindable = new LocalisedBindable(localisable);
+            var bindable = new LocalisedString();
             bindable.Storage.BindTo(currentStorage);
 
             return bindable;

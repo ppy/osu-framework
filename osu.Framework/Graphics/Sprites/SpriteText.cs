@@ -34,13 +34,28 @@ namespace osu.Framework.Graphics.Sprites
         [Resolved]
         private LocalisationEngine localisation { get; set; }
 
+        private ILocalisedString localisedText;
+
         private float spaceWidth;
 
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
         {
-            // This is the first time we're getting the localisation
-            updateDisplayedTextBindable();
+            localisedText = localisation.GetLocalisedString();
+            localisedText.Original = text;
+            localisedText.BindValueChanged(t =>
+            {
+                if (string.IsNullOrEmpty(t))
+                {
+                    // We'll become not present and won't update the characters to set the size to 0, so do it manually
+                    if (requiresAutoSizedWidth)
+                        base.Width = Padding.TotalHorizontal;
+                    if (requiresAutoSizedHeight)
+                        base.Height = Padding.TotalVertical;
+                }
+
+                invalidate(true);
+            }, true);
 
             spaceWidth = GetTextureForCharacter('.')?.DisplayWidth * 2 ?? 1;
             sharedData.TextureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
@@ -65,47 +80,18 @@ namespace osu.Framework.Graphics.Sprites
                     return;
                 text = value;
 
-                if (localisation != null)
-                    updateDisplayedTextBindable();
+                if (localisedText != null)
+                    localisedText.Original = value;
             }
         }
 
-        private IBindable<string> displayedTextBindable = new Bindable<string>(string.Empty);
-
-        private void updateDisplayedTextBindable()
-        {
-            var newBindable = localisation?.GetLocalisedBindable(Text) ?? new Bindable<string>(Text);
-
-            if (displayedTextBindable != null)
-                displayedTextBindable.ValueChanged -= textChanged;
-
-            displayedTextBindable = newBindable;
-
-            displayedTextBindable.BindValueChanged(textChanged, true);
-
-            void textChanged(string newText)
-            {
-                if (string.IsNullOrEmpty(newText))
-                {
-                    // We'll become not present and won't update the characters to set the size to 0, so do it manually
-                    if (requiresAutoSizedWidth)
-                        base.Width = Padding.TotalHorizontal;
-                    if (requiresAutoSizedHeight)
-                        base.Height = Padding.TotalVertical;
-                }
-
-                invalidate(true);
-            }
-        }
-
-        private string displayedText => displayedTextBindable.Value;
+        private string displayedText => localisedText?.Value ?? text.Text;
 
         string IHasText.Text
         {
             get => Text;
             set => Text = value;
         }
-
 
         private float textSize = default_text_size;
 

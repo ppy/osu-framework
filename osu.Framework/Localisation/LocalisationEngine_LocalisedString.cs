@@ -9,17 +9,14 @@ namespace osu.Framework.Localisation
 {
     public partial class LocalisationEngine
     {
-        private class LocalisedBindable : Bindable<string>
+        private class LocalisedString : Bindable<string>, ILocalisedString
         {
             public readonly IBindable<IResourceStore<string>> Storage = new Bindable<IResourceStore<string>>();
 
-            private readonly LocalisableString localisable;
+            private LocalisableString text;
 
-            public LocalisedBindable(LocalisableString localisable)
-                : base(localisable.Text)
+            public LocalisedString()
             {
-                this.localisable = localisable;
-
                 Storage.BindValueChanged(_ => updateValue(), true);
             }
 
@@ -27,20 +24,20 @@ namespace osu.Framework.Localisation
             {
                 if (Storage.Value == null)
                 {
-                    Value = localisable.Text;
+                    Value = text.Text;
                     return;
                 }
 
-                string newText = localisable.Text;
+                string newText = text.Text;
 
-                if (localisable.Localised)
+                if (text.Localised)
                     newText = Storage.Value.Get(newText);
 
-                if (localisable.Args != null && !string.IsNullOrEmpty(newText))
+                if (text.Args != null && !string.IsNullOrEmpty(newText))
                 {
                     try
                     {
-                        newText = string.Format(newText, localisable.Args);
+                        newText = string.Format(newText, text.Args);
                     }
                     catch (FormatException)
                     {
@@ -49,6 +46,15 @@ namespace osu.Framework.Localisation
                 }
 
                 Value = newText;
+            }
+
+            LocalisableString ILocalisedString.Original
+            {
+                set
+                {
+                    text = value;
+                    updateValue();
+                }
             }
         }
     }
