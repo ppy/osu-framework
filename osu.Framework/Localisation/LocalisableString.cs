@@ -7,36 +7,48 @@ using osu.Framework.Configuration;
 namespace osu.Framework.Localisation
 {
     /// <summary>
-    /// A class containing representing a string that can be localised and formatted.
+    /// A class representing text that can be localised and formatted.
     /// </summary>
     public class LocalisableString
     {
         /// <summary>
         /// The text to be used for localisation and/or formatting.
         /// </summary>
-        public Bindable<string> Text { get; }
+        public Bindable<string> Text { get; } = new Bindable<string>();
 
         /// <summary>
-        /// Whether this string should be localised.
+        /// Whether <see cref="Text"/> should be localised.
         /// </summary>
-        public Bindable<bool> Localised { get; }
+        public Bindable<bool> Localised { get; } = new Bindable<bool>();
 
         /// <summary>
-        /// The arguments to format the string with.
+        /// The arguments to format <see cref="Text"/> with.
         /// </summary>
-        public Bindable<object[]> Args { get; }
+        public Bindable<object[]> Args { get; } = new Bindable<object[]>();
+
+        /// <summary>
+        /// Creates a new <see cref="LocalisableString"/>. This localises by default.
+        /// </summary>
+        /// <param name="text">The text.</param>
+        /// <param name="args">The arguments to format the text with.</param>
+        public LocalisableString([NotNull] string text, params object[] args)
+        {
+            Text.Value = text;
+            Localised.Value = true;
+            Args.Value = args;
+        }
 
         /// <summary>
         /// Creates a new <see cref="LocalisableString"/>.
         /// </summary>
-        /// <param name="text">The text to be used for localisation and/or formatting.</param>
-        /// <param name="localised">Whether this string should be localised.</param>
-        /// <param name="args">The arguments to format the string with.</param>
+        /// <param name="text">The text.</param>
+        /// <param name="localised">Whether the text should be localised.</param>
+        /// <param name="args">The arguments to format the text with.</param>
         public LocalisableString([NotNull] string text, bool localised = true, params object[] args)
         {
-            Text = new Bindable<string>(text);
-            Localised = new Bindable<bool>(localised);
-            Args = new Bindable<object[]>(args);
+            Text.Value = text;
+            Localised.Value = localised;
+            Args.Value = args;
         }
     }
 }
