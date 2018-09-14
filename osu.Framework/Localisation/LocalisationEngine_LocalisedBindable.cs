@@ -22,8 +22,8 @@ namespace osu.Framework.Localisation
                 this.engine = engine;
 
                 localisable.Text.BindValueChanged(_ => updateValue());
+                localisable.Localised.BindValueChanged(_ => updateValue());
                 localisable.Args.BindValueChanged(_ => updateValue());
-                localisable.Type.BindValueChanged(_ => updateValue());
 
                 Locale.BindValueChanged(_ => updateValue(), true);
             }
@@ -32,10 +32,10 @@ namespace osu.Framework.Localisation
             {
                 string newText = localisable.Text;
 
-                if ((localisable.Type & LocalisationType.Localised) > 0)
+                if (localisable.Localised)
                     newText = engine.getLocalised(newText);
 
-                if ((localisable.Type & LocalisationType.Formatted) > 0 && localisable.Args.Value != null && newText != null)
+                if (localisable.Args.Value != null && !string.IsNullOrEmpty(newText))
                 {
                     try
                     {
