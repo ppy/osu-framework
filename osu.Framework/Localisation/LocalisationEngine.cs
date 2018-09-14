@@ -17,26 +17,17 @@ namespace osu.Framework.Localisation
         private readonly Bindable<bool> preferUnicode;
         private readonly Bindable<string> locale;
 
-        private readonly WeakList<LocalisedBindable> localisedBindings = new WeakList<LocalisedBindable>();
-        private readonly WeakList<UnicodeBindable> unicodeBindings = new WeakList<UnicodeBindable>();
-
         private readonly Dictionary<string, IResourceStore<string>> storages = new Dictionary<string, IResourceStore<string>>();
         private IResourceStore<string> current;
 
         public virtual IEnumerable<string> SupportedLocales => storages.Keys;
-        public IEnumerable<KeyValuePair<string, string>> SupportedLanguageNames => SupportedLocales.Select(x => new KeyValuePair<string, string>(x, new CultureInfo(x).NativeName));
 
         public LocalisationEngine(FrameworkConfigManager config)
         {
             preferUnicode = config.GetBindable<bool>(FrameworkSetting.ShowUnicode);
-            preferUnicode.ValueChanged += prefer =>
-            {
-                lock (unicodeBindings)
-                    unicodeBindings.ForEachAlive(b => b.PreferUnicode = prefer);
-            };
 
             locale = config.GetBindable<string>(FrameworkSetting.Locale);
-            locale.ValueChanged += checkLocale;
+            locale.BindValueChanged(updateLocale, true);
         }
 
         public void AddLanguage(string language, IResourceStore<string> storage)
@@ -53,48 +44,14 @@ namespace osu.Framework.Localisation
         [NotNull]
         public IBindable<string> GetLocalisedBindable([NotNull] LocalisableString localisable)
         {
-            var bindable = new LocalisedBindable(localisable);
-
-            if (localisable.Type != LocalisationType.Never)
-            {
-                lock (localisedBindings)
-                    localisedBindings.Add(bindable);
-
-                bindable.Localisable.Type.ValueChanged += _ => updateLocalisation(bindable);
-                bindable.Localisable.Text.ValueChanged += _ => updateLocalisation(bindable);
-                bindable.Localisable.Args.ValueChanged += _ => updateLocalisation(bindable);
-
-                updateLocalisation(bindable);
-            }
+            var bindable = new LocalisedBindable(localisable, this);
+            bindable.Locale.BindTo(locale);
 
             return bindable;
         }
 
-        private void updateLocalisation(LocalisedBindable bindable)
-        {
-            var localisable = bindable.Localisable;
-            string newText = localisable.Text;
-
-            if ((localisable.Type & LocalisationType.Localised) > 0)
-                newText = GetLocalised(newText);
-
-            if ((localisable.Type & LocalisationType.Formatted) > 0 && localisable.Args.Value != null && newText != null)
-            {
-                try
-                {
-                    newText = string.Format(newText, localisable.Args.Value);
-                }
-                catch (FormatException)
-                {
-                    // let's catch this here to prevent crashes. the string will be in its non-formatted state
-                }
-            }
-
-            bindable.Value = newText;
-        }
-
         /// <summary>
-        /// Creates and tracks a <see cref="Bindable{T}"/> that is one of two given string values, based on the <see cref="FrameworkSetting.ShowUnicode"/>.
+        /// Creates and tracks a <see cref="Bindable{T}"/> that is one of two given string values, based on the value of <see cref="FrameworkSetting.ShowUnicode"/>.
         /// </summary>
         /// <param name="unicode">The unicode text to be used when <see cref="FrameworkSetting.ShowUnicode"/> is true.</param>
         /// <param name="nonUnicode">The non-unicode text to be used when <see cref="FrameworkSetting.ShowUnicode"/> is false.</param>
@@ -102,20 +59,13 @@ namespace osu.Framework.Localisation
         [NotNull]
         public IBindable<string> GetUnicodeBindable([CanBeNull] string unicode, [CanBeNull] string nonUnicode)
         {
-            var bindable = new UnicodeBindable(unicode, nonUnicode)
-            {
-                PreferUnicode = preferUnicode.Value
-            };
-
-            lock (unicodeBindings)
-                unicodeBindings.Add(bindable);
+            var bindable = new UnicodeBindable(unicode, nonUnicode);
+            bindable.PreferUnicode.BindTo(preferUnicode);
 
             return bindable;
         }
 
-        protected virtual string GetLocalised(string key) => current.Get(key);
-
-        private void checkLocale(string newValue)
+        private void updateLocale(string newValue)
         {
             var locales = SupportedLocales.ToList();
             string validLocale = null;
@@ -127,11 +77,13 @@ namespace osu.Framework.Localisation
                 var culture = string.IsNullOrEmpty(newValue) ? CultureInfo.CurrentCulture : new CultureInfo(newValue);
 
                 for (var c = culture; !c.Equals(CultureInfo.InvariantCulture); c = c.Parent)
+                {
                     if (locales.Contains(c.Name))
                     {
                         validLocale = c.Name;
                         break;
                     }
+                }
 
                 if (validLocale == null)
                     validLocale = locales[0];
@@ -144,42 +96,73 @@ namespace osu.Framework.Localisation
                 var culture = new CultureInfo(validLocale);
                 CultureInfo.DefaultThreadCurrentCulture = culture;
                 CultureInfo.DefaultThreadCurrentUICulture = culture;
-                ChangeLocale(validLocale);
 
-                lock (localisedBindings)
-                    localisedBindings.ForEachAlive(updateLocalisation);
+                current = storages[locale];
             }
         }
 
-        protected virtual void ChangeLocale(string locale) => current = storages[locale];
-    }
+        private string getLocalised(string key) => current.Get(key);
 
-    internal class LocalisedBindable : Bindable<string>
-    {
-        public LocalisableString Localisable { get; }
-
-        public LocalisedBindable(LocalisableString localisable)
-            : base(localisable.Text)
+        private class LocalisedBindable : Bindable<string>
         {
-            Localisable = localisable;
+            public readonly Bindable<string> Locale = new Bindable<string>();
+
+            private readonly LocalisableString localisable;
+            private readonly LocalisationEngine engine;
+
+            public LocalisedBindable(LocalisableString localisable, LocalisationEngine engine)
+                : base(localisable.Text)
+            {
+                this.localisable = localisable;
+                this.engine = engine;
+
+                localisable.Text.BindValueChanged(_ => updateValue());
+                localisable.Args.BindValueChanged(_ => updateValue());
+                localisable.Type.BindValueChanged(_ => updateValue());
+
+                Locale.BindValueChanged(_ => updateValue(), true);
+            }
+
+            private void updateValue()
+            {
+                string newText = localisable.Text;
+
+                if ((localisable.Type & LocalisationType.Localised) > 0)
+                    newText = engine.getLocalised(newText);
+
+                if ((localisable.Type & LocalisationType.Formatted) > 0 && localisable.Args.Value != null && newText != null)
+                {
+                    try
+                    {
+                        newText = string.Format(newText, localisable.Args.Value);
+                    }
+                    catch (FormatException)
+                    {
+                        // Prevent crashes if the formatting fails. The string will be in a non-formatted state.
+                    }
+                }
+
+                Value = newText;
+            }
         }
-    }
 
-    internal class UnicodeBindable : Bindable<string>
-    {
-        private readonly string unicode, nonUnicode;
-
-        public UnicodeBindable(string unicode, string nonUnicode)
-            : base(nonUnicode)
+        private class UnicodeBindable : Bindable<string>
         {
-            this.unicode = unicode ?? nonUnicode;
-            this.nonUnicode = nonUnicode ?? unicode;
-        }
+            public readonly Bindable<bool> PreferUnicode = new Bindable<bool>();
 
-        public bool PreferUnicode
-        {
-            get => Value == unicode;
-            set => Value = value ? unicode : nonUnicode;
+            private readonly string unicode;
+            private readonly string nonUnicode;
+
+            public UnicodeBindable(string unicode, string nonUnicode)
+                : base(nonUnicode)
+            {
+                this.unicode = unicode ?? nonUnicode;
+                this.nonUnicode = nonUnicode ?? unicode;
+
+                PreferUnicode.BindValueChanged(updateValue, true);
+            }
+
+            private void updateValue(bool preferUnicode) => Value = preferUnicode ? unicode : nonUnicode;
         }
     }
 }
