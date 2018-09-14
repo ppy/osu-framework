@@ -40,7 +40,7 @@ namespace osu.Framework.Localisation
         [NotNull]
         public IBindable<string> GetLocalisedBindable([NotNull] LocalisableString localisable)
         {
-            var bindable = new LocalisedBindable(localisable, this);
+            var bindable = new LocalisedBindable(localisable);
             bindable.Storage.BindTo(currentStorage);
 
             return bindable;

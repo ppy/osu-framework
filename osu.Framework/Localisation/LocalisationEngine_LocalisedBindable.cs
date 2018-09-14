@@ -14,13 +14,11 @@ namespace osu.Framework.Localisation
             public readonly IBindable<IResourceStore<string>> Storage = new Bindable<IResourceStore<string>>();
 
             private readonly LocalisableString localisable;
-            private readonly LocalisationEngine engine;
 
-            public LocalisedBindable(LocalisableString localisable, LocalisationEngine engine)
+            public LocalisedBindable(LocalisableString localisable)
                 : base(localisable.Text)
             {
                 this.localisable = localisable;
-                this.engine = engine;
 
                 localisable.Text.BindValueChanged(_ => updateValue());
                 localisable.Localised.BindValueChanged(_ => updateValue());

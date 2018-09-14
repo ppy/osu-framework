@@ -9,7 +9,7 @@ namespace osu.Framework.Localisation
     {
         private class UnicodeBindable : Bindable<string>
         {
-            public readonly Bindable<bool> PreferUnicode = new Bindable<bool>();
+            public readonly IBindable<bool> PreferUnicode = new Bindable<bool>();
 
             private readonly string unicode;
             private readonly string nonUnicode;
