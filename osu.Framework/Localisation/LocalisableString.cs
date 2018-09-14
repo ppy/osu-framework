@@ -1,7 +1,8 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using JetBrains.Annotations;
+using System;
+using System.Linq;
 using osu.Framework.Configuration;
 
 namespace osu.Framework.Localisation
@@ -48,7 +49,46 @@ namespace osu.Framework.Localisation
             : this(text, true, args)
         {
         }
+
+        public static implicit operator string(LocalisableString localisable) => localisable.Text.Value;
+
+        public static implicit operator LocalisableString(string text) => new LocalisableString(text);
+
+        #region IEquatable
+
+        public static bool operator ==(LocalisableString localisable, string other) => localisable.Text.Value == other;
+
+        public static bool operator !=(LocalisableString localisable, string other) => !(localisable == other);
+
+        public static bool operator ==(LocalisableString localisable, LocalisableString other)
+            => localisable.Text.Value == other.Text.Value && localisable.Localised.Value == other.Localised.Value && localisable.Args.Value.SequenceEqual(other.Args.Value);
+
+        public static bool operator !=(LocalisableString localisable, LocalisableString other) => !(localisable == other);
+
+        public bool Equals(LocalisableString other) => this == other;
+
+        public override bool Equals(object obj)
         {
+            if (ReferenceEquals(null, obj)) return false;
+            return obj is LocalisableString other && Equals(other);
         }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                var hashCode = Text.Value.GetHashCode();
+
+                hashCode = (hashCode * 397) ^ Localised.Value.GetHashCode();
+
+                if (Args.Value != null)
+                    for (int i = 0; i < Args.Value.Length; i++)
+                        hashCode = (hashCode * 397) ^ Args.Value[i].GetHashCode();
+
+                return hashCode;
+            }
+        }
+
+        #endregion
     }
 }
