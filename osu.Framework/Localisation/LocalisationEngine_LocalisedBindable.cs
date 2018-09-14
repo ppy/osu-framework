@@ -3,6 +3,7 @@
 
 using System;
 using osu.Framework.Configuration;
+using osu.Framework.IO.Stores;
 
 namespace osu.Framework.Localisation
 {
@@ -10,7 +11,7 @@ namespace osu.Framework.Localisation
     {
         private class LocalisedBindable : Bindable<string>
         {
-            public readonly Bindable<string> Locale = new Bindable<string>();
+            public readonly IBindable<IResourceStore<string>> Storage = new Bindable<IResourceStore<string>>();
 
             private readonly LocalisableString localisable;
             private readonly LocalisationEngine engine;
@@ -25,15 +26,21 @@ namespace osu.Framework.Localisation
                 localisable.Localised.BindValueChanged(_ => updateValue());
                 localisable.Args.BindValueChanged(_ => updateValue());
 
-                Locale.BindValueChanged(_ => updateValue(), true);
+                Storage.BindValueChanged(_ => updateValue(), true);
             }
 
             private void updateValue()
             {
+                if (Storage.Value == null)
+                {
+                    Value = localisable.Text;
+                    return;
+                }
+
                 string newText = localisable.Text;
 
                 if (localisable.Localised)
-                    newText = engine.getLocalised(newText);
+                    newText = Storage.Value.Get(newText);
 
                 if (localisable.Args.Value != null && !string.IsNullOrEmpty(newText))
                 {

@@ -12,25 +12,24 @@ namespace osu.Framework.Localisation
 {
     public partial class LocalisationEngine : ILocalisationEngine
     {
-        private readonly Bindable<bool> preferUnicode;
-        private readonly Bindable<string> locale;
-
         private readonly List<LocaleMapping> locales = new List<LocaleMapping>();
 
-        private IResourceStore<string> current;
+        private readonly Bindable<bool> preferUnicode;
+        private readonly Bindable<string> configLocale;
+        private readonly Bindable<IResourceStore<string>> currentStorage = new Bindable<IResourceStore<string>>();
 
         public LocalisationEngine(FrameworkConfigManager config)
         {
             preferUnicode = config.GetBindable<bool>(FrameworkSetting.ShowUnicode);
 
-            locale = config.GetBindable<string>(FrameworkSetting.Locale);
-            locale.BindValueChanged(updateLocale);
+            configLocale = config.GetBindable<string>(FrameworkSetting.Locale);
+            configLocale.BindValueChanged(updateLocale);
         }
 
         public void AddLanguage(string language, IResourceStore<string> storage)
         {
             locales.Add(new LocaleMapping { Name = language, Storage = storage });
-            locale.TriggerChange();
+            configLocale.TriggerChange();
         }
 
         /// <summary>
@@ -42,7 +41,7 @@ namespace osu.Framework.Localisation
         public IBindable<string> GetLocalisedBindable([NotNull] LocalisableString localisable)
         {
             var bindable = new LocalisedBindable(localisable, this);
-            bindable.Locale.BindTo(locale);
+            bindable.Storage.BindTo(currentStorage);
 
             return bindable;
         }
@@ -85,7 +84,7 @@ namespace osu.Framework.Localisation
             }
 
             if (validLocale.Name != newValue)
-                locale.Value = validLocale.Name;
+                configLocale.Value = validLocale.Name;
             else
             {
                 var culture = new CultureInfo(validLocale.Name);
@@ -93,11 +92,9 @@ namespace osu.Framework.Localisation
                 CultureInfo.DefaultThreadCurrentCulture = culture;
                 CultureInfo.DefaultThreadCurrentUICulture = culture;
 
-                current = validLocale.Storage;
+                currentStorage.Value = validLocale.Storage;
             }
         }
-
-        private string getLocalised(string key) => current.Get(key);
 
         private class LocaleMapping
         {
