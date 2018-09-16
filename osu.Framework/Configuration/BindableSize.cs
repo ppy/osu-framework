@@ -8,7 +8,7 @@ namespace osu.Framework.Configuration
 {
     public class BindableSize : Bindable<Size>
     {
-        public BindableSize(Size value = default(Size))
+        public BindableSize(Size value = default)
             : base(value)
         {
             MinValue = DefaultMinValue;

@@ -57,6 +57,9 @@ namespace osu.Framework.Graphics.Containers
         /// The publicly accessible list of children. Forwards to the children of <see cref="Content"/>.
         /// If <see cref="Content"/> is this container, then returns <see cref="CompositeDrawable.InternalChildren"/>.
         /// Assigning to this property will dispose all existing children of this Container.
+        /// <remarks>
+        /// If a foreach loop is used, iterate over the <see cref="Container"/> directly rather than its <see cref="Children"/>.
+        /// </remarks>
         /// </summary>
         public IReadOnlyList<T> Children
         {
@@ -98,17 +101,11 @@ namespace osu.Framework.Graphics.Containers
                 array[arrayIndex++] = c;
         }
 
-        /// <summary>
-        /// Gets the enumerator over <see cref="Children"/>.
-        /// </summary>
-        /// <returns>The enumerator over <see cref="Children"/>.</returns>
-        public IEnumerator<T> GetEnumerator() => Children.GetEnumerator();
+        public Enumerator GetEnumerator() => new Enumerator(this);
 
-        /// <summary>
-        /// Gets the enumerator over <see cref="Children"/>.
-        /// </summary>
-        /// <returns>The enumerator over <see cref="Children"/>.</returns>
-        IEnumerator IEnumerable.GetEnumerator() => Children.GetEnumerator();
+        IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         /// <summary>
         /// Sets all children of this container to the elements contained in the enumerable.
@@ -404,6 +401,31 @@ namespace osu.Framework.Graphics.Containers
         {
             get => base.AutoSizeEasing;
             set => base.AutoSizeEasing = value;
+        }
+
+        public struct Enumerator : IEnumerator<T>
+        {
+            private Container<T> container;
+            private int currentIndex;
+
+            internal Enumerator(Container<T> container)
+            {
+                this.container = container;
+                currentIndex = -1; // The first MoveNext() should bring the iterator to 0
+            }
+
+            public bool MoveNext() => ++currentIndex < container.Count;
+
+            public void Reset() => currentIndex = -1;
+
+            public T Current => container[currentIndex];
+
+            object IEnumerator.Current => Current;
+
+            public void Dispose()
+            {
+                container = null;
+            }
         }
     }
 }

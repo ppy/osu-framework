@@ -7,20 +7,23 @@ using osu.Framework.Lists;
 
 namespace osu.Framework.IO.Serialization
 {
-    public class SortedListConverter : JsonConverter
+    /// <summary>
+    /// A converter used for serializing/deserializing <see cref="SortedList{T}"/> objects.
+    /// </summary>
+    public class SortedListJsonConverter : JsonConverter
     {
-        public override bool CanConvert(Type objectType) => typeof(ISortedList).IsAssignableFrom(objectType);
+        public override bool CanConvert(Type objectType) => typeof(ISerializableSortedList).IsAssignableFrom(objectType);
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            var list = (ISortedList)value;
+            var list = (ISerializableSortedList)value;
             list.SerializeTo(writer, serializer);
         }
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            if (!(existingValue is ISortedList iList))
-                iList = (ISortedList)Activator.CreateInstance(objectType);
+            if (!(existingValue is ISerializableSortedList iList))
+                iList = (ISerializableSortedList)Activator.CreateInstance(objectType);
 
             iList.DeserializeFrom(reader, serializer);
 
