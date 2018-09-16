@@ -225,6 +225,10 @@ namespace osu.Framework.Input
         {
             unfocusIfNoLongerValid();
 
+            // aggressively clear to avoid holding references.
+            inputQueue.Clear();
+            positionalInputQueue.Clear();
+
             foreach (var result in GetPendingInputs())
             {
                 result.Apply(CurrentState, this);
@@ -281,8 +285,9 @@ namespace osu.Framework.Input
             if (this is UserInputManager)
                 FrameStatistics.Increment(StatisticsCounterType.KeyboardQueue);
 
-            foreach (Drawable d in AliveInternalChildren)
-                d.BuildKeyboardInputQueue(inputQueue);
+            var children = AliveInternalChildren;
+            for (int i = 0; i < children.Count; i++)
+                children[i].BuildKeyboardInputQueue(inputQueue);
 
             if (!unfocusIfNoLongerValid())
             {
@@ -307,8 +312,9 @@ namespace osu.Framework.Input
             if (this is UserInputManager)
                 FrameStatistics.Increment(StatisticsCounterType.MouseQueue);
 
-            foreach (Drawable d in AliveInternalChildren)
-                d.BuildMouseInputQueue(state.Mouse.Position, positionalInputQueue);
+            var children = AliveInternalChildren;
+            for (int i = 0; i < children.Count; i++)
+                children[i].BuildMouseInputQueue(state.Mouse.Position, positionalInputQueue);
 
             positionalInputQueue.Reverse();
             return positionalInputQueue;

@@ -39,8 +39,7 @@ namespace osu.Framework.Tests.Visual
 
             AddUntilStep(() => loaders.AsEnumerable().Reverse().Skip(1).All(l => l.WasCancelled), "all but last loader cancelled");
 
-            AddAssert("last loader not cancelled", () => !loaders.Last().WasCancelled);
-
+            AddUntilStep(() => !loaders.Last().WasCancelled, "last loader began loading");
 
             AddStep("allow load to complete", () => loaders.Last().AllowLoadCompletion());
 

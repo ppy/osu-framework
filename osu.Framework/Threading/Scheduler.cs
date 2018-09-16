@@ -25,6 +25,11 @@ namespace osu.Framework.Threading
         private double currentTime => clock?.CurrentTime ?? 0;
 
         /// <summary>
+        /// Whether there are any tasks queued to run (including delayed tasks in the future).
+        /// </summary>
+        public bool HasPendingTasks => !schedulerQueue.IsEmpty || timedTasks.Count > 0 || perUpdateTasks.Count > 0;
+
+        /// <summary>
         /// The base thread is assumed to be the the thread on which the constructor is run.
         /// </summary>
         public Scheduler()
