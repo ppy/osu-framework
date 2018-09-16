@@ -206,17 +206,21 @@ namespace osu.Framework.Platform
             get
             {
                 var display = GetCurrentDisplay();
+                var relativeLocation = new Point(Location.X - display.Bounds.X, Location.Y - display.Bounds.Y);
 
-                return new Vector2((float)Location.X / (display.Width - Size.Width),
-                    (float)Location.Y / (display.Height - Size.Height));
+                return new Vector2(
+                    (float)relativeLocation.X / (display.Width - Size.Width),
+                    (float)relativeLocation.Y / (display.Height - Size.Height));
             }
             set
             {
                 var display = GetCurrentDisplay();
 
-                Location = new Point(
+                var relativeLocation = new Point(
                     (int)Math.Round((display.Width - Size.Width) * value.X),
                     (int)Math.Round((display.Height - Size.Height) * value.Y));
+
+                Location = new Point(relativeLocation.X + display.Bounds.X, relativeLocation.Y + display.Bounds.Y);
             }
         }
 
