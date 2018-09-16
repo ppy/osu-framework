@@ -10,6 +10,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime;
 using System.Runtime.ExceptionServices;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
@@ -36,7 +37,6 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
-using SixLabors.ImageSharp.Processing.Transforms;
 
 namespace osu.Framework.Platform
 {
@@ -165,11 +165,6 @@ namespace osu.Framework.Platform
         protected GameHost(string gameName = @"")
         {
             toolkit = Toolkit.Init();
-
-            // for the time being, we need to ensure there are enough threads available to avoid deadlocking on incorrect async usages.
-            ThreadPool.GetMinThreads(out int worker, out int completion);
-            if (worker < 8)
-                ThreadPool.SetMinThreads(8, completion);
 
             AppDomain.CurrentDomain.UnhandledException += unhandledExceptionHandler;
             TaskScheduler.UnobservedTaskException += unobservedExceptionHandler;
@@ -312,7 +307,7 @@ namespace osu.Framework.Platform
 
             try
             {
-                Root.UpdateSubTreeAsRoot();
+                Root.UpdateSubTree();
             }
             catch (DependencyInjectionException die)
             {
@@ -399,7 +394,7 @@ namespace osu.Framework.Platform
                 OpenTK.Graphics.OpenGL.GL.ReadPixels(0, 0, image.Width, image.Height,
                     OpenTK.Graphics.OpenGL.PixelFormat.Rgba,
                     OpenTK.Graphics.OpenGL.PixelType.UnsignedByte,
-                    ref image.DangerousGetPinnableReferenceToPixelBuffer());
+                    ref MemoryMarshal.GetReference(image.GetPixelSpan()));
 
                 complete = true;
             });
@@ -557,7 +552,14 @@ namespace osu.Framework.Platform
 
             game.SetHost(this);
 
-            root.Load(SceneGraphClock, Dependencies);
+            try
+            {
+                root.Load(SceneGraphClock, Dependencies);
+            }
+            catch (DependencyInjectionException die)
+            {
+                die.DispatchInfo.Throw();
+            }
 
             //publish bootstrapped scene graph to all threads.
             Root = root;

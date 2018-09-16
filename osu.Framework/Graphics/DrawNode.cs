@@ -19,6 +19,8 @@ namespace osu.Framework.Graphics
         /// </summary>
         public DrawInfo DrawInfo;
 
+        public DrawColourInfo DrawColourInfo;
+
         /// <summary>
         /// Identifies the state of this draw node with an invalidation state of its corresponding
         /// <see cref="Drawable"/>. Whenever the invalidation state of this draw node disagrees
@@ -34,7 +36,7 @@ namespace osu.Framework.Graphics
         /// textured sprites.</param>
         public virtual void Draw(Action<TexturedVertex2D> vertexAction)
         {
-            GLWrapper.SetBlend(DrawInfo.Blending);
+            GLWrapper.SetBlend(DrawColourInfo.Blending);
         }
     }
 }
