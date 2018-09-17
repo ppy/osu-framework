@@ -212,8 +212,8 @@ namespace osu.Framework.Platform
                 var relativeLocation = new Point(Location.X - display.Bounds.X, Location.Y - display.Bounds.Y);
 
                 return new Vector2(
-                    (float)relativeLocation.X / (display.Width - Size.Width),
-                    (float)relativeLocation.Y / (display.Height - Size.Height));
+                    display.Width  > Size.Width  ? (float)relativeLocation.X / (display.Width  - Size.Width)  : 0,
+                    display.Height > Size.Height ? (float)relativeLocation.Y / (display.Height - Size.Height) : 0);
             }
             set
             {
