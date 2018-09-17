@@ -242,11 +242,7 @@ namespace osu.Framework.Tests.IO
 
             Exception thrownException = null;
             request.Failed += e => thrownException = e;
-            request.CompleteInvoked = () =>
-            {
-                request.Timeout = WebRequest.DEFAULT_TIMEOUT;
-                request.Delay = 0;
-            };
+            request.CompleteInvoked = () => request.Delay = 0;
 
             Assert.DoesNotThrow(request.Perform);
 
