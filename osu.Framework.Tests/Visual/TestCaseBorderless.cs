@@ -15,8 +15,10 @@ using osu.Framework.Testing;
 using OpenTK;
 using OpenTK.Graphics;
 
-namespace osu.Framework.Tests.Visual {
-    public class TestCaseBorderless : TestCase {
+namespace osu.Framework.Tests.Visual
+{
+    public class TestCaseBorderless : TestCase
+    {
         private readonly SpriteText currentActualSize = new SpriteText();
         private readonly SpriteText currentClientSize = new SpriteText();
         private readonly SpriteText currentWindowMode = new SpriteText();
@@ -38,8 +40,10 @@ namespace osu.Framework.Tests.Visual {
         private DesktopGameWindow window;
         private readonly Bindable<WindowMode> windowMode = new Bindable<WindowMode>();
 
-        public TestCaseBorderless() {
-            Child = new Container {
+        public TestCaseBorderless()
+        {
+            Child = new Container
+            {
                 RelativeSizeAxes = Axes.Both,
                 Children = new Drawable[]
                 {
@@ -99,8 +103,10 @@ namespace osu.Framework.Tests.Visual {
             windowMode.TriggerChange();
         }
 
-        private Container createScreen(DisplayDevice device, string name) {
-            return new Container {
+        private Container createScreen(DisplayDevice device, string name)
+        {
+            return new Container
+            {
                 X = device.Bounds.X,
                 Y = device.Bounds.Y,
                 Width = device.Bounds.Width,
@@ -129,11 +135,13 @@ namespace osu.Framework.Tests.Visual {
         }
 
         [BackgroundDependencyLoader]
-        private void load(FrameworkConfigManager config, GameHost host) {
+        private void load(FrameworkConfigManager config, GameHost host)
+        {
             window = host.Window as DesktopGameWindow;
             config.BindWith(FrameworkSetting.WindowMode, windowMode);
 
-            if(window == null) {
+            if(window == null)
+            {
                 Console.WriteLine("No suitable window found");
                 return;
             }
@@ -144,7 +152,8 @@ namespace osu.Framework.Tests.Visual {
             const string desc1 = "Check whether the borderless window is properly set to the top left corner, even if it is obstructed by the taskbar";
             const string desc2 = "Check whether the window size is one pixel wider than the screen in each direction";
 
-            for(int i = 0; ; i++) {
+            for(int i = 0; ; i++)
+            {
                 var display = DisplayDevice.GetDisplay((DisplayIndex)i);
                 if(display == null) break;
 
@@ -171,7 +180,8 @@ namespace osu.Framework.Tests.Visual {
             }
         }
 
-        private void printState() {
+        private void printState()
+        {
             if(window == null) return;
             Console.WriteLine("Current screen: " + window.GetCurrentDisplay());
             Console.WriteLine("Window location: " + window.Location);
@@ -181,12 +191,14 @@ namespace osu.Framework.Tests.Visual {
             Console.WriteLine("Client size: " + window.ClientSize);
         }
 
-        private void refreshScreens() {
+        private void refreshScreens()
+        {
             screenContainer.Remove(windowContainer);
             screenContainer.Clear();
             var bounds = new RectangleI();
 
-            for(int i = 0; ; i++) {
+            for(int i = 0; ; i++)
+            {
                 var device = DisplayDevice.GetDisplay((DisplayIndex)i);
                 if(device == null) break;
 
@@ -197,13 +209,15 @@ namespace osu.Framework.Tests.Visual {
             screenContainer.Add(windowContainer);
             screenContainerOffset = bounds.Location;
 
-            foreach(var box in screenContainer.Children) {
+            foreach(var box in screenContainer.Children)
+            {
                 box.Position -= bounds.Location;
             }
             screenContainer.Size = bounds.Size;
         }
 
-        private void updateWindowContainer() {
+        private void updateWindowContainer()
+        {
             if(window == null) return;
             bool fullscreen = window?.WindowMode.Value == WindowMode.Fullscreen;
 
@@ -215,10 +229,12 @@ namespace osu.Framework.Tests.Visual {
             windowCaption.Text = $"{windowMode}\nSize: {window.Size.Width}x{window.Size.Height}\nClient: {window.ClientSize.Width}x{window.ClientSize.Height}";
         }
 
-        protected override void Update() {
+        protected override void Update()
+        {
             base.Update();
 
-            if(window == null) {
+            if(window == null)
+            {
                 currentDisplay.Text = "No suitable window found";
                 return;
             }
