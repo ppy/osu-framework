@@ -21,21 +21,35 @@ namespace osu.Framework.Tests.IO
     public class TestWebRequest
     {
         private const string default_protocol = "http";
-
-#if HOSTED_HTTPBIN
-        private const string httpbin_host = "httpbin.org";
-        private static IEnumerable<string> protocols => new[] { default_protocol, "https" };
-#else
-        private const string httpbin_host = "127.0.0.1";
-        private static IEnumerable<string> protocols => new[] { default_protocol };
-#endif
-
         private const string invalid_get_url = "a.ppy.shhhhh";
+
+        private static string host;
+        private static IEnumerable<string> protocols;
+
+        [OneTimeSetUp]
+        public static void SetupTests()
+        {
+            bool isAppveyorBuild = Environment.GetEnvironmentVariable("APPVEYOR")?.ToLower().Equals("true") ?? false;
+
+            if (isAppveyorBuild)
+            {
+                // httpbin very frequently falls over and causes random tests to fail
+                // Thus appveyor builds rely on a local httpbin instance to run the tests
+
+                host = "127.0.0.1";
+                protocols = new[] { default_protocol };
+            }
+            else
+            {
+                host = "httpbin.org";
+                protocols = new[] { default_protocol, "https" };
+            }
+        }
 
         [Test, Retry(5)]
         public void TestValidGet([ValueSource(nameof(protocols))] string protocol, [Values(true, false)] bool async)
         {
-            var url = $"{protocol}://{httpbin_host}/get";
+            var url = $"{protocol}://{host}/get";
             var request = new JsonWebRequest<HttpBinGetResponse>(url) { Method = HttpMethod.GET };
 
             bool hasThrown = false;
@@ -127,7 +141,7 @@ namespace osu.Framework.Tests.IO
         [Test, Retry(5)]
         public void TestBadStatusCode([Values(true, false)] bool async)
         {
-            var request = new WebRequest($"{default_protocol}://{httpbin_host}/hidden-basic-auth/user/passwd");
+            var request = new WebRequest($"{default_protocol}://{host}/hidden-basic-auth/user/passwd");
 
             bool hasThrown = false;
             request.Failed += exception => hasThrown = exception != null;
@@ -152,7 +166,7 @@ namespace osu.Framework.Tests.IO
         [Test, Retry(5)]
         public void TestAbortReceive([Values(true, false)] bool async)
         {
-            var request = new JsonWebRequest<HttpBinGetResponse>($"{default_protocol}://{httpbin_host}/get") { Method = HttpMethod.GET };
+            var request = new JsonWebRequest<HttpBinGetResponse>($"{default_protocol}://{host}/get") { Method = HttpMethod.GET };
 
             bool hasThrown = false;
             request.Failed += exception => hasThrown = exception != null;
@@ -177,7 +191,7 @@ namespace osu.Framework.Tests.IO
         [Test, Retry(5)]
         public void TestAbortRequest()
         {
-            var request = new JsonWebRequest<HttpBinGetResponse>($"{default_protocol}://{httpbin_host}/get") { Method = HttpMethod.GET };
+            var request = new JsonWebRequest<HttpBinGetResponse>($"{default_protocol}://{host}/get") { Method = HttpMethod.GET };
 
             bool hasThrown = false;
             request.Failed += exception => hasThrown = exception != null;
@@ -202,7 +216,7 @@ namespace osu.Framework.Tests.IO
         [Test, Retry(5)]
         public void TestRestartAfterAbort([Values(true, false)] bool async)
         {
-            var request = new JsonWebRequest<HttpBinGetResponse>($"{default_protocol}://{httpbin_host}/get") { Method = HttpMethod.GET };
+            var request = new JsonWebRequest<HttpBinGetResponse>($"{default_protocol}://{host}/get") { Method = HttpMethod.GET };
 
             bool hasThrown = false;
             request.Failed += exception => hasThrown = exception != null;
@@ -259,7 +273,7 @@ namespace osu.Framework.Tests.IO
         [Test, Retry(5)]
         public void TestFailTimeout()
         {
-            var request = new WebRequest($"{default_protocol}://{httpbin_host}/delay/4")
+            var request = new WebRequest($"{default_protocol}://{host}/delay/4")
             {
                 Method = HttpMethod.GET,
                 Timeout = 1000
@@ -284,7 +298,7 @@ namespace osu.Framework.Tests.IO
         [Test, Retry(5)]
         public void TestEventUnbindOnCompletion([Values(true, false)] bool async)
         {
-            var request = new JsonWebRequest<HttpBinGetResponse>($"{default_protocol}://{httpbin_host}/get") { Method = HttpMethod.GET };
+            var request = new JsonWebRequest<HttpBinGetResponse>($"{default_protocol}://{host}/get") { Method = HttpMethod.GET };
 
             request.Started += () => { };
             request.Failed += e => { };
@@ -308,7 +322,7 @@ namespace osu.Framework.Tests.IO
         public void TestUnbindOnDispose([Values(true, false)] bool async)
         {
             WebRequest request;
-            using (request = new JsonWebRequest<HttpBinGetResponse>($"{default_protocol}://{httpbin_host}/get") { Method = HttpMethod.GET })
+            using (request = new JsonWebRequest<HttpBinGetResponse>($"{default_protocol}://{host}/get") { Method = HttpMethod.GET })
             {
                 request.Started += () => { };
                 request.Failed += e => { };
@@ -329,7 +343,7 @@ namespace osu.Framework.Tests.IO
         [Test, Retry(5)]
         public void TestPostWithJsonResponse([Values(true, false)] bool async)
         {
-            var request = new JsonWebRequest<HttpBinPostResponse>($"{default_protocol}://{httpbin_host}/post") { Method = HttpMethod.POST };
+            var request = new JsonWebRequest<HttpBinPostResponse>($"{default_protocol}://{host}/post") { Method = HttpMethod.POST };
 
             request.AddParameter("testkey1", "testval1");
             request.AddParameter("testkey2", "testval2");
@@ -361,7 +375,7 @@ namespace osu.Framework.Tests.IO
         [Test, Retry(5)]
         public void TestPostWithJsonRequest([Values(true, false)] bool async)
         {
-            var request = new JsonWebRequest<HttpBinPostResponse>($"{default_protocol}://{httpbin_host}/post") { Method = HttpMethod.POST };
+            var request = new JsonWebRequest<HttpBinPostResponse>($"{default_protocol}://{host}/post") { Method = HttpMethod.POST };
 
             var testObject = new TestObject();
             request.AddRaw(JsonConvert.SerializeObject(testObject));
@@ -391,7 +405,7 @@ namespace osu.Framework.Tests.IO
 
             string endpoint = chunked ? "stream-bytes" : "bytes";
 
-            WebRequest request = new WebRequest($"{default_protocol}://{httpbin_host}/{endpoint}/{bytes_count}") { Method = HttpMethod.GET };
+            WebRequest request = new WebRequest($"{default_protocol}://{host}/{endpoint}/{bytes_count}") { Method = HttpMethod.GET };
             if (chunked)
                 request.AddParameter("chunk_size", chunk_size.ToString());
 
@@ -464,12 +478,12 @@ namespace osu.Framework.Tests.IO
                 set
                 {
                     delay = value;
-                    Url = $"{default_protocol}://{httpbin_host}/delay/{delay}";
+                    Url = $"{default_protocol}://{host}/delay/{delay}";
                 }
             }
 
             public DelayedWebRequest()
-                : base($"{default_protocol}://{httpbin_host}/delay/0")
+                : base($"{default_protocol}://{host}/delay/0")
             {
             }
 
