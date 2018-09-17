@@ -23,11 +23,10 @@ namespace osu.Framework.Tests.IO
         private const string default_protocol = "http";
         private const string invalid_get_url = "a.ppy.shhhhh";
 
-        private static string host;
-        private static IEnumerable<string> protocols;
+        private static readonly string host;
+        private static readonly IEnumerable<string> protocols;
 
-        [OneTimeSetUp]
-        public static void SetupTests()
+        static TestWebRequest()
         {
             bool isAppveyorBuild = Environment.GetEnvironmentVariable("APPVEYOR")?.ToLower().Equals("true") ?? false;
 
