@@ -23,6 +23,7 @@ namespace osu.Framework.Platform
 
         private readonly BindableDouble windowPositionX = new BindableDouble();
         private readonly BindableDouble windowPositionY = new BindableDouble();
+        private readonly BindableInt windowDisplayID = new BindableInt();
 
         public readonly Bindable<WindowMode> WindowMode = new Bindable<WindowMode>();
 
@@ -63,6 +64,10 @@ namespace osu.Framework.Platform
 
             config.BindWith(FrameworkSetting.WindowedPositionX, windowPositionX);
             config.BindWith(FrameworkSetting.WindowedPositionY, windowPositionY);
+            config.BindWith(FrameworkSetting.LastDisplayDevice, windowDisplayID);
+
+            windowDisplayID.ValueChanged += windowDisplayID_ValueChanged;
+            windowDisplayID.TriggerChange();
 
             config.BindWith(FrameworkSetting.ConfineMouseMode, ConfineMouseMode);
 
@@ -125,6 +130,32 @@ namespace osu.Framework.Platform
                 windowPositionX.Value = Position.X;
                 windowPositionY.Value = Position.Y;
             }
+            windowDisplayID.Value = getDisplayID(GetCurrentDisplay());
+        }
+
+        private static int getDisplayID(DisplayDevice display)
+        {
+            for(int i = 0; ; i++)
+            {
+                var device = DisplayDevice.GetDisplay((DisplayIndex)i);
+                if(device == null) return -1;
+                if(device == display) return i;
+            }
+        }
+
+        private void windowDisplayID_ValueChanged(int id)
+        {
+            var display = DisplayDevice.GetDisplay((DisplayIndex)id);
+            if(display == null || display == GetCurrentDisplay()) return;
+
+            var windowMode = WindowMode.Value;
+            if(windowMode != Configuration.WindowMode.Windowed) WindowMode.Value = Configuration.WindowMode.Windowed;
+
+            var position = Position;
+            Location = display.Bounds.Location;
+            Position = position;
+
+            if(windowMode != Configuration.WindowMode.Windowed) WindowMode.Value = windowMode;
         }
 
         private void confineMouseMode_ValueChanged(ConfineMouseMode newValue)
@@ -160,7 +191,7 @@ namespace osu.Framework.Platform
                 case Configuration.WindowMode.Fullscreen:
                     ChangeResolution(currentDisplay, sizeFullscreen);
                     lastFullscreenDisplay = currentDisplay;
-
+                    
                     WindowState = WindowState.Fullscreen;
                     break;
                 case Configuration.WindowMode.Borderless:
@@ -207,17 +238,14 @@ namespace osu.Framework.Platform
             lastFullscreenDisplay = null;
         }
 
-        public Vector2 Position
-        {
-            get
-            {
+        public Vector2 Position {
+            get {
                 var display = GetCurrentDisplay();
 
                 return new Vector2((float)Location.X / (display.Width - Size.Width),
                     (float)Location.Y / (display.Height - Size.Height));
             }
-            set
-            {
+            set {
                 var display = GetCurrentDisplay();
 
                 Location = new Point(

@@ -22,6 +22,7 @@ namespace osu.Framework.Configuration
             Set(FrameworkSetting.MapAbsoluteInputToWindow, false);
             Set(FrameworkSetting.WindowedPositionX, 0.5, -0.1, 1.1);
             Set(FrameworkSetting.WindowedPositionY, 0.5, -0.1, 1.1);
+            Set(FrameworkSetting.LastDisplayDevice, -1, -1);
             Set(FrameworkSetting.AudioDevice, string.Empty);
             Set(FrameworkSetting.VolumeUniversal, 1.0, 0.0, 1.0, 0.01);
             Set(FrameworkSetting.VolumeMusic, 1.0, 0.0, 1.0, 0.01);
@@ -72,6 +73,7 @@ namespace osu.Framework.Configuration
         WindowedSize,
         WindowedPositionX,
         WindowedPositionY,
+        LastDisplayDevice,
 
         SizeFullscreen,
 
