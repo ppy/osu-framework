@@ -701,7 +701,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Absolute size of this Drawable in the <see cref="Parent"/>'s coordinate system.
         /// </summary>
-        public Vector2 DrawSize => drawSizeBacking.IsValid ? drawSizeBacking : (drawSizeBacking.Value = ApplyRelativeAxes(RelativeSizeAxes, Size, FillMode));
+        public Vector2 DrawSize => drawSizeBacking.IsValid ? drawSizeBacking : drawSizeBacking.Value = ApplyRelativeAxes(RelativeSizeAxes, Size, FillMode);
 
         /// <summary>
         /// X component of <see cref="DrawSize"/>.
@@ -1438,7 +1438,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// The screen-space quad this drawable occupies.
         /// </summary>
-        public virtual Quad ScreenSpaceDrawQuad => screenSpaceDrawQuadBacking.IsValid ? screenSpaceDrawQuadBacking : (screenSpaceDrawQuadBacking.Value = ComputeScreenSpaceDrawQuad());
+        public virtual Quad ScreenSpaceDrawQuad => screenSpaceDrawQuadBacking.IsValid ? screenSpaceDrawQuadBacking : screenSpaceDrawQuadBacking.Value = ComputeScreenSpaceDrawQuad();
 
         private Cached<DrawInfo> drawInfoBacking;
 
@@ -1460,14 +1460,14 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Contains the linear transformation of this <see cref="Drawable"/> that is used during draw.
         /// </summary>
-        public virtual DrawInfo DrawInfo => drawInfoBacking.IsValid ? drawInfoBacking : (drawInfoBacking.Value = computeDrawInfo());
+        public virtual DrawInfo DrawInfo => drawInfoBacking.IsValid ? drawInfoBacking : drawInfoBacking.Value = computeDrawInfo();
 
         private Cached<DrawColourInfo> drawColourInfoBacking;
 
         /// <summary>
         /// Contains the colour and blending information of this <see cref="Drawable"/> that are used during draw.
         /// </summary>
-        public virtual DrawColourInfo DrawColourInfo => drawColourInfoBacking.IsValid? drawColourInfoBacking : (drawColourInfoBacking.Value = computeDrawColourInfo());
+        public virtual DrawColourInfo DrawColourInfo => drawColourInfoBacking.IsValid? drawColourInfoBacking : drawColourInfoBacking.Value = computeDrawColourInfo();
 
         private DrawColourInfo computeDrawColourInfo()
         {
@@ -1558,7 +1558,7 @@ namespace osu.Framework.Graphics
         /// zero in that dimension; i.e. we no longer fit into the parent.
         /// This behavior is prominent with non-centre and non-custom <see cref="Anchor"/> values.
         /// </summary>
-        internal Vector2 RequiredParentSizeToFit => requiredParentSizeToFitBacking.IsValid ? requiredParentSizeToFitBacking : (requiredParentSizeToFitBacking.Value = computeRequiredParentSizeToFit());
+        internal Vector2 RequiredParentSizeToFit => requiredParentSizeToFitBacking.IsValid ? requiredParentSizeToFitBacking : requiredParentSizeToFitBacking.Value = computeRequiredParentSizeToFit();
 
 
         private static readonly AtomicCounter invalidation_counter = new AtomicCounter();
