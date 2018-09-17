@@ -145,7 +145,8 @@ namespace osu.Framework.Platform
 
         private void windowDisplayID_ValueChanged(int id) => SetScreen(DisplayDevice.GetDisplay((DisplayIndex)id));
 
-        public virtual void SetScreen(DisplayDevice display, bool centerOnScreen = false) {
+        public virtual void SetScreen(DisplayDevice display, bool centerOnScreen = false)
+        {
             if(!centerOnScreen && (display == null || display == GetCurrentDisplay())) return;
 
             var windowMode = WindowMode.Value;
@@ -191,7 +192,7 @@ namespace osu.Framework.Platform
                 case Configuration.WindowMode.Fullscreen:
                     ChangeResolution(currentDisplay, sizeFullscreen);
                     lastFullscreenDisplay = currentDisplay;
-                    
+
                     WindowState = WindowState.Fullscreen;
                     break;
                 case Configuration.WindowMode.Borderless:
@@ -237,7 +238,7 @@ namespace osu.Framework.Platform
                 RestoreResolution(lastFullscreenDisplay);
             lastFullscreenDisplay = null;
         }
-        
+
         public Vector2 Position
         {
             get
