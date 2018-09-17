@@ -118,6 +118,8 @@ namespace osu.Framework.Input
             }
         }
 
+        protected bool BlockNextClick;
+
         public virtual void HandleButtonStateChange(InputState state, ButtonStateChangeKind kind, double currentTime)
         {
             Trace.Assert(state.Mouse.IsPressed(Button) == (kind == ButtonStateChangeKind.Pressed));
@@ -126,7 +128,18 @@ namespace osu.Framework.Input
             {
                 if (state.Mouse.IsPositionValid)
                     MouseDownPosition = state.Mouse.Position;
+
                 HandleMouseDown(state);
+
+                if (LastClickTime != null && currentTime - LastClickTime < DoubleClickTime)
+                {
+                    if (HandleMouseDoubleClick(state))
+                    {
+                        //when we handle a double-click we want to block a normal click from firing.
+                        BlockNextClick = true;
+                        LastClickTime = null;
+                    }
+                }
             }
             else
             {
@@ -134,23 +147,14 @@ namespace osu.Framework.Input
 
                 if (EnableClick && DraggedDrawable == null)
                 {
-                    bool isValidClick = true;
-                    if (LastClickTime != null && currentTime - LastClickTime < DoubleClickTime)
-                    {
-                        if (HandleMouseDoubleClick(state))
-                        {
-                            //when we handle a double-click we want to block a normal click from firing.
-                            isValidClick = false;
-                            LastClickTime = null;
-                        }
-                    }
-
-                    if (isValidClick)
+                    if (!BlockNextClick)
                     {
                         LastClickTime = currentTime;
                         HandleMouseClick(state);
                     }
                 }
+
+                BlockNextClick = false;
 
                 if (EnableDrag)
                     HandleMouseDragEnd(state);
