@@ -143,15 +143,15 @@ namespace osu.Framework.Platform
             }
         }
 
-        private void windowDisplayID_ValueChanged(int id)
-        {
-            var display = DisplayDevice.GetDisplay((DisplayIndex)id);
-            if(display == null || display == GetCurrentDisplay()) return;
+        private void windowDisplayID_ValueChanged(int id) => SetScreen(DisplayDevice.GetDisplay((DisplayIndex)id));
+
+        public virtual void SetScreen(DisplayDevice display, bool centerOnScreen = false) {
+            if(!centerOnScreen && (display == null || display == GetCurrentDisplay())) return;
 
             var windowMode = WindowMode.Value;
             if(windowMode != Configuration.WindowMode.Windowed) WindowMode.Value = Configuration.WindowMode.Windowed;
 
-            var position = Position;
+            var position = centerOnScreen ? new Vector2(0.5f) : Position;
             Location = display.Bounds.Location;
             Position = position;
 
@@ -237,7 +237,7 @@ namespace osu.Framework.Platform
                 RestoreResolution(lastFullscreenDisplay);
             lastFullscreenDisplay = null;
         }
-
+        
         public Vector2 Position
         {
             get
