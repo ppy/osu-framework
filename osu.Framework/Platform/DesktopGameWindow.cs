@@ -238,14 +238,17 @@ namespace osu.Framework.Platform
             lastFullscreenDisplay = null;
         }
 
-        public Vector2 Position {
-            get {
+        public Vector2 Position
+        {
+            get
+            {
                 var display = GetCurrentDisplay();
 
                 return new Vector2((float)Location.X / (display.Width - Size.Width),
                     (float)Location.Y / (display.Height - Size.Height));
             }
-            set {
+            set
+            {
                 var display = GetCurrentDisplay();
 
                 Location = new Point(
