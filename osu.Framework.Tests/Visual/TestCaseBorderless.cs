@@ -42,8 +42,6 @@ namespace osu.Framework.Tests.Visual
 
         public TestCaseBorderless()
         {
-            var currentBindableSize = new SpriteText();
-
             Child = new Container
             {
                 RelativeSizeAxes = Axes.Both,
@@ -92,7 +90,6 @@ namespace osu.Framework.Tests.Visual
                         Padding = new MarginPadding(10),
                         Children = new[]
                         {
-                            currentBindableSize,
                             currentActualSize,
                             currentClientSize,
                             currentWindowMode,
