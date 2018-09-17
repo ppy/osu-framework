@@ -382,7 +382,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
                     GLWrapper.BindTexture(this);
                     GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter,
-                        (int)(manualMipmaps ? filteringMode : (filteringMode == All.Linear ? All.LinearMipmapLinear : All.Nearest)));
+                        (int)(manualMipmaps ? filteringMode : filteringMode == All.Linear ? All.LinearMipmapLinear : All.Nearest));
                     GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)filteringMode);
 
                     // 33085 is GL_TEXTURE_MAX_LEVEL, which is not available within TextureParameterName.

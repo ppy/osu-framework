@@ -87,7 +87,7 @@ namespace osu.Framework.Graphics.Containers
 
         private Cached<bool> isIntersectingBacking;
 
-        protected bool IsIntersecting => isIntersectingBacking.IsValid ? isIntersectingBacking : (isIntersectingBacking.Value = checkScrollIntersection());
+        protected bool IsIntersecting => isIntersectingBacking.IsValid ? isIntersectingBacking : isIntersectingBacking.Value = checkScrollIntersection();
 
         internal IOnScreenOptimisingContainer OptimisingContainer { get; private set; }
 
@@ -118,7 +118,7 @@ namespace osu.Framework.Graphics.Containers
 
             /// <summary>
             /// Schedule a repeating action from a child to perform checks even when the child is potentially masked.
-            /// Repeats every frame until manually cancelled. 
+            /// Repeats every frame until manually cancelled.
             /// </summary>
             /// <param name="action">The action to perform.</param>
             /// <returns>The scheduled delegate.</returns>
