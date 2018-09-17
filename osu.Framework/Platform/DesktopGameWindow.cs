@@ -180,10 +180,12 @@ namespace osu.Framework.Platform
                         RestoreResolution(lastFullscreenDisplay);
                     lastFullscreenDisplay = null;
 
+                    var newSize = sizeWindowed.Value;
+
                     WindowState = WindowState.Normal;
                     WindowBorder = WindowBorder.Resizable;
 
-                    ClientSize = sizeWindowed;
+                    ClientSize = newSize;
                     Position = new Vector2((float)windowPositionX, (float)windowPositionY);
                     break;
             }
