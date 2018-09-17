@@ -112,7 +112,7 @@ namespace osu.Framework.Tests.Visual
                 Width = device.Bounds.Width,
                 Height = device.Bounds.Height,
 
-                BorderColour = device == window?.GetCurrentDisplay() ? active_stroke : screen_stroke,
+                BorderColour = device.IsPrimary ? active_stroke : screen_stroke,
                 BorderThickness = 20,
                 Masking = true,
 
@@ -121,7 +121,7 @@ namespace osu.Framework.Tests.Visual
                     new Box
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Colour = device == window?.GetCurrentDisplay() ? active_fill : screen_fill
+                        Colour = device.IsPrimary ? active_fill : screen_fill
                     },
                     new SpriteText
                     {
