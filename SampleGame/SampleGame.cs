@@ -8,13 +8,17 @@ using OpenTK.Graphics;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Allocation;
 
-namespace SampleGame {
-    internal class SampleGame : Game {
+namespace SampleGame
+{
+    internal class SampleGame : Game
+    {
         private Box box;
 
         [BackgroundDependencyLoader]
-        private void load() {
-            Add(box = new Box {
+        private void load()
+        {
+            Add(box = new Box
+            {
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
                 Size = new Vector2(150, 150),
@@ -22,7 +26,8 @@ namespace SampleGame {
             });
         }
 
-        protected override void Update() {
+        protected override void Update()
+        {
             base.Update();
             box.Rotation += (float)Time.Elapsed / 10;
         }
