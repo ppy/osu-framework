@@ -1877,6 +1877,7 @@ namespace osu.Framework.Graphics
 
             private static readonly string[] mouse_input_methods =
             {
+                nameof(Handle),
                 nameof(OnHover),
                 nameof(OnHoverLost),
                 nameof(OnMouseDown),
@@ -1894,6 +1895,7 @@ namespace osu.Framework.Graphics
 
             private static readonly string[] keyboard_input_methods =
             {
+                nameof(Handle),
                 nameof(OnFocus),
                 nameof(OnFocusLost),
                 nameof(OnKeyDown),
