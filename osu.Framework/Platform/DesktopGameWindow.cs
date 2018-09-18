@@ -127,16 +127,17 @@ namespace osu.Framework.Platform
                 windowPositionX.Value = Position.X;
                 windowPositionY.Value = Position.Y;
             }
+
             windowDisplayID.Value = getDisplayID(GetCurrentDisplay());
         }
 
         private static int getDisplayID(DisplayDevice display)
         {
-            for(int i = 0; ; i++)
+            for (int i = 0; ; i++)
             {
                 var device = DisplayDevice.GetDisplay((DisplayIndex)i);
-                if(device == null) return -1;
-                if(device == display) return i;
+                if (device == null) return -1;
+                if (device == display) return i;
             }
         }
 
@@ -144,16 +145,16 @@ namespace osu.Framework.Platform
 
         public virtual void SetScreen(DisplayDevice display, bool centerOnScreen = false)
         {
-            if(display == null || !centerOnScreen && display == GetCurrentDisplay()) return;
+            if (display == null || !centerOnScreen && display == GetCurrentDisplay()) return;
 
             var windowMode = WindowMode.Value;
-            if(windowMode != Configuration.WindowMode.Windowed) WindowMode.Value = Configuration.WindowMode.Windowed;
+            if (windowMode != Configuration.WindowMode.Windowed) WindowMode.Value = Configuration.WindowMode.Windowed;
 
             var position = centerOnScreen ? new Vector2(0.5f) : Position;
             Location = display.Bounds.Location;
             Position = position;
 
-            if(windowMode != Configuration.WindowMode.Windowed) WindowMode.Value = windowMode;
+            if (windowMode != Configuration.WindowMode.Windowed) WindowMode.Value = windowMode;
         }
 
         private void confineMouseModeChanged(ConfineMouseMode newValue)
