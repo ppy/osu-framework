@@ -117,11 +117,11 @@ namespace osu.Framework.Platform
 
         protected void OnMove(object sender, EventArgs e)
         {
-            // The game is windowed and the whole window is on the screen (it is not minimized or moved outside of the screen)
-            if (WindowMode.Value == Configuration.WindowMode.Windowed
-                && Position.X > 0 && Position.X < 1
-                && Position.Y > 0 && Position.Y < 1)
+            if (WindowMode.Value == Configuration.WindowMode.Windowed)
             {
+                // Values are clamped to a range of [-0.5, 1.5], so if more than half of the window was
+                // outside of the combined screen area before the game was closed, it will be moved so
+                // that at least half of it is on screen after a restart.
                 windowPositionX.Value = Position.X;
                 windowPositionY.Value = Position.Y;
             }
