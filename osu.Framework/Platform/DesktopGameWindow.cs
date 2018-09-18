@@ -66,20 +66,17 @@ namespace osu.Framework.Platform
             config.BindWith(FrameworkSetting.WindowedPositionY, windowPositionY);
             config.BindWith(FrameworkSetting.LastDisplayDevice, windowDisplayID);
 
-            windowDisplayID.ValueChanged += windowDisplayID_ValueChanged;
-            windowDisplayID.TriggerChange();
+            windowDisplayID.BindValueChanged(windowDisplayIDChanged, true);
 
             config.BindWith(FrameworkSetting.ConfineMouseMode, ConfineMouseMode);
 
             config.BindWith(FrameworkSetting.MapAbsoluteInputToWindow, MapAbsoluteInputToWindow);
 
-            ConfineMouseMode.ValueChanged += confineMouseMode_ValueChanged;
-            ConfineMouseMode.TriggerChange();
+            ConfineMouseMode.BindValueChanged(confineMouseModeChanged, true);
 
             config.BindWith(FrameworkSetting.WindowMode, WindowMode);
 
-            WindowMode.ValueChanged += windowMode_ValueChanged;
-            WindowMode.TriggerChange();
+            WindowMode.BindValueChanged(windowModeChanged, true);
 
             Exited += onExit;
         }
@@ -143,7 +140,7 @@ namespace osu.Framework.Platform
             }
         }
 
-        private void windowDisplayID_ValueChanged(int id) => SetScreen(DisplayDevice.GetDisplay((DisplayIndex)id));
+        private void windowDisplayIDChanged(int id) => SetScreen(DisplayDevice.GetDisplay((DisplayIndex)id));
 
         public virtual void SetScreen(DisplayDevice display, bool centerOnScreen = false)
         {
@@ -159,7 +156,7 @@ namespace osu.Framework.Platform
             if(windowMode != Configuration.WindowMode.Windowed) WindowMode.Value = windowMode;
         }
 
-        private void confineMouseMode_ValueChanged(ConfineMouseMode newValue)
+        private void confineMouseModeChanged(ConfineMouseMode newValue)
         {
             bool confine = false;
 
@@ -181,7 +178,7 @@ namespace osu.Framework.Platform
 
         private DisplayDevice lastFullscreenDisplay;
 
-        private void windowMode_ValueChanged(WindowMode newMode) => UpdateWindowMode(newMode);
+        private void windowModeChanged(WindowMode newMode) => UpdateWindowMode(newMode);
 
         protected virtual void UpdateWindowMode(WindowMode newMode)
         {
