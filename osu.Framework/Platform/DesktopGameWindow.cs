@@ -141,9 +141,9 @@ namespace osu.Framework.Platform
             }
         }
 
-        private void windowDisplayIDChanged(int id) => SetScreen(DisplayDevice.GetDisplay((DisplayIndex)id));
+        private void windowDisplayIDChanged(int id) => SetCurrentDisplay(DisplayDevice.GetDisplay((DisplayIndex)id));
 
-        public virtual void SetScreen(DisplayDevice display, bool centerOnScreen = false)
+        public virtual void SetCurrentDisplay(DisplayDevice display, bool centerOnScreen = false)
         {
             if (display == null || !centerOnScreen && display == GetCurrentDisplay()) return;
 
