@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -34,6 +35,8 @@ namespace osu.Framework.Platform
         public readonly BindableBool MapAbsoluteInputToWindow = new BindableBool();
 
         public override DisplayDevice GetCurrentDisplay() => DisplayDevice.FromRectangle(Bounds) ?? DisplayDevice.Default;
+
+        public override IEnumerable<DisplayResolution> AvailableResolutions => GetCurrentDisplay().AvailableResolutions;
 
         protected DesktopGameWindow()
             : base(default_width, default_height)
@@ -170,16 +173,19 @@ namespace osu.Framework.Platform
 
                     //must add 1 to enter borderless
                     ClientSize = new Size(currentDisplay.Bounds.Width + 1, currentDisplay.Bounds.Height + 1);
+                    Location = currentDisplay.Bounds.Location;
                     break;
-                default:
+                case Configuration.WindowMode.Windowed:
                     if (lastFullscreenDisplay != null)
                         RestoreResolution(lastFullscreenDisplay);
                     lastFullscreenDisplay = null;
 
+                    var newSize = sizeWindowed.Value;
+
                     WindowState = WindowState.Normal;
                     WindowBorder = WindowBorder.Resizable;
 
-                    ClientSize = sizeWindowed;
+                    ClientSize = newSize;
                     Position = new Vector2((float)windowPositionX, (float)windowPositionY);
                     break;
             }

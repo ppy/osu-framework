@@ -194,17 +194,30 @@ namespace osu.Framework.Tests.Exceptions
         [SuppressMessage("ReSharper", "AccessToDisposedClosure")]
         private void runGameWithLogic(Action<Game> logic, Func<Game, bool> exitCondition = null)
         {
-            using (var host = new HeadlessGameHost($"test-{Guid.NewGuid()}", realtime: false))
-            using (var game = new TestGame())
-            {
-                game.Schedule(() => logic(game));
-                host.UpdateThread.Scheduler.AddDelayed(() =>
-                {
-                    if (exitCondition?.Invoke(game) == true)
-                        host.Exit();
-                }, 0, true);
+            Storage storage = null;
 
-                host.Run(game);
+            try
+            {
+                using (var host = new HeadlessGameHost($"{GetType().Name}-{Guid.NewGuid()}", realtime: false))
+                {
+                    storage = host.Storage;
+                    using (var game = new TestGame())
+                    {
+                        game.Schedule(() => logic(game));
+                        host.UpdateThread.Scheduler.AddDelayed(() =>
+                        {
+                            if (exitCondition?.Invoke(game) == true)
+                                host.Exit();
+                        }, 0, true);
+
+                        host.Run(game);
+                    }
+
+                }
+            }
+            finally
+            {
+                storage?.DeleteDirectory(string.Empty);
             }
         }
 

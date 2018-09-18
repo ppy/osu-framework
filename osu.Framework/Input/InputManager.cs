@@ -221,6 +221,8 @@ namespace osu.Framework.Input
 
         internal override bool BuildMouseInputQueue(Vector2 screenSpaceMousePos, List<Drawable> queue) => false;
 
+        private bool hoverEventsUpdated;
+
         protected override void Update()
         {
             unfocusIfNoLongerValid();
@@ -228,6 +230,8 @@ namespace osu.Framework.Input
             // aggressively clear to avoid holding references.
             inputQueue.Clear();
             positionalInputQueue.Clear();
+
+            hoverEventsUpdated = false;
 
             foreach (var result in GetPendingInputs())
             {
@@ -241,7 +245,10 @@ namespace osu.Framework.Input
 
             updateKeyRepeat(CurrentState);
 
-            updateHoverEvents(CurrentState);
+            // Other inputs or drawable changes may affect hover even if
+            // there were no mouse movements, so it must be updated every frame.
+            if (!hoverEventsUpdated)
+                updateHoverEvents(CurrentState);
 
             if (FocusedDrawable == null)
                 focusTopMostRequestingDrawable();
@@ -282,8 +289,9 @@ namespace osu.Framework.Input
             if (this is UserInputManager)
                 FrameStatistics.Increment(StatisticsCounterType.KeyboardQueue);
 
-            foreach (Drawable d in AliveInternalChildren)
-                d.BuildKeyboardInputQueue(inputQueue);
+            var children = AliveInternalChildren;
+            for (int i = 0; i < children.Count; i++)
+                children[i].BuildKeyboardInputQueue(inputQueue);
 
             if (!unfocusIfNoLongerValid())
             {
@@ -308,8 +316,9 @@ namespace osu.Framework.Input
             if (this is UserInputManager)
                 FrameStatistics.Increment(StatisticsCounterType.MouseQueue);
 
-            foreach (Drawable d in AliveInternalChildren)
-                d.BuildMouseInputQueue(state.Mouse.Position, positionalInputQueue);
+            var children = AliveInternalChildren;
+            for (int i = 0; i < children.Count; i++)
+                children[i].BuildMouseInputQueue(state.Mouse.Position, positionalInputQueue);
 
             positionalInputQueue.Reverse();
             return positionalInputQueue;
@@ -364,6 +373,8 @@ namespace osu.Framework.Input
                 d.IsHovered = false;
                 d.TriggerEvent(new HoverLostEvent(state));
             }
+
+            hoverEventsUpdated = true;
         }
 
         private bool isModifierKey(Key k)
@@ -457,6 +468,8 @@ namespace osu.Framework.Input
 
             foreach (var manager in mouseButtonEventManagers.Values)
                 manager.HandlePositionChange(state, e.LastPosition);
+
+            updateHoverEvents(state);
         }
 
         protected virtual void HandleMouseScrollChange(MouseScrollChangeEvent e)

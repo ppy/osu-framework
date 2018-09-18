@@ -1,10 +1,9 @@
-// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Caching;
 using osu.Framework.Configuration;
@@ -27,7 +26,6 @@ namespace osu.Framework.Graphics.Sprites
     {
         private const float default_text_size = 20;
         private static readonly Vector2 shadow_offset = new Vector2(0, 0.06f);
-        private static readonly char[] default_fixed_width_exceptions = { '.', ':', ',' };
 
         [Resolved]
         private FontStore store { get; set; }
@@ -40,6 +38,13 @@ namespace osu.Framework.Graphics.Sprites
             spaceWidth = GetTextureForCharacter('.')?.DisplayWidth * 2 ?? 1;
             sharedData.TextureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
             sharedData.RoundedTextureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
+
+            // Pre-cache the characters in the texture store
+            if (!string.IsNullOrEmpty(Text))
+            {
+                foreach (var character in Text)
+                    GetTextureForCharacter(character);
+            }
         }
 
         private string text;
@@ -60,9 +65,9 @@ namespace osu.Framework.Graphics.Sprites
                 {
                     // We'll become not present and won't update the characters to set the size to 0, so do it manually
                     if (requiresAutoSizedWidth)
-                        base.Width = 0;
+                        base.Width = Padding.TotalHorizontal;
                     if (requiresAutoSizedHeight)
-                        base.Height = 0;
+                        base.Height = Padding.TotalVertical;
                 }
 
                 invalidate(true);
@@ -196,11 +201,6 @@ namespace osu.Framework.Graphics.Sprites
                 invalidate(true);
             }
         }
-
-        /// <summary>
-        /// An array of characters which should not get a fixed width in a <see cref="FixedWidth"/> instance.
-        /// </summary>
-        protected virtual char[] FixedWidthExceptionCharacters => default_fixed_width_exceptions;
 
         private bool requiresAutoSizedWidth => explicitWidth == null && (RelativeSizeAxes & Axes.X) == 0;
 
@@ -362,6 +362,8 @@ namespace osu.Framework.Graphics.Sprites
 
                 foreach (var character in Text)
                 {
+                    bool useFixedWidth = FixedWidth && UseFixedWidthForCharacter(character);
+
                     // Unscaled size (i.e. not multiplied by TextSize)
                     Vector2 textureSize;
                     Texture texture = null;
@@ -369,7 +371,7 @@ namespace osu.Framework.Graphics.Sprites
                     // Retrieve the texture + size
                     if (char.IsWhiteSpace(character))
                     {
-                        float size = FixedWidth ? constantWidth : spaceWidth;
+                        float size = useFixedWidth ? constantWidth : spaceWidth;
 
                         if (character == 0x3000)
                         {
@@ -382,10 +384,8 @@ namespace osu.Framework.Graphics.Sprites
                     else
                     {
                         texture = GetTextureForCharacter(character);
-                        textureSize = texture == null ? new Vector2(FixedWidth ? constantWidth : spaceWidth) : new Vector2(texture.DisplayWidth, texture.DisplayHeight);
+                        textureSize = texture == null ? new Vector2(useFixedWidth ? constantWidth : spaceWidth) : new Vector2(texture.DisplayWidth, texture.DisplayHeight);
                     }
-
-                    bool useFixedWidth = FixedWidth && !FixedWidthExceptionCharacters.Contains(character);
 
                     // Scaled glyph size to be used for positioning
                     Vector2 glyphSize = new Vector2(useFixedWidth ? constantWidth : textureSize.X, UseFullGlyphHeight ? 1 : textureSize.Y) * TextSize;
@@ -428,9 +428,9 @@ namespace osu.Framework.Graphics.Sprites
             finally
             {
                 if (requiresAutoSizedWidth)
-                    base.Width = charactersBacking.Count == 0 ? 0 : currentPos.X + Padding.Right;
+                    base.Width = currentPos.X + Padding.Right;
                 if (requiresAutoSizedHeight)
-                    base.Height = charactersBacking.Count == 0 ? 0 : currentPos.Y + Padding.Bottom;
+                    base.Height = currentPos.Y + Padding.Bottom;
 
                 isComputingCharacters = false;
                 charactersCache.Validate();
@@ -472,10 +472,10 @@ namespace osu.Framework.Graphics.Sprites
         }
 
         private Cached<float> constantWidthCache;
-        private float constantWidth => constantWidthCache.IsValid ? constantWidthCache.Value : (constantWidthCache.Value = GetTextureForCharacter('D')?.DisplayWidth ?? 0);
+        private float constantWidth => constantWidthCache.IsValid ? constantWidthCache.Value : constantWidthCache.Value = GetTextureForCharacter('D')?.DisplayWidth ?? 0;
 
         private Cached<Vector2> shadowOffsetCache;
-        private Vector2 shadowOffset => shadowOffsetCache.IsValid ? shadowOffsetCache.Value : (shadowOffsetCache.Value = ToScreenSpace(shadow_offset * TextSize) - ToScreenSpace(Vector2.Zero));
+        private Vector2 shadowOffset => shadowOffsetCache.IsValid ? shadowOffsetCache.Value : shadowOffsetCache.Value = ToScreenSpace(shadow_offset * TextSize) - ToScreenSpace(Vector2.Zero);
 
         #endregion
 
@@ -497,7 +497,7 @@ namespace osu.Framework.Graphics.Sprites
             if (source == Parent)
             {
                 // Colour captures presence changes
-                if ((invalidation & (Invalidation.DrawSize | Invalidation.Colour)) > 0)
+                if ((invalidation & (Invalidation.DrawSize | Invalidation.Presence)) > 0)
                     invalidate(true);
 
                 if ((invalidation & Invalidation.DrawInfo) > 0)
@@ -561,6 +561,26 @@ namespace osu.Framework.Graphics.Sprites
         /// <param name="c">The character which doesn't exist in the current font.</param>
         /// <returns>The texture for the given character.</returns>
         protected virtual Texture GetFallbackTextureForCharacter(char c) => GetTextureForCharacter('?');
+
+        /// <summary>
+        /// Whether the visual representation of a character should use fixed width when <see cref="FixedWidth"/> is true.
+        /// By default, this includes the following characters, commonly used in numerical formatting: '.' ',' ':' and ' '
+        /// </summary>
+        /// <param name="c">The character.</param>
+        /// <returns>Whether the visual representation of <paramref name="c"/> should use a fixed width.</returns>
+        protected virtual bool UseFixedWidthForCharacter(char c)
+        {
+            switch (c)
+            {
+                case '.':
+                case ',':
+                case ':':
+                case ' ':
+                    return false;
+            }
+
+            return true;
+        }
 
         public override string ToString()
         {
