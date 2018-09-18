@@ -147,7 +147,7 @@ namespace osu.Framework.Platform
 
         public virtual void SetScreen(DisplayDevice display, bool centerOnScreen = false)
         {
-            if(!centerOnScreen && (display == null || display == GetCurrentDisplay())) return;
+            if(display == null || !centerOnScreen && display == GetCurrentDisplay()) return;
 
             var windowMode = WindowMode.Value;
             if(windowMode != Configuration.WindowMode.Windowed) WindowMode.Value = Configuration.WindowMode.Windowed;
