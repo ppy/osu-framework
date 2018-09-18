@@ -29,6 +29,7 @@ using osu.Framework.Input.EventArgs;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
 using osu.Framework.MathUtils;
+using OpenTK.Input;
 using JoystickEventArgs = osu.Framework.Input.EventArgs.JoystickEventArgs;
 
 namespace osu.Framework.Graphics
@@ -1832,6 +1833,12 @@ namespace osu.Framework.Graphics
             e.Target = this;
             return Handle(e);
         }
+
+        /// <summary>
+        /// Triggers a left click event for this <see cref="Drawable"/>.
+        /// </summary>
+        /// <returns>Whether the click event is handled.</returns>
+        public bool Click() => TriggerEvent(new ClickEvent(GetContainingInputManager()?.CurrentState ?? new InputState(), MouseButton.Left));
 
         #region Legacy event handling
         protected virtual bool OnMouseMove(InputState state) => false;
