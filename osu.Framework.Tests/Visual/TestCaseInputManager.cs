@@ -11,7 +11,6 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.Handlers.Mouse;
-using osu.Framework.Input.States;
 using osu.Framework.Testing;
 using OpenTK;
 using OpenTK.Graphics;
@@ -149,11 +148,11 @@ namespace osu.Framework.Tests.Visual
 
             public int ScrollCount;
 
-            protected override bool OnScroll(InputState state)
+            protected override bool OnScroll(ScrollEvent e)
             {
                 ++ScrollCount;
-                onScrollStatus.Text = $"OnScroll {ScrollCount}: Scroll={state.Mouse.Scroll}, ScrollDelta={state.Mouse.ScrollDelta}, HasPreciseScroll={state.Mouse.HasPreciseScroll}";
-                return base.OnScroll(state);
+                onScrollStatus.Text = $"OnScroll {ScrollCount}: ScrollDelta={e.ScrollDelta}, IsPrecise={e.IsPrecise}";
+                return base.OnScroll(e);
             }
 
             public int HoverCount;

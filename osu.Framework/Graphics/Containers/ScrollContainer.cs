@@ -349,11 +349,11 @@ namespace osu.Framework.Graphics.Containers
             return true;
         }
 
-        protected override bool OnScroll(InputState state)
+        protected override bool OnScroll(ScrollEvent e)
         {
-            bool isPrecise = state.Mouse.HasPreciseScroll;
+            bool isPrecise = e.IsPrecise;
 
-            Vector2 scrollDelta = state.Mouse.ScrollDelta;
+            Vector2 scrollDelta = e.ScrollDelta;
             float scrollDeltaFloat = scrollDelta.Y;
             if (ScrollDirection == Direction.Horizontal && scrollDelta.X != 0)
                 scrollDeltaFloat = scrollDelta.X;

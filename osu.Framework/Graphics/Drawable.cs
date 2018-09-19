@@ -1803,7 +1803,7 @@ namespace osu.Framework.Graphics
                 case DragEndEvent dragEnd:
                     return OnDragEnd(dragEnd);
                 case ScrollEvent scroll:
-                    return OnScroll(scroll.LegacyInputState);
+                    return OnScroll(scroll);
                 case FocusEvent focus:
                     OnFocus(focus.LegacyInputState);
                     return false;
@@ -1851,7 +1851,7 @@ namespace osu.Framework.Graphics
         protected virtual bool OnDragStart(DragStartEvent e) => false;
         protected virtual bool OnDrag(DragEvent e) => false;
         protected virtual bool OnDragEnd(DragEndEvent e) => false;
-        protected virtual bool OnScroll(InputState state) => false;
+        protected virtual bool OnScroll(ScrollEvent e) => false;
         protected virtual void OnFocus(InputState state) {}
         protected virtual void OnFocusLost(InputState state) {}
         protected virtual bool OnKeyDown(InputState state, KeyDownEventArgs args) => false;

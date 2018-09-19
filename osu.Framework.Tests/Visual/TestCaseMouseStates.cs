@@ -580,10 +580,10 @@ namespace osu.Framework.Tests.Visual
                     return base.OnMouseMove(e);
                 }
 
-                protected override bool OnScroll(InputState state)
+                protected override bool OnScroll(ScrollEvent e)
                 {
-                    circle.MoveTo(circle.Position - state.Mouse.ScrollDelta * 10).MoveTo(Vector2.Zero, 500, Easing.OutQuint);
-                    return base.OnScroll(state);
+                    circle.MoveTo(circle.Position - e.ScrollDelta * 10).MoveTo(Vector2.Zero, 500, Easing.OutQuint);
+                    return base.OnScroll(e);
                 }
 
                 protected override bool OnMouseDown(MouseDownEvent e)
