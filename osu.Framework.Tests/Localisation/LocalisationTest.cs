@@ -106,7 +106,7 @@ namespace osu.Framework.Tests.Localisation
             const string non_unicode = "non unicode";
             const string unicode = "unicode";
 
-            var text = manager.GetUnicodeBindable(unicode, non_unicode);
+            var text = manager.GetUnicodeString(unicode, non_unicode);
 
             config.Set(FrameworkSetting.ShowUnicode, true);
             Assert.AreEqual(unicode, text.Value);
