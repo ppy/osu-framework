@@ -34,7 +34,7 @@ namespace osu.Framework.Graphics.Sprites
         [Resolved]
         private LocalisationManager localisation { get; set; }
 
-        private ILocalisedString localisedText;
+        private ILocalisedBindableString localisedText;
 
         private float spaceWidth;
 

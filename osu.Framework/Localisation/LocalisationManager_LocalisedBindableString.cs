@@ -9,13 +9,13 @@ namespace osu.Framework.Localisation
 {
     public partial class LocalisationManager
     {
-        private class LocalisedString : Bindable<string>, ILocalisedString
+        private class LocalisedBindableString : Bindable<string>, ILocalisedBindableString
         {
             private readonly IBindable<IResourceStore<string>> storage = new Bindable<IResourceStore<string>>();
 
             private LocalisableString text;
 
-            public LocalisedString(IBindable<IResourceStore<string>> storage)
+            public LocalisedBindableString(IBindable<IResourceStore<string>> storage)
             {
                 this.storage.BindTo(storage);
                 this.storage.BindValueChanged(_ => updateValue(), true);
@@ -43,7 +43,7 @@ namespace osu.Framework.Localisation
                 Value = newText;
             }
 
-            LocalisableString ILocalisedString.Original
+            LocalisableString ILocalisedBindableString.Original
             {
                 set
                 {

@@ -8,7 +8,7 @@ namespace osu.Framework.Localisation
     /// <summary>
     /// An <see cref="IBindable{T}"/> which has its value set depending on the current locale of the <see cref="LocalisationManager"/>.
     /// </summary>
-    public interface ILocalisedString : IBindable<string>
+    public interface ILocalisedBindableString : IBindable<string>
     {
         /// <summary>
         /// Sets the original, un-localised text.
