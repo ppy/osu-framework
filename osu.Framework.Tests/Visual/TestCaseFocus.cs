@@ -10,12 +10,10 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
 using osu.Framework.Input.Events;
-using osu.Framework.Input.States;
 using osu.Framework.Testing;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Input;
-using JoystickEventArgs = osu.Framework.Input.EventArgs.JoystickEventArgs;
 
 namespace osu.Framework.Tests.Visual
 {
@@ -338,16 +336,16 @@ namespace osu.Framework.Tests.Visual
                 return base.OnKeyUp(e);
             }
 
-            protected override bool OnJoystickPress(InputState state, JoystickEventArgs args)
+            protected override bool OnJoystickPress(JoystickPressEvent e)
             {
                 ++JoystickPressCount;
-                return base.OnJoystickPress(state, args);
+                return base.OnJoystickPress(e);
             }
 
-            protected override bool OnJoystickRelease(InputState state, JoystickEventArgs args)
+            protected override bool OnJoystickRelease(JoystickReleaseEvent e)
             {
                 ++JoystickReleaseCount;
-                return base.OnJoystickRelease(state, args);
+                return base.OnJoystickRelease(e);
             }
         }
     }

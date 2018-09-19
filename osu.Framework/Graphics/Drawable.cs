@@ -29,7 +29,6 @@ using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
 using osu.Framework.MathUtils;
 using OpenTK.Input;
-using JoystickEventArgs = osu.Framework.Input.EventArgs.JoystickEventArgs;
 
 namespace osu.Framework.Graphics
 {
@@ -1777,7 +1776,7 @@ namespace osu.Framework.Graphics
         /// <returns>If the event supports blocking, returning true will make the event to not propagating further.</returns>
         protected virtual bool Handle(UIEvent e)
         {
-            // call a leagacy input handler
+            // call an individual input handler
             switch (e)
             {
                 case MouseMoveEvent mouseMove:
@@ -1814,9 +1813,9 @@ namespace osu.Framework.Graphics
                 case KeyUpEvent keyUp:
                     return OnKeyUp(keyUp);
                 case JoystickPressEvent joystickPress:
-                    return OnJoystickPress(joystickPress.LegacyInputState, new JoystickEventArgs { Button = joystickPress.Button });
+                    return OnJoystickPress(joystickPress);
                 case JoystickReleaseEvent joystickRelease:
-                    return OnJoystickRelease(joystickRelease.LegacyInputState, new JoystickEventArgs { Button = joystickRelease.Button });
+                    return OnJoystickRelease(joystickRelease);
                 default:
                     return false;
             }
@@ -1855,8 +1854,8 @@ namespace osu.Framework.Graphics
         protected virtual void OnFocusLost(FocusLostEvent e) {}
         protected virtual bool OnKeyDown(KeyDownEvent e) => false;
         protected virtual bool OnKeyUp(KeyUpEvent e) => false;
-        protected virtual bool OnJoystickPress(InputState state, JoystickEventArgs args) => false;
-        protected virtual bool OnJoystickRelease(InputState state, JoystickEventArgs args) => false;
+        protected virtual bool OnJoystickPress(JoystickPressEvent e) => false;
+        protected virtual bool OnJoystickRelease(JoystickReleaseEvent e) => false;
         #endregion
 
         private bool handleKeyboardInput, handleMouseInput;
