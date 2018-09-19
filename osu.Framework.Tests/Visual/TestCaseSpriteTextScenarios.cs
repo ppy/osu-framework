@@ -230,13 +230,13 @@ namespace osu.Framework.Tests.Visual
         private class LocalisableTestContainer : Container
         {
             [Cached]
-            private readonly LocalisationEngine localisation;
+            private readonly LocalisationManager localisation;
 
             public LocalisableTestContainer()
             {
                 var config = new FakeFrameworkConfigManager();
 
-                localisation = new LocalisationEngine(config);
+                localisation = new LocalisationManager(config);
                 localisation.AddLanguage("en", new FakeStorage("en"));
                 localisation.AddLanguage("ja", new FakeStorage("ja"));
 

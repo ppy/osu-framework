@@ -39,7 +39,7 @@ namespace osu.Framework
 
         public FontStore Fonts;
 
-        protected LocalisationEngine Localisation { get; private set; }
+        protected LocalisationManager Localisation { get; private set; }
 
         private readonly Container content;
         private PerformanceOverlay performanceContainer;
@@ -131,7 +131,7 @@ namespace osu.Framework
             Fonts = new FontStore(new GlyphStore(Resources, @"Fonts/OpenSans"));
             dependencies.Cache(Fonts);
 
-            Localisation = new LocalisationEngine(config);
+            Localisation = new LocalisationManager(config);
             dependencies.Cache(Localisation);
         }
 

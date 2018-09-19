@@ -10,7 +10,7 @@ using JetBrains.Annotations;
 
 namespace osu.Framework.Localisation
 {
-    public partial class LocalisationEngine
+    public partial class LocalisationManager
     {
         private readonly List<LocaleMapping> locales = new List<LocaleMapping>();
 
@@ -18,7 +18,7 @@ namespace osu.Framework.Localisation
         private readonly Bindable<string> configLocale;
         private readonly Bindable<IResourceStore<string>> currentStorage = new Bindable<IResourceStore<string>>();
 
-        public LocalisationEngine(FrameworkConfigManager config)
+        public LocalisationManager(FrameworkConfigManager config)
         {
             preferUnicode = config.GetBindable<bool>(FrameworkSetting.ShowUnicode);
 

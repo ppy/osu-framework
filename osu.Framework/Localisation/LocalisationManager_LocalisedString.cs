@@ -7,7 +7,7 @@ using osu.Framework.IO.Stores;
 
 namespace osu.Framework.Localisation
 {
-    public partial class LocalisationEngine
+    public partial class LocalisationManager
     {
         private class LocalisedString : Bindable<string>, ILocalisedString
         {

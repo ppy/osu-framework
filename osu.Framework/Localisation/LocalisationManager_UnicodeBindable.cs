@@ -5,7 +5,7 @@ using osu.Framework.Configuration;
 
 namespace osu.Framework.Localisation
 {
-    public partial class LocalisationEngine
+    public partial class LocalisationManager
     {
         private class UnicodeBindable : Bindable<string>
         {

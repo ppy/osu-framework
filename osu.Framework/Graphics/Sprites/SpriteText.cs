@@ -32,7 +32,7 @@ namespace osu.Framework.Graphics.Sprites
         private FontStore store { get; set; }
 
         [Resolved]
-        private LocalisationEngine localisation { get; set; }
+        private LocalisationManager localisation { get; set; }
 
         private ILocalisedString localisedText;
 

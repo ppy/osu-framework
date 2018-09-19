@@ -15,20 +15,20 @@ namespace osu.Framework.Tests.Localisation
     public class LocalisationTest
     {
         private FrameworkConfigManager config;
-        private LocalisationEngine engine;
+        private LocalisationManager manager;
 
         [SetUp]
         public void Setup()
         {
             config = new FakeFrameworkConfigManager();
-            engine = new LocalisationEngine(config);
-            engine.AddLanguage("en", new FakeStorage("en"));
+            manager = new LocalisationManager(config);
+            manager.AddLanguage("en", new FakeStorage("en"));
         }
 
         [Test]
         public void TestNotLocalised()
         {
-            var localisedText = engine.GetLocalisedString();
+            var localisedText = manager.GetLocalisedString();
             localisedText.Original = FakeStorage.LOCALISABLE_STRING_EN;
 
             Assert.AreEqual(FakeStorage.LOCALISABLE_STRING_EN, localisedText.Value);
@@ -41,10 +41,10 @@ namespace osu.Framework.Tests.Localisation
         [Test]
         public void TestLocalised()
         {
-            engine.AddLanguage("ja-JP", new FakeStorage("ja-JP"));
+            manager.AddLanguage("ja-JP", new FakeStorage("ja-JP"));
 
             var localisable = new LocalisableString(FakeStorage.LOCALISABLE_STRING_EN);
-            var localisedText = engine.GetLocalisedString();
+            var localisedText = manager.GetLocalisedString();
             localisedText.Original = localisable;
 
             Assert.AreEqual(FakeStorage.LOCALISABLE_STRING_EN, localisedText.Value);
@@ -56,12 +56,12 @@ namespace osu.Framework.Tests.Localisation
         [Test]
         public void TestLocalisationFallback()
         {
-            engine.AddLanguage("ja", new FakeStorage("ja"));
+            manager.AddLanguage("ja", new FakeStorage("ja"));
 
             config.Set(FrameworkSetting.Locale, "ja-JP");
 
             var localisable = new LocalisableString(FakeStorage.LOCALISABLE_STRING_EN);
-            var localisedText = engine.GetLocalisedString();
+            var localisedText = manager.GetLocalisedString();
             localisedText.Original = localisable;
 
             Assert.AreEqual(FakeStorage.LOCALISABLE_STRING_JA, localisedText.Value);
@@ -77,7 +77,7 @@ namespace osu.Framework.Tests.Localisation
             string expectedResult = string.Format(to_format, arg_0, arg_1);
 
             var formattable = new LocalisableString(to_format, false, arg_0, arg_1);
-            var formattedText = engine.GetLocalisedString();
+            var formattedText = manager.GetLocalisedString();
             formattedText.Original = formattable;
 
             Assert.AreEqual(expectedResult, formattedText.Value);
@@ -90,11 +90,11 @@ namespace osu.Framework.Tests.Localisation
 
             string expectedResult = string.Format(FakeStorage.LOCALISABLE_FORMAT_STRING_JA, arg_0);
 
-            engine.AddLanguage("ja", new FakeStorage("ja"));
+            manager.AddLanguage("ja", new FakeStorage("ja"));
             config.Set(FrameworkSetting.Locale, "ja");
 
             var formattable = new LocalisableString(FakeStorage.LOCALISABLE_FORMAT_STRING_EN, arg_0);
-            var formattedText = engine.GetLocalisedString();
+            var formattedText = manager.GetLocalisedString();
             formattedText.Original = formattable;
 
             Assert.AreEqual(expectedResult, formattedText.Value);
@@ -106,7 +106,7 @@ namespace osu.Framework.Tests.Localisation
             const string non_unicode = "non unicode";
             const string unicode = "unicode";
 
-            var text = engine.GetUnicodeBindable(unicode, non_unicode);
+            var text = manager.GetUnicodeBindable(unicode, non_unicode);
 
             config.Set(FrameworkSetting.ShowUnicode, true);
             Assert.AreEqual(unicode, text.Value);
