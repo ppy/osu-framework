@@ -8,11 +8,7 @@ namespace osu.Framework.Input.States
 {
     public interface IMouseState
     {
-        IMouseState NativeState { get; }
-
         ButtonStates<MouseButton> Buttons { get; }
-
-        Vector2 Delta { get; }
 
         Vector2 Position { get; set; }
 
@@ -25,10 +21,6 @@ namespace osu.Framework.Input.States
         /// </remarks>
         bool IsPositionValid { get; set; }
 
-        Vector2 LastPosition { get; set; }
-
-        Vector2? PositionMouseDown { get; set; }
-
         bool HasMainButtonPressed { get; }
 
         bool HasAnyButtonPressed { get; }
@@ -38,12 +30,6 @@ namespace osu.Framework.Input.States
         void SetPressed(MouseButton button, bool pressed);
 
         Vector2 Scroll { get; set; }
-
-        Vector2 LastScroll { get; set; }
-
-        Vector2 ScrollDelta { get; }
-
-        bool HasPreciseScroll { get; set; }
 
         IMouseState Clone();
     }

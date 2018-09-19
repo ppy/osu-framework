@@ -428,11 +428,6 @@ namespace osu.Framework.Input
 
         public virtual void HandleInputStateChange(InputStateChangeEvent inputStateChange)
         {
-            // Set default
-            var mouse = inputStateChange.State.Mouse;
-            mouse.LastPosition = mouse.Position;
-            mouse.LastScroll = mouse.Scroll;
-
             switch (inputStateChange)
             {
                 case MousePositionChangeEvent mousePositionChange:
@@ -458,8 +453,6 @@ namespace osu.Framework.Input
             var state = e.State;
             var mouse = state.Mouse;
 
-            mouse.LastPosition = e.LastPosition;
-
             foreach (var h in InputHandlers)
                 if (h.Enabled && h is INeedsMousePositionFeedback handler)
                     handler.FeedbackMousePositionChange(mouse.Position);
@@ -474,9 +467,7 @@ namespace osu.Framework.Input
 
         protected virtual void HandleMouseScrollChange(MouseScrollChangeEvent e)
         {
-            e.State.Mouse.LastScroll = e.LastScroll;
-
-            handleScroll(e.State);
+            handleScroll(e.State, e.LastScroll, e.IsPrecise);
         }
 
         protected virtual void HandleMouseButtonStateChange(ButtonStateChangeEvent<MouseButton> e)
@@ -490,9 +481,9 @@ namespace osu.Framework.Input
             return PropagateBlockableEvent(PositionalInputQueue, new MouseMoveEvent(state, lastPosition));
         }
 
-        private bool handleScroll(InputState state)
+        private bool handleScroll(InputState state, Vector2 lastScroll, bool isPrecise)
         {
-            return PropagateBlockableEvent(PositionalInputQueue, new ScrollEvent(state, state.Mouse.ScrollDelta));
+            return PropagateBlockableEvent(PositionalInputQueue, new ScrollEvent(state, state.Mouse.Scroll - lastScroll, isPrecise));
         }
 
         private bool handleKeyDown(InputState state, Key key, bool repeat)
