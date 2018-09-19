@@ -115,6 +115,29 @@ namespace osu.Framework.Tests.Localisation
             Assert.AreEqual(non_unicode, text.Value);
         }
 
+        [Test]
+        public void TestUnicodeStringChanging()
+        {
+            const string non_unicode_1 = "non unicode 1";
+            const string non_unicode_2 = "non unicode 2";
+            const string unicode_1 = "unicode 1";
+            const string unicode_2 = "unicode 2";
+
+            var text = manager.GetUnicodeString(unicode_1, non_unicode_1);
+
+            config.Set(FrameworkSetting.ShowUnicode, false);
+            Assert.AreEqual(non_unicode_1, text.Value);
+
+            text.NonUnicodeText = non_unicode_2;
+            Assert.AreEqual(non_unicode_2, text.Value);
+
+            config.Set(FrameworkSetting.ShowUnicode, true);
+            Assert.AreEqual(unicode_1, text.Value);
+
+            text.UnicodeText = unicode_2;
+            Assert.AreEqual(unicode_2, text.Value);
+        }
+
         private class FakeFrameworkConfigManager : FrameworkConfigManager
         {
             protected override string Filename => null;
