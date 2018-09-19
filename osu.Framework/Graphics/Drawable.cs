@@ -1793,7 +1793,7 @@ namespace osu.Framework.Graphics
                 case MouseUpEvent mouseUp:
                     return OnMouseUp(mouseUp);
                 case ClickEvent click:
-                    return OnClick(click.LegacyInputState);
+                    return OnClick(click);
                 case DoubleClickEvent doubleClick:
                     return OnDoubleClick(doubleClick.LegacyInputState);
                 case DragStartEvent dragStart:
@@ -1846,7 +1846,7 @@ namespace osu.Framework.Graphics
         protected virtual void OnHoverLost(HoverLostEvent e) {}
         protected virtual bool OnMouseDown(MouseDownEvent e) => false;
         protected virtual bool OnMouseUp(MouseUpEvent e) => false;
-        protected virtual bool OnClick(InputState state) => false;
+        protected virtual bool OnClick(ClickEvent e) => false;
         protected virtual bool OnDoubleClick(InputState state) => false;
         protected virtual bool OnDragStart(InputState state) => false;
         protected virtual bool OnDrag(InputState state) => false;
@@ -1952,7 +1952,7 @@ namespace osu.Framework.Graphics
         public virtual bool RequestsFocus => false;
 
         /// <summary>
-        /// If true, we will gain focus (receiving priority on keybaord input) (and receive an <see cref="OnFocus"/> event) on returning true in <see cref="OnClick(InputState)"/>.
+        /// If true, we will gain focus (receiving priority on keybaord input) (and receive an <see cref="OnFocus"/> event) on returning true in <see cref="OnClick"/>.
         /// </summary>
         public virtual bool AcceptsFocus => false;
 

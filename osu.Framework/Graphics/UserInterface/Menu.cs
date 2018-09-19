@@ -478,7 +478,7 @@ namespace osu.Framework.Graphics.UserInterface
             return base.OnKeyDown(state, args);
         }
 
-        protected override bool OnClick(InputState state) => true;
+        protected override bool OnClick(ClickEvent e) => true;
         protected override bool OnHover(HoverEvent e) => true;
 
         public override bool AcceptsFocus => !TopLevelMenu;
@@ -733,7 +733,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             private bool hasSubmenu => Item.Items?.Count > 0;
 
-            protected override bool OnClick(InputState state)
+            protected override bool OnClick(ClickEvent e)
             {
                 if (Item.Action.Disabled)
                     return true;

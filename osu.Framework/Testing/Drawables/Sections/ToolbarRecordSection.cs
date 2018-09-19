@@ -7,7 +7,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Events;
-using osu.Framework.Input.States;
 using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Graphics;
@@ -209,10 +208,12 @@ namespace osu.Framework.Testing.Drawables.Sections
 
                 if (e.Button == MouseButton.Left)
                 {
-                    if (!base.OnClick(e.LegacyInputState))
+                    var clickEvent = new ClickEvent(e.CurrentState, e.Button, e.ScreenSpaceMouseDownPosition) { Target = this };
+
+                    if (!base.OnClick(clickEvent))
                         return false;
 
-                    repeatDelegate = Scheduler.AddDelayed(() => { repeatDelegate = Scheduler.AddDelayed(() => base.OnClick(e.LegacyInputState), 100, true); }, 300);
+                    repeatDelegate = Scheduler.AddDelayed(() => { repeatDelegate = Scheduler.AddDelayed(() => base.OnClick(clickEvent), 100, true); }, 300);
 
                     return true;
                 }
@@ -226,7 +227,7 @@ namespace osu.Framework.Testing.Drawables.Sections
                 return base.OnMouseUp(e);
             }
 
-            protected override bool OnClick(InputState state) => false; // Clicks aren't handled by this type of button
+            protected override bool OnClick(ClickEvent e) => false; // Clicks aren't handled by this type of button
         }
     }
 }

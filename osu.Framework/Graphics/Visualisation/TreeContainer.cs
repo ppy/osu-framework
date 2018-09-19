@@ -10,7 +10,6 @@ using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Events;
-using osu.Framework.Input.States;
 
 namespace osu.Framework.Graphics.Visualisation
 {
@@ -185,7 +184,7 @@ namespace osu.Framework.Graphics.Visualisation
             base.OnHoverLost(e);
         }
 
-        protected override bool OnClick(InputState state) => true;
+        protected override bool OnClick(ClickEvent e) => true;
 
         protected override void LoadComplete()
         {

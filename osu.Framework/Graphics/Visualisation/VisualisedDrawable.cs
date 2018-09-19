@@ -270,7 +270,7 @@ namespace osu.Framework.Graphics.Visualisation
             return false;
         }
 
-        protected override bool OnClick(InputState state)
+        protected override bool OnClick(ClickEvent e)
         {
             if (isExpanded)
                 Collapse();

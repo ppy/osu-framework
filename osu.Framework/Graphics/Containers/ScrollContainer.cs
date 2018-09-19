@@ -574,7 +574,7 @@ namespace osu.Framework.Graphics.Containers
                 this.ResizeTo(size, duration, easing);
             }
 
-            protected override bool OnClick(InputState state) => true;
+            protected override bool OnClick(ClickEvent e) => true;
 
             protected override bool OnHover(HoverEvent e)
             {

@@ -833,7 +833,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         public override bool AcceptsFocus => true;
 
-        protected override bool OnClick(InputState state) => !ReadOnly;
+        protected override bool OnClick(ClickEvent e) => !ReadOnly;
 
         protected override void OnFocus(InputState state)
         {

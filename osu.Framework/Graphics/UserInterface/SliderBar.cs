@@ -8,6 +8,7 @@ using OpenTK.Input;
 using OpenTK;
 using System.Diagnostics;
 using osu.Framework.Input.EventArgs;
+using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
 
 namespace osu.Framework.Graphics.UserInterface
@@ -88,9 +89,9 @@ namespace osu.Framework.Graphics.UserInterface
             UpdateValue(NormalizedValue);
         }
 
-        protected override bool OnClick(InputState state)
+        protected override bool OnClick(ClickEvent e)
         {
-            handleMouseInput(state);
+            handleMouseInput(e.LegacyInputState);
             return true;
         }
 

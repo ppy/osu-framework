@@ -165,7 +165,7 @@ namespace osu.Framework.Tests.Visual
                 return base.OnHover(e);
             }
 
-            protected override bool OnClick(InputState state)
+            protected override bool OnClick(ClickEvent e)
             {
                 this.MoveToOffset(new Vector2(100, 0)).Then().MoveToOffset(new Vector2(-100, 0), 1000, Easing.In);
                 return true;

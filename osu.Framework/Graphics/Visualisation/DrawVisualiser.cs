@@ -8,7 +8,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
 using osu.Framework.Input;
 using osu.Framework.Input.Events;
-using osu.Framework.Input.States;
 using OpenTK;
 
 namespace osu.Framework.Graphics.Visualisation
@@ -242,11 +241,11 @@ namespace osu.Framework.Graphics.Visualisation
 
         private Drawable findTarget(Vector2 screenSpacePosition) => findTargetIn(Parent?.Parent, screenSpacePosition);
 
-        protected override bool OnClick(InputState state)
+        protected override bool OnClick(ClickEvent e)
         {
             if (Searching)
             {
-                Target = findTarget(state.Mouse.NativeState.Position)?.Parent;
+                Target = findTarget(e.ScreenSpaceMousePosition)?.Parent;
 
                 if (Target != null)
                 {
@@ -258,7 +257,7 @@ namespace osu.Framework.Graphics.Visualisation
                 }
             }
 
-            return base.OnClick(state);
+            return base.OnClick(e);
         }
 
         protected override bool OnMouseMove(MouseMoveEvent e)

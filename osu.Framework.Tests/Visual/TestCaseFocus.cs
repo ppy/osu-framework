@@ -10,6 +10,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
 using osu.Framework.Input.EventArgs;
+using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
 using osu.Framework.Testing;
 using OpenTK;
@@ -250,15 +251,15 @@ namespace osu.Framework.Tests.Visual
 
             public override bool ReceiveMouseInputAt(Vector2 screenSpacePos) => true;
 
-            protected override bool OnClick(InputState state)
+            protected override bool OnClick(ClickEvent e)
             {
-                if (!box.ReceiveMouseInputAt(state.Mouse.NativeState.Position))
+                if (!box.ReceiveMouseInputAt(e.ScreenSpaceMousePosition))
                 {
                     State = Visibility.Hidden;
                     return true;
                 }
 
-                return base.OnClick(state);
+                return base.OnClick(e);
             }
 
             protected override void OnFocus(InputState state)
@@ -309,7 +310,7 @@ namespace osu.Framework.Tests.Visual
                 Size = new Vector2(0.4f);
             }
 
-            protected override bool OnClick(InputState state) => true;
+            protected override bool OnClick(ClickEvent e) => true;
 
             public override bool AcceptsFocus => true;
 
