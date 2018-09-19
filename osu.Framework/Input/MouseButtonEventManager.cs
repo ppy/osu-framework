@@ -191,16 +191,13 @@ namespace osu.Framework.Input
         {
             // due to the laziness of IEnumerable, .Where check should be done right before it is triggered for the event.
             var drawables = MouseDownInputQueue.Intersect(PositionalInputQueue)
-                                               .Where(t => t.CanReceiveMouseInput && t.ReceiveMouseInputAt(state.Mouse.Position));
+                                               .Where(t => t.IsAlive && t.IsPresent && t.CanReceiveMouseInput && t.ReceiveMouseInputAt(state.Mouse.Position));
 
             var clicked = PropagateMouseButtonEvent(drawables, new ClickEvent(state, Button, MouseDownPosition));
             ClickedDrawable.SetTarget(clicked);
 
             if (ChangeFocusOnClick)
                 RequestFocus?.Invoke(clicked);
-
-            if (clicked != null)
-                Logger.Log($"MouseClick handled by {clicked}.", LoggingTarget.Runtime, LogLevel.Debug);
 
             return clicked != null;
         }
@@ -210,7 +207,7 @@ namespace osu.Framework.Input
             if (!ClickedDrawable.TryGetTarget(out Drawable clicked))
                 return false;
 
-            if (!clicked.ReceiveMouseInputAt(state.Mouse.Position))
+            if (!PositionalInputQueue.Contains(clicked))
                 return false;
 
             return PropagateMouseButtonEvent(new[] { clicked }, new DoubleClickEvent(state, Button, MouseDownPosition)) != null;
@@ -233,10 +230,7 @@ namespace osu.Framework.Input
 
             DragStarted = true;
 
-            // also the laziness of IEnumerable here
-            var drawables = MouseDownInputQueue.Where(t => t.IsAlive && t.IsPresent);
-
-            DraggedDrawable = PropagateMouseButtonEvent(drawables, new DragStartEvent(state, Button, MouseDownPosition));
+            DraggedDrawable = PropagateMouseButtonEvent(MouseDownInputQueue, new DragStartEvent(state, Button, MouseDownPosition));
             if (DraggedDrawable != null)
                 DraggedDrawable.IsDragged = true;
 
@@ -267,7 +261,7 @@ namespace osu.Framework.Input
         {
             e.CurrentState.Mouse.PositionMouseDown = MouseDownPosition;
 
-            var handledBy = drawables.FirstOrDefault(target => target.TriggerEvent(e));
+            var handledBy = drawables.FirstOrDefault(target => target.IsAlive && target.IsPresent && target.TriggerEvent(e));
 
             if (handledBy != null)
                 Logger.Log($"{e} handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
