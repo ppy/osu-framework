@@ -6,7 +6,6 @@ using osu.Framework.Configuration;
 using osu.Framework.Graphics.Containers;
 using OpenTK.Input;
 using OpenTK;
-using System.Diagnostics;
 using osu.Framework.Input.EventArgs;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
@@ -95,24 +94,20 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
-        protected override bool OnDrag(InputState state)
+        protected override bool OnDrag(DragEvent e)
         {
-            handleMouseInput(state);
+            handleMouseInput(e.LegacyInputState);
             return true;
         }
 
-        protected override bool OnDragStart(InputState state)
+        protected override bool OnDragStart(DragStartEvent e)
         {
-            Trace.Assert(state.Mouse.PositionMouseDown.HasValue,
-                $@"Can not start a {nameof(SliderBar<T>)} drag without knowing the mouse down position.");
-
-            // ReSharper disable once PossibleInvalidOperationException
-            Vector2 posDiff = state.Mouse.PositionMouseDown.Value - state.Mouse.Position;
+            Vector2 posDiff = e.MouseDownPosition - e.MousePosition;
 
             return Math.Abs(posDiff.X) > Math.Abs(posDiff.Y);
         }
 
-        protected override bool OnDragEnd(InputState state) => true;
+        protected override bool OnDragEnd(DragEndEvent e) => true;
 
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {

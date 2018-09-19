@@ -1797,11 +1797,11 @@ namespace osu.Framework.Graphics
                 case DoubleClickEvent doubleClick:
                     return OnDoubleClick(doubleClick);
                 case DragStartEvent dragStart:
-                    return OnDragStart(dragStart.LegacyInputState);
+                    return OnDragStart(dragStart);
                 case DragEvent drag:
-                    return OnDrag(drag.LegacyInputState);
+                    return OnDrag(drag);
                 case DragEndEvent dragEnd:
-                    return OnDragEnd(dragEnd.LegacyInputState);
+                    return OnDragEnd(dragEnd);
                 case ScrollEvent scroll:
                     return OnScroll(scroll.LegacyInputState);
                 case FocusEvent focus:
@@ -1848,9 +1848,9 @@ namespace osu.Framework.Graphics
         protected virtual bool OnMouseUp(MouseUpEvent e) => false;
         protected virtual bool OnClick(ClickEvent e) => false;
         protected virtual bool OnDoubleClick(DoubleClickEvent e) => false;
-        protected virtual bool OnDragStart(InputState state) => false;
-        protected virtual bool OnDrag(InputState state) => false;
-        protected virtual bool OnDragEnd(InputState state) => false;
+        protected virtual bool OnDragStart(DragStartEvent e) => false;
+        protected virtual bool OnDrag(DragEvent e) => false;
+        protected virtual bool OnDragEnd(DragEndEvent e) => false;
         protected virtual bool OnScroll(InputState state) => false;
         protected virtual void OnFocus(InputState state) {}
         protected virtual void OnFocusLost(InputState state) {}

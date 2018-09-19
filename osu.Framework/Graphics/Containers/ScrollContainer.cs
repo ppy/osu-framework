@@ -244,9 +244,9 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        protected override bool OnDragStart(InputState state)
+        protected override bool OnDragStart(DragStartEvent e)
         {
-            if (IsDragging || !state.Mouse.IsPressed(MouseButton.Left)) return false;
+            if (IsDragging || e.Button != MouseButton.Left) return false;
 
             lastDragTime = Time.Current;
             averageDragDelta = averageDragTime = 0;
@@ -295,7 +295,7 @@ namespace osu.Framework.Graphics.Containers
         private double averageDragTime;
         private double averageDragDelta;
 
-        protected override bool OnDrag(InputState state)
+        protected override bool OnDrag(DragEvent e)
         {
             Trace.Assert(IsDragging, "We should never receive OnDrag if we are not dragging.");
 
@@ -304,11 +304,11 @@ namespace osu.Framework.Graphics.Containers
             double decay = Math.Pow(0.95, timeDelta);
 
             averageDragTime = averageDragTime * decay + timeDelta;
-            averageDragDelta = averageDragDelta * decay - state.Mouse.Delta[ScrollDim];
+            averageDragDelta = averageDragDelta * decay - e.Delta[ScrollDim];
 
             lastDragTime = currentTime;
 
-            Vector2 childDelta = ToLocalSpace(state.Mouse.NativeState.Position) - ToLocalSpace(state.Mouse.NativeState.LastPosition);
+            Vector2 childDelta = ToLocalSpace(e.ScreenSpaceMousePosition) - ToLocalSpace(e.ScreenSpaceLastMousePosition);
 
             float scrollOffset = -childDelta[ScrollDim];
             float clampedScrollOffset = Clamp(target + scrollOffset) - Clamp(target);
@@ -323,7 +323,7 @@ namespace osu.Framework.Graphics.Containers
             return true;
         }
 
-        protected override bool OnDragEnd(InputState state)
+        protected override bool OnDragEnd(DragEndEvent e)
         {
             Trace.Assert(IsDragging, "We should never receive OnDragEnd if we are not dragging.");
 
@@ -587,9 +587,9 @@ namespace osu.Framework.Graphics.Containers
                 this.FadeColour(defaultColour, 100);
             }
 
-            protected override bool OnDragStart(InputState state)
+            protected override bool OnDragStart(DragStartEvent e)
             {
-                dragOffset = state.Mouse.Position[scrollDim] - Position[scrollDim];
+                dragOffset = e.MousePosition[scrollDim] - Position[scrollDim];
                 return true;
             }
 
@@ -614,9 +614,9 @@ namespace osu.Framework.Graphics.Containers
                 return base.OnMouseUp(e);
             }
 
-            protected override bool OnDrag(InputState state)
+            protected override bool OnDrag(DragEvent e)
             {
-                Dragged?.Invoke(state.Mouse.Position[scrollDim] - dragOffset);
+                Dragged?.Invoke(e.MousePosition[scrollDim] - dragOffset);
                 return true;
             }
         }

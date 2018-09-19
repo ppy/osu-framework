@@ -704,23 +704,23 @@ namespace osu.Framework.Graphics.UserInterface
             return base.OnKeyUp(state, args);
         }
 
-        protected override bool OnDrag(InputState state)
+        protected override bool OnDrag(DragEvent e)
         {
             //if (textInput?.ImeActive == true) return true;
 
             if (doubleClickWord != null)
             {
                 //select words at a time
-                if (getCharacterClosestTo(state.Mouse.Position) > doubleClickWord[1])
+                if (getCharacterClosestTo(e.MousePosition) > doubleClickWord[1])
                 {
                     selectionStart = doubleClickWord[0];
-                    selectionEnd = findSeparatorIndex(text, getCharacterClosestTo(state.Mouse.Position) - 1, 1);
+                    selectionEnd = findSeparatorIndex(text, getCharacterClosestTo(e.MousePosition) - 1, 1);
                     selectionEnd = selectionEnd >= 0 ? selectionEnd : text.Length;
                 }
-                else if (getCharacterClosestTo(state.Mouse.Position) < doubleClickWord[0])
+                else if (getCharacterClosestTo(e.MousePosition) < doubleClickWord[0])
                 {
                     selectionStart = doubleClickWord[1];
-                    selectionEnd = findSeparatorIndex(text, getCharacterClosestTo(state.Mouse.Position), -1);
+                    selectionEnd = findSeparatorIndex(text, getCharacterClosestTo(e.MousePosition), -1);
                     selectionEnd = selectionEnd >= 0 ? selectionEnd + 1 : 0;
                 }
                 else
@@ -736,7 +736,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 if (text.Length == 0) return true;
 
-                selectionEnd = getCharacterClosestTo(state.Mouse.Position);
+                selectionEnd = getCharacterClosestTo(e.MousePosition);
                 if (selectionLength > 0)
                     GetContainingInputManager().ChangeFocus(this);
 
@@ -746,14 +746,11 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
-        protected override bool OnDragStart(InputState state)
+        protected override bool OnDragStart(DragStartEvent e)
         {
             if (HasFocus) return true;
 
-            if (!state.Mouse.PositionMouseDown.HasValue)
-                throw new ArgumentNullException(nameof(state.Mouse.PositionMouseDown));
-
-            Vector2 posDiff = state.Mouse.PositionMouseDown.Value - state.Mouse.Position;
+            Vector2 posDiff = e.MouseDownPosition - e.MousePosition;
 
             return Math.Abs(posDiff.X) > Math.Abs(posDiff.Y);
         }
