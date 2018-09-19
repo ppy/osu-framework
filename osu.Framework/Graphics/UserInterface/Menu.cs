@@ -485,7 +485,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         public override bool RequestsFocus => !TopLevelMenu && State == MenuState.Open;
 
-        protected override void OnFocusLost(InputState state)
+        protected override void OnFocusLost(FocusLostEvent e)
         {
             // Case where a sub-menu was opened the focus will be transferred to that sub-menu while this menu will receive OnFocusLost
             if (submenu?.State == MenuState.Open)

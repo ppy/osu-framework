@@ -1805,10 +1805,10 @@ namespace osu.Framework.Graphics
                 case ScrollEvent scroll:
                     return OnScroll(scroll);
                 case FocusEvent focus:
-                    OnFocus(focus.LegacyInputState);
+                    OnFocus(focus);
                     return false;
                 case FocusLostEvent focusLost:
-                    OnFocusLost(focusLost.LegacyInputState);
+                    OnFocusLost(focusLost);
                     return false;
                 case KeyDownEvent keyDown:
                     return OnKeyDown(keyDown.LegacyInputState, new KeyDownEventArgs { Key = keyDown.Key, Repeat = keyDown.Repeat });
@@ -1852,8 +1852,8 @@ namespace osu.Framework.Graphics
         protected virtual bool OnDrag(DragEvent e) => false;
         protected virtual bool OnDragEnd(DragEndEvent e) => false;
         protected virtual bool OnScroll(ScrollEvent e) => false;
-        protected virtual void OnFocus(InputState state) {}
-        protected virtual void OnFocusLost(InputState state) {}
+        protected virtual void OnFocus(FocusEvent e) {}
+        protected virtual void OnFocusLost(FocusLostEvent e) {}
         protected virtual bool OnKeyDown(InputState state, KeyDownEventArgs args) => false;
         protected virtual bool OnKeyUp(InputState state, KeyUpEventArgs args) => false;
         protected virtual bool OnJoystickPress(InputState state, JoystickEventArgs args) => false;
