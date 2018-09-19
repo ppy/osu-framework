@@ -43,7 +43,7 @@ namespace osu.Framework.Tests.Localisation
         {
             manager.AddLanguage("ja-JP", new FakeStorage("ja-JP"));
 
-            var localisable = new LocalisableString(FakeStorage.LOCALISABLE_STRING_EN);
+            var localisable = new LocalisedString(FakeStorage.LOCALISABLE_STRING_EN);
             var localisedText = manager.GetLocalisedString();
             localisedText.Original = localisable;
 
@@ -60,7 +60,7 @@ namespace osu.Framework.Tests.Localisation
 
             config.Set(FrameworkSetting.Locale, "ja-JP");
 
-            var localisable = new LocalisableString(FakeStorage.LOCALISABLE_STRING_EN);
+            var localisable = new LocalisedString(FakeStorage.LOCALISABLE_STRING_EN);
             var localisedText = manager.GetLocalisedString();
             localisedText.Original = localisable;
 
@@ -93,7 +93,7 @@ namespace osu.Framework.Tests.Localisation
             manager.AddLanguage("ja", new FakeStorage("ja"));
             config.Set(FrameworkSetting.Locale, "ja");
 
-            var formattable = new LocalisableString(FakeStorage.LOCALISABLE_FORMAT_STRING_EN, arg_0);
+            var formattable = new LocalisedString(FakeStorage.LOCALISABLE_FORMAT_STRING_EN, arg_0);
             var formattedText = manager.GetLocalisedString();
             formattedText.Original = formattable;
 

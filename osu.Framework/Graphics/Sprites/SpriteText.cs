@@ -66,12 +66,12 @@ namespace osu.Framework.Graphics.Sprites
                 GetTextureForCharacter(character);
         }
 
-        private LocalisableString text = string.Empty;
+        private LocalisedString text = string.Empty;
 
         /// <summary>
         /// Gets or sets the text to be displayed.
         /// </summary>
-        public LocalisableString Text
+        public LocalisedString Text
         {
             get => text;
             set

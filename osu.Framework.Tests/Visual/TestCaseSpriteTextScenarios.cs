@@ -211,7 +211,7 @@ namespace osu.Framework.Tests.Visual
                     Children = new[]
                     {
                         new SpriteText { Text = FakeStorage.LOCALISABLE_STRING_EN },
-                        new SpriteText { Text = new LocalisableString(FakeStorage.LOCALISABLE_STRING_EN) },
+                        new SpriteText { Text = new LocalisedString(FakeStorage.LOCALISABLE_STRING_EN) },
                     }
                 }
             };

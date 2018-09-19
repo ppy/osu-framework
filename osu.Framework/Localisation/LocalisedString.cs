@@ -6,7 +6,7 @@ namespace osu.Framework.Localisation
     /// <summary>
     /// A class representing text that can be localised and formatted.
     /// </summary>
-    public readonly struct LocalisableString
+    public readonly struct LocalisedString
     {
         /// <summary>
         /// The text to be used for localisation and/or formatting.
@@ -24,30 +24,30 @@ namespace osu.Framework.Localisation
         internal readonly bool ShouldLocalise;
 
         /// <summary>
-        /// Creates a new <see cref="LocalisableString"/>. This localises by default.
+        /// Creates a new <see cref="LocalisedString"/>. This localises by default.
         /// </summary>
         /// <param name="text">The text.</param>
         /// <param name="args">The arguments to format the text with.</param>
-        public LocalisableString(string text, params object[] args)
+        public LocalisedString(string text, params object[] args)
             : this(text, true, args)
         {
         }
 
         /// <summary>
-        /// Creates a new <see cref="LocalisableString"/>.
+        /// Creates a new <see cref="LocalisedString"/>.
         /// </summary>
         /// <param name="text">The text.</param>
         /// <param name="shouldLocalise">Whether the text should be localised.</param>
         /// <param name="args">The arguments to format the text with.</param>
-        private LocalisableString(string text, bool shouldLocalise, params object[] args)
+        private LocalisedString(string text, bool shouldLocalise, params object[] args)
         {
             Text = text ?? string.Empty;
             ShouldLocalise = shouldLocalise;
             Args = args;
         }
 
-        public static implicit operator string(LocalisableString localisable) => localisable.Text;
+        public static implicit operator string(LocalisedString localised) => localised.Text;
 
-        public static implicit operator LocalisableString(string text) => new LocalisableString(text, false);
+        public static implicit operator LocalisedString(string text) => new LocalisedString(text, false);
     }
 }

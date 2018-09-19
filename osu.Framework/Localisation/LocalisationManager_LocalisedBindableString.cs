@@ -13,7 +13,7 @@ namespace osu.Framework.Localisation
         {
             private readonly IBindable<IResourceStore<string>> storage = new Bindable<IResourceStore<string>>();
 
-            private LocalisableString text;
+            private LocalisedString text;
 
             public LocalisedBindableString(IBindable<IResourceStore<string>> storage)
             {
@@ -43,7 +43,7 @@ namespace osu.Framework.Localisation
                 Value = newText;
             }
 
-            LocalisableString ILocalisedBindableString.Original
+            LocalisedString ILocalisedBindableString.Original
             {
                 set
                 {
