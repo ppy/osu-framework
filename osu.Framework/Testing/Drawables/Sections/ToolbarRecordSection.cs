@@ -7,6 +7,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.EventArgs;
+using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
 using osu.Framework.Threading;
 using OpenTK;
@@ -203,16 +204,16 @@ namespace osu.Framework.Testing.Drawables.Sections
         {
             private ScheduledDelegate repeatDelegate;
 
-            protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
+            protected override bool OnMouseDown(MouseDownEvent e)
             {
                 repeatDelegate?.Cancel();
 
-                if (args.Button == MouseButton.Left)
+                if (e.Button == MouseButton.Left)
                 {
-                    if (!base.OnClick(state))
+                    if (!base.OnClick(e.LegacyInputState))
                         return false;
 
-                    repeatDelegate = Scheduler.AddDelayed(() => { repeatDelegate = Scheduler.AddDelayed(() => base.OnClick(state), 100, true); }, 300);
+                    repeatDelegate = Scheduler.AddDelayed(() => { repeatDelegate = Scheduler.AddDelayed(() => base.OnClick(e.LegacyInputState), 100, true); }, 300);
 
                     return true;
                 }

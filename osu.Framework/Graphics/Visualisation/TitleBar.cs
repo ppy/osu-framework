@@ -4,7 +4,7 @@
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Input.EventArgs;
+using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
 using OpenTK;
 using OpenTK.Graphics;
@@ -47,6 +47,6 @@ namespace osu.Framework.Graphics.Visualisation
             return base.OnDrag(state);
         }
 
-        protected override bool OnMouseDown(InputState state, MouseDownEventArgs args) => true;
+        protected override bool OnMouseDown(MouseDownEvent e) => true;
     }
 }

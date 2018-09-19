@@ -7,7 +7,6 @@ using osu.Framework.Allocation;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
 using osu.Framework.Input;
-using osu.Framework.Input.EventArgs;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
 using OpenTK;
@@ -239,7 +238,7 @@ namespace osu.Framework.Graphics.Visualisation
             }
         }
 
-        protected override bool OnMouseDown(InputState state, MouseDownEventArgs args) => Searching;
+        protected override bool OnMouseDown(MouseDownEvent e) => Searching;
 
         private Drawable findTarget(Vector2 screenSpacePosition) => findTargetIn(Parent?.Parent, screenSpacePosition);
 

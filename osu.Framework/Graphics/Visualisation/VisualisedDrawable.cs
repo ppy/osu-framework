@@ -13,7 +13,6 @@ using OpenTK.Input;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.IEnumerableExtensions;
-using osu.Framework.Input.EventArgs;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
 
@@ -261,9 +260,9 @@ namespace osu.Framework.Graphics.Visualisation
             base.OnHoverLost(e);
         }
 
-        protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
+        protected override bool OnMouseDown(MouseDownEvent e)
         {
-            if (args.Button == MouseButton.Right)
+            if (e.Button == MouseButton.Right)
             {
                 HighlightTarget?.Invoke(this);
                 return true;

@@ -21,6 +21,7 @@ using osu.Framework.Platform;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.EventArgs;
+using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
 using osu.Framework.Timing;
 
@@ -799,11 +800,11 @@ namespace osu.Framework.Graphics.UserInterface
             return -1;
         }
 
-        protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
+        protected override bool OnMouseDown(MouseDownEvent e)
         {
             if (textInput?.ImeActive == true) return true;
 
-            selectionStart = selectionEnd = getCharacterClosestTo(state.Mouse.Position);
+            selectionStart = selectionEnd = getCharacterClosestTo(e.MousePosition);
 
             cursorAndLayout.Invalidate();
 

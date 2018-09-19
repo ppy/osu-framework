@@ -195,10 +195,10 @@ namespace osu.Framework.Tests.Visual
 
             private bool mouseDown;
 
-            protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
+            protected override bool OnMouseDown(MouseDownEvent e)
             {
                 mouseDown = true;
-                seekTo(ToLocalSpace(state.Mouse.NativeState.Position).X);
+                seekTo(ToLocalSpace(e.ScreenSpaceMousePosition).X);
                 return true;
             }
 

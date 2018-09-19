@@ -273,9 +273,9 @@ namespace osu.Framework.Graphics.Containers
             return base.OnKeyDown(state, args);
         }
 
-        protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
+        protected override bool OnMouseDown(MouseDownEvent e)
         {
-            if (IsDragging || args.Button != MouseButton.Left) return false;
+            if (IsDragging || e.Button != MouseButton.Left) return false;
 
             // Continue from where we currently are scrolled to.
             target = Current;
@@ -593,9 +593,9 @@ namespace osu.Framework.Graphics.Containers
                 return true;
             }
 
-            protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
+            protected override bool OnMouseDown(MouseDownEvent e)
             {
-                if (args.Button != MouseButton.Left) return false;
+                if (e.Button != MouseButton.Left) return false;
 
                 //note that we are changing the colour of the box here as to not interfere with the hover effect.
                 box.FadeColour(highlightColour, 100);

@@ -123,10 +123,10 @@ namespace osu.Framework.Tests.Visual
 
             public int MouseDownCount;
 
-            protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
+            protected override bool OnMouseDown(MouseDownEvent e)
             {
                 ++MouseDownCount;
-                onMouseDownStatus.Text = $"OnMouseDown {MouseDownCount}: Position={state.Mouse.Position}";
+                onMouseDownStatus.Text = $"OnMouseDown {MouseDownCount}: Position={e.MousePosition}";
                 return true;
             }
 
