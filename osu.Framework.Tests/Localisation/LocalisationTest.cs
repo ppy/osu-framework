@@ -76,7 +76,7 @@ namespace osu.Framework.Tests.Localisation
 
             string expectedResult = string.Format(to_format, arg_0, arg_1);
 
-            var formattable = new LocalisableString(to_format, false, arg_0, arg_1);
+            var formattable = string.Format(to_format, arg_0, arg_1);
             var formattedText = manager.GetLocalisedString();
             formattedText.Original = formattable;
 

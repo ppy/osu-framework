@@ -14,27 +14,14 @@ namespace osu.Framework.Localisation
         public readonly string Text;
 
         /// <summary>
-        /// Whether <see cref="Text"/> should be localised.
-        /// </summary>
-        public readonly bool ShouldLocalise;
-
-        /// <summary>
         /// The arguments to format <see cref="Text"/> with.
         /// </summary>
         public readonly object[] Args;
 
         /// <summary>
-        /// Creates a new <see cref="LocalisableString"/>.
+        /// Whether <see cref="Text"/> should be localised.
         /// </summary>
-        /// <param name="text">The text.</param>
-        /// <param name="shouldLocalise">Whether the text should be localised.</param>
-        /// <param name="args">The arguments to format the text with.</param>
-        public LocalisableString(string text, bool shouldLocalise = true, params object[] args)
-        {
-            Text = text ?? string.Empty;
-            ShouldLocalise = shouldLocalise;
-            Args = args;
-        }
+        internal readonly bool ShouldLocalise;
 
         /// <summary>
         /// Creates a new <see cref="LocalisableString"/>. This localises by default.
@@ -44,6 +31,19 @@ namespace osu.Framework.Localisation
         public LocalisableString(string text, params object[] args)
             : this(text, true, args)
         {
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="LocalisableString"/>.
+        /// </summary>
+        /// <param name="text">The text.</param>
+        /// <param name="shouldLocalise">Whether the text should be localised.</param>
+        /// <param name="args">The arguments to format the text with.</param>
+        private LocalisableString(string text, bool shouldLocalise, params object[] args)
+        {
+            Text = text ?? string.Empty;
+            ShouldLocalise = shouldLocalise;
+            Args = args;
         }
 
         public static implicit operator string(LocalisableString localisable) => localisable.Text;
