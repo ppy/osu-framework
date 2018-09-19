@@ -1791,7 +1791,7 @@ namespace osu.Framework.Graphics
                 case MouseDownEvent mouseDown:
                     return OnMouseDown(mouseDown);
                 case MouseUpEvent mouseUp:
-                    return OnMouseUp(mouseUp.LegacyInputState, new MouseUpEventArgs { Button = mouseUp.Button });
+                    return OnMouseUp(mouseUp);
                 case ClickEvent click:
                     return OnClick(click.LegacyInputState);
                 case DoubleClickEvent doubleClick:
@@ -1845,7 +1845,7 @@ namespace osu.Framework.Graphics
         protected virtual bool OnHover(HoverEvent e) => false;
         protected virtual void OnHoverLost(HoverLostEvent e) {}
         protected virtual bool OnMouseDown(MouseDownEvent e) => false;
-        protected virtual bool OnMouseUp(InputState state, MouseUpEventArgs args) => false;
+        protected virtual bool OnMouseUp(MouseUpEvent e) => false;
         protected virtual bool OnClick(InputState state) => false;
         protected virtual bool OnDoubleClick(InputState state) => false;
         protected virtual bool OnDragStart(InputState state) => false;

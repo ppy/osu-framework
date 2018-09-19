@@ -605,13 +605,13 @@ namespace osu.Framework.Graphics.Containers
                 return true;
             }
 
-            protected override bool OnMouseUp(InputState state, MouseUpEventArgs args)
+            protected override bool OnMouseUp(MouseUpEvent e)
             {
-                if (args.Button != MouseButton.Left) return false;
+                if (e.Button != MouseButton.Left) return false;
 
                 box.FadeColour(Color4.White, 100);
 
-                return base.OnMouseUp(state, args);
+                return base.OnMouseUp(e);
             }
 
             protected override bool OnDrag(InputState state)

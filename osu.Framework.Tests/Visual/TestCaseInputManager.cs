@@ -9,7 +9,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
-using osu.Framework.Input.EventArgs;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.Handlers.Mouse;
 using osu.Framework.Input.States;
@@ -132,11 +131,11 @@ namespace osu.Framework.Tests.Visual
 
             public int MouseUpCount;
 
-            protected override bool OnMouseUp(InputState state, MouseUpEventArgs args)
+            protected override bool OnMouseUp(MouseUpEvent e)
             {
                 ++MouseUpCount;
-                onMouseUpStatus.Text = $"OnMouseUp {MouseUpCount}: Position={state.Mouse.Position}, PositionMouseDown={state.Mouse.PositionMouseDown}";
-                return base.OnMouseUp(state, args);
+                onMouseUpStatus.Text = $"OnMouseUp {MouseUpCount}: Position={e.MousePosition}, MouseDownPosition={e.MouseDownPosition}";
+                return base.OnMouseUp(e);
             }
 
             public int MouseMoveCount;

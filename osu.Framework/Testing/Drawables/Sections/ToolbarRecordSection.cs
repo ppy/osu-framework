@@ -6,7 +6,6 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
-using osu.Framework.Input.EventArgs;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
 using osu.Framework.Threading;
@@ -221,10 +220,10 @@ namespace osu.Framework.Testing.Drawables.Sections
                 return false;
             }
 
-            protected override bool OnMouseUp(InputState state, MouseUpEventArgs args)
+            protected override bool OnMouseUp(MouseUpEvent e)
             {
                 repeatDelegate?.Cancel();
-                return base.OnMouseUp(state, args);
+                return base.OnMouseUp(e);
             }
 
             protected override bool OnClick(InputState state) => false; // Clicks aren't handled by this type of button

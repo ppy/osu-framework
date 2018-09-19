@@ -13,9 +13,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
-using osu.Framework.Input.EventArgs;
 using osu.Framework.Input.Events;
-using osu.Framework.Input.States;
 using OpenTK;
 using OpenTK.Graphics;
 
@@ -202,7 +200,7 @@ namespace osu.Framework.Tests.Visual
                 return true;
             }
 
-            protected override bool OnMouseUp(InputState state, MouseUpEventArgs args)
+            protected override bool OnMouseUp(MouseUpEvent e)
             {
                 mouseDown = false;
                 return true;
