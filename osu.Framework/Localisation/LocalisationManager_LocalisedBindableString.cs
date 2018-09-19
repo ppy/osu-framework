@@ -47,7 +47,10 @@ namespace osu.Framework.Localisation
             {
                 set
                 {
+                    if (text == value)
+                        return;
                     text = value;
+
                     updateValue();
                 }
             }
