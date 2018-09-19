@@ -40,11 +40,11 @@ namespace osu.Framework.Localisation
         public ILocalisedBindableString GetLocalisedString() => new LocalisedBindableString(currentStorage);
 
         /// <summary>
-        /// Creates a <see cref="Bindable{T}"/> which automatically switches its text according to <see cref="FrameworkSetting.ShowUnicode"/>.
+        /// Creates an <see cref="IUnicodeBindableString"/> which automatically updates its text according to <see cref="FrameworkSetting.ShowUnicode"/>.
         /// </summary>
-        /// <param name="unicodeText">The unicode text to be used when <see cref="FrameworkSetting.ShowUnicode"/> is true.</param>
-        /// <param name="nonUnicodeText">The non-unicode text to be used when <see cref="FrameworkSetting.ShowUnicode"/> is false.</param>
-        /// <returns>A <see cref="Bindable{T}"/> that contains either the unicode or non-unicode text and updates dynamically.</returns>
+        /// <param name="unicodeText">The unicode text to be used when <see cref="FrameworkSetting.ShowUnicode"/> is true. If null, <paramref name="nonUnicodeText"/> will be used.</param>
+        /// <param name="nonUnicodeText">The non-unicode text to be used when <see cref="FrameworkSetting.ShowUnicode"/> is false. If null, <paramref name="unicodeText"/> will be used.</param>
+        /// <returns>The <see cref="IUnicodeBindableString"/>.</returns>
         [NotNull]
         public IUnicodeBindableString GetUnicodeString([CanBeNull] string unicodeText, [CanBeNull] string nonUnicodeText)
             => new UnicodeBindableString(unicodeText, nonUnicodeText, preferUnicode);
