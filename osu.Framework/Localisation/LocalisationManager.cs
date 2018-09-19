@@ -42,17 +42,12 @@ namespace osu.Framework.Localisation
         /// <summary>
         /// Creates a <see cref="Bindable{T}"/> which automatically switches its text according to <see cref="FrameworkSetting.ShowUnicode"/>.
         /// </summary>
-        /// <param name="unicode">The unicode text to be used when <see cref="FrameworkSetting.ShowUnicode"/> is true.</param>
-        /// <param name="nonUnicode">The non-unicode text to be used when <see cref="FrameworkSetting.ShowUnicode"/> is false.</param>
+        /// <param name="unicodeText">The unicode text to be used when <see cref="FrameworkSetting.ShowUnicode"/> is true.</param>
+        /// <param name="nonUnicodeText">The non-unicode text to be used when <see cref="FrameworkSetting.ShowUnicode"/> is false.</param>
         /// <returns>A <see cref="Bindable{T}"/> that contains either the unicode or non-unicode text and updates dynamically.</returns>
         [NotNull]
-        public IBindable<string> GetUnicodeString([CanBeNull] string unicode, [CanBeNull] string nonUnicode)
-        {
-            var bindable = new UnicodeBindable(unicode, nonUnicode);
-            bindable.PreferUnicode.BindTo(preferUnicode);
-
-            return bindable;
-        }
+        public IUnicodeBindableString GetUnicodeString([CanBeNull] string unicodeText, [CanBeNull] string nonUnicodeText)
+            => new UnicodeBindableString(unicodeText, nonUnicodeText, preferUnicode);
 
         private void updateLocale(string newValue)
         {
