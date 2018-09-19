@@ -758,7 +758,7 @@ namespace osu.Framework.Graphics.UserInterface
             return Math.Abs(posDiff.X) > Math.Abs(posDiff.Y);
         }
 
-        protected override bool OnDoubleClick(InputState state)
+        protected override bool OnDoubleClick(DoubleClickEvent e)
         {
             if (textInput?.ImeActive == true) return true;
 
@@ -766,7 +766,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (AllowClipboardExport)
             {
-                int hover = Math.Min(text.Length - 1, getCharacterClosestTo(state.Mouse.Position));
+                int hover = Math.Min(text.Length - 1, getCharacterClosestTo(e.MousePosition));
 
                 int lastSeparator = findSeparatorIndex(text, hover, -1);
                 int nextSeparator = findSeparatorIndex(text, hover, 1);

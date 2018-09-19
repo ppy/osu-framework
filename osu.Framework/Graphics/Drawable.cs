@@ -1795,7 +1795,7 @@ namespace osu.Framework.Graphics
                 case ClickEvent click:
                     return OnClick(click);
                 case DoubleClickEvent doubleClick:
-                    return OnDoubleClick(doubleClick.LegacyInputState);
+                    return OnDoubleClick(doubleClick);
                 case DragStartEvent dragStart:
                     return OnDragStart(dragStart.LegacyInputState);
                 case DragEvent drag:
@@ -1847,7 +1847,7 @@ namespace osu.Framework.Graphics
         protected virtual bool OnMouseDown(MouseDownEvent e) => false;
         protected virtual bool OnMouseUp(MouseUpEvent e) => false;
         protected virtual bool OnClick(ClickEvent e) => false;
-        protected virtual bool OnDoubleClick(InputState state) => false;
+        protected virtual bool OnDoubleClick(DoubleClickEvent e) => false;
         protected virtual bool OnDragStart(InputState state) => false;
         protected virtual bool OnDrag(InputState state) => false;
         protected virtual bool OnDragEnd(InputState state) => false;

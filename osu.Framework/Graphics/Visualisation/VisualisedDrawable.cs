@@ -14,7 +14,6 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Input.Events;
-using osu.Framework.Input.States;
 
 namespace osu.Framework.Graphics.Visualisation
 {
@@ -279,7 +278,7 @@ namespace osu.Framework.Graphics.Visualisation
             return true;
         }
 
-        protected override bool OnDoubleClick(InputState state)
+        protected override bool OnDoubleClick(DoubleClickEvent e)
         {
             RequestTarget?.Invoke(Target);
             return true;
