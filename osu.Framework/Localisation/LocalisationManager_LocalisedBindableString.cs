@@ -12,18 +12,24 @@ namespace osu.Framework.Localisation
         private class LocalisedBindableString : Bindable<string>, ILocalisedBindableString
         {
             private readonly IBindable<IResourceStore<string>> storage = new Bindable<IResourceStore<string>>();
+            private readonly IBindable<bool> preferUnicode = new Bindable<bool>();
 
             private LocalisedString text;
 
-            public LocalisedBindableString(IBindable<IResourceStore<string>> storage)
+            public LocalisedBindableString(LocalisedString text, IBindable<IResourceStore<string>> storage, IBindable<bool> preferUnicode)
             {
+                this.text = text;
+
                 this.storage.BindTo(storage);
-                this.storage.BindValueChanged(_ => updateValue(), true);
+                this.preferUnicode.BindTo(preferUnicode);
+
+                this.storage.BindValueChanged(_ => updateValue());
+                this.preferUnicode.BindValueChanged(_ => updateValue(), true);
             }
 
             private void updateValue()
             {
-                string newText = text.Text;
+                string newText = preferUnicode.Value ? text.Text.Original : text.Text.Fallback;
 
                 if (text.ShouldLocalise && storage.Value != null)
                     newText = storage.Value.Get(newText);
@@ -43,7 +49,7 @@ namespace osu.Framework.Localisation
                 Value = newText;
             }
 
-            public LocalisedString Original
+            LocalisedString ILocalisedBindableString.Text
             {
                 set
                 {

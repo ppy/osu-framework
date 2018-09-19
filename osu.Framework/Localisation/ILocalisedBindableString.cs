@@ -13,6 +13,6 @@ namespace osu.Framework.Localisation
         /// <summary>
         /// Sets the original, un-localised text.
         /// </summary>
-        LocalisedString Original { set; }
+        LocalisedString Text { set; }
     }
 }

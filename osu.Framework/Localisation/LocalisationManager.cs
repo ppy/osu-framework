@@ -33,11 +33,11 @@ namespace osu.Framework.Localisation
         }
 
         /// <summary>
-        /// Creates an <see cref="ILocalisedBindableString"/> which automatically updates its text according to information provided in <see cref="ILocalisedBindableString.Original"/>.
+        /// Creates an <see cref="ILocalisedBindableString"/> which automatically updates its text according to information provided in <see cref="ILocalisedBindableString.Text"/>.
         /// </summary>
         /// <returns>The <see cref="ILocalisedBindableString"/>.</returns>
         [NotNull]
-        public ILocalisedBindableString GetLocalisedString(LocalisedString original) => new LocalisedBindableString(currentStorage, preferUnicode) { Original = original };
+        public ILocalisedBindableString GetLocalisedString(LocalisedString original) => new LocalisedBindableString(original, currentStorage, preferUnicode);
 
         private void updateLocale(string newValue)
         {

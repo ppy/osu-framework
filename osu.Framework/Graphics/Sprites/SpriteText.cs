@@ -80,11 +80,11 @@ namespace osu.Framework.Graphics.Sprites
                 text = value;
 
                 if (localisedText != null)
-                    localisedText.Original = value;
+                    localisedText.Text = value;
             }
         }
 
-        private string displayedText => localisedText?.Value ?? text.Text;
+        private string displayedText => localisedText?.Value ?? text.Text.Original;
 
         string IHasText.Text
         {
