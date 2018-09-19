@@ -1782,7 +1782,7 @@ namespace osu.Framework.Graphics
             switch (e)
             {
                 case MouseMoveEvent mouseMove:
-                    return OnMouseMove(mouseMove.LegacyInputState);
+                    return OnMouseMove(mouseMove);
                 case HoverEvent hover:
                     return OnHover(hover.LegacyInputState);
                 case HoverLostEvent hoverLost:
@@ -1840,8 +1840,8 @@ namespace osu.Framework.Graphics
         /// <returns>Whether the click event is handled.</returns>
         public bool Click() => TriggerEvent(new ClickEvent(GetContainingInputManager()?.CurrentState ?? new InputState(), MouseButton.Left));
 
-        #region Legacy event handling
-        protected virtual bool OnMouseMove(InputState state) => false;
+        #region Individual event handlers
+        protected virtual bool OnMouseMove(MouseMoveEvent e) => false;
         protected virtual bool OnHover(InputState state) => false;
         protected virtual void OnHoverLost(InputState state) {}
         protected virtual bool OnMouseDown(InputState state, MouseDownEventArgs args) => false;

@@ -8,7 +8,9 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
 using osu.Framework.Input;
 using osu.Framework.Input.EventArgs;
+using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
+using OpenTK;
 
 namespace osu.Framework.Graphics.Visualisation
 {
@@ -114,7 +116,7 @@ namespace osu.Framework.Graphics.Visualisation
             recycleVisualisers();
         }
 
-        private Drawable findTargetIn(Drawable d, InputState state)
+        private Drawable findTargetIn(Drawable d, Vector2 screenSpacePosition)
         {
             if (d is DrawVisualiser) return null;
             if (d is CursorContainer) return null;
@@ -122,11 +124,11 @@ namespace osu.Framework.Graphics.Visualisation
 
             if (!d.IsPresent) return null;
 
-            bool containsCursor = d.ScreenSpaceDrawQuad.Contains(state.Mouse.NativeState.Position);
+            bool containsCursor = d.ScreenSpaceDrawQuad.Contains(screenSpacePosition);
             // This is an optimization: We don't need to consider drawables which we don't hover, and which do not
             // forward input further to children (via d.ReceiveMouseInputAt). If they do forward input to children, then there
             // is a good chance they have children poking out of their bounds, which we need to catch.
-            if (!containsCursor && !d.ReceiveMouseInputAt(state.Mouse.NativeState.Position))
+            if (!containsCursor && !d.ReceiveMouseInputAt(screenSpacePosition))
                 return null;
 
             var dAsContainer = d as CompositeDrawable;
@@ -140,7 +142,7 @@ namespace osu.Framework.Graphics.Visualisation
 
                 foreach (var c in dAsContainer.AliveInternalChildren)
                 {
-                    var contained = findTargetIn(c, state);
+                    var contained = findTargetIn(c, screenSpacePosition);
                     if (contained != null)
                     {
                         if (containedTarget == null ||
@@ -239,13 +241,13 @@ namespace osu.Framework.Graphics.Visualisation
 
         protected override bool OnMouseDown(InputState state, MouseDownEventArgs args) => Searching;
 
-        private Drawable findTarget(InputState state) => findTargetIn(Parent?.Parent, state);
+        private Drawable findTarget(Vector2 screenSpacePosition) => findTargetIn(Parent?.Parent, screenSpacePosition);
 
         protected override bool OnClick(InputState state)
         {
             if (Searching)
             {
-                Target = findTarget(state)?.Parent;
+                Target = findTarget(state.Mouse.NativeState.Position)?.Parent;
 
                 if (Target != null)
                 {
@@ -260,10 +262,10 @@ namespace osu.Framework.Graphics.Visualisation
             return base.OnClick(state);
         }
 
-        protected override bool OnMouseMove(InputState state)
+        protected override bool OnMouseMove(MouseMoveEvent e)
         {
-            overlay.Target = Searching ? findTarget(state) : inputManager.HoveredDrawables.OfType<VisualisedDrawable>().FirstOrDefault()?.Target;
-            return base.OnMouseMove(state);
+            overlay.Target = Searching ? findTarget(e.ScreenSpaceMousePosition) : inputManager.HoveredDrawables.OfType<VisualisedDrawable>().FirstOrDefault()?.Target;
+            return base.OnMouseMove(e);
         }
 
         private readonly Dictionary<Drawable, VisualisedDrawable> visCache = new Dictionary<Drawable, VisualisedDrawable>();

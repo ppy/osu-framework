@@ -7,6 +7,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Lines;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
 using osu.Framework.Testing;
 using OpenTK;
@@ -116,10 +117,10 @@ namespace osu.Framework.Tests.Visual
             test(new Vector2(370, 360), true);
         }
 
-        protected override bool OnMouseMove(InputState state)
+        protected override bool OnMouseMove(MouseMoveEvent e)
         {
-            text.Text = path.ToLocalSpace(state.Mouse.NativeState.Position).ToString();
-            return base.OnMouseMove(state);
+            text.Text = path.ToLocalSpace(e.ScreenSpaceMousePosition).ToString();
+            return base.OnMouseMove(e);
         }
 
         private void addPath(string name, params Vector2[] vertices) => AddStep(name, () =>

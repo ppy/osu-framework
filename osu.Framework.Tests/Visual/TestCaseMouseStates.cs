@@ -12,6 +12,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
 using osu.Framework.Input.EventArgs;
+using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
 using osu.Framework.Testing;
 using OpenTK;
@@ -439,7 +440,7 @@ namespace osu.Framework.Tests.Visual
             }
 
             protected override bool OnScroll(InputState state) => CounterFor("Scroll").NewState(state);
-            protected override bool OnMouseMove(InputState state) => CounterFor("Move").NewState(state);
+            protected override bool OnMouseMove(MouseMoveEvent e) => CounterFor("Move").NewState(e.LegacyInputState);
             protected override bool OnDragStart(InputState state) => CounterFor("DragStart").NewState(state);
             protected override bool OnDragEnd(InputState state) => CounterFor("DragEnd").NewState(state);
 
@@ -571,10 +572,10 @@ namespace osu.Framework.Tests.Visual
                     };
                 }
 
-                protected override bool OnMouseMove(InputState state)
+                protected override bool OnMouseMove(MouseMoveEvent e)
                 {
-                    Child.MoveTo(state.Mouse.Position, 100, Easing.OutQuint);
-                    return base.OnMouseMove(state);
+                    Child.MoveTo(e.MousePosition, 100, Easing.OutQuint);
+                    return base.OnMouseMove(e);
                 }
 
                 protected override bool OnScroll(InputState state)

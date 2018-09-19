@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Graphics;
 using osu.Framework.Input.EventArgs;
+using osu.Framework.Input.Events;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Input.States;
 using OpenTK;
@@ -80,10 +81,10 @@ namespace osu.Framework.Input
             return pendingInputs;
         }
 
-        protected override bool OnMouseMove(InputState state)
+        protected override bool OnMouseMove(MouseMoveEvent e)
         {
             if (UseParentInput)
-                new MousePositionAbsoluteInput { Position = state.Mouse.NativeState.Position }.Apply(CurrentState, this);
+                new MousePositionAbsoluteInput { Position = e.ScreenSpaceMousePosition }.Apply(CurrentState, this);
             return false;
         }
 
