@@ -11,27 +11,22 @@ namespace osu.Framework.Localisation
     {
         private class LocalisedString : Bindable<string>, ILocalisedString
         {
-            public readonly IBindable<IResourceStore<string>> Storage = new Bindable<IResourceStore<string>>();
+            private readonly IBindable<IResourceStore<string>> storage = new Bindable<IResourceStore<string>>();
 
             private LocalisableString text;
 
-            public LocalisedString()
+            public LocalisedString(IBindable<IResourceStore<string>> storage)
             {
-                Storage.BindValueChanged(_ => updateValue(), true);
+                this.storage.BindTo(storage);
+                this.storage.BindValueChanged(_ => updateValue(), true);
             }
 
             private void updateValue()
             {
-                if (Storage.Value == null)
-                {
-                    Value = text.Text;
-                    return;
-                }
-
                 string newText = text.Text;
 
-                if (text.Localised)
-                    newText = Storage.Value.Get(newText);
+                if (text.ShouldLocalise && storage.Value != null)
+                    newText = storage.Value.Get(newText);
 
                 if (text.Args != null && !string.IsNullOrEmpty(newText))
                 {

@@ -6,7 +6,7 @@ using osu.Framework.Configuration;
 namespace osu.Framework.Localisation
 {
     /// <summary>
-    /// A <see cref="IBindable{T}"/> which has its value set depending on the current localisation by the <see cref="LocalisationEngine"/>.
+    /// An <see cref="IBindable{T}"/> which has its value set depending on the current locale of the <see cref="LocalisationEngine"/>.
     /// </summary>
     public interface ILocalisedString : IBindable<string>
     {

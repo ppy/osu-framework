@@ -39,7 +39,7 @@ namespace osu.Framework
 
         public FontStore Fonts;
 
-        public LocalisationEngine Localisation;
+        protected LocalisationEngine Localisation { get; private set; }
 
         private readonly Container content;
         private PerformanceOverlay performanceContainer;

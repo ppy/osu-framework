@@ -16,7 +16,7 @@ namespace osu.Framework.Localisation
         /// <summary>
         /// Whether <see cref="Text"/> should be localised.
         /// </summary>
-        public readonly bool Localised;
+        public readonly bool ShouldLocalise;
 
         /// <summary>
         /// The arguments to format <see cref="Text"/> with.
@@ -27,12 +27,12 @@ namespace osu.Framework.Localisation
         /// Creates a new <see cref="LocalisableString"/>.
         /// </summary>
         /// <param name="text">The text.</param>
-        /// <param name="localised">Whether the text should be localised.</param>
+        /// <param name="shouldLocalise">Whether the text should be localised.</param>
         /// <param name="args">The arguments to format the text with.</param>
-        public LocalisableString(string text, bool localised = true, params object[] args)
+        public LocalisableString(string text, bool shouldLocalise = true, params object[] args)
         {
             Text = text ?? string.Empty;
-            Localised = localised;
+            ShouldLocalise = shouldLocalise;
             Args = args;
         }
 
