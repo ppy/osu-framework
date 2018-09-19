@@ -37,17 +37,7 @@ namespace osu.Framework.Localisation
         /// </summary>
         /// <returns>The <see cref="ILocalisedBindableString"/>.</returns>
         [NotNull]
-        public ILocalisedBindableString GetLocalisedString() => new LocalisedBindableString(currentStorage);
-
-        /// <summary>
-        /// Creates an <see cref="IUnicodeBindableString"/> which automatically updates its text according to <see cref="FrameworkSetting.ShowUnicode"/>.
-        /// </summary>
-        /// <param name="unicodeText">The unicode text to be used when <see cref="FrameworkSetting.ShowUnicode"/> is true. If null, <paramref name="nonUnicodeText"/> will be used.</param>
-        /// <param name="nonUnicodeText">The non-unicode text to be used when <see cref="FrameworkSetting.ShowUnicode"/> is false. If null, <paramref name="unicodeText"/> will be used.</param>
-        /// <returns>The <see cref="IUnicodeBindableString"/>.</returns>
-        [NotNull]
-        public IUnicodeBindableString GetUnicodeString([CanBeNull] string unicodeText, [CanBeNull] string nonUnicodeText)
-            => new UnicodeBindableString(unicodeText, nonUnicodeText, preferUnicode);
+        public ILocalisedBindableString GetLocalisedString(LocalisedString original) => new LocalisedBindableString(currentStorage, preferUnicode) { Original = original };
 
         private void updateLocale(string newValue)
         {

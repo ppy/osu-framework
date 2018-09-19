@@ -43,7 +43,7 @@ namespace osu.Framework.Localisation
                 Value = newText;
             }
 
-            LocalisedString ILocalisedBindableString.Original
+            public LocalisedString Original
             {
                 set
                 {
