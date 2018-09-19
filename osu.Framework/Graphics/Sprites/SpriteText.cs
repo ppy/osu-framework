@@ -6,12 +6,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using osu.Framework.Allocation;
 using osu.Framework.Caching;
-using osu.Framework.Configuration;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.Graphics.UserInterface;
 using osu.Framework.IO.Stores;
 using osu.Framework.Localisation;
 using osu.Framework.MathUtils;
@@ -23,7 +21,7 @@ namespace osu.Framework.Graphics.Sprites
     /// <summary>
     /// A container for simple text rendering purposes. If more complex text rendering is required, use <see cref="TextFlowContainer"/> instead.
     /// </summary>
-    public partial class SpriteText : Drawable, IHasCurrentValue<string>, IHasLineBaseHeight, IHasText, IHasFilterTerms, IFillFlowContainer
+    public partial class SpriteText : Drawable, IHasLineBaseHeight, IHasText, IHasFilterTerms, IFillFlowContainer
     {
         private const float default_text_size = 20;
         private static readonly Vector2 shadow_offset = new Vector2(0, 0.06f);
@@ -603,31 +601,6 @@ namespace osu.Framework.Graphics.Sprites
         public override string ToString()
         {
             return $@"""{displayedText}"" " + base.ToString();
-        }
-
-        private Bindable<string> current;
-
-        /// <summary>
-        /// Implements the <see cref="IHasCurrentValue{T}"/> interface.
-        /// </summary>
-        public Bindable<string> Current
-        {
-            get => current;
-            set
-            {
-                if (current != null)
-                    current.ValueChanged -= setText;
-
-                if (value != null)
-                {
-                    value.ValueChanged += setText;
-                    value.TriggerChange();
-                }
-
-                current = value;
-
-                void setText(string t) => Text = t;
-            }
         }
 
         /// <summary>
