@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Input.StateChanges.Events;
 using osu.Framework.Input.States;
 
 namespace osu.Framework.Input.StateChanges
@@ -54,14 +55,15 @@ namespace osu.Framework.Input.StateChanges
         protected abstract ButtonStates<TButton> GetButtonStates(InputState state);
 
         /// <summary>
-        /// Handles a <see cref="TButton"/> state change.
-        /// This can be used to invoke the <see cref="IInputStateChangeHandler"/>'s HandleXXXStateChange methods.
+        /// Create a <see cref="TButton"/> state change event.
         /// </summary>
-        /// <param name="handler">The <see cref="IInputStateChangeHandler"/> that should handle the <see cref="InputState"/> change.</param>
         /// <param name="state">The <see cref="InputState"/> which changed.</param>
         /// <param name="button">The <see cref="TButton"/> that changed.</param>
         /// <param name="kind">The type of change that occurred on <paramref name="button"/>.</param>
-        protected abstract void Handle(IInputStateChangeHandler handler, InputState state, TButton button, ButtonStateChangeKind kind);
+        protected virtual ButtonStateChangeEvent<TButton> CreateEvent(InputState state, TButton button, ButtonStateChangeKind kind)
+        {
+            return new ButtonStateChangeEvent<TButton>(state, this, button, kind);
+        }
 
         public void Apply(InputState state, IInputStateChangeHandler handler)
         {
@@ -70,7 +72,8 @@ namespace osu.Framework.Input.StateChanges
             {
                 if (buttonStates.SetPressed(entry.Button, entry.IsPressed))
                 {
-                    Handle(handler, state, entry.Button, entry.IsPressed ? ButtonStateChangeKind.Pressed : ButtonStateChangeKind.Released);
+                    var buttonStateChange = CreateEvent(state, entry.Button, entry.IsPressed ? ButtonStateChangeKind.Pressed : ButtonStateChangeKind.Released);
+                    handler.HandleInputStateChange(buttonStateChange);
                 }
             }
         }

@@ -3,23 +3,25 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Input.Events;
 using osu.Framework.Testing;
 using OpenTK;
 using OpenTK.Graphics;
+using OpenTK.Input;
 
 namespace osu.Framework.Tests.Visual
 {
-    public class TestCaseDropdownBox : TestCase
+    public class TestCaseDropdownBox : ManualInputManagerTestCase
     {
         private const int items_to_add = 10;
+        private readonly StyledDropdown styledDropdown, styledDropdownMenu2;
 
         public TestCaseDropdownBox()
         {
-            StyledDropdown styledDropdown, styledDropdownMenu2;
-
             var testItems = new string[10];
             int i = 0;
             while (i < items_to_add)
@@ -38,6 +40,12 @@ namespace osu.Framework.Tests.Visual
                 Position = new Vector2(400, 70),
                 Items = testItems.Select(item => new KeyValuePair<string, string>(item, item)),
             });
+        }
+
+        [Test]
+        public void Basic()
+        {
+            var i = items_to_add;
 
             AddStep("click dropdown1", () => toggleDropdownViaClick(styledDropdown));
             AddAssert("dropdown is open", () => styledDropdown.Menu.State == MenuState.Open);
@@ -62,7 +70,11 @@ namespace osu.Framework.Tests.Visual
             AddAssert("dropdown2 is open", () => styledDropdownMenu2.Menu.State == MenuState.Open);
         }
 
-        private void toggleDropdownViaClick(StyledDropdown dropdown) => dropdown.Children.First().TriggerOnClick();
+        private void toggleDropdownViaClick(StyledDropdown dropdown)
+        {
+            InputManager.MoveMouseTo(dropdown.Children.First());
+            InputManager.Click(MouseButton.Left);
+        }
 
         private class StyledDropdown : BasicDropdown<string>
         {
@@ -76,7 +88,8 @@ namespace osu.Framework.Tests.Visual
 
             private class StyledDropdownMenu : DropdownMenu
             {
-                public void SelectItem(MenuItem item) => Children.FirstOrDefault(c => c.Item == item)?.TriggerOnClick();
+                public void SelectItem(MenuItem item) => Children.FirstOrDefault(c => c.Item == item)?
+                    .TriggerEvent(new ClickEvent(GetContainingInputManager().CurrentState, MouseButton.Left));
             }
         }
 
