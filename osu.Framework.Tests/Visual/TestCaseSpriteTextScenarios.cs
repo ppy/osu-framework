@@ -253,6 +253,7 @@ namespace osu.Framework.Tests.Visual
             protected override void InitialiseDefaults()
             {
                 Set(FrameworkSetting.Locale, "ja");
+                Set(FrameworkSetting.ShowUnicode, false);
             }
         }
 
