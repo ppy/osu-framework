@@ -7,7 +7,7 @@ using OpenTK.Input;
 
 namespace osu.Framework.Input.States
 {
-    public class MouseState : IMouseState
+    public class MouseState
     {
         public ButtonStates<MouseButton> Buttons { get; private set; } = new ButtonStates<MouseButton>();
 
@@ -20,13 +20,6 @@ namespace osu.Framework.Input.States
         public Vector2 Position { get; set; }
 
         public bool IsPositionValid { get; set; } = true;
-
-        public IMouseState Clone()
-        {
-            var clone = (MouseState)MemberwiseClone();
-            clone.Buttons = Buttons.Clone();
-            return clone;
-        }
 
         public bool IsPressed(MouseButton button) => Buttons.IsPressed(button);
         public void SetPressed(MouseButton button, bool pressed) => Buttons.SetPressed(button, pressed);

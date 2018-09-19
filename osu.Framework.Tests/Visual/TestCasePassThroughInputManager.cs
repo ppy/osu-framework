@@ -10,6 +10,9 @@ using osu.Framework.Testing;
 using osu.Framework.Testing.Input;
 using OpenTK;
 using OpenTK.Input;
+using JoystickState = osu.Framework.Input.States.JoystickState;
+using KeyboardState = osu.Framework.Input.States.KeyboardState;
+using MouseState = osu.Framework.Input.States.MouseState;
 
 namespace osu.Framework.Tests.Visual
 {
@@ -22,9 +25,9 @@ namespace osu.Framework.Tests.Visual
 
         private TestInputManager testInputManager;
         private InputState state;
-        private IMouseState mouse;
-        private IKeyboardState keyboard;
-        private IJoystickState joystick;
+        private MouseState mouse;
+        private KeyboardState keyboard;
+        private JoystickState joystick;
         private void addTestInputManagerStep()
         {
             AddStep("Add InputManager", () =>

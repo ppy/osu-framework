@@ -5,7 +5,7 @@ using OpenTK.Input;
 
 namespace osu.Framework.Input.States
 {
-    public class KeyboardState : IKeyboardState
+    public class KeyboardState
     {
         public ButtonStates<Key> Keys { get; private set; } = new ButtonStates<Key>();
 
@@ -20,12 +20,5 @@ namespace osu.Framework.Input.States
         /// Win key on Windows, or Command key on Mac.
         /// </summary>
         public bool SuperPressed => Keys.IsPressed(Key.LWin) || Keys.IsPressed(Key.RWin);
-
-        public IKeyboardState Clone()
-        {
-            var clone = (KeyboardState)MemberwiseClone();
-            clone.Keys = Keys.Clone();
-            return clone;
-        }
     }
 }

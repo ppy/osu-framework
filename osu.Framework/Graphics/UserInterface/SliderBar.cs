@@ -7,7 +7,7 @@ using osu.Framework.Graphics.Containers;
 using OpenTK.Input;
 using OpenTK;
 using osu.Framework.Input.Events;
-using osu.Framework.Input.States;
+using KeyboardState = osu.Framework.Input.States.KeyboardState;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -131,7 +131,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        private void handleMouseInput(Vector2 screenSpaceMousePosition, IKeyboardState keyboardState)
+        private void handleMouseInput(Vector2 screenSpaceMousePosition, KeyboardState keyboardState)
         {
             var xPosition = ToLocalSpace(screenSpaceMousePosition).X - RangePadding;
 

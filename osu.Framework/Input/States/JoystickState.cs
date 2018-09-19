@@ -7,20 +7,11 @@ using System.Linq;
 
 namespace osu.Framework.Input.States
 {
-    public class JoystickState : IJoystickState
+    public class JoystickState
     {
         public ButtonStates<JoystickButton> Buttons { get; private set; } = new ButtonStates<JoystickButton>();
         public IReadOnlyList<JoystickAxis> Axes { get; set; } = Array.Empty<JoystickAxis>();
 
         public float AxisValue(int axisIndex) => Axes.FirstOrDefault(a => a.Axis == axisIndex).Value;
-
-        public IJoystickState Clone()
-        {
-            var clone = (JoystickState)MemberwiseClone();
-            clone.Buttons = Buttons.Clone();
-            clone.Axes = new List<JoystickAxis>(Axes);
-
-            return clone;
-        }
     }
 }
