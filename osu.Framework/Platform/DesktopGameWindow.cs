@@ -87,6 +87,7 @@ namespace osu.Framework.Platform
             var newResolution = display.AvailableResolutions
                                               .Where(r => r.Width == newSize.Width && r.Height == newSize.Height)
                                               .OrderByDescending(r => r.RefreshRate)
+                                              .ThenByDescending(r => r.BitsPerPixel)
                                               .FirstOrDefault();
 
             if (newResolution == null)
