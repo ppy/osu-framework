@@ -210,7 +210,7 @@ namespace osu.Framework.Input
             if (!ClickedDrawable.TryGetTarget(out Drawable clicked))
                 return false;
 
-            if (!clicked.ReceiveMouseInputAt(state.Mouse.Position))
+            if (!PositionalInputQueue.Contains(clicked))
                 return false;
 
             return PropagateMouseButtonEvent(new[] { clicked }, new DoubleClickEvent(state, Button, MouseDownPosition)) != null;
