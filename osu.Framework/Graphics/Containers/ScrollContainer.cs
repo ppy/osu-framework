@@ -6,9 +6,7 @@ using System.Diagnostics;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
-using osu.Framework.Input.EventArgs;
 using osu.Framework.Input.Events;
-using osu.Framework.Input.States;
 using osu.Framework.MathUtils;
 using osu.Framework.Threading;
 using OpenTK;
@@ -255,11 +253,11 @@ namespace osu.Framework.Graphics.Containers
             return true;
         }
 
-        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
+        protected override bool OnKeyDown(KeyDownEvent e)
         {
             if (IsHandlingKeyboardScrolling && !IsDragging)
             {
-                switch (args.Key)
+                switch (e.Key)
                 {
                     case Key.PageUp:
                         ScrollTo(target - displayableContent);
@@ -270,7 +268,7 @@ namespace osu.Framework.Graphics.Containers
                 }
             }
 
-            return base.OnKeyDown(state, args);
+            return base.OnKeyDown(e);
         }
 
         protected override bool OnMouseDown(MouseDownEvent e)

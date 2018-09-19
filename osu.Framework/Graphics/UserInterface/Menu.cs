@@ -10,9 +10,7 @@ using OpenTK.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Input.EventArgs;
 using osu.Framework.Input.Events;
-using osu.Framework.Input.States;
 using osu.Framework.MathUtils;
 using osu.Framework.Threading;
 using OpenTK;
@@ -467,15 +465,15 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
+        protected override bool OnKeyDown(KeyDownEvent e)
         {
-            if (args.Key == Key.Escape && !TopLevelMenu)
+            if (e.Key == Key.Escape && !TopLevelMenu)
             {
                 Close();
                 return true;
             }
 
-            return base.OnKeyDown(state, args);
+            return base.OnKeyDown(e);
         }
 
         protected override bool OnClick(ClickEvent e) => true;

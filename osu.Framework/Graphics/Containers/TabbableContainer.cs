@@ -3,8 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using osu.Framework.Input.EventArgs;
-using osu.Framework.Input.States;
+using osu.Framework.Input.Events;
 using OpenTK.Input;
 
 namespace osu.Framework.Graphics.Containers
@@ -37,12 +36,12 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public Container<Drawable> TabbableContentContainer { private get; set; }
 
-        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
+        protected override bool OnKeyDown(KeyDownEvent e)
         {
-            if (TabbableContentContainer == null || args.Key != Key.Tab)
+            if (TabbableContentContainer == null || e.Key != Key.Tab)
                 return false;
 
-            var nextTab = nextTabStop(TabbableContentContainer, state.Keyboard.ShiftPressed);
+            var nextTab = nextTabStop(TabbableContentContainer, e.CurrentState.Keyboard.ShiftPressed);
             if (nextTab != null) GetContainingInputManager().ChangeFocus(nextTab);
             return true;
         }

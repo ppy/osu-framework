@@ -6,7 +6,6 @@ using osu.Framework.Configuration;
 using osu.Framework.Graphics.Containers;
 using OpenTK.Input;
 using OpenTK;
-using osu.Framework.Input.EventArgs;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
 
@@ -109,7 +108,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnDragEnd(DragEndEvent e) => true;
 
-        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
+        protected override bool OnKeyDown(KeyDownEvent e)
         {
             if (!IsHovered || CurrentNumber.Disabled)
                 return false;
@@ -117,7 +116,7 @@ namespace osu.Framework.Graphics.UserInterface
             var step = KeyboardStep != 0 ? KeyboardStep : (Convert.ToSingle(CurrentNumber.MaxValue) - Convert.ToSingle(CurrentNumber.MinValue)) / 20;
             if (CurrentNumber.IsInteger) step = (float)Math.Ceiling(step);
 
-            switch (args.Key)
+            switch (e.Key)
             {
                 case Key.Right:
                     CurrentNumber.Add(step);

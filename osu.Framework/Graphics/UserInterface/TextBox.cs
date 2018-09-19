@@ -20,9 +20,7 @@ using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Platform;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Bindings;
-using osu.Framework.Input.EventArgs;
 using osu.Framework.Input.Events;
-using osu.Framework.Input.States;
 using osu.Framework.Timing;
 
 namespace osu.Framework.Graphics.UserInterface
@@ -644,18 +642,18 @@ namespace osu.Framework.Graphics.UserInterface
                 Schedule(consumePendingText);
         }
 
-        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
+        protected override bool OnKeyDown(KeyDownEvent e)
         {
             if (textInput?.ImeActive == true || ReadOnly) return true;
 
-            if (state.Keyboard.ControlPressed || state.Keyboard.SuperPressed)
+            if (e.CurrentState.Keyboard.ControlPressed || e.CurrentState.Keyboard.SuperPressed)
                 return false;
 
             // we only care about keys which can result in text output.
-            if (keyProducesCharacter(args.Key))
+            if (keyProducesCharacter(e.Key))
                 BeginConsumingText();
 
-            switch (args.Key)
+            switch (e.Key)
             {
                 case Key.Escape:
                     KillFocus();
@@ -666,7 +664,7 @@ namespace osu.Framework.Graphics.UserInterface
                     return true;
             }
 
-            return base.OnKeyDown(state, args) || consumingText;
+            return base.OnKeyDown(e) || consumingText;
         }
 
         private bool keyProducesCharacter(Key key) => (key == Key.Space || key >= Key.Keypad0) && key != Key.KeypadEnter;
@@ -696,12 +694,12 @@ namespace osu.Framework.Graphics.UserInterface
             OnCommit?.Invoke(this, true);
         }
 
-        protected override bool OnKeyUp(InputState state, KeyUpEventArgs args)
+        protected override bool OnKeyUp(KeyUpEvent e)
         {
-            if (!state.Keyboard.Keys.Any())
+            if (!e.CurrentState.Keyboard.Keys.Any())
                 EndConsumingText();
 
-            return base.OnKeyUp(state, args);
+            return base.OnKeyUp(e);
         }
 
         protected override bool OnDrag(DragEvent e)
@@ -814,7 +812,7 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
-        protected override void OnFocusLost(InputState state)
+        protected override void OnFocusLost(FocusLostEvent e)
         {
             unbindInput();
 
@@ -832,7 +830,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnClick(ClickEvent e) => !ReadOnly;
 
-        protected override void OnFocus(InputState state)
+        protected override void OnFocus(FocusEvent e)
         {
             bindInput();
 

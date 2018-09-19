@@ -16,8 +16,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Bindings;
-using osu.Framework.Input.EventArgs;
-using osu.Framework.Input.States;
+using osu.Framework.Input.Events;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Testing.Drawables;
@@ -294,11 +293,11 @@ namespace osu.Framework.Testing
             }
         }
 
-        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
+        protected override bool OnKeyDown(KeyDownEvent e)
         {
-            if (!args.Repeat)
+            if (!e.Repeat)
             {
-                switch (args.Key)
+                switch (e.Key)
                 {
                     case Key.Escape:
                         exit();
@@ -306,7 +305,7 @@ namespace osu.Framework.Testing
                 }
             }
 
-            return base.OnKeyDown(state, args);
+            return base.OnKeyDown(e);
         }
 
         public override IEnumerable<KeyBinding> DefaultKeyBindings => new[]

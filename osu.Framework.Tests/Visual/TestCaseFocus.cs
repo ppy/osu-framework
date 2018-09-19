@@ -9,7 +9,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
-using osu.Framework.Input.EventArgs;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
 using osu.Framework.Testing;
@@ -262,15 +261,15 @@ namespace osu.Framework.Tests.Visual
                 return base.OnClick(e);
             }
 
-            protected override void OnFocus(InputState state)
+            protected override void OnFocus(FocusEvent e)
             {
-                base.OnFocus(state);
+                base.OnFocus(e);
                 this.FadeTo(1);
             }
 
-            protected override void OnFocusLost(InputState state)
+            protected override void OnFocusLost(FocusLostEvent e)
             {
-                base.OnFocusLost(state);
+                base.OnFocusLost(e);
                 this.FadeTo(0.2f);
             }
         }
@@ -314,29 +313,29 @@ namespace osu.Framework.Tests.Visual
 
             public override bool AcceptsFocus => true;
 
-            protected override void OnFocus(InputState state)
+            protected override void OnFocus(FocusEvent e)
             {
-                base.OnFocus(state);
+                base.OnFocus(e);
                 Box.FadeTo(1);
             }
 
-            protected override void OnFocusLost(InputState state)
+            protected override void OnFocusLost(FocusLostEvent e)
             {
-                base.OnFocusLost(state);
+                base.OnFocusLost(e);
                 Box.FadeTo(0.5f);
             }
 
             // only KeyDown is blocking
-            protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
+            protected override bool OnKeyDown(KeyDownEvent e)
             {
                 ++KeyDownCount;
                 return true;
             }
 
-            protected override bool OnKeyUp(InputState state, KeyUpEventArgs args)
+            protected override bool OnKeyUp(KeyUpEvent e)
             {
                 ++KeyUpCount;
-                return base.OnKeyUp(state, args);
+                return base.OnKeyUp(e);
             }
 
             protected override bool OnJoystickPress(InputState state, JoystickEventArgs args)

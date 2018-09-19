@@ -25,7 +25,6 @@ using System.Reflection;
 using System.Threading;
 using osu.Framework.Configuration;
 using osu.Framework.Development;
-using osu.Framework.Input.EventArgs;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
 using osu.Framework.MathUtils;
@@ -1811,9 +1810,9 @@ namespace osu.Framework.Graphics
                     OnFocusLost(focusLost);
                     return false;
                 case KeyDownEvent keyDown:
-                    return OnKeyDown(keyDown.LegacyInputState, new KeyDownEventArgs { Key = keyDown.Key, Repeat = keyDown.Repeat });
+                    return OnKeyDown(keyDown);
                 case KeyUpEvent keyUp:
-                    return OnKeyUp(keyUp.LegacyInputState, new KeyUpEventArgs { Key = keyUp.Key });
+                    return OnKeyUp(keyUp);
                 case JoystickPressEvent joystickPress:
                     return OnJoystickPress(joystickPress.LegacyInputState, new JoystickEventArgs { Button = joystickPress.Button });
                 case JoystickReleaseEvent joystickRelease:
@@ -1854,8 +1853,8 @@ namespace osu.Framework.Graphics
         protected virtual bool OnScroll(ScrollEvent e) => false;
         protected virtual void OnFocus(FocusEvent e) {}
         protected virtual void OnFocusLost(FocusLostEvent e) {}
-        protected virtual bool OnKeyDown(InputState state, KeyDownEventArgs args) => false;
-        protected virtual bool OnKeyUp(InputState state, KeyUpEventArgs args) => false;
+        protected virtual bool OnKeyDown(KeyDownEvent e) => false;
+        protected virtual bool OnKeyUp(KeyUpEvent e) => false;
         protected virtual bool OnJoystickPress(InputState state, JoystickEventArgs args) => false;
         protected virtual bool OnJoystickRelease(InputState state, JoystickEventArgs args) => false;
         #endregion
