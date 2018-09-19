@@ -49,20 +49,6 @@ namespace osu.Framework.Input.Events
         /// </summary>
         public Vector2 MousePosition => ToLocalSpace(ScreenSpaceMousePosition);
 
-        /// <summary>
-        /// Used for compatibility only. Will be removed after the new way is applied to code.
-        /// Used as a proxy of legacy code dealing with an <see cref="InputState"/> to apply <see cref="Target"/> choordinate conversion.
-        /// </summary>
-        internal InputState LegacyInputState
-        {
-            get
-            {
-                var state = CurrentState.Clone();
-                state.Mouse = new LocalMouseState(state.Mouse.NativeState, Target);
-                return state;
-            }
-        }
-
         protected UIEvent([NotNull] InputState state)
         {
             CurrentState = state ?? throw new ArgumentNullException(nameof(state));

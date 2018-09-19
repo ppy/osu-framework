@@ -89,13 +89,13 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnClick(ClickEvent e)
         {
-            handleMouseInput(e.LegacyInputState);
+            handleMouseInput(e.ScreenSpaceMousePosition, e.CurrentState.Keyboard);
             return true;
         }
 
         protected override bool OnDrag(DragEvent e)
         {
-            handleMouseInput(e.LegacyInputState);
+            handleMouseInput(e.ScreenSpaceMousePosition, e.CurrentState.Keyboard);
             return true;
         }
 
@@ -131,12 +131,12 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        private void handleMouseInput(InputState state)
+        private void handleMouseInput(Vector2 screenSpaceMousePosition, IKeyboardState keyboardState)
         {
-            var xPosition = ToLocalSpace(state?.Mouse.NativeState.Position ?? Vector2.Zero).X - RangePadding;
+            var xPosition = ToLocalSpace(screenSpaceMousePosition).X - RangePadding;
 
             if (!CurrentNumber.Disabled)
-                CurrentNumber.SetProportional(xPosition / UsableWidth, state != null && state.Keyboard.ShiftPressed ? KeyboardStep : 0);
+                CurrentNumber.SetProportional(xPosition / UsableWidth, keyboardState.ShiftPressed ? KeyboardStep : 0);
 
             OnUserChange();
         }

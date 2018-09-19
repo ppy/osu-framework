@@ -588,13 +588,13 @@ namespace osu.Framework.Tests.Visual
 
                 protected override bool OnMouseDown(MouseDownEvent e)
                 {
-                    adjustForMouseDown(e.LegacyInputState);
+                    adjustForMouseDown(e.CurrentState);
                     return base.OnMouseDown(e);
                 }
 
                 protected override bool OnMouseUp(MouseUpEvent e)
                 {
-                    adjustForMouseDown(e.LegacyInputState);
+                    adjustForMouseDown(e.CurrentState);
                     return base.OnMouseUp(e);
                 }
 

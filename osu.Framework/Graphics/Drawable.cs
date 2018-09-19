@@ -1991,20 +1991,6 @@ namespace osu.Framework.Graphics
         public bool CanReceiveMouseInput => HandleMouseInput && IsPresent && !IsMaskedAway;
 
         /// <summary>
-        /// Creates a new InputState with mouse coodinates converted to the coordinate space of our parent.
-        /// </summary>
-        /// <param name="screenSpaceState">The screen-space input state to be cloned and transformed.</param>
-        /// <returns>The cloned and transformed state.</returns>
-        private InputState createCloneInParentSpace(InputState screenSpaceState)
-        {
-            if (screenSpaceState == null) return null;
-
-            var clone = screenSpaceState.Clone();
-            clone.Mouse = new LocalMouseState(screenSpaceState.Mouse.NativeState, this);
-            return clone;
-        }
-
-        /// <summary>
         /// This method is responsible for building a queue of Drawables to receive keyboard input
         /// in reverse order. This method is overridden by <see cref="T:Container"/> to be called on all
         /// children such that the entire scene graph is covered.
