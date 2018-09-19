@@ -7,6 +7,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.EventArgs;
+using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
 using osu.Framework.MathUtils;
 using osu.Framework.Threading;
@@ -575,13 +576,13 @@ namespace osu.Framework.Graphics.Containers
 
             protected override bool OnClick(InputState state) => true;
 
-            protected override bool OnHover(InputState state)
+            protected override bool OnHover(HoverEvent e)
             {
                 this.FadeColour(hoverColour, 100);
                 return true;
             }
 
-            protected override void OnHoverLost(InputState state)
+            protected override void OnHoverLost(HoverLostEvent e)
             {
                 this.FadeColour(defaultColour, 100);
             }

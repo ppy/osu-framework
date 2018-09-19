@@ -11,6 +11,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.EventArgs;
+using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
 using osu.Framework.MathUtils;
 using osu.Framework.Threading;
@@ -478,7 +479,7 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         protected override bool OnClick(InputState state) => true;
-        protected override bool OnHover(InputState state) => true;
+        protected override bool OnHover(HoverEvent e) => true;
 
         public override bool AcceptsFocus => !TopLevelMenu;
 
@@ -709,7 +710,7 @@ namespace osu.Framework.Graphics.UserInterface
                 Foreground.Colour = ForegroundColour;
             }
 
-            protected override bool OnHover(InputState state)
+            protected override bool OnHover(HoverEvent e)
             {
                 UpdateBackgroundColour();
                 UpdateForegroundColour();
@@ -723,11 +724,11 @@ namespace osu.Framework.Graphics.UserInterface
                 return false;
             }
 
-            protected override void OnHoverLost(InputState state)
+            protected override void OnHoverLost(HoverLostEvent e)
             {
                 UpdateBackgroundColour();
                 UpdateForegroundColour();
-                base.OnHoverLost(state);
+                base.OnHoverLost(e);
             }
 
             private bool hasSubmenu => Item.Items?.Count > 0;

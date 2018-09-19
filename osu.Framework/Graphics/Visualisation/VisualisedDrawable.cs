@@ -14,6 +14,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Input.EventArgs;
+using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
 
 namespace osu.Framework.Graphics.Visualisation
@@ -248,16 +249,16 @@ namespace osu.Framework.Graphics.Visualisation
             detachEvents();
         }
 
-        protected override bool OnHover(InputState state)
+        protected override bool OnHover(HoverEvent e)
         {
             background.Colour = Color4.PaleVioletRed.Opacity(0.7f);
-            return base.OnHover(state);
+            return base.OnHover(e);
         }
 
-        protected override void OnHoverLost(InputState state)
+        protected override void OnHoverLost(HoverLostEvent e)
         {
             background.Colour = Color4.Transparent;
-            base.OnHoverLost(state);
+            base.OnHoverLost(e);
         }
 
         protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)

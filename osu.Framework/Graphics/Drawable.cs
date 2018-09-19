@@ -1784,9 +1784,9 @@ namespace osu.Framework.Graphics
                 case MouseMoveEvent mouseMove:
                     return OnMouseMove(mouseMove);
                 case HoverEvent hover:
-                    return OnHover(hover.LegacyInputState);
+                    return OnHover(hover);
                 case HoverLostEvent hoverLost:
-                    OnHoverLost(hoverLost.LegacyInputState);
+                    OnHoverLost(hoverLost);
                     return false;
                 case MouseDownEvent mouseDown:
                     return OnMouseDown(mouseDown.LegacyInputState, new MouseDownEventArgs { Button = mouseDown.Button });
@@ -1842,8 +1842,8 @@ namespace osu.Framework.Graphics
 
         #region Individual event handlers
         protected virtual bool OnMouseMove(MouseMoveEvent e) => false;
-        protected virtual bool OnHover(InputState state) => false;
-        protected virtual void OnHoverLost(InputState state) {}
+        protected virtual bool OnHover(HoverEvent e) => false;
+        protected virtual void OnHoverLost(HoverLostEvent e) {}
         protected virtual bool OnMouseDown(InputState state, MouseDownEventArgs args) => false;
         protected virtual bool OnMouseUp(InputState state, MouseUpEventArgs args) => false;
         protected virtual bool OnClick(InputState state) => false;

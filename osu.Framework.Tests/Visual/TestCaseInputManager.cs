@@ -159,11 +159,11 @@ namespace osu.Framework.Tests.Visual
 
             public int HoverCount;
 
-            protected override bool OnHover(InputState state)
+            protected override bool OnHover(HoverEvent e)
             {
                 ++HoverCount;
-                onHoverStatus.Text = $"OnHover {HoverCount}: Position={state.Mouse.Position}";
-                return base.OnHover(state);
+                onHoverStatus.Text = $"OnHover {HoverCount}: Position={e.MousePosition}";
+                return base.OnHover(e);
             }
 
             protected override bool OnClick(InputState state)
