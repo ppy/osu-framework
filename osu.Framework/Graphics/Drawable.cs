@@ -2111,12 +2111,9 @@ namespace osu.Framework.Graphics
             string shortClass = GetType().ReadableName();
 
             if (!string.IsNullOrEmpty(Name))
-                shortClass = $@"{Name} ({shortClass})";
-
-            if (parent == null)
+                return $@"{Name} ({shortClass})";
+            else
                 return shortClass;
-
-            return $@"{shortClass} ({DrawPosition.X:#,0},{DrawPosition.Y:#,0}) {DrawSize.X:#,0}x{DrawSize.Y:#,0}";
         }
     }
 
