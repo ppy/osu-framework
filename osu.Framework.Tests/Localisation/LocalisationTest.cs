@@ -28,6 +28,9 @@ namespace osu.Framework.Tests.Localisation
         [Test]
         public void TestNotLocalised()
         {
+            manager.AddLanguage("ja-JP", new FakeStorage("ja-JP"));
+            config.Set(FrameworkSetting.Locale, "ja-JP");
+
             var localisedText = manager.GetLocalisedString(FakeStorage.LOCALISABLE_STRING_EN);
 
             Assert.AreEqual(FakeStorage.LOCALISABLE_STRING_EN, localisedText.Value);
