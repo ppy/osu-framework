@@ -61,5 +61,7 @@ namespace osu.Framework.Localisation
         public static implicit operator string(LocalisedString localised) => localised.Text.Original;
 
         public static implicit operator LocalisedString(string text) => new LocalisedString(text, text, false);
+
+        public override string ToString() => Text.Original;
     }
 }
