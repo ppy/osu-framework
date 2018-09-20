@@ -211,8 +211,8 @@ namespace osu.Framework.Graphics.Containers
             }
 
             if (Children != null)
-                foreach (DrawNode child in Children)
-                    child.Draw(vertexAction);
+                for (int i = 0; i < Children.Count; i++)
+                    Children[i].Draw(vertexAction);
 
             if (MaskingInfo != null)
                 GLWrapper.PopMaskingInfo();

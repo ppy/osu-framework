@@ -405,8 +405,8 @@ namespace osu.Framework.Tests.Visual
                 currentTimeText.Text = time.ToString("n0");
                 seekingTick.X = currentTimeText.X = (float)(time / (wrapping.MaxTime - wrapping.MinTime));
                 maxTimeText.Text = wrapping.MaxTime.ToString("n0");
-                maxTimeText.Colour = time > wrapping.MaxTime ? Color4.Gray : (wrapping.Time.Elapsed > 0 ? Color4.Blue : Color4.Red);
-                minTimeText.Colour = time < wrapping.MinTime ? Color4.Gray : (content.Time.Elapsed > 0 ? Color4.Blue : Color4.Red);
+                maxTimeText.Colour = time > wrapping.MaxTime ? Color4.Gray : wrapping.Time.Elapsed > 0 ? Color4.Blue : Color4.Red;
+                minTimeText.Colour = time < wrapping.MinTime ? Color4.Gray : content.Time.Elapsed > 0 ? Color4.Blue : Color4.Red;
                 if (displayedTransforms == null || !ExaminableDrawable.Transforms.SequenceEqual(displayedTransforms))
                 {
                     transforms.Clear();

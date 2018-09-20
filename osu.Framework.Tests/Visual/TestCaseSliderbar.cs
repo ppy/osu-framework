@@ -3,24 +3,25 @@
 
 using System;
 using System.Collections.Generic;
+using NUnit.Framework;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
-using osu.Framework.Input.EventArgs;
-using osu.Framework.Input.States;
 using osu.Framework.Testing;
 using OpenTK;
 using OpenTK.Graphics;
+using OpenTK.Input;
 
 namespace osu.Framework.Tests.Visual
 {
-    public class TestCaseSliderbar : TestCase
+    public class TestCaseSliderbar : ManualInputManagerTestCase
     {
         public override IReadOnlyList<Type> RequiredTypes => new[] { typeof(BasicSliderBar<>), typeof(SliderBar<>) };
 
         // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
         private readonly BindableDouble sliderBarValue; //keep a reference to avoid GC of the bindable
         private readonly SpriteText sliderbarText;
+        private readonly SliderBar<double> sliderBar;
 
         public TestCaseSliderbar()
         {
@@ -37,7 +38,7 @@ namespace osu.Framework.Tests.Visual
                 Position = new Vector2(25, 0)
             };
 
-            SliderBar<double> sliderBar = new BasicSliderBar<double>
+            sliderBar = new BasicSliderBar<double>
             {
                 Size = new Vector2(200, 10),
                 Position = new Vector2(25, 25),
@@ -62,17 +63,17 @@ namespace osu.Framework.Tests.Visual
             });
 
             sliderBar.Current.BindTo(sliderBarValue);
+        }
 
+        [Test]
+        public void Basic() {
             AddSliderStep("Value", -10.0, 10.0, -10.0, v => sliderBarValue.Value = v);
 
-            AddStep("Click at x = 50", () => sliderBar.TriggerOnClick(new InputState
+            AddStep("Click at x = 50", () =>
             {
-                Mouse = new MouseState
-                {
-                    Position = sliderBar.ToScreenSpace(sliderBar.DrawSize / 4)
-                },
-                Keyboard = new KeyboardState()
-            }));
+                InputManager.MoveMouseTo(sliderBar.ToScreenSpace(sliderBar.DrawSize / 4));
+                InputManager.Click(MouseButton.Left);
+            });
 
             AddAssert("Value == -6,25", () => sliderBarValue == -6.25);
 
@@ -80,10 +81,8 @@ namespace osu.Framework.Tests.Visual
             {
                 var before = sliderBar.IsHovered;
                 sliderBar.IsHovered = true;
-                sliderBar.TriggerOnKeyDown(null, new KeyDownEventArgs
-                {
-                    Key = OpenTK.Input.Key.Left,
-                });
+                InputManager.PressKey(Key.Left);
+                InputManager.ReleaseKey(Key.Left);
                 sliderBar.IsHovered = before;
             });
 
@@ -93,14 +92,10 @@ namespace osu.Framework.Tests.Visual
             {
                 var drawSize = sliderBar.DrawSize;
                 drawSize.X *= 0.75f;
-                sliderBar.TriggerOnClick(new InputState
-                {
-                    Mouse = new MouseState
-                    {
-                        Position = sliderBar.ToScreenSpace(drawSize)
-                    },
-                    Keyboard = new KeyboardState { Keys = { OpenTK.Input.Key.LShift } }
-                });
+                InputManager.PressKey(Key.LShift);
+                InputManager.MoveMouseTo(sliderBar.ToScreenSpace(drawSize));
+                InputManager.Click(MouseButton.Left);
+                InputManager.ReleaseKey(Key.LShift);
             });
 
             AddAssert("Value == 6", () => sliderBarValue == 6);
