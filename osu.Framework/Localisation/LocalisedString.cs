@@ -53,13 +53,20 @@ namespace osu.Framework.Localisation
         /// <param name="args">The arguments to format the text with.</param>
         private LocalisedString((string original, string fallback) text, bool shouldLocalise, params object[] args)
         {
-            Text = (text.original ?? string.Empty, text.fallback ?? string.Empty);
+            if (string.IsNullOrEmpty(text.original))
+                text.original = text.fallback ?? string.Empty;
+            if (string.IsNullOrEmpty(text.fallback))
+                text.fallback = text.original;
+
+            Text = text;
             ShouldLocalise = shouldLocalise;
             Args = args;
         }
 
         public static implicit operator string(LocalisedString localised) => localised.Text.Original;
 
-        public static implicit operator LocalisedString(string text) => new LocalisedString(text, text, false);
+        public static implicit operator LocalisedString(string text) => new LocalisedString((text, text), false);
+
+        public override string ToString() => Text.Original;
     }
 }

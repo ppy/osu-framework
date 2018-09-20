@@ -28,6 +28,9 @@ namespace osu.Framework.Tests.Localisation
         [Test]
         public void TestNotLocalised()
         {
+            manager.AddLanguage("ja-JP", new FakeStorage("ja-JP"));
+            config.Set(FrameworkSetting.Locale, "ja-JP");
+
             var localisedText = manager.GetLocalisedString(FakeStorage.LOCALISABLE_STRING_EN);
 
             Assert.AreEqual(FakeStorage.LOCALISABLE_STRING_EN, localisedText.Value);
@@ -127,6 +130,23 @@ namespace osu.Framework.Tests.Localisation
 
             text.Text = new LocalisedString((unicode_2, non_unicode_2));
             Assert.AreEqual(unicode_2, text.Value);
+        }
+
+        [Test]
+        public void TestEmptyStringFallback([Values("", null)] string emptyValue)
+        {
+            const string non_unicode_fallback = "non unicode";
+            const string unicode_fallback = "unicode";
+
+            var text = manager.GetLocalisedString(new LocalisedString((unicode_fallback, emptyValue)));
+
+            config.Set(FrameworkSetting.ShowUnicode, false);
+            Assert.AreEqual(unicode_fallback, text.Value);
+
+            text = manager.GetLocalisedString(new LocalisedString((emptyValue, non_unicode_fallback)));
+
+            config.Set(FrameworkSetting.ShowUnicode, true);
+            Assert.AreEqual(non_unicode_fallback, text.Value);
         }
 
         private class FakeFrameworkConfigManager : FrameworkConfigManager
