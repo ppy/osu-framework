@@ -1028,11 +1028,6 @@ namespace osu.Framework.Graphics.Containers
 
         #region Interaction / Input
 
-        // Required to pass through input to children by default.
-        // TODO: Evaluate effects of this on performance and address.
-        public override bool HandleKeyboardInput => true;
-        public override bool HandleMouseInput => true;
-
         public override bool Contains(Vector2 screenSpacePos)
         {
             float cRadius = CornerRadius;
@@ -1056,7 +1051,10 @@ namespace osu.Framework.Graphics.Containers
 
         internal override bool BuildMouseInputQueue(Vector2 screenSpaceMousePos, List<Drawable> queue)
         {
-            if (!base.BuildMouseInputQueue(screenSpaceMousePos, queue) && (!CanReceiveMouseInput || Masking))
+            if (!base.BuildMouseInputQueue(screenSpaceMousePos, queue))
+                return false;
+
+            if (Masking && !ReceiveMouseInputAt(screenSpaceMousePos))
                 return false;
 
             for (int i = 0; i < aliveInternalChildren.Count; ++i)

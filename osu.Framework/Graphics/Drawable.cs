@@ -25,6 +25,7 @@ using System.Reflection;
 using System.Threading;
 using osu.Framework.Configuration;
 using osu.Framework.Development;
+using osu.Framework.Input.Bindings;
 using osu.Framework.Input.EventArgs;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
@@ -1911,16 +1912,24 @@ namespace osu.Framework.Graphics
                 nameof(OnJoystickRelease)
             };
 
-            public static bool HandleKeyboardInput(Drawable drawable) => get(drawable, keyboard_cached_values, keyboard_input_methods);
+            public static bool HandleKeyboardInput(Drawable drawable) => get(drawable, keyboard_cached_values, false);
 
-            public static bool HandleMouseInput(Drawable drawable) => get(drawable, mouse_cached_values, mouse_input_methods);
+            public static bool HandleMouseInput(Drawable drawable) => get(drawable, mouse_cached_values, true);
 
-            private static bool get(Drawable drawable, ConcurrentDictionary<Type, bool> cache, string[] inputMethods)
+            private static bool get(Drawable drawable, ConcurrentDictionary<Type, bool> cache, bool positional)
             {
                 var type = drawable.GetType();
-                if (cache.TryGetValue(type, out var value))
-                    return value;
+                if (!cache.TryGetValue(type, out var value))
+                {
+                    value = compute(type, positional);
+                    cache.TryAdd(type, value);
+                }
+                return value;
+            }
 
+            private static bool compute(Type type, bool positional)
+            {
+                var inputMethods = positional ? mouse_input_methods : keyboard_input_methods;
                 foreach (var inputMethod in inputMethods)
                 {
                     // check for any input method overrides which are at a higher level than drawable.
@@ -1928,15 +1937,14 @@ namespace osu.Framework.Graphics
 
                     Debug.Assert(method != null);
 
-                    // ReSharper disable once PossibleNullReferenceException
                     if (method.DeclaringType != typeof(Drawable))
-                    {
-                        cache.TryAdd(type, true);
                         return true;
-                    }
                 }
 
-                cache.TryAdd(type, false);
+                // KeyBindingContainer relies on InputQueue and thus a drawable implementing IKeyBindingHandler needs to be included.
+                if (!positional && typeof(IKeyBindingHandler).IsAssignableFrom(type))
+                    return true;
+
                 return false;
             }
         }
@@ -1983,14 +1991,14 @@ namespace osu.Framework.Graphics
         public virtual bool Contains(Vector2 screenSpacePos) => DrawRectangle.Contains(ToLocalSpace(screenSpacePos));
 
         /// <summary>
-        /// Whether this Drawable can keyboard receive input, taking into account all optimizations and masking.
+        /// Whether non-positional input should be propagated to the subtree rooted at this drawable.
         /// </summary>
-        public bool CanReceiveKeyboardInput => HandleKeyboardInput && IsPresent && !IsMaskedAway;
+        public bool PropagateKeyboardInputSubtree => IsPresent && !IsMaskedAway;
 
         /// <summary>
-        /// Whether this Drawable can mouse receive input, taking into account all optimizations and masking.
+        /// Whether positional input should be propagated to the subtree rooted at this drawable.
         /// </summary>
-        public bool CanReceiveMouseInput => HandleMouseInput && IsPresent && !IsMaskedAway;
+        public bool PropagateMouseInputSubtree => IsPresent && !IsMaskedAway;
 
         /// <summary>
         /// Creates a new InputState with mouse coodinates converted to the coordinate space of our parent.
@@ -2016,10 +2024,12 @@ namespace osu.Framework.Graphics
         /// <returns>Whether we have added ourself to the queue.</returns>
         internal virtual bool BuildKeyboardInputQueue(List<Drawable> queue, bool allowBlocking = true)
         {
-            if (!CanReceiveKeyboardInput)
+            if (!PropagateKeyboardInputSubtree)
                 return false;
 
-            queue.Add(this);
+            if (HandleKeyboardInput)
+                queue.Add(this);
+
             return true;
         }
 
@@ -2033,10 +2043,12 @@ namespace osu.Framework.Graphics
         /// <returns>Whether we have added ourself to the queue.</returns>
         internal virtual bool BuildMouseInputQueue(Vector2 screenSpaceMousePos, List<Drawable> queue)
         {
-            if (!CanReceiveMouseInput || !ReceiveMouseInputAt(screenSpaceMousePos))
+            if (!PropagateMouseInputSubtree)
                 return false;
 
-            queue.Add(this);
+            if (HandleMouseInput && ReceiveMouseInputAt(screenSpaceMousePos))
+                queue.Add(this);
+
             return true;
         }
 
