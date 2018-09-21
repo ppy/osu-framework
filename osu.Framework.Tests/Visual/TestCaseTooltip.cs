@@ -203,8 +203,8 @@ namespace osu.Framework.Tests.Visual
         {
             public string TooltipText { get; set; }
 
-            public override bool HandleKeyboardInput => true;
-            public override bool HandleMouseInput => true;
+            public override bool HandleNonPositionaInput => true;
+            public override bool HandlePositionaInput => true;
         }
 
         private class RectangleCursorContainer : CursorContainer

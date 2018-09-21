@@ -118,8 +118,8 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        public override bool HandleKeyboardInput => false;
-        public override bool HandleMouseInput => false;
+        public override bool HandleNonPositionaInput => false;
+        public override bool HandlePositionaInput => false;
 
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
