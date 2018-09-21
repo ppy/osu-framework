@@ -228,8 +228,10 @@ namespace osu.Framework.Graphics
 
             double t1 = getPerfTime();
 
-            handleKeyboardInput = HandleInputCache.HandleKeyboardInput(this);
-            handleMouseInput = HandleInputCache.HandleMouseInput(this);
+            PossiblyHandleKeyboardInput = HandleInputCache.HandleKeyboardInput(this) || HandleKeyboardInput;
+            PossiblyHandleMouseInput = HandleInputCache.HandleMouseInput(this) || HandleMouseInput;
+
+            PossiblyHandleInputSubtree = PossiblyHandleKeyboardInput;
 
             InjectDependencies(dependencies);
 
@@ -1861,19 +1863,20 @@ namespace osu.Framework.Graphics
         protected virtual bool OnJoystickRelease(InputState state, JoystickEventArgs args) => false;
         #endregion
 
-        private bool handleKeyboardInput, handleMouseInput;
+        internal bool PossiblyHandleKeyboardInput;
+        internal bool PossiblyHandleMouseInput;
 
         /// <summary>
         /// Whether this <see cref="Drawable"/> handles keyboard input.
         /// This value is true by default if any keyboard related "On-" input methods are overridden.
         /// </summary>
-        public virtual bool HandleKeyboardInput => handleKeyboardInput;
+        public virtual bool HandleKeyboardInput => PossiblyHandleKeyboardInput;
 
         /// <summary>
         /// Whether this <see cref="Drawable"/> handles mouse input.
         /// This value is true by default if any mouse related "On-" input methods are overridden.
         /// </summary>
-        public virtual bool HandleMouseInput => handleMouseInput;
+        public virtual bool HandleMouseInput => PossiblyHandleMouseInput;
 
         /// <summary>
         /// Nested class which is used for caching <see cref="HandleKeyboardInput"/>, <see cref="HandleMouseInput"/> values obtained via reflection.
@@ -1993,12 +1996,17 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Whether non-positional input should be propagated to the subtree rooted at this drawable.
         /// </summary>
-        public bool PropagateKeyboardInputSubtree => IsPresent && !IsMaskedAway;
+        public bool PropagateKeyboardInputSubtree => IsPresent && PossiblyHandleInputSubtree;
 
         /// <summary>
         /// Whether positional input should be propagated to the subtree rooted at this drawable.
         /// </summary>
         public bool PropagateMouseInputSubtree => IsPresent && !IsMaskedAway;
+
+        /// <summary>
+        /// If this is false, there is no decendant who handles non-positional input (but converse is not always true, it is conservative).
+        /// </summary>
+        internal bool PossiblyHandleInputSubtree;
 
         /// <summary>
         /// Creates a new InputState with mouse coodinates converted to the coordinate space of our parent.
@@ -2015,13 +2023,11 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
-        /// This method is responsible for building a queue of Drawables to receive keyboard input
-        /// in reverse order. This method is overridden by <see cref="T:Container"/> to be called on all
-        /// children such that the entire scene graph is covered.
+        /// This method is responsible for building a queue of Drawables to receive keyboard input in reverse order.
         /// </summary>
         /// <param name="queue">The input queue to be built.</param>
         /// <param name="allowBlocking">Whether blocking at <see cref="PassThroughInputManager"/>s should be allowed.</param>
-        /// <returns>Whether we have added ourself to the queue.</returns>
+        /// <returns>Returns false if we should skip this subtree.</returns>
         internal virtual bool BuildKeyboardInputQueue(List<Drawable> queue, bool allowBlocking = true)
         {
             if (!PropagateKeyboardInputSubtree)
@@ -2034,13 +2040,11 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
-        /// This method is responsible for building a queue of Drawables to receive mouse input
-        /// in reverse order. This method is overridden by <see cref="T:Container"/> to be called on all
-        /// children such that the entire scene graph is covered.
+        /// This method is responsible for building a queue of Drawables to receive mouse input in reverse order.
         /// </summary>
         /// <param name="screenSpaceMousePos">The current position of the mouse cursor in screen space.</param>
         /// <param name="queue">The input queue to be built.</param>
-        /// <returns>Whether we have added ourself to the queue.</returns>
+        /// <returns>Returns false if we should skip this subtree.</returns>
         internal virtual bool BuildMouseInputQueue(Vector2 screenSpaceMousePos, List<Drawable> queue)
         {
             if (!PropagateMouseInputSubtree)

@@ -416,6 +416,7 @@ namespace osu.Framework.Graphics.Containers
 
             internalChildren.Clear();
             aliveInternalChildren.Clear();
+            PossiblyHandleInputSubtree = PossiblyHandleKeyboardInput;
 
             if (AutoSizeAxes != Axes.None)
                 InvalidateFromChild(Invalidation.RequiredParentSizeToFit);
@@ -573,6 +574,12 @@ namespace osu.Framework.Graphics.Containers
                     if (child.LoadState >= LoadState.Ready)
                     {
                         aliveInternalChildren.Add(child);
+                        if (child.PossiblyHandleInputSubtree)
+                        {
+                            for (var ancestor = this; ancestor != null && !ancestor.PossiblyHandleInputSubtree; ancestor = ancestor.Parent)
+                                ancestor.PossiblyHandleInputSubtree = true;
+                        }
+
                         ChildBecameAlive?.Invoke(child);
                         child.IsAlive = true;
                         changed = true;
