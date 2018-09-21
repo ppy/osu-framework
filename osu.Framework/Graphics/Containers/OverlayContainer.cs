@@ -24,7 +24,7 @@ namespace osu.Framework.Graphics.Containers
 
         internal override bool BuildKeyboardInputQueue(List<Drawable> queue, bool allowBlocking = true)
         {
-            if (CanReceiveKeyboardInput && BlockPassThroughKeyboard)
+            if (PropagateKeyboardInputSubtree && HandleKeyboardInput && BlockPassThroughKeyboard)
             {
                 // when blocking keyboard input behind us, we still want to make sure the global handlers receive events
                 // but we don't want other drawables behind us handling them.
@@ -36,7 +36,7 @@ namespace osu.Framework.Graphics.Containers
 
         internal override bool BuildMouseInputQueue(Vector2 screenSpaceMousePos, List<Drawable> queue)
         {
-            if (CanReceiveMouseInput && BlockPassThroughMouse && ReceiveMouseInputAt(screenSpaceMousePos))
+            if (PropagateMouseInputSubtree && HandleMouseInput && BlockPassThroughMouse && ReceiveMouseInputAt(screenSpaceMousePos))
             {
                 // when blocking mouse input behind us, we still want to make sure the global handlers receive events
                 // but we don't want other drawables behind us handling them.
