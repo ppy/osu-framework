@@ -15,7 +15,7 @@ using System.Linq;
 namespace osu.Framework.Graphics.Cursor
 {
     /// <summary>
-    /// Displays Tooltips for all its children that inherit from the <see cref="IHasTooltip"/> or <see cref="IHasCustomTooltip"/> interfaces. Keep in mind that only children with <see cref="Drawable.HandlePositionaInput"/> set to true will be checked for their tooltips.
+    /// Displays Tooltips for all its children that inherit from the <see cref="IHasTooltip"/> or <see cref="IHasCustomTooltip"/> interfaces. Keep in mind that only children with <see cref="Drawable.HandlePositionalInput"/> set to true will be checked for their tooltips.
     /// </summary>
     public class TooltipContainer : CursorEffectContainer<TooltipContainer, IHasTooltip>, IHandleGlobalInput
     {
@@ -279,8 +279,8 @@ namespace osu.Framework.Graphics.Cursor
                 set => text.Text = value;
             }
 
-            public override bool HandleNonPositionaInput => false;
-            public override bool HandlePositionaInput => false;
+            public override bool HandleNonPositionalInput => false;
+            public override bool HandlePositionalInput => false;
 
             private const float text_size = 16;
 

@@ -1030,8 +1030,8 @@ namespace osu.Framework.Graphics.Containers
 
         // Required to pass through input to children by default.
         // TODO: Evaluate effects of this on performance and address.
-        public override bool HandleNonPositionaInput => true;
-        public override bool HandlePositionaInput => true;
+        public override bool HandleNonPositionalInput => true;
+        public override bool HandlePositionalInput => true;
 
         public override bool Contains(Vector2 screenSpacePos)
         {

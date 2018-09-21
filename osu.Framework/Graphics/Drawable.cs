@@ -227,7 +227,7 @@ namespace osu.Framework.Graphics
 
             double t1 = getPerfTime();
 
-            handleNonPositionaInput = HandleInputCache.HandleNonPositionalInput(this);
+            handleNonPositionalInput = HandleInputCache.HandleNonPositionalInput(this);
             handlePositionalInput = HandleInputCache.HandlePositionalInput(this);
 
             InjectDependencies(dependencies);
@@ -1860,22 +1860,22 @@ namespace osu.Framework.Graphics
         protected virtual bool OnJoystickRelease(InputState state, JoystickEventArgs args) => false;
         #endregion
 
-        private bool handleNonPositionaInput, handlePositionalInput;
+        private bool handleNonPositionalInput, handlePositionalInput;
 
         /// <summary>
         /// Whether this <see cref="Drawable"/> handles non-positional input.
         /// This value is true by default if any keyboard and other non-positional "On-" input methods are overridden.
         /// </summary>
-        public virtual bool HandleNonPositionaInput => handleNonPositionaInput;
+        public virtual bool HandleNonPositionalInput => handleNonPositionalInput;
 
         /// <summary>
         /// Whether this <see cref="Drawable"/> handles positional input.
         /// This value is true by default if any mouse related "On-" input methods are overridden.
         /// </summary>
-        public virtual bool HandlePositionaInput => handlePositionalInput;
+        public virtual bool HandlePositionalInput => handlePositionalInput;
 
         /// <summary>
-        /// Nested class which is used for caching <see cref="Drawable.HandleNonPositionaInput"/>, <see cref="Drawable.HandlePositionaInput"/> values obtained via reflection.
+        /// Nested class which is used for caching <see cref="Drawable.HandleNonPositionalInput"/>, <see cref="Drawable.HandlePositionalInput"/> values obtained via reflection.
         /// </summary>
         private static class HandleInputCache
         {
@@ -1985,12 +1985,12 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Whether this Drawable can receive non-positional input, taking into account all optimizations and masking.
         /// </summary>
-        public bool CanReceiveNonPositionalInput => HandleNonPositionaInput && IsPresent && !IsMaskedAway;
+        public bool CanReceiveNonPositionalInput => HandleNonPositionalInput && IsPresent && !IsMaskedAway;
 
         /// <summary>
         /// Whether this Drawable can receive positional input, taking into account all optimizations and masking.
         /// </summary>
-        public bool CanReceivePositionalInput => HandlePositionaInput && IsPresent && !IsMaskedAway;
+        public bool CanReceivePositionalInput => HandlePositionalInput && IsPresent && !IsMaskedAway;
 
         /// <summary>
         /// Creates a new InputState with mouse coodinates converted to the coordinate space of our parent.

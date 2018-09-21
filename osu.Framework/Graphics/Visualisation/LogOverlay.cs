@@ -153,8 +153,8 @@ namespace osu.Framework.Graphics.Visualisation
 
         private const float font_size = 14;
 
-        public override bool HandleNonPositionaInput => false;
-        public override bool HandlePositionaInput => false;
+        public override bool HandleNonPositionalInput => false;
+        public override bool HandlePositionalInput => false;
 
         public DrawableLogEntry(LogEntry entry)
         {

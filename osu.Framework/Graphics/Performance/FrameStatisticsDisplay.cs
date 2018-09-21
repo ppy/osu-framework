@@ -498,8 +498,8 @@ namespace osu.Framework.Graphics.Performance
                 Sprite.Texture = new Texture(atlas.Add(WIDTH, HEIGHT));
             }
 
-            public override bool HandleNonPositionaInput => false;
-            public override bool HandlePositionaInput => false;
+            public override bool HandleNonPositionalInput => false;
+            public override bool HandlePositionalInput => false;
         }
 
         private class CounterBar : Container
