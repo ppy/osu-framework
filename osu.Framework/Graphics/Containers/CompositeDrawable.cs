@@ -138,7 +138,7 @@ namespace osu.Framework.Graphics.Containers
                     return;
                 }
 
-                (scheduler ?? game.Scheduler).Add(() =>
+                (scheduler ?? Scheduler).Add(() =>
                 {
                     try
                     {
