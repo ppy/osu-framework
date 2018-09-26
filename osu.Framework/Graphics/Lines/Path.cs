@@ -30,12 +30,15 @@ namespace osu.Framework.Graphics.Lines
             }
         }
 
-        public override bool ReceiveMouseInputAt(Vector2 screenSpacePos)
+        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos)
         {
             var localPos = ToLocalSpace(screenSpacePos);
             var pathWidthSquared = PathWidth * PathWidth;
 
-            return segments.Any(s => s.DistanceSquaredToPoint(localPos) <= pathWidthSquared);
+            foreach (var t in segments)
+                if (t.DistanceSquaredToPoint(localPos) <= pathWidthSquared)
+                    return true;
+            return false;
         }
 
         public Vector2 PositionInBoundingBox(Vector2 pos) => pos - new Vector2(minX, minY);

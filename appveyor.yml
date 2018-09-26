@@ -11,6 +11,8 @@ install:
   - cmd: choco install resharper-clt -y
   - cmd: choco install nvika -y
   - cmd: dotnet tool install CodeFileSanity --version 0.0.16 --global
+  - cmd: pip install httpbin waitress
+  - ps: Start-Process waitress-serve "--listen=*:80 httpbin:app" -PassThru
 before_build:
   - cmd: CodeFileSanity
   - cmd: nuget restore
@@ -24,5 +26,3 @@ after_build:
   - cmd: dotnet pack osu.Framework --include-symbols /p:Version=0.0.%APPVEYOR_BUILD_VERSION%
 artifacts:
   - path: osu.Framework/bin/Debug/*.nupkg
-
-  

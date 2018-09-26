@@ -48,7 +48,7 @@ namespace osu.Framework.Platform.MacOS
         private MethodInfo methodKeyUp;
         private MethodInfo methodInvalidateCursorRects;
 
-        private WindowMode? newWindowMode;
+        private WindowMode? pendingWindowMode;
 
         private object nativeWindow;
 
@@ -109,19 +109,19 @@ namespace osu.Framework.Platform.MacOS
 
         private void windowDidEnterFullScreen(IntPtr self, IntPtr cmd, IntPtr notification)
         {
-            if ((newWindowMode ?? WindowMode.Value) == Configuration.WindowMode.Windowed)
-                newWindowMode = Configuration.WindowMode.Borderless;
+            if ((pendingWindowMode ?? WindowMode.Value) == Configuration.WindowMode.Windowed)
+                pendingWindowMode = Configuration.WindowMode.Borderless;
         }
 
-        private void windowDidExitFullScreen(IntPtr self, IntPtr cmd, IntPtr notification) => newWindowMode = Configuration.WindowMode.Windowed;
+        private void windowDidExitFullScreen(IntPtr self, IntPtr cmd, IntPtr notification) => pendingWindowMode = Configuration.WindowMode.Windowed;
 
         protected void OnUpdateFrame(object sender, FrameEventArgs e)
         {
             // update the window mode if we have an update queued
-            WindowMode? mode = newWindowMode;
+            WindowMode? mode = pendingWindowMode;
             if (mode.HasValue)
             {
-                newWindowMode = null;
+                pendingWindowMode = null;
 
                 bool currentFullScreen = styleMask.HasFlag(NSWindowStyleMask.FullScreen);
                 bool toggleFullScreen = mode.Value == Configuration.WindowMode.Borderless || mode.Value == Configuration.WindowMode.Fullscreen ? !currentFullScreen : currentFullScreen;
@@ -203,21 +203,21 @@ namespace osu.Framework.Platform.MacOS
         // FIXME: OpenTK's current window:shouldZoomToFrame: is broken and can't be overridden, so we replace it
         private bool windowShouldZoomToFrame(IntPtr self, IntPtr cmd, IntPtr nsWindow, RectangleF toFrame) => true;
 
-        protected override void UpdateWindowMode(WindowMode newMode) => newWindowMode = newMode;
+        protected override void UpdateWindowMode(WindowMode newMode)
+        {
+            pendingWindowMode = newMode;
+
+            // local implementation is overriding Fullscreen/Borderless behaviour.
+            if (newMode != Configuration.WindowMode.Windowed) return;
+
+            base.UpdateWindowMode(newMode);
+        }
 
         // Apple recommends not changing the system resolution for fullscreen access
         protected override void ChangeResolution(DisplayDevice display, Size newSize) => ClientSize = newSize;
 
-        public override IEnumerable<DisplayResolution> AvailableResolutions
-        {
-            get
-            {
-                // only return the current resolution for reasons mentioned above.
-                var display = GetCurrentDisplay();
-                return display.AvailableResolutions.Where(dr =>
-                    dr.Width == display.Width && dr.Height == display.Height && dr.BitsPerPixel == display.BitsPerPixel && dr.RefreshRate == display.RefreshRate);
-            }
-        }
+        // Doesn't return any resolution for the reason mentioned above
+        public override IEnumerable<DisplayResolution> AvailableResolutions => Enumerable.Empty<DisplayResolution>();
 
         protected override void RestoreResolution(DisplayDevice displayDevice)
         {

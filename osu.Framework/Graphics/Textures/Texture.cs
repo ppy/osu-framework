@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.IO;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.Primitives;
 using OpenTK;
@@ -46,6 +47,30 @@ namespace osu.Framework.Graphics.Textures
         {
         }
 
+        /// <summary>
+        /// Creates a texture from a data stream representing a bitmap.
+        /// </summary>
+        /// <param name="stream">The data stream containing the texture data.</param>
+        /// <param name="atlas">The atlas to add the texture to.</param>
+        /// <returns>The created texture.</returns>
+        public static Texture FromStream(Stream stream, TextureAtlas atlas = null)
+        {
+            if (stream == null || stream.Length == 0)
+                return null;
+
+            try
+            {
+                var data = new TextureUpload(stream);
+                Texture tex = atlas == null ? new Texture(data.Width, data.Height) : new Texture(atlas.Add(data.Width, data.Height));
+                tex.SetData(data);
+                return tex;
+            }
+            catch (ArgumentException)
+            {
+                return null;
+            }
+        }
+
         public int Width
         {
             get => TextureGL.Width;
@@ -60,9 +85,14 @@ namespace osu.Framework.Graphics.Textures
 
         public Vector2 Size => new Vector2(Width, Height);
 
-        public void SetData(TextureUpload data)
+        /// <summary>
+        /// Queue a <see cref="TextureUpload"/> to be uploaded on the draw thread.
+        /// The provided upload will be disposed after the upload is completed.
+        /// </summary>
+        /// <param name="upload"></param>
+        public void SetData(ITextureUpload upload)
         {
-            TextureGL?.SetData(data);
+            TextureGL?.SetData(upload);
         }
 
         protected virtual RectangleF TextureBounds(RectangleF? textureRect = null)
@@ -101,9 +131,12 @@ namespace osu.Framework.Graphics.Textures
 
         public override string ToString() => $@"{AssetName} ({Width}, {Height})";
 
-        #region Disposal
+        /// <summary>
+        /// Whether <see cref="TextureGL"/> is in a usable state.
+        /// </summary>
+        public virtual bool Available => !TextureGL.IsDisposed;
 
-        public bool IsDisposed { get; private set; }
+        #region Disposal
 
         // Intentionally no finalizer implementation as our disposal is NOOP. Finalizer is implemented in TextureWithRefCount usage.
 
@@ -114,8 +147,6 @@ namespace osu.Framework.Graphics.Textures
 
         protected virtual void Dispose(bool isDisposing)
         {
-            if (IsDisposed) return;
-            IsDisposed = true;
         }
 
         #endregion

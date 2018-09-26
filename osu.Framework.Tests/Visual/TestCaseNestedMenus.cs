@@ -473,6 +473,9 @@ namespace osu.Framework.Tests.Visual
                         break;
 
                     var container = (CompositeDrawable)currentMenu.InternalChildren[1];
+
+                    // ReSharper disable once ArrangeRedundantParentheses
+                    // Broken resharper inspection (https://youtrack.jetbrains.com/issue/RIDER-19843)
                     currentMenu = (container.InternalChildren.Count > 0 ? container.InternalChildren[0] : null) as Menu;
                 }
 

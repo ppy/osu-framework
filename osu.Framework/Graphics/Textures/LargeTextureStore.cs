@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.IO.Stores;
+using OpenTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Textures
 {
@@ -10,8 +11,8 @@ namespace osu.Framework.Graphics.Textures
     /// </summary>
     public class LargeTextureStore : TextureStore
     {
-        public LargeTextureStore(IResourceStore<RawTexture> store = null)
-            : base(store, false)
+        public LargeTextureStore(IResourceStore<TextureUpload> store = null)
+            : base(store, false, All.Linear, true)
         {
         }
 

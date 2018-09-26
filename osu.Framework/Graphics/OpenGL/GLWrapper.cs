@@ -17,6 +17,7 @@ using osu.Framework.Statistics;
 using osu.Framework.MathUtils;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Colour;
+using osu.Framework.Lists;
 using osu.Framework.Platform;
 
 namespace osu.Framework.Graphics.OpenGL
@@ -87,12 +88,7 @@ namespace osu.Framework.Graphics.OpenGL
             lastBlendingInfo = new BlendingInfo();
             lastBlendingEnabledState = null;
 
-            foreach (IVertexBatch b in this_frame_batches)
-                b.ResetCounters();
-
-            this_frame_batches.Clear();
-            if (lastActiveBatch != null)
-                this_frame_batches.Add(lastActiveBatch);
+            all_batches.ForEachAlive(b => b.ResetCounters());
 
             lastFrameBuffer = 0;
 
@@ -175,7 +171,7 @@ namespace osu.Framework.Graphics.OpenGL
 
         private static IVertexBatch lastActiveBatch;
 
-        private static readonly List<IVertexBatch> this_frame_batches = new List<IVertexBatch>();
+        private static readonly WeakList<IVertexBatch> all_batches = new WeakList<IVertexBatch>();
 
         /// <summary>
         /// Sets the last vertex batch used for drawing.
@@ -191,11 +187,14 @@ namespace osu.Framework.Graphics.OpenGL
 
             FlushCurrentBatch();
 
-            if (batch != null && !this_frame_batches.Contains(batch))
-                this_frame_batches.Add(batch);
-
             lastActiveBatch = batch;
         }
+
+        /// <summary>
+        /// Begins tracking a <see cref="IVertexBatch"/>, resetting its counters every frame. This should be invoked once for every <see cref="IVertexBatch"/> in use.
+        /// </summary>
+        /// <param name="batch">The batch to register.</param>
+        internal static void RegisterVertexBatch(IVertexBatch batch) => reset_scheduler.Add(() => all_batches.Add(batch));
 
         private static TextureGL lastBoundTexture;
 
