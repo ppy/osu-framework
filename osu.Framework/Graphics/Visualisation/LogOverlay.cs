@@ -105,7 +105,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         protected override bool OnKeyUp(KeyUpEvent e)
         {
-            if (!e.CurrentState.Keyboard.ControlPressed)
+            if (!e.ControlPressed)
                 setHoldState(false);
             return base.OnKeyUp(e);
         }

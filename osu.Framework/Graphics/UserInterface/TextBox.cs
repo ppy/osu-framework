@@ -646,7 +646,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (textInput?.ImeActive == true || ReadOnly) return true;
 
-            if (e.CurrentState.Keyboard.ControlPressed || e.CurrentState.Keyboard.SuperPressed)
+            if (e.ControlPressed || e.SuperPressed)
                 return false;
 
             // we only care about keys which can result in text output.
@@ -696,7 +696,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnKeyUp(KeyUpEvent e)
         {
-            if (!e.CurrentState.Keyboard.Keys.Any())
+            if (!e.HasAnyKeyPressed)
                 EndConsumingText();
 
             return base.OnKeyUp(e);

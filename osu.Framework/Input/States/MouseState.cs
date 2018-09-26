@@ -9,13 +9,9 @@ namespace osu.Framework.Input.States
 {
     public class MouseState
     {
-        public ButtonStates<MouseButton> Buttons { get; private set; } = new ButtonStates<MouseButton>();
+        public readonly ButtonStates<MouseButton> Buttons = new ButtonStates<MouseButton>();
 
         public Vector2 Scroll { get; set; }
-
-        public bool HasMainButtonPressed => Buttons.IsPressed(MouseButton.Left) || Buttons.IsPressed(MouseButton.Right);
-
-        public bool HasAnyButtonPressed => Buttons.HasAnyButtonPressed;
 
         public Vector2 Position { get; set; }
 

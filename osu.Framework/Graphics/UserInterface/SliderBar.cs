@@ -7,7 +7,6 @@ using osu.Framework.Graphics.Containers;
 using OpenTK.Input;
 using OpenTK;
 using osu.Framework.Input.Events;
-using KeyboardState = osu.Framework.Input.States.KeyboardState;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -89,13 +88,13 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnClick(ClickEvent e)
         {
-            handleMouseInput(e.ScreenSpaceMousePosition, e.CurrentState.Keyboard);
+            handleMouseInput(e);
             return true;
         }
 
         protected override bool OnDrag(DragEvent e)
         {
-            handleMouseInput(e.ScreenSpaceMousePosition, e.CurrentState.Keyboard);
+            handleMouseInput(e);
             return true;
         }
 
@@ -131,12 +130,12 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        private void handleMouseInput(Vector2 screenSpaceMousePosition, KeyboardState keyboardState)
+        private void handleMouseInput(UIEvent e)
         {
-            var xPosition = ToLocalSpace(screenSpaceMousePosition).X - RangePadding;
+            var xPosition = ToLocalSpace(e.ScreenSpaceMousePosition).X - RangePadding;
 
             if (!CurrentNumber.Disabled)
-                CurrentNumber.SetProportional(xPosition / UsableWidth, keyboardState.ShiftPressed ? KeyboardStep : 0);
+                CurrentNumber.SetProportional(xPosition / UsableWidth, e.ShiftPressed ? KeyboardStep : 0);
 
             OnUserChange();
         }

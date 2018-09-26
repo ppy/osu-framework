@@ -12,7 +12,6 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
 using osu.Framework.Input.Events;
-using osu.Framework.Input.States;
 using osu.Framework.Testing;
 using OpenTK;
 using OpenTK.Graphics;
@@ -588,19 +587,19 @@ namespace osu.Framework.Tests.Visual
 
                 protected override bool OnMouseDown(MouseDownEvent e)
                 {
-                    adjustForMouseDown(e.CurrentState);
+                    adjustForMouseDown(e);
                     return base.OnMouseDown(e);
                 }
 
                 protected override bool OnMouseUp(MouseUpEvent e)
                 {
-                    adjustForMouseDown(e.CurrentState);
+                    adjustForMouseDown(e);
                     return base.OnMouseUp(e);
                 }
 
-                private void adjustForMouseDown(InputState state)
+                private void adjustForMouseDown(UIEvent e)
                 {
-                    circle.FadeColour(state.Mouse.HasAnyButtonPressed ? Color4.Green.Lighten((state.Mouse.Buttons.Count() - 1) * 0.3f) : Color4.White, 50);
+                    circle.FadeColour(e.HasAnyButtonPressed ? Color4.Green.Lighten((e.PressedButtons.Count() - 1) * 0.3f) : Color4.White, 50);
                 }
             }
         }
