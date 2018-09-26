@@ -429,7 +429,7 @@ namespace osu.Framework.Tests.Visual
                 return false;
             }
 
-            public override bool ReceiveMouseInputAt(Vector2 screenSpacePos) => true;
+            public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => true;
         }
 
         private class ScrollTestButton : TestButton, IScrollBindingHandler<TestAction>

@@ -31,9 +31,9 @@ namespace osu.Framework.Graphics.Cursor
 
         protected virtual Drawable CreateCursor() => new Cursor();
 
-        public override bool ReceiveMouseInputAt(Vector2 screenSpacePos) => true;
+        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => true;
 
-        public override bool HandleMouseInput => IsPresent; // make sure we are still updating position during possible fade out.
+        public override bool HandlePositionalInput => IsPresent; // make sure we are still updating position during possible fade out.
 
         protected override bool OnMouseMove(InputState state)
         {

@@ -416,7 +416,7 @@ namespace osu.Framework.Graphics.Containers
 
             internalChildren.Clear();
             aliveInternalChildren.Clear();
-            PossiblyHandleInputSubtree = PossiblyHandleKeyboardInput;
+            PossiblyHandleNonPositionalInputSubtree = PossiblyHandleNonPositionalInput;
 
             if (AutoSizeAxes != Axes.None)
                 InvalidateFromChild(Invalidation.RequiredParentSizeToFit);
@@ -574,10 +574,10 @@ namespace osu.Framework.Graphics.Containers
                     if (child.LoadState >= LoadState.Ready)
                     {
                         aliveInternalChildren.Add(child);
-                        if (child.PossiblyHandleInputSubtree)
+                        if (child.PossiblyHandleNonPositionalInputSubtree)
                         {
-                            for (var ancestor = this; ancestor != null && !ancestor.PossiblyHandleInputSubtree; ancestor = ancestor.Parent)
-                                ancestor.PossiblyHandleInputSubtree = true;
+                            for (var ancestor = this; ancestor != null && !ancestor.PossiblyHandleNonPositionalInputSubtree; ancestor = ancestor.Parent)
+                                ancestor.PossiblyHandleNonPositionalInputSubtree = true;
                         }
 
                         ChildBecameAlive?.Invoke(child);
@@ -1045,27 +1045,27 @@ namespace osu.Framework.Graphics.Containers
             return DrawRectangle.Shrink(cRadius).DistanceSquared(ToLocalSpace(screenSpacePos)) <= cRadius * cRadius;
         }
 
-        internal override bool BuildKeyboardInputQueue(List<Drawable> queue, bool allowBlocking = true)
+        internal override bool BuildNonPositionalInputQueue(List<Drawable> queue, bool allowBlocking = true)
         {
-            if (!base.BuildKeyboardInputQueue(queue, allowBlocking))
+            if (!base.BuildNonPositionalInputQueue(queue, allowBlocking))
                 return false;
 
             for (int i = 0; i < aliveInternalChildren.Count; ++i)
-                aliveInternalChildren[i].BuildKeyboardInputQueue(queue, allowBlocking);
+                aliveInternalChildren[i].BuildNonPositionalInputQueue(queue, allowBlocking);
 
             return true;
         }
 
-        internal override bool BuildMouseInputQueue(Vector2 screenSpaceMousePos, List<Drawable> queue)
+        internal override bool BuildPositionalInputQueue(Vector2 screenSpacePos, List<Drawable> queue)
         {
-            if (!base.BuildMouseInputQueue(screenSpaceMousePos, queue))
+            if (!base.BuildPositionalInputQueue(screenSpacePos, queue))
                 return false;
 
-            if (Masking && !ReceiveMouseInputAt(screenSpaceMousePos))
+            if (Masking && !ReceivePositionalInputAt(screenSpacePos))
                 return false;
 
             for (int i = 0; i < aliveInternalChildren.Count; ++i)
-                aliveInternalChildren[i].BuildMouseInputQueue(screenSpaceMousePos, queue);
+                aliveInternalChildren[i].BuildPositionalInputQueue(screenSpacePos, queue);
 
             return true;
         }
