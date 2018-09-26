@@ -1864,18 +1864,25 @@ namespace osu.Framework.Graphics
         protected virtual bool OnJoystickRelease(InputState state, JoystickEventArgs args) => false;
         #endregion
 
+        /// <summary>
+        /// Whether this drawable possibly handles non-positional input now or in the future.
+        /// </summary>
         internal bool PossiblyHandleNonPositionalInput;
+
+        /// <summary>
+        /// Whether this drawable possibly handles positional input now or in the future.
+        /// </summary>
         internal bool PossiblyHandlePositionalInput;
 
         /// <summary>
         /// Whether this <see cref="Drawable"/> handles non-positional input.
-        /// This value is true by default if any keyboard and other non-positional "On-" input methods are overridden.
+        /// This value is true by default if <see cref="Handle"/> or any non-positional "On-" input methods are overridden.
         /// </summary>
         public virtual bool HandleNonPositionalInput => PossiblyHandleNonPositionalInput;
 
         /// <summary>
         /// Whether this <see cref="Drawable"/> handles positional input.
-        /// This value is true by default if any mouse related "On-" input methods are overridden.
+        /// This value is true by default if <see cref="Handle"/> or any positional "On-" input methods are overridden.
         /// </summary>
         public virtual bool HandlePositionalInput => PossiblyHandlePositionalInput;
 
