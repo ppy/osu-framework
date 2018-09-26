@@ -597,7 +597,7 @@ namespace osu.Framework.Tests.Visual
                     return base.OnMouseUp(e);
                 }
 
-                private void adjustForMouseDown(UIEvent e)
+                private void adjustForMouseDown(MouseEvent e)
                 {
                     circle.FadeColour(e.HasAnyButtonPressed ? Color4.Green.Lighten((e.PressedButtons.Count() - 1) * 0.3f) : Color4.White, 50);
                 }

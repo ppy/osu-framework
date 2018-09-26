@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Collections.Generic;
 using JetBrains.Annotations;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
@@ -52,64 +51,24 @@ namespace osu.Framework.Input.Events
         public Vector2 MousePosition => ToLocalSpace(ScreenSpaceMousePosition);
 
         /// <summary>
-        /// Whether a specific mouse button is pressed.
-        /// </summary>
-        public bool IsPressed(MouseButton button) => CurrentState.Mouse.Buttons.IsPressed(button);
-
-        /// <summary>
-        /// Whether any mouse button is pressed.
-        /// </summary>
-        public bool HasAnyButtonPressed => CurrentState.Mouse.Buttons.HasAnyButtonPressed;
-
-        /// <summary>
-        /// List of currently pressed mouse buttons.
-        /// </summary>
-        public IEnumerable<MouseButton> PressedButtons => CurrentState.Mouse.Buttons;
-
-        /// <summary>
-        /// Whether a specific key is pressed.
-        /// </summary>
-        public bool IsPressed(Key key) => CurrentState.Keyboard.Keys.IsPressed(key);
-
-        /// <summary>
-        /// Whether any key is pressed.
-        /// </summary>
-        public bool HasAnyKeyPressed => CurrentState.Keyboard.Keys.HasAnyButtonPressed;
-
-        /// <summary>
         /// Whether left or right control key is pressed.
         /// </summary>
-        public bool ControlPressed => IsPressed(Key.LControl) || IsPressed(Key.RControl);
+        public bool ControlPressed => CurrentState.Keyboard.Keys.IsPressed(Key.LControl) || CurrentState.Keyboard.Keys.IsPressed(Key.RControl);
 
         /// <summary>
         /// Whether left or right alt key is pressed.
         /// </summary>
-        public bool AltPressed => IsPressed(Key.LAlt) || IsPressed(Key.RAlt);
+        public bool AltPressed => CurrentState.Keyboard.Keys.IsPressed(Key.LAlt) || CurrentState.Keyboard.Keys.IsPressed(Key.RAlt);
 
         /// <summary>
         /// Whether left or right shift key is pressed.
         /// </summary>
-        public bool ShiftPressed => IsPressed(Key.LShift) || IsPressed(Key.RShift);
+        public bool ShiftPressed => CurrentState.Keyboard.Keys.IsPressed(Key.LShift) || CurrentState.Keyboard.Keys.IsPressed(Key.RShift);
 
         /// <summary>
-        /// Whether (Win key on Windows, or Command key on Mac) is pressed.
+        /// Whether left or right super key (Win key on Windows, or Command key on Mac) is pressed.
         /// </summary>
-        public bool SuperPressed => IsPressed(Key.LWin) || IsPressed(Key.RWin);
-
-        /// <summary>
-        /// List of currently pressed keys.
-        /// </summary>
-        public IEnumerable<Key> PressedKeys => CurrentState.Keyboard.Keys;
-
-        /// <summary>
-        /// List of currently pressed joystick buttons.
-        /// </summary>
-        public IEnumerable<JoystickButton> PressedJoystickButtons => CurrentState.Joystick.Buttons;
-
-        /// <summary>
-        /// List of joystick axes. Axes which have zero value may be omitted.
-        /// </summary>
-        public IEnumerable<JoystickAxis> JoystickAxes => CurrentState.Joystick.Axes;
+        public bool SuperPressed => CurrentState.Keyboard.Keys.IsPressed(Key.LWin) || CurrentState.Keyboard.Keys.IsPressed(Key.RWin);
 
         protected UIEvent([NotNull] InputState state)
         {
