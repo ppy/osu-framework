@@ -374,7 +374,7 @@ namespace osu.Framework.Graphics.Sprites
                 if (!requiresAutoSizedWidth)
                 {
                     // If x axis is auto sized directly or indirectly, allow infinite expansion for the axis.
-                    if (!(Parent != null && RelativeSizeAxes.HasFlag(Axes.X) && Parent.DirectlyOrIndirectlyAutoSizedAxes.HasFlag(Axes.X)))
+                    if (Parent == null || !RelativeSizeAxes.HasFlag(Axes.X) || !Parent.DirectlyOrIndirectlyAutoSizedAxes.HasFlag(Axes.X))
                     {
                         maxWidth = ApplyRelativeAxesBeforeParentAutoSize(RelativeSizeAxes, new Vector2(base.Width, base.Height), FillMode).X - Padding.Right;
                     }
