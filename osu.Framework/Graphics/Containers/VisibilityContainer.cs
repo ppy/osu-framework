@@ -67,8 +67,8 @@ namespace osu.Framework.Graphics.Containers
 
         public override void Show() => State = Visibility.Visible;
 
-        public override bool HandleKeyboardInput => State == Visibility.Visible;
-        public override bool HandleMouseInput => State == Visibility.Visible;
+        public override bool HandleNonPositionalInput => State == Visibility.Visible;
+        public override bool HandlePositionalInput => State == Visibility.Visible;
 
         public event Action<Visibility> StateChanged;
 
