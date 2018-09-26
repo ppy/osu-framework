@@ -196,7 +196,8 @@ namespace osu.Framework.Platform
                         break;
                 }
             }
-            finally {
+            finally
+            {
                 inWindowModeTransition = false;
             }
 
