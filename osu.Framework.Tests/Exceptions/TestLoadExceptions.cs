@@ -212,12 +212,18 @@ namespace osu.Framework.Tests.Exceptions
 
                         host.Run(game);
                     }
-
                 }
             }
             finally
             {
-                storage?.DeleteDirectory(string.Empty);
+                try
+                {
+                    storage?.DeleteDirectory(string.Empty);
+                }
+                catch
+                {
+                    // May fail due to the file handles still being open on Windows, but this isn't a big problem for us
+                }
             }
         }
 

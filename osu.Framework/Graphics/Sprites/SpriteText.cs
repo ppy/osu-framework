@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -6,13 +6,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using osu.Framework.Allocation;
 using osu.Framework.Caching;
-using osu.Framework.Configuration;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.Graphics.UserInterface;
 using osu.Framework.IO.Stores;
+using osu.Framework.Localisation;
 using osu.Framework.MathUtils;
 using OpenTK;
 using OpenTK.Graphics;
@@ -22,7 +21,7 @@ namespace osu.Framework.Graphics.Sprites
     /// <summary>
     /// A container for simple text rendering purposes. If more complex text rendering is required, use <see cref="TextFlowContainer"/> instead.
     /// </summary>
-    public partial class SpriteText : Drawable, IHasCurrentValue<string>, IHasLineBaseHeight, IHasText, IHasFilterTerms, IFillFlowContainer
+    public partial class SpriteText : Drawable, IHasLineBaseHeight, IHasText, IHasFilterTerms, IFillFlowContainer
     {
         private const float default_text_size = 20;
         private static readonly Vector2 shadow_offset = new Vector2(0, 0.06f);
@@ -30,38 +29,20 @@ namespace osu.Framework.Graphics.Sprites
         [Resolved]
         private FontStore store { get; set; }
 
+        [Resolved]
+        private LocalisationManager localisation { get; set; }
+
+        private ILocalisedBindableString localisedText;
+
         private float spaceWidth;
 
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
         {
-            spaceWidth = GetTextureForCharacter('.')?.DisplayWidth * 2 ?? 1;
-            sharedData.TextureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
-            sharedData.RoundedTextureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
-
-            // Pre-cache the characters in the texture store
-            if (!string.IsNullOrEmpty(Text))
+            localisedText = localisation.GetLocalisedString(text);
+            localisedText.BindValueChanged(t =>
             {
-                foreach (var character in Text)
-                    GetTextureForCharacter(character);
-            }
-        }
-
-        private string text;
-
-        /// <summary>
-        /// Gets or sets the text to be displayed.
-        /// </summary>
-        public string Text
-        {
-            get => text;
-            set
-            {
-                if (text == value)
-                    return;
-                text = value;
-
-                if (string.IsNullOrEmpty(text))
+                if (string.IsNullOrEmpty(t))
                 {
                     // We'll become not present and won't update the characters to set the size to 0, so do it manually
                     if (requiresAutoSizedWidth)
@@ -71,7 +52,42 @@ namespace osu.Framework.Graphics.Sprites
                 }
 
                 invalidate(true);
+            }, true);
+
+            spaceWidth = GetTextureForCharacter('.')?.DisplayWidth * 2 ?? 1;
+            sharedData.TextureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
+            sharedData.RoundedTextureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
+
+            // Pre-cache the characters in the texture store
+            foreach (var character in displayedText)
+                GetTextureForCharacter(character);
+        }
+
+        private LocalisedString text = string.Empty;
+
+        /// <summary>
+        /// Gets or sets the text to be displayed.
+        /// </summary>
+        public LocalisedString Text
+        {
+            get => text;
+            set
+            {
+                if (text == value)
+                    return;
+                text = value;
+
+                if (localisedText != null)
+                    localisedText.Text = value;
             }
+        }
+
+        private string displayedText => localisedText?.Value ?? text.Text.Original;
+
+        string IHasText.Text
+        {
+            get => Text;
+            set => Text = value;
         }
 
         private float textSize = default_text_size;
@@ -313,7 +329,7 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        public override bool IsPresent => base.IsPresent && (AlwaysPresent || !string.IsNullOrEmpty(text));
+        public override bool IsPresent => base.IsPresent && (AlwaysPresent || !string.IsNullOrEmpty(displayedText));
 
         #region Characters
 
@@ -351,7 +367,7 @@ namespace osu.Framework.Graphics.Sprites
 
             try
             {
-                if (string.IsNullOrEmpty(Text))
+                if (string.IsNullOrEmpty(displayedText))
                     return;
 
                 float maxWidth = float.PositiveInfinity;
@@ -360,7 +376,7 @@ namespace osu.Framework.Graphics.Sprites
 
                 float currentRowHeight = 0;
 
-                foreach (var character in Text)
+                foreach (var character in displayedText)
                 {
                     bool useFixedWidth = FixedWidth && UseFixedWidthForCharacter(character);
 
@@ -472,10 +488,10 @@ namespace osu.Framework.Graphics.Sprites
         }
 
         private Cached<float> constantWidthCache;
-        private float constantWidth => constantWidthCache.IsValid ? constantWidthCache.Value : (constantWidthCache.Value = GetTextureForCharacter('D')?.DisplayWidth ?? 0);
+        private float constantWidth => constantWidthCache.IsValid ? constantWidthCache.Value : constantWidthCache.Value = GetTextureForCharacter('D')?.DisplayWidth ?? 0;
 
         private Cached<Vector2> shadowOffsetCache;
-        private Vector2 shadowOffset => shadowOffsetCache.IsValid ? shadowOffsetCache.Value : (shadowOffsetCache.Value = ToScreenSpace(shadow_offset * TextSize) - ToScreenSpace(Vector2.Zero));
+        private Vector2 shadowOffset => shadowOffsetCache.IsValid ? shadowOffsetCache.Value : shadowOffsetCache.Value = ToScreenSpace(shadow_offset * TextSize) - ToScreenSpace(Vector2.Zero);
 
         #endregion
 
@@ -584,32 +600,7 @@ namespace osu.Framework.Graphics.Sprites
 
         public override string ToString()
         {
-            return $@"""{Text}"" " + base.ToString();
-        }
-
-        private Bindable<string> current;
-
-        /// <summary>
-        /// Implements the <see cref="IHasCurrentValue{T}"/> interface.
-        /// </summary>
-        public Bindable<string> Current
-        {
-            get => current;
-            set
-            {
-                if (current != null)
-                    current.ValueChanged -= setText;
-
-                if (value != null)
-                {
-                    value.ValueChanged += setText;
-                    value.TriggerChange();
-                }
-
-                current = value;
-
-                void setText(string t) => Text = t;
-            }
+            return $@"""{displayedText}"" " + base.ToString();
         }
 
         /// <summary>
@@ -623,16 +614,16 @@ namespace osu.Framework.Graphics.Sprites
                 if (baseHeight.HasValue)
                     return baseHeight.Value * TextSize;
 
-                if (string.IsNullOrEmpty(Text))
+                if (string.IsNullOrEmpty(displayedText))
                     return 0;
 
-                return store.GetBaseHeight(Text[0]).GetValueOrDefault() * TextSize;
+                return store.GetBaseHeight(displayedText[0]).GetValueOrDefault() * TextSize;
             }
         }
 
         public IEnumerable<string> FilterTerms
         {
-            get { yield return Text; }
+            get { yield return displayedText; }
         }
     }
 }

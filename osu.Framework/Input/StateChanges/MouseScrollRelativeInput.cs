@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using osu.Framework.Input.StateChanges.Events;
 using osu.Framework.Input.States;
 using OpenTK;
 
@@ -27,10 +28,9 @@ namespace osu.Framework.Input.StateChanges
             var mouse = state.Mouse;
             if (Delta != Vector2.Zero)
             {
-                mouse.LastScroll = mouse.Scroll;
+                var lastScroll = mouse.Scroll;
                 mouse.Scroll += Delta;
-                mouse.HasPreciseScroll = IsPrecise;
-                handler.HandleMouseScrollChange(state);
+                handler.HandleInputStateChange(new MouseScrollChangeEvent(state, this, lastScroll, IsPrecise));
             }
         }
     }

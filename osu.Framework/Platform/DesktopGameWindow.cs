@@ -90,6 +90,7 @@ namespace osu.Framework.Platform
             var newResolution = display.AvailableResolutions
                                               .Where(r => r.Width == newSize.Width && r.Height == newSize.Height)
                                               .OrderByDescending(r => r.RefreshRate)
+                                              .ThenByDescending(r => r.BitsPerPixel)
                                               .FirstOrDefault();
 
             if (newResolution == null)
@@ -176,18 +177,21 @@ namespace osu.Framework.Platform
                         WindowState = WindowState.Maximized;
                         WindowBorder = WindowBorder.Hidden;
 
-                        //must add 1 to enter borderless
+                        // must add 1 to enter borderless
                         ClientSize = new Size(currentDisplay.Bounds.Width + 1, currentDisplay.Bounds.Height + 1);
+                        Location = currentDisplay.Bounds.Location;
                         break;
                     case Configuration.WindowMode.Windowed:
                         if (lastFullscreenDisplay != null)
                             RestoreResolution(lastFullscreenDisplay);
                         lastFullscreenDisplay = null;
 
+                        var newSize = sizeWindowed.Value;
+
                         WindowState = WindowState.Normal;
                         WindowBorder = WindowBorder.Resizable;
 
-                        ClientSize = sizeWindowed;
+                        ClientSize = newSize;
                         Position = new Vector2((float)windowPositionX, (float)windowPositionY);
                         break;
                 }
