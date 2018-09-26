@@ -66,7 +66,7 @@ namespace osu.Framework.Tests.Visual
             private bool enabled;
             public bool Enabled
             {
-                get => enabled;
+                protected get => enabled;
                 set
                 {
                     enabled = value;
