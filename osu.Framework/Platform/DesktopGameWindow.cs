@@ -24,6 +24,9 @@ namespace osu.Framework.Platform
         private readonly BindableDouble windowPositionX = new BindableDouble();
         private readonly BindableDouble windowPositionY = new BindableDouble();
 
+        private DisplayDevice lastFullscreenDisplay;
+        private bool inWindowModeTransition;
+
         public readonly Bindable<WindowMode> WindowMode = new Bindable<WindowMode>();
 
         public readonly Bindable<ConfineMouseMode> ConfineMouseMode = new Bindable<ConfineMouseMode>();
@@ -117,6 +120,7 @@ namespace osu.Framework.Platform
 
         protected void OnMove(object sender, EventArgs e)
         {
+            if (inWindowModeTransition) return;
             if (WindowMode.Value == Configuration.WindowMode.Windowed)
             {
                 // Values are clamped to a range of [-0.5, 1.5], so if more than half of the window was
@@ -147,44 +151,49 @@ namespace osu.Framework.Platform
                 CursorState &= ~CursorState.Confined;
         }
 
-        private DisplayDevice lastFullscreenDisplay;
-
         private void windowMode_ValueChanged(WindowMode newMode) => UpdateWindowMode(newMode);
 
         protected virtual void UpdateWindowMode(WindowMode newMode)
         {
             var currentDisplay = GetCurrentDisplay();
 
-            switch (newMode)
+            try
             {
-                case Configuration.WindowMode.Fullscreen:
-                    ChangeResolution(currentDisplay, sizeFullscreen);
-                    lastFullscreenDisplay = currentDisplay;
+                inWindowModeTransition = true;
+                switch (newMode)
+                {
+                    case Configuration.WindowMode.Fullscreen:
+                        ChangeResolution(currentDisplay, sizeFullscreen);
+                        lastFullscreenDisplay = currentDisplay;
 
-                    WindowState = WindowState.Fullscreen;
-                    break;
-                case Configuration.WindowMode.Borderless:
-                    if (lastFullscreenDisplay != null)
-                        RestoreResolution(lastFullscreenDisplay);
-                    lastFullscreenDisplay = null;
+                        WindowState = WindowState.Fullscreen;
+                        break;
+                    case Configuration.WindowMode.Borderless:
+                        if (lastFullscreenDisplay != null)
+                            RestoreResolution(lastFullscreenDisplay);
+                        lastFullscreenDisplay = null;
 
-                    WindowState = WindowState.Maximized;
-                    WindowBorder = WindowBorder.Hidden;
+                        WindowState = WindowState.Maximized;
+                        WindowBorder = WindowBorder.Hidden;
 
-                    //must add 1 to enter borderless
-                    ClientSize = new Size(currentDisplay.Bounds.Width + 1, currentDisplay.Bounds.Height + 1);
-                    break;
-                case Configuration.WindowMode.Windowed:
-                    if (lastFullscreenDisplay != null)
-                        RestoreResolution(lastFullscreenDisplay);
-                    lastFullscreenDisplay = null;
+                        //must add 1 to enter borderless
+                        ClientSize = new Size(currentDisplay.Bounds.Width + 1, currentDisplay.Bounds.Height + 1);
+                        break;
+                    case Configuration.WindowMode.Windowed:
+                        if (lastFullscreenDisplay != null)
+                            RestoreResolution(lastFullscreenDisplay);
+                        lastFullscreenDisplay = null;
 
-                    WindowState = WindowState.Normal;
-                    WindowBorder = WindowBorder.Resizable;
+                        WindowState = WindowState.Normal;
+                        WindowBorder = WindowBorder.Resizable;
 
-                    ClientSize = sizeWindowed;
-                    Position = new Vector2((float)windowPositionX, (float)windowPositionY);
-                    break;
+                        ClientSize = sizeWindowed;
+                        Position = new Vector2((float)windowPositionX, (float)windowPositionY);
+                        break;
+                }
+            }
+            finally {
+                inWindowModeTransition = false;
             }
 
             ConfineMouseMode.TriggerChange();
