@@ -417,6 +417,7 @@ namespace osu.Framework.Graphics.Containers
             internalChildren.Clear();
             aliveInternalChildren.Clear();
             PossiblyHandleNonPositionalInputSubTree = PossiblyHandleNonPositionalInput;
+            PossiblyHandlePositionalInputSubTree = PossiblyHandlePositionalInput;
 
             if (AutoSizeAxes != Axes.None)
                 InvalidateFromChild(Invalidation.RequiredParentSizeToFit);
@@ -574,10 +575,19 @@ namespace osu.Framework.Graphics.Containers
                     if (child.LoadState >= LoadState.Ready)
                     {
                         aliveInternalChildren.Add(child);
+
+                        // If the new child has the flag, we should propagate the flag to the root.
+                        // But we can stop at the ancestor which flag is true because further ancestors should have flag already set to be true.
                         if (child.PossiblyHandleNonPositionalInputSubTree)
                         {
                             for (var ancestor = this; ancestor != null && !ancestor.PossiblyHandleNonPositionalInputSubTree; ancestor = ancestor.Parent)
                                 ancestor.PossiblyHandleNonPositionalInputSubTree = true;
+                        }
+
+                        if (child.PossiblyHandlePositionalInputSubTree)
+                        {
+                            for (var ancestor = this; ancestor != null && !ancestor.PossiblyHandlePositionalInputSubTree; ancestor = ancestor.Parent)
+                                ancestor.PossiblyHandlePositionalInputSubTree = true;
                         }
 
                         ChildBecameAlive?.Invoke(child);

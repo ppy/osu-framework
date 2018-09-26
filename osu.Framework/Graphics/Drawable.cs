@@ -232,6 +232,7 @@ namespace osu.Framework.Graphics
             PossiblyHandlePositionalInput = HandleInputCache.HandlePositionalInput(this) || HandlePositionalInput;
 
             PossiblyHandleNonPositionalInputSubTree = PossiblyHandleNonPositionalInput;
+            PossiblyHandlePositionalInputSubTree = PossiblyHandlePositionalInput;
 
             InjectDependencies(dependencies);
 
@@ -2001,12 +2002,17 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Whether positional input should be propagated to the sub-tree rooted at this drawable.
         /// </summary>
-        public bool PropagatePositionalInputSubTree => IsPresent && !IsMaskedAway;
+        public bool PropagatePositionalInputSubTree => IsPresent && PossiblyHandlePositionalInputSubTree && !IsMaskedAway;
 
         /// <summary>
         /// If this is false, there is no decendant who handles non-positional input (but converse is not always true, it is conservative).
         /// </summary>
         internal bool PossiblyHandleNonPositionalInputSubTree;
+
+        /// <summary>
+        /// If this is false, there is no decendant who handles positional input (but converse is not always true, it is conservative).
+        /// </summary>
+        internal bool PossiblyHandlePositionalInputSubTree;
 
         /// <summary>
         /// Creates a new InputState with mouse coodinates converted to the coordinate space of our parent.
