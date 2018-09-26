@@ -228,8 +228,8 @@ namespace osu.Framework.Graphics
 
             double t1 = getPerfTime();
 
-            PossiblyHandleNonPositionalInput = HandleInputCache.HandleNonPositionalInput(this) || HandleNonPositionalInput;
-            PossiblyHandlePositionalInput = HandleInputCache.HandlePositionalInput(this) || HandlePositionalInput;
+            PossiblyHandleNonPositionalInput = HandleInputCache.PossiblyHandleNonPositionalInput(this);
+            PossiblyHandlePositionalInput = HandleInputCache.PossiblyHandlePositionalInput(this);
 
             PossiblyHandleNonPositionalInputSubTree = PossiblyHandleNonPositionalInput;
             PossiblyHandlePositionalInputSubTree = PossiblyHandlePositionalInput;
@@ -1916,9 +1916,9 @@ namespace osu.Framework.Graphics
                 nameof(OnJoystickRelease)
             };
 
-            public static bool HandleNonPositionalInput(Drawable drawable) => get(drawable, non_positional_cached_values, false);
+            public static bool PossiblyHandleNonPositionalInput(Drawable drawable) => get(drawable, non_positional_cached_values, false);
 
-            public static bool HandlePositionalInput(Drawable drawable) => get(drawable, positional_cached_values, true);
+            public static bool PossiblyHandlePositionalInput(Drawable drawable) => get(drawable, positional_cached_values, true);
 
             private static bool get(Drawable drawable, ConcurrentDictionary<Type, bool> cache, bool positional)
             {
@@ -1949,6 +1949,14 @@ namespace osu.Framework.Graphics
                 if (!positional && typeof(IKeyBindingHandler).IsAssignableFrom(type))
                     return true;
 
+                // Check if HandlePositionalInput/HandleNonPositionalInput is overridden.
+                // This is required for cases described in Drawable.IsHovered.
+                var handleInputPropertyName = positional ? nameof(HandlePositionalInput) : nameof(HandleNonPositionalInput);
+                var property = type.GetProperty(handleInputPropertyName);
+                Debug.Assert(property != null);
+                if (property.DeclaringType != typeof(Drawable))
+                    return true;
+
                 return false;
             }
         }
@@ -1961,6 +1969,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// If true, we are eagerly requesting focus. If nothing else above us has (or is requesting focus) we will get it.
         /// </summary>
+        /// <remarks>In order to get focused, <see cref="HandleNonPositionalInput"/> must be true.</remarks>
         public virtual bool RequestsFocus => false;
 
         /// <summary>
@@ -1971,6 +1980,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Whether this Drawable is currently hovered over.
         /// </summary>
+        /// <remarks>This is updated only if <see cref="HandlePositionalInput"/> is true.</remarks>
         public bool IsHovered { get; internal set; }
 
         /// <summary>
