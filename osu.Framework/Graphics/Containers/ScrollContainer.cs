@@ -163,7 +163,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected virtual bool IsDragging { get; private set; }
 
-        public bool IsHandlingKeyboardScrolling => IsHovered || ReceiveMouseInputAt(GetContainingInputManager().CurrentState.Mouse.Position);
+        public bool IsHandlingKeyboardScrolling => IsHovered || ReceivePositionalInputAt(GetContainingInputManager().CurrentState.Mouse.Position);
 
         /// <summary>
         /// The direction in which scrolling is supported.

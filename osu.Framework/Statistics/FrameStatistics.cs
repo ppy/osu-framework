@@ -48,8 +48,8 @@ namespace osu.Framework.Statistics
         DrawNodeCtor,
         DrawNodeAppl,
         ScheduleInvk,
-        KeyboardQueue,
-        MouseQueue,
+        InputQueue,
+        PositionalIQ,
 
         VBufBinds,
         VBufOverflow,
