@@ -231,7 +231,7 @@ namespace osu.Framework.Graphics
             PossiblyHandleNonPositionalInput = HandleInputCache.HandleNonPositionalInput(this) || HandleNonPositionalInput;
             PossiblyHandlePositionalInput = HandleInputCache.HandlePositionalInput(this) || HandlePositionalInput;
 
-            PossiblyHandleNonPositionalInputSubtree = PossiblyHandleNonPositionalInput;
+            PossiblyHandleNonPositionalInputSubTree = PossiblyHandleNonPositionalInput;
 
             InjectDependencies(dependencies);
 
@@ -1994,19 +1994,19 @@ namespace osu.Framework.Graphics
         public virtual bool Contains(Vector2 screenSpacePos) => DrawRectangle.Contains(ToLocalSpace(screenSpacePos));
 
         /// <summary>
-        /// Whether non-positional input should be propagated to the subtree rooted at this drawable.
+        /// Whether non-positional input should be propagated to the sub-tree rooted at this drawable.
         /// </summary>
-        public bool PropagateNonPositionalInputSubtree => IsPresent && PossiblyHandleNonPositionalInputSubtree;
+        public bool PropagateNonPositionalInputSubTree => IsPresent && PossiblyHandleNonPositionalInputSubTree;
 
         /// <summary>
-        /// Whether positional input should be propagated to the subtree rooted at this drawable.
+        /// Whether positional input should be propagated to the sub-tree rooted at this drawable.
         /// </summary>
-        public bool PropagatePositionalInputSubtree => IsPresent && !IsMaskedAway;
+        public bool PropagatePositionalInputSubTree => IsPresent && !IsMaskedAway;
 
         /// <summary>
         /// If this is false, there is no decendant who handles non-positional input (but converse is not always true, it is conservative).
         /// </summary>
-        internal bool PossiblyHandleNonPositionalInputSubtree;
+        internal bool PossiblyHandleNonPositionalInputSubTree;
 
         /// <summary>
         /// Creates a new InputState with mouse coodinates converted to the coordinate space of our parent.
@@ -2027,10 +2027,10 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="queue">The input queue to be built.</param>
         /// <param name="allowBlocking">Whether blocking at <see cref="PassThroughInputManager"/>s should be allowed.</param>
-        /// <returns>Returns false if we should skip this subtree.</returns>
+        /// <returns>Returns false if we should skip this sub-tree.</returns>
         internal virtual bool BuildNonPositionalInputQueue(List<Drawable> queue, bool allowBlocking = true)
         {
-            if (!PropagateNonPositionalInputSubtree)
+            if (!PropagateNonPositionalInputSubTree)
                 return false;
 
             if (HandleNonPositionalInput)
@@ -2044,10 +2044,10 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="screenSpacePos">The screen space position of the positional input.</param>
         /// <param name="queue">The input queue to be built.</param>
-        /// <returns>Returns false if we should skip this subtree.</returns>
+        /// <returns>Returns false if we should skip this sub-tree.</returns>
         internal virtual bool BuildPositionalInputQueue(Vector2 screenSpacePos, List<Drawable> queue)
         {
-            if (!PropagatePositionalInputSubtree)
+            if (!PropagatePositionalInputSubTree)
                 return false;
 
             if (HandlePositionalInput && ReceivePositionalInputAt(screenSpacePos))

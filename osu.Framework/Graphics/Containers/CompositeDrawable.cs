@@ -416,7 +416,7 @@ namespace osu.Framework.Graphics.Containers
 
             internalChildren.Clear();
             aliveInternalChildren.Clear();
-            PossiblyHandleNonPositionalInputSubtree = PossiblyHandleNonPositionalInput;
+            PossiblyHandleNonPositionalInputSubTree = PossiblyHandleNonPositionalInput;
 
             if (AutoSizeAxes != Axes.None)
                 InvalidateFromChild(Invalidation.RequiredParentSizeToFit);
@@ -574,10 +574,10 @@ namespace osu.Framework.Graphics.Containers
                     if (child.LoadState >= LoadState.Ready)
                     {
                         aliveInternalChildren.Add(child);
-                        if (child.PossiblyHandleNonPositionalInputSubtree)
+                        if (child.PossiblyHandleNonPositionalInputSubTree)
                         {
-                            for (var ancestor = this; ancestor != null && !ancestor.PossiblyHandleNonPositionalInputSubtree; ancestor = ancestor.Parent)
-                                ancestor.PossiblyHandleNonPositionalInputSubtree = true;
+                            for (var ancestor = this; ancestor != null && !ancestor.PossiblyHandleNonPositionalInputSubTree; ancestor = ancestor.Parent)
+                                ancestor.PossiblyHandleNonPositionalInputSubTree = true;
                         }
 
                         ChildBecameAlive?.Invoke(child);
