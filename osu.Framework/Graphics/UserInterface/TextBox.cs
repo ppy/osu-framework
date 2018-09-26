@@ -32,7 +32,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected Drawable Caret;
         protected Container TextContainer;
 
-        public override bool HandleKeyboardInput => HasFocus;
+        public override bool HandleNonPositionalInput => HasFocus;
 
         /// <summary>
         /// Padding to be used within the TextContainer. Requires special handling due to the sideways scrolling of text content.

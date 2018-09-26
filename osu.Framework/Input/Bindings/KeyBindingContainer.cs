@@ -47,7 +47,7 @@ namespace osu.Framework.Input.Bindings
         public IEnumerable<T> PressedActions => pressedActions;
 
         /// <summary>
-        /// The input queue to be used for processing key bindings. Based on the non-positional <see cref="InputManager.InputQueue"/>.
+        /// The input queue to be used for processing key bindings. Based on the non-positional <see cref="InputManager.NonPositionalInputQueue"/>.
         /// Can be overridden to change priorities.
         /// </summary>
         protected virtual IEnumerable<Drawable> KeyBindingInputQueue => childrenInputQueue;
@@ -59,7 +59,7 @@ namespace osu.Framework.Input.Bindings
             get
             {
                 queue.Clear();
-                BuildKeyboardInputQueue(queue, false);
+                BuildNonPositionalInputQueue(queue, false);
                 queue.Reverse();
 
                 return queue;
@@ -85,9 +85,9 @@ namespace osu.Framework.Input.Bindings
         /// </summary>
         protected virtual bool Prioritised => false;
 
-        internal override bool BuildKeyboardInputQueue(List<Drawable> queue, bool allowBlocking = true)
+        internal override bool BuildNonPositionalInputQueue(List<Drawable> queue, bool allowBlocking = true)
         {
-            if (!base.BuildKeyboardInputQueue(queue, allowBlocking))
+            if (!base.BuildNonPositionalInputQueue(queue, allowBlocking))
                 return false;
 
             if (Prioritised)

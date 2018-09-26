@@ -191,7 +191,7 @@ namespace osu.Framework.Input
         {
             // due to the laziness of IEnumerable, .Where check should be done right before it is triggered for the event.
             var drawables = MouseDownInputQueue.Intersect(PositionalInputQueue)
-                                               .Where(t => t.CanReceiveMouseInput && t.ReceiveMouseInputAt(state.Mouse.Position));
+                                               .Where(t => t.CanReceivePositionalInput && t.ReceivePositionalInputAt(state.Mouse.Position));
 
             var clicked = PropagateMouseButtonEvent(drawables, new ClickEvent(state, Button, MouseDownPosition));
             ClickedDrawable.SetTarget(clicked);
@@ -210,7 +210,7 @@ namespace osu.Framework.Input
             if (!ClickedDrawable.TryGetTarget(out Drawable clicked))
                 return false;
 
-            if (!clicked.ReceiveMouseInputAt(state.Mouse.Position))
+            if (!PositionalInputQueue.Contains(clicked))
                 return false;
 
             return PropagateMouseButtonEvent(new[] { clicked }, new DoubleClickEvent(state, Button, MouseDownPosition)) != null;

@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics.Visualisation
     {
         private readonly FillFlowContainer flow;
 
-        protected override bool BlockPassThroughMouse => false;
+        protected override bool BlockPositionalInput => false;
 
         private Bindable<bool> enabled;
 
@@ -152,8 +152,8 @@ namespace osu.Framework.Graphics.Visualisation
 
         private const float font_size = 14;
 
-        public override bool HandleKeyboardInput => false;
-        public override bool HandleMouseInput => false;
+        public override bool HandleNonPositionalInput => false;
+        public override bool HandlePositionalInput => false;
 
         public DrawableLogEntry(LogEntry entry)
         {

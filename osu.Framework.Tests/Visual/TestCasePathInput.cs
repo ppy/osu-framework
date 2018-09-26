@@ -128,12 +128,12 @@ namespace osu.Framework.Tests.Visual
             path.Positions = vertices.ToList();
         });
 
-        private void test(Vector2 position, bool shouldReceiveMouseInput)
+        private void test(Vector2 position, bool shouldReceivePositionalInput)
         {
-            AddAssert($"Test @ {position} = {shouldReceiveMouseInput}", () =>
+            AddAssert($"Test @ {position} = {shouldReceivePositionalInput}", () =>
             {
                 testPoint.Position = position;
-                return path.ReceiveMouseInputAt(path.ToScreenSpace(position)) == shouldReceiveMouseInput;
+                return path.ReceivePositionalInputAt(path.ToScreenSpace(position)) == shouldReceivePositionalInput;
             });
         }
 

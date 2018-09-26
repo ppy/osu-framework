@@ -102,13 +102,13 @@ namespace osu.Framework.Input
         /// that the return value of <see cref="Drawable.OnHover"/> is not taken
         /// into account.
         /// </summary>
-        public IEnumerable<Drawable> PositionalInputQueue => buildMouseInputQueue(CurrentState);
+        public IEnumerable<Drawable> PositionalInputQueue => buildPositionalInputQueue(CurrentState);
 
         /// <summary>
         /// Contains all <see cref="Drawable"/>s in top-down order which are considered
         /// for non-positional input.
         /// </summary>
-        public IEnumerable<Drawable> InputQueue => buildInputQueue();
+        public IEnumerable<Drawable> NonPositionalInputQueue => buildNonPositionalInputQueue();
 
         private readonly Dictionary<MouseButton, MouseButtonEventManager> mouseButtonEventManagers = new Dictionary<MouseButton, MouseButtonEventManager>();
 
@@ -206,15 +206,15 @@ namespace osu.Framework.Input
             return true;
         }
 
-        internal override bool BuildKeyboardInputQueue(List<Drawable> queue, bool allowBlocking = true)
+        internal override bool BuildNonPositionalInputQueue(List<Drawable> queue, bool allowBlocking = true)
         {
             if (!allowBlocking)
-                base.BuildKeyboardInputQueue(queue, false);
+                base.BuildNonPositionalInputQueue(queue, false);
 
             return false;
         }
 
-        internal override bool BuildMouseInputQueue(Vector2 screenSpaceMousePos, List<Drawable> queue) => false;
+        internal override bool BuildPositionalInputQueue(Vector2 screenSpacePos, List<Drawable> queue) => false;
 
         private bool hoverEventsUpdated;
 
@@ -277,16 +277,16 @@ namespace osu.Framework.Input
 
         private readonly List<Drawable> inputQueue = new List<Drawable>();
 
-        private IEnumerable<Drawable> buildInputQueue()
+        private IEnumerable<Drawable> buildNonPositionalInputQueue()
         {
             inputQueue.Clear();
 
             if (this is UserInputManager)
-                FrameStatistics.Increment(StatisticsCounterType.KeyboardQueue);
+                FrameStatistics.Increment(StatisticsCounterType.InputQueue);
 
             var children = AliveInternalChildren;
             for (int i = 0; i < children.Count; i++)
-                children[i].BuildKeyboardInputQueue(inputQueue);
+                children[i].BuildNonPositionalInputQueue(inputQueue);
 
             if (!unfocusIfNoLongerValid())
             {
@@ -294,7 +294,7 @@ namespace osu.Framework.Input
                 inputQueue.Add(FocusedDrawable);
             }
 
-            // Keyboard and mouse queues were created in back-to-front order.
+            // queues were created in back-to-front order.
             // We want input to first reach front-most drawables, so the queues
             // need to be reversed.
             inputQueue.Reverse();
@@ -304,16 +304,16 @@ namespace osu.Framework.Input
 
         private readonly List<Drawable> positionalInputQueue = new List<Drawable>();
 
-        private IEnumerable<Drawable> buildMouseInputQueue(InputState state)
+        private IEnumerable<Drawable> buildPositionalInputQueue(InputState state)
         {
             positionalInputQueue.Clear();
 
             if (this is UserInputManager)
-                FrameStatistics.Increment(StatisticsCounterType.MouseQueue);
+                FrameStatistics.Increment(StatisticsCounterType.PositionalIQ);
 
             var children = AliveInternalChildren;
             for (int i = 0; i < children.Count; i++)
-                children[i].BuildMouseInputQueue(state.Mouse.Position, positionalInputQueue);
+                children[i].BuildPositionalInputQueue(state.Mouse.Position, positionalInputQueue);
 
             positionalInputQueue.Reverse();
             return positionalInputQueue;
@@ -483,22 +483,22 @@ namespace osu.Framework.Input
 
         private bool handleKeyDown(InputState state, Key key, bool repeat)
         {
-            return PropagateBlockableEvent(InputQueue, new KeyDownEvent(state, key, repeat));
+            return PropagateBlockableEvent(NonPositionalInputQueue, new KeyDownEvent(state, key, repeat));
         }
 
         private bool handleKeyUp(InputState state, Key key)
         {
-            return PropagateBlockableEvent(InputQueue, new KeyUpEvent(state, key));
+            return PropagateBlockableEvent(NonPositionalInputQueue, new KeyUpEvent(state, key));
         }
 
         private bool handleJoystickPress(InputState state, JoystickButton button)
         {
-            return PropagateBlockableEvent(InputQueue, new JoystickPressEvent(state, button));
+            return PropagateBlockableEvent(NonPositionalInputQueue, new JoystickPressEvent(state, button));
         }
 
         private bool handleJoystickRelease(InputState state, JoystickButton button)
         {
-            return PropagateBlockableEvent(InputQueue, new JoystickReleaseEvent(state, button));
+            return PropagateBlockableEvent(NonPositionalInputQueue, new JoystickReleaseEvent(state, button));
         }
 
         /// <summary>
@@ -589,7 +589,7 @@ namespace osu.Framework.Input
         private void focusTopMostRequestingDrawable()
         {
             // todo: don't rebuild input queue every frame
-            ChangeFocus(InputQueue.FirstOrDefault(target => target.RequestsFocus));
+            ChangeFocus(NonPositionalInputQueue.FirstOrDefault(target => target.RequestsFocus));
         }
 
         private class MouseLeftButtonEventManager : MouseButtonEventManager

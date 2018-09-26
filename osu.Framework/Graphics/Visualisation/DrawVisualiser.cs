@@ -99,7 +99,7 @@ namespace osu.Framework.Graphics.Visualisation
             inputManager = GetContainingInputManager();
         }
 
-        protected override bool BlockPassThroughMouse => false;
+        protected override bool BlockPositionalInput => false;
 
         protected override void PopIn()
         {
@@ -124,9 +124,9 @@ namespace osu.Framework.Graphics.Visualisation
 
             bool containsCursor = d.ScreenSpaceDrawQuad.Contains(screenSpacePosition);
             // This is an optimization: We don't need to consider drawables which we don't hover, and which do not
-            // forward input further to children (via d.ReceiveMouseInputAt). If they do forward input to children, then there
+            // forward input further to children (via d.ReceivePositionalInputAt). If they do forward input to children, then there
             // is a good chance they have children poking out of their bounds, which we need to catch.
-            if (!containsCursor && !d.ReceiveMouseInputAt(screenSpacePosition))
+            if (!containsCursor && !d.ReceivePositionalInputAt(screenSpacePosition))
                 return null;
 
             var dAsContainer = d as CompositeDrawable;

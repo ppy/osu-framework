@@ -216,16 +216,8 @@ namespace osu.Framework.Platform.MacOS
         // Apple recommends not changing the system resolution for fullscreen access
         protected override void ChangeResolution(DisplayDevice display, Size newSize) => ClientSize = newSize;
 
-        public override IEnumerable<DisplayResolution> AvailableResolutions
-        {
-            get
-            {
-                // only return the current resolution for reasons mentioned above.
-                var display = GetCurrentDisplay();
-                return display.AvailableResolutions.Where(dr =>
-                    dr.Width == display.Width && dr.Height == display.Height && dr.BitsPerPixel == display.BitsPerPixel && dr.RefreshRate == display.RefreshRate);
-            }
-        }
+        // Doesn't return any resolution for the reason mentioned above
+        public override IEnumerable<DisplayResolution> AvailableResolutions => Enumerable.Empty<DisplayResolution>();
 
         protected override void RestoreResolution(DisplayDevice displayDevice)
         {

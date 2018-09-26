@@ -27,7 +27,6 @@ using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Handlers;
-using osu.Framework.Localisation;
 using osu.Framework.Logging;
 using osu.Framework.Statistics;
 using osu.Framework.Threading;
@@ -49,8 +48,6 @@ namespace osu.Framework.Platform
         private FrameworkDebugConfigManager debugConfig;
 
         private FrameworkConfigManager config;
-
-        public LocalisationEngine Localisation { get; private set; }
 
         private void setActive(bool isActive)
         {
@@ -611,7 +608,6 @@ namespace osu.Framework.Platform
         {
             Dependencies.Cache(debugConfig = new FrameworkDebugConfigManager());
             Dependencies.Cache(config = new FrameworkConfigManager(Storage));
-            Dependencies.Cache(Localisation = new LocalisationEngine(config));
 
             activeGCMode = debugConfig.GetBindable<GCLatencyMode>(DebugSetting.ActiveGCMode);
             activeGCMode.ValueChanged += newMode => { GCSettings.LatencyMode = IsActive ? newMode : GCLatencyMode.Interactive; };
