@@ -20,13 +20,17 @@ uniform float g_MaskingBlendRange;
 
 uniform float g_AlphaExponent;
 
+uniform vec2 g_EdgeOffset;
+
 uniform bool g_DiscardInner;
 
-float distanceFromRoundedRect()
+float distanceFromRoundedRect(vec2 offset)
 {
+	vec2 maskingPosition = v_MaskingPosition + offset;
+
 	// Compute offset distance from masking rect in masking space.
-	vec2 topLeftOffset = g_MaskingRect.xy - v_MaskingPosition;
-	vec2 bottomRightOffset = v_MaskingPosition - g_MaskingRect.zw;
+	vec2 topLeftOffset = g_MaskingRect.xy - maskingPosition;
+	vec2 bottomRightOffset = maskingPosition - g_MaskingRect.zw;
 
 	vec2 distanceFromShrunkRect = max(
 		bottomRightOffset + vec2(g_CornerRadius),
@@ -60,17 +64,19 @@ float distanceFromDrawingRect()
 
 void main(void)
 {
-	float dist = distanceFromRoundedRect();
+	float dist = distanceFromRoundedRect(vec2(0.0));
 	float alphaFactor = 1.0;
 	vec4 texel = texture2D(m_Sampler, v_TexCoord, -0.9);
 
 	// Discard inner pixels
 	if (g_DiscardInner)
 	{
+		float innerDist = g_EdgeOffset == vec2(0.0) ? dist : distanceFromRoundedRect(g_EdgeOffset);
+
 		// v_BlendRange is set from outside in a hacky way to tell us the g_MaskingBlendRange used for the rounded
 		// corners of the edge effect container itself. We can then derive the alpha factor for smooth inner edge
 		// effect from that.
-		float innerBlendFactor = (g_CornerRadius - g_MaskingBlendRange - dist) / v_BlendRange.x;
+		float innerBlendFactor = (g_CornerRadius - g_MaskingBlendRange - innerDist) / v_BlendRange.x;
 		if (innerBlendFactor > 1.0)
 		{
 			gl_FragColor = vec4(0.0);
@@ -78,7 +84,7 @@ void main(void)
 		}
 
 		// We exponentiate our factor to exactly counteract the later exponentiation by g_AlphaExponent for a smoother inner border.
-		alphaFactor *= pow(min(1.0 - innerBlendFactor, 1.0), 1.0 / g_AlphaExponent);
+		alphaFactor = pow(min(1.0 - innerBlendFactor, 1.0), 1.0 / g_AlphaExponent);
 	}
 
 	dist /= g_MaskingBlendRange;
