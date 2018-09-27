@@ -50,7 +50,7 @@ namespace osu.Framework.Graphics.Visualisation
             if (source == null)
                 return;
 
-            var allMembers = new List<MemberInfo>();
+            var allMembers = new HashSet<MemberInfo>(new MemberInfoComparer());
 
             Type type = source.GetType();
             while (type != null && type != typeof(object))
@@ -186,6 +186,13 @@ namespace osu.Framework.Graphics.Visualisation
                 lastValue = value;
                 valueText.Text = value.ToString();
             }
+        }
+
+        private class MemberInfoComparer : IEqualityComparer<MemberInfo>
+        {
+            public bool Equals(MemberInfo x, MemberInfo y) => string.Equals(x?.Name, y?.Name);
+
+            public int GetHashCode(MemberInfo obj) => obj.Name.GetHashCode();
         }
     }
 }

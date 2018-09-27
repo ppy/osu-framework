@@ -148,6 +148,7 @@ namespace osu.Framework.Graphics.Containers
             // the edge effect along its radius using the same rounded-corners shader.
             edgeEffectMaskingInfo.BlendRange = EdgeEffect.Radius;
             edgeEffectMaskingInfo.AlphaExponent = 2;
+            edgeEffectMaskingInfo.EdgeOffset = EdgeEffect.Offset;
             edgeEffectMaskingInfo.Hollow = EdgeEffect.Hollow;
 
             GLWrapper.PushMaskingInfo(edgeEffectMaskingInfo);
