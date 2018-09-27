@@ -108,7 +108,7 @@ namespace osu.Framework.IO.Network
 
         public const int DEFAULT_TIMEOUT = 10000;
 
-        public HttpMethod Method;
+        public HttpMethod Method = HttpMethod.Get;
 
         /// <summary>
         /// The amount of time from last sent or received data to trigger a timeout and abort the request.
@@ -246,71 +246,68 @@ namespace osu.Framework.IO.Network
 
                     HttpRequestMessage request;
 
-                    switch (Method)
+                    if (Method == HttpMethod.Get)
                     {
-                        default:
-                            throw new InvalidOperationException($"HTTP method {Method} is currently not supported");
-                        case HttpMethod.GET:
+                        if (files.Count > 0)
+                            throw new InvalidOperationException($"Cannot use {nameof(AddFile)} in a GET request. Please set the {nameof(Method)} to POST.");
+
+                        StringBuilder requestParameters = new StringBuilder();
+                        foreach (var p in parameters)
+                            requestParameters.Append($@"{p.Key}={p.Value}&");
+                        string requestString = requestParameters.ToString().TrimEnd('&');
+
+                        request = new HttpRequestMessage(HttpMethod.Get, string.IsNullOrEmpty(requestString) ? Url : $"{Url}?{requestString}");
+                    }
+                    else
+                    {
+                        request = new HttpRequestMessage(Method, Url);
+
+                        Stream postContent;
+
+                        if (rawContent != null)
+                        {
+                            if (parameters.Count > 0)
+                                throw new InvalidOperationException($"Cannot use {nameof(AddRaw)} in conjunction with {nameof(AddParameter)}");
                             if (files.Count > 0)
-                                throw new InvalidOperationException($"Cannot use {nameof(AddFile)} in a GET request. Please set the {nameof(Method)} to POST.");
+                                throw new InvalidOperationException($"Cannot use {nameof(AddRaw)} in conjunction with {nameof(AddFile)}");
 
-                            StringBuilder requestParameters = new StringBuilder();
+                            postContent = new MemoryStream();
+                            rawContent.Position = 0;
+                            rawContent.CopyTo(postContent);
+                            postContent.Position = 0;
+                        }
+                        else
+                        {
+                            if (!string.IsNullOrEmpty(ContentType) && ContentType != form_content_type)
+                                throw new InvalidOperationException($"Cannot use custom {nameof(ContentType)} in a POST request.");
+
+                            ContentType = form_content_type;
+
+                            var formData = new MultipartFormDataContent(form_boundary);
+
                             foreach (var p in parameters)
-                                requestParameters.Append($@"{p.Key}={p.Value}&");
-                            string requestString = requestParameters.ToString().TrimEnd('&');
+                                formData.Add(new StringContent(p.Value), p.Key);
 
-                            request = new HttpRequestMessage(System.Net.Http.HttpMethod.Get, string.IsNullOrEmpty(requestString) ? Url : $"{Url}?{requestString}");
-                            break;
-                        case HttpMethod.POST:
-                            request = new HttpRequestMessage(System.Net.Http.HttpMethod.Post, Url);
-
-                            Stream postContent;
-
-                            if (rawContent != null)
+                            foreach (var p in files)
                             {
-                                if (parameters.Count > 0)
-                                    throw new InvalidOperationException($"Cannot use {nameof(AddRaw)} in conjunction with {nameof(AddParameter)}");
-                                if (files.Count > 0)
-                                    throw new InvalidOperationException($"Cannot use {nameof(AddRaw)} in conjunction with {nameof(AddFile)}");
-
-                                postContent = new MemoryStream();
-                                rawContent.Position = 0;
-                                rawContent.CopyTo(postContent);
-                                postContent.Position = 0;
-                            }
-                            else
-                            {
-                                if (!string.IsNullOrEmpty(ContentType) && ContentType != form_content_type)
-                                    throw new InvalidOperationException($"Cannot use custom {nameof(ContentType)} in a POST request.");
-
-                                ContentType = form_content_type;
-
-                                var formData = new MultipartFormDataContent(form_boundary);
-
-                                foreach (var p in parameters)
-                                    formData.Add(new StringContent(p.Value), p.Key);
-
-                                foreach (var p in files)
-                                {
-                                    var byteContent = new ByteArrayContent(p.Value);
-                                    byteContent.Headers.Add("Content-Type", "application/octet-stream");
-                                    formData.Add(byteContent, p.Key, p.Key);
-                                }
-
-                                postContent = await formData.ReadAsStreamAsync();
+                                var byteContent = new ByteArrayContent(p.Value);
+                                byteContent.Headers.Add("Content-Type", "application/octet-stream");
+                                formData.Add(byteContent, p.Key, p.Key);
                             }
 
-                            requestStream = new LengthTrackingStream(postContent);
-                            requestStream.BytesRead.ValueChanged += v =>
-                            {
-                                reportForwardProgress();
-                                UploadProgress?.Invoke(v, contentLength);
-                            };
+                            postContent = await formData.ReadAsStreamAsync();
+                        }
 
-                            request.Content = new StreamContent(requestStream);
-                            if (!string.IsNullOrEmpty(ContentType))
-                                request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse(ContentType);
-                            break;
+                        requestStream = new LengthTrackingStream(postContent);
+                        requestStream.BytesRead.ValueChanged += v =>
+                        {
+                            reportForwardProgress();
+                            UploadProgress?.Invoke(v, contentLength);
+                        };
+
+                        request.Content = new StreamContent(requestStream);
+                        if (!string.IsNullOrEmpty(ContentType))
+                            request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse(ContentType);
                     }
 
                     if (!string.IsNullOrEmpty(Accept))
@@ -327,18 +324,17 @@ namespace osu.Framework.IO.Network
 
                         ResponseStream = CreateOutputStream();
 
-                        switch (Method)
+                        if (Method == HttpMethod.Get)
                         {
-                            case HttpMethod.GET:
-                                //GETs are easy
-                                await beginResponse(linkedToken.Token);
-                                break;
-                            case HttpMethod.POST:
-                                reportForwardProgress();
-                                UploadProgress?.Invoke(0, contentLength);
+                            //GETs are easy
+                            await beginResponse(linkedToken.Token);
+                        }
+                        else
+                        {
+                            reportForwardProgress();
+                            UploadProgress?.Invoke(0, contentLength);
 
-                                await beginResponse(linkedToken.Token);
-                                break;
+                            await beginResponse(linkedToken.Token);
                         }
                     }
                 }
