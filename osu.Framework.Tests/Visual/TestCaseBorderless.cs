@@ -160,8 +160,7 @@ namespace osu.Framework.Tests.Visual
                 // set up window
                 AddStep("switch to windowed", () => windowMode.Value = WindowMode.Windowed);
                 AddStep("set client size to 1280x720", () => { if(window != null) window.ClientSize = new Size(1280, 720); });
-                AddStep("set active screen to " + i, () => { if(window != null) window.Location = display.Bounds.Location; });
-                AddStep("center window", () => { if(window != null) window.Position = new Vector2(0.5f, 0.5f); });
+                AddStep("center window on screen " + i, () => { window?.CenterToScreen(display); });
                 printState();
 
                 // borderless alignment tests
@@ -169,21 +168,21 @@ namespace osu.Framework.Tests.Visual
                 printState();
                 AddAssert("check window location", () => window?.Location == display.Bounds.Location, desc1);
                 AddAssert("check window size", () => new Size(window?.Width - 1 ?? 0, window?.Height - 1 ?? 0) == display.Bounds.Size, desc2);
-                AddAssert("check current screen", () => window?.GetCurrentDisplay() == display);
+                AddAssert("check current screen", () => window?.CurrentDisplay == display);
 
                 // verify the window size is restored correctly
                 AddStep("switch to windowed", () => windowMode.Value = WindowMode.Windowed);
                 printState();
                 AddAssert("check client size", () => window?.ClientSize == new Size(1280, 720));
                 AddAssert("check window position", () => Math.Abs(window?.Position.X - 0.5f ?? float.NaN) < 0.01 && Math.Abs(window?.Position.Y - 0.5f ?? float.NaN) < 0.01);
-                AddAssert("check current screen", () => window?.GetCurrentDisplay() == display);
+                AddAssert("check current screen", () => window?.CurrentDisplay == display);
             }
         }
 
         private void printState()
         {
             if(window == null) return;
-            Console.WriteLine("Current screen: " + window.GetCurrentDisplay());
+            Console.WriteLine("Current screen: " + window.CurrentDisplay);
             Console.WriteLine("Window location: " + window.Location);
             Console.WriteLine("Window position: " + window.Position);
             Console.WriteLine("Window mode: " + window.WindowMode);
@@ -223,8 +222,8 @@ namespace osu.Framework.Tests.Visual
 
             windowContainer.X = window.X;
             windowContainer.Y = window.Y;
-            windowContainer.Width = fullscreen ? window.GetCurrentDisplay().Width : window.Width;
-            windowContainer.Height = fullscreen ? window.GetCurrentDisplay().Height : window.Height;
+            windowContainer.Width = fullscreen ? window.CurrentDisplay.Width : window.Width;
+            windowContainer.Height = fullscreen ? window.CurrentDisplay.Height : window.Height;
             windowContainer.Position -= screenContainerOffset;
             windowCaption.Text = $"{windowMode}\nSize: {window.Size.Width}x{window.Size.Height}\nClient: {window.ClientSize.Width}x{window.ClientSize.Height}";
         }
@@ -245,7 +244,7 @@ namespace osu.Framework.Tests.Visual
 
             currentActualSize.Text = $"Window size: {window?.Size}";
             currentClientSize.Text = $"Client size: {window?.ClientSize}";
-            currentDisplay.Text = $"Current Display: {window?.GetCurrentDisplay()}";
+            currentDisplay.Text = $"Current Display: {window?.CurrentDisplay}";
         }
     }
 }
