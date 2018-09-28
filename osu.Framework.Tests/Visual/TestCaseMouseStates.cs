@@ -318,6 +318,29 @@ namespace osu.Framework.Tests.Visual
             });
             checkEventCount("Click", 2);
             checkEventCount("DoubleClick", 1);
+
+            waitDoubleClickTime();
+            AddStep("click then mouse down", () =>
+            {
+                InputManager.Click(MouseButton.Left);
+                InputManager.PressButton(MouseButton.Left);
+            });
+            checkEventCount("Click", 1);
+            checkEventCount("DoubleClick", 1);
+            AddStep("mouse up", () => InputManager.ReleaseButton(MouseButton.Left));
+            checkEventCount("Click");
+            checkEventCount("DoubleClick");
+
+            waitDoubleClickTime();
+            AddStep("double click drag", () =>
+            {
+                InputManager.Click(MouseButton.Left);
+                InputManager.PressButton(MouseButton.Left);
+                InputManager.MoveMouseTo(outerMarginBox.ScreenSpaceDrawQuad.TopLeft);
+            });
+            checkEventCount("Click", 1);
+            checkEventCount("DoubleClick", 1);
+            checkEventCount("DragStart", 1);
         }
 
         [Test]
