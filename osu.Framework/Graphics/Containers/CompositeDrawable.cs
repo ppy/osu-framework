@@ -416,8 +416,8 @@ namespace osu.Framework.Graphics.Containers
 
             internalChildren.Clear();
             aliveInternalChildren.Clear();
-            PossiblyHandleNonPositionalInputSubTree = PossiblyHandleNonPositionalInput;
-            PossiblyHandlePositionalInputSubTree = PossiblyHandlePositionalInput;
+            RequestsNonPositionalInputSubTree = RequestsNonPositionalInput;
+            RequestsPositionalInputSubTree = RequestsPositionalInput;
 
             if (AutoSizeAxes != Axes.None)
                 InvalidateFromChild(Invalidation.RequiredParentSizeToFit);
@@ -578,16 +578,16 @@ namespace osu.Framework.Graphics.Containers
 
                         // If the new child has the flag, we should propagate the flag to the root.
                         // But we can stop at the ancestor which flag is true because further ancestors should have flag already set to be true.
-                        if (child.PossiblyHandleNonPositionalInputSubTree)
+                        if (child.RequestsNonPositionalInputSubTree)
                         {
-                            for (var ancestor = this; ancestor != null && !ancestor.PossiblyHandleNonPositionalInputSubTree; ancestor = ancestor.Parent)
-                                ancestor.PossiblyHandleNonPositionalInputSubTree = true;
+                            for (var ancestor = this; ancestor != null && !ancestor.RequestsNonPositionalInputSubTree; ancestor = ancestor.Parent)
+                                ancestor.RequestsNonPositionalInputSubTree = true;
                         }
 
-                        if (child.PossiblyHandlePositionalInputSubTree)
+                        if (child.RequestsPositionalInputSubTree)
                         {
-                            for (var ancestor = this; ancestor != null && !ancestor.PossiblyHandlePositionalInputSubTree; ancestor = ancestor.Parent)
-                                ancestor.PossiblyHandlePositionalInputSubTree = true;
+                            for (var ancestor = this; ancestor != null && !ancestor.RequestsPositionalInputSubTree; ancestor = ancestor.Parent)
+                                ancestor.RequestsPositionalInputSubTree = true;
                         }
 
                         ChildBecameAlive?.Invoke(child);

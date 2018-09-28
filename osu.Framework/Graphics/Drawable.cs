@@ -228,11 +228,11 @@ namespace osu.Framework.Graphics
 
             double t1 = getPerfTime();
 
-            PossiblyHandleNonPositionalInput = HandleInputCache.PossiblyHandleNonPositionalInput(this);
-            PossiblyHandlePositionalInput = HandleInputCache.PossiblyHandlePositionalInput(this);
+            RequestsNonPositionalInput = HandleInputCache.RequestsNonPositionalInput(this);
+            RequestsPositionalInput = HandleInputCache.RequestsPositionalInput(this);
 
-            PossiblyHandleNonPositionalInputSubTree = PossiblyHandleNonPositionalInput;
-            PossiblyHandlePositionalInputSubTree = PossiblyHandlePositionalInput;
+            RequestsNonPositionalInputSubTree = RequestsNonPositionalInput;
+            RequestsPositionalInputSubTree = RequestsPositionalInput;
 
             InjectDependencies(dependencies);
 
@@ -1865,26 +1865,38 @@ namespace osu.Framework.Graphics
         #endregion
 
         /// <summary>
-        /// Whether this drawable possibly handles non-positional input now or in the future.
+        /// Whether this drawable should receive non-positional input. This does not mean that the drawable will immediately handle the received input, but that it may handle it at some point.
         /// </summary>
-        internal bool PossiblyHandleNonPositionalInput;
+        internal bool RequestsNonPositionalInput { get; private set; }
 
         /// <summary>
-        /// Whether this drawable possibly handles positional input now or in the future.
+        /// Whether this drawable should receive positional input. This does not mean that the drawable will immediately handle the received input, but that it may handle it at some point.
         /// </summary>
-        internal bool PossiblyHandlePositionalInput;
+        internal bool RequestsPositionalInput { get; private set; }
+
+        /// <summary>
+        /// Conservatively approximates whether there is a descendant which <see cref="RequestsNonPositionalInput"/> in the sub-tree rooted at this drawable
+        /// to enable sub-tree skipping optimization for input handling.
+        /// </summary>
+        internal bool RequestsNonPositionalInputSubTree;
+
+        /// <summary>
+        /// Conservatively approximates whether there is a descendant which <see cref="RequestsPositionalInput"/> in the sub-tree rooted at this drawable
+        /// to enable sub-tree skipping optimization for input handling.
+        /// </summary>
+        internal bool RequestsPositionalInputSubTree;
 
         /// <summary>
         /// Whether this <see cref="Drawable"/> handles non-positional input.
-        /// This value is true by default if <see cref="Handle"/> or any non-positional "On-" input methods are overridden.
+        /// This value is true by default if <see cref="Handle"/> or any non-positional (e.g. keyboard related) "On-" input methods are overridden.
         /// </summary>
-        public virtual bool HandleNonPositionalInput => PossiblyHandleNonPositionalInput;
+        public virtual bool HandleNonPositionalInput => RequestsNonPositionalInput;
 
         /// <summary>
         /// Whether this <see cref="Drawable"/> handles positional input.
-        /// This value is true by default if <see cref="Handle"/> or any positional "On-" input methods are overridden.
+        /// This value is true by default if <see cref="Handle"/> or any positional (i.e. mouse related) "On-" input methods are overridden.
         /// </summary>
-        public virtual bool HandlePositionalInput => PossiblyHandlePositionalInput;
+        public virtual bool HandlePositionalInput => RequestsPositionalInput;
 
         /// <summary>
         /// Nested class which is used for caching <see cref="Drawable.HandleNonPositionalInput"/>, <see cref="Drawable.HandlePositionalInput"/> values obtained via reflection.
@@ -1923,9 +1935,9 @@ namespace osu.Framework.Graphics
                 nameof(OnJoystickRelease)
             };
 
-            public static bool PossiblyHandleNonPositionalInput(Drawable drawable) => get(drawable, non_positional_cached_values, false);
+            public static bool RequestsNonPositionalInput(Drawable drawable) => get(drawable, non_positional_cached_values, false);
 
-            public static bool PossiblyHandlePositionalInput(Drawable drawable) => get(drawable, positional_cached_values, true);
+            public static bool RequestsPositionalInput(Drawable drawable) => get(drawable, positional_cached_values, true);
 
             private static bool get(Drawable drawable, ConcurrentDictionary<Type, bool> cache, bool positional)
             {
@@ -2014,22 +2026,12 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Whether non-positional input should be propagated to the sub-tree rooted at this drawable.
         /// </summary>
-        public bool PropagateNonPositionalInputSubTree => IsPresent && PossiblyHandleNonPositionalInputSubTree;
+        public bool PropagateNonPositionalInputSubTree => IsPresent && RequestsNonPositionalInputSubTree;
 
         /// <summary>
         /// Whether positional input should be propagated to the sub-tree rooted at this drawable.
         /// </summary>
-        public bool PropagatePositionalInputSubTree => IsPresent && PossiblyHandlePositionalInputSubTree && !IsMaskedAway;
-
-        /// <summary>
-        /// If this is false, there is no decendant who handles non-positional input (but converse is not always true, it is conservative).
-        /// </summary>
-        internal bool PossiblyHandleNonPositionalInputSubTree;
-
-        /// <summary>
-        /// If this is false, there is no decendant who handles positional input (but converse is not always true, it is conservative).
-        /// </summary>
-        internal bool PossiblyHandlePositionalInputSubTree;
+        public bool PropagatePositionalInputSubTree => IsPresent && RequestsPositionalInputSubTree && !IsMaskedAway;
 
         /// <summary>
         /// Creates a new InputState with mouse coodinates converted to the coordinate space of our parent.
