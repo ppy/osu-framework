@@ -184,6 +184,12 @@ namespace osu.Framework.Platform
                 CursorState &= ~CursorState.Confined;
         }
 
+        public void CenterOnScreen(DisplayDevice display = null)
+        {
+            if(display != null) CurrentDisplay = display;
+            Position = new Vector2(0.5f, 0.5f);
+        }
+
         private void windowModeChanged(WindowMode newMode) => UpdateWindowMode(newMode);
 
         protected virtual void UpdateWindowMode(WindowMode newMode)
