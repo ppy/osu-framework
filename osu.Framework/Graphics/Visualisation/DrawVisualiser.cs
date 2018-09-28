@@ -114,47 +114,6 @@ namespace osu.Framework.Graphics.Visualisation
             recycleVisualisers();
         }
 
-        private Drawable findTargetIn(Drawable d, InputState state)
-        {
-            if (d is DrawVisualiser) return null;
-            if (d is CursorContainer) return null;
-            if (d is PropertyDisplay) return null;
-
-            if (!d.IsPresent) return null;
-
-            bool containsCursor = d.ScreenSpaceDrawQuad.Contains(state.Mouse.NativeState.Position);
-            // This is an optimization: We don't need to consider drawables which we don't hover, and which do not
-            // forward input further to children (via d.ReceivePositionalInputAt). If they do forward input to children, then there
-            // is a good chance they have children poking out of their bounds, which we need to catch.
-            if (!containsCursor && !d.ReceivePositionalInputAt(state.Mouse.NativeState.Position))
-                return null;
-
-            var dAsContainer = d as CompositeDrawable;
-
-            Drawable containedTarget = null;
-
-            if (dAsContainer != null)
-            {
-                if (!dAsContainer.InternalChildren.Any())
-                    return null;
-
-                foreach (var c in dAsContainer.AliveInternalChildren)
-                {
-                    var contained = findTargetIn(c, state);
-                    if (contained != null)
-                    {
-                        if (containedTarget == null ||
-                            containedTarget.DrawWidth * containedTarget.DrawHeight > contained.DrawWidth * contained.DrawHeight)
-                        {
-                            containedTarget = contained;
-                        }
-                    }
-                }
-            }
-
-            return containedTarget ?? (containsCursor ? d : null);
-        }
-
         void IContainVisualisedDrawables.AddVisualiser(VisualisedDrawable visualiser)
         {
             visualiser.RequestTarget = d =>
@@ -210,6 +169,66 @@ namespace osu.Framework.Graphics.Visualisation
             }
         }
 
+        private Drawable cursorTarget;
+
+        protected override void Update()
+        {
+            base.Update();
+
+            updateCursorTarget();
+        }
+
+        private void updateCursorTarget()
+        {
+            Drawable drawableTarget = null;
+            CompositeDrawable compositeTarget = null;
+
+            findTarget(inputManager);
+
+            cursorTarget = drawableTarget ?? compositeTarget;
+
+            // Finds the targeted drawable and composite drawable. The search stops if a drawable is targeted.
+            void findTarget(Drawable drawable)
+            {
+                if (!isValidTarget(drawable))
+                    return;
+
+                if (drawable is CompositeDrawable composite)
+                {
+                    for (int i = composite.AliveInternalChildren.Count - 1; i >= 0; i--)
+                    {
+                        findTarget(composite.AliveInternalChildren[i]);
+
+                        if (drawableTarget != null)
+                            return;
+                    }
+
+                    if (compositeTarget == null)
+                        compositeTarget = composite;
+                }
+                else
+                    drawableTarget = drawable;
+            }
+
+            bool isValidTarget(Drawable drawable)
+            {
+                if (drawable is DrawVisualiser || drawable is CursorContainer || drawable is PropertyDisplay)
+                    return false;
+
+                if (!drawable.IsPresent)
+                    return false;
+
+                bool containsCursor = drawable.ScreenSpaceDrawQuad.Contains(inputManager.CurrentState.Mouse.NativeState.Position);
+                // This is an optimization: We don't need to consider drawables which we don't hover, and which do not
+                // forward input further to children (via d.ReceivePositionalInputAt). If they do forward input to children, then there
+                // is a good chance they have children poking out of their bounds, which we need to catch.
+                if (!containsCursor && !drawable.ReceivePositionalInputAt(inputManager.CurrentState.Mouse.NativeState.Position))
+                    return false;
+
+                return true;
+            }
+        }
+
         public bool Searching { get; private set; }
 
         private void setHighlight(VisualisedDrawable newHighlight)
@@ -239,13 +258,11 @@ namespace osu.Framework.Graphics.Visualisation
 
         protected override bool OnMouseDown(InputState state, MouseDownEventArgs args) => Searching;
 
-        private Drawable findTarget(InputState state) => findTargetIn(Parent?.Parent, state);
-
         protected override bool OnClick(InputState state)
         {
             if (Searching)
             {
-                Target = findTarget(state)?.Parent;
+                Target = cursorTarget?.Parent;
 
                 if (Target != null)
                 {
@@ -262,8 +279,8 @@ namespace osu.Framework.Graphics.Visualisation
 
         protected override bool OnMouseMove(InputState state)
         {
-            overlay.Target = Searching ? findTarget(state) : inputManager.HoveredDrawables.OfType<VisualisedDrawable>().FirstOrDefault()?.Target;
-            return base.OnMouseMove(state);
+            overlay.Target = Searching ? cursorTarget : inputManager.HoveredDrawables.OfType<VisualisedDrawable>().FirstOrDefault()?.Target;
+            return overlay.Target != null;
         }
 
         private readonly Dictionary<Drawable, VisualisedDrawable> visCache = new Dictionary<Drawable, VisualisedDrawable>();
