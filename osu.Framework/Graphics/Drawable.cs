@@ -834,43 +834,43 @@ namespace osu.Framework.Graphics
         protected Vector2 ApplyRelativeAxes(Axes relativeAxes, Vector2 v, FillMode fillMode) =>
             relativeAxes == Axes.None ? v : applyRelativeAxes(relativeAxes, v, fillMode, Parent?.RelativeToAbsoluteFactor ?? Vector2.One);
 
-        protected Vector2 ApplyRelativeAxesBeforeParentAutoSize(Axes relativeAxes, Vector2 v, FillMode fillMode) =>
-            relativeAxes == Axes.None ? v : applyRelativeAxes(relativeAxes, v, fillMode, Parent?.RelativeToAbsoluteFactorBeforeAutoSize ?? Vector2.One);
+        protected Vector2 LocalApplyRelativeAxes(Axes relativeAxes, Vector2 v, FillMode fillMode) =>
+            relativeAxes == Axes.None ? v : applyRelativeAxes(relativeAxes, v, fillMode, Parent?.OwnRelativeToAbsoluteFactor ?? Vector2.One);
 
-        protected Vector2 DrawSizeBeforeParentAutoSize => ApplyRelativeAxesBeforeParentAutoSize(RelativeSizeAxes, Size, FillMode);
+        protected Vector2 LocalDrawSize => LocalApplyRelativeAxes(RelativeSizeAxes, Size, FillMode);
 
-        protected Vector2 DrawPositionBeforeParentAutoSize => ApplyRelativeAxesBeforeParentAutoSize(RelativePositionAxes, Position, FillMode);
+        protected Vector2 LocalDrawPosition => LocalApplyRelativeAxes(RelativePositionAxes, Position, FillMode);
 
-        protected Vector2 LayoutSizeBeforeParentAutoSize => DrawSizeBeforeParentAutoSize + margin.Total;
+        protected Vector2 LocalLayoutSize => LocalDrawSize + margin.Total;
 
-        protected RectangleF LayoutRectangleBeforeParentAutoSize => new RectangleF(new Vector2(-margin.Left, -margin.Top), LayoutSizeBeforeParentAutoSize);
+        protected RectangleF LocalLayoutRectangle => new RectangleF(new Vector2(-margin.Left, -margin.Top), LocalLayoutSize);
 
-        protected Vector2 AnchorPositionBeforeParentAutoSize => RelativeAnchorPosition * Parent?.ChildSizeBeforeAutoSize ?? Vector2.Zero;
+        protected Vector2 LocalAnchorPosition => RelativeAnchorPosition * Parent?.OwnChildSize ?? Vector2.Zero;
 
-        protected Vector2 OriginPositionBeforeParentAutoSize => computeOriginPosition(LayoutSizeBeforeParentAutoSize);
+        protected Vector2 LocalOriginPosition => computeOriginPosition(LocalLayoutSize);
 
-        protected Matrix3 ToParentSpaceMatrixBeforeParentAutoSize
+        protected Matrix3 LocalToParentSpaceMatrix
         {
             get
             {
                 var di = new DrawInfo(null);
-                var translation = DrawPositionBeforeParentAutoSize + AnchorPositionBeforeParentAutoSize + (Parent?.ChildOffset ?? Vector2.Zero);
-                di.ApplyTransform(translation, DrawScale, Rotation, Shear, OriginPositionBeforeParentAutoSize);
+                var translation = LocalDrawPosition + LocalAnchorPosition + (Parent?.ChildOffset ?? Vector2.Zero);
+                di.ApplyTransform(translation, DrawScale, Rotation, Shear, LocalOriginPosition);
                 return di.Matrix;
             }
         }
 
-        protected Vector2 ToParentSpaceBeforeParentAutoSize(Vector2 input) => Vector2Extensions.Transform(input, ToParentSpaceMatrixBeforeParentAutoSize);
+        protected Vector2 LocalToParentSpace(Vector2 input) => Vector2Extensions.Transform(input, LocalToParentSpaceMatrix);
 
-        protected Quad ToParentSpaceBeforeParentAutoSize(RectangleF input) => Quad.FromRectangle(input) * ToParentSpaceMatrixBeforeParentAutoSize;
+        protected Quad LocalToParentSpace(RectangleF input) => Quad.FromRectangle(input) * LocalToParentSpaceMatrix;
 
         /// <summary>
         /// Computes the bounding box of this drawable in its parent's space.
         /// </summary>
-        public virtual RectangleF BoundingBoxBeforeParentAutoSize => ToParentSpaceBeforeParentAutoSize(LayoutRectangleBeforeParentAutoSize).AABBFloat;
+        public virtual RectangleF LocalBoundingBox => LocalToParentSpace(LocalLayoutRectangle).AABBFloat;
 
         // todo: fixme
-        public RectangleF BoundingBox => BoundingBoxBeforeParentAutoSize;
+        public RectangleF BoundingBox => LocalBoundingBox;
 
         /// <summary>
         /// Called whenever the <see cref="RelativeSizeAxes"/> of this drawable is changed, or when the <see cref="Container{T}.AutoSizeAxes"/> are changed if this drawable is a <see cref="Container{T}"/>.
@@ -1548,7 +1548,7 @@ namespace osu.Framework.Graphics
         private Vector2 computeRequiredParentSizeToFit()
         {
             // Auxilary variables required for the computation
-            Vector2 ap = AnchorPositionBeforeParentAutoSize;
+            Vector2 ap = LocalAnchorPosition;
             Vector2 rap = RelativeAnchorPosition;
 
             Vector2 ratio1 = new Vector2(
@@ -1559,7 +1559,7 @@ namespace osu.Framework.Graphics
                 rap.X >= 1 ? 0 : 1 / (1 - rap.X),
                 rap.Y >= 1 ? 0 : 1 / (1 - rap.Y));
 
-            RectangleF bbox = BoundingBoxBeforeParentAutoSize;
+            RectangleF bbox = LocalBoundingBox;
 
             // Compute the required size of the parent such that we fit in snugly when positioned
             // at our relative anchor in the parent.

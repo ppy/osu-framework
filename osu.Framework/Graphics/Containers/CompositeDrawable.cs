@@ -1197,29 +1197,29 @@ namespace osu.Framework.Graphics.Containers
 
         #region Sizing
 
-        public override RectangleF BoundingBoxBeforeParentAutoSize
+        public override RectangleF LocalBoundingBox
         {
             get
             {
                 float cRadius = CornerRadius;
                 if (cRadius == 0.0f)
-                    return base.BoundingBoxBeforeParentAutoSize;
+                    return base.LocalBoundingBox;
 
-                RectangleF drawRect = LayoutRectangleBeforeParentAutoSize.Shrink(cRadius);
+                RectangleF drawRect = LocalLayoutRectangle.Shrink(cRadius);
 
                 // Inflate bounding box in parent space by the half-size of the bounding box of the
                 // ellipse obtained by transforming the unit circle into parent space.
-                Vector2 offset = ToParentSpaceBeforeParentAutoSize(Vector2.Zero);
-                Vector2 u = ToParentSpaceBeforeParentAutoSize(new Vector2(cRadius, 0)) - offset;
-                Vector2 v = ToParentSpaceBeforeParentAutoSize(new Vector2(0, cRadius)) - offset;
+                Vector2 offset = LocalToParentSpace(Vector2.Zero);
+                Vector2 u = LocalToParentSpace(new Vector2(cRadius, 0)) - offset;
+                Vector2 v = LocalToParentSpace(new Vector2(0, cRadius)) - offset;
                 Vector2 inflation = new Vector2((float)Math.Sqrt(u.X * u.X + v.X * v.X), (float)Math.Sqrt(u.Y * u.Y + v.Y * v.Y));
 
-                RectangleF result = ToParentSpaceBeforeParentAutoSize(drawRect).AABBFloat.Inflate(inflation);
+                RectangleF result = LocalToParentSpace(drawRect).AABBFloat.Inflate(inflation);
                 // The above algorithm will return incorrect results if the rounded corners are not fully visible.
                 // To limit bad behavior we at least enforce here, that the bounding box with rounded corners
                 // is never larger than the bounding box without.
-                if (DrawSizeBeforeParentAutoSize.X < CornerRadius * 2 || DrawSizeBeforeParentAutoSize.Y < CornerRadius * 2)
-                    result.Intersect(base.BoundingBoxBeforeParentAutoSize);
+                if (LocalDrawSize.X < CornerRadius * 2 || LocalDrawSize.Y < CornerRadius * 2)
+                    result.Intersect(base.LocalBoundingBox);
 
                 return result;
             }
@@ -1318,13 +1318,13 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public Axes DirectlyOrIndirectlyAutoSizedAxes => AutoSizeAxes | (RelativeSizeAxes == Axes.None || Parent == null ? Axes.None : RelativeSizeAxes & Parent.DirectlyOrIndirectlyAutoSizedAxes);
 
-        protected Vector2 SizeBeforeAutoSize => new Vector2(AutoSizeAxes.HasFlag(Axes.X) ? 0 : base.Width, AutoSizeAxes.HasFlag(Axes.Y) ? 0 : base.Height);
+        protected Vector2 OwnSize => new Vector2(AutoSizeAxes.HasFlag(Axes.X) ? 0 : base.Width, AutoSizeAxes.HasFlag(Axes.Y) ? 0 : base.Height);
 
-        protected Vector2 DrawSizeBeforeAutoSize => ApplyRelativeAxesBeforeParentAutoSize(RelativeSizeAxes, SizeBeforeAutoSize, FillMode);
+        protected Vector2 OwnDrawSize => LocalApplyRelativeAxes(RelativeSizeAxes, OwnSize, FillMode);
 
-        public Vector2 ChildSizeBeforeAutoSize => DrawSizeBeforeAutoSize - Padding.Total;
+        public Vector2 OwnChildSize => OwnDrawSize - Padding.Total;
 
-        public Vector2 RelativeToAbsoluteFactorBeforeAutoSize => Vector2.Divide(ChildSizeBeforeAutoSize, RelativeChildSize);
+        public Vector2 OwnRelativeToAbsoluteFactor => Vector2.Divide(OwnChildSize, RelativeChildSize);
 
         /// <summary>
         /// Tweens the <see cref="RelativeChildSize"/> of this <see cref="CompositeDrawable"/>.

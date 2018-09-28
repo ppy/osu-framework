@@ -99,7 +99,7 @@ namespace osu.Framework.Graphics.Containers
             var max = MaximumSize;
             if (max == Vector2.Zero)
             {
-                max = ChildSizeBeforeAutoSize;
+                max = OwnChildSize;
                 // If an axis is auto sized (directly or indirectly), allow infinite expansion for the axis.
                 var axes = DirectlyOrIndirectlyAutoSizedAxes;
                 if (axes.HasFlag(Axes.X)) max.X = float.MaxValue;
@@ -134,7 +134,7 @@ namespace osu.Framework.Graphics.Containers
                 // Populate running variables with sane initial values.
                 if (i == 0)
                 {
-                    size = c.BoundingBoxBeforeParentAutoSize.Size;
+                    size = c.LocalBoundingBox.Size;
                     rowBeginOffset = spacingFactor(c).X * size.X;
                 }
 
@@ -172,7 +172,7 @@ namespace osu.Framework.Graphics.Containers
                     stride = (Vector2.One - spacingFactor(c)) * size;
 
                     c = children[i + 1];
-                    size = c.BoundingBoxBeforeParentAutoSize.Size;
+                    size = c.LocalBoundingBox.Size;
 
                     stride += spacingFactor(c) * size;
                 }
