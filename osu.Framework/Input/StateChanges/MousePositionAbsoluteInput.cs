@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using osu.Framework.Input.StateChanges.Events;
 using osu.Framework.Input.States;
 using OpenTK;
 
@@ -25,10 +26,10 @@ namespace osu.Framework.Input.StateChanges
             var mouse = state.Mouse;
             if (!mouse.IsPositionValid || mouse.Position != Position)
             {
+                var lastPosition = mouse.IsPositionValid ? mouse.Position : Position;
                 mouse.IsPositionValid = true;
-                mouse.LastPosition = mouse.Position;
                 mouse.Position = Position;
-                handler.HandleMousePositionChange(state);
+                handler.HandleInputStateChange(new MousePositionChangeEvent(state, this, lastPosition));
             }
         }
     }

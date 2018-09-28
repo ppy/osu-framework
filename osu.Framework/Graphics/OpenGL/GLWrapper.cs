@@ -441,6 +441,8 @@ namespace osu.Framework.Graphics.OpenGL
             GlobalPropertyManager.Set(GlobalProperty.MaskingBlendRange, maskingInfo.BlendRange);
             GlobalPropertyManager.Set(GlobalProperty.AlphaExponent, maskingInfo.AlphaExponent);
 
+            GlobalPropertyManager.Set(GlobalProperty.EdgeOffset, maskingInfo.EdgeOffset);
+
             GlobalPropertyManager.Set(GlobalProperty.DiscardInner, maskingInfo.Hollow);
 
             RectangleI actualRect = maskingInfo.ScreenSpaceAABB;
@@ -656,6 +658,8 @@ namespace osu.Framework.Graphics.OpenGL
         public float BlendRange;
         public float AlphaExponent;
 
+        public Vector2 EdgeOffset;
+
         public bool Hollow;
 
         public bool Equals(MaskingInfo other)
@@ -669,6 +673,7 @@ namespace osu.Framework.Graphics.OpenGL
                 BorderColour.Equals(other.BorderColour) &&
                 BlendRange == other.BlendRange &&
                 AlphaExponent == other.AlphaExponent &&
+                EdgeOffset == other.EdgeOffset &&
                 Hollow == other.Hollow;
         }
     }

@@ -248,11 +248,11 @@ namespace osu.Framework.Tests.Visual
                 stateText.Text = State.ToString();
             }
 
-            public override bool ReceiveMouseInputAt(Vector2 screenSpacePos) => true;
+            public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => true;
 
             protected override bool OnClick(InputState state)
             {
-                if (!box.ReceiveMouseInputAt(state.Mouse.NativeState.Position))
+                if (!box.ReceivePositionalInputAt(state.Mouse.NativeState.Position))
                 {
                     State = Visibility.Hidden;
                     return true;
