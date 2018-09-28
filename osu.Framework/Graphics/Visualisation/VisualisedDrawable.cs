@@ -13,6 +13,7 @@ using OpenTK.Input;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.IEnumerableExtensions;
+using osu.Framework.Graphics.Textures;
 using osu.Framework.Input.EventArgs;
 using osu.Framework.Input.States;
 
@@ -103,7 +104,8 @@ namespace osu.Framework.Graphics.Visualisation
                     ? previewBox = new Box { Colour = Color4.White }
                     : new Sprite
                     {
-                        Texture = spriteTarget.Texture,
+                        // It's fine to only bypass the ref count, because this sprite will dispose along with the original sprite
+                        Texture = new Texture(spriteTarget.Texture.TextureGL),
                         Scale = new Vector2(spriteTarget.Texture.DisplayWidth / spriteTarget.Texture.DisplayHeight, 1),
                     },
                 new Container
