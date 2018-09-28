@@ -71,7 +71,7 @@ namespace osu.Framework.Tests.Visual
             base.Update();
 
             currentActualSize.Text = $"Window size: {window?.Bounds.Size}";
-            currentDisplay.Text = $"Current display device: {window?.GetCurrentDisplay()}";
+            currentDisplay.Text = $"Current display device: {window?.CurrentDisplay}";
         }
     }
 }
