@@ -43,7 +43,7 @@ namespace osu.Framework.Platform
             get => DisplayDevice.FromRectangle(Bounds) ?? DisplayDevice.Default;
             set
             {
-                if(value == null || value == CurrentDisplay) return;
+                if (value == null || value == CurrentDisplay) return;
 
                 var windowMode = WindowMode.Value;
                 WindowMode.Value = Configuration.WindowMode.Windowed;
@@ -184,9 +184,9 @@ namespace osu.Framework.Platform
                 CursorState &= ~CursorState.Confined;
         }
 
-        public void CenterOnScreen(DisplayDevice display = null)
+        public void CenterToScreen(DisplayDevice display = null)
         {
-            if(display != null) CurrentDisplay = display;
+            if (display != null) CurrentDisplay = display;
             Position = new Vector2(0.5f, 0.5f);
         }
 
