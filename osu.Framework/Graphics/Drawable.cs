@@ -2026,12 +2026,12 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Whether non-positional input should be propagated to the sub-tree rooted at this drawable.
         /// </summary>
-        public bool PropagateNonPositionalInputSubTree => IsPresent && RequestsNonPositionalInputSubTree;
+        public virtual bool PropagateNonPositionalInputSubTree => IsPresent && RequestsNonPositionalInputSubTree;
 
         /// <summary>
         /// Whether positional input should be propagated to the sub-tree rooted at this drawable.
         /// </summary>
-        public bool PropagatePositionalInputSubTree => IsPresent && RequestsPositionalInputSubTree && !IsMaskedAway;
+        public virtual bool PropagatePositionalInputSubTree => IsPresent && RequestsPositionalInputSubTree && !IsMaskedAway;
 
         /// <summary>
         /// Creates a new InputState with mouse coodinates converted to the coordinate space of our parent.

@@ -67,8 +67,8 @@ namespace osu.Framework.Graphics.Containers
 
         public override void Show() => State = Visibility.Visible;
 
-        public override bool HandleNonPositionalInput => State == Visibility.Visible;
-        public override bool HandlePositionalInput => State == Visibility.Visible;
+        public override bool PropagateNonPositionalInputSubTree => base.PropagateNonPositionalInputSubTree && State == Visibility.Visible;
+        public override bool PropagatePositionalInputSubTree => base.PropagatePositionalInputSubTree && State == Visibility.Visible;
 
         public event Action<Visibility> StateChanged;
 
