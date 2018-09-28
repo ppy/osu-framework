@@ -159,23 +159,20 @@ namespace osu.Framework.Tests.Visual
 
                 // set up window
                 AddStep("switch to windowed", () => windowMode.Value = WindowMode.Windowed);
-                AddStep("set client size to 1280x720", () => { if(window != null) window.ClientSize = new Size(1280, 720); });
-                AddStep("center window on screen " + i, () => { window?.CenterToScreen(display); });
-                printState();
+                AddStep("set client size to 1280x720", () => window.ClientSize = new Size(1280, 720));
+                AddStep("center window on screen " + i, () => window.CenterToScreen(display));
 
                 // borderless alignment tests
                 AddStep("switch to borderless", () => windowMode.Value = WindowMode.Borderless);
-                printState();
-                AddAssert("check window location", () => window?.Location == display.Bounds.Location, desc1);
-                AddAssert("check window size", () => new Size(window?.Width - 1 ?? 0, window?.Height - 1 ?? 0) == display.Bounds.Size, desc2);
-                AddAssert("check current screen", () => window?.CurrentDisplay == display);
+                AddAssert("check window location", () => window.Location == display.Bounds.Location, desc1);
+                AddAssert("check window size", () => new Size(window.Width - 1, window.Height - 1) == display.Bounds.Size, desc2);
+                AddAssert("check current screen", () => window.CurrentDisplay == display);
 
                 // verify the window size is restored correctly
                 AddStep("switch to windowed", () => windowMode.Value = WindowMode.Windowed);
-                printState();
-                AddAssert("check client size", () => window?.ClientSize == new Size(1280, 720));
-                AddAssert("check window position", () => Math.Abs(window?.Position.X - 0.5f ?? float.NaN) < 0.01 && Math.Abs(window?.Position.Y - 0.5f ?? float.NaN) < 0.01);
-                AddAssert("check current screen", () => window?.CurrentDisplay == display);
+                AddAssert("check client size", () => window.ClientSize == new Size(1280, 720));
+                AddAssert("check window position", () => Math.Abs(window.Position.X - 0.5f) < 0.01 && Math.Abs(window.Position.Y - 0.5f) < 0.01);
+                AddAssert("check current screen", () => window.CurrentDisplay == display);
             }
         }
 
