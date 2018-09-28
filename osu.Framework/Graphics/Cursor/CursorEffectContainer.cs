@@ -13,6 +13,8 @@ namespace osu.Framework.Graphics.Cursor
         where TSelf : CursorEffectContainer<TSelf, TTarget>
         where TTarget : class, IDrawable
     {
+        public override bool HandlePositionalInput => true;
+
         private InputManager inputManager;
 
         protected override void LoadComplete()
