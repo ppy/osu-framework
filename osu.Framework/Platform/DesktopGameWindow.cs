@@ -48,7 +48,7 @@ namespace osu.Framework.Platform
                 var windowMode = WindowMode.Value;
                 WindowMode.Value = Configuration.WindowMode.Windowed;
 
-                var position = Position; 
+                var position = Position;
                 Location = value.Bounds.Location;
                 Position = position;
 
