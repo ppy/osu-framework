@@ -90,7 +90,7 @@ namespace osu.Framework.Graphics.Textures
         /// The provided upload will be disposed after the upload is completed.
         /// </summary>
         /// <param name="upload"></param>
-        public void SetData(TextureUpload upload)
+        public void SetData(ITextureUpload upload)
         {
             TextureGL?.SetData(upload);
         }
@@ -131,9 +131,12 @@ namespace osu.Framework.Graphics.Textures
 
         public override string ToString() => $@"{AssetName} ({Width}, {Height})";
 
-        #region Disposal
+        /// <summary>
+        /// Whether <see cref="TextureGL"/> is in a usable state.
+        /// </summary>
+        public virtual bool Available => !TextureGL.IsDisposed;
 
-        public bool IsDisposed { get; private set; }
+        #region Disposal
 
         // Intentionally no finalizer implementation as our disposal is NOOP. Finalizer is implemented in TextureWithRefCount usage.
 
@@ -144,8 +147,6 @@ namespace osu.Framework.Graphics.Textures
 
         protected virtual void Dispose(bool isDisposing)
         {
-            if (IsDisposed) return;
-            IsDisposed = true;
         }
 
         #endregion

@@ -148,6 +148,7 @@ namespace osu.Framework.Graphics.Containers
             // the edge effect along its radius using the same rounded-corners shader.
             edgeEffectMaskingInfo.BlendRange = EdgeEffect.Radius;
             edgeEffectMaskingInfo.AlphaExponent = 2;
+            edgeEffectMaskingInfo.EdgeOffset = EdgeEffect.Offset;
             edgeEffectMaskingInfo.Hollow = EdgeEffect.Hollow;
 
             GLWrapper.PushMaskingInfo(edgeEffectMaskingInfo);
@@ -211,8 +212,8 @@ namespace osu.Framework.Graphics.Containers
             }
 
             if (Children != null)
-                foreach (DrawNode child in Children)
-                    child.Draw(vertexAction);
+                for (int i = 0; i < Children.Count; i++)
+                    Children[i].Draw(vertexAction);
 
             if (MaskingInfo != null)
                 GLWrapper.PopMaskingInfo();

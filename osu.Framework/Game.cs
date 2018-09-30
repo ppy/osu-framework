@@ -2,7 +2,10 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Linq;
+using OpenTK;
+using osu.Framework.Allocation;
 using osu.Framework.Audio;
+using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Performance;
@@ -10,12 +13,10 @@ using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Visualisation;
 using osu.Framework.Input;
-using osu.Framework.IO.Stores;
-using osu.Framework.Platform;
-using osu.Framework.Allocation;
-using osu.Framework.Configuration;
 using osu.Framework.Input.Bindings;
-using OpenTK;
+using osu.Framework.IO.Stores;
+using osu.Framework.Localisation;
+using osu.Framework.Platform;
 using GameWindow = osu.Framework.Platform.GameWindow;
 
 namespace osu.Framework
@@ -37,6 +38,8 @@ namespace osu.Framework
         public ShaderManager Shaders;
 
         public FontStore Fonts;
+
+        protected LocalisationManager Localisation { get; private set; }
 
         private readonly Container content;
         private PerformanceOverlay performanceContainer;
@@ -127,6 +130,9 @@ namespace osu.Framework
 
             Fonts = new FontStore(new GlyphStore(Resources, @"Fonts/OpenSans"));
             dependencies.Cache(Fonts);
+
+            Localisation = new LocalisationManager(config);
+            dependencies.Cache(Localisation);
         }
 
         protected override void LoadComplete()

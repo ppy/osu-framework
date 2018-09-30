@@ -16,6 +16,7 @@ namespace osu.Framework.Graphics.Shaders
         BorderColour,
         MaskingBlendRange,
         AlphaExponent,
+        EdgeOffset,
         DiscardInner,
     }
 }

@@ -58,13 +58,11 @@ namespace osu.Framework.Screens
             base.Add(drawable);
         }
 
-        public override bool DisposeOnDeathRemoval => true;
-
         // in the case we don't have a parent screen, we still want to handle input as we are also responsible for
         // children inside childScreenContainer.
         // this means the root screen always received input.
-        public override bool HandleKeyboardInput => IsCurrentScreen || !hasExited && ParentScreen == null;
-        public override bool HandleMouseInput => IsCurrentScreen || !hasExited && ParentScreen == null;
+        public override bool HandleNonPositionalInput => IsCurrentScreen || !hasExited && ParentScreen == null;
+        public override bool HandlePositionalInput => IsCurrentScreen || !hasExited && ParentScreen == null;
 
         /// <summary>
         /// Called when this Screen is being entered. Only happens once, ever.
@@ -246,8 +244,8 @@ namespace osu.Framework.Screens
 
         protected class ContentContainer : Container
         {
-            public override bool HandleKeyboardInput => LifetimeEnd == double.MaxValue;
-            public override bool HandleMouseInput => LifetimeEnd == double.MaxValue;
+            public override bool HandleNonPositionalInput => LifetimeEnd == double.MaxValue;
+            public override bool HandlePositionalInput => LifetimeEnd == double.MaxValue;
             public override bool RemoveWhenNotAlive => false;
 
             public ContentContainer()

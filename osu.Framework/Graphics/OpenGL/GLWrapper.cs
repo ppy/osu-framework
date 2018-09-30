@@ -17,6 +17,7 @@ using osu.Framework.Statistics;
 using osu.Framework.MathUtils;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Colour;
+using osu.Framework.Lists;
 using osu.Framework.Platform;
 
 namespace osu.Framework.Graphics.OpenGL
@@ -87,8 +88,7 @@ namespace osu.Framework.Graphics.OpenGL
             lastBlendingInfo = new BlendingInfo();
             lastBlendingEnabledState = null;
 
-            foreach (IVertexBatch b in all_batches)
-                b.ResetCounters();
+            all_batches.ForEachAlive(b => b.ResetCounters());
 
             lastFrameBuffer = 0;
 
@@ -171,7 +171,7 @@ namespace osu.Framework.Graphics.OpenGL
 
         private static IVertexBatch lastActiveBatch;
 
-        private static readonly List<IVertexBatch> all_batches = new List<IVertexBatch>();
+        private static readonly WeakList<IVertexBatch> all_batches = new WeakList<IVertexBatch>();
 
         /// <summary>
         /// Sets the last vertex batch used for drawing.
@@ -195,12 +195,6 @@ namespace osu.Framework.Graphics.OpenGL
         /// </summary>
         /// <param name="batch">The batch to register.</param>
         internal static void RegisterVertexBatch(IVertexBatch batch) => reset_scheduler.Add(() => all_batches.Add(batch));
-
-        /// <summary>
-        /// Stops tracking a <see cref="IVertexBatch"/>. This should be invoked once when a <see cref="IVertexBatch"/> is no longer in use.
-        /// </summary>
-        /// <param name="batch">The batch to unregister.</param>
-        internal static void UnregisterVertexBatch(IVertexBatch batch) => reset_scheduler.Add(() => all_batches.Remove(batch));
 
         private static TextureGL lastBoundTexture;
 
@@ -447,6 +441,8 @@ namespace osu.Framework.Graphics.OpenGL
             GlobalPropertyManager.Set(GlobalProperty.MaskingBlendRange, maskingInfo.BlendRange);
             GlobalPropertyManager.Set(GlobalProperty.AlphaExponent, maskingInfo.AlphaExponent);
 
+            GlobalPropertyManager.Set(GlobalProperty.EdgeOffset, maskingInfo.EdgeOffset);
+
             GlobalPropertyManager.Set(GlobalProperty.DiscardInner, maskingInfo.Hollow);
 
             RectangleI actualRect = maskingInfo.ScreenSpaceAABB;
@@ -662,6 +658,8 @@ namespace osu.Framework.Graphics.OpenGL
         public float BlendRange;
         public float AlphaExponent;
 
+        public Vector2 EdgeOffset;
+
         public bool Hollow;
 
         public bool Equals(MaskingInfo other)
@@ -675,6 +673,7 @@ namespace osu.Framework.Graphics.OpenGL
                 BorderColour.Equals(other.BorderColour) &&
                 BlendRange == other.BlendRange &&
                 AlphaExponent == other.AlphaExponent &&
+                EdgeOffset == other.EdgeOffset &&
                 Hollow == other.Hollow;
         }
     }

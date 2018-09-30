@@ -77,20 +77,22 @@ namespace osu.Framework.Graphics.Containers
 
         private static readonly ThreadedTaskScheduler threaded_scheduler = new ThreadedTaskScheduler(4);
 
-        ///  <summary>
-        ///  Loads a future child or grand-child of this <see cref="CompositeDrawable"/> asynchronously. <see cref="Dependencies"/>
-        ///  and <see cref="Drawable.Clock"/> are inherited from this <see cref="CompositeDrawable"/>.
+        /// <summary>
+        /// Loads a future child or grand-child of this <see cref="CompositeDrawable"/> asynchronously. <see cref="Dependencies"/>
+        /// and <see cref="Drawable.Clock"/> are inherited from this <see cref="CompositeDrawable"/>.
         ///
-        ///  Note that this will always use the dependencies and clock from this instance. If you must load to a nested container level,
-        ///  consider using <see cref="DelayedLoadWrapper"/>
-        ///  </summary>
-        ///  <typeparam name="TLoadable">The type of the future future child or grand-child to be loaded.</typeparam>
-        ///  <param name="component">The child or grand-child to be loaded.</param>
-        ///  <param name="onLoaded">Callback to be invoked on the update thread after loading is complete.</param>
+        /// Note that this will always use the dependencies and clock from this instance. If you must load to a nested container level,
+        /// consider using <see cref="DelayedLoadWrapper"/>
+        /// </summary>
+        /// <typeparam name="TLoadable">The type of the future future child or grand-child to be loaded.</typeparam>
+        /// <param name="component">The child or grand-child to be loaded.</param>
+        /// <param name="onLoaded">Callback to be invoked on the update thread after loading is complete.</param>
         /// <param name="cancellation">An optional cancellation token.</param>
+        /// <param name="scheduler">The scheduler for <paramref name="onLoaded"/> to be invoked on. If null, the local scheduler will be used.</param>
         /// <returns>The task which is used for loading and callbacks.</returns>
-        protected Task LoadComponentAsync<TLoadable>(TLoadable component, Action<TLoadable> onLoaded = null, CancellationToken cancellation = default) where TLoadable : Drawable
-            => LoadComponentsAsync(component.Yield(), l => onLoaded?.Invoke(l.Single()), cancellation);
+        protected Task LoadComponentAsync<TLoadable>(TLoadable component, Action<TLoadable> onLoaded = null, CancellationToken cancellation = default, Scheduler scheduler = null)
+            where TLoadable : Drawable
+            => LoadComponentsAsync(component.Yield(), l => onLoaded?.Invoke(l.Single()), cancellation, scheduler);
 
         /// <summary>
         /// Loads several future child or grand-child of this <see cref="CompositeDrawable"/> asynchronously. <see cref="Dependencies"/>
@@ -103,8 +105,9 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="components">The children or grand-children to be loaded.</param>
         /// <param name="onLoaded">Callback to be invoked on the update thread after loading is complete.</param>
         /// <param name="cancellation">An optional cancellation token.</param>
+        /// <param name="scheduler">The scheduler for <paramref name="onLoaded"/> to be invoked on. If null, the local scheduler will be used.</param>
         /// <returns>The task which is used for loading and callbacks.</returns>
-        protected Task LoadComponentsAsync<TLoadable>(IEnumerable<TLoadable> components, Action<IEnumerable<TLoadable>> onLoaded = null, CancellationToken cancellation = default)
+        protected Task LoadComponentsAsync<TLoadable>(IEnumerable<TLoadable> components, Action<IEnumerable<TLoadable>> onLoaded = null, CancellationToken cancellation = default, Scheduler scheduler = null)
             where TLoadable : Drawable
         {
             if (game == null)
@@ -135,7 +138,7 @@ namespace osu.Framework.Graphics.Containers
                     return;
                 }
 
-                game.Schedule(() =>
+                (scheduler ?? Scheduler).Add(() =>
                 {
                     try
                     {
@@ -594,7 +597,7 @@ namespace osu.Framework.Graphics.Containers
                     RemoveInternal(child);
 
                     if (child.DisposeOnDeathRemoval)
-                        child.Dispose();
+                        Task.Run(() => child.Dispose());
                 }
             }
 
@@ -1030,8 +1033,8 @@ namespace osu.Framework.Graphics.Containers
 
         // Required to pass through input to children by default.
         // TODO: Evaluate effects of this on performance and address.
-        public override bool HandleKeyboardInput => true;
-        public override bool HandleMouseInput => true;
+        public override bool HandleNonPositionalInput => true;
+        public override bool HandlePositionalInput => true;
 
         public override bool Contains(Vector2 screenSpacePos)
         {
@@ -1043,24 +1046,24 @@ namespace osu.Framework.Graphics.Containers
             return DrawRectangle.Shrink(cRadius).DistanceSquared(ToLocalSpace(screenSpacePos)) <= cRadius * cRadius;
         }
 
-        internal override bool BuildKeyboardInputQueue(List<Drawable> queue, bool allowBlocking = true)
+        internal override bool BuildNonPositionalInputQueue(List<Drawable> queue, bool allowBlocking = true)
         {
-            if (!base.BuildKeyboardInputQueue(queue, allowBlocking))
+            if (!base.BuildNonPositionalInputQueue(queue, allowBlocking))
                 return false;
 
             for (int i = 0; i < aliveInternalChildren.Count; ++i)
-                aliveInternalChildren[i].BuildKeyboardInputQueue(queue, allowBlocking);
+                aliveInternalChildren[i].BuildNonPositionalInputQueue(queue, allowBlocking);
 
             return true;
         }
 
-        internal override bool BuildMouseInputQueue(Vector2 screenSpaceMousePos, List<Drawable> queue)
+        internal override bool BuildPositionalInputQueue(Vector2 screenSpacePos, List<Drawable> queue)
         {
-            if (!base.BuildMouseInputQueue(screenSpaceMousePos, queue) && (!CanReceiveMouseInput || Masking))
+            if (!base.BuildPositionalInputQueue(screenSpacePos, queue) && (!CanReceivePositionalInput || Masking))
                 return false;
 
             for (int i = 0; i < aliveInternalChildren.Count; ++i)
-                aliveInternalChildren[i].BuildMouseInputQueue(screenSpaceMousePos, queue);
+                aliveInternalChildren[i].BuildPositionalInputQueue(screenSpacePos, queue);
 
             return true;
         }

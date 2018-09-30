@@ -249,7 +249,7 @@ namespace osu.Framework.Graphics.Audio
             {
                 base.Draw(vertexAction);
 
-                if (points == null || points.Count == 0)
+                if (Texture?.Available != true || points == null || points.Count == 0)
                     return;
 
                 Shader.Bind();
