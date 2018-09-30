@@ -84,19 +84,17 @@ namespace osu.Framework.Platform
 
             config.BindWith(FrameworkSetting.WindowedPositionX, windowPositionX);
             config.BindWith(FrameworkSetting.WindowedPositionY, windowPositionY);
-            config.BindWith(FrameworkSetting.LastDisplayDevice, windowDisplayIndex);
 
+            config.BindWith(FrameworkSetting.LastDisplayDevice, windowDisplayIndex);
             windowDisplayIndex.BindValueChanged(windowDisplayIndexChanged, true);
 
+            config.BindWith(FrameworkSetting.WindowMode, WindowMode);
+            WindowMode.BindValueChanged(windowModeChanged, true);
+
             config.BindWith(FrameworkSetting.ConfineMouseMode, ConfineMouseMode);
-
-            config.BindWith(FrameworkSetting.MapAbsoluteInputToWindow, MapAbsoluteInputToWindow);
-
             ConfineMouseMode.BindValueChanged(confineMouseModeChanged, true);
 
-            config.BindWith(FrameworkSetting.WindowMode, WindowMode);
-
-            WindowMode.BindValueChanged(windowModeChanged, true);
+            config.BindWith(FrameworkSetting.MapAbsoluteInputToWindow, MapAbsoluteInputToWindow);
 
             Exited += onExit;
         }
