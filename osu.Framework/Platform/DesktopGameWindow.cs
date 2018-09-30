@@ -7,6 +7,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using osu.Framework.Configuration;
+using osu.Framework.Extensions;
 using osu.Framework.Input;
 using OpenTK;
 using OpenTK.Graphics;
@@ -23,7 +24,7 @@ namespace osu.Framework.Platform
 
         private readonly BindableDouble windowPositionX = new BindableDouble();
         private readonly BindableDouble windowPositionY = new BindableDouble();
-        private readonly BindableInt windowDisplayID = new BindableInt();
+        private readonly Bindable<DisplayIndex> windowDisplayIndex = new Bindable<DisplayIndex>();
 
         private DisplayDevice lastFullscreenDisplay;
         private bool inWindowModeTransition;
@@ -83,9 +84,9 @@ namespace osu.Framework.Platform
 
             config.BindWith(FrameworkSetting.WindowedPositionX, windowPositionX);
             config.BindWith(FrameworkSetting.WindowedPositionY, windowPositionY);
-            config.BindWith(FrameworkSetting.LastDisplayDevice, windowDisplayID);
+            config.BindWith(FrameworkSetting.LastDisplayDevice, windowDisplayIndex);
 
-            windowDisplayID.BindValueChanged(windowDisplayIDChanged, true);
+            windowDisplayIndex.BindValueChanged(windowDisplayIndexChanged, true);
 
             config.BindWith(FrameworkSetting.ConfineMouseMode, ConfineMouseMode);
 
@@ -149,20 +150,10 @@ namespace osu.Framework.Platform
                 windowPositionY.Value = Position.Y;
             }
 
-            windowDisplayID.Value = getDisplayID(CurrentDisplay);
+            windowDisplayIndex.Value = CurrentDisplay.GetIndex();
         }
 
-        private static int getDisplayID(DisplayDevice display)
-        {
-            for (int i = 0; ; i++)
-            {
-                var device = DisplayDevice.GetDisplay((DisplayIndex)i);
-                if (device == null) return -1;
-                if (device == display) return i;
-            }
-        }
-
-        private void windowDisplayIDChanged(int id) => CurrentDisplay = DisplayDevice.GetDisplay((DisplayIndex)id);
+        private void windowDisplayIndexChanged(DisplayIndex index) => CurrentDisplay = DisplayDevice.GetDisplay(index);
 
         private void confineMouseModeChanged(ConfineMouseMode newValue)
         {
