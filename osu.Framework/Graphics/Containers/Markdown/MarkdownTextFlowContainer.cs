@@ -164,9 +164,15 @@ namespace osu.Framework.Graphics.Containers.Markdown
 
         protected virtual void AddLinkText(string text, LiteralInline literalInline)
         {
-            //TODO Add Link Text
-            //var linkText = (literalInline.Parent as LinkInline)?.Url;
-            AddText(text, t => t.Colour = Color4.DodgerBlue);
+            var url = (literalInline.Parent as LinkInline)?.Url;
+            //TODO : LinkText cannot show Tooltip and trigger click action
+            var linktext = new MarkdownLinkText
+            {
+                Text = text,
+                Url = url,
+                TextColour = Color4.DodgerBlue
+            };
+            AddDrawable(linktext);
         }
 
         protected virtual void AddDefalutLiteralInlineText(string text, LiteralInline literalInline)

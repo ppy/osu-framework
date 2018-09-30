@@ -98,6 +98,11 @@ namespace osu.Framework.Tests.Visual
                     @"The greedy mode using the character - (e.g {{- or -}}), removes any whitespace, including newlines Examples with the variable name = ""foo"":";
             });
 
+            AddStep("MarkdownLink", () =>
+            {
+                markdownContainer.Text = @"[Url text](https://www.wonderplugin.com/videos/demo-image0.jpg)";
+            });
+
             AddStep("MarkdownImage", () =>
             {
                 markdownContainer.Text = @"![Drag Racing](https://www.wonderplugin.com/videos/demo-image0.jpg)
