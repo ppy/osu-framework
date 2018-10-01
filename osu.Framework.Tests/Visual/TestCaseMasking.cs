@@ -32,7 +32,8 @@ namespace osu.Framework.Tests.Visual
                 @"Round corner AABB 3",
                 @"Edge/border blurriness",
                 @"Nested masking",
-                @"Rounded corner input"
+                @"Rounded corner input",
+                @"Offset shadow",
             };
 
             for (int i = 0; i < testNames.Length; i++)
@@ -431,6 +432,38 @@ namespace osu.Framework.Tests.Visual
                                 }
                             }
                         });
+                        break;
+                    }
+
+                case 7:
+                    {
+                        Container box;
+                        TestContainer.Add(box = new InfofulBoxAutoSize
+                        {
+                            Anchor = Anchor.Centre,
+                            Origin = Anchor.Centre,
+                            Masking = true,
+                            CornerRadius = 100,
+                            Alpha = 0.8f,
+                            EdgeEffect = new EdgeEffectParameters
+                            {
+                                Type = EdgeEffectType.Shadow,
+                                Offset = new Vector2(0, 50),
+                                Hollow = true,
+                                Radius = 100,
+                                Colour = new Color4(0, 255, 255, 255),
+                            },
+                        });
+
+                        box.Add(box = new InfofulBox
+                        {
+                            Size = new Vector2(250, 250),
+                            Origin = Anchor.Centre,
+                            Anchor = Anchor.Centre,
+                            Colour = Color4.DarkSeaGreen,
+                        });
+
+                        box.OnUpdate += delegate { box.Rotation += 0.05f; };
                         break;
                     }
             }

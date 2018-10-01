@@ -563,7 +563,7 @@ namespace osu.Framework.Graphics.Sprites
         /// </summary>
         /// <param name="c">The character to get the texture for.</param>
         /// <returns>The texture for the given character.</returns>
-        protected Texture GetTextureForCharacter(char c)
+        protected virtual Texture GetTextureForCharacter(char c)
         {
             if (store == null)
                 return null;

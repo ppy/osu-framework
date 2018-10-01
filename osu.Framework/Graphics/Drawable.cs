@@ -1051,10 +1051,15 @@ namespace osu.Framework.Graphics
 
             set
             {
+                if (customOrigin == value && Origin == Anchor.Custom)
+                    return;
+
                 if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(OriginPosition)} must be finite, but is {value}.");
 
                 customOrigin = value;
                 Origin = Anchor.Custom;
+
+                Invalidate(Invalidation.MiscGeometry);
             }
         }
 
@@ -1116,10 +1121,15 @@ namespace osu.Framework.Graphics
 
             set
             {
+                if (customRelativeAnchorPosition == value && Anchor == Anchor.Custom)
+                    return;
+
                 if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(RelativeAnchorPosition)} must be finite, but is {value}.");
 
                 customRelativeAnchorPosition = value;
                 Anchor = Anchor.Custom;
+
+                Invalidate(Invalidation.MiscGeometry);
             }
         }
 

@@ -24,6 +24,9 @@ namespace osu.Framework.Platform
         private readonly BindableDouble windowPositionX = new BindableDouble();
         private readonly BindableDouble windowPositionY = new BindableDouble();
 
+        private DisplayDevice lastFullscreenDisplay;
+        private bool inWindowModeTransition;
+
         public readonly Bindable<WindowMode> WindowMode = new Bindable<WindowMode>();
 
         public readonly Bindable<ConfineMouseMode> ConfineMouseMode = new Bindable<ConfineMouseMode>();
@@ -118,11 +121,12 @@ namespace osu.Framework.Platform
 
         protected void OnMove(object sender, EventArgs e)
         {
-            // The game is windowed and the whole window is on the screen (it is not minimized or moved outside of the screen)
-            if (WindowMode.Value == Configuration.WindowMode.Windowed
-                && Position.X > 0 && Position.X < 1
-                && Position.Y > 0 && Position.Y < 1)
+            if (inWindowModeTransition) return;
+            if (WindowMode.Value == Configuration.WindowMode.Windowed)
             {
+                // Values are clamped to a range of [-0.5, 1.5], so if more than half of the window was
+                // outside of the combined screen area before the game was closed, it will be moved so
+                // that at least half of it is on screen after a restart.
                 windowPositionX.Value = Position.X;
                 windowPositionY.Value = Position.Y;
             }
@@ -148,47 +152,53 @@ namespace osu.Framework.Platform
                 CursorState &= ~CursorState.Confined;
         }
 
-        private DisplayDevice lastFullscreenDisplay;
-
         private void windowMode_ValueChanged(WindowMode newMode) => UpdateWindowMode(newMode);
 
         protected virtual void UpdateWindowMode(WindowMode newMode)
         {
             var currentDisplay = GetCurrentDisplay();
 
-            switch (newMode)
+            try
             {
-                case Configuration.WindowMode.Fullscreen:
-                    ChangeResolution(currentDisplay, sizeFullscreen);
-                    lastFullscreenDisplay = currentDisplay;
+                inWindowModeTransition = true;
+                switch (newMode)
+                {
+                    case Configuration.WindowMode.Fullscreen:
+                        ChangeResolution(currentDisplay, sizeFullscreen);
+                        lastFullscreenDisplay = currentDisplay;
 
-                    WindowState = WindowState.Fullscreen;
-                    break;
-                case Configuration.WindowMode.Borderless:
-                    if (lastFullscreenDisplay != null)
-                        RestoreResolution(lastFullscreenDisplay);
-                    lastFullscreenDisplay = null;
+                        WindowState = WindowState.Fullscreen;
+                        break;
+                    case Configuration.WindowMode.Borderless:
+                        if (lastFullscreenDisplay != null)
+                            RestoreResolution(lastFullscreenDisplay);
+                        lastFullscreenDisplay = null;
 
-                    WindowState = WindowState.Maximized;
-                    WindowBorder = WindowBorder.Hidden;
+                        WindowState = WindowState.Maximized;
+                        WindowBorder = WindowBorder.Hidden;
 
-                    //must add 1 to enter borderless
-                    ClientSize = new Size(currentDisplay.Bounds.Width + 1, currentDisplay.Bounds.Height + 1);
-                    Location = currentDisplay.Bounds.Location;
-                    break;
-                case Configuration.WindowMode.Windowed:
-                    if (lastFullscreenDisplay != null)
-                        RestoreResolution(lastFullscreenDisplay);
-                    lastFullscreenDisplay = null;
+                        // must add 1 to enter borderless
+                        ClientSize = new Size(currentDisplay.Bounds.Width + 1, currentDisplay.Bounds.Height + 1);
+                        Location = currentDisplay.Bounds.Location;
+                        break;
+                    case Configuration.WindowMode.Windowed:
+                        if (lastFullscreenDisplay != null)
+                            RestoreResolution(lastFullscreenDisplay);
+                        lastFullscreenDisplay = null;
 
-                    var newSize = sizeWindowed.Value;
+                        var newSize = sizeWindowed.Value;
 
-                    WindowState = WindowState.Normal;
-                    WindowBorder = WindowBorder.Resizable;
+                        WindowState = WindowState.Normal;
+                        WindowBorder = WindowBorder.Resizable;
 
-                    ClientSize = newSize;
-                    Position = new Vector2((float)windowPositionX, (float)windowPositionY);
-                    break;
+                        ClientSize = newSize;
+                        Position = new Vector2((float)windowPositionX, (float)windowPositionY);
+                        break;
+                }
+            }
+            finally
+            {
+                inWindowModeTransition = false;
             }
 
             ConfineMouseMode.TriggerChange();
@@ -213,17 +223,21 @@ namespace osu.Framework.Platform
             get
             {
                 var display = GetCurrentDisplay();
+                var relativeLocation = new Point(Location.X - display.Bounds.X, Location.Y - display.Bounds.Y);
 
-                return new Vector2((float)Location.X / (display.Width - Size.Width),
-                    (float)Location.Y / (display.Height - Size.Height));
+                return new Vector2(
+                    display.Width  > Size.Width  ? (float)relativeLocation.X / (display.Width  - Size.Width)  : 0,
+                    display.Height > Size.Height ? (float)relativeLocation.Y / (display.Height - Size.Height) : 0);
             }
             set
             {
                 var display = GetCurrentDisplay();
 
-                Location = new Point(
+                var relativeLocation = new Point(
                     (int)Math.Round((display.Width - Size.Width) * value.X),
                     (int)Math.Round((display.Height - Size.Height) * value.Y));
+
+                Location = new Point(relativeLocation.X + display.Bounds.X, relativeLocation.Y + display.Bounds.Y);
             }
         }
 

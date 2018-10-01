@@ -266,6 +266,7 @@ namespace osu.Framework.Graphics.Visualisation
                 HighlightTarget?.Invoke(this);
                 return true;
             }
+
             return false;
         }
 
@@ -343,7 +344,9 @@ namespace osu.Framework.Graphics.Visualisation
 
             int childCount = (Target as CompositeDrawable)?.InternalChildren.Count ?? 0;
 
-            text.Text = $"{Target} ({DrawPosition.X:#,0},{DrawPosition.Y:#,0}) {DrawSize.X:#,0}x{DrawSize.Y:#,0}" + (!isExpanded && childCount > 0 ? $@" ({childCount} children)" : string.Empty);
+            text.Text = $"{Target} ({Target.DrawPosition.X:#,0},{Target.DrawPosition.Y:#,0}) {Target.DrawSize.X:#,0}x{Target.DrawSize.Y:#,0}"
+                        + (!isExpanded && childCount > 0 ? $@" ({childCount} children)" : string.Empty);
+
             text.Colour = !isExpanded && childCount > 0 ? Color4.LightBlue : Color4.White;
 
             Alpha = Target.IsPresent ? 1 : 0.3f;
