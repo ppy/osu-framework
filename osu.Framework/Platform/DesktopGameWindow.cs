@@ -41,7 +41,6 @@ namespace osu.Framework.Platform
 
         public override DisplayDevice CurrentDisplay
         {
-            get => DisplayDevice.FromRectangle(Bounds) ?? DisplayDevice.Default;
             set
             {
                 if (value == null || value == CurrentDisplay) return;

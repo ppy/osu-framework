@@ -172,7 +172,10 @@ namespace osu.Framework.Platform
         /// Gets the <see cref="DisplayDevice"/> that this window is currently on.
         /// </summary>
         /// <returns></returns>
-        public abstract DisplayDevice CurrentDisplay { get; set; }
+        public virtual DisplayDevice CurrentDisplay {
+            get => DisplayDevice.FromRectangle(Bounds) ?? DisplayDevice.Default;
+            set { }
+        }
 
         private string getVersionNumberSubstring(string version)
         {
