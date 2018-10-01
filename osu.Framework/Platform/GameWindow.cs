@@ -174,7 +174,7 @@ namespace osu.Framework.Platform
         /// <returns></returns>
         public virtual DisplayDevice CurrentDisplay {
             get => DisplayDevice.FromRectangle(Bounds) ?? DisplayDevice.Default;
-            set { }
+            set => throw new InvalidOperationException($@"{GetType().Name}.{nameof(CurrentDisplay)} cannot be set.");
         }
 
         private string getVersionNumberSubstring(string version)
