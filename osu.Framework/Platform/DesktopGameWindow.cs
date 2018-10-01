@@ -175,7 +175,7 @@ namespace osu.Framework.Platform
         public void CentreToScreen(DisplayDevice display = null)
         {
             if (display != null) CurrentDisplay = display;
-            Position = new Vector2(0.5f, 0.5f);
+            Position = new Vector2(0.5f);
         }
 
         private void windowModeChanged(WindowMode newMode) => UpdateWindowMode(newMode);
