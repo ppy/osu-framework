@@ -172,7 +172,7 @@ namespace osu.Framework.Platform
                 CursorState &= ~CursorState.Confined;
         }
 
-        public void CenterToScreen(DisplayDevice display = null)
+        public void CentreToScreen(DisplayDevice display = null)
         {
             if (display != null) CurrentDisplay = display;
             Position = new Vector2(0.5f, 0.5f);
