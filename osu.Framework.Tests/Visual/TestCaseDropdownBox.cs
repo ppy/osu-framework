@@ -32,13 +32,14 @@ namespace osu.Framework.Tests.Visual
                 Width = 150,
                 Position = new Vector2(200, 70),
                 Items = testItems.Select(item => new KeyValuePair<string, string>(item, item)),
+                FallbackText = "Fallback text here"
             });
 
             Add(styledDropdownMenu2 = new StyledDropdown
             {
                 Width = 150,
                 Position = new Vector2(400, 70),
-                Items = testItems.Select(item => new KeyValuePair<string, string>(item, item)),
+                Items = testItems.Select(item => new KeyValuePair<string, string>(item, item))
             });
         }
 
@@ -68,6 +69,14 @@ namespace osu.Framework.Tests.Visual
 
             AddAssert("dropdown1 is closed", () => styledDropdown.Menu.State == MenuState.Closed);
             AddAssert("dropdown2 is open", () => styledDropdownMenu2.Menu.State == MenuState.Open);
+
+            AddStep("select 'invalid'", () => styledDropdown.Current.Value = "invalid");
+
+            AddAssert("'invalid' is selected", () => styledDropdown.Current == "invalid");
+            AddAssert("label shows fallback text", () => styledDropdown.Header.Label == "Fallback text here");
+
+            AddStep("select item 2", () => styledDropdown.Current.Value = styledDropdown.Items.ElementAt(2).Value);
+            AddAssert("item 2 is selected", () => styledDropdown.Current == styledDropdown.Items.ElementAt(2).Value);
         }
 
         private void toggleDropdownViaClick(StyledDropdown dropdown)
