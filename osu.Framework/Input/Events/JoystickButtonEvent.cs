@@ -23,12 +23,12 @@ namespace osu.Framework.Input.Events
         /// <summary>
         /// List of currently pressed joystick buttons.
         /// </summary>
-        public IEnumerable<JoystickButton> PressedJoystickButtons => CurrentState.Joystick.Buttons;
+        public IEnumerable<JoystickButton> PressedButtons => CurrentState.Joystick.Buttons;
 
         /// <summary>
         /// List of joystick axes. Axes which have zero value may be omitted.
         /// </summary>
-        public IEnumerable<JoystickAxis> JoystickAxes => CurrentState.Joystick.Axes;
+        public IEnumerable<JoystickAxis> Axes => CurrentState.Joystick.Axes;
 
         public override string ToString() => $"{GetType().ReadableName()}({Button})";
     }
