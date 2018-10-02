@@ -7,7 +7,6 @@ using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Input.States;
 using OpenTK;
-using OpenTK.Input;
 
 namespace osu.Framework.Input.Events
 {
@@ -53,22 +52,22 @@ namespace osu.Framework.Input.Events
         /// <summary>
         /// Whether left or right control key is pressed.
         /// </summary>
-        public bool ControlPressed => CurrentState.Keyboard.Keys.IsPressed(Key.LControl) || CurrentState.Keyboard.Keys.IsPressed(Key.RControl);
+        public bool ControlPressed => CurrentState.Keyboard.ControlPressed;
 
         /// <summary>
         /// Whether left or right alt key is pressed.
         /// </summary>
-        public bool AltPressed => CurrentState.Keyboard.Keys.IsPressed(Key.LAlt) || CurrentState.Keyboard.Keys.IsPressed(Key.RAlt);
+        public bool AltPressed => CurrentState.Keyboard.AltPressed;
 
         /// <summary>
         /// Whether left or right shift key is pressed.
         /// </summary>
-        public bool ShiftPressed => CurrentState.Keyboard.Keys.IsPressed(Key.LShift) || CurrentState.Keyboard.Keys.IsPressed(Key.RShift);
+        public bool ShiftPressed => CurrentState.Keyboard.ShiftPressed;
 
         /// <summary>
         /// Whether left or right super key (Win key on Windows, or Command key on Mac) is pressed.
         /// </summary>
-        public bool SuperPressed => CurrentState.Keyboard.Keys.IsPressed(Key.LWin) || CurrentState.Keyboard.Keys.IsPressed(Key.RWin);
+        public bool SuperPressed => CurrentState.Keyboard.SuperPressed;
 
         protected UIEvent([NotNull] InputState state)
         {
