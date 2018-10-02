@@ -7,6 +7,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using osu.Framework.Configuration;
+using osu.Framework.Extensions;
 using osu.Framework.Input;
 using OpenTK;
 using OpenTK.Graphics;
@@ -23,6 +24,7 @@ namespace osu.Framework.Platform
 
         private readonly BindableDouble windowPositionX = new BindableDouble();
         private readonly BindableDouble windowPositionY = new BindableDouble();
+        private readonly Bindable<DisplayIndex> windowDisplayIndex = new Bindable<DisplayIndex>();
 
         private DisplayDevice lastFullscreenDisplay;
         private bool inWindowModeTransition;
@@ -37,9 +39,24 @@ namespace osu.Framework.Platform
 
         public readonly BindableBool MapAbsoluteInputToWindow = new BindableBool();
 
-        public override DisplayDevice GetCurrentDisplay() => DisplayDevice.FromRectangle(Bounds) ?? DisplayDevice.Default;
+        public override DisplayDevice CurrentDisplay
+        {
+            set
+            {
+                if (value == null || value == CurrentDisplay) return;
 
-        public override IEnumerable<DisplayResolution> AvailableResolutions => GetCurrentDisplay().AvailableResolutions;
+                var windowMode = WindowMode.Value;
+                WindowMode.Value = Configuration.WindowMode.Windowed;
+
+                var position = Position;
+                Location = value.Bounds.Location;
+                Position = position;
+
+                WindowMode.Value = windowMode;
+            }
+        }
+
+        public override IEnumerable<DisplayResolution> AvailableResolutions => CurrentDisplay.AvailableResolutions;
 
         protected DesktopGameWindow()
             : base(default_width, default_height)
@@ -59,7 +76,7 @@ namespace osu.Framework.Platform
             sizeFullscreen.ValueChanged += newSize =>
             {
                 if (WindowState == WindowState.Fullscreen)
-                    ChangeResolution(GetCurrentDisplay(), newSize);
+                    ChangeResolution(CurrentDisplay, newSize);
             };
 
             config.BindWith(FrameworkSetting.WindowedSize, sizeWindowed);
@@ -67,17 +84,16 @@ namespace osu.Framework.Platform
             config.BindWith(FrameworkSetting.WindowedPositionX, windowPositionX);
             config.BindWith(FrameworkSetting.WindowedPositionY, windowPositionY);
 
-            config.BindWith(FrameworkSetting.ConfineMouseMode, ConfineMouseMode);
-
-            config.BindWith(FrameworkSetting.MapAbsoluteInputToWindow, MapAbsoluteInputToWindow);
-
-            ConfineMouseMode.ValueChanged += confineMouseMode_ValueChanged;
-            ConfineMouseMode.TriggerChange();
+            config.BindWith(FrameworkSetting.LastDisplayDevice, windowDisplayIndex);
+            windowDisplayIndex.BindValueChanged(windowDisplayIndexChanged, true);
 
             config.BindWith(FrameworkSetting.WindowMode, WindowMode);
+            WindowMode.BindValueChanged(windowModeChanged, true);
 
-            WindowMode.ValueChanged += windowMode_ValueChanged;
-            WindowMode.TriggerChange();
+            config.BindWith(FrameworkSetting.ConfineMouseMode, ConfineMouseMode);
+            ConfineMouseMode.BindValueChanged(confineMouseModeChanged, true);
+
+            config.BindWith(FrameworkSetting.MapAbsoluteInputToWindow, MapAbsoluteInputToWindow);
 
             Exited += onExit;
         }
@@ -130,9 +146,13 @@ namespace osu.Framework.Platform
                 windowPositionX.Value = Position.X;
                 windowPositionY.Value = Position.Y;
             }
+
+            windowDisplayIndex.Value = CurrentDisplay.GetIndex();
         }
 
-        private void confineMouseMode_ValueChanged(ConfineMouseMode newValue)
+        private void windowDisplayIndexChanged(DisplayIndex index) => CurrentDisplay = DisplayDevice.GetDisplay(index);
+
+        private void confineMouseModeChanged(ConfineMouseMode newValue)
         {
             bool confine = false;
 
@@ -152,11 +172,17 @@ namespace osu.Framework.Platform
                 CursorState &= ~CursorState.Confined;
         }
 
-        private void windowMode_ValueChanged(WindowMode newMode) => UpdateWindowMode(newMode);
+        public void CentreToScreen(DisplayDevice display = null)
+        {
+            if (display != null) CurrentDisplay = display;
+            Position = new Vector2(0.5f);
+        }
+
+        private void windowModeChanged(WindowMode newMode) => UpdateWindowMode(newMode);
 
         protected virtual void UpdateWindowMode(WindowMode newMode)
         {
-            var currentDisplay = GetCurrentDisplay();
+            var currentDisplay = CurrentDisplay;
 
             try
             {
@@ -222,7 +248,7 @@ namespace osu.Framework.Platform
         {
             get
             {
-                var display = GetCurrentDisplay();
+                var display = CurrentDisplay;
                 var relativeLocation = new Point(Location.X - display.Bounds.X, Location.Y - display.Bounds.Y);
 
                 return new Vector2(
@@ -231,7 +257,7 @@ namespace osu.Framework.Platform
             }
             set
             {
-                var display = GetCurrentDisplay();
+                var display = CurrentDisplay;
 
                 var relativeLocation = new Point(
                     (int)Math.Round((display.Width - Size.Width) * value.X),
