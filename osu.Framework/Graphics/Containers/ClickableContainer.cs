@@ -3,7 +3,7 @@
 
 using System;
 using osu.Framework.Configuration;
-using osu.Framework.Input.States;
+using osu.Framework.Input.Events;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -23,7 +23,7 @@ namespace osu.Framework.Graphics.Containers
 
         public readonly BindableBool Enabled = new BindableBool();
 
-        protected override bool OnClick(InputState state)
+        protected override bool OnClick(ClickEvent e)
         {
             if (Enabled.Value)
                 Action?.Invoke();

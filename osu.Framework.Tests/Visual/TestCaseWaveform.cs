@@ -13,8 +13,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
-using osu.Framework.Input.EventArgs;
-using osu.Framework.Input.States;
+using osu.Framework.Input.Events;
 using OpenTK;
 using OpenTK.Graphics;
 
@@ -194,24 +193,24 @@ namespace osu.Framework.Tests.Visual
 
             private bool mouseDown;
 
-            protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
+            protected override bool OnMouseDown(MouseDownEvent e)
             {
                 mouseDown = true;
-                seekTo(ToLocalSpace(state.Mouse.NativeState.Position).X);
+                seekTo(ToLocalSpace(e.ScreenSpaceMousePosition).X);
                 return true;
             }
 
-            protected override bool OnMouseUp(InputState state, MouseUpEventArgs args)
+            protected override bool OnMouseUp(MouseUpEvent e)
             {
                 mouseDown = false;
                 return true;
             }
 
-            protected override bool OnMouseMove(InputState state)
+            protected override bool OnMouseMove(MouseMoveEvent e)
             {
                 if (mouseDown)
                 {
-                    seekTo(ToLocalSpace(state.Mouse.NativeState.Position).X);
+                    seekTo(ToLocalSpace(e.ScreenSpaceMousePosition).X);
                     return true;
                 }
 
