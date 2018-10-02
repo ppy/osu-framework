@@ -49,12 +49,7 @@ namespace osu.Framework.Input
         /// The initial input state. <see cref="CurrentState"/> is always equal (as a reference) to the value returned from this.
         /// <see cref="InputState.Mouse"/>, <see cref="InputState.Keyboard"/> and <see cref="InputState.Joystick"/> should be non-null.
         /// </summary>
-        protected virtual InputState CreateInitialState() => new InputState
-        {
-            Mouse = new MouseState { IsPositionValid = false },
-            Keyboard = new KeyboardState(),
-            Joystick = new JoystickState(),
-        };
+        protected virtual InputState CreateInitialState() => new InputState(new MouseState { IsPositionValid = false }, new KeyboardState(), new JoystickState());
 
         /// <summary>
         /// The last processed state.
@@ -81,7 +76,7 @@ namespace osu.Framework.Input
 
         /// <summary>
         /// Contains all hovered <see cref="Drawable"/>s in top-down order up to the first
-        /// which returned true in its <see cref="Drawable.OnHover(InputState)"/> method.
+        /// which returned true in its <see cref="Drawable.OnHover"/> method.
         /// Top-down in this case means reverse draw order, i.e. the front-most visible
         /// <see cref="Drawable"/> first, and <see cref="Container"/>s after their children.
         /// </summary>
@@ -89,13 +84,13 @@ namespace osu.Framework.Input
 
         /// <summary>
         /// The <see cref="Drawable"/> which returned true in its
-        /// <see cref="Drawable.OnHover(InputState)"/> method, or null if none did so.
+        /// <see cref="Drawable.OnHover"/> method, or null if none did so.
         /// </summary>
         private Drawable hoverHandledDrawable;
 
         /// <summary>
         /// Contains all hovered <see cref="Drawable"/>s in top-down order up to the first
-        /// which returned true in its <see cref="Drawable.OnHover(InputState)"/> method.
+        /// which returned true in its <see cref="Drawable.OnHover"/> method.
         /// Top-down in this case means reverse draw order, i.e. the front-most visible
         /// <see cref="Drawable"/> first, and <see cref="Container"/>s after their children.
         /// </summary>
@@ -104,7 +99,7 @@ namespace osu.Framework.Input
         /// <summary>
         /// Contains all <see cref="Drawable"/>s in top-down order which are considered
         /// for positional input. This list is the same as <see cref="HoveredDrawables"/>, only
-        /// that the return value of <see cref="Drawable.OnHover(InputState)"/> is not taken
+        /// that the return value of <see cref="Drawable.OnHover"/> is not taken
         /// into account.
         /// </summary>
         public IEnumerable<Drawable> PositionalInputQueue => buildPositionalInputQueue(CurrentState);
@@ -428,11 +423,6 @@ namespace osu.Framework.Input
 
         public virtual void HandleInputStateChange(InputStateChangeEvent inputStateChange)
         {
-            // Set default
-            var mouse = inputStateChange.State.Mouse;
-            mouse.LastPosition = mouse.Position;
-            mouse.LastScroll = mouse.Scroll;
-
             switch (inputStateChange)
             {
                 case MousePositionChangeEvent mousePositionChange:
@@ -458,8 +448,6 @@ namespace osu.Framework.Input
             var state = e.State;
             var mouse = state.Mouse;
 
-            mouse.LastPosition = e.LastPosition;
-
             foreach (var h in InputHandlers)
                 if (h.Enabled && h is INeedsMousePositionFeedback handler)
                     handler.FeedbackMousePositionChange(mouse.Position);
@@ -474,9 +462,7 @@ namespace osu.Framework.Input
 
         protected virtual void HandleMouseScrollChange(MouseScrollChangeEvent e)
         {
-            e.State.Mouse.LastScroll = e.LastScroll;
-
-            handleScroll(e.State);
+            handleScroll(e.State, e.LastScroll, e.IsPrecise);
         }
 
         protected virtual void HandleMouseButtonStateChange(ButtonStateChangeEvent<MouseButton> e)
@@ -490,9 +476,9 @@ namespace osu.Framework.Input
             return PropagateBlockableEvent(PositionalInputQueue, new MouseMoveEvent(state, lastPosition));
         }
 
-        private bool handleScroll(InputState state)
+        private bool handleScroll(InputState state, Vector2 lastScroll, bool isPrecise)
         {
-            return PropagateBlockableEvent(PositionalInputQueue, new ScrollEvent(state, state.Mouse.ScrollDelta));
+            return PropagateBlockableEvent(PositionalInputQueue, new ScrollEvent(state, state.Mouse.Scroll - lastScroll, isPrecise));
         }
 
         private bool handleKeyDown(InputState state, Key key, bool repeat)

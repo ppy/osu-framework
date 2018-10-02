@@ -7,7 +7,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Input.States;
+using osu.Framework.Input.Events;
 using OpenTK.Graphics;
 
 namespace osu.Framework.Testing.Drawables.Steps
@@ -85,17 +85,17 @@ namespace osu.Framework.Testing.Drawables.Steps
             Reset();
         }
 
-        protected override bool OnClick(InputState state)
+        protected override bool OnClick(ClickEvent e)
         {
             try
             {
                 PerformStep(true);
             }
-            catch (Exception e)
+            catch (Exception exc)
             {
-                if (e.InnerException is DependencyInjectionException die)
-                    e = die.DispatchInfo.SourceException;
-                Logging.Logger.Error(e, $"Step {this} triggered an error");
+                if (exc.InnerException is DependencyInjectionException die)
+                    exc = die.DispatchInfo.SourceException;
+                Logging.Logger.Error(exc, $"Step {this} triggered an error");
             }
 
             return true;

@@ -10,7 +10,7 @@ using osu.Framework.Graphics.Shapes;
 using OpenTK.Graphics;
 using System.Collections.Generic;
 using System.Linq;
-using osu.Framework.Input.States;
+using osu.Framework.Input.Events;
 
 namespace osu.Framework.Testing.Drawables
 {
@@ -94,16 +94,16 @@ namespace osu.Framework.Testing.Drawables
             }
         }
 
-        protected override bool OnHover(InputState state)
+        protected override bool OnHover(HoverEvent e)
         {
             box.FadeTo(1, 150);
             return true;
         }
 
-        protected override void OnHoverLost(InputState state)
+        protected override void OnHoverLost(HoverLostEvent e)
         {
             box.FadeTo(0.7f, 150);
-            base.OnHoverLost(state);
+            base.OnHoverLost(e);
         }
     }
 }

@@ -14,8 +14,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.Input.EventArgs;
-using osu.Framework.Input.States;
+using osu.Framework.Input.Events;
 
 namespace osu.Framework.Graphics.Visualisation
 {
@@ -250,21 +249,21 @@ namespace osu.Framework.Graphics.Visualisation
             detachEvents();
         }
 
-        protected override bool OnHover(InputState state)
+        protected override bool OnHover(HoverEvent e)
         {
             background.Colour = Color4.PaleVioletRed.Opacity(0.7f);
-            return base.OnHover(state);
+            return base.OnHover(e);
         }
 
-        protected override void OnHoverLost(InputState state)
+        protected override void OnHoverLost(HoverLostEvent e)
         {
             background.Colour = Color4.Transparent;
-            base.OnHoverLost(state);
+            base.OnHoverLost(e);
         }
 
-        protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
+        protected override bool OnMouseDown(MouseDownEvent e)
         {
-            if (args.Button == MouseButton.Right)
+            if (e.Button == MouseButton.Right)
             {
                 HighlightTarget?.Invoke(this);
                 return true;
@@ -273,7 +272,7 @@ namespace osu.Framework.Graphics.Visualisation
             return false;
         }
 
-        protected override bool OnClick(InputState state)
+        protected override bool OnClick(ClickEvent e)
         {
             if (isExpanded)
                 Collapse();
@@ -282,7 +281,7 @@ namespace osu.Framework.Graphics.Visualisation
             return true;
         }
 
-        protected override bool OnDoubleClick(InputState state)
+        protected override bool OnDoubleClick(DoubleClickEvent e)
         {
             RequestTarget?.Invoke(Target);
             return true;

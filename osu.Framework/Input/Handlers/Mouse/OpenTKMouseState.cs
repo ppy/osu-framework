@@ -9,10 +9,8 @@ namespace osu.Framework.Input.Handlers.Mouse
     internal abstract class OpenTKMouseState : States.MouseState
     {
         public readonly bool WasActive;
-
+        public readonly bool HasPreciseScroll;
         public MouseState RawState;
-
-        public override Vector2 ScrollDelta => WasActive ? base.ScrollDelta : Vector2.Zero;
 
         protected OpenTKMouseState(MouseState tkState, bool active, Vector2? mappedPosition)
         {

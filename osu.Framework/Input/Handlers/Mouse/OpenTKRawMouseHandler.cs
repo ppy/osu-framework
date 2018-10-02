@@ -50,7 +50,7 @@ namespace osu.Framework.Input.Handlers.Mouse
                         if (!host.Window.Visible || host.Window.WindowState == WindowState.Minimized)
                             return;
 
-                        if ((MouseInWindow || lastEachDeviceStates.Any(s => s != null && s.HasAnyButtonPressed)) && host.Window.Focused)
+                        if ((MouseInWindow || lastEachDeviceStates.Any(s => s != null && s.Buttons.HasAnyButtonPressed)) && host.Window.Focused)
                         {
                             var newRawStates = new List<MouseState>(mostSeenStates + 1);
 

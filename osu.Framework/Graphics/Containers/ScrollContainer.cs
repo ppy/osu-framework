@@ -6,8 +6,7 @@ using System.Diagnostics;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
-using osu.Framework.Input.EventArgs;
-using osu.Framework.Input.States;
+using osu.Framework.Input.Events;
 using osu.Framework.MathUtils;
 using osu.Framework.Threading;
 using OpenTK;
@@ -243,9 +242,9 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        protected override bool OnDragStart(InputState state)
+        protected override bool OnDragStart(DragStartEvent e)
         {
-            if (IsDragging || !state.Mouse.IsPressed(MouseButton.Left)) return false;
+            if (IsDragging || e.Button != MouseButton.Left) return false;
 
             lastDragTime = Time.Current;
             averageDragDelta = averageDragTime = 0;
@@ -254,11 +253,11 @@ namespace osu.Framework.Graphics.Containers
             return true;
         }
 
-        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
+        protected override bool OnKeyDown(KeyDownEvent e)
         {
             if (IsHandlingKeyboardScrolling && !IsDragging)
             {
-                switch (args.Key)
+                switch (e.Key)
                 {
                     case Key.PageUp:
                         ScrollTo(target - displayableContent);
@@ -269,12 +268,12 @@ namespace osu.Framework.Graphics.Containers
                 }
             }
 
-            return base.OnKeyDown(state, args);
+            return base.OnKeyDown(e);
         }
 
-        protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
+        protected override bool OnMouseDown(MouseDownEvent e)
         {
-            if (IsDragging || args.Button != MouseButton.Left) return false;
+            if (IsDragging || e.Button != MouseButton.Left) return false;
 
             // Continue from where we currently are scrolled to.
             target = Current;
@@ -294,7 +293,7 @@ namespace osu.Framework.Graphics.Containers
         private double averageDragTime;
         private double averageDragDelta;
 
-        protected override bool OnDrag(InputState state)
+        protected override bool OnDrag(DragEvent e)
         {
             Trace.Assert(IsDragging, "We should never receive OnDrag if we are not dragging.");
 
@@ -303,11 +302,11 @@ namespace osu.Framework.Graphics.Containers
             double decay = Math.Pow(0.95, timeDelta);
 
             averageDragTime = averageDragTime * decay + timeDelta;
-            averageDragDelta = averageDragDelta * decay - state.Mouse.Delta[ScrollDim];
+            averageDragDelta = averageDragDelta * decay - e.Delta[ScrollDim];
 
             lastDragTime = currentTime;
 
-            Vector2 childDelta = ToLocalSpace(state.Mouse.NativeState.Position) - ToLocalSpace(state.Mouse.NativeState.LastPosition);
+            Vector2 childDelta = ToLocalSpace(e.ScreenSpaceMousePosition) - ToLocalSpace(e.ScreenSpaceLastMousePosition);
 
             float scrollOffset = -childDelta[ScrollDim];
             float clampedScrollOffset = Clamp(target + scrollOffset) - Clamp(target);
@@ -322,7 +321,7 @@ namespace osu.Framework.Graphics.Containers
             return true;
         }
 
-        protected override bool OnDragEnd(InputState state)
+        protected override bool OnDragEnd(DragEndEvent e)
         {
             Trace.Assert(IsDragging, "We should never receive OnDragEnd if we are not dragging.");
 
@@ -348,11 +347,11 @@ namespace osu.Framework.Graphics.Containers
             return true;
         }
 
-        protected override bool OnScroll(InputState state)
+        protected override bool OnScroll(ScrollEvent e)
         {
-            bool isPrecise = state.Mouse.HasPreciseScroll;
+            bool isPrecise = e.IsPrecise;
 
-            Vector2 scrollDelta = state.Mouse.ScrollDelta;
+            Vector2 scrollDelta = e.ScrollDelta;
             float scrollDeltaFloat = scrollDelta.Y;
             if (ScrollDirection == Direction.Horizontal && scrollDelta.X != 0)
                 scrollDeltaFloat = scrollDelta.X;
@@ -573,28 +572,28 @@ namespace osu.Framework.Graphics.Containers
                 this.ResizeTo(size, duration, easing);
             }
 
-            protected override bool OnClick(InputState state) => true;
+            protected override bool OnClick(ClickEvent e) => true;
 
-            protected override bool OnHover(InputState state)
+            protected override bool OnHover(HoverEvent e)
             {
                 this.FadeColour(hoverColour, 100);
                 return true;
             }
 
-            protected override void OnHoverLost(InputState state)
+            protected override void OnHoverLost(HoverLostEvent e)
             {
                 this.FadeColour(defaultColour, 100);
             }
 
-            protected override bool OnDragStart(InputState state)
+            protected override bool OnDragStart(DragStartEvent e)
             {
-                dragOffset = state.Mouse.Position[scrollDim] - Position[scrollDim];
+                dragOffset = e.MousePosition[scrollDim] - Position[scrollDim];
                 return true;
             }
 
-            protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
+            protected override bool OnMouseDown(MouseDownEvent e)
             {
-                if (args.Button != MouseButton.Left) return false;
+                if (e.Button != MouseButton.Left) return false;
 
                 //note that we are changing the colour of the box here as to not interfere with the hover effect.
                 box.FadeColour(highlightColour, 100);
@@ -604,18 +603,18 @@ namespace osu.Framework.Graphics.Containers
                 return true;
             }
 
-            protected override bool OnMouseUp(InputState state, MouseUpEventArgs args)
+            protected override bool OnMouseUp(MouseUpEvent e)
             {
-                if (args.Button != MouseButton.Left) return false;
+                if (e.Button != MouseButton.Left) return false;
 
                 box.FadeColour(Color4.White, 100);
 
-                return base.OnMouseUp(state, args);
+                return base.OnMouseUp(e);
             }
 
-            protected override bool OnDrag(InputState state)
+            protected override bool OnDrag(DragEvent e)
             {
-                Dragged?.Invoke(state.Mouse.Position[scrollDim] - dragOffset);
+                Dragged?.Invoke(e.MousePosition[scrollDim] - dragOffset);
                 return true;
             }
         }
