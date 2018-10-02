@@ -172,7 +172,8 @@ namespace osu.Framework.Platform
         /// Gets the <see cref="DisplayDevice"/> that this window is currently on.
         /// </summary>
         /// <returns></returns>
-        public virtual DisplayDevice CurrentDisplay {
+        public virtual DisplayDevice CurrentDisplay
+        {
             get => DisplayDevice.FromRectangle(Bounds) ?? DisplayDevice.Default;
             set => throw new InvalidOperationException($@"{GetType().Name}.{nameof(CurrentDisplay)} cannot be set.");
         }
