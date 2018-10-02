@@ -5,7 +5,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Input.States;
+using osu.Framework.Input.Events;
 using osu.Framework.Testing;
 using OpenTK;
 using OpenTK.Graphics;
@@ -234,15 +234,15 @@ namespace osu.Framework.Tests.Visual
                 return base.Invalidate(invalidation, source, shallPropagate);
             }
 
-            protected override bool OnDrag(InputState state)
+            protected override bool OnDrag(DragEvent e)
             {
-                Position += state.Mouse.Delta;
+                Position += e.Delta;
                 return true;
             }
 
-            protected override bool OnDragEnd(InputState state) => true;
+            protected override bool OnDragEnd(DragEndEvent e) => true;
 
-            protected override bool OnDragStart(InputState state) => true;
+            protected override bool OnDragStart(DragStartEvent e) => true;
         }
     }
 }

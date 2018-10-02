@@ -27,12 +27,10 @@ using osu.Framework.Configuration;
 using osu.Framework.Development;
 using osu.Framework.Graphics.Cursor;
 using osu.Framework.Input.Bindings;
-using osu.Framework.Input.EventArgs;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
 using osu.Framework.MathUtils;
 using OpenTK.Input;
-using JoystickEventArgs = osu.Framework.Input.EventArgs.JoystickEventArgs;
 
 namespace osu.Framework.Graphics
 {
@@ -1793,46 +1791,46 @@ namespace osu.Framework.Graphics
         /// <returns>If the event supports blocking, returning true will make the event to not propagating further.</returns>
         protected virtual bool Handle(UIEvent e)
         {
-            // call a leagacy input handler
+            // call an individual input handler
             switch (e)
             {
                 case MouseMoveEvent mouseMove:
-                    return OnMouseMove(mouseMove.LegacyInputState);
+                    return OnMouseMove(mouseMove);
                 case HoverEvent hover:
-                    return OnHover(hover.LegacyInputState);
+                    return OnHover(hover);
                 case HoverLostEvent hoverLost:
-                    OnHoverLost(hoverLost.LegacyInputState);
+                    OnHoverLost(hoverLost);
                     return false;
                 case MouseDownEvent mouseDown:
-                    return OnMouseDown(mouseDown.LegacyInputState, new MouseDownEventArgs { Button = mouseDown.Button });
+                    return OnMouseDown(mouseDown);
                 case MouseUpEvent mouseUp:
-                    return OnMouseUp(mouseUp.LegacyInputState, new MouseUpEventArgs { Button = mouseUp.Button });
+                    return OnMouseUp(mouseUp);
                 case ClickEvent click:
-                    return OnClick(click.LegacyInputState);
+                    return OnClick(click);
                 case DoubleClickEvent doubleClick:
-                    return OnDoubleClick(doubleClick.LegacyInputState);
+                    return OnDoubleClick(doubleClick);
                 case DragStartEvent dragStart:
-                    return OnDragStart(dragStart.LegacyInputState);
+                    return OnDragStart(dragStart);
                 case DragEvent drag:
-                    return OnDrag(drag.LegacyInputState);
+                    return OnDrag(drag);
                 case DragEndEvent dragEnd:
-                    return OnDragEnd(dragEnd.LegacyInputState);
+                    return OnDragEnd(dragEnd);
                 case ScrollEvent scroll:
-                    return OnScroll(scroll.LegacyInputState);
+                    return OnScroll(scroll);
                 case FocusEvent focus:
-                    OnFocus(focus.LegacyInputState);
+                    OnFocus(focus);
                     return false;
                 case FocusLostEvent focusLost:
-                    OnFocusLost(focusLost.LegacyInputState);
+                    OnFocusLost(focusLost);
                     return false;
                 case KeyDownEvent keyDown:
-                    return OnKeyDown(keyDown.LegacyInputState, new KeyDownEventArgs { Key = keyDown.Key, Repeat = keyDown.Repeat });
+                    return OnKeyDown(keyDown);
                 case KeyUpEvent keyUp:
-                    return OnKeyUp(keyUp.LegacyInputState, new KeyUpEventArgs { Key = keyUp.Key });
+                    return OnKeyUp(keyUp);
                 case JoystickPressEvent joystickPress:
-                    return OnJoystickPress(joystickPress.LegacyInputState, new JoystickEventArgs { Button = joystickPress.Button });
+                    return OnJoystickPress(joystickPress);
                 case JoystickReleaseEvent joystickRelease:
-                    return OnJoystickRelease(joystickRelease.LegacyInputState, new JoystickEventArgs { Button = joystickRelease.Button });
+                    return OnJoystickRelease(joystickRelease);
                 default:
                     return false;
             }
@@ -1855,24 +1853,24 @@ namespace osu.Framework.Graphics
         /// <returns>Whether the click event is handled.</returns>
         public bool Click() => TriggerEvent(new ClickEvent(GetContainingInputManager()?.CurrentState ?? new InputState(), MouseButton.Left));
 
-        #region Legacy event handling
-        protected virtual bool OnMouseMove(InputState state) => false;
-        protected virtual bool OnHover(InputState state) => false;
-        protected virtual void OnHoverLost(InputState state) {}
-        protected virtual bool OnMouseDown(InputState state, MouseDownEventArgs args) => false;
-        protected virtual bool OnMouseUp(InputState state, MouseUpEventArgs args) => false;
-        protected virtual bool OnClick(InputState state) => false;
-        protected virtual bool OnDoubleClick(InputState state) => false;
-        protected virtual bool OnDragStart(InputState state) => false;
-        protected virtual bool OnDrag(InputState state) => false;
-        protected virtual bool OnDragEnd(InputState state) => false;
-        protected virtual bool OnScroll(InputState state) => false;
-        protected virtual void OnFocus(InputState state) {}
-        protected virtual void OnFocusLost(InputState state) {}
-        protected virtual bool OnKeyDown(InputState state, KeyDownEventArgs args) => false;
-        protected virtual bool OnKeyUp(InputState state, KeyUpEventArgs args) => false;
-        protected virtual bool OnJoystickPress(InputState state, JoystickEventArgs args) => false;
-        protected virtual bool OnJoystickRelease(InputState state, JoystickEventArgs args) => false;
+        #region Individual event handlers
+        protected virtual bool OnMouseMove(MouseMoveEvent e) => false;
+        protected virtual bool OnHover(HoverEvent e) => false;
+        protected virtual void OnHoverLost(HoverLostEvent e) {}
+        protected virtual bool OnMouseDown(MouseDownEvent e) => false;
+        protected virtual bool OnMouseUp(MouseUpEvent e) => false;
+        protected virtual bool OnClick(ClickEvent e) => false;
+        protected virtual bool OnDoubleClick(DoubleClickEvent e) => false;
+        protected virtual bool OnDragStart(DragStartEvent e) => false;
+        protected virtual bool OnDrag(DragEvent e) => false;
+        protected virtual bool OnDragEnd(DragEndEvent e) => false;
+        protected virtual bool OnScroll(ScrollEvent e) => false;
+        protected virtual void OnFocus(FocusEvent e) {}
+        protected virtual void OnFocusLost(FocusLostEvent e) {}
+        protected virtual bool OnKeyDown(KeyDownEvent e) => false;
+        protected virtual bool OnKeyUp(KeyUpEvent e) => false;
+        protected virtual bool OnJoystickPress(JoystickPressEvent e) => false;
+        protected virtual bool OnJoystickRelease(JoystickReleaseEvent e) => false;
         #endregion
 
         /// <summary>
@@ -2016,7 +2014,7 @@ namespace osu.Framework.Graphics
         public virtual bool RequestsFocus => false;
 
         /// <summary>
-        /// If true, we will gain focus (receiving priority on keybaord input) (and receive an <see cref="OnFocus"/> event) on returning true in <see cref="OnClick(InputState)"/>.
+        /// If true, we will gain focus (receiving priority on keybaord input) (and receive an <see cref="OnFocus"/> event) on returning true in <see cref="OnClick"/>.
         /// </summary>
         public virtual bool AcceptsFocus => false;
 
@@ -2056,20 +2054,6 @@ namespace osu.Framework.Graphics
         /// Whether positional input should be propagated to the sub-tree rooted at this drawable.
         /// </summary>
         public virtual bool PropagatePositionalInputSubTree => IsPresent && RequestsPositionalInputSubTree && !IsMaskedAway;
-
-        /// <summary>
-        /// Creates a new InputState with mouse coodinates converted to the coordinate space of our parent.
-        /// </summary>
-        /// <param name="screenSpaceState">The screen-space input state to be cloned and transformed.</param>
-        /// <returns>The cloned and transformed state.</returns>
-        private InputState createCloneInParentSpace(InputState screenSpaceState)
-        {
-            if (screenSpaceState == null) return null;
-
-            var clone = screenSpaceState.Clone();
-            clone.Mouse = new LocalMouseState(screenSpaceState.Mouse.NativeState, this);
-            return clone;
-        }
 
         /// <summary>
         /// This method is responsible for building a queue of Drawables to receive non-positional input in reverse order.

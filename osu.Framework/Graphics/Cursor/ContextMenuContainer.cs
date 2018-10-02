@@ -7,8 +7,7 @@ using OpenTK.Input;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input;
-using osu.Framework.Input.EventArgs;
-using osu.Framework.Input.States;
+using osu.Framework.Input.Events;
 
 namespace osu.Framework.Graphics.Cursor
 {
@@ -61,9 +60,9 @@ namespace osu.Framework.Graphics.Cursor
             }
         }
 
-        protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
+        protected override bool OnMouseDown(MouseDownEvent e)
         {
-            switch (args.Button)
+            switch (e.Button)
             {
                 case MouseButton.Right:
                     menuTarget = FindTargets().FirstOrDefault();
@@ -77,7 +76,7 @@ namespace osu.Framework.Graphics.Cursor
 
                     menu.Items = menuTarget.ContextMenuItems;
 
-                    menu.Position = ToLocalSpace(state.Mouse.NativeState.Position);
+                    menu.Position = ToLocalSpace(e.ScreenSpaceMousePosition);
                     relativeCursorPosition = ToSpaceOfOtherDrawable(menu.Position, menuTarget);
                     menu.Open();
                     return true;

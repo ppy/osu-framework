@@ -7,6 +7,7 @@ using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Input.States;
 using OpenTK;
+using OpenTK.Input;
 
 namespace osu.Framework.Input.Events
 {
@@ -50,18 +51,24 @@ namespace osu.Framework.Input.Events
         public Vector2 MousePosition => ToLocalSpace(ScreenSpaceMousePosition);
 
         /// <summary>
-        /// Used for compatibility only. Will be removed after the new way is applied to code.
-        /// Used as a proxy of legacy code dealing with an <see cref="InputState"/> to apply <see cref="Target"/> choordinate conversion.
+        /// Whether left or right control key is pressed.
         /// </summary>
-        internal InputState LegacyInputState
-        {
-            get
-            {
-                var state = CurrentState.Clone();
-                state.Mouse = new LocalMouseState(state.Mouse.NativeState, Target);
-                return state;
-            }
-        }
+        public bool ControlPressed => CurrentState.Keyboard.Keys.IsPressed(Key.LControl) || CurrentState.Keyboard.Keys.IsPressed(Key.RControl);
+
+        /// <summary>
+        /// Whether left or right alt key is pressed.
+        /// </summary>
+        public bool AltPressed => CurrentState.Keyboard.Keys.IsPressed(Key.LAlt) || CurrentState.Keyboard.Keys.IsPressed(Key.RAlt);
+
+        /// <summary>
+        /// Whether left or right shift key is pressed.
+        /// </summary>
+        public bool ShiftPressed => CurrentState.Keyboard.Keys.IsPressed(Key.LShift) || CurrentState.Keyboard.Keys.IsPressed(Key.RShift);
+
+        /// <summary>
+        /// Whether left or right super key (Win key on Windows, or Command key on Mac) is pressed.
+        /// </summary>
+        public bool SuperPressed => CurrentState.Keyboard.Keys.IsPressed(Key.LWin) || CurrentState.Keyboard.Keys.IsPressed(Key.RWin);
 
         protected UIEvent([NotNull] InputState state)
         {

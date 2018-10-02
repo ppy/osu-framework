@@ -9,13 +9,11 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
-using osu.Framework.Input.EventArgs;
-using osu.Framework.Input.States;
+using osu.Framework.Input.Events;
 using osu.Framework.Testing;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Input;
-using JoystickEventArgs = osu.Framework.Input.EventArgs.JoystickEventArgs;
 
 namespace osu.Framework.Tests.Visual
 {
@@ -250,26 +248,26 @@ namespace osu.Framework.Tests.Visual
 
             public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => true;
 
-            protected override bool OnClick(InputState state)
+            protected override bool OnClick(ClickEvent e)
             {
-                if (!box.ReceivePositionalInputAt(state.Mouse.NativeState.Position))
+                if (!box.ReceivePositionalInputAt(e.ScreenSpaceMousePosition))
                 {
                     State = Visibility.Hidden;
                     return true;
                 }
 
-                return base.OnClick(state);
+                return base.OnClick(e);
             }
 
-            protected override void OnFocus(InputState state)
+            protected override void OnFocus(FocusEvent e)
             {
-                base.OnFocus(state);
+                base.OnFocus(e);
                 this.FadeTo(1);
             }
 
-            protected override void OnFocusLost(InputState state)
+            protected override void OnFocusLost(FocusLostEvent e)
             {
-                base.OnFocusLost(state);
+                base.OnFocusLost(e);
                 this.FadeTo(0.2f);
             }
         }
@@ -309,45 +307,45 @@ namespace osu.Framework.Tests.Visual
                 Size = new Vector2(0.4f);
             }
 
-            protected override bool OnClick(InputState state) => true;
+            protected override bool OnClick(ClickEvent e) => true;
 
             public override bool AcceptsFocus => true;
 
-            protected override void OnFocus(InputState state)
+            protected override void OnFocus(FocusEvent e)
             {
-                base.OnFocus(state);
+                base.OnFocus(e);
                 Box.FadeTo(1);
             }
 
-            protected override void OnFocusLost(InputState state)
+            protected override void OnFocusLost(FocusLostEvent e)
             {
-                base.OnFocusLost(state);
+                base.OnFocusLost(e);
                 Box.FadeTo(0.5f);
             }
 
             // only KeyDown is blocking
-            protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
+            protected override bool OnKeyDown(KeyDownEvent e)
             {
                 ++KeyDownCount;
                 return true;
             }
 
-            protected override bool OnKeyUp(InputState state, KeyUpEventArgs args)
+            protected override bool OnKeyUp(KeyUpEvent e)
             {
                 ++KeyUpCount;
-                return base.OnKeyUp(state, args);
+                return base.OnKeyUp(e);
             }
 
-            protected override bool OnJoystickPress(InputState state, JoystickEventArgs args)
+            protected override bool OnJoystickPress(JoystickPressEvent e)
             {
                 ++JoystickPressCount;
-                return base.OnJoystickPress(state, args);
+                return base.OnJoystickPress(e);
             }
 
-            protected override bool OnJoystickRelease(InputState state, JoystickEventArgs args)
+            protected override bool OnJoystickRelease(JoystickReleaseEvent e)
             {
                 ++JoystickReleaseCount;
-                return base.OnJoystickRelease(state, args);
+                return base.OnJoystickRelease(e);
             }
         }
     }
