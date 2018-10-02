@@ -20,6 +20,7 @@ namespace osu.Framework.Graphics.UserInterface
     {
         protected internal DropdownHeader Header;
         protected internal DropdownMenu Menu;
+        protected internal DropdownMenuItem<T> FallbackItem;
 
         /// <summary>
         /// Creates the header part of the control.
@@ -31,7 +32,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         private readonly Dictionary<T, DropdownMenuItem<T>> itemMap = new Dictionary<T, DropdownMenuItem<T>>();
 
-        protected IEnumerable<DropdownMenuItem<T>> MenuItems => itemMap.Values;
+        protected IEnumerable<DropdownMenuItem<T>> MenuItems => FallbackItem != null ? FallbackItem.Yield().Concat(itemMap.Values) : itemMap.Values;
 
         /// <summary>
         /// Generate menu items by <see cref="KeyValuePair{TKey, TValue}"/>.
@@ -97,6 +98,18 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
+        private string fallbackText;
+
+        public string FallbackText
+        {
+            get => fallbackText;
+            set {
+                fallbackText = value;
+                if(FallbackItem != null)
+                    FallbackItem.Text.Value = value;
+            }
+        }
+
         public Bindable<T> Current { get; } = new Bindable<T>();
 
         private DropdownMenuItem<T> selectedItem;
@@ -143,8 +156,15 @@ namespace osu.Framework.Graphics.UserInterface
             if ((SelectedItem == null || !EqualityComparer<T>.Default.Equals(SelectedItem.Value, newSelection))
                 && newSelection != null)
             {
-                if (!itemMap.TryGetValue(newSelection, out selectedItem))
-                    throw new InvalidOperationException($"Attempted to update dropdown to a value which wasn't contained as an item ({newSelection}).");
+                if(!itemMap.TryGetValue(newSelection, out selectedItem))
+                {
+                    FallbackItem = selectedItem = new DropdownMenuItem<T>(fallbackText, newSelection);
+                    // throw new InvalidOperationException($"Attempted to update dropdown to a value which wasn't contained as an item ({newSelection}).");
+                }
+                else
+                {
+                    FallbackItem = null;
+                }
             }
 
             Menu.SelectItem(selectedItem);
