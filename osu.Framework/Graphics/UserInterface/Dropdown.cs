@@ -32,7 +32,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         private readonly Dictionary<T, DropdownMenuItem<T>> itemMap = new Dictionary<T, DropdownMenuItem<T>>();
 
-        protected IEnumerable<DropdownMenuItem<T>> MenuItems => FallbackItem != null ? FallbackItem.Yield().Concat(itemMap.Values) : itemMap.Values;
+        protected IEnumerable<DropdownMenuItem<T>> MenuItems => itemMap.Values;
 
         /// <summary>
         /// Generate menu items by <see cref="KeyValuePair{TKey, TValue}"/>.
@@ -98,12 +98,13 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
-        private string fallbackText;
+        private string fallbackText = "Current";
 
         public string FallbackText
         {
             get => fallbackText;
-            set {
+            set
+            {
                 fallbackText = value;
                 if(FallbackItem != null)
                     FallbackItem.Text.Value = value;
@@ -156,14 +157,13 @@ namespace osu.Framework.Graphics.UserInterface
             if ((SelectedItem == null || !EqualityComparer<T>.Default.Equals(SelectedItem.Value, newSelection))
                 && newSelection != null)
             {
-                if(!itemMap.TryGetValue(newSelection, out selectedItem))
+                if (itemMap.TryGetValue(newSelection, out selectedItem))
                 {
-                    FallbackItem = selectedItem = new DropdownMenuItem<T>(fallbackText, newSelection);
-                    // throw new InvalidOperationException($"Attempted to update dropdown to a value which wasn't contained as an item ({newSelection}).");
+                    FallbackItem = null;
                 }
                 else
                 {
-                    FallbackItem = null;
+                    FallbackItem = selectedItem = new DropdownMenuItem<T>(fallbackText, newSelection);
                 }
             }
 
