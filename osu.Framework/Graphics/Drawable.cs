@@ -25,6 +25,8 @@ using System.Reflection;
 using System.Threading;
 using osu.Framework.Configuration;
 using osu.Framework.Development;
+using osu.Framework.Graphics.Cursor;
+using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
 using osu.Framework.MathUtils;
@@ -225,8 +227,11 @@ namespace osu.Framework.Graphics
 
             double t1 = getPerfTime();
 
-            handleNonPositionalInput = HandleInputCache.HandleNonPositionalInput(this);
-            handlePositionalInput = HandleInputCache.HandlePositionalInput(this);
+            RequestsNonPositionalInput = HandleInputCache.RequestsNonPositionalInput(this);
+            RequestsPositionalInput = HandleInputCache.RequestsPositionalInput(this);
+
+            RequestsNonPositionalInputSubTree = RequestsNonPositionalInput;
+            RequestsPositionalInputSubTree = RequestsPositionalInput;
 
             InjectDependencies(dependencies);
 
@@ -1868,19 +1873,39 @@ namespace osu.Framework.Graphics
         protected virtual bool OnJoystickRelease(JoystickReleaseEvent e) => false;
         #endregion
 
-        private bool handleNonPositionalInput, handlePositionalInput;
+        /// <summary>
+        /// Whether this drawable should receive non-positional input. This does not mean that the drawable will immediately handle the received input, but that it may handle it at some point.
+        /// </summary>
+        internal bool RequestsNonPositionalInput { get; private set; }
+
+        /// <summary>
+        /// Whether this drawable should receive positional input. This does not mean that the drawable will immediately handle the received input, but that it may handle it at some point.
+        /// </summary>
+        internal bool RequestsPositionalInput { get; private set; }
+
+        /// <summary>
+        /// Conservatively approximates whether there is a descendant which <see cref="RequestsNonPositionalInput"/> in the sub-tree rooted at this drawable
+        /// to enable sub-tree skipping optimization for input handling.
+        /// </summary>
+        internal bool RequestsNonPositionalInputSubTree;
+
+        /// <summary>
+        /// Conservatively approximates whether there is a descendant which <see cref="RequestsPositionalInput"/> in the sub-tree rooted at this drawable
+        /// to enable sub-tree skipping optimization for input handling.
+        /// </summary>
+        internal bool RequestsPositionalInputSubTree;
 
         /// <summary>
         /// Whether this <see cref="Drawable"/> handles non-positional input.
-        /// This value is true by default if any keyboard and other non-positional "On-" input methods are overridden.
+        /// This value is true by default if <see cref="Handle"/> or any non-positional (e.g. keyboard related) "On-" input methods are overridden.
         /// </summary>
-        public virtual bool HandleNonPositionalInput => handleNonPositionalInput;
+        public virtual bool HandleNonPositionalInput => RequestsNonPositionalInput;
 
         /// <summary>
         /// Whether this <see cref="Drawable"/> handles positional input.
-        /// This value is true by default if any mouse related "On-" input methods are overridden.
+        /// This value is true by default if <see cref="Handle"/> or any positional (i.e. mouse related) "On-" input methods are overridden.
         /// </summary>
-        public virtual bool HandlePositionalInput => handlePositionalInput;
+        public virtual bool HandlePositionalInput => RequestsPositionalInput;
 
         /// <summary>
         /// Nested class which is used for caching <see cref="Drawable.HandleNonPositionalInput"/>, <see cref="Drawable.HandlePositionalInput"/> values obtained via reflection.
@@ -1919,16 +1944,34 @@ namespace osu.Framework.Graphics
                 nameof(OnJoystickRelease)
             };
 
-            public static bool HandleNonPositionalInput(Drawable drawable) => get(drawable, non_positional_cached_values, non_positional_input_methods);
+            private static readonly Type[] positional_input_interfaces =
+            {
+                typeof(IHasTooltip),
+            };
 
-            public static bool HandlePositionalInput(Drawable drawable) => get(drawable, positional_cached_values, positional_input_methods);
+            private static readonly Type[] non_positional_input_interfaces =
+            {
+                typeof(IKeyBindingHandler),
+            };
 
-            private static bool get(Drawable drawable, ConcurrentDictionary<Type, bool> cache, string[] inputMethods)
+            public static bool RequestsNonPositionalInput(Drawable drawable) => get(drawable, non_positional_cached_values, false);
+
+            public static bool RequestsPositionalInput(Drawable drawable) => get(drawable, positional_cached_values, true);
+
+            private static bool get(Drawable drawable, ConcurrentDictionary<Type, bool> cache, bool positional)
             {
                 var type = drawable.GetType();
-                if (cache.TryGetValue(type, out var value))
-                    return value;
+                if (!cache.TryGetValue(type, out var value))
+                {
+                    value = compute(type, positional);
+                    cache.TryAdd(type, value);
+                }
+                return value;
+            }
 
+            private static bool compute(Type type, bool positional)
+            {
+                var inputMethods = positional ? positional_input_methods : non_positional_input_methods;
                 foreach (var inputMethod in inputMethods)
                 {
                     // check for any input method overrides which are at a higher level than drawable.
@@ -1936,15 +1979,25 @@ namespace osu.Framework.Graphics
 
                     Debug.Assert(method != null);
 
-                    // ReSharper disable once PossibleNullReferenceException
                     if (method.DeclaringType != typeof(Drawable))
-                    {
-                        cache.TryAdd(type, true);
                         return true;
-                    }
                 }
 
-                cache.TryAdd(type, false);
+                var inputInterfaces = positional ? positional_input_interfaces : non_positional_input_interfaces;
+                foreach (var inputInterface in inputInterfaces)
+                {
+                    // check if this type implements any interface which requires a drawable to handle input.
+                    if (inputInterface.IsAssignableFrom(type))
+                        return true;
+                }
+
+                // check if HandlePositionalInput/HandleNonPositionalInput is overridden to manually specify that this type handles input.
+                var handleInputPropertyName = positional ? nameof(HandlePositionalInput) : nameof(HandleNonPositionalInput);
+                var property = type.GetProperty(handleInputPropertyName);
+                Debug.Assert(property != null);
+                if (property.DeclaringType != typeof(Drawable))
+                    return true;
+
                 return false;
             }
         }
@@ -1957,6 +2010,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// If true, we are eagerly requesting focus. If nothing else above us has (or is requesting focus) we will get it.
         /// </summary>
+        /// <remarks>In order to get focused, <see cref="HandleNonPositionalInput"/> must be true.</remarks>
         public virtual bool RequestsFocus => false;
 
         /// <summary>
@@ -1967,6 +2021,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Whether this Drawable is currently hovered over.
         /// </summary>
+        /// <remarks>This is updated only if <see cref="HandlePositionalInput"/> is true.</remarks>
         public bool IsHovered { get; internal set; }
 
         /// <summary>
@@ -1991,46 +2046,46 @@ namespace osu.Framework.Graphics
         public virtual bool Contains(Vector2 screenSpacePos) => DrawRectangle.Contains(ToLocalSpace(screenSpacePos));
 
         /// <summary>
-        /// Whether this Drawable can receive non-positional input, taking into account all optimizations and masking.
+        /// Whether non-positional input should be propagated to the sub-tree rooted at this drawable.
         /// </summary>
-        public bool CanReceiveNonPositionalInput => HandleNonPositionalInput && IsPresent && !IsMaskedAway;
+        public virtual bool PropagateNonPositionalInputSubTree => IsPresent && RequestsNonPositionalInputSubTree;
 
         /// <summary>
-        /// Whether this Drawable can receive positional input, taking into account all optimizations and masking.
+        /// Whether positional input should be propagated to the sub-tree rooted at this drawable.
         /// </summary>
-        public bool CanReceivePositionalInput => HandlePositionalInput && IsPresent && !IsMaskedAway;
+        public virtual bool PropagatePositionalInputSubTree => IsPresent && RequestsPositionalInputSubTree && !IsMaskedAway;
 
         /// <summary>
-        /// This method is responsible for building a queue of Drawables to receive non-positional input
-        /// in reverse order. This method is overridden by <see cref="CompositeDrawable"/> to be called on all
-        /// children such that the entire scene graph is covered.
+        /// This method is responsible for building a queue of Drawables to receive non-positional input in reverse order.
         /// </summary>
         /// <param name="queue">The input queue to be built.</param>
         /// <param name="allowBlocking">Whether blocking at <see cref="PassThroughInputManager"/>s should be allowed.</param>
-        /// <returns>Whether we have added ourself to the queue.</returns>
+        /// <returns>Returns false if we should skip this sub-tree.</returns>
         internal virtual bool BuildNonPositionalInputQueue(List<Drawable> queue, bool allowBlocking = true)
         {
-            if (!CanReceiveNonPositionalInput)
+            if (!PropagateNonPositionalInputSubTree)
                 return false;
 
-            queue.Add(this);
+            if (HandleNonPositionalInput)
+                queue.Add(this);
+
             return true;
         }
 
         /// <summary>
-        /// This method is responsible for building a queue of Drawables to receive positional input
-        /// in reverse order. This method is overridden by <see cref="CompositeDrawable"/> to be called on all
-        /// children such that the entire scene graph is covered.
+        /// This method is responsible for building a queue of Drawables to receive positional input in reverse order.
         /// </summary>
         /// <param name="screenSpacePos">The screen space position of the positional input.</param>
         /// <param name="queue">The input queue to be built.</param>
-        /// <returns>Whether we have added ourself to the queue.</returns>
+        /// <returns>Returns false if we should skip this sub-tree.</returns>
         internal virtual bool BuildPositionalInputQueue(Vector2 screenSpacePos, List<Drawable> queue)
         {
-            if (!CanReceivePositionalInput || !ReceivePositionalInputAt(screenSpacePos))
+            if (!PropagatePositionalInputSubTree)
                 return false;
 
-            queue.Add(this);
+            if (HandlePositionalInput && ReceivePositionalInputAt(screenSpacePos))
+                queue.Add(this);
+
             return true;
         }
 

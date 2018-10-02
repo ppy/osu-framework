@@ -538,7 +538,7 @@ namespace osu.Framework.Tests.Visual
                 }
             }
 
-            private class BoundedCursorContainer : Container
+            public class BoundedCursorContainer : Container
             {
                 private readonly Circle circle;
 

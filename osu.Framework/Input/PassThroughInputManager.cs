@@ -45,7 +45,7 @@ namespace osu.Framework.Input
 
         internal override bool BuildNonPositionalInputQueue(List<Drawable> queue, bool allowBlocking = true)
         {
-            if (!CanReceiveNonPositionalInput) return false;
+            if (!PropagateNonPositionalInputSubTree) return false;
 
             if (!allowBlocking)
             {
@@ -60,7 +60,7 @@ namespace osu.Framework.Input
 
         internal override bool BuildPositionalInputQueue(Vector2 screenSpacePos, List<Drawable> queue)
         {
-            if (!CanReceivePositionalInput) return false;
+            if (!PropagatePositionalInputSubTree) return false;
 
             if (UseParentInput)
                 queue.Add(this);

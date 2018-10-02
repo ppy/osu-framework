@@ -191,7 +191,7 @@ namespace osu.Framework.Input
         {
             // due to the laziness of IEnumerable, .Where check should be done right before it is triggered for the event.
             var drawables = MouseDownInputQueue.Intersect(PositionalInputQueue)
-                                               .Where(t => t.CanReceivePositionalInput && t.ReceivePositionalInputAt(state.Mouse.Position));
+                                               .Where(t => t.IsAlive && t.IsPresent && t.ReceivePositionalInputAt(state.Mouse.Position));
 
             var clicked = PropagateMouseButtonEvent(drawables, new ClickEvent(state, Button, MouseDownPosition));
             ClickedDrawable.SetTarget(clicked);

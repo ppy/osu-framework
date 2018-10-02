@@ -9,7 +9,7 @@ namespace osu.Framework.Input.Bindings
     /// A drawable that handles key bindings.
     /// </summary>
     /// <typeparam name="T">The type of bindings, commonly an enum.</typeparam>
-    public interface IKeyBindingHandler<in T> : IDrawable
+    public interface IKeyBindingHandler<in T> : IKeyBindingHandler
         where T : struct
     {
         /// <summary>
@@ -27,5 +27,9 @@ namespace osu.Framework.Input.Bindings
         /// <returns>True if this Drawable handled the event. If false, then the event
         /// is propagated up the scene graph to the next eligible Drawable.</returns>
         bool OnReleased(T action);
+    }
+
+    public interface IKeyBindingHandler : IDrawable
+    {
     }
 }

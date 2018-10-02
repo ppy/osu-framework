@@ -19,12 +19,12 @@ namespace osu.Framework.Tests.Visual
     {
         private const int panel_count = 6;
 
-        private FillFlowContainerNoInput flow;
+        private FillFlowContainer flow;
 
         [SetUp]
         public void SetUp()
         {
-            Child = flow = new FillFlowContainerNoInput
+            Child = flow = new FillFlowContainer
             {
                 RelativeSizeAxes = Axes.X,
                 AutoSizeAxes = Axes.Y,
@@ -64,12 +64,6 @@ namespace osu.Framework.Tests.Visual
 
             // due to thread yielding all should be loaded straight after any are loaded.
             AddAssert("check all loaded", () => flow.Children.OfType<DelayedTestBoxAsync>().Count() == panel_count);
-        }
-
-        private class FillFlowContainerNoInput : FillFlowContainer<Drawable>
-        {
-            public override bool HandleNonPositionalInput => false;
-            public override bool HandlePositionalInput => false;
         }
 
         public class DelayedTestBox : Box
