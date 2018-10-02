@@ -579,8 +579,8 @@ namespace osu.Framework.Graphics.Containers
                     {
                         aliveInternalChildren.Add(child);
 
-                        // If the new child has the flag, we should propagate the flag to the root.
-                        // But we can stop at the ancestor which flag is true because further ancestors should have flag already set to be true.
+                        // If the new child has the flag set, we should propagate the flag towards the root.
+                        // We can stop at the ancestor which has the flag already set because further ancestors will also have the flag set.
                         if (child.RequestsNonPositionalInputSubTree)
                         {
                             for (var ancestor = this; ancestor != null && !ancestor.RequestsNonPositionalInputSubTree; ancestor = ancestor.Parent)
