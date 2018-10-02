@@ -25,6 +25,7 @@ using System.Reflection;
 using System.Threading;
 using osu.Framework.Configuration;
 using osu.Framework.Development;
+using osu.Framework.Graphics.Cursor;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.EventArgs;
 using osu.Framework.Input.Events;
@@ -1945,6 +1946,16 @@ namespace osu.Framework.Graphics
                 nameof(OnJoystickRelease)
             };
 
+            private static readonly Type[] positional_input_interfaces =
+            {
+                typeof(IHasTooltip),
+            };
+
+            private static readonly Type[] non_positional_input_interfaces =
+            {
+                typeof(IKeyBindingHandler),
+            };
+
             public static bool RequestsNonPositionalInput(Drawable drawable) => get(drawable, non_positional_cached_values, false);
 
             public static bool RequestsPositionalInput(Drawable drawable) => get(drawable, positional_cached_values, true);
@@ -1974,12 +1985,15 @@ namespace osu.Framework.Graphics
                         return true;
                 }
 
-                // KeyBindingContainer relies on InputQueue and thus a drawable implementing IKeyBindingHandler needs to be included.
-                if (!positional && typeof(IKeyBindingHandler).IsAssignableFrom(type))
-                    return true;
+                var inputInterfaces = positional ? positional_input_interfaces : non_positional_input_interfaces;
+                foreach (var inputInterface in inputInterfaces)
+                {
+                    // check if this type implements any interface which requires a drawable to handle input.
+                    if (inputInterface.IsAssignableFrom(type))
+                        return true;
+                }
 
-                // Check if HandlePositionalInput/HandleNonPositionalInput is overridden.
-                // This is required for cases described in Drawable.IsHovered.
+                // check if HandlePositionalInput/HandleNonPositionalInput is overridden to manually specify that this type handles input.
                 var handleInputPropertyName = positional ? nameof(HandlePositionalInput) : nameof(HandleNonPositionalInput);
                 var property = type.GetProperty(handleInputPropertyName);
                 Debug.Assert(property != null);

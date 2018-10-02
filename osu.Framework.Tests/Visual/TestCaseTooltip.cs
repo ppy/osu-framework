@@ -147,8 +147,6 @@ namespace osu.Framework.Tests.Visual
 
         private class CustomTooltipSpriteText : Container, IHasTooltip
         {
-            public override bool HandlePositionalInput => true;
-
             private readonly string tooltipText;
 
             public string TooltipText => tooltipText;
@@ -203,8 +201,6 @@ namespace osu.Framework.Tests.Visual
 
         private class TooltipBox : Box, IHasTooltip
         {
-            public override bool HandlePositionalInput => true;
-
             public string TooltipText { get; set; }
         }
 
