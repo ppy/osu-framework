@@ -43,7 +43,7 @@ namespace osu.Framework.Input.Handlers.Mouse
                 }
             }
 
-            if (lastState != null)
+            if (lastState != null && state.WasActive)
             {
                 var scrollDelta = state.Scroll - lastState.Scroll;
                 if (scrollDelta != Vector2.Zero)

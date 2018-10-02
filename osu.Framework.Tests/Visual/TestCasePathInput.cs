@@ -7,7 +7,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Lines;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Input.States;
+using osu.Framework.Input.Events;
 using osu.Framework.Testing;
 using OpenTK;
 using OpenTK.Graphics;
@@ -116,10 +116,10 @@ namespace osu.Framework.Tests.Visual
             test(new Vector2(370, 360), true);
         }
 
-        protected override bool OnMouseMove(InputState state)
+        protected override bool OnMouseMove(MouseMoveEvent e)
         {
-            text.Text = path.ToLocalSpace(state.Mouse.NativeState.Position).ToString();
-            return base.OnMouseMove(state);
+            text.Text = path.ToLocalSpace(e.ScreenSpaceMousePosition).ToString();
+            return base.OnMouseMove(e);
         }
 
         private void addPath(string name, params Vector2[] vertices) => AddStep(name, () =>
@@ -153,13 +153,13 @@ namespace osu.Framework.Tests.Visual
 
         private class HoverablePath : Path
         {
-            protected override bool OnHover(InputState state)
+            protected override bool OnHover(HoverEvent e)
             {
                 Colour = Color4.Green;
                 return true;
             }
 
-            protected override void OnHoverLost(InputState state)
+            protected override void OnHoverLost(HoverLostEvent e)
             {
                 Colour = Color4.White;
             }

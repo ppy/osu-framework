@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System.Collections.Generic;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Input.States;
 using OpenTK.Input;
@@ -13,6 +14,21 @@ namespace osu.Framework.Input.Events
     public abstract class KeyboardEvent : UIEvent
     {
         public readonly Key Key;
+
+        /// <summary>
+        /// Whether a specific key is pressed.
+        /// </summary>
+        public bool IsPressed(Key key) => CurrentState.Keyboard.Keys.IsPressed(key);
+
+        /// <summary>
+        /// Whether any key is pressed.
+        /// </summary>
+        public bool HasAnyKeyPressed => CurrentState.Keyboard.Keys.HasAnyButtonPressed;
+
+        /// <summary>
+        /// List of currently pressed keys.
+        /// </summary>
+        public IEnumerable<Key> PressedKeys => CurrentState.Keyboard.Keys;
 
         protected KeyboardEvent(InputState state, Key key)
             : base(state)

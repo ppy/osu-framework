@@ -112,15 +112,12 @@ namespace osu.Framework.Input.Handlers.Joystick
             public OpenTKJoystickState(JoystickDevice device)
             {
                 // Populate axes
-                var axes = new List<JoystickAxis>();
                 for (int i = 0; i < JoystickDevice.MAX_AXES; i++)
                 {
                     var value = device.RawState.GetAxis(i);
                     if (!Precision.AlmostEquals(value, 0, device.DefaultDeadzones?[i] ?? Precision.FLOAT_EPSILON))
-                        axes.Add(new JoystickAxis(i, value));
+                        Axes.Add(new JoystickAxis(i, value));
                 }
-
-                Axes = axes;
 
                 // Populate normal buttons
                 for (int i = 0; i < JoystickDevice.MAX_BUTTONS; i++)
