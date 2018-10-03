@@ -80,6 +80,20 @@ namespace osu.Framework.Extensions
             return dictionary.TryGetValue(lookup, out TValue outVal) ? outVal : default;
         }
 
+        /// <summary>
+        /// Try to get a value from the <paramref name="dictionary"/>.
+        /// Invokes <paramref name="generator"/> and stores its result if the key does not exist.
+        /// </summary>
+        /// <param name="dictionary">The dictionary.</param>
+        /// <param name="lookup">The lookup key.</param>
+        /// <param name="generator">Function which creates the fallback value.</param>
+        /// <returns></returns>
+        public static TValue GetOrCreate<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, TKey lookup, Func<TValue> generator)
+        {
+            if (dictionary.TryGetValue(lookup, out TValue outVal)) return outVal;
+            return dictionary[lookup] = generator != null ? generator() : default;
+        }
+
         public static bool IsValidIndex<T>(this List<T> list, int index)
         {
             return index >= 0 && index < list.Count;
