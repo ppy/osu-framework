@@ -36,7 +36,7 @@ namespace osu.Framework.Graphics.Containers
 
         public Visibility State
         {
-            get { return state; }
+            get => state;
             set
             {
                 if (value == state) return;
@@ -67,8 +67,8 @@ namespace osu.Framework.Graphics.Containers
 
         public override void Show() => State = Visibility.Visible;
 
-        public override bool HandleKeyboardInput => State == Visibility.Visible;
-        public override bool HandleMouseInput => State == Visibility.Visible;
+        public override bool PropagateNonPositionalInputSubTree => base.PropagateNonPositionalInputSubTree && State == Visibility.Visible;
+        public override bool PropagatePositionalInputSubTree => base.PropagatePositionalInputSubTree && State == Visibility.Visible;
 
         public event Action<Visibility> StateChanged;
 

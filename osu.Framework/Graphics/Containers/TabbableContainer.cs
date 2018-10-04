@@ -3,7 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using osu.Framework.Input;
+using osu.Framework.Input.Events;
 using OpenTK.Input;
 
 namespace osu.Framework.Graphics.Containers
@@ -17,22 +17,31 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     internal interface ITabbableContainer
     {
+        /// <summary>
+        /// Whether this <see cref="ITabbableContainer"/> can be tabbed to.
+        /// </summary>
+        bool CanBeTabbedTo { get; }
     }
 
     public class TabbableContainer<T> : Container<T>, ITabbableContainer
         where T : Drawable
     {
         /// <summary>
+        /// Whether this <see cref="TabbableContainer{T}"/> can be tabbed to.
+        /// </summary>
+        public virtual bool CanBeTabbedTo => true;
+
+        /// <summary>
         /// Allows for tabbing between multiple levels within the TabbableContentContainer.
         /// </summary>
         public Container<Drawable> TabbableContentContainer { private get; set; }
 
-        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
+        protected override bool OnKeyDown(KeyDownEvent e)
         {
-            if (TabbableContentContainer == null || args.Key != Key.Tab)
+            if (TabbableContentContainer == null || e.Key != Key.Tab)
                 return false;
 
-            var nextTab = nextTabStop(TabbableContentContainer, state.Keyboard.ShiftPressed);
+            var nextTab = nextTabStop(TabbableContentContainer, e.ShiftPressed);
             if (nextTab != null) GetContainingInputManager().ChangeFocus(nextTab);
             return true;
         }
@@ -50,11 +59,10 @@ namespace osu.Framework.Graphics.Containers
 
                 if (!started)
                     started = ReferenceEquals(drawable, this);
-                else if (drawable is ITabbableContainer)
+                else if (drawable is ITabbableContainer tabbable && tabbable.CanBeTabbedTo)
                     return drawable;
 
-                var composite = drawable as CompositeDrawable;
-                if (composite != null)
+                if (drawable is CompositeDrawable composite)
                 {
                     var newChildren = composite.InternalChildren.ToList();
                     int bound = reverse ? newChildren.Count : 0;

@@ -1,20 +1,27 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
+using System.Collections.Generic;
+using NUnit.Framework;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Testing;
 using OpenTK;
 using OpenTK.Graphics;
+using OpenTK.Input;
 
 namespace osu.Framework.Tests.Visual
 {
-    public class TestCaseSliderbar : TestCase
+    public class TestCaseSliderbar : ManualInputManagerTestCase
     {
+        public override IReadOnlyList<Type> RequiredTypes => new[] { typeof(BasicSliderBar<>), typeof(SliderBar<>) };
+
         // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
         private readonly BindableDouble sliderBarValue; //keep a reference to avoid GC of the bindable
         private readonly SpriteText sliderbarText;
+        private readonly SliderBar<double> sliderBar;
 
         public TestCaseSliderbar()
         {
@@ -31,12 +38,12 @@ namespace osu.Framework.Tests.Visual
                 Position = new Vector2(25, 0)
             };
 
-            SliderBar<double> sliderBar = new BasicSliderBar<double>
+            sliderBar = new BasicSliderBar<double>
             {
                 Size = new Vector2(200, 10),
                 Position = new Vector2(25, 25),
-                Color = Color4.White,
-                SelectionColor = Color4.Pink,
+                BackgroundColour = Color4.White,
+                SelectionColour = Color4.Pink,
                 KeyboardStep = 1
             };
 
@@ -50,14 +57,48 @@ namespace osu.Framework.Tests.Visual
                 Size = new Vector2(200, 10),
                 RangePadding = 20,
                 Position = new Vector2(25, 45),
-                Color = Color4.White,
-                SelectionColor = Color4.Pink,
+                BackgroundColour = Color4.White,
+                SelectionColour = Color4.Pink,
                 KeyboardStep = 1,
             });
 
             sliderBar.Current.BindTo(sliderBarValue);
+        }
 
-            AddSliderStep("Value", -10.0, 10.0, 0.0, v => sliderBarValue.Value = v);
+        [Test]
+        public void Basic() {
+            AddSliderStep("Value", -10.0, 10.0, -10.0, v => sliderBarValue.Value = v);
+
+            AddStep("Click at x = 50", () =>
+            {
+                InputManager.MoveMouseTo(sliderBar.ToScreenSpace(sliderBar.DrawSize / 4));
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddAssert("Value == -6,25", () => sliderBarValue == -6.25);
+
+            AddStep("Press left arrow key", () =>
+            {
+                var before = sliderBar.IsHovered;
+                sliderBar.IsHovered = true;
+                InputManager.PressKey(Key.Left);
+                InputManager.ReleaseKey(Key.Left);
+                sliderBar.IsHovered = before;
+            });
+
+            AddAssert("Value == -7,25", () => sliderBarValue == -7.25);
+
+            AddStep("Click at x = 150 with shift", () =>
+            {
+                var drawSize = sliderBar.DrawSize;
+                drawSize.X *= 0.75f;
+                InputManager.PressKey(Key.LShift);
+                InputManager.MoveMouseTo(sliderBar.ToScreenSpace(drawSize));
+                InputManager.Click(MouseButton.Left);
+                InputManager.ReleaseKey(Key.LShift);
+            });
+
+            AddAssert("Value == 6", () => sliderBarValue == 6);
         }
 
         private void sliderBarValueChanged(double newValue)

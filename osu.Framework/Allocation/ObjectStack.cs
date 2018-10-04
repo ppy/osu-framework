@@ -9,7 +9,7 @@ namespace osu.Framework.Allocation
     {
         private readonly int maxAmountObjects;
         private readonly Stack<T> freeObjects = new Stack<T>();
-        private readonly HashSet<T> usedObjects = new HashSet<T>();
+        private int usedObjects;
 
         public ObjectStack(int maxAmountObjects = -1)
         {
@@ -20,15 +20,15 @@ namespace osu.Framework.Allocation
         {
             T o = freeObjects.Count > 0 ? freeObjects.Pop() : new T();
 
-            if (maxAmountObjects == -1 || usedObjects.Count < maxAmountObjects)
-                usedObjects.Add(o);
+            if (maxAmountObjects == -1 || usedObjects < maxAmountObjects)
+                usedObjects++;
 
             return o;
         }
 
         private void returnFreeObject(T o)
         {
-            if (usedObjects.Remove(o))
+            if (usedObjects-- > 0)
                 // We are here if the element was successfully found and removed
                 freeObjects.Push(o);
         }

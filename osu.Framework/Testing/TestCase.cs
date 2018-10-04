@@ -15,6 +15,8 @@ using osu.Framework.Testing.Drawables.Steps;
 using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Graphics;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace osu.Framework.Testing
 {
@@ -26,7 +28,52 @@ namespace osu.Framework.Testing
 
         protected override Container<Drawable> Content => content;
 
-        private bool mainTest = true;
+        protected virtual ITestCaseTestRunner CreateRunner() => new TestCaseTestRunner();
+
+        private GameHost host;
+        private Task runTask;
+        private ITestCaseTestRunner runner;
+        private bool isNUnitRunning;
+
+        [OneTimeSetUp]
+        public void SetupGameHost()
+        {
+            isNUnitRunning = true;
+
+            host = new HeadlessGameHost($"{GetType().Name}-{Guid.NewGuid()}", realtime: false);
+            runner = CreateRunner();
+
+            if (!(runner is Game game))
+                throw new InvalidCastException($"The test runner must be a {nameof(Game)}.");
+
+            runTask = Task.Factory.StartNew(() => host.Run(game), TaskCreationOptions.LongRunning);
+            while (!game.IsLoaded)
+            {
+                checkForErrors();
+                Thread.Sleep(10);
+            }
+        }
+
+        protected internal override void AddInternal(Drawable drawable) => throw new InvalidOperationException($"Modifying {nameof(InternalChildren)} will cause critical failure. Use {nameof(Add)} instead.");
+        protected internal override void ClearInternal(bool disposeChildren = true) => throw new InvalidOperationException($"Modifying {nameof(InternalChildren)} will cause critical failure. Use {nameof(Clear)} instead.");
+        protected internal override bool RemoveInternal(Drawable drawable) => throw new InvalidOperationException($"Modifying {nameof(InternalChildren)} will cause critical failure. Use {nameof(Remove)} instead.");
+
+        [OneTimeTearDown]
+        public void DestroyGameHost()
+        {
+            host.Exit();
+            runTask.Wait();
+            host.Dispose();
+
+            try
+            {
+                // clean up after each run
+                host.Storage.DeleteDirectory(string.Empty);
+            }
+            catch
+            {
+            }
+        }
 
         /// <summary>
         /// Runs prior to all tests except <see cref="TestConstructor"/> to ensure that the <see cref="TestCase"/>
@@ -35,27 +82,25 @@ namespace osu.Framework.Testing
         [SetUp]
         public void SetupTest()
         {
-            if (!mainTest)
+            if (isNUnitRunning && TestContext.CurrentContext.Test.MethodName != nameof(TestConstructor))
                 StepsContainer.Clear();
         }
 
-        /// <summary>
-        /// Ensures that the NUnit test runs correctly by running a <see cref="HeadlessGameHost"/>.
-        /// This runs during NUnit's TearDown to ensure that <see cref="TestCase"/> steps (e.g. from <see cref="AddStep(string, Action)"/>)
-        /// are properly added and executed.
-        /// </summary>
         [TearDown]
-        public virtual void RunTest()
+        public void RunTests()
         {
-            Storage storage;
-            using (var host = new HeadlessGameHost($"test-{Guid.NewGuid()}", realtime: false))
-            {
-                storage = host.Storage;
-                host.Run(new TestCaseTestRunner(this));
-            }
+            checkForErrors();
+            runner.RunTestBlocking(this);
+            checkForErrors();
+        }
 
-            // clean up after each run
-            storage.DeleteDirectory(string.Empty);
+        private void checkForErrors()
+        {
+            if (host.ExecutionState == ExecutionState.Stopping)
+                runTask.Wait();
+
+            if (runTask.Exception != null)
+                throw runTask.Exception;
         }
 
         /// <summary>
@@ -68,7 +113,9 @@ namespace osu.Framework.Testing
         /// This test must run before any other tests, as it relies on <see cref="StepsContainer"/> not being cleared and not having any elements.
         /// </summary>
         [Test, Order(int.MinValue)]
-        public void TestConstructor() { mainTest = false; }
+        public void TestConstructor()
+        {
+        }
 
         protected TestCase()
         {
@@ -80,47 +127,52 @@ namespace osu.Framework.Testing
             RelativeSizeAxes = Axes.Both;
             Masking = true;
 
-            InternalChildren = new Drawable[]
+            base.AddInternal(new Container
             {
-                new Box
+                RelativeSizeAxes = Axes.Both,
+                Children = new Drawable[]
                 {
-                    Colour = new Color4(25, 25, 25, 255),
-                    RelativeSizeAxes = Axes.Y,
-                    Width = steps_width,
-                },
-                scroll = new ScrollContainer
-                {
-                    Width = steps_width,
-                    Depth = float.MinValue,
-                    RelativeSizeAxes = Axes.Y,
-                    Padding = new MarginPadding(5),
-                    Child = StepsContainer = new FillFlowContainer<Drawable>
+                    new Box
                     {
-                        Direction = FillDirection.Vertical,
-                        Spacing = new Vector2(5),
-                        RelativeSizeAxes = Axes.X,
-                        AutoSizeAxes = Axes.Y,
+                        Colour = new Color4(25, 25, 25, 255),
+                        RelativeSizeAxes = Axes.Y,
+                        Width = steps_width,
                     },
-                },
-                new Container
-                {
-                    Masking = true,
-                    Padding = new MarginPadding
+                    scroll = new ScrollContainer
                     {
-                        Left = steps_width + padding,
-                        Right = padding,
-                        Top = padding,
-                        Bottom = padding,
+                        Width = steps_width,
+                        Depth = float.MinValue,
+                        RelativeSizeAxes = Axes.Y,
+                        Padding = new MarginPadding(5),
+                        Child = StepsContainer = new FillFlowContainer<Drawable>
+                        {
+                            Direction = FillDirection.Vertical,
+                            Spacing = new Vector2(5),
+                            RelativeSizeAxes = Axes.X,
+                            AutoSizeAxes = Axes.Y,
+                        },
                     },
-                    RelativeSizeAxes = Axes.Both,
-                    Child = content = new Container
+                    new Container
                     {
                         Masking = true,
-                        RelativeSizeAxes = Axes.Both
-                    }
-                },
-            };
+                        Padding = new MarginPadding
+                        {
+                            Left = steps_width + padding,
+                            Right = padding,
+                            Top = padding,
+                            Bottom = padding,
+                        },
+                        RelativeSizeAxes = Axes.Both,
+                        Child = content = new DrawFrameRecordingContainer
+                        {
+                            Masking = true,
+                            RelativeSizeAxes = Axes.Both
+                        }
+                    },
+                }
+            });
         }
+
 
         private const float steps_width = 180;
         private const float padding = 0;
@@ -132,18 +184,26 @@ namespace osu.Framework.Testing
 
         public void RunAllSteps(Action onCompletion = null, Action<Exception> onError = null)
         {
-            stepRunner?.Cancel();
-            foreach (var step in StepsContainer.OfType<StepButton>())
-                step.Reset();
+            // schedule once as we want to ensure we have run our LoadComplete before atttempting to execute steps.
+            // a user may be adding a step in LoadComplete.
+            Schedule(() =>
+            {
+                stepRunner?.Cancel();
+                foreach (var step in StepsContainer.OfType<StepButton>())
+                    step.Reset();
 
-            actionIndex = -1;
-            actionRepetition = 0;
-            runNextStep(onCompletion, onError);
+                actionIndex = -1;
+                actionRepetition = 0;
+                runNextStep(onCompletion, onError);
+            });
         }
 
         public void RunFirstStep()
         {
             stepRunner?.Cancel(); // Fixes RunAllSteps not working when toggled off
+            foreach (var step in StepsContainer.OfType<StepButton>())
+                step.Reset();
+
             actionIndex = 0;
             try
             {

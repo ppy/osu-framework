@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Extensions.TypeExtensions;
-using osu.Framework.MathUtils;
 using System;
 
 namespace osu.Framework.Timing
@@ -32,8 +31,6 @@ namespace osu.Framework.Timing
 
         public FrameTimeInfo TimeInfo => new FrameTimeInfo { Elapsed = ElapsedFrameTime, Current = CurrentTime };
 
-        public double AverageFrameTime { get; private set; }
-
         public double FramesPerSecond { get; private set; }
 
         public virtual double CurrentTime { get; protected set; }
@@ -52,17 +49,11 @@ namespace osu.Framework.Timing
         private double timeSinceLastCalculation;
         private int framesSinceLastCalculation;
 
-        /// <summary>
-        /// Whether we should run <see cref="ProcessFrame"/> on the underlying <see cref="Source"/> (in the case it is an <see cref="IFrameBasedClock"/>).
-        /// </summary>
-        public bool ProcessSourceClockFrames = true;
-
         private const int fps_calculation_interval = 250;
 
         public virtual void ProcessFrame()
         {
-            if (ProcessSourceClockFrames)
-                (Source as IFrameBasedClock)?.ProcessFrame();
+            (Source as IFrameBasedClock)?.ProcessFrame();
 
             if (timeUntilNextCalculation <= 0)
             {
@@ -78,8 +69,6 @@ namespace osu.Framework.Timing
             framesSinceLastCalculation++;
             timeUntilNextCalculation -= ElapsedFrameTime;
             timeSinceLastCalculation += ElapsedFrameTime;
-
-            AverageFrameTime = Interpolation.Damp(AverageFrameTime, ElapsedFrameTime, 0.01, Math.Max(ElapsedFrameTime, 0) / 1000);
 
             LastFrameTime = CurrentTime;
             CurrentTime = SourceTime;

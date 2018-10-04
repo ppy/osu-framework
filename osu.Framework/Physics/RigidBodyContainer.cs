@@ -2,11 +2,11 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using OpenTK;
-using osu.Framework.Graphics.Primitives;
 using System;
 using System.Collections.Generic;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Primitives;
 
 namespace osu.Framework.Physics
 {
@@ -45,16 +45,16 @@ namespace osu.Framework.Physics
 
         public Vector2 Velocity
         {
-            get { return Momentum / Mass; }
-            set { Momentum = value * Mass; }
+            get => Momentum / Mass;
+            set => Momentum = value * Mass;
         }
 
         public Vector2 Momentum { get; set; }
 
         public float AngularVelocity
         {
-            get { return AngularMomentum / MomentOfInertia; }
-            set { AngularMomentum = value * MomentOfInertia; }
+            get => AngularMomentum / MomentOfInertia;
+            set => AngularMomentum = value * MomentOfInertia;
         }
 
         public float AngularMomentum { get; set; }

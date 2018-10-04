@@ -18,7 +18,8 @@ namespace osu.Framework.Screens
         private readonly Container content;
         private Container childModeContainer;
 
-        protected Game Game;
+        [Resolved]
+        protected Game Game { get; private set; }
 
         protected override Container<Drawable> Content => content;
 
@@ -57,13 +58,13 @@ namespace osu.Framework.Screens
             base.Add(drawable);
         }
 
-        public override bool DisposeOnDeathRemoval => true;
-
         // in the case we don't have a parent screen, we still want to handle input as we are also responsible for
         // children inside childScreenContainer.
         // this means the root screen always received input.
-        public override bool HandleKeyboardInput => IsCurrentScreen || !hasExited && ParentScreen == null;
-        public override bool HandleMouseInput => IsCurrentScreen || !hasExited && ParentScreen == null;
+        private bool propagateInputSubtree => IsCurrentScreen || !hasExited && ParentScreen == null;
+
+        public override bool PropagateNonPositionalInputSubTree => base.PropagateNonPositionalInputSubTree && propagateInputSubtree;
+        public override bool PropagatePositionalInputSubTree => base.PropagatePositionalInputSubTree && propagateInputSubtree;
 
         /// <summary>
         /// Called when this Screen is being entered. Only happens once, ever.
@@ -96,12 +97,6 @@ namespace osu.Framework.Screens
         {
         }
 
-        [BackgroundDependencyLoader]
-        private void load(Game game)
-        {
-            Game = game;
-        }
-
         protected override void LoadComplete()
         {
             base.LoadComplete();
@@ -126,37 +121,46 @@ namespace osu.Framework.Screens
 
         /// <summary>
         /// Changes to a new Screen.
+        /// This will trigger an async load if the screen is not already loaded, during which the current screen will no longer be current (or accept user input).
         /// </summary>
         /// <param name="screen">The new Screen.</param>
-        public virtual bool Push(Screen screen)
+        public virtual void Push(Screen screen)
         {
             if (hasExited)
-                throw new InvalidOperationException("Cannot push to an already exited screen.");
+                throw new TargetAlreadyExitedException();
 
             if (!IsCurrentScreen)
-                throw new InvalidOperationException("Cannot push a child screen to a non-current screen.");
+                throw new ScreenNotCurrentException(nameof(Push));
 
             if (ChildScreen != null)
-                throw new InvalidOperationException("Can not push more than one child screen.");
-
-            screen.ParentScreen = this;
-            childModeContainer.Add(screen);
+                throw new ScreenHasChildException(nameof(Push), "Exit the existing child screen first.");
 
             if (screen.hasExited)
-            {
-                screen.Expire();
-                return false;
-            }
+                throw new ScreenAlreadyExitedException();
 
+            if (screen.hasEntered)
+                throw new ScreenAlreadyEnteredException();
+
+            screen.ParentScreen = this;
             startSuspend(screen);
-
-            screen.enter(this);
-
             ModePushed?.Invoke(screen);
 
-            Content.Expire();
+            void finishLoad()
+            {
+                if (hasExited || screen.hasExited)
+                    return;
 
-            return true;
+                childModeContainer.Add(screen);
+
+                screen.enter(this);
+
+                Content.Expire();
+            }
+
+            if (screen.LoadState >= LoadState.Ready)
+                finishLoad();
+            else
+                LoadComponentAsync(screen, _ => finishLoad());
         }
 
         private void startSuspend(Screen next)
@@ -170,7 +174,13 @@ namespace osu.Framework.Screens
         /// <summary>
         /// Exits this Screen.
         /// </summary>
-        public void Exit() => ExitFrom(this);
+        public void Exit()
+        {
+            if (ChildScreen != null)
+                throw new ScreenHasChildException(nameof(Exit), $"Use {nameof(MakeCurrent)} instead.");
+
+            ExitFrom(this);
+        }
 
         private void enter(Screen source)
         {
@@ -236,13 +246,51 @@ namespace osu.Framework.Screens
 
         protected class ContentContainer : Container
         {
-            public override bool HandleKeyboardInput => LifetimeEnd == double.MaxValue;
-            public override bool HandleMouseInput => LifetimeEnd == double.MaxValue;
             public override bool RemoveWhenNotAlive => false;
 
             public ContentContainer()
             {
                 RelativeSizeAxes = Axes.Both;
+            }
+        }
+
+        public class TargetAlreadyExitedException : InvalidOperationException
+        {
+            public TargetAlreadyExitedException()
+                : base("Cannot push to an already exited screen.")
+            {
+            }
+        }
+
+        public class ScreenNotCurrentException : InvalidOperationException
+        {
+            public ScreenNotCurrentException(string action)
+                : base($"Cannot perform {action} on a non-current screen.")
+            {
+            }
+        }
+
+        public class ScreenHasChildException : InvalidOperationException
+        {
+            public ScreenHasChildException(string action, string description)
+                : base($"Cannot perform {action} when a child is already present. {description}")
+            {
+            }
+        }
+
+        public class ScreenAlreadyExitedException : InvalidOperationException
+        {
+            public ScreenAlreadyExitedException()
+                : base("Cannot push a screen in an exited state.")
+            {
+            }
+        }
+
+        public class ScreenAlreadyEnteredException : InvalidOperationException
+        {
+            public ScreenAlreadyEnteredException()
+                : base("Cannot push a screen in an entered state.")
+            {
             }
         }
     }

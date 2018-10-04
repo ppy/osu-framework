@@ -3,6 +3,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Threading;
+using System.Threading.Tasks;
 using osu.Framework.Configuration.Tracking;
 
 namespace osu.Framework.Configuration
@@ -20,9 +23,7 @@ namespace osu.Framework.Configuration
 
         public BindableDouble Set(T lookup, double value, double? min = null, double? max = null, double? precision = null)
         {
-            BindableDouble bindable = GetOriginalBindable<double>(lookup) as BindableDouble;
-
-            if (bindable == null)
+            if (!(GetOriginalBindable<double>(lookup) is BindableDouble bindable))
             {
                 bindable = new BindableDouble(value);
                 AddBindable(lookup, bindable);
@@ -42,9 +43,7 @@ namespace osu.Framework.Configuration
 
         public BindableFloat Set(T lookup, float value, float? min = null, float? max = null, float? precision = null)
         {
-            BindableFloat bindable = GetOriginalBindable<float>(lookup) as BindableFloat;
-
-            if (bindable == null)
+            if (!(GetOriginalBindable<float>(lookup) is BindableFloat bindable))
             {
                 bindable = new BindableFloat(value);
                 AddBindable(lookup, bindable);
@@ -64,9 +63,7 @@ namespace osu.Framework.Configuration
 
         public BindableInt Set(T lookup, int value, int? min = null, int? max = null)
         {
-            BindableInt bindable = GetOriginalBindable<int>(lookup) as BindableInt;
-
-            if (bindable == null)
+            if (!(GetOriginalBindable<int>(lookup) is BindableInt bindable))
             {
                 bindable = new BindableInt(value);
                 AddBindable(lookup, bindable);
@@ -85,9 +82,7 @@ namespace osu.Framework.Configuration
 
         public BindableBool Set(T lookup, bool value)
         {
-            BindableBool bindable = GetOriginalBindable<bool>(lookup) as BindableBool;
-
-            if (bindable == null)
+            if (!(GetOriginalBindable<bool>(lookup) is BindableBool bindable))
             {
                 bindable = new BindableBool(value);
                 AddBindable(lookup, bindable);
@@ -98,6 +93,25 @@ namespace osu.Framework.Configuration
             }
 
             bindable.Default = value;
+
+            return bindable;
+        }
+
+        public BindableSize Set(T lookup, Size value, Size? min = null, Size? max = null)
+        {
+            if (!(GetOriginalBindable<Size>(lookup) is BindableSize bindable))
+            {
+                bindable = new BindableSize(value);
+                AddBindable(lookup, bindable);
+            }
+            else
+            {
+                bindable.Value = value;
+            }
+
+            bindable.Default = value;
+            if (min.HasValue) bindable.MinValue = min.Value;
+            if (max.HasValue) bindable.MaxValue = max.Value;
 
             return bindable;
         }
@@ -119,7 +133,7 @@ namespace osu.Framework.Configuration
         protected virtual void AddBindable<TBindable>(T lookup, Bindable<TBindable> bindable)
         {
             ConfigStore[lookup] = bindable;
-            bindable.ValueChanged += _ => Save();
+            bindable.ValueChanged += _ => backgroundSave();
         }
 
         private Bindable<U> set<U>(T lookup, U value)
@@ -154,15 +168,14 @@ namespace osu.Framework.Configuration
 
         #region IDisposable Support
 
-        private bool disposedValue; // To detect redundant calls
+        private bool isDisposed;
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!disposedValue)
+            if (!isDisposed)
             {
                 Save();
-
-                disposedValue = true;
+                isDisposed = true;
             }
         }
 
@@ -204,10 +217,31 @@ namespace osu.Framework.Configuration
             hasLoaded = true;
         }
 
+        private int lastSave;
+
+        /// <summary>
+        /// Perform a save with debounce.
+        /// </summary>
+        private void backgroundSave()
+        {
+            var current = Interlocked.Increment(ref lastSave);
+            Task.Delay(100).ContinueWith(task =>
+            {
+                if (current == lastSave) Save();
+            });
+        }
+
+        private readonly object saveLock = new object();
+
         public bool Save()
         {
             if (!hasLoaded) return false;
-            return PerformSave();
+
+            lock (saveLock)
+            {
+                Interlocked.Increment(ref lastSave);
+                return PerformSave();
+            }
         }
 
         protected abstract void PerformLoad();

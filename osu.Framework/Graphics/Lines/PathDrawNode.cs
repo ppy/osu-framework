@@ -27,7 +27,7 @@ namespace osu.Framework.Graphics.Lines
     public class PathDrawNode : DrawNode
     {
         public const int MAXRES = 24;
-        public List<Line> Segments = new List<Line>();
+        public List<Line> Segments;
 
         public Vector2 DrawSize;
         public float Width;
@@ -44,11 +44,11 @@ namespace osu.Framework.Graphics.Lines
 
         private Vector2 relativePosition(Vector2 localPos) => Vector2.Divide(localPos, DrawSize);
 
-        private Color4 colourAt(Vector2 localPos) => DrawInfo.Colour.HasSingleColour
-            ? (Color4)DrawInfo.Colour
-            : DrawInfo.Colour.Interpolate(relativePosition(localPos)).Linear;
+        private Color4 colourAt(Vector2 localPos) => DrawColourInfo.Colour.HasSingleColour
+            ? (Color4)DrawColourInfo.Colour
+            : DrawColourInfo.Colour.Interpolate(relativePosition(localPos)).Linear;
 
-        private void addLineCap(Vector2 origin, float theta, float thetaDiff)
+        private void addLineCap(Vector2 origin, float theta, float thetaDiff, RectangleF texRect)
         {
             const float step = MathHelper.Pi / MAXRES;
 
@@ -73,7 +73,7 @@ namespace osu.Framework.Graphics.Lines
                 Shared.HalfCircleBatch.Add(new TexturedVertex3D
                 {
                     Position = new Vector3(screenOrigin.X, screenOrigin.Y, 1),
-                    TexturePosition = new Vector2(1 - 1 / Texture.Width, 0),
+                    TexturePosition = new Vector2(texRect.Right, texRect.Centre.Y),
                     Colour = originColour
                 });
 
@@ -81,7 +81,7 @@ namespace osu.Framework.Graphics.Lines
                 Shared.HalfCircleBatch.Add(new TexturedVertex3D
                 {
                     Position = new Vector3(current.X, current.Y, 0),
-                    TexturePosition = new Vector2(0, 0),
+                    TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
                     Colour = currentColour
                 });
 
@@ -94,13 +94,13 @@ namespace osu.Framework.Graphics.Lines
                 Shared.HalfCircleBatch.Add(new TexturedVertex3D
                 {
                     Position = new Vector3(current.X, current.Y, 0),
-                    TexturePosition = new Vector2(0, 0),
+                    TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
                     Colour = currentColour
                 });
             }
         }
 
-        private void addLineQuads(Line line)
+        private void addLineQuads(Line line, RectangleF texRect)
         {
             Vector2 ortho = line.OrthogonalDirection;
             Line lineLeft = new Line(line.StartPoint + ortho * Width, line.EndPoint + ortho * Width);
@@ -113,13 +113,13 @@ namespace osu.Framework.Graphics.Lines
             Shared.QuadBatch.Add(new TexturedVertex3D
             {
                 Position = new Vector3(screenLineRight.EndPoint.X, screenLineRight.EndPoint.Y, 0),
-                TexturePosition = new Vector2(0, 0),
+                TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
                 Colour = colourAt(lineRight.EndPoint)
             });
             Shared.QuadBatch.Add(new TexturedVertex3D
             {
                 Position = new Vector3(screenLineRight.StartPoint.X, screenLineRight.StartPoint.Y, 0),
-                TexturePosition = new Vector2(0, 0),
+                TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
                 Colour = colourAt(lineRight.StartPoint)
             });
 
@@ -136,13 +136,13 @@ namespace osu.Framework.Graphics.Lines
                 Shared.QuadBatch.Add(new TexturedVertex3D
                 {
                     Position = firstMiddlePoint,
-                    TexturePosition = new Vector2(1 - 1 / Texture.Width, 0),
+                    TexturePosition = new Vector2(texRect.Right, texRect.Centre.Y),
                     Colour = firstMiddleColour
                 });
                 Shared.QuadBatch.Add(new TexturedVertex3D
                 {
                     Position = secondMiddlePoint,
-                    TexturePosition = new Vector2(1 - 1 / Texture.Width, 0),
+                    TexturePosition = new Vector2(texRect.Right, texRect.Centre.Y),
                     Colour = secondMiddleColour
                 });
             }
@@ -150,13 +150,13 @@ namespace osu.Framework.Graphics.Lines
             Shared.QuadBatch.Add(new TexturedVertex3D
             {
                 Position = new Vector3(screenLineLeft.EndPoint.X, screenLineLeft.EndPoint.Y, 0),
-                TexturePosition = new Vector2(0, 0),
+                TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
                 Colour = colourAt(lineLeft.EndPoint)
             });
             Shared.QuadBatch.Add(new TexturedVertex3D
             {
                 Position = new Vector3(screenLineLeft.StartPoint.X, screenLineLeft.StartPoint.Y, 0),
-                TexturePosition = new Vector2(0, 0),
+                TexturePosition = new Vector2(texRect.Left, texRect.Centre.Y),
                 Colour = colourAt(lineLeft.StartPoint)
             });
         }
@@ -165,30 +165,33 @@ namespace osu.Framework.Graphics.Lines
         {
             Line line = Segments[0];
             float theta = line.Theta;
-            addLineCap(line.StartPoint, theta + MathHelper.Pi, MathHelper.Pi);
+
+            // Offset by 0.5 pixels inwards to ensure we never sample texels outside the bounds
+            RectangleF texRect = Texture.GetTextureRect(new RectangleF(0.5f, 0.5f, Texture.Width - 1, Texture.Height - 1));
+            addLineCap(line.StartPoint, theta + MathHelper.Pi, MathHelper.Pi, texRect);
 
             for (int i = 1; i < Segments.Count; ++i)
             {
                 Line nextLine = Segments[i];
                 float nextTheta = nextLine.Theta;
-                addLineCap(line.EndPoint, theta, nextTheta - theta);
+                addLineCap(line.EndPoint, theta, nextTheta - theta, texRect);
 
                 line = nextLine;
                 theta = nextTheta;
             }
 
-            addLineCap(line.EndPoint, theta, MathHelper.Pi);
+            addLineCap(line.EndPoint, theta, MathHelper.Pi, texRect);
 
 
             foreach (Line segment in Segments)
-                addLineQuads(segment);
+                addLineQuads(segment, texRect);
         }
 
         public override void Draw(Action<TexturedVertex2D> vertexAction)
         {
             base.Draw(vertexAction);
 
-            if (Texture == null || Texture.IsDisposed || Segments.Count == 0)
+            if (Texture?.Available != true || Segments.Count == 0)
                 return;
 
             GLWrapper.SetDepthTest(true);

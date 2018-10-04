@@ -48,7 +48,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         public float Horizontal
         {
-            set { Left = Right = value; }
+            set => Left = Right = value;
         }
 
         /// <summary>
@@ -63,7 +63,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         public float Vertical
         {
-            set { Top = Bottom = value; }
+            set => Top = Bottom = value;
         }
 
         /// <summary>

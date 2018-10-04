@@ -7,6 +7,8 @@ using OpenTK;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Allocation;
 using System.Collections.Generic;
+using System.Linq;
+using osu.Framework.Caching;
 
 namespace osu.Framework.Graphics.Lines
 {
@@ -23,8 +25,20 @@ namespace osu.Framework.Graphics.Lines
                 positions = value;
                 recomputeBounds();
 
+                segmentsCache.Invalidate();
                 Invalidate(Invalidation.DrawNode);
             }
+        }
+
+        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos)
+        {
+            var localPos = ToLocalSpace(screenSpacePos);
+            var pathWidthSquared = PathWidth * PathWidth;
+
+            foreach (var t in segments)
+                if (t.DistanceSquaredToPoint(localPos) <= pathWidthSquared)
+                    return true;
+            return false;
         }
 
         public Vector2 PositionInBoundingBox(Vector2 pos) => pos - new Vector2(minX, minY);
@@ -37,9 +51,10 @@ namespace osu.Framework.Graphics.Lines
             positions.Clear();
             resetBounds();
 
-            if ((RelativeSizeAxes & Axes.X) == 0) Width = 0;
-            if ((RelativeSizeAxes & Axes.Y) == 0) Height = 0;
+            if (!RelativeSizeAxes.HasFlag(Axes.X)) Width = 0;
+            if (!RelativeSizeAxes.HasFlag(Axes.Y)) Height = 0;
 
+            segmentsCache.Invalidate();
             Invalidate(Invalidation.DrawNode);
         }
 
@@ -48,6 +63,7 @@ namespace osu.Framework.Graphics.Lines
             positions.Add(pos);
             expandBounds(pos);
 
+            segmentsCache.Invalidate();
             Invalidate(Invalidation.DrawNode);
         }
 
@@ -66,8 +82,8 @@ namespace osu.Framework.Graphics.Lines
             if (pos.Y + PathWidth > maxY) maxY = pos.Y + PathWidth;
 
             RectangleF b = bounds;
-            if ((RelativeSizeAxes & Axes.X) == 0) Width = b.Width;
-            if ((RelativeSizeAxes & Axes.Y) == 0) Height = b.Height;
+            if (!RelativeSizeAxes.HasFlag(Axes.X)) Width = b.Width;
+            if (!RelativeSizeAxes.HasFlag(Axes.Y)) Height = b.Height;
         }
 
         private void resetBounds()
@@ -86,7 +102,7 @@ namespace osu.Framework.Graphics.Lines
 
         public float PathWidth
         {
-            get { return pathWidth; }
+            get => pathWidth;
             set
             {
                 if (pathWidth == value) return;
@@ -94,8 +110,28 @@ namespace osu.Framework.Graphics.Lines
                 pathWidth = value;
                 recomputeBounds();
 
+                segmentsCache.Invalidate();
                 Invalidate(Invalidation.DrawNode);
             }
+        }
+
+        private readonly List<Line> segmentsBacking = new List<Line>();
+        private Cached segmentsCache = new Cached();
+        private List<Line> segments => segmentsCache.IsValid ? segmentsBacking : generateSegments();
+
+        private List<Line> generateSegments()
+        {
+            segmentsBacking.Clear();
+
+            if (positions.Count > 1)
+            {
+                Vector2 offset = new Vector2(minX, minY);
+                for (int i = 0; i < positions.Count - 1; ++i)
+                    segmentsBacking.Add(new Line(positions[i] - offset, positions[i + 1] - offset));
+            }
+
+            segmentsCache.Validate();
+            return segmentsBacking;
         }
 
         private Shader roundedTextureShader;
@@ -103,17 +139,12 @@ namespace osu.Framework.Graphics.Lines
 
         private readonly PathDrawNodeSharedData pathDrawNodeSharedData = new PathDrawNodeSharedData();
 
-        public bool CanDisposeTexture { get; protected set; }
-
         #region Disposal
 
         protected override void Dispose(bool isDisposing)
         {
-            if (CanDisposeTexture)
-            {
-                texture?.Dispose();
-                texture = null;
-            }
+            texture?.Dispose();
+            texture = null;
 
             base.Dispose(isDisposing);
         }
@@ -134,16 +165,7 @@ namespace osu.Framework.Graphics.Lines
 
             n.Shared = pathDrawNodeSharedData;
 
-            n.Segments.Clear();
-
-            if (positions.Count > 1)
-            {
-                Vector2 offset = new Vector2(minX, minY);
-                for (int i = 0; i < positions.Count - 1; ++i)
-                {
-                    n.Segments.Add(new Line(positions[i] - offset, positions[i + 1] - offset));
-                }
-            }
+            n.Segments = segments.ToList();
 
             base.ApplyDrawNode(node);
         }
@@ -159,16 +181,15 @@ namespace osu.Framework.Graphics.Lines
 
         public Texture Texture
         {
-            get { return texture; }
+            get => texture;
             set
             {
                 if (value == texture)
                     return;
 
-                if (texture != null && CanDisposeTexture)
-                    texture.Dispose();
-
+                texture?.Dispose();
                 texture = value;
+
                 Invalidate(Invalidation.DrawNode);
             }
         }

@@ -1,13 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.27004.2002
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "osu.Framework", "osu.Framework\osu.Framework.csproj", "{C76BF5B3-985E-4D39-95FE-97C9C879B83A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "osu.Framework", "osu.Framework\osu.Framework.csproj", "{C76BF5B3-985E-4D39-95FE-97C9C879B83A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleGame", "SampleGame\SampleGame.csproj", "{2A66DD92-ADB1-4994-89E2-C94E04ACDA0D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SampleGame", "SampleGame\SampleGame.csproj", "{2A66DD92-ADB1-4994-89E2-C94E04ACDA0D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "osu.Framework.Tests", "osu.Framework.Tests\osu.Framework.Tests.csproj", "{79803407-6F50-484F-93F5-641911EABD8A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "osu.Framework.Tests", "osu.Framework.Tests\osu.Framework.Tests.csproj", "{79803407-6F50-484F-93F5-641911EABD8A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,37 +27,5 @@ Global
 		{79803407-6F50-484F-93F5-641911EABD8A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{79803407-6F50-484F-93F5-641911EABD8A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{79803407-6F50-484F-93F5-641911EABD8A}.Release|Any CPU.Build.0 = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(MonoDevelopProperties) = preSolution
-		Policies = $0
-		$0.TextStylePolicy = $1
-		$1.EolMarker = Windows
-		$1.inheritsSet = VisualStudio
-		$1.inheritsScope = text/plain
-		$1.scope = text/x-csharp
-		$0.CSharpFormattingPolicy = $2
-		$2.IndentSwitchSection = True
-		$2.NewLinesForBracesInProperties = True
-		$2.NewLinesForBracesInAccessors = True
-		$2.NewLinesForBracesInAnonymousMethods = True
-		$2.NewLinesForBracesInControlBlocks = True
-		$2.NewLinesForBracesInAnonymousTypes = True
-		$2.NewLinesForBracesInObjectCollectionArrayInitializers = True
-		$2.NewLinesForBracesInLambdaExpressionBody = True
-		$2.NewLineForElse = True
-		$2.NewLineForCatch = True
-		$2.NewLineForFinally = True
-		$2.NewLineForMembersInObjectInit = True
-		$2.NewLineForMembersInAnonymousTypes = True
-		$2.NewLineForClausesInQuery = True
-		$2.SpacingAfterMethodDeclarationName = False
-		$2.SpaceAfterMethodCallName = False
-		$2.SpaceBeforeOpenSquareBracket = False
-		$2.inheritsSet = Mono
-		$2.inheritsScope = text/x-csharp
-		$2.scope = text/x-csharp
 	EndGlobalSection
 EndGlobal

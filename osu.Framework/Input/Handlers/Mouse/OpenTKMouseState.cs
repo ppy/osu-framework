@@ -6,15 +6,17 @@ using OpenTK.Input;
 
 namespace osu.Framework.Input.Handlers.Mouse
 {
-    internal abstract class OpenTKMouseState : MouseState
+    internal abstract class OpenTKMouseState : States.MouseState
     {
         public readonly bool WasActive;
+        public readonly bool HasPreciseScroll;
+        public MouseState RawState;
 
-        public override int WheelDelta => WasActive ? base.WheelDelta : 0;
-
-        protected OpenTKMouseState(OpenTK.Input.MouseState tkState, bool active, Vector2? mappedPosition)
+        protected OpenTKMouseState(MouseState tkState, bool active, Vector2? mappedPosition)
         {
             WasActive = active;
+
+            RawState = tkState;
 
             // While not focused, let's silently ignore everything but position.
             if (active && tkState.IsAnyButtonDown)
@@ -26,7 +28,8 @@ namespace osu.Framework.Input.Handlers.Mouse
                 addIfPressed(tkState.XButton2, MouseButton.Button2);
             }
 
-            Wheel = tkState.Wheel;
+            Scroll = new Vector2(-tkState.Scroll.X, tkState.Scroll.Y);
+            HasPreciseScroll = tkState.Flags.HasFlag(MouseStateFlags.HasPreciseScroll);
             Position = new Vector2(mappedPosition?.X ?? tkState.X, mappedPosition?.Y ?? tkState.Y);
         }
 

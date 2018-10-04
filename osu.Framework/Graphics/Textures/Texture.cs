@@ -2,39 +2,26 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.Runtime.InteropServices;
+using System.IO;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.Primitives;
-using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 using OpenTK;
 using OpenTK.Graphics.ES30;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Vertices;
+using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Graphics.Textures
 {
     public class Texture : IDisposable
     {
-        private static TextureWhitePixel whitePixel;
+        // in case no other textures are used in the project, create a new atlas as a fallback source for the white pixel area (used to draw boxes etc.)
+        private static readonly Lazy<TextureWhitePixel> white_pixel = new Lazy<TextureWhitePixel>(() => new TextureAtlas(3, 3, true).WhitePixel);
 
-        public static Texture WhitePixel
-        {
-            get
-            {
-                if (whitePixel == null)
-                {
-                    TextureAtlas atlas = new TextureAtlas(3, 3, true);
-                    whitePixel = atlas.GetWhitePixel();
-                    whitePixel.SetData(new TextureUpload(new byte[] { 255, 255, 255, 255 }));
-                }
+        public static Texture WhitePixel => white_pixel.Value;
 
-                return whitePixel;
-            }
-        }
+        public virtual TextureGL TextureGL { get; }
 
-        public TextureGL TextureGL;
         public string Filename;
         public string AssetName;
 
@@ -43,125 +30,69 @@ namespace osu.Framework.Graphics.Textures
         /// </summary>
         public float ScaleAdjust = 1;
 
-        public bool Disposable = true;
-        public bool IsDisposed { get; private set; }
-
         public float DisplayWidth => Width / ScaleAdjust;
         public float DisplayHeight => Height / ScaleAdjust;
 
-        public Texture(TextureGL textureGl) => TextureGL = textureGl ?? throw new ArgumentNullException(nameof(textureGl));
+        /// <summary>
+        /// Create a new texture.
+        /// </summary>
+        /// <param name="textureGl">The GL texture.</param>
+        public Texture(TextureGL textureGl)
+        {
+            TextureGL = textureGl ?? throw new ArgumentNullException(nameof(textureGl));
+        }
 
         public Texture(int width, int height, bool manualMipmaps = false, All filteringMode = All.Linear)
             : this(new TextureGLSingle(width, height, manualMipmaps, filteringMode))
         {
         }
 
-        #region Disposal
-
-        ~Texture()
+        /// <summary>
+        /// Creates a texture from a data stream representing a bitmap.
+        /// </summary>
+        /// <param name="stream">The data stream containing the texture data.</param>
+        /// <param name="atlas">The atlas to add the texture to.</param>
+        /// <returns>The created texture.</returns>
+        public static Texture FromStream(Stream stream, TextureAtlas atlas = null)
         {
-            Dispose(false);
+            if (stream == null || stream.Length == 0)
+                return null;
+
+            try
+            {
+                var data = new TextureUpload(stream);
+                Texture tex = atlas == null ? new Texture(data.Width, data.Height) : new Texture(atlas.Add(data.Width, data.Height));
+                tex.SetData(data);
+                return tex;
+            }
+            catch (ArgumentException)
+            {
+                return null;
+            }
         }
-
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool isDisposing)
-        {
-            if (IsDisposed)
-                return;
-            IsDisposed = true;
-        }
-
-        #endregion
 
         public int Width
         {
-            get { return TextureGL.Width; }
-            set { TextureGL.Width = value; }
+            get => TextureGL.Width;
+            set => TextureGL.Width = value;
         }
 
         public int Height
         {
-            get { return TextureGL.Height; }
-            set { TextureGL.Height = value; }
+            get => TextureGL.Height;
+            set => TextureGL.Height = value;
         }
 
         public Vector2 Size => new Vector2(Width, Height);
 
         /// <summary>
-        /// Turns a byte array representing BGRA colour values to a byte array representing RGBA colour values.
-        /// Checks whether all colour values are transparent as a byproduct.
+        /// Queue a <see cref="TextureUpload"/> to be uploaded on the draw thread.
+        /// The provided upload will be disposed after the upload is completed.
         /// </summary>
-        /// <param name="data">The bytes to process.</param>
-        /// <param name="length">The amount of bytes to process.</param>
-        /// <returns>Whether all colour values are transparent.</returns>
-        private static unsafe bool bgraToRgba(byte[] data, int length)
-        {
-            bool isTransparent = true;
-
-            fixed (byte* dPtr = &data[0])
-            {
-                byte* sp = dPtr;
-                byte* ep = dPtr + length;
-
-                while (sp < ep)
-                {
-                    *(uint*)sp = (uint)(*(sp + 2) | *(sp + 1) << 8 | *sp << 16 | *(sp + 3) << 24);
-                    isTransparent &= *(sp + 3) == 0;
-                    sp += 4;
-                }
-            }
-
-            return isTransparent;
-        }
-
-        public void SetData(TextureUpload upload)
+        /// <param name="upload"></param>
+        public void SetData(ITextureUpload upload)
         {
             TextureGL?.SetData(upload);
-        }
-
-        public unsafe void SetData(Bitmap bitmap, int level = 0)
-        {
-            if (TextureGL == null)
-                return;
-
-            int width = Math.Min(bitmap.Width, Width);
-            int height = Math.Min(bitmap.Height, Height);
-
-            BitmapData bData = bitmap.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-
-            TextureUpload upload = new TextureUpload(width * height * 4)
-            {
-                Level = level,
-                Bounds = new RectangleI(0, 0, width, height)
-            };
-
-            byte[] data = upload.Data;
-
-            const int bytes_per_pixel = 4;
-            byte* bDataPointer = (byte*)bData.Scan0;
-
-            for (var y = 0; y < height; y++)
-            {
-                // This is why real scan-width is important to have!
-                IntPtr row = new IntPtr(bDataPointer + y * bData.Stride);
-                Marshal.Copy(row, data, width * bytes_per_pixel * y, width * bytes_per_pixel);
-            }
-
-            bitmap.UnlockBits(bData);
-
-            bool isTransparent = bgraToRgba(data, width * height * 4);
-            TextureGL.IsTransparent = isTransparent;
-
-            if (!isTransparent)
-                SetData(upload);
-            else
-                upload.Dispose();
         }
 
         protected virtual RectangleF TextureBounds(RectangleF? textureRect = null)
@@ -199,5 +130,25 @@ namespace osu.Framework.Graphics.Textures
         }
 
         public override string ToString() => $@"{AssetName} ({Width}, {Height})";
+
+        /// <summary>
+        /// Whether <see cref="TextureGL"/> is in a usable state.
+        /// </summary>
+        public virtual bool Available => !TextureGL.IsDisposed;
+
+        #region Disposal
+
+        // Intentionally no finalizer implementation as our disposal is NOOP. Finalizer is implemented in TextureWithRefCount usage.
+
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+
+        protected virtual void Dispose(bool isDisposing)
+        {
+        }
+
+        #endregion
     }
 }

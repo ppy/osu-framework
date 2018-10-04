@@ -1,10 +1,11 @@
 # osu!framework [![Build status](https://ci.appveyor.com/api/projects/status/fh5mnml3vsfheymp?svg=true)](https://ci.appveyor.com/project/peppy/osu-framework) [![CodeFactor](https://www.codefactor.io/repository/github/ppy/osu-framework/badge)](https://www.codefactor.io/repository/github/ppy/osu-framework) [![dev chat](https://discordapp.com/api/guilds/188630481301012481/widget.png?style=shield)](https://discord.gg/ppy)
 
-A game framework written with osu! in mind.
+A game framework written with [osu!](https://github.com/ppy/osu) in mind.
 
 # Requirements
 
-- A desktop platform which can compile .NET 4.5 (tested on macOS, linux and windows). We recommend using [Visual Studio Code](https://code.visualstudio.com/) (all platforms) or [Visual Studio Community Edition](https://www.visualstudio.com/) (windows only), both of which are free.
+- A desktop platform with the [.NET Core SDK 2.1](https://www.microsoft.com/net/learn/get-started) or higher installed.
+- When working with the codebase, we recommend using an IDE with intellisense and syntax highlighting, such as [Visual Studio Community Edition](https://www.visualstudio.com/) (Windows), [Visual Studio Code](https://code.visualstudio.com/) (with the C# plugin installed) or [Jetbrains Rider](https://www.jetbrains.com/rider/) (commercial).
 
 # Objectives
 

@@ -5,6 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
+using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using OpenTK;
@@ -48,13 +50,22 @@ namespace osu.Framework.Graphics.Visualisation
             if (source == null)
                 return;
 
-            Type type = source.GetType();
+            var allMembers = new HashSet<MemberInfo>(new MemberInfoComparer());
 
-            AddRange(((IEnumerable<MemberInfo>)type.GetProperties(BindingFlags.Instance | BindingFlags.Public).Where(p => p.GetMethod != null)) // Get all properties that can have a value
-                .Concat(type.GetFields(BindingFlags.Instance | BindingFlags.Public)) // And all fields
-                .OrderBy(member => member.Name)
-                .Concat(type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic).OrderBy(field => field.Name)) // Include non-public fields at the end
-                .Select(member => new PropertyItem(member, source)));
+            Type type = source.GetType();
+            while (type != null && type != typeof(object))
+            {
+                type.GetMembers(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly)
+                    .Where(m => m is FieldInfo || m is PropertyInfo pi && pi.GetMethod != null)
+                    .ForEach(m => allMembers.Add(m));
+
+                type = type.BaseType;
+            }
+
+            // Order by upper then lower-case, and exclude auto-generated backing fields of properties
+            AddRange(allMembers.OrderBy(m => m.Name[0]).ThenBy(m => m.Name)
+                               .Where(m => m.GetCustomAttribute<CompilerGeneratedAttribute>() == null)
+                               .Select(m => new PropertyItem(m, source)));
         }
 
         protected override void PopIn()
@@ -175,6 +186,13 @@ namespace osu.Framework.Graphics.Visualisation
                 lastValue = value;
                 valueText.Text = value.ToString();
             }
+        }
+
+        private class MemberInfoComparer : IEqualityComparer<MemberInfo>
+        {
+            public bool Equals(MemberInfo x, MemberInfo y) => string.Equals(x?.Name, y?.Name);
+
+            public int GetHashCode(MemberInfo obj) => obj.Name.GetHashCode();
         }
     }
 }

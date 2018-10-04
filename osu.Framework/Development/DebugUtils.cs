@@ -2,37 +2,19 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.IO;
+using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 
 namespace osu.Framework.Development
 {
     public static class DebugUtils
     {
-        public static bool IsDebug
-        {
-            get
-            {
-                // ReSharper disable once RedundantAssignment
-                bool isDebug = false;
-                // Debug.Assert conditions are only evaluated in debug mode
-                System.Diagnostics.Debug.Assert(isDebug = true);
-                // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-                return isDebug;
-            }
-        }
+        public static bool IsDebugBuild => is_debug_build.Value;
 
-        /// <summary>
-        /// Find the containing solution path.
-        /// </summary>
-        /// <returns>An absolute path containing the first parent .sln file. Null if no such file exists in any parent.</returns>
-        public static string GetSolutionPath()
-        {
-            var di = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory);
-            while (!Directory.GetFiles(di.FullName, "*.sln").Any() && di.Parent != null)
-                di = di.Parent;
-
-            return di?.FullName;
-        }
+        private static readonly Lazy<bool> is_debug_build = new Lazy<bool>(() =>
+            // https://stackoverflow.com/a/2186634
+            (Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly()).GetCustomAttributes(false).OfType<DebuggableAttribute>().Any(da => da.IsJITTrackingEnabled)
+        );
     }
 }

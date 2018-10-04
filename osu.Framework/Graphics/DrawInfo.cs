@@ -4,8 +4,6 @@
 using System;
 using osu.Framework.Extensions.MatrixExtensions;
 using OpenTK;
-using OpenTK.Graphics;
-using osu.Framework.Graphics.Colour;
 using osu.Framework.Extensions.TypeExtensions;
 
 namespace osu.Framework.Graphics
@@ -14,15 +12,11 @@ namespace osu.Framework.Graphics
     {
         public Matrix3 Matrix;
         public Matrix3 MatrixInverse;
-        public ColourInfo Colour;
-        public BlendingInfo Blending;
 
-        public DrawInfo(Matrix3? matrix = null, Matrix3? matrixInverse = null, ColourInfo? colour = null, BlendingInfo? blending = null)
+        public DrawInfo(Matrix3? matrix = null, Matrix3? matrixInverse = null)
         {
             Matrix = matrix ?? Matrix3.Identity;
             MatrixInverse = matrixInverse ?? Matrix3.Identity;
-            Colour = colour ?? ColourInfo.SingleColour(Color4.White);
-            Blending = blending ?? new BlendingInfo();
         }
 
         /// <summary>
@@ -74,10 +68,7 @@ namespace osu.Framework.Graphics
             //MatrixExtensions.FastInvert(ref target.MatrixInverse);
         }
 
-        public bool Equals(DrawInfo other)
-        {
-            return Matrix.Equals(other.Matrix) && Colour.Equals(other.Colour) && Blending.Equals(other.Blending);
-        }
+        public bool Equals(DrawInfo other) => Matrix.Equals(other.Matrix);
 
         public override string ToString() => $@"{GetType().ReadableName().Replace(@"DrawInfo", string.Empty)} DrawInfo";
     }

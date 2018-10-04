@@ -3,7 +3,7 @@
 
 using osu.Framework.Configuration;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Input;
+using osu.Framework.Input.Events;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -11,12 +11,12 @@ namespace osu.Framework.Graphics.UserInterface
     {
         public Bindable<bool> Current { get; } = new Bindable<bool>();
 
-        protected override bool OnClick(InputState state)
+        protected override bool OnClick(ClickEvent e)
         {
             if (!Current.Disabled)
                 Current.Value = !Current;
 
-            base.OnClick(state);
+            base.OnClick(e);
             return true;
         }
     }

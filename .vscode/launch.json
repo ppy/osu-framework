@@ -1,31 +1,38 @@
 {
     "version": "0.2.0",
-    "configurations": [{
+    "configurations": [
+        {
             "name": "VisualTests (Debug)",
-            "windows": {
-                "type": "clr"
-            },
-            "type": "mono",
+            "type": "coreclr",
             "request": "launch",
-            "program": "${workspaceRoot}/osu.Framework.Tests/bin/Debug/osu.Framework.Tests.exe",
+            "program": "dotnet",
+            "args": [
+                "${workspaceRoot}/osu.Framework.Tests/bin/Debug/netcoreapp2.1/osu.Framework.Tests.dll",
+            ],
             "cwd": "${workspaceRoot}",
             "preLaunchTask": "Build (Debug)",
-            "runtimeExecutable": null,
-            "env": {},
+            "linux": {
+                "env": {
+                    "LD_LIBRARY_PATH": "${workspaceRoot}/osu.Framework.Tests/bin/Debug/netcoreapp2.1:${env:LD_LIBRARY_PATH}"
+                }
+            },
             "console": "internalConsole"
         },
         {
             "name": "VisualTests (Release)",
-            "windows": {
-                "type": "clr"
-            },
-            "type": "mono",
+            "type": "coreclr",
             "request": "launch",
-            "program": "${workspaceRoot}/osu.Framework.Tests/bin/Release/osu.Framework.Tests.exe",
+            "program": "dotnet",
+            "args": [
+                "${workspaceRoot}/osu.Framework.Tests/bin/Release/netcoreapp2.1/osu.Framework.Tests.dll",
+            ],
             "cwd": "${workspaceRoot}",
             "preLaunchTask": "Build (Release)",
-            "runtimeExecutable": null,
-            "env": {},
+            "linux": {
+                "env": {
+                    "LD_LIBRARY_PATH": "${workspaceRoot}/osu.Framework.Tests/bin/Release/netcoreapp2.1:${env:LD_LIBRARY_PATH}"
+                }
+            },
             "console": "internalConsole"
         }
     ]

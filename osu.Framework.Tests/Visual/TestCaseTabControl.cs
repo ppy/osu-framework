@@ -11,6 +11,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Testing;
+using osu.Framework.Input;
 using OpenTK;
 using OpenTK.Graphics;
 
@@ -33,15 +34,34 @@ namespace osu.Framework.Tests.Visual
 
             StyledTabControl pinnedAndAutoSort = new StyledTabControl
             {
-                Position = new Vector2(500, 50),
+                Position = new Vector2(200, 150),
                 Size = new Vector2(200, 30),
                 AutoSort = true
             };
             items.GetRange(0, 7).AsEnumerable().ForEach(item => pinnedAndAutoSort.AddItem(item.Value));
             pinnedAndAutoSort.PinItem(TestEnum.Test5);
 
+            StyledTabControl switchingTabControl;
+            PlatformActionContainer platformActionContainer = new PlatformActionContainer
+            {
+                Child = switchingTabControl = new StyledTabControl
+                {
+                    Position = new Vector2(200, 250),
+                    Size = new Vector2(200, 30),
+                }
+            };
+            items.AsEnumerable().ForEach(item => switchingTabControl.AddItem(item.Value));
+
+            StyledTabControl removeAllTabControl = new StyledTabControl
+            {
+                Position = new Vector2(200, 350),
+                Size = new Vector2(200, 30)
+            };
+
             Add(simpleTabcontrol);
             Add(pinnedAndAutoSort);
+            Add(platformActionContainer);
+            Add(removeAllTabControl);
 
             var nextTest = new Func<TestEnum>(() => items.AsEnumerable()
                                                          .Select(item => item.Value)
@@ -58,9 +78,9 @@ namespace osu.Framework.Tests.Visual
 
             AddStep("RemoveItem", () =>
             {
-                if (pinnedAndAutoSort.Any())
+                if (pinnedAndAutoSort.Items.Any())
                 {
-                    pinnedAndAutoSort.RemoveItem(pinnedAndAutoSort.Items.Last());
+                    pinnedAndAutoSort.RemoveItem(pinnedAndAutoSort.Items.First());
                 }
             });
 
@@ -80,6 +100,25 @@ namespace osu.Framework.Tests.Visual
             {
                 if (pinned.Count > 0) pinnedAndAutoSort.UnpinItem(pinned.Pop());
             });
+
+            AddStep("Set first tab", () => switchingTabControl.Current.Value = switchingTabControl.VisibleItems.First());
+            AddStep("Switch forward", () => platformActionContainer.TriggerPressed(new PlatformAction(PlatformActionType.DocumentNext)));
+            AddAssert("Ensure second tab", () => switchingTabControl.Current.Value == switchingTabControl.VisibleItems.ElementAt(1));
+
+            AddStep("Switch backward", () => platformActionContainer.TriggerPressed(new PlatformAction(PlatformActionType.DocumentPrevious)));
+            AddAssert("Ensure first Tab", () => switchingTabControl.Current.Value == switchingTabControl.VisibleItems.First());
+
+            AddStep("Switch backward", () => platformActionContainer.TriggerPressed(new PlatformAction(PlatformActionType.DocumentPrevious)));
+            AddAssert("Ensure last tab", () => switchingTabControl.Current.Value == switchingTabControl.VisibleItems.Last());
+
+            AddStep("Switch forward", () => platformActionContainer.TriggerPressed(new PlatformAction(PlatformActionType.DocumentNext)));
+            AddAssert("Ensure first tab", () => switchingTabControl.Current.Value == switchingTabControl.VisibleItems.First());
+
+            AddStep("Add all items", () => items.AsEnumerable().ForEach(item => removeAllTabControl.AddItem(item.Value)));
+            AddAssert("Ensure all items", () => removeAllTabControl.Items.Count() == items.Count);
+
+            AddStep("Remove all items", () => removeAllTabControl.Clear());
+            AddAssert("Ensure no items", () => !removeAllTabControl.Items.Any());
         }
 
         private class StyledTabControl : TabControl<TestEnum>

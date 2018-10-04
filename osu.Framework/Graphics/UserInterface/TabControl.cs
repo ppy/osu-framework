@@ -7,7 +7,10 @@ using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions;
+using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Input;
+using osu.Framework.Input.Bindings;
 using OpenTK;
 
 namespace osu.Framework.Graphics.UserInterface
@@ -19,14 +22,16 @@ namespace osu.Framework.Graphics.UserInterface
     /// start of the list.
     /// </summary>
     /// <typeparam name="T">The type of item to be represented by tabs.</typeparam>
-    public abstract class TabControl<T> : Container, IHasCurrentValue<T>
+    public abstract class TabControl<T> : CompositeDrawable, IHasCurrentValue<T>, IKeyBindingHandler<PlatformAction>
     {
         public Bindable<T> Current { get; } = new Bindable<T>();
 
         /// <summary>
-        /// A list of items currently in the tab control in the other they are dispalyed.
+        /// A list of items currently in the tab control in the order they are dispalyed.
         /// </summary>
-        public IEnumerable<T> Items => TabContainer.Children.Select(tab => tab.Value);
+        public IEnumerable<T> Items => TabContainer.TabItems.Select(t => t.Value).Concat(Dropdown.Items.Select(kvp => kvp.Value)).Distinct();
+
+        public IEnumerable<T> VisibleItems => TabContainer.TabItems.Select(t => t.Value).Distinct();
 
         /// <summary>
         /// When true, tabs selected from the overflow dropdown will be moved to the front of the list (after pinned items).
@@ -35,11 +40,16 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected Dropdown<T> Dropdown;
 
-        protected TabFillFlowContainer<TabItem<T>> TabContainer;
+        protected readonly TabFillFlowContainer TabContainer;
 
         protected IReadOnlyDictionary<T, TabItem<T>> TabMap => tabMap;
 
         protected TabItem<T> SelectedTab;
+
+        /// <summary>
+        /// When true, tabs can be switched back and forth using PlatformAction.DocumentPrevious and PlatformAction.DocumentNext respectively.
+        /// </summary>
+        public virtual bool IsSwitchable => true;
 
         /// <summary>
         /// Creates an optional overflow dropdown.
@@ -55,7 +65,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected abstract TabItem<T> CreateTabItem(T value);
 
         /// <summary>
-        /// Incremented each time a tab needs to be inserted at the start of the list.
+        /// Decremented each time a tab needs to be inserted at the start of the list.
         /// </summary>
         private int depthCounter;
 
@@ -74,10 +84,10 @@ namespace osu.Framework.Graphics.UserInterface
                 Dropdown.Origin = Anchor.TopRight;
                 Dropdown.Current.BindTo(Current);
 
-                Add(Dropdown);
+                AddInternal(Dropdown);
 
-                Trace.Assert((Dropdown.Header.Anchor & Anchor.x2) > 0, $@"The {nameof(Dropdown)} implementation should use a right-based anchor inside a TabControl.");
-                Trace.Assert((Dropdown.Header.RelativeSizeAxes & Axes.X) == 0, $@"The {nameof(Dropdown)} implementation's header should have a specific size.");
+                Trace.Assert(Dropdown.Header.Anchor.HasFlag(Anchor.x2), $@"The {nameof(Dropdown)} implementation should use a right-based anchor inside a TabControl.");
+                Trace.Assert(!Dropdown.Header.RelativeSizeAxes.HasFlag(Axes.X), $@"The {nameof(Dropdown)} implementation's header should have a specific size.");
 
                 // create tab items for already existing items in dropdown (if any).
                 tabMap = Dropdown.Items.ToDictionary(item => item.Value, item => addTab(item.Value, false));
@@ -85,15 +95,9 @@ namespace osu.Framework.Graphics.UserInterface
             else
                 tabMap = new Dictionary<T, TabItem<T>>();
 
-            Add(TabContainer = new TabFillFlowContainer<TabItem<T>>
-            {
-                Direction = FillDirection.Full,
-                RelativeSizeAxes = Axes.Both,
-                Depth = -1,
-                Masking = true,
-                TabVisibilityChanged = updateDropdown,
-                ChildrenEnumerable = tabMap.Values
-            });
+            AddInternal(TabContainer = CreateTabFlow());
+            TabContainer.TabVisibilityChanged = updateDropdown;
+            TabContainer.ChildrenEnumerable = tabMap.Values;
 
             Current.ValueChanged += newSelection =>
             {
@@ -131,8 +135,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <param name="item">The item to pin.</param>
         public void PinItem(T item)
         {
-            TabItem<T> tab;
-            if (!tabMap.TryGetValue(item, out tab))
+            if (!tabMap.TryGetValue(item, out TabItem<T> tab))
                 return;
             tab.Pinned = true;
         }
@@ -143,8 +146,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <param name="item">The item to unpin.</param>
         public void UnpinItem(T item)
         {
-            TabItem<T> tab;
-            if (!tabMap.TryGetValue(item, out tab))
+            if (!tabMap.TryGetValue(item, out TabItem<T> tab))
                 return;
             tab.Pinned = false;
         }
@@ -160,6 +162,11 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         /// <param name="item">The item to remove.</param>
         public void RemoveItem(T item) => removeTab(item);
+
+        /// <summary>
+        /// Removes all items from the control.
+        /// </summary>
+        public void Clear() => tabMap.Keys.ToArray().ForEach(item => removeTab(item));
 
         private TabItem<T> addTab(T value, bool addToDropdown = true)
         {
@@ -188,11 +195,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <param name="addToDropdown">Whether the tab should be added to the Dropdown if supported by the <see cref="TabControl{T}"/> implementation.</param>
         protected virtual void AddTabItem(TabItem<T> tab, bool addToDropdown = true)
         {
-            tab.PinnedChanged += t =>
-            {
-                // Todo: This schedule is a temporary fix for https://github.com/ppy/osu-framework/issues/821
-                Schedule(() => performTabSort(t));
-            };
+            tab.PinnedChanged += performTabSort;
 
             tab.ActivationRequested += SelectTab;
 
@@ -220,9 +223,6 @@ namespace osu.Framework.Graphics.UserInterface
                 Dropdown?.RemoveDropdownItem(tab.Value);
 
             TabContainer.Remove(tab);
-
-            if (TabContainer.Count > 0)
-                performTabSort(TabContainer.Last());
         }
 
         /// <summary>
@@ -252,30 +252,93 @@ namespace osu.Framework.Graphics.UserInterface
             Current.Value = SelectedTab.Value;
         }
 
+        /// <summary>
+        /// Switches the currently selected tab forward or backward one index, optionally wrapping.
+        /// </summary>
+        /// <param name="direction">Pass 1 to move to the next tab, or -1 to move to the previous tab.</param>
+        /// <param name="wrap">If <c>true</c>, moving past the start or the end of the tab list will wrap to the opposite end.</param>
+        public virtual void SwitchTab(int direction, bool wrap = true)
+        {
+            if (Math.Abs(direction) != 1)
+                throw new ArgumentException("value must be -1 or 1", nameof(direction));
+
+            TabItem<T>[] switchableTabs = TabContainer.TabItems.Where(tab => tab.IsSwitchable).ToArray();
+            int tabCount = switchableTabs.Length;
+
+            if (tabCount == 0)
+                return;
+
+            if (tabCount == 1 || SelectedTab == null)
+            {
+                SelectTab(switchableTabs[0]);
+                return;
+            }
+
+            int selectedIndex = Array.IndexOf(switchableTabs, SelectedTab);
+            int targetIndex = selectedIndex + direction;
+
+            if (wrap)
+            {
+                targetIndex = targetIndex % tabCount;
+                if (targetIndex < 0)
+                    targetIndex += tabCount;
+            }
+
+            targetIndex = Math.Min(tabCount - 1, Math.Max(0, targetIndex));
+
+            SelectTab(switchableTabs[targetIndex]);
+        }
+
         private void performTabSort(TabItem<T> tab)
         {
-            if (IsLoaded)
-                TabContainer.Remove(tab);
-
-            tab.Depth = getTabDepth(tab);
+            TabContainer.SetLayoutPosition(tab, getTabDepth(tab));
 
             // IsPresent of TabItems is based on Y position.
             // We reset it here to allow tabs to get a correct initial position.
             tab.Y = 0;
-
-            if (IsLoaded)
-                TabContainer.Add(tab);
         }
 
         private float getTabDepth(TabItem<T> tab) => tab.Pinned ? float.MinValue : --depthCounter;
 
-        public class TabFillFlowContainer<U> : FillFlowContainer<U> where U : TabItem
+        public bool OnPressed(PlatformAction action)
         {
-            public Action<U, bool> TabVisibilityChanged;
+            if (IsSwitchable)
+            {
+                switch (action.ActionType)
+                {
+                    case PlatformActionType.DocumentNext:
+                        SwitchTab(1);
+                        return true;
 
-            protected override int Compare(Drawable x, Drawable y) => CompareReverseChildID(x, y);
+                    case PlatformActionType.DocumentPrevious:
+                        SwitchTab(-1);
+                        return true;
+                }
+            }
+            return false;
+        }
 
-            protected override IEnumerable<Drawable> FlowingChildren => base.FlowingChildren.Reverse();
+        public bool OnReleased(PlatformAction action) => false;
+
+        protected virtual TabFillFlowContainer CreateTabFlow() => new TabFillFlowContainer
+        {
+            Direction = FillDirection.Full,
+            RelativeSizeAxes = Axes.Both,
+            Depth = -1,
+            Masking = true
+        };
+
+        public class TabFillFlowContainer : FillFlowContainer<TabItem<T>>
+        {
+            /// <summary>
+            /// Gets called whenever the visibility of a tab in this container changes. Gets invoked with the <see cref="TabItem"/> whose visibility changed and the new visibility state (true = visible, false = hidden).
+            /// </summary>
+            public Action<TabItem<T>, bool> TabVisibilityChanged;
+
+            /// <summary>
+            /// The list of tabs currently displayed by this container.
+            /// </summary>
+            public IEnumerable<TabItem<T>> TabItems => FlowingChildren.OfType<TabItem<T>>();
 
             protected override IEnumerable<Vector2> ComputeLayoutPositions()
             {
@@ -284,7 +347,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 var result = base.ComputeLayoutPositions().ToArray();
                 int i = 0;
-                foreach (var child in FlowingChildren.OfType<U>())
+                foreach (var child in FlowingChildren.OfType<TabItem<T>>())
                 {
                     updateChildIfNeeded(child, result[i].Y == 0);
                     ++i;
@@ -292,9 +355,9 @@ namespace osu.Framework.Graphics.UserInterface
                 return result;
             }
 
-            private readonly Dictionary<U, bool> tabVisibility = new Dictionary<U, bool>();
+            private readonly Dictionary<TabItem<T>, bool> tabVisibility = new Dictionary<TabItem<T>, bool>();
 
-            private void updateChildIfNeeded(U child, bool isVisible)
+            private void updateChildIfNeeded(TabItem<T> child, bool isVisible)
             {
                 if (!tabVisibility.ContainsKey(child) || tabVisibility[child] != isVisible)
                 {

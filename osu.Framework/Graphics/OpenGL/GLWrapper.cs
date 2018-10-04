@@ -17,6 +17,7 @@ using osu.Framework.Statistics;
 using osu.Framework.MathUtils;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Colour;
+using osu.Framework.Lists;
 using osu.Framework.Platform;
 
 namespace osu.Framework.Graphics.OpenGL
@@ -46,13 +47,13 @@ namespace osu.Framework.Graphics.OpenGL
 
         public static bool IsInitialized { get; private set; }
 
-        private static GameHost host;
+        private static WeakReference<GameHost> host;
 
         internal static void Initialize(GameHost host)
         {
             if (IsInitialized) return;
 
-            GLWrapper.host = host;
+            GLWrapper.host = new WeakReference<GameHost>(host);
             reset_scheduler.SetCurrentThread();
 
             MaxTextureSize = Math.Min(4096, GL.GetInteger(GetPName.MaxTextureSize));
@@ -67,7 +68,8 @@ namespace osu.Framework.Graphics.OpenGL
 
         internal static void ScheduleDisposal(Action disposalAction)
         {
-            host?.UpdateThread.Scheduler.Add(() => reset_scheduler.Add(disposalAction.Invoke));
+            if (host != null && host.TryGetTarget(out GameHost h))
+                h.UpdateThread.Scheduler.Add(() => reset_scheduler.Add(disposalAction.Invoke));
         }
 
         internal static void Reset(Vector2 size)
@@ -86,12 +88,7 @@ namespace osu.Framework.Graphics.OpenGL
             lastBlendingInfo = new BlendingInfo();
             lastBlendingEnabledState = null;
 
-            foreach (IVertexBatch b in this_frame_batches)
-                b.ResetCounters();
-
-            this_frame_batches.Clear();
-            if (lastActiveBatch != null)
-                this_frame_batches.Add(lastActiveBatch);
+            all_batches.ForEachAlive(b => b.ResetCounters());
 
             lastFrameBuffer = 0;
 
@@ -134,13 +131,21 @@ namespace osu.Framework.Graphics.OpenGL
         /// Enqueues a texture to be uploaded in the next frame.
         /// </summary>
         /// <param name="texture">The texture to be uploaded.</param>
-        public static void EnqueueTextureUpload(TextureGL texture) => expensive_operations_queue.Enqueue(() => texture.Upload());
+        public static void EnqueueTextureUpload(TextureGL texture)
+        {
+            if (host != null)
+                expensive_operations_queue.Enqueue(() => texture.Upload());
+        }
 
         /// <summary>
         /// Enqueues the compile of a shader.
         /// </summary>
         /// <param name="shader">The shader to compile.</param>
-        public static void EnqueueShaderCompile(Shader shader) => expensive_operations_queue.Enqueue(shader.EnsureLoaded);
+        public static void EnqueueShaderCompile(Shader shader)
+        {
+            if (host != null)
+                expensive_operations_queue.Enqueue(shader.EnsureLoaded);
+        }
 
         private static readonly int[] last_bound_buffers = new int[2];
 
@@ -166,7 +171,7 @@ namespace osu.Framework.Graphics.OpenGL
 
         private static IVertexBatch lastActiveBatch;
 
-        private static readonly List<IVertexBatch> this_frame_batches = new List<IVertexBatch>();
+        private static readonly WeakList<IVertexBatch> all_batches = new WeakList<IVertexBatch>();
 
         /// <summary>
         /// Sets the last vertex batch used for drawing.
@@ -182,11 +187,14 @@ namespace osu.Framework.Graphics.OpenGL
 
             FlushCurrentBatch();
 
-            if (batch != null && !this_frame_batches.Contains(batch))
-                this_frame_batches.Add(batch);
-
             lastActiveBatch = batch;
         }
+
+        /// <summary>
+        /// Begins tracking a <see cref="IVertexBatch"/>, resetting its counters every frame. This should be invoked once for every <see cref="IVertexBatch"/> in use.
+        /// </summary>
+        /// <param name="batch">The batch to register.</param>
+        internal static void RegisterVertexBatch(IVertexBatch batch) => reset_scheduler.Add(() => all_batches.Add(batch));
 
         private static TextureGL lastBoundTexture;
 
@@ -355,7 +363,7 @@ namespace osu.Framework.Graphics.OpenGL
             Ortho = ortho;
 
             ProjectionMatrix = Matrix4.CreateOrthographicOffCenter(Ortho.Left, Ortho.Right, Ortho.Bottom, Ortho.Top, -1, 1);
-            Shader.SetGlobalProperty(@"g_ProjMatrix", ProjectionMatrix);
+            GlobalPropertyManager.Set(GlobalProperty.ProjMatrix, ProjectionMatrix);
 
             UpdateScissorToCurrentViewportAndOrtho();
         }
@@ -377,7 +385,7 @@ namespace osu.Framework.Graphics.OpenGL
             Ortho = actualRect;
 
             ProjectionMatrix = Matrix4.CreateOrthographicOffCenter(Ortho.Left, Ortho.Right, Ortho.Bottom, Ortho.Top, -1, 1);
-            Shader.SetGlobalProperty(@"g_ProjMatrix", ProjectionMatrix);
+            GlobalPropertyManager.Set(GlobalProperty.ProjMatrix, ProjectionMatrix);
 
             UpdateScissorToCurrentViewportAndOrtho();
         }
@@ -411,26 +419,31 @@ namespace osu.Framework.Graphics.OpenGL
         {
             FlushCurrentBatch();
 
-            Shader.SetGlobalProperty(@"g_MaskingRect", new Vector4(
+            GlobalPropertyManager.Set(GlobalProperty.MaskingRect, new Vector4(
                 maskingInfo.MaskingRect.Left,
                 maskingInfo.MaskingRect.Top,
                 maskingInfo.MaskingRect.Right,
                 maskingInfo.MaskingRect.Bottom));
 
-            Shader.SetGlobalProperty(@"g_ToMaskingSpace", maskingInfo.ToMaskingSpace);
-            Shader.SetGlobalProperty(@"g_CornerRadius", maskingInfo.CornerRadius);
+            GlobalPropertyManager.Set(GlobalProperty.ToMaskingSpace, maskingInfo.ToMaskingSpace);
+            GlobalPropertyManager.Set(GlobalProperty.CornerRadius, maskingInfo.CornerRadius);
 
-            Shader.SetGlobalProperty(@"g_BorderThickness", maskingInfo.BorderThickness / maskingInfo.BlendRange);
-            Shader.SetGlobalProperty(@"g_BorderColour", new Vector4(
-                maskingInfo.BorderColour.Linear.R,
-                maskingInfo.BorderColour.Linear.G,
-                maskingInfo.BorderColour.Linear.B,
-                maskingInfo.BorderColour.Linear.A));
+            GlobalPropertyManager.Set(GlobalProperty.BorderThickness, maskingInfo.BorderThickness / maskingInfo.BlendRange);
+            if (maskingInfo.BorderThickness > 0)
+            {
+                GlobalPropertyManager.Set(GlobalProperty.BorderColour, new Vector4(
+                    maskingInfo.BorderColour.Linear.R,
+                    maskingInfo.BorderColour.Linear.G,
+                    maskingInfo.BorderColour.Linear.B,
+                    maskingInfo.BorderColour.Linear.A));
+            }
 
-            Shader.SetGlobalProperty(@"g_MaskingBlendRange", maskingInfo.BlendRange);
-            Shader.SetGlobalProperty(@"g_AlphaExponent", maskingInfo.AlphaExponent);
+            GlobalPropertyManager.Set(GlobalProperty.MaskingBlendRange, maskingInfo.BlendRange);
+            GlobalPropertyManager.Set(GlobalProperty.AlphaExponent, maskingInfo.AlphaExponent);
 
-            Shader.SetGlobalProperty(@"g_DiscardInner", maskingInfo.Hollow);
+            GlobalPropertyManager.Set(GlobalProperty.EdgeOffset, maskingInfo.EdgeOffset);
+
+            GlobalPropertyManager.Set(GlobalProperty.DiscardInner, maskingInfo.Hollow);
 
             RectangleI actualRect = maskingInfo.ScreenSpaceAABB;
             actualRect.X += Viewport.X;
@@ -451,16 +464,7 @@ namespace osu.Framework.Graphics.OpenGL
 
             if (isPushing)
             {
-                RectangleI currentScissorRect;
-                if (overwritePreviousScissor)
-                    currentScissorRect = actualRect;
-                else
-                {
-                    currentScissorRect = scissor_rect_stack.Peek();
-                    currentScissorRect.Intersect(actualRect);
-                }
-
-                scissor_rect_stack.Push(currentScissorRect);
+                scissor_rect_stack.Push(overwritePreviousScissor ? actualRect : RectangleI.Intersect(scissor_rect_stack.Peek(), actualRect));
             }
             else
             {
@@ -587,63 +591,48 @@ namespace osu.Framework.Graphics.OpenGL
 
             if (currentShader == s) return;
 
+            FrameStatistics.Increment(StatisticsCounterType.ShaderBinds);
+
             FlushCurrentBatch();
 
             GL.UseProgram(s);
             currentShader = s;
         }
 
-        public static void SetUniform(int shader, ActiveUniformType type, int location, object value)
+        internal static void SetUniform<T>(IUniformWithValue<T> uniform)
+            where T : struct
         {
-            if (shader == currentShader)
+            if (uniform.Owner == currentShader)
                 FlushCurrentBatch();
 
-            switch (type)
+            switch (uniform)
             {
-                case ActiveUniformType.Bool:
-                    GL.Uniform1(location, (bool)value ? 1 : 0);
+                case IUniformWithValue<bool> b:
+                    GL.Uniform1(uniform.Location, b.GetValue() ? 1 : 0);
                     break;
-                case ActiveUniformType.Int:
-                    GL.Uniform1(location, (int)value);
+                case IUniformWithValue<int> i:
+                    GL.Uniform1(uniform.Location, i.GetValue());
                     break;
-                case ActiveUniformType.Float:
-                    GL.Uniform1(location, (float)value);
+                case IUniformWithValue<float> f:
+                    GL.Uniform1(uniform.Location, f.GetValue());
                     break;
-                case ActiveUniformType.BoolVec2:
-                case ActiveUniformType.IntVec2:
-                case ActiveUniformType.FloatVec2:
-                    GL.Uniform2(location, (Vector2)value);
+                case IUniformWithValue<Vector2> v2:
+                    GL.Uniform2(uniform.Location, ref v2.GetValueByRef());
                     break;
-                case ActiveUniformType.FloatMat2:
-                    {
-                        Matrix2 mat = (Matrix2)value;
-                        GL.UniformMatrix2(location, false, ref mat);
-                        break;
-                    }
-                case ActiveUniformType.BoolVec3:
-                case ActiveUniformType.IntVec3:
-                case ActiveUniformType.FloatVec3:
-                    GL.Uniform3(location, (Vector3)value);
+                case IUniformWithValue<Vector3> v3:
+                    GL.Uniform3(uniform.Location, ref v3.GetValueByRef());
                     break;
-                case ActiveUniformType.FloatMat3:
-                    {
-                        Matrix3 mat = (Matrix3)value;
-                        GL.UniformMatrix3(location, false, ref mat);
-                        break;
-                    }
-                case ActiveUniformType.BoolVec4:
-                case ActiveUniformType.IntVec4:
-                case ActiveUniformType.FloatVec4:
-                    GL.Uniform4(location, (Vector4)value);
+                case IUniformWithValue<Vector4> v4:
+                    GL.Uniform4(uniform.Location, ref v4.GetValueByRef());
                     break;
-                case ActiveUniformType.FloatMat4:
-                    {
-                        Matrix4 mat = (Matrix4)value;
-                        GL.UniformMatrix4(location, false, ref mat);
-                        break;
-                    }
-                case ActiveUniformType.Sampler2D:
-                    GL.Uniform1(location, (int)value);
+                case IUniformWithValue<Matrix2> m2:
+                    GL.UniformMatrix2(uniform.Location, false, ref m2.GetValueByRef());
+                    break;
+                case IUniformWithValue<Matrix3> m3:
+                    GL.UniformMatrix3(uniform.Location, false, ref m3.GetValueByRef());
+                    break;
+                case IUniformWithValue<Matrix4> m4:
+                    GL.UniformMatrix4(uniform.Location, false, ref m4.GetValueByRef());
                     break;
             }
         }
@@ -669,6 +658,8 @@ namespace osu.Framework.Graphics.OpenGL
         public float BlendRange;
         public float AlphaExponent;
 
+        public Vector2 EdgeOffset;
+
         public bool Hollow;
 
         public bool Equals(MaskingInfo other)
@@ -682,6 +673,7 @@ namespace osu.Framework.Graphics.OpenGL
                 BorderColour.Equals(other.BorderColour) &&
                 BlendRange == other.BlendRange &&
                 AlphaExponent == other.AlphaExponent &&
+                EdgeOffset == other.EdgeOffset &&
                 Hollow == other.Hollow;
         }
     }

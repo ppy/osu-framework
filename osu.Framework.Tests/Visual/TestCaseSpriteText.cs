@@ -51,7 +51,6 @@ namespace osu.Framework.Tests.Visual
                 {
                     Text = $@"Font testy at size {i}",
                     AllowMultiline = true,
-                    AutoSizeAxes = Axes.Y,
                     RelativeSizeAxes = Axes.X,
                     TextSize = i
                 };

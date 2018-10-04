@@ -2,23 +2,17 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Linq;
+using osu.Framework.Allocation;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
-using osu.Framework.Input;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Input.Events;
 
 namespace osu.Framework.Graphics.Visualisation
 {
-    internal enum TreeContainerStatus
-    {
-        Onscreen,
-        Offscreen
-    }
-
     internal class TreeContainer : Container, IStateful<TreeContainerStatus>
     {
         private readonly ScrollContainer scroll;
@@ -31,12 +25,13 @@ namespace osu.Framework.Graphics.Visualisation
 
         protected override Container<Drawable> Content => scroll;
 
-        private readonly Container titleBar;
-
         private const float width = 400;
         private const float height = 600;
 
         internal PropertyDisplay PropertyDisplay { get; private set; }
+
+        [Resolved]
+        private DrawVisualiser visualiser { get; set; }
 
         private TreeContainerStatus state;
 
@@ -44,8 +39,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         public TreeContainerStatus State
         {
-            get { return state; }
-
+            get => state;
             set
             {
                 if (state == value)
@@ -96,26 +90,7 @@ namespace osu.Framework.Graphics.Visualisation
                     Direction = FillDirection.Vertical,
                     Children = new Drawable[]
                     {
-                        titleBar = new Container
-                        {
-                            RelativeSizeAxes = Axes.X,
-                            Size = new Vector2(1, 25),
-                            Children = new Drawable[]
-                            {
-                                new Box
-                                {
-                                    RelativeSizeAxes = Axes.Both,
-                                    Colour = Color4.BlueViolet,
-                                },
-                                new SpriteText
-                                {
-                                    Anchor = Anchor.Centre,
-                                    Origin = Anchor.Centre,
-                                    Text = "draw visualiser (Ctrl+F1 to toggle)",
-                                    Alpha = 0.8f,
-                                },
-                            }
-                        },
+                        new TitleBar("draw visualiser (Ctrl+F1 to toggle)", this),
                         new Container //toolbar
                         {
                             RelativeSizeAxes = Axes.X,
@@ -193,33 +168,23 @@ namespace osu.Framework.Graphics.Visualisation
 
         protected override void Update()
         {
-            waitingText.Alpha = scroll.Children.Any() ? 0 : 1;
+            waitingText.Alpha = visualiser.Searching ? 1 : 0;
             base.Update();
         }
 
-        protected override bool OnHover(InputState state)
+        protected override bool OnHover(HoverEvent e)
         {
             State = TreeContainerStatus.Onscreen;
             return true;
         }
 
-        protected override void OnHoverLost(InputState state)
+        protected override void OnHoverLost(HoverLostEvent e)
         {
             State = TreeContainerStatus.Offscreen;
-            base.OnHoverLost(state);
+            base.OnHoverLost(e);
         }
 
-        protected override bool OnDragStart(InputState state) => titleBar.ReceiveMouseInputAt(state.Mouse.NativeState.Position);
-
-        protected override bool OnDrag(InputState state)
-        {
-            Position += state.Mouse.Delta;
-            return base.OnDrag(state);
-        }
-
-        protected override bool OnMouseDown(InputState state, MouseDownEventArgs args) => true;
-
-        protected override bool OnClick(InputState state) => true;
+        protected override bool OnClick(ClickEvent e) => true;
 
         protected override void LoadComplete()
         {

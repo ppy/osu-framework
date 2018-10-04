@@ -6,6 +6,7 @@ using System.IO;
 using osu.Framework.IO.Stores;
 using osu.Framework.Statistics;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace osu.Framework.Audio.Sample
 {
@@ -27,15 +28,15 @@ namespace osu.Framework.Audio.Sample
 
         public SampleChannel Get(string name)
         {
+            if (string.IsNullOrEmpty(name)) return null;
+
             lock (sampleCache)
             {
-                Sample sample;
                 SampleChannel channel = null;
-                if (!sampleCache.TryGetValue(name, out sample))
+                if (!sampleCache.TryGetValue(name, out Sample sample))
                 {
                     byte[] data = store.Get(name);
-                    if (data != null)
-                        sample = sampleCache[name] = new SampleBass(data, PendingActions, PlaybackConcurrency);
+                    sample = sampleCache[name] = data == null ? null : new SampleBass(data, PendingActions, PlaybackConcurrency);
                 }
 
                 if (sample != null)
@@ -47,6 +48,8 @@ namespace osu.Framework.Audio.Sample
                 return channel;
             }
         }
+
+        public Task<SampleChannel> GetAsync(string name) => Task.Run(() => Get(name));
 
         public override void UpdateDevice(int deviceIndex)
         {

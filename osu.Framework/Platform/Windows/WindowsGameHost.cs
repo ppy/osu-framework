@@ -12,7 +12,7 @@ namespace osu.Framework.Platform.Windows
 
         public override Clipboard GetClipboard() => new WindowsClipboard();
 
-        protected override Storage GetStorage(string baseName) => new WindowsStorage(baseName);
+        protected override Storage GetStorage(string baseName) => new WindowsStorage(baseName, this);
 
         public override bool CapsLockEnabled => Console.CapsLock;
 
@@ -25,17 +25,21 @@ namespace osu.Framework.Platform.Windows
             timePeriod = new TimePeriod(1) { Active = true };
 
             Window = new WindowsGameWindow();
-            Window.WindowStateChanged += (sender, e) =>
-            {
-                if (Window.WindowState != OpenTK.WindowState.Minimized)
-                    OnActivated();
-                else
-                    OnDeactivated();
-            };
+            Window.WindowStateChanged += onWindowOnWindowStateChanged;
+        }
+
+        private void onWindowOnWindowStateChanged(object sender, EventArgs e)
+        {
+            if (Window.WindowState != OpenTK.WindowState.Minimized)
+                OnActivated();
+            else
+                OnDeactivated();
         }
 
         protected override void Dispose(bool isDisposing)
         {
+            Window.WindowStateChanged -= onWindowOnWindowStateChanged;
+
             timePeriod?.Dispose();
             base.Dispose(isDisposing);
         }

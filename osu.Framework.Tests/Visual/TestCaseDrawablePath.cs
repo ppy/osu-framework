@@ -4,33 +4,33 @@
 using System.Collections.Generic;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Lines;
-using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.Input;
+using osu.Framework.Input.Events;
 using osu.Framework.Testing;
 using OpenTK;
 using OpenTK.Graphics;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Tests.Visual
 {
     public class TestCaseDrawablePath : GridTestCase
     {
-        public TestCaseDrawablePath() : base(2, 2)
+        public TestCaseDrawablePath()
+            : base(2, 2)
         {
             const int width = 20;
             Texture gradientTexture = new Texture(width, 1, true);
-            byte[] data = new byte[width * 4];
+            var image = new Image<Rgba32>(width, 1);
+
             for (int i = 0; i < width; ++i)
             {
-                float brightness = (float)i / (width - 1);
-                int index = i * 4;
-                data[index + 0] = (byte)(brightness * 255);
-                data[index + 1] = (byte)(brightness * 255);
-                data[index + 2] = (byte)(brightness * 255);
-                data[index + 3] = 255;
+                var brightnessByte = (byte)((float)i / (width - 1) * 255);
+                image[i, 0] = new Rgba32(brightnessByte, brightnessByte, brightnessByte);
             }
-            gradientTexture.SetData(new TextureUpload(data));
+
+            gradientTexture.SetData(new TextureUpload(image));
 
             Cell(0).AddRange(new[]
             {
@@ -105,23 +105,23 @@ namespace osu.Framework.Tests.Visual
         {
             private Vector2 oldPos;
 
-            protected override bool OnDragStart(InputState state)
+            protected override bool OnDragStart(DragStartEvent e)
             {
-                AddVertex(state.Mouse.Position);
-                oldPos = state.Mouse.Position;
+                AddVertex(e.MousePosition);
+                oldPos = e.MousePosition;
                 return true;
             }
 
-            protected override bool OnDrag(InputState state)
+            protected override bool OnDrag(DragEvent e)
             {
-                Vector2 pos = state.Mouse.Position;
+                Vector2 pos = e.MousePosition;
                 if ((pos - oldPos).Length > 10)
                 {
                     AddVertex(pos);
                     oldPos = pos;
                 }
 
-                return base.OnDrag(state);
+                return base.OnDrag(e);
             }
         }
     }

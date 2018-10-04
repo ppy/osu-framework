@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace osu.Framework.IO.Stores
 {
@@ -49,8 +50,7 @@ namespace osu.Framework.IO.Stores
         /// <param name="name">The resource that has changed.</param>
         protected virtual void NotifyChanged(string name)
         {
-            Action action;
-            if (!actionList.TryGetValue(name, out action))
+            if (!actionList.TryGetValue(name, out Action action))
                 return;
 
             action?.Invoke();
@@ -62,7 +62,8 @@ namespace osu.Framework.IO.Stores
         /// <param name="store">The store to add.</param>
         public virtual void AddStore(IResourceStore<T> store)
         {
-            stores.Add(store);
+            lock (stores)
+                stores.Add(store);
         }
 
         /// <summary>
@@ -71,7 +72,35 @@ namespace osu.Framework.IO.Stores
         /// <param name="store">The store to remove.</param>
         public virtual void RemoveStore(IResourceStore<T> store)
         {
-            stores.Remove(store);
+            lock (stores)
+                stores.Remove(store);
+        }
+
+        /// <summary>
+        /// Retrieves an object from the store.
+        /// </summary>
+        /// <param name="name">The name of the object.</param>
+        /// <returns>The object.</returns>
+        public virtual async Task<T> GetAsync(string name)
+        {
+            var filenames = GetFilenames(name);
+
+            // required for locking
+            IResourceStore<T>[] localStores;
+
+            lock (stores)
+                localStores = stores.ToArray();
+
+            // Cache miss - get the resource
+            foreach (IResourceStore<T> store in localStores)
+            foreach (string f in filenames)
+            {
+                T result = await store.GetAsync(f);
+                if (result != null)
+                    return result;
+            }
+
+            return default;
         }
 
         /// <summary>
@@ -81,29 +110,28 @@ namespace osu.Framework.IO.Stores
         /// <returns>The object.</returns>
         public virtual T Get(string name)
         {
-            List<string> filenames = GetFilenames(name);
+            var filenames = GetFilenames(name);
 
             // Cache miss - get the resource
-            foreach (IResourceStore<T> store in stores)
-            {
+            lock (stores)
+                foreach (IResourceStore<T> store in stores)
                 foreach (string f in filenames)
                 {
                     T result = store.Get(f);
                     if (result != null)
                         return result;
                 }
-            }
 
-            return default(T);
+            return default;
         }
 
         public Stream GetStream(string name)
         {
-            List<string> filenames = GetFilenames(name);
+            var filenames = GetFilenames(name);
 
             // Cache miss - get the resource
-            foreach (IResourceStore<T> store in stores)
-            {
+            lock (stores)
+                foreach (IResourceStore<T> store in stores)
                 foreach (string f in filenames)
                 {
                     try
@@ -116,23 +144,19 @@ namespace osu.Framework.IO.Stores
                     {
                     }
                 }
-            }
 
             return null;
         }
 
-        protected virtual List<string> GetFilenames(string name)
+        protected virtual IEnumerable<string> GetFilenames(string name)
         {
-            List<string> filenames = new List<string>
-            {
-                name
-            };
-            //add file extension if it's missing.
-            if (!name.Contains(@"."))
-                foreach (string ext in searchExtensions)
-                    filenames.Add($@"{name}.{ext}");
+            yield return name;
 
-            return filenames;
+            if (name.Contains(@".")) yield break;
+
+            //add file extension if it's missing.
+            foreach (string ext in searchExtensions)
+                yield return $@"{name}.{ext}";
         }
 
         /// <summary>
@@ -162,5 +186,31 @@ namespace osu.Framework.IO.Stores
             if (!searchExtensions.Contains(extension))
                 searchExtensions.Add(extension);
         }
+
+        #region IDisposable Support
+
+        private bool isDisposed;
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!isDisposed)
+            {
+                isDisposed = true;
+                lock (stores) stores.ForEach(s => s.Dispose());
+            }
+        }
+
+        ~ResourceStore()
+        {
+            Dispose(false);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        #endregion
     }
 }

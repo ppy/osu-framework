@@ -4,6 +4,9 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using JetBrains.Annotations;
+using Newtonsoft.Json;
+using osu.Framework.IO.Serialization;
 using osu.Framework.Lists;
 
 namespace osu.Framework.Configuration
@@ -12,14 +15,24 @@ namespace osu.Framework.Configuration
     /// A generic implementation of a <see cref="IBindable"/>
     /// </summary>
     /// <typeparam name="T">The type of our stored <see cref="Value"/>.</typeparam>
-    public class Bindable<T> : IBindable
+    public class Bindable<T> : IBindable<T>, IBindable, ISerializableBindable
     {
+        /// <summary>
+        /// An event which is raised when <see cref="Value"/> has changed (or manually via <see cref="TriggerValueChange"/>).
+        /// </summary>
+        public event Action<T> ValueChanged;
+
+        /// <summary>
+        /// An event which is raised when <see cref="Disabled"/>'s state has changed (or manually via <see cref="TriggerDisabledChange"/>).
+        /// </summary>
+        public event Action<bool> DisabledChanged;
+
         private T value;
 
         /// <summary>
         /// The default value of this bindable. Used when calling <see cref="SetDefault"/> or querying <see cref="IsDefault"/>.
         /// </summary>
-        public T Default;
+        public T Default { get; set; }
 
         private bool disabled;
 
@@ -28,7 +41,7 @@ namespace osu.Framework.Configuration
         /// </summary>
         public bool Disabled
         {
-            get { return disabled; }
+            get => disabled;
             set
             {
                 if (disabled == value) return;
@@ -50,21 +63,11 @@ namespace osu.Framework.Configuration
         public void SetDefault() => Value = Default;
 
         /// <summary>
-        /// An event which is raised when <see cref="Value"/> has changed (or manually via <see cref="TriggerValueChange"/>).
-        /// </summary>
-        public event Action<T> ValueChanged;
-
-        /// <summary>
-        /// An event which is raised when <see cref="Disabled"/>'s state has changed (or manually via <see cref="TriggerDisabledChange"/>).
-        /// </summary>
-        public event Action<bool> DisabledChanged;
-
-        /// <summary>
         /// The current value of this bindable.
         /// </summary>
         public virtual T Value
         {
-            get { return value; }
+            get => value;
             set
             {
                 if (EqualityComparer<T>.Default.Equals(this.value, value)) return;
@@ -79,10 +82,18 @@ namespace osu.Framework.Configuration
         }
 
         /// <summary>
+        /// Creates a new bindable instance. This is used for deserialization of bindables.
+        /// </summary>
+        [UsedImplicitly]
+        private Bindable()
+        {
+        }
+
+        /// <summary>
         /// Creates a new bindable instance.
         /// </summary>
         /// <param name="value">The initial value.</param>
-        public Bindable(T value = default(T))
+        public Bindable(T value = default)
         {
             this.value = value;
         }
@@ -93,11 +104,25 @@ namespace osu.Framework.Configuration
 
         private WeakReference<Bindable<T>> weakReference => new WeakReference<Bindable<T>>(this);
 
+        void IBindable.BindTo(IBindable them)
+        {
+            if (!(them is Bindable<T> tThem))
+                throw new InvalidCastException($"Can't bind to a bindable of type {them.GetType()} from a bindable of type {GetType()}.");
+            BindTo(tThem);
+        }
+
+        void IBindable<T>.BindTo(IBindable<T> them)
+        {
+            if (!(them is Bindable<T> tThem))
+                throw new InvalidCastException($"Can't bind to a bindable of type {them.GetType()} from a bindable of type {GetType()}.");
+            BindTo(tThem);
+        }
+
         /// <summary>
-        /// Binds outselves to another bindable such that they receive bi-directional updates.
-        /// We will take on any value limitations of the bindable we bind width.
+        /// Binds this bindable to another such that bi-directional updates are propagated.
+        /// This will adopt any values and value limitations of the bindable bound to.
         /// </summary>
-        /// <param name="them">The foreign bindable. This should always be the most permanent end of the bind (ie. a ConfigManager)</param>
+        /// <param name="them">The foreign bindable. This should always be the most permanent end of the bind (ie. a ConfigManager).</param>
         public virtual void BindTo(Bindable<T> them)
         {
             Value = them.Value;
@@ -106,6 +131,30 @@ namespace osu.Framework.Configuration
 
             AddWeakReference(them.weakReference);
             them.AddWeakReference(weakReference);
+        }
+
+        /// <summary>
+        /// Bind an action to <see cref="ValueChanged"/> with the option of running the bound action once immediately.
+        /// </summary>
+        /// <param name="onChange">The action to perform when <see cref="Value"/> changes.</param>
+        /// <param name="runOnceImmediately">Whether the action provided in <see cref="onChange"/> should be run once immediately.</param>
+        public void BindValueChanged(Action<T> onChange, bool runOnceImmediately = false)
+        {
+            ValueChanged += onChange;
+            if (runOnceImmediately)
+                onChange(Value);
+        }
+
+        /// <summary>
+        /// Bind an action to <see cref="DisabledChanged"/> with the option of running the bound action once immediately.
+        /// </summary>
+        /// <param name="onChange">The action to perform when <see cref="Disabled"/> changes.</param>
+        /// <param name="runOnceImmediately">Whether the action provided in <see cref="onChange"/> should be run once immediately.</param>
+        public void BindDisabledChanged(Action<bool> onChange, bool runOnceImmediately = false)
+        {
+            DisabledChanged += onChange;
+            if (runOnceImmediately)
+                onChange(Disabled);
         }
 
         protected void AddWeakReference(WeakReference<Bindable<T>> weakReference)
@@ -150,14 +199,20 @@ namespace osu.Framework.Configuration
 
         protected void TriggerValueChange(bool propagateToBindings = true)
         {
-            ValueChanged?.Invoke(value);
+            // check a bound bindable hasn't changed the value again (it will fire its own event)
+            T beforePropagation = value;
             if (propagateToBindings) Bindings?.ForEachAlive(b => b.Value = value);
+            if (Equals(beforePropagation, value))
+                ValueChanged?.Invoke(value);
         }
 
         protected void TriggerDisabledChange(bool propagateToBindings = true)
         {
-            DisabledChanged?.Invoke(disabled);
+            // check a bound bindable hasn't changed the value again (it will fire its own event)
+            bool beforePropagation = disabled;
             if (propagateToBindings) Bindings?.ForEachAlive(b => b.Disabled = disabled);
+            if (beforePropagation == disabled)
+                DisabledChanged?.Invoke(disabled);
         }
 
         /// <summary>
@@ -174,8 +229,11 @@ namespace osu.Framework.Configuration
         /// </summary>
         public void UnbindBindings()
         {
+            Bindings?.ForEachAlive(b => b.Unbind(this));
             Bindings?.Clear();
         }
+
+        protected void Unbind(Bindable<T> binding) => Bindings.Remove(binding.weakReference);
 
         /// <summary>
         /// Calls <see cref="UnbindEvents"/> and <see cref="UnbindBindings"/>
@@ -202,6 +260,10 @@ namespace osu.Framework.Configuration
             Disabled = false;
         }
 
+        IBindable IBindable.GetBoundCopy() => GetBoundCopy();
+
+        IBindable<T> IBindable<T>.GetBoundCopy() => GetBoundCopy();
+
         /// <summary>
         /// Retrieve a new bindable instance weakly bound to the configuration backing.
         /// If you are further binding to events of a bindable retrieved using this method, ensure to hold
@@ -210,12 +272,19 @@ namespace osu.Framework.Configuration
         /// <returns>A weakly bound copy of the specified bindable.</returns>
         public Bindable<T> GetBoundCopy()
         {
-            var copy = (Bindable<T>)MemberwiseClone();
-
-            copy.Bindings = new WeakList<Bindable<T>>();
+            var copy = (Bindable<T>)Activator.CreateInstance(GetType(), Value);
             copy.BindTo(this);
-
             return copy;
+        }
+
+        void ISerializableBindable.SerializeTo(JsonWriter writer, JsonSerializer serializer)
+        {
+            serializer.Serialize(writer, Value);
+        }
+
+        void ISerializableBindable.DeserializeFrom(JsonReader reader, JsonSerializer serializer)
+        {
+            Value = serializer.Deserialize<T>(reader);
         }
     }
 }

@@ -10,7 +10,7 @@ using osu.Framework.IO.Serialization;
 
 namespace osu.Framework.Lists
 {
-    public class SortedList<T> : ICollection<T>, IReadOnlyList<T>, ISortedList
+    public class SortedList<T> : ICollection<T>, IReadOnlyList<T>, ISerializableSortedList
     {
         private readonly List<T> list;
 
@@ -22,8 +22,8 @@ namespace osu.Framework.Lists
 
         public T this[int index]
         {
-            get { return list[index]; }
-            set { list[index] = value; }
+            get => list[index];
+            set => list[index] = value;
         }
 
         /// <summary>
@@ -131,16 +131,18 @@ namespace osu.Framework.Lists
 
         void ICollection<T>.Add(T item) => Add(item);
 
-        public IEnumerator<T> GetEnumerator() => list.GetEnumerator();
+        public Enumerator GetEnumerator() => new Enumerator(this);
 
-        IEnumerator IEnumerable.GetEnumerator() => list.GetEnumerator();
+        IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
 
-        public void SerializeTo(JsonWriter writer, JsonSerializer serializer)
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        void ISerializableSortedList.SerializeTo(JsonWriter writer, JsonSerializer serializer)
         {
             serializer.Serialize(writer, list);
         }
 
-        public void DeserializeFrom(JsonReader reader, JsonSerializer serializer)
+        void ISerializableSortedList.DeserializeFrom(JsonReader reader, JsonSerializer serializer)
         {
             serializer.Populate(reader, list);
             list.Sort(Comparer);
@@ -148,30 +150,29 @@ namespace osu.Framework.Lists
 
         #endregion
 
-        private class ComparisonComparer<TComparison> : IComparer<TComparison>
+        public struct Enumerator : IEnumerator<T>
         {
-            private readonly Comparison<TComparison> comparison;
+            private SortedList<T> list;
+            private int currentIndex;
 
-            public ComparisonComparer(Func<TComparison, TComparison, int> compare)
+            internal Enumerator(SortedList<T> list)
             {
-                if (compare == null)
-                {
-                    throw new ArgumentNullException(nameof(compare));
-                }
-                comparison = new Comparison<TComparison>(compare);
+                this.list = list;
+                currentIndex = -1; // The first MoveNext() should bring the iterator to 0
             }
 
-            public int Compare(TComparison x, TComparison y)
+            public bool MoveNext() => ++currentIndex < list.Count;
+
+            public void Reset() => currentIndex = -1;
+
+            public T Current => list[currentIndex];
+
+            object IEnumerator.Current => Current;
+
+            public void Dispose()
             {
-                return comparison(x, y);
+                list = null;
             }
         }
-    }
-
-    [JsonConverter(typeof(SortedListConverter))]
-    internal interface ISortedList
-    {
-        void SerializeTo(JsonWriter writer, JsonSerializer serializer);
-        void DeserializeFrom(JsonReader reader, JsonSerializer serializer);
     }
 }

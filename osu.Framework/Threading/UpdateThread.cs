@@ -9,7 +9,8 @@ namespace osu.Framework.Threading
 {
     public class UpdateThread : GameThread
     {
-        public UpdateThread(Action onNewFrame, string threadName) : base(onNewFrame, threadName)
+        public UpdateThread(Action onNewFrame)
+            : base(onNewFrame, "Update")
         {
         }
 
@@ -20,6 +21,8 @@ namespace osu.Framework.Threading
             StatisticsCounterType.DrawNodeCtor,
             StatisticsCounterType.DrawNodeAppl,
             StatisticsCounterType.ScheduleInvk,
+            StatisticsCounterType.InputQueue,
+            StatisticsCounterType.PositionalIQ
         };
     }
 }

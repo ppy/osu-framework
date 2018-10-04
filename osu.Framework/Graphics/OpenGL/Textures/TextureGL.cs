@@ -2,11 +2,13 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Threading;
 using osu.Framework.Graphics.Primitives;
 using OpenTK.Graphics.ES30;
 using OpenTK;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Vertices;
+using osu.Framework.Graphics.Textures;
 
 namespace osu.Framework.Graphics.OpenGL.Textures
 {
@@ -22,7 +24,17 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             Dispose(false);
         }
 
-        protected bool IsDisposed;
+        internal int ReferenceCount;
+
+        public void Reference() => Interlocked.Increment(ref ReferenceCount);
+
+        public void Dereference()
+        {
+            if (Interlocked.Decrement(ref ReferenceCount) == 0)
+                Dispose();
+        }
+
+        public bool IsDisposed { get; private set; }
 
         protected virtual void Dispose(bool isDisposing)
         {
@@ -76,6 +88,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// <returns>Whether pending data existed and an upload has been performed.</returns>
         internal abstract bool Upload();
 
-        public abstract void SetData(TextureUpload upload);
+        public abstract void SetData(ITextureUpload upload);
     }
 }

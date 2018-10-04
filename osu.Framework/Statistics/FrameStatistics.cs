@@ -48,11 +48,14 @@ namespace osu.Framework.Statistics
         DrawNodeCtor,
         DrawNodeAppl,
         ScheduleInvk,
+        InputQueue,
+        PositionalIQ,
 
         VBufBinds,
         VBufOverflow,
         TextureBinds,
         DrawCalls,
+        ShaderBinds,
         VerticesDraw,
         VerticesUpl,
         Pixels,
@@ -65,5 +68,6 @@ namespace osu.Framework.Statistics
 
         MouseEvents,
         KeyEvents,
+        JoystickEvents,
     }
 }

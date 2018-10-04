@@ -16,15 +16,17 @@ namespace osu.Framework.Input
     /// </summary>
     public class PlatformActionContainer : KeyBindingContainer<PlatformAction>, IHandleGlobalInput
     {
-        private GameHost host;
+        [Resolved]
+        private GameHost host { get; set; }
 
-        [BackgroundDependencyLoader]
-        private void load(GameHost host)
+        public PlatformActionContainer()
+            : base(SimultaneousBindingMode.None, KeyCombinationMatchingMode.Modifiers)
         {
-            this.host = host;
         }
 
         public override IEnumerable<KeyBinding> DefaultKeyBindings => host.PlatformKeyBindings;
+
+        protected override bool Prioritised => true;
 
         protected override bool SendRepeats => true;
     }
@@ -52,7 +54,9 @@ namespace osu.Framework.Input
         WordPrevious,
         WordNext,
         LineStart,
-        LineEnd
+        LineEnd,
+        DocumentPrevious,
+        DocumentNext
     }
 
     public enum PlatformActionMethod

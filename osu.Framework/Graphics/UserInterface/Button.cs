@@ -3,9 +3,9 @@
 
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Input;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Input.Events;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics.UserInterface
     {
         public string Text
         {
-            get { return SpriteText?.Text; }
+            get => SpriteText?.Text;
             set
             {
                 if (SpriteText != null)
@@ -23,8 +23,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         public Color4 BackgroundColour
         {
-            get { return Background.Colour; }
-            set { Background.FadeColour(value); }
+            get => Background.Colour;
+            set => Background.FadeColour(value);
         }
 
         protected override Container<Drawable> Content => content;
@@ -61,7 +61,7 @@ namespace osu.Framework.Graphics.UserInterface
             Anchor = Anchor.Centre,
         };
 
-        protected override bool OnClick(InputState state)
+        protected override bool OnClick(ClickEvent e)
         {
             if (Enabled.Value)
             {
@@ -78,7 +78,7 @@ namespace osu.Framework.Graphics.UserInterface
                 flash.Expire();
             }
 
-            return base.OnClick(state);
+            return base.OnClick(e);
         }
     }
 }

@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using OpenTK;
 
 namespace osu.Framework.Configuration
 {
@@ -38,7 +37,17 @@ namespace osu.Framework.Configuration
         /// </summary>
         public event Action<T> PrecisionChanged;
 
-        protected BindableNumber(T value = default(T))
+        /// <summary>
+        /// An event which is raised when <see cref="MinValue"/> has changed (or manually via <see cref="TriggerMinValueChange"/>).
+        /// </summary>
+        public event Action<T> MinValueChanged;
+
+        /// <summary>
+        /// An event which is raised when <see cref="MaxValue"/> has changed (or manually via <see cref="TriggerMaxValueChange"/>).
+        /// </summary>
+        public event Action<T> MaxValueChanged;
+
+        protected BindableNumber(T value = default)
             : base(value)
         {
             MinValue = DefaultMinValue;
@@ -71,7 +80,7 @@ namespace osu.Framework.Configuration
 
         public override T Value
         {
-            get { return base.Value; }
+            get => base.Value;
             set
             {
                 if (Precision.CompareTo(DefaultPrecision) > 0)
@@ -79,8 +88,6 @@ namespace osu.Framework.Configuration
                     double doubleValue = Convert.ToDouble(clamp(value, MinValue, MaxValue));
                     doubleValue = Math.Round(doubleValue / Convert.ToDouble(Precision)) * Convert.ToDouble(Precision);
 
-                    // ReSharper disable once PossibleNullReferenceException
-                    // https://youtrack.jetbrains.com/issue/RIDER-12652
                     base.Value = (T)Convert.ChangeType(doubleValue, typeof(T), CultureInfo.InvariantCulture);
                 }
                 else
@@ -88,15 +95,43 @@ namespace osu.Framework.Configuration
             }
         }
 
+        private T minValue;
+
         /// <summary>
         /// The minimum value of this bindable. <see cref="Bindable{T}.Value"/> will never go below this value.
         /// </summary>
-        public T MinValue { get; set; }
+        public T MinValue
+        {
+            get => minValue;
+            set
+            {
+                if (minValue.Equals(value))
+                    return;
+
+                minValue = value;
+
+                TriggerMinValueChange();
+            }
+        }
+
+        private T maxValue;
 
         /// <summary>
-        /// The maximim value of this bindable. <see cref="Bindable{T}.Value"/> will never go above this value.
+        /// The maximum value of this bindable. <see cref="Bindable{T}.Value"/> will never go above this value.
         /// </summary>
-        public T MaxValue { get; set; }
+        public T MaxValue
+        {
+            get => maxValue;
+            set
+            {
+                if (maxValue.Equals(value))
+                    return;
+
+                maxValue = value;
+
+                TriggerMaxValueChange();
+            }
+        }
 
         /// <summary>
         /// The default <see cref="MinValue"/>. This should be equal to the minimum value of type <see cref="T"/>.
@@ -118,20 +153,35 @@ namespace osu.Framework.Configuration
             base.TriggerChange();
 
             TriggerPrecisionChange(false);
+            TriggerMinValueChange(false);
+            TriggerMaxValueChange(false);
         }
 
         protected void TriggerPrecisionChange(bool propagateToBindings = true)
         {
-            PrecisionChanged?.Invoke(MinValue);
+            // check a bound bindable hasn't changed the value again (it will fire its own event)
+            T beforePropagation = precision;
+            if (propagateToBindings) Bindings?.ForEachAlive(b => ((BindableNumber<T>)b).Precision = precision);
+            if (Equals(beforePropagation, precision))
+                PrecisionChanged?.Invoke(precision);
+        }
 
-            if (!propagateToBindings)
-                return;
+        protected void TriggerMinValueChange(bool propagateToBindings = true)
+        {
+            // check a bound bindable hasn't changed the value again (it will fire its own event)
+            T beforePropagation = minValue;
+            if (propagateToBindings) Bindings?.ForEachAlive(b => ((BindableNumber<T>)b).MinValue = minValue);
+            if (Equals(beforePropagation, minValue))
+                MinValueChanged?.Invoke(minValue);
+        }
 
-            Bindings?.ForEachAlive(b =>
-            {
-                if (b is BindableNumber<T> other)
-                    other.Precision = Precision;
-            });
+        protected void TriggerMaxValueChange(bool propagateToBindings = true)
+        {
+            // check a bound bindable hasn't changed the value again (it will fire its own event)
+            T beforePropagation = maxValue;
+            if (propagateToBindings) Bindings?.ForEachAlive(b => ((BindableNumber<T>)b).MaxValue = maxValue);
+            if (Equals(beforePropagation, maxValue))
+                MaxValueChanged?.Invoke(maxValue);
         }
 
         public override void BindTo(Bindable<T> them)
@@ -305,10 +355,7 @@ namespace osu.Framework.Configuration
             var max = Convert.ToDouble(MaxValue);
             var value = min + (max - min) * amt;
             if (snap > 0)
-            {
-                var floor = Math.Floor(value / snap) * snap;
-                value = MathHelper.Clamp(value - floor < snap / 2f ? floor : floor + snap, min, max);
-            }
+                value = Math.Round(value / snap) * snap;
             Set(value);
         }
 

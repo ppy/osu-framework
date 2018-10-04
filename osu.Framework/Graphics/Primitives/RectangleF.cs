@@ -54,7 +54,7 @@ namespace osu.Framework.Graphics.Primitives
         [Browsable(false)]
         public Vector2 Location
         {
-            get { return new Vector2(X, Y); }
+            get => new Vector2(X, Y);
             set
             {
                 X = value.X;
@@ -68,7 +68,7 @@ namespace osu.Framework.Graphics.Primitives
         [Browsable(false)]
         public Vector2 Size
         {
-            get { return new Vector2(Width, Height); }
+            get => new Vector2(Width, Height);
             set
             {
                 Width = value.X;
@@ -325,6 +325,8 @@ namespace osu.Framework.Graphics.Primitives
         /// <param name="r">The <see cref="T:System.Drawing.RectangleI"></see> structure to convert. </param>
         /// <filterpriority>3</filterpriority>
         public static implicit operator RectangleF(RectangleI r) => new RectangleF(r.X, r.Y, r.Width, r.Height);
+
+        public static implicit operator System.Drawing.RectangleF(RectangleF r) => new System.Drawing.RectangleF(r.X, r.Y, r.Width, r.Height);
 
         /// <summary>Converts the Location and <see cref="T:System.Drawing.Size"></see> of this <see cref="T:System.Drawing.RectangleF"></see> to a human-readable string.</summary>
         /// <returns>A string that contains the position, width, and height of this <see cref="T:System.Drawing.RectangleF"></see> structure¾for example, "{X=20, Y=20, Width=100, Height=50}".</returns>

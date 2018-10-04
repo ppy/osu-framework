@@ -4,7 +4,7 @@
 using System;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Input;
+using osu.Framework.Input.Events;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -25,6 +25,11 @@ namespace osu.Framework.Graphics.UserInterface
         public override bool IsPresent => base.IsPresent && Y == 0;
 
         public override bool IsRemovable => false;
+
+        /// <summary>
+        /// When true, this tab can be switched to using PlatformAction.DocumentPrevious and PlatformAction.DocumentNext. Otherwise, it will be skipped.
+        /// </summary>
+        public virtual bool IsSwitchable => true;
 
         public readonly T Value;
 
@@ -47,7 +52,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         public bool Pinned
         {
-            get { return pinned; }
+            get => pinned;
             set
             {
                 if (pinned == value) return;
@@ -62,9 +67,9 @@ namespace osu.Framework.Graphics.UserInterface
 
         public readonly BindableBool Active = new BindableBool();
 
-        protected override bool OnClick(InputState state)
+        protected override bool OnClick(ClickEvent e)
         {
-            base.OnClick(state);
+            base.OnClick(e);
             ActivationRequested?.Invoke(this);
             return true;
         }

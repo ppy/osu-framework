@@ -39,6 +39,10 @@ namespace osu.Framework.Graphics.Batches
 
             Size = bufferSize;
             this.maxBuffers = maxBuffers;
+
+            AddAction = Add;
+
+            GLWrapper.RegisterVertexBatch(this);
         }
 
         #region Disposal
@@ -73,6 +77,10 @@ namespace osu.Framework.Graphics.Batches
 
         protected abstract VertexBuffer<T> CreateVertexBuffer();
 
+        /// <summary>
+        /// Adds a vertex to this <see cref="VertexBatch{T}"/>.
+        /// </summary>
+        /// <param name="v">The vertex to add.</param>
         public void Add(T v)
         {
             GLWrapper.SetActiveBatch(this);
@@ -100,6 +108,12 @@ namespace osu.Framework.Graphics.Batches
                 lastVertex = currentVertex = 0;
             }
         }
+
+        /// <summary>
+        /// Adds a vertex to this <see cref="VertexBatch{T}"/>.
+        /// This is a cached delegate of <see cref="Add"/> that should be used in memory-critical locations such as <see cref="DrawNode"/>s.
+        /// </summary>
+        public readonly Action<T> AddAction;
 
         public int Draw()
         {

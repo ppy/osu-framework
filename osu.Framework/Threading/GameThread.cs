@@ -19,13 +19,19 @@ namespace osu.Framework.Threading
         public Thread Thread { get; }
         public Scheduler Scheduler { get; }
 
+        /// <summary>
+        /// Attach a handler to delegate responsibility for per-frame exceptions.
+        /// While attached, all exceptions will be caught and forwarded. Thread execution will continue indefinitely.
+        /// </summary>
+        public EventHandler<UnhandledExceptionEventArgs> UnhandledException;
+
         private readonly Action onNewFrame;
 
         private bool isActive = true;
 
         public bool IsActive
         {
-            get { return isActive; }
+            get => isActive;
             set
             {
                 isActive = value;
@@ -37,8 +43,7 @@ namespace osu.Framework.Threading
 
         public double ActiveHz
         {
-            get { return activeHz; }
-
+            get => activeHz;
             set
             {
                 activeHz = value;
@@ -51,8 +56,7 @@ namespace osu.Framework.Threading
 
         public double InactiveHz
         {
-            get { return inactiveHz; }
-
+            get => inactiveHz;
             set
             {
                 inactiveHz = value;
@@ -61,11 +65,9 @@ namespace osu.Framework.Threading
             }
         }
 
+        public static string PrefixedThreadNameFor(string name) => $"{nameof(GameThread)}.{name}";
+
         public bool Running => Thread.IsAlive;
-
-        public virtual void Exit() => exitRequested = true;
-
-        private volatile bool exitRequested;
 
         private readonly ManualResetEvent initializedEvent = new ManualResetEvent(false);
 
@@ -73,17 +75,22 @@ namespace osu.Framework.Threading
 
         internal virtual IEnumerable<StatisticsCounterType> StatisticsCounters => Array.Empty<StatisticsCounterType>();
 
-        public GameThread(Action onNewFrame, string threadName)
+        public readonly string Name;
+
+        internal GameThread(Action onNewFrame, string name, bool monitorPerformance = true)
         {
             this.onNewFrame = onNewFrame;
+
             Thread = new Thread(runWork)
             {
-                Name = threadName,
+                Name = PrefixedThreadNameFor(name),
                 IsBackground = true,
             };
 
+            Name = name;
             Clock = new ThrottledFrameClock();
-            Monitor = new PerformanceMonitor(Clock, Thread, StatisticsCounters);
+            if (monitorPerformance)
+                Monitor = new PerformanceMonitor(Clock, Thread, StatisticsCounters);
             Scheduler = new Scheduler(null, Clock);
         }
 
@@ -100,27 +107,58 @@ namespace osu.Framework.Threading
 
             initializedEvent.Set();
 
-            while (!exitRequested)
-                ProcessFrame();
+            while (!exitCompleted)
+            {
+                try
+                {
+                    ProcessFrame();
+                }
+                catch (Exception e)
+                {
+                    if (UnhandledException != null)
+                        UnhandledException.Invoke(this, new UnhandledExceptionEventArgs(e, false));
+                    else
+                        throw;
+                }
+            }
         }
 
         protected void ProcessFrame()
         {
-            Monitor.NewFrame();
+            if (exitCompleted)
+                return;
 
-            using (Monitor.BeginCollecting(PerformanceCollectionType.Scheduler))
+            if (exitRequested)
+            {
+                PerformExit();
+                exitCompleted = true;
+                return;
+            }
+
+            Monitor?.NewFrame();
+
+            using (Monitor?.BeginCollecting(PerformanceCollectionType.Scheduler))
                 Scheduler.Update();
 
-            using (Monitor.BeginCollecting(PerformanceCollectionType.Work))
+            using (Monitor?.BeginCollecting(PerformanceCollectionType.Work))
                 onNewFrame?.Invoke();
 
-            using (Monitor.BeginCollecting(PerformanceCollectionType.Sleep))
+            using (Monitor?.BeginCollecting(PerformanceCollectionType.Sleep))
                 Clock.ProcessFrame();
         }
 
-        public void Start()
+        private volatile bool exitRequested;
+        private volatile bool exitCompleted;
+
+        public bool Exited => exitCompleted;
+
+        public void Exit() => exitRequested = true;
+        public void Start() => Thread?.Start();
+
+        protected virtual void PerformExit()
         {
-            Thread?.Start();
+            Monitor?.Dispose();
+            initializedEvent?.Dispose();
         }
     }
 }

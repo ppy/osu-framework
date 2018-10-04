@@ -4,7 +4,7 @@
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
-using osu.Framework.Input;
+using osu.Framework.Input.Events;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -17,7 +17,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected Color4 BackgroundColour
         {
-            get { return backgroundColour; }
+            get => backgroundColour;
             set
             {
                 backgroundColour = value;
@@ -61,16 +61,16 @@ namespace osu.Framework.Graphics.UserInterface
             };
         }
 
-        protected override bool OnHover(InputState state)
+        protected override bool OnHover(HoverEvent e)
         {
             Background.Colour = BackgroundColourHover;
-            return base.OnHover(state);
+            return base.OnHover(e);
         }
 
-        protected override void OnHoverLost(InputState state)
+        protected override void OnHoverLost(HoverLostEvent e)
         {
             Background.Colour = BackgroundColour;
-            base.OnHoverLost(state);
+            base.OnHoverLost(e);
         }
     }
 }
