@@ -57,7 +57,9 @@ namespace osu.Framework.Graphics.Lines
             for (int i = 0; i < textureWidth; i++)
             {
                 float progress = (float)i / (textureWidth - 1);
-                raw[i, 0] = new Rgba32(1f, 1f, 1f, Math.Min(progress / aa_portion, 1));
+
+                var colour = ColourAt(progress);
+                raw[i, 0] = new Rgba32(colour.R, colour.G, colour.B, colour.A * Math.Min(progress / aa_portion, 1));
             }
 
             texture.SetData(new TextureUpload(raw));
