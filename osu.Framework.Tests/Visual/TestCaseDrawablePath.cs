@@ -18,7 +18,7 @@ namespace osu.Framework.Tests.Visual
     public class TestCaseDrawablePath : GridTestCase
     {
         public TestCaseDrawablePath()
-            : base(2, 2)
+            : base(3, 2)
         {
             const int width = 20;
             Texture gradientTexture = new Texture(width, 1, true);
@@ -35,7 +35,7 @@ namespace osu.Framework.Tests.Visual
             Cell(0).AddRange(new[]
             {
                 createLabel("Simple path"),
-                new Path
+                new TexturedPath
                 {
                     RelativeSizeAxes = Axes.Both,
                     Positions = new List<Vector2> { Vector2.One * 50, Vector2.One * 100 },
@@ -47,15 +47,15 @@ namespace osu.Framework.Tests.Visual
             Cell(1).AddRange(new[]
             {
                 createLabel("Curved path"),
-                new Path
+                new TexturedPath
                 {
                     RelativeSizeAxes = Axes.Both,
                     Positions = new List<Vector2>
                     {
                         new Vector2(50, 50),
-                        new Vector2(50, 250),
-                        new Vector2(250, 250),
-                        new Vector2(250, 50),
+                        new Vector2(50, 150),
+                        new Vector2(150, 150),
+                        new Vector2(150, 50),
                         new Vector2(50, 50),
                     },
                     Texture = gradientTexture,
@@ -66,16 +66,16 @@ namespace osu.Framework.Tests.Visual
             Cell(2).AddRange(new[]
             {
                 createLabel("Self-overlapping path"),
-                new Path
+                new TexturedPath
                 {
                     RelativeSizeAxes = Axes.Both,
                     Positions = new List<Vector2>
                     {
                         new Vector2(50, 50),
-                        new Vector2(50, 250),
-                        new Vector2(250, 250),
-                        new Vector2(250, 150),
-                        new Vector2(20, 150),
+                        new Vector2(50, 150),
+                        new Vector2(150, 150),
+                        new Vector2(150, 100),
+                        new Vector2(20, 100),
                     },
                     Texture = gradientTexture,
                     Colour = Color4.Red,
@@ -83,6 +83,38 @@ namespace osu.Framework.Tests.Visual
             });
 
             Cell(3).AddRange(new[]
+            {
+                createLabel("Smoothed path"),
+                new SmoothPath
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    PathWidth = 5,
+                    Positions = new List<Vector2>
+                    {
+                        new Vector2(50, 50),
+                        new Vector2(125, 100),
+                    },
+                    Colour = Color4.White,
+                }
+            });
+
+            Cell(4).AddRange(new[]
+            {
+                createLabel("un-smoothed path"),
+                new Path
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    PathWidth = 5,
+                    Positions = new List<Vector2>
+                    {
+                        new Vector2(50, 50),
+                        new Vector2(125, 100),
+                    },
+                    Colour = Color4.White,
+                }
+            });
+
+            Cell(5).AddRange(new[]
             {
                 createLabel("Draw something ;)"),
                 new UserDrawnPath
@@ -101,7 +133,7 @@ namespace osu.Framework.Tests.Visual
             Colour = Color4.White,
         };
 
-        private class UserDrawnPath : Path
+        private class UserDrawnPath : TexturedPath
         {
             private Vector2 oldPos;
 
