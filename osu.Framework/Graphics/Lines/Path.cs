@@ -42,7 +42,7 @@ namespace osu.Framework.Graphics.Lines
 
         private float pathWidth = 10f;
 
-        public float PathWidth
+        public virtual float PathWidth
         {
             get => pathWidth;
             set
@@ -142,6 +142,23 @@ namespace osu.Framework.Graphics.Lines
 
             segmentsCache.Validate();
             return segmentsBacking;
+        }
+
+        private Texture texture = Texture.WhitePixel;
+
+        protected Texture Texture
+        {
+            get => texture;
+            set
+            {
+                if (texture == value)
+                    return;
+
+                texture?.Dispose();
+                texture = value;
+
+                Invalidate(Invalidation.DrawNode);
+            }
         }
 
         private readonly PathDrawNodeSharedData pathDrawNodeSharedData = new PathDrawNodeSharedData();
