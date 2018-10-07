@@ -7,9 +7,9 @@ using System.Linq;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Input.States;
 using OpenTK;
 using OpenTK.Graphics;
+using osu.Framework.Input.Events;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -135,7 +135,7 @@ namespace osu.Framework.Graphics.UserInterface
             Header.Label = SelectedItem?.Text.Value;
         }
 
-        private void selectionChanged(T newSelection = default(T))
+        private void selectionChanged(T newSelection = default)
         {
             // refresh if SelectedItem and SelectedValue mismatched
             // null is not a valid value for Dictionary, so neither here
@@ -187,7 +187,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void updateHeaderVisibility() => Header.Alpha = Menu.AnyPresent ? 1 : 0;
 
-        protected override bool OnHover(InputState state) => true;
+        protected override bool OnHover(HoverEvent e) => true;
 
         /// <summary>
         /// Creates the menu body.
@@ -308,12 +308,12 @@ namespace osu.Framework.Graphics.UserInterface
 
                 protected override void UpdateBackgroundColour()
                 {
-                    Background.FadeColour(IsHovered ? BackgroundColourHover : (IsSelected ? BackgroundColourSelected : BackgroundColour));
+                    Background.FadeColour(IsHovered ? BackgroundColourHover : IsSelected ? BackgroundColourSelected : BackgroundColour);
                 }
 
                 protected override void UpdateForegroundColour()
                 {
-                    Foreground.FadeColour(IsHovered ? ForegroundColourHover : (IsSelected ? ForegroundColourSelected : ForegroundColour));
+                    Foreground.FadeColour(IsHovered ? ForegroundColourHover : IsSelected ? ForegroundColourSelected : ForegroundColour);
                 }
 
                 protected override void LoadComplete()

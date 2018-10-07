@@ -18,7 +18,7 @@ namespace osu.Framework.Tests.Visual
 
         public TestCaseDelayedUnload()
         {
-            FillFlowContainerNoInput flow;
+            FillFlowContainer<Container> flow;
             ScrollContainer scroll;
 
             Children = new Drawable[]
@@ -28,7 +28,7 @@ namespace osu.Framework.Tests.Visual
                     RelativeSizeAxes = Axes.Both,
                     Children = new Drawable[]
                     {
-                        flow = new FillFlowContainerNoInput
+                        flow = new FillFlowContainer<Container>
                         {
                             RelativeSizeAxes = Axes.X,
                             AutoSizeAxes = Axes.Y,
@@ -69,12 +69,6 @@ namespace osu.Framework.Tests.Visual
             AddAssert("not too many loaded", () => childrenWithAvatarsLoaded.Count() < panel_count / 4);
 
             AddUntilStep(() => childrenWithAvatarsLoaded.Count() < loadedCountSecondary, "wait some unloaded");
-        }
-
-        private class FillFlowContainerNoInput : FillFlowContainer<Container>
-        {
-            public override bool HandleKeyboardInput => false;
-            public override bool HandleMouseInput => false;
         }
 
         public class TestBox : Container

@@ -14,8 +14,25 @@ namespace osu.Framework.Graphics.Textures
         public TextureWithRefCount(TextureGL textureGl)
             : base(textureGl)
         {
-            TextureGL.Reference();
+            textureGl.Reference();
         }
+
+        internal int ReferenceCount => base.TextureGL.ReferenceCount;
+
+        public sealed override TextureGL TextureGL
+        {
+            get
+            {
+                var tex = base.TextureGL;
+                if (tex.ReferenceCount <= 0)
+                    throw new InvalidOperationException($"Attempting to access a {nameof(TextureWithRefCount)}'s underlying texture after all references are lost.");
+                return tex;
+            }
+        }
+
+        // Can't reference our own TextureGL here as an exception may be thrown
+        public sealed override bool Available => !isDisposed && !base.TextureGL.IsDisposed;
+        private bool isDisposed;
 
         #region Disposal
 
@@ -27,12 +44,13 @@ namespace osu.Framework.Graphics.Textures
 
         protected override void Dispose(bool isDisposing)
         {
-            if (IsDisposed)
-                throw new ObjectDisposedException($"{nameof(TextureWithRefCount)} should never be disposed more than once");
-
             base.Dispose(isDisposing);
 
-            TextureGL?.Dereference();
+            if (isDisposed)
+                return;
+            isDisposed = true;
+
+            base.TextureGL.Dereference();
             if (isDisposing) GC.SuppressFinalize(this);
         }
 

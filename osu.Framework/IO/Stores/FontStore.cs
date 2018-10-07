@@ -28,7 +28,7 @@ namespace osu.Framework.IO.Stores
             cachedTextureLookup = t => string.IsNullOrEmpty(t.Item1) ? Get(t.Item2.ToString()) : Get(t.Item1 + "/" + t.Item2);
         }
 
-        public override void AddStore(IResourceStore<RawTexture> store)
+        public override void AddStore(IResourceStore<TextureUpload> store)
         {
             if (store is GlyphStore gs)
             {
@@ -65,7 +65,7 @@ namespace osu.Framework.IO.Stores
             });
         }
 
-        public override void RemoveStore(IResourceStore<RawTexture> store)
+        public override void RemoveStore(IResourceStore<TextureUpload> store)
         {
             if (store is GlyphStore gs)
                 glyphStores.Remove(gs);

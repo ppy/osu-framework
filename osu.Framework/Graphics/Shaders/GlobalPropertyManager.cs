@@ -27,6 +27,7 @@ namespace osu.Framework.Graphics.Shaders
             global_properties[(int)GlobalProperty.BorderColour] = new UniformMapping<Vector4>("g_BorderColour");
             global_properties[(int)GlobalProperty.MaskingBlendRange] = new UniformMapping<float>("g_MaskingBlendRange");
             global_properties[(int)GlobalProperty.AlphaExponent] = new UniformMapping<float>("g_AlphaExponent");
+            global_properties[(int)GlobalProperty.EdgeOffset] = new UniformMapping<Vector2>("g_EdgeOffset");
             global_properties[(int)GlobalProperty.DiscardInner] = new UniformMapping<bool>("g_DiscardInner");
         }
 

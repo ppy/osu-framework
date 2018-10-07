@@ -10,6 +10,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime;
 using System.Runtime.ExceptionServices;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
@@ -26,7 +27,6 @@ using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Handlers;
-using osu.Framework.Localisation;
 using osu.Framework.Logging;
 using osu.Framework.Statistics;
 using osu.Framework.Threading;
@@ -36,7 +36,6 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
-using SixLabors.ImageSharp.Processing.Transforms;
 
 namespace osu.Framework.Platform
 {
@@ -49,8 +48,6 @@ namespace osu.Framework.Platform
         private FrameworkDebugConfigManager debugConfig;
 
         private FrameworkConfigManager config;
-
-        public LocalisationEngine Localisation { get; private set; }
 
         private void setActive(bool isActive)
         {
@@ -394,7 +391,7 @@ namespace osu.Framework.Platform
                 OpenTK.Graphics.OpenGL.GL.ReadPixels(0, 0, image.Width, image.Height,
                     OpenTK.Graphics.OpenGL.PixelFormat.Rgba,
                     OpenTK.Graphics.OpenGL.PixelType.UnsignedByte,
-                    ref image.DangerousGetPinnableReferenceToPixelBuffer());
+                    ref MemoryMarshal.GetReference(image.GetPixelSpan()));
 
                 complete = true;
             });
@@ -611,7 +608,6 @@ namespace osu.Framework.Platform
         {
             Dependencies.Cache(debugConfig = new FrameworkDebugConfigManager());
             Dependencies.Cache(config = new FrameworkConfigManager(Storage));
-            Dependencies.Cache(Localisation = new LocalisationEngine(config));
 
             activeGCMode = debugConfig.GetBindable<GCLatencyMode>(DebugSetting.ActiveGCMode);
             activeGCMode.ValueChanged += newMode => { GCSettings.LatencyMode = IsActive ? newMode : GCLatencyMode.Interactive; };

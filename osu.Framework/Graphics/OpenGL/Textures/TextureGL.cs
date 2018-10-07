@@ -8,6 +8,7 @@ using OpenTK.Graphics.ES30;
 using OpenTK;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Vertices;
+using osu.Framework.Graphics.Textures;
 
 namespace osu.Framework.Graphics.OpenGL.Textures
 {
@@ -23,13 +24,13 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             Dispose(false);
         }
 
-        private int refCount;
+        internal int ReferenceCount;
 
-        public void Reference() => Interlocked.Increment(ref refCount);
+        public void Reference() => Interlocked.Increment(ref ReferenceCount);
 
         public void Dereference()
         {
-            if (Interlocked.Decrement(ref refCount) == 0)
+            if (Interlocked.Decrement(ref ReferenceCount) == 0)
                 Dispose();
         }
 
@@ -87,6 +88,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// <returns>Whether pending data existed and an upload has been performed.</returns>
         internal abstract bool Upload();
 
-        public abstract void SetData(TextureUpload upload);
+        public abstract void SetData(ITextureUpload upload);
     }
 }

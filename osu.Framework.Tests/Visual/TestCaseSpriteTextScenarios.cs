@@ -1,11 +1,18 @@
 // Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
+using System.IO;
+using System.Threading.Tasks;
+using osu.Framework.Allocation;
+using osu.Framework.Configuration;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.IO.Stores;
+using osu.Framework.Localisation;
 using osu.Framework.Testing;
 using OpenTK;
 using OpenTK.Graphics;
@@ -16,7 +23,7 @@ namespace osu.Framework.Tests.Visual
     public class TestCaseSpriteTextScenarios : GridTestCase
     {
         public TestCaseSpriteTextScenarios()
-            : base(4, 4)
+            : base(4, 5)
         {
             Cell(0, 0).Child = new SpriteText { Text = "Basic: Hello world!" };
 
@@ -113,7 +120,7 @@ namespace osu.Framework.Tests.Visual
             {
                 Text = "Scale = -1",
                 Y = 20,
-                Scale =new Vector2(-1)
+                Scale = new Vector2(-1)
             };
 
             Cell(0, 3).Child = new Container
@@ -190,6 +197,102 @@ namespace osu.Framework.Tests.Visual
                     }
                 }
             };
+
+            Cell(0, 4).Child = new NoFixedWidthSpaceText { Text = "No fixed width spaces" };
+
+            Cell(1, 4).Child = new LocalisableTestContainer
+            {
+                RelativeSizeAxes = Axes.Both,
+                Child = new FillFlowContainer
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Direction = FillDirection.Vertical,
+                    Spacing = new Vector2(0, 10),
+                    Children = new[]
+                    {
+                        new SpriteText { Text = FakeStorage.LOCALISABLE_STRING_EN },
+                        new SpriteText { Text = new LocalisedString(FakeStorage.LOCALISABLE_STRING_EN) },
+                    }
+                }
+            };
+        }
+
+        private class NoFixedWidthSpaceText : SpriteText
+        {
+            public NoFixedWidthSpaceText()
+            {
+                FixedWidth = true;
+            }
+
+            protected override bool UseFixedWidthForCharacter(char c) => c != ' ';
+        }
+
+        private class LocalisableTestContainer : Container
+        {
+            [Cached]
+            private readonly LocalisationManager localisation;
+
+            public LocalisableTestContainer()
+            {
+                var config = new FakeFrameworkConfigManager();
+
+                localisation = new LocalisationManager(config);
+                localisation.AddLanguage("en", new FakeStorage("en"));
+                localisation.AddLanguage("ja", new FakeStorage("ja"));
+
+                config.Set(FrameworkSetting.Locale, "ja");
+            }
+        }
+
+        private class FakeFrameworkConfigManager : FrameworkConfigManager
+        {
+            protected override string Filename => null;
+
+            public FakeFrameworkConfigManager() : base(null) { }
+
+            protected override void InitialiseDefaults()
+            {
+                Set(FrameworkSetting.Locale, "ja");
+                Set(FrameworkSetting.ShowUnicode, false);
+            }
+        }
+
+        private class FakeStorage : IResourceStore<string>
+        {
+            public const string LOCALISABLE_STRING_EN = "localised EN";
+            public const string LOCALISABLE_STRING_JA = "localised JA";
+
+            private readonly string locale;
+
+            public FakeStorage(string locale)
+            {
+                this.locale = locale;
+            }
+
+            public async Task<string> GetAsync(string name) => await Task.Run(() => Get(name));
+
+            public string Get(string name)
+            {
+                switch (name)
+                {
+                    case LOCALISABLE_STRING_EN:
+                        switch (locale)
+                        {
+                            default:
+                                return LOCALISABLE_STRING_EN;
+                            case "ja":
+                                return LOCALISABLE_STRING_JA;
+                        }
+                    default:
+                        return name;
+                }
+            }
+
+            public Stream GetStream(string name) => throw new NotSupportedException();
+
+            public void Dispose()
+            {
+            }
         }
     }
 }

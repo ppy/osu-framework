@@ -3,16 +3,19 @@
 
 using Cyotek.Drawing.BitmapFont;
 using osu.Framework.Allocation;
-using osu.Framework.Graphics.Textures;
 using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using osu.Framework.Graphics.Textures;
 using osu.Framework.Logging;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Advanced;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.IO.Stores
 {
-    public class GlyphStore : IResourceStore<RawTexture>
+    public class GlyphStore : IResourceStore<TextureUpload>
     {
         private readonly string assetName;
 
@@ -24,7 +27,7 @@ namespace osu.Framework.IO.Stores
 
         protected BitmapFont Font => completionSource.Task.Result;
 
-        private readonly TimedExpiryCache<int, RawTexture> texturePages = new TimedExpiryCache<int, RawTexture>();
+        private readonly TimedExpiryCache<int, TextureUpload> texturePages = new TimedExpiryCache<int, TextureUpload>();
 
         private readonly TaskCompletionSource<BitmapFont> completionSource = new TaskCompletionSource<BitmapFont>();
 
@@ -66,7 +69,7 @@ namespace osu.Framework.IO.Stores
             return Font.BaseHeight;
         }
 
-        public RawTexture Get(string name)
+        public TextureUpload Get(string name)
         {
             if (name.Length > 1 && !name.StartsWith($@"{FontName}/", StringComparison.Ordinal))
                 return null;
@@ -77,7 +80,7 @@ namespace osu.Framework.IO.Stores
             return loadCharacter(c);
         }
 
-        public virtual async Task<RawTexture> GetAsync(string name)
+        public virtual async Task<TextureUpload> GetAsync(string name)
         {
             if (name.Length > 1 && !name.StartsWith($@"{FontName}/", StringComparison.Ordinal))
                 return null;
@@ -88,51 +91,42 @@ namespace osu.Framework.IO.Stores
             return loadCharacter(c);
         }
 
-        private RawTexture loadCharacter(Character c)
+        private TextureUpload loadCharacter(Character c)
         {
-            RawTexture page = getTexturePage(c.TexturePage);
+            var page = getTexturePage(c.TexturePage);
             loadedGlyphCount++;
 
             int width = c.Bounds.Width + c.Offset.X + 1;
             int height = c.Bounds.Height + c.Offset.Y + 1;
-            int length = width * height * 4;
-            byte[] pixels = new byte[length];
+
+            var image = new Image<Rgba32>(width, height);
+
+            var pixels = image.GetPixelSpan();
+            var span = page.Data;
 
             for (int y = 0; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
                 {
-                    int desti = y * width * 4 + x * 4;
-                    if (x >= c.Offset.X && y >= c.Offset.Y
-                                        && x - c.Offset.X < c.Bounds.Width && y - c.Offset.Y < c.Bounds.Height)
-                    {
-                        int srci = (c.Bounds.Y + y - c.Offset.Y) * page.Width * 4
-                                   + (c.Bounds.X + x - c.Offset.X) * 4;
-                        pixels[desti] = page.Data[srci];
-                        pixels[desti + 1] = page.Data[srci + 1];
-                        pixels[desti + 2] = page.Data[srci + 2];
-                        pixels[desti + 3] = page.Data[srci + 3];
-                    }
+                    int dest = y * width + x;
+
+                    if (x >= c.Offset.X && y >= c.Offset.Y && x - c.Offset.X < c.Bounds.Width && y - c.Offset.Y < c.Bounds.Height)
+                        pixels[dest] = span[(c.Bounds.Y + y - c.Offset.Y) * page.Width + (c.Bounds.X + x - c.Offset.X)];
                     else
-                    {
-                        pixels[desti] = 255;
-                        pixels[desti + 1] = 255;
-                        pixels[desti + 2] = 255;
-                        pixels[desti + 3] = 0;
-                    }
+                        pixels[dest] = new Rgba32(255, 255, 255, 0);
                 }
             }
 
-            return new RawTexture(width, height, pixels);
+            return new TextureUpload(image);
         }
 
-        private RawTexture getTexturePage(int texturePage)
+        private TextureUpload getTexturePage(int texturePage)
         {
-            if (!texturePages.TryGetValue(texturePage, out RawTexture t))
+            if (!texturePages.TryGetValue(texturePage, out TextureUpload t))
             {
                 loadedPageCount++;
                 using (var stream = store.GetStream($@"{assetName}_{texturePage.ToString().PadLeft((Font.Pages.Length - 1).ToString().Length, '0')}.png"))
-                    texturePages.Add(texturePage, t = new RawTexture(stream));
+                    texturePages.Add(texturePage, t = new TextureUpload(stream));
             }
 
             return t;
