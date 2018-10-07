@@ -202,9 +202,6 @@ namespace osu.Framework.Tests.Visual
         private class TooltipBox : Box, IHasTooltip
         {
             public string TooltipText { get; set; }
-
-            public override bool HandleKeyboardInput => true;
-            public override bool HandleMouseInput => true;
         }
 
         private class RectangleCursorContainer : CursorContainer

@@ -3,7 +3,6 @@
 
 using OpenTK;
 using OpenTK.Graphics;
-using OpenTK.Input;
 using osu.Framework.Allocation;
 using osu.Framework.Caching;
 using osu.Framework.Extensions.TypeExtensions;
@@ -26,10 +25,12 @@ using System.Reflection;
 using System.Threading;
 using osu.Framework.Configuration;
 using osu.Framework.Development;
-using osu.Framework.Input.EventArgs;
+using osu.Framework.Graphics.Cursor;
+using osu.Framework.Input.Bindings;
+using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
 using osu.Framework.MathUtils;
-using JoystickEventArgs = osu.Framework.Input.EventArgs.JoystickEventArgs;
+using OpenTK.Input;
 
 namespace osu.Framework.Graphics
 {
@@ -52,9 +53,6 @@ namespace osu.Framework.Graphics
         protected Drawable()
         {
             scheduler = new Lazy<Scheduler>(() => new Scheduler(MainThread, Clock));
-
-            handleKeyboardInput = HandleInputCache.HandleKeyboardInput(this);
-            handleMouseInput = HandleInputCache.HandleMouseInput(this);
         }
 
         ~Drawable()
@@ -94,8 +92,6 @@ namespace osu.Framework.Graphics
 
                 Parent = null;
 
-                scheduler = null;
-
                 OnUpdate = null;
                 OnInvalidate = null;
 
@@ -114,7 +110,7 @@ namespace osu.Framework.Graphics
         /// Whether this Drawable should be disposed when it is automatically removed from
         /// its <see cref="Parent"/> due to <see cref="ShouldBeAlive"/> being false.
         /// </summary>
-        public virtual bool DisposeOnDeathRemoval => false;
+        public virtual bool DisposeOnDeathRemoval => RemoveCompletedTransforms;
 
         private static readonly ConcurrentDictionary<Type, Action<object>> unbind_action_cache = new ConcurrentDictionary<Type, Action<object>>();
 
@@ -230,6 +226,12 @@ namespace osu.Framework.Graphics
             UpdateClock(clock);
 
             double t1 = getPerfTime();
+
+            RequestsNonPositionalInput = HandleInputCache.RequestsNonPositionalInput(this);
+            RequestsPositionalInput = HandleInputCache.RequestsPositionalInput(this);
+
+            RequestsNonPositionalInputSubTree = RequestsNonPositionalInput;
+            RequestsPositionalInputSubTree = RequestsPositionalInput;
 
             InjectDependencies(dependencies);
 
@@ -362,7 +364,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         internal event Action OnDispose;
 
-        private Lazy<Scheduler> scheduler;
+        private readonly Lazy<Scheduler> scheduler;
 
         internal Thread MainThread { get; private set; }
 
@@ -575,7 +577,7 @@ namespace osu.Framework.Graphics
                         offset.Y = 0;
                 }
 
-                return applyRelativeAxes(RelativePositionAxes, Position - offset, FillMode.Stretch);
+                return ApplyRelativeAxes(RelativePositionAxes, Position - offset, FillMode.Stretch);
             }
         }
 
@@ -703,7 +705,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Absolute size of this Drawable in the <see cref="Parent"/>'s coordinate system.
         /// </summary>
-        public Vector2 DrawSize => drawSizeBacking.IsValid ? drawSizeBacking : (drawSizeBacking.Value = applyRelativeAxes(RelativeSizeAxes, Size, FillMode));
+        public Vector2 DrawSize => drawSizeBacking.IsValid ? drawSizeBacking : drawSizeBacking.Value = ApplyRelativeAxes(RelativeSizeAxes, Size, FillMode);
 
         /// <summary>
         /// X component of <see cref="DrawSize"/>.
@@ -778,7 +780,7 @@ namespace osu.Framework.Graphics
         /// <param name="v">The coordinates to convert.</param>
         /// <param name="fillMode">The <see cref="FillMode"/> to be used.</param>
         /// <returns>Absolute coordinates in <see cref="Parent"/>'s space.</returns>
-        private Vector2 applyRelativeAxes(Axes relativeAxes, Vector2 v, FillMode fillMode)
+        protected Vector2 ApplyRelativeAxes(Axes relativeAxes, Vector2 v, FillMode fillMode)
         {
             if (relativeAxes != Axes.None)
             {
@@ -878,9 +880,14 @@ namespace osu.Framework.Graphics
 
                 if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(Scale)} must be finite, but is {value}.");
 
+                bool wasPresent = IsPresent;
+
                 scale = value;
 
-                Invalidate(Invalidation.MiscGeometry);
+                if (IsPresent != wasPresent)
+                    Invalidate(Invalidation.MiscGeometry | Invalidation.Presence);
+                else
+                    Invalidate(Invalidation.MiscGeometry);
             }
         }
 
@@ -1049,10 +1056,15 @@ namespace osu.Framework.Graphics
 
             set
             {
+                if (customOrigin == value && Origin == Anchor.Custom)
+                    return;
+
                 if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(OriginPosition)} must be finite, but is {value}.");
 
                 customOrigin = value;
                 Origin = Anchor.Custom;
+
+                Invalidate(Invalidation.MiscGeometry);
             }
         }
 
@@ -1114,10 +1126,15 @@ namespace osu.Framework.Graphics
 
             set
             {
+                if (customRelativeAnchorPosition == value && Anchor == Anchor.Custom)
+                    return;
+
                 if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(RelativeAnchorPosition)} must be finite, but is {value}.");
 
                 customRelativeAnchorPosition = value;
                 Anchor = Anchor.Custom;
+
+                Invalidate(Invalidation.MiscGeometry);
             }
         }
 
@@ -1187,11 +1204,17 @@ namespace osu.Framework.Graphics
             get => alpha;
             set
             {
-                if (alpha == value) return;
+                if (alpha == value)
+                    return;
 
-                Invalidate(Invalidation.Colour);
+                bool wasPresent = IsPresent;
 
                 alpha = value;
+
+                if (IsPresent != wasPresent)
+                    Invalidate(Invalidation.Colour | Invalidation.Presence);
+                else
+                    Invalidate(Invalidation.Colour);
             }
         }
 
@@ -1215,11 +1238,15 @@ namespace osu.Framework.Graphics
             get => alwaysPresent;
             set
             {
-                if (alwaysPresent == value) return;
+                if (alwaysPresent == value)
+                    return;
 
-                Invalidate(Invalidation.Colour);
+                bool wasPresent = IsPresent;
 
                 alwaysPresent = value;
+
+                if (IsPresent != wasPresent)
+                    Invalidate(Invalidation.Presence);
             }
         }
 
@@ -1236,8 +1263,8 @@ namespace osu.Framework.Graphics
             {
                 if (blending.Equals(value))
                     return;
-
                 blending = value;
+
                 Invalidate(Invalidation.Colour);
             }
         }
@@ -1356,7 +1383,7 @@ namespace osu.Framework.Graphics
                     throw new InvalidOperationException("May not add a drawable to multiple containers.");
 
                 parent = value;
-                Invalidate(InvalidationFromParentSize | Invalidation.Colour);
+                Invalidate(InvalidationFromParentSize | Invalidation.Colour | Invalidation.Presence);
 
                 if (parent != null)
                 {
@@ -1425,7 +1452,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// The screen-space quad this drawable occupies.
         /// </summary>
-        public virtual Quad ScreenSpaceDrawQuad => screenSpaceDrawQuadBacking.IsValid ? screenSpaceDrawQuadBacking : (screenSpaceDrawQuadBacking.Value = ComputeScreenSpaceDrawQuad());
+        public virtual Quad ScreenSpaceDrawQuad => screenSpaceDrawQuadBacking.IsValid ? screenSpaceDrawQuadBacking : screenSpaceDrawQuadBacking.Value = ComputeScreenSpaceDrawQuad();
 
         private Cached<DrawInfo> drawInfoBacking;
 
@@ -1435,12 +1462,35 @@ namespace osu.Framework.Graphics
 
             Vector2 pos = DrawPosition + AnchorPosition;
             Vector2 drawScale = DrawScale;
+
+            if (Parent != null)
+                pos += Parent.ChildOffset;
+
+            di.ApplyTransform(pos, drawScale, Rotation, Shear, OriginPosition);
+
+            return di;
+        }
+
+        /// <summary>
+        /// Contains the linear transformation of this <see cref="Drawable"/> that is used during draw.
+        /// </summary>
+        public virtual DrawInfo DrawInfo => drawInfoBacking.IsValid ? drawInfoBacking : drawInfoBacking.Value = computeDrawInfo();
+
+        private Cached<DrawColourInfo> drawColourInfoBacking;
+
+        /// <summary>
+        /// Contains the colour and blending information of this <see cref="Drawable"/> that are used during draw.
+        /// </summary>
+        public virtual DrawColourInfo DrawColourInfo => drawColourInfoBacking.IsValid? drawColourInfoBacking : drawColourInfoBacking.Value = computeDrawColourInfo();
+
+        private DrawColourInfo computeDrawColourInfo()
+        {
+            DrawColourInfo ci = Parent?.DrawColourInfo ?? new DrawColourInfo(null);
+
             BlendingParameters localBlending = Blending;
 
             if (Parent != null)
             {
-                pos += Parent.ChildOffset;
-
                 if (localBlending.Mode == BlendingMode.Inherit)
                     localBlending.Mode = Parent.Blending.Mode;
 
@@ -1451,23 +1501,20 @@ namespace osu.Framework.Graphics
                     localBlending.AlphaEquation = Parent.Blending.AlphaEquation;
             }
 
-            di.ApplyTransform(pos, drawScale, Rotation, Shear, OriginPosition);
-            di.Blending = new BlendingInfo(localBlending);
+            ci.Blending = new BlendingInfo(localBlending);
 
-            ColourInfo drawInfoColour = alpha != 1 ? colour.MultiplyAlpha(alpha) : colour;
+            ColourInfo ourColour = alpha != 1 ? colour.MultiplyAlpha(alpha) : colour;
 
-            // No need for a Parent null check here, because null parents always have
-            // a single colour (white).
-            if (di.Colour.HasSingleColour)
-                di.Colour.ApplyChild(drawInfoColour);
+            if (ci.Colour.HasSingleColour)
+                ci.Colour.ApplyChild(ourColour);
             else
             {
                 Debug.Assert(Parent != null,
-                    $"The {nameof(di)} of null parents should always have the single colour white, and therefore this branch should never be hit.");
+                    $"The {nameof(ci)} of null parents should always have the single colour white, and therefore this branch should never be hit.");
 
                 // Cannot use ToParentSpace here, because ToParentSpace depends on DrawInfo to be completed
                 // ReSharper disable once PossibleNullReferenceException
-                Quad interp = Quad.FromRectangle(DrawRectangle) * (di.Matrix * Parent.DrawInfo.MatrixInverse);
+                Quad interp = Quad.FromRectangle(DrawRectangle) * (DrawInfo.Matrix * Parent.DrawInfo.MatrixInverse);
                 Vector2 parentSize = Parent.DrawSize;
 
                 interp.TopLeft = Vector2.Divide(interp.TopLeft, parentSize);
@@ -1475,18 +1522,11 @@ namespace osu.Framework.Graphics
                 interp.BottomLeft = Vector2.Divide(interp.BottomLeft, parentSize);
                 interp.BottomRight = Vector2.Divide(interp.BottomRight, parentSize);
 
-                di.Colour.ApplyChild(drawInfoColour, interp);
+                ci.Colour.ApplyChild(ourColour, interp);
             }
 
-            return di;
+            return ci;
         }
-
-        /// <summary>
-        /// Contains a linear transformation, colour information, and blending information
-        /// of this drawable.
-        /// </summary>
-        public virtual DrawInfo DrawInfo => drawInfoBacking.IsValid ? drawInfoBacking : (drawInfoBacking.Value = computeDrawInfo());
-
 
         private Cached<Vector2> requiredParentSizeToFitBacking;
 
@@ -1532,7 +1572,7 @@ namespace osu.Framework.Graphics
         /// zero in that dimension; i.e. we no longer fit into the parent.
         /// This behavior is prominent with non-centre and non-custom <see cref="Anchor"/> values.
         /// </summary>
-        internal Vector2 RequiredParentSizeToFit => requiredParentSizeToFitBacking.IsValid ? requiredParentSizeToFitBacking : (requiredParentSizeToFitBacking.Value = computeRequiredParentSizeToFit());
+        internal Vector2 RequiredParentSizeToFit => requiredParentSizeToFitBacking.IsValid ? requiredParentSizeToFitBacking : requiredParentSizeToFitBacking.Value = computeRequiredParentSizeToFit();
 
 
         private static readonly AtomicCounter invalidation_counter = new AtomicCounter();
@@ -1554,12 +1594,20 @@ namespace osu.Framework.Graphics
                 return false;
 
             if (shallPropagate && Parent != null && source != Parent)
-                Parent.InvalidateFromChild(invalidation, this);
+            {
+                var parentInvalidation = invalidation;
+
+                // Colour doesn't affect parent's properties
+                parentInvalidation &= ~Invalidation.Colour;
+
+                if (parentInvalidation > 0)
+                    Parent.InvalidateFromChild(invalidation, this);
+            }
 
             bool alreadyInvalidated = true;
 
-            // Either ScreenSize OR ScreenPosition OR Colour
-            if ((invalidation & (Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.Colour)) > 0)
+            // Either ScreenSize OR ScreenPosition OR Presence
+            if ((invalidation & (Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.Presence)) > 0)
             {
                 if ((invalidation & Invalidation.RequiredParentSizeToFit) > 0)
                     alreadyInvalidated &= !requiredParentSizeToFitBacking.Invalidate();
@@ -1567,7 +1615,15 @@ namespace osu.Framework.Graphics
                 alreadyInvalidated &= !screenSpaceDrawQuadBacking.Invalidate();
                 alreadyInvalidated &= !drawInfoBacking.Invalidate();
                 alreadyInvalidated &= !drawSizeBacking.Invalidate();
+
+                // If we change size/position and have a non-singular colour, we need to invalidate the colour also,
+                // as we'll need to do some interpolation that's dependent on our draw info
+                if ((invalidation & Invalidation.Colour) == 0 && (!Colour.HasSingleColour || drawColourInfoBacking.IsValid && !drawColourInfoBacking.Value.Colour.HasSingleColour))
+                    invalidation |= Invalidation.Colour;
             }
+
+            if ((invalidation & Invalidation.Colour) > 0)
+                alreadyInvalidated &= !drawColourInfoBacking.Invalidate();
 
             if (!alreadyInvalidated || (invalidation & Invalidation.DrawNode) > 0)
                 invalidationID = invalidation_counter.Increment();
@@ -1628,6 +1684,7 @@ namespace osu.Framework.Graphics
         protected virtual void ApplyDrawNode(DrawNode node)
         {
             node.DrawInfo = DrawInfo;
+            node.DrawColourInfo = DrawColourInfo;
             node.InvalidationID = invalidationID;
         }
 
@@ -1728,266 +1785,139 @@ namespace osu.Framework.Graphics
         #region Interaction / Input
 
         /// <summary>
-        /// Triggers <see cref="OnHover(InputState)"/> with a local version of the given <see cref="InputState"/>.
+        /// Handle a UI event.
         /// </summary>
-        public bool TriggerOnHover(InputState screenSpaceState) => OnHover(createCloneInParentSpace(screenSpaceState));
-
-        /// <summary>
-        /// Triggered once when this Drawable becomes hovered.
-        /// </summary>
-        /// <param name="state">The state at which the Drawable becomes hovered.</param>
-        /// <returns>True if this Drawable would like to handle the hover. If so, then
-        /// no further Drawables up the scene graph will receive hovering events. If
-        /// false, however, then <see cref="OnHoverLost(InputState)"/> will still be
-        /// received once hover is lost.</returns>
-        protected virtual bool OnHover(InputState state) => false;
-
-        /// <summary>
-        /// Triggers <see cref="OnHoverLost(InputState)"/> with a local version of the given <see cref="InputState"/>.
-        /// </summary>
-        public void TriggerOnHoverLost(InputState screenSpaceState) => OnHoverLost(createCloneInParentSpace(screenSpaceState));
-
-        /// <summary>
-        /// Triggered whenever this drawable is no longer hovered.
-        /// </summary>
-        /// <param name="state">The state at which hover is lost.</param>
-        protected virtual void OnHoverLost(InputState state)
+        /// <param name="e">The event to be handled.</param>
+        /// <returns>If the event supports blocking, returning true will make the event to not propagating further.</returns>
+        protected virtual bool Handle(UIEvent e)
         {
+            // call an individual input handler
+            switch (e)
+            {
+                case MouseMoveEvent mouseMove:
+                    return OnMouseMove(mouseMove);
+                case HoverEvent hover:
+                    return OnHover(hover);
+                case HoverLostEvent hoverLost:
+                    OnHoverLost(hoverLost);
+                    return false;
+                case MouseDownEvent mouseDown:
+                    return OnMouseDown(mouseDown);
+                case MouseUpEvent mouseUp:
+                    return OnMouseUp(mouseUp);
+                case ClickEvent click:
+                    return OnClick(click);
+                case DoubleClickEvent doubleClick:
+                    return OnDoubleClick(doubleClick);
+                case DragStartEvent dragStart:
+                    return OnDragStart(dragStart);
+                case DragEvent drag:
+                    return OnDrag(drag);
+                case DragEndEvent dragEnd:
+                    return OnDragEnd(dragEnd);
+                case ScrollEvent scroll:
+                    return OnScroll(scroll);
+                case FocusEvent focus:
+                    OnFocus(focus);
+                    return false;
+                case FocusLostEvent focusLost:
+                    OnFocusLost(focusLost);
+                    return false;
+                case KeyDownEvent keyDown:
+                    return OnKeyDown(keyDown);
+                case KeyUpEvent keyUp:
+                    return OnKeyUp(keyUp);
+                case JoystickPressEvent joystickPress:
+                    return OnJoystickPress(joystickPress);
+                case JoystickReleaseEvent joystickRelease:
+                    return OnJoystickRelease(joystickRelease);
+                default:
+                    return false;
+            }
         }
 
         /// <summary>
-        /// Triggers <see cref="OnMouseDown(InputState, MouseDownEventArgs)"/> with a local version of the given <see cref="InputState"/>.
+        /// Trigger a UI event with <see cref="UIEvent.Target"/> set to this <see cref="Drawable"/>.
         /// </summary>
-        public bool TriggerOnMouseDown(InputState screenSpaceState = null, MouseDownEventArgs args = null) => OnMouseDown(createCloneInParentSpace(screenSpaceState), args);
-
-        /// <summary>
-        /// Triggered whenever a mouse button is pressed on top of this Drawable.
-        /// </summary>
-        /// <param name="state">The state after the press.</param>
-        /// <param name="args">Specific arguments for mouse down event.</param>
-        /// <returns>True if this Drawable handled the event. If false, then the event
-        /// is propagated up the scene graph to the next eligible Drawable.</returns>
-        protected virtual bool OnMouseDown(InputState state, MouseDownEventArgs args) => false;
-
-        /// <summary>
-        /// Triggers <see cref="OnMouseUp(InputState, MouseUpEventArgs)"/> with a local version of the given <see cref="InputState"/>.
-        /// </summary>
-        public bool TriggerOnMouseUp(InputState screenSpaceState = null, MouseUpEventArgs args = null) => OnMouseUp(createCloneInParentSpace(screenSpaceState), args);
-
-        /// <summary>
-        /// Triggered whenever a mouse button is released on top of this Drawable.
-        /// </summary>
-        /// <param name="state">The state after the release.</param>
-        /// <param name="args">Specific arguments for mouse up event.</param>
-        /// <returns>True if this Drawable handled the event. If false, then the event
-        /// is propagated up the scene graph to the next eligible Drawable.</returns>
-        protected virtual bool OnMouseUp(InputState state, MouseUpEventArgs args) => false;
-
-        /// <summary>
-        /// Triggers <see cref="OnClick(InputState)"/> with a local version of the given <see cref="InputState"/>.
-        /// </summary>
-        public bool TriggerOnClick(InputState screenSpaceState = null) => OnClick(createCloneInParentSpace(screenSpaceState));
-
-        /// <summary>
-        /// Triggered whenever a mouse click occurs on top of this Drawable.
-        /// </summary>
-        /// <param name="state">The state after the click.</param>
-        /// <returns>True if this Drawable handled the event. If false, then the event
-        /// is propagated up the scene graph to the next eligible Drawable.</returns>
-        protected virtual bool OnClick(InputState state) => false;
-
-        /// <summary>
-        /// Triggers <see cref="OnMouseDown(InputState, MouseDownEventArgs)"/> with a local version of the given <see cref="InputState"/>.
-        /// </summary>
-        public bool TriggerOnDoubleClick(InputState screenSpaceState) => OnDoubleClick(createCloneInParentSpace(screenSpaceState));
-
-        /// <summary>
-        /// Triggered whenever a mouse double click occurs on top of this Drawable.
-        /// </summary>
-        /// <param name="state">The state after the double click.</param>
-        /// <returns>True if this Drawable handled the event. If false, then the event
-        /// is propagated up the scene graph to the next eligible Drawable.</returns>
-        protected virtual bool OnDoubleClick(InputState state) => false;
-
-        /// <summary>
-        /// Triggers <see cref="OnDragStart(InputState)"/> with a local version of the given <see cref="InputState"/>.
-        /// </summary>
-        public bool TriggerOnDragStart(InputState screenSpaceState) => OnDragStart(createCloneInParentSpace(screenSpaceState));
-
-        /// <summary>
-        /// Triggered whenever this Drawable is initially dragged by a held mouse click
-        /// and subsequent movement.
-        /// </summary>
-        /// <param name="state">The state after the mouse was moved.</param>
-        /// <returns>True if this Drawable accepts being dragged. If so, then future
-        /// <see cref="OnDrag(InputState)"/> and <see cref="OnDragEnd(InputState)"/>
-        /// events will be received. Otherwise, the event is propagated up the scene
-        /// graph to the next eligible Drawable.</returns>
-        protected virtual bool OnDragStart(InputState state) => false;
-
-        /// <summary>
-        /// Triggers <see cref="OnDrag(InputState)"/> with a local version of the given <see cref="InputState"/>.
-        /// </summary>
-        public bool TriggerOnDrag(InputState screenSpaceState) => OnDrag(createCloneInParentSpace(screenSpaceState));
-
-        /// <summary>
-        /// Triggered whenever the mouse is moved while dragging.
-        /// Only is received if a drag was previously initiated by returning true
-        /// from <see cref="OnDragStart(InputState)"/>.
-        /// </summary>
-        /// <param name="state">The state after the mouse was moved.</param>
-        /// <returns>Currently unused.</returns>
-        protected virtual bool OnDrag(InputState state) => false;
-
-        /// <summary>
-        /// Triggers <see cref="OnDragEnd(InputState)"/> with a local version of the given <see cref="InputState"/>.
-        /// </summary>
-        public bool TriggerOnDragEnd(InputState screenSpaceState) => OnDragEnd(createCloneInParentSpace(screenSpaceState));
-
-        /// <summary>
-        /// Triggered whenever a drag ended. Only is received if a drag was previously
-        /// initiated by returning true from <see cref="OnDragStart(InputState)"/>.
-        /// </summary>
-        /// <param name="state">The state after the drag ended.</param>
-        /// <returns>Currently unused.</returns>
-        protected virtual bool OnDragEnd(InputState state) => false;
-
-        /// <summary>
-        /// Triggers <see cref="OnScroll(InputState)"/> with a local version of the given <see cref="InputState"/>.
-        /// </summary>
-        public bool TriggerOnScroll(InputState screenSpaceState) => OnScroll(createCloneInParentSpace(screenSpaceState));
-
-        /// <summary>
-        /// Triggered whenever the mouse scrolled over this Drawable.
-        /// </summary>
-        /// <param name="state">The state after scrolling happened.</param>
-        /// <returns>True if this Drawable handled the event. If false, then the event
-        /// is propagated up the scene graph to the next eligible Drawable.</returns>
-        protected virtual bool OnScroll(InputState state) => false;
-
-        /// <summary>
-        /// Triggers <see cref="OnFocus(InputState)"/> with a local version of the given <see cref="InputState"/>
-        /// </summary>
-        /// <param name="screenSpaceState">The input state.</param>
-        public void TriggerOnFocus(InputState screenSpaceState = null) => OnFocus(createCloneInParentSpace(screenSpaceState));
-
-        /// <summary>
-        /// Triggered whenever this Drawable gains focus.
-        /// Focused Drawables receive keyboard input before all other Drawables,
-        /// and thus handle it first.
-        /// </summary>
-        /// <param name="state">The state after focus when focus can be gained.</param>
-        protected virtual void OnFocus(InputState state)
+        /// <param name="e">The event. Its <see cref="UIEvent.Target"/> will be modified.</param>
+        /// <returns>The result of event handler.</returns>
+        public bool TriggerEvent(UIEvent e)
         {
+            e.Target = this;
+            return Handle(e);
         }
 
         /// <summary>
-        /// Triggers <see cref="OnFocusLost(InputState)"/> with a local version of the given <see cref="InputState"/>
+        /// Triggers a left click event for this <see cref="Drawable"/>.
         /// </summary>
-        /// <param name="screenSpaceState">The input state.</param>
-        public void TriggerOnFocusLost(InputState screenSpaceState = null) => OnFocusLost(createCloneInParentSpace(screenSpaceState));
+        /// <returns>Whether the click event is handled.</returns>
+        public bool Click() => TriggerEvent(new ClickEvent(GetContainingInputManager()?.CurrentState ?? new InputState(), MouseButton.Left));
+
+        #region Individual event handlers
+        protected virtual bool OnMouseMove(MouseMoveEvent e) => false;
+        protected virtual bool OnHover(HoverEvent e) => false;
+        protected virtual void OnHoverLost(HoverLostEvent e) {}
+        protected virtual bool OnMouseDown(MouseDownEvent e) => false;
+        protected virtual bool OnMouseUp(MouseUpEvent e) => false;
+        protected virtual bool OnClick(ClickEvent e) => false;
+        protected virtual bool OnDoubleClick(DoubleClickEvent e) => false;
+        protected virtual bool OnDragStart(DragStartEvent e) => false;
+        protected virtual bool OnDrag(DragEvent e) => false;
+        protected virtual bool OnDragEnd(DragEndEvent e) => false;
+        protected virtual bool OnScroll(ScrollEvent e) => false;
+        protected virtual void OnFocus(FocusEvent e) {}
+        protected virtual void OnFocusLost(FocusLostEvent e) {}
+        protected virtual bool OnKeyDown(KeyDownEvent e) => false;
+        protected virtual bool OnKeyUp(KeyUpEvent e) => false;
+        protected virtual bool OnJoystickPress(JoystickPressEvent e) => false;
+        protected virtual bool OnJoystickRelease(JoystickReleaseEvent e) => false;
+        #endregion
 
         /// <summary>
-        /// Triggered whenever this Drawable lost focus.
+        /// Whether this drawable should receive non-positional input. This does not mean that the drawable will immediately handle the received input, but that it may handle it at some point.
         /// </summary>
-        /// <param name="state">The state after focus was lost.</param>
-        protected virtual void OnFocusLost(InputState state)
-        {
-        }
+        internal bool RequestsNonPositionalInput { get; private set; }
 
         /// <summary>
-        /// Triggers <see cref="OnKeyDown(InputState, KeyDownEventArgs)"/> with a local version of the given <see cref="InputState"/>.
+        /// Whether this drawable should receive positional input. This does not mean that the drawable will immediately handle the received input, but that it may handle it at some point.
         /// </summary>
-        public bool TriggerOnKeyDown(InputState screenSpaceState, KeyDownEventArgs args) => OnKeyDown(createCloneInParentSpace(screenSpaceState), args);
+        internal bool RequestsPositionalInput { get; private set; }
 
         /// <summary>
-        /// Triggered whenever a key was pressed.
+        /// Conservatively approximates whether there is a descendant which <see cref="RequestsNonPositionalInput"/> in the sub-tree rooted at this drawable
+        /// to enable sub-tree skipping optimization for input handling.
         /// </summary>
-        /// <param name="state">The state after the key was pressed.</param>
-        /// <param name="args">Specific arguments for key down event.</param>
-        /// <returns>True if this Drawable handled the event. If false, then the event
-        /// is propagated up the scene graph to the next eligible Drawable.</returns>
-        protected virtual bool OnKeyDown(InputState state, KeyDownEventArgs args) => false;
+        internal bool RequestsNonPositionalInputSubTree;
 
         /// <summary>
-        /// Triggers <see cref="OnKeyUp(InputState, KeyUpEventArgs)"/> with a local version of the given <see cref="InputState"/>.
+        /// Conservatively approximates whether there is a descendant which <see cref="RequestsPositionalInput"/> in the sub-tree rooted at this drawable
+        /// to enable sub-tree skipping optimization for input handling.
         /// </summary>
-        public bool TriggerOnKeyUp(InputState screenSpaceState, KeyUpEventArgs args) => OnKeyUp(createCloneInParentSpace(screenSpaceState), args);
+        internal bool RequestsPositionalInputSubTree;
 
         /// <summary>
-        /// Triggered whenever a key was released.
+        /// Whether this <see cref="Drawable"/> handles non-positional input.
+        /// This value is true by default if <see cref="Handle"/> or any non-positional (e.g. keyboard related) "On-" input methods are overridden.
         /// </summary>
-        /// <param name="state">The state after the key was released.</param>
-        /// <param name="args">Specific arguments for key up event.</param>
-        /// <returns>True if this Drawable handled the event. If false, then the event
-        /// is propagated up the scene graph to the next eligible Drawable.</returns>
-        protected virtual bool OnKeyUp(InputState state, KeyUpEventArgs args) => false;
+        public virtual bool HandleNonPositionalInput => RequestsNonPositionalInput;
 
         /// <summary>
-        /// Triggers <see cref="OnJoystickPress(InputState, JoystickEventArgs)"/> with a local version of the given <see cref="InputState"/>.
+        /// Whether this <see cref="Drawable"/> handles positional input.
+        /// This value is true by default if <see cref="Handle"/> or any positional (i.e. mouse related) "On-" input methods are overridden.
         /// </summary>
-        public bool TriggerOnJoystickPress(InputState screenspaceState, JoystickEventArgs args) => OnJoystickPress(createCloneInParentSpace(screenspaceState), args);
+        public virtual bool HandlePositionalInput => RequestsPositionalInput;
 
         /// <summary>
-        /// Triggered whenever a joystick button was pressed.
-        /// </summary>
-        /// <param name="state">The state after the button was pressed.</param>
-        /// <param name="args">Specific arguments for the press event.</param>
-        /// <returns>True if this Drawable handled the event. If false, then the event
-        /// is propagated up the scene graph to the next eligible Drawable.</returns>
-        protected virtual bool OnJoystickPress(InputState state, JoystickEventArgs args) => false;
-
-        /// <summary>
-        /// Triggers <see cref="OnJoystickRelease(InputState, JoystickEventArgs)"/> with a local version of the given <see cref="InputState"/>.
-        /// </summary>
-        public bool TriggerOnJoystickRelease(InputState screenSpaceState, JoystickEventArgs args) => OnJoystickRelease(createCloneInParentSpace(screenSpaceState), args);
-
-        /// <summary>
-        /// Triggered whenever a joystick button was released.
-        /// </summary>
-        /// <param name="state">The state after the button was released.</param>
-        /// <param name="args">Specific arguments for the release event.</param>
-        /// <returns>True if this Drawable handled the event. If false, then the event
-        /// is propagated up the scene graph to the next eligible Drawable.</returns>
-        protected virtual bool OnJoystickRelease(InputState state, JoystickEventArgs args) => false;
-
-        /// <summary>
-        /// Triggers <see cref="OnMouseMove(InputState)"/> with a local version of the given <see cref="InputState"/>.
-        /// </summary>
-        public bool TriggerOnMouseMove(InputState screenSpaceState) => OnMouseMove(createCloneInParentSpace(screenSpaceState));
-
-        /// <summary>
-        /// Triggered whenever the mouse moved over this Drawable.
-        /// </summary>
-        /// <param name="state">The state after the mouse moved.</param>
-        /// <returns>True if this Drawable handled the event. If false, then the event
-        /// is propagated up the scene graph to the next eligible Drawable.</returns>
-        protected virtual bool OnMouseMove(InputState state) => false;
-
-        private readonly bool handleKeyboardInput, handleMouseInput;
-
-        /// <summary>
-        /// Whether this <see cref="Drawable"/> handles keyboard input.
-        /// This value is true by default if any keyboard related "On-" input methods are overridden.
-        /// </summary>
-        public virtual bool HandleKeyboardInput => handleKeyboardInput;
-
-        /// <summary>
-        /// Whether this <see cref="Drawable"/> handles mouse input.
-        /// This value is true by default if any mouse related "On-" input methods are overridden.
-        /// </summary>
-        public virtual bool HandleMouseInput => handleMouseInput;
-
-        /// <summary>
-        /// Nested class which is used for caching <see cref="HandleKeyboardInput"/>, <see cref="HandleMouseInput"/> values obtained via reflection.
+        /// Nested class which is used for caching <see cref="Drawable.HandleNonPositionalInput"/>, <see cref="Drawable.HandlePositionalInput"/> values obtained via reflection.
         /// </summary>
         private static class HandleInputCache
         {
-            private static readonly ConcurrentDictionary<Type, bool> mouse_cached_values = new ConcurrentDictionary<Type, bool>();
-            private static readonly ConcurrentDictionary<Type, bool> keyboard_cached_values = new ConcurrentDictionary<Type, bool>();
+            private static readonly ConcurrentDictionary<Type, bool> positional_cached_values = new ConcurrentDictionary<Type, bool>();
+            private static readonly ConcurrentDictionary<Type, bool> non_positional_cached_values = new ConcurrentDictionary<Type, bool>();
 
-            private static readonly string[] mouse_input_methods =
+            private static readonly string[] positional_input_methods =
             {
+                nameof(Handle),
                 nameof(OnHover),
                 nameof(OnHoverLost),
                 nameof(OnMouseDown),
@@ -2003,8 +1933,9 @@ namespace osu.Framework.Graphics
                 nameof(OnMouseMove)
             };
 
-            private static readonly string[] keyboard_input_methods =
+            private static readonly string[] non_positional_input_methods =
             {
+                nameof(Handle),
                 nameof(OnFocus),
                 nameof(OnFocusLost),
                 nameof(OnKeyDown),
@@ -2013,16 +1944,34 @@ namespace osu.Framework.Graphics
                 nameof(OnJoystickRelease)
             };
 
-            public static bool HandleKeyboardInput(Drawable drawable) => get(drawable, keyboard_cached_values, keyboard_input_methods);
+            private static readonly Type[] positional_input_interfaces =
+            {
+                typeof(IHasTooltip),
+            };
 
-            public static bool HandleMouseInput(Drawable drawable) => get(drawable, mouse_cached_values, mouse_input_methods);
+            private static readonly Type[] non_positional_input_interfaces =
+            {
+                typeof(IKeyBindingHandler),
+            };
 
-            private static bool get(Drawable drawable, ConcurrentDictionary<Type, bool> cache, string[] inputMethods)
+            public static bool RequestsNonPositionalInput(Drawable drawable) => get(drawable, non_positional_cached_values, false);
+
+            public static bool RequestsPositionalInput(Drawable drawable) => get(drawable, positional_cached_values, true);
+
+            private static bool get(Drawable drawable, ConcurrentDictionary<Type, bool> cache, bool positional)
             {
                 var type = drawable.GetType();
-                if (cache.TryGetValue(type, out var value))
-                    return value;
+                if (!cache.TryGetValue(type, out var value))
+                {
+                    value = compute(type, positional);
+                    cache.TryAdd(type, value);
+                }
+                return value;
+            }
 
+            private static bool compute(Type type, bool positional)
+            {
+                var inputMethods = positional ? positional_input_methods : non_positional_input_methods;
                 foreach (var inputMethod in inputMethods)
                 {
                     // check for any input method overrides which are at a higher level than drawable.
@@ -2030,15 +1979,25 @@ namespace osu.Framework.Graphics
 
                     Debug.Assert(method != null);
 
-                    // ReSharper disable once PossibleNullReferenceException
                     if (method.DeclaringType != typeof(Drawable))
-                    {
-                        cache.TryAdd(type, true);
                         return true;
-                    }
                 }
 
-                cache.TryAdd(type, false);
+                var inputInterfaces = positional ? positional_input_interfaces : non_positional_input_interfaces;
+                foreach (var inputInterface in inputInterfaces)
+                {
+                    // check if this type implements any interface which requires a drawable to handle input.
+                    if (inputInterface.IsAssignableFrom(type))
+                        return true;
+                }
+
+                // check if HandlePositionalInput/HandleNonPositionalInput is overridden to manually specify that this type handles input.
+                var handleInputPropertyName = positional ? nameof(HandlePositionalInput) : nameof(HandleNonPositionalInput);
+                var property = type.GetProperty(handleInputPropertyName);
+                Debug.Assert(property != null);
+                if (property.DeclaringType != typeof(Drawable))
+                    return true;
+
                 return false;
             }
         }
@@ -2051,16 +2010,18 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// If true, we are eagerly requesting focus. If nothing else above us has (or is requesting focus) we will get it.
         /// </summary>
+        /// <remarks>In order to get focused, <see cref="HandleNonPositionalInput"/> must be true.</remarks>
         public virtual bool RequestsFocus => false;
 
         /// <summary>
-        /// If true, we will gain focus (receiving priority on keybaord input) (and receive an <see cref="OnFocus"/> event) on returning true in <see cref="OnClick(InputState)"/>.
+        /// If true, we will gain focus (receiving priority on keybaord input) (and receive an <see cref="OnFocus"/> event) on returning true in <see cref="OnClick"/>.
         /// </summary>
         public virtual bool AcceptsFocus => false;
 
         /// <summary>
         /// Whether this Drawable is currently hovered over.
         /// </summary>
+        /// <remarks>This is updated only if <see cref="HandlePositionalInput"/> is true.</remarks>
         public bool IsHovered { get; internal set; }
 
         /// <summary>
@@ -2069,12 +2030,12 @@ namespace osu.Framework.Graphics
         public bool IsDragged { get; internal set; }
 
         /// <summary>
-        /// Determines whether this drawable receives mouse input when the mouse is at the
+        /// Determines whether this drawable receives positional input when the mouse is at the
         /// given screen-space position.
         /// </summary>
         /// <param name="screenSpacePos">The screen-space position where input could be received.</param>
         /// <returns>True iff input is received at the given screen-space position.</returns>
-        public virtual bool ReceiveMouseInputAt(Vector2 screenSpacePos) => Contains(screenSpacePos);
+        public virtual bool ReceivePositionalInputAt(Vector2 screenSpacePos) => Contains(screenSpacePos);
 
         /// <summary>
         /// Computes whether a given screen-space position is contained within this drawable.
@@ -2085,143 +2046,47 @@ namespace osu.Framework.Graphics
         public virtual bool Contains(Vector2 screenSpacePos) => DrawRectangle.Contains(ToLocalSpace(screenSpacePos));
 
         /// <summary>
-        /// Whether this Drawable can keyboard receive input, taking into account all optimizations and masking.
+        /// Whether non-positional input should be propagated to the sub-tree rooted at this drawable.
         /// </summary>
-        public bool CanReceiveKeyboardInput => HandleKeyboardInput && IsPresent && !IsMaskedAway;
+        public virtual bool PropagateNonPositionalInputSubTree => IsPresent && RequestsNonPositionalInputSubTree;
 
         /// <summary>
-        /// Whether this Drawable can mouse receive input, taking into account all optimizations and masking.
+        /// Whether positional input should be propagated to the sub-tree rooted at this drawable.
         /// </summary>
-        public bool CanReceiveMouseInput => HandleMouseInput && IsPresent && !IsMaskedAway;
+        public virtual bool PropagatePositionalInputSubTree => IsPresent && RequestsPositionalInputSubTree && !IsMaskedAway;
 
         /// <summary>
-        /// Creates a new InputState with mouse coodinates converted to the coordinate space of our parent.
-        /// </summary>
-        /// <param name="screenSpaceState">The screen-space input state to be cloned and transformed.</param>
-        /// <returns>The cloned and transformed state.</returns>
-        private InputState createCloneInParentSpace(InputState screenSpaceState)
-        {
-            if (screenSpaceState == null) return null;
-
-            var clone = screenSpaceState.Clone();
-            clone.Mouse = new LocalMouseState(screenSpaceState.Mouse.NativeState, this);
-            return clone;
-        }
-
-        /// <summary>
-        /// This method is responsible for building a queue of Drawables to receive keyboard input
-        /// in reverse order. This method is overridden by <see cref="T:Container"/> to be called on all
-        /// children such that the entire scene graph is covered.
+        /// This method is responsible for building a queue of Drawables to receive non-positional input in reverse order.
         /// </summary>
         /// <param name="queue">The input queue to be built.</param>
         /// <param name="allowBlocking">Whether blocking at <see cref="PassThroughInputManager"/>s should be allowed.</param>
-        /// <returns>Whether we have added ourself to the queue.</returns>
-        internal virtual bool BuildKeyboardInputQueue(List<Drawable> queue, bool allowBlocking = true)
+        /// <returns>Returns false if we should skip this sub-tree.</returns>
+        internal virtual bool BuildNonPositionalInputQueue(List<Drawable> queue, bool allowBlocking = true)
         {
-            if (!CanReceiveKeyboardInput)
+            if (!PropagateNonPositionalInputSubTree)
                 return false;
 
-            queue.Add(this);
+            if (HandleNonPositionalInput)
+                queue.Add(this);
+
             return true;
         }
 
         /// <summary>
-        /// This method is responsible for building a queue of Drawables to receive mouse input
-        /// in reverse order. This method is overridden by <see cref="T:Container"/> to be called on all
-        /// children such that the entire scene graph is covered.
+        /// This method is responsible for building a queue of Drawables to receive positional input in reverse order.
         /// </summary>
-        /// <param name="screenSpaceMousePos">The current position of the mouse cursor in screen space.</param>
+        /// <param name="screenSpacePos">The screen space position of the positional input.</param>
         /// <param name="queue">The input queue to be built.</param>
-        /// <returns>Whether we have added ourself to the queue.</returns>
-        internal virtual bool BuildMouseInputQueue(Vector2 screenSpaceMousePos, List<Drawable> queue)
+        /// <returns>Returns false if we should skip this sub-tree.</returns>
+        internal virtual bool BuildPositionalInputQueue(Vector2 screenSpacePos, List<Drawable> queue)
         {
-            if (!CanReceiveMouseInput || !ReceiveMouseInputAt(screenSpaceMousePos))
+            if (!PropagatePositionalInputSubTree)
                 return false;
 
-            queue.Add(this);
+            if (HandlePositionalInput && ReceivePositionalInputAt(screenSpacePos))
+                queue.Add(this);
+
             return true;
-        }
-
-        private struct LocalMouseState : IMouseState
-        {
-            public IMouseState NativeState { get; private set; }
-
-            private readonly Drawable us;
-
-            public LocalMouseState(IMouseState state, Drawable us)
-            {
-                NativeState = state;
-                this.us = us;
-            }
-
-            public Vector2 Delta => Position - LastPosition;
-
-            public Vector2 Position
-            {
-                get => us.Parent?.ToLocalSpace(NativeState.Position) ?? NativeState.Position;
-                set => throw new NotImplementedException();
-            }
-
-            public bool IsPositionValid
-            {
-                get => NativeState.IsPositionValid;
-                set => throw new NotImplementedException();
-            }
-
-            public Vector2 LastPosition
-            {
-                get => us.Parent?.ToLocalSpace(NativeState.LastPosition) ?? NativeState.LastPosition;
-                set => throw new NotImplementedException();
-            }
-
-            public Vector2? PositionMouseDown
-            {
-                get => NativeState.PositionMouseDown == null ? null : us.Parent?.ToLocalSpace(NativeState.PositionMouseDown.Value) ?? NativeState.PositionMouseDown;
-                set => throw new NotImplementedException();
-            }
-
-            public Vector2 Scroll
-            {
-                get => NativeState.Scroll;
-                set => throw new NotSupportedException();
-            }
-
-            public Vector2 LastScroll
-            {
-                get => NativeState.LastScroll;
-                set => throw new NotSupportedException();
-            }
-
-            public Vector2 ScrollDelta => NativeState.ScrollDelta;
-
-            public bool HasPreciseScroll
-            {
-                get => NativeState.HasPreciseScroll;
-                set => NativeState.HasPreciseScroll = value;
-            }
-
-            public ButtonStates<MouseButton> Buttons => NativeState.Buttons;
-
-            public bool HasMainButtonPressed => NativeState.HasMainButtonPressed;
-
-            public bool HasAnyButtonPressed => NativeState.HasAnyButtonPressed;
-
-            public IMouseState Clone()
-            {
-                var cloned = (LocalMouseState)MemberwiseClone();
-                cloned.NativeState = NativeState.Clone();
-                return cloned;
-            }
-
-            public bool IsPressed(MouseButton button)
-            {
-                return NativeState.IsPressed(button);
-            }
-
-            public void SetPressed(MouseButton button, bool pressed)
-            {
-                NativeState.SetPressed(button, pressed);
-            }
         }
 
         #endregion
@@ -2295,12 +2160,9 @@ namespace osu.Framework.Graphics
             string shortClass = GetType().ReadableName();
 
             if (!string.IsNullOrEmpty(Name))
-                shortClass = $@"{Name} ({shortClass})";
-
-            if (parent == null)
+                return $@"{Name} ({shortClass})";
+            else
                 return shortClass;
-
-            return $@"{shortClass} ({DrawPosition.X:#,0},{DrawPosition.Y:#,0}) {DrawSize.X:#,0}x{DrawSize.Y:#,0}";
         }
     }
 
@@ -2328,7 +2190,7 @@ namespace osu.Framework.Graphics
         MiscGeometry = 1 << 2,
 
         /// <summary>
-        /// <see cref="Drawable.Colour"/> or <see cref="Drawable.IsPresent"/> has changed.
+        /// <see cref="Drawable.Colour"/> has changed.
         /// </summary>
         Colour = 1 << 3,
 
@@ -2336,6 +2198,11 @@ namespace osu.Framework.Graphics
         /// <see cref="Drawable.ApplyDrawNode(Graphics.DrawNode)"/> has to be invoked on all old draw nodes.
         /// </summary>
         DrawNode = 1 << 4,
+
+        /// <summary>
+        /// <see cref="Drawable.IsPresent"/> has changed.
+        /// </summary>
+        Presence = 1 << 5,
 
         /// <summary>
         /// No invalidation.
@@ -2350,7 +2217,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// All possible things are affected.
         /// </summary>
-        All = DrawNode | RequiredParentSizeToFit | Colour | DrawInfo,
+        All = DrawNode | RequiredParentSizeToFit | Colour | DrawInfo | Presence,
     }
 
     /// <summary>

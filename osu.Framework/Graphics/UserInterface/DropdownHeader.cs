@@ -6,8 +6,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
-using osu.Framework.Input.EventArgs;
-using osu.Framework.Input.States;
+using osu.Framework.Input.Events;
 using OpenTK.Graphics;
 using OpenTK.Input;
 
@@ -68,32 +67,37 @@ namespace osu.Framework.Graphics.UserInterface
             };
         }
 
-        protected override bool OnHover(InputState state)
+        protected override bool OnHover(HoverEvent e)
         {
             Background.Colour = BackgroundColourHover;
-            return base.OnHover(state);
+            return base.OnHover(e);
         }
 
-        protected override void OnHoverLost(InputState state)
+        protected override void OnHoverLost(HoverLostEvent e)
         {
             Background.Colour = BackgroundColour;
-            base.OnHoverLost(state);
+            base.OnHoverLost(e);
         }
 
-        public override bool HandleKeyboardInput => IsHovered;
+        public override bool HandleNonPositionalInput => IsHovered;
 
-        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
+        protected override bool Handle(UIEvent e)
         {
-            switch (args.Key)
+            switch (e)
             {
-                case Key.Up:
-                    ChangeSelection?.Invoke(SelectionChange.Previous);
-                    return true;
-                case Key.Down:
-                    ChangeSelection?.Invoke(SelectionChange.Next);
-                    return true;
-                default:
-                    return base.OnKeyDown(state, args);
+                case KeyDownEvent keyDown:
+                    switch (keyDown.Key)
+                    {
+                        case Key.Up:
+                            ChangeSelection?.Invoke(SelectionChange.Previous);
+                            return true;
+                        case Key.Down:
+                            ChangeSelection?.Invoke(SelectionChange.Next);
+                            return true;
+                        default:
+                            return base.Handle(e);
+                    }
+                default: return base.Handle(e);
             }
         }
 

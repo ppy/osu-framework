@@ -1,13 +1,13 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System.Linq;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
-using osu.Framework.Input.EventArgs;
-using osu.Framework.Input.States;
+using osu.Framework.Input.Events;
 using osu.Framework.Testing;
 using OpenTK;
 using OpenTK.Graphics;
@@ -83,19 +83,19 @@ namespace osu.Framework.Tests.Visual
                 };
             }
 
-            protected override bool OnJoystickPress(InputState state, JoystickEventArgs args)
+            protected override bool OnJoystickPress(JoystickPressEvent e)
             {
-                if (args.Button != button)
-                    return base.OnJoystickPress(state, args);
+                if (e.Button != button)
+                    return base.OnJoystickPress(e);
 
                 background.FadeIn(100, Easing.OutQuint);
                 return true;
             }
 
-            protected override bool OnJoystickRelease(InputState state, JoystickEventArgs args)
+            protected override bool OnJoystickRelease(JoystickReleaseEvent e)
             {
-                if (args.Button != button)
-                    return base.OnJoystickRelease(state, args);
+                if (e.Button != button)
+                    return base.OnJoystickRelease(e);
 
                 background.FadeOut(100);
                 return true;
@@ -164,34 +164,34 @@ namespace osu.Framework.Tests.Visual
                 };
             }
 
-            protected override bool OnJoystickPress(InputState state, JoystickEventArgs args)
+            protected override bool OnJoystickPress(JoystickPressEvent e)
             {
-                if (args.Button == JoystickButton.FirstHatUp + hatIndex)
+                if (e.Button == JoystickButton.FirstHatUp + hatIndex)
                     upBox.FadeIn(100, Easing.OutQuint);
-                else if (args.Button == JoystickButton.FirstHatDown + hatIndex)
+                else if (e.Button == JoystickButton.FirstHatDown + hatIndex)
                     downBox.FadeIn(100, Easing.OutQuint);
-                else if (args.Button == JoystickButton.FirstHatLeft + hatIndex)
+                else if (e.Button == JoystickButton.FirstHatLeft + hatIndex)
                     leftBox.FadeIn(100, Easing.OutQuint);
-                else if (args.Button == JoystickButton.FirstHatRight + hatIndex)
+                else if (e.Button == JoystickButton.FirstHatRight + hatIndex)
                     rightBox.FadeIn(100, Easing.OutQuint);
                 else
-                    return base.OnJoystickPress(state, args);
+                    return base.OnJoystickPress(e);
 
                 return true;
             }
 
-            protected override bool OnJoystickRelease(InputState state, JoystickEventArgs args)
+            protected override bool OnJoystickRelease(JoystickReleaseEvent e)
             {
-                if (args.Button == JoystickButton.FirstHatUp + hatIndex)
+                if (e.Button == JoystickButton.FirstHatUp + hatIndex)
                     upBox.FadeOut(100);
-                else if (args.Button == JoystickButton.FirstHatDown + hatIndex)
+                else if (e.Button == JoystickButton.FirstHatDown + hatIndex)
                     downBox.FadeOut(100);
-                else if (args.Button == JoystickButton.FirstHatLeft + hatIndex)
+                else if (e.Button == JoystickButton.FirstHatLeft + hatIndex)
                     leftBox.FadeOut(100);
-                else if (args.Button == JoystickButton.FirstHatRight + hatIndex)
+                else if (e.Button == JoystickButton.FirstHatRight + hatIndex)
                     rightBox.FadeOut(100);
                 else
-                    return base.OnJoystickRelease(state, args);
+                    return base.OnJoystickRelease(e);
 
                 return true;
             }
@@ -242,26 +242,26 @@ namespace osu.Framework.Tests.Visual
                 base.Update();
 
                 var joy = GetContainingInputManager().CurrentState.Joystick;
-                rawValue.Text = joy.AxisValue(axisIndex).ToString("0.00");
+                rawValue.Text = joy.Axes.FirstOrDefault(a => a.Axis == axisIndex).Value.ToString("0.00");
             }
 
-            protected override bool OnJoystickPress(InputState state, JoystickEventArgs args)
+            protected override bool OnJoystickPress(JoystickPressEvent e)
             {
-                if (args.Button == positiveAxisButton)
+                if (e.Button == positiveAxisButton)
                     background.FadeColour(Color4.DarkGreen, 100, Easing.OutQuint);
-                else if (args.Button == negativeAxisButton)
+                else if (e.Button == negativeAxisButton)
                     background.FadeColour(Color4.DarkRed, 100, Easing.OutQuint);
                 else
-                    return base.OnJoystickPress(state, args);
+                    return base.OnJoystickPress(e);
                 return true;
             }
 
-            protected override bool OnJoystickRelease(InputState state, JoystickEventArgs args)
+            protected override bool OnJoystickRelease(JoystickReleaseEvent e)
             {
-                if (args.Button == positiveAxisButton || args.Button == negativeAxisButton)
+                if (e.Button == positiveAxisButton || e.Button == negativeAxisButton)
                     background.FadeColour(new Color4(0, 0, 0, 0), 100, Easing.OutQuint);
                 else
-                    return base.OnJoystickRelease(state, args);
+                    return base.OnJoystickRelease(e);
                 return true;
             }
         }

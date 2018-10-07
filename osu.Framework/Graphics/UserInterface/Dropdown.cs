@@ -9,8 +9,7 @@ using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
-using osu.Framework.Input.EventArgs;
-using osu.Framework.Input.States;
+using osu.Framework.Input.Events;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Input;
@@ -178,7 +177,7 @@ namespace osu.Framework.Graphics.UserInterface
             Header.Label = SelectedItem?.Text.Value;
         }
 
-        private void selectionChanged(T newSelection = default(T))
+        private void selectionChanged(T newSelection = default)
         {
             // refresh if SelectedItem and SelectedValue mismatched
             // null is not a valid value for Dictionary, so neither here
@@ -230,7 +229,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void updateHeaderVisibility() => Header.Alpha = Menu.AnyPresent ? 1 : 0;
 
-        protected override bool OnHover(InputState state) => true;
+        protected override bool OnHover(HoverEvent e) => true;
 
         /// <summary>
         /// Creates the menu body.
@@ -386,12 +385,12 @@ namespace osu.Framework.Graphics.UserInterface
 
                 protected override void UpdateBackgroundColour()
                 {
-                    Background.FadeColour(IsHovered ? BackgroundColourHover : (IsSelected ? BackgroundColourSelected : BackgroundColour));
+                    Background.FadeColour(IsHovered ? BackgroundColourHover : IsSelected ? BackgroundColourSelected : BackgroundColour);
                 }
 
                 protected override void UpdateForegroundColour()
                 {
-                    Foreground.FadeColour(IsHovered ? ForegroundColourHover : (IsSelected ? ForegroundColourSelected : ForegroundColour));
+                    Foreground.FadeColour(IsHovered ? ForegroundColourHover : IsSelected ? ForegroundColourSelected : ForegroundColour);
                 }
 
                 protected override void LoadComplete()
@@ -404,41 +403,47 @@ namespace osu.Framework.Graphics.UserInterface
 
             #endregion
 
-            protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
+            protected override bool Handle(UIEvent e)
             {
-                var drawableMenuItemsList = DrawableMenuItems.ToList();
-                var preselectedItem = drawableMenuItemsList.FirstOrDefault(i => i.IsPreSelected) ?? drawableMenuItemsList.First(i => i.IsSelected);
-                var preselectedIndex = drawableMenuItemsList.IndexOf(preselectedItem);
-
-                int clampIndex(int index) => MathHelper.Clamp(index, 0, drawableMenuItemsList.Count - 1);
-
-                switch (args.Key)
+                switch (e)
                 {
-                    case Key.Up:
-                        PreselectItem((DropdownMenuItem<T>)Items[clampIndex(preselectedIndex - 1)]);
-                        return true;
-                    case Key.Down:
-                        PreselectItem((DropdownMenuItem<T>)Items[clampIndex(preselectedIndex + 1)]);
-                        return true;
-                    case Key.PageUp:
-                        var firstVisibleItem = VisibleMenuItems.First();
-                        preselectedIndex = preselectedItem == firstVisibleItem
-                            ? clampIndex(preselectedIndex - VisibleMenuItems.Count())
-                            : drawableMenuItemsList.IndexOf(firstVisibleItem);
-                        PreselectItem((DropdownMenuItem<T>)Items[preselectedIndex]);
-                        return true;
-                    case Key.PageDown:
-                        var lastVisibleItem = VisibleMenuItems.Last();
-                        preselectedIndex = preselectedItem == lastVisibleItem
-                            ? clampIndex(preselectedIndex + VisibleMenuItems.Count())
-                            : drawableMenuItemsList.IndexOf(lastVisibleItem);
-                        PreselectItem((DropdownMenuItem<T>)Items[preselectedIndex]);
-                        return true;
-                    case Key.Enter:
-                        ChangePreselection?.Invoke(preselectedIndex);
-                        return true;
+                    case KeyDownEvent keyDown:
+                        var drawableMenuItemsList = DrawableMenuItems.ToList();
+                        var preselectedItem = drawableMenuItemsList.FirstOrDefault(i => i.IsPreSelected) ?? drawableMenuItemsList.First(i => i.IsSelected);
+                        var preselectedIndex = drawableMenuItemsList.IndexOf(preselectedItem);
+
+                        int clampIndex(int index) => MathHelper.Clamp(index, 0, drawableMenuItemsList.Count - 1);
+
+                        switch (keyDown.Key)
+                        {
+                            case Key.Up:
+                                PreselectItem((DropdownMenuItem<T>)Items[clampIndex(preselectedIndex - 1)]);
+                                return true;
+                            case Key.Down:
+                                PreselectItem((DropdownMenuItem<T>)Items[clampIndex(preselectedIndex + 1)]);
+                                return true;
+                            case Key.PageUp:
+                                var firstVisibleItem = VisibleMenuItems.First();
+                                preselectedIndex = preselectedItem == firstVisibleItem
+                                    ? clampIndex(preselectedIndex - VisibleMenuItems.Count())
+                                    : drawableMenuItemsList.IndexOf(firstVisibleItem);
+                                PreselectItem((DropdownMenuItem<T>)Items[preselectedIndex]);
+                                return true;
+                            case Key.PageDown:
+                                var lastVisibleItem = VisibleMenuItems.Last();
+                                preselectedIndex = preselectedItem == lastVisibleItem
+                                    ? clampIndex(preselectedIndex + VisibleMenuItems.Count())
+                                    : drawableMenuItemsList.IndexOf(lastVisibleItem);
+                                PreselectItem((DropdownMenuItem<T>)Items[preselectedIndex]);
+                                return true;
+                            case Key.Enter:
+                                ChangePreselection?.Invoke(preselectedIndex);
+                                return true;
+                            default:
+                                return base.Handle(e);
+                        }
                     default:
-                        return base.OnKeyDown(state, args);
+                        return base.Handle(e);
                 }
             }
 

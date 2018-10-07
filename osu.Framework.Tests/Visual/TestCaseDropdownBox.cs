@@ -7,7 +7,8 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input;
-using osu.Framework.Input.EventArgs;
+using osu.Framework.Input.Events;
+using osu.Framework.Input.States;
 using osu.Framework.Testing;
 using OpenTK;
 using OpenTK.Graphics;
@@ -15,14 +16,13 @@ using OpenTK.Input;
 
 namespace osu.Framework.Tests.Visual
 {
-    public class TestCaseDropdownBox : TestCase
+    public class TestCaseDropdownBox : ManualInputManagerTestCase
     {
         private const int items_to_add = 10;
+        private readonly StyledDropdown styledDropdown, styledDropdownMenu2, keyboardInputDropdown1, keyboardInputDropdown2, keyboardInputDropdown3;
 
         public TestCaseDropdownBox()
         {
-            StyledDropdown styledDropdown, styledDropdownMenu2, keyboardInputDropdown1, keyboardInputDropdown2, keyboardInputDropdown3;
-
             var testItems = new string[10];
             int i = 0;
             while (i < items_to_add)
@@ -100,8 +100,8 @@ namespace osu.Framework.Tests.Visual
             {
                 while (keyboardInputDropdown1.SelectedItem != keyboardInputDropdown1.Menu.DrawableMenuItems.Last().Item)
                 {
-                    keyboardInputDropdown1.Header.TriggerOnKeyDown(null, new KeyDownEventArgs { Key = Key.Down });
-                    keyboardInputDropdown1.Header.TriggerOnKeyUp(null, new KeyUpEventArgs { Key = Key.Down });
+                    keyboardInputDropdown1.Header.TriggerEvent(new KeyDownEvent(new InputState(), Key.Down));
+                    keyboardInputDropdown1.Header.TriggerEvent(new KeyUpEvent(new InputState(), Key.Down));
                 }
             });
 
@@ -111,8 +111,8 @@ namespace osu.Framework.Tests.Visual
             {
                 while (keyboardInputDropdown1.SelectedItem != keyboardInputDropdown1.Menu.DrawableMenuItems.First().Item)
                 {
-                    keyboardInputDropdown1.Header.TriggerOnKeyDown(null, new KeyDownEventArgs { Key = Key.Up });
-                    keyboardInputDropdown1.Header.TriggerOnKeyUp(null, new KeyUpEventArgs { Key = Key.Up });
+                    keyboardInputDropdown1.Header.TriggerEvent(new KeyDownEvent(new InputState(), Key.Up));
+                    keyboardInputDropdown1.Header.TriggerEvent(new KeyUpEvent(new InputState(), Key.Up));
                 }
             });
 
@@ -148,8 +148,8 @@ namespace osu.Framework.Tests.Visual
             {
                 while (keyboardInputDropdown3.Menu?.PreselectedItem?.Item != keyboardInputDropdown3.Menu.DrawableMenuItems.Last().Item)
                 {
-                    keyboardInputDropdown3.Menu.TriggerOnKeyDown(null, new KeyDownEventArgs { Key = Key.Down });
-                    keyboardInputDropdown3.Menu.TriggerOnKeyUp(null, new KeyUpEventArgs { Key = Key.Down });
+                    keyboardInputDropdown3.Menu.TriggerEvent(new KeyDownEvent(new InputState(), Key.Down));
+                    keyboardInputDropdown3.Menu.TriggerEvent(new KeyUpEvent(new InputState(), Key.Down));
                 }
             });
 
@@ -159,8 +159,8 @@ namespace osu.Framework.Tests.Visual
             {
                 while (keyboardInputDropdown3.Menu?.PreselectedItem?.Item != keyboardInputDropdown3.Menu.DrawableMenuItems.First().Item)
                 {
-                    keyboardInputDropdown3.Menu.TriggerOnKeyDown(null, new KeyDownEventArgs { Key = Key.Up });
-                    keyboardInputDropdown3.Menu.TriggerOnKeyUp(null, new KeyUpEventArgs { Key = Key.Up });
+                    keyboardInputDropdown3.Menu.TriggerEvent(new KeyDownEvent(new InputState(), Key.Up));
+                    keyboardInputDropdown3.Menu.TriggerEvent(new KeyUpEvent(new InputState(), Key.Up));
                 }
             });
 
@@ -168,8 +168,8 @@ namespace osu.Framework.Tests.Visual
             AddStep("Preselect last visible item on the current page", () =>
             {
                 lastVisibleIndexOnTheCurrentPage = keyboardInputDropdown3.Menu.DrawableMenuItems.ToList().IndexOf(keyboardInputDropdown3.Menu.VisibleMenuItems.Last());
-                keyboardInputDropdown3.Menu.TriggerOnKeyDown(null, new KeyDownEventArgs { Key = Key.PageDown });
-                keyboardInputDropdown3.Menu.TriggerOnKeyUp(null, new KeyUpEventArgs { Key = Key.PageDown });
+                keyboardInputDropdown3.Menu.TriggerEvent(new KeyDownEvent(new InputState(), Key.PageDown));
+                keyboardInputDropdown3.Menu.TriggerEvent(new KeyUpEvent(new InputState(), Key.PageDown));
             });
 
             AddAssert("Last visible item on the current page preselected", () => keyboardInputDropdown3.PreselectedIndex == lastVisibleIndexOnTheCurrentPage);
@@ -178,8 +178,8 @@ namespace osu.Framework.Tests.Visual
             AddStep("Preselect last visible item on the next page", () =>
             {
                 lastVisibleIndexOnTheNextPage = lastVisibleIndexOnTheCurrentPage + keyboardInputDropdown3.Menu.VisibleMenuItems.Count();
-                keyboardInputDropdown3.Menu.TriggerOnKeyDown(null, new KeyDownEventArgs { Key = Key.PageDown });
-                keyboardInputDropdown3.Menu.TriggerOnKeyUp(null, new KeyUpEventArgs { Key = Key.PageDown });
+                keyboardInputDropdown3.Menu.TriggerEvent(new KeyDownEvent(new InputState(), Key.PageDown));
+                keyboardInputDropdown3.Menu.TriggerEvent(new KeyUpEvent(new InputState(), Key.PageDown));
             });
 
             AddAssert("Last visible item on the next page preselected", () => keyboardInputDropdown3.PreselectedIndex == lastVisibleIndexOnTheNextPage);
@@ -188,8 +188,8 @@ namespace osu.Framework.Tests.Visual
             AddStep("Preselect first visible item on the current page", () =>
             {
                 firstVisibleIndexOnTheCurrentPage = keyboardInputDropdown3.Menu.DrawableMenuItems.ToList().IndexOf(keyboardInputDropdown3.Menu.VisibleMenuItems.First());
-                keyboardInputDropdown3.Menu.TriggerOnKeyDown(null, new KeyDownEventArgs { Key = Key.PageUp });
-                keyboardInputDropdown3.Menu.TriggerOnKeyUp(null, new KeyUpEventArgs { Key = Key.PageUp });
+                keyboardInputDropdown3.Menu.TriggerEvent(new KeyDownEvent(new InputState(), Key.PageUp));
+                keyboardInputDropdown3.Menu.TriggerEvent(new KeyUpEvent(new InputState(), Key.PageUp));
             });
 
             AddAssert("First visible item on the current page preselected", () => keyboardInputDropdown3.PreselectedIndex == firstVisibleIndexOnTheCurrentPage);
@@ -198,8 +198,8 @@ namespace osu.Framework.Tests.Visual
             AddStep("Preselect first visible item on the previous page", () =>
             {
                 firstVisibleIndexOnThePreviousPage = firstVisibleIndexOnTheCurrentPage - keyboardInputDropdown3.Menu.VisibleMenuItems.Count();
-                keyboardInputDropdown3.Menu.TriggerOnKeyDown(null, new KeyDownEventArgs { Key = Key.PageUp });
-                keyboardInputDropdown3.Menu.TriggerOnKeyUp(null, new KeyUpEventArgs { Key = Key.PageUp });
+                keyboardInputDropdown3.Menu.TriggerEvent(new KeyDownEvent(new InputState(), Key.PageUp));
+                keyboardInputDropdown3.Menu.TriggerEvent(new KeyUpEvent(new InputState(), Key.PageUp));
             });
 
             AddAssert("First visible item on the previous page selected", () => keyboardInputDropdown3.PreselectedIndex == firstVisibleIndexOnThePreviousPage);
@@ -215,7 +215,11 @@ namespace osu.Framework.Tests.Visual
             AddAssert("First item preselected", () => keyboardInputDropdown3.Menu.PreselectedItem.Item == keyboardInputDropdown3.Menu.DrawableMenuItems.First().Item);
         }
 
-        private void toggleDropdownViaClick(StyledDropdown dropdown) => dropdown.Children.First().TriggerOnClick();
+        private void toggleDropdownViaClick(StyledDropdown dropdown)
+        {
+            InputManager.MoveMouseTo(dropdown.Children.First());
+            InputManager.Click(MouseButton.Left);
+        }
 
         private class StyledDropdown : BasicDropdown<string>
         {
@@ -234,7 +238,8 @@ namespace osu.Framework.Tests.Visual
 
             private class StyledDropdownMenu : DropdownMenu
             {
-                public void SelectItem(MenuItem item) => Children.FirstOrDefault(c => c.Item == item)?.TriggerOnClick();
+                public void SelectItem(MenuItem item) => Children.FirstOrDefault(c => c.Item == item)?
+                    .TriggerEvent(new ClickEvent(GetContainingInputManager().CurrentState, MouseButton.Left));
             }
         }
 

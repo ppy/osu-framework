@@ -9,8 +9,7 @@ using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Input.EventArgs;
-using osu.Framework.Input.States;
+using osu.Framework.Input.Events;
 using osu.Framework.MathUtils;
 using osu.Framework.Threading;
 using OpenTK;
@@ -473,25 +472,25 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
+        protected override bool OnKeyDown(KeyDownEvent e)
         {
-            if (args.Key == Key.Escape && !TopLevelMenu)
+            if (e.Key == Key.Escape && !TopLevelMenu)
             {
                 Close();
                 return true;
             }
 
-            return base.OnKeyDown(state, args);
+            return base.OnKeyDown(e);
         }
 
-        protected override bool OnClick(InputState state) => true;
-        protected override bool OnHover(InputState state) => true;
+        protected override bool OnClick(ClickEvent e) => true;
+        protected override bool OnHover(HoverEvent e) => true;
 
         public override bool AcceptsFocus => !TopLevelMenu;
 
         public override bool RequestsFocus => !TopLevelMenu && State == MenuState.Open;
 
-        protected override void OnFocusLost(InputState state)
+        protected override void OnFocusLost(FocusLostEvent e)
         {
             // Case where a sub-menu was opened the focus will be transferred to that sub-menu while this menu will receive OnFocusLost
             if (submenu?.State == MenuState.Open)
@@ -719,7 +718,7 @@ namespace osu.Framework.Graphics.UserInterface
                 Foreground.Colour = ForegroundColour;
             }
 
-            protected override bool OnHover(InputState state)
+            protected override bool OnHover(HoverEvent e)
             {
                 UpdateBackgroundColour();
                 UpdateForegroundColour();
@@ -733,16 +732,16 @@ namespace osu.Framework.Graphics.UserInterface
                 return false;
             }
 
-            protected override void OnHoverLost(InputState state)
+            protected override void OnHoverLost(HoverLostEvent e)
             {
                 UpdateBackgroundColour();
                 UpdateForegroundColour();
-                base.OnHoverLost(state);
+                base.OnHoverLost(e);
             }
 
             private bool hasSubmenu => Item.Items?.Count > 0;
 
-            protected override bool OnClick(InputState state)
+            protected override bool OnClick(ClickEvent e)
             {
                 if (Item.Action.Disabled)
                     return true;
@@ -780,7 +779,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         public class MenuScrollContainer : ScrollContainer<Container<DrawableMenuItem>>
         {
-            public override bool HandleKeyboardInput => false;
+            public override bool HandleNonPositionalInput => false;
 
             public MenuScrollContainer(Direction direction)
                 : base(direction)
