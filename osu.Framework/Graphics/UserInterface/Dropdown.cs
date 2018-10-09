@@ -61,7 +61,24 @@ namespace osu.Framework.Graphics.UserInterface
         /// The <see cref="KeyValuePair{TKey, TValue}.Key"/> part will become <see cref="MenuItem.Text"/>,
         /// the <see cref="KeyValuePair{TKey, TValue}.Value"/> part will become <see cref="DropdownMenuItem{T}.Value"/>.
         /// </summary>
-        public IEnumerable<KeyValuePair<string, T>> Entries => MenuItems.Select(i => new KeyValuePair<string, T>(i.Text, i.Value));
+        public IEnumerable<KeyValuePair<string, T>> Entries
+        {
+            get => MenuItems.Select(i => new KeyValuePair<string, T>(i.Text, i.Value));
+            set
+            {
+                ClearItems();
+                if(value == null)
+                    return;
+
+                foreach(var entry in value)
+                    AddDropdownItem(entry.Key, entry.Value);
+
+                if(Current.Value == null || !itemMap.Keys.Contains(Current.Value))
+                    Current.Value = itemMap.Keys.FirstOrDefault();
+                else
+                    Current.TriggerChange();
+            }
+        }
 
         /// <summary>
         /// Add a menu item directly.
