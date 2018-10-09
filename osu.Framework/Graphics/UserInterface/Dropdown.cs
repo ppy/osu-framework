@@ -72,7 +72,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         /// <param name="text">Value selected by the menu item.</param>
         /// <param name="value">Value selected by the menu item.</param>
-        protected void AddDropdownItem(string text, T value)
+        public void AddDropdownItem(string text, T value)
         {
             if(itemMap.ContainsKey(value))
                 throw new ArgumentException($"The item {value} already exists in this {nameof(Dropdown<T>)}.");
