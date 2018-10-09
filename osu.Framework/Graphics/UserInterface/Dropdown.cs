@@ -40,20 +40,7 @@ namespace osu.Framework.Graphics.UserInterface
         public IEnumerable<T> Items
         {
             get => MenuItems.Select(i => i.Value);
-            set
-            {
-                ClearItems();
-                if (value == null)
-                    return;
-
-                foreach (var item in value)
-                    AddDropdownItem(item);
-
-                if (Current.Value == null || !itemMap.Keys.Contains(Current.Value))
-                    Current.Value = itemMap.Keys.FirstOrDefault();
-                else
-                    Current.TriggerChange();
-            }
+            set => Entries = value.Select(v => new KeyValuePair<string, T>(GenerateItemText(v), v));
         }
 
         /// <summary>
