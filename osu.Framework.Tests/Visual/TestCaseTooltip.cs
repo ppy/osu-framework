@@ -202,9 +202,6 @@ namespace osu.Framework.Tests.Visual
         private class TooltipBox : Box, IHasTooltip
         {
             public string TooltipText { get; set; }
-
-            public override bool HandleNonPositionalInput => true;
-            public override bool HandlePositionalInput => true;
         }
 
         private class RectangleCursorContainer : CursorContainer

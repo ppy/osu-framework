@@ -419,6 +419,8 @@ namespace osu.Framework.Graphics.Containers
 
             internalChildren.Clear();
             aliveInternalChildren.Clear();
+            RequestsNonPositionalInputSubTree = RequestsNonPositionalInput;
+            RequestsPositionalInputSubTree = RequestsPositionalInput;
 
             if (AutoSizeAxes != Axes.None)
                 InvalidateFromChild(Invalidation.RequiredParentSizeToFit);
@@ -576,6 +578,21 @@ namespace osu.Framework.Graphics.Containers
                     if (child.LoadState >= LoadState.Ready)
                     {
                         aliveInternalChildren.Add(child);
+
+                        // If the new child has the flag set, we should propagate the flag towards the root.
+                        // We can stop at the ancestor which has the flag already set because further ancestors will also have the flag set.
+                        if (child.RequestsNonPositionalInputSubTree)
+                        {
+                            for (var ancestor = this; ancestor != null && !ancestor.RequestsNonPositionalInputSubTree; ancestor = ancestor.Parent)
+                                ancestor.RequestsNonPositionalInputSubTree = true;
+                        }
+
+                        if (child.RequestsPositionalInputSubTree)
+                        {
+                            for (var ancestor = this; ancestor != null && !ancestor.RequestsPositionalInputSubTree; ancestor = ancestor.Parent)
+                                ancestor.RequestsPositionalInputSubTree = true;
+                        }
+
                         ChildBecameAlive?.Invoke(child);
                         child.IsAlive = true;
                         changed = true;
@@ -1031,11 +1048,6 @@ namespace osu.Framework.Graphics.Containers
 
         #region Interaction / Input
 
-        // Required to pass through input to children by default.
-        // TODO: Evaluate effects of this on performance and address.
-        public override bool HandleNonPositionalInput => true;
-        public override bool HandlePositionalInput => true;
-
         public override bool Contains(Vector2 screenSpacePos)
         {
             float cRadius = CornerRadius;
@@ -1059,7 +1071,10 @@ namespace osu.Framework.Graphics.Containers
 
         internal override bool BuildPositionalInputQueue(Vector2 screenSpacePos, List<Drawable> queue)
         {
-            if (!base.BuildPositionalInputQueue(screenSpacePos, queue) && (!CanReceivePositionalInput || Masking))
+            if (!base.BuildPositionalInputQueue(screenSpacePos, queue))
+                return false;
+
+            if (Masking && !ReceivePositionalInputAt(screenSpacePos))
                 return false;
 
             for (int i = 0; i < aliveInternalChildren.Count; ++i)

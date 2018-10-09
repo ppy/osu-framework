@@ -7,6 +7,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using osu.Framework.Configuration;
+using osu.Framework.Extensions;
 using osu.Framework.Input;
 using OpenTK;
 using OpenTK.Graphics;
@@ -23,7 +24,7 @@ namespace osu.Framework.Platform
 
         private readonly BindableDouble windowPositionX = new BindableDouble();
         private readonly BindableDouble windowPositionY = new BindableDouble();
-        private readonly BindableInt windowDisplayID = new BindableInt();
+        private readonly Bindable<DisplayIndex> windowDisplayIndex = new Bindable<DisplayIndex>();
 
         private DisplayDevice lastFullscreenDisplay;
         private bool inWindowModeTransition;
@@ -40,7 +41,6 @@ namespace osu.Framework.Platform
 
         public override DisplayDevice CurrentDisplay
         {
-            get => DisplayDevice.FromRectangle(Bounds) ?? DisplayDevice.Default;
             set
             {
                 if (value == null || value == CurrentDisplay) return;
@@ -83,19 +83,17 @@ namespace osu.Framework.Platform
 
             config.BindWith(FrameworkSetting.WindowedPositionX, windowPositionX);
             config.BindWith(FrameworkSetting.WindowedPositionY, windowPositionY);
-            config.BindWith(FrameworkSetting.LastDisplayDevice, windowDisplayID);
 
-            windowDisplayID.BindValueChanged(windowDisplayIDChanged, true);
-
-            config.BindWith(FrameworkSetting.ConfineMouseMode, ConfineMouseMode);
-
-            config.BindWith(FrameworkSetting.MapAbsoluteInputToWindow, MapAbsoluteInputToWindow);
-
-            ConfineMouseMode.BindValueChanged(confineMouseModeChanged, true);
+            config.BindWith(FrameworkSetting.LastDisplayDevice, windowDisplayIndex);
+            windowDisplayIndex.BindValueChanged(windowDisplayIndexChanged, true);
 
             config.BindWith(FrameworkSetting.WindowMode, WindowMode);
-
             WindowMode.BindValueChanged(windowModeChanged, true);
+
+            config.BindWith(FrameworkSetting.ConfineMouseMode, ConfineMouseMode);
+            ConfineMouseMode.BindValueChanged(confineMouseModeChanged, true);
+
+            config.BindWith(FrameworkSetting.MapAbsoluteInputToWindow, MapAbsoluteInputToWindow);
 
             Exited += onExit;
         }
@@ -149,20 +147,10 @@ namespace osu.Framework.Platform
                 windowPositionY.Value = Position.Y;
             }
 
-            windowDisplayID.Value = getDisplayID(CurrentDisplay);
+            windowDisplayIndex.Value = CurrentDisplay.GetIndex();
         }
 
-        private static int getDisplayID(DisplayDevice display)
-        {
-            for (int i = 0; ; i++)
-            {
-                var device = DisplayDevice.GetDisplay((DisplayIndex)i);
-                if (device == null) return -1;
-                if (device == display) return i;
-            }
-        }
-
-        private void windowDisplayIDChanged(int id) => CurrentDisplay = DisplayDevice.GetDisplay((DisplayIndex)id);
+        private void windowDisplayIndexChanged(DisplayIndex index) => CurrentDisplay = DisplayDevice.GetDisplay(index);
 
         private void confineMouseModeChanged(ConfineMouseMode newValue)
         {
@@ -184,10 +172,10 @@ namespace osu.Framework.Platform
                 CursorState &= ~CursorState.Confined;
         }
 
-        public void CenterToScreen(DisplayDevice display = null)
+        public void CentreToScreen(DisplayDevice display = null)
         {
             if (display != null) CurrentDisplay = display;
-            Position = new Vector2(0.5f, 0.5f);
+            Position = new Vector2(0.5f);
         }
 
         private void windowModeChanged(WindowMode newMode) => UpdateWindowMode(newMode);
