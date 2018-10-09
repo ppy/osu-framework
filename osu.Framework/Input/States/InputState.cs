@@ -3,19 +3,17 @@
 
 namespace osu.Framework.Input.States
 {
-    public class InputState : System.EventArgs
+    public class InputState
     {
-        public IKeyboardState Keyboard;
-        public IMouseState Mouse;
-        public IJoystickState Joystick;
+        public readonly MouseState Mouse;
+        public readonly KeyboardState Keyboard;
+        public readonly JoystickState Joystick;
 
-        public virtual InputState Clone()
+        public InputState(MouseState mouse = null, KeyboardState keyboard = null, JoystickState joystick = null)
         {
-            var clone = (InputState)MemberwiseClone();
-            clone.Keyboard = Keyboard?.Clone();
-            clone.Mouse = Mouse?.Clone();
-            clone.Joystick = Joystick?.Clone();
-            return clone;
+            Mouse = mouse ?? new MouseState();
+            Keyboard = keyboard ?? new KeyboardState();
+            Joystick = joystick ?? new JoystickState();
         }
     }
 }

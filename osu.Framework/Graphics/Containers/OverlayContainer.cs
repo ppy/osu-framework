@@ -24,7 +24,7 @@ namespace osu.Framework.Graphics.Containers
 
         internal override bool BuildNonPositionalInputQueue(List<Drawable> queue, bool allowBlocking = true)
         {
-            if (CanReceiveNonPositionalInput && BlockNonPositionalInput)
+            if (PropagateNonPositionalInputSubTree && HandleNonPositionalInput && BlockNonPositionalInput)
             {
                 // when blocking non-positional input behind us, we still want to make sure the global handlers receive events
                 // but we don't want other drawables behind us handling them.
@@ -36,7 +36,7 @@ namespace osu.Framework.Graphics.Containers
 
         internal override bool BuildPositionalInputQueue(Vector2 screenSpacePos, List<Drawable> queue)
         {
-            if (CanReceivePositionalInput && BlockPositionalInput && ReceivePositionalInputAt(screenSpacePos))
+            if (PropagatePositionalInputSubTree && HandlePositionalInput && BlockPositionalInput && ReceivePositionalInputAt(screenSpacePos))
             {
                 // when blocking positional input behind us, we still want to make sure the global handlers receive events
                 // but we don't want other drawables behind us handling them.

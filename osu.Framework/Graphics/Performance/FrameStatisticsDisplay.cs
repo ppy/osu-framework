@@ -15,8 +15,7 @@ using osu.Framework.Threading;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using osu.Framework.Input.EventArgs;
-using osu.Framework.Input.States;
+using osu.Framework.Input.Events;
 using OpenTK;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
@@ -307,9 +306,9 @@ namespace osu.Framework.Graphics.Performance
         }
 
 
-        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
+        protected override bool OnKeyDown(KeyDownEvent e)
         {
-            switch (args.Key)
+            switch (e.Key)
             {
                 case Key.ControlLeft:
                     Expanded = true;
@@ -319,12 +318,12 @@ namespace osu.Framework.Graphics.Performance
                     break;
             }
 
-            return base.OnKeyDown(state, args);
+            return base.OnKeyDown(e);
         }
 
-        protected override bool OnKeyUp(InputState state, KeyUpEventArgs args)
+        protected override bool OnKeyUp(KeyUpEvent e)
         {
-            switch (args.Key)
+            switch (e.Key)
             {
                 case Key.ControlLeft:
                     Expanded = false;
@@ -334,7 +333,7 @@ namespace osu.Framework.Graphics.Performance
                     break;
             }
 
-            return base.OnKeyUp(state, args);
+            return base.OnKeyUp(e);
         }
 
         private void applyFrameGC(FrameStatistics frame)
@@ -497,9 +496,6 @@ namespace osu.Framework.Graphics.Performance
 
                 Sprite.Texture = new Texture(atlas.Add(WIDTH, HEIGHT));
             }
-
-            public override bool HandleNonPositionalInput => false;
-            public override bool HandlePositionalInput => false;
         }
 
         private class CounterBar : Container
