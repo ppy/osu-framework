@@ -105,7 +105,7 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
-        protected string GenerateItemText(T item)
+        protected virtual string GenerateItemText(T item)
         {
             switch(item)
             {
