@@ -2,9 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using OpenTK;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics;
