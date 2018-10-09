@@ -19,10 +19,10 @@ namespace osu.Framework.Tests.Visual
     public class TestCaseDropdownBox : ManualInputManagerTestCase
     {
         private const int items_to_add = 10;
-        private readonly StyledDropdown styledDropdown, styledDropdownMenu2, keyboardInputDropdown1, keyboardInputDropdown2, keyboardInputDropdown3;
 
         public TestCaseDropdownBox()
         {
+            StyledDropdown styledDropdown, styledDropdownMenu2, keyboardInputDropdown1, keyboardInputDropdown2, keyboardInputDropdown3;
             var testItems = new string[10];
             int i = 0;
             while (i < items_to_add)
