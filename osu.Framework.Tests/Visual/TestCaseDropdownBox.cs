@@ -77,6 +77,14 @@ namespace osu.Framework.Tests.Visual
 
             AddStep("select item 2", () => styledDropdown.Current.Value = styledDropdown.Items.ElementAt(2).Value);
             AddAssert("item 2 is selected", () => styledDropdown.Current == styledDropdown.Items.ElementAt(2).Value);
+
+            AddStep("select 'invalid'", () => styledDropdownMenu2.Current.Value = "invalid");
+
+            AddAssert("'invalid' is selected", () => styledDropdownMenu2.Current == "invalid");
+            AddAssert("label shows 'invalid'", () => styledDropdownMenu2.Header.Label == "invalid");
+
+            AddStep("select item 5", () => styledDropdownMenu2.Current.Value = styledDropdown.Items.ElementAt(5).Value);
+            AddAssert("item 5 is selected", () => styledDropdownMenu2.Current == styledDropdown.Items.ElementAt(5).Value);
         }
 
         private void toggleDropdownViaClick(StyledDropdown dropdown)

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Configuration;
+using osu.Framework.Extensions;
 using osu.Framework.Graphics.Containers;
 using OpenTK.Graphics;
 using osu.Framework.Extensions.IEnumerableExtensions;
@@ -81,6 +82,12 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
+        /// Add a menu item directly while automatically generating a label.
+        /// </summary>
+        /// <param name="value">Value selected by the menu item.</param>
+        public void AddDropdownItem(T value) => AddDropdownItem(GenerateItemText(value), value);
+
+        /// <summary>
         /// Remove a menu item directly.
         /// </summary>
         /// <param name="value">Value of the menu item to be removed.</param>
@@ -98,7 +105,19 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
-        private string fallbackText = "Current";
+        protected string GenerateItemText(T item)
+        {
+            switch(item)
+            {
+                case Enum e:
+                    return e.GetDescription();
+
+                default:
+                    return item?.ToString() ?? "null";
+            }
+        }
+
+        private string fallbackText;
 
         public string FallbackText
         {
@@ -163,7 +182,7 @@ namespace osu.Framework.Graphics.UserInterface
                 }
                 else
                 {
-                    FallbackItem = selectedItem = new DropdownMenuItem<T>(fallbackText, newSelection);
+                    FallbackItem = selectedItem = new DropdownMenuItem<T>(fallbackText ?? GenerateItemText(newSelection), newSelection);
                 }
             }
 
