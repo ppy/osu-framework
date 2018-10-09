@@ -54,13 +54,13 @@ namespace osu.Framework.Graphics.UserInterface
             set
             {
                 ClearItems();
-                if(value == null)
+                if (value == null)
                     return;
 
-                foreach(var entry in value)
+                foreach (var entry in value)
                     AddDropdownItem(entry.Key, entry.Value);
 
-                if(Current.Value == null || !itemMap.Keys.Contains(Current.Value))
+                if (Current.Value == null || !itemMap.Keys.Contains(Current.Value))
                     Current.Value = itemMap.Keys.FirstOrDefault();
                 else
                     Current.TriggerChange();
@@ -74,12 +74,12 @@ namespace osu.Framework.Graphics.UserInterface
         /// <param name="value">Value selected by the menu item.</param>
         public void AddDropdownItem(string text, T value)
         {
-            if(itemMap.ContainsKey(value))
+            if (itemMap.ContainsKey(value))
                 throw new ArgumentException($"The item {value} already exists in this {nameof(Dropdown<T>)}.");
 
             var newItem = new DropdownMenuItem<T>(text, value, () =>
             {
-                if(!Current.Disabled)
+                if (!Current.Disabled)
                     Current.Value = value;
 
                 Menu.State = MenuState.Closed;
