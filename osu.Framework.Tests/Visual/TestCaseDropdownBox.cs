@@ -31,15 +31,14 @@ namespace osu.Framework.Tests.Visual
             {
                 Width = 150,
                 Position = new Vector2(200, 70),
-                Items = testItems.Select(item => new KeyValuePair<string, string>(item, item)),
-                FallbackText = "Fallback text here"
+                Items = testItems
             });
 
             Add(styledDropdownMenu2 = new StyledDropdown
             {
                 Width = 150,
                 Position = new Vector2(400, 70),
-                Items = testItems.Select(item => new KeyValuePair<string, string>(item, item))
+                Items = testItems
             });
         }
 
@@ -51,16 +50,16 @@ namespace osu.Framework.Tests.Visual
             AddStep("click dropdown1", () => toggleDropdownViaClick(styledDropdown));
             AddAssert("dropdown is open", () => styledDropdown.Menu.State == MenuState.Open);
 
-            AddRepeatStep("add item", () => styledDropdown.AddDropdownItem(@"test " + i, @"test " + i++), items_to_add);
+            AddRepeatStep("add item", () => styledDropdown.AddDropdownItem("test " + i++), items_to_add);
             AddAssert("item count is correct", () => styledDropdown.Items.Count() == items_to_add * 2);
 
             AddStep("click item 13", () => styledDropdown.SelectItem(styledDropdown.Menu.Items[13]));
 
             AddAssert("dropdown1 is closed", () => styledDropdown.Menu.State == MenuState.Closed);
-            AddAssert("item 13 is selected", () => styledDropdown.Current == styledDropdown.Items.ElementAt(13).Value);
+            AddAssert("item 13 is selected", () => styledDropdown.Current == styledDropdown.Items.ElementAt(13));
 
-            AddStep("select item 15", () => styledDropdown.Current.Value = styledDropdown.Items.ElementAt(15).Value);
-            AddAssert("item 15 is selected", () => styledDropdown.Current == styledDropdown.Items.ElementAt(15).Value);
+            AddStep("select item 15", () => styledDropdown.Current.Value = styledDropdown.Items.ElementAt(15));
+            AddAssert("item 15 is selected", () => styledDropdown.Current == styledDropdown.Items.ElementAt(15));
 
             AddStep("click dropdown1", () => toggleDropdownViaClick(styledDropdown));
             AddAssert("dropdown1 is open", () => styledDropdown.Menu.State == MenuState.Open);
@@ -73,18 +72,10 @@ namespace osu.Framework.Tests.Visual
             AddStep("select 'invalid'", () => styledDropdown.Current.Value = "invalid");
 
             AddAssert("'invalid' is selected", () => styledDropdown.Current == "invalid");
-            AddAssert("label shows fallback text", () => styledDropdown.Header.Label == "Fallback text here");
+            AddAssert("label shows 'invalid'", () => styledDropdown.Header.Label == "invalid");
 
-            AddStep("select item 2", () => styledDropdown.Current.Value = styledDropdown.Items.ElementAt(2).Value);
-            AddAssert("item 2 is selected", () => styledDropdown.Current == styledDropdown.Items.ElementAt(2).Value);
-
-            AddStep("select 'invalid'", () => styledDropdownMenu2.Current.Value = "invalid");
-
-            AddAssert("'invalid' is selected", () => styledDropdownMenu2.Current == "invalid");
-            AddAssert("label shows 'invalid'", () => styledDropdownMenu2.Header.Label == "invalid");
-
-            AddStep("select item 5", () => styledDropdownMenu2.Current.Value = styledDropdown.Items.ElementAt(5).Value);
-            AddAssert("item 5 is selected", () => styledDropdownMenu2.Current == styledDropdown.Items.ElementAt(5).Value);
+            AddStep("select item 2", () => styledDropdown.Current.Value = styledDropdown.Items.ElementAt(2));
+            AddAssert("item 2 is selected", () => styledDropdown.Current == styledDropdown.Items.ElementAt(2));
         }
 
         private void toggleDropdownViaClick(StyledDropdown dropdown)

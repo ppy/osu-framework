@@ -36,7 +36,7 @@ namespace osu.Framework.Tests.Visual
                 }
             };
 
-            typeDropdown.Items = Enum.GetNames(typeof(CountType)).Select(n => new KeyValuePair<string, CountType>(n, (CountType)Enum.Parse(typeof(CountType), n)));
+            typeDropdown.Items = (CountType[])Enum.GetValues(typeof(CountType));
             countType.BindTo(typeDropdown.Current);
             countType.ValueChanged += v => beginStep(lastStep)();
 

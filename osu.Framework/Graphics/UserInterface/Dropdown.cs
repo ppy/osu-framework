@@ -21,7 +21,6 @@ namespace osu.Framework.Graphics.UserInterface
     {
         protected internal DropdownHeader Header;
         protected internal DropdownMenu Menu;
-        protected internal DropdownMenuItem<T> FallbackItem;
 
         /// <summary>
         /// Creates the header part of the control.
@@ -36,21 +35,19 @@ namespace osu.Framework.Graphics.UserInterface
         protected IEnumerable<DropdownMenuItem<T>> MenuItems => itemMap.Values;
 
         /// <summary>
-        /// Generate menu items by <see cref="KeyValuePair{TKey, TValue}"/>.
-        /// The <see cref="KeyValuePair{TKey, TValue}.Key"/> part will become <see cref="MenuItem.Text"/>,
-        /// the <see cref="KeyValuePair{TKey, TValue}.Value"/> part will become <see cref="DropdownMenuItem{T}.Value"/>.
+        /// Enumerate all values in the dropdown.
         /// </summary>
-        public IEnumerable<KeyValuePair<string, T>> Items
+        public IEnumerable<T> Items
         {
-            get => MenuItems.Select(i => new KeyValuePair<string, T>(i.Text, i.Value));
+            get => MenuItems.Select(i => i.Value);
             set
             {
                 ClearItems();
                 if (value == null)
                     return;
 
-                foreach (var entry in value)
-                    AddDropdownItem(entry.Key, entry.Value);
+                foreach (var item in value)
+                    AddDropdownItem(item);
 
                 if (Current.Value == null || !itemMap.Keys.Contains(Current.Value))
                     Current.Value = itemMap.Keys.FirstOrDefault();
@@ -60,18 +57,25 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
+        /// Generate menu items by <see cref="KeyValuePair{TKey, TValue}"/>.
+        /// The <see cref="KeyValuePair{TKey, TValue}.Key"/> part will become <see cref="MenuItem.Text"/>,
+        /// the <see cref="KeyValuePair{TKey, TValue}.Value"/> part will become <see cref="DropdownMenuItem{T}.Value"/>.
+        /// </summary>
+        public IEnumerable<KeyValuePair<string, T>> Entries => MenuItems.Select(i => new KeyValuePair<string, T>(i.Text, i.Value));
+
+        /// <summary>
         /// Add a menu item directly.
         /// </summary>
-        /// <param name="text">Text to display on the menu item.</param>
+        /// <param name="text">Value selected by the menu item.</param>
         /// <param name="value">Value selected by the menu item.</param>
-        public void AddDropdownItem(string text, T value)
+        protected void AddDropdownItem(string text, T value)
         {
-            if (itemMap.ContainsKey(value))
+            if(itemMap.ContainsKey(value))
                 throw new ArgumentException($"The item {value} already exists in this {nameof(Dropdown<T>)}.");
 
             var newItem = new DropdownMenuItem<T>(text, value, () =>
             {
-                if (!Current.Disabled)
+                if(!Current.Disabled)
                     Current.Value = value;
 
                 Menu.State = MenuState.Closed;
@@ -114,19 +118,6 @@ namespace osu.Framework.Graphics.UserInterface
 
                 default:
                     return item?.ToString() ?? "null";
-            }
-        }
-
-        private string fallbackText;
-
-        public string FallbackText
-        {
-            get => fallbackText;
-            set
-            {
-                fallbackText = value;
-                if(FallbackItem != null)
-                    FallbackItem.Text.Value = value;
             }
         }
 
@@ -176,13 +167,9 @@ namespace osu.Framework.Graphics.UserInterface
             if ((SelectedItem == null || !EqualityComparer<T>.Default.Equals(SelectedItem.Value, newSelection))
                 && newSelection != null)
             {
-                if (itemMap.TryGetValue(newSelection, out selectedItem))
+                if (!itemMap.TryGetValue(newSelection, out selectedItem))
                 {
-                    FallbackItem = null;
-                }
-                else
-                {
-                    FallbackItem = selectedItem = new DropdownMenuItem<T>(fallbackText ?? GenerateItemText(newSelection), newSelection);
+                    selectedItem = new DropdownMenuItem<T>(GenerateItemText(newSelection), newSelection);
                 }
             }
 

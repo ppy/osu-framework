@@ -138,9 +138,9 @@ namespace osu.Framework.Tests.Visual
                 },
             };
 
-            colourModeDropdown.Items = Enum.GetNames(typeof(BlendingMode)).Select(n => new KeyValuePair<string, BlendingMode>(n, (BlendingMode)Enum.Parse(typeof(BlendingMode), n)));
-            colourEquation.Items = Enum.GetNames(typeof(BlendingEquation)).Select(n => new KeyValuePair<string, BlendingEquation>(n, (BlendingEquation)Enum.Parse(typeof(BlendingEquation), n)));
-            alphaEquation.Items = Enum.GetNames(typeof(BlendingEquation)).Select(n => new KeyValuePair<string, BlendingEquation>(n, (BlendingEquation)Enum.Parse(typeof(BlendingEquation), n)));
+            colourModeDropdown.Items = (BlendingMode[])Enum.GetValues(typeof(BlendingMode));
+            colourEquation.Items = (BlendingEquation[])Enum.GetValues(typeof(BlendingEquation));
+            alphaEquation.Items = (BlendingEquation[])Enum.GetValues(typeof(BlendingEquation));
 
             colourModeDropdown.Current.Value = foregroundContainer.Blending.Mode;
             colourEquation.Current.Value = foregroundContainer.Blending.RGBEquation;
