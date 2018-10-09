@@ -70,7 +70,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Add a menu item directly.
         /// </summary>
-        /// <param name="text">Value selected by the menu item.</param>
+        /// <param name="text">Text to display on the menu item.</param>
         /// <param name="value">Value selected by the menu item.</param>
         public void AddDropdownItem(string text, T value)
         {
