@@ -40,7 +40,7 @@ namespace osu.Framework.Graphics.UserInterface
         public IEnumerable<T> Items
         {
             get => MenuItems.Select(i => i.Value);
-            set => Entries = value.Select(v => new KeyValuePair<string, T>(GenerateItemText(v), v));
+            set => Entries = value?.Select(v => new KeyValuePair<string, T>(GenerateItemText(v), v));
         }
 
         /// <summary>
