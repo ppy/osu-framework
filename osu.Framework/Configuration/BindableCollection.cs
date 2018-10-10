@@ -17,7 +17,7 @@ namespace osu.Framework.Configuration
         public BindableCollection(IEnumerable<T> items = null)
         {
             if (items != null)
-                collection = new List<T>(collection);
+                collection = new List<T>(items);
 
             weakReference = new WeakReference<BindableCollection<T>>(this);
         }
@@ -122,7 +122,21 @@ namespace osu.Framework.Configuration
 
         #region ICanBeDisabled
 
-        public bool Disabled { get; private set; }
+        private bool disabled = false;
+
+        public bool Disabled
+        {
+            get => disabled;
+            set
+            {
+                if (value == disabled)
+                    return;
+
+                disabled = value;
+
+                DisabledChanged?.Invoke(disabled);
+            }
+        }
 
         public event Action<bool> DisabledChanged;
 
