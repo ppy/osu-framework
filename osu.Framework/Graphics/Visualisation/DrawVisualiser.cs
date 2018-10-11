@@ -7,8 +7,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
 using osu.Framework.Input;
-using osu.Framework.Input.EventArgs;
-using osu.Framework.Input.States;
+using osu.Framework.Input.Events;
 
 namespace osu.Framework.Graphics.Visualisation
 {
@@ -218,11 +217,11 @@ namespace osu.Framework.Graphics.Visualisation
                 if (!drawable.IsPresent)
                     return false;
 
-                bool containsCursor = drawable.ScreenSpaceDrawQuad.Contains(inputManager.CurrentState.Mouse.NativeState.Position);
+                bool containsCursor = drawable.ScreenSpaceDrawQuad.Contains(inputManager.CurrentState.Mouse.Position);
                 // This is an optimization: We don't need to consider drawables which we don't hover, and which do not
                 // forward input further to children (via d.ReceivePositionalInputAt). If they do forward input to children, then there
                 // is a good chance they have children poking out of their bounds, which we need to catch.
-                if (!containsCursor && !drawable.ReceivePositionalInputAt(inputManager.CurrentState.Mouse.NativeState.Position))
+                if (!containsCursor && !drawable.ReceivePositionalInputAt(inputManager.CurrentState.Mouse.Position))
                     return false;
 
                 return true;
@@ -256,9 +255,9 @@ namespace osu.Framework.Graphics.Visualisation
             }
         }
 
-        protected override bool OnMouseDown(InputState state, MouseDownEventArgs args) => Searching;
+        protected override bool OnMouseDown(MouseDownEvent e) => Searching;
 
-        protected override bool OnClick(InputState state)
+        protected override bool OnClick(ClickEvent e)
         {
             if (Searching)
             {
@@ -274,10 +273,10 @@ namespace osu.Framework.Graphics.Visualisation
                 }
             }
 
-            return base.OnClick(state);
+            return base.OnClick(e);
         }
 
-        protected override bool OnMouseMove(InputState state)
+        protected override bool OnMouseMove(MouseMoveEvent e)
         {
             overlay.Target = Searching ? cursorTarget : inputManager.HoveredDrawables.OfType<VisualisedDrawable>().FirstOrDefault()?.Target;
             return overlay.Target != null;

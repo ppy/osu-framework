@@ -8,7 +8,7 @@ using osu.Framework.Configuration;
 using osu.Framework.Graphics.Containers;
 using OpenTK.Graphics;
 using osu.Framework.Extensions.IEnumerableExtensions;
-using osu.Framework.Input.States;
+using osu.Framework.Input.Events;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -188,7 +188,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void updateHeaderVisibility() => Header.Alpha = Menu.AnyPresent ? 1 : 0;
 
-        protected override bool OnHover(InputState state) => true;
+        protected override bool OnHover(HoverEvent e) => true;
 
         /// <summary>
         /// Creates the menu body.

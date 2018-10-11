@@ -6,7 +6,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Lines;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.Input.States;
+using osu.Framework.Input.Events;
 using osu.Framework.Testing;
 using OpenTK;
 using OpenTK.Graphics;
@@ -105,23 +105,23 @@ namespace osu.Framework.Tests.Visual
         {
             private Vector2 oldPos;
 
-            protected override bool OnDragStart(InputState state)
+            protected override bool OnDragStart(DragStartEvent e)
             {
-                AddVertex(state.Mouse.Position);
-                oldPos = state.Mouse.Position;
+                AddVertex(e.MousePosition);
+                oldPos = e.MousePosition;
                 return true;
             }
 
-            protected override bool OnDrag(InputState state)
+            protected override bool OnDrag(DragEvent e)
             {
-                Vector2 pos = state.Mouse.Position;
+                Vector2 pos = e.MousePosition;
                 if ((pos - oldPos).Length > 10)
                 {
                     AddVertex(pos);
                     oldPos = pos;
                 }
 
-                return base.OnDrag(state);
+                return base.OnDrag(e);
             }
         }
     }
