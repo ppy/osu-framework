@@ -10,7 +10,6 @@ using osu.Framework.Graphics.Containers;
 using OpenTK.Graphics;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Input.States;
 using osu.Framework.Input.Events;
 
 namespace osu.Framework.Graphics.UserInterface
