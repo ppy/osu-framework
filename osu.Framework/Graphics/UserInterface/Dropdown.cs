@@ -9,6 +9,7 @@ using osu.Framework.Extensions;
 using osu.Framework.Graphics.Containers;
 using OpenTK.Graphics;
 using osu.Framework.Extensions.IEnumerableExtensions;
+using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.States;
 
 namespace osu.Framework.Graphics.UserInterface
@@ -48,7 +49,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// The <see cref="KeyValuePair{TKey, TValue}.Key"/> part will become <see cref="MenuItem.Text"/>,
         /// the <see cref="KeyValuePair{TKey, TValue}.Value"/> part will become <see cref="DropdownMenuItem{T}.Value"/>.
         /// </summary>
-        public IEnumerable<KeyValuePair<string, T>> Entries
+        protected IEnumerable<KeyValuePair<string, T>> Entries
         {
             get => MenuItems.Select(i => new KeyValuePair<string, T>(i.Text, i.Value));
             set
@@ -68,11 +69,17 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
+        /// Add a menu item directly while automatically generating a label.
+        /// </summary>
+        /// <param name="value">Value selected by the menu item.</param>
+        public void AddDropdownItem(T value) => AddDropdownItem(GenerateItemText(value), value);
+
+        /// <summary>
         /// Add a menu item directly.
         /// </summary>
         /// <param name="text">Text to display on the menu item.</param>
         /// <param name="value">Value selected by the menu item.</param>
-        public void AddDropdownItem(string text, T value)
+        protected void AddDropdownItem(string text, T value)
         {
             if (itemMap.ContainsKey(value))
                 throw new ArgumentException($"The item {value} already exists in this {nameof(Dropdown<T>)}.");
@@ -90,12 +97,6 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
-        /// Add a menu item directly while automatically generating a label.
-        /// </summary>
-        /// <param name="value">Value selected by the menu item.</param>
-        public void AddDropdownItem(T value) => AddDropdownItem(GenerateItemText(value), value);
-
-        /// <summary>
         /// Remove a menu item directly.
         /// </summary>
         /// <param name="value">Value of the menu item to be removed.</param>
@@ -104,7 +105,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (value == null)
                 return false;
 
-            if (!itemMap.TryGetValue(value, out DropdownMenuItem<T> item))
+            if (!itemMap.TryGetValue(value, out var item))
                 return false;
 
             Menu.Remove(item);
@@ -117,6 +118,12 @@ namespace osu.Framework.Graphics.UserInterface
         {
             switch(item)
             {
+                case MenuItem i:
+                    return i.Text;
+
+                case IHasText t:
+                    return t.Text;
+
                 case Enum e:
                     return e.GetDescription();
 

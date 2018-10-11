@@ -14,7 +14,7 @@ namespace osu.Framework.Testing.Drawables.Sections
 {
     public class ToolbarAssemblySection : ToolbarSection
     {
-        private BasicDropdown<Assembly> assemblyDropdown;
+        private AssemblyDropdown assemblyDropdown;
 
         public ToolbarAssemblySection()
         {
@@ -40,7 +40,7 @@ namespace osu.Framework.Testing.Drawables.Sections
                         Padding = new MarginPadding(5),
                         Text = "Assembly:"
                     },
-                    assemblyDropdown = new BasicDropdown<Assembly>
+                    assemblyDropdown = new AssemblyDropdown
                     {
                         Width = 250,
                     },
@@ -60,11 +60,6 @@ namespace osu.Framework.Testing.Drawables.Sections
             runAllStepsCheckbox.Current.BindTo(browser.RunAllSteps);
         }
 
-        public void AddAssembly(string name, Assembly assembly)
-        {
-            const string dynamic_assembly_identifier = "dynamic";
-            assemblyDropdown.RemoveDropdownItem(assemblyDropdown.Entries.LastOrDefault(i => i.Key.Contains(dynamic_assembly_identifier)).Value);
-            assemblyDropdown.AddDropdownItem(name, assembly);
-        }
+        public void AddAssembly(string name, Assembly assembly) => assemblyDropdown.AddAssembly(name, assembly);
     }
 }
