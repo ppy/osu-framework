@@ -279,9 +279,6 @@ namespace osu.Framework.Graphics.Cursor
                 set => text.Text = value;
             }
 
-            public override bool HandleNonPositionalInput => false;
-            public override bool HandlePositionalInput => false;
-
             private const float text_size = 16;
 
             /// <summary>

@@ -50,18 +50,24 @@ namespace osu.Framework.Input.Events
         public Vector2 MousePosition => ToLocalSpace(ScreenSpaceMousePosition);
 
         /// <summary>
-        /// Used for compatibility only. Will be removed after the new way is applied to code.
-        /// Used as a proxy of legacy code dealing with an <see cref="InputState"/> to apply <see cref="Target"/> choordinate conversion.
+        /// Whether left or right control key is pressed.
         /// </summary>
-        internal InputState LegacyInputState
-        {
-            get
-            {
-                var state = CurrentState.Clone();
-                state.Mouse = new LocalMouseState(state.Mouse.NativeState, Target);
-                return state;
-            }
-        }
+        public bool ControlPressed => CurrentState.Keyboard.ControlPressed;
+
+        /// <summary>
+        /// Whether left or right alt key is pressed.
+        /// </summary>
+        public bool AltPressed => CurrentState.Keyboard.AltPressed;
+
+        /// <summary>
+        /// Whether left or right shift key is pressed.
+        /// </summary>
+        public bool ShiftPressed => CurrentState.Keyboard.ShiftPressed;
+
+        /// <summary>
+        /// Whether left or right super key (Win key on Windows, or Command key on Mac) is pressed.
+        /// </summary>
+        public bool SuperPressed => CurrentState.Keyboard.SuperPressed;
 
         protected UIEvent([NotNull] InputState state)
         {
