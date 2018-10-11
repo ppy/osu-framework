@@ -41,17 +41,6 @@ namespace osu.Framework.Graphics.UserInterface
         public IEnumerable<T> Items
         {
             get => MenuItems.Select(i => i.Value);
-            set => Entries = value?.Select(v => new KeyValuePair<string, T>(GenerateItemText(v), v));
-        }
-
-        /// <summary>
-        /// Generate menu items by <see cref="KeyValuePair{TKey, TValue}"/>.
-        /// The <see cref="KeyValuePair{TKey, TValue}.Key"/> part will become <see cref="MenuItem.Text"/>,
-        /// the <see cref="KeyValuePair{TKey, TValue}.Value"/> part will become <see cref="DropdownMenuItem{T}.Value"/>.
-        /// </summary>
-        protected IEnumerable<KeyValuePair<string, T>> Entries
-        {
-            get => MenuItems.Select(i => new KeyValuePair<string, T>(i.Text, i.Value));
             set
             {
                 ClearItems();
@@ -59,7 +48,7 @@ namespace osu.Framework.Graphics.UserInterface
                     return;
 
                 foreach (var entry in value)
-                    AddDropdownItem(entry.Key, entry.Value);
+                    AddDropdownItem(GenerateItemText(entry), entry);
 
                 if (Current.Value == null || !itemMap.Keys.Contains(Current.Value))
                     Current.Value = itemMap.Keys.FirstOrDefault();
