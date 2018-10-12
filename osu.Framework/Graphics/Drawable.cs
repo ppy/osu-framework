@@ -1789,9 +1789,17 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="e">The event to be handled.</param>
         /// <returns>If the event supports blocking, returning true will make the event to not propagating further.</returns>
-        protected virtual bool Handle(UIEvent e)
+        protected virtual bool Handle(UIEvent e) => false;
+
+        /// <summary>
+        /// Trigger a UI event with <see cref="UIEvent.Target"/> set to this <see cref="Drawable"/>.
+        /// </summary>
+        /// <param name="e">The event. Its <see cref="UIEvent.Target"/> will be modified.</param>
+        /// <returns>The result of event handler.</returns>
+        public bool TriggerEvent(UIEvent e)
         {
-            // call an individual input handler
+            e.Target = this;
+
             switch (e)
             {
                 case MouseMoveEvent mouseMove:
@@ -1837,40 +1845,29 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
-        /// Trigger a UI event with <see cref="UIEvent.Target"/> set to this <see cref="Drawable"/>.
-        /// </summary>
-        /// <param name="e">The event. Its <see cref="UIEvent.Target"/> will be modified.</param>
-        /// <returns>The result of event handler.</returns>
-        public bool TriggerEvent(UIEvent e)
-        {
-            e.Target = this;
-            return Handle(e);
-        }
-
-        /// <summary>
         /// Triggers a left click event for this <see cref="Drawable"/>.
         /// </summary>
         /// <returns>Whether the click event is handled.</returns>
         public bool Click() => TriggerEvent(new ClickEvent(GetContainingInputManager()?.CurrentState ?? new InputState(), MouseButton.Left));
 
         #region Individual event handlers
-        protected virtual bool OnMouseMove(MouseMoveEvent e) => false;
-        protected virtual bool OnHover(HoverEvent e) => false;
-        protected virtual void OnHoverLost(HoverLostEvent e) {}
-        protected virtual bool OnMouseDown(MouseDownEvent e) => false;
-        protected virtual bool OnMouseUp(MouseUpEvent e) => false;
-        protected virtual bool OnClick(ClickEvent e) => false;
-        protected virtual bool OnDoubleClick(DoubleClickEvent e) => false;
-        protected virtual bool OnDragStart(DragStartEvent e) => false;
-        protected virtual bool OnDrag(DragEvent e) => false;
-        protected virtual bool OnDragEnd(DragEndEvent e) => false;
-        protected virtual bool OnScroll(ScrollEvent e) => false;
-        protected virtual void OnFocus(FocusEvent e) {}
-        protected virtual void OnFocusLost(FocusLostEvent e) {}
-        protected virtual bool OnKeyDown(KeyDownEvent e) => false;
-        protected virtual bool OnKeyUp(KeyUpEvent e) => false;
-        protected virtual bool OnJoystickPress(JoystickPressEvent e) => false;
-        protected virtual bool OnJoystickRelease(JoystickReleaseEvent e) => false;
+        protected virtual bool OnMouseMove(MouseMoveEvent e) => Handle(e);
+        protected virtual bool OnHover(HoverEvent e) => Handle(e);
+        protected virtual void OnHoverLost(HoverLostEvent e) { Handle(e); }
+        protected virtual bool OnMouseDown(MouseDownEvent e) => Handle(e);
+        protected virtual bool OnMouseUp(MouseUpEvent e) => Handle(e);
+        protected virtual bool OnClick(ClickEvent e) => Handle(e);
+        protected virtual bool OnDoubleClick(DoubleClickEvent e) => Handle(e);
+        protected virtual bool OnDragStart(DragStartEvent e) => Handle(e);
+        protected virtual bool OnDrag(DragEvent e) => Handle(e);
+        protected virtual bool OnDragEnd(DragEndEvent e) => Handle(e);
+        protected virtual bool OnScroll(ScrollEvent e) => Handle(e);
+        protected virtual void OnFocus(FocusEvent e) { Handle(e); }
+        protected virtual void OnFocusLost(FocusLostEvent e) { Handle(e); }
+        protected virtual bool OnKeyDown(KeyDownEvent e) => Handle(e);
+        protected virtual bool OnKeyUp(KeyUpEvent e) => Handle(e);
+        protected virtual bool OnJoystickPress(JoystickPressEvent e) => Handle(e);
+        protected virtual bool OnJoystickRelease(JoystickReleaseEvent e) => Handle(e);
         #endregion
 
         /// <summary>
