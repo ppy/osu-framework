@@ -160,7 +160,7 @@ namespace osu.Framework.Tests.Visual
                 // set up window
                 AddStep("switch to windowed", () => windowMode.Value = WindowMode.Windowed);
                 AddStep("set client size to 1280x720", () => window.ClientSize = new Size(1280, 720));
-                AddStep("center window on screen " + i, () => window.CenterToScreen(display));
+                AddStep("center window on screen " + i, () => window.CentreToScreen(display));
 
                 // borderless alignment tests
                 AddStep("switch to borderless", () => windowMode.Value = WindowMode.Borderless);
