@@ -176,17 +176,6 @@ namespace osu.Framework.Tests.Visual
             }
         }
 
-        private void printState()
-        {
-            if(window == null) return;
-            Console.WriteLine("Current screen: " + window.CurrentDisplay);
-            Console.WriteLine("Window location: " + window.Location);
-            Console.WriteLine("Window position: " + window.Position);
-            Console.WriteLine("Window mode: " + window.WindowMode);
-            Console.WriteLine("Window size: " + window.Size);
-            Console.WriteLine("Client size: " + window.ClientSize);
-        }
-
         private void refreshScreens()
         {
             screenContainer.Remove(windowContainer);
