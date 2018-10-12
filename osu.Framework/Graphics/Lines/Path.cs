@@ -14,6 +14,16 @@ namespace osu.Framework.Graphics.Lines
 {
     public class Path : Drawable
     {
+        private Shader roundedTextureShader;
+        private Shader textureShader;
+
+        [BackgroundDependencyLoader]
+        private void load(ShaderManager shaders)
+        {
+            roundedTextureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_3, FragmentShaderDescriptor.TEXTURE_ROUNDED);
+            textureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_3, FragmentShaderDescriptor.TEXTURE);
+        }
+
         private List<Vector2> positions = new List<Vector2>();
 
         public List<Vector2> Positions
@@ -23,6 +33,23 @@ namespace osu.Framework.Graphics.Lines
                 if (positions == value) return;
 
                 positions = value;
+                recomputeBounds();
+
+                segmentsCache.Invalidate();
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
+
+        private float pathWidth = 10f;
+
+        public virtual float PathWidth
+        {
+            get => pathWidth;
+            set
+            {
+                if (pathWidth == value) return;
+
+                pathWidth = value;
                 recomputeBounds();
 
                 segmentsCache.Invalidate();
@@ -98,23 +125,6 @@ namespace osu.Framework.Graphics.Lines
                 expandBounds(pos);
         }
 
-        private float pathWidth = 10f;
-
-        public float PathWidth
-        {
-            get => pathWidth;
-            set
-            {
-                if (pathWidth == value) return;
-
-                pathWidth = value;
-                recomputeBounds();
-
-                segmentsCache.Invalidate();
-                Invalidate(Invalidation.DrawNode);
-            }
-        }
-
         private readonly List<Line> segmentsBacking = new List<Line>();
         private Cached segmentsCache = new Cached();
         private List<Line> segments => segmentsCache.IsValid ? segmentsBacking : generateSegments();
@@ -134,22 +144,24 @@ namespace osu.Framework.Graphics.Lines
             return segmentsBacking;
         }
 
-        private Shader roundedTextureShader;
-        private Shader textureShader;
+        private Texture texture = Texture.WhitePixel;
 
-        private readonly PathDrawNodeSharedData pathDrawNodeSharedData = new PathDrawNodeSharedData();
-
-        #region Disposal
-
-        protected override void Dispose(bool isDisposing)
+        protected Texture Texture
         {
-            texture?.Dispose();
-            texture = null;
+            get => texture;
+            set
+            {
+                if (texture == value)
+                    return;
 
-            base.Dispose(isDisposing);
+                texture?.Dispose();
+                texture = value;
+
+                Invalidate(Invalidation.DrawNode);
+            }
         }
 
-        #endregion
+        private readonly PathDrawNodeSharedData pathDrawNodeSharedData = new PathDrawNodeSharedData();
 
         protected override DrawNode CreateDrawNode() => new PathDrawNode();
 
@@ -168,30 +180,6 @@ namespace osu.Framework.Graphics.Lines
             n.Segments = segments.ToList();
 
             base.ApplyDrawNode(node);
-        }
-
-        [BackgroundDependencyLoader]
-        private void load(ShaderManager shaders)
-        {
-            roundedTextureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_3, FragmentShaderDescriptor.TEXTURE_ROUNDED);
-            textureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_3, FragmentShaderDescriptor.TEXTURE);
-        }
-
-        private Texture texture = Texture.WhitePixel;
-
-        public Texture Texture
-        {
-            get => texture;
-            set
-            {
-                if (value == texture)
-                    return;
-
-                texture?.Dispose();
-                texture = value;
-
-                Invalidate(Invalidation.DrawNode);
-            }
         }
     }
 }

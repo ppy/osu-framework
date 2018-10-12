@@ -120,7 +120,7 @@ namespace osu.Framework.Tests.Visual
             Colour = Color4.White,
         };
 
-        private class SmoothedPath : Path
+        private class SmoothedPath : TexturedPath
         {
             protected SmoothedPath()
             {
