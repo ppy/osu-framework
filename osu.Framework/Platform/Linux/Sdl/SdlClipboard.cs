@@ -5,9 +5,9 @@
 
 using System.Runtime.InteropServices;
 
-namespace osu.Framework.Platform.SDL
+namespace osu.Framework.Platform.Linux.Sdl
 {
-    public class SDLClipboard : Clipboard
+    public class SdlClipboard : Clipboard
     {
         #if ANDROID
         const string lib = "libSDL2.so";

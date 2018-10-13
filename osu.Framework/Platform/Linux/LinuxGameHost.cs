@@ -2,7 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Platform.Linux.Native;
-using osu.Framework.Platform.SDL;
+using osu.Framework.Platform.Linux.Sdl;
 
 namespace osu.Framework.Platform.Linux
 {
@@ -28,9 +28,9 @@ namespace osu.Framework.Platform.Linux
 
         public override Clipboard GetClipboard()
         {
-            if (((LinuxGameWindow)Window).IsSDL)
+            if (((LinuxGameWindow)Window).IsSdl)
             {
-                return new SDLClipboard();
+                return new SdlClipboard();
             }
             else
             {
