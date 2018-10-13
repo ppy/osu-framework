@@ -55,5 +55,13 @@
       <PackagePath>runtimes\linux-x64\native</PackagePath>
       <Pack>true</Pack>
     </None>
+    <None Include="$(MSBuildThisFileDirectory)\arm\libbass*.so">
+      <PackagePath>runtimes\linux-arm\native</PackagePath>
+      <Pack>true</Pack>
+    </None>
+    <None Include="$(MSBuildThisFileDirectory)\arm64\libbass*.so">
+      <PackagePath>runtimes\linux-arm64\native</PackagePath>
+      <Pack>true</Pack>
+    </None>
   </ItemGroup>
 </Project>
