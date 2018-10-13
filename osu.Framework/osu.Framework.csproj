@@ -39,13 +39,21 @@
     <PackageReference Include="JetBrains.Annotations" Version="2018.2.1" />
   </ItemGroup>
   <ItemGroup>
-    <NativeLibs Include="$(MSBuildThisFileDirectory)*\*.dll*" />
-    <NativeLibs Include="$(MSBuildThisFileDirectory)*.so" />
-    <NativeLibs Include="$(MSBuildThisFileDirectory)*.dylib" />
-    <None Include="@(NativeLibs)">
+    <None Include="$(MSBuildThisFileDirectory)\x64\bass*.dll">
+      <PackagePath>runtimes\win-x64\native</PackagePath>
       <Pack>true</Pack>
-      <PackageCopyToOutput>true</PackageCopyToOutput>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="$(MSBuildThisFileDirectory)\x86\bass*.dll">
+      <PackagePath>runtimes\win-x86\native</PackagePath>
+      <Pack>true</Pack>
+    </None>
+    <None Include="$(MSBuildThisFileDirectory)\libbass*.dylib">
+      <PackagePath>runtimes\osx-x64\native</PackagePath>
+      <Pack>true</Pack>
+    </None>
+    <None Include="$(MSBuildThisFileDirectory)\libbass*.so">
+      <PackagePath>runtimes\linux-x64\native</PackagePath>
+      <Pack>true</Pack>
     </None>
   </ItemGroup>
 </Project>
