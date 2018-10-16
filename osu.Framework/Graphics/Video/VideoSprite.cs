@@ -123,7 +123,7 @@ namespace osu.Framework.Graphics.Video
             // ensures we do not try to seek with the decoder if the underlying stream does not support seeking (e.g. for network streams)
             if (decoder.CanSeek)
             {
-                if (Loop && PlaybackPosition >= Duration - (NumberOfPreloadedFrames / 2) * 1000.0 / decoder.Framerate)
+                if (Loop && PlaybackPosition >= Duration - NumberOfPreloadedFrames / 2.0 * 1000.0 / decoder.Framerate)
                 {
                     decoder.Seek(0);
                 }
