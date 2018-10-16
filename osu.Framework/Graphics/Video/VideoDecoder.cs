@@ -288,13 +288,14 @@ namespace osu.Framework.Graphics.Video
         public void StopDecoding(bool waitForDecoderExit)
         {
             if (decodingTask == null)
-                throw new InvalidOperationException("You cannot stop decoding without having started decoding previously.");
+                return;
 
             decodingTaskCancellationTokenSource.Cancel();
             if (waitForDecoderExit)
                 decodingTask.Wait();
 
             decodingTask = null;
+            decodingTaskCancellationTokenSource.Dispose();
             decodingTaskCancellationTokenSource = null;
 
             state = DecoderState.Paused;
@@ -465,13 +466,8 @@ namespace osu.Framework.Graphics.Video
             videoStream = null;
 
             while (decoderCommands.TryDequeue(out var _)) { }
-            if (decodingTask != null)
-            {
-                decodingTaskCancellationTokenSource.Cancel();
-                decodingTask.Wait();
-                decodingTask = null;
-                decodingTaskCancellationTokenSource = null;
-            }
+
+            StopDecoding(true);
 
             if (formatContext != null)
             {
