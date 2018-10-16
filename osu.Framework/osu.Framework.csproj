@@ -21,6 +21,12 @@
     <copyright>Copyright (c) 2007-2018 ppy Pty Ltd contact@ppy.sh</copyright>
     <PackageTags>osu game framework</PackageTags>
   </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <DefineConstants>TRACE;DEBUG;NETSTANDARD;NETSTANDARD2_0;JETBRAINS_ANNOTATIONS</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <DefineConstants>TRACE;RELEASE;NETSTANDARD;NETSTANDARD2_0;JETBRAINS_ANNOTATIONS</DefineConstants>
+  </PropertyGroup>
   <ItemGroup Label="Package References">
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0005" />
     <PackageReference Include="System.Drawing.Common" Version="4.5.0" />
