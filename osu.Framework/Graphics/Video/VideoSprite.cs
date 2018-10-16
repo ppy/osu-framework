@@ -123,12 +123,10 @@ namespace osu.Framework.Graphics.Video
             // ensures we do not try to seek with the decoder if the underlying stream does not support seeking (e.g. for network streams)
             if (decoder.CanSeek)
             {
-                // commented out, because seamless looping seems to work without this predictive jump. might want to enable this for weaker machines that cant immediately catch up
-                // after seeking back to the beginning and need a bit of a grace period.
-                /*if (Loop && PlaybackPosition >= Duration - (NumberOfPreloadedFrames / 2) * 1000.0 / AVUtil.av_q2d(stream->avg_frame_rate))
+                if (Loop && PlaybackPosition >= Duration - (NumberOfPreloadedFrames / 2) * 1000.0 / decoder.Framerate)
                 {
                     decoder.Seek(0);
-                }*/
+                }
                 // we are before the earliest frame of our buffer, and the last frame we decoded is later than our current playback position
                 // this means (because lastDecodedFrameTime only ever increments) that we will never normally decode a frame that is useful to our current playback
                 // position. Thus, we need to seek to an earlier frame.

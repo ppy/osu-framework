@@ -27,7 +27,7 @@ namespace osu.Framework.Graphics.Video
         /// <summary>
         /// The duration of the video that is being decoded. Can only be queried after the decoder has started decoding has loaded. This value may be an estimate by FFmpeg, depending on the video loaded.
         /// </summary>
-        public double Duration => formatContext->duration / ffmpeg.AV_TIME_BASE * 1000;
+        public double Duration => stream->duration * timeBaseInSeconds * 1000;
 
         /// <summary>
         /// True if the decoder currently does not decode any more frames, false otherwise.
