@@ -15,8 +15,7 @@ using osu.Framework.Testing;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Shapes;
-using osu.Framework.Input.EventArgs;
-using osu.Framework.Input.States;
+using osu.Framework.Input.Events;
 using OpenTK.Input;
 
 namespace osu.Framework.Tests.Visual
@@ -399,37 +398,13 @@ namespace osu.Framework.Tests.Visual
                 new KeyBinding(new[] { InputKey.Control, InputKey.MouseWheelUp }, TestAction.Ctrl_and_WheelUp),
             };
 
-            protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
+            protected override bool Handle(UIEvent e)
             {
-                base.OnKeyDown(state, args);
+                base.Handle(e);
                 return false;
             }
 
-            protected override bool OnKeyUp(InputState state, KeyUpEventArgs args)
-            {
-                base.OnKeyUp(state, args);
-                return false;
-            }
-
-            protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
-            {
-                base.OnMouseDown(state, args);
-                return false;
-            }
-
-            protected override bool OnMouseUp(InputState state, MouseUpEventArgs args)
-            {
-                base.OnMouseUp(state, args);
-                return false;
-            }
-
-            protected override bool OnScroll(InputState state)
-            {
-                base.OnScroll(state);
-                return false;
-            }
-
-            public override bool ReceiveMouseInputAt(Vector2 screenSpacePos) => true;
+            public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => true;
         }
 
         private class ScrollTestButton : TestButton, IScrollBindingHandler<TestAction>

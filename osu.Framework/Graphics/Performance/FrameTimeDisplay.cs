@@ -35,19 +35,19 @@ namespace osu.Framework.Graphics.Performance
                     Colour = Color4.Black,
                     Alpha = 0.75f
                 },
-                counter = new SpriteText
+                counter = new CounterText
                 {
                     Anchor = Anchor.TopRight,
                     Origin = Anchor.TopRight,
                     Spacing = new Vector2(-1, 0),
                     Text = @"...",
-                    FixedWidth = true,
                 }
             });
         }
 
         private float aimWidth;
         private double displayFps;
+        private double displayFrameTime;
 
         private const int updates_per_second = 10;
 
@@ -75,12 +75,37 @@ namespace osu.Framework.Graphics.Performance
                     aimWidth = counter.DrawWidth;
                 }
 
-                displayFps = Interpolation.Damp(displayFps, clock.FramesPerSecond, 0.01, Math.Max(Clock.CurrentTime - lastUpdate, 0) / 1000);
+                double dampRate = Math.Max(Clock.CurrentTime - lastUpdate, 0) / 1000;
+
+                displayFps = Interpolation.Damp(displayFps, clock.FramesPerSecond, 0.01, dampRate);
+                displayFrameTime = Interpolation.Damp(displayFrameTime, clock.ElapsedFrameTime - clock.SleptTime, 0.01, dampRate);
+
                 lastUpdate = clock.CurrentTime;
 
-                counter.Text = $"{displayFps:0}fps({clock.AverageFrameTime:0.00}ms)"
+                counter.Text = $"{displayFps:0}fps({displayFrameTime:0.00}ms)"
                                + $"{(clock.MaximumUpdateHz < 10000 ? clock.MaximumUpdateHz.ToString("0") : "∞").PadLeft(4)}hz";
             }, 1000.0 / updates_per_second, true);
+        }
+
+        private class CounterText : SpriteText
+        {
+            public CounterText()
+            {
+                FixedWidth = true;
+            }
+
+            protected override bool UseFixedWidthForCharacter(char c)
+            {
+                switch (c)
+                {
+                    case ',':
+                    case '.':
+                    case ' ':
+                        return false;
+                }
+
+                return true;
+            }
         }
     }
 }

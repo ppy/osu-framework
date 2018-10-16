@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Configuration;
 using osu.Framework.Logging;
@@ -52,6 +53,11 @@ namespace osu.Framework.Platform
         /// Whether the OS cursor is currently contained within the game window.
         /// </summary>
         public bool CursorInWindow { get; private set; }
+
+        /// <summary>
+        /// Available resolutions for full-screen display.
+        /// </summary>
+        public virtual IEnumerable<DisplayResolution> AvailableResolutions => Enumerable.Empty<DisplayResolution>();
 
         /// <summary>
         /// Creates a <see cref="GameWindow"/> with a given <see cref="IGameWindow"/> implementation.
@@ -166,7 +172,11 @@ namespace osu.Framework.Platform
         /// Gets the <see cref="DisplayDevice"/> that this window is currently on.
         /// </summary>
         /// <returns></returns>
-        public abstract DisplayDevice GetCurrentDisplay();
+        public virtual DisplayDevice CurrentDisplay
+        {
+            get => DisplayDevice.FromRectangle(Bounds) ?? DisplayDevice.Default;
+            set => throw new InvalidOperationException($@"{GetType().Name}.{nameof(CurrentDisplay)} cannot be set.");
+        }
 
         private string getVersionNumberSubstring(string version)
         {

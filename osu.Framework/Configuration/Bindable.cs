@@ -4,6 +4,9 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using JetBrains.Annotations;
+using Newtonsoft.Json;
+using osu.Framework.IO.Serialization;
 using osu.Framework.Lists;
 
 namespace osu.Framework.Configuration
@@ -12,7 +15,7 @@ namespace osu.Framework.Configuration
     /// A generic implementation of a <see cref="IBindable"/>
     /// </summary>
     /// <typeparam name="T">The type of our stored <see cref="Value"/>.</typeparam>
-    public class Bindable<T> : IBindable<T>, IBindable
+    public class Bindable<T> : IBindable<T>, IBindable, ISerializableBindable
     {
         /// <summary>
         /// An event which is raised when <see cref="Value"/> has changed (or manually via <see cref="TriggerValueChange"/>).
@@ -79,10 +82,18 @@ namespace osu.Framework.Configuration
         }
 
         /// <summary>
+        /// Creates a new bindable instance. This is used for deserialization of bindables.
+        /// </summary>
+        [UsedImplicitly]
+        private Bindable()
+        {
+        }
+
+        /// <summary>
         /// Creates a new bindable instance.
         /// </summary>
         /// <param name="value">The initial value.</param>
-        public Bindable(T value = default(T))
+        public Bindable(T value = default)
         {
             this.value = value;
         }
@@ -200,7 +211,7 @@ namespace osu.Framework.Configuration
             // check a bound bindable hasn't changed the value again (it will fire its own event)
             bool beforePropagation = disabled;
             if (propagateToBindings) Bindings?.ForEachAlive(b => b.Disabled = disabled);
-            if (Equals(beforePropagation, disabled))
+            if (beforePropagation == disabled)
                 DisabledChanged?.Invoke(disabled);
         }
 
@@ -264,6 +275,16 @@ namespace osu.Framework.Configuration
             var copy = (Bindable<T>)Activator.CreateInstance(GetType(), Value);
             copy.BindTo(this);
             return copy;
+        }
+
+        void ISerializableBindable.SerializeTo(JsonWriter writer, JsonSerializer serializer)
+        {
+            serializer.Serialize(writer, Value);
+        }
+
+        void ISerializableBindable.DeserializeFrom(JsonReader reader, JsonSerializer serializer)
+        {
+            Value = serializer.Deserialize<T>(reader);
         }
     }
 }

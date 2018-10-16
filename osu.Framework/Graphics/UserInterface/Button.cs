@@ -5,7 +5,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Shapes;
-using osu.Framework.Input.States;
+using osu.Framework.Input.Events;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -61,7 +61,7 @@ namespace osu.Framework.Graphics.UserInterface
             Anchor = Anchor.Centre,
         };
 
-        protected override bool OnClick(InputState state)
+        protected override bool OnClick(ClickEvent e)
         {
             if (Enabled.Value)
             {
@@ -78,7 +78,7 @@ namespace osu.Framework.Graphics.UserInterface
                 flash.Expire();
             }
 
-            return base.OnClick(state);
+            return base.OnClick(e);
         }
     }
 }

@@ -7,7 +7,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Input.States;
+using osu.Framework.Input.Events;
 using osu.Framework.MathUtils;
 using osu.Framework.Testing;
 using OpenTK;
@@ -20,8 +20,7 @@ namespace osu.Framework.Tests.Visual
     {
         private Container testContainer;
 
-        [Test]
-        public void TestVariousScenarios()
+        public TestCaseSizing()
         {
             string[] testNames =
             {
@@ -85,6 +84,36 @@ namespace osu.Framework.Tests.Visual
             AddAssert("height = 0", () => Precision.AlmostEquals(0, autoSizeContainer.DrawHeight));
             AddStep("bypass none", () => boxSizeReference.BypassAutoSizeAxes = Axes.None);
             AddAssert($"height = {autosize_height}", () => Precision.AlmostEquals(autosize_height, autoSizeContainer.DrawHeight));
+        }
+
+        [Test]
+        public void TestParentInvalidations()
+        {
+            Container child = null;
+            Vector2 initialSize = Vector2.Zero;
+
+            AddStep("add child", () =>
+            {
+                Child = child = new Container
+                {
+                    AutoSizeAxes = Axes.Both,
+                    Child = new Container
+                    {
+                        // These two properties are important, as they make the parent's autosize 0
+                        Anchor = Anchor.TopLeft,
+                        Origin = Anchor.BottomRight,
+                        AutoSizeAxes = Axes.Both,
+                        Child = new Box { Size = new Vector2(100) },
+                    }
+                };
+
+                // Should already be 0
+                initialSize = child.Size;
+            });
+
+            // Upon LoadComplete(), one invalidation occurs which causes autosize to recompute
+            // Since nothing has changed since the previous frame, the size of the child should remain the same
+            AddAssert("size is the same after one frame", () => child.Size == initialSize);
         }
 
         private void addCrosshair()
@@ -1107,20 +1136,20 @@ namespace osu.Framework.Tests.Visual
 
         public bool AllowDrag = true;
 
-        protected override bool OnDrag(InputState state)
+        protected override bool OnDrag(DragEvent e)
         {
             if (!AllowDrag) return false;
 
-            Position += state.Mouse.Delta;
+            Position += e.Delta;
             return true;
         }
 
-        protected override bool OnDragEnd(InputState state)
+        protected override bool OnDragEnd(DragEndEvent e)
         {
             return true;
         }
 
-        protected override bool OnDragStart(InputState state) => AllowDrag;
+        protected override bool OnDragStart(DragStartEvent e) => AllowDrag;
     }
 
     internal class InfofulBox : Container
@@ -1128,20 +1157,20 @@ namespace osu.Framework.Tests.Visual
         public bool Chameleon = false;
         public bool AllowDrag = true;
 
-        protected override bool OnDrag(InputState state)
+        protected override bool OnDrag(DragEvent e)
         {
             if (!AllowDrag) return false;
 
-            Position += state.Mouse.Delta;
+            Position += e.Delta;
             return true;
         }
 
-        protected override bool OnDragEnd(InputState state)
+        protected override bool OnDragEnd(DragEndEvent e)
         {
             return true;
         }
 
-        protected override bool OnDragStart(InputState state) => AllowDrag;
+        protected override bool OnDragStart(DragStartEvent e) => AllowDrag;
 
         public InfofulBox()
         {

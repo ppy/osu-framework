@@ -98,7 +98,7 @@ namespace osu.Framework.IO.File
         /// </summary>
         public static string PathStandardise(string path)
         {
-            return path.Replace(Path.DirectorySeparatorChar, '/');
+            return path.Replace('\\', '/');
         }
 
         [Flags]

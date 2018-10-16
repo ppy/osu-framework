@@ -13,6 +13,7 @@ using System.Security;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using OpenTK;
 
 // this is an abusive thing to do, but it increases the visibility of Extension Methods to virtually every file.
 
@@ -32,7 +33,7 @@ namespace osu.Framework.Extensions
         /// <returns>The matched item, or the default value for the type if no item was matched.</returns>
         public static T Find<T>(this List<T> list, Predicate<T> match, int startIndex)
         {
-            if (!list.IsValidIndex(startIndex)) return default(T);
+            if (!list.IsValidIndex(startIndex)) return default;
 
             int val = list.FindIndex(startIndex, list.Count - startIndex - 1, match);
 
@@ -76,7 +77,7 @@ namespace osu.Framework.Extensions
         /// <returns></returns>
         public static TValue GetOrDefault<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, TKey lookup)
         {
-            return dictionary.TryGetValue(lookup, out TValue outVal) ? outVal : default(TValue);
+            return dictionary.TryGetValue(lookup, out TValue outVal) ? outVal : default;
         }
 
         public static bool IsValidIndex<T>(this List<T> list, int index)
@@ -230,6 +231,17 @@ namespace osu.Framework.Extensions
             stream.Seek(0, SeekOrigin.Begin);
 
             return hash;
+        }
+
+        public static DisplayIndex GetIndex(this DisplayDevice display)
+        {
+            if (display == null) return DisplayIndex.Default;
+            for (int i = 0; ; i++)
+            {
+                var device = DisplayDevice.GetDisplay((DisplayIndex)i);
+                if (device == null) return DisplayIndex.Default;
+                if (device == display) return (DisplayIndex)i;
+            }
         }
     }
 }

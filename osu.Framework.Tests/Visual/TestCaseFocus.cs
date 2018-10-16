@@ -8,7 +8,8 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Input.States;
+using osu.Framework.Input;
+using osu.Framework.Input.Events;
 using osu.Framework.Testing;
 using OpenTK;
 using OpenTK.Graphics;
@@ -162,6 +163,32 @@ namespace osu.Framework.Tests.Visual
             checkFocused(() => focusBottomLeft);
         }
 
+        [Test]
+        public void InputPropagation()
+        {
+            AddStep("Focus bottom left", () =>
+            {
+                InputManager.MoveMouseTo(focusBottomLeft);
+                InputManager.Click(MouseButton.Left);
+            });
+            AddStep("Press a key (blocking)", () =>
+            {
+                InputManager.PressKey(Key.A);
+                InputManager.ReleaseKey(Key.A);
+            });
+            AddAssert("Received the key", () =>
+                focusBottomLeft.KeyDownCount == 1 && focusBottomLeft.KeyUpCount == 1 &&
+                focusBottomRight.KeyDownCount == 0 && focusBottomRight.KeyUpCount == 1);
+            AddStep("Press a joystick (non blocking)", () =>
+            {
+                InputManager.PressJoystickButton(JoystickButton.Button1);
+                InputManager.ReleaseJoystickButton(JoystickButton.Button1);
+            });
+            AddAssert("Received the joystick button", () =>
+                focusBottomLeft.JoystickPressCount == 1 && focusBottomLeft.JoystickReleaseCount == 1 &&
+                focusBottomRight.JoystickPressCount == 1 && focusBottomRight.JoystickReleaseCount == 1);
+        }
+
         private void checkFocused(Func<Drawable> d) => AddAssert("check focus", () => d().HasFocus);
         private void checkNotFocused(Func<Drawable> d) => AddAssert("check not focus", () => !d().HasFocus);
 
@@ -219,28 +246,28 @@ namespace osu.Framework.Tests.Visual
                 stateText.Text = State.ToString();
             }
 
-            public override bool ReceiveMouseInputAt(Vector2 screenSpacePos) => true;
+            public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => true;
 
-            protected override bool OnClick(InputState state)
+            protected override bool OnClick(ClickEvent e)
             {
-                if (!box.ReceiveMouseInputAt(state.Mouse.NativeState.Position))
+                if (!box.ReceivePositionalInputAt(e.ScreenSpaceMousePosition))
                 {
                     State = Visibility.Hidden;
                     return true;
                 }
 
-                return base.OnClick(state);
+                return base.OnClick(e);
             }
 
-            protected override void OnFocus(InputState state)
+            protected override void OnFocus(FocusEvent e)
             {
-                base.OnFocus(state);
+                base.OnFocus(e);
                 this.FadeTo(1);
             }
 
-            protected override void OnFocusLost(InputState state)
+            protected override void OnFocusLost(FocusLostEvent e)
             {
-                base.OnFocusLost(state);
+                base.OnFocusLost(e);
                 this.FadeTo(0.2f);
             }
         }
@@ -265,6 +292,7 @@ namespace osu.Framework.Tests.Visual
         public class FocusBox : CompositeDrawable
         {
             protected Box Box;
+            public int KeyDownCount, KeyUpCount, JoystickPressCount, JoystickReleaseCount;
 
             public FocusBox()
             {
@@ -279,20 +307,45 @@ namespace osu.Framework.Tests.Visual
                 Size = new Vector2(0.4f);
             }
 
-            protected override bool OnClick(InputState state) => true;
+            protected override bool OnClick(ClickEvent e) => true;
 
             public override bool AcceptsFocus => true;
 
-            protected override void OnFocus(InputState state)
+            protected override void OnFocus(FocusEvent e)
             {
-                base.OnFocus(state);
+                base.OnFocus(e);
                 Box.FadeTo(1);
             }
 
-            protected override void OnFocusLost(InputState state)
+            protected override void OnFocusLost(FocusLostEvent e)
             {
-                base.OnFocusLost(state);
+                base.OnFocusLost(e);
                 Box.FadeTo(0.5f);
+            }
+
+            // only KeyDown is blocking
+            protected override bool OnKeyDown(KeyDownEvent e)
+            {
+                ++KeyDownCount;
+                return true;
+            }
+
+            protected override bool OnKeyUp(KeyUpEvent e)
+            {
+                ++KeyUpCount;
+                return base.OnKeyUp(e);
+            }
+
+            protected override bool OnJoystickPress(JoystickPressEvent e)
+            {
+                ++JoystickPressCount;
+                return base.OnJoystickPress(e);
+            }
+
+            protected override bool OnJoystickRelease(JoystickReleaseEvent e)
+            {
+                ++JoystickReleaseCount;
+                return base.OnJoystickRelease(e);
             }
         }
     }

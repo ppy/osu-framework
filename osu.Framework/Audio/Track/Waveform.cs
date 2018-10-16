@@ -174,7 +174,7 @@ namespace osu.Framework.Audio.Track
         /// <param name="pointCount">The number of points the resulting <see cref="Waveform"/> should contain.</param>
         /// <param name="cancellationToken">The token to cancel the task.</param>
         /// <returns>An async task for the generation of the <see cref="Waveform"/>.</returns>
-        public async Task<Waveform> GenerateResampledAsync(int pointCount, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<Waveform> GenerateResampledAsync(int pointCount, CancellationToken cancellationToken = default)
         {
             if (pointCount < 0) throw new ArgumentOutOfRangeException(nameof(pointCount));
 

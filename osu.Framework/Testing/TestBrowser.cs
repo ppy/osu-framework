@@ -16,8 +16,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Bindings;
-using osu.Framework.Input.EventArgs;
-using osu.Framework.Input.States;
+using osu.Framework.Input.Events;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Testing.Drawables;
@@ -294,11 +293,11 @@ namespace osu.Framework.Testing
             }
         }
 
-        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
+        protected override bool OnKeyDown(KeyDownEvent e)
         {
-            if (!args.Repeat)
+            if (!e.Repeat)
             {
-                switch (args.Key)
+                switch (e.Key)
                 {
                     case Key.Escape:
                         exit();
@@ -306,7 +305,7 @@ namespace osu.Framework.Testing
                 }
             }
 
-            return base.OnKeyDown(state, args);
+            return base.OnKeyDown(e);
         }
 
         public override IEnumerable<KeyBinding> DefaultKeyBindings => new[]
@@ -385,7 +384,6 @@ namespace osu.Framework.Testing
                 if (lastTest?.Parent != null)
                 {
                     testContentContainer.Remove(lastTest.Parent);
-                    lastTest.Clear();
                     lastTest.Dispose();
                 }
 
@@ -402,11 +400,21 @@ namespace osu.Framework.Testing
 
                 var setUpMethods = methods.Where(m => m.GetCustomAttributes(typeof(SetUpAttribute), false).Length > 0);
 
-                foreach (var m in methods.Where(m => m.Name != "TestConstructor" && m.GetCustomAttributes(typeof(TestAttribute), false).Length > 0))
+                foreach (var m in methods.Where(m => m.Name != "TestConstructor"))
                 {
-                    var step = CurrentTest.AddStep($"Setup: {m.Name}", () => setUpMethods.ForEach(s => s.Invoke(CurrentTest, null)));
-                    step.LightColour = Color4.Teal;
-                    m.Invoke(CurrentTest, null);
+                    if (m.GetCustomAttributes(typeof(TestAttribute), false).Any())
+                    {
+                        var step = CurrentTest.AddStep($"Setup: {m.Name}", () => setUpMethods.ForEach(s => s.Invoke(CurrentTest, null)));
+                        step.LightColour = Color4.Teal;
+                        m.Invoke(CurrentTest, null);
+                    }
+
+                    foreach (var tc in m.GetCustomAttributes(typeof(TestCaseAttribute), false).OfType<TestCaseAttribute>())
+                    {
+                        var step = CurrentTest.AddStep($"Setup: {m.Name}({string.Join(", ", tc.Arguments)})", () => setUpMethods.ForEach(s => s.Invoke(CurrentTest, null)));
+                        step.LightColour = Color4.Teal;
+                        m.Invoke(CurrentTest, tc.Arguments);
+                    }
                 }
 
                 backgroundCompiler.Checkpoint(CurrentTest);
