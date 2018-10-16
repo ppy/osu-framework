@@ -384,7 +384,7 @@ namespace osu.Framework.Graphics.Video
                                     var rawTex = new BufferStackTextureUpload(tex.Width, tex.Height, bufferStack);
 
                                     // todo: can likely make this more efficient
-                                    var videoText = new Span<Rgba32>(frameRgb->data[0], uncompressedFrameSize);
+                                    var videoText = new Span<Rgba32>(frameRgb->data[0], uncompressedFrameSize / 4);
                                     videoText.CopyTo(rawTex.RawData);
 
                                     tex.SetData(rawTex);
