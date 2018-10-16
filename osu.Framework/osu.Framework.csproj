@@ -22,10 +22,10 @@
     <PackageTags>osu game framework</PackageTags>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-    <DefineConstants>TRACE;DEBUG;NETSTANDARD;NETSTANDARD2_0;JETBRAINS_ANNOTATIONS</DefineConstants>
+    <DefineConstants>$(DefineConstants);JETBRAINS_ANNOTATIONS</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-    <DefineConstants>TRACE;RELEASE;NETSTANDARD;NETSTANDARD2_0;JETBRAINS_ANNOTATIONS</DefineConstants>
+    <DefineConstants>$(DefineConstants);JETBRAINS_ANNOTATIONS</DefineConstants>
   </PropertyGroup>
   <ItemGroup Label="Package References">
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0005" />
