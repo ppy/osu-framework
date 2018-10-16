@@ -3,7 +3,6 @@
 
 using FFmpeg.AutoGen;
 using osu.Framework.Allocation;
-using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.Textures;
 using System;
 using System.Collections.Concurrent;
@@ -12,6 +11,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Graphics.Video
 {
@@ -341,7 +341,7 @@ namespace osu.Framework.Graphics.Video
             // this should be massively reduced to something like 5-10, currently there is an issue with texture uploads not completing
             // in a predictable way though, which can cause huge overallocations. Going past the bufferstacks limit essentially breaks
             // video playback (~several GB memory usage building up very quickly accompanied by unacceptable framerates).
-            var bufferStack = new BufferStack<byte>(5);
+            var bufferStack = new BufferStack<Rgba32>(5);
             SwsContext* swsCtx = null;
             try
             {
@@ -380,10 +380,13 @@ namespace osu.Framework.Graphics.Video
                                     if (!availableTextures.TryDequeue(out var tex))
                                         tex = new Texture(codecParams.width, codecParams.height, true);
 
-                                    var rawTex = new RawTexture(tex.Width, tex.Height, bufferStack);
-                                    Marshal.Copy((IntPtr)frameRgb->data[0], rawTex.Data, 0, uncompressedFrameSize);
-                                    tex.SetData(new TextureUpload(rawTex));
+                                    var rawTex = new BufferStackTextureUpload(tex.Width, tex.Height, bufferStack);
 
+                                    // todo: can likely make this more efficient
+                                    var videoText = new Span<Rgba32>(frameRgb->data[0], uncompressedFrameSize);
+                                    videoText.CopyTo(rawTex.RawData);
+
+                                    tex.SetData(rawTex);
                                     decodedFrames.Enqueue(new DecodedFrame { Time = frameTime, Texture = tex });
                                 }
                                 lastDecodedFrameTime = (float)frameTime;
