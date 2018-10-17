@@ -351,9 +351,10 @@ namespace osu.Framework.Graphics.Video
                     if (cancellationToken.IsCancellationRequested)
                         return;
 
-                    while (bufferStack.BuffersInUse > 3)
+                    if (bufferStack.BuffersInUse > 3)
                     {
                         Thread.Sleep(1);
+                        continue;
                     }
 
                     int readFrameResult = ffmpeg.av_read_frame(formatContext, packet);
