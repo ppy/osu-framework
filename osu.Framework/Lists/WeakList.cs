@@ -13,23 +13,42 @@ namespace osu.Framework.Lists
     public class WeakList<T> : List<WeakReference<T>>
         where T : class
     {
-        public void Add(T obj) => Add(new WeakReference<T>(obj));
+        public void Add(T obj)
+        {
+            moveFreeWeakReferences();
+
+            var freeWeakReference = Find(weakRef => !weakRef.TryGetTarget(out _));
+
+            if (freeWeakReference != null)
+                freeWeakReference.SetTarget(obj);
+            else
+                Add(new WeakReference<T>(obj));
+        }
+
+        private void moveFreeWeakReferences()
+        {
+            for (int i = Count - 2; i >= 0; i--)
+            {
+                var item = this[i];
+                var nextItem = this[i + 1];
+
+                if (!item.TryGetTarget(out _) && nextItem.TryGetTarget(out _))
+                {
+                    RemoveAt(i);
+                    Add(item);
+                }
+            }
+        }
 
         /// <summary>
         /// Iterate on alive items, and remove non-alive references.
         /// </summary>
         public void ForEachAlive(Action<T> action)
         {
-            int index = 0;
-            while (index < Count)
+            for (int i = 0; i < Count; i++)
             {
-                if (this[index].TryGetTarget(out T obj))
-                {
+                if (this[i].TryGetTarget(out T obj))
                     action(obj);
-                    index++;
-                }
-                else
-                    RemoveAt(index);
             }
         }
     }
