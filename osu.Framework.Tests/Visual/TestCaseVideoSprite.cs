@@ -33,7 +33,7 @@ namespace osu.Framework.Tests.Visual
 
                 videoSprite = new VideoSprite(wr.ResponseStream);
                 Add(videoSprite);
-                videoSprite.Loop = true;
+                videoSprite.Loop = false;
                 videoSprite.ShowLastFrameDuringHideCutoff = true;
                 videoSprite.NumberOfPreloadedFrames = 180;
 
