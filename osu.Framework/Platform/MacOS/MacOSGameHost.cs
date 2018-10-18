@@ -10,7 +10,7 @@ namespace osu.Framework.Platform.MacOS
 {
     public class MacOSGameHost : DesktopGameHost
     {
-        internal MacOSGameHost(string gameName, bool bindIPC = false, ToolkitOptions toolkitOptions = null)
+        internal MacOSGameHost(string gameName, bool bindIPC = false, ToolkitOptions toolkitOptions = default(ToolkitOptions))
             : base(gameName, bindIPC, toolkitOptions)
         {
             Window = new MacOSGameWindow();

@@ -15,7 +15,7 @@ namespace osu.Framework
         public static DesktopGameHost GetSuitableHost(string gameName, bool bindIPC = false)
         {
             var toolkitOptions = new ToolkitOptions { EnableHighResolution = true};
-            
+
             switch (RuntimeInfo.OS)
             {
                 case RuntimeInfo.Platform.MacOsx:
