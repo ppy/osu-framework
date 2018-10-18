@@ -21,7 +21,7 @@ namespace osu.Framework.Platform
         private readonly TcpIpcProvider ipcProvider;
         private readonly Thread ipcThread;
 
-        protected DesktopGameHost(string gameName = @"", bool bindIPCPort = false, ToolkitOptions toolkitOptions = default(ToolkitOptions))
+        protected DesktopGameHost(string gameName = @"", bool bindIPCPort = false, ToolkitOptions toolkitOptions = default)
             : base(gameName, toolkitOptions)
         {
             //todo: yeah.

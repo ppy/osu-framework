@@ -159,7 +159,7 @@ namespace osu.Framework.Platform
 
         public DependencyContainer Dependencies { get; } = new DependencyContainer();
 
-        protected GameHost(string gameName = @"", ToolkitOptions toolkitOptions = default(ToolkitOptions))
+        protected GameHost(string gameName = @"", ToolkitOptions toolkitOptions = default)
         {
             toolkit = toolkitOptions != null ? Toolkit.Init(toolkitOptions) : Toolkit.Init();
 
