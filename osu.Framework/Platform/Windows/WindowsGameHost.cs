@@ -3,6 +3,7 @@
 
 using System;
 using osu.Framework.Platform.Windows.Native;
+using OpenTK;
 
 namespace osu.Framework.Platform.Windows
 {
@@ -16,8 +17,8 @@ namespace osu.Framework.Platform.Windows
 
         public override bool CapsLockEnabled => Console.CapsLock;
 
-        internal WindowsGameHost(string gameName, bool bindIPC = false)
-            : base(gameName, bindIPC)
+        internal WindowsGameHost(string gameName, bool bindIPC = false, ToolkitOptions toolkitOptions = null)
+            : base(gameName, bindIPC, toolkitOptions)
         {
             // OnActivate / OnDeactivate may not fire, so the initial activity state may be unknown here.
             // In order to be certain we have the correct activity state we are querying the Windows API here.

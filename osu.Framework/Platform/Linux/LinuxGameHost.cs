@@ -2,13 +2,14 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Platform.Linux.Native;
+using OpenTK;
 
 namespace osu.Framework.Platform.Linux
 {
     public class LinuxGameHost : DesktopGameHost
     {
-        internal LinuxGameHost(string gameName, bool bindIPC = false)
-            : base(gameName, bindIPC)
+        internal LinuxGameHost(string gameName, bool bindIPC = false, ToolkitOptions toolkitOptions = null)
+            : base(gameName, bindIPC, toolkitOptions)
         {
             Window = new LinuxGameWindow();
             Window.WindowStateChanged += (sender, e) =>

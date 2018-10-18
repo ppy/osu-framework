@@ -4,13 +4,14 @@
 using System.Collections.Generic;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
+using OpenTK;
 
 namespace osu.Framework.Platform.MacOS
 {
     public class MacOSGameHost : DesktopGameHost
     {
-        internal MacOSGameHost(string gameName, bool bindIPC = false)
-            : base(gameName, bindIPC)
+        internal MacOSGameHost(string gameName, bool bindIPC = false, ToolkitOptions toolkitOptions = null)
+            : base(gameName, bindIPC, toolkitOptions)
         {
             Window = new MacOSGameWindow();
             Window.WindowStateChanged += (sender, e) =>

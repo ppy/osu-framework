@@ -6,6 +6,7 @@ using osu.Framework.Platform.Linux;
 using osu.Framework.Platform.MacOS;
 using osu.Framework.Platform.Windows;
 using System;
+using OpenTK;
 
 namespace osu.Framework
 {
@@ -13,10 +14,14 @@ namespace osu.Framework
     {
         public static DesktopGameHost GetSuitableHost(string gameName, bool bindIPC = false)
         {
+            var toolkitOptions = new ToolkitOptions();
+            toolkitOptions.EnableHighResolution = true;
+
             switch (RuntimeInfo.OS)
             {
                 case RuntimeInfo.Platform.MacOsx:
-                    return new MacOSGameHost(gameName, bindIPC);
+                    toolkitOptions.Backend = PlatformBackend.PreferNative;
+                    return new MacOSGameHost(gameName, bindIPC, toolkitOptions);
                 case RuntimeInfo.Platform.Linux:
                     return new LinuxGameHost(gameName, bindIPC);
                 case RuntimeInfo.Platform.Windows:
