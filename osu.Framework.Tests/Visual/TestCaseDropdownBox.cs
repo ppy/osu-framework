@@ -177,7 +177,8 @@ namespace osu.Framework.Tests.Visual
             int lastVisibleIndexOnTheNextPage = 0;
             AddStep("Preselect last visible item on the next page", () =>
             {
-                lastVisibleIndexOnTheNextPage = lastVisibleIndexOnTheCurrentPage + keyboardInputDropdown3.Menu.VisibleMenuItems.Count();
+                lastVisibleIndexOnTheNextPage =
+                    MathHelper.Clamp(lastVisibleIndexOnTheCurrentPage + keyboardInputDropdown3.Menu.VisibleMenuItems.Count(), 0, keyboardInputDropdown3.Menu.Items.Count - 1);
                 keyboardInputDropdown3.Menu.TriggerEvent(new KeyDownEvent(new InputState(), Key.PageDown));
                 keyboardInputDropdown3.Menu.TriggerEvent(new KeyUpEvent(new InputState(), Key.PageDown));
             });
@@ -197,7 +198,8 @@ namespace osu.Framework.Tests.Visual
             int firstVisibleIndexOnThePreviousPage = 0;
             AddStep("Preselect first visible item on the previous page", () =>
             {
-                firstVisibleIndexOnThePreviousPage = firstVisibleIndexOnTheCurrentPage - keyboardInputDropdown3.Menu.VisibleMenuItems.Count();
+                firstVisibleIndexOnThePreviousPage = MathHelper.Clamp(firstVisibleIndexOnTheCurrentPage - keyboardInputDropdown3.Menu.VisibleMenuItems.Count(), 0,
+                    keyboardInputDropdown3.Menu.Items.Count - 1);
                 keyboardInputDropdown3.Menu.TriggerEvent(new KeyDownEvent(new InputState(), Key.PageUp));
                 keyboardInputDropdown3.Menu.TriggerEvent(new KeyUpEvent(new InputState(), Key.PageUp));
             });
