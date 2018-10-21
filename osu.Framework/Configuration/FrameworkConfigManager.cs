@@ -39,6 +39,7 @@ namespace osu.Framework.Configuration
             Set(FrameworkSetting.CursorSensitivity, 1.0, 0.1, 6, 0.01);
             Set(FrameworkSetting.Locale, string.Empty);
             Set(FrameworkSetting.PerformanceLogging, false);
+            Set(FrameworkSetting.UserAgent, "osu-framework");
         }
 
         public FrameworkConfigManager(Storage storage)
@@ -91,6 +92,8 @@ namespace osu.Framework.Configuration
         CursorSensitivity,
         MapAbsoluteInputToWindow,
 
-        PerformanceLogging
+        PerformanceLogging,
+
+        UserAgent
     }
 }
