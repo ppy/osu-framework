@@ -29,7 +29,11 @@ namespace osu.Framework.IO.Network
             lock_obj = new object();
             USER_AGENT = new Bindable<string>();
 
-            USER_AGENT.BindValueChanged(ua => instance?.DefaultRequestHeaders.UserAgent.ParseAdd(ua));
+            USER_AGENT.BindValueChanged(ua =>
+            {
+                instance?.DefaultRequestHeaders.UserAgent.Clear();
+                instance?.DefaultRequestHeaders.UserAgent.ParseAdd(ua);
+            });
         }
 
         private HttpClient()
