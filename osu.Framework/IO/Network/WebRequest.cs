@@ -129,19 +129,9 @@ namespace osu.Framework.IO.Network
 
         private static readonly Logger logger;
 
-        private static readonly HttpClient client;
+        private static HttpClient client => HttpClient.Instance;
 
-        static WebRequest()
-        {
-            client = new HttpClient(new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate });
-            client.DefaultRequestHeaders.UserAgent.ParseAdd("osu!");
-
-            // Timeout is controlled manually through cancellation tokens because
-            // HttpClient does not properly timeout while reading chunked data
-            client.Timeout = System.Threading.Timeout.InfiniteTimeSpan;
-
-            logger = Logger.GetLogger(LoggingTarget.Network);
-        }
+        static WebRequest() => logger = Logger.GetLogger(LoggingTarget.Network);
 
         public WebRequest(string url = null, params object[] args)
         {
