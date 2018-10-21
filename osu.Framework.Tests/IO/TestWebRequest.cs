@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NUnit.Framework;
 using osu.Framework.IO.Network;
+using HttpClient = osu.Framework.IO.Network.HttpClient;
 using WebRequest = osu.Framework.IO.Network.WebRequest;
 
 namespace osu.Framework.Tests.IO
@@ -64,7 +65,7 @@ namespace osu.Framework.Tests.IO
             var responseObject = request.ResponseObject;
 
             Assert.IsTrue(responseObject != null);
-            Assert.IsTrue(responseObject.Headers.UserAgent == "osu!");
+            Assert.IsTrue(responseObject.Headers.UserAgent == HttpClient.USER_AGENT.Value);
             Assert.IsTrue(responseObject.Url == url);
 
             Assert.IsFalse(hasThrown);
