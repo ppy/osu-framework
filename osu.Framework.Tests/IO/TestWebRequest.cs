@@ -29,6 +29,7 @@ namespace osu.Framework.Tests.IO
         static TestWebRequest()
         {
             bool isAppveyorBuild = Environment.GetEnvironmentVariable("APPVEYOR")?.ToLower().Equals("true") ?? false;
+            HttpClient.UserAgent = "osu!";
 
             if (isAppveyorBuild)
             {
@@ -65,7 +66,7 @@ namespace osu.Framework.Tests.IO
             var responseObject = request.ResponseObject;
 
             Assert.IsTrue(responseObject != null);
-            Assert.IsTrue(responseObject.Headers.UserAgent == HttpClient.USER_AGENT.Value);
+            Assert.IsTrue(responseObject.Headers.UserAgent == "osu!");
             Assert.IsTrue(responseObject.Url == url);
 
             Assert.IsFalse(hasThrown);
