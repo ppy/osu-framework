@@ -125,7 +125,7 @@ namespace osu.Framework.Tests.Visual
         private void addPath(string name, params Vector2[] vertices) => AddStep(name, () =>
         {
             path.PathWidth = path_width;
-            path.Positions = vertices.ToList();
+            path.Vertices = vertices.ToList();
         });
 
         private void test(Vector2 position, bool shouldReceivePositionalInput)

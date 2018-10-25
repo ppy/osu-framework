@@ -24,15 +24,15 @@ namespace osu.Framework.Graphics.Lines
             textureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_3, FragmentShaderDescriptor.TEXTURE);
         }
 
-        private List<Vector2> positions = new List<Vector2>();
+        private List<Vector2> vertices = new List<Vector2>();
 
-        public List<Vector2> Positions
+        public List<Vector2> Vertices
         {
             set
             {
-                if (positions == value) return;
+                if (vertices == value) return;
 
-                positions = value;
+                vertices = value;
                 recomputeBounds();
 
                 segmentsCache.Invalidate();
@@ -72,10 +72,10 @@ namespace osu.Framework.Graphics.Lines
 
         public void ClearVertices()
         {
-            if (positions.Count == 0)
+            if (vertices.Count == 0)
                 return;
 
-            positions.Clear();
+            vertices.Clear();
             resetBounds();
 
             if (!RelativeSizeAxes.HasFlag(Axes.X)) Width = 0;
@@ -87,7 +87,7 @@ namespace osu.Framework.Graphics.Lines
 
         public void AddVertex(Vector2 pos)
         {
-            positions.Add(pos);
+            vertices.Add(pos);
             expandBounds(pos);
 
             segmentsCache.Invalidate();
@@ -121,7 +121,7 @@ namespace osu.Framework.Graphics.Lines
         private void recomputeBounds()
         {
             resetBounds();
-            foreach (Vector2 pos in positions)
+            foreach (Vector2 pos in vertices)
                 expandBounds(pos);
         }
 
@@ -133,11 +133,11 @@ namespace osu.Framework.Graphics.Lines
         {
             segmentsBacking.Clear();
 
-            if (positions.Count > 1)
+            if (vertices.Count > 1)
             {
                 Vector2 offset = new Vector2(minX, minY);
-                for (int i = 0; i < positions.Count - 1; ++i)
-                    segmentsBacking.Add(new Line(positions[i] - offset, positions[i + 1] - offset));
+                for (int i = 0; i < vertices.Count - 1; ++i)
+                    segmentsBacking.Add(new Line(vertices[i] - offset, vertices[i + 1] - offset));
             }
 
             segmentsCache.Validate();
