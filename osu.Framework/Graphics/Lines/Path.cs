@@ -28,6 +28,7 @@ namespace osu.Framework.Graphics.Lines
 
         public IReadOnlyList<Vector2> Vertices
         {
+            get => vertices;
             set
             {
                 vertices.Clear();
