@@ -24,15 +24,15 @@ namespace osu.Framework.Graphics.Lines
             textureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_3, FragmentShaderDescriptor.TEXTURE);
         }
 
-        private List<Vector2> vertices = new List<Vector2>();
+        private readonly List<Vector2> vertices = new List<Vector2>();
 
-        public List<Vector2> Vertices
+        public IReadOnlyList<Vector2> Vertices
         {
             set
             {
-                if (vertices == value) return;
+                vertices.Clear();
+                vertices.AddRange(value);
 
-                vertices = value;
                 recomputeBounds();
 
                 segmentsCache.Invalidate();
