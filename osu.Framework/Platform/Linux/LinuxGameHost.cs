@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Platform.Linux.Native;
+using osu.Framework.Platform.Linux.Sdl;
 using OpenTK;
 
 namespace osu.Framework.Platform.Linux
@@ -25,6 +26,16 @@ namespace osu.Framework.Platform.Linux
 
         protected override Storage GetStorage(string baseName) => new LinuxStorage(baseName, this);
 
-        public override Clipboard GetClipboard() => new LinuxClipboard();
+        public override Clipboard GetClipboard()
+        {
+            if (((LinuxGameWindow)Window).IsSdl)
+            {
+                return new SdlClipboard();
+            }
+            else
+            {
+                return new LinuxClipboard();
+            }
+        }
     }
 }
