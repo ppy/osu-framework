@@ -38,7 +38,7 @@ namespace osu.Framework.Tests.Visual
                 new TexturedPath
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Positions = new List<Vector2> { Vector2.One * 50, Vector2.One * 100 },
+                    Vertices = new List<Vector2> { Vector2.One * 50, Vector2.One * 100 },
                     Texture = gradientTexture,
                     Colour = Color4.Green,
                 },
@@ -50,7 +50,7 @@ namespace osu.Framework.Tests.Visual
                 new TexturedPath
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Positions = new List<Vector2>
+                    Vertices = new List<Vector2>
                     {
                         new Vector2(50, 50),
                         new Vector2(50, 150),
@@ -69,7 +69,7 @@ namespace osu.Framework.Tests.Visual
                 new TexturedPath
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Positions = new List<Vector2>
+                    Vertices = new List<Vector2>
                     {
                         new Vector2(50, 50),
                         new Vector2(50, 150),
@@ -89,7 +89,7 @@ namespace osu.Framework.Tests.Visual
                 {
                     RelativeSizeAxes = Axes.Both,
                     PathWidth = 5,
-                    Positions = new List<Vector2>
+                    Vertices = new List<Vector2>
                     {
                         new Vector2(50, 50),
                         new Vector2(125, 100),
@@ -105,7 +105,7 @@ namespace osu.Framework.Tests.Visual
                 {
                     RelativeSizeAxes = Axes.Both,
                     PathWidth = 5,
-                    Positions = new List<Vector2>
+                    Vertices = new List<Vector2>
                     {
                         new Vector2(50, 50),
                         new Vector2(125, 100),
