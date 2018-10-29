@@ -12,6 +12,7 @@ using osu.Framework.Input.Handlers.Joystick;
 using osu.Framework.Input.Handlers.Keyboard;
 using osu.Framework.Input.Handlers.Mouse;
 using osu.Framework.Logging;
+using OpenTK;
 
 namespace osu.Framework.Platform
 {
@@ -20,8 +21,8 @@ namespace osu.Framework.Platform
         private readonly TcpIpcProvider ipcProvider;
         private readonly Thread ipcThread;
 
-        protected DesktopGameHost(string gameName = @"", bool bindIPCPort = false)
-            : base(gameName)
+        protected DesktopGameHost(string gameName = @"", bool bindIPCPort = false, ToolkitOptions toolkitOptions = default)
+            : base(gameName, toolkitOptions)
         {
             //todo: yeah.
             Architecture.SetIncludePath();
