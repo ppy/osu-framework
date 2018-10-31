@@ -13,8 +13,9 @@ namespace osu.Framework.Platform.Windows
     {
         private const int seticon_message = 0x0080;
 
-        private Icon smallIcon;
-        private Icon largeIcon;
+        // FIXME
+        //private Icon smallIcon;
+        //private Icon largeIcon;
 
         protected override void OnKeyDown(object sender, KeyboardKeyEventArgs e)
         {
@@ -38,11 +39,12 @@ namespace osu.Framework.Platform.Windows
             stream.Position = 0;
             secondStream.Position = 0;
 
-            smallIcon = new Icon(stream, 24, 24);
-            largeIcon = new Icon(secondStream, 256, 256);
+            // FIXME
+            //smallIcon = new Icon(stream, 24, 24);
+            //largeIcon = new Icon(secondStream, 256, 256);
 
-            SendMessage(WindowInfo.Handle, seticon_message, (IntPtr)0, smallIcon.Handle);
-            SendMessage(WindowInfo.Handle, seticon_message, (IntPtr)1, largeIcon.Handle);
+            //SendMessage(WindowInfo.Handle, seticon_message, (IntPtr)0, smallIcon.Handle);
+            //SendMessage(WindowInfo.Handle, seticon_message, (IntPtr)1, largeIcon.Handle);
         }
 
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
