@@ -43,20 +43,42 @@ namespace osu.Framework.Configuration
                 throw new InvalidOperationException($"Can not add item as bindable collection is disabled.");
 
             collection.Add(item);
-            TriggerItemAdded(item, true, caller);
+
+            Bindings?.ForEachAlive(b =>
+            {
+                // prevent re-adding the item back to the callee.
+                // That would result in a <see cref="StackOverflowException"/>.
+                if (b != caller)
+                    b.Add(item, this);
+            });
+
+            ItemAdded?.Invoke(item);
         }
 
         public void Clear()
+            => Clear(null);
+
+        protected void Clear(BindableCollection<T> caller)
         {
             if (Disabled)
                 throw new InvalidOperationException($"Can not clear items as bindable collection is disabled.");
 
-            if (collection.Count <= 0) return;
+            if (collection.Count <= 0)
+                return;
 
+            // Preserve items for subscribers
             var clearedItems = new T[collection.Count];
-
             collection.CopyTo(clearedItems);
+
             collection.Clear();
+
+            Bindings?.ForEachAlive(b =>
+            {
+                // prevent re-adding the item back to the callee.
+                // That would result in a <see cref="StackOverflowException"/>.
+                if (b != caller)
+                    b.Clear(this);
+            });
 
             ItemsCleared?.Invoke(clearedItems);
         }
@@ -68,6 +90,9 @@ namespace osu.Framework.Configuration
             => collection.CopyTo(array, arrayIndex);
 
         public bool Remove(T item)
+            => Remove(item, null);
+
+        public bool Remove(T item, BindableCollection<T> caller)
         {
             if (Disabled)
                 throw new InvalidOperationException($"Can not remove item as bindable collection is disabled.");
@@ -75,7 +100,17 @@ namespace osu.Framework.Configuration
             bool removed = collection.Remove(item);
 
             if (removed)
+            {
+                Bindings?.ForEachAlive(b =>
+                {
+                    // prevent re-adding the item back to the callee.
+                    // That would result in a <see cref="StackOverflowException"/>.
+                    if (b != caller)
+                        b.Remove(item, this);
+                });
+
                 ItemRemoved?.Invoke(item);
+            }
 
             return removed;
         }
@@ -124,6 +159,9 @@ namespace osu.Framework.Configuration
 
         private bool disabled = false;
 
+        /// <summary>
+        /// The collection can not be modified if the collection is disabled.
+        /// </summary>
         public bool Disabled
         {
             get => disabled;
@@ -134,7 +172,7 @@ namespace osu.Framework.Configuration
 
                 disabled = value;
 
-                DisabledChanged?.Invoke(disabled);
+                TriggerDisabledChange();
             }
         }
 
@@ -143,6 +181,15 @@ namespace osu.Framework.Configuration
         public void BindDisabledChanged(Action<bool> onChange, bool runOnceImmediately = false)
         {
             throw new NotImplementedException();
+        }
+
+        protected void TriggerDisabledChange(bool propagateToBindings = true)
+        {
+            // check a bound bindable hasn't changed the value again (it will fire its own event)
+            bool beforePropagation = disabled;
+            if (propagateToBindings) Bindings?.ForEachAlive(b => b.Disabled = disabled);
+            if (beforePropagation == disabled)
+                DisabledChanged?.Invoke(disabled);
         }
 
         #endregion ICanBeDisabled
@@ -176,7 +223,7 @@ namespace osu.Framework.Configuration
 
         #region IHasDescription
 
-        public string Description { get; }
+        public string Description { get; set; }
 
         #endregion IHasDescription
 
@@ -239,25 +286,5 @@ namespace osu.Framework.Configuration
         }
 
         #endregion IBindableCollection
-
-        /// <summary>
-        /// Notifies the subscribers and bindings about the item add.
-        /// </summary>
-        /// <param name="addedItem">The item that got added to the collection</param>
-        /// <param name="propagateToBindings">If the bindings should be notified that an item got added. Default: true</param>
-        /// <param name="caller">The bindable collection that calls this method. Can be null if the caller is this. Default: null</param>
-        protected void TriggerItemAdded(T addedItem, bool propagateToBindings = true, BindableCollection<T> caller = null)
-        {
-            if (propagateToBindings)
-                Bindings?.ForEachAlive(b =>
-                {
-                    // prevent re-adding the item back to the callee.
-                    // That would result in a <see cref="StackOverflowException"/>.
-                    if (b != caller)
-                        b.Add(addedItem, this);
-                });
-
-            ItemAdded?.Invoke(addedItem);
-        }
     }
 }

@@ -8,7 +8,7 @@ using osu.Framework.Lists;
 
 namespace osu.Framework.Configuration
 {
-    public class BindableList<T> : IBindable, IList<T>, IReadOnlyList<T>
+    public class BindableList<T> : IBindable<T>, IList<T>, IReadOnlyList<T>
     {
         private static InvalidOperationException createDisabledException()
             => new InvalidOperationException("Can not modify values as bindable list is disabled");
@@ -126,12 +126,34 @@ namespace osu.Framework.Configuration
         /// </summary>
         public event Action<BindableList<T>> ValueChanged;
 
+        public T Value { get; }
+        public T Default { get; }
+        public void BindTo(IBindable<T> them)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void BindValueChanged(Action<T> onChange, bool runOnceImmediately = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IBindable<T> GetBoundCopy()
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// An event which is raised when <see cref="Disabled"/>'s state has changed (or manually via <see cref="TriggerDisabledChange"/>).
         /// </summary>
         public event Action<bool> DisabledChanged;
 
         private bool disabled;
+
+        public void BindDisabledChanged(Action<bool> onChange, bool runOnceImmediately = false)
+        {
+            throw new NotImplementedException();
+        }
 
         public bool Disabled {
             get => disabled;
@@ -215,5 +237,12 @@ namespace osu.Framework.Configuration
         }
         #endregion
 
+        public bool IsDefault { get; }
+        public string Description { get; }
+        event Action<T> IBindable<T>.ValueChanged
+        {
+            add => throw new NotImplementedException();
+            remove => throw new NotImplementedException();
+        }
     }
 }
