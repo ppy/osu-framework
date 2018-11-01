@@ -9,7 +9,7 @@ namespace osu.Framework.Platform.Linux.Native
 {
     public static class Library
     {
-        [DllImport("libdl.so", EntryPoint = "dlopen")]
+        [DllImport("libdl.so.2", EntryPoint = "dlopen")]
         private static extern IntPtr dlopen(string library, LoadFlags flags);
 
         /// <summary>
