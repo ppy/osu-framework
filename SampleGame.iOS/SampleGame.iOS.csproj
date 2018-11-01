@@ -99,7 +99,6 @@
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="LaunchScreen.storyboard" />
-    <InterfaceDefinition Include="Main.storyboard" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />
@@ -108,10 +107,20 @@
   <ItemGroup>
     <Compile Include="Main.cs" />
     <Compile Include="AppDelegate.cs" />
-    <Compile Include="ViewController.cs" />
-    <Compile Include="ViewController.designer.cs">
-      <DependentUpon>ViewController.cs</DependentUpon>
-    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\osu.Framework\osu.Framework.csproj">
+      <Project>{C76BF5B3-985E-4D39-95FE-97C9C879B83A}</Project>
+      <Name>osu.Framework</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\osu.Framework.iOS\osu.Framework.iOS.csproj">
+      <Project>{79083CDD-1A3A-425A-B364-E556948F1032}</Project>
+      <Name>osu.Framework.iOS</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SampleGame\SampleGame.csproj">
+      <Project>{E3882853-43D1-4603-AD33-D9D59C8A8692}</Project>
+      <Name>SampleGame</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
 </Project>
