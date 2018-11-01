@@ -4,7 +4,7 @@
 using System;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Primitives;
-using OpenTK.Graphics.ES30;
+using osuTK.Graphics.ES30;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Graphics.Textures

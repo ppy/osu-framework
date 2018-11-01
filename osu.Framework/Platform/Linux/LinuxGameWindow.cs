@@ -4,7 +4,7 @@
 using System;
 using System.Linq;
 using System.Reflection;
-using OpenTK;
+using osuTK;
 
 namespace osu.Framework.Platform.Linux
 {

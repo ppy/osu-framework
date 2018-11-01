@@ -7,11 +7,11 @@ using System.Linq;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
-using OpenTK.Input;
+using osuTK.Input;
 
 namespace osu.Framework.Input.Handlers.Keyboard
 {
-    internal class OpenTKKeyboardHandler : InputHandler
+    internal class OsuTKKeyboardHandler : InputHandler
     {
         public override bool IsActive => true;
 

@@ -10,7 +10,7 @@ using System.Reflection;
 using osu.Framework.Configuration;
 using osu.Framework.Logging;
 using osu.Framework.Platform.MacOS.Native;
-using OpenTK;
+using osuTK;
 
 namespace osu.Framework.Platform.MacOS
 {
@@ -135,7 +135,7 @@ namespace osu.Framework.Platform.MacOS
             }
 
             // If the cursor should be hidden, but something in the system has made it appear (such as a notification),
-            // invalidate the cursor rects to hide it.  OpenTK has a private function that does this.
+            // invalidate the cursor rects to hide it.  osuTK has a private function that does this.
             if (CursorState.HasFlag(CursorState.Hidden) && Cocoa.CGCursorIsVisible() && !menuBarVisible)
                 methodInvalidateCursorRects.Invoke(nativeWindow, new object[0]);
         }
@@ -146,47 +146,47 @@ namespace osu.Framework.Platform.MacOS
             var keyCode = Cocoa.SendInt(sender, selKeyCode);
 
             bool keyDown;
-            OpenTK.Input.Key key;
+            osuTK.Input.Key key;
 
             switch ((MacOSKeyCodes)keyCode)
             {
                 case MacOSKeyCodes.LShift:
-                    key = OpenTK.Input.Key.LShift;
+                    key = osuTK.Input.Key.LShift;
                     keyDown = modifierFlags.HasFlag(CocoaKeyModifiers.LeftShift);
                     break;
 
                 case MacOSKeyCodes.RShift:
-                    key = OpenTK.Input.Key.RShift;
+                    key = osuTK.Input.Key.RShift;
                     keyDown = modifierFlags.HasFlag(CocoaKeyModifiers.RightShift);
                     break;
 
                 case MacOSKeyCodes.LControl:
-                    key = OpenTK.Input.Key.LControl;
+                    key = osuTK.Input.Key.LControl;
                     keyDown = modifierFlags.HasFlag(CocoaKeyModifiers.LeftControl);
                     break;
 
                 case MacOSKeyCodes.RControl:
-                    key = OpenTK.Input.Key.RControl;
+                    key = osuTK.Input.Key.RControl;
                     keyDown = modifierFlags.HasFlag(CocoaKeyModifiers.RightControl);
                     break;
 
                 case MacOSKeyCodes.LAlt:
-                    key = OpenTK.Input.Key.LAlt;
+                    key = osuTK.Input.Key.LAlt;
                     keyDown = modifierFlags.HasFlag(CocoaKeyModifiers.LeftAlt);
                     break;
 
                 case MacOSKeyCodes.RAlt:
-                    key = OpenTK.Input.Key.RAlt;
+                    key = osuTK.Input.Key.RAlt;
                     keyDown = modifierFlags.HasFlag(CocoaKeyModifiers.RightAlt);
                     break;
 
                 case MacOSKeyCodes.LCommand:
-                    key = OpenTK.Input.Key.LWin;
+                    key = osuTK.Input.Key.LWin;
                     keyDown = modifierFlags.HasFlag(CocoaKeyModifiers.LeftCommand);
                     break;
 
                 case MacOSKeyCodes.RCommand:
-                    key = OpenTK.Input.Key.RWin;
+                    key = osuTK.Input.Key.RWin;
                     keyDown = modifierFlags.HasFlag(CocoaKeyModifiers.RightCommand);
                     break;
 
@@ -200,7 +200,7 @@ namespace osu.Framework.Platform.MacOS
                 methodKeyUp.Invoke(nativeWindow, new object[] { key });
         }
 
-        // FIXME: OpenTK's current window:shouldZoomToFrame: is broken and can't be overridden, so we replace it
+        // FIXME: osuTK's current window:shouldZoomToFrame: is broken and can't be overridden, so we replace it
         private bool windowShouldZoomToFrame(IntPtr self, IntPtr cmd, IntPtr nsWindow, RectangleF toFrame) => true;
 
         protected override void UpdateWindowMode(WindowMode newMode)

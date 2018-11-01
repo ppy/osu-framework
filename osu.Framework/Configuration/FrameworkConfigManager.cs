@@ -6,7 +6,7 @@ using osu.Framework.Configuration.Tracking;
 using osu.Framework.Extensions;
 using osu.Framework.Input;
 using osu.Framework.Platform;
-using OpenTK;
+using osuTK;
 
 namespace osu.Framework.Configuration
 {

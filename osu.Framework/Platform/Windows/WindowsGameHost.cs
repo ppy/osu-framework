@@ -3,7 +3,7 @@
 
 using System;
 using osu.Framework.Platform.Windows.Native;
-using OpenTK;
+using osuTK;
 
 namespace osu.Framework.Platform.Windows
 {

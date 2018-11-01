@@ -4,9 +4,9 @@
 using System.Collections.Generic;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Buffers;
-using OpenTK;
-using OpenTK.Graphics.ES30;
-using OpenTK.Graphics;
+using osuTK;
+using osuTK.Graphics.ES30;
+using osuTK.Graphics;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Shaders;

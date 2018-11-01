@@ -5,7 +5,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Visualisation;
 using osu.Framework.Testing;
-using OpenTK;
+using osuTK;
 
 namespace osu.Framework.Tests.Visual
 {

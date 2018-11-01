@@ -6,15 +6,15 @@ using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Configuration;
 using osu.Framework.Logging;
-using OpenTK;
-using OpenTK.Graphics;
-using OpenTK.Graphics.ES30;
-using OpenTK.Platform;
-using OpenTK.Input;
+using osuTK;
+using osuTK.Graphics;
+using osuTK.Graphics.ES30;
+using osuTK.Platform;
+using osuTK.Input;
 using System.ComponentModel;
 using System.Drawing;
 using JetBrains.Annotations;
-using Icon = OpenTK.Icon;
+using Icon = osuTK.Icon;
 
 namespace osu.Framework.Platform
 {
@@ -106,10 +106,10 @@ namespace osu.Framework.Platform
 
         /// <summary>
         /// Creates a <see cref="GameWindow"/> with given dimensions.
-        /// <para>Note that this will use the default <see cref="OpenTK.GameWindow"/> implementation, which is not compatible with every platform.</para>
+        /// <para>Note that this will use the default <see cref="osuTK.GameWindow"/> implementation, which is not compatible with every platform.</para>
         /// </summary>
         protected GameWindow(int width, int height)
-            : this(new OpenTK.GameWindow(width, height, new GraphicsMode(GraphicsMode.Default.ColorFormat, GraphicsMode.Default.Depth, GraphicsMode.Default.Stencil, GraphicsMode.Default.Samples, GraphicsMode.Default.AccumulatorFormat, 3)))
+            : this(new osuTK.GameWindow(width, height, new GraphicsMode(GraphicsMode.Default.ColorFormat, GraphicsMode.Default.Depth, GraphicsMode.Default.Stencil, GraphicsMode.Default.Samples, GraphicsMode.Default.AccumulatorFormat, 3)))
         {
         }
 
