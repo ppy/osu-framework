@@ -55,7 +55,7 @@ namespace osu.Framework.MathUtils
                     // an extension to De Casteljau's algorithm to obtain a piecewise-linear approximation
                     // of the bezier curve represented by our control points, consisting of the same amount
                     // of points as there are control points.
-                    bezierApproximate(parent, output);
+                    bezierApproximate(parent, output, count);
                     freeBuffers.Push(parent);
                     continue;
                 }
@@ -63,7 +63,7 @@ namespace osu.Framework.MathUtils
                 // If we do not yet have a sufficiently "flat" (in other words, detailed) approximation we keep
                 // subdividing the curve we are currently operating on.
                 Vector2[] rightChild = freeBuffers.Count > 0 ? freeBuffers.Pop() : new Vector2[count];
-                bezierSubdivide(parent, leftChild, rightChild);
+                bezierSubdivide(parent, leftChild, rightChild, count);
 
                 // We re-use the buffer of the parent for one of the children, so that we save one allocation per iteration.
                 for (int i = 0; i < count; ++i)
@@ -217,9 +217,9 @@ namespace osu.Framework.MathUtils
         /// <param name="controlPoints">The control points to split.</param>
         /// <param name="l">Output: The control points corresponding to the left half of the curve.</param>
         /// <param name="r">Output: The control points corresponding to the right half of the curve.</param>
-        private static void bezierSubdivide(Vector2[] controlPoints, Vector2[] l, Vector2[] r)
+        /// <param name="count">The number of control points in the original list.</param>
+        private static void bezierSubdivide(Vector2[] controlPoints, Vector2[] l, Vector2[] r, int count)
         {
-            int count = controlPoints.Length;
             Vector2[] midpoints = new Vector2[count];
 
             for (int i = 0; i < count; ++i)
@@ -241,13 +241,13 @@ namespace osu.Framework.MathUtils
         /// </summary>
         /// <param name="controlPoints">The control points describing the bezier curve to be approximated.</param>
         /// <param name="output">The points representing the resulting piecewise-linear approximation.</param>
-        private static void bezierApproximate(Vector2[] controlPoints, List<Vector2> output)
+        /// <param name="count">The number of control points in the original list.</param>
+        private static void bezierApproximate(Vector2[] controlPoints, List<Vector2> output, int count)
         {
-            int count = controlPoints.Length;
-            Vector2[] l = new Vector2[count];
-            Vector2[] r = new Vector2[count * 2 - 1];
+            Vector2[] l = new Vector2[count * 2 - 1];
+            Vector2[] r = new Vector2[count];
 
-            bezierSubdivide(controlPoints, l, r);
+            bezierSubdivide(controlPoints, l, r, count);
 
             for (int i = 0; i < count - 1; ++i)
                 l[count + i] = r[i + 1];
