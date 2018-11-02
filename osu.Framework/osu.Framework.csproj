@@ -21,6 +21,12 @@
     <copyright>Copyright (c) 2007-2018 ppy Pty Ltd contact@ppy.sh</copyright>
     <PackageTags>osu game framework</PackageTags>
   </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <DefineConstants>$(DefineConstants);JETBRAINS_ANNOTATIONS</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <DefineConstants>$(DefineConstants);JETBRAINS_ANNOTATIONS</DefineConstants>
+  </PropertyGroup>
   <ItemGroup Label="Package References">
     <PackageReference Include="FFmpeg.AutoGen" Version="4.0.0.4" />
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0005" />
