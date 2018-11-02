@@ -11,53 +11,46 @@ using System.Collections.Generic;
 
 namespace osu.Framework.Graphics.Performance
 {
-    internal class PerformanceOverlay : FillFlowContainer<FrameStatisticsDisplay>, IStateful<FrameStatisticsMode>
+    internal class PerformanceOverlay : FillFlowContainer<FrameStatisticsDisplay>, IState<PerformanceOverlayState>
     {
-        private FrameStatisticsMode state;
+        private PerformanceOverlayState state;
 
-        public event Action<FrameStatisticsMode> StateChanged;
-
-        public FrameStatisticsMode State
+        public PerformanceOverlayState State
         {
             get => state;
             set
             {
-                if (state == value) return;
-
                 state = value;
-
-                switch (state)
-                {
-                    case FrameStatisticsMode.None:
-                        this.FadeOut(100);
-                        break;
-                    case FrameStatisticsMode.Minimal:
-                    case FrameStatisticsMode.Full:
-                        this.FadeIn(100);
-                        break;
-                }
-
-                foreach (FrameStatisticsDisplay d in Children)
-                    d.State = state;
-
-                StateChanged?.Invoke(State);
+                StateChanged?.Invoke(value);
             }
         }
 
+        public event Action<PerformanceOverlayState> StateChanged;
+
         public PerformanceOverlay(IEnumerable<GameThread> threads)
         {
+            State = new PerformanceOverlayState.None(this);
             Direction = FillDirection.Vertical;
             TextureAtlas atlas = new TextureAtlas(GLWrapper.MaxTextureSize, GLWrapper.MaxTextureSize, true, All.Nearest);
 
             foreach (GameThread t in threads)
-                Add(new FrameStatisticsDisplay(t, atlas) { State = state });
-        }
-    }
+            {
+                var frameStatisticsDisplay = new FrameStatisticsDisplay(t, atlas);
+                switch (State)
+                {
+                    case PerformanceOverlayState.None _:
+                        frameStatisticsDisplay.State.ToNone();
+                        break;
+                    case PerformanceOverlayState.Minimal _:
+                        frameStatisticsDisplay.State.ToMinimal();
+                        break;
+                    case PerformanceOverlayState.Full _:
+                        frameStatisticsDisplay.State.ToFull();
+                        break;
+                }
 
-    public enum FrameStatisticsMode
-    {
-        None,
-        Minimal,
-        Full
+                Add(frameStatisticsDisplay);
+            }
+        }
     }
 }

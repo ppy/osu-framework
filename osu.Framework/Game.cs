@@ -173,27 +173,21 @@ namespace osu.Framework
             }
         }
 
-        protected FrameStatisticsMode FrameStatisticsMode
-        {
-            get => performanceContainer.State;
-            set => performanceContainer.State = value;
-        }
-
         public bool OnPressed(FrameworkAction action)
         {
             switch (action)
             {
                 case FrameworkAction.CycleFrameStatistics:
-                    switch (FrameStatisticsMode)
+                    switch (performanceContainer.State)
                     {
-                        case FrameStatisticsMode.None:
-                            FrameStatisticsMode = FrameStatisticsMode.Minimal;
+                        case PerformanceOverlayState.None _:
+                            performanceContainer.State.ToMinimal();
                             break;
-                        case FrameStatisticsMode.Minimal:
-                            FrameStatisticsMode = FrameStatisticsMode.Full;
+                        case PerformanceOverlayState.Minimal _:
+                            performanceContainer.State.ToFull();
                             break;
-                        case FrameStatisticsMode.Full:
-                            FrameStatisticsMode = FrameStatisticsMode.None;
+                        case PerformanceOverlayState.Full _:
+                            performanceContainer.State.ToNone();
                             break;
                     }
                     return true;

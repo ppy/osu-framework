@@ -23,10 +23,10 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Graphics.Performance
 {
-    internal class FrameStatisticsDisplay : Container, IStateful<FrameStatisticsMode>
+    internal class FrameStatisticsDisplay : Container, IState<FrameStatisticsDisplayState>
     {
-        protected const int WIDTH = 800;
-        protected const int HEIGHT = 100;
+        protected internal const int WIDTH = 800;
+        protected internal const int HEIGHT = 100;
 
         private const int amount_count_steps = 5;
 
@@ -47,60 +47,34 @@ namespace osu.Framework.Graphics.Performance
         private int timeBarX => currentX % WIDTH;
 
         private readonly Container overlayContainer;
-        private readonly Drawable labelText;
+        internal readonly Drawable LabelText;
         private readonly Sprite counterBarBackground;
 
-        private readonly Container mainContainer;
-        private readonly Container timeBarsContainer;
+        internal readonly Container MainContainer;
+        internal readonly Container TimeBarsContainer;
 
         private readonly Drawable[] legendMapping = new Drawable[FrameStatistics.NUM_PERFORMANCE_COLLECTION_TYPES];
         private readonly Dictionary<StatisticsCounterType, CounterBar> counterBars = new Dictionary<StatisticsCounterType, CounterBar>();
 
         private readonly FrameTimeDisplay frameTimeDisplay;
 
-        private FrameStatisticsMode state;
-
-        public event Action<FrameStatisticsMode> StateChanged;
-
-        public FrameStatisticsMode State
+        private FrameStatisticsDisplayState state;
+        public FrameStatisticsDisplayState State
         {
             get => state;
             set
             {
-                if (state == value) return;
-
                 state = value;
-
-                switch (state)
-                {
-                    case FrameStatisticsMode.Minimal:
-                        mainContainer.AutoSizeAxes = Axes.Both;
-
-                        timeBarsContainer.Hide();
-
-                        labelText.Origin = Anchor.CentreRight;
-                        labelText.Rotation = 0;
-                        break;
-                    case FrameStatisticsMode.Full:
-                        mainContainer.AutoSizeAxes = Axes.None;
-                        mainContainer.Size = new Vector2(WIDTH, HEIGHT);
-
-                        timeBarsContainer.Show();
-
-                        labelText.Origin = Anchor.BottomCentre;
-                        labelText.Rotation = -90;
-                        break;
-                }
-
-                Running = true;
-                Expanded = false;
-
-                StateChanged?.Invoke(State);
+                StateChanged?.Invoke(value);
             }
         }
 
+        public event Action<FrameStatisticsDisplayState> StateChanged;
+
+
         public FrameStatisticsDisplay(GameThread thread, TextureAtlas atlas)
         {
+            State = new FrameStatisticsDisplayState.None(this);
             Name = thread.Name;
             monitor = thread.Monitor;
 
@@ -123,7 +97,7 @@ namespace osu.Framework.Graphics.Performance
                         RelativeSizeAxes = Axes.Y,
                         Children = new[]
                         {
-                            labelText = new SpriteText
+                            LabelText = new SpriteText
                             {
                                 Text = Name,
                                 Origin = Anchor.BottomCentre,
@@ -165,12 +139,12 @@ namespace osu.Framework.Graphics.Performance
                                 }
                         }
                     },
-                    mainContainer = new Container
+                    MainContainer = new Container
                     {
                         Size = new Vector2(WIDTH, HEIGHT),
                         Children = new[]
                         {
-                            timeBarsContainer = new Container
+                            TimeBarsContainer = new Container
                             {
                                 Masking = true,
                                 CornerRadius = 5,
@@ -291,7 +265,7 @@ namespace osu.Framework.Graphics.Performance
             get => expanded;
             set
             {
-                value &= state == FrameStatisticsMode.Full;
+                value &= State is FrameStatisticsDisplayState.Full;
 
                 if (expanded == value) return;
 
@@ -304,7 +278,6 @@ namespace osu.Framework.Graphics.Performance
                     bar.Expanded = expanded;
             }
         }
-
 
         protected override bool OnKeyDown(KeyDownEvent e)
         {
@@ -377,7 +350,7 @@ namespace osu.Framework.Graphics.Performance
 
         private void applyFrame(FrameStatistics frame)
         {
-            if (state == FrameStatisticsMode.Full)
+            if (state is FrameStatisticsDisplayState.Full)
             {
                 applyFrameGC(frame);
                 applyFrameTime(frame);
