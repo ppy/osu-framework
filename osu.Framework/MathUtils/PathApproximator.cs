@@ -47,7 +47,7 @@ namespace osu.Framework.MathUtils
             // over the tree resulting from the subdivisions we make.)
             toFlatten.Push(controlPoints.ToArray());
 
-            Vector2[] leftChild = new Vector2[count * 2 - 1];
+            Vector2[] leftChild = subdivisionBuffer2;
 
             while (toFlatten.Count > 0)
             {
