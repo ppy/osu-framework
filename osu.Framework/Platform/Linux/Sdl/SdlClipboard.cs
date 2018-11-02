@@ -1,6 +1,7 @@
 // Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
 using System.Runtime.InteropServices;
 
 namespace osu.Framework.Platform.Linux.Sdl
@@ -8,6 +9,9 @@ namespace osu.Framework.Platform.Linux.Sdl
     public class SdlClipboard : Clipboard
     {
         private const string lib = "libSDL2-2.0";
+
+        [DllImport(lib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "SDL_free", ExactSpelling = true)]
+        internal static extern void SDL_free(IntPtr ptr);
 
         [DllImport(lib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "SDL_GetClipboardText", ExactSpelling = true)]
         internal static extern string SDL_GetClipboardText();
@@ -17,7 +21,10 @@ namespace osu.Framework.Platform.Linux.Sdl
 
         public override string GetText()
         {
-            return SDL_GetClipboardText();
+            string text = SDL_GetClipboardText();
+            IntPtr ptrToText = Marshal.StringToHGlobalAnsi(text);
+            SDL_free(ptrToText);
+            return text;
         }
 
         public override void SetText(string selectedText)
