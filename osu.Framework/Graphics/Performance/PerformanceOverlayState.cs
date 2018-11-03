@@ -10,6 +10,8 @@ namespace osu.Framework.Graphics.Performance
         {
         }
 
+        public abstract FrameStatisticsDisplayState CreateFrameStatisticsDisplayState(FrameStatisticsDisplay context);
+
         public virtual void ToNone()
         {
             Context.FadeOut(100);
@@ -41,6 +43,8 @@ namespace osu.Framework.Graphics.Performance
             {
             }
 
+            public override FrameStatisticsDisplayState CreateFrameStatisticsDisplayState(FrameStatisticsDisplay context) => new FrameStatisticsDisplayState.None(context);
+
             public override void ToNone()
             {
             }
@@ -53,6 +57,8 @@ namespace osu.Framework.Graphics.Performance
             {
             }
 
+            public override FrameStatisticsDisplayState CreateFrameStatisticsDisplayState(FrameStatisticsDisplay context) => new FrameStatisticsDisplayState.Minimal(context);
+
             public override void ToMinimal()
             {
             }
@@ -64,6 +70,8 @@ namespace osu.Framework.Graphics.Performance
                 : base(context)
             {
             }
+
+            public override FrameStatisticsDisplayState CreateFrameStatisticsDisplayState(FrameStatisticsDisplay context) => new FrameStatisticsDisplayState.Full(context);
 
             public override void ToFull()
             {

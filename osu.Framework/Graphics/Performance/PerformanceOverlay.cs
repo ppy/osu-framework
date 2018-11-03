@@ -14,7 +14,6 @@ namespace osu.Framework.Graphics.Performance
     internal class PerformanceOverlay : FillFlowContainer<FrameStatisticsDisplay>, IState<PerformanceOverlayState>
     {
         private PerformanceOverlayState state;
-
         public PerformanceOverlayState State
         {
             get => state;
@@ -36,19 +35,7 @@ namespace osu.Framework.Graphics.Performance
             foreach (GameThread t in threads)
             {
                 var frameStatisticsDisplay = new FrameStatisticsDisplay(t, atlas);
-                switch (State)
-                {
-                    case PerformanceOverlayState.None _:
-                        frameStatisticsDisplay.State.ToNone();
-                        break;
-                    case PerformanceOverlayState.Minimal _:
-                        frameStatisticsDisplay.State.ToMinimal();
-                        break;
-                    case PerformanceOverlayState.Full _:
-                        frameStatisticsDisplay.State.ToFull();
-                        break;
-                }
-
+                frameStatisticsDisplay.State = State.CreateFrameStatisticsDisplayState(frameStatisticsDisplay);
                 Add(frameStatisticsDisplay);
             }
         }
