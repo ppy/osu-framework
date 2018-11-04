@@ -14,15 +14,15 @@ namespace osu.Framework.Platform.Linux.Sdl
         internal static extern void SDL_free(IntPtr ptr);
 
         [DllImport(lib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "SDL_GetClipboardText", ExactSpelling = true)]
-        internal static extern string SDL_GetClipboardText();
+        internal static extern IntPtr SDL_GetClipboardText();
 
         [DllImport(lib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "SDL_SetClipboardText", ExactSpelling = true)]
         internal static extern int SDL_SetClipboardText(string text);
 
         public override string GetText()
         {
-            string text = SDL_GetClipboardText();
-            IntPtr ptrToText = Marshal.StringToHGlobalAnsi(text);
+            IntPtr ptrToText = SDL_GetClipboardText();
+            string text = Marshal.PtrToStringAnsi(ptrToText);
             SDL_free(ptrToText);
             return text;
         }
