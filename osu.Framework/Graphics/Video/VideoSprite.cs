@@ -35,17 +35,18 @@ namespace osu.Framework.Graphics.Video
         }
 
         /// <summary>
-        /// The current position of the video playback. The playback position is automatically calculated based on the clock of the VideoSprite. If you want to seek ahead or jump backwards you have to change the <see cref="Timing.IClock.CurrentTime"/> of the clock of this VideoSprite.
+        /// The current position of the video playback. The playback position is automatically calculated based on the clock of the VideoSprite.
+        /// To perform seeks, change the <see cref="Timing.IClock.CurrentTime"/> of the clock of this <see cref="VideoSprite"/>.
         /// </summary>
         public double PlaybackPosition
         {
             get
             {
-                if (!baseTime.HasValue)
+                if (!startTime.HasValue)
                     return 0;
 
-                if (Loop) return (Clock.CurrentTime - baseTime.Value) % Duration;
-                return Math.Min(Clock.CurrentTime - baseTime.Value, Duration);
+                if (Loop) return (Clock.CurrentTime - startTime.Value) % Duration;
+                return Math.Min(Clock.CurrentTime - startTime.Value, Duration);
             }
         }
 
@@ -58,7 +59,7 @@ namespace osu.Framework.Graphics.Video
 
         internal int AvailableFrames => availableFrames.Count;
 
-        private double? baseTime;
+        private double? startTime;
 
         private readonly VideoDecoder decoder;
 
@@ -98,30 +99,25 @@ namespace osu.Framework.Graphics.Video
         {
             base.Update();
 
-            if (!baseTime.HasValue)
-                baseTime = Clock.CurrentTime;
+            if (!startTime.HasValue)
+                startTime = Clock.CurrentTime;
 
-            // ensures we do not try to seek with the decoder if the underlying stream does not support seeking (e.g. for network streams)
-            if (decoder.CanSeek)
+            var nextFrame = availableFrames.Count > 0 ? availableFrames.Peek() : null;
+            if (nextFrame != null)
             {
-                var nextFrame = availableFrames.Count > 0 ? availableFrames.Peek() : null;
+                bool tooFarBehind = Math.Abs(PlaybackPosition - nextFrame.Time) > lenience_before_seek &&
+                                    (!Loop ||
+                                     Math.Abs(PlaybackPosition - decoder.Duration - nextFrame.Time) > lenience_before_seek &&
+                                     Math.Abs(PlaybackPosition + decoder.Duration - nextFrame.Time) > lenience_before_seek
+                                    );
 
-                if (nextFrame != null)
+                // we are too far ahead or too far behind
+                if (tooFarBehind && decoder.CanSeek)
                 {
-                    bool tooFarBehind = Math.Abs(PlaybackPosition - nextFrame.Time) > lenience_before_seek &&
-                                        (!Loop ||
-                                         Math.Abs(PlaybackPosition - decoder.Duration - nextFrame.Time) > lenience_before_seek &&
-                                         Math.Abs(PlaybackPosition + decoder.Duration - nextFrame.Time) > lenience_before_seek
-                                        );
-
-                    // we are too far ahead or too far behind
-                    if (tooFarBehind)
-                    {
-                        Logger.Log($"Video too far out of sync ({nextFrame.Time}), seeking to {PlaybackPosition}");
-                        decoder.Seek(PlaybackPosition);
-                        decoder.ReturnFrames(availableFrames);
-                        availableFrames.Clear();
-                    }
+                    Logger.Log($"Video too far out of sync ({nextFrame.Time}), seeking to {PlaybackPosition}");
+                    decoder.Seek(PlaybackPosition);
+                    decoder.ReturnFrames(availableFrames);
+                    availableFrames.Clear();
                 }
             }
 
