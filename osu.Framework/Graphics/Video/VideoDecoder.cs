@@ -116,8 +116,6 @@ namespace osu.Framework.Graphics.Video
         private Task decodingTask;
         private CancellationTokenSource decodingTaskCancellationTokenSource;
 
-        private bool pauseDecoder;
-
         private double? skipOutputUntilTime;
 
         private readonly ConcurrentQueue<DecodedFrame> decodedFrames;
@@ -260,13 +258,6 @@ namespace osu.Framework.Graphics.Video
             }
         }
 
-        private void runDecoder()
-        {
-            var cts = new CancellationTokenSource();
-            decodingTask = Task.Run(() => decodingLoop(cts.Token), cts.Token);
-            decodingTaskCancellationTokenSource = cts;
-        }
-
         /// <summary>
         /// Returns the given frames back to the decoder, allowing the decoder to reuse the textures contained in the frames to draw new frames.
         /// </summary>
@@ -285,7 +276,9 @@ namespace osu.Framework.Graphics.Video
             // only prepare for decoding if this is our first time starting the decoding process
             if (formatContext == null)
                 prepareDecoding();
-            runDecoder();
+
+            decodingTaskCancellationTokenSource = new CancellationTokenSource();
+            decodingTask = Task.Run(() => decodingLoop(decodingTaskCancellationTokenSource.Token), decodingTaskCancellationTokenSource.Token);
         }
 
         /// <summary>
@@ -329,7 +322,6 @@ namespace osu.Framework.Graphics.Video
 
             var bufferStack = new BufferStack<Rgba32>(max_pending_frames * 2);
 
-            SwsContext* swsCtx = null;
             try
             {
                 while (true)
@@ -337,81 +329,70 @@ namespace osu.Framework.Graphics.Video
                     if (cancellationToken.IsCancellationRequested)
                         return;
 
-                    if (decodedFrames.Count >= max_pending_frames || bufferStack.BuffersInUse >= max_pending_frames * 2)
+                    if (decodedFrames.Count < max_pending_frames && bufferStack.BuffersInUse < max_pending_frames * 2)
+                    {
+                        int readFrameResult = ffmpeg.av_read_frame(formatContext, packet);
+
+                        if (readFrameResult >= 0)
+                        {
+                            state = DecoderState.Running;
+                            if (packet->stream_index == stream->index)
+                            {
+                                if (ffmpeg.avcodec_send_packet(stream->codec, packet) < 0)
+                                    throw new Exception("Error sending packet.");
+
+                                var result = ffmpeg.avcodec_receive_frame(stream->codec, frame);
+                                if (result == 0)
+                                {
+                                    var frameTime = (frame->best_effort_timestamp - stream->start_time) * timeBaseInSeconds * 1000;
+                                    if (!skipOutputUntilTime.HasValue || skipOutputUntilTime.Value < frameTime)
+                                    {
+                                        skipOutputUntilTime = null;
+
+                                        SwsContext* swsCtx = null;
+                                        try
+                                        {
+                                            swsCtx = ffmpeg.sws_getContext(codecParams.width, codecParams.height, (AVPixelFormat)frame->format, codecParams.width, codecParams.height, AVPixelFormat.AV_PIX_FMT_RGBA, 0, null, null, null);
+                                            ffmpeg.sws_scale(swsCtx, frame->data, frame->linesize, 0, frame->height, frameRgb->data, frameRgb->linesize);
+                                        }
+                                        finally
+                                        {
+                                            ffmpeg.sws_freeContext(swsCtx);
+                                        }
+
+                                        if (!availableTextures.TryDequeue(out var tex))
+                                            tex = new Texture(codecParams.width, codecParams.height, true);
+
+                                        var rawTex = new BufferStackTextureUpload(tex.Width, tex.Height, bufferStack);
+
+                                        // todo: can likely make this more efficient
+                                        var videoText = new Span<Rgba32>(frameRgb->data[0], uncompressedFrameSize / 4);
+                                        videoText.CopyTo(rawTex.RawData);
+
+                                        tex.SetData(rawTex);
+                                        decodedFrames.Enqueue(new DecodedFrame { Time = frameTime, Texture = tex });
+                                    }
+
+                                    lastDecodedFrameTime = (float)frameTime;
+                                }
+                            }
+                        }
+                        else if (readFrameResult == ffmpeg.AVERROR_EOF)
+                        {
+                            if (Looping)
+                                Seek(0);
+                            else
+                                state = DecoderState.EndOfStream;
+                        }
+                        else
+                        {
+                            state = DecoderState.Ready;
+                            Thread.Sleep(1);
+                        }
+                    }
+                    else
                     {
                         // wait until existing buffers are consumed.
-                        Thread.Sleep(1);
-                        continue;
-                    }
-
-                    int readFrameResult = ffmpeg.av_read_frame(formatContext, packet);
-
-                    if (readFrameResult >= 0)
-                    {
-                        state = DecoderState.Running;
-                        if (packet->stream_index == stream->index)
-                        {
-                            if (ffmpeg.avcodec_send_packet(stream->codec, packet) < 0)
-                                throw new Exception("Error sending packet.");
-
-                            var result = ffmpeg.avcodec_receive_frame(stream->codec, frame);
-                            if (result == 0)
-                            {
-                                var frameTime = (frame->best_effort_timestamp - stream->start_time) * timeBaseInSeconds * 1000;
-                                if (!skipOutputUntilTime.HasValue || skipOutputUntilTime.Value < frameTime)
-                                {
-                                    skipOutputUntilTime = null;
-
-                                    swsCtx = ffmpeg.sws_getContext(codecParams.width, codecParams.height, (AVPixelFormat)frame->format, codecParams.width, codecParams.height, AVPixelFormat.AV_PIX_FMT_RGBA, 0, null, null, null);
-                                    ffmpeg.sws_scale(swsCtx, frame->data, frame->linesize, 0, frame->height, frameRgb->data, frameRgb->linesize);
-                                    ffmpeg.sws_freeContext(swsCtx);
-                                    swsCtx = null;
-
-                                    if (!availableTextures.TryDequeue(out var tex))
-                                        tex = new Texture(codecParams.width, codecParams.height, true);
-
-                                    var rawTex = new BufferStackTextureUpload(tex.Width, tex.Height, bufferStack);
-
-                                    // todo: can likely make this more efficient
-                                    var videoText = new Span<Rgba32>(frameRgb->data[0], uncompressedFrameSize / 4);
-                                    videoText.CopyTo(rawTex.RawData);
-
-                                    tex.SetData(rawTex);
-                                    decodedFrames.Enqueue(new DecodedFrame { Time = frameTime, Texture = tex });
-                                }
-
-                                lastDecodedFrameTime = (float)frameTime;
-                            }
-                        }
-                    }
-
-                    if (readFrameResult == ffmpeg.AVERROR_EOF)
-                    {
-                        if (Looping)
-                            Seek(0);
-                        else
-                            state = DecoderState.EndOfStream;
-                    }
-
-                    while (pauseDecoder || readFrameResult < 0)
-                    {
-                        if (cancellationToken.IsCancellationRequested)
-                            return;
-
-                        // make sure we process misc commands even while idling
-                        var executedCmd = false;
-                        while (!decoderCommands.IsEmpty)
-                        {
-                            if (decoderCommands.TryDequeue(out var cmd))
-                            {
-                                cmd();
-                                executedCmd = true;
-                            }
-                        }
-
-                        if (executedCmd)
-                            break;
-
                         state = DecoderState.Ready;
                         Thread.Sleep(1);
                     }
@@ -432,12 +413,9 @@ namespace osu.Framework.Graphics.Video
             finally
             {
                 ffmpeg.av_packet_free(&packet);
-                ffmpeg.sws_freeContext(swsCtx);
 
                 if (state != DecoderState.Faulted)
                     state = DecoderState.Stopped;
-
-                pauseDecoder = false;
             }
         }
 
