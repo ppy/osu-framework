@@ -26,6 +26,11 @@ namespace osu.Framework.Graphics.Video
         public bool FinishedPlaying => !Loop && PlaybackPosition > Duration;
 
         /// <summary>
+        /// Whether this video is in a buffering state, waiting on decoder or underlying stream.
+        /// </summary>
+        public bool Buffering { get; private set; }
+
+        /// <summary>
         /// True if the video should loop after finishing its playback, false otherwise.
         /// </summary>
         public bool Loop
@@ -132,6 +137,8 @@ namespace osu.Framework.Graphics.Video
             if (availableFrames.Count == 0)
                 foreach (var f in decoder.GetDecodedFrames())
                     availableFrames.Enqueue(f);
+
+            Buffering = decoder.IsRunning && availableFrames.Count == 0;
 
             if (frameTime != CurrentFrameTime)
                 FramesProcessed++;
