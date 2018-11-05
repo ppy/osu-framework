@@ -74,7 +74,7 @@ namespace osu.Framework.Graphics.Video
         /// <summary>
         /// The length in milliseconds that the decoder can be out of sync before a seek is automatically performed.
         /// </summary>
-        private const float lenience_before_seek = 1000;
+        private const float lenience_before_seek = 2500;
 
         private bool isDisposed;
 
