@@ -34,7 +34,6 @@ namespace osu.Framework.Graphics.Video
             set => decoder.Looping = value;
         }
 
-        private double? baseTime;
         /// <summary>
         /// The current position of the video playback. The playback position is automatically calculated based on the clock of the VideoSprite. If you want to seek ahead or jump backwards you have to change the <see cref="Timing.IClock.CurrentTime"/> of the clock of this VideoSprite.
         /// </summary>
@@ -45,10 +44,8 @@ namespace osu.Framework.Graphics.Video
                 if (!baseTime.HasValue)
                     return 0;
 
-                if (Loop)
-                    return (Clock.CurrentTime - baseTime.Value) % Duration;
-                else
-                    return Math.Min(Clock.CurrentTime - baseTime.Value, Duration);
+                if (Loop) return (Clock.CurrentTime - baseTime.Value) % Duration;
+                return Math.Min(Clock.CurrentTime - baseTime.Value, Duration);
             }
         }
 
@@ -57,30 +54,31 @@ namespace osu.Framework.Graphics.Video
         /// </summary>
         public bool IsFaulted => decoder.IsFaulted;
 
-        private readonly VideoDecoder decoder;
-
-        private readonly Queue<DecodedFrame> availableFrames;
-        private DecodedFrame lastFrame;
-
         internal double CurrentFrameTime => lastFrame?.Time ?? 0;
 
         internal int AvailableFrames => availableFrames.Count;
 
-        private double currentSecond;
-        private int nFrames;
-        private int fps;
+        private double? baseTime;
 
-        internal int FramesPerSecond => fps;
+        private readonly VideoDecoder decoder;
+
+        private readonly Queue<DecodedFrame> availableFrames = new Queue<DecodedFrame>();
+
+        private DecodedFrame lastFrame;
+
+        /// <summary>
+        /// The total number of frames processed by this instance.
+        /// </summary>
+        public int FramesProcessed { get; private set; }
+
+        /// <summary>
+        /// The length in milliseconds that the decoder can be out of sync before a seek is automatically performed.
+        /// </summary>
+        private const float lenience_before_seek = 1000;
 
         private bool isDisposed;
 
-        private VideoSprite()
-        {
-            availableFrames = new Queue<DecodedFrame>();
-        }
-
         public VideoSprite(Stream videoStream)
-            : this()
         {
             decoder = new VideoDecoder(videoStream);
         }
@@ -95,11 +93,6 @@ namespace osu.Framework.Graphics.Video
         {
             decoder.StartDecoding();
         }
-
-        /// <summary>
-        /// The length in milliseconds that the decoder can be out of sync before a seek is automatically performed.
-        /// </summary>
-        private const float lenience_before_seek = 5000;
 
         protected override void Update()
         {
@@ -117,9 +110,9 @@ namespace osu.Framework.Graphics.Video
                 {
                     bool tooFarBehind = Math.Abs(PlaybackPosition - nextFrame.Time) > lenience_before_seek &&
                                         (!Loop ||
-                                            Math.Abs(PlaybackPosition - decoder.Duration - nextFrame.Time) > lenience_before_seek &&
-                                            Math.Abs(PlaybackPosition + decoder.Duration - nextFrame.Time) > lenience_before_seek
-                                         );
+                                         Math.Abs(PlaybackPosition - decoder.Duration - nextFrame.Time) > lenience_before_seek &&
+                                         Math.Abs(PlaybackPosition + decoder.Duration - nextFrame.Time) > lenience_before_seek
+                                        );
 
                     // we are too far ahead or too far behind
                     if (tooFarBehind)
@@ -130,14 +123,6 @@ namespace osu.Framework.Graphics.Video
                         availableFrames.Clear();
                     }
                 }
-            }
-
-            var newSecond = (int)(PlaybackPosition / 1000.0);
-            if (newSecond != currentSecond)
-            {
-                currentSecond = newSecond;
-                fps = nFrames;
-                nFrames = 0;
             }
 
             var frameTime = CurrentFrameTime;
@@ -153,7 +138,7 @@ namespace osu.Framework.Graphics.Video
                     availableFrames.Enqueue(f);
 
             if (frameTime != CurrentFrameTime)
-                nFrames++;
+                FramesProcessed++;
         }
 
         protected override void Dispose(bool isDisposing)

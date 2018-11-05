@@ -7,6 +7,8 @@ using osu.Framework.IO.Network;
 using osu.Framework.Testing;
 using osu.Framework.Timing;
 using System;
+using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
 
 namespace osu.Framework.Tests.Visual
 {
@@ -14,7 +16,8 @@ namespace osu.Framework.Tests.Visual
     {
         private ManualClock clock;
         private VideoSprite videoSprite;
-        private SpriteText timeText;
+        private TextFlowContainer timeText;
+
 
         public TestCaseVideoSprite()
         {
@@ -38,7 +41,7 @@ namespace osu.Framework.Tests.Visual
                 clock = new ManualClock();
                 videoSprite.Clock = new FramedClock(clock);
 
-                Add(timeText = new SpriteText { Text = "" });
+                Add(timeText = new TextFlowContainer { AutoSizeAxes = Axes.Both });
 
                 AddStep("Jump ahead by 10 seconds", () => clock.CurrentTime += 10_000.0);
                 AddStep("Jump back by 10 seconds", () => clock.CurrentTime = Math.Max(0, clock.CurrentTime - 10_000.0));
@@ -50,6 +53,10 @@ namespace osu.Framework.Tests.Visual
             });
         }
 
+        private int currentSecond;
+        private int fps;
+        private int lastFramesProcessed;
+
         protected override void Update()
         {
             base.Update();
@@ -57,8 +64,23 @@ namespace osu.Framework.Tests.Visual
             if (clock != null)
                 clock.CurrentTime += Clock.ElapsedFrameTime;
 
-            if (timeText != null)
-                timeText.Text = $"{videoSprite.PlaybackPosition:N2} / {videoSprite.Duration:N2}, available {videoSprite.AvailableFrames}, Current Frame Time: {videoSprite.CurrentFrameTime:N2}, Framerate: {videoSprite.FramesPerSecond}";
+            if (videoSprite != null)
+            {
+                var newSecond = (int)(videoSprite.PlaybackPosition / 1000.0);
+                if (newSecond != currentSecond)
+                {
+                    currentSecond = newSecond;
+                    fps = videoSprite.FramesProcessed - lastFramesProcessed;
+                    lastFramesProcessed = videoSprite.FramesProcessed;
+                }
+
+                if (timeText != null)
+                    timeText.Text = $"aim time: {videoSprite.PlaybackPosition:N2}\n"
+                                    + $"video time: {videoSprite.CurrentFrameTime:N2}\n"
+                                    + $"duration: {videoSprite.Duration:N2}\n"
+                                    + $"buffered {videoSprite.AvailableFrames}\n"
+                                    + $"FPS: {fps}";
+            }
         }
     }
 }

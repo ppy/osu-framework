@@ -20,10 +20,6 @@ namespace osu.Framework.Graphics.Video
     /// </summary>
     public unsafe class VideoDecoder : IDisposable
     {
-        private bool isDisposed;
-
-        private Stream videoStream;
-
         /// <summary>
         /// The duration of the video that is being decoded. Can only be queried after the decoder has started decoding has loaded. This value may be an estimate by FFmpeg, depending on the video loaded.
         /// </summary>
@@ -54,12 +50,16 @@ namespace osu.Framework.Graphics.Video
         /// </summary>
         public bool CanSeek => videoStream.CanSeek;
 
+        /// <summary>
+        /// The current decoding state.
+        /// </summary>
+        public DecoderState State => state;
+
         private volatile DecoderState state;
 
         /// <summary>
         /// The state the decoder is currently in.
         /// </summary>
-        public DecoderState State => state;
 
         // libav-context-related
         private AVFormatContext* formatContext;
@@ -70,6 +70,9 @@ namespace osu.Framework.Graphics.Video
 
         private avio_alloc_context_read_packet readPacketCallback;
         private avio_alloc_context_seek seekCallback;
+
+        private bool isDisposed;
+        private Stream videoStream;
 
         private double timeBaseInSeconds;
 
