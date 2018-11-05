@@ -3,10 +3,10 @@
 
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Lists;
 using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Linq;
+using osu.Framework.Logging;
 
 namespace osu.Framework.Graphics.Video
 {
@@ -28,7 +28,11 @@ namespace osu.Framework.Graphics.Video
         /// <summary>
         /// True if the video should loop after finishing its playback, false otherwise.
         /// </summary>
-        public bool Loop { get; set; }
+        public bool Loop
+        {
+            get => decoder.Looping;
+            set => decoder.Looping = value;
+        }
 
         private double? baseTime;
         /// <summary>
@@ -49,37 +53,16 @@ namespace osu.Framework.Graphics.Video
         }
 
         /// <summary>
-        /// The cutoff, in number of frames of video, that the decoder has to be lagging behind to make the VideoSprite stop displaying newly decoded frames until the decoder has caught up. Setting this to null will cause the VideoSprite to always display the decoded frame that is closest to the current playback position, regardless of decoder delay.
-        /// </summary>
-        public int? HideCutoff;
-
-        /// <summary>
-        /// True if during an active <see cref="HideCutoff"/> the last frame that did not fall under the <see cref="HideCutoff"/>-threshold should be displayed until the decoder catches up. Setting this to false will make the VideoSprite clear its display during a <see cref="HideCutoff"/>.
-        /// </summary>
-        public bool ShowLastFrameDuringHideCutoff;
-
-        /// <summary>
-        /// The number of frames that should be preloaded by the decoder. Larger values means higher memory usage, but can avoid falling into <see cref="HideCutoff"/> for small adjustments to the <see cref="PlaybackPosition"/> and can reduce CPU usage on short looping clips.
-        /// </summary>
-        public int NumberOfPreloadedFrames = 60;
-
-        /// <summary>
         /// True if this VideoSprites decoding process has faulted.
         /// </summary>
         public bool IsFaulted => decoder.IsFaulted;
 
         private readonly VideoDecoder decoder;
 
-        private readonly SortedList<DecodedFrame> availableFrames;
-        private int currentFrameIndex;
+        private readonly Queue<DecodedFrame> availableFrames;
+        private DecodedFrame lastFrame;
 
-        internal int CurrentFrameIndex => currentFrameIndex;
-
-        internal double CurrentFrameTime => currentFrameIndex < availableFrames.Count ? availableFrames[currentFrameIndex].Time : 0;
-
-        internal double MinFrameTime => availableFrames.Count == 0 ? 0 : availableFrames[0].Time;
-
-        internal double MaxFrameTime => availableFrames.Count == 0 ? 0 : availableFrames[availableFrames.Count - 1].Time;
+        internal double CurrentFrameTime => lastFrame?.Time ?? 0;
 
         internal int AvailableFrames => availableFrames.Count;
 
@@ -93,7 +76,7 @@ namespace osu.Framework.Graphics.Video
 
         private VideoSprite()
         {
-            availableFrames = new SortedList<DecodedFrame>((left, right) => left.Time.CompareTo(right.Time));
+            availableFrames = new Queue<DecodedFrame>();
         }
 
         public VideoSprite(Stream videoStream)
@@ -113,6 +96,11 @@ namespace osu.Framework.Graphics.Video
             decoder.StartDecoding();
         }
 
+        /// <summary>
+        /// The length in milliseconds that the decoder can be out of sync before a seek is automatically performed.
+        /// </summary>
+        private const float lenience_before_seek = 5000;
+
         protected override void Update()
         {
             base.Update();
@@ -123,84 +111,49 @@ namespace osu.Framework.Graphics.Video
             // ensures we do not try to seek with the decoder if the underlying stream does not support seeking (e.g. for network streams)
             if (decoder.CanSeek)
             {
-                if (Loop && PlaybackPosition >= Duration - NumberOfPreloadedFrames / 2.0 * 1000.0 / decoder.Framerate)
+                var nextFrame = availableFrames.Count > 0 ? availableFrames.Peek() : null;
+
+                if (nextFrame != null)
                 {
-                    decoder.Seek(0);
-                }
-                // we are before the earliest frame of our buffer, and the last frame we decoded is later than our current playback position
-                // this means (because lastDecodedFrameTime only ever increments) that we will never normally decode a frame that is useful to our current playback
-                // position. Thus, we need to seek to an earlier frame.
-                if (availableFrames.Count > 0 && availableFrames[0].Time > PlaybackPosition && decoder.LastDecodedFrameTime > PlaybackPosition)
-                {
-                    decoder.Seek(PlaybackPosition);
-                    decoder.ReturnFrames(availableFrames);
-                    availableFrames.Clear();
-                }
-                // the current playback position demands that we are more than 2 seconds further than the last available frame, so we should seek forward
-                else if (availableFrames.Count >= 5 && PlaybackPosition > availableFrames[availableFrames.Count - 1].Time + 5000.0)
-                {
-                    decoder.Seek(PlaybackPosition);
-                    decoder.ReturnFrames(availableFrames);
-                    availableFrames.Clear();
+                    bool tooFarBehind = Math.Abs(PlaybackPosition - nextFrame.Time) > lenience_before_seek &&
+                                        (!Loop ||
+                                            Math.Abs(PlaybackPosition - decoder.Duration - nextFrame.Time) > lenience_before_seek &&
+                                            Math.Abs(PlaybackPosition + decoder.Duration - nextFrame.Time) > lenience_before_seek
+                                         );
+
+                    // we are too far ahead or too far behind
+                    if (tooFarBehind)
+                    {
+                        Logger.Log($"Video too far out of sync ({nextFrame.Time}), seeking to {PlaybackPosition}");
+                        decoder.Seek(PlaybackPosition);
+                        decoder.ReturnFrames(availableFrames);
+                        availableFrames.Clear();
+                    }
                 }
             }
 
-            availableFrames.AddRange(decoder.GetDecodedFrames());
-            if (availableFrames.Count < NumberOfPreloadedFrames && decoder.IsPaused)
-                decoder.ResumeDecoding();
-            if (availableFrames.Count >= NumberOfPreloadedFrames && !decoder.IsPaused)
-                decoder.PauseDecoding();
-
-            var newSec = (int)(PlaybackPosition / 1000.0);
-            if (newSec != currentSecond)
+            var newSecond = (int)(PlaybackPosition / 1000.0);
+            if (newSecond != currentSecond)
             {
-                currentSecond = newSec;
+                currentSecond = newSecond;
                 fps = nFrames;
                 nFrames = 0;
             }
 
-            var index = availableFrames.BinarySearch(new DecodedFrame { Time = PlaybackPosition });
-            if (index < 0)
-                index = ~index;
+            var frameTime = CurrentFrameTime;
 
-            var ft = CurrentFrameTime;
-            if (index < availableFrames.Count)
+            while (availableFrames.Count > 0 && availableFrames.Peek().Time <= PlaybackPosition && Math.Abs(availableFrames.Peek().Time - PlaybackPosition) < lenience_before_seek)
             {
-                currentFrameIndex = index;
-                var isInHideCutoff = HideCutoff.HasValue && Math.Abs(availableFrames[index].Time - PlaybackPosition) > HideCutoff * 1000.0 / decoder.Framerate;
-                if (isInHideCutoff)
-                    Texture = ShowLastFrameDuringHideCutoff ? Texture : null;
-                else
-                    Texture = availableFrames[index].Texture;
-            }
-            else if (availableFrames.Count > 0)
-            {
-                currentFrameIndex = availableFrames.Count - 1;
-                var isInHideCutoff = HideCutoff.HasValue && Math.Abs(availableFrames[availableFrames.Count - 1].Time - PlaybackPosition) > HideCutoff * 1000.0 / decoder.Framerate;
-                if (isInHideCutoff)
-                    Texture = ShowLastFrameDuringHideCutoff ? Texture : null;
-                else
-                    Texture = availableFrames[availableFrames.Count - 1].Texture;
-            }
-            else
-            {
-                currentFrameIndex = 0;
-                Texture = ShowLastFrameDuringHideCutoff ? Texture : null;
+                lastFrame = availableFrames.Dequeue();
+                Texture = lastFrame.Texture;
             }
 
-            if (ft != CurrentFrameTime)
+            if (availableFrames.Count == 0)
+                foreach (var f in decoder.GetDecodedFrames())
+                    availableFrames.Enqueue(f);
+
+            if (frameTime != CurrentFrameTime)
                 nFrames++;
-
-            if (currentFrameIndex > NumberOfPreloadedFrames / 2)
-            {
-                int nRemovedFrames = Math.Max(1, NumberOfPreloadedFrames / 4);
-                decoder.ReturnFrames(availableFrames.Take(nRemovedFrames));
-                availableFrames.RemoveRange(0, nRemovedFrames);
-                currentFrameIndex -= nRemovedFrames;
-
-                decoder.ReturnFrames(availableFrames.Where(f => f.Time - 2000.0 > PlaybackPosition));
-                availableFrames.RemoveAll(d => d.Time - 2000.0 > PlaybackPosition);
-            }
         }
 
         protected override void Dispose(bool isDisposing)

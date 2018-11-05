@@ -32,7 +32,7 @@ namespace osu.Framework.Graphics.Video
         /// <summary>
         /// True if the decoder currently does not decode any more frames, false otherwise.
         /// </summary>
-        public bool IsPaused => pauseDecoder || state == DecoderState.Paused;
+        public bool IsRunning => state == DecoderState.Running;
 
         /// <summary>
         /// True if the decoder has faulted after starting to decode. You can try to restart a failed decoder by invoking <see cref="StartDecoding"/> again.
@@ -47,7 +47,7 @@ namespace osu.Framework.Graphics.Video
         /// <summary>
         /// The frame rate of the video stream this decoder is decoding.
         /// </summary>
-        public double Framerate => stream->avg_frame_rate.GetValue();
+        public double FrameRate => stream->avg_frame_rate.GetValue();
 
         /// <summary>
         /// True if the decoder can seek, false otherwise. Determined by the stream this decoder was created with.
@@ -60,21 +60,25 @@ namespace osu.Framework.Graphics.Video
         public enum DecoderState
         {
             /// <summary>
-            /// The decoder is currently paused. This is the default state before the decoder starts operations.
+            /// The decoder is ready to begin decoding. This is the default state before the decoder starts operations.
             /// </summary>
-            Paused = 0,
+            Ready = 0,
+
             /// <summary>
             /// The decoder is currently running and decoding frames.
             /// </summary>
             Running = 1,
+
             /// <summary>
             /// The decoder has faulted with an exception.
             /// </summary>
             Faulted = 2,
+
             /// <summary>
             /// The decoder has reached the end of the video data.
             /// </summary>
             EndOfStream = 3,
+
             /// <summary>
             /// The decoder has been completely stopped and cannot be resumed.
             /// </summary>
@@ -94,7 +98,6 @@ namespace osu.Framework.Graphics.Video
         private AVCodecParameters codecParams;
         private byte* contextBuffer;
         private byte[] managedContextBuffer;
-        private const int context_buffer_size = 4096;
 
         private avio_alloc_context_read_packet readPacketCallback;
         private avio_alloc_context_seek seekCallback;
@@ -122,6 +125,8 @@ namespace osu.Framework.Graphics.Video
 
         private readonly ConcurrentQueue<Texture> availableTextures;
 
+        public bool Looping;
+
         /// <summary>
         /// Creates a new video decoder that decodes the given video file.
         /// </summary>
@@ -129,7 +134,6 @@ namespace osu.Framework.Graphics.Video
         public VideoDecoder(string filename)
             : this(File.OpenRead(filename))
         {
-
         }
 
         /// <summary>
@@ -142,7 +146,7 @@ namespace osu.Framework.Graphics.Video
             if (!videoStream.CanRead)
                 throw new InvalidOperationException($"The given stream does not support reading. A stream used for a {nameof(VideoDecoder)} must support reading.");
 
-            state = DecoderState.Paused;
+            state = DecoderState.Ready;
             decodedFrames = new ConcurrentQueue<DecodedFrame>();
             decoderCommands = new ConcurrentQueue<Action>();
             availableTextures = new ConcurrentQueue<Texture>();
@@ -179,6 +183,7 @@ namespace osu.Framework.Graphics.Video
                 default:
                     return -1;
             }
+
             return videoStream.Position;
         }
 
@@ -201,6 +206,8 @@ namespace osu.Framework.Graphics.Video
         // sets up libavformat state: creates the AVFormatContext, the frames, etc. to start decoding, but does not actually start the decodingLoop
         private void prepareDecoding()
         {
+            const int context_buffer_size = 4096;
+
             var fcPtr = ffmpeg.avformat_alloc_context();
             formatContext = fcPtr;
             contextBuffer = (byte*)ffmpeg.av_malloc(context_buffer_size);
@@ -227,7 +234,6 @@ namespace osu.Framework.Graphics.Video
                     if (codecPtr == null)
                         throw new Exception("Could not find codec.");
 
-
                     if (ffmpeg.avcodec_open2(stream->codec, codecPtr, null) < 0)
                         throw new Exception("Could not open codec.");
 
@@ -248,6 +254,7 @@ namespace osu.Framework.Graphics.Video
                         frameRgb->data[j] = dataArr4[j];
                         frameRgb->linesize[j] = linesizeArr4[j];
                     }
+
                     break;
                 }
             }
@@ -298,29 +305,7 @@ namespace osu.Framework.Graphics.Video
             decodingTaskCancellationTokenSource.Dispose();
             decodingTaskCancellationTokenSource = null;
 
-            state = DecoderState.Paused;
-        }
-
-        /// <summary>
-        /// Pauses an active decoding process.
-        /// </summary>
-        public void PauseDecoding()
-        {
-            if (decodingTask == null)
-                throw new InvalidOperationException("You have not started a decoding process. You can only pause the decoding process if it has been started.");
-
-            pauseDecoder = true;
-        }
-
-        /// <summary>
-        /// Resumes a paused decoding process
-        /// </summary>
-        public void ResumeDecoding()
-        {
-            if (decodingTask == null)
-                throw new InvalidOperationException("You have not started a decoding process. You can only resume the decoding process if it has been started.");
-
-            pauseDecoder = false;
+            state = DecoderState.Ready;
         }
 
         /// <summary>
@@ -339,10 +324,11 @@ namespace osu.Framework.Graphics.Video
         private void decodingLoop(CancellationToken cancellationToken)
         {
             var packet = ffmpeg.av_packet_alloc();
-            // this should be massively reduced to something like 5-10, currently there is an issue with texture uploads not completing
-            // in a predictable way though, which can cause huge overallocations. Going past the bufferstacks limit essentially breaks
-            // video playback (~several GB memory usage building up very quickly accompanied by unacceptable framerates).
-            var bufferStack = new BufferStack<Rgba32>(5);
+
+            const int max_pending_frames = 3;
+
+            var bufferStack = new BufferStack<Rgba32>(max_pending_frames * 2);
+
             SwsContext* swsCtx = null;
             try
             {
@@ -351,13 +337,15 @@ namespace osu.Framework.Graphics.Video
                     if (cancellationToken.IsCancellationRequested)
                         return;
 
-                    if (bufferStack.BuffersInUse > 3)
+                    if (decodedFrames.Count >= max_pending_frames || bufferStack.BuffersInUse >= max_pending_frames * 2)
                     {
+                        // wait until existing buffers are consumed.
                         Thread.Sleep(1);
                         continue;
                     }
 
                     int readFrameResult = ffmpeg.av_read_frame(formatContext, packet);
+
                     if (readFrameResult >= 0)
                     {
                         state = DecoderState.Running;
@@ -391,18 +379,25 @@ namespace osu.Framework.Graphics.Video
                                     tex.SetData(rawTex);
                                     decodedFrames.Enqueue(new DecodedFrame { Time = frameTime, Texture = tex });
                                 }
+
                                 lastDecodedFrameTime = (float)frameTime;
                             }
                         }
                     }
 
                     if (readFrameResult == ffmpeg.AVERROR_EOF)
-                        state = DecoderState.EndOfStream;
+                    {
+                        if (Looping)
+                            Seek(0);
+                        else
+                            state = DecoderState.EndOfStream;
+                    }
 
                     while (pauseDecoder || readFrameResult < 0)
                     {
                         if (cancellationToken.IsCancellationRequested)
                             return;
+
                         // make sure we process misc commands even while idling
                         var executedCmd = false;
                         while (!decoderCommands.IsEmpty)
@@ -413,11 +408,14 @@ namespace osu.Framework.Graphics.Video
                                 executedCmd = true;
                             }
                         }
+
                         if (executedCmd)
                             break;
-                        state = DecoderState.Paused;
+
+                        state = DecoderState.Ready;
                         Thread.Sleep(1);
                     }
+
                     while (!decoderCommands.IsEmpty)
                     {
                         if (cancellationToken.IsCancellationRequested)
@@ -466,7 +464,9 @@ namespace osu.Framework.Graphics.Video
             videoStream.Dispose();
             videoStream = null;
 
-            while (decoderCommands.TryDequeue(out var _)) { }
+            while (decoderCommands.TryDequeue(out var _))
+            {
+            }
 
             StopDecoding(true);
 
