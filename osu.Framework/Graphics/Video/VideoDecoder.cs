@@ -54,37 +54,6 @@ namespace osu.Framework.Graphics.Video
         /// </summary>
         public bool CanSeek => videoStream.CanSeek;
 
-        /// <summary>
-        /// Represents the possible states the decoder can be in.
-        /// </summary>
-        public enum DecoderState
-        {
-            /// <summary>
-            /// The decoder is ready to begin decoding. This is the default state before the decoder starts operations.
-            /// </summary>
-            Ready = 0,
-
-            /// <summary>
-            /// The decoder is currently running and decoding frames.
-            /// </summary>
-            Running = 1,
-
-            /// <summary>
-            /// The decoder has faulted with an exception.
-            /// </summary>
-            Faulted = 2,
-
-            /// <summary>
-            /// The decoder has reached the end of the video data.
-            /// </summary>
-            EndOfStream = 3,
-
-            /// <summary>
-            /// The decoder has been completely stopped and cannot be resumed.
-            /// </summary>
-            Stopped = 4,
-        }
-
         private volatile DecoderState state;
 
         /// <summary>
@@ -150,6 +119,79 @@ namespace osu.Framework.Graphics.Video
             availableTextures = new ConcurrentQueue<Texture>();
         }
 
+        /// <summary>
+        /// Seek the decoder to the given timestamp. This will fail if <see cref="CanSeek"/> is false.
+        /// </summary>
+        /// <param name="targetTimestamp">The timestamp to seek to.</param>
+        public void Seek(double targetTimestamp)
+        {
+            if (!CanSeek)
+                throw new InvalidOperationException("This decoder cannot seek because the underlying stream used to decode the video does not support seeking.");
+
+            decoderCommands.Enqueue(() =>
+            {
+                ffmpeg.av_seek_frame(formatContext, stream->index, (long)(targetTimestamp / timeBaseInSeconds / 1000.0), ffmpeg.AVSEEK_FLAG_BACKWARD);
+                skipOutputUntilTime = targetTimestamp;
+            });
+        }
+
+        /// <summary>
+        /// Returns the given frames back to the decoder, allowing the decoder to reuse the textures contained in the frames to draw new frames.
+        /// </summary>
+        /// <param name="frames">The frames that should be returned to the decoder.</param>
+        public void ReturnFrames(IEnumerable<DecodedFrame> frames)
+        {
+            foreach (var f in frames)
+                availableTextures.Enqueue(f.Texture);
+        }
+
+        /// <summary>
+        /// Starts the decoding process. The decoding will happen asynchronously in a separate thread. The decoded frames can be retrieved by using <see cref="GetDecodedFrames"/>.
+        /// </summary>
+        public void StartDecoding()
+        {
+            // only prepare for decoding if this is our first time starting the decoding process
+            if (formatContext == null)
+                prepareDecoding();
+
+            decodingTaskCancellationTokenSource = new CancellationTokenSource();
+            decodingTask = Task.Run(() => decodingLoop(decodingTaskCancellationTokenSource.Token), decodingTaskCancellationTokenSource.Token);
+        }
+
+        /// <summary>
+        /// Stops the decoding process. Optionally waits for the decoder thread to terminate.
+        /// </summary>
+        /// <param name="waitForDecoderExit">True if this method should wait for the decoder thread to terminate, false otherwise.</param>
+        public void StopDecoding(bool waitForDecoderExit)
+        {
+            if (decodingTask == null)
+                return;
+
+            decodingTaskCancellationTokenSource.Cancel();
+            if (waitForDecoderExit)
+                decodingTask.Wait();
+
+            decodingTask = null;
+            decodingTaskCancellationTokenSource.Dispose();
+            decodingTaskCancellationTokenSource = null;
+
+            state = DecoderState.Ready;
+        }
+
+        /// <summary>
+        /// Gets all frames that have been decoded by the decoder up until the point in time when this method was called.
+        /// Retrieving decoded frames using this method consumes them, ie calling this method again will never retrieve the same frame twice.
+        /// </summary>
+        /// <returns>The frames that have been decoded up until the point in time this method was called.</returns>
+        public IEnumerable<DecodedFrame> GetDecodedFrames()
+        {
+            var frames = new List<DecodedFrame>(decodedFrames.Count);
+            while (decodedFrames.TryDequeue(out var df))
+                frames.Add(df);
+
+            return frames;
+        }
+
         private int readPacket(void* opaque, byte* bufferPtr, int bufferSize)
         {
             if (bufferSize != managedContextBuffer.Length)
@@ -183,22 +225,6 @@ namespace osu.Framework.Graphics.Video
             }
 
             return videoStream.Position;
-        }
-
-        /// <summary>
-        /// Seek the decoder to the given timestamp. This will fail if <see cref="CanSeek"/> is false.
-        /// </summary>
-        /// <param name="targetTimestamp">The timestamp to seek to.</param>
-        public void Seek(double targetTimestamp)
-        {
-            if (!CanSeek)
-                throw new InvalidOperationException("This decoder cannot seek because the underlying stream used to decode the video does not support seeking.");
-
-            decoderCommands.Enqueue(() =>
-            {
-                ffmpeg.av_seek_frame(formatContext, stream->index, (long)(targetTimestamp / timeBaseInSeconds / 1000.0), ffmpeg.AVSEEK_FLAG_BACKWARD);
-                skipOutputUntilTime = targetTimestamp;
-            });
         }
 
         // sets up libavformat state: creates the AVFormatContext, the frames, etc. to start decoding, but does not actually start the decodingLoop
@@ -256,62 +282,6 @@ namespace osu.Framework.Graphics.Video
                     break;
                 }
             }
-        }
-
-        /// <summary>
-        /// Returns the given frames back to the decoder, allowing the decoder to reuse the textures contained in the frames to draw new frames.
-        /// </summary>
-        /// <param name="frames">The frames that should be returned to the decoder.</param>
-        public void ReturnFrames(IEnumerable<DecodedFrame> frames)
-        {
-            foreach (var f in frames)
-                availableTextures.Enqueue(f.Texture);
-        }
-
-        /// <summary>
-        /// Starts the decoding process. The decoding will happen asynchronously in a separate thread. The decoded frames can be retrieved by using <see cref="GetDecodedFrames"/>.
-        /// </summary>
-        public void StartDecoding()
-        {
-            // only prepare for decoding if this is our first time starting the decoding process
-            if (formatContext == null)
-                prepareDecoding();
-
-            decodingTaskCancellationTokenSource = new CancellationTokenSource();
-            decodingTask = Task.Run(() => decodingLoop(decodingTaskCancellationTokenSource.Token), decodingTaskCancellationTokenSource.Token);
-        }
-
-        /// <summary>
-        /// Stops the decoding process. Optionally waits for the decoder thread to terminate.
-        /// </summary>
-        /// <param name="waitForDecoderExit">True if this method should wait for the decoder thread to terminate, false otherwise.</param>
-        public void StopDecoding(bool waitForDecoderExit)
-        {
-            if (decodingTask == null)
-                return;
-
-            decodingTaskCancellationTokenSource.Cancel();
-            if (waitForDecoderExit)
-                decodingTask.Wait();
-
-            decodingTask = null;
-            decodingTaskCancellationTokenSource.Dispose();
-            decodingTaskCancellationTokenSource = null;
-
-            state = DecoderState.Ready;
-        }
-
-        /// <summary>
-        /// Gets all frames that have been decoded by the decoder up until the point in time when this method was called. Retrieving decoded frames using this method consumes them, ie calling this method again will never retrieve the same frame twice.
-        /// </summary>
-        /// <returns>The frames that have been decoded up until the point in time this method was called.</returns>
-        public IEnumerable<DecodedFrame> GetDecodedFrames()
-        {
-            var frames = new List<DecodedFrame>(decodedFrames.Count);
-            while (decodedFrames.TryDequeue(out var df))
-                frames.Add(df);
-
-            return frames;
         }
 
         private void decodingLoop(CancellationToken cancellationToken)
@@ -484,5 +454,36 @@ namespace osu.Framework.Graphics.Video
         }
 
         #endregion
+
+        /// <summary>
+        /// Represents the possible states the decoder can be in.
+        /// </summary>
+        public enum DecoderState
+        {
+            /// <summary>
+            /// The decoder is ready to begin decoding. This is the default state before the decoder starts operations.
+            /// </summary>
+            Ready = 0,
+
+            /// <summary>
+            /// The decoder is currently running and decoding frames.
+            /// </summary>
+            Running = 1,
+
+            /// <summary>
+            /// The decoder has faulted with an exception.
+            /// </summary>
+            Faulted = 2,
+
+            /// <summary>
+            /// The decoder has reached the end of the video data.
+            /// </summary>
+            EndOfStream = 3,
+
+            /// <summary>
+            /// The decoder has been completely stopped and cannot be resumed.
+            /// </summary>
+            Stopped = 4,
+        }
     }
 }
