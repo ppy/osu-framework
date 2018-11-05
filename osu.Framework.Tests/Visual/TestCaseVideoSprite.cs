@@ -18,7 +18,6 @@ namespace osu.Framework.Tests.Visual
         private VideoSprite videoSprite;
         private TextFlowContainer timeText;
 
-
         public TestCaseVideoSprite()
         {
             loadVideo();

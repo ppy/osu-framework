@@ -19,9 +19,5 @@ namespace osu.Framework.Graphics.Video
         /// The texture that represents the decoded frame.
         /// </summary>
         public Texture Texture { get; set; }
-
-        internal DecodedFrame()
-        {
-        }
     }
 }
