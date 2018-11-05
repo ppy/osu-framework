@@ -19,6 +19,18 @@ namespace osu.Framework.Allocation
         private readonly HashSet<T[]> usedDataBuffers = new HashSet<T[]>();
 
         /// <summary>
+        /// The number of buffers currently in use.
+        /// </summary>
+        public int BuffersInUse
+        {
+            get
+            {
+                lock (freeDataBuffers)
+                    return totalUsage;
+            }
+        }
+
+        /// <summary>
         /// Creates a new buffer stack containing a given maximum amount of buffers.
         /// </summary>
         /// <param name="maxAmountBuffers">The maximum amount of buffers to be contained within the buffer stack.</param>
