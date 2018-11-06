@@ -3,6 +3,7 @@
 
 using NUnit.Framework;
 using osu.Framework.Allocation;
+using osu.Framework.Configuration;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Testing.Dependencies;
 
@@ -165,6 +166,41 @@ namespace osu.Framework.Tests.Dependencies
             Assert.AreEqual(0, receiver.Obj);
         }
 
+        [Test]
+        public void TestResolveBindable()
+        {
+            var receiver = new Receiver16();
+
+            var bindable = new Bindable<int>(10);
+            var dependencies = createDependencies(bindable);
+
+            dependencies.Inject(receiver);
+
+            Assert.AreNotSame(bindable, receiver.Obj);
+            Assert.AreEqual(bindable.Value, receiver.Obj.Value);
+
+            bindable.Value = 5;
+            Assert.AreEqual(bindable.Value, receiver.Obj.Value);
+        }
+
+        [Test]
+        public void TestResolveIBindable()
+        {
+            var receiver = new Receiver17();
+
+            var bindable = new Bindable<int>(10);
+            var dependencies = new DependencyContainer();
+            dependencies.CacheAs<IBindable<int>>(bindable);
+
+            dependencies.Inject(receiver);
+
+            Assert.AreNotSame(bindable, receiver.Obj);
+            Assert.AreEqual(bindable.Value, receiver.Obj.Value);
+
+            bindable.Value = 5;
+            Assert.AreEqual(bindable.Value, receiver.Obj.Value);
+        }
+
         private DependencyContainer createDependencies(params object[] toCache)
         {
             var dependencies = new DependencyContainer();
@@ -271,6 +307,18 @@ namespace osu.Framework.Tests.Dependencies
         {
             [Resolved(CanBeNull = true)]
             public int Obj { get; private set; } = 1;
+        }
+
+        private class Receiver16
+        {
+            [Resolved]
+            public Bindable<int> Obj { get; private set; }
+        }
+
+        private class Receiver17
+        {
+            [Resolved]
+            public IBindable<int> Obj { get; private set; }
         }
     }
 }
