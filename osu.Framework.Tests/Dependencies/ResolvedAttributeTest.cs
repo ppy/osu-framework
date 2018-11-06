@@ -3,6 +3,7 @@
 
 using NUnit.Framework;
 using osu.Framework.Allocation;
+using osu.Framework.Configuration;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Testing.Dependencies;
 
@@ -165,6 +166,27 @@ namespace osu.Framework.Tests.Dependencies
             Assert.AreEqual(0, receiver.Obj);
         }
 
+        [Test]
+        public void TestResolveBindable()
+        {
+            var receiver = new Receiver16();
+
+            var bindable = new Bindable<int>(10);
+            var dependencies = createDependencies(bindable);
+            dependencies.CacheAs<IBindable<int>>(bindable);
+
+            dependencies.Inject(receiver);
+
+            Assert.AreNotSame(bindable, receiver.Obj);
+            Assert.AreNotSame(bindable, receiver.Obj2);
+            Assert.AreEqual(bindable.Value, receiver.Obj.Value);
+            Assert.AreEqual(bindable.Value, receiver.Obj2.Value);
+
+            bindable.Value = 5;
+            Assert.AreEqual(bindable.Value, receiver.Obj.Value);
+            Assert.AreEqual(bindable.Value, receiver.Obj2.Value);
+        }
+
         private DependencyContainer createDependencies(params object[] toCache)
         {
             var dependencies = new DependencyContainer();
@@ -271,6 +293,15 @@ namespace osu.Framework.Tests.Dependencies
         {
             [Resolved(CanBeNull = true)]
             public int Obj { get; private set; } = 1;
+        }
+
+        private class Receiver16
+        {
+            [Resolved]
+            public Bindable<int> Obj { get; private set; }
+
+            [Resolved]
+            public IBindable<int> Obj2 { get; private set; }
         }
     }
 }
