@@ -57,6 +57,15 @@ namespace osu.Framework.Input
         public readonly InputState CurrentState;
 
         /// <summary>
+        /// Used for synchronizing keyboard and joystick input with <see cref="PassThroughInputManager"/>
+        /// </summary>
+        public event EventHandler<InputUpdatedEventArgs> InputUpdated;
+        /// <summary>
+        /// Used for synchronizing mouse input with <see cref="PassThroughInputManager"/>
+        /// </summary>
+        public event EventHandler<InputUpdatedEventArgs> PositionalInputUpdated;
+
+        /// <summary>
         /// The <see cref="Drawable"/> which is currently being dragged. null if none is.
         /// </summary>
         public Drawable DraggedDrawable
@@ -122,9 +131,12 @@ namespace osu.Framework.Input
                 var manager = CreateButtonManagerFor(button);
                 manager.RequestFocus = ChangeFocusFromClick;
                 manager.GetPositionalInputQueue = () => PositionalInputQueue;
+                manager.PositionalInputUpdated += manager_PositionalInputUpdated;
                 mouseButtonEventManagers.Add(button, manager);
             }
         }
+
+        private void manager_PositionalInputUpdated(object sender, InputUpdatedEventArgs e) => PositionalInputUpdated?.Invoke(this, e);
 
         /// <summary>
         /// Create a <see cref="MouseButtonEventManager"/> for a specified mouse button.
@@ -513,6 +525,8 @@ namespace osu.Framework.Input
 
             if (handledBy != null)
                 Logger.Log($"{e} handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
+
+            InputUpdated?.Invoke(this, new InputUpdatedEventArgs { Drawable = handledBy, InputState = e.CurrentState });
 
             return handledBy != null;
         }

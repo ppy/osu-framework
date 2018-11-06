@@ -1,0 +1,15 @@
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+
+using System;
+using osu.Framework.Graphics;
+using osu.Framework.Input.States;
+
+namespace osu.Framework.Input
+{
+    public class InputUpdatedEventArgs : EventArgs
+    {
+        public Drawable Drawable { get; set; }
+        public InputState InputState { get; set; }
+    }
+}
