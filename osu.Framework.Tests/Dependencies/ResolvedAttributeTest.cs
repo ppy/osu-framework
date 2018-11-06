@@ -173,32 +173,18 @@ namespace osu.Framework.Tests.Dependencies
 
             var bindable = new Bindable<int>(10);
             var dependencies = createDependencies(bindable);
-
-            dependencies.Inject(receiver);
-
-            Assert.AreNotSame(bindable, receiver.Obj);
-            Assert.AreEqual(bindable.Value, receiver.Obj.Value);
-
-            bindable.Value = 5;
-            Assert.AreEqual(bindable.Value, receiver.Obj.Value);
-        }
-
-        [Test]
-        public void TestResolveIBindable()
-        {
-            var receiver = new Receiver17();
-
-            var bindable = new Bindable<int>(10);
-            var dependencies = new DependencyContainer();
             dependencies.CacheAs<IBindable<int>>(bindable);
 
             dependencies.Inject(receiver);
 
             Assert.AreNotSame(bindable, receiver.Obj);
+            Assert.AreNotSame(bindable, receiver.Obj2);
             Assert.AreEqual(bindable.Value, receiver.Obj.Value);
+            Assert.AreEqual(bindable.Value, receiver.Obj2.Value);
 
             bindable.Value = 5;
             Assert.AreEqual(bindable.Value, receiver.Obj.Value);
+            Assert.AreEqual(bindable.Value, receiver.Obj2.Value);
         }
 
         private DependencyContainer createDependencies(params object[] toCache)
@@ -313,12 +299,9 @@ namespace osu.Framework.Tests.Dependencies
         {
             [Resolved]
             public Bindable<int> Obj { get; private set; }
-        }
 
-        private class Receiver17
-        {
             [Resolved]
-            public IBindable<int> Obj { get; private set; }
+            public IBindable<int> Obj2 { get; private set; }
         }
     }
 }
