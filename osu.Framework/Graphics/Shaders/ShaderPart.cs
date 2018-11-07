@@ -33,7 +33,6 @@ namespace osu.Framework.Graphics.Shaders
 
         private readonly Regex includeRegex = new Regex("^\\s*#\\s*include\\s+[\"<](.*)[\">]");
         private readonly Regex shaderInputRegex = new Regex("^\\s*(?>attribute|in)\\s+[^\\s]+\\s+([^;]+);");
-        private readonly Regex versionRegex = new Regex("^\\s*#version");
 
         private readonly ShaderManager manager;
 
@@ -70,7 +69,7 @@ namespace osu.Framework.Graphics.Shaders
                     if (string.IsNullOrEmpty(line))
                         continue;
 
-                    if (versionRegex.IsMatch(line)) // the version directive has to appear before anything else in the shader
+                    if (line.StartsWith("#version")) // the version directive has to appear before anything else in the shader
                     {
                         shaderCodes.Add(line);
                         continue;
