@@ -1,14 +1,14 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using Cyotek.Drawing.BitmapFont;
-using osu.Framework.Allocation;
 using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using osu.Framework.Allocation;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Logging;
+using SharpFNT;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
@@ -45,9 +45,9 @@ namespace osu.Framework.IO.Stores
         {
             try
             {
-                var font = new BitmapFont();
-                using (var s = store.GetStream($@"{assetName}.fnt"))
-                    font.LoadText(s);
+                BitmapFont font;
+                using (var s = store.GetStream($@"{assetName}.bin"))
+                    font = BitmapFont.FromStream(s, FormatHint.Binary, false);
 
                 completionSource.SetResult(font);
             }
@@ -59,14 +59,14 @@ namespace osu.Framework.IO.Stores
         }, TaskCreationOptions.PreferFairness));
 
         public bool HasGlyph(char c) => Font.Characters.ContainsKey(c);
-        public int GetBaseHeight() => Font.BaseHeight;
+        public int GetBaseHeight() => Font.Common.Base;
 
         public int? GetBaseHeight(string name)
         {
             if (name != FontName)
                 return null;
 
-            return Font.BaseHeight;
+            return Font.Common.Base;
         }
 
         public TextureUpload Get(string name)
@@ -93,11 +93,11 @@ namespace osu.Framework.IO.Stores
 
         private TextureUpload loadCharacter(Character c)
         {
-            var page = getTexturePage(c.TexturePage);
+            var page = getTexturePage(c.Page);
             loadedGlyphCount++;
 
-            int width = c.Bounds.Width + c.Offset.X + 1;
-            int height = c.Bounds.Height + c.Offset.Y + 1;
+            int width = c.Width + c.XOffset + 1;
+            int height = c.Height + c.YOffset + 1;
 
             var image = new Image<Rgba32>(width, height);
 
@@ -110,8 +110,8 @@ namespace osu.Framework.IO.Stores
                 {
                     int dest = y * width + x;
 
-                    if (x >= c.Offset.X && y >= c.Offset.Y && x - c.Offset.X < c.Bounds.Width && y - c.Offset.Y < c.Bounds.Height)
-                        pixels[dest] = span[(c.Bounds.Y + y - c.Offset.Y) * page.Width + (c.Bounds.X + x - c.Offset.X)];
+                    if (x >= c.XOffset && y >= c.YOffset && x - c.XOffset < c.Width && y - c.YOffset < c.Height)
+                        pixels[dest] = span[(c.Y + y - c.YOffset) * page.Width + (c.X + x - c.XOffset)];
                     else
                         pixels[dest] = new Rgba32(255, 255, 255, 0);
                 }
@@ -125,7 +125,7 @@ namespace osu.Framework.IO.Stores
             if (!texturePages.TryGetValue(texturePage, out TextureUpload t))
             {
                 loadedPageCount++;
-                using (var stream = store.GetStream($@"{assetName}_{texturePage.ToString().PadLeft((Font.Pages.Length - 1).ToString().Length, '0')}.png"))
+                using (var stream = store.GetStream($@"{assetName}_{texturePage.ToString().PadLeft((Font.Pages.Count - 1).ToString().Length, '0')}.png"))
                     texturePages.Add(texturePage, t = new TextureUpload(stream));
             }
 
