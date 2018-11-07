@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using NUnit.Framework;
 using osu.Framework.Configuration;
 
@@ -180,7 +181,38 @@ namespace osu.Framework.Tests.Bindables
 
         #endregion
 
+        #region .AddRange(items)
+
+        [Test]
+        public void TestAddRangeAddsItemsToEnumerator()
+        {
+            var items = new[]
+            {
+                "A", "B", "C", "D"
+            };
+
+            bindableStringCollection.AddRange(items);
+
+            Assert.Multiple(() =>
+            {
+                foreach (var item in items)
+                    Assert.Contains(item, bindableStringCollection);
+            });
+        }
+
+        #endregion
+
         #region .Remove(item)
+
+        [Test]
+        public void TestRemoveWithDisabledCollectionThrowsInvalidOperationException()
+        {
+            string item = "hi";
+            bindableStringCollection.Add(item);
+            bindableStringCollection.Disabled = true;
+
+            Assert.Throws(typeof(InvalidOperationException), () => bindableStringCollection.Remove(item));
+        }
 
         [Test]
         public void TestRemoveWithAnItemThatIsNotInTheCollectionReturnsFalse()
@@ -345,6 +377,24 @@ namespace osu.Framework.Tests.Bindables
             bindableStringCollection.Clear();
 
             Assert.IsEmpty(bindableStringCollection);
+        }
+
+        [Test]
+        public void TestClearWithDisabledCollectionThrowsInvalidOperationException()
+        {
+            for (int i = 0; i < 5; i++)
+                bindableStringCollection.Add("testA");
+            bindableStringCollection.Disabled = true;
+
+            Assert.Throws(typeof(InvalidOperationException), () => bindableStringCollection.Clear());
+        }
+
+        [Test]
+        public void TestClearWithEmptyDisabledCollectionThrowsInvalidOperationException()
+        {
+            bindableStringCollection.Disabled = true;
+
+            Assert.Throws(typeof(InvalidOperationException), () => bindableStringCollection.Clear());
         }
 
         [Test]
@@ -617,7 +667,6 @@ namespace osu.Framework.Tests.Bindables
 
         #region .UnbindBindings()
 
-        public void Test
 
         #endregion
     }

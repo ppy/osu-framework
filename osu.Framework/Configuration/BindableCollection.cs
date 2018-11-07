@@ -121,8 +121,8 @@ namespace osu.Framework.Configuration
         }
 
         public int Count => collection.Count;
-        public bool IsSynchronized { get; }
-        public object SyncRoot { get; }
+        public bool IsSynchronized => ((ICollection)collection).IsSynchronized;
+        public object SyncRoot => ((ICollection)collection).SyncRoot;
         public bool IsReadOnly => Disabled;
 
         #endregion ICollection
