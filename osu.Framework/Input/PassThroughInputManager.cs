@@ -37,7 +37,21 @@ namespace osu.Framework.Input
                 useParentInput = value;
 
                 if (UseParentInput)
-                    Sync();
+                {
+                    parentInputManager = GetContainingInputManager();
+
+                    parentInputManager_InputUpdatedInternal(parentInputManager.CurrentState);
+                    parentInputManager_PositionalInputUpdatedInternal(parentInputManager.CurrentState);
+
+                    parentInputManager.InputUpdated += parentInputManager_InputUpdated;
+                    parentInputManager.PositionalInputUpdated += parentInputManager_PositionalInputUpdated;
+                }
+                else if (parentInputManager != null)
+                {
+                    parentInputManager.InputUpdated -= parentInputManager_InputUpdated;
+                    parentInputManager.PositionalInputUpdated -= parentInputManager_PositionalInputUpdated;
+                    parentInputManager = null;
+                }
             }
         }
 
@@ -108,7 +122,8 @@ namespace osu.Framework.Input
 
                 case KeyboardEvent _:
                 case JoystickButtonEvent _:
-                    SyncInputState(e.CurrentState);
+                    parentInputManager_PositionalInputUpdatedInternal(e.CurrentState);
+                    parentInputManager_InputUpdatedInternal(e.CurrentState);
                     break;
             }
 
@@ -117,47 +132,28 @@ namespace osu.Framework.Input
 
         private InputManager parentInputManager;
 
-        protected override void LoadComplete()
+        private void parentInputManager_PositionalInputUpdated(object sender, InputUpdatedEventArgs e)
         {
-            base.LoadComplete();
-            Sync();
+            if (e.Drawable == null || e.Drawable.GetContainingInputManager() == this)
+                parentInputManager_PositionalInputUpdatedInternal(e.InputState);
         }
 
-        protected override void Update()
+        private void parentInputManager_PositionalInputUpdatedInternal(InputState inputState)
         {
-            base.Update();
-
-            // Some non-positional events are blocked. Sync every frame.
-            if (UseParentInput) Sync(true);
-        }
-
-        /// <summary>
-        /// Sync input state to parent <see cref="InputManager"/>'s <see cref="InputState"/>.
-        /// Call this when parent <see cref="InputManager"/> changed somehow.
-        /// </summary>
-        /// <param name="useCachedParentInputManager">If this is false, assume parent input manager is unchanged from before.</param>
-        public void Sync(bool useCachedParentInputManager = false)
-        {
-            if (!UseParentInput) return;
-
-            if (!useCachedParentInputManager)
-                parentInputManager = GetContainingInputManager();
-
-            SyncInputState(parentInputManager?.CurrentState);
-        }
-
-        /// <summary>
-        /// Sync current state to parent state.
-        /// </summary>
-        /// <param name="parentState">Parent's state. If this is null, it is regarded as an empty state.</param>
-        protected virtual void SyncInputState(InputState parentState)
-        {
-            // release all buttons that is not pressed on parent state
-            var mouseButtonDifference = (parentState?.Mouse?.Buttons ?? new ButtonStates<MouseButton>()).EnumerateDifference(CurrentState.Mouse.Buttons);
+            var mouseButtonDifference = (inputState?.Mouse?.Buttons ?? new ButtonStates<MouseButton>()).EnumerateDifference(CurrentState.Mouse.Buttons);
             new MouseButtonInput(mouseButtonDifference.Released.Select(button => new ButtonInputEntry<MouseButton>(button, false))).Apply(CurrentState, this);
+        }
 
-            new KeyboardKeyInput(parentState?.Keyboard?.Keys, CurrentState.Keyboard.Keys).Apply(CurrentState, this);
-            new JoystickButtonInput(parentState?.Joystick?.Buttons, CurrentState.Joystick.Buttons).Apply(CurrentState, this);
+        private void parentInputManager_InputUpdated(object sender, InputUpdatedEventArgs e)
+        {
+            if (e.Drawable == null || e.Drawable.GetContainingInputManager() == this)
+                parentInputManager_InputUpdatedInternal(e.InputState);
+        }
+
+        private void parentInputManager_InputUpdatedInternal(InputState inputState)
+        {
+            new KeyboardKeyInput(inputState?.Keyboard?.Keys, CurrentState.Keyboard.Keys).Apply(CurrentState, this);
+            new JoystickButtonInput(inputState?.Joystick?.Buttons, CurrentState.Joystick.Buttons).Apply(CurrentState, this);
         }
     }
 }
