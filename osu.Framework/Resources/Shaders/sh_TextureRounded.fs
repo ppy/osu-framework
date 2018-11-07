@@ -1,15 +1,14 @@
-#version 130
 #ifdef GL_ES
 	precision mediump float;
 #endif
 
 #include "sh_Utils.h"
 
-in vec2 v_MaskingPosition;
-in vec4 v_Colour;
-in vec2 v_TexCoord;
-in vec4 v_TexRect;
-in vec2 v_BlendRange;
+varying vec2 v_MaskingPosition;
+varying vec4 v_Colour;
+varying vec2 v_TexCoord;
+varying vec4 v_TexRect;
+varying vec2 v_BlendRange;
 
 uniform sampler2D m_Sampler;
 uniform float g_CornerRadius;

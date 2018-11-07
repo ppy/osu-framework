@@ -1,15 +1,14 @@
-#version 130
 #include "sh_Utils.h"
 
-in vec3 m_Position;
-in vec4 m_Colour;
-in vec2 m_TexCoord;
+attribute vec3 m_Position;
+attribute vec4 m_Colour;
+attribute vec2 m_TexCoord;
 
-out vec2 v_MaskingPosition;
-out vec4 v_Colour;
-out vec2 v_TexCoord;
-out vec4 v_TexRect;
-out vec2 v_BlendRange;
+varying vec2 v_MaskingPosition;
+varying vec4 v_Colour;
+varying vec2 v_TexCoord;
+varying vec4 v_TexRect;
+varying vec2 v_BlendRange;
 
 uniform mat4 g_ProjMatrix;
 uniform mat3 g_ToMaskingSpace;
