@@ -17,7 +17,7 @@ namespace osu.Framework.Graphics.Shaders
 
         internal StringBuilder Log = new StringBuilder();
 
-        internal List<AttributeInfo> Attributes = new List<AttributeInfo>();
+        internal List<ShaderInputInfo> ShaderInputs = new List<ShaderInputInfo>();
 
         internal string Name;
         internal bool HasCode;
@@ -27,12 +27,13 @@ namespace osu.Framework.Graphics.Shaders
 
         private int partID = -1;
 
-        private int lastAttributeIndex;
+        private int lastShaderInputIndex;
 
         private readonly List<string> shaderCodes = new List<string>();
 
         private readonly Regex includeRegex = new Regex("^\\s*#\\s*include\\s+[\"<](.*)[\">]");
-        private readonly Regex attributeRegex = new Regex("^\\s*attribute\\s+[^\\s]+\\s+([^;]+);");
+        private readonly Regex shaderInputRegex = new Regex("^\\s*(?>attribute|in)\\s+[^\\s]+\\s+([^;]+);");
+        private readonly Regex versionRegex = new Regex("^\\s*#version");
 
         private readonly ShaderManager manager;
 
@@ -69,6 +70,12 @@ namespace osu.Framework.Graphics.Shaders
                     if (string.IsNullOrEmpty(line))
                         continue;
 
+                    if (versionRegex.IsMatch(line)) // the version directive has to appear before anything else in the shader
+                    {
+                        shaderCodes.Add(line);
+                        continue;
+                    }
+
                     Match includeMatch = includeRegex.Match(line);
                     if (includeMatch.Success)
                     {
@@ -84,14 +91,17 @@ namespace osu.Framework.Graphics.Shaders
                     else
                         code += '\n' + line;
 
-                    Match attributeMatch = attributeRegex.Match(line);
-                    if (attributeMatch.Success)
+                    if (Type == ShaderType.VertexShader || Type == ShaderType.VertexShaderArb)
                     {
-                        Attributes.Add(new AttributeInfo
+                        Match inputMatch = shaderInputRegex.Match(line);
+                        if (inputMatch.Success)
                         {
-                            Location = lastAttributeIndex++,
-                            Name = attributeMatch.Groups[1].Value.Trim()
-                        });
+                            ShaderInputs.Add(new ShaderInputInfo
+                            {
+                                Location = lastShaderInputIndex++,
+                                Name = inputMatch.Groups[1].Value.Trim()
+                            });
+                        }
                     }
                 }
 

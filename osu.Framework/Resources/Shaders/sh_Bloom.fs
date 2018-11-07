@@ -1,9 +1,10 @@
+#version 130
 #ifdef GL_ES
     precision mediump float;
 #endif
 
-varying vec4 v_Colour;
-varying vec2 v_TexCoord;
+in vec4 v_Colour;
+in vec2 v_TexCoord;
 
 uniform sampler2D m_Sampler;
 

@@ -4,18 +4,18 @@
 namespace osu.Framework.Graphics.Shaders
 {
     /// <summary>
-    /// Stores a vertex shader attribute.
+    /// Stores a vertex shader input.
     /// </summary>
-    internal struct AttributeInfo
+    internal struct ShaderInputInfo
     {
         /// <summary>
-        /// The 0-based location of this attribute. This is in order of appearance in the shader code.
-        /// Note that osu! uses 0-based attribute locations to bind vertex pointers to.
+        /// The 0-based location of this input. This is in order of appearance in the shader code.
+        /// Note that osu! uses 0-based input locations to bind vertex pointers to.
         /// </summary>
         public int Location;
 
         /// <summary>
-        /// The name of the attribute.
+        /// The input name.
         /// </summary>
         public string Name;
     }

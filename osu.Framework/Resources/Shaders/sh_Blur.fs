@@ -1,3 +1,4 @@
+#version 130
 #ifdef GL_ES
     precision mediump float;
 #endif
@@ -6,7 +7,7 @@
 
 #define INV_SQRT_2PI 0.39894
 
-varying vec2 v_TexCoord;
+in vec2 v_TexCoord;
 
 uniform sampler2D m_Sampler;
 
