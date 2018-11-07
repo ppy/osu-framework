@@ -57,13 +57,9 @@ namespace osu.Framework.Input
         public readonly InputState CurrentState;
 
         /// <summary>
-        /// Used for synchronizing keyboard and joystick input with <see cref="PassThroughInputManager"/>
+        /// Used for synchronizing input with <see cref="PassThroughInputManager"/>
         /// </summary>
         public event EventHandler<InputUpdatedEventArgs> InputUpdated;
-        /// <summary>
-        /// Used for synchronizing mouse input with <see cref="PassThroughInputManager"/>
-        /// </summary>
-        public event EventHandler<InputUpdatedEventArgs> PositionalInputUpdated;
 
         /// <summary>
         /// The <see cref="Drawable"/> which is currently being dragged. null if none is.
@@ -136,7 +132,7 @@ namespace osu.Framework.Input
             }
         }
 
-        private void manager_PositionalInputUpdated(object sender, InputUpdatedEventArgs e) => PositionalInputUpdated?.Invoke(this, e);
+        private void manager_PositionalInputUpdated(object sender, InputUpdatedEventArgs e) => InputUpdated?.Invoke(this, e);
 
         /// <summary>
         /// Create a <see cref="MouseButtonEventManager"/> for a specified mouse button.

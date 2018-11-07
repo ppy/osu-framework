@@ -41,15 +41,12 @@ namespace osu.Framework.Input
                     parentInputManager = GetContainingInputManager();
 
                     parentInputManager_InputUpdatedInternal(parentInputManager.CurrentState);
-                    parentInputManager_PositionalInputUpdatedInternal(parentInputManager.CurrentState);
 
                     parentInputManager.InputUpdated += parentInputManager_InputUpdated;
-                    parentInputManager.PositionalInputUpdated += parentInputManager_PositionalInputUpdated;
                 }
                 else if (parentInputManager != null)
                 {
                     parentInputManager.InputUpdated -= parentInputManager_InputUpdated;
-                    parentInputManager.PositionalInputUpdated -= parentInputManager_PositionalInputUpdated;
                     parentInputManager = null;
                 }
             }
@@ -122,7 +119,6 @@ namespace osu.Framework.Input
 
                 case KeyboardEvent _:
                 case JoystickButtonEvent _:
-                    parentInputManager_PositionalInputUpdatedInternal(e.CurrentState);
                     parentInputManager_InputUpdatedInternal(e.CurrentState);
                     break;
             }
@@ -132,18 +128,6 @@ namespace osu.Framework.Input
 
         private InputManager parentInputManager;
 
-        private void parentInputManager_PositionalInputUpdated(object sender, InputUpdatedEventArgs e)
-        {
-            if (e.Drawable == null || e.Drawable.GetContainingInputManager() == this)
-                parentInputManager_PositionalInputUpdatedInternal(e.InputState);
-        }
-
-        private void parentInputManager_PositionalInputUpdatedInternal(InputState inputState)
-        {
-            var mouseButtonDifference = (inputState?.Mouse?.Buttons ?? new ButtonStates<MouseButton>()).EnumerateDifference(CurrentState.Mouse.Buttons);
-            new MouseButtonInput(mouseButtonDifference.Released.Select(button => new ButtonInputEntry<MouseButton>(button, false))).Apply(CurrentState, this);
-        }
-
         private void parentInputManager_InputUpdated(object sender, InputUpdatedEventArgs e)
         {
             if (e.Drawable == null || e.Drawable.GetContainingInputManager() == this)
@@ -152,6 +136,9 @@ namespace osu.Framework.Input
 
         private void parentInputManager_InputUpdatedInternal(InputState inputState)
         {
+            var mouseButtonDifference = (inputState?.Mouse?.Buttons ?? new ButtonStates<MouseButton>()).EnumerateDifference(CurrentState.Mouse.Buttons);
+            new MouseButtonInput(mouseButtonDifference.Released.Select(button => new ButtonInputEntry<MouseButton>(button, false))).Apply(CurrentState, this);
+
             new KeyboardKeyInput(inputState?.Keyboard?.Keys, CurrentState.Keyboard.Keys).Apply(CurrentState, this);
             new JoystickButtonInput(inputState?.Joystick?.Buttons, CurrentState.Joystick.Buttons).Apply(CurrentState, this);
         }
