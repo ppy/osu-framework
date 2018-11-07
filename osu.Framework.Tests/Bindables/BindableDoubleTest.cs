@@ -62,5 +62,18 @@ namespace osu.Framework.Tests.Bindables
 
             Assert.AreEqual(value, bindable.Value);
         }
+
+        [Test]
+        public void TestPropagationToPlainBindable()
+        {
+            var number = new BindableDouble(1000);
+            var bindable = new Bindable<double>();
+
+            bindable.BindTo(number);
+
+            number.Precision = 0.5f;
+            number.MinValue = 0;
+            number.MaxValue = 10;
+        }
     }
 }

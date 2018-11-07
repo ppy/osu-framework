@@ -161,7 +161,12 @@ namespace osu.Framework.Configuration
         {
             // check a bound bindable hasn't changed the value again (it will fire its own event)
             T beforePropagation = precision;
-            if (propagateToBindings) Bindings?.ForEachAlive(b => ((BindableNumber<T>)b).Precision = precision);
+            if (propagateToBindings)
+                Bindings?.ForEachAlive(b =>
+                {
+                    if (b is BindableNumber<T> bn)
+                        bn.Precision = precision;
+                });
             if (Equals(beforePropagation, precision))
                 PrecisionChanged?.Invoke(precision);
         }
@@ -170,7 +175,12 @@ namespace osu.Framework.Configuration
         {
             // check a bound bindable hasn't changed the value again (it will fire its own event)
             T beforePropagation = minValue;
-            if (propagateToBindings) Bindings?.ForEachAlive(b => ((BindableNumber<T>)b).MinValue = minValue);
+            if (propagateToBindings)
+                Bindings?.ForEachAlive(b =>
+                {
+                    if (b is BindableNumber<T> bn)
+                        bn.MinValue = minValue;
+                });
             if (Equals(beforePropagation, minValue))
                 MinValueChanged?.Invoke(minValue);
         }
@@ -179,7 +189,12 @@ namespace osu.Framework.Configuration
         {
             // check a bound bindable hasn't changed the value again (it will fire its own event)
             T beforePropagation = maxValue;
-            if (propagateToBindings) Bindings?.ForEachAlive(b => ((BindableNumber<T>)b).MaxValue = maxValue);
+            if (propagateToBindings)
+                Bindings?.ForEachAlive(b =>
+                {
+                    if (b is BindableNumber<T> bn)
+                        bn.MaxValue = maxValue;
+                });
             if (Equals(beforePropagation, maxValue))
                 MaxValueChanged?.Invoke(maxValue);
         }
