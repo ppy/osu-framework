@@ -4,7 +4,6 @@
 using System;
 using osu.Framework.Platform;
 using osu.Framework;
-using SampleGame;
 
 namespace SampleGame.Desktop
 {

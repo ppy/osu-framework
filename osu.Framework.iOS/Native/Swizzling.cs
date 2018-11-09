@@ -24,11 +24,11 @@ namespace osu.Framework.iOS.Native
         public delegate void SwizzleDelegateInt(IntPtr block, IntPtr self, int arg1);
         public delegate void SwizzleDelegateIntPtr(IntPtr block, IntPtr self, IntPtr arg1);
 
-        public static void SwizzleMethod(IntPtr classHandle, IntPtr selector, SwizzleDelegate swizzleDelegate) => InternalSwizzleMethod(classHandle, selector, swizzleDelegate);
-        public static void SwizzleMethod(IntPtr classHandle, IntPtr selector, SwizzleDelegateInt swizzleDelegate) => InternalSwizzleMethod(classHandle, selector, swizzleDelegate);
-        public static void SwizzleMethod(IntPtr classHandle, IntPtr selector, SwizzleDelegateIntPtr swizzleDelegate) => InternalSwizzleMethod(classHandle, selector, swizzleDelegate);
+        public static void SwizzleMethod(IntPtr classHandle, IntPtr selector, SwizzleDelegate swizzleDelegate) => internalSwizzleMethod(classHandle, selector, swizzleDelegate);
+        public static void SwizzleMethod(IntPtr classHandle, IntPtr selector, SwizzleDelegateInt swizzleDelegate) => internalSwizzleMethod(classHandle, selector, swizzleDelegate);
+        public static void SwizzleMethod(IntPtr classHandle, IntPtr selector, SwizzleDelegateIntPtr swizzleDelegate) => internalSwizzleMethod(classHandle, selector, swizzleDelegate);
 
-        private static void InternalSwizzleMethod(IntPtr classHandle, IntPtr selector, Delegate swizzleDelegate)
+        private static void internalSwizzleMethod(IntPtr classHandle, IntPtr selector, Delegate swizzleDelegate)
         {
             var method = ClassGetInstanceMethod(classHandle, selector);
             var blockValue = new BlockLiteral();
