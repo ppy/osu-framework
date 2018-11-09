@@ -9,11 +9,10 @@ namespace osu.Framework.iOS
 {
     public class iOSGameWindow : GameWindow
     {
-        private readonly iOSGameView gameView;
+        public static iOSGameView GameView;
 
-        public iOSGameWindow(iOSGameView gameView) : base(gameView)
+        public iOSGameWindow() : base(GameView)
         {
-            this.gameView = gameView;
         }
 
         public override void SetupWindow(FrameworkConfigManager config)
@@ -21,6 +20,7 @@ namespace osu.Framework.iOS
             //throw new NotImplementedException();
         }
 
-        public override IGraphicsContext Context => gameView.GraphicsContext;
+
+        public override IGraphicsContext Context => GameView.GraphicsContext;
     }
 }

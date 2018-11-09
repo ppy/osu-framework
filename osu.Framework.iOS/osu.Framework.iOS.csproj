@@ -49,7 +49,10 @@
     <Reference Include="System.Core" />
     <Reference Include="Xamarin.iOS" />
     <Reference Include="osuTK">
-      <HintPath>..\..\opentk\src\osuTK\bin\Release\xamarinios10\osuTK.dll</HintPath>
+      <HintPath>..\..\opentk\src\osuTK\bin\Release\netstandard2.0\osuTK.dll</HintPath>
+    </Reference>
+    <Reference Include="osuTK.iOS">
+      <HintPath>..\..\opentk\osuTK.iOS\bin\Release\osuTK.iOS.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

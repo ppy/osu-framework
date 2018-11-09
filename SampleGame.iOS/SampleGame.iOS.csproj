@@ -74,7 +74,6 @@
     <DeviceSpecificBuild>true</DeviceSpecificBuild>
     <MtouchDebug>true</MtouchDebug>
     <MtouchNoSymbolStrip>true</MtouchNoSymbolStrip>
-    <MtouchFastDev>true</MtouchFastDev>
     <MtouchFloat32>true</MtouchFloat32>
     <CodesignEntitlements>Entitlements.plist</CodesignEntitlements>
     <IOSDebuggerPort>49392</IOSDebuggerPort>
@@ -83,6 +82,7 @@
     <MtouchHttpClientHandler>NSUrlSessionHandler</MtouchHttpClientHandler>
     <MtouchVerbosity></MtouchVerbosity>
     <LangVersion>Default</LangVersion>
+    <MtouchExtraArgs>-v -v -v -v -gcc_flags "-lstdc++ -framework AudioToolbox -framework SystemConfiguration -framework OpenGLES -framework CFNetwork -framework Accelerate -force_load ../osu.Framework.iOS/lib/libbass.a -force_load ../osu.Framework.iOS/lib/libbass_fx.a"</MtouchExtraArgs>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />

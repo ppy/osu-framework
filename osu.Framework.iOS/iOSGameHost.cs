@@ -7,6 +7,7 @@ using osu.Framework.Input.Handlers;
 using osu.Framework.iOS.Input;
 using osu.Framework.Platform.Windows;
 using osu.Framework.Platform;
+using osuTK;
 
 namespace osu.Framework.iOS
 {
@@ -17,8 +18,8 @@ namespace osu.Framework.iOS
         public iOSGameHost(iOSGameView gameView)
         {
             this.gameView = gameView;
-
-            Window = new iOSGameWindow(gameView);
+            iOSGameWindow.GameView = gameView;
+            Window = new iOSGameWindow();
         }
 
         public override ITextInputSource GetTextInput() => new iOSTextInput(gameView);

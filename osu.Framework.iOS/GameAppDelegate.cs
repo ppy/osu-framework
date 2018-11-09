@@ -29,10 +29,9 @@ namespace osu.Framework.iOS
             Window.RootViewController = viewController;
             Window.MakeKeyAndVisible();
 
-            // gameView.RunWithFrameInterval(1);
             gameView.Run();
 
-            host = new iOSGameHost(gameView);
+            host = new iOSGameHost(gameView);   
             host.Run(CreateGame());
 
             return true;

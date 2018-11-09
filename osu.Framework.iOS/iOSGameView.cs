@@ -19,7 +19,7 @@ using osu.Framework.Graphics.OpenGL;
 namespace osu.Framework.iOS
 {
     [Register("iOSGameView")]
-    public class iOSGameView : osuTK.Platform.iOS.iOSGameView
+    public class iOSGameView : osuTK.iOS.iOSGameView
     {
         public event Action<NSSet> HandleTouches;
 
@@ -28,11 +28,11 @@ namespace osu.Framework.iOS
         [Export("layerClass")]
         static Class LayerClass()
         {
-            return GetLayerClass();
+            return osuTK.iOS.iOSGameView.GetLayerClass();
         }
 
         [Export("initWithFrame:")]
-        public iOSGameView(RectangleF frame) : base(frame)
+        public iOSGameView(System.Drawing.RectangleF frame) : base(frame)
         {
             Scale = (float)UIScreen.MainScreen.Scale;
             ContentScaleFactor = UIScreen.MainScreen.Scale;
