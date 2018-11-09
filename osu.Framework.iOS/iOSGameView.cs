@@ -2,17 +2,9 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Diagnostics;
-using System.Drawing;
-
 using Foundation;
-using GLKit;
-using OpenGLES;
 using ObjCRuntime;
-using CoreAnimation;
-using CoreGraphics;
 using UIKit;
-
 using System.Threading.Tasks;
 using osu.Framework.Graphics.OpenGL;
 
@@ -26,10 +18,7 @@ namespace osu.Framework.iOS
         public DummyTextField KeyboardTextField { get; private set; }
 
         [Export("layerClass")]
-        static Class LayerClass()
-        {
-            return osuTK.iOS.iOSGameView.GetLayerClass();
-        }
+        static Class LayerClass() => GetLayerClass();
 
         [Export("initWithFrame:")]
         public iOSGameView(System.Drawing.RectangleF frame) : base(frame)
@@ -95,10 +84,7 @@ namespace osu.Framework.iOS
             };
 
             [Export("keyPressed:")]
-            void keyPressed(UIKeyCommand cmd)
-            {
-                HandleKeyCommand?.Invoke(cmd);
-            }
+            void keyPressed(UIKeyCommand cmd) => HandleKeyCommand?.Invoke(cmd);
 
             private void resetText()
             {

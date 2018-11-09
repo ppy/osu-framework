@@ -5,9 +5,8 @@ using System.Collections.Generic;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
 using osu.Framework.iOS.Input;
-using osu.Framework.Platform.Windows;
 using osu.Framework.Platform;
-using osuTK;
+using osu.Framework.Platform.MacOS;
 
 namespace osu.Framework.iOS
 {
@@ -24,12 +23,10 @@ namespace osu.Framework.iOS
 
         public override ITextInputSource GetTextInput() => new iOSTextInput(gameView);
 
-        protected override IEnumerable<InputHandler> CreateAvailableInputHandlers()
-        {
-            return new InputHandler[] { new iOSTouchHandler(gameView), new iOSKeyboardHandler(gameView) };
-        }
+        protected override IEnumerable<InputHandler> CreateAvailableInputHandlers() =>
+            new InputHandler[] { new iOSTouchHandler(gameView), new iOSKeyboardHandler(gameView) };
 
-        protected override Storage GetStorage(string baseName) => new WindowsStorage(baseName, this);
+        protected override Storage GetStorage(string baseName) => new MacOSStorage(baseName, this);
 
         public override void OpenFileExternally(string filename) => new System.NotImplementedException();
 

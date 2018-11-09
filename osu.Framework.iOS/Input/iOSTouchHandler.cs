@@ -1,14 +1,10 @@
 // Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System;
 using osu.Framework.Input.Handlers;
 using Foundation;
 using UIKit;
-using osu.Framework.Input;
 using osu.Framework.Platform;
-using osuTK;
-using osuTK.Input;
 
 namespace osu.Framework.iOS.Input
 {
