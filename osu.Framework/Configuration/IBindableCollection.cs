@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -53,7 +56,6 @@ namespace osu.Framework.Configuration
         /// </summary>
         /// <param name="collection">The collection whose elements should be added to this collection.</param>
         void AddRange(IEnumerable<T> collection);
-        
 
         /// <summary>
         /// Binds self to another bindable such that we receive any values and value limitations of the bindable we bind width.
