@@ -5,7 +5,7 @@ using osu.Framework.Lists;
 
 namespace osu.Framework.Configuration
 {
-    public class BindableCollection<T> : IBindableCollection<T>, IBindableCollection
+    public class BindableCollection<T> : IBindableCollection<T>
     {
         // We use a list, that allows us to use methods like AddRange.
         private readonly List<T> collection = new List<T>();
@@ -13,6 +13,10 @@ namespace osu.Framework.Configuration
         protected WeakList<BindableCollection<T>> Bindings;
 
         private WeakReference<BindableCollection<T>> weakReference { get; }
+
+        public BindableCollection() : this(null)
+        {
+        }
 
         public BindableCollection(IEnumerable<T> items = null)
         {
@@ -180,7 +184,9 @@ namespace osu.Framework.Configuration
 
         public void BindDisabledChanged(Action<bool> onChange, bool runOnceImmediately = false)
         {
-            throw new NotImplementedException();
+            DisabledChanged += onChange;
+            if (runOnceImmediately)
+                onChange(Disabled);
         }
 
         protected void TriggerDisabledChange(bool propagateToBindings = true)
@@ -274,13 +280,11 @@ namespace osu.Framework.Configuration
         }
 
         IBindableCollection IBindableCollection.GetBoundCopy()
-        {
-            throw new NotImplementedException();
-        }
+            => GetBoundCopy();
 
         public IBindableCollection<T> GetBoundCopy()
         {
-            var copy = (BindableCollection<T>) Activator.CreateInstance(GetType());
+            var copy = (BindableCollection<T>) Activator.CreateInstance(GetType(), null);
             copy.BindTo(this);
             return copy;
         }

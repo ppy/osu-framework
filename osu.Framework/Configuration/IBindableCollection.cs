@@ -25,7 +25,7 @@ namespace osu.Framework.Configuration
     /// An interface which can be bound to other <see cref="IBindableCollection{T}"/>s in order to watch for (and react to) <see cref="IBindableCollection{T}.Disabled"/> and item changes.
     /// </summary>
     /// <typeparam name="T">The type of value encapsulated by this <see cref="IBindable{T}"/>.</typeparam>
-    public interface IBindableCollection<T> : ICollection<T>, IParseable, ICanBeDisabled, IUnbindable, IHasDescription
+    public interface IBindableCollection<T> : ICollection<T>, IBindableCollection
     {
 
         /// <summary>
@@ -67,7 +67,7 @@ namespace osu.Framework.Configuration
         /// a local reference.
         /// </summary>
         /// <returns>A weakly bound copy of the specified bindable.</returns>
-        IBindableCollection<T> GetBoundCopy();
+        new IBindableCollection<T> GetBoundCopy();
 
     }
 }

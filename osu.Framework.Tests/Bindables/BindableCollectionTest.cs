@@ -727,6 +727,8 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestParseWithItemsNotifiesAddRangeAndClearSubscribers()
         {
+            bindableStringCollection.Add("test123");
+
             IEnumerable<string> strings = new string[] { "testA", "testB" };
             IEnumerable<string> addedItems = null;
             bool? itemsWereFirstCleaned = null;
@@ -747,8 +749,25 @@ namespace osu.Framework.Tests.Bindables
             {
                 CollectionAssert.AreEquivalent(strings, bindableStringCollection);
                 CollectionAssert.AreEquivalent(strings, addedItems);
+                Assert.NotNull(itemsWereFirstCleaned);
                 Assert.IsTrue(itemsWereFirstCleaned ?? false);
             });
+        }
+
+        #endregion
+
+        #region GetBoundCopy()
+
+        [Test]
+        public void TestBoundCopyWithAdd()
+        {
+            var boundCopy = bindableStringCollection.GetBoundCopy();
+            bool boundCopyItemAdded = false;
+            boundCopy.ItemAdded += item => boundCopyItemAdded = true;
+
+            bindableStringCollection.Add("test");
+
+            Assert.IsTrue(boundCopyItemAdded);
         }
 
         #endregion
