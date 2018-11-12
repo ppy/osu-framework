@@ -6,10 +6,8 @@ using System.Collections.Generic;
 
 namespace osu.Framework.Configuration
 {
-    // ReSharper disable PossibleInterfaceMemberAmbiguity
     public interface IBindableCollection : ICollection, IParseable, ICanBeDisabled, IUnbindable, IHasDescription
     {
-        // ReSharper restore PossibleInterfaceMemberAmbiguity
 
         /// <summary>
         /// Binds self to another bindable such that we receive any values and value limitations of the bindable we bind width.
@@ -53,6 +51,9 @@ namespace osu.Framework.Configuration
         /// </summary>
         /// <returns>A weakly bound copy of the specified bindable.</returns>
         new IBindableCollection<T> GetBoundCopy();
+
+        //avoiding possible ambiguity
+        new int Count { get; }
 
     }
 }
