@@ -127,7 +127,9 @@ namespace osu.Framework.Configuration
             throw new NotImplementedException();
         }
 
-        public int Count => collection.Count;
+        int ICollection.Count => collection.Count;
+        int ICollection<T>.Count => collection.Count;
+        int IReadOnlyCollection<T>.Count => collection.Count;
         public bool IsSynchronized => ((ICollection)collection).IsSynchronized;
         public object SyncRoot => ((ICollection)collection).SyncRoot;
         public bool IsReadOnly => Disabled;
@@ -144,7 +146,7 @@ namespace osu.Framework.Configuration
         public void Parse(object input)
         {
             if (Disabled)
-                throw new InvalidOperationException($"Can not parse object as bindable collection is disabled.");
+                throw new InvalidOperationException("Can not parse object as bindable collection is disabled.");
 
             switch (input)
             {

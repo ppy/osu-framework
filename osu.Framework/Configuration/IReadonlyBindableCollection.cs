@@ -3,11 +3,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace osu.Framework.Configuration
 {
-    public interface IReadonlyBindableCollection<T> : IReadOnlyCollection<T>
+    public interface IReadonlyBindableCollection<out T> : IReadOnlyCollection<T>
     {
 
         /// <summary>

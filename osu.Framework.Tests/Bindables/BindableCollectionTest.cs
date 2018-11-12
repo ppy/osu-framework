@@ -30,7 +30,7 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestConstructorWithItemsAddsItemsInternally()
         {
-            string[] array = new []
+            string[] array =
             {
                 "ok", "nope", "random", null, ""
             };
@@ -174,12 +174,12 @@ namespace osu.Framework.Tests.Bindables
         [TestCase(null)]
         public void TestAddWithCollectionContainingItemsDoesNotOverrideItems(string str)
         {
-            const string existingItem = "existing string";
-            bindableStringCollection.Add(existingItem);
+            const string item = "existing string";
+            bindableStringCollection.Add(item);
 
             bindableStringCollection.Add(str);
 
-            Assert.Contains(existingItem, bindableStringCollection);
+            Assert.Contains(item, bindableStringCollection);
         }
 
         #endregion
@@ -189,7 +189,7 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestAddRangeAddsItemsToEnumerator()
         {
-            string[] items = new[]
+            string[] items =
             {
                 "A", "B", "C", "D"
             };
@@ -630,7 +630,7 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestGetEnumeratorWhenCopyConstructorIsUsedDoesNotReturnTheEnumeratorOfTheInputtedEnumerator()
         {
-            string[] array = new[] { "" };
+            string[] array = { "" };
             var collection = new BindableCollection<string>(array);
 
             var enumerator = collection.GetEnumerator();
@@ -669,7 +669,7 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestParseWithArray()
         {
-            IEnumerable<string> strings = new string[] { "testA", "testB" };
+            IEnumerable<string> strings = new [] { "testA", "testB" };
 
             bindableStringCollection.Parse(strings);
 
@@ -708,7 +708,7 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestParseWithNullNotifiesClearSubscribers()
         {
-            string[] strings = new []{ "testA", "testB", "testC" };
+            string[] strings = { "testA", "testB", "testC" };
             bindableStringCollection.AddRange(strings);
             bool itemsGotCleared = false;
             string[] clearedItems = null;
