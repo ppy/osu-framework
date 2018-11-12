@@ -663,11 +663,95 @@ namespace osu.Framework.Tests.Bindables
             Assert.IsEmpty(bindableStringCollection);
         }
 
+        [Test]
+        public void TestParseWithArray()
+        {
+            IEnumerable<string> strings = new string[] { "testA", "testB" };
+
+            bindableStringCollection.Parse(strings);
+
+            CollectionAssert.AreEquivalent(strings, bindableStringCollection);
+        }
+
+        [Test]
+        public void TestParseWithDisabledCollectionThrowsInvalidOperationException()
+        {
+            bindableStringCollection.Disabled = true;
+
+            Assert.Multiple(() =>
+            {
+                Assert.Throws(typeof(InvalidOperationException), () => bindableStringCollection.Parse(null));
+                Assert.Throws(typeof(InvalidOperationException), () => bindableStringCollection.Parse(new object[] {
+                    "test", "testabc", "asdasdasdasd"
+                }));
+            });
+        }
+
+        [Test]
+        public void TestParseWithInvalidArgumentTypesThrowsArgumentException()
+        {
+            Assert.Multiple(() =>
+            {
+                Assert.Throws(typeof(ArgumentException), () => bindableStringCollection.Parse(1));
+                Assert.Throws(typeof(ArgumentException), () => bindableStringCollection.Parse(""));
+                Assert.Throws(typeof(ArgumentException), () => bindableStringCollection.Parse(new object()));
+                Assert.Throws(typeof(ArgumentException), () => bindableStringCollection.Parse(1.1));
+                Assert.Throws(typeof(ArgumentException), () => bindableStringCollection.Parse(1.1f));
+                Assert.Throws(typeof(ArgumentException), () => bindableStringCollection.Parse("test123"));
+                Assert.Throws(typeof(ArgumentException), () => bindableStringCollection.Parse(29387l));
+            });
+        }
+
+        [Test]
+        public void TestParseWithNullNotifiesClearSubscribers()
+        {
+            var strings = new string[] { "testA", "testB", "testC" };
+            bindableStringCollection.AddRange(strings);
+            bool itemsGotCleared = false;
+            string[] clearedItems = null;
+            bindableStringCollection.ItemsCleared += items =>
+            {
+                itemsGotCleared = true;
+                clearedItems = (string[]) items;
+            };
+
+            bindableStringCollection.Parse(null);
+
+            Assert.Multiple(() =>
+            {
+                CollectionAssert.AreEquivalent(strings, clearedItems);
+                Assert.IsTrue(itemsGotCleared);
+            });
+        }
+
+        [Test]
+        public void TestParseWithItemsNotifiesAddRangeAndClearSubscribers()
+        {
+            IEnumerable<string> strings = new string[] { "testA", "testB" };
+            IEnumerable<string> addedItems = null;
+            bool? itemsWereFirstCleaned = null;
+            bindableStringCollection.ItemRangeAdded += items =>
+            {
+                addedItems = items;
+                if (itemsWereFirstCleaned == null)
+                    itemsWereFirstCleaned = false;
+            };
+            bindableStringCollection.ItemsCleared += items => {
+                if (itemsWereFirstCleaned == null)
+                    itemsWereFirstCleaned = true;
+            };
+
+            bindableStringCollection.Parse(strings);
+
+            Assert.Multiple(() =>
+            {
+                CollectionAssert.AreEquivalent(strings, bindableStringCollection);
+                CollectionAssert.AreEquivalent(strings, addedItems);
+                Assert.IsTrue(itemsWereFirstCleaned ?? false);
+            });
+        }
+
         #endregion
 
-        #region .UnbindBindings()
-
-
-        #endregion
     }
 }
