@@ -1944,6 +1944,7 @@ namespace osu.Framework.Graphics
             private static readonly Type[] positional_input_interfaces =
             {
                 typeof(IHasTooltip),
+                typeof(IHasContextMenu),
             };
 
             private static readonly Type[] non_positional_input_interfaces =
