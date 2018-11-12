@@ -127,6 +127,7 @@ namespace osu.Framework.Configuration
             throw new NotImplementedException();
         }
 
+        public int Count => collection.Count;
         int ICollection.Count => collection.Count;
         int ICollection<T>.Count => collection.Count;
         int IReadOnlyCollection<T>.Count => collection.Count;
