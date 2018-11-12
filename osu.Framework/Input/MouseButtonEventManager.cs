@@ -38,7 +38,7 @@ namespace osu.Framework.Input
         /// <summary>
         /// Used for synchronizing mouse input with <see cref="PassThroughInputManager"/>
         /// </summary>
-        public event EventHandler<InputUpdatedEventArgs> PositionalInputUpdated;
+        internal event Action<InputState, Drawable> PositionalInputUpdated;
 
         /// <summary>
         /// Whether dragging is handled by the managed button.
@@ -276,7 +276,7 @@ namespace osu.Framework.Input
                 Logger.Log($"{e} handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
 
             if (e is MouseUpEvent)
-                PositionalInputUpdated?.Invoke(this, new InputUpdatedEventArgs { Drawable = handledBy, InputState = e.CurrentState });
+                PositionalInputUpdated?.Invoke(e.CurrentState, handledBy);
 
             return handledBy;
         }

@@ -40,13 +40,13 @@ namespace osu.Framework.Input
                 {
                     parentInputManager = GetContainingInputManager();
 
-                    parentInputManager_InputUpdatedInternal(parentInputManager.CurrentState);
+                    parentInputUpdatedInternal(parentInputManager.CurrentState);
 
-                    parentInputManager.InputUpdated += parentInputManager_InputUpdated;
+                    parentInputManager.InputUpdated += parentInputUpdated;
                 }
                 else if (parentInputManager != null)
                 {
-                    parentInputManager.InputUpdated -= parentInputManager_InputUpdated;
+                    parentInputManager.InputUpdated -= parentInputUpdated;
                     parentInputManager = null;
                 }
             }
@@ -119,7 +119,7 @@ namespace osu.Framework.Input
 
                 case KeyboardEvent _:
                 case JoystickButtonEvent _:
-                    parentInputManager_InputUpdatedInternal(e.CurrentState);
+                    parentInputUpdatedInternal(e.CurrentState);
                     break;
             }
 
@@ -128,19 +128,27 @@ namespace osu.Framework.Input
 
         private InputManager parentInputManager;
 
-        private void parentInputManager_InputUpdated(object sender, InputUpdatedEventArgs e)
+        private void parentInputUpdated(InputState inputState, Drawable drawable)
         {
-            if (e.Drawable == null || e.Drawable.GetContainingInputManager() == this)
-                parentInputManager_InputUpdatedInternal(e.InputState);
+            if (drawable == null || drawable.GetContainingInputManager() == this)
+                parentInputUpdatedInternal(inputState);
         }
 
-        private void parentInputManager_InputUpdatedInternal(InputState inputState)
+        private void parentInputUpdatedInternal(InputState inputState)
         {
             var mouseButtonDifference = (inputState?.Mouse?.Buttons ?? new ButtonStates<MouseButton>()).EnumerateDifference(CurrentState.Mouse.Buttons);
             new MouseButtonInput(mouseButtonDifference.Released.Select(button => new ButtonInputEntry<MouseButton>(button, false))).Apply(CurrentState, this);
 
             new KeyboardKeyInput(inputState?.Keyboard?.Keys, CurrentState.Keyboard.Keys).Apply(CurrentState, this);
             new JoystickButtonInput(inputState?.Joystick?.Buttons, CurrentState.Joystick.Buttons).Apply(CurrentState, this);
+        }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            if (parentInputManager != null)
+                parentInputManager.InputUpdated -= parentInputUpdated;
+
+            base.Dispose(isDisposing);
         }
     }
 }

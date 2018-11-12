@@ -59,7 +59,7 @@ namespace osu.Framework.Input
         /// <summary>
         /// Used for synchronizing input with <see cref="PassThroughInputManager"/>
         /// </summary>
-        public event EventHandler<InputUpdatedEventArgs> InputUpdated;
+        internal event Action<InputState, Drawable> InputUpdated;
 
         /// <summary>
         /// The <see cref="Drawable"/> which is currently being dragged. null if none is.
@@ -127,12 +127,12 @@ namespace osu.Framework.Input
                 var manager = CreateButtonManagerFor(button);
                 manager.RequestFocus = ChangeFocusFromClick;
                 manager.GetPositionalInputQueue = () => PositionalInputQueue;
-                manager.PositionalInputUpdated += manager_PositionalInputUpdated;
+                manager.PositionalInputUpdated += positionalInputUpdated;
                 mouseButtonEventManagers.Add(button, manager);
             }
         }
 
-        private void manager_PositionalInputUpdated(object sender, InputUpdatedEventArgs e) => InputUpdated?.Invoke(this, e);
+        private void positionalInputUpdated(InputState inputState, Drawable drawable) => InputUpdated?.Invoke(inputState, drawable);
 
         /// <summary>
         /// Create a <see cref="MouseButtonEventManager"/> for a specified mouse button.
@@ -522,7 +522,7 @@ namespace osu.Framework.Input
             if (handledBy != null)
                 Logger.Log($"{e} handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
 
-            InputUpdated?.Invoke(this, new InputUpdatedEventArgs { Drawable = handledBy, InputState = e.CurrentState });
+            InputUpdated?.Invoke(e.CurrentState, handledBy);
 
             return handledBy != null;
         }
