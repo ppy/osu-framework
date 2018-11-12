@@ -30,7 +30,7 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestConstructorWithItemsAddsItemsInternally()
         {
-            var array = new []
+            string[] array = new []
             {
                 "ok", "nope", "random", null, ""
             };
@@ -39,7 +39,7 @@ namespace osu.Framework.Tests.Bindables
 
             Assert.Multiple(() =>
             {
-                foreach (var item in array)
+                foreach (string item in array)
                     Assert.Contains(item, bindableCollection);
 
                 Assert.AreEqual(array.Length, bindableCollection.Count);
@@ -174,7 +174,7 @@ namespace osu.Framework.Tests.Bindables
         [TestCase(null)]
         public void TestAddWithCollectionContainingItemsDoesNotOverrideItems(string str)
         {
-            string existingItem = "existing string";
+            const string existingItem = "existing string";
             bindableStringCollection.Add(existingItem);
 
             bindableStringCollection.Add(str);
@@ -189,7 +189,7 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestAddRangeAddsItemsToEnumerator()
         {
-            var items = new[]
+            string[] items = new[]
             {
                 "A", "B", "C", "D"
             };
@@ -198,7 +198,7 @@ namespace osu.Framework.Tests.Bindables
 
             Assert.Multiple(() =>
             {
-                foreach (var item in items)
+                foreach (string item in items)
                     Assert.Contains(item, bindableStringCollection);
             });
         }
@@ -210,7 +210,7 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestRemoveWithDisabledCollectionThrowsInvalidOperationException()
         {
-            string item = "hi";
+            const string item = "hi";
             bindableStringCollection.Add(item);
             bindableStringCollection.Disabled = true;
 
@@ -228,7 +228,7 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestRemoveWhenCollectionIsDisabledThrowsInvalidOperationException()
         {
-            string item = "item";
+            const string item = "item";
             bindableStringCollection.Add(item);
             bindableStringCollection.Disabled = true;
 
@@ -238,7 +238,7 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestRemoveWithAnItemThatIsInTheCollectionReturnsTrue()
         {
-            string item = "item";
+            const string item = "item";
             bindableStringCollection.Add(item);
 
             bool gotRemoved = bindableStringCollection.Remove(item);
@@ -539,7 +539,7 @@ namespace osu.Framework.Tests.Bindables
         {
             for (int i = 0; i < 5; i++)
                 bindableStringCollection.Add("test" + i);
-            var array = new string[5];
+            string[] array = new string[5];
 
             bindableStringCollection.CopyTo(array, 0);
 
@@ -630,7 +630,7 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestGetEnumeratorWhenCopyConstructorIsUsedDoesNotReturnTheEnumeratorOfTheInputtedEnumerator()
         {
-            var array = new[] { "" };
+            string[] array = new[] { "" };
             var collection = new BindableCollection<string>(array);
 
             var enumerator = collection.GetEnumerator();
@@ -701,14 +701,14 @@ namespace osu.Framework.Tests.Bindables
                 Assert.Throws(typeof(ArgumentException), () => bindableStringCollection.Parse(1.1));
                 Assert.Throws(typeof(ArgumentException), () => bindableStringCollection.Parse(1.1f));
                 Assert.Throws(typeof(ArgumentException), () => bindableStringCollection.Parse("test123"));
-                Assert.Throws(typeof(ArgumentException), () => bindableStringCollection.Parse(29387l));
+                Assert.Throws(typeof(ArgumentException), () => bindableStringCollection.Parse(29387L));
             });
         }
 
         [Test]
         public void TestParseWithNullNotifiesClearSubscribers()
         {
-            var strings = new string[] { "testA", "testB", "testC" };
+            string[] strings = new []{ "testA", "testB", "testC" };
             bindableStringCollection.AddRange(strings);
             bool itemsGotCleared = false;
             string[] clearedItems = null;
@@ -732,7 +732,7 @@ namespace osu.Framework.Tests.Bindables
         {
             bindableStringCollection.Add("test123");
 
-            IEnumerable<string> strings = new string[] { "testA", "testB" };
+            IEnumerable<string> strings = new []{ "testA", "testB" };
             IEnumerable<string> addedItems = null;
             bool? itemsWereFirstCleaned = null;
             bindableStringCollection.ItemRangeAdded += items =>

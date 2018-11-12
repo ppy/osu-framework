@@ -10,7 +10,7 @@ namespace osu.Framework.Configuration
 {
     public class BindableCollection<T> : IBindableCollection<T>
     {
-        // We use a list, that allows us to use methods like AddRange.
+        // A list allows to use methods like AddRange.
         private readonly List<T> collection = new List<T>();
 
         protected WeakList<BindableCollection<T>> Bindings;
@@ -47,7 +47,7 @@ namespace osu.Framework.Configuration
         protected void Add(T item, BindableCollection<T> caller)
         {
             if (Disabled)
-                throw new InvalidOperationException($"Can not add item as bindable collection is disabled.");
+                throw new InvalidOperationException("Can not add item as bindable collection is disabled.");
 
             collection.Add(item);
 
@@ -68,7 +68,7 @@ namespace osu.Framework.Configuration
         protected void Clear(BindableCollection<T> caller)
         {
             if (Disabled)
-                throw new InvalidOperationException($"Can not clear items as bindable collection is disabled.");
+                throw new InvalidOperationException("Can not clear items as bindable collection is disabled.");
 
             if (collection.Count <= 0)
                 return;
@@ -102,7 +102,7 @@ namespace osu.Framework.Configuration
         public bool Remove(T item, BindableCollection<T> caller)
         {
             if (Disabled)
-                throw new InvalidOperationException($"Can not remove item as bindable collection is disabled.");
+                throw new InvalidOperationException("Can not remove item as bindable collection is disabled.");
 
             bool removed = collection.Remove(item);
 
@@ -164,7 +164,7 @@ namespace osu.Framework.Configuration
 
         #region ICanBeDisabled
 
-        private bool disabled = false;
+        private bool disabled;
 
         /// <summary>
         /// The collection can not be modified if the collection is disabled.
@@ -243,13 +243,13 @@ namespace osu.Framework.Configuration
         public event Action<T> ItemRemoved;
         public event Action<IEnumerable<T>> ItemsCleared;
 
-        public void AddRange(IEnumerable<T> collection)
+        public void AddRange(IEnumerable<T> items)
         {
             if (Disabled)
-                throw new InvalidOperationException($"Can not add a range of items as bindable collection is disabled.");
+                throw new InvalidOperationException("Can not add a range of items as bindable collection is disabled.");
 
-            this.collection.AddRange(collection);
-            ItemRangeAdded?.Invoke(collection);
+            collection.AddRange(items);
+            ItemRangeAdded?.Invoke(items);
         }
 
         public void BindTo(IBindableCollection<T> them)
