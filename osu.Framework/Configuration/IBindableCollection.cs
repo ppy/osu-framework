@@ -8,7 +8,6 @@ namespace osu.Framework.Configuration
 {
     public interface IBindableCollection : ICollection, IParseable, ICanBeDisabled, IUnbindable, IHasDescription
     {
-
         /// <summary>
         /// Binds self to another bindable such that we receive any values and value limitations of the bindable we bind width.
         /// </summary>
@@ -22,7 +21,6 @@ namespace osu.Framework.Configuration
         /// </summary>
         /// <returns>A weakly bound copy of the specified bindable.</returns>
         IBindableCollection GetBoundCopy();
-
     }
 
     /// <summary>
@@ -31,7 +29,6 @@ namespace osu.Framework.Configuration
     /// <typeparam name="T">The type of value encapsulated by this <see cref="IBindable{T}"/>.</typeparam>
     public interface IBindableCollection<T> : ICollection<T>, IBindableCollection, IReadonlyBindableCollection<T>
     {
-
         /// <summary>
         /// Adds the elements of the specified collection to this collection.
         /// </summary>
@@ -54,6 +51,5 @@ namespace osu.Framework.Configuration
 
         //avoiding possible ambiguity
         new int Count { get; }
-
     }
 }
