@@ -125,9 +125,7 @@ namespace osu.Framework.Configuration
         }
 
         public void CopyTo(Array array, int index)
-        {
-            throw new NotImplementedException();
-        }
+            => ((ICollection) collection).CopyTo(array, index);
 
         public int Count => collection.Count;
         int ICollection.Count => collection.Count;
@@ -253,9 +251,15 @@ namespace osu.Framework.Configuration
 
             collection.AddRange(items);
             ItemRangeAdded?.Invoke(items);
+        void IBindableCollection<T>.BindTo(IBindableCollection<T> them)
+        {
+            if (!(them is BindableCollection<T> tThem))
+                throw new InvalidCastException($"Can't bind to a bindable of type {them.GetType()} from a bindable of type {GetType()}.");
+
+            BindTo(tThem);
         }
 
-        public void BindTo(IBindableCollection<T> them)
+        void IBindableCollection.BindTo(IBindableCollection them)
         {
             if (!(them is BindableCollection<T> tThem))
                 throw new InvalidCastException($"Can't bind to a bindable of type {them.GetType()} from a bindable of type {GetType()}.");
@@ -280,17 +284,15 @@ namespace osu.Framework.Configuration
             Bindings.Add(weakReference);
         }
 
-        public void BindTo(IBindableCollection them)
-        {
-            throw new NotImplementedException();
-        }
-
         IBindableCollection IBindableCollection.GetBoundCopy()
             => GetBoundCopy();
 
-        public IBindableCollection<T> GetBoundCopy()
+        IBindableCollection<T> IBindableCollection<T>.GetBoundCopy()
+            => GetBoundCopy();
+
+        public BindableCollection<T> GetBoundCopy()
         {
-            var copy = (BindableCollection<T>) Activator.CreateInstance(GetType(), null);
+            var copy = (BindableCollection<T>)Activator.CreateInstance(GetType(), null);
             copy.BindTo(this);
             return copy;
         }
