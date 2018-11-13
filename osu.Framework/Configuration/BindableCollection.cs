@@ -42,9 +42,9 @@ namespace osu.Framework.Configuration
         #region ICollection
 
         public void Add(T item)
-            => Add(item, null);
+            => add(item, null);
 
-        protected void Add(T item, BindableCollection<T> caller)
+        private void add(T item, BindableCollection<T> caller)
         {
             if (Disabled)
                 throw new InvalidOperationException("Can not add item as bindable collection is disabled.");
@@ -56,16 +56,16 @@ namespace osu.Framework.Configuration
                 // prevent re-adding the item back to the callee.
                 // That would result in a <see cref="StackOverflowException"/>.
                 if (b != caller)
-                    b.Add(item, this);
+                    b.add(item, this);
             });
 
             ItemAdded?.Invoke(item);
         }
 
         public void Clear()
-            => Clear(null);
+            => clear(null);
 
-        protected void Clear(BindableCollection<T> caller)
+        private void clear(BindableCollection<T> caller)
         {
             if (Disabled)
                 throw new InvalidOperationException("Can not clear items as bindable collection is disabled.");
@@ -84,7 +84,7 @@ namespace osu.Framework.Configuration
                 // prevent re-adding the item back to the callee.
                 // That would result in a <see cref="StackOverflowException"/>.
                 if (b != caller)
-                    b.Clear(this);
+                    b.clear(this);
             });
 
             ItemsCleared?.Invoke(clearedItems);
@@ -97,9 +97,9 @@ namespace osu.Framework.Configuration
             => collection.CopyTo(array, arrayIndex);
 
         public bool Remove(T item)
-            => Remove(item, null);
+            => remove(item, null);
 
-        public bool Remove(T item, BindableCollection<T> caller)
+        private bool remove(T item, BindableCollection<T> caller)
         {
             if (Disabled)
                 throw new InvalidOperationException("Can not remove item as bindable collection is disabled.");
@@ -113,7 +113,7 @@ namespace osu.Framework.Configuration
                     // prevent re-adding the item back to the callee.
                     // That would result in a <see cref="StackOverflowException"/>.
                     if (b != caller)
-                        b.Remove(item, this);
+                        b.remove(item, this);
                 });
 
                 ItemRemoved?.Invoke(item);
