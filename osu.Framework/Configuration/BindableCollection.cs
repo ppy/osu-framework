@@ -17,6 +17,8 @@ namespace osu.Framework.Configuration
 
         private WeakReference<BindableCollection<T>> weakReference { get; }
 
+        public event Action<bool> DisabledChanged;
+
         public BindableCollection() : this(null)
         {
         }
@@ -185,8 +187,6 @@ namespace osu.Framework.Configuration
                 TriggerDisabledChange();
             }
         }
-
-        public event Action<bool> DisabledChanged;
 
         public void BindDisabledChanged(Action<bool> onChange, bool runOnceImmediately = false)
         {
