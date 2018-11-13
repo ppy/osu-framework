@@ -24,7 +24,7 @@ namespace osu.Framework.Configuration
         public BindableCollection(IEnumerable<T> items = null)
         {
             if (items != null)
-                collection = new List<T>(items);
+                collection.AddRange(items);
 
             weakReference = new WeakReference<BindableCollection<T>>(this);
         }
