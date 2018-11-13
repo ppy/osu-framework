@@ -269,11 +269,11 @@ namespace osu.Framework.Configuration
             Parse(them);
             Disabled = them.Disabled;
 
-            AddWeakReference(them.weakReference);
-            them.AddWeakReference(weakReference);
+            addWeakReference(them.weakReference);
+            them.addWeakReference(weakReference);
         }
 
-        private void AddWeakReference(WeakReference<BindableCollection<T>> weakReference)
+        private void addWeakReference(WeakReference<BindableCollection<T>> weakReference)
         {
             if (Bindings == null)
                 Bindings = new WeakList<BindableCollection<T>>();
