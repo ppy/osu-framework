@@ -79,10 +79,10 @@ namespace osu.Framework.Graphics.Shaders
                         //                        if (File.Exists(includeName))
                         //                            rawData = File.ReadAllBytes(includeName);
                         //#endif
-                        shaderCodes.Add(loadFile(manager.LoadRaw(includeName)));
+                        code += loadFile(manager.LoadRaw(includeName)) + '\n';
                     }
                     else
-                        code += '\n' + line;
+                        code += line + '\n';
 
                     Match attributeMatch = attributeRegex.Match(line);
                     if (attributeMatch.Success)
