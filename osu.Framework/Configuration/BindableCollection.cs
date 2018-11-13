@@ -273,7 +273,7 @@ namespace osu.Framework.Configuration
             them.AddWeakReference(weakReference);
         }
 
-        protected void AddWeakReference(WeakReference<BindableCollection<T>> weakReference)
+        private void AddWeakReference(WeakReference<BindableCollection<T>> weakReference)
         {
             if (Bindings == null)
                 Bindings = new WeakList<BindableCollection<T>>();
