@@ -47,7 +47,7 @@ namespace osu.Framework.Configuration
         private void add(T item, BindableCollection<T> caller)
         {
             if (Disabled)
-                throw new InvalidOperationException("Can not add item as bindable collection is disabled.");
+                throw new InvalidOperationException($"Cannot add items while the {nameof(BindableCollection<T>)} is disabled.");
 
             collection.Add(item);
 
@@ -68,7 +68,7 @@ namespace osu.Framework.Configuration
         private void clear(BindableCollection<T> caller)
         {
             if (Disabled)
-                throw new InvalidOperationException("Can not clear items as bindable collection is disabled.");
+                throw new InvalidOperationException($"Cannot clear items while the {nameof(BindableCollection<T>)} is disabled.");
 
             if (collection.Count <= 0)
                 return;
@@ -102,7 +102,7 @@ namespace osu.Framework.Configuration
         private bool remove(T item, BindableCollection<T> caller)
         {
             if (Disabled)
-                throw new InvalidOperationException("Can not remove item as bindable collection is disabled.");
+                throw new InvalidOperationException($"Cannot remove items while the {nameof(BindableCollection<T>)} is disabled.");
 
             bool removed = collection.Remove(item);
 
@@ -147,7 +147,7 @@ namespace osu.Framework.Configuration
         public void Parse(object input)
         {
             if (Disabled)
-                throw new InvalidOperationException("Can not parse object as bindable collection is disabled.");
+                throw new InvalidOperationException($"Cannot parse object while the {nameof(BindableCollection<T>)} is disabled.");
 
             switch (input)
             {
