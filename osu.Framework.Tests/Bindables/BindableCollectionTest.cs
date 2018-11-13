@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Configuration;
 
@@ -65,8 +66,8 @@ namespace osu.Framework.Tests.Bindables
         [TestCase(null)]
         public void TestAddWithStringNotifiesSubscriber(string str)
         {
-            string addedString = "incorrect string";
-            bindableStringCollection.ItemAdded += s => addedString = s;
+            string addedString = null;
+            bindableStringCollection.ItemsAdded += s => addedString = s.SingleOrDefault();
 
             bindableStringCollection.Add(str);
 
@@ -79,7 +80,7 @@ namespace osu.Framework.Tests.Bindables
         public void TestAddWithStringNotifiesSubscriberOnce(string str)
         {
             int notificationCount = 0;
-            bindableStringCollection.ItemAdded += s => notificationCount++;
+            bindableStringCollection.ItemsAdded += s => notificationCount++;
 
             bindableStringCollection.Add(str);
 
@@ -94,9 +95,9 @@ namespace osu.Framework.Tests.Bindables
             bool subscriberANotified = false;
             bool subscriberBNotified = false;
             bool subscriberCNotified = false;
-            bindableStringCollection.ItemAdded += s => subscriberANotified = true;
-            bindableStringCollection.ItemAdded += s => subscriberBNotified = true;
-            bindableStringCollection.ItemAdded += s => subscriberCNotified = true;
+            bindableStringCollection.ItemsAdded += s => subscriberANotified = true;
+            bindableStringCollection.ItemsAdded += s => subscriberBNotified = true;
+            bindableStringCollection.ItemsAdded += s => subscriberCNotified = true;
 
             bindableStringCollection.Add(str);
 
@@ -113,9 +114,9 @@ namespace osu.Framework.Tests.Bindables
             bool subscriberANotified = false;
             bool subscriberBNotified = false;
             bool subscriberCNotified = false;
-            bindableStringCollection.ItemAdded += s => subscriberANotified = true;
-            bindableStringCollection.ItemAdded += s => subscriberBNotified = true;
-            bindableStringCollection.ItemAdded += s => subscriberCNotified = true;
+            bindableStringCollection.ItemsAdded += s => subscriberANotified = true;
+            bindableStringCollection.ItemsAdded += s => subscriberBNotified = true;
+            bindableStringCollection.ItemsAdded += s => subscriberCNotified = true;
 
             Assert.IsFalse(subscriberANotified);
             Assert.IsFalse(subscriberBNotified);
@@ -252,7 +253,7 @@ namespace osu.Framework.Tests.Bindables
             const string item = "item";
             bindableStringCollection.Add(item);
             bool updated = false;
-            bindableStringCollection.ItemRemoved += s => updated = true;
+            bindableStringCollection.ItemsRemoved += s => updated = true;
 
             bindableStringCollection.Remove(item);
 
@@ -267,9 +268,9 @@ namespace osu.Framework.Tests.Bindables
             bool updatedA = false;
             bool updatedB = false;
             bool updatedC = false;
-            bindableStringCollection.ItemRemoved += s => updatedA = true;
-            bindableStringCollection.ItemRemoved += s => updatedB = true;
-            bindableStringCollection.ItemRemoved += s => updatedC = true;
+            bindableStringCollection.ItemsRemoved += s => updatedA = true;
+            bindableStringCollection.ItemsRemoved += s => updatedB = true;
+            bindableStringCollection.ItemsRemoved += s => updatedC = true;
 
             bindableStringCollection.Remove(item);
 
@@ -324,7 +325,7 @@ namespace osu.Framework.Tests.Bindables
             var collection = new BindableCollection<string>();
             collection.BindTo(bindableStringCollection);
             bool wasRemoved = false;
-            collection.ItemRemoved += s => wasRemoved = true;
+            collection.ItemsRemoved += s => wasRemoved = true;
 
             bindableStringCollection.Remove(item);
 
@@ -340,14 +341,14 @@ namespace osu.Framework.Tests.Bindables
             collectionA.BindTo(bindableStringCollection);
             bool wasRemovedA1 = false;
             bool wasRemovedA2 = false;
-            collectionA.ItemRemoved += s => wasRemovedA1 = true;
-            collectionA.ItemRemoved += s => wasRemovedA2 = true;
+            collectionA.ItemsRemoved += s => wasRemovedA1 = true;
+            collectionA.ItemsRemoved += s => wasRemovedA2 = true;
             var collectionB = new BindableCollection<string>();
             collectionB.BindTo(bindableStringCollection);
             bool wasRemovedB1 = false;
             bool wasRemovedB2 = false;
-            collectionB.ItemRemoved += s => wasRemovedB1 = true;
-            collectionB.ItemRemoved += s => wasRemovedB2 = true;
+            collectionB.ItemsRemoved += s => wasRemovedB1 = true;
+            collectionB.ItemsRemoved += s => wasRemovedB2 = true;
 
             bindableStringCollection.Remove(item);
 
@@ -417,7 +418,7 @@ namespace osu.Framework.Tests.Bindables
             for (int i = 0; i < 5; i++)
                 bindableStringCollection.Add("testA");
             bool wasNotified = false;
-            bindableStringCollection.ItemsCleared += items => wasNotified = true;
+            bindableStringCollection.ItemsRemoved += items => wasNotified = true;
 
             bindableStringCollection.Clear();
 
@@ -428,7 +429,7 @@ namespace osu.Framework.Tests.Bindables
         public void TestClearDoesNotNotifySubscriberBeforeClear()
         {
             bool wasNotified = false;
-            bindableStringCollection.ItemsCleared += items => wasNotified = true;
+            bindableStringCollection.ItemsRemoved += items => wasNotified = true;
             for (int i = 0; i < 5; i++)
                 bindableStringCollection.Add("testA");
 
@@ -443,11 +444,11 @@ namespace osu.Framework.Tests.Bindables
             for (int i = 0; i < 5; i++)
                 bindableStringCollection.Add("testA");
             bool wasNotifiedA = false;
-            bindableStringCollection.ItemsCleared += items => wasNotifiedA = true;
+            bindableStringCollection.ItemsRemoved += items => wasNotifiedA = true;
             bool wasNotifiedB = false;
-            bindableStringCollection.ItemsCleared += items => wasNotifiedB = true;
+            bindableStringCollection.ItemsRemoved += items => wasNotifiedB = true;
             bool wasNotifiedC = false;
-            bindableStringCollection.ItemsCleared += items => wasNotifiedC = true;
+            bindableStringCollection.ItemsRemoved += items => wasNotifiedC = true;
 
             bindableStringCollection.Clear();
 
@@ -712,7 +713,7 @@ namespace osu.Framework.Tests.Bindables
             bindableStringCollection.AddRange(strings);
             bool itemsGotCleared = false;
             string[] clearedItems = null;
-            bindableStringCollection.ItemsCleared += items =>
+            bindableStringCollection.ItemsRemoved += items =>
             {
                 itemsGotCleared = true;
                 clearedItems = (string[]) items;
@@ -735,13 +736,13 @@ namespace osu.Framework.Tests.Bindables
             IEnumerable<string> strings = new []{ "testA", "testB" };
             IEnumerable<string> addedItems = null;
             bool? itemsWereFirstCleaned = null;
-            bindableStringCollection.ItemRangeAdded += items =>
+            bindableStringCollection.ItemsAdded += items =>
             {
                 addedItems = items;
                 if (itemsWereFirstCleaned == null)
                     itemsWereFirstCleaned = false;
             };
-            bindableStringCollection.ItemsCleared += items => {
+            bindableStringCollection.ItemsRemoved += items => {
                 if (itemsWereFirstCleaned == null)
                     itemsWereFirstCleaned = true;
             };
@@ -766,7 +767,7 @@ namespace osu.Framework.Tests.Bindables
         {
             var boundCopy = bindableStringCollection.GetBoundCopy();
             bool boundCopyItemAdded = false;
-            boundCopy.ItemAdded += item => boundCopyItemAdded = true;
+            boundCopy.ItemsAdded += item => boundCopyItemAdded = true;
 
             bindableStringCollection.Add("test");
 
@@ -774,6 +775,5 @@ namespace osu.Framework.Tests.Bindables
         }
 
         #endregion
-
     }
 }

@@ -17,6 +17,8 @@ namespace osu.Framework.Configuration
 
         private WeakReference<BindableCollection<T>> weakReference { get; }
 
+        public event Action<IEnumerable<T>> ItemsAdded;
+        public event Action<IEnumerable<T>> ItemsRemoved;
         public event Action<bool> DisabledChanged;
 
         public BindableCollection() : this(null)
@@ -61,7 +63,7 @@ namespace osu.Framework.Configuration
                     b.add(item, this);
             });
 
-            ItemAdded?.Invoke(item);
+            ItemsAdded?.Invoke(new[] { item });
         }
 
         public void Clear()
@@ -89,7 +91,7 @@ namespace osu.Framework.Configuration
                     b.clear(this);
             });
 
-            ItemsCleared?.Invoke(clearedItems);
+            ItemsRemoved?.Invoke(clearedItems);
         }
 
         public bool Contains(T item)
@@ -118,7 +120,7 @@ namespace osu.Framework.Configuration
                         b.remove(item, this);
                 });
 
-                ItemRemoved?.Invoke(item);
+                ItemsRemoved?.Invoke(new[] { item });
             }
 
             return removed;
@@ -208,10 +210,8 @@ namespace osu.Framework.Configuration
 
         public void UnbindEvents()
         {
-            ItemAdded = null;
-            ItemRangeAdded = null;
-            ItemRemoved = null;
-            ItemsCleared = null;
+            ItemsAdded = null;
+            ItemsRemoved = null;
             DisabledChanged = null;
         }
 
@@ -239,18 +239,15 @@ namespace osu.Framework.Configuration
 
         #region IBindableCollection
 
-        public event Action<T> ItemAdded;
-        public event Action<IEnumerable<T>> ItemRangeAdded;
-        public event Action<T> ItemRemoved;
-        public event Action<IEnumerable<T>> ItemsCleared;
-
         public void AddRange(IEnumerable<T> items)
         {
             if (Disabled)
                 throw new InvalidOperationException("Can not add a range of items as bindable collection is disabled.");
 
             collection.AddRange(items);
-            ItemRangeAdded?.Invoke(items);
+            ItemsAdded?.Invoke(items);
+        }
+
         void IBindableCollection<T>.BindTo(IBindableCollection<T> them)
         {
             if (!(them is BindableCollection<T> tThem))

@@ -8,26 +8,14 @@ namespace osu.Framework.Configuration
 {
     public interface IReadonlyBindableCollection<out T> : IReadOnlyCollection<T>
     {
-
-        /// <summary>
-        /// An event which is raised when an item gets added.
-        /// </summary>
-        event Action<T> ItemAdded;
-
         /// <summary>
         /// An event which is raised when an range of items get added.
         /// </summary>
-        event Action<IEnumerable<T>> ItemRangeAdded;
+        event Action<IEnumerable<T>> ItemsAdded;
 
         /// <summary>
-        /// An event which is raised when an item gets removed.
+        /// An event which is raised when items get removed.
         /// </summary>
-        event Action<T> ItemRemoved;
-
-        /// <summary>
-        /// An event which is raised when all items are getting removed.
-        /// </summary>
-        event Action<IEnumerable<T>> ItemsCleared;
-
+        event Action<IEnumerable<T>> ItemsRemoved;
     }
 }
