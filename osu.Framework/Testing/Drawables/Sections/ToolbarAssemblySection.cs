@@ -66,9 +66,10 @@ namespace osu.Framework.Testing.Drawables.Sections
             public void AddAssembly(string name, Assembly assembly)
             {
                 if (assembly == null) return;
-                foreach(var item in MenuItems)
+
+                foreach (var item in MenuItems)
                 {
-                    if(item.Text.Value.Contains("dynamic"))
+                    if (item.Text.Value.Contains("dynamic"))
                         RemoveDropdownItem(item.Value);
                 }
 
