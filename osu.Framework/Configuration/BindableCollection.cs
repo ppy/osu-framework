@@ -8,14 +8,14 @@ using osu.Framework.Lists;
 
 namespace osu.Framework.Configuration
 {
-    public class BindableCollection<T> : IBindableCollection<T>
+    public class BindableCollection<T> : IBindableCollection<T>, ICollection, ICollection<T>, IParseable, IHasDescription
     {
-        // A list allows to use methods like AddRange.
+        // list allows to use methods like AddRange.
         private readonly List<T> collection = new List<T>();
 
-        protected WeakList<BindableCollection<T>> Bindings;
-
         private WeakReference<BindableCollection<T>> weakReference { get; }
+
+        private WeakList<BindableCollection<T>> Bindings;
 
         public event Action<IEnumerable<T>> ItemsAdded;
         public event Action<IEnumerable<T>> ItemsRemoved;
@@ -33,18 +33,12 @@ namespace osu.Framework.Configuration
             weakReference = new WeakReference<BindableCollection<T>>(this);
         }
 
-        #region IEnumerable
-
-        public IEnumerator<T> GetEnumerator()
-            => collection.GetEnumerator();
-
-        IEnumerator IEnumerable.GetEnumerator()
-            => GetEnumerator();
-
-        #endregion IEnumerable
-
         #region ICollection
 
+        /// <summary>
+        /// Adds a single item to this collection.
+        /// </summary>
+        /// <param name="item">The item that is going to be added.</param>
         public void Add(T item)
             => add(item, null);
 
@@ -195,7 +189,7 @@ namespace osu.Framework.Configuration
                 onChange(Disabled);
         }
 
-        protected void TriggerDisabledChange(bool propagateToBindings = true)
+        private void TriggerDisabledChange(bool propagateToBindings = true)
         {
             // check a bound bindable hasn't changed the value again (it will fire its own event)
             bool beforePropagation = disabled;
@@ -227,7 +221,8 @@ namespace osu.Framework.Configuration
             UnbindBindings();
         }
 
-        protected void Unbind(BindableCollection<T> binding) => Bindings.Remove(binding.weakReference);
+        private void Unbind(BindableCollection<T> binding)
+            => Bindings.Remove(binding.weakReference);
 
         #endregion IUnbindable
 
@@ -239,24 +234,32 @@ namespace osu.Framework.Configuration
 
         #region IBindableCollection
 
+        /// <summary>
+        /// Adds the elements of the specified collection to this collection.
+        /// </summary>
+        /// <param name="items">The collection whose elements should be added to this collection.</param>
         public void AddRange(IEnumerable<T> items)
+            => addRange(items, null);
+
+        private void addRange(IEnumerable<T> items, BindableCollection<T> caller)
         {
             if (Disabled)
                 throw new InvalidOperationException("Can not add a range of items as bindable collection is disabled.");
 
             collection.AddRange(items);
+
+            Bindings?.ForEachAlive(b =>
+            {
+                // prevent re-adding the item back to the callee.
+                // That would result in a <see cref="StackOverflowException"/>.
+                if (b != caller)
+                    b.addRange(items, this);
+            });
+
             ItemsAdded?.Invoke(items);
         }
 
         void IBindableCollection<T>.BindTo(IBindableCollection<T> them)
-        {
-            if (!(them is BindableCollection<T> tThem))
-                throw new InvalidCastException($"Can't bind to a bindable of type {them.GetType()} from a bindable of type {GetType()}.");
-
-            BindTo(tThem);
-        }
-
-        void IBindableCollection.BindTo(IBindableCollection them)
         {
             if (!(them is BindableCollection<T> tThem))
                 throw new InvalidCastException($"Can't bind to a bindable of type {them.GetType()} from a bindable of type {GetType()}.");
@@ -281,9 +284,6 @@ namespace osu.Framework.Configuration
             Bindings.Add(weakReference);
         }
 
-        IBindableCollection IBindableCollection.GetBoundCopy()
-            => GetBoundCopy();
-
         IBindableCollection<T> IBindableCollection<T>.GetBoundCopy()
             => GetBoundCopy();
 
@@ -295,5 +295,15 @@ namespace osu.Framework.Configuration
         }
 
         #endregion IBindableCollection
+
+        #region IEnumerable
+
+        public IEnumerator<T> GetEnumerator()
+            => collection.GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator()
+            => GetEnumerator();
+
+        #endregion IEnumerable
     }
 }
