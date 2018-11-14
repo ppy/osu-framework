@@ -1,7 +1,6 @@
 // Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System.Linq;
 using System.Reflection;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -14,7 +13,7 @@ namespace osu.Framework.Testing.Drawables.Sections
 {
     public class ToolbarAssemblySection : ToolbarSection
     {
-        private BasicDropdown<Assembly> assemblyDropdown;
+        private AssemblyDropdown assemblyDropdown;
 
         public ToolbarAssemblySection()
         {
@@ -40,7 +39,7 @@ namespace osu.Framework.Testing.Drawables.Sections
                         Padding = new MarginPadding(5),
                         Text = "Assembly:"
                     },
-                    assemblyDropdown = new BasicDropdown<Assembly>
+                    assemblyDropdown = new AssemblyDropdown
                     {
                         Width = 250,
                     },
@@ -60,11 +59,22 @@ namespace osu.Framework.Testing.Drawables.Sections
             runAllStepsCheckbox.Current.BindTo(browser.RunAllSteps);
         }
 
-        public void AddAssembly(string name, Assembly assembly)
+        public void AddAssembly(string name, Assembly assembly) => assemblyDropdown.AddAssembly(name, assembly);
+
+        private class AssemblyDropdown : BasicDropdown<Assembly>
         {
-            const string dynamic_assembly_identifier = "dynamic";
-            assemblyDropdown.RemoveDropdownItem(assemblyDropdown.Items.LastOrDefault(i => i.Key.Contains(dynamic_assembly_identifier)).Value);
-            assemblyDropdown.AddDropdownItem(name, assembly);
+            public void AddAssembly(string name, Assembly assembly)
+            {
+                if (assembly == null) return;
+
+                foreach (var item in MenuItems)
+                {
+                    if (item.Text.Value.Contains("dynamic"))
+                        RemoveDropdownItem(item.Value);
+                }
+
+                AddDropdownItem(name, assembly);
+            }
         }
     }
 }
