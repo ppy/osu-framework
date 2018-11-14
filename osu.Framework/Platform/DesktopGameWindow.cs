@@ -79,6 +79,12 @@ namespace osu.Framework.Platform
                     ChangeResolution(CurrentDisplay, newSize);
             };
 
+            sizeWindowed.ValueChanged += newSize =>
+            {
+                if (WindowState == WindowState.Normal)
+                    ClientSize = sizeWindowed.Value;
+            };
+
             config.BindWith(FrameworkSetting.WindowedSize, sizeWindowed);
 
             config.BindWith(FrameworkSetting.WindowedPositionX, windowPositionX);
