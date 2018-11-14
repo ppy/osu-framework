@@ -204,6 +204,25 @@ namespace osu.Framework.Tests.Bindables
             });
         }
 
+        [Test]
+        public void TestAddRangeNotifiesBoundCollections()
+        {
+            string[] items = new[] { "test1", "test2", "test3" };
+            var collection = new BindableCollection<string>();
+            bindableStringCollection.BindTo(collection);
+            IEnumerable<string> addedItems = null;
+            collection.ItemsAdded += e => addedItems = e;
+
+            bindableStringCollection.AddRange(items);
+
+            Assert.Multiple(() =>
+            {
+                Assert.NotNull(addedItems);
+                CollectionAssert.AreEquivalent(items, addedItems);
+                CollectionAssert.AreEquivalent(items, collection);
+            });
+        }
+
         #endregion
 
         #region .Remove(item)
