@@ -138,7 +138,7 @@ namespace osu.Framework.Tests.Dependencies
         [Test]
         public void TestAttemptCacheStruct()
         {
-            Assert.Throws<ArgumentException>(() => new DependencyContainer().Cache<IBaseInterface>(new BaseStructObject()));
+            Assert.Throws<ArgumentException>(() => new DependencyContainer().Cache(new BaseStructObject()));
         }
 
         /// <summary>
@@ -235,7 +235,7 @@ namespace osu.Framework.Tests.Dependencies
         [Test]
         public void TestCacheNullInternal()
         {
-            Assert.DoesNotThrow(() => new DependencyContainer().CacheValue<int?>(null));
+            Assert.DoesNotThrow(() => new DependencyContainer().CacheValue(null));
             Assert.DoesNotThrow(() => new DependencyContainer().CacheValueAs<object>(null));
         }
 
