@@ -61,7 +61,7 @@ namespace osu.Framework.Graphics.Containers
 
         /// <summary>
         /// Contains all dependencies that can be injected into this CompositeDrawable's children using <see cref="BackgroundDependencyLoaderAttribute"/>.
-        /// Add or override dependencies by calling <see cref="DependencyContainer.Cache{T}(T)"/>.
+        /// Add or override dependencies by calling <see cref="DependencyContainer.Cache"/>.
         /// </summary>
         public IReadOnlyDependencyContainer Dependencies { get; private set; }
 

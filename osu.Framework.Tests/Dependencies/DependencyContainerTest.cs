@@ -138,7 +138,7 @@ namespace osu.Framework.Tests.Dependencies
         [Test]
         public void TestAttemptCacheStruct()
         {
-            Assert.Throws<ArgumentException>(() => new DependencyContainer().Cache<IBaseInterface>(new BaseStructObject()));
+            Assert.Throws<ArgumentException>(() => new DependencyContainer().Cache(new BaseStructObject()));
         }
 
         /// <summary>
