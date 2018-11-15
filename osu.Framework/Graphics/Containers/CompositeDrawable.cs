@@ -614,12 +614,14 @@ namespace osu.Framework.Graphics.Containers
                     RemoveInternal(child);
 
                     if (child.DisposeOnDeathRemoval)
-                        Task.Run(() => child.Dispose());
+                        disposeChildAsync(child);
                 }
             }
 
             return changed;
         }
+
+        private void disposeChildAsync(Drawable drawable) => Task.Run(() => drawable.Dispose());
 
         internal override void UpdateClock(IFrameBasedClock clock)
         {
