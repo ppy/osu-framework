@@ -235,7 +235,7 @@ namespace osu.Framework.Tests.Dependencies
         [Test]
         public void TestCacheNullInternal()
         {
-            Assert.DoesNotThrow(() => new DependencyContainer().CacheValue<int?>(null));
+            Assert.DoesNotThrow(() => new DependencyContainer().CacheValue(null));
             Assert.DoesNotThrow(() => new DependencyContainer().CacheValueAs<object>(null));
         }
 

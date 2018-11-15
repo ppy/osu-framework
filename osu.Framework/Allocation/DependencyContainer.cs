@@ -56,7 +56,7 @@ namespace osu.Framework.Allocation
         /// (e.g. <see cref="CancellationToken"/> or reference types).
         /// </remarks>
         /// <param name="instance">The instance to cache.</param>
-        internal void CacheValue<T>(T instance)
+        internal void CacheValue(object instance)
         {
             if (instance == null)
                 return;
