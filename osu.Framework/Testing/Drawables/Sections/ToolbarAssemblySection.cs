@@ -1,6 +1,7 @@
 // Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System.Linq;
 using System.Reflection;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -67,7 +68,7 @@ namespace osu.Framework.Testing.Drawables.Sections
             {
                 if (assembly == null) return;
 
-                foreach (var item in MenuItems)
+                foreach (var item in MenuItems.ToArray())
                 {
                     if (item.Text.Value.Contains("dynamic"))
                         RemoveDropdownItem(item.Value);
