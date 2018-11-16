@@ -7,9 +7,9 @@ using System.Collections.Generic;
 namespace osu.Framework.Configuration
 {
     /// <summary>
-    /// An interface which can be bound to other <see cref="IBindableCollection{T}"/>s in order to watch for (and react to) <see cref="IBindableCollection{T}.Disabled"/> and item changes.
+    /// An readonly interface which can be bound to other <see cref="IBindableCollection{T}"/>s in order to watch for state and content changes.
     /// </summary>
-    /// <typeparam name="T">The type of value encapsulated by this <see cref="IBindable{T}"/>.</typeparam>
+    /// <typeparam name="T">The type of value encapsulated by this <see cref="IBindableCollection{T}"/>.</typeparam>
     public interface IBindableCollection<T> : IReadOnlyCollection<T>, IUnbindable
     {
         /// <summary>

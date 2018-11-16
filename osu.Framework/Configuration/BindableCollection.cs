@@ -14,22 +14,33 @@ namespace osu.Framework.Configuration
         private readonly List<T> collection = new List<T>();
 
         private WeakReference<BindableCollection<T>> weakReference { get; }
+        private WeakList<BindableCollection<T>> bindings;
 
-        private WeakList<BindableCollection<T>> Bindings;
-
+        /// <summary>
+        /// This action is raised when any amount of items were added to this or a bound collection.
+        /// </summary>
         public event Action<IEnumerable<T>> ItemsAdded;
+
+        /// <summary>
+        /// When any amount of items are removed from this or a bound collection <see cref="ItemsRemoved"/> is called.
+        /// </summary>
         public event Action<IEnumerable<T>> ItemsRemoved;
+
+        /// <summary>
+        /// <see cref="DisabledChanged"/> is beeing called when <see cref="Disabled"/>s value changed.
+        /// </summary>
         public event Action<bool> DisabledChanged;
 
-        public BindableCollection() : this(null)
-        {
-        }
-
+        /// <summary>
+        /// Created a new instance of <see cref="BindableCollection{T}"/> and adds the gives items to the created <see cref="BindableCollection{T}"/>.
+        /// </summary>
+        /// <param name="items">The items that are going to be contained in the newly created <see cref="BindableCollection{T}"/>.</param>
         public BindableCollection(IEnumerable<T> items = null)
         {
             if (items != null)
                 collection.AddRange(items);
 
+            // we can not initialize this directly at the property due to the this capture.
             weakReference = new WeakReference<BindableCollection<T>>(this);
         }
 
@@ -39,6 +50,7 @@ namespace osu.Framework.Configuration
         /// Adds a single item to this collection.
         /// </summary>
         /// <param name="item">The item that is going to be added.</param>
+        /// <exception cref="InvalidOperationException">Is being thrown when this collection is <see cref="Disabled"/></exception>
         public void Add(T item)
             => add(item, null);
 
@@ -49,7 +61,7 @@ namespace osu.Framework.Configuration
 
             collection.Add(item);
 
-            Bindings?.ForEachAlive(b =>
+            bindings?.ForEachAlive(b =>
             {
                 // prevent re-adding the item back to the callee.
                 // That would result in a <see cref="StackOverflowException"/>.
@@ -60,6 +72,10 @@ namespace osu.Framework.Configuration
             ItemsAdded?.Invoke(new[] { item });
         }
 
+        /// <summary>
+        /// Clears all contents of the collection.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Is being thrown when this collection is <see cref="Disabled"/></exception>
         public void Clear()
             => clear(null);
 
@@ -77,7 +93,7 @@ namespace osu.Framework.Configuration
 
             collection.Clear();
 
-            Bindings?.ForEachAlive(b =>
+            bindings?.ForEachAlive(b =>
             {
                 // prevent re-adding the item back to the callee.
                 // That would result in a <see cref="StackOverflowException"/>.
@@ -88,12 +104,28 @@ namespace osu.Framework.Configuration
             ItemsRemoved?.Invoke(clearedItems);
         }
 
+        /// <summary>
+        /// Determines if an item is in this collection.
+        /// </summary>
+        /// <param name="item">The items to locate in this collection.</param>
+        /// <returns><code>true</code> is this collection contains the given item.</returns>
         public bool Contains(T item)
             => collection.Contains(item);
 
+        /// <summary>
+        /// Copies the contents of this collection to the given array, starting at the given index.
+        /// </summary>
+        /// <param name="array">The array that is the destination of the items copied from this collection.</param>
+        /// <param name="arrayIndex">The index at which the copying begins.</param>
         public void CopyTo(T[] array, int arrayIndex)
             => collection.CopyTo(array, arrayIndex);
 
+        /// <summary>
+        /// Removes an item from this collection.
+        /// </summary>
+        /// <param name="item">The item to remove from this collection.</param>
+        /// <returns><code>true</code> or <code>false</code> depending if the removal was successfull</returns>
+        /// <exception cref="InvalidOperationException">is beeing thrown if this collection is <see cref="Disabled"/></exception>
         public bool Remove(T item)
             => remove(item, null);
 
@@ -106,7 +138,7 @@ namespace osu.Framework.Configuration
 
             if (removed)
             {
-                Bindings?.ForEachAlive(b =>
+                bindings?.ForEachAlive(b =>
                 {
                     // prevent re-adding the item back to the callee.
                     // That would result in a <see cref="StackOverflowException"/>.
@@ -124,9 +156,6 @@ namespace osu.Framework.Configuration
             => ((ICollection) collection).CopyTo(array, index);
 
         public int Count => collection.Count;
-        int ICollection.Count => collection.Count;
-        int ICollection<T>.Count => collection.Count;
-        int IReadOnlyCollection<T>.Count => collection.Count;
         public bool IsSynchronized => ((ICollection)collection).IsSynchronized;
         public object SyncRoot => ((ICollection)collection).SyncRoot;
         public bool IsReadOnly => Disabled;
@@ -140,6 +169,7 @@ namespace osu.Framework.Configuration
         /// An collection holding items deriving T can be parsed, or null that results into an empty collection.
         /// </summary>
         /// <param name="input">The input which is to be parsed.</param>
+        /// <exception cref="InvalidOperationException">is beeing thrown if this collection is <see cref="Disabled"/></exception>
         public void Parse(object input)
         {
             if (Disabled)
@@ -178,22 +208,25 @@ namespace osu.Framework.Configuration
 
                 disabled = value;
 
-                TriggerDisabledChange();
+                triggerDisabledChange();
             }
         }
 
-        public void BindDisabledChanged(Action<bool> onChange, bool runOnceImmediately = false)
+        private void bindDisabledChanged(Action<bool> onChange, bool runOnceImmediately = false)
         {
             DisabledChanged += onChange;
             if (runOnceImmediately)
                 onChange(Disabled);
         }
 
-        private void TriggerDisabledChange(bool propagateToBindings = true)
+        private void triggerDisabledChange(bool propagateToBindings = true)
         {
             // check a bound bindable hasn't changed the value again (it will fire its own event)
             bool beforePropagation = disabled;
-            if (propagateToBindings) Bindings?.ForEachAlive(b => b.Disabled = disabled);
+
+            if (propagateToBindings)
+                bindings?.ForEachAlive(b => b.Disabled = disabled);
+
             if (beforePropagation == disabled)
                 DisabledChanged?.Invoke(disabled);
         }
@@ -211,8 +244,8 @@ namespace osu.Framework.Configuration
 
         public void UnbindBindings()
         {
-            Bindings?.ForEachAlive(b => b.Unbind(this));
-            Bindings?.Clear();
+            bindings?.ForEachAlive(b => b.unbind(this));
+            bindings?.Clear();
         }
 
         public void UnbindAll()
@@ -221,8 +254,8 @@ namespace osu.Framework.Configuration
             UnbindBindings();
         }
 
-        private void Unbind(BindableCollection<T> binding)
-            => Bindings.Remove(binding.weakReference);
+        private void unbind(BindableCollection<T> binding)
+            => bindings.Remove(binding.weakReference);
 
         #endregion IUnbindable
 
@@ -235,9 +268,10 @@ namespace osu.Framework.Configuration
         #region IBindableCollection
 
         /// <summary>
-        /// Adds the elements of the specified collection to this collection.
+        /// Adds a range if items of the specified collection to this collection.
         /// </summary>
-        /// <param name="items">The collection whose elements should be added to this collection.</param>
+        /// <param name="items">The collection whose items should be added to this collection.</param>
+        /// <exception cref="InvalidOperationException">is beeing thrown if this collection is <see cref="Disabled"/></exception>
         public void AddRange(IEnumerable<T> items)
             => addRange(items, null);
 
@@ -248,7 +282,7 @@ namespace osu.Framework.Configuration
 
             collection.AddRange(items);
 
-            Bindings?.ForEachAlive(b =>
+            bindings?.ForEachAlive(b =>
             {
                 // prevent re-adding the item back to the callee.
                 // That would result in a <see cref="StackOverflowException"/>.
@@ -267,8 +301,20 @@ namespace osu.Framework.Configuration
             BindTo(tThem);
         }
 
+        /// <summary>
+        /// Binds this collection to <paramref name="them"/>.
+        /// </summary>
+        /// <param name="them">The collection to be bound to this collection</param>
         public void BindTo(BindableCollection<T> them)
         {
+            if (them == null)
+                throw new ArgumentNullException(nameof(them));
+            if (bindings?.Contains(weakReference) ?? false)
+                throw new ArgumentException("An already bound collection can not be bound again.");
+            if (them == this)
+                throw new ArgumentException("A collection can not be bound to itself");
+
+            // copy state and content over
             Parse(them);
             Disabled = them.Disabled;
 
@@ -278,18 +324,22 @@ namespace osu.Framework.Configuration
 
         private void addWeakReference(WeakReference<BindableCollection<T>> weakReference)
         {
-            if (Bindings == null)
-                Bindings = new WeakList<BindableCollection<T>>();
+            if (bindings == null)
+                bindings = new WeakList<BindableCollection<T>>();
 
-            Bindings.Add(weakReference);
+            bindings.Add(weakReference);
         }
 
         IBindableCollection<T> IBindableCollection<T>.GetBoundCopy()
             => GetBoundCopy();
 
+        /// <summary>
+        /// Create a new instance of <see cref="BindableCollection{T}"/> and binds it to this instance.
+        /// </summary>
+        /// <returns>The created instace.</returns>
         public BindableCollection<T> GetBoundCopy()
         {
-            var copy = (BindableCollection<T>)Activator.CreateInstance(GetType(), null);
+            var copy = (BindableCollection<T>)Activator.CreateInstance(GetType(), new object[] { null });
             copy.BindTo(this);
             return copy;
         }
