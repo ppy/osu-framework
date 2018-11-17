@@ -50,7 +50,7 @@ namespace osu.Framework.Configuration
         /// Adds a single item to this <see cref="BindableCollection{T}"/>.
         /// </summary>
         /// <param name="item">The item to be added.</param>
-        /// <exception cref="InvalidOperationException">Is being thrown when this collection is <see cref="Disabled"/></exception>
+        /// <exception cref="InvalidOperationException">Thrown when this <see cref="BindableCollection{T}"/> is <see cref="Disabled"/>.</exception>
         public void Add(T item)
             => add(item, null);
 
@@ -73,9 +73,9 @@ namespace osu.Framework.Configuration
         }
 
         /// <summary>
-        /// Clears all contents of the collection.
+        /// Clears the contents of this <see cref="BindableCollection{T}"/>.
         /// </summary>
-        /// <exception cref="InvalidOperationException">Is being thrown when this collection is <see cref="Disabled"/></exception>
+        /// <exception cref="InvalidOperationException">Thrown when this <see cref="BindableCollection{T}"/> is <see cref="Disabled"/>.</exception>
         public void Clear()
             => clear(null);
 
@@ -105,27 +105,27 @@ namespace osu.Framework.Configuration
         }
 
         /// <summary>
-        /// Determines if an item is in this collection.
+        /// Determines if an item is in this <see cref="BindableCollection{T}"/>.
         /// </summary>
-        /// <param name="item">The items to locate in this collection.</param>
-        /// <returns><code>true</code> is this collection contains the given item.</returns>
+        /// <param name="item">The item to locate in this <see cref="BindableCollection{T}"/>.</param>
+        /// <returns><code>true</code> if this <see cref="BindableCollection{T}"/> contains the given item.</returns>
         public bool Contains(T item)
             => collection.Contains(item);
 
         /// <summary>
-        /// Copies the contents of this collection to the given array, starting at the given index.
+        /// Copies the contents of this <see cref="BindableCollection{T}"/> to the given array, starting at the given index.
         /// </summary>
-        /// <param name="array">The array that is the destination of the items copied from this collection.</param>
+        /// <param name="array">The array that is the destination of the items copied from this <see cref="BindableCollection{T}"/>.</param>
         /// <param name="arrayIndex">The index at which the copying begins.</param>
         public void CopyTo(T[] array, int arrayIndex)
             => collection.CopyTo(array, arrayIndex);
 
         /// <summary>
-        /// Removes an item from this collection.
+        /// Removes an item from this <see cref="BindableCollection{T}"/>.
         /// </summary>
-        /// <param name="item">The item to remove from this collection.</param>
-        /// <returns><code>true</code> or <code>false</code> depending if the removal was successfull</returns>
-        /// <exception cref="InvalidOperationException">is beeing thrown if this collection is <see cref="Disabled"/></exception>
+        /// <param name="item">The item to remove from this <see cref="BindableCollection{T}"/>.</param>
+        /// <returns><code>true</code> if the removal was successful.</returns>
+        /// <exception cref="InvalidOperationException">Thrown if this <see cref="BindableCollection{T}"/> is <see cref="Disabled"/>.</exception>
         public bool Remove(T item)
             => remove(item, null);
 
@@ -153,7 +153,7 @@ namespace osu.Framework.Configuration
         }
 
         public void CopyTo(Array array, int index)
-            => ((ICollection) collection).CopyTo(array, index);
+            => ((ICollection)collection).CopyTo(array, index);
 
         public int Count => collection.Count;
         public bool IsSynchronized => ((ICollection)collection).IsSynchronized;
@@ -166,10 +166,10 @@ namespace osu.Framework.Configuration
 
         /// <summary>
         /// Parse an object into this instance.
-        /// An collection holding items deriving T can be parsed, or null that results into an empty collection.
+        /// A collection holding items of type <typeparamref name="T"/> can be parsed. Null results in an empty <see cref="BindableCollection{T}"/>.
         /// </summary>
         /// <param name="input">The input which is to be parsed.</param>
-        /// <exception cref="InvalidOperationException">is beeing thrown if this collection is <see cref="Disabled"/></exception>
+        /// <exception cref="InvalidOperationException">Thrown if this <see cref="BindableCollection{T}"/> is <see cref="Disabled"/>.</exception>
         public void Parse(object input)
         {
             if (Disabled)
@@ -196,7 +196,7 @@ namespace osu.Framework.Configuration
         private bool disabled;
 
         /// <summary>
-        /// The collection can not be modified if the collection is disabled.
+        /// Whether this <see cref="BindableCollection{T}"/> has been disabled. When disabled, attempting to change the contents of this <see cref="BindableCollection{T}"/> will result in an <see cref="InvalidOperationException"/>.
         /// </summary>
         public bool Disabled
         {
@@ -212,7 +212,7 @@ namespace osu.Framework.Configuration
             }
         }
 
-        private void bindDisabledChanged(Action<bool> onChange, bool runOnceImmediately = false)
+        public void BindDisabledChanged(Action<bool> onChange, bool runOnceImmediately = false)
         {
             DisabledChanged += onChange;
             if (runOnceImmediately)
@@ -268,7 +268,7 @@ namespace osu.Framework.Configuration
         #region IBindableCollection
 
         /// <summary>
-        /// Adds a range if items of the specified collection to this collection.
+        /// Adds a collection of items to this <see cref="BindableCollection{T}"/>.
         /// </summary>
         /// <param name="items">The collection whose items should be added to this collection.</param>
         /// <exception cref="InvalidOperationException">is beeing thrown if this collection is <see cref="Disabled"/></exception>
@@ -302,9 +302,9 @@ namespace osu.Framework.Configuration
         }
 
         /// <summary>
-        /// Binds this collection to <paramref name="them"/>.
+        /// Binds this <see cref="BindableCollection{T}"/> to another.
         /// </summary>
-        /// <param name="them">The collection to be bound to this collection</param>
+        /// <param name="them">The <see cref="BindableCollection{T}"/> to be bound to.</param>
         public void BindTo(BindableCollection<T> them)
         {
             if (them == null)
