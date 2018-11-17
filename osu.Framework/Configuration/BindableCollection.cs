@@ -47,7 +47,7 @@ namespace osu.Framework.Configuration
         #region ICollection
 
         /// <summary>
-        /// Adds a single item to this collection.
+        /// Adds a single item to this <see cref="BindableCollection{T}"/>.
         /// </summary>
         /// <param name="item">The item that is going to be added.</param>
         /// <exception cref="InvalidOperationException">Is being thrown when this collection is <see cref="Disabled"/></exception>
