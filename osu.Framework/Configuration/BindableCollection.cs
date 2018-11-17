@@ -22,7 +22,7 @@ namespace osu.Framework.Configuration
         public event Action<IEnumerable<T>> ItemsAdded;
 
         /// <summary>
-        /// When any amount of items are removed from this or a bound collection <see cref="ItemsRemoved"/> is called.
+        /// An event which is raised when any items are removed from this <see cref="BindableCollection{T}"/>.
         /// </summary>
         public event Action<IEnumerable<T>> ItemsRemoved;
 
