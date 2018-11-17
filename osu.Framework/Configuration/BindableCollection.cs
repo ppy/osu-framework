@@ -49,7 +49,7 @@ namespace osu.Framework.Configuration
         /// <summary>
         /// Adds a single item to this <see cref="BindableCollection{T}"/>.
         /// </summary>
-        /// <param name="item">The item that is going to be added.</param>
+        /// <param name="item">The item to be added.</param>
         /// <exception cref="InvalidOperationException">Is being thrown when this collection is <see cref="Disabled"/></exception>
         public void Add(T item)
             => add(item, null);
