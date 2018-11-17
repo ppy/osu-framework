@@ -60,14 +60,6 @@ namespace osu.Framework.Audio.Track
                 BassFlags flags = Preview ? 0 : BassFlags.Decode | BassFlags.Prescan | BassFlags.Float;
                 activeStream = Bass.CreateStream(StreamSystem.NoBuffer, flags, procs.BassProcedures, IntPtr.Zero);
 
-                // Init Events
-                Bass.ChannelSetSync(activeStream, SyncFlags.Stop, 0, (a, b, c, d) => Failed?.Invoke());
-                Bass.ChannelSetSync(activeStream, SyncFlags.End, 0, (a, b, c, d) =>
-                {
-                    if (!Bass.ChannelHasFlag(activeStream, BassFlags.Loop))
-                        Completed?.Invoke();
-                });
-
                 if (!Preview)
                 {
                     // We assign the BassFlags.Decode streams to the device "bass_nodevice" to prevent them from getting
@@ -98,6 +90,14 @@ namespace osu.Framework.Audio.Track
                     Bass.ChannelGetAttribute(activeStream, ChannelAttribute.Frequency, out float frequency);
                     initialFrequency = frequency;
                     bitrate = (int)Bass.ChannelGetAttribute(activeStream, ChannelAttribute.Bitrate);
+
+                    // Init Events
+                    Bass.ChannelSetSync(activeStream, SyncFlags.Stop, 0, (a, b, c, d) => Failed?.Invoke());
+                    Bass.ChannelSetSync(activeStream, SyncFlags.End, 0, (a, b, c, d) =>
+                    {
+                        if (!Bass.ChannelHasFlag(activeStream, BassFlags.Loop))
+                            Completed?.Invoke();
+                    });
 
                     isLoaded = true;
                 }
