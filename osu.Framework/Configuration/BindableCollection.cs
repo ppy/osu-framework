@@ -27,7 +27,7 @@ namespace osu.Framework.Configuration
         public event Action<IEnumerable<T>> ItemsRemoved;
 
         /// <summary>
-        /// <see cref="DisabledChanged"/> is beeing called when <see cref="Disabled"/>s value changed.
+        /// An event which is raised when <see cref="Disabled"/>'s state has changed (or manually via <see cref="TriggerDisabledChange"/>).
         /// </summary>
         public event Action<bool> DisabledChanged;
 
