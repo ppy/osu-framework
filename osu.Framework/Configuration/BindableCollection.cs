@@ -17,7 +17,7 @@ namespace osu.Framework.Configuration
         private WeakList<BindableCollection<T>> bindings;
 
         /// <summary>
-        /// This action is raised when any amount of items were added to this or a bound collection.
+        /// An event which is raised when any items are added to this <see cref="BindableCollection{T}"/>.
         /// </summary>
         public event Action<IEnumerable<T>> ItemsAdded;
 
