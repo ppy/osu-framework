@@ -32,7 +32,7 @@ namespace osu.Framework.Configuration
         public event Action<bool> DisabledChanged;
 
         /// <summary>
-        /// Created a new instance of <see cref="BindableCollection{T}"/> and adds the gives items to the created <see cref="BindableCollection{T}"/>.
+        /// Creates a new <see cref="BindableCollection{T}"/>, optionally adding the items of the given collection.
         /// </summary>
         /// <param name="items">The items that are going to be contained in the newly created <see cref="BindableCollection{T}"/>.</param>
         public BindableCollection(IEnumerable<T> items = null)
