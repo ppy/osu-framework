@@ -17,6 +17,9 @@ namespace osu.Framework.Audio.Track
     {
         private AsyncBufferStream dataStream;
 
+        public override event Action Completed;
+        public override event Action Failed;
+
         /// <summary>
         /// Should this track only be used for preview purposes? This suggests it has not yet been fully loaded.
         /// </summary>
@@ -56,6 +59,14 @@ namespace osu.Framework.Audio.Track
 
                 BassFlags flags = Preview ? 0 : BassFlags.Decode | BassFlags.Prescan | BassFlags.Float;
                 activeStream = Bass.CreateStream(StreamSystem.NoBuffer, flags, procs.BassProcedures, IntPtr.Zero);
+
+                // Init Events
+                Bass.ChannelSetSync(activeStream, SyncFlags.Stop, 0, (a, b, c, d) => Failed?.Invoke());
+                Bass.ChannelSetSync(activeStream, SyncFlags.End, 0, (a, b, c, d) =>
+                {
+                    if (!Bass.ChannelHasFlag(activeStream, BassFlags.Loop))
+                        Completed?.Invoke();
+                });
 
                 if (!Preview)
                 {

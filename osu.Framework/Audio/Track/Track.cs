@@ -10,6 +10,9 @@ namespace osu.Framework.Audio.Track
 {
     public abstract class Track : AdjustableAudioComponent, IAdjustableClock
     {
+        public virtual event Action Completed;
+        public virtual event Action Failed;
+
         /// <summary>
         /// Is this track capable of producing audio?
         /// </summary>
