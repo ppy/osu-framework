@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using osu.Framework.Graphics;
@@ -62,8 +61,7 @@ namespace osu.Framework.Tests.Visual
                             selectionDropdown = new FillDirectionDropdown
                             {
                                 RelativeSizeAxes = Axes.X,
-                                Items = Enum.GetValues(typeof(FlowTestCase)).Cast<FlowTestCase>()
-                                            .Select(value => new KeyValuePair<string, FlowTestCase>(value.ToString(), value)),
+                                Items = (FlowTestCase[])Enum.GetValues(typeof(FlowTestCase)),
                             },
                             new SpriteText { Text = @"Child anchor" },
                             anchorDropdown = new AnchorDropdown
@@ -80,7 +78,7 @@ namespace osu.Framework.Tests.Visual
                                     Anchor.BottomLeft,
                                     Anchor.BottomCentre,
                                     Anchor.BottomRight,
-                                }.Select(anchor => new KeyValuePair<string, Anchor>(anchor.ToString(), anchor)),
+                                },
                             },
                             new SpriteText { Text = @"Child origin" },
                             originDropdown = new AnchorDropdown
@@ -97,7 +95,7 @@ namespace osu.Framework.Tests.Visual
                                     Anchor.BottomLeft,
                                     Anchor.BottomCentre,
                                     Anchor.BottomRight,
-                                }.Select(anchor => new KeyValuePair<string, Anchor>(anchor.ToString(), anchor)),
+                                },
                             },
                         }
                     }
