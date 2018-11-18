@@ -83,8 +83,8 @@ namespace osu.Framework.Graphics.Shaders
                 if (!p.Compiled) p.Compile();
                 GL.AttachShader(this, p);
 
-                foreach (AttributeInfo attribute in p.Attributes)
-                    GL.BindAttribLocation(this, attribute.Location, attribute.Name);
+                foreach (ShaderInputInfo input in p.ShaderInputs)
+                    GL.BindAttribLocation(this, input.Location, input.Name);
             }
 
             GL.LinkProgram(this);

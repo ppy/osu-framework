@@ -159,9 +159,9 @@ namespace osu.Framework.Platform
 
         public DependencyContainer Dependencies { get; } = new DependencyContainer();
 
-        protected GameHost(string gameName = @"")
+        protected GameHost(string gameName = @"", ToolkitOptions toolkitOptions = default)
         {
-            toolkit = Toolkit.Init();
+            toolkit = toolkitOptions != null ? Toolkit.Init(toolkitOptions) : Toolkit.Init();
 
             AppDomain.CurrentDomain.UnhandledException += unhandledExceptionHandler;
             TaskScheduler.UnobservedTaskException += unobservedExceptionHandler;
