@@ -95,7 +95,7 @@ namespace osu.Framework.Audio.Track
                     Bass.ChannelSetSync(activeStream, SyncFlags.Stop, 0, (a, b, c, d) => Failed?.Invoke());
                     Bass.ChannelSetSync(activeStream, SyncFlags.End, 0, (a, b, c, d) =>
                     {
-                        if (!Bass.ChannelHasFlag(activeStream, BassFlags.Loop))
+                        if (!Looping)
                             Completed?.Invoke();
                     });
 
