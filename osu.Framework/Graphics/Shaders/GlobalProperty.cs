@@ -18,5 +18,6 @@ namespace osu.Framework.Graphics.Shaders
         AlphaExponent,
         EdgeOffset,
         DiscardInner,
+        InnerCornerRadius,
     }
 }

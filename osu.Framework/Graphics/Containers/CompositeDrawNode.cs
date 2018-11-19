@@ -142,7 +142,7 @@ namespace osu.Framework.Graphics.Containers
             MaskingInfo edgeEffectMaskingInfo = MaskingInfo.Value;
             edgeEffectMaskingInfo.MaskingRect = effectRect;
             edgeEffectMaskingInfo.ScreenSpaceAABB = ScreenSpaceMaskingQuad.Value.AABB;
-            edgeEffectMaskingInfo.CornerRadius += EdgeEffect.Radius + EdgeEffect.Roundness;
+            edgeEffectMaskingInfo.CornerRadius = MaskingInfo.Value.CornerRadius + EdgeEffect.Radius + EdgeEffect.Roundness;
             edgeEffectMaskingInfo.BorderThickness = 0;
             // HACK HACK HACK. We abuse blend range to give us the linear alpha gradient of
             // the edge effect along its radius using the same rounded-corners shader.
@@ -150,6 +150,7 @@ namespace osu.Framework.Graphics.Containers
             edgeEffectMaskingInfo.AlphaExponent = 2;
             edgeEffectMaskingInfo.EdgeOffset = EdgeEffect.Offset;
             edgeEffectMaskingInfo.Hollow = EdgeEffect.Hollow;
+            edgeEffectMaskingInfo.HollowCornerRadius = MaskingInfo.Value.CornerRadius + EdgeEffect.Radius;
 
             GLWrapper.PushMaskingInfo(edgeEffectMaskingInfo);
 
