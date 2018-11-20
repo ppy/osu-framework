@@ -20,6 +20,7 @@ using osu.Framework.Caching;
 using osu.Framework.Threading;
 using osu.Framework.Statistics;
 using System.Threading.Tasks;
+using osu.Framework.Development;
 using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.MathUtils;
@@ -361,6 +362,8 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>False if <paramref name="drawable"/> was not a child of this <see cref="CompositeDrawable"/> and true otherwise.</returns>
         protected internal virtual bool RemoveInternal(Drawable drawable)
         {
+            ThreadSafety.EnsureUpdateThread();
+
             if (drawable == null)
                 throw new ArgumentNullException(nameof(drawable));
 
@@ -396,6 +399,8 @@ namespace osu.Framework.Graphics.Containers
         /// </param>
         protected internal virtual void ClearInternal(bool disposeChildren = true)
         {
+            ThreadSafety.EnsureUpdateThread();
+
             if (internalChildren.Count == 0) return;
 
             foreach (Drawable t in internalChildren)
@@ -437,6 +442,8 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         protected internal virtual void AddInternal(Drawable drawable)
         {
+            ThreadSafety.EnsureUpdateThread();
+
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString(), "Disposed Drawables may not have children added.");
 
@@ -484,6 +491,8 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="newDepth">The new depth value to be set.</param>
         protected internal void ChangeInternalChildDepth(Drawable child, float newDepth)
         {
+            ThreadSafety.EnsureUpdateThread();
+
             if (child.Depth == newDepth) return;
 
             var index = IndexOfInternal(child);
