@@ -32,7 +32,7 @@ The BASS audio library (a dependency of this framework) is a commercial product.
 [osu!](https://github.com/ppy/osu) – rhythm is just a *click* away!
 
 <!--
-We love to see people using our framework! Add you project here via a PR!
+We love to see people using our framework! Add your project here via a PR!
 
 Conditions:
  - Must be a github link (ie. your project is open source)
