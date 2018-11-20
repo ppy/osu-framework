@@ -658,7 +658,8 @@ namespace osu.Framework.Platform
                 var configIgnores = ignoredString.Split(' ').Where(s => !string.IsNullOrWhiteSpace(s));
 
                 // for now, we always want at least one handler disabled (don't want raw and non-raw mouse at once).
-                bool restoreDefaults = !configIgnores.Any();
+                // Todo: We renamed OpenTK to osuTK, the second condition can be removed after some time has passed
+                bool restoreDefaults = !configIgnores.Any() || ignoredString.Contains("OpenTK");
 
                 if (restoreDefaults)
                 {
