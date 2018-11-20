@@ -362,7 +362,7 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>False if <paramref name="drawable"/> was not a child of this <see cref="CompositeDrawable"/> and true otherwise.</returns>
         protected internal virtual bool RemoveInternal(Drawable drawable)
         {
-            ThreadSafety.EnsureUpdateThread();
+            Trace.Assert(!IsLoaded || ThreadSafety.IsUpdateThread || ThreadSafety.IsMainThread);
 
             if (drawable == null)
                 throw new ArgumentNullException(nameof(drawable));
@@ -399,7 +399,7 @@ namespace osu.Framework.Graphics.Containers
         /// </param>
         protected internal virtual void ClearInternal(bool disposeChildren = true)
         {
-            ThreadSafety.EnsureUpdateThread();
+            Trace.Assert(!IsLoaded || ThreadSafety.IsUpdateThread || ThreadSafety.IsMainThread);
 
             if (internalChildren.Count == 0) return;
 
@@ -442,7 +442,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         protected internal virtual void AddInternal(Drawable drawable)
         {
-            ThreadSafety.EnsureUpdateThread();
+            Trace.Assert(!IsLoaded || ThreadSafety.IsUpdateThread || ThreadSafety.IsMainThread);
 
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString(), "Disposed Drawables may not have children added.");
@@ -491,7 +491,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="newDepth">The new depth value to be set.</param>
         protected internal void ChangeInternalChildDepth(Drawable child, float newDepth)
         {
-            ThreadSafety.EnsureUpdateThread();
+            Trace.Assert(!IsLoaded || ThreadSafety.IsUpdateThread || ThreadSafety.IsMainThread);
 
             if (child.Depth == newDepth) return;
 
