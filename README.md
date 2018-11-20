@@ -30,6 +30,7 @@ The BASS audio library (a dependency of this framework) is a commercial product.
 # Projects that use osu!framework
 
 [osu!](https://github.com/ppy/osu) – rhythm is just a *click* away!
+
 [Rhythmic](https://github.com/AltenGD/Rythmic) - Dodge the obstacles with, your mouse?
 
 <!--
