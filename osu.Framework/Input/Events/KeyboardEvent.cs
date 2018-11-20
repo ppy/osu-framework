@@ -4,7 +4,7 @@
 using System.Collections.Generic;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Input.States;
-using OpenTK.Input;
+using osuTK.Input;
 
 namespace osu.Framework.Input.Events
 {
