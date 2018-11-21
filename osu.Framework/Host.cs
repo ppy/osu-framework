@@ -6,7 +6,7 @@ using osu.Framework.Platform.Linux;
 using osu.Framework.Platform.MacOS;
 using osu.Framework.Platform.Windows;
 using System;
-using OpenTK;
+using osuTK;
 
 namespace osu.Framework
 {

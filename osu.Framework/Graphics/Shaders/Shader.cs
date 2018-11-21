@@ -5,8 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using osu.Framework.Graphics.OpenGL;
-using OpenTK;
-using OpenTK.Graphics.ES30;
+using osuTK;
+using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Shaders
 {
@@ -83,8 +83,8 @@ namespace osu.Framework.Graphics.Shaders
                 if (!p.Compiled) p.Compile();
                 GL.AttachShader(this, p);
 
-                foreach (AttributeInfo attribute in p.Attributes)
-                    GL.BindAttribLocation(this, attribute.Location, attribute.Name);
+                foreach (ShaderInputInfo input in p.ShaderInputs)
+                    GL.BindAttribLocation(this, input.Location, input.Name);
             }
 
             GL.LinkProgram(this);

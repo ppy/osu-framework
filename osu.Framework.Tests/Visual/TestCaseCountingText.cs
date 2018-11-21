@@ -2,10 +2,8 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using OpenTK;
+using osuTK;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Sprites;
@@ -36,7 +34,7 @@ namespace osu.Framework.Tests.Visual
                 }
             };
 
-            typeDropdown.Items = Enum.GetNames(typeof(CountType)).Select(n => new KeyValuePair<string, CountType>(n, (CountType)Enum.Parse(typeof(CountType), n)));
+            typeDropdown.Items = (CountType[])Enum.GetValues(typeof(CountType));
             countType.BindTo(typeDropdown.Current);
             countType.ValueChanged += v => beginStep(lastStep)();
 

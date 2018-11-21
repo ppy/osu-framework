@@ -4,7 +4,7 @@
 using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
-using OpenTK;
+using osuTK;
 
 namespace osu.Framework.Platform.Windows.Native
 {

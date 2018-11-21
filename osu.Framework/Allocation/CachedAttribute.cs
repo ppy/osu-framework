@@ -29,7 +29,7 @@ namespace osu.Framework.Allocation
         ///
         /// private BaseType obj = new DerivedType()
         ///
-        /// Then the cached type will be "BaseType".
+        /// Then the cached type will be "DerivedType".
         /// </example>
         public Type Type;
 

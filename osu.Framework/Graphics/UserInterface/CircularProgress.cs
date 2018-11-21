@@ -6,7 +6,7 @@ using osu.Framework.Configuration;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Transforms;
-using OpenTK;
+using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {
