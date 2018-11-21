@@ -524,16 +524,16 @@ namespace osu.Framework.Graphics.Containers
                     break;
                 case LoadState.Loading:
                     if (Thread.CurrentThread != LoadThread)
-                        throw new InvalidOperationException($"Cannot mutate children of a loading {nameof(CompositeDrawable)} while on another thread.");
+                        throw new InvalidOperationException($"Cannot mutate children of a {LoadState.Loading} {nameof(CompositeDrawable)} while not on the load thread.");
                     break;
                 case LoadState.Ready:
                     // Allow mutating from the load thread since parenting containers may still be in the loading state.
                     if (Thread.CurrentThread != LoadThread && !ThreadSafety.IsUpdateThread)
-                        throw new InvalidOperationException($"Cannot mutate children of a loaded {nameof(CompositeDrawable)} while not on the update thread.");
+                        throw new InvalidOperationException($"Cannot mutate children of a {LoadState.Ready} {nameof(CompositeDrawable)} while not on the load or update threads.");
                     break;
                 case LoadState.Loaded:
                     if (!ThreadSafety.IsUpdateThread)
-                        throw new InvalidOperationException($"Cannot mutate children of a loaded {nameof(CompositeDrawable)} while not on the update thread.");
+                        throw new InvalidOperationException($"Cannot mutate children of a {LoadState.Loaded} {nameof(CompositeDrawable)} while not on the update thread.");
                     break;
             }
         }
