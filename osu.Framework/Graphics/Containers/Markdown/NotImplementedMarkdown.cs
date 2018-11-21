@@ -3,7 +3,7 @@
 
 using Markdig.Syntax;
 using osu.Framework.Graphics.Sprites;
-using OpenTK.Graphics;
+using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Containers.Markdown
 {

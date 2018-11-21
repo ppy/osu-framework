@@ -4,7 +4,7 @@
 using System.Linq;
 using Markdig.Syntax;
 using osu.Framework.Graphics.Shapes;
-using OpenTK.Graphics;
+using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Containers.Markdown
 {

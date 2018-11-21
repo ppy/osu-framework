@@ -10,8 +10,8 @@ using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Sprites;
-using OpenTK;
-using OpenTK.Graphics;
+using osuTK;
+using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Containers.Markdown
 {
