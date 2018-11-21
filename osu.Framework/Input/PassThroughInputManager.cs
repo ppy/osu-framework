@@ -36,23 +36,34 @@ namespace osu.Framework.Input
                 if (useParentInput == value) return;
                 useParentInput = value;
 
-                if (UseParentInput)
-                {
-                    parentInputManager = GetContainingInputManager();
+                updateParentInputUsage();
+            }
+        }
 
-                    parentInputUpdatedInternal(parentInputManager.CurrentState);
+        private void updateParentInputUsage()
+        {
+            if (UseParentInput)
+            {
+                parentInputManager = GetContainingInputManager();
 
-                    parentInputManager.InputUpdated += parentInputUpdated;
-                }
-                else if (parentInputManager != null)
-                {
-                    parentInputManager.InputUpdated -= parentInputUpdated;
-                    parentInputManager = null;
-                }
+                parentInputUpdatedInternal(parentInputManager.CurrentState);
+
+                parentInputManager.InputUpdated += parentInputUpdated;
+            }
+            else if (parentInputManager != null)
+            {
+                parentInputManager.InputUpdated -= parentInputUpdated;
+                parentInputManager = null;
             }
         }
 
         private bool useParentInput = true;
+
+        protected override void LoadComplete()
+        {
+            updateParentInputUsage();
+            base.LoadComplete();
+        }
 
         internal override bool BuildNonPositionalInputQueue(List<Drawable> queue, bool allowBlocking = true)
         {
