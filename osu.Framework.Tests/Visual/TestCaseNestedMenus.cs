@@ -27,7 +27,7 @@ namespace osu.Framework.Tests.Visual
         private MenuStructure menus;
 
         [SetUp]
-        public override void SetUp()
+        public override void SetUp() => Schedule(() =>
         {
             base.SetUp();
             Clear();
@@ -46,7 +46,7 @@ namespace osu.Framework.Tests.Visual
             };
 
             menus = new MenuStructure(menu);
-        }
+        });
 
         private Menu createMenu() => new ClickOpenMenu(TimePerAction)
         {

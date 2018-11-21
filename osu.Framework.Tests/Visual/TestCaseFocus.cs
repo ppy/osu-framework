@@ -32,7 +32,7 @@ namespace osu.Framework.Tests.Visual
         }
 
         [SetUp]
-        public override void SetUp()
+        public override void SetUp() => Schedule(() =>
         {
             base.SetUp();
 
@@ -64,7 +64,7 @@ namespace osu.Framework.Tests.Visual
                     Origin = Anchor.Centre,
                 }
             };
-        }
+        });
 
         [Test]
         public void FocusedOverlayTakesFocusOnShow()

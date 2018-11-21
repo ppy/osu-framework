@@ -24,11 +24,11 @@ namespace osu.Framework.Tests.Visual
         private readonly List<SlowLoader> loaders = new List<SlowLoader>();
 
         [SetUp]
-        public void SetUp()
+        public void SetUp() => Schedule(() =>
         {
             loaders.Clear();
             Child = createLoader();
-        }
+        });
 
         [Test]
         public void TestConcurrentLoad()

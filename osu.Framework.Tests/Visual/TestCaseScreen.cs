@@ -22,11 +22,11 @@ namespace osu.Framework.Tests.Visual
         private Screen baseScreen;
 
         [SetUp]
-        public new void SetupTest()
+        public new void SetupTest() => Schedule(() =>
         {
             Clear();
             Add(baseScreen = new TestScreen());
-        }
+        });
 
         [Test]
         public void TestPushPop()

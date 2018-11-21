@@ -18,7 +18,7 @@ namespace osu.Framework.Tests.Visual
         private Box fitBox;
 
         [SetUp]
-        public void SetUp()
+        public void SetUp() => Schedule(() =>
         {
             Child = new FillFlowContainer
             {
@@ -38,7 +38,7 @@ namespace osu.Framework.Tests.Visual
                     new Box { Size = new Vector2(container_width, container_width * 2) }
                 }
             };
-        }
+        });
 
         /// <summary>
         /// Tests that using <see cref="FillMode.Fit"/> inside a <see cref="FlowContainer{T}"/> that is autosizing in one axis doesn't result in autosize feedback loops.
