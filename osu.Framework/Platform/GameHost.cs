@@ -161,8 +161,6 @@ namespace osu.Framework.Platform
 
         protected GameHost(string gameName = @"", ToolkitOptions toolkitOptions = default)
         {
-            Thread.CurrentThread.Name = GameThread.PrefixedThreadNameFor("Main");
-
             toolkit = toolkitOptions != null ? Toolkit.Init(toolkitOptions) : Toolkit.Init();
 
             AppDomain.CurrentDomain.UnhandledException += unhandledExceptionHandler;

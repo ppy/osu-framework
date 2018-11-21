@@ -36,8 +36,6 @@ namespace osu.Framework.Development
             Debug.Assert(IsDrawThread);
         }
 
-        public static bool IsMainThread => Thread.CurrentThread.Name == GameThread.PrefixedThreadNameFor("Main");
-
         public static bool IsUpdateThread => Thread.CurrentThread.Name == GameThread.PrefixedThreadNameFor("Update");
 
         public static bool IsDrawThread => Thread.CurrentThread.Name == GameThread.PrefixedThreadNameFor("Draw");

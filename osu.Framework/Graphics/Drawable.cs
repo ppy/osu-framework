@@ -184,6 +184,11 @@ namespace osu.Framework.Graphics
         /// </summary>
         public LoadState LoadState => loadState;
 
+        /// <summary>
+        /// The thread on which the <see cref="Load"/> operation started, or null if <see cref="Drawable"/> has not started loading.
+        /// </summary>
+        internal Thread LoadThread { get; private set; }
+
         private readonly object loadLock = new object();
 
         private static readonly StopwatchClock perf = new StopwatchClock(true);
@@ -216,7 +221,8 @@ namespace osu.Framework.Graphics
 
         private void load(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies)
         {
-            // Blocks when loading from another thread already.
+            LoadThread = Thread.CurrentThread;
+
             double t0 = getPerfTime();
 
             double lockDuration = getPerfTime() - t0;

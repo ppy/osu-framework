@@ -362,7 +362,7 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>False if <paramref name="drawable"/> was not a child of this <see cref="CompositeDrawable"/> and true otherwise.</returns>
         protected internal virtual bool RemoveInternal(Drawable drawable)
         {
-            Trace.Assert(canMutateChildren);
+            ensureChildMutationAllowed();
 
             if (drawable == null)
                 throw new ArgumentNullException(nameof(drawable));
@@ -399,7 +399,7 @@ namespace osu.Framework.Graphics.Containers
         /// </param>
         protected internal virtual void ClearInternal(bool disposeChildren = true)
         {
-            Trace.Assert(canMutateChildren);
+            ensureChildMutationAllowed();
 
             if (internalChildren.Count == 0) return;
 
@@ -442,7 +442,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         protected internal virtual void AddInternal(Drawable drawable)
         {
-            Trace.Assert(canMutateChildren);
+            ensureChildMutationAllowed();
 
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString(), "Disposed Drawables may not have children added.");
@@ -491,7 +491,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="newDepth">The new depth value to be set.</param>
         protected internal void ChangeInternalChildDepth(Drawable child, float newDepth)
         {
-            Trace.Assert(canMutateChildren);
+            ensureChildMutationAllowed();
 
             if (child.Depth == newDepth) return;
 
@@ -516,7 +516,27 @@ namespace osu.Framework.Graphics.Containers
             ChildDepthChanged?.Invoke(child);
         }
 
-        private bool canMutateChildren => !IsLoaded || ThreadSafety.IsUpdateThread || ThreadSafety.IsMainThread;
+        private void ensureChildMutationAllowed()
+        {
+            switch (LoadState)
+            {
+                case LoadState.NotLoaded:
+                    break;
+                case LoadState.Loading:
+                    if (Thread.CurrentThread != LoadThread)
+                        throw new InvalidOperationException($"Cannot mutate children of a loading {nameof(CompositeDrawable)} while on another thread.");
+                    break;
+                case LoadState.Ready:
+                    // Allow mutating from the load thread since parenting containers may still be in the loading state.
+                    if (Thread.CurrentThread != LoadThread && !ThreadSafety.IsUpdateThread)
+                        throw new InvalidOperationException($"Cannot mutate children of a loaded {nameof(CompositeDrawable)} while not on the update thread.");
+                    break;
+                case LoadState.Loaded:
+                    if (!ThreadSafety.IsUpdateThread)
+                        throw new InvalidOperationException($"Cannot mutate children of a loaded {nameof(CompositeDrawable)} while not on the update thread.");
+                    break;
+            }
+        }
 
         #endregion
 
