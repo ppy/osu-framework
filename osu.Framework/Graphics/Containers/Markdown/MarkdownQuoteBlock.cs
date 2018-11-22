@@ -8,9 +8,11 @@ using osuTK.Graphics;
 namespace osu.Framework.Graphics.Containers.Markdown
 {
     /// <summary>
-    /// MarkdownQuoteBlock :
-    /// > NOTE: This document does not describe the `liquid` language.
+    /// Visualises a quote block.
     /// </summary>
+    /// <code>
+    /// > Quote
+    /// </code>
     public class MarkdownQuoteBlock : CompositeDrawable
     {
         public MarkdownQuoteBlock(QuoteBlock quoteBlock)

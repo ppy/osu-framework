@@ -8,6 +8,12 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Containers.Markdown
 {
+    /// <summary>
+    /// Visualises a cell of a <see cref="MarkdownTable"/>.
+    /// </summary>
+    /// <code>
+    /// |  cell 1   |  cell 2   |
+    /// </code>
     public class MarkdownTableCell : CompositeDrawable
     {
         public readonly MarkdownTextFlowContainer TextFlowContainer;

@@ -188,7 +188,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
 
         protected virtual FillFlowContainer CreateChildFillFlowContainer() => new MarkdownList();
 
-        protected virtual MarkdownSeperator CreateSeparator() => new MarkdownSeperator();
+        protected virtual MarkdownSeparator CreateSeparator() => new MarkdownSeparator();
 
         protected virtual Drawable CreateNotImplemented(IMarkdownObject markdownObject) => new NotImplementedMarkdown(markdownObject);
 

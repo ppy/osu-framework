@@ -11,8 +11,11 @@ using osuTK.Graphics;
 namespace osu.Framework.Graphics.Containers.Markdown
 {
     /// <summary>
-    /// Load image from url
+    /// Visualises an image.
     /// </summary>
+    /// <code>
+    /// ![alt text](url)
+    /// </code>
     public class MarkdownImage : CompositeDrawable
     {
         private readonly Drawable background;

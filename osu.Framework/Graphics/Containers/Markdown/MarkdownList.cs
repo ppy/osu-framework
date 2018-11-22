@@ -5,6 +5,13 @@ using osuTK;
 
 namespace osu.Framework.Graphics.Containers.Markdown
 {
+    /// <summary>
+    /// Visualises a list.
+    /// </summary>
+    /// <code>
+    /// * item 1
+    /// * item 2
+    /// </code>
     public class MarkdownList : FillFlowContainer
     {
         public MarkdownList()

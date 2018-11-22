@@ -5,6 +5,9 @@ using Markdig.Syntax;
 
 namespace osu.Framework.Graphics.Containers.Markdown
 {
+    /// <summary>
+    /// Visualises a paragraph.
+    /// </summary>
     public class MarkdownParagraph : MarkdownTextFlowContainer
     {
         public readonly int Level;

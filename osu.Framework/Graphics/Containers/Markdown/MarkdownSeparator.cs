@@ -7,19 +7,21 @@ using osuTK.Graphics;
 namespace osu.Framework.Graphics.Containers.Markdown
 {
     /// <summary>
-    /// MarkdownSeperator :
-    /// (spacing)
+    /// Visualises a horizontal separator.
     /// </summary>
-    public class MarkdownSeperator : CompositeDrawable
+    /// <code>
+    /// ---
+    /// </code>
+    public class MarkdownSeparator : CompositeDrawable
     {
-        public MarkdownSeperator()
+        public MarkdownSeparator()
         {
             AutoSizeAxes = Axes.Y;
             RelativeSizeAxes = Axes.X;
-            InternalChild = CreateSeperator();
+            InternalChild = CreateSeparator();
         }
 
-        protected virtual Drawable CreateSeperator()
+        protected virtual Drawable CreateSeparator()
         {
             return new Box
             {

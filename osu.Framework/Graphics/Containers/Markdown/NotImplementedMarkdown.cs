@@ -8,7 +8,7 @@ using osuTK.Graphics;
 namespace osu.Framework.Graphics.Containers.Markdown
 {
     /// <summary>
-    /// Visualises a message when a <see cref="IMarkdownObject"/> doesn't have a visual implementation.
+    /// Visualises a message that displays when a <see cref="IMarkdownObject"/> doesn't have a visual implementation.
     /// </summary>
     public class NotImplementedMarkdown : CompositeDrawable
     {

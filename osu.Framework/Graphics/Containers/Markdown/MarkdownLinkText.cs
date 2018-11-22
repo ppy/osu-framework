@@ -8,6 +8,12 @@ using osu.Framework.Graphics.Sprites;
 
 namespace osu.Framework.Graphics.Containers.Markdown
 {
+    /// <summary>
+    /// Visualises a link.
+    /// </summary>
+    /// <code>
+    /// [link text](url)
+    /// </code>
     public class MarkdownLinkText : CompositeDrawable , IHasTooltip
     {
         public string Text

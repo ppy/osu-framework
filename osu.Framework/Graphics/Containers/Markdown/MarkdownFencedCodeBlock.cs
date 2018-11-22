@@ -9,11 +9,13 @@ using osuTK.Graphics;
 namespace osu.Framework.Graphics.Containers.Markdown
 {
     /// <summary>
-    /// MarkdownFencedCodeBlock :
-    /// ```
-    /// foo
-    /// ```
+    /// Visualises a fenced code block.
     /// </summary>
+    /// <code>
+    /// ```
+    /// code
+    /// ```
+    /// </code>
     public class MarkdownFencedCodeBlock : CompositeDrawable
     {
         public MarkdownFencedCodeBlock(FencedCodeBlock fencedCodeBlock)

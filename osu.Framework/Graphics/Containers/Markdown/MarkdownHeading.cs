@@ -8,12 +8,13 @@ using osuTK;
 namespace osu.Framework.Graphics.Containers.Markdown
 {
     /// <summary>
-    /// MarkdownHeading :
-    /// #Heading1
-    /// ##Heading2
-    /// ###Heading3
-    /// ###3Heading4
+    /// Visualises a heading.
     /// </summary>
+    /// <code>
+    /// # H1
+    /// ## H2
+    /// ### H3
+    /// </code>
     public class MarkdownHeading : CompositeDrawable
     {
         public MarkdownHeading(HeadingBlock headingBlock)

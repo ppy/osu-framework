@@ -9,8 +9,13 @@ using Markdig.Extensions.Tables;
 namespace osu.Framework.Graphics.Containers.Markdown
 {
     /// <summary>
-    /// Visualises a markdown table, containing <see cref="MarkdownTableCell"/>s.
+    /// Visualises a table.
     /// </summary>
+    /// <code>
+    /// | heading 1 | heading 2 |
+    /// | --------- | --------- |
+    /// |  cell 1   |  cell 2   |
+    /// </code>
     public class MarkdownTable : CompositeDrawable
     {
         private readonly MarkdownTableContainer tableContainer;
