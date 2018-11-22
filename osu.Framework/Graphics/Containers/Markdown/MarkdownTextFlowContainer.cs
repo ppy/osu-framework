@@ -192,11 +192,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
         {
             var imageUrl = linkInline.Url;
             //insert a image
-            AddDrawable(new MarkdownImage(imageUrl)
-            {
-                Width = 40,
-                Height = 40,
-            });
+            AddDrawable(new MarkdownImage(imageUrl));
         }
 
         protected virtual void AddNotImpiementedInlineText(Inline inline)
