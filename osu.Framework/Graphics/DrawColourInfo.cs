@@ -3,7 +3,7 @@
 
 using System;
 using osu.Framework.Graphics.Colour;
-using OpenTK.Graphics;
+using osuTK.Graphics;
 
 namespace osu.Framework.Graphics
 {

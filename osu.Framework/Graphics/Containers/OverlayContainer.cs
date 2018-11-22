@@ -3,7 +3,7 @@
 
 using System.Collections.Generic;
 using osu.Framework.Input;
-using OpenTK;
+using osuTK;
 
 namespace osu.Framework.Graphics.Containers
 {

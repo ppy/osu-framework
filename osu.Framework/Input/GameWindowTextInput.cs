@@ -17,20 +17,20 @@ namespace osu.Framework.Input
             this.window = window;
         }
 
-        private void window_KeyPress(object sender, OpenTK.KeyPressEventArgs e)
+        private void window_KeyPress(object sender, osuTK.KeyPressEventArgs e)
         {
             // Drop any keypresses if the control, alt, or windows/command key are being held.
-            // This is a workaround for an issue on macOS where OpenTK will fire KeyPress events even
-            // if modifier keys are held.  This can be reverted when it is fixed on OpenTK's side.
+            // This is a workaround for an issue on macOS where osuTK will fire KeyPress events even
+            // if modifier keys are held.  This can be reverted when it is fixed on osuTK's side.
             if (RuntimeInfo.OS == RuntimeInfo.Platform.MacOsx)
             {
-                var state = OpenTK.Input.Keyboard.GetState();
-                if (state.IsKeyDown(OpenTK.Input.Key.LControl)
-                    || state.IsKeyDown(OpenTK.Input.Key.RControl)
-                    || state.IsKeyDown(OpenTK.Input.Key.LAlt)
-                    || state.IsKeyDown(OpenTK.Input.Key.RAlt)
-                    || state.IsKeyDown(OpenTK.Input.Key.LWin)
-                    || state.IsKeyDown(OpenTK.Input.Key.RWin))
+                var state = osuTK.Input.Keyboard.GetState();
+                if (state.IsKeyDown(osuTK.Input.Key.LControl)
+                    || state.IsKeyDown(osuTK.Input.Key.RControl)
+                    || state.IsKeyDown(osuTK.Input.Key.LAlt)
+                    || state.IsKeyDown(osuTK.Input.Key.RAlt)
+                    || state.IsKeyDown(osuTK.Input.Key.LWin)
+                    || state.IsKeyDown(osuTK.Input.Key.RWin))
                     return;
                 // arbitrary choice here, but it caters for any non-printable keys on an A1243 Apple Keyboard
                 if (e.KeyChar > 63000)

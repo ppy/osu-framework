@@ -6,7 +6,7 @@ using System.IO;
 using System.Threading;
 using ManagedBass;
 using ManagedBass.Fx;
-using OpenTK;
+using osuTK;
 using osu.Framework.IO;
 using System.Diagnostics;
 using System.Threading.Tasks;

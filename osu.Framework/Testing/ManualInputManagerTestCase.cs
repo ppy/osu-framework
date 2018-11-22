@@ -6,7 +6,7 @@ using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Testing.Input;
-using OpenTK;
+using osuTK;
 
 namespace osu.Framework.Testing
 {

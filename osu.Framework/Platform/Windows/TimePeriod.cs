@@ -3,7 +3,7 @@
 
 using System;
 using System.Runtime.InteropServices;
-using OpenTK;
+using osuTK;
 
 namespace osu.Framework.Platform.Windows
 {

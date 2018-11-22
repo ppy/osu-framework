@@ -5,7 +5,7 @@ using System;
 using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
-using OpenTK.Input;
+using osuTK.Input;
 
 namespace osu.Framework.Platform.Windows
 {

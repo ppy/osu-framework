@@ -3,8 +3,8 @@
 
 using System;
 using System.Runtime.InteropServices;
-using OpenTK;
-using OpenTK.Graphics.ES30;
+using osuTK;
+using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.OpenGL.Vertices
 {

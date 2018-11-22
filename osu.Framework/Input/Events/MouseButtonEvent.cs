@@ -3,8 +3,8 @@
 
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Input.States;
-using OpenTK;
-using OpenTK.Input;
+using osuTK;
+using osuTK.Input;
 
 namespace osu.Framework.Input.Events
 {

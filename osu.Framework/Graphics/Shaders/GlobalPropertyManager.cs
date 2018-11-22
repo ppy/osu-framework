@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using OpenTK;
+using osuTK;
 
 namespace osu.Framework.Graphics.Shaders
 {
