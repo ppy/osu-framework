@@ -36,27 +36,27 @@ namespace osu.Framework.Extensions.IEnumerableExtensions
         }
 
         /// <summary>
-        /// Retrieves the value after a pivot from an <see cref="IEnumerable{T}"/>.
+        /// Retrieves the item after a pivot from an <see cref="IEnumerable{T}"/>.
         /// </summary>
         /// <typeparam name="T">The type of the items stored in the collection.</typeparam>
         /// <param name="collection">The collection to iterate on.</param>
-        /// <param name="current">The pivot value.</param>
-        /// <returns></returns>
-        public static T GetNext<T>(this IEnumerable<T> collection, T current)
+        /// <param name="pivot">The pivot value.</param>
+        /// <returns>The item in <paramref name="collection"/> appearing after <paramref name="pivot"/>, or null if no such item exists.</returns>
+        public static T GetNext<T>(this IEnumerable<T> collection, T pivot)
         {
-            return collection.SkipWhile(i => !i.Equals(current)).Skip(1).FirstOrDefault();
+            return collection.SkipWhile(i => !i.Equals(pivot)).Skip(1).FirstOrDefault();
         }
 
         /// <summary>
-        /// Retrieves the value before a pivot from an <see cref="IEnumerable{T}"/>.
+        /// Retrieves the item before a pivot from an <see cref="IEnumerable{T}"/>.
         /// </summary>
         /// <typeparam name="T">The type of the items stored in the collection.</typeparam>
         /// <param name="collection">The collection to iterate on.</param>
-        /// <param name="current">The pivot value.</param>
-        /// <returns></returns>
-        public static T GetPrevious<T>(this IEnumerable<T> collection, T current)
+        /// <param name="pivot">The pivot value.</param>
+        /// <returns>The item in <paramref name="collection"/> appearing before <paramref name="pivot"/>, or null if no such item exists.</returns>
+        public static T GetPrevious<T>(this IEnumerable<T> collection, T pivot)
         {
-            return collection.TakeWhile(i => !i.Equals(current)).LastOrDefault();
+            return collection.TakeWhile(i => !i.Equals(pivot)).LastOrDefault();
         }
     }
 }
