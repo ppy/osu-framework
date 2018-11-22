@@ -16,6 +16,8 @@ namespace osu.Framework.Graphics.Containers.Markdown
     /// </summary>
     public class MarkdownContainer : CompositeDrawable
     {
+        private const int root_layer_index = 0;
+
         public string Text
         {
             set
@@ -48,11 +50,9 @@ namespace osu.Framework.Graphics.Containers.Markdown
             set => markdownContainer.Padding = value;
         }
 
-        private const int root_layer_index = 0;
-        private FillFlowContainer markdownContainer;
+        private readonly FillFlowContainer markdownContainer;
 
-        [BackgroundDependencyLoader]
-        private void load()
+        public MarkdownContainer()
         {
             InternalChildren = new Drawable[]
             {
@@ -72,6 +72,11 @@ namespace osu.Framework.Graphics.Containers.Markdown
             Spacing = 25;
             MarkdownPadding = new MarginPadding { Left = 10, Right = 30 };
             MarkdownMargin = new MarginPadding { Left = 10, Right = 30 };
+        }
+
+        [BackgroundDependencyLoader]
+        private void load()
+        {
         }
 
         protected virtual void AddMarkdownComponent(IMarkdownObject markdownObject, FillFlowContainer container, int layerIndex)
