@@ -147,7 +147,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
                     container.Add(CreateTable(table));
                     break;
                 case ListBlock listBlock:
-                    var childContainer = CreateChildFillFlowContainer();
+                    var childContainer = CreateList();
                     container.Add(childContainer);
                     foreach (var single in listBlock)
                         AddMarkdownComponent(single, childContainer, level + 1);
@@ -186,7 +186,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
             RightSpacing = 100
         };
 
-        protected virtual FillFlowContainer CreateChildFillFlowContainer() => new MarkdownList();
+        protected virtual FillFlowContainer CreateList() => new MarkdownList();
 
         protected virtual MarkdownSeparator CreateSeparator() => new MarkdownSeparator();
 
