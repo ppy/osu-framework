@@ -13,14 +13,17 @@ using osuTK.Graphics;
 namespace osu.Framework.Graphics.Containers.Markdown
 {
     /// <summary>
-    /// Contains all the markdown component <see cref="IMarkdownObject" /> in <see cref="MarkdownDocument" />
+    /// Visualises a markdown text document.
     /// </summary>
     public class MarkdownContainer : CompositeDrawable
     {
-        private const int root_layer_index = 0;
+        private const int root_level = 0;
 
         private string text = string.Empty;
 
+        /// <summary>
+        /// The text to visualise.
+        /// </summary>
         public string Text
         {
             get => text;
@@ -34,27 +37,36 @@ namespace osu.Framework.Graphics.Containers.Markdown
             }
         }
 
-        public virtual float Spacing
+        /// <summary>
+        /// The vertical spacing between lines.
+        /// </summary>
+        public virtual float LineSpacing
         {
-            get => markdownContainer.Spacing.Y;
-            set => markdownContainer.Spacing = new Vector2(value);
+            get => document.Spacing.Y;
+            set => document.Spacing = new Vector2(0, value);
         }
 
-        public MarginPadding MarkdownMargin
+        /// <summary>
+        /// The margins of the contained document.
+        /// </summary>
+        public MarginPadding DocumentMargin
         {
-            get => markdownContainer.Margin;
-            set => markdownContainer.Margin = value;
+            get => document.Margin;
+            set => document.Margin = value;
         }
 
-        public MarginPadding MarkdownPadding
+        /// <summary>
+        /// The padding of the contained document.
+        /// </summary>
+        public MarginPadding DocumentPadding
         {
-            get => markdownContainer.Padding;
-            set => markdownContainer.Padding = value;
+            get => document.Padding;
+            set => document.Padding = value;
         }
 
         private Cached contentCache = new Cached();
 
-        private readonly FillFlowContainer markdownContainer;
+        private readonly FillFlowContainer document;
 
         public MarkdownContainer()
         {
@@ -64,7 +76,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 {
                     ScrollbarOverlapsContent = false,
                     RelativeSizeAxes = Axes.Both,
-                    Child = markdownContainer = new FillFlowContainer
+                    Child = document = new FillFlowContainer
                     {
                         AutoSizeAxes = Axes.Y,
                         RelativeSizeAxes = Axes.X,
@@ -73,9 +85,9 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 }
             };
 
-            Spacing = 25;
-            MarkdownPadding = new MarginPadding { Left = 10, Right = 30 };
-            MarkdownMargin = new MarginPadding { Left = 10, Right = 30 };
+            LineSpacing = 25;
+            DocumentPadding = new MarginPadding { Left = 10, Right = 30 };
+            DocumentMargin = new MarginPadding { Left = 10, Right = 30 };
         }
 
         [BackgroundDependencyLoader]
@@ -90,11 +102,11 @@ namespace osu.Framework.Graphics.Containers.Markdown
             {
                 var markdownText = Text;
                 var pipeline = CreateBuilder();
-                var document = Markdig.Markdown.Parse(markdownText, pipeline);
+                var parsed = Markdig.Markdown.Parse(markdownText, pipeline);
 
-                markdownContainer.Clear();
-                foreach (var component in document)
-                    AddMarkdownComponent(component, markdownContainer, root_layer_index);
+                document.Clear();
+                foreach (var component in parsed)
+                    AddMarkdownComponent(component, document, root_level);
 
                 contentCache.Validate();
             }
@@ -107,7 +119,14 @@ namespace osu.Framework.Graphics.Containers.Markdown
             validateContent();
         }
 
-        protected virtual void AddMarkdownComponent(IMarkdownObject markdownObject, FillFlowContainer container, int layerIndex)
+        /// <summary>
+        /// Adds a component that visualises a <see cref="IMarkdownObject"/> to the document.
+        /// </summary>
+        /// <param name="markdownObject">The <see cref="IMarkdownObject"/> to visualise.</param>
+        /// <param name="container">The container to add the visualisation to.</param>
+        /// <param name="level">The level in the document of <paramref name="markdownObject"/>.
+        /// 0 for the root level, 1 for first-level items in a list, 2 for second-level items in a list, etc.</param>
+        protected virtual void AddMarkdownComponent(IMarkdownObject markdownObject, FillFlowContainer container, int level)
         {
             switch (markdownObject)
             {
@@ -117,7 +136,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
                         container.Add(CreateMarkdownSeparator());
                     break;
                 case ParagraphBlock paragraphBlock:
-                    container.Add(CreateMarkdownTextFlowContainer(paragraphBlock, layerIndex));
+                    container.Add(CreateMarkdownTextFlowContainer(paragraphBlock, level));
                     break;
                 case QuoteBlock quoteBlock:
                     container.Add(CreateMarkdownQuoteBlock(quoteBlock));
@@ -132,17 +151,17 @@ namespace osu.Framework.Graphics.Containers.Markdown
                     var childContainer = CreateChildFillFlowContainer();
                     container.Add(childContainer);
                     foreach (var single in listBlock)
-                        AddMarkdownComponent(single, childContainer, layerIndex + 1);
+                        AddMarkdownComponent(single, childContainer, level + 1);
                     break;
                 case ListItemBlock listItemBlock:
                     foreach (var single in listItemBlock)
-                        AddMarkdownComponent(single, container, layerIndex);
+                        AddMarkdownComponent(single, container, level);
                     break;
                 case HtmlBlock _:
-                    //Cannot read Html Syntex in Markdown.
+                    // HTML is not supported
                     break;
                 case LinkReferenceDefinitionGroup _:
-                    //Link Definition Does not need display.
+                    // Link reference doesn't need to be displayed.
                     break;
                 default:
                     container.Add(CreateNotImplementedMarkdown(markdownObject));
@@ -150,15 +169,17 @@ namespace osu.Framework.Graphics.Containers.Markdown
             }
         }
 
-        protected virtual MarkdownHeading CreateMarkdownHeading(HeadingBlock headingBlock)
-        {
-            return new MarkdownHeading(headingBlock);
-        }
+        /// <summary>
+        /// Visualises a <see cref="HeadingBlock"/>.
+        /// </summary>
+        /// <param name="headingBlock">The <see cref="HeadingBlock"/> to visualise.</param>
+        /// <returns>The visualisation.</returns>
+        protected virtual MarkdownHeading CreateMarkdownHeading(HeadingBlock headingBlock) => new MarkdownHeading(headingBlock);
 
-        protected virtual MarkdownTextFlowContainer CreateMarkdownTextFlowContainer(ParagraphBlock paragraphBlock, int layerIndex)
+        protected virtual MarkdownTextFlowContainer CreateMarkdownTextFlowContainer(ParagraphBlock paragraphBlock, int level)
         {
             var drawableParagraphBlock = new MarkdownTextFlowContainer();
-            switch (layerIndex)
+            switch (level)
             {
                 case 1:
                     drawableParagraphBlock.AddText("@ ", t => t.Colour = Color4.DarkGray);
