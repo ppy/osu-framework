@@ -6,6 +6,7 @@ using Markdig.Extensions.AutoIdentifiers;
 using Markdig.Extensions.Tables;
 using Markdig.Syntax;
 using osu.Framework.Allocation;
+using osu.Framework.Caching;
 using osuTK;
 using osuTK.Graphics;
 
@@ -18,17 +19,18 @@ namespace osu.Framework.Graphics.Containers.Markdown
     {
         private const int root_layer_index = 0;
 
+        private string text = string.Empty;
+
         public string Text
         {
+            get => text;
             set
             {
-                var markdownText = value;
-                var pipeline = CreateBuilder();
-                var document = Markdig.Markdown.Parse(markdownText, pipeline);
+                if (text == value)
+                    return;
+                text = value;
 
-                markdownContainer.Clear();
-                foreach (var component in document)
-                    AddMarkdownComponent(component, markdownContainer, root_layer_index);
+                contentCache.Invalidate();
             }
         }
 
@@ -49,6 +51,8 @@ namespace osu.Framework.Graphics.Containers.Markdown
             get => markdownContainer.Padding;
             set => markdownContainer.Padding = value;
         }
+
+        private Cached contentCache = new Cached();
 
         private readonly FillFlowContainer markdownContainer;
 
@@ -77,6 +81,30 @@ namespace osu.Framework.Graphics.Containers.Markdown
         [BackgroundDependencyLoader]
         private void load()
         {
+            validateContent();
+        }
+
+        private void validateContent()
+        {
+            if (!contentCache.IsValid)
+            {
+                var markdownText = Text;
+                var pipeline = CreateBuilder();
+                var document = Markdig.Markdown.Parse(markdownText, pipeline);
+
+                markdownContainer.Clear();
+                foreach (var component in document)
+                    AddMarkdownComponent(component, markdownContainer, root_layer_index);
+
+                contentCache.Validate();
+            }
+        }
+
+        protected override void Update()
+        {
+            base.Update();
+
+            validateContent();
         }
 
         protected virtual void AddMarkdownComponent(IMarkdownObject markdownObject, FillFlowContainer container, int layerIndex)
