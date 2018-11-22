@@ -8,7 +8,6 @@ using Markdig.Syntax;
 using osu.Framework.Allocation;
 using osu.Framework.Caching;
 using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Containers.Markdown
 {
@@ -131,21 +130,21 @@ namespace osu.Framework.Graphics.Containers.Markdown
             switch (markdownObject)
             {
                 case HeadingBlock headingBlock:
-                    container.Add(CreateMarkdownHeading(headingBlock));
+                    container.Add(CreateHeading(headingBlock));
                     if (headingBlock.Level < 3)
-                        container.Add(CreateMarkdownSeparator());
+                        container.Add(CreateSeparator());
                     break;
                 case ParagraphBlock paragraphBlock:
-                    container.Add(CreateMarkdownTextFlowContainer(paragraphBlock, level));
+                    container.Add(CreateParagraph(paragraphBlock, level));
                     break;
                 case QuoteBlock quoteBlock:
-                    container.Add(CreateMarkdownQuoteBlock(quoteBlock));
+                    container.Add(CreateQuoteBlock(quoteBlock));
                     break;
                 case FencedCodeBlock fencedCodeBlock:
-                    container.Add(CreateMarkdownFencedCodeBlock(fencedCodeBlock));
+                    container.Add(CreateFencedCodeBlock(fencedCodeBlock));
                     break;
                 case Table table:
-                    container.Add(CreateMarkdownTable(table));
+                    container.Add(CreateTable(table));
                     break;
                 case ListBlock listBlock:
                     var childContainer = CreateChildFillFlowContainer();
@@ -164,7 +163,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
                     // Link reference doesn't need to be displayed.
                     break;
                 default:
-                    container.Add(CreateNotImplementedMarkdown(markdownObject));
+                    container.Add(CreateNotImplemented(markdownObject));
                     break;
             }
         }
@@ -174,47 +173,31 @@ namespace osu.Framework.Graphics.Containers.Markdown
         /// </summary>
         /// <param name="headingBlock">The <see cref="HeadingBlock"/> to visualise.</param>
         /// <returns>The visualisation.</returns>
-        protected virtual MarkdownHeading CreateMarkdownHeading(HeadingBlock headingBlock) => new MarkdownHeading(headingBlock);
+        protected virtual MarkdownHeading CreateHeading(HeadingBlock headingBlock) => new MarkdownHeading(headingBlock);
 
-        protected virtual MarkdownParagraph CreateMarkdownTextFlowContainer(ParagraphBlock paragraphBlock, int level) => new MarkdownParagraph(paragraphBlock, level);
+        protected virtual MarkdownParagraph CreateParagraph(ParagraphBlock paragraphBlock, int level) => new MarkdownParagraph(paragraphBlock, level);
 
-        protected virtual MarkdownQuoteBlock CreateMarkdownQuoteBlock(QuoteBlock quoteBlock)
+        protected virtual MarkdownQuoteBlock CreateQuoteBlock(QuoteBlock quoteBlock) => new MarkdownQuoteBlock(quoteBlock);
+
+        protected virtual MarkdownFencedCodeBlock CreateFencedCodeBlock(FencedCodeBlock fencedCodeBlock) => new MarkdownFencedCodeBlock(fencedCodeBlock);
+
+        protected virtual MarkdownTable CreateTable(Table table) => new MarkdownTable(table)
         {
-            return new MarkdownQuoteBlock(quoteBlock);
-        }
+            RightSpacing = 100
+        };
 
-        protected virtual MarkdownFencedCodeBlock CreateMarkdownFencedCodeBlock(FencedCodeBlock fencedCodeBlock)
+        protected virtual FillFlowContainer CreateChildFillFlowContainer() => new FillFlowContainer
         {
-            return new MarkdownFencedCodeBlock(fencedCodeBlock);
-        }
+            Direction = FillDirection.Vertical,
+            Spacing = new Vector2(10, 10),
+            Padding = new MarginPadding { Left = 25, Right = 5 },
+            AutoSizeAxes = Axes.Y,
+            RelativeSizeAxes = Axes.X,
+        };
 
-        protected virtual MarkdownTable CreateMarkdownTable(Table table)
-        {
-            return new MarkdownTable(table)
-            {
-                RightSpacing = 100
-            };
-        }
+        protected virtual MarkdownSeperator CreateSeparator() => new MarkdownSeperator();
 
-        protected virtual FillFlowContainer CreateChildFillFlowContainer()
-        {
-            return new FillFlowContainer
-            {
-                Direction = FillDirection.Vertical,
-                Spacing = new Vector2(10, 10),
-                Padding = new MarginPadding { Left = 25, Right = 5 },
-                AutoSizeAxes = Axes.Y,
-                RelativeSizeAxes = Axes.X,
-            };
-        }
-
-        protected virtual MarkdownSeperator CreateMarkdownSeparator()
-        {
-            return new MarkdownSeperator();
-        }
-
-        protected virtual Drawable CreateNotImplementedMarkdown(IMarkdownObject markdownObject)
-            => new NotImplementedMarkdown(markdownObject);
+        protected virtual Drawable CreateNotImplemented(IMarkdownObject markdownObject) => new NotImplementedMarkdown(markdownObject);
 
         protected virtual MarkdownPipeline CreateBuilder()
             => new MarkdownPipelineBuilder().UseAutoIdentifiers(AutoIdentifierOptions.GitHub)
