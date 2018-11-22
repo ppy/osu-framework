@@ -524,16 +524,16 @@ namespace osu.Framework.Graphics.Containers
                     break;
                 case LoadState.Loading:
                     if (Thread.CurrentThread != LoadThread)
-                        throw new InvalidOperationException($"Cannot mutate children of a {LoadState.Loading} {nameof(CompositeDrawable)} while not on the load thread.");
+                        throw new InvalidThreadForChildMutationException(LoadState, "not on the load thread");
                     break;
                 case LoadState.Ready:
-                    // Allow mutating from the load thread since parenting containers may still be in the loading state.
+                    // Allow mutating from the load thread since parenting containers may still be in the loading state
                     if (Thread.CurrentThread != LoadThread && !ThreadSafety.IsUpdateThread)
-                        throw new InvalidOperationException($"Cannot mutate children of a {LoadState.Ready} {nameof(CompositeDrawable)} while not on the load or update threads.");
+                        throw new InvalidThreadForChildMutationException(LoadState, "not on the load or update threads");
                     break;
                 case LoadState.Loaded:
                     if (!ThreadSafety.IsUpdateThread)
-                        throw new InvalidOperationException($"Cannot mutate children of a {LoadState.Loaded} {nameof(CompositeDrawable)} while not on the update thread.");
+                        throw new InvalidThreadForChildMutationException(LoadState, "not on the update thread");
                     break;
             }
         }
@@ -1598,5 +1598,14 @@ namespace osu.Framework.Graphics.Containers
         }
 
         #endregion
+
+        public class InvalidThreadForChildMutationException : InvalidOperationException
+        {
+            public InvalidThreadForChildMutationException(LoadState loadState, string description)
+                : base($"Cannot mutate the children of a {loadState} {nameof(CompositeDrawable)} while {description}. "
+                       + $"Consider using {nameof(Schedule)} to schedule the mutation operation.")
+            {
+            }
+        }
     }
 }
