@@ -16,11 +16,6 @@ namespace osu.Framework.Graphics.Containers.Markdown
     /// </summary>
     public class MarkdownContainer : CompositeDrawable
     {
-        protected virtual MarkdownPipeline CreateBuilder()
-            => new MarkdownPipelineBuilder().UseAutoIdentifiers(AutoIdentifierOptions.GitHub)
-            .UseEmojiAndSmiley()
-            .UseAdvancedExtensions().Build();
-
         public string Text
         {
             set
@@ -86,7 +81,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 case HeadingBlock headingBlock:
                     container.Add(CreateMarkdownHeading(headingBlock));
                     if (headingBlock.Level < 3)
-                        container.Add(CreateMarkdownSeperator());
+                        container.Add(CreateMarkdownSeparator());
                     break;
                 case ParagraphBlock paragraphBlock:
                     container.Add(CreateMarkdownTextFlowContainer(paragraphBlock, layerIndex));
@@ -178,12 +173,17 @@ namespace osu.Framework.Graphics.Containers.Markdown
             };
         }
 
-        protected virtual MarkdownSeperator CreateMarkdownSeperator()
+        protected virtual MarkdownSeperator CreateMarkdownSeparator()
         {
             return new MarkdownSeperator();
         }
 
         protected virtual Drawable CreateNotImplementedMarkdown(IMarkdownObject markdownObject)
             => new NotImplementedMarkdown(markdownObject);
+
+        protected virtual MarkdownPipeline CreateBuilder()
+            => new MarkdownPipelineBuilder().UseAutoIdentifiers(AutoIdentifierOptions.GitHub)
+                                            .UseEmojiAndSmiley()
+                                            .UseAdvancedExtensions().Build();
     }
 }
