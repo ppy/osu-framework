@@ -82,7 +82,10 @@ namespace osu.Framework.Graphics.Containers.Markdown
                         // Handled by the next literal
                         break;
                     case LineBreakInline lineBreak:
-                        // Todo: Why was this empty
+                        if (lineBreak.IsHard)
+                            NewParagraph();
+                        else
+                            NewLine();
                         break;
                     case ContainerInline innerContainer:
                         AddInlineText(innerContainer);

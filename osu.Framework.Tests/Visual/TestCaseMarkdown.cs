@@ -129,6 +129,13 @@ Line below";
                 }
 
             });
+
+            AddStep("new lines", () =>
+            {
+                markdownContainer.Text = @"line 1
+soft break\
+soft break with '\'";
+            });
         }
     }
 }
