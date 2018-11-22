@@ -176,26 +176,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
         /// <returns>The visualisation.</returns>
         protected virtual MarkdownHeading CreateMarkdownHeading(HeadingBlock headingBlock) => new MarkdownHeading(headingBlock);
 
-        protected virtual MarkdownTextFlowContainer CreateMarkdownTextFlowContainer(ParagraphBlock paragraphBlock, int level)
-        {
-            var drawableParagraphBlock = new MarkdownTextFlowContainer();
-            switch (level)
-            {
-                case 1:
-                    drawableParagraphBlock.AddText("@ ", t => t.Colour = Color4.DarkGray);
-                    break;
-                case 2:
-                    drawableParagraphBlock.AddText("# ", t => t.Colour = Color4.DarkGray);
-                    break;
-                case 3:
-                case 4:
-                    drawableParagraphBlock.AddText("+ ", t => t.Colour = Color4.DarkGray);
-                    break;
-            }
-
-            drawableParagraphBlock.AddInlineText(paragraphBlock.Inline);
-            return drawableParagraphBlock;
-        }
+        protected virtual MarkdownParagraph CreateMarkdownTextFlowContainer(ParagraphBlock paragraphBlock, int level) => new MarkdownParagraph(paragraphBlock, level);
 
         protected virtual MarkdownQuoteBlock CreateMarkdownQuoteBlock(QuoteBlock quoteBlock)
         {
