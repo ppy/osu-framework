@@ -24,20 +24,17 @@ namespace osu.Framework.Graphics.Containers.Markdown
 
             MarkdownTextFlowContainer textFlowContainer;
 
-            InternalChildren = new Drawable[]
-            {
-                textFlowContainer = CreateMarkdownTextFlowContainer()
-            };
+            InternalChild = textFlowContainer = CreateTextFlowContainer();
 
             var level = headingBlock.Level;
             textFlowContainer.Scale = new Vector2(GetFontSizeByLevel(level));
             textFlowContainer.AddInlineText(headingBlock.Inline);
         }
 
-        protected virtual MarkdownTextFlowContainer CreateMarkdownTextFlowContainer() =>
+        protected virtual MarkdownTextFlowContainer CreateTextFlowContainer() =>
             new MarkdownTextFlowContainer();
 
-        protected float GetFontSizeByLevel(int level)
+        protected virtual float GetFontSizeByLevel(int level)
         {
             switch (level)
             {
