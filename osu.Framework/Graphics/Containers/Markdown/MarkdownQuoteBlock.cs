@@ -25,31 +25,25 @@ namespace osu.Framework.Graphics.Containers.Markdown
             InternalChildren = new []
             {
                 CreateBackground(),
-                textFlowContainer = CreateMarkdownTextFlowContainer()
+                textFlowContainer = CreateTextFlowContainer()
             };
 
             if (quoteBlock.LastChild is ParagraphBlock paragraphBlock)
                 textFlowContainer.ParagraphBlock = paragraphBlock;
         }
 
-        protected virtual Drawable CreateBackground()
+        protected virtual Drawable CreateBackground() => new Box
         {
-            return new Box
-            {
-                Colour = Color4.Gray,
-                Width = 5,
-                Anchor = Anchor.CentreLeft,
-                Origin = Anchor.CentreLeft,
-                RelativeSizeAxes = Axes.Y
-            };
-        }
+            Anchor = Anchor.CentreLeft,
+            Origin = Anchor.CentreLeft,
+            RelativeSizeAxes = Axes.Y,
+            Width = 5,
+            Colour = Color4.Gray
+        };
 
-        protected virtual MarkdownTextFlowContainer CreateMarkdownTextFlowContainer()
+        protected virtual MarkdownTextFlowContainer CreateTextFlowContainer() => new MarkdownTextFlowContainer
         {
-            return new MarkdownTextFlowContainer
-            {
-                Margin = new MarginPadding { Left = 20 }
-            };
-        }
+            Margin = new MarginPadding { Left = 20 }
+        };
     }
 }
