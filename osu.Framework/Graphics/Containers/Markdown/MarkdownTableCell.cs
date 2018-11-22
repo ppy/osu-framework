@@ -3,6 +3,7 @@
 
 using Markdig.Extensions.Tables;
 using Markdig.Syntax;
+using osu.Framework.Graphics.Shapes;
 using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Containers.Markdown
@@ -15,7 +16,10 @@ namespace osu.Framework.Graphics.Containers.Markdown
     /// </code>
     public class MarkdownTableCell : CompositeDrawable
     {
-        public readonly MarkdownTextFlowContainer TextFlowContainer;
+        public float ContentWidth => textFlowContainer.TotalTextWidth;
+        public float ContentHeight => textFlowContainer.DrawHeight;
+
+        private readonly MarkdownTextFlowContainer textFlowContainer;
 
         public MarkdownTableCell(TableCell cell, TableColumnDefinition definition, bool isHeading)
         {
@@ -25,28 +29,37 @@ namespace osu.Framework.Graphics.Containers.Markdown
             BorderColour = Color4.White;
             Masking = true;
 
-            InternalChild = TextFlowContainer = CreateTextFlowContainer();
+            InternalChildren = new Drawable[]
+            {
+                new Box
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Alpha = 0,
+                    AlwaysPresent = true
+                },
+                textFlowContainer = CreateTextFlowContainer()
+            };
+
+            textFlowContainer.Anchor = Anchor.CentreLeft;
+            textFlowContainer.Origin = Anchor.CentreLeft;
 
             if (cell.LastChild is ParagraphBlock paragraphBlock)
-                TextFlowContainer.ParagraphBlock = paragraphBlock;
+                textFlowContainer.AddInlineText(paragraphBlock.Inline);
 
             switch (definition.Alignment)
             {
                 case TableColumnAlign.Center:
-                    TextFlowContainer.TextAnchor = Anchor.Centre;
+                    textFlowContainer.TextAnchor = Anchor.Centre;
                     break;
                 case TableColumnAlign.Right:
-                    TextFlowContainer.TextAnchor = Anchor.CentreRight;
+                    textFlowContainer.TextAnchor = Anchor.CentreRight;
                     break;
                 default:
-                    TextFlowContainer.TextAnchor = Anchor.CentreLeft;
+                    textFlowContainer.TextAnchor = Anchor.CentreLeft;
                     break;
             }
         }
 
-        protected virtual MarkdownTextFlowContainer CreateTextFlowContainer() => new MarkdownTextFlowContainer
-        {
-            Padding = new MarginPadding { Left = 5, Right = 5, Top = 5, Bottom = 0 }
-        };
+        protected virtual MarkdownTextFlowContainer CreateTextFlowContainer() => new MarkdownTextFlowContainer { Padding = new MarginPadding(10) };
     }
 }

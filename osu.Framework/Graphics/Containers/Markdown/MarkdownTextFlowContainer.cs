@@ -33,7 +33,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
             }
         }
 
-        public float TotalTextWidth => FlowingChildren.Sum(x => x.BoundingBox.Size.X);
+        public float TotalTextWidth => Padding.TotalHorizontal + FlowingChildren.Sum(x => x.BoundingBox.Size.X);
 
         public MarkdownTextFlowContainer()
         {

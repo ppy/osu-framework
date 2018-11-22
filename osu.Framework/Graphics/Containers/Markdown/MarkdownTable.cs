@@ -22,7 +22,8 @@ namespace osu.Framework.Graphics.Containers.Markdown
         private readonly TableContainer tableContainer;
         private readonly Table table;
 
-        private Cached definitionCache = new Cached();
+        private Cached columnDefinitionCache = new Cached();
+        private Cached rowDefinitionCache = new Cached();
 
         public MarkdownTable(Table table)
         {
@@ -61,7 +62,10 @@ namespace osu.Framework.Graphics.Containers.Markdown
             var result = base.Invalidate(invalidation, source, shallPropagate);
 
             if ((invalidation & Invalidation.DrawSize) > 0 && Parent != null)
-                result &= definitionCache.Invalidate();
+            {
+                result &= columnDefinitionCache.Invalidate();
+                result &= rowDefinitionCache.Invalidate();
+            }
 
             return result;
         }
@@ -70,21 +74,25 @@ namespace osu.Framework.Graphics.Containers.Markdown
         {
             base.Update();
 
-            validateDefinitions();
-        }
-
-        private void validateDefinitions()
-        {
-            if (!definitionCache.IsValid)
+            if (!columnDefinitionCache.IsValid)
             {
-                validateColumnDefinitions();
-                validateRowDefinitions();
-
-                definitionCache.Validate();
+                computeColumnDefinitions();
+                columnDefinitionCache.Validate();
             }
         }
 
-        private void validateColumnDefinitions()
+        protected override void UpdateAfterChildren()
+        {
+            base.UpdateAfterChildren();
+
+            if (!rowDefinitionCache.IsValid)
+            {
+                computeRowDefinitions();
+                rowDefinitionCache.Validate();
+            }
+        }
+
+        private void computeColumnDefinitions()
         {
             if (table.Count == 0)
                 return;
@@ -94,7 +102,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
             // Compute the maximum width of each column
             for (int r = 0; r < tableContainer.Content.Length; r++)
             for (int c = 0; c < tableContainer.Content[r].Length; c++)
-                columnWidths[c] = Math.Max(columnWidths[c], ((MarkdownTableCell)tableContainer.Content[r][c]).TextFlowContainer.DrawWidth);
+                columnWidths[c] = Math.Max(columnWidths[c], ((MarkdownTableCell)tableContainer.Content[r][c]).ContentWidth);
 
             float totalWidth = 0;
             for (int i = 0; i < columnWidths.Length; i++)
@@ -112,20 +120,20 @@ namespace osu.Framework.Graphics.Containers.Markdown
             {
                 // The columns will overflow the table, must convert them to a relative size
                 for (int i = 0; i < columnWidths.Length; i++)
-                    columnDimensions[i] = new Dimension(GridSizeMode.Relative, totalWidth / columnWidths[i]);
+                    columnDimensions[i] = new Dimension(GridSizeMode.Relative, columnWidths[i] / totalWidth);
             }
 
             tableContainer.ColumnDimensions = columnDimensions;
         }
 
-        private void validateRowDefinitions()
+        private void computeRowDefinitions()
         {
             if (table.Count == 0)
                 return;
 
             var rowDefinitions = new Dimension[tableContainer.Content.Length];
             for (int r = 0; r < tableContainer.Content.Length; r++)
-                rowDefinitions[r] = new Dimension(GridSizeMode.Absolute, tableContainer.Content[r].Max(c => ((MarkdownTableCell)c).TextFlowContainer.DrawHeight));
+                rowDefinitions[r] = new Dimension(GridSizeMode.Absolute, tableContainer.Content[r].Max(c => ((MarkdownTableCell)c).ContentHeight));
 
             tableContainer.RowDimensions = rowDefinitions;
         }
