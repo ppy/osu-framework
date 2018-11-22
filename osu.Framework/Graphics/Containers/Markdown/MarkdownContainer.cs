@@ -129,10 +129,11 @@ namespace osu.Framework.Graphics.Containers.Markdown
         {
             switch (markdownObject)
             {
+                case ThematicBreakBlock thematicBlock:
+                    container.Add(CreateSeparator(thematicBlock));
+                    break;
                 case HeadingBlock headingBlock:
                     container.Add(CreateHeading(headingBlock));
-                    if (headingBlock.Level < 3)
-                        container.Add(CreateSeparator());
                     break;
                 case ParagraphBlock paragraphBlock:
                     container.Add(CreateParagraph(paragraphBlock, level));
@@ -147,7 +148,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
                     container.Add(CreateTable(table));
                     break;
                 case ListBlock listBlock:
-                    var childContainer = CreateList();
+                    var childContainer = CreateList(listBlock);
                     container.Add(childContainer);
                     foreach (var single in listBlock)
                         AddMarkdownComponent(single, childContainer, level + 1);
@@ -169,26 +170,56 @@ namespace osu.Framework.Graphics.Containers.Markdown
         }
 
         /// <summary>
-        /// Visualises a <see cref="HeadingBlock"/>.
+        /// Creates the visualiser for a <see cref="HeadingBlock"/>.
         /// </summary>
         /// <param name="headingBlock">The <see cref="HeadingBlock"/> to visualise.</param>
-        /// <returns>The visualisation.</returns>
+        /// <returns>The visualiser.</returns>
         protected virtual MarkdownHeading CreateHeading(HeadingBlock headingBlock) => new MarkdownHeading(headingBlock);
 
+        /// <summary>
+        /// Creates the visualiser for a <see cref="ParagraphBlock"/>.
+        /// </summary>
+        /// <param name="paragraphBlock">The <see cref="ParagraphBlock"/> to visualise.</param>
+        /// <param name="level">The level in the document of <paramref name="paragraphBlock"/>.
+        /// 0 for the root level, 1 for first-level items in a list, 2 for second-level items in a list, etc.</param>
+        /// <returns>The visualiser.</returns>
         protected virtual MarkdownParagraph CreateParagraph(ParagraphBlock paragraphBlock, int level) => new MarkdownParagraph(paragraphBlock, level);
 
+        /// <summary>
+        /// Creates the visualiser for a <see cref="QuoteBlock"/>.
+        /// </summary>
+        /// <param name="quoteBlock">The <see cref="QuoteBlock"/> to visualise.</param>
+        /// <returns>The visualiser.</returns>
         protected virtual MarkdownQuoteBlock CreateQuoteBlock(QuoteBlock quoteBlock) => new MarkdownQuoteBlock(quoteBlock);
 
+        /// <summary>
+        /// Creates the visualiser for a <see cref="FencedCodeBlock"/>.
+        /// </summary>
+        /// <param name="fencedCodeBlock">The <see cref="FencedCodeBlock"/> to visualise.</param>
+        /// <returns>The visualiser.</returns>
         protected virtual MarkdownFencedCodeBlock CreateFencedCodeBlock(FencedCodeBlock fencedCodeBlock) => new MarkdownFencedCodeBlock(fencedCodeBlock);
 
+        /// <summary>
+        /// Creates the visualiser for a <see cref="Table"/>.
+        /// </summary>
+        /// <param name="table">The <see cref="Table"/> to visualise.</param>
+        /// <returns>The visualiser.</returns>
         protected virtual MarkdownTable CreateTable(Table table) => new MarkdownTable(table)
         {
             RightSpacing = 100
         };
 
-        protected virtual FillFlowContainer CreateList() => new MarkdownList();
+        /// <summary>
+        /// Creates the visualiser for a <see cref="ListBlock"/>.
+        /// </summary>
+        /// <returns>The visualiser.</returns>
+        protected virtual FillFlowContainer CreateList(ListBlock listBlock) => new MarkdownList(listBlock);
 
-        protected virtual MarkdownSeparator CreateSeparator() => new MarkdownSeparator();
+        /// <summary>
+        /// Creates the visualiser for a horizontal separator.
+        /// </summary>
+        /// <returns>The visualiser.</returns>
+        protected virtual MarkdownSeparator CreateSeparator(ThematicBreakBlock thematicBlock) => new MarkdownSeparator(thematicBlock);
 
         protected virtual Drawable CreateNotImplemented(IMarkdownObject markdownObject) => new NotImplementedMarkdown(markdownObject);
 

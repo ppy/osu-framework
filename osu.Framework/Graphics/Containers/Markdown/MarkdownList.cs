@@ -1,6 +1,7 @@
 // Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using Markdig.Syntax;
 using osuTK;
 
 namespace osu.Framework.Graphics.Containers.Markdown
@@ -14,7 +15,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
     /// </code>
     public class MarkdownList : FillFlowContainer
     {
-        public MarkdownList()
+        public MarkdownList(ListBlock listBlock)
         {
             AutoSizeAxes = Axes.Y;
             RelativeSizeAxes = Axes.X;

@@ -32,9 +32,11 @@ namespace osu.Framework.Tests.Visual
 
             AddStep("Markdown Seperator", () =>
             {
-                markdownContainer.Text = @"# Language
+                markdownContainer.Text = @"Line above
 
-";
+---
+
+Line below";
             });
 
             AddStep("Markdown Heading", () =>
