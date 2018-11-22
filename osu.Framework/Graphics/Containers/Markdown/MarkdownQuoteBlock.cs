@@ -29,7 +29,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
             };
 
             if (quoteBlock.LastChild is ParagraphBlock paragraphBlock)
-                textFlowContainer.ParagraphBlock = paragraphBlock;
+                textFlowContainer.AddInlineText(paragraphBlock.Inline);
         }
 
         protected virtual Drawable CreateBackground() => new Box

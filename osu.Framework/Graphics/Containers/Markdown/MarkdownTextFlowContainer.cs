@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Markdig.Syntax;
 using Markdig.Syntax.Inlines;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Colour;
@@ -20,19 +19,6 @@ namespace osu.Framework.Graphics.Containers.Markdown
     /// </summary>
     public class MarkdownTextFlowContainer : CustomizableTextContainer
     {
-        private ParagraphBlock paragraphBlock;
-
-        public ParagraphBlock ParagraphBlock
-        {
-            get => paragraphBlock;
-            set
-            {
-                paragraphBlock = value;
-                Clear();
-                AddInlineText(paragraphBlock.Inline);
-            }
-        }
-
         public float TotalTextWidth => Padding.TotalHorizontal + FlowingChildren.Sum(x => x.BoundingBox.Size.X);
 
         public MarkdownTextFlowContainer()
@@ -41,153 +27,122 @@ namespace osu.Framework.Graphics.Containers.Markdown
             AutoSizeAxes = Axes.Y;
         }
 
-        protected IEnumerable<SpriteText> AddDrawable(Drawable drawable)
-        {
-            var imageIndex = AddPlaceholder(drawable);
-            return base.AddText("[" + imageIndex + "]");
-        }
+        protected void AddDrawable(Drawable drawable)
+            => base.AddText("[" + AddPlaceholder(drawable) + "]");
 
-        public new IEnumerable<SpriteText> AddText(string text, Action<SpriteText> creationParameters = null)
-        {
-            text = text.Replace("[", "[[").Replace("]", "]]");
-            return base.AddText(text, creationParameters);
-        }
+        public new void AddText(string text, Action<SpriteText> creationParameters = null)
+            => base.AddText(text.Replace("[", "[[").Replace("]", "]]"), creationParameters);
 
         public new IEnumerable<SpriteText> AddParagraph(string text, Action<SpriteText> creationParameters = null)
-        {
-            text = text.Replace("[", "[[").Replace("]", "]]");
-            return base.AddParagraph(text, creationParameters);
-        }
+            => base.AddParagraph(text.Replace("[", "[[").Replace("]", "]]"), creationParameters);
 
-        public MarkdownTextFlowContainer AddInlineText(ContainerInline lnline)
+        public void AddInlineText(ContainerInline container)
         {
-            foreach (var single in lnline)
+            foreach (var single in container)
             {
-                if (single is LiteralInline literalInline)
+                switch (single)
                 {
-                    var text = literalInline.Content.ToString();
+                    case LiteralInline literal:
+                        var text = literal.Content.ToString();
 
-                    if (lnline.GetNext(literalInline) is HtmlInline
-                        && lnline.GetPrevious(literalInline) is HtmlInline)
-                    {
-                        AddHtmlInLineText(text, literalInline);
-                    }
-                    else if (lnline.GetNext(literalInline) is HtmlEntityInline)
-                    {
-                        AddHtmlEntityInlineText(text, literalInline);
-                    }
-                    else if (literalInline.Parent is EmphasisInline emphasisInline)
-                    {
-                        if (emphasisInline.IsDouble)
+                        if (container.GetPrevious(literal) is HtmlInline && container.GetNext(literal) is HtmlInline)
+                            AddHtmlInLineText(text, literal);
+                        else if (container.GetNext(literal) is HtmlEntityInline entityInLine)
+                            AddHtmlEntityInlineText(text, entityInLine);
+                        else
                         {
-                            switch (emphasisInline.DelimiterChar)
+                            switch (literal.Parent)
                             {
-                                case '*':
-                                    AddBoldText(text, literalInline);
+                                case EmphasisInline emphasisInline when emphasisInline.IsDouble:
+                                    AddStrongEmphasis(text, emphasisInline);
                                     break;
+                                case EmphasisInline emphasisInline:
+                                    AddEmphasis(text, emphasisInline);
+                                    break;
+                                case LinkInline linkInline:
+                                {
+                                    if (!linkInline.IsImage)
+                                        AddLinkText(text, linkInline);
+                                    break;
+                                }
                                 default:
-                                    AddDefalutLiteralInlineText(text, literalInline);
+                                    AddText(text);
                                     break;
                             }
                         }
-                        else
-                        {
-                            AddDefalutLiteralInlineText(text, literalInline);
-                        }
-                    }
-                    else if (literalInline.Parent is LinkInline linkInline)
-                    {
-                        if (!linkInline.IsImage)
-                            AddLinkText(linkInline, text);
-                    }
-                    else
-                    {
-                        AddDefalutLiteralInlineText(text, literalInline);
-                    }
-                }
-                else if (single is CodeInline codeInline)
-                {
-                    AddCodeInLineText(codeInline);
-                }
-                else if (single is LinkInline linkInline)
-                {
-                    if (linkInline.IsImage)
-                    {
+                        break;
+                    case CodeInline codeInline:
+                        AddCodeInLine(codeInline);
+                        break;
+                    case LinkInline linkInline when linkInline.IsImage:
                         AddImage(linkInline);
-                    }
+                        break;
+                    case HtmlInline _:
+                    case HtmlEntityInline _:
+                        // Handled by the next literal
+                        break;
+                    case LineBreakInline lineBreak:
+                        // Todo: Why was this empty
+                        break;
+                    case ContainerInline innerContainer:
+                        AddInlineText(innerContainer);
+                        break;
+                    default:
+                        AddNotImplementedInlineText(single);
+                        break;
                 }
-                else if (single is HtmlInline || single is HtmlEntityInline || single is EmphasisInline)
-                {
-                    //DO nothing
-                }
-                else if (single is LineBreakInline)
-                {
-                    //IDK what is this but just ignore
-                }
-                else
-                {
-                    AddNotImpiementedInlineText(single);
-                }
-
-                //generate child
-                if (single is ContainerInline containerInline)
-                    AddInlineText(containerInline);
             }
-
-            return this;
         }
 
         protected virtual void AddHtmlInLineText(string text, LiteralInline literalInline)
-        {
-            AddText(text, t => t.Colour = Color4.MediumPurple);
-        }
+            => AddText(text, t => t.Colour = Color4.MediumPurple);
 
-        protected virtual void AddHtmlEntityInlineText(string text, LiteralInline literalInline)
-        {
-            AddText(text, t => t.Colour = Color4.GreenYellow);
-        }
+        protected virtual void AddHtmlEntityInlineText(string text, HtmlEntityInline entityInLine)
+            => AddText(text, t => t.Colour = Color4.GreenYellow);
 
-        protected virtual void AddBoldText(string text, LiteralInline literalInline)
+        protected virtual void AddEmphasis(string text, EmphasisInline emphasisInLine)
         {
-            //TODO : make real "Bold text"
-            AddDrawable(new SpriteText
+            switch (emphasisInLine.DelimiterChar)
             {
-                Text = text,
-                Colour = Color4.LightGray
-            }.WithEffect(new GlowEffect
-            {
-                BlurSigma = new Vector2(1f),
-                Strength = 2f,
-                Colour = ColourInfo.GradientHorizontal(new Color4(1.2f, 1.2f, 1.2f, 1f), new Color4(1.2f, 1.2f, 1.2f, 1f)),
-            }));
+                case '*':
+                case '_':
+                    AddText(text);
+                    break;
+            }
         }
 
-        protected virtual void AddLinkText(LinkInline linkInline, string text)
-            => AddDrawable(new MarkdownLinkText(linkInline, text));
-
-        protected virtual void AddDefalutLiteralInlineText(string text, LiteralInline literalInline)
+        protected virtual void AddStrongEmphasis(string text, EmphasisInline emphasisInLine)
         {
-            AddText(text);
+            switch (emphasisInLine.DelimiterChar)
+            {
+                case '*':
+                case '_':
+                    AddDrawable(CreateBoldText(text));
+                    break;
+            }
         }
 
-        protected virtual void AddCodeInLineText(CodeInline codeInline)
-        {
-            AddText(codeInline.Content, t =>
-            {
-                t.Colour = Color4.Orange;
-            });
-        }
+        protected virtual void AddLinkText(string text, LinkInline linkInline)
+            => AddDrawable(new MarkdownLinkText(text, linkInline));
+
+        protected virtual void AddCodeInLine(CodeInline codeInline)
+            => AddText(codeInline.Content, t => { t.Colour = Color4.Orange; });
 
         protected virtual void AddImage(LinkInline linkInline)
-        {
-            var imageUrl = linkInline.Url;
-            //insert a image
-            AddDrawable(new MarkdownImage(imageUrl));
-        }
+            => AddDrawable(new MarkdownImage(linkInline.Url));
 
-        protected virtual void AddNotImpiementedInlineText(Inline inline)
+        protected virtual void AddNotImplementedInlineText(Inline inline)
+            => AddText(inline.GetType() + " not implemented.", t => t.Colour = Color4.Red);
+
+        protected virtual Drawable CreateBoldText(string text) => new SpriteText
         {
-            AddText(inline.GetType() + " Not implemented.", t => t.Colour = Color4.Red);
-        }
+            Text = text,
+            Colour = Color4.LightGray
+        }.WithEffect(new GlowEffect // Todo: osu!framework doesn't have a bold font yet
+        {
+            BlurSigma = new Vector2(1f),
+            Strength = 2f,
+            Colour = ColourInfo.GradientHorizontal(new Color4(1.2f, 1.2f, 1.2f, 1f), new Color4(1.2f, 1.2f, 1.2f, 1f)),
+        });
     }
 }

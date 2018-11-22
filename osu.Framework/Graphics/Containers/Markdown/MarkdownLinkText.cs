@@ -23,7 +23,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
         private readonly string url;
         private readonly ClickableContainer textContainer;
 
-        public MarkdownLinkText(LinkInline linkInline, string text)
+        public MarkdownLinkText(string text, LinkInline linkInline)
         {
             url = linkInline.Url ?? string.Empty;
 
