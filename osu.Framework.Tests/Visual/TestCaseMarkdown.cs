@@ -1,11 +1,11 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System;
 using System.ComponentModel;
-using System.Net.Http;
+using System.Threading.Tasks;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers.Markdown;
+using osu.Framework.IO.Network;
 using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual
@@ -102,32 +102,20 @@ Line below";
 
             AddStep("MarkdownLink", () =>
             {
-                markdownContainer.Text = @"[Url text](https://www.wonderplugin.com/videos/demo-image0.jpg)";
+                markdownContainer.Text = @"[click the circles to the beat](https://osu.ppy.sh)";
             });
 
             AddStep("MarkdownImage", () =>
             {
-                markdownContainer.Text = @"![Drag Racing](https://www.wonderplugin.com/videos/demo-image0.jpg)
-![Drag Racing](https://www.wonderplugin.com/videos/demo-image0.jpg)
-![Drag Racing](https://www.wonderplugin.com/videos/demo-image0.jpg)
-![Drag Racing](https://www.wonderplugin.com/videos/demo-image0.jpg)
-![Drag Racing](https://www.wonderplugin.com/videos/demo-image0.jpg)";
+                markdownContainer.Text = @"![peppy!](https://a.ppy.sh/2)";
             });
 
             AddStep("MarkdownFromInternet", () =>
             {
-                try
-                {
-                    //test readme in https://github.com/lunet-io/scriban/blob/master/doc/language.md#92-if-expression-else-else-if-expression
-                    const string url = "https://raw.githubusercontent.com/lunet-io/scriban/master/doc/language.md";
-                    var httpClient = new HttpClient();
-                    markdownContainer.Text = httpClient.GetStringAsync(url).ConfigureAwait(false).GetAwaiter().GetResult();
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                }
+                var req = new WebRequest("https://raw.githubusercontent.com/ppy/osu-wiki/master/wiki/Skinning/skin.ini/en.md");
+                req.Finished += () => markdownContainer.Text = req.ResponseString;
 
+                Task.Run(() => req.PerformAsync());
             });
 
             AddStep("new lines", () =>
