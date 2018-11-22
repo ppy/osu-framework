@@ -107,6 +107,13 @@ namespace osu.Framework.Tests.Visual
             AddUntilStep(() => hasResult, "wait for result");
             AddAssert("thrown", () => thrown == shouldThrow);
 
+            AddStep("allow load completion", () =>
+            {
+                container.LoadingEvent.Set();
+                container.ReadyEvent.Set();
+                container.LoadedEvent.Set();
+            });
+
             void tryThrow()
             {
                 try
