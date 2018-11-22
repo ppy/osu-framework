@@ -186,14 +186,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
             RightSpacing = 100
         };
 
-        protected virtual FillFlowContainer CreateChildFillFlowContainer() => new FillFlowContainer
-        {
-            Direction = FillDirection.Vertical,
-            Spacing = new Vector2(10, 10),
-            Padding = new MarginPadding { Left = 25, Right = 5 },
-            AutoSizeAxes = Axes.Y,
-            RelativeSizeAxes = Axes.X,
-        };
+        protected virtual FillFlowContainer CreateChildFillFlowContainer() => new MarkdownList();
 
         protected virtual MarkdownSeperator CreateSeparator() => new MarkdownSeperator();
 
