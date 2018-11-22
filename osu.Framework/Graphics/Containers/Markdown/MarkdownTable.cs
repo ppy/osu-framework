@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Markdig.Extensions.Tables;
+using osu.Framework.Caching;
 
 namespace osu.Framework.Graphics.Containers.Markdown
 {
@@ -18,112 +19,123 @@ namespace osu.Framework.Graphics.Containers.Markdown
     /// </code>
     public class MarkdownTable : CompositeDrawable
     {
-        private readonly MarkdownTableContainer tableContainer;
-        private readonly List<List<MarkdownTableCell>> listContainerArray = new List<List<MarkdownTableCell>>();
+        private readonly TableContainer tableContainer;
+        private readonly Table table;
 
-        public float RightSpacing { get; set; }
+        private Cached definitionCache = new Cached();
 
         public MarkdownTable(Table table)
         {
+            this.table = table;
+
             AutoSizeAxes = Axes.Y;
             RelativeSizeAxes = Axes.X;
 
-            foreach (var block in table)
+            table.Normalize();
+
+            List<List<Drawable>> rows = new List<List<Drawable>>();
+
+            foreach (var tableRow in table.OfType<TableRow>())
             {
-                var tableRow = (TableRow)block;
-                List<MarkdownTableCell> rows = new List<MarkdownTableCell>();
+                var row = new List<Drawable>();
 
-                if (tableRow != null)
-                    for (int columnIndex = 0; columnIndex < tableRow.Count; columnIndex++)
-                    {
-                        var columnDimensions = table.ColumnDefinitions[columnIndex];
-                        var tableCell = (TableCell)tableRow[columnIndex];
-                        if (tableCell != null)
-                            rows.Add(CreateMarkdownTableCell(tableCell, columnDimensions, listContainerArray.Count, columnIndex));
-                    }
+                for (int c = 0; c < tableRow.Count; c++)
+                {
+                    var columnDimensions = table.ColumnDefinitions[c];
+                    row.Add(CreateTableCell((TableCell)tableRow[c], columnDimensions, rows.Count == 0));
+                }
 
-                listContainerArray.Add(rows);
+                rows.Add(row);
             }
 
-            InternalChild = tableContainer = new MarkdownTableContainer
+            InternalChild = tableContainer = new TableContainer
             {
                 AutoSizeAxes = Axes.Y,
                 RelativeSizeAxes = Axes.X,
-                Content = listContainerArray.Select(x => x.Select(y => (Drawable)y).ToArray()).ToArray(),
+                Content = rows.Select(x => x.ToArray()).ToArray(),
             };
         }
 
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
-            var reault = base.Invalidate(invalidation, source, shallPropagate);
-            if ((invalidation & Invalidation.DrawSize) > 0 && Parent!=null)
-            {
-                updateColumnDefinitions();
-                updateRowDefinitions();
-            }
-            return reault;
+            var result = base.Invalidate(invalidation, source, shallPropagate);
+
+            if ((invalidation & Invalidation.DrawSize) > 0 && Parent != null)
+                result &= definitionCache.Invalidate();
+
+            return result;
         }
 
-        private void updateColumnDefinitions()
+        protected override void Update()
         {
-            if(!listContainerArray.Any())
+            base.Update();
+
+            validateDefinitions();
+        }
+
+        private void validateDefinitions()
+        {
+            if (!definitionCache.IsValid)
+            {
+                validateColumnDefinitions();
+                validateRowDefinitions();
+
+                definitionCache.Validate();
+            }
+        }
+
+        private void validateColumnDefinitions()
+        {
+            if (table.Count == 0)
                 return;
 
-            var totalColumn = listContainerArray.Max(x => x.Count);
-            var totalRows = listContainerArray.Count;
+            Span<float> columnWidths = stackalloc float[tableContainer.Content[0].Length];
 
-            var listcolumnMaxWidth = new float[totalColumn];
+            // Compute the maximum width of each column
+            for (int r = 0; r < tableContainer.Content.Length; r++)
+            for (int c = 0; c < tableContainer.Content[r].Length; c++)
+                columnWidths[c] = Math.Max(columnWidths[c], ((MarkdownTableCell)tableContainer.Content[r][c]).TextFlowContainer.DrawWidth);
 
-            for (int row = 0; row < totalRows; row++)
+            float totalWidth = 0;
+            for (int i = 0; i < columnWidths.Length; i++)
+                totalWidth += columnWidths[i];
+
+            var columnDimensions = new Dimension[columnWidths.Length];
+
+            if (totalWidth < DrawWidth)
             {
-                for (int column = 0; column < totalColumn; column++)
-                {
-                    var colimnTextTotalWidth = listContainerArray[row][column].TextFlowContainer.TotalTextWidth;
-
-                    //get max width
-                    listcolumnMaxWidth[column] = Math.Max(listcolumnMaxWidth[column], colimnTextTotalWidth);
-                }
-            }
-
-            listcolumnMaxWidth = listcolumnMaxWidth.Select(x => x + 20).ToArray();
-
-            var columnDimensions = new Dimension[totalColumn];
-
-            //if max width < DrawWidth, means set absolute value to each column
-            if (listcolumnMaxWidth.Sum() < DrawWidth - RightSpacing)
-            {
-                //not relative , define value instead
-                for (int column = 0; column < totalColumn; column++)
-                {
-                    columnDimensions[column] = new Dimension(GridSizeMode.Absolute, listcolumnMaxWidth[column]);
-                }
+                // The columns will fit within the table, use absolute column widths
+                for (int i = 0; i < columnWidths.Length; i++)
+                    columnDimensions[i] = new Dimension(GridSizeMode.Absolute, columnWidths[i]);
             }
             else
             {
-                //set to relative
-                var totalWidth = listcolumnMaxWidth.Sum();
-                for (int column = 0; column < totalColumn; column++)
-                {
-                    columnDimensions[column] = new Dimension(GridSizeMode.Relative, listcolumnMaxWidth[column] / totalWidth);
-                }
+                // The columns will overflow the table, must convert them to a relative size
+                for (int i = 0; i < columnWidths.Length; i++)
+                    columnDimensions[i] = new Dimension(GridSizeMode.Relative, totalWidth / columnWidths[i]);
             }
+
             tableContainer.ColumnDimensions = columnDimensions;
         }
 
-        private void updateRowDefinitions()
+        private void validateRowDefinitions()
         {
-            if (!listContainerArray.Any())
+            if (table.Count == 0)
                 return;
 
-            tableContainer.RowDimensions = listContainerArray.Select(x => new Dimension(GridSizeMode.Absolute, x.Max(y => y.TextFlowContainer.DrawHeight + 10))).ToArray();
+            var rowDefinitions = new Dimension[tableContainer.Content.Length];
+            for (int r = 0; r < tableContainer.Content.Length; r++)
+                rowDefinitions[r] = new Dimension(GridSizeMode.Absolute, tableContainer.Content[r].Max(c => ((MarkdownTableCell)c).TextFlowContainer.DrawHeight));
+
+            tableContainer.RowDimensions = rowDefinitions;
         }
 
-        protected virtual MarkdownTableCell CreateMarkdownTableCell(TableCell cell, TableColumnDefinition definition, int rowNumber,int columnNumber)
+        protected virtual MarkdownTableCell CreateTableCell(TableCell cell, TableColumnDefinition definition, bool isHeading)
         {
-            return new MarkdownTableCell(cell, definition, rowNumber, columnNumber);
+            return new MarkdownTableCell(cell, definition, isHeading);
         }
 
-        private class MarkdownTableContainer : GridContainer
+        private class TableContainer : GridContainer
         {
             public new Axes AutoSizeAxes
             {

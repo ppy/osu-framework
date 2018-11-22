@@ -3,7 +3,6 @@
 
 using Markdig.Extensions.Tables;
 using Markdig.Syntax;
-using osu.Framework.Graphics.Shapes;
 using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Containers.Markdown
@@ -18,65 +17,36 @@ namespace osu.Framework.Graphics.Containers.Markdown
     {
         public readonly MarkdownTextFlowContainer TextFlowContainer;
 
-        public MarkdownTableCell(TableCell cell, TableColumnDefinition definition, int rowNumber,int columnNumber)
+        public MarkdownTableCell(TableCell cell, TableColumnDefinition definition, bool isHeading)
         {
             RelativeSizeAxes = Axes.Both;
+
             BorderThickness = 1.8f;
             BorderColour = Color4.White;
             Masking = true;
 
-            InternalChildren = new []
-            {
-                CreateBackground(rowNumber,columnNumber),
-                TextFlowContainer = CreateMarkdownTextFlowContainer()
-            };
+            InternalChild = TextFlowContainer = CreateTextFlowContainer();
 
-            foreach (var block in cell)
-            {
-                var single = (ParagraphBlock)block;
-                TextFlowContainer.ParagraphBlock = single;
-            }
+            if (cell.LastChild is ParagraphBlock paragraphBlock)
+                TextFlowContainer.ParagraphBlock = paragraphBlock;
 
             switch (definition.Alignment)
             {
                 case TableColumnAlign.Center:
-                    TextFlowContainer.TextAnchor = Anchor.TopCentre;
+                    TextFlowContainer.TextAnchor = Anchor.Centre;
                     break;
-
                 case TableColumnAlign.Right:
-                    TextFlowContainer.TextAnchor = Anchor.TopRight;
+                    TextFlowContainer.TextAnchor = Anchor.CentreRight;
                     break;
-
                 default:
-                    TextFlowContainer.TextAnchor = Anchor.TopLeft;
+                    TextFlowContainer.TextAnchor = Anchor.CentreLeft;
                     break;
             }
         }
 
-        protected virtual Drawable CreateBackground(int rowNumber, int columnNumber)
+        protected virtual MarkdownTextFlowContainer CreateTextFlowContainer() => new MarkdownTextFlowContainer
         {
-            var backgroundColor = rowNumber % 2 != 0 ? Color4.White : Color4.LightGray;
-            var backgroundAlpha = 0.3f;
-            if (rowNumber == 0)
-            {
-                backgroundColor = Color4.White;
-                backgroundAlpha = 0.4f;
-            }
-
-            return new Box
-            {
-                RelativeSizeAxes = Axes.Both,
-                Colour = backgroundColor,
-                Alpha = backgroundAlpha
-            };
-        }
-
-        protected virtual MarkdownTextFlowContainer CreateMarkdownTextFlowContainer()
-        {
-            return new MarkdownTextFlowContainer
-            {
-                Padding = new MarginPadding { Left = 5, Right = 5, Top = 5, Bottom = 0 }
-            };
-        }
+            Padding = new MarginPadding { Left = 5, Right = 5, Top = 5, Bottom = 0 }
+        };
     }
 }

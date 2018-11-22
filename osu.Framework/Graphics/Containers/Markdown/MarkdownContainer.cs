@@ -204,10 +204,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
         /// </summary>
         /// <param name="table">The <see cref="Table"/> to visualise.</param>
         /// <returns>The visualiser.</returns>
-        protected virtual MarkdownTable CreateTable(Table table) => new MarkdownTable(table)
-        {
-            RightSpacing = 100
-        };
+        protected virtual MarkdownTable CreateTable(Table table) => new MarkdownTable(table);
 
         /// <summary>
         /// Creates the visualiser for a <see cref="ListBlock"/>.
