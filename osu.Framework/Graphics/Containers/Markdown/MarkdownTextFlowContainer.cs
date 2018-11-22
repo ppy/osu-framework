@@ -98,7 +98,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
                     else if (literalInline.Parent is LinkInline linkInline)
                     {
                         if (!linkInline.IsImage)
-                            AddLinkText(text, literalInline);
+                            AddLinkText(linkInline, text);
                     }
                     else
                     {
@@ -162,18 +162,8 @@ namespace osu.Framework.Graphics.Containers.Markdown
             }));
         }
 
-        protected virtual void AddLinkText(string text, LiteralInline literalInline)
-        {
-            var url = (literalInline.Parent as LinkInline)?.Url;
-            //TODO : LinkText cannot show Tooltip and trigger click action
-            var linktext = new MarkdownLinkText
-            {
-                Text = text,
-                Url = url,
-                TextColour = Color4.DodgerBlue
-            };
-            AddDrawable(linktext);
-        }
+        protected virtual void AddLinkText(LinkInline linkInline, string text)
+            => AddDrawable(new MarkdownLinkText(linkInline, text));
 
         protected virtual void AddDefalutLiteralInlineText(string text, LiteralInline literalInline)
         {
