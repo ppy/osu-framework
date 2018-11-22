@@ -10,12 +10,8 @@ namespace osu.Framework.Graphics.Containers.Markdown
     /// </summary>
     public class MarkdownParagraph : MarkdownTextFlowContainer
     {
-        public readonly int Level;
-
         public MarkdownParagraph(ParagraphBlock paragraphBlock, int level)
         {
-            Level = level;
-
             AddInlineText(paragraphBlock.Inline);
         }
     }
