@@ -1,7 +1,6 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System.Linq;
 using Markdig.Syntax;
 using osu.Framework.Graphics.Shapes;
 using osuTK.Graphics;
@@ -30,32 +29,22 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 textFlowContainer = CreateTextArea(),
             };
 
-            var lines = fencedCodeBlock.Lines.Lines.Take(fencedCodeBlock.Lines.Count);
-            foreach (var sligneLine in lines)
-            {
-                var lineString = sligneLine.ToString();
-                textFlowContainer.AddParagraph(lineString);
-            }
+            foreach (var line in fencedCodeBlock.Lines.Lines)
+                textFlowContainer.AddParagraph(line.ToString());
         }
 
-        protected virtual Drawable CreateBackground()
+        protected virtual Drawable CreateBackground() => new Box
         {
-            return new Box
-            {
-                RelativeSizeAxes = Axes.Both,
-                Colour = Color4.Gray,
-                Alpha = 0.5f
-            };
-        }
+            RelativeSizeAxes = Axes.Both,
+            Colour = Color4.Gray,
+            Alpha = 0.5f
+        };
 
-        protected virtual TextFlowContainer CreateTextArea()
+        protected virtual TextFlowContainer CreateTextArea() => new TextFlowContainer
         {
-            return new TextFlowContainer
-            {
-                RelativeSizeAxes = Axes.X,
-                AutoSizeAxes = Axes.Y,
-                Margin = new MarginPadding { Left = 10, Right = 10, Top = 10, Bottom = 10 }
-            };
-        }
+            RelativeSizeAxes = Axes.X,
+            AutoSizeAxes = Axes.Y,
+            Margin = new MarginPadding { Left = 10, Right = 10, Top = 10, Bottom = 10 }
+        };
     }
 }
