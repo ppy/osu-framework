@@ -3,7 +3,6 @@
 
 using System;
 using System.Globalization;
-using NUnit.Framework;
 using OpenTK;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics;
@@ -17,8 +16,7 @@ namespace osu.Framework.Tests.Visual
     {
         private readonly Bindable<CountType> countType = new Bindable<CountType>();
 
-        [Test]
-        public void RunTest() => Schedule(() =>
+        public TestCaseCountingText()
         {
             Counter counter;
 
@@ -47,7 +45,7 @@ namespace osu.Framework.Tests.Visual
             AddStep("1 -> 4 -> 1 | 6 sec", beginStep(() => counter.CountTo(1).CountTo(4, 3000).Then().CountTo(1, 3000)));
             AddStep("1 -> 4 -> 1 | 2 sec", beginStep(() => counter.CountTo(1).CountTo(4, 1000).Then().CountTo(1, 1000)));
             AddStep("1 -> 100 | 5 sec | OutQuint", beginStep(() => counter.CountTo(1).CountTo(100, 5000, Easing.OutQuint)));
-        });
+        }
 
         private Action lastStep;
         private Action beginStep(Action stepAction) => () =>
