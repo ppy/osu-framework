@@ -3,7 +3,7 @@
 
 using System;
 using osu.Framework.Extensions.MatrixExtensions;
-using OpenTK;
+using osuTK;
 using osu.Framework.Extensions.TypeExtensions;
 
 namespace osu.Framework.Graphics

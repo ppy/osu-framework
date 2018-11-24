@@ -12,7 +12,7 @@ using osu.Framework.Input.Handlers.Joystick;
 using osu.Framework.Input.Handlers.Keyboard;
 using osu.Framework.Input.Handlers.Mouse;
 using osu.Framework.Logging;
-using OpenTK;
+using osuTK;
 
 namespace osu.Framework.Platform
 {
@@ -65,14 +65,14 @@ namespace osu.Framework.Platform
         {
             var defaultEnabled = new InputHandler[]
             {
-                new OpenTKMouseHandler(),
-                new OpenTKKeyboardHandler(),
-                new OpenTKJoystickHandler(),
+                new OsuTKMouseHandler(),
+                new OsuTKKeyboardHandler(),
+                new OsuTKJoystickHandler(),
             };
 
             var defaultDisabled = new InputHandler[]
             {
-                new OpenTKRawMouseHandler(),
+                new OsuTKRawMouseHandler(),
             };
 
             foreach (var h in defaultDisabled)

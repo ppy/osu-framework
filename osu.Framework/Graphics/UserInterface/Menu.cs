@@ -6,15 +6,15 @@ using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Caching;
 using osu.Framework.Extensions.IEnumerableExtensions;
-using OpenTK.Graphics;
+using osuTK.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
 using osu.Framework.MathUtils;
 using osu.Framework.Threading;
-using OpenTK;
-using OpenTK.Input;
+using osuTK;
+using osuTK.Input;
 
 namespace osu.Framework.Graphics.UserInterface
 {

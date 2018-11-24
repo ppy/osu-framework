@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using OpenTK;
+using osuTK;
 
 namespace osu.Framework.Graphics.Shaders
 {
@@ -29,6 +29,7 @@ namespace osu.Framework.Graphics.Shaders
             global_properties[(int)GlobalProperty.AlphaExponent] = new UniformMapping<float>("g_AlphaExponent");
             global_properties[(int)GlobalProperty.EdgeOffset] = new UniformMapping<Vector2>("g_EdgeOffset");
             global_properties[(int)GlobalProperty.DiscardInner] = new UniformMapping<bool>("g_DiscardInner");
+            global_properties[(int)GlobalProperty.InnerCornerRadius] = new UniformMapping<float>("g_InnerCornerRadius");
         }
 
         /// <summary>

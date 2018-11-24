@@ -12,8 +12,8 @@ using osu.Framework.Graphics.UserInterface;
 using osu.Framework.MathUtils;
 using osu.Framework.Testing;
 using osu.Framework.Threading;
-using OpenTK;
-using OpenTK.Graphics;
+using osuTK;
+using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual
 {

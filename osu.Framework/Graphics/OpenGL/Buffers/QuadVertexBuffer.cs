@@ -3,7 +3,7 @@
 
 using System;
 using osu.Framework.Graphics.OpenGL.Vertices;
-using OpenTK.Graphics.ES30;
+using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
 {

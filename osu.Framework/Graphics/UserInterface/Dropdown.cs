@@ -6,12 +6,12 @@ using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions;
-using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Containers;
+using osuTK.Graphics;
+using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Sprites;
-using OpenTK;
-using OpenTK.Graphics;
 using osu.Framework.Input.Events;
+using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {

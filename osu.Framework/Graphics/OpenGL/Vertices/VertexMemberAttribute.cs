@@ -2,7 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using OpenTK.Graphics.ES30;
+using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.OpenGL.Vertices
 {
@@ -11,13 +11,13 @@ namespace osu.Framework.Graphics.OpenGL.Vertices
     {
         /// <summary>
         /// The number of components of <see cref="Type"/> represented by this vertex attribute member.
-        /// E.g. a <see cref="OpenTK.Vector2"/> is represented by **2** <see cref="VertexAttribPointerType.Float"/> components.
+        /// E.g. a <see cref="osuTK.Vector2"/> is represented by **2** <see cref="VertexAttribPointerType.Float"/> components.
         /// </summary>
         public int Count { get; private set; }
 
         /// <summary>
         /// The type of each component of this vertex attribute member.
-        /// E.g. a <see cref="OpenTK.Vector2"/> is represented by 2 **<see cref="VertexAttribPointerType.Float"/>** components.
+        /// E.g. a <see cref="osuTK.Vector2"/> is represented by 2 **<see cref="VertexAttribPointerType.Float"/>** components.
         /// </summary>
         public VertexAttribPointerType Type { get; private set; }
 
