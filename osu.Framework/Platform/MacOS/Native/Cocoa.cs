@@ -61,7 +61,7 @@ namespace osu.Framework.Platform.MacOS.Native
         [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
         public static extern void SendVoid(IntPtr receiver, IntPtr selector, IntPtr intPtr1, IntPtr intPtr2, IntPtr intPtr3, IntPtr intPtr4);
 
-        private static readonly Type type_cocoa = typeof(OpenTK.NativeWindow).Assembly.GetTypes().Single(x => x.Name == "Cocoa");
+        private static readonly Type type_cocoa = typeof(osuTK.NativeWindow).Assembly.GetTypes().Single(x => x.Name == "Cocoa");
         private static readonly MethodInfo method_cocoa_from_ns_string = type_cocoa.GetMethod("FromNSString");
         private static readonly MethodInfo method_cocoa_to_ns_string = type_cocoa.GetMethod("ToNSString");
         private static readonly MethodInfo method_cocoa_get_string_constant = type_cocoa.GetMethod("GetStringConstant");

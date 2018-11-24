@@ -3,7 +3,7 @@
 
 using osu.Framework.Platform.Linux.Native;
 using osu.Framework.Platform.Linux.Sdl;
-using OpenTK;
+using osuTK;
 
 namespace osu.Framework.Platform.Linux
 {

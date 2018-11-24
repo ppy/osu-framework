@@ -10,7 +10,7 @@ using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
-using OpenTK;
+using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {

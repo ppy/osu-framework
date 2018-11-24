@@ -7,7 +7,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using ManagedBass;
-using OpenTK;
+using osuTK;
 
 namespace osu.Framework.Audio.Track
 {

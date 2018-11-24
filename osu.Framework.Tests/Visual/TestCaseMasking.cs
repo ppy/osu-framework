@@ -8,8 +8,8 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
 using osu.Framework.Testing;
-using OpenTK;
-using OpenTK.Graphics;
+using osuTK;
+using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual
 {
@@ -450,7 +450,8 @@ namespace osu.Framework.Tests.Visual
                                 Type = EdgeEffectType.Shadow,
                                 Offset = new Vector2(0, 50),
                                 Hollow = true,
-                                Radius = 100,
+                                Radius = 50,
+                                Roundness = 50,
                                 Colour = new Color4(0, 255, 255, 255),
                             },
                         });

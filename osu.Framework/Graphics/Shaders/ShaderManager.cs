@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Text;
 using osu.Framework.IO.Stores;
 using osu.Framework.Logging;
-using OpenTK.Graphics.ES30;
+using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Shaders
 {

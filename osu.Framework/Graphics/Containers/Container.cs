@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics.Colour;
-using OpenTK;
+using osuTK;
 using System.Collections;
 
 namespace osu.Framework.Graphics.Containers

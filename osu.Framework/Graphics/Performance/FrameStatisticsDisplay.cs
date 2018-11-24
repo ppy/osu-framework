@@ -1,8 +1,8 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using OpenTK.Graphics;
-using OpenTK.Input;
+using osuTK.Graphics;
+using osuTK.Input;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
@@ -16,7 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Input.Events;
-using OpenTK;
+using osuTK;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
