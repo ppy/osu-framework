@@ -58,10 +58,18 @@ namespace osu.Framework.Tests.Visual
                 Size = new Vector2(200, 30)
             };
 
+            var withoutDropdownTabControl = new StyledTabControlWithoutDropdown
+            {
+                Position = new Vector2(200, 450),
+                Size = new Vector2(200, 30)
+            };
+            items.AsEnumerable().ForEach(item => withoutDropdownTabControl.AddItem(item.Value));
+
             Add(simpleTabcontrol);
             Add(pinnedAndAutoSort);
             Add(platformActionContainer);
             Add(removeAllTabControl);
+            Add(withoutDropdownTabControl);
 
             var nextTest = new Func<TestEnum>(() => items.AsEnumerable()
                                                          .Select(item => item.Value)
@@ -119,6 +127,17 @@ namespace osu.Framework.Tests.Visual
 
             AddStep("Remove all items", () => removeAllTabControl.Clear());
             AddAssert("Ensure no items", () => !removeAllTabControl.Items.Any());
+
+            AddAssert("Ensure any items", () => withoutDropdownTabControl.Items.Any());
+            AddStep("Remove all items", () => withoutDropdownTabControl.Clear());
+            AddAssert("Ensure no items", () => !withoutDropdownTabControl.Items.Any());
+        }
+
+        private class StyledTabControlWithoutDropdown : TabControl<TestEnum>
+        {
+            protected override Dropdown<TestEnum> CreateDropdown() => null;
+
+            protected override TabItem<TestEnum> CreateTabItem(TestEnum value) => new StyledTabItem(value);
         }
 
         private class StyledTabControl : TabControl<TestEnum>
