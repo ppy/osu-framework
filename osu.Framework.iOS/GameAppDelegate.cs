@@ -19,12 +19,12 @@ namespace osu.Framework.iOS
 
         public override bool FinishedLaunching(UIApplication application, NSDictionary launchOptions)
         {
-            AotImageSharp();
+            aotImageSharp();
 
             Window = new UIWindow(UIScreen.MainScreen.Bounds);
             gameView = new iOSGameView(new RectangleF(0.0f, 0.0f, (float)Window.Frame.Size.Width, (float)Window.Frame.Size.Height));
 
-            UIViewController viewController = new UIViewController
+            GameViewController viewController = new GameViewController
             {
                 View = gameView
             };
@@ -40,7 +40,7 @@ namespace osu.Framework.iOS
             return true;
         }
 
-        private void AotImageSharp()
+        private void aotImageSharp()
         {
             System.Runtime.CompilerServices.Unsafe.SizeOf<Rgba32>();
             System.Runtime.CompilerServices.Unsafe.SizeOf<long>();
@@ -48,6 +48,16 @@ namespace osu.Framework.iOS
             {
                 new SixLabors.ImageSharp.Formats.Png.PngDecoder().Decode<Rgba32>(SixLabors.ImageSharp.Configuration.Default, null);
             } catch { }
+        }
+    }
+
+    internal class GameViewController : UIViewController
+    {
+        public override void DidRotate(UIInterfaceOrientation fromInterfaceOrientation)
+        {
+            base.DidRotate(fromInterfaceOrientation);
+            var gameView = View as iOSGameView;
+            gameView?.RequestResizeFrameBuffer();
         }
     }
 }

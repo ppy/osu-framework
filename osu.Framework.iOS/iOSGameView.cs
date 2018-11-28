@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using osu.Framework.Graphics.OpenGL;
 using OpenGLES;
 using CoreAnimation;
+using osuTK.Graphics.ES30;
 
 namespace osu.Framework.iOS
 {
@@ -53,6 +54,22 @@ namespace osu.Framework.iOS
         {
             base.CreateFrameBuffer();
             GLWrapper.DefaultFrameBuffer = Framebuffer;
+        }
+
+        private bool needsResizeFrameBuffer;
+        public void RequestResizeFrameBuffer() => needsResizeFrameBuffer = true;
+
+        public override void SwapBuffers()
+        {
+            base.SwapBuffers();
+
+            // ResizeFrameBuffer needs to run on the main thread, but triggered in such a way that it blocks our draw thread until done
+            if (needsResizeFrameBuffer)
+            {
+                needsResizeFrameBuffer = false;
+                GL.Finish();
+                InvokeOnMainThread(ResizeFrameBuffer);
+            }
         }
 
         public class DummyTextField : UITextField
