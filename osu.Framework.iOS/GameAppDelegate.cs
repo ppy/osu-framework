@@ -4,6 +4,7 @@
 using UIKit;
 using Foundation;
 using System.Drawing;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.iOS
 {
@@ -18,6 +19,8 @@ namespace osu.Framework.iOS
 
         public override bool FinishedLaunching(UIApplication application, NSDictionary launchOptions)
         {
+            AotImageSharp();
+
             Window = new UIWindow(UIScreen.MainScreen.Bounds);
             gameView = new iOSGameView(new RectangleF(0.0f, 0.0f, (float)Window.Frame.Size.Width, (float)Window.Frame.Size.Height));
 
@@ -35,6 +38,16 @@ namespace osu.Framework.iOS
             host.Run(CreateGame());
 
             return true;
+        }
+
+        private void AotImageSharp()
+        {
+            System.Runtime.CompilerServices.Unsafe.SizeOf<Rgba32>();
+            System.Runtime.CompilerServices.Unsafe.SizeOf<long>();
+            try
+            {
+                new SixLabors.ImageSharp.Formats.Png.PngDecoder().Decode<Rgba32>(SixLabors.ImageSharp.Configuration.Default, null);
+            } catch { }
         }
     }
 }

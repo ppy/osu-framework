@@ -9,7 +9,7 @@ namespace osu.Framework.iOS
 {
     public class iOSGameWindow : GameWindow
     {
-        public static iOSGameView GameView;
+        internal static iOSGameView GameView;
 
         public iOSGameWindow() : base(GameView)
         {
@@ -20,7 +20,20 @@ namespace osu.Framework.iOS
             //throw new NotImplementedException();
         }
 
-
         public override IGraphicsContext Context => GameView.GraphicsContext;
+
+        public override bool Focused => true;
+
+        public override osuTK.WindowState WindowState { get => osuTK.WindowState.Normal; set { } }
+
+        public override void Run()
+        {
+            // do nothing for iOS
+        }
+
+        public override void Run(double updateRate)
+        {
+            // do nothing for iOS
+        }
     }
 }

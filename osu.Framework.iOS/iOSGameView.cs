@@ -7,6 +7,8 @@ using ObjCRuntime;
 using UIKit;
 using System.Threading.Tasks;
 using osu.Framework.Graphics.OpenGL;
+using OpenGLES;
+using CoreAnimation;
 
 namespace osu.Framework.iOS
 {
@@ -18,15 +20,26 @@ namespace osu.Framework.iOS
         public DummyTextField KeyboardTextField { get; private set; }
 
         [Export("layerClass")]
-        static Class LayerClass() => GetLayerClass();
+        public static Class LayerClass() => GetLayerClass();
 
         [Export("initWithFrame:")]
         public iOSGameView(System.Drawing.RectangleF frame) : base(frame)
         {
             Scale = (float)UIScreen.MainScreen.Scale;
             ContentScaleFactor = UIScreen.MainScreen.Scale;
+            LayerColorFormat = EAGLColorFormat.RGBA8;
+            ContextRenderingApi = EAGLRenderingAPI.OpenGLES3;
+            LayerRetainsBacking = false;
 
             AddSubview(KeyboardTextField = new DummyTextField());
+        }
+
+        protected override void ConfigureLayer(CAEAGLLayer eaglLayer)
+        {
+            eaglLayer.Opaque = true;
+            ExclusiveTouch = true;
+            MultipleTouchEnabled = true;
+            UserInteractionEnabled = true;
         }
 
         public float Scale { get; private set; }
@@ -39,7 +52,7 @@ namespace osu.Framework.iOS
         protected override void CreateFrameBuffer()
         {
             base.CreateFrameBuffer();
-            GLWrapper.DefaultFrameBuffer = FrameBuffer;
+            GLWrapper.DefaultFrameBuffer = Framebuffer;
         }
 
         public class DummyTextField : UITextField
