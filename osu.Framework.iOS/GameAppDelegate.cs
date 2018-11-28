@@ -5,6 +5,7 @@ using UIKit;
 using Foundation;
 using System.Drawing;
 using SixLabors.ImageSharp.PixelFormats;
+using CoreGraphics;
 
 namespace osu.Framework.iOS
 {
@@ -53,9 +54,11 @@ namespace osu.Framework.iOS
 
     internal class GameViewController : UIViewController
     {
-        public override void DidRotate(UIInterfaceOrientation fromInterfaceOrientation)
+        public override void ViewWillTransitionToSize(CGSize toSize, IUIViewControllerTransitionCoordinator coordinator)
         {
-            base.DidRotate(fromInterfaceOrientation);
+            coordinator.AnimateAlongsideTransition(_ => { }, _ => UIView.AnimationsEnabled = true);
+            UIView.AnimationsEnabled = false;
+            base.ViewWillTransitionToSize(toSize, coordinator);
             var gameView = View as iOSGameView;
             gameView?.RequestResizeFrameBuffer();
         }
