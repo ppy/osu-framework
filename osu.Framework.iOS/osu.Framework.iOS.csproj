@@ -49,7 +49,6 @@
     <Compile Include="iOSGameHost.cs" />
     <Compile Include="iOSGameWindow.cs" />
     <Compile Include="iOSGameView.cs" />
-    <Compile Include="Native\Swizzling.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
