@@ -218,6 +218,11 @@ namespace osu.Framework.Graphics.Containers.Markdown
         /// <returns>The visualiser.</returns>
         protected virtual MarkdownSeparator CreateSeparator(ThematicBreakBlock thematicBlock) => new MarkdownSeparator(thematicBlock);
 
+        /// <summary>
+        /// Creates the visualiser for an element that isn't implemented.
+        /// </summary>
+        /// <param name="markdownObject">The <see cref="MarkdownObject"/> that isn't implemented.</param>
+        /// <returns>The visualiser.</returns>
         protected virtual NotImplementedMarkdown CreateNotImplemented(IMarkdownObject markdownObject) => new NotImplementedMarkdown(markdownObject);
 
         protected virtual MarkdownPipeline CreateBuilder()
