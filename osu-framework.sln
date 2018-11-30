@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SampleGame", "SampleGame\Sa
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "osu.Framework.Tests", "osu.Framework.Tests\osu.Framework.Tests.csproj", "{79803407-6F50-484F-93F5-641911EABD8A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleGame.Desktop", "SampleGame.Desktop\SampleGame.Desktop.csproj", "{2AD6EA6F-CD5A-4348-86F1-5E228B11617D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SampleGame.Desktop", "SampleGame.Desktop\SampleGame.Desktop.csproj", "{2AD6EA6F-CD5A-4348-86F1-5E228B11617D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,5 +33,11 @@ Global
 		{2AD6EA6F-CD5A-4348-86F1-5E228B11617D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2AD6EA6F-CD5A-4348-86F1-5E228B11617D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2AD6EA6F-CD5A-4348-86F1-5E228B11617D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {27D12E10-E38E-4ECE-8DD1-77E8C387B2DD}
 	EndGlobalSection
 EndGlobal
