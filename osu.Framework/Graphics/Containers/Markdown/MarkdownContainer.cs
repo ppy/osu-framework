@@ -210,7 +210,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
         /// Creates the visualiser for a <see cref="ListBlock"/>.
         /// </summary>
         /// <returns>The visualiser.</returns>
-        protected virtual FillFlowContainer CreateList(ListBlock listBlock) => new MarkdownList(listBlock);
+        protected virtual MarkdownList CreateList(ListBlock listBlock) => new MarkdownList(listBlock);
 
         /// <summary>
         /// Creates the visualiser for a horizontal separator.
@@ -218,7 +218,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
         /// <returns>The visualiser.</returns>
         protected virtual MarkdownSeparator CreateSeparator(ThematicBreakBlock thematicBlock) => new MarkdownSeparator(thematicBlock);
 
-        protected virtual Drawable CreateNotImplemented(IMarkdownObject markdownObject) => new NotImplementedMarkdown(markdownObject);
+        protected virtual NotImplementedMarkdown CreateNotImplemented(IMarkdownObject markdownObject) => new NotImplementedMarkdown(markdownObject);
 
         protected virtual MarkdownPipeline CreateBuilder()
             => new MarkdownPipelineBuilder().UseAutoIdentifiers(AutoIdentifierOptions.GitHub)
