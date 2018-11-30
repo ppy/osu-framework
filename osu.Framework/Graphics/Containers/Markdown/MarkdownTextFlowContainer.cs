@@ -6,10 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Markdig.Syntax.Inlines;
 using osu.Framework.Extensions.IEnumerableExtensions;
-using osu.Framework.Graphics.Colour;
-using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Sprites;
-using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Containers.Markdown
@@ -140,12 +137,8 @@ namespace osu.Framework.Graphics.Containers.Markdown
         protected virtual Drawable CreateBoldText(string text) => new SpriteText
         {
             Text = text,
-            Colour = Color4.LightGray
-        }.WithEffect(new GlowEffect // Todo: osu!framework doesn't have a bold font yet
-        {
-            BlurSigma = new Vector2(1f),
-            Strength = 2f,
-            Colour = ColourInfo.GradientHorizontal(new Color4(1.2f, 1.2f, 1.2f, 1f), new Color4(1.2f, 1.2f, 1.2f, 1f)),
-        });
+            Colour = Color4.LightGray,
+            Font = "OpenSans-Bold"
+        };
     }
 }
