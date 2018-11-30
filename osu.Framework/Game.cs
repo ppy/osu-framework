@@ -129,6 +129,7 @@ namespace osu.Framework
             dependencies.Cache(Shaders);
 
             Fonts = new FontStore(new GlyphStore(Resources, @"Fonts/OpenSans"));
+            Fonts.AddStore(new GlyphStore(Resources, @"Fonts/OpenSans-Bold"));
             dependencies.Cache(Fonts);
 
             Localisation = new LocalisationManager(config);
