@@ -47,10 +47,18 @@ namespace osu.Framework.Tests.Visual
 
             for (int i = 1; i <= 200; i++)
             {
+                string font = "OpenSans-";
+                if (i % 4 > 1)
+                    font += "Bold";
+                if (i % 2 == 1)
+                    font += "Italic";
+
+                font = font.TrimEnd('-');
+
                 SpriteText text = new SpriteText
                 {
                     Text = $@"Font testy at size {i}",
-                    Font = i % 2 == 0 ? "OpenSans-Bold" : "OpenSans",
+                    Font = font,
                     AllowMultiline = true,
                     RelativeSizeAxes = Axes.X,
                     TextSize = i
