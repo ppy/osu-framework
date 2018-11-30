@@ -118,6 +118,16 @@ Line below";
                 Task.Run(() => req.PerformAsync());
             });
 
+            AddStep("Emphases", () =>
+            {
+                markdownContainer.Text = @"_italic with underscore_
+*italic with asterisk*
+__bold with underscore__
+**bold with asterisk**
+*__italic with asterisk, bold with underscore__*
+_**italic with underscore, bold with asterisk**_";
+            });
+
             AddStep("new lines", () =>
             {
                 markdownContainer.Text = @"line 1

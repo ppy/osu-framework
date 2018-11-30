@@ -106,7 +106,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
             {
                 case '*':
                 case '_':
-                    AddText(text);
+                    AddDrawable(CreateItalicText(text));
                     break;
             }
         }
@@ -134,10 +134,15 @@ namespace osu.Framework.Graphics.Containers.Markdown
         protected virtual void AddNotImplementedInlineText(Inline inline)
             => AddText(inline.GetType() + " not implemented.", t => t.Colour = Color4.Red);
 
+        protected virtual Drawable CreateItalicText(string text) => new SpriteText
+        {
+            Text = text,
+            Font = "OpenSans-Italic"
+        };
+
         protected virtual Drawable CreateBoldText(string text) => new SpriteText
         {
             Text = text,
-            Colour = Color4.LightGray,
             Font = "OpenSans-Bold"
         };
     }
