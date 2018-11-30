@@ -50,11 +50,19 @@ namespace osu.Framework.Graphics.Containers.Markdown
                         {
                             switch (literal.Parent)
                             {
-                                case EmphasisInline emphasisInline when emphasisInline.IsDouble:
-                                    AddStrongEmphasis(text, emphasisInline);
-                                    break;
-                                case EmphasisInline emphasisInline:
-                                    AddEmphasis(text, emphasisInline);
+                                case EmphasisInline _:
+                                    var parent = literal.Parent;
+
+                                    var emphases = new List<string>();
+
+                                    while (parent != null && parent is EmphasisInline e)
+                                    {
+                                        emphases.Add(e.IsDouble ? new string(e.DelimiterChar, 2) : e.DelimiterChar.ToString());
+                                        parent = parent.Parent;
+                                    }
+
+                                    AddEmphasis(text, emphases);
+
                                     break;
                                 case LinkInline linkInline:
                                 {
@@ -100,26 +108,39 @@ namespace osu.Framework.Graphics.Containers.Markdown
         protected virtual void AddHtmlEntityInlineText(string text, HtmlEntityInline entityInLine)
             => AddText(text, t => t.Colour = Color4.GreenYellow);
 
-        protected virtual void AddEmphasis(string text, EmphasisInline emphasisInLine)
+        protected virtual void AddEmphasis(string text, List<string> emphases)
         {
-            switch (emphasisInLine.DelimiterChar)
-            {
-                case '*':
-                case '_':
-                    AddDrawable(CreateItalicText(text));
-                    break;
-            }
-        }
+            var textDrawable = new SpriteText { Text = text };
 
-        protected virtual void AddStrongEmphasis(string text, EmphasisInline emphasisInLine)
-        {
-            switch (emphasisInLine.DelimiterChar)
+            bool hasItalic = false;
+            bool hasBold = false;
+
+            foreach (var e in emphases)
             {
-                case '*':
-                case '_':
-                    AddDrawable(CreateBoldText(text));
-                    break;
+                switch (e)
+                {
+                    case "*":
+                    case "_":
+                        hasItalic = true;
+                        break;
+                    case "**":
+                    case "__":
+                        hasBold = true;
+                        break;
+                }
             }
+
+            string font = "OpenSans-";
+            if (hasBold)
+                font += "Bold";
+            if (hasItalic)
+                font += "Italic";
+
+            font = font.Trim('-');
+
+            textDrawable.Font = font;
+
+            AddDrawable(textDrawable);
         }
 
         protected virtual void AddLinkText(string text, LinkInline linkInline)
