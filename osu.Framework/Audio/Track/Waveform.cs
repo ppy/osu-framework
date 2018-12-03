@@ -193,9 +193,9 @@ namespace osu.Framework.Audio.Track
                 // Should not effect overall appearance much, except when the value is too small.
                 // A gaussian contains almost all its mass within its first 3 standard deviations,
                 // so a factor of 3 is a very good choice here.
-                const int kernelWidthFactor = 3;
+                const int kernel_width_factor = 3;
 
-                int kernelWidth = (int)(pointsPerGeneratedPoint * kernelWidthFactor) + 1;
+                int kernelWidth = (int)(pointsPerGeneratedPoint * kernel_width_factor) + 1;
 
                 float[] filter = new float[kernelWidth + 1];
                 for (int i = 0; i < filter.Length; ++i) {
