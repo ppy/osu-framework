@@ -112,7 +112,7 @@ namespace osu.Framework.Lists
         public int IndexOf(T value)
         {
             int index = list.BinarySearch(value, Comparer);
-            return index >= 0 && list[index].Equals(value) ? index : -1;
+            return index >= 0 ? index : -1;
         }
 
         public void CopyTo(T[] array, int arrayIndex) => list.CopyTo(array, arrayIndex);

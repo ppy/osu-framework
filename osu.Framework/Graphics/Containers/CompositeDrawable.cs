@@ -348,7 +348,15 @@ namespace osu.Framework.Graphics.Containers
         /// If the child is found, its index. Otherwise, the negated index it would obtain
         /// if it were added to <see cref="InternalChildren"/>.
         /// </returns>
-        protected internal int IndexOfInternal(Drawable drawable) => internalChildren.IndexOf(drawable);
+        protected internal int IndexOfInternal(Drawable drawable)
+        {
+            int index = internalChildren.IndexOf(drawable);
+
+            if (index >= 0 && internalChildren[index].ChildID != drawable.ChildID)
+                throw new InvalidOperationException($@"A non-matching {nameof(Drawable)} was returned. Please ensure {GetType()}'s {nameof(Compare)} override implements a stable sort algorithm.");
+
+            return index;
+        }
 
         /// <summary>
         /// Checks whether a given child is contained within <see cref="InternalChildren"/>.
