@@ -154,17 +154,5 @@ namespace osu.Framework.Graphics.Containers.Markdown
 
         protected virtual void AddNotImplementedInlineText(Inline inline)
             => AddText(inline.GetType() + " not implemented.", t => t.Colour = Color4.Red);
-
-        protected virtual Drawable CreateItalicText(string text) => new SpriteText
-        {
-            Text = text,
-            Font = "OpenSans-Italic"
-        };
-
-        protected virtual Drawable CreateBoldText(string text) => new SpriteText
-        {
-            Text = text,
-            Font = "OpenSans-Bold"
-        };
     }
 }
