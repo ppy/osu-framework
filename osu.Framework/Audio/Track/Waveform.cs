@@ -4,10 +4,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using ManagedBass;
 using osuTK;
+using osu.Framework.MathUtils;
 
 namespace osu.Framework.Audio.Track
 {
@@ -188,29 +190,48 @@ namespace osu.Framework.Audio.Track
                 var generatedPoints = new List<WaveformPoint>();
                 float pointsPerGeneratedPoint = (float)points.Count / pointCount;
 
+                // Determines at which width (relative to the resolution) our smoothing filter is truncated.
+                // Should not effect overall appearance much, except when the value is too small.
+                // A gaussian contains almost all its mass within its first 3 standard deviations,
+                // so a factor of 3 is a very good choice here.
+                const int kernelWidthFactor = 3;
+
+                int kernelWidth = (int)(pointsPerGeneratedPoint * kernelWidthFactor) + 1;
+
+                float[] filter = new float[kernelWidth + 1];
+                for (int i = 0; i < filter.Length; ++i) {
+                    filter[i] = (float)Blur.EvalGaussian(i, pointsPerGeneratedPoint);
+                }
+
                 for (float i = 0; i < points.Count; i += pointsPerGeneratedPoint)
                 {
                     if (cancellationToken.IsCancellationRequested) break;
 
-                    int startIndex = (int)i;
-                    int endIndex = (int)Math.Min(points.Count, Math.Ceiling(i + pointsPerGeneratedPoint));
+                    int startIndex = (int)i - kernelWidth;
+                    int endIndex = (int)i + kernelWidth;
 
                     var point = new WaveformPoint(channels);
+                    float totalWeight = 0;
                     for (int j = startIndex; j < endIndex; j++)
                     {
+                        if (j < 0 || j >= points.Count) continue;
+
+                        float weight = filter[Math.Abs(j - startIndex - kernelWidth)];
+                        totalWeight += weight;
+
                         for (int c = 0; c < channels; c++)
-                            point.Amplitude[c] += points[j].Amplitude[c];
-                        point.LowIntensity += points[j].LowIntensity;
-                        point.MidIntensity += points[j].MidIntensity;
-                        point.HighIntensity += points[j].HighIntensity;
+                            point.Amplitude[c] += weight * points[j].Amplitude[c];
+                        point.LowIntensity += weight * points[j].LowIntensity;
+                        point.MidIntensity += weight * points[j].MidIntensity;
+                        point.HighIntensity += weight * points[j].HighIntensity;
                     }
 
                     // Means
                     for (int c = 0; c < channels; c++)
-                        point.Amplitude[c] /= endIndex - startIndex;
-                    point.LowIntensity /= endIndex - startIndex;
-                    point.MidIntensity /= endIndex - startIndex;
-                    point.HighIntensity /= endIndex - startIndex;
+                        point.Amplitude[c] /= totalWeight;
+                    point.LowIntensity /= totalWeight;
+                    point.MidIntensity /= totalWeight;
+                    point.HighIntensity /= totalWeight;
 
                     generatedPoints.Add(point);
                 }
