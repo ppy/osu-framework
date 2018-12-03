@@ -109,7 +109,7 @@ namespace osu.Framework.Lists
 
         public int BinarySearch(T value) => list.BinarySearch(value, Comparer);
 
-        public int IndexOf(T value) =>list.BinarySearch(value, Comparer);
+        public int IndexOf(T value) => list.BinarySearch(value, Comparer);
 
         public void CopyTo(T[] array, int arrayIndex) => list.CopyTo(array, arrayIndex);
 
