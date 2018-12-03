@@ -31,12 +31,12 @@ namespace osu.Framework.Tests.Visual
 
 
         [SetUp]
-        public void SetUp()
+        public void SetUp() => Schedule(() =>
         {
             Clear();
             manualClock = new ManualClock();
             manualFramedClock = new FramedClock(manualClock);
-        }
+        });
 
         [Test]
         public void BasicScale()
