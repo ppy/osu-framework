@@ -35,7 +35,7 @@ namespace osu.Framework.iOS
 
             gameView.Run();
 
-            host = new iOSGameHost(gameView);   
+            host = new iOSGameHost(gameView);
             host.Run(CreateGame());
 
             return true;
