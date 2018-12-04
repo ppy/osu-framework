@@ -49,6 +49,8 @@ namespace osu.Framework.Audio.Sample
             }
         }
 
+        protected virtual SampleBass CreateSampleBass(byte[] data, ConcurrentQueue<Task> customPendingActions, int concurrency) => new SampleBass(data, customPendingActions, concurrency);
+
         public Task<SampleChannel> GetAsync(string name) => Task.Run(() => Get(name));
 
         public override void UpdateDevice(int deviceIndex)

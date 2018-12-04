@@ -8,7 +8,7 @@ using ManagedBass;
 
 namespace osu.Framework.Audio.Track
 {
-    internal class DataStreamFileProcedures
+    public class DataStreamFileProcedures
     {
         private byte[] readBuffer = new byte[32768];
 
@@ -16,10 +16,10 @@ namespace osu.Framework.Audio.Track
 
         public FileProcedures BassProcedures => new FileProcedures
         {
-            Close = ac_Close,
-            Length = ac_Length,
-            Read = ac_Read,
-            Seek = ac_Seek
+            Close = CloseCallback,
+            Length = LengthCallback,
+            Read = ReadCallback,
+            Seek = SeekCallback
         };
 
         public DataStreamFileProcedures(Stream data)
@@ -27,12 +27,12 @@ namespace osu.Framework.Audio.Track
             dataStream = data;
         }
 
-        private void ac_Close(IntPtr user)
+        public void CloseCallback(IntPtr user)
         {
             //manually handle closing of stream
         }
 
-        private long ac_Length(IntPtr user)
+        public long LengthCallback(IntPtr user)
         {
             if (dataStream == null) return 0;
 
@@ -47,7 +47,7 @@ namespace osu.Framework.Audio.Track
             return 0;
         }
 
-        private int ac_Read(IntPtr buffer, int length, IntPtr user)
+        public int ReadCallback(IntPtr buffer, int length, IntPtr user)
         {
             if (dataStream == null) return 0;
 
@@ -70,7 +70,7 @@ namespace osu.Framework.Audio.Track
             return 0;
         }
 
-        private bool ac_Seek(long offset, IntPtr user)
+        public bool SeekCallback(long offset, IntPtr user)
         {
             if (dataStream == null) return false;
 
