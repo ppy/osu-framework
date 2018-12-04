@@ -21,6 +21,7 @@ namespace osu.Framework.Input.Handlers.Joystick
         private ScheduledDelegate scheduledRefreshDevices;
 
         private readonly List<JoystickDevice> devices = new List<JoystickDevice>();
+        private readonly List<osuTK.Input.JoystickState> rawStates = new List<osuTK.Input.JoystickState>();
 
         public override bool Initialize(GameHost host)
         {
@@ -71,12 +72,12 @@ namespace osu.Framework.Input.Handlers.Joystick
         private void refreshDevices()
         {
             // update states and add newly connected devices
-            var rawStates = osuTK.Input.Joystick.GetStates();
+            osuTK.Input.Joystick.GetStates(rawStates);
 
             // it seems like OpenTK leaves all disconnected devices with IsConnceted == false
-            Debug.Assert(devices.Count <= rawStates.Length);
+            Debug.Assert(devices.Count <= rawStates.Count);
 
-            for (int index = 0; index < rawStates.Length; index++)
+            for (int index = 0; index < rawStates.Count; index++)
             {
                 var rawState = rawStates[index];
                 if (index < devices.Count)
