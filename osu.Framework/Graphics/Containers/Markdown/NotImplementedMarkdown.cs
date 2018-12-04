@@ -28,12 +28,12 @@ namespace osu.Framework.Graphics.Containers.Markdown
         [BackgroundDependencyLoader]
         private void load()
         {
-            InternalChild = CreateText();
+            InternalChild = CreateSpriteText();
         }
 
-        public SpriteText CreateText()
+        public SpriteText CreateSpriteText()
         {
-            var text = parentTextComponent.CreateText();
+            var text = parentTextComponent.CreateSpriteText();
             text.Colour = new Color4(255, 0, 0, 255);
             text.TextSize = 21;
             text.Text = markdownObject?.GetType() + " Not implemented.";

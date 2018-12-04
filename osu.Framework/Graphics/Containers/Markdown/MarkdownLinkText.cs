@@ -43,7 +43,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 new ClickableContainer
                 {
                     AutoSizeAxes = Axes.Both,
-                    Child = spriteText = CreateText(),
+                    Child = spriteText = CreateSpriteText(),
                     Action = () => host.OpenUrlExternally(url)
                 }
             };
@@ -51,9 +51,9 @@ namespace osu.Framework.Graphics.Containers.Markdown
             spriteText.Text = text;
         }
 
-        public virtual SpriteText CreateText()
+        public virtual SpriteText CreateSpriteText()
         {
-            var spriteText = parentTextComponent.CreateText();
+            var spriteText = parentTextComponent.CreateSpriteText();
             spriteText.Colour = Color4.DodgerBlue;
             return spriteText;
         }

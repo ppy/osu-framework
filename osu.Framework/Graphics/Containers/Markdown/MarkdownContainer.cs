@@ -123,7 +123,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
 
         public virtual MarkdownTextFlowContainer CreateTextFlow() => new MarkdownTextFlowContainer();
 
-        public virtual SpriteText CreateText() => new SpriteText();
+        public virtual SpriteText CreateSpriteText() => new SpriteText();
 
         /// <summary>
         /// Adds a component that visualises a <see cref="IMarkdownObject"/> to the document.

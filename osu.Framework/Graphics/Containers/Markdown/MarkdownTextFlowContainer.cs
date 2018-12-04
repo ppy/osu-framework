@@ -153,7 +153,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
         /// <param name="bold">Whether the text should be emboldened.</param>
         /// <param name="italic">Whether the text should be italicised.</param>
         /// <returns>The <see cref="SpriteText"/> with emphases applied.</returns>
-        public virtual SpriteText CreateEmphasisedSpriteText(bool bold, bool italic)
+        protected virtual SpriteText CreateEmphasisedSpriteText(bool bold, bool italic)
         {
             var textDrawable = CreateSpriteText();
 
@@ -168,8 +168,6 @@ namespace osu.Framework.Graphics.Containers.Markdown
             return textDrawable;
         }
 
-        protected sealed override SpriteText CreateSpriteText() => CreateText();
-
-        public virtual SpriteText CreateText() => parentTextComponent.CreateText();
+        SpriteText IMarkdownTextComponent.CreateSpriteText() => CreateSpriteText();
     }
 }

@@ -15,6 +15,6 @@ namespace osu.Framework.Graphics.Containers.Markdown
         /// but may be overridden via this method to provide additional styling local to this <see cref="IMarkdownTextFlowComponent"/>.
         /// </remarks>
         /// <returns>The <see cref="SpriteText"/>.</returns>
-        SpriteText CreateText();
+        SpriteText CreateSpriteText();
     }
 }
