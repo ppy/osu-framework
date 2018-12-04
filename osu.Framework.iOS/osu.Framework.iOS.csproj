@@ -1,36 +1,26 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{BBC0D18F-8595-43A6-AE61-5BF36A072CCE}</ProjectGuid>
-    <ProjectTypeGuids>{FEACFBD2-3405-455C-9665-78FE426C6842};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+<Project Sdk="MSBuild.Sdk.Extras/1.6.55">
+  <PropertyGroup Label="Project">
+    <TargetFramework>xamarinios10</TargetFramework>
     <OutputType>Library</OutputType>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AssemblyTitle>osu!framework iOS</AssemblyTitle>
+    <AssemblyName>osu.Framework.iOS</AssemblyName>
     <RootNamespace>osu.Framework.iOS</RootNamespace>
     <IPhoneResourcePrefix>Resources</IPhoneResourcePrefix>
-    <AssemblyName>osu.Framework.iOS</AssemblyName>
+    <Description>A 2D application/game framework written with rhythm games in mind.</Description>
+    <Product>osu!framework</Product>
+    <LangVersion>7.2</LangVersion>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug</OutputPath>
-    <DefineConstants>DEBUG;</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <ConsolePause>false</ConsolePause>
-    <PlatformTarget>x64</PlatformTarget>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>full</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release</OutputPath>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <ConsolePause>false</ConsolePause>
-    <PlatformTarget>x64</PlatformTarget>
+  <PropertyGroup Label="Nuget">
+    <Title>osu!framework iOS</Title>
+    <PackageId>ppy.osu.Framework.iOS</PackageId>
+    <Authors>ppy Pty Ltd</Authors>
+    <PackageLicenseUrl>https://github.com/ppy/osu-framework/blob/master/LICENCE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/ppy/osu-framework</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/ppy/osu-framework</RepositoryUrl>
+    <PackageReleaseNotes>Automated release.</PackageReleaseNotes>
+    <copyright>Copyright (c) 2007-2018 ppy Pty Ltd contact@ppy.sh</copyright>
+    <PackageTags>osu game framework</PackageTags>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -39,27 +29,18 @@
     <Reference Include="Xamarin.iOS" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Resources\" />
+    <NativeLibs Include="$(MSBuildThisFileDirectory)*\*.dll*" />
+    <NativeLibs Include="$(MSBuildThisFileDirectory)*.a" />
+    <None Include="@(NativeLibs)">
+      <Pack>true</Pack>
+      <PackageCopyToOutput>true</PackageCopyToOutput>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="GameAppDelegate.cs" />
-    <Compile Include="Input\iOSKeyboardHandler.cs" />
-    <Compile Include="Input\iOSTextInput.cs" />
-    <Compile Include="Input\iOSTouchHandler.cs" />
-    <Compile Include="iOSGameHost.cs" />
-    <Compile Include="iOSGameWindow.cs" />
-    <Compile Include="iOSGameView.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
+    <ProjectReference Include="..\osu.Framework\osu.Framework.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\osu.Framework\osu.Framework.csproj">
-      <Project>{c76bf5b3-985e-4d39-95fe-97c9c879b83a}</Project>
-      <Name>osu.Framework</Name>
-    </ProjectReference>
+    <PackageReference Include="ppy.osuTK.iOS" Version="1.0.34" />
   </ItemGroup>
-  <ItemGroup>
-    <Content Include="lib\libbass.a" />
-    <Content Include="lib\libbass_fx.a" />
-  </ItemGroup>
-  <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
 </Project>
