@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using Markdig.Syntax;
+using osu.Framework.Allocation;
 using osu.Framework.Graphics.Shapes;
 using osuTK.Graphics;
 
@@ -15,18 +16,29 @@ namespace osu.Framework.Graphics.Containers.Markdown
     /// code
     /// ```
     /// </code>
-    public class MarkdownFencedCodeBlock : CompositeDrawable
+    public class MarkdownFencedCodeBlock : CompositeDrawable, IMarkdownTextFlowComponent
     {
+        private readonly FencedCodeBlock fencedCodeBlock;
+
+        [Resolved]
+        private IMarkdownTextFlowComponent parentFlowComponent { get; set; }
+
         public MarkdownFencedCodeBlock(FencedCodeBlock fencedCodeBlock)
         {
+            this.fencedCodeBlock = fencedCodeBlock;
+
             AutoSizeAxes = Axes.Y;
             RelativeSizeAxes = Axes.X;
+        }
 
+        [BackgroundDependencyLoader]
+        private void load()
+        {
             TextFlowContainer textFlowContainer;
             InternalChildren = new []
             {
                 CreateBackground(),
-                textFlowContainer = CreateTextArea(),
+                textFlowContainer = CreateTextFlow(),
             };
 
             foreach (var line in fencedCodeBlock.Lines.Lines)
@@ -40,11 +52,11 @@ namespace osu.Framework.Graphics.Containers.Markdown
             Alpha = 0.5f
         };
 
-        protected virtual TextFlowContainer CreateTextArea() => new TextFlowContainer
+        public virtual MarkdownTextFlowContainer CreateTextFlow()
         {
-            RelativeSizeAxes = Axes.X,
-            AutoSizeAxes = Axes.Y,
-            Margin = new MarginPadding { Left = 10, Right = 10, Top = 10, Bottom = 10 }
-        };
+            var textFlow = parentFlowComponent.CreateTextFlow();
+            textFlow.Margin = new MarginPadding { Left = 10, Right = 10, Top = 10, Bottom = 10 };
+            return textFlow;
+        }
     }
 }

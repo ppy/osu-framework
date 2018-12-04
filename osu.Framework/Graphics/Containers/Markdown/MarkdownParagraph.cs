@@ -2,17 +2,34 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using Markdig.Syntax;
+using osu.Framework.Allocation;
 
 namespace osu.Framework.Graphics.Containers.Markdown
 {
     /// <summary>
     /// Visualises a paragraph.
     /// </summary>
-    public class MarkdownParagraph : MarkdownTextFlowContainer
+    public class MarkdownParagraph : CompositeDrawable, IMarkdownTextFlowComponent
     {
+        private readonly ParagraphBlock paragraphBlock;
+
+        [Resolved]
+        private IMarkdownTextFlowComponent parentFlowComponent { get; set; }
+
         public MarkdownParagraph(ParagraphBlock paragraphBlock, int level)
         {
-            AddInlineText(paragraphBlock.Inline);
+            this.paragraphBlock = paragraphBlock;
         }
+
+        [BackgroundDependencyLoader]
+        private void load()
+        {
+            MarkdownTextFlowContainer textFlow;
+            InternalChild = textFlow = CreateTextFlow();
+
+            textFlow.AddInlineText(paragraphBlock.Inline);
+        }
+
+        public virtual MarkdownTextFlowContainer CreateTextFlow() => parentFlowComponent.CreateTextFlow();
     }
 }

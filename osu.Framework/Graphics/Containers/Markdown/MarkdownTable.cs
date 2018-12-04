@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Markdig.Extensions.Tables;
+using osu.Framework.Allocation;
 using osu.Framework.Caching;
 
 namespace osu.Framework.Graphics.Containers.Markdown
@@ -19,7 +20,8 @@ namespace osu.Framework.Graphics.Containers.Markdown
     /// </code>
     public class MarkdownTable : CompositeDrawable
     {
-        private readonly TableContainer tableContainer;
+        private TableContainer tableContainer;
+
         private readonly Table table;
 
         private Cached columnDefinitionCache = new Cached();
@@ -33,7 +35,11 @@ namespace osu.Framework.Graphics.Containers.Markdown
             RelativeSizeAxes = Axes.X;
 
             table.Normalize();
+        }
 
+        [BackgroundDependencyLoader]
+        private void load()
+        {
             List<List<Drawable>> rows = new List<List<Drawable>>();
 
             foreach (var tableRow in table.OfType<TableRow>())
