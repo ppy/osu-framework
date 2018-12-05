@@ -16,39 +16,46 @@ namespace osu.Framework.Graphics.Containers.Markdown
     /// <code>
     /// [link text](url)
     /// </code>
-    public class MarkdownLinkText : CompositeDrawable, IHasTooltip
+    public class MarkdownLinkText : CompositeDrawable, IHasTooltip, IMarkdownTextComponent
     {
         public string TooltipText => url;
 
+        [Resolved]
+        private IMarkdownTextComponent parentTextComponent { get; set; }
+
+        private readonly string text;
         private readonly string url;
-        private readonly ClickableContainer textContainer;
 
         public MarkdownLinkText(string text, LinkInline linkInline)
         {
+            this.text = text;
             url = linkInline.Url ?? string.Empty;
 
             AutoSizeAxes = Axes.Both;
-
-            InternalChildren = new Drawable[]
-            {
-                textContainer = new ClickableContainer
-                {
-                    AutoSizeAxes = Axes.Both,
-                    Child = CreateText(text)
-                }
-            };
         }
 
         [BackgroundDependencyLoader]
         private void load(GameHost host)
         {
-            textContainer.Action = () => host.OpenUrlExternally(url);
+            SpriteText spriteText;
+            InternalChildren = new Drawable[]
+            {
+                new ClickableContainer
+                {
+                    AutoSizeAxes = Axes.Both,
+                    Child = spriteText = CreateSpriteText(),
+                    Action = () => host.OpenUrlExternally(url)
+                }
+            };
+
+            spriteText.Text = text;
         }
 
-        protected virtual SpriteText CreateText(string text) => new SpriteText
+        public virtual SpriteText CreateSpriteText()
         {
-            Text = text,
-            Colour = Color4.DodgerBlue
-        };
+            var spriteText = parentTextComponent.CreateSpriteText();
+            spriteText.Colour = Color4.DodgerBlue;
+            return spriteText;
+        }
     }
 }

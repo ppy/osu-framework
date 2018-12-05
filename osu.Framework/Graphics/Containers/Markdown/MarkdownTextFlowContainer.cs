@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Markdig.Syntax.Inlines;
+using osu.Framework.Allocation;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Sprites;
 using osuTK.Graphics;
@@ -14,9 +15,12 @@ namespace osu.Framework.Graphics.Containers.Markdown
     /// <summary>
     /// Markdown text flow container.
     /// </summary>
-    public class MarkdownTextFlowContainer : CustomizableTextContainer
+    public class MarkdownTextFlowContainer : CustomizableTextContainer, IMarkdownTextComponent
     {
         public float TotalTextWidth => Padding.TotalHorizontal + FlowingChildren.Sum(x => x.BoundingBox.Size.X);
+
+        [Resolved]
+        private IMarkdownTextComponent parentTextComponent { get; set; }
 
         public MarkdownTextFlowContainer()
         {
@@ -61,7 +65,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
                                         parent = parent.Parent;
                                     }
 
-                                    AddEmphasis(text, emphases);
+                                    addEmphasis(text, emphases);
 
                                     break;
                                 case LinkInline linkInline:
@@ -108,10 +112,20 @@ namespace osu.Framework.Graphics.Containers.Markdown
         protected virtual void AddHtmlEntityInlineText(string text, HtmlEntityInline entityInLine)
             => AddText(text, t => t.Colour = Color4.GreenYellow);
 
-        protected virtual void AddEmphasis(string text, List<string> emphases)
-        {
-            var textDrawable = new SpriteText { Text = text };
+        protected virtual void AddLinkText(string text, LinkInline linkInline)
+            => AddDrawable(new MarkdownLinkText(text, linkInline));
 
+        protected virtual void AddCodeInLine(CodeInline codeInline)
+            => AddText(codeInline.Content, t => { t.Colour = Color4.Orange; });
+
+        protected virtual void AddImage(LinkInline linkInline)
+            => AddDrawable(new MarkdownImage(linkInline.Url));
+
+        protected virtual void AddNotImplementedInlineText(Inline inline)
+            => AddText(inline.GetType() + " not implemented.", t => t.Colour = Color4.Red);
+
+        private void addEmphasis(string text, List<string> emphases)
+        {
             bool hasItalic = false;
             bool hasBold = false;
 
@@ -130,29 +144,33 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 }
             }
 
-            string font = "OpenSans-";
-            if (hasBold)
-                font += "Bold";
-            if (hasItalic)
-                font += "Italic";
-
-            font = font.Trim('-');
-
-            textDrawable.Font = font;
+            var textDrawable = CreateEmphasisedSpriteText(hasBold, hasItalic);
+            textDrawable.Text = text;
 
             AddDrawable(textDrawable);
         }
 
-        protected virtual void AddLinkText(string text, LinkInline linkInline)
-            => AddDrawable(new MarkdownLinkText(text, linkInline));
+        /// <summary>
+        /// Creates an emphasised <see cref="SpriteText"/>.
+        /// </summary>
+        /// <param name="bold">Whether the text should be emboldened.</param>
+        /// <param name="italic">Whether the text should be italicised.</param>
+        /// <returns>The <see cref="SpriteText"/> with emphases applied.</returns>
+        protected virtual SpriteText CreateEmphasisedSpriteText(bool bold, bool italic)
+        {
+            var textDrawable = CreateSpriteText();
 
-        protected virtual void AddCodeInLine(CodeInline codeInline)
-            => AddText(codeInline.Content, t => { t.Colour = Color4.Orange; });
+            string font = "OpenSans-";
+            if (bold)
+                font += "Bold";
+            if (italic)
+                font += "Italic";
 
-        protected virtual void AddImage(LinkInline linkInline)
-            => AddDrawable(new MarkdownImage(linkInline.Url));
+            textDrawable.Font = font.Trim('-');
 
-        protected virtual void AddNotImplementedInlineText(Inline inline)
-            => AddText(inline.GetType() + " not implemented.", t => t.Colour = Color4.Red);
+            return textDrawable;
+        }
+
+        SpriteText IMarkdownTextComponent.CreateSpriteText() => CreateSpriteText();
     }
 }

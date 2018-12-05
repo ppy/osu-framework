@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using Markdig.Syntax;
+using osu.Framework.Allocation;
 using osu.Framework.Graphics.Shapes;
 using osuTK.Graphics;
 
@@ -13,23 +14,33 @@ namespace osu.Framework.Graphics.Containers.Markdown
     /// <code>
     /// > Quote
     /// </code>
-    public class MarkdownQuoteBlock : CompositeDrawable
+    public class MarkdownQuoteBlock : CompositeDrawable, IMarkdownTextFlowComponent
     {
+        private readonly QuoteBlock quoteBlock;
+
+        [Resolved]
+        private IMarkdownTextFlowComponent parentFlowComponent { get; set; }
+
         public MarkdownQuoteBlock(QuoteBlock quoteBlock)
         {
+            this.quoteBlock = quoteBlock;
+
             AutoSizeAxes = Axes.Y;
             RelativeSizeAxes = Axes.X;
+        }
 
-            MarkdownTextFlowContainer textFlowContainer;
-
+        [BackgroundDependencyLoader]
+        private void load()
+        {
+            MarkdownTextFlowContainer textFlow;
             InternalChildren = new []
             {
                 CreateBackground(),
-                textFlowContainer = CreateTextFlowContainer()
+                textFlow = CreateTextFlow()
             };
 
             if (quoteBlock.LastChild is ParagraphBlock paragraphBlock)
-                textFlowContainer.AddInlineText(paragraphBlock.Inline);
+                textFlow.AddInlineText(paragraphBlock.Inline);
         }
 
         protected virtual Drawable CreateBackground() => new Box
@@ -41,9 +52,11 @@ namespace osu.Framework.Graphics.Containers.Markdown
             Colour = Color4.Gray
         };
 
-        protected virtual MarkdownTextFlowContainer CreateTextFlowContainer() => new MarkdownTextFlowContainer
+        public virtual MarkdownTextFlowContainer CreateTextFlow()
         {
-            Margin = new MarginPadding { Left = 20 }
-        };
+            var textFlow = parentFlowComponent.CreateTextFlow();
+            textFlow.Margin = new MarginPadding { Left = 20 };
+            return textFlow;
+        }
     }
 }

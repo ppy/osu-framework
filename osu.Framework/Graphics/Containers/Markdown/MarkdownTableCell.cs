@@ -3,6 +3,7 @@
 
 using Markdig.Extensions.Tables;
 using Markdig.Syntax;
+using osu.Framework.Allocation;
 using osu.Framework.Graphics.Shapes;
 using osuTK.Graphics;
 
@@ -14,21 +15,34 @@ namespace osu.Framework.Graphics.Containers.Markdown
     /// <code>
     /// |  cell 1   |  cell 2   |
     /// </code>
-    public class MarkdownTableCell : CompositeDrawable
+    public class MarkdownTableCell : CompositeDrawable, IMarkdownTextFlowComponent
     {
-        public float ContentWidth => textFlowContainer.TotalTextWidth;
-        public float ContentHeight => textFlowContainer.DrawHeight;
+        public float ContentWidth => textFlow.TotalTextWidth;
+        public float ContentHeight => textFlow.DrawHeight;
 
-        private readonly MarkdownTextFlowContainer textFlowContainer;
+        private MarkdownTextFlowContainer textFlow;
+
+        private readonly TableCell cell;
+        private readonly TableColumnDefinition definition;
+
+        [Resolved]
+        private IMarkdownTextFlowComponent parentFlowComponent { get; set; }
 
         public MarkdownTableCell(TableCell cell, TableColumnDefinition definition, bool isHeading)
         {
+            this.cell = cell;
+            this.definition = definition;
+
             RelativeSizeAxes = Axes.Both;
 
             BorderThickness = 1.8f;
             BorderColour = Color4.White;
             Masking = true;
+        }
 
+        [BackgroundDependencyLoader]
+        private void load()
+        {
             InternalChildren = new Drawable[]
             {
                 new Box
@@ -37,29 +51,34 @@ namespace osu.Framework.Graphics.Containers.Markdown
                     Alpha = 0,
                     AlwaysPresent = true
                 },
-                textFlowContainer = CreateTextFlowContainer()
+                textFlow = CreateTextFlow()
             };
 
-            textFlowContainer.Anchor = Anchor.CentreLeft;
-            textFlowContainer.Origin = Anchor.CentreLeft;
+            textFlow.Anchor = Anchor.CentreLeft;
+            textFlow.Origin = Anchor.CentreLeft;
 
             if (cell.LastChild is ParagraphBlock paragraphBlock)
-                textFlowContainer.AddInlineText(paragraphBlock.Inline);
+                textFlow.AddInlineText(paragraphBlock.Inline);
 
             switch (definition.Alignment)
             {
                 case TableColumnAlign.Center:
-                    textFlowContainer.TextAnchor = Anchor.Centre;
+                    textFlow.TextAnchor = Anchor.Centre;
                     break;
                 case TableColumnAlign.Right:
-                    textFlowContainer.TextAnchor = Anchor.CentreRight;
+                    textFlow.TextAnchor = Anchor.CentreRight;
                     break;
                 default:
-                    textFlowContainer.TextAnchor = Anchor.CentreLeft;
+                    textFlow.TextAnchor = Anchor.CentreLeft;
                     break;
             }
         }
 
-        protected virtual MarkdownTextFlowContainer CreateTextFlowContainer() => new MarkdownTextFlowContainer { Padding = new MarginPadding(10) };
+        public MarkdownTextFlowContainer CreateTextFlow()
+        {
+            var flow = parentFlowComponent.CreateTextFlow();
+            flow.Padding = new MarginPadding(10);
+            return flow;
+        }
     }
 }

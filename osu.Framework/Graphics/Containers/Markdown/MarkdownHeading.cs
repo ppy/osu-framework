@@ -3,6 +3,7 @@
 
 
 using Markdig.Syntax;
+using osu.Framework.Allocation;
 using osuTK;
 
 namespace osu.Framework.Graphics.Containers.Markdown
@@ -15,24 +16,32 @@ namespace osu.Framework.Graphics.Containers.Markdown
     /// ## H2
     /// ### H3
     /// </code>
-    public class MarkdownHeading : CompositeDrawable
+    public class MarkdownHeading : CompositeDrawable, IMarkdownTextFlowComponent
     {
+        private readonly HeadingBlock headingBlock;
+
+        [Resolved]
+        private IMarkdownTextFlowComponent parentFlowComponent { get; set; }
+
         public MarkdownHeading(HeadingBlock headingBlock)
         {
+            this.headingBlock = headingBlock;
+
             AutoSizeAxes = Axes.Y;
             RelativeSizeAxes = Axes.X;
-
-            MarkdownTextFlowContainer textFlowContainer;
-
-            InternalChild = textFlowContainer = CreateTextFlowContainer();
-
-            var level = headingBlock.Level;
-            textFlowContainer.Scale = new Vector2(GetFontSizeByLevel(level));
-            textFlowContainer.AddInlineText(headingBlock.Inline);
         }
 
-        protected virtual MarkdownTextFlowContainer CreateTextFlowContainer() =>
-            new MarkdownTextFlowContainer();
+        [BackgroundDependencyLoader]
+        private void load()
+        {
+            MarkdownTextFlowContainer textFlow;
+            InternalChild = textFlow = CreateTextFlow();
+
+            textFlow.Scale = new Vector2(GetFontSizeByLevel(headingBlock.Level));
+            textFlow.AddInlineText(headingBlock.Inline);
+        }
+
+        public virtual MarkdownTextFlowContainer CreateTextFlow() => parentFlowComponent.CreateTextFlow();
 
         protected virtual float GetFontSizeByLevel(int level)
         {

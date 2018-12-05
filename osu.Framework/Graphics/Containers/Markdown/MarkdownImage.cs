@@ -15,10 +15,18 @@ namespace osu.Framework.Graphics.Containers.Markdown
     /// </code>
     public class MarkdownImage : CompositeDrawable
     {
+        private readonly string url;
+
         public MarkdownImage(string url)
         {
-            AutoSizeAxes = Axes.Both;
+            this.url = url;
 
+            AutoSizeAxes = Axes.Both;
+        }
+
+        [BackgroundDependencyLoader]
+        private void load()
+        {
             InternalChild = new DelayedLoadWrapper(CreateImageContainer(url));
         }
 

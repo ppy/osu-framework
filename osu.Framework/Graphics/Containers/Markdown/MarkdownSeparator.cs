@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using Markdig.Syntax;
+using osu.Framework.Allocation;
 using osu.Framework.Graphics.Shapes;
 using osuTK.Graphics;
 
@@ -19,7 +20,11 @@ namespace osu.Framework.Graphics.Containers.Markdown
         {
             AutoSizeAxes = Axes.Y;
             RelativeSizeAxes = Axes.X;
+        }
 
+        [BackgroundDependencyLoader]
+        private void load()
+        {
             InternalChild = CreateSeparator();
         }
 

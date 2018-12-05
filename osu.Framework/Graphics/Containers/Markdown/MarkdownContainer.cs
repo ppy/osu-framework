@@ -7,6 +7,7 @@ using Markdig.Extensions.Tables;
 using Markdig.Syntax;
 using osu.Framework.Allocation;
 using osu.Framework.Caching;
+using osu.Framework.Graphics.Sprites;
 using osuTK;
 
 namespace osu.Framework.Graphics.Containers.Markdown
@@ -14,7 +15,9 @@ namespace osu.Framework.Graphics.Containers.Markdown
     /// <summary>
     /// Visualises a markdown text document.
     /// </summary>
-    public class MarkdownContainer : CompositeDrawable
+    [Cached(Type = typeof(IMarkdownTextComponent))]
+    [Cached(Type = typeof(IMarkdownTextFlowComponent))]
+    public class MarkdownContainer : CompositeDrawable, IMarkdownTextComponent, IMarkdownTextFlowComponent
     {
         private const int root_level = 0;
 
@@ -117,6 +120,10 @@ namespace osu.Framework.Graphics.Containers.Markdown
 
             validateContent();
         }
+
+        public virtual MarkdownTextFlowContainer CreateTextFlow() => new MarkdownTextFlowContainer();
+
+        public virtual SpriteText CreateSpriteText() => new SpriteText();
 
         /// <summary>
         /// Adds a component that visualises a <see cref="IMarkdownObject"/> to the document.
