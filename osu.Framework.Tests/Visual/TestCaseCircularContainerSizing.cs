@@ -14,10 +14,11 @@ namespace osu.Framework.Tests.Visual
     public class TestCaseCircularContainerSizing : TestCase
     {
         [Test]
-        public void TestLateSizing()
+        public void TestLateSizing() => Schedule(() =>
         {
             HookedContainer container;
             CircularContainer circular;
+
             Child = container = new HookedContainer
             {
                 Anchor = Anchor.Centre,
@@ -50,7 +51,7 @@ namespace osu.Framework.Tests.Visual
                 parent.Size = new Vector2(200);
                 hasCorrectCornerRadius = nested.CornerRadius == 100;
             }
-        }
+        });
 
         private class HookedContainer : Container
         {

@@ -297,7 +297,8 @@ namespace osu.Framework.Graphics.Visualisation
 
         private void recycleVisualisers()
         {
-            treeContainer.Clear();
+            // May come from the disposal thread, in which case they won't ever be reused anyway
+            Schedule(() => treeContainer.Clear());
 
             // We don't really know where the visualised drawables are, so we have to dispose them manually
             // This is done as an optimisation so that events aren't handled while the visualiser is hidden

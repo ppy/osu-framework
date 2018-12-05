@@ -28,7 +28,16 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// A list of items currently in the tab control in the order they are dispalyed.
         /// </summary>
-        public IEnumerable<T> Items => TabContainer.TabItems.Select(t => t.Value).Concat(Dropdown.Items).Distinct();
+        public IEnumerable<T> Items {
+            get {
+                var items = TabContainer.TabItems.Select(t => t.Value);
+
+                if (Dropdown != null)
+                    items = items.Concat(Dropdown.Items).Distinct();
+
+                return items;
+            }
+        }
 
         public IEnumerable<T> VisibleItems => TabContainer.TabItems.Select(t => t.Value).Distinct();
 
