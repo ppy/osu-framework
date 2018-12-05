@@ -31,7 +31,7 @@ namespace osu.Framework.Graphics.Transforms
 
         private static ReadFunc createFieldGetter(FieldInfo field)
         {
-            if (!RuntimeInfo.SupportsIL) return (T transformable) => (TValue)field.GetValue(transformable);
+            if (!RuntimeInfo.SupportsIL) return (transformable) => (TValue)field.GetValue(transformable);
 
             string methodName = $"{typeof(T).ReadableName()}.{field.Name}.get_{Guid.NewGuid():N}";
             DynamicMethod setterMethod = new DynamicMethod(methodName, typeof(TValue), new[] { typeof(T) }, true);
@@ -44,7 +44,7 @@ namespace osu.Framework.Graphics.Transforms
 
         private static WriteFunc createFieldSetter(FieldInfo field)
         {
-            if (!RuntimeInfo.SupportsIL) return (T transformable, TValue value) => field.SetValue(transformable, value);
+            if (!RuntimeInfo.SupportsIL) return (transformable, value) => field.SetValue(transformable, value);
 
             string methodName = $"{typeof(T).ReadableName()}.{field.Name}.set_{Guid.NewGuid():N}";
             DynamicMethod setterMethod = new DynamicMethod(methodName, null, new[] { typeof(T), typeof(TValue) }, true);
@@ -58,13 +58,13 @@ namespace osu.Framework.Graphics.Transforms
 
         private static ReadFunc createPropertyGetter(MethodInfo getter)
         {
-            if (!RuntimeInfo.SupportsIL) return (T transformable) => (TValue)getter.Invoke(transformable, new object[0]);
+            if (!RuntimeInfo.SupportsIL) return (transformable) => (TValue)getter.Invoke(transformable, new object[0]);
             return (ReadFunc)getter.CreateDelegate(typeof(ReadFunc));
         }
 
         private static WriteFunc createPropertySetter(MethodInfo setter)
         {
-            if (!RuntimeInfo.SupportsIL) return (T transformable, TValue value) => setter.Invoke(transformable, new object[]{ value });
+            if (!RuntimeInfo.SupportsIL) return (transformable, value) => setter.Invoke(transformable, new object[]{ value });
             return (WriteFunc)setter.CreateDelegate(typeof(WriteFunc));
         }
 

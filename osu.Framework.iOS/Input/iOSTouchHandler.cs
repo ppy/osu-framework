@@ -31,22 +31,22 @@ namespace osu.Framework.iOS.Input
 
         private void handleUITouch(UITouch touch)
         {
-            var location = touch.LocationInView(null);
-
             // FIXME
+            //var location = touch.LocationInView(null);
+
             //PendingInputs.Enqueue(new MousePositionAbsoluteInput { Position = new Vector2((float)location.X * view.Scale, (float)location.Y * view.Scale) });
 
-            switch (touch.Phase)
-            {
-                case UITouchPhase.Moved:
-                case UITouchPhase.Began:
-                    //PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Left, true));
-                    break;
-                case UITouchPhase.Cancelled:
-                case UITouchPhase.Ended:
-                    //PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Left, false));
-                    break;
-            }
+            //switch (touch.Phase)
+            //{
+            //    case UITouchPhase.Moved:
+            //    case UITouchPhase.Began:
+            //        PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Left, true));
+            //        break;
+            //    case UITouchPhase.Cancelled:
+            //    case UITouchPhase.Ended:
+            //        PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Left, false));
+            //        break;
+            //}
         }
 
         public override bool IsActive => true;

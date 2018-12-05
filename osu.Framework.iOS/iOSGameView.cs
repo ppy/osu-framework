@@ -78,7 +78,7 @@ namespace osu.Framework.iOS
             public event Action HandleShouldReturn;
             public event Action<UIKeyCommand> HandleKeyCommand;
 
-            public const int cursor_position = 5;
+            private const int cursor_position = 5;
             private int responderSemaphore;
 
             public DummyTextField()
@@ -114,7 +114,7 @@ namespace osu.Framework.iOS
             };
 
             [Export("keyPressed:")]
-            void keyPressed(UIKeyCommand cmd) => HandleKeyCommand?.Invoke(cmd);
+            private void keyPressed(UIKeyCommand cmd) => HandleKeyCommand?.Invoke(cmd);
 
             private void resetText()
             {

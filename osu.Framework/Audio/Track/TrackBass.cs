@@ -156,6 +156,8 @@ namespace osu.Framework.Audio.Track
             if (pinnedProcedures.IsAllocated)
                 pinnedProcedures.Free();
 
+            procedures = null;
+
             base.Dispose(disposing);
         }
 

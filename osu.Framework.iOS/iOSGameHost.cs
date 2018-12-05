@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
 using System.Collections.Generic;
 using osu.Framework.Audio;
 using osu.Framework.Input;
@@ -32,9 +33,9 @@ namespace osu.Framework.iOS
 
         protected override Storage GetStorage(string baseName) => new MacOSStorage(baseName, this);
 
-        public override void OpenFileExternally(string filename) => new System.NotImplementedException();
+        public override void OpenFileExternally(string filename) => throw new NotImplementedException();
 
-        public override void OpenUrlExternally(string url) => throw new System.NotImplementedException();
+        public override void OpenUrlExternally(string url) => throw new NotImplementedException();
 
         public override AudioManager CreateAudioManager(ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore, Scheduler eventScheduler) =>
             new iOSAudioManager(trackStore, sampleStore) { EventScheduler = eventScheduler };

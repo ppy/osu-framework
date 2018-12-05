@@ -18,10 +18,9 @@ namespace osu.Framework.Android
 
         public override void SetupWindow(FrameworkConfigManager config)
         {
-            //throw new NotImplementedException();
+            // TODO
         }
 
-
-        public override IGraphicsContext Context => throw new NotImplementedException();// GameView.GraphicsContext;
+        public override IGraphicsContext Context => GameView.GraphicsContext;
     }
 }

@@ -17,7 +17,7 @@ namespace osu.Framework.iOS
 
         public override void SetupWindow(FrameworkConfigManager config)
         {
-            //throw new NotImplementedException();
+            // TODO
         }
 
         public override IGraphicsContext Context => GameView.GraphicsContext;
