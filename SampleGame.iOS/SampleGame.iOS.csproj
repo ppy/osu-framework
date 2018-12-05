@@ -112,9 +112,6 @@
     <Reference Include="Microsoft.Diagnostics.Runtime">
       <HintPath>..\packages\ppy.Microsoft.Diagnostics.Runtime.0.9.180305.1\lib\netstandard2.0\Microsoft.Diagnostics.Runtime.dll</HintPath>
     </Reference>
-    <Reference Include="osuTK">
-      <HintPath>..\packages\ppy.osuTK.NS20.1.0.34\lib\netstandard2.0\osuTK.dll</HintPath>
-    </Reference>
     <Reference Include="SharpFNT">
       <HintPath>..\packages\SharpFNT.1.0.0\lib\netstandard1.3\SharpFNT.dll</HintPath>
     </Reference>
@@ -156,6 +153,13 @@
     <Reference Include="osuTK.iOS">
       <HintPath>..\packages\ppy.osuTK.iOS.1.0.34\lib\xamarinios10\osuTK.iOS.dll</HintPath>
     </Reference>
+    <Reference Include="osuTK">
+      <HintPath>..\packages\ppy.osuTK.NS20.1.0.41\lib\netstandard2.0\osuTK.dll</HintPath>
+    </Reference>
+    <Reference Include="Markdig">
+      <HintPath>..\packages\Markdig.0.15.0\lib\netstandard1.1\Markdig.dll</HintPath>
+    </Reference>
+    <Reference Include="mscorlib" />
   </ItemGroup>
   <ItemGroup>
     <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Contents.json" />
