@@ -144,7 +144,10 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 }
             }
 
-            AddDrawable(CreateEmphasisedSpriteText(hasBold, hasItalic));
+            var textDrawable = CreateEmphasisedSpriteText(hasBold, hasItalic);
+            textDrawable.Text = text;
+
+            AddDrawable(textDrawable);
         }
 
         /// <summary>
