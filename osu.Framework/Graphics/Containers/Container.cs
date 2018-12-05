@@ -158,7 +158,11 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Checks whether a given child is contained within <see cref="Children"/>.
         /// </summary>
-        public bool Contains(T drawable) => IndexOf(drawable) >= 0;
+        public bool Contains(T drawable)
+        {
+            int index = IndexOf(drawable);
+            return index >= 0 && this[index] == drawable;
+        }
 
         /// <summary>
         /// Adds a child to this container. This amount to adding a child to <see cref="Content"/>'s
