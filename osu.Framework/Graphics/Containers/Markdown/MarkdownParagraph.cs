@@ -19,6 +19,9 @@ namespace osu.Framework.Graphics.Containers.Markdown
         public MarkdownParagraph(ParagraphBlock paragraphBlock, int level)
         {
             this.paragraphBlock = paragraphBlock;
+
+            RelativeSizeAxes = Axes.X;
+            AutoSizeAxes = Axes.Y;
         }
 
         [BackgroundDependencyLoader]
