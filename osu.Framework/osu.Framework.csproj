@@ -21,7 +21,7 @@
     <copyright>Copyright (c) 2007-2018 ppy Pty Ltd contact@ppy.sh</copyright>
     <PackageTags>osu game framework</PackageTags>
   </PropertyGroup>
-  <PropertyGroup Label="Sourcelink3">
+  <PropertyGroup Label="Sourcelink3" Condition=" '($EnableSourceLink)' == 'true' ">
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
   </PropertyGroup>
