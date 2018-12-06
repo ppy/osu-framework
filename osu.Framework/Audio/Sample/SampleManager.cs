@@ -50,9 +50,9 @@ namespace osu.Framework.Audio.Sample
             }
         }
 
-        protected virtual Sample CreateSample(byte[] data, ConcurrentQueue<Task> customPendingActions, int concurrency) => new SampleBass(data, customPendingActions, concurrency);
+        public virtual Sample CreateSample(byte[] data, ConcurrentQueue<Task> customPendingActions, int concurrency) => new SampleBass(data, customPendingActions, concurrency);
 
-        protected virtual SampleChannel CreateSampleChannel(Sample sample, Action<SampleChannel> onPlay) => new SampleChannelBass(sample, onPlay);
+        public virtual SampleChannel CreateSampleChannel(Sample sample, Action<SampleChannel> onPlay) => new SampleChannelBass(sample, onPlay);
 
         public Task<SampleChannel> GetAsync(string name) => Task.Run(() => Get(name));
 

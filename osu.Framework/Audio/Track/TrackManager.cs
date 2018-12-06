@@ -10,7 +10,7 @@ namespace osu.Framework.Audio.Track
     {
         private readonly IResourceStore<byte[]> store;
 
-        protected virtual Track CreateTrack(Stream data, bool quick) => new TrackBass(data, quick);
+        public virtual Track CreateTrack(Stream data, bool quick) => new TrackBass(data, quick);
 
         public TrackManager(IResourceStore<byte[]> store)
         {

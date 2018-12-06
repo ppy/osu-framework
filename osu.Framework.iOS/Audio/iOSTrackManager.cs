@@ -14,6 +14,6 @@ namespace osu.Framework.iOS.Audio
         {
         }
 
-        protected override Track CreateTrack(Stream data, bool quick) => new iOSTrackBass(data, quick);
+        public override Track CreateTrack(Stream data, bool quick) => new iOSTrackBass(data, quick);
     }
 }
