@@ -21,10 +21,10 @@ namespace osu.Framework.Android
             Window = new AndroidGameWindow();
         }
 
-        public override ITextInputSource GetTextInput() => throw new NotImplementedException();// new AndroidTextInput(gameView);
+        public override ITextInputSource GetTextInput() => throw new NotImplementedException(); // new AndroidTextInput(gameView);
 
         protected override IEnumerable<InputHandler> CreateAvailableInputHandlers() =>
-            new InputHandler[] { };//new AndroidTouchHandler(gameView), new AndroidKeyboardHandler(gameView) };
+            new InputHandler[] { }; //new AndroidTouchHandler(gameView), new AndroidKeyboardHandler(gameView) };
 
         protected override Storage GetStorage(string baseName) => new LinuxStorage(baseName, this);
 

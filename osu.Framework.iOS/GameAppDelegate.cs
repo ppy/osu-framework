@@ -5,7 +5,6 @@ using UIKit;
 using Foundation;
 using System.Drawing;
 using SixLabors.ImageSharp.PixelFormats;
-using CoreGraphics;
 
 namespace osu.Framework.iOS
 {
@@ -48,19 +47,10 @@ namespace osu.Framework.iOS
             try
             {
                 new SixLabors.ImageSharp.Formats.Png.PngDecoder().Decode<Rgba32>(SixLabors.ImageSharp.Configuration.Default, null);
-            } catch { }
+            }
+            catch { }
         }
     }
 
-    internal class GameViewController : UIViewController
-    {
-        public override void ViewWillTransitionToSize(CGSize toSize, IUIViewControllerTransitionCoordinator coordinator)
-        {
-            coordinator.AnimateAlongsideTransition(_ => { }, _ => UIView.AnimationsEnabled = true);
-            UIView.AnimationsEnabled = false;
-            base.ViewWillTransitionToSize(toSize, coordinator);
-            var gameView = View as iOSGameView;
-            gameView?.RequestResizeFrameBuffer();
-        }
-    }
+
 }
