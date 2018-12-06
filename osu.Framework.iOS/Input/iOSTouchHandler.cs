@@ -5,6 +5,9 @@ using osu.Framework.Input.Handlers;
 using Foundation;
 using UIKit;
 using osu.Framework.Platform;
+using osu.Framework.Input.StateChanges;
+using osuTK;
+using osuTK.Input;
 
 namespace osu.Framework.iOS.Input
 {
@@ -32,22 +35,21 @@ namespace osu.Framework.iOS.Input
 
         private void handleUITouch(UITouch touch)
         {
-            // FIXME
-            //var location = touch.LocationInView(null);
+            var location = touch.LocationInView(null);
 
-            //PendingInputs.Enqueue(new MousePositionAbsoluteInput { Position = new Vector2((float)location.X * view.Scale, (float)location.Y * view.Scale) });
+            PendingInputs.Enqueue(new MousePositionAbsoluteInput { Position = new Vector2((float)location.X * view.Scale, (float)location.Y * view.Scale) });
 
-            //switch (touch.Phase)
-            //{
-            //    case UITouchPhase.Moved:
-            //    case UITouchPhase.Began:
-            //        PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Left, true));
-            //        break;
-            //    case UITouchPhase.Cancelled:
-            //    case UITouchPhase.Ended:
-            //        PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Left, false));
-            //        break;
-            //}
+            switch (touch.Phase)
+            {
+                case UITouchPhase.Moved:
+                case UITouchPhase.Began:
+                    PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Left, true));
+                    break;
+                case UITouchPhase.Cancelled:
+                case UITouchPhase.Ended:
+                    PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Left, false));
+                    break;
+            }
         }
 
         public override bool IsActive => true;

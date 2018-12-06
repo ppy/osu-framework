@@ -79,7 +79,8 @@ namespace osu.Framework.iOS
             public event Action HandleShouldReturn;
             public event Action<UIKeyCommand> HandleKeyCommand;
 
-            private const int cursor_position = 5;
+            public const int CursorPosition = 5;
+
             private int responderSemaphore;
 
             public DummyTextField()
@@ -121,7 +122,7 @@ namespace osu.Framework.iOS
             {
                 // we put in some dummy text and move the cursor to the middle so that backspace (and potentially delete or cursor keys) will be detected
                 Text = "dummytext";
-                var newPosition = GetPosition(BeginningOfDocument, cursor_position);
+                var newPosition = GetPosition(BeginningOfDocument, CursorPosition);
                 SelectedTextRange = GetTextRange(newPosition, newPosition);
             }
 
