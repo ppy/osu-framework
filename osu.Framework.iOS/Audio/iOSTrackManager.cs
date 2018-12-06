@@ -7,6 +7,7 @@ using osu.Framework.IO.Stores;
 
 namespace osu.Framework.iOS.Audio
 {
+    // ReSharper disable once InconsistentNaming
     public class iOSTrackManager : TrackManager
     {
         public iOSTrackManager(IResourceStore<byte[]> store) : base(store)

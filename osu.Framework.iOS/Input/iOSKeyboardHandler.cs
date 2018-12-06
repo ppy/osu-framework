@@ -10,6 +10,7 @@ using osu.Framework.Platform;
 
 namespace osu.Framework.iOS.Input
 {
+    // ReSharper disable once InconsistentNaming
     public class iOSKeyboardHandler : InputHandler
     {
         private readonly iOSGameView view;

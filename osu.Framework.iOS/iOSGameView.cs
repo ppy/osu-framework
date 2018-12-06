@@ -14,6 +14,7 @@ using osuTK.Graphics.ES30;
 namespace osu.Framework.iOS
 {
     [Register("iOSGameView")]
+    // ReSharper disable once InconsistentNaming
     public class iOSGameView : osuTK.iOS.iOSGameView
     {
         public event Action<NSSet> HandleTouches;
@@ -97,7 +98,7 @@ namespace osu.Framework.iOS
                     return false;
                 };
 
-                ShouldReturn = (textField) =>
+                ShouldReturn = textField =>
                 {
                     resetText();
                     HandleShouldReturn?.Invoke();

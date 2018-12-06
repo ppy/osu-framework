@@ -11,6 +11,7 @@ using osu.Framework.Audio.Sample;
 
 namespace osu.Framework.iOS.Audio
 {
+    // ReSharper disable once InconsistentNaming
     public class iOSSampleBass : SampleBass
     {
         private GCHandle pinnedData;

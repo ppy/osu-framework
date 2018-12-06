@@ -15,6 +15,7 @@ using osu.Framework.Threading;
 
 namespace osu.Framework.iOS
 {
+    // ReSharper disable once InconsistentNaming
     public class iOSGameHost : GameHost
     {
         private readonly iOSGameView gameView;

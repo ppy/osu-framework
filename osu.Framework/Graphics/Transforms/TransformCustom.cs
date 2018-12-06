@@ -31,7 +31,7 @@ namespace osu.Framework.Graphics.Transforms
 
         private static ReadFunc createFieldGetter(FieldInfo field)
         {
-            if (!RuntimeInfo.SupportsIL) return (transformable) => (TValue)field.GetValue(transformable);
+            if (!RuntimeInfo.SupportsIL) return transformable => (TValue)field.GetValue(transformable);
 
             string methodName = $"{typeof(T).ReadableName()}.{field.Name}.get_{Guid.NewGuid():N}";
             DynamicMethod setterMethod = new DynamicMethod(methodName, typeof(TValue), new[] { typeof(T) }, true);
@@ -58,7 +58,7 @@ namespace osu.Framework.Graphics.Transforms
 
         private static ReadFunc createPropertyGetter(MethodInfo getter)
         {
-            if (!RuntimeInfo.SupportsIL) return (transformable) => (TValue)getter.Invoke(transformable, new object[0]);
+            if (!RuntimeInfo.SupportsIL) return transformable => (TValue)getter.Invoke(transformable, new object[0]);
             return (ReadFunc)getter.CreateDelegate(typeof(ReadFunc));
         }
 

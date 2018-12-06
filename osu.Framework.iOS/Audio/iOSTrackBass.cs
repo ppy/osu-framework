@@ -10,6 +10,7 @@ using osu.Framework.Audio.Track;
 
 namespace osu.Framework.iOS.Audio
 {
+    // ReSharper disable once InconsistentNaming
     public class iOSTrackBass : TrackBass
     {
         public iOSTrackBass(Stream data, bool quick = false) : base(data, quick)

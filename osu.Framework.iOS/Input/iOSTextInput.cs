@@ -7,6 +7,7 @@ using osu.Framework.Input;
 
 namespace osu.Framework.iOS.Input
 {
+    // ReSharper disable once InconsistentNaming
     public class iOSTextInput : ITextInputSource
     {
         private readonly iOSGameView view;
