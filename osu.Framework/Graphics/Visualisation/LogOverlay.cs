@@ -216,8 +216,6 @@ namespace osu.Framework.Graphics.Visualisation
                     return Color4.BlueViolet;
                 case LoggingTarget.Performance:
                     return Color4.HotPink;
-                case LoggingTarget.Debug:
-                    return Color4.DarkBlue;
                 case LoggingTarget.Information:
                     return Color4.CadetBlue;
                 default:
