@@ -148,7 +148,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Add new text to this text flow. The \n character will create a new paragraph, not just a line break. If you need \n to be a line break, use <see cref="AddParagraph(string, Action{SpriteText})"/> instead.
         /// </summary>
-        /// <returns>A collection of the <see cref="SpriteText" /> objects for each word created from the given text.</returns>
+        /// <returns>A collection of <see cref="Drawable" /> objects for each <see cref="SpriteText"/> word and <see cref="NewLineContainer"/> created from the given text.</returns>
         /// <param name="text">The text to add.</param>
         /// <param name="creationParameters">A callback providing any <see cref="SpriteText" /> instances created for this new text.</param>
         public IEnumerable<Drawable> AddText(string text, Action<SpriteText> creationParameters = null) => AddLine(new TextLine(text, creationParameters), true);
@@ -170,7 +170,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Add a new paragraph to this text flow. The \n character will create a line break. If you need \n to be a new paragraph, not just a line break, use <see cref="AddText(string, Action{SpriteText})"/> instead.
         /// </summary>
-        /// <returns>A collection of the <see cref="SpriteText" /> objects for each word created from the given text.</returns>
+        /// <returns>A collection of <see cref="Drawable" /> objects for each <see cref="SpriteText"/> word and <see cref="NewLineContainer"/> created from the given text.</returns>
         /// <param name="paragraph">The paragraph to add.</param>
         /// <param name="creationParameters">A callback providing any <see cref="SpriteText" /> instances created for this new paragraph.</param>
         public IEnumerable<Drawable> AddParagraph(string paragraph, Action<SpriteText> creationParameters = null) => AddLine(new TextLine(paragraph, creationParameters), false);
@@ -352,7 +352,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool ForceNewRow(Drawable child) => child is NewLineContainer;
 
-        internal class NewLineContainer : Container
+        public class NewLineContainer : Container
         {
             public readonly bool IndicatesNewParagraph;
 
