@@ -14,7 +14,7 @@ namespace osu.Framework.Audio.Track
 
         private readonly Stream dataStream;
 
-        public FileProcedures BassProcedures => new FileProcedures
+        public virtual FileProcedures BassProcedures => new FileProcedures
         {
             Close = CloseCallback,
             Length = LengthCallback,

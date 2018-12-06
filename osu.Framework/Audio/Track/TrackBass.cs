@@ -56,13 +56,13 @@ namespace osu.Framework.Audio.Track
                 //encapsulate incoming stream with async buffer if it isn't already.
                 dataStream = data as AsyncBufferStream ?? new AsyncBufferStream(data, quick ? 8 : -1);
 
-                procedures = new DataStreamFileProcedures(dataStream);
+                procedures = CreateDataStreamFileProcedures(dataStream);
 
                 if (!RuntimeInfo.SupportsIL)
                     pinnedProcedures = GCHandle.Alloc(procedures, GCHandleType.Pinned);
 
                 BassFlags flags = Preview ? 0 : BassFlags.Decode | BassFlags.Prescan | BassFlags.Float;
-                activeStream = Bass.CreateStream(StreamSystem.NoBuffer, flags, GetBassProcedures(procedures), RuntimeInfo.SupportsIL ? IntPtr.Zero : GCHandle.ToIntPtr(pinnedProcedures));
+                activeStream = Bass.CreateStream(StreamSystem.NoBuffer, flags, procedures.BassProcedures, RuntimeInfo.SupportsIL ? IntPtr.Zero : GCHandle.ToIntPtr(pinnedProcedures));
 
                 if (!Preview)
                 {
@@ -102,7 +102,7 @@ namespace osu.Framework.Audio.Track
             InvalidateState();
         }
 
-        protected virtual FileProcedures GetBassProcedures(DataStreamFileProcedures procs) => procs.BassProcedures;
+        protected virtual DataStreamFileProcedures CreateDataStreamFileProcedures(Stream dataStream) => new DataStreamFileProcedures(dataStream);
 
         void IBassAudio.UpdateDevice(int deviceIndex)
         {
