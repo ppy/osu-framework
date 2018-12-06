@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using Android.App;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Platform;
@@ -25,6 +26,40 @@ namespace osu.Framework.Android
                 else
                     OnDeactivated();
             };
+        }
+        protected override void UpdateInitialize()
+        {
+            Activity activity = (Activity)gameView.Context;
+            activity.RunOnUiThread(() =>
+            {
+                base.UpdateInitialize();
+            });
+        }
+        protected override void UpdateFrame()
+        {
+            Activity activity = (Activity)gameView.Context;
+            activity.RunOnUiThread(() =>
+            {
+                base.UpdateFrame();
+            });
+        }
+
+        protected override void DrawInitialize()
+        {
+            Activity activity = (Activity)gameView.Context;
+            activity.RunOnUiThread(() =>
+            {
+                base.DrawInitialize();
+            });
+        }
+
+        protected override void DrawFrame()
+        {
+            Activity activity = (Activity)gameView.Context;
+            activity.RunOnUiThread(() =>
+            {
+                base.DrawFrame();
+            });
         }
 
         public override ITextInputSource GetTextInput() => throw new NotImplementedException();// new AndroidTextInput(gameView);

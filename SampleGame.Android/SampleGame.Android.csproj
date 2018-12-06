@@ -48,11 +48,24 @@
     <LangVersion>Default</LangVersion>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="FFmpeg.AutoGen">
+      <HintPath>..\packages\FFmpeg.AutoGen.4.1.0.1\lib\netstandard2.0\FFmpeg.AutoGen.dll</HintPath>
+    </Reference>
+    <Reference Include="Java.Interop" />
     <Reference Include="ManagedBass, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\ManagedBass.2.0.4\lib\netstandard1.4\ManagedBass.dll</HintPath>
     </Reference>
     <Reference Include="ManagedBass.Fx, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\ManagedBass.Fx.2.0.1\lib\netstandard1.4\ManagedBass.Fx.dll</HintPath>
+    </Reference>
+    <Reference Include="osuTK, Version=3.0.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
+      <HintPath>..\packages\ppy.osuTK.NS20.1.0.9\lib\netstandard2.0\osuTK.dll</HintPath>
+    </Reference>
+    <Reference Include="osuTK.Android, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\ppy.osuTK.Android.1.0.9\lib\monoandroid50\osuTK.Android.dll</HintPath>
+    </Reference>
+    <Reference Include="SharpFNT">
+      <HintPath>..\packages\SharpFNT.1.0.1\lib\netstandard1.3\SharpFNT.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.IO.Compression" />
@@ -60,12 +73,6 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.Core" />
     <Reference Include="Mono.Android" />
-    <Reference Include="osuTK.Android">
-      <HintPath>..\..\opentk\src\osuTK.Android\bin\Release\monoandroid50\50\osuTK.Android.dll</HintPath>
-    </Reference>
-    <Reference Include="osuTK">
-      <HintPath>..\..\opentk\src\osuTK\bin\Release\netstandard2.0\osuTK.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="MainActivity.cs" />

@@ -42,16 +42,17 @@
     <LangVersion>Default</LangVersion>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Java.Interop" />
+    <Reference Include="osuTK, Version=3.0.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
+      <HintPath>..\packages\ppy.osuTK.NS20.1.0.9\lib\netstandard2.0\osuTK.dll</HintPath>
+    </Reference>
+    <Reference Include="osuTK.Android, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\ppy.osuTK.Android.1.0.9\lib\monoandroid50\osuTK.Android.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Core" />
     <Reference Include="Mono.Android" />
-    <Reference Include="osuTK.Android">
-      <HintPath>..\..\opentk\src\osuTK.Android\bin\Release\monoandroid50\50\osuTK.Android.dll</HintPath>
-    </Reference>
-    <Reference Include="osuTK">
-      <HintPath>..\..\opentk\src\osuTK\bin\Release\netstandard2.0\osuTK.dll</HintPath>
-    </Reference>
     <Reference Include="System.Collections.Immutable">
       <HintPath>..\packages\System.Collections.Immutable.1.5.0\lib\netstandard2.0\System.Collections.Immutable.dll</HintPath>
     </Reference>
@@ -118,6 +119,7 @@
     <Compile Include="AndroidGameHost.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="Resources\AboutResources.txt" />
     <None Include="packages.config" />
   </ItemGroup>

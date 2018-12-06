@@ -101,7 +101,8 @@ namespace osu.Framework.Platform
                         GL Vendor:                  {GL.GetString(StringName.Vendor)}
                         GL Extensions:              {GL.GetString(StringName.Extensions)}");
 
-            Context.MakeCurrent(null);
+            //This is commented out because of Android issues.
+            //Context.MakeCurrent(null);
         }
 
         /// <summary>
