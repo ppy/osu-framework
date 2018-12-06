@@ -30,7 +30,7 @@ namespace osu.Framework.iOS.Input
             {
                 if (range.Length > 0)
                 {
-                    Key key = range.Location < iOSGameView.DummyTextField.CursorPosition ? Key.BackSpace : Key.Delete;
+                    Key key = range.Location < iOSGameView.DummyTextField.CURSOR_POSITION ? Key.BackSpace : Key.Delete;
                     PendingInputs.Enqueue(new KeyboardKeyInput(key, true));
                     PendingInputs.Enqueue(new KeyboardKeyInput(key, false));
                 }

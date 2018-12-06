@@ -79,7 +79,7 @@ namespace osu.Framework.iOS
             public event Action HandleShouldReturn;
             public event Action<UIKeyCommand> HandleKeyCommand;
 
-            public const int CursorPosition = 5;
+            public const int CURSOR_POSITION = 5;
 
             private int responderSemaphore;
 
@@ -122,7 +122,7 @@ namespace osu.Framework.iOS
             {
                 // we put in some dummy text and move the cursor to the middle so that backspace (and potentially delete or cursor keys) will be detected
                 Text = "dummytext";
-                var newPosition = GetPosition(BeginningOfDocument, CursorPosition);
+                var newPosition = GetPosition(BeginningOfDocument, CURSOR_POSITION);
                 SelectedTextRange = GetTextRange(newPosition, newPosition);
             }
 
