@@ -15,6 +15,6 @@ namespace osu.Framework.iOS.Audio
         {
         }
 
-        protected override SampleBass CreateSampleBass(byte[] data, ConcurrentQueue<Task> customPendingActions, int concurrency) => new iOSSampleBass(data, customPendingActions, concurrency);
+        protected override Sample CreateSample(byte[] data, ConcurrentQueue<Task> customPendingActions, int concurrency) => new iOSSampleBass(data, customPendingActions, concurrency);
     }
 }
