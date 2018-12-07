@@ -299,10 +299,10 @@ namespace osu.Framework.IO.Network
                         }
 
                         requestStream = new LengthTrackingStream(postContent);
-                        requestStream.BytesRead.ValueChanged += v =>
+                        requestStream.BytesRead.ValueChanged += args =>
                         {
                             reportForwardProgress();
-                            UploadProgress?.Invoke(v, contentLength);
+                            UploadProgress?.Invoke(args.To, contentLength);
                         };
 
                         request.Content = new StreamContent(requestStream);

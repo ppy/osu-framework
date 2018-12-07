@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Allocation;
+using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
@@ -104,9 +105,9 @@ namespace osu.Framework.Testing.Drawables.Sections
 
         private void nextFrame() => browser.CurrentFrame.Value = browser.CurrentFrame.Value + 1;
 
-        private void updateState(RecordState state)
+        private void updateState(BindableValueChangedEventArgs<RecordState> args)
         {
-            switch (state)
+            switch (args.To)
             {
                 case RecordState.Normal:
                     recordButton.Text = "record";
@@ -125,7 +126,7 @@ namespace osu.Framework.Testing.Drawables.Sections
                     break;
             }
 
-            switch (state)
+            switch (args.To)
             {
                 case RecordState.Normal:
                 case RecordState.Recording:

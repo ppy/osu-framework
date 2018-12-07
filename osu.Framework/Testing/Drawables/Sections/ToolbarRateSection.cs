@@ -49,7 +49,7 @@ namespace osu.Framework.Testing.Drawables.Sections
             };
 
             rateAdjustSlider.Current.BindTo(browser.PlaybackRate);
-            rateAdjustSlider.Current.BindValueChanged(v => rateText.Text = v.ToString("0%"), true);
+            rateAdjustSlider.Current.BindValueChanged(args => rateText.Text = args.To.ToString("0%"), true);
         }
     }
 }

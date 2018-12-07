@@ -34,7 +34,7 @@ namespace osu.Framework.Configuration
         /// <summary>
         /// An event which is raised when <see cref="Value"/> has changed.
         /// </summary>
-        event Action<T> ValueChanged;
+        event Action<BindableValueChangedEventArgs<T>> ValueChanged;
 
         /// <summary>
         /// The current value of this bindable.
@@ -57,7 +57,7 @@ namespace osu.Framework.Configuration
         /// </summary>
         /// <param name="onChange">The action to perform when <see cref="Value"/> changes.</param>
         /// <param name="runOnceImmediately">Whether the action provided in <see cref="onChange"/> should be run once immediately.</param>
-        void BindValueChanged(Action<T> onChange, bool runOnceImmediately = false);
+        void BindValueChanged(Action<BindableValueChangedEventArgs<T>> onChange, bool runOnceImmediately = false);
 
         /// <summary>
         /// Retrieve a new bindable instance weakly bound to the configuration backing.

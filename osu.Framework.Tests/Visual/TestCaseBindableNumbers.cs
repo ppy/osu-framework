@@ -225,7 +225,7 @@ namespace osu.Framework.Tests.Visual
                     }
                 };
 
-                bindable.ValueChanged += v => valueText.Text = v.ToString(CultureInfo.InvariantCulture);
+                bindable.ValueChanged += args => valueText.Text = args.To.ToString(CultureInfo.InvariantCulture);
             }
         }
     }

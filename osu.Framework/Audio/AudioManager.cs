@@ -135,9 +135,9 @@ namespace osu.Framework.Audio
             base.Dispose(disposing);
         }
 
-        private void onDeviceChanged(string newDevice)
+        private void onDeviceChanged(BindableValueChangedEventArgs<string> args)
         {
-            scheduler.Add(() => setAudioDevice(string.IsNullOrEmpty(newDevice) ? null : newDevice));
+            scheduler.Add(() => setAudioDevice(string.IsNullOrEmpty(args.To) ? null : args.To));
         }
 
         /// <summary>
@@ -162,7 +162,7 @@ namespace osu.Framework.Audio
             TrackManager tm = new TrackManager(store);
             AddItem(tm);
             tm.AddAdjustment(AdjustableProperty.Volume, VolumeTrack);
-            VolumeTrack.ValueChanged += tm.InvalidateState;
+            VolumeTrack.ValueChanged += args => tm.InvalidateState(args.To);
 
             return tm;
         }
@@ -179,7 +179,7 @@ namespace osu.Framework.Audio
             SampleManager sm = new SampleManager(store);
             AddItem(sm);
             sm.AddAdjustment(AdjustableProperty.Volume, VolumeSample);
-            VolumeSample.ValueChanged += sm.InvalidateState;
+            VolumeSample.ValueChanged += args => sm.InvalidateState(args.To);
 
             return sm;
         }

@@ -73,11 +73,11 @@ namespace osu.Framework.Testing
             TestTypes.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.Ordinal));
         }
 
-        private void updateList(Assembly asm)
+        private void updateList(BindableValueChangedEventArgs<Assembly> args)
         {
             leftFlowContainer.Clear();
             //Add buttons for each TestCase.
-            leftFlowContainer.AddRange(TestTypes.Where(t => t.Assembly == asm).Select(t => new TestCaseButton(t) { Action = () => LoadTest(t) }));
+            leftFlowContainer.AddRange(TestTypes.Where(t => t.Assembly == args.To).Select(t => new TestCaseButton(t) { Action = () => LoadTest(t) }));
         }
 
         internal readonly BindableDouble PlaybackRate = new BindableDouble(1) { MinValue = 0, MaxValue = 2 };
@@ -203,7 +203,7 @@ namespace osu.Framework.Testing
                 }
             };
 
-            searchTextBox.Current.ValueChanged += newValue => leftFlowContainer.SearchTerm = newValue;
+            searchTextBox.Current.ValueChanged += args => leftFlowContainer.SearchTerm = args.To;
 
             backgroundCompiler = new DynamicClassCompiler<TestCase>
             {
@@ -225,7 +225,7 @@ namespace osu.Framework.Testing
 
             Assembly.BindValueChanged(updateList);
             RunAllSteps.BindValueChanged(v => runTests(null));
-            PlaybackRate.BindValueChanged(v => rateAdjustClock.Rate = v, true);
+            PlaybackRate.BindValueChanged(args => rateAdjustClock.Rate = args.To, true);
         }
 
         protected override void Dispose(bool isDisposing)

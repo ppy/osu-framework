@@ -40,9 +40,9 @@ namespace osu.Framework.Graphics.Sprites
         private void load(ShaderManager shaders)
         {
             localisedText = localisation.GetLocalisedString(text);
-            localisedText.BindValueChanged(t =>
+            localisedText.BindValueChanged(args =>
             {
-                if (string.IsNullOrEmpty(t))
+                if (string.IsNullOrEmpty(args.To))
                 {
                     // We'll become not present and won't update the characters to set the size to 0, so do it manually
                     if (requiresAutoSizedWidth)

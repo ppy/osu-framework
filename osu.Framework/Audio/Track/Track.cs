@@ -27,7 +27,7 @@ namespace osu.Framework.Audio.Track
 
         protected Track()
         {
-            Tempo.ValueChanged += InvalidateState;
+            Tempo.ValueChanged += args => InvalidateState(args.To);
         }
 
         /// <summary>

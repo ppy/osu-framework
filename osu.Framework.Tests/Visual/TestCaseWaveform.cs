@@ -99,7 +99,7 @@ namespace osu.Framework.Tests.Visual
                 flow.Add(new TestWaveform(track, 1f / i) { Waveform = waveform });
 
             zoomSlider.Current.BindTo(zoom);
-            zoomSlider.Current.ValueChanged += v => flow.Width = track_width * v;
+            zoomSlider.Current.ValueChanged += args => flow.Width = track_width * args.To;
         }
 
         private void startStop()

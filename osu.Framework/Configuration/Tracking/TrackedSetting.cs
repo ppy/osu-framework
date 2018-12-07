@@ -41,6 +41,6 @@ namespace osu.Framework.Configuration.Tracking
             bindable.ValueChanged -= displaySetting;
         }
 
-        private void displaySetting(U value) => SettingChanged?.Invoke(generateDescription(value));
+        private void displaySetting(BindableValueChangedEventArgs<U> args) => SettingChanged?.Invoke(generateDescription(args.To));
     }
 }

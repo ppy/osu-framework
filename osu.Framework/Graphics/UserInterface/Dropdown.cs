@@ -157,16 +157,16 @@ namespace osu.Framework.Graphics.UserInterface
             Header.Label = SelectedItem?.Text.Value;
         }
 
-        private void selectionChanged(T newSelection = default)
+        private void selectionChanged(BindableValueChangedEventArgs<T> args)
         {
             // refresh if SelectedItem and SelectedValue mismatched
             // null is not a valid value for Dictionary, so neither here
-            if ((SelectedItem == null || !EqualityComparer<T>.Default.Equals(SelectedItem.Value, newSelection))
-                && newSelection != null)
+            if ((SelectedItem == null || !EqualityComparer<T>.Default.Equals(SelectedItem.Value, args.To))
+                && args.To != null)
             {
-                if (!itemMap.TryGetValue(newSelection, out selectedItem))
+                if (!itemMap.TryGetValue(args.To, out selectedItem))
                 {
-                    selectedItem = new DropdownMenuItem<T>(GenerateItemText(newSelection), newSelection);
+                    selectedItem = new DropdownMenuItem<T>(GenerateItemText(args.To), args.To);
                 }
             }
 

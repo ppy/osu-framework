@@ -101,9 +101,9 @@ namespace osu.Framework.Tests.Visual
             AddAssert("Value == 6", () => sliderBarValue == 6);
         }
 
-        private void sliderBarValueChanged(double newValue)
+        private void sliderBarValueChanged(BindableValueChangedEventArgs<double> args)
         {
-            sliderbarText.Text = $"Selected value: {newValue:N}";
+            sliderbarText.Text = $"Selected value: {args.To:N}";
         }
     }
 }

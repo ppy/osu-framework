@@ -48,7 +48,7 @@ namespace osu.Framework.Tests.Visual
     {
         public ActionsTestCheckbox()
         {
-            Current.ValueChanged += v => this.RotateTo(v ? 45 : 0, 100);
+            Current.ValueChanged += args => this.RotateTo(args.To ? 45 : 0, 100);
         }
     }
 }

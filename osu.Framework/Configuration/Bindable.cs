@@ -20,7 +20,7 @@ namespace osu.Framework.Configuration
         /// <summary>
         /// An event which is raised when <see cref="Value"/> has changed (or manually via <see cref="TriggerValueChange"/>).
         /// </summary>
-        public event Action<T> ValueChanged;
+        public event Action<BindableValueChangedEventArgs<T>> ValueChanged;
 
         /// <summary>
         /// An event which is raised when <see cref="Disabled"/>'s state has changed (or manually via <see cref="TriggerDisabledChange"/>).
@@ -75,9 +75,11 @@ namespace osu.Framework.Configuration
                 if (Disabled)
                     throw new InvalidOperationException($"Can not set value to \"{value.ToString()}\" as bindable is disabled.");
 
+                var previous = this.value;
+
                 this.value = value;
 
-                TriggerValueChange();
+                TriggerValueChange(previous);
             }
         }
 
@@ -138,11 +140,11 @@ namespace osu.Framework.Configuration
         /// </summary>
         /// <param name="onChange">The action to perform when <see cref="Value"/> changes.</param>
         /// <param name="runOnceImmediately">Whether the action provided in <see cref="onChange"/> should be run once immediately.</param>
-        public void BindValueChanged(Action<T> onChange, bool runOnceImmediately = false)
+        public void BindValueChanged(Action<BindableValueChangedEventArgs<T>> onChange, bool runOnceImmediately = false)
         {
             ValueChanged += onChange;
             if (runOnceImmediately)
-                onChange(Value);
+                onChange(new BindableValueChangedEventArgs<T>(Value, Value));
         }
 
         /// <summary>
@@ -193,17 +195,17 @@ namespace osu.Framework.Configuration
         /// </summary>
         public virtual void TriggerChange()
         {
-            TriggerValueChange(false);
+            TriggerValueChange(Value, false);
             TriggerDisabledChange(false);
         }
 
-        protected void TriggerValueChange(bool propagateToBindings = true)
+        protected void TriggerValueChange(T previousValue, bool propagateToBindings = true)
         {
             // check a bound bindable hasn't changed the value again (it will fire its own event)
             T beforePropagation = value;
             if (propagateToBindings) Bindings?.ForEachAlive(b => b.Value = value);
             if (Equals(beforePropagation, value))
-                ValueChanged?.Invoke(value);
+                ValueChanged?.Invoke(new BindableValueChangedEventArgs<T>(previousValue, value));
         }
 
         protected void TriggerDisabledChange(bool propagateToBindings = true)
