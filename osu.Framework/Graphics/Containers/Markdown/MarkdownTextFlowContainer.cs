@@ -34,7 +34,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
         public new void AddText(string text, Action<SpriteText> creationParameters = null)
             => base.AddText(text.Replace("[", "[[").Replace("]", "]]"), creationParameters);
 
-        public new IEnumerable<SpriteText> AddParagraph(string text, Action<SpriteText> creationParameters = null)
+        public new IEnumerable<Drawable> AddParagraph(string text, Action<SpriteText> creationParameters = null)
             => base.AddParagraph(text.Replace("[", "[[").Replace("]", "]]"), creationParameters);
 
         public void AddInlineText(ContainerInline container)
