@@ -44,10 +44,10 @@
   <ItemGroup>
     <Reference Include="Java.Interop" />
     <Reference Include="osuTK, Version=3.0.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
-      <HintPath>..\packages\ppy.osuTK.NS20.1.0.9\lib\netstandard2.0\osuTK.dll</HintPath>
+      <HintPath>..\packages\ppy.osuTK.NS20.1.0.11\lib\netstandard2.0\osuTK.dll</HintPath>
     </Reference>
     <Reference Include="osuTK.Android, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\ppy.osuTK.Android.1.0.9\lib\monoandroid50\osuTK.Android.dll</HintPath>
+      <HintPath>..\packages\ppy.osuTK.Android.1.0.11\lib\monoandroid50\osuTK.Android.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Xml" />
@@ -110,8 +110,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AndroidPlatformWindow.cs" />
     <Compile Include="AndroidStorage.cs" />
+    <Compile Include="GameAppActivity.cs" />
     <Compile Include="Resources\Resource.designer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="AndroidGameWindow.cs" />

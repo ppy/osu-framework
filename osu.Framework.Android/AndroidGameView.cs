@@ -14,6 +14,8 @@ using Android.Util;
 using Android.Views;
 using Android.Widget;
 using osu.Framework;
+using osu.Framework.Graphics.OpenGL;
+using osuTK;
 using osuTK.Graphics;
 using osuTK.Graphics.ES30;
 using osuTK.Platform.Android;
@@ -38,10 +40,11 @@ namespace osu.Framework.Android
         void Init()
         {
             AutoSetContextOnRenderFrame = true;
+            ContextRenderingApi = GLVersion.ES3;
+            RenderThreadRestartRetries = 1;
         }
         protected override void CreateFrameBuffer()
         {
-            ContextRenderingApi = GLVersion.ES3;
             try
             {
                 //GraphicsMode = new GraphicsMode();
@@ -72,13 +75,16 @@ namespace osu.Framework.Android
             viewportHeight = Height;
             viewportWidth = Width;
 
-            //MakeCurrent();
+            MakeCurrent();
         }
+
         void RenderGame()
         {
+            Run();
             host = new AndroidGameHost(this);
             host.Run(CreateGame());
-            //SwapBuffers();
+
+            SwapBuffers();
         }
         public abstract Game CreateGame();
     }

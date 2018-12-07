@@ -18,7 +18,8 @@ namespace osu.Framework.Android
         public AndroidGameHost(AndroidGameView gameView)
         {
             this.gameView = gameView;
-            Window = new AndroidGameWindow(gameView);
+            AndroidGameWindow.view = gameView;
+            Window = new AndroidGameWindow();
             Window.WindowStateChanged += (sender, e) =>
             {
                 if (Window.WindowState != WindowState.Minimized)
@@ -27,7 +28,7 @@ namespace osu.Framework.Android
                     OnDeactivated();
             };
         }
-        protected override void UpdateInitialize()
+        /*protected override void UpdateInitialize()
         {
             Activity activity = (Activity)gameView.Context;
             activity.RunOnUiThread(() =>
@@ -60,7 +61,7 @@ namespace osu.Framework.Android
             {
                 base.DrawFrame();
             });
-        }
+        }*/
 
         public override ITextInputSource GetTextInput() => throw new NotImplementedException();// new AndroidTextInput(gameView);
 

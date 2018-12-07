@@ -65,13 +65,13 @@ namespace osu.Framework.Platform
         protected GameWindow([NotNull] IGameWindow implementation)
         {
             Implementation = implementation;
-            Implementation.KeyDown += OnKeyDown;
+            //Implementation.KeyDown += OnKeyDown;
 
             Closing += (sender, e) => e.Cancel = ExitRequested?.Invoke() ?? false;
             Closed += (sender, e) => Exited?.Invoke();
 
-            MouseEnter += (sender, args) => CursorInWindow = true;
-            MouseLeave += (sender, args) => CursorInWindow = false;
+            //MouseEnter += (sender, args) => CursorInWindow = true;
+            //MouseLeave += (sender, args) => CursorInWindow = false;
 
             MakeCurrent();
 
@@ -101,8 +101,7 @@ namespace osu.Framework.Platform
                         GL Vendor:                  {GL.GetString(StringName.Vendor)}
                         GL Extensions:              {GL.GetString(StringName.Extensions)}");
 
-            //This is commented out because of Android issues.
-            //Context.MakeCurrent(null);
+            Context.MakeCurrent(null);
         }
 
         /// <summary>
