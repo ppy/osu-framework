@@ -168,6 +168,8 @@ namespace osu.Framework.Configuration
             Bindings.Add(weakReference);
         }
 
+        protected void RemoveWeakReference(WeakReference<Bindable<T>> weakReference) => Bindings?.Remove(weakReference);
+
         /// <summary>
         /// Parse an object into this instance.
         /// An object deriving T can be parsed, or a string can be parsed if T is an enum type.
@@ -245,6 +247,15 @@ namespace osu.Framework.Configuration
         {
             UnbindEvents();
             UnbindBindings();
+        }
+
+        public void UnbindFrom(IUnbindable them)
+        {
+            if (!(them is Bindable<T> tThem))
+                throw new InvalidCastException($"Can't unbind a bindable of type {them.GetType()} from a bindable of type {GetType()}.");
+
+            RemoveWeakReference(tThem.weakReference);
+            tThem.RemoveWeakReference(weakReference);
         }
 
         public string Description { get; set; }
