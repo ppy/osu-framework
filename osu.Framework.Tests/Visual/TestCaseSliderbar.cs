@@ -44,10 +44,9 @@ namespace osu.Framework.Tests.Visual
                 Position = new Vector2(25, 25),
                 BackgroundColour = Color4.White,
                 SelectionColour = Color4.Pink,
-                KeyboardStep = 1
+                KeyboardStep = 1,
+                Current = sliderBarValue
             };
-
-            sliderBar.Current.BindTo(sliderBarValue);
 
             Add(sliderBar);
             Add(sliderbarText);
@@ -60,9 +59,8 @@ namespace osu.Framework.Tests.Visual
                 BackgroundColour = Color4.White,
                 SelectionColour = Color4.Pink,
                 KeyboardStep = 1,
+                Current = sliderBarValue
             });
-
-            sliderBar.Current.BindTo(sliderBarValue);
         }
 
         [Test]

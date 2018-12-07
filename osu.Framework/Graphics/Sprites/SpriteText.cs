@@ -93,13 +93,6 @@ namespace osu.Framework.Graphics.Sprites
 
         private readonly Bindable<string> current = new Bindable<string>();
 
-        /// <summary>
-        /// Gets or sets the <see cref="Bindable{String}"/> that provides the non-localised text for this <see cref="SpriteText"/>.
-        /// </summary>
-        /// <remarks>
-        /// A provided <see cref="Bindable{String}"/> will be bound to, rather than be stored internally.
-        /// </remarks>
-        /// <exception cref="ArgumentNullException">If the provided value is null.</exception>
         public Bindable<string> Current
         {
             get => current;

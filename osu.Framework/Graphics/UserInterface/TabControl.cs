@@ -23,7 +23,20 @@ namespace osu.Framework.Graphics.UserInterface
     /// <typeparam name="T">The type of item to be represented by tabs.</typeparam>
     public abstract class TabControl<T> : CompositeDrawable, IHasCurrentValue<T>, IKeyBindingHandler<PlatformAction>
     {
-        public Bindable<T> Current { get; } = new Bindable<T>();
+        private readonly Bindable<T> current = new Bindable<T>();
+
+        public Bindable<T> Current
+        {
+            get => current;
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException(nameof(value));
+
+                current.UnbindBindings();
+                current.BindTo(value);
+            }
+        }
 
         /// <summary>
         /// A list of items currently in the tab control in the order they are dispalyed.
@@ -90,7 +103,7 @@ namespace osu.Framework.Graphics.UserInterface
                 Dropdown.RelativeSizeAxes = Axes.X;
                 Dropdown.Anchor = Anchor.TopRight;
                 Dropdown.Origin = Anchor.TopRight;
-                Dropdown.Current.BindTo(Current);
+                Dropdown.Current = Current;
 
                 AddInternal(Dropdown);
 

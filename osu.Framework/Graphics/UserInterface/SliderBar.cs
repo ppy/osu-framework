@@ -30,7 +30,18 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected readonly BindableNumber<T> CurrentNumber;
 
-        public Bindable<T> Current => CurrentNumber;
+        public Bindable<T> Current
+        {
+            get => CurrentNumber;
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException(nameof(value));
+
+                CurrentNumber.UnbindBindings();
+                CurrentNumber.BindTo(value);
+            }
+        }
 
         protected SliderBar()
         {
