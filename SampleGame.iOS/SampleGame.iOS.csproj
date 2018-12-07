@@ -151,10 +151,10 @@
       <HintPath>..\packages\Microsoft.CodeAnalysis.CSharp.2.9.0\lib\netstandard1.3\Microsoft.CodeAnalysis.CSharp.dll</HintPath>
     </Reference>
     <Reference Include="osuTK.iOS">
-      <HintPath>..\packages\ppy.osuTK.iOS.1.0.34\lib\xamarinios10\osuTK.iOS.dll</HintPath>
+      <HintPath>..\packages\ppy.osuTK.iOS.1.0.45\lib\xamarinios10\osuTK.iOS.dll</HintPath>
     </Reference>
     <Reference Include="osuTK">
-      <HintPath>..\packages\ppy.osuTK.NS20.1.0.41\lib\netstandard2.0\osuTK.dll</HintPath>
+      <HintPath>..\packages\ppy.osuTK.NS20.1.0.45\lib\netstandard2.0\osuTK.dll</HintPath>
     </Reference>
     <Reference Include="Markdig">
       <HintPath>..\packages\Markdig.0.15.0\lib\netstandard1.1\Markdig.dll</HintPath>
