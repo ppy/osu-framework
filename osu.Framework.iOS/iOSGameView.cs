@@ -73,6 +73,8 @@ namespace osu.Framework.iOS
             }
         }
 
+        protected override bool ShouldCallOnRender => false;
+
         public class DummyTextField : UITextField
         {
             public event Action<NSRange, string> HandleShouldChangeCharacters;
