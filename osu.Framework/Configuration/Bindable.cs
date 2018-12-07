@@ -81,11 +81,14 @@ namespace osu.Framework.Configuration
             }
         }
 
+        private readonly WeakReference<Bindable<T>> weakReference;
+
         /// <summary>
         /// Creates a new bindable instance. This is used for deserialization of bindables.
         /// </summary>
         [UsedImplicitly]
         private Bindable()
+            : this(default)
         {
         }
 
@@ -96,13 +99,13 @@ namespace osu.Framework.Configuration
         public Bindable(T value = default)
         {
             this.value = value;
+
+            weakReference = new WeakReference<Bindable<T>>(this);
         }
 
         public static implicit operator T(Bindable<T> value) => value.Value;
 
         protected WeakList<Bindable<T>> Bindings;
-
-        private WeakReference<Bindable<T>> weakReference => new WeakReference<Bindable<T>>(this);
 
         void IBindable.BindTo(IBindable them)
         {
