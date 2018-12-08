@@ -1,6 +1,29 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:orientation="vertical" android:layout_width="match_parent" android:layout_height="match_parent">
-    <!--<Button android:id="@+id/myButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/hello" />-->
-	<SampleGame.Android.SampleGameView 
-		android:id="@+id/sampleGameView1" android:layout_width="match_parent" android:layout_height="match_parent" />
+<LinearLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:orientation="vertical"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	android:minWidth="25px"
+	android:minHeight="25px">
+	<TextView
+		android:text="By pressing this button, you accept the fact that osu!lazer is completely unstable and will crash randomly."
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:id="@+id/textView1"
+		android:textAlignment="center"
+		android:layout_marginLeft="10px"
+		android:layout_marginRight="10px"
+		android:textSize="16dp" />
+	<!--<SampleGame.Android.SampleGameView
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		android:id="@+id/sampleGameView1" />-->
+	<Button
+		android:text="Button"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:id="@+id/button1"
+		android:onClick="majoroof" />
+
 </LinearLayout>
