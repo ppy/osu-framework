@@ -1,10 +1,12 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System.Linq;
 using Markdig;
 using Markdig.Extensions.AutoIdentifiers;
 using Markdig.Extensions.Tables;
 using Markdig.Syntax;
+using Markdig.Syntax.Inlines;
 using osu.Framework.Allocation;
 using osu.Framework.Caching;
 using osu.Framework.Graphics.Sprites;
@@ -23,6 +25,8 @@ namespace osu.Framework.Graphics.Containers.Markdown
 
         private string text = string.Empty;
 
+        private string rootUrl = string.Empty;
+
         /// <summary>
         /// The text to visualise.
         /// </summary>
@@ -34,6 +38,26 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 if (text == value)
                     return;
                 text = value;
+
+                contentCache.Invalidate();
+            }
+        }
+
+        /// <summary>
+        /// The root url to visualise.
+        /// </summary>
+        public string RootUrl
+        {
+            get => rootUrl;
+            set
+            {
+                if (rootUrl == value)
+                    return;
+
+                rootUrl = value;
+
+                if (string.IsNullOrEmpty(Text))
+                    return;
 
                 contentCache.Invalidate();
             }
@@ -105,6 +129,21 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 var markdownText = Text;
                 var pipeline = CreateBuilder();
                 var parsed = Markdig.Markdown.Parse(markdownText, pipeline);
+
+                //convert relative path to absolute path
+                if (!string.IsNullOrEmpty(RootUrl))
+                {
+                    var linkInlines = parsed.Descendants().OfType<LinkInline>();
+                    foreach (var linkInline in linkInlines)
+                    {
+                        if (!linkInline.Url.ToLower().StartsWith("http"))
+                        {
+                            var newUrl = rootUrl.Split('/');
+                            newUrl[newUrl.Length - 1] = linkInline.Url;
+                            linkInline.Url = string.Join("/", newUrl);
+                        }
+                    }
+                }
 
                 document.Clear();
                 foreach (var component in parsed)
