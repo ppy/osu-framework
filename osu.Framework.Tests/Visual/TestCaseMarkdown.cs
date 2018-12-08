@@ -112,7 +112,7 @@ Line below";
 
             AddStep("MarkdownFromInternet", () =>
             {
-                var url = "https://raw.githubusercontent.com/ppy/osu-wiki/master/wiki/Skinning/skin.ini/en.md";
+                const string url = "https://raw.githubusercontent.com/ppy/osu-wiki/master/wiki/Skinning/skin.ini/en.md";
                 markdownContainer.RootUrl = url;
                 var req = new WebRequest(url);
                 req.Finished += () => markdownContainer.Text = req.ResponseString;
