@@ -151,7 +151,7 @@ namespace osu.Framework.Testing
                         Padding = new MarginPadding(5),
                         Child = StepsContainer = new FillFlowContainer<Drawable>
                         {
-                            Direction = FillDirection.Vertical,
+                            Direction = FlowDirection.Vertical,
                             Spacing = new Vector2(5),
                             RelativeSizeAxes = Axes.X,
                             AutoSizeAxes = Axes.Y,

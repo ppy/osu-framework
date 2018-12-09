@@ -117,7 +117,7 @@ namespace osu.Framework.Graphics.UserInterface
                         Caret = new DrawableCaret(),
                         TextFlow = new FillFlowContainer
                         {
-                            Direction = FillDirection.Horizontal,
+                            Direction = FlowDirection.Horizontal,
                             AutoSizeAxes = Axes.X,
                             RelativeSizeAxes = Axes.Y,
                         },

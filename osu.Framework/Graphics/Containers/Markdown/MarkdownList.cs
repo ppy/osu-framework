@@ -20,7 +20,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
             AutoSizeAxes = Axes.Y;
             RelativeSizeAxes = Axes.X;
 
-            Direction = FillDirection.Vertical;
+            Direction = FlowDirection.Vertical;
 
             Spacing = new Vector2(10, 10);
             Padding = new MarginPadding { Left = 25, Right = 5 };

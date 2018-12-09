@@ -149,7 +149,7 @@ namespace osu.Framework.Graphics.Performance
                                         },
                                         new FillFlowContainer
                                         {
-                                            Direction = FillDirection.Horizontal,
+                                            Direction = FlowDirection.Horizontal,
                                             AutoSizeAxes = Axes.X,
                                             RelativeSizeAxes = Axes.Y,
                                             ChildrenEnumerable =

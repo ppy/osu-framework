@@ -82,7 +82,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
                     {
                         AutoSizeAxes = Axes.Y,
                         RelativeSizeAxes = Axes.X,
-                        Direction = FillDirection.Vertical,
+                        Direction = FlowDirection.Vertical,
                     }
                 }
             };

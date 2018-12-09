@@ -47,7 +47,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             Child = new FillFlowContainer
             {
-                Direction = FillDirection.Horizontal,
+                Direction = FlowDirection.Horizontal,
                 AutoSizeAxes = Axes.Both,
                 Children = new Drawable[]
                 {

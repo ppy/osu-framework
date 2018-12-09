@@ -135,7 +135,7 @@ namespace osu.Framework.Graphics.Visualisation
                 },
                 flow = new VisualisedDrawableFlow
                 {
-                    Direction = FillDirection.Vertical,
+                    Direction = FlowDirection.Vertical,
                     RelativeSizeAxes = Axes.X,
                     AutoSizeAxes = Axes.Y,
                     Position = new Vector2(10, 14)
