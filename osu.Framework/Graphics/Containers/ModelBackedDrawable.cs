@@ -35,16 +35,12 @@ namespace osu.Framework.Graphics.Containers
             get => model;
             set
             {
-                if (model == null && value == null)
-                    return;
-
-                if (Comparer.Equals(model, value))
+                if (model == null && value == null || Comparer.Equals(model, value))
                     return;
 
                 model = value;
 
-                if (IsLoaded)
-                    updateDrawable();
+                updateDrawable();
             }
         }
 
