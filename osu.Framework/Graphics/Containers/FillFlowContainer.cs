@@ -44,11 +44,11 @@ namespace osu.Framework.Graphics.Containers
         private FlowDirection direction = FlowDirection.Full;
 
         /// <summary>
-        /// If <see cref="Containers.FlowDirection.Full"/> or <see cref="Containers.FlowDirection.Full"/>,
+        /// If <see cref="Containers.FlowDirection.Full"/> or <see cref="Containers.FlowDirection.Horizontal"/>,
         /// <see cref="Container{T}.Children"/> are arranged from left-to-right if their
         /// <see cref="Drawable.Anchor"/> is to the left or centered horizontally.
         /// They are arranged from right-to-left otherwise.
-        /// If <see cref="Containers.FlowDirection.Full"/> or <see cref="Containers.FlowDirection.Full"/>,
+        /// If <see cref="Containers.FlowDirection.Full"/> or <see cref="Containers.FlowDirection.Vertical"/>,
         /// <see cref="Container{T}.Children"/> are arranged from top-to-bottom if their
         /// <see cref="Drawable.Anchor"/> is to the top or centered vertically.
         /// They are arranged from bottom-to-top otherwise.
