@@ -344,7 +344,7 @@ namespace osu.Framework.Tests.Visual
                     {
                         TestContainer.Add(new FillFlowContainer
                         {
-                            Direction = FillDirection.Vertical,
+                            Direction = FlowDirection.Vertical,
                             AutoSizeAxes = Axes.Both,
                             Spacing = new Vector2(0, 10),
                             Children = new Drawable[]
@@ -355,7 +355,7 @@ namespace osu.Framework.Tests.Visual
                                 },
                                 new FillFlowContainer
                                 {
-                                    Direction = FillDirection.Vertical,
+                                    Direction = FlowDirection.Vertical,
                                     AutoSizeAxes = Axes.Both,
                                     Spacing = new Vector2(0, 2),
                                     Children = new Drawable[]
@@ -393,7 +393,7 @@ namespace osu.Framework.Tests.Visual
                                 },
                                 new FillFlowContainer
                                 {
-                                    Direction = FillDirection.Vertical,
+                                    Direction = FlowDirection.Vertical,
                                     AutoSizeAxes = Axes.Both,
                                     Spacing = new Vector2(0, 2),
                                     Children = new Drawable[]

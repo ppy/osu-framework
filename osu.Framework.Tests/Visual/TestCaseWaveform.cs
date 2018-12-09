@@ -48,7 +48,7 @@ namespace osu.Framework.Tests.Visual
             Child = new FillFlowContainer
             {
                 RelativeSizeAxes = Axes.Both,
-                Direction = FillDirection.Vertical,
+                Direction = FlowDirection.Vertical,
                 Children = new Drawable[]
                 {
                     new FillFlowContainer
@@ -88,7 +88,7 @@ namespace osu.Framework.Tests.Visual
                         {
                             RelativeSizeAxes = Axes.Y,
                             Width = track_width,
-                            Direction = FillDirection.Vertical,
+                            Direction = FlowDirection.Vertical,
                             Spacing = new Vector2(0, 10)
                         }
                     }

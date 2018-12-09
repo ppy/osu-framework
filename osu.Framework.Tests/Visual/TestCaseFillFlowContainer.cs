@@ -19,7 +19,7 @@ namespace osu.Framework.Tests.Visual
 {
     public class TestCaseFillFlowContainer : TestCase
     {
-        private FillDirectionDropdown selectionDropdown;
+        private FlowDirectionDropdown selectionDropdown;
 
         private Anchor childAnchor = Anchor.TopLeft;
         private AnchorDropdown anchorDropdown;
@@ -52,13 +52,13 @@ namespace osu.Framework.Tests.Visual
                 {
                     new FillFlowContainer
                     {
-                        Direction = FillDirection.Vertical,
+                        Direction = FlowDirection.Vertical,
                         RelativeSizeAxes = Axes.X,
                         AutoSizeAxes = Axes.Y,
                         Children = new Drawable[]
                         {
                             new SpriteText { Text = @"Fill mode" },
-                            selectionDropdown = new FillDirectionDropdown
+                            selectionDropdown = new FlowDirectionDropdown
                             {
                                 RelativeSizeAxes = Axes.X,
                                 Items = (FlowTestCase[])Enum.GetValues(typeof(FlowTestCase)),
@@ -331,21 +331,21 @@ namespace osu.Framework.Tests.Visual
         [FlowTestCase(FlowTestCase.Full)]
         private void test1()
         {
-            fillContainer.Direction = FillDirection.Full;
+            fillContainer.Direction = FlowDirection.Full;
             fillContainer.Spacing = new Vector2(5, 5);
         }
 
         [FlowTestCase(FlowTestCase.Horizontal)]
         private void test2()
         {
-            fillContainer.Direction = FillDirection.Horizontal;
+            fillContainer.Direction = FlowDirection.Horizontal;
             fillContainer.Spacing = new Vector2(5, 5);
         }
 
         [FlowTestCase(FlowTestCase.Vertical)]
         private void test3()
         {
-            fillContainer.Direction = FillDirection.Vertical;
+            fillContainer.Direction = FlowDirection.Vertical;
             fillContainer.Spacing = new Vector2(5, 5);
         }
 
@@ -384,14 +384,14 @@ namespace osu.Framework.Tests.Visual
             }
         }
 
-        private class FillDirectionDropdown : BasicDropdown<FlowTestCase>
+        private class FlowDirectionDropdown : BasicDropdown<FlowTestCase>
         {
             protected override DropdownHeader CreateHeader() => new TestCaseDropdownHeader();
         }
 
-        private class FillDirectionDropdownMenuItem : DropdownMenuItem<FlowTestCase>
+        private class FlowDirectionDropdownMenuItem : DropdownMenuItem<FlowTestCase>
         {
-            public FillDirectionDropdownMenuItem(FlowTestCase testCase)
+            public FlowDirectionDropdownMenuItem(FlowTestCase testCase)
                 : base(testCase.ToString(), testCase)
             {
             }

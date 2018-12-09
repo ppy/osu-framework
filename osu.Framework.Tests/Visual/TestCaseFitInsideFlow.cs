@@ -26,7 +26,7 @@ namespace osu.Framework.Tests.Visual
                 Origin = Anchor.Centre,
                 AutoSizeAxes = Axes.Y,
                 Width = container_width,
-                Direction = FillDirection.Vertical,
+                Direction = FlowDirection.Vertical,
                 Children = new Drawable[]
                 {
                     fitBox = new Box
