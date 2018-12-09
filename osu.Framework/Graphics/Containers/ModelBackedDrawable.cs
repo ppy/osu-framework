@@ -97,11 +97,9 @@ namespace osu.Framework.Graphics.Containers
 
         private void updateDrawable()
         {
-            var newDrawable = CreateDrawable(model);
+            nextDrawable = CreateDrawable(model);
 
-            nextDrawable = newDrawable;
-
-            if (newDrawable == null)
+            if (nextDrawable == null)
             {
                 replaceDrawable(DisplayedDrawable, null);
                 return;
@@ -114,7 +112,7 @@ namespace osu.Framework.Graphics.Containers
                 replaceDrawable(DisplayedDrawable, placeholder, true);
             }
 
-            newDrawable.OnLoadComplete = loadedDrawable =>
+            nextDrawable.OnLoadComplete = loadedDrawable =>
             {
                 if (loadedDrawable != nextDrawable)
                 {
@@ -124,7 +122,7 @@ namespace osu.Framework.Graphics.Containers
                 replaceDrawable(DisplayedDrawable, loadedDrawable);
             };
 
-            AddInternal(CreateDelayedLoadWrapper(newDrawable, LoadDelay));
+            AddInternal(CreateDelayedLoadWrapper(nextDrawable, LoadDelay));
         }
 
         /// <summary>
