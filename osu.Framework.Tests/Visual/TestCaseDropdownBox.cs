@@ -17,6 +17,7 @@ namespace osu.Framework.Tests.Visual
     public class TestCaseDropdownBox : ManualInputManagerTestCase
     {
         private const int items_to_add = 10;
+        private const float explicit_height = 100;
         private readonly StyledDropdown styledDropdown, styledDropdownMenu2;
 
         public TestCaseDropdownBox()
@@ -51,6 +52,9 @@ namespace osu.Framework.Tests.Visual
 
             AddRepeatStep("add item", () => styledDropdown.AddDropdownItem("test " + i++), items_to_add);
             AddAssert("item count is correct", () => styledDropdown.Items.Count() == items_to_add * 2);
+
+            AddStep($"Set dropdown1 height to {explicit_height}", () => styledDropdown.Menu.Height = explicit_height);
+            AddAssert($"dropdown1 height is {explicit_height}", () => styledDropdown.Menu.Height == explicit_height);
 
             AddStep("click item 13", () => styledDropdown.SelectItem(styledDropdown.Menu.Items[13]));
 
