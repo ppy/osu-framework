@@ -9,7 +9,6 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Android
 {
-    [Register("AndroidGameView")]
     public abstract class AndroidGameView : osuTK.Android.AndroidGameView
     {
         int viewportWidth, viewportHeight;
@@ -70,6 +69,7 @@ namespace osu.Framework.Android
             MakeCurrent();
         }
 
+        [STAThread]
         public void RenderGame()
         {
             host = new AndroidGameHost(this);
