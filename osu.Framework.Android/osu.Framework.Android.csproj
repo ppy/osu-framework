@@ -1,45 +1,87 @@
-﻿<Project Sdk="MSBuild.Sdk.Extras/1.6.55">
-  <PropertyGroup Label="Project">
-    <TargetFramework>monoandroid80</TargetFramework>
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{6E2A06CF-E328-446C-8405-55669B1A1F5E}</ProjectGuid>
+    <ProjectTypeGuids>{EFBA0AD7-5A72-4C68-AF49-83D382785DCF};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <TemplateGuid>{9ef11e43-1701-4396-8835-8392d57abb70}</TemplateGuid>
     <OutputType>Library</OutputType>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <AssemblyTitle>osu!framework Android</AssemblyTitle>
-    <AssemblyName>osu.Framework.Android</AssemblyName>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>osu.Framework.Android</RootNamespace>
-    <Description>A 2D application/game framework written with rhythm games in mind.</Description>
-    <Product>osu!framework</Product>
-    <LangVersion>7.2</LangVersion>
+    <AssemblyName>osu.Framework.Android</AssemblyName>
+    <FileAlignment>512</FileAlignment>
+    <AndroidResgenFile>Resources\Resource.designer.cs</AndroidResgenFile>
+    <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
+    <AndroidUseLatestPlatformSdk>false</AndroidUseLatestPlatformSdk>
+    <TargetFrameworkVersion>v8.0</TargetFrameworkVersion>
   </PropertyGroup>
-  <PropertyGroup Label="Nuget">
-    <Title>osu!framework Android</Title>
-    <PackageId>ppy.osu.Framework.Android</PackageId>
-    <Authors>ppy Pty Ltd</Authors>
-    <PackageLicenseUrl>https://github.com/ppy/osu-framework/blob/master/LICENCE</PackageLicenseUrl>
-    <PackageProjectUrl>https://github.com/ppy/osu-framework</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/ppy/osu-framework</RepositoryUrl>
-    <PackageReleaseNotes>Automated release.</PackageReleaseNotes>
-    <copyright>Copyright (c) 2007-2018 ppy Pty Ltd contact@ppy.sh</copyright>
-    <PackageTags>osu game framework</PackageTags>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>portable</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Java.Interop" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Mono.Android" />
+    <Reference Include="mscorlib" />
     <Reference Include="System" />
-    <Reference Include="System.Xml" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <NativeLibs Include="$(MSBuildThisFileDirectory)*\*.dll*" />
-    <NativeLibs Include="$(MSBuildThisFileDirectory)*.a" />
-    <None Include="@(NativeLibs)">
-      <Pack>true</Pack>
-      <PackageCopyToOutput>true</PackageCopyToOutput>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    <Compile Include="AndroidGameHost.cs" />
+    <Compile Include="AndroidGameView.cs" />
+    <Compile Include="AndroidGameWindow.cs" />
+    <Compile Include="AndroidStorage.cs" />
+    <Compile Include="Resources\Resource.designer.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\osu-framework.licenseheader">
+      <Link>osu-framework.licenseheader</Link>
     </None>
+    <None Include="Resources\AboutResources.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\osu.Framework\osu.Framework.csproj" />
+    <PackageReference Include="ppy.osuTK.Android">
+      <Version>1.0.13</Version>
+    </PackageReference>
+    <PackageReference Include="Xamarin.Android.Support.v7.AppCompat" Version="26.1.0.1" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="ppy.osuTK.Android" Version="1.0.13" />
+    <AndroidResource Include="Resources\values\strings.xml" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Resources\drawable\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\osu.Framework\osu.Framework.csproj">
+      <Project>{c76bf5b3-985e-4d39-95fe-97c9c879b83a}</Project>
+      <Name>osu.Framework</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
 </Project>
