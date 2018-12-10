@@ -132,8 +132,8 @@ namespace osu.Framework.Configuration
             Disabled = them.Disabled;
             Default = them.Default;
 
-            AddWeakReference(them.weakReference);
-            them.AddWeakReference(weakReference);
+            addWeakReference(them.weakReference);
+            them.addWeakReference(weakReference);
         }
 
         /// <summary>
@@ -160,7 +160,7 @@ namespace osu.Framework.Configuration
                 onChange(Disabled);
         }
 
-        protected void AddWeakReference(WeakReference<Bindable<T>> weakReference)
+        private void addWeakReference(WeakReference<Bindable<T>> weakReference)
         {
             if (Bindings == null)
                 Bindings = new WeakList<Bindable<T>>();
@@ -168,7 +168,7 @@ namespace osu.Framework.Configuration
             Bindings.Add(weakReference);
         }
 
-        protected void RemoveWeakReference(WeakReference<Bindable<T>> weakReference) => Bindings?.Remove(weakReference);
+        private void removeWeakReference(WeakReference<Bindable<T>> weakReference) => Bindings?.Remove(weakReference);
 
         /// <summary>
         /// Parse an object into this instance.
@@ -254,8 +254,8 @@ namespace osu.Framework.Configuration
             if (!(them is Bindable<T> tThem))
                 throw new InvalidCastException($"Can't unbind a bindable of type {them.GetType()} from a bindable of type {GetType()}.");
 
-            RemoveWeakReference(tThem.weakReference);
-            tThem.RemoveWeakReference(weakReference);
+            removeWeakReference(tThem.weakReference);
+            tThem.removeWeakReference(weakReference);
         }
 
         public string Description { get; set; }
