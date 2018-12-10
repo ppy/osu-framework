@@ -105,7 +105,7 @@ namespace osu.Framework.Configuration
 
         public static implicit operator T(Bindable<T> value) => value.Value;
 
-        protected WeakList<Bindable<T>> Bindings;
+        protected WeakList<Bindable<T>> Bindings { get; private set; }
 
         void IBindable.BindTo(IBindable them)
         {
