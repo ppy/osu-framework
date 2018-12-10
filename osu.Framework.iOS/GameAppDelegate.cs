@@ -48,9 +48,9 @@ namespace osu.Framework.iOS
             {
                 new SixLabors.ImageSharp.Formats.Png.PngDecoder().Decode<Rgba32>(SixLabors.ImageSharp.Configuration.Default, null);
             }
-            catch { }
+            catch
+            {
+            }
         }
     }
-
-
 }
