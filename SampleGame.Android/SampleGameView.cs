@@ -23,6 +23,10 @@ namespace SampleGame.Android
             CreateGame();
         }
 
+        public SampleGameView(Context context) : base(context)
+        {
+            CreateGame();
+        }
         public override Game CreateGame() => new SampleGameGame();
     }
 }

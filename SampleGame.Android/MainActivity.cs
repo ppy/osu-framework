@@ -3,6 +3,9 @@
 
 using Android.App;
 using Android.OS;
+using Android.Widget;
+using osu.Framework.Android;
+using System;
 
 namespace SampleGame.Android
 {
@@ -14,6 +17,14 @@ namespace SampleGame.Android
             base.OnCreate(savedInstanceState);
 
             SetContentView(Resource.Layout.Main);
+
+            //Button button = FindViewById<Button>(Resource.Id.button1);
+            //button.Click += OnClick;
         }
+        /*private void OnClick(object sender, EventArgs e)
+        {
+            SampleGameView view = new SampleGameView(this);
+            SetContentView(view);
+        }*/
     }
 }
