@@ -34,7 +34,7 @@ namespace osu.Framework.Localisation
                 if (text.ShouldLocalise && storage.Value != null)
                     newText = storage.Value.Get(newText);
 
-                if (text.Args != null && !string.IsNullOrEmpty(newText))
+                if (text.Args?.Length > 0 && !string.IsNullOrEmpty(newText))
                 {
                     try
                     {
