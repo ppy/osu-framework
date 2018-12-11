@@ -46,18 +46,22 @@ namespace osu.Framework.Platform.Windows
                 // get the type info with reflection, since Icon won't be available to Xamarin
                 var drawingAssembly = typeof(Point).Assembly;
                 Type iconType = drawingAssembly.ExportedTypes.Single(x => x.Name == "Icon");
-                ConstructorInfo cons = iconType.GetConstructor(new Type[] { typeof(Stream), typeof(int), typeof(int) });
-                PropertyInfo handleProp = iconType.GetProperties().Single(x => x.Name == "Handle");
+                ConstructorInfo cons = iconType.GetConstructor(new [] { typeof(Stream), typeof(int), typeof(int) });
 
-                // create icons and get their handles
-                smallIcon = cons.Invoke(new object[] { stream, 24, 24 });
-                largeIcon = cons.Invoke(new object[] { secondStream, 256, 256 });
-                IntPtr smallIconHandle = (IntPtr)handleProp.GetValue(smallIcon);
-                IntPtr largeIconHandle = (IntPtr)handleProp.GetValue(largeIcon);
+                if (cons != null)
+                {
+                    // create icons and get their handles
+                    smallIcon = cons.Invoke(new object[] { stream, 24, 24 });
+                    largeIcon = cons.Invoke(new object[] { secondStream, 256, 256 });
 
-                // pass the handles through to SendMessage
-                SendMessage(WindowInfo.Handle, seticon_message, (IntPtr)0, smallIconHandle);
-                SendMessage(WindowInfo.Handle, seticon_message, (IntPtr)1, largeIconHandle);
+                    PropertyInfo handleProp = iconType.GetProperties().Single(x => x.Name == "Handle");
+                    IntPtr smallIconHandle = (IntPtr)handleProp.GetValue(smallIcon);
+                    IntPtr largeIconHandle = (IntPtr)handleProp.GetValue(largeIcon);
+
+                    // pass the handles through to SendMessage
+                    SendMessage(WindowInfo.Handle, seticon_message, (IntPtr)0, smallIconHandle);
+                    SendMessage(WindowInfo.Handle, seticon_message, (IntPtr)1, largeIconHandle);
+                }
             }
             catch
             {
