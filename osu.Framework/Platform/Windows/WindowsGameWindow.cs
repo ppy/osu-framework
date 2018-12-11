@@ -3,8 +3,12 @@
 
 using System;
 using System.IO;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using osuTK.Input;
+using System.Linq;
+using System.Drawing;
+using osu.Framework.Logging;
 
 namespace osu.Framework.Platform.Windows
 {
@@ -12,9 +16,8 @@ namespace osu.Framework.Platform.Windows
     {
         private const int seticon_message = 0x0080;
 
-        // FIXME
-        //private Icon smallIcon;
-        //private Icon largeIcon;
+        private object smallIcon;
+        private object largeIcon;
 
         protected override void OnKeyDown(object sender, KeyboardKeyEventArgs e)
         {
@@ -38,12 +41,28 @@ namespace osu.Framework.Platform.Windows
             stream.Position = 0;
             secondStream.Position = 0;
 
-            // FIXME
-            //smallIcon = new Icon(stream, 24, 24);
-            //largeIcon = new Icon(secondStream, 256, 256);
+            try
+            {
+                // get the type info with reflection, since Icon won't be available to Xamarin
+                var drawingAssembly = typeof(Point).Assembly;
+                Type iconType = drawingAssembly.ExportedTypes.Single(x => x.Name == "Icon");
+                ConstructorInfo cons = iconType.GetConstructor(new Type[] { typeof(Stream), typeof(int), typeof(int) });
+                PropertyInfo handleProp = iconType.GetProperties().Single(x => x.Name == "Handle");
 
-            //SendMessage(WindowInfo.Handle, seticon_message, (IntPtr)0, smallIcon.Handle);
-            //SendMessage(WindowInfo.Handle, seticon_message, (IntPtr)1, largeIcon.Handle);
+                // create icons and get their handles
+                smallIcon = cons.Invoke(new object[] { stream, 24, 24 });
+                largeIcon = cons.Invoke(new object[] { secondStream, 256, 256 });
+                IntPtr smallIconHandle = (IntPtr)handleProp.GetValue(smallIcon);
+                IntPtr largeIconHandle = (IntPtr)handleProp.GetValue(largeIcon);
+
+                // pass the handles through to SendMessage
+                SendMessage(WindowInfo.Handle, seticon_message, (IntPtr)0, smallIconHandle);
+                SendMessage(WindowInfo.Handle, seticon_message, (IntPtr)1, largeIconHandle);
+            }
+            catch
+            {
+                Logger.Log("Failed to set window icon from Stream.", LoggingTarget.Runtime, LogLevel.Important);
+            }
         }
 
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
