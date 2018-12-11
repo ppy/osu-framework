@@ -40,6 +40,6 @@
     <ProjectReference Include="..\osu.Framework\osu.Framework.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="ppy.osuTK.Android" Version="1.0.13" />
+    <PackageReference Include="ppy.osuTK.Android" Version="1.0.16" />
   </ItemGroup>
 </Project>
