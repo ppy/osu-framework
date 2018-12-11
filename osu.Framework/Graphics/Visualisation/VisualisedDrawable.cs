@@ -330,7 +330,6 @@ namespace osu.Framework.Graphics.Visualisation
         {
             // May come from the disposal thread, in which case they won't ever be reused and the container doesn't need to be reset
             Schedule(() => SetContainer(null));
-            Dispose();
         }
 
         private void updateSpecifics()
