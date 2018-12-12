@@ -459,7 +459,8 @@ namespace osu.Framework.Platform
                 if (Window != null)
                 {
                     Window.SetupWindow(config);
-                    Window.Title = $@"osu!framework (running ""{Name}"")";
+                    if (RuntimeInfo.OS != RuntimeInfo.Platform.Android)
+                        Window.Title = $@"osu!framework (running ""{Name}"")";
                 }
 
                 resetInputHandlers();
