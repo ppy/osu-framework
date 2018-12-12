@@ -61,18 +61,13 @@ namespace osu.Framework.Android
         }
         protected override void OnResize(EventArgs e)
         {
-            base.OnResize(e);
-
             viewportHeight = Height;
             viewportWidth = Width;
-
-            //MakeCurrent();
         }
 
         [STAThread]
         public void RenderGame()
         {
-            Run();
             host = new AndroidGameHost(this);
             host.Run(CreateGame());
         }
