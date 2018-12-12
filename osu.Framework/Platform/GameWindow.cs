@@ -65,14 +65,18 @@ namespace osu.Framework.Platform
         protected GameWindow([NotNull] IGameWindow implementation)
         {
             Implementation = implementation;
-            //Implementation.KeyDown += OnKeyDown;
+            if (RuntimeInfo.OS != RuntimeInfo.Platform.Android)
+                Implementation.KeyDown += OnKeyDown;
 
             Closing += (sender, e) => e.Cancel = ExitRequested?.Invoke() ?? false;
             Closed += (sender, e) => Exited?.Invoke();
 
-            //MouseEnter += (sender, args) => CursorInWindow = true;
-            //MouseLeave += (sender, args) => CursorInWindow = false;
-
+            if (RuntimeInfo.OS != RuntimeInfo.Platform.Android)
+            {
+                MouseEnter += (sender, args) => CursorInWindow = true;
+                MouseLeave += (sender, args) => CursorInWindow = false;
+            }
+            
             MakeCurrent();
 
             string version = GL.GetString(StringName.Version);
