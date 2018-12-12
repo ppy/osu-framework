@@ -7,7 +7,6 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using osuTK.Input;
 using System.Linq;
-using System.Drawing;
 using osu.Framework.Logging;
 
 namespace osu.Framework.Platform.Windows
@@ -44,23 +43,32 @@ namespace osu.Framework.Platform.Windows
             try
             {
                 // get the type info with reflection, since Icon won't be available to Xamarin
-                var drawingAssembly = typeof(Point).Assembly;
-                Type iconType = drawingAssembly.ExportedTypes.Single(x => x.Name == "Icon");
-                ConstructorInfo cons = iconType.GetConstructor(new [] { typeof(Stream), typeof(int), typeof(int) });
-
-                if (cons != null)
+                Type iconType = null;
+                foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies().Where(x => x.GetName().Name.StartsWith("System.Drawing", StringComparison.Ordinal)))
                 {
-                    // create icons and get their handles
-                    smallIcon = cons.Invoke(new object[] { stream, 24, 24 });
-                    largeIcon = cons.Invoke(new object[] { secondStream, 256, 256 });
+                    iconType = assembly.ExportedTypes.FirstOrDefault(x => x.FullName == "System.Drawing.Icon");
+                    if (iconType != null)
+                        break;
+                }
 
-                    PropertyInfo handleProp = iconType.GetProperties().Single(x => x.Name == "Handle");
-                    IntPtr smallIconHandle = (IntPtr)handleProp.GetValue(smallIcon);
-                    IntPtr largeIconHandle = (IntPtr)handleProp.GetValue(largeIcon);
+                if (iconType != null)
+                {
+                    ConstructorInfo cons = iconType.GetConstructor(new[] { typeof(Stream), typeof(int), typeof(int) });
 
-                    // pass the handles through to SendMessage
-                    SendMessage(WindowInfo.Handle, seticon_message, (IntPtr)0, smallIconHandle);
-                    SendMessage(WindowInfo.Handle, seticon_message, (IntPtr)1, largeIconHandle);
+                    if (cons != null)
+                    {
+                        // create icons and get their handles
+                        smallIcon = cons.Invoke(new object[] { stream, 24, 24 });
+                        largeIcon = cons.Invoke(new object[] { secondStream, 256, 256 });
+
+                        PropertyInfo handleProp = iconType.GetProperties().Single(x => x.Name == "Handle");
+                        IntPtr smallIconHandle = (IntPtr)handleProp.GetValue(smallIcon);
+                        IntPtr largeIconHandle = (IntPtr)handleProp.GetValue(largeIcon);
+
+                        // pass the handles through to SendMessage
+                        SendMessage(WindowInfo.Handle, seticon_message, (IntPtr)0, smallIconHandle);
+                        SendMessage(WindowInfo.Handle, seticon_message, (IntPtr)1, largeIconHandle);
+                    }
                 }
             }
             catch
