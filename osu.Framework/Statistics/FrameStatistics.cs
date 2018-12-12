@@ -50,6 +50,10 @@ namespace osu.Framework.Statistics
         ScheduleInvk,
         InputQueue,
         PositionalIQ,
+        /// <summary>
+        /// See <see cref="osu.Framework.Graphics.Containers.CompositeDrawable.CheckChildrenLife"/>.
+        /// </summary>
+        CCL,
 
         VBufBinds,
         VBufOverflow,
