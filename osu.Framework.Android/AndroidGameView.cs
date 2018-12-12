@@ -66,12 +66,13 @@ namespace osu.Framework.Android
             viewportHeight = Height;
             viewportWidth = Width;
 
-            MakeCurrent();
+            //MakeCurrent();
         }
 
         [STAThread]
         public void RenderGame()
         {
+            Run();
             host = new AndroidGameHost(this);
             host.Run(CreateGame());
         }

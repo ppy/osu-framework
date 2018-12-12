@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using Android.App;
+using osu.Framework.Android.Input;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Platform;
@@ -20,13 +21,13 @@ namespace osu.Framework.Android
             this.gameView = gameView;
             AndroidGameWindow.view = gameView;
             Window = new AndroidGameWindow();
-            Window.WindowStateChanged += (sender, e) =>
+            /*Window.WindowStateChanged += (sender, e) =>
             {
                 if (Window.WindowState != WindowState.Minimized)
                     OnActivated();
                 else
                     OnDeactivated();
-            };
+            };*/
         }
         /*protected override void UpdateInitialize()
         {
@@ -66,7 +67,7 @@ namespace osu.Framework.Android
         public override ITextInputSource GetTextInput() => throw new NotImplementedException();// new AndroidTextInput(gameView);
 
         protected override IEnumerable<InputHandler> CreateAvailableInputHandlers() =>
-            new InputHandler[] { };//new AndroidTouchHandler(gameView), new AndroidKeyboardHandler(gameView) };
+            new InputHandler[] { new AndroidKeyboardHandler(gameView) }; //new AndroidTouchHandler(gameView), new AndroidKeyboardHandler(gameView) };
 
         protected override Storage GetStorage(string baseName) => new AndroidStorage(baseName, this);
 
