@@ -2,12 +2,10 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Drawing;
 using System.IO;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using osuTK.Input;
-using System.Linq;
-using osu.Framework.Logging;
 
 namespace osu.Framework.Platform.Windows
 {
@@ -15,8 +13,8 @@ namespace osu.Framework.Platform.Windows
     {
         private const int seticon_message = 0x0080;
 
-        private object smallIcon;
-        private object largeIcon;
+        private Icon smallIcon;
+        private Icon largeIcon;
 
         protected override void OnKeyDown(object sender, KeyboardKeyEventArgs e)
         {
@@ -40,41 +38,11 @@ namespace osu.Framework.Platform.Windows
             stream.Position = 0;
             secondStream.Position = 0;
 
-            try
-            {
-                // get the type info with reflection, since Icon won't be available to Xamarin
-                Type iconType = null;
-                foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies().Where(x => x.GetName().Name.StartsWith("System.Drawing", StringComparison.Ordinal)))
-                {
-                    iconType = assembly.ExportedTypes.FirstOrDefault(x => x.FullName == "System.Drawing.Icon");
-                    if (iconType != null)
-                        break;
-                }
+            smallIcon = new Icon(stream, 24, 24);
+            largeIcon = new Icon(secondStream, 256, 256);
 
-                if (iconType != null)
-                {
-                    ConstructorInfo cons = iconType.GetConstructor(new[] { typeof(Stream), typeof(int), typeof(int) });
-
-                    if (cons != null)
-                    {
-                        // create icons and get their handles
-                        smallIcon = cons.Invoke(new object[] { stream, 24, 24 });
-                        largeIcon = cons.Invoke(new object[] { secondStream, 256, 256 });
-
-                        PropertyInfo handleProp = iconType.GetProperties().Single(x => x.Name == "Handle");
-                        IntPtr smallIconHandle = (IntPtr)handleProp.GetValue(smallIcon);
-                        IntPtr largeIconHandle = (IntPtr)handleProp.GetValue(largeIcon);
-
-                        // pass the handles through to SendMessage
-                        SendMessage(WindowInfo.Handle, seticon_message, (IntPtr)0, smallIconHandle);
-                        SendMessage(WindowInfo.Handle, seticon_message, (IntPtr)1, largeIconHandle);
-                    }
-                }
-            }
-            catch
-            {
-                Logger.Log("Failed to set window icon from Stream.", LoggingTarget.Runtime, LogLevel.Important);
-            }
+            SendMessage(WindowInfo.Handle, seticon_message, (IntPtr)0, smallIcon.Handle);
+            SendMessage(WindowInfo.Handle, seticon_message, (IntPtr)1, largeIcon.Handle);
         }
 
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
