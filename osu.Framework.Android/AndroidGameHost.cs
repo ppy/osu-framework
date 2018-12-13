@@ -64,10 +64,10 @@ namespace osu.Framework.Android
             });
         }*/
 
-        public override ITextInputSource GetTextInput() => throw new NotImplementedException();// new AndroidTextInput(gameView);
+        public override ITextInputSource GetTextInput() => new AndroidTextInput(gameView);
 
         protected override IEnumerable<InputHandler> CreateAvailableInputHandlers() =>
-            new InputHandler[] { new AndroidKeyboardHandler(gameView) }; //new AndroidTouchHandler(gameView), new AndroidKeyboardHandler(gameView) };
+            new InputHandler[] { new AndroidKeyboardHandler(gameView), new AndroidTouchHandler(gameView) };
 
         protected override Storage GetStorage(string baseName) => new AndroidStorage(baseName, this);
 
