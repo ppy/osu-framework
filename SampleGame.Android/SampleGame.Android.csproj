@@ -65,10 +65,10 @@
       <HintPath>..\packages\ManagedBass.Fx.2.0.1\lib\netstandard1.4\ManagedBass.Fx.dll</HintPath>
     </Reference>
     <Reference Include="osuTK, Version=3.0.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
-      <HintPath>..\packages\ppy.osuTK.NS20.1.0.19\lib\netstandard2.0\osuTK.dll</HintPath>
+      <HintPath>..\packages\ppy.osuTK.NS20.1.0.48\lib\netstandard2.0\osuTK.dll</HintPath>
     </Reference>
     <Reference Include="osuTK.Android, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\ppy.osuTK.Android.1.0.19\lib\monoandroid80\osuTK.Android.dll</HintPath>
+      <HintPath>..\packages\ppy.osuTK.Android.1.0.48\lib\monoandroid50\osuTK.Android.dll</HintPath>
     </Reference>
     <Reference Include="SharpFNT">
       <HintPath>..\packages\SharpFNT.1.0.1\lib\netstandard1.3\SharpFNT.dll</HintPath>
