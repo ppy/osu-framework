@@ -35,11 +35,13 @@ namespace osu.Framework.Graphics.Containers
             get => model;
             set
             {
-                if (model == null && value == null || Comparer.Equals(model, value))
+                if (model == null && value == null)
+                    return;
+
+                if (Comparer.Equals(model, value))
                     return;
 
                 model = value;
-
                 updateDrawable();
             }
         }
@@ -88,8 +90,10 @@ namespace osu.Framework.Graphics.Containers
                         target?.Expire();
                         return;
                     }
+
                     nextDrawable = null;
                 }
+
                 DisplayedDrawable = target;
                 source?.Expire();
             });
@@ -119,6 +123,7 @@ namespace osu.Framework.Graphics.Containers
                     loadedDrawable.Expire();
                     return;
                 }
+
                 replaceDrawable(DisplayedDrawable, loadedDrawable);
             };
 
