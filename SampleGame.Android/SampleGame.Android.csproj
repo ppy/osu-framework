@@ -76,7 +76,7 @@
       <Name>osu.Framework</Name>
     </ProjectReference>
     <ProjectReference Include="..\osu.Framework.Android\osu.Framework.Android.csproj">
-      <Project>{025A144E-6E38-49B8-9111-A8D764DCEEB1}</Project>
+      <Project>{3C79B368-2E85-4B81-9C0E-83C0017A5DD0}</Project>
       <Name>osu.Framework.Android</Name>
     </ProjectReference>
     <ProjectReference Include="..\SampleGame\SampleGame.csproj">
