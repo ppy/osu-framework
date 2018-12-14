@@ -234,7 +234,7 @@ namespace osu.Framework.Screens
 
         public void MakeCurrent()
         {
-            if (IsCurrentScreen) return;
+            if (IsCurrentScreen || ChildScreen == null) return;
 
             Screen c;
             for (c = ChildScreen; c.ChildScreen != null; c = c.ChildScreen)

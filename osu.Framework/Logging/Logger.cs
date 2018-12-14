@@ -271,6 +271,8 @@ namespace osu.Framework.Logging
         public void Add(string message = @"", LogLevel level = LogLevel.Verbose, Exception exception = null) =>
             add(message, level, exception, OutputToListeners);
 
+        private readonly RollingTime debugOutputRollingTime = new RollingTime(50, 10000);
+
         private void add(string message = @"", LogLevel level = LogLevel.Verbose, Exception exception = null, bool outputToListeners = true)
         {
             if (!Enabled || level < Level)
@@ -304,15 +306,25 @@ namespace osu.Framework.Logging
 
                 if (DebugUtils.IsDebugBuild)
                 {
+                    void consoleLog(string msg)
+                    {
+                        // fire to all debug listeners (like visual studio's output window)
+                        System.Diagnostics.Debug.Print(msg);
+                        // fire for console displays (appveyor/CI).
+                        Console.WriteLine(msg);
+                    }
+
+                    bool bypassRateLimit = level >= LogLevel.Verbose;
+
                     foreach (var line in lines)
                     {
-                        var debugLine = $"[{Target?.ToString().ToLower() ?? Name}:{level.ToString().ToLower()}] {line}";
+                        if (bypassRateLimit || debugOutputRollingTime.RequestEntry())
+                        {
+                            consoleLog($"[{Target?.ToString().ToLower() ?? Name}:{level.ToString().ToLower()}] {line}");
 
-                        // fire to all debug listeners (like visual studio's output window)
-                        System.Diagnostics.Debug.Print(debugLine);
-
-                        // fire for console displays (appveyor/CI).
-                        Console.WriteLine(debugLine);
+                            if (!bypassRateLimit && debugOutputRollingTime.IsAtLimit)
+                                consoleLog($"Console output is being limited. Please check {Filename} for full logs.");
+                        }
                     }
                 }
             }
@@ -501,11 +513,6 @@ namespace osu.Framework.Logging
         /// Logging target for performance-related information.
         /// </summary>
         Performance,
-
-        /// <summary>
-        /// Logging target for information relevant to debugging.
-        /// </summary>
-        Debug,
 
         /// <summary>
         /// Logging target for database-related events.
