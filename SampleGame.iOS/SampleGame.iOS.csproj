@@ -92,7 +92,7 @@
     <Reference Include="System.Core" />
     <Reference Include="Xamarin.iOS" />
     <Reference Include="FFmpeg.AutoGen">
-      <HintPath>..\packages\FFmpeg.AutoGen.4.0.0.4\lib\netstandard2.0\FFmpeg.AutoGen.dll</HintPath>
+      <HintPath>..\packages\FFmpeg.AutoGen.4.1.0.1\lib\netstandard2.0\FFmpeg.AutoGen.dll</HintPath>
     </Reference>
     <Reference Include="JetBrains.Annotations">
       <HintPath>..\packages\JetBrains.Annotations.2018.2.1\lib\netstandard2.0\JetBrains.Annotations.dll</HintPath>
@@ -104,16 +104,16 @@
       <HintPath>..\packages\ManagedBass.Fx.2.0.1\lib\Xamarin.iOS\ManagedBass.Fx.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json">
-      <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\netstandard2.0\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\packages\Newtonsoft.Json.12.0.1\lib\netstandard2.0\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="nunit.framework">
-      <HintPath>..\packages\NUnit.3.10.1\lib\netstandard2.0\nunit.framework.dll</HintPath>
+      <HintPath>..\packages\NUnit.3.11.0\lib\netstandard2.0\nunit.framework.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Diagnostics.Runtime">
       <HintPath>..\packages\ppy.Microsoft.Diagnostics.Runtime.0.9.180305.1\lib\netstandard2.0\Microsoft.Diagnostics.Runtime.dll</HintPath>
     </Reference>
     <Reference Include="SharpFNT">
-      <HintPath>..\packages\SharpFNT.1.0.0\lib\netstandard1.3\SharpFNT.dll</HintPath>
+      <HintPath>..\packages\SharpFNT.1.0.1\lib\netstandard1.3\SharpFNT.dll</HintPath>
     </Reference>
     <Reference Include="System.Buffers">
       <HintPath>..\packages\System.Buffers.4.5.0\lib\netstandard2.0\System.Buffers.dll</HintPath>
@@ -145,10 +145,10 @@
       <HintPath>..\packages\System.ValueTuple.4.3.0\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CodeAnalysis">
-      <HintPath>..\packages\Microsoft.CodeAnalysis.Common.2.9.0\lib\netstandard1.3\Microsoft.CodeAnalysis.dll</HintPath>
+      <HintPath>..\packages\Microsoft.CodeAnalysis.Common.2.10.0\lib\netstandard1.3\Microsoft.CodeAnalysis.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CodeAnalysis.CSharp">
-      <HintPath>..\packages\Microsoft.CodeAnalysis.CSharp.2.9.0\lib\netstandard1.3\Microsoft.CodeAnalysis.CSharp.dll</HintPath>
+      <HintPath>..\packages\Microsoft.CodeAnalysis.CSharp.2.10.0\lib\netstandard1.3\Microsoft.CodeAnalysis.CSharp.dll</HintPath>
     </Reference>
     <Reference Include="osuTK.iOS">
       <HintPath>..\packages\ppy.osuTK.iOS.1.0.45\lib\xamarinios10\osuTK.iOS.dll</HintPath>
@@ -157,7 +157,7 @@
       <HintPath>..\packages\ppy.osuTK.NS20.1.0.45\lib\netstandard2.0\osuTK.dll</HintPath>
     </Reference>
     <Reference Include="Markdig">
-      <HintPath>..\packages\Markdig.0.15.0\lib\netstandard1.1\Markdig.dll</HintPath>
+      <HintPath>..\packages\Markdig.0.15.4\lib\netstandard1.1\Markdig.dll</HintPath>
     </Reference>
     <Reference Include="mscorlib" />
   </ItemGroup>
