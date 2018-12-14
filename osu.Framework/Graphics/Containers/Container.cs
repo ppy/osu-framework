@@ -8,6 +8,7 @@ using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics.Colour;
 using osuTK;
 using System.Collections;
+using System.Diagnostics;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -122,6 +123,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Gets or sets the only child of this container.
         /// </summary>
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         public T Child
         {
             get
