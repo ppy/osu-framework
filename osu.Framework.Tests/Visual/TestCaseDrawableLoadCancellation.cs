@@ -56,7 +56,7 @@ namespace osu.Framework.Tests.Visual
 
             AddStep("start async load", () => LoadComponentAsync(loader = new PausableLoadDrawable(0), _ => loaded = true, (cancellationSource = new CancellationTokenSource()).Token));
 
-            AddAssert("load started", () => loader.IsLoading);
+            AddUntilStep(() => loader.IsLoading, "load started");
 
             AddStep("cancel", () => cancellationSource.Cancel());
 
