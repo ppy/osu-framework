@@ -11,7 +11,7 @@ namespace osu.Framework.Configuration
     public interface IBindable : IParseable, ICanBeDisabled, IHasDefaultValue, IUnbindable, IHasDescription
     {
         /// <summary>
-        /// Binds outselves to another bindable such that we receive any value limitations of the bindable we bind width.
+        /// Binds ourselves to another bindable such that we receive any value limitations of the bindable we bind width.
         /// </summary>
         /// <param name="them">The foreign bindable. This should always be the most permanent end of the bind (ie. a ConfigManager)</param>
         void BindTo(IBindable them);
@@ -47,7 +47,7 @@ namespace osu.Framework.Configuration
         T Default { get; }
 
         /// <summary>
-        /// Binds outselves to another bindable such that we receive any values and value limitations of the bindable we bind width.
+        /// Binds ourselves to another bindable such that we receive any values and value limitations of the bindable we bind width.
         /// </summary>
         /// <param name="them">The foreign bindable. This should always be the most permanent end of the bind (ie. a ConfigManager)</param>
         void BindTo(IBindable<T> them);

@@ -321,6 +321,21 @@ namespace osu.Framework.Tests.Bindables
             TestUnbindOnDrawableDispose();
         }
 
+        [Test]
+        public void TestUnbindFrom()
+        {
+            var bindable1 = new Bindable<int>(5);
+            var bindable2 = new Bindable<int>();
+            bindable2.BindTo(bindable1);
+
+            Assert.AreEqual(bindable1.Value, bindable2.Value);
+
+            bindable2.UnbindFrom(bindable1);
+            bindable1.Value = 10;
+
+            Assert.AreNotEqual(bindable1.Value, bindable2.Value);
+        }
+
         private class TestDrawable : Drawable
         {
             public bool ValueChanged;
