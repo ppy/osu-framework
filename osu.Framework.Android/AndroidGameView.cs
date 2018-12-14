@@ -5,6 +5,7 @@ using System;
 using Android.Content;
 using Android.Runtime;
 using Android.Util;
+using osu.Framework.Graphics.OpenGL;
 using osuTK.Graphics;
 
 namespace osu.Framework.Android
@@ -13,6 +14,8 @@ namespace osu.Framework.Android
     {
         int viewportWidth, viewportHeight;
         int program;
+
+        int Framebuffer;
 
         private AndroidGameHost host;
         public abstract Game CreateGame();
@@ -41,6 +44,9 @@ namespace osu.Framework.Android
                 //GraphicsMode = new GraphicsMode();
                 base.CreateFrameBuffer();
                 Log.Verbose("AndroidGameView", "Successfully loaded");
+
+                // Perhaps I should modify osuTK again before I do this.
+                //GLWrapper.DefaultFrameBuffer = Framebuffer;
                 return;
             }
             catch (Exception e)
@@ -49,6 +55,10 @@ namespace osu.Framework.Android
             }
             throw new Exception("Can't load egl, aborting");
         }
+
+        // Perhaps I should modify osuTK again before I do this.
+        /*private bool needsResizeFrameBuffer;
+        public void RequestResizeFrameBuffer() => needsResizeFrameBuffer = true;*/
 
         protected override void OnLoad(EventArgs e)
         {

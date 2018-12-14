@@ -3,12 +3,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Android.App;
 using osu.Framework.Android.Input;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Platform;
-using osuTK;
 
 namespace osu.Framework.Android
 {
@@ -29,40 +29,6 @@ namespace osu.Framework.Android
                     OnDeactivated();
             };*/
         }
-        /*protected override void UpdateInitialize()
-        {
-            Activity activity = (Activity)gameView.Context;
-            activity.RunOnUiThread(() =>
-            {
-                base.UpdateInitialize();
-            });
-        }
-        protected override void UpdateFrame()
-        {
-            Activity activity = (Activity)gameView.Context;
-            activity.RunOnUiThread(() =>
-            {
-                base.UpdateFrame();
-            });
-        }
-
-        protected override void DrawInitialize()
-        {
-            Activity activity = (Activity)gameView.Context;
-            activity.RunOnUiThread(() =>
-            {
-                base.DrawInitialize();
-            });
-        }
-
-        protected override void DrawFrame()
-        {
-            Activity activity = (Activity)gameView.Context;
-            activity.RunOnUiThread(() =>
-            {
-                base.DrawFrame();
-            });
-        }*/
 
         public override ITextInputSource GetTextInput() => new AndroidTextInput(gameView);
 

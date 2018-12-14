@@ -2,48 +2,42 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
 using Android.App;
-using Android.Content;
 using Android.OS;
-using Android.Runtime;
-using Android.Views;
-using Android.Widget;
 using osu.Framework.Platform;
+
+using Environment = Android.OS.Environment;
 
 namespace osu.Framework.Android
 {
-    class AndroidStorage : DesktopStorage
+    public class AndroidStorage : DesktopStorage
     {
         public AndroidStorage(string baseName, GameHost host)
             : base(baseName, host)
         {
-            BasePath = LocateBasePath();
+
         }
 
         //Dopilnuj, aby zamieniać ścieżki względne na bezwzględne
 
         protected override string LocateBasePath()
         {
-            return (string)Application.Context.GetExternalFilesDir("");
+            return Application.Context.GetExternalFilesDir("").ToString();
         }
 
-        /*public override string[] GetFiles(string path) => (string[])Directory.EnumerateFiles(GetUsablePathFor(path));
-        public override string[] GetDirectories(string path) => Directory.GetDirectories(GetUsablePathFor(path));
+        /*public override IEnumerable<string> GetFiles(string path) => (string[])Directory.EnumerateFiles(GetFullPath(path));
+        public override IEnumerable<string> GetDirectories(string path) => Directory.GetDirectories(GetFullPath(path));
         public override void Delete(string path)
         {
-            FileSafety.FileDelete(GetUsablePathFor(path));
+            FileSafety.FileDelete(GetFullPath(path));
         }
         public override bool Exists(string path)
         {
-            return File.Exists(GetUsablePathFor(path));
+            return File.Exists(GetFullPath(path));
         }
         public override void DeleteDirectory(string path)
         {
-            path = GetUsablePathFor(path);
+            path = GetFullPath(path);
             // handles the case where the directory doesn't exist, which will throw a DirectoryNotFoundException.
             if (Directory.Exists(path))
                 Directory.Delete(path, true);
@@ -74,5 +68,15 @@ namespace osu.Framework.Android
             //Not needed now.
             throw new NotImplementedException();
         }
+
+        /*public override string GetFullPath(string path, bool createIfNotExisting = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Stream GetStream(string path, FileAccess access = FileAccess.Read, FileMode mode = FileMode.OpenOrCreate)
+        {
+            throw new NotImplementedException();
+        }*/
     }
 }
