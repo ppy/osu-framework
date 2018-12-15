@@ -400,7 +400,7 @@ namespace osu.Framework.Tests.Visual
                             {
                                 RelativeSizeAxes = Axes.X,
                                 AutoSizeAxes = Axes.Y,
-                                Direction = FlowDirection.Vertical,
+                                Direction = FillDirection.Vertical,
                                 Spacing = new Vector2(0, 10),
                             }
                         }
@@ -967,7 +967,7 @@ namespace osu.Framework.Tests.Visual
                             Origin = Anchor.Centre,
                             RelativeSizeAxes = Axes.X,
                             AutoSizeAxes = Axes.Y,
-                            Direction = FlowDirection.Vertical,
+                            Direction = FillDirection.Vertical,
                             Spacing = new Vector2(0, 20),
                             Children = new[]
                             {
@@ -976,7 +976,7 @@ namespace osu.Framework.Tests.Visual
                                     Name = "Top row",
                                     RelativeSizeAxes = Axes.X,
                                     Height = 200,
-                                    Direction = FlowDirection.Horizontal,
+                                    Direction = FillDirection.Horizontal,
                                     Spacing = new Vector2(100, 0),
                                     Children = new[]
                                     {
@@ -990,7 +990,7 @@ namespace osu.Framework.Tests.Visual
                                     Name = "Bottom row",
                                     RelativeSizeAxes = Axes.X,
                                     Height = 200,
-                                    Direction = FlowDirection.Horizontal,
+                                    Direction = FillDirection.Horizontal,
                                     Spacing = new Vector2(100, 0),
                                     Children = new[]
                                     {

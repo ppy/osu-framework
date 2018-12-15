@@ -19,7 +19,7 @@ namespace osu.Framework.Tests.Visual
                 {
                     Anchor = Anchor.TopLeft,
                     Origin = Anchor.TopLeft,
-                    Direction = FlowDirection.Vertical,
+                    Direction = FillDirection.Vertical,
                     Spacing = new Vector2(0, 10),
                     Padding = new MarginPadding(10),
                     AutoSizeAxes = Axes.Both,

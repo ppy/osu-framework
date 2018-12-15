@@ -41,19 +41,19 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     public class FillFlowContainer<T> : FlowContainer<T>, IFillFlowContainer where T : Drawable
     {
-        private FlowDirection direction = FlowDirection.Full;
+        private FillDirection direction = FillDirection.Full;
 
         /// <summary>
-        /// If <see cref="Containers.FlowDirection.Full"/> or <see cref="Containers.FlowDirection.Horizontal"/>,
+        /// If <see cref="FillDirection.Full"/> or <see cref="FillDirection.Horizontal"/>,
         /// <see cref="Container{T}.Children"/> are arranged from left-to-right if their
         /// <see cref="Drawable.Anchor"/> is to the left or centered horizontally.
         /// They are arranged from right-to-left otherwise.
-        /// If <see cref="Containers.FlowDirection.Full"/> or <see cref="Containers.FlowDirection.Vertical"/>,
+        /// If <see cref="FillDirection.Full"/> or <see cref="FillDirection.Vertical"/>,
         /// <see cref="Container{T}.Children"/> are arranged from top-to-bottom if their
         /// <see cref="Drawable.Anchor"/> is to the top or centered vertically.
         /// They are arranged from bottom-to-top otherwise.
         /// </summary>
-        public FlowDirection Direction
+        public FillDirection Direction
         {
             get => direction;
             set
@@ -65,8 +65,6 @@ namespace osu.Framework.Graphics.Containers
                 InvalidateLayout();
             }
         }
-
-        protected override FlowDirection FlowDirection => direction;
 
         private Vector2 spacing;
 
@@ -134,6 +132,18 @@ namespace osu.Framework.Graphics.Containers
             {
                 Drawable c = children[i];
 
+                // In some cases (see the right hand side of the conditional) we want to permit relatively sized children
+                // in our flow direction; specifically, when children use FillMode.Fit to preserve the aspect ratio.
+                // Consider the following use case: A flow container has a fixed width but an automatic height, and flows
+                // in the vertical direction. Now, we can add relatively sized children with FillMode.Fit to make sure their
+                // aspect ratio is preserved while still allowing them to flow vertically. This special case can not result
+                // in an autosize-related feedback loop, and we can thus simply allow it.
+                if ((c.RelativeSizeAxes & AutoSizeAxes & (Axes)Direction) != 0 && (c.FillMode != FillMode.Fit || c.RelativeSizeAxes != Axes.Both || c.Size.X > RelativeChildSize.X || c.Size.Y > RelativeChildSize.Y || AutoSizeAxes == Axes.Both))
+                    throw new InvalidOperationException(
+                        "Drawables inside a flow container may not have a relative size axis that the flow container is flowing in and auto sizing for." +
+                        $"The flow container is set to flow in the {Direction} direction and autosize in {AutoSizeAxes} axes and the child is set to relative size in {c.RelativeSizeAxes} axes.");
+
+
                 // Populate running variables with sane initial values.
                 if (i == 0)
                 {
@@ -144,7 +154,7 @@ namespace osu.Framework.Graphics.Containers
                 float rowWidth = rowBeginOffset + current.X + (1 - spacingFactor(c).X) * size.X;
 
                 //We've exceeded our allowed width, move to a new row
-                if (direction != FlowDirection.Horizontal && (Precision.DefinitelyBigger(rowWidth, max.X) || direction == FlowDirection.Vertical || ForceNewRow(c)))
+                if (direction != FillDirection.Horizontal && (Precision.DefinitelyBigger(rowWidth, max.X) || direction == FillDirection.Vertical || ForceNewRow(c)))
                 {
                     current.X = 0;
                     current.Y += rowHeight;
@@ -199,22 +209,22 @@ namespace osu.Framework.Graphics.Containers
 
                 switch (Direction)
                 {
-                    case FlowDirection.Vertical:
+                    case FillDirection.Vertical:
                         if (c.RelativeAnchorPosition.Y != ourRelativeAnchor.Y)
                             throw new InvalidOperationException(
-                                $"All drawables in a {nameof(FillFlowContainer)} must use the same RelativeAnchorPosition for the given {nameof(FlowDirection)}({Direction}) ({ourRelativeAnchor.Y} != {c.RelativeAnchorPosition.Y}). "
+                                $"All drawables in a {nameof(FillFlowContainer)} must use the same RelativeAnchorPosition for the given {nameof(FillDirection)}({Direction}) ({ourRelativeAnchor.Y} != {c.RelativeAnchorPosition.Y}). "
                                 + $"Consider using multiple instances of {nameof(FillFlowContainer)} if this is intentional.");
                         break;
-                    case FlowDirection.Horizontal:
+                    case FillDirection.Horizontal:
                         if (c.RelativeAnchorPosition.X != ourRelativeAnchor.X)
                             throw new InvalidOperationException(
-                                $"All drawables in a {nameof(FillFlowContainer)} must use the same RelativeAnchorPosition for the given {nameof(FlowDirection)}({Direction}) ({ourRelativeAnchor.X} != {c.RelativeAnchorPosition.X}). "
+                                $"All drawables in a {nameof(FillFlowContainer)} must use the same RelativeAnchorPosition for the given {nameof(FillDirection)}({Direction}) ({ourRelativeAnchor.X} != {c.RelativeAnchorPosition.X}). "
                                 + $"Consider using multiple instances of {nameof(FillFlowContainer)} if this is intentional.");
                         break;
                     default:
                         if (c.RelativeAnchorPosition != ourRelativeAnchor)
                             throw new InvalidOperationException(
-                                $"All drawables in a {nameof(FillFlowContainer)} must use the same RelativeAnchorPosition for the given {nameof(FlowDirection)}({Direction}) ({ourRelativeAnchor} != {c.RelativeAnchorPosition}). "
+                                $"All drawables in a {nameof(FillFlowContainer)} must use the same RelativeAnchorPosition for the given {nameof(FillDirection)}({Direction}) ({ourRelativeAnchor} != {c.RelativeAnchorPosition}). "
                                 + $"Consider using multiple instances of {nameof(FillFlowContainer)} if this is intentional.");
                         break;
                 }
@@ -243,5 +253,26 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="child">The child to check.</param>
         /// <returns>True if the given child should be placed on a new row, false otherwise.</returns>
         protected virtual bool ForceNewRow(Drawable child) => false;
+    }
+
+    /// <summary>
+    /// Represents the direction children of a <see cref="FlowContainer{T}"/> should fill in.
+    /// </summary>
+    public enum FillDirection
+    {
+        /// <summary>
+        /// Fill horizontally first, then fill vertically via multiple rows.
+        /// </summary>
+        Full = Axes.Both,
+
+        /// <summary>
+        /// Fill only horizontally.
+        /// </summary>
+        Horizontal = Axes.X,
+
+        /// <summary>
+        /// Fill only vertically.
+        /// </summary>
+        Vertical = Axes.Y,
     }
 }

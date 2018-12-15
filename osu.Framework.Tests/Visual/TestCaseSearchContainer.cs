@@ -58,7 +58,7 @@ namespace osu.Framework.Tests.Visual
                                         },
                                         new FilterableFlowContainer
                                         {
-                                            Direction = FlowDirection.Horizontal,
+                                            Direction = FillDirection.Horizontal,
                                             AutoSizeAxes = Axes.Both,
                                             Children = new []
                                             {
@@ -153,7 +153,7 @@ namespace osu.Framework.Tests.Visual
                 {
                     Margin = new MarginPadding { Top = header.TextSize, Left = 30 },
                     AutoSizeAxes = Axes.Both,
-                    Direction = FlowDirection.Vertical,
+                    Direction = FillDirection.Vertical,
                 });
             }
         }

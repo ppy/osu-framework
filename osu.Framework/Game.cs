@@ -145,7 +145,7 @@ namespace osu.Framework
             LoadComponentAsync(performanceContainer = new PerformanceOverlay(Host.Threads.Reverse())
             {
                 Margin = new MarginPadding(5),
-                Direction = FlowDirection.Vertical,
+                Direction = FillDirection.Vertical,
                 Spacing = new Vector2(10, 10),
                 AutoSizeAxes = Axes.Both,
                 Alpha = 0,

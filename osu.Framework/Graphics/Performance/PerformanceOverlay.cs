@@ -46,7 +46,7 @@ namespace osu.Framework.Graphics.Performance
 
         public PerformanceOverlay(IEnumerable<GameThread> threads)
         {
-            Direction = FlowDirection.Vertical;
+            Direction = FillDirection.Vertical;
             TextureAtlas atlas = new TextureAtlas(GLWrapper.MaxTextureSize, GLWrapper.MaxTextureSize, true, All.Nearest);
 
             foreach (GameThread t in threads)

@@ -87,7 +87,7 @@ namespace osu.Framework.Graphics.Visualisation
                 {
                     RelativeSizeAxes = Axes.X,
                     AutoSizeAxes = Axes.Y,
-                    Direction = FlowDirection.Vertical,
+                    Direction = FillDirection.Vertical,
                     Children = new Drawable[]
                     {
                         new TitleBar("draw visualiser (Ctrl+F1 to toggle)", this),
@@ -142,7 +142,7 @@ namespace osu.Framework.Graphics.Visualisation
                 {
                     RelativeSizeAxes = Axes.Y,
                     AutoSizeAxes = Axes.X,
-                    Direction = FlowDirection.Horizontal,
+                    Direction = FillDirection.Horizontal,
                     Padding = new MarginPadding { Top = 65 },
                     Children = new Drawable[]
                     {

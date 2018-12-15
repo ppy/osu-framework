@@ -30,14 +30,14 @@ namespace osu.Framework.Tests.Visual
                     Name = "Settings",
                     AutoSizeAxes = Axes.Both,
                     Y = 50,
-                    Direction = FlowDirection.Vertical,
+                    Direction = FillDirection.Vertical,
                     Spacing = new Vector2(0, 20),
                     Children = new Drawable[]
                     {
                         new FillFlowContainer
                         {
                             AutoSizeAxes = Axes.Both,
-                            Direction = FlowDirection.Vertical,
+                            Direction = FillDirection.Vertical,
                             Spacing = new Vector2(0, 5),
                             Children = new Drawable[]
                             {
@@ -48,7 +48,7 @@ namespace osu.Framework.Tests.Visual
                         new FillFlowContainer
                         {
                             AutoSizeAxes = Axes.Both,
-                            Direction = FlowDirection.Vertical,
+                            Direction = FillDirection.Vertical,
                             Spacing = new Vector2(0, 5),
                             Children = new Drawable[]
                             {
@@ -59,7 +59,7 @@ namespace osu.Framework.Tests.Visual
                         new FillFlowContainer
                         {
                             AutoSizeAxes = Axes.Both,
-                            Direction = FlowDirection.Vertical,
+                            Direction = FillDirection.Vertical,
                             Spacing = new Vector2(0, 5),
                             Children = new Drawable[]
                             {

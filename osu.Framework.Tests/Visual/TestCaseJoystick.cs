@@ -48,7 +48,7 @@ namespace osu.Framework.Tests.Visual
             Child = new FillFlowContainer
             {
                 RelativeSizeAxes = Axes.Both,
-                Direction = FlowDirection.Vertical,
+                Direction = FillDirection.Vertical,
                 Children = new[] { buttonFlow, hatFlow, axisFlow }
             };
         }

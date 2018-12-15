@@ -206,7 +206,7 @@ namespace osu.Framework.Tests.Visual
                 Child = new FillFlowContainer
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Direction = FlowDirection.Vertical,
+                    Direction = FillDirection.Vertical,
                     Spacing = new Vector2(0, 10),
                     Children = new[]
                     {

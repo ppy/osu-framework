@@ -217,7 +217,7 @@ namespace osu.Framework.Tests.Visual
                 InternalChild = new FillFlowContainer
                 {
                     AutoSizeAxes = Axes.Both,
-                    Direction = FlowDirection.Vertical,
+                    Direction = FillDirection.Vertical,
                     Children = new Drawable[]
                     {
                         new SpriteText { Text = $"{typeof(T).Name} value:" },

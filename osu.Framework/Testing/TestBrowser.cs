@@ -124,7 +124,7 @@ namespace osu.Framework.Testing
                         },
                         new FillFlowContainer
                         {
-                            Direction = FlowDirection.Vertical,
+                            Direction = FillDirection.Vertical,
                             RelativeSizeAxes = Axes.Both,
                             Children = new Drawable[]
                             {
@@ -148,7 +148,7 @@ namespace osu.Framework.Testing
                                     Child = leftFlowContainer = new SearchContainer<TestCaseButton>
                                     {
                                         Padding = new MarginPadding(3),
-                                        Direction = FlowDirection.Vertical,
+                                        Direction = FillDirection.Vertical,
                                         Spacing = new Vector2(0, 5),
                                         AutoSizeAxes = Axes.Y,
                                         RelativeSizeAxes = Axes.X,

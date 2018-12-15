@@ -26,7 +26,7 @@ namespace osu.Framework.Tests.Visual
                             Anchor = Anchor.TopLeft,
                             AutoSizeAxes = Axes.Y,
                             RelativeSizeAxes = Axes.X,
-                            Direction = FlowDirection.Vertical,
+                            Direction = FillDirection.Vertical,
                         }
                     }
                 }

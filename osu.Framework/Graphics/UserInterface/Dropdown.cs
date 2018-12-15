@@ -136,7 +136,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected Dropdown()
         {
             AutoSizeAxes = Axes.Y;
-            Direction = FlowDirection.Vertical;
+            Direction = FillDirection.Vertical;
 
             Children = new Drawable[]
             {

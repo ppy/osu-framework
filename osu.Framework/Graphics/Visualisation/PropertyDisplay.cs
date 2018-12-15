@@ -38,7 +38,7 @@ namespace osu.Framework.Graphics.Visualisation
                 {
                     RelativeSizeAxes = Axes.X,
                     AutoSizeAxes = Axes.Y,
-                    Direction = FlowDirection.Vertical
+                    Direction = FillDirection.Vertical
                 }
             });
         }
@@ -122,7 +122,7 @@ namespace osu.Framework.Graphics.Visualisation
                         {
                             RelativeSizeAxes = Axes.X,
                             AutoSizeAxes = Axes.Y,
-                            Direction = FlowDirection.Horizontal,
+                            Direction = FillDirection.Horizontal,
                             Spacing = new Vector2(10f),
                             Children = new[]
                             {

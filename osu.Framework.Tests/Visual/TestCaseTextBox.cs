@@ -15,7 +15,7 @@ namespace osu.Framework.Tests.Visual
         {
             FillFlowContainer textBoxes = new FillFlowContainer
             {
-                Direction = FlowDirection.Vertical,
+                Direction = FillDirection.Vertical,
                 Spacing = new Vector2(0, 50),
                 Padding = new MarginPadding
                 {
@@ -83,7 +83,7 @@ namespace osu.Framework.Tests.Visual
 
             FillFlowContainer otherTextBoxes = new FillFlowContainer
             {
-                Direction = FlowDirection.Vertical,
+                Direction = FillDirection.Vertical,
                 Spacing = new Vector2(0, 50),
                 Padding = new MarginPadding
                 {
@@ -113,7 +113,7 @@ namespace osu.Framework.Tests.Visual
 
             FillFlowContainer nestedTextBoxes = new FillFlowContainer
             {
-                Direction = FlowDirection.Vertical,
+                Direction = FillDirection.Vertical,
                 Spacing = new Vector2(0, 50),
                 Margin = new MarginPadding { Left = 50 },
                 RelativeSizeAxes = Axes.Both,

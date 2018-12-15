@@ -90,7 +90,7 @@ namespace osu.Framework.Tests.Visual
                     new FillFlowContainer
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Direction = FlowDirection.Vertical,
+                        Direction = FillDirection.Vertical,
                         Children = new Drawable[]
                         {
                             inputManagerStatus = new SmallText(),

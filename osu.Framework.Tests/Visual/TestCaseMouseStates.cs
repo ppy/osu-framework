@@ -427,7 +427,7 @@ namespace osu.Framework.Tests.Visual
                 {
                     TextContainer = new FillFlowContainer
                     {
-                        Direction = FlowDirection.Vertical,
+                        Direction = FillDirection.Vertical,
                         Children = new Drawable[]
                         {
                             source = new SmallText(),

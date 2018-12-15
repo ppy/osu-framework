@@ -38,7 +38,7 @@ namespace osu.Framework.Testing.Drawables.Sections
             {
                 RelativeSizeAxes = Axes.Y,
                 AutoSizeAxes = Axes.X,
-                Direction = FlowDirection.Horizontal,
+                Direction = FillDirection.Horizontal,
                 Spacing = new Vector2(5),
                 Children = new Drawable[]
                 {
@@ -47,7 +47,7 @@ namespace osu.Framework.Testing.Drawables.Sections
                         AutoSizeAxes = Axes.X,
                         RelativeSizeAxes = Axes.Y,
                         Spacing = new Vector2(5),
-                        Direction = FlowDirection.Horizontal,
+                        Direction = FillDirection.Horizontal,
                         Children = new Drawable[]
                         {
                             new SpriteText

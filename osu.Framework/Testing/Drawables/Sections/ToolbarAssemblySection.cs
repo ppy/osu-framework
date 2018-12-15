@@ -30,7 +30,7 @@ namespace osu.Framework.Testing.Drawables.Sections
             InternalChild = new FillFlowContainer
             {
                 Spacing = new Vector2(5),
-                Direction = FlowDirection.Horizontal,
+                Direction = FillDirection.Horizontal,
                 RelativeSizeAxes = Axes.Y,
                 AutoSizeAxes = Axes.X,
                 Children = new Drawable[]

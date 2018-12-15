@@ -31,7 +31,7 @@ namespace osu.Framework.Tests.Visual
                             Anchor = Anchor.TopLeft,
                             AutoSizeAxes = Axes.Y,
                             RelativeSizeAxes = Axes.X,
-                            Direction = FlowDirection.Vertical,
+                            Direction = FillDirection.Vertical,
                         }
                     }
                 }
@@ -44,7 +44,7 @@ namespace osu.Framework.Tests.Visual
                 AutoSizeAxes = Axes.Y,
                 RelativeSizeAxes = Axes.X,
                 Width = 0.5f,
-                Direction = FlowDirection.Vertical,
+                Direction = FillDirection.Vertical,
                 Children = new Drawable[]
                 {
                     textFlowContainer = new TextFlowContainer
