@@ -143,7 +143,6 @@ namespace osu.Framework.Graphics.Containers
                         "Drawables inside a flow container may not have a relative size axis that the flow container is flowing in and auto sizing for." +
                         $"The flow container is set to flow in the {Direction} direction and autosize in {AutoSizeAxes} axes and the child is set to relative size in {c.RelativeSizeAxes} axes.");
 
-
                 // Populate running variables with sane initial values.
                 if (i == 0)
                 {

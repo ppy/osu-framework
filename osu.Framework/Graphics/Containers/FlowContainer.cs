@@ -170,7 +170,6 @@ namespace osu.Framework.Graphics.Containers
                 if (i > positions.Length)
                     break;
 
-                
                 if (d.RelativePositionAxes != Axes.None)
                     throw new InvalidOperationException($"A flow container cannot contain a child with relative positioning (it is {d.RelativePositionAxes}).");
 
