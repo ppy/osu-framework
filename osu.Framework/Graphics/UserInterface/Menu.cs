@@ -255,7 +255,7 @@ namespace osu.Framework.Graphics.UserInterface
             drawableItem.Hovered = menuItemHovered;
             drawableItem.StateChanged += s => itemStateChanged(drawableItem, s);
 
-            drawableItem.SetFillDirection(Direction);
+            drawableItem.SetFlowDirection(Direction);
 
             ItemsContainer.Add(drawableItem);
         }
@@ -598,7 +598,7 @@ namespace osu.Framework.Graphics.UserInterface
             /// <see cref="DrawableMenuItem"/>s flow inside the containing <see cref="Menu"/> (e.g. sizing axes).
             /// </summary>
             /// <param name="direction">The direction in which <see cref="DrawableMenuItem"/>s will be flowed.</param>
-            public virtual void SetFillDirection(Direction direction)
+            public virtual void SetFlowDirection(Direction direction)
             {
                 RelativeSizeAxes = direction == Direction.Horizontal ? Axes.Y : Axes.X;
                 AutoSizeAxes = direction == Direction.Horizontal ? Axes.X : Axes.Y;

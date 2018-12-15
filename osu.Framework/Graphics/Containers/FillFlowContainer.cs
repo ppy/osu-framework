@@ -133,15 +133,15 @@ namespace osu.Framework.Graphics.Containers
                 Drawable c = children[i];
 
                 // In some cases (see the right hand side of the conditional) we want to permit relatively sized children
-                // in our flow direction; specifically, when children use FillMode.Fit to preserve the aspect ratio.
-                // Consider the following use case: A flow container has a fixed width but an automatic height, and flows
+                // in our fill direction; specifically, when children use FillMode.Fit to preserve the aspect ratio.
+                // Consider the following use case: A fill flow container has a fixed width but an automatic height, and fills
                 // in the vertical direction. Now, we can add relatively sized children with FillMode.Fit to make sure their
-                // aspect ratio is preserved while still allowing them to flow vertically. This special case can not result
+                // aspect ratio is preserved while still allowing them to fill vertically. This special case can not result
                 // in an autosize-related feedback loop, and we can thus simply allow it.
                 if ((c.RelativeSizeAxes & AutoSizeAxes & (Axes)Direction) != 0 && (c.FillMode != FillMode.Fit || c.RelativeSizeAxes != Axes.Both || c.Size.X > RelativeChildSize.X || c.Size.Y > RelativeChildSize.Y || AutoSizeAxes == Axes.Both))
                     throw new InvalidOperationException(
-                        "Drawables inside a flow container may not have a relative size axis that the flow container is flowing in and auto sizing for." +
-                        $"The flow container is set to flow in the {Direction} direction and autosize in {AutoSizeAxes} axes and the child is set to relative size in {c.RelativeSizeAxes} axes.");
+                        "Drawables inside a fill flow container may not have a relative size axis that the fill flow container is filling in and auto sizing for." +
+                        $"The fill flow container is set to flow in the {Direction} direction and autosize in {AutoSizeAxes} axes and the child is set to relative size in {c.RelativeSizeAxes} axes.");
 
                 // Populate running variables with sane initial values.
                 if (i == 0)
@@ -255,7 +255,7 @@ namespace osu.Framework.Graphics.Containers
     }
 
     /// <summary>
-    /// Represents the direction children of a <see cref="FlowContainer{T}"/> should fill in.
+    /// Represents the direction children of a <see cref="FillFlowContainer{T}"/> should be filled in.
     /// </summary>
     public enum FillDirection
     {
