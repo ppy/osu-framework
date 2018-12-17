@@ -8,9 +8,16 @@ namespace osu.Framework.Platform.Windows.Native
 {
     internal class Icon : IDisposable
     {
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern bool DestroyIcon(IntPtr hIcon);
+
+        private bool disposed;
+
         public IntPtr Handle { get; private set; }
-        public int Width { get; private set; }
-        public int Height { get; private set; }
+
+        public readonly int Width;
+
+        public readonly int Height;
 
         internal Icon(IntPtr handle, int width, int height)
         {
@@ -21,17 +28,27 @@ namespace osu.Framework.Platform.Windows.Native
 
         ~Icon()
         {
-            Dispose();
+            Dispose(false);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposed)
+                return;
+
+            if (Handle != IntPtr.Zero)
+            {
+                DestroyIcon(Handle);
+                Handle = IntPtr.Zero;
+            }
+
+            disposed = true;
         }
 
         public void Dispose()
         {
-            if (Handle != IntPtr.Zero)
-                DestroyIcon(Handle);
-            Handle = IntPtr.Zero;
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
-
-        [DllImport("user32.dll", SetLastError = true)]
-        private static extern bool DestroyIcon(IntPtr hIcon);
     }
 }

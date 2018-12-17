@@ -44,13 +44,13 @@ namespace osu.Framework.Platform.Windows.Native
             if (stream == null || stream.Length == 0)
                 throw new ArgumentException("Invalid icon stream.", nameof(stream));
 
-            using (MemoryStream ms = new MemoryStream())
+            using (var ms = new MemoryStream())
             {
                 stream.CopyTo(ms);
                 data = ms.GetBuffer();
                 ms.Position = 0;
 
-                BinaryReader reader = new BinaryReader(ms);
+                var reader = new BinaryReader(ms);
                 iconDir.Reserved = reader.ReadUInt16();
                 if (iconDir.Reserved != 0)
                     throw new ArgumentException("Invalid icon stream.", nameof(stream));
