@@ -21,8 +21,8 @@ namespace osu.Framework.Platform.Windows.Native
             internal uint BytesInResource;
             internal uint ImageOffset;
 
-            // 256x256 icons are defined as 0x0 and point to PNG data
-            internal bool PNGIcon => Width == 0 && Height == 0;
+            // larger icons are defined as 0x0 and point to PNG data
+            internal bool HasRawData => Width == 0 && Height == 0;
         }
 
         [StructLayout(LayoutKind.Sequential)]
@@ -36,7 +36,7 @@ namespace osu.Framework.Platform.Windows.Native
 
         private const uint lr_defaultcolor = 0x00000000;
 
-        private IconDir iconDir;
+        private readonly IconDir iconDir;
         private readonly byte[] data;
 
         public IconGroup(Stream stream)
@@ -86,7 +86,7 @@ namespace osu.Framework.Platform.Windows.Native
             for (int i = 0; i < iconDir.Count; i++)
             {
                 var entry = iconDir.Entries[i];
-                if (entry.Width == width && entry.Height == height || entry.PNGIcon && width == 256 && height == 256)
+                if (entry.Width == width && entry.Height == height)
                     return i;
                 if (entry.Width > requested || entry.Height > requested)
                     continue;
@@ -106,15 +106,11 @@ namespace osu.Framework.Platform.Windows.Native
             IntPtr hIcon = IntPtr.Zero;
             var span = new ReadOnlySpan<byte>(data, (int)entry.ImageOffset, (int)entry.BytesInResource);
 
-            if (entry.PNGIcon)
-            {
-                // TODO: read png
-            }
-            else
+            if (!entry.HasRawData)
                 hIcon = CreateIconFromResourceEx(span.ToArray(), entry.BytesInResource, true, 0, width, height, lr_defaultcolor);
 
             if (hIcon == IntPtr.Zero)
-                throw new InvalidOperationException($"Couldn't create native icon handle.");
+                throw new InvalidOperationException("Couldn't create native icon handle.");
             return new Icon(hIcon, width, height);
         }
 
