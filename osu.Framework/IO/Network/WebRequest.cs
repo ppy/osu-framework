@@ -425,7 +425,6 @@ namespace osu.Framework.IO.Network
 
             if (e != null)
                 wasTimeout = we?.Status == WebExceptionStatus.Timeout;
-
             else if (!response.IsSuccessStatusCode)
             {
                 e = new WebException(response.StatusCode.ToString());
