@@ -107,7 +107,7 @@ namespace osu.Framework.Platform.Windows.Native
             var span = new ReadOnlySpan<byte>(data, (int)entry.ImageOffset, (int)entry.BytesInResource);
 
             if (!entry.HasRawData)
-                hIcon = CreateIconFromResourceEx(span.ToArray(), entry.BytesInResource, true, 0, width, height, lr_defaultcolor);
+                hIcon = CreateIconFromResourceEx(span.ToArray(), entry.BytesInResource, true, 0x00030000, width, height, lr_defaultcolor);
 
             if (hIcon == IntPtr.Zero)
                 throw new InvalidOperationException("Couldn't create native icon handle.");
