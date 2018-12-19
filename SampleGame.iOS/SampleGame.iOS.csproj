@@ -30,6 +30,7 @@
     <DeviceSpecificBuild>false</DeviceSpecificBuild>
     <MtouchVerbosity></MtouchVerbosity>
     <LangVersion>Default</LangVersion>
+    <MtouchExtraArgs>--nolinkaway -gcc_flags "-lstdc++ -framework AudioToolbox -framework SystemConfiguration -framework CFNetwork -framework Accelerate -force_load libbass.a -force_load libbass_fx.a"</MtouchExtraArgs>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|iPhone' ">
     <DebugType>pdbonly</DebugType>
@@ -47,6 +48,7 @@
     <MtouchHttpClientHandler>NSUrlSessionHandler</MtouchHttpClientHandler>
     <MtouchVerbosity></MtouchVerbosity>
     <LangVersion>Default</LangVersion>
+    <MtouchExtraArgs>--nolinkaway -gcc_flags "-lstdc++ -framework AudioToolbox -framework SystemConfiguration -framework CFNetwork -framework Accelerate -force_load libbass.a -force_load libbass_fx.a"</MtouchExtraArgs>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|iPhoneSimulator' ">
     <DebugType>pdbonly</DebugType>
@@ -62,6 +64,7 @@
     <MtouchHttpClientHandler>NSUrlSessionHandler</MtouchHttpClientHandler>
     <MtouchVerbosity></MtouchVerbosity>
     <LangVersion>Default</LangVersion>
+    <MtouchExtraArgs>--nolinkaway -gcc_flags "-lstdc++ -framework AudioToolbox -framework SystemConfiguration -framework CFNetwork -framework Accelerate -force_load libbass.a -force_load libbass_fx.a"</MtouchExtraArgs>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|iPhone' ">
     <DebugSymbols>true</DebugSymbols>
@@ -151,10 +154,10 @@
       <HintPath>..\packages\Microsoft.CodeAnalysis.CSharp.2.10.0\lib\netstandard1.3\Microsoft.CodeAnalysis.CSharp.dll</HintPath>
     </Reference>
     <Reference Include="osuTK.iOS">
-      <HintPath>..\packages\ppy.osuTK.iOS.1.0.45\lib\xamarinios10\osuTK.iOS.dll</HintPath>
+      <HintPath>..\packages\ppy.osuTK.iOS.1.0.50\lib\xamarinios10\osuTK.iOS.dll</HintPath>
     </Reference>
     <Reference Include="osuTK">
-      <HintPath>..\packages\ppy.osuTK.NS20.1.0.45\lib\netstandard2.0\osuTK.dll</HintPath>
+      <HintPath>..\packages\ppy.osuTK.NS20.1.0.50\lib\netstandard2.0\osuTK.dll</HintPath>
     </Reference>
     <Reference Include="Markdig">
       <HintPath>..\packages\Markdig.0.15.4\lib\netstandard1.1\Markdig.dll</HintPath>
