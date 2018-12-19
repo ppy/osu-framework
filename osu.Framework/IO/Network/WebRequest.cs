@@ -421,9 +421,10 @@ namespace osu.Framework.IO.Network
             var we = e as WebException;
 
             bool allowRetry = AllowRetryOnTimeout;
+            bool wasTimeout = false;
 
             if (e != null)
-                allowRetry &= we?.Status == WebExceptionStatus.Timeout;
+                wasTimeout = we?.Status == WebExceptionStatus.Timeout;
             else if (!response.IsSuccessStatusCode)
             {
                 e = new WebException(response.StatusCode.ToString());
@@ -432,17 +433,12 @@ namespace osu.Framework.IO.Network
                 {
                     case HttpStatusCode.GatewayTimeout:
                     case HttpStatusCode.RequestTimeout:
-                        break;
-                    case HttpStatusCode.NotFound:
-                    case HttpStatusCode.MethodNotAllowed:
-                    case HttpStatusCode.Forbidden:
-                        allowRetry = false;
-                        break;
-                    case HttpStatusCode.Unauthorized:
-                        allowRetry = false;
+                        wasTimeout = true;
                         break;
                 }
             }
+
+            allowRetry &= wasTimeout;
 
             if (e != null)
             {
@@ -464,7 +460,8 @@ namespace osu.Framework.IO.Network
 
             try
             {
-                ProcessResponse();
+                if (!wasTimeout)
+                    ProcessResponse();
             }
             catch (Exception se)
             {
