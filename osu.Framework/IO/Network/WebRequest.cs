@@ -79,22 +79,10 @@ namespace osu.Framework.IO.Network
             }
         }
 
-        private string url;
-
         /// <summary>
         /// The URL of this request.
         /// </summary>
-        public string Url
-        {
-            get => url;
-            set
-            {
-                if (!AllowInsecureRequests && !value.StartsWith(@"https://"))
-                    value = @"https://" + value.Replace(@"http://", @"");
-
-                url = value;
-            }
-        }
+        public string Url;
 
         /// <summary>
         /// POST parameters.
@@ -241,6 +229,13 @@ namespace osu.Framework.IO.Network
 
         private async Task internalPerform()
         {
+            var url = Url;
+            if (!AllowInsecureRequests && !url.StartsWith(@"https://"))
+            {
+                logger.Add($"Insecure request was automatically converted to https ({Url})");
+                url = @"https://" + url.Replace(@"http://", @"");
+            }
+
             using (abortToken = abortToken ?? new CancellationTokenSource()) // don't recreate if already non-null. is used during retry logic.
             using (timeoutToken = new CancellationTokenSource())
             using (var linkedToken = CancellationTokenSource.CreateLinkedTokenSource(abortToken.Token, timeoutToken.Token))
@@ -261,11 +256,11 @@ namespace osu.Framework.IO.Network
                             requestParameters.Append($@"{p.Key}={p.Value}&");
                         string requestString = requestParameters.ToString().TrimEnd('&');
 
-                        request = new HttpRequestMessage(HttpMethod.Get, string.IsNullOrEmpty(requestString) ? Url : $"{Url}?{requestString}");
+                        request = new HttpRequestMessage(HttpMethod.Get, string.IsNullOrEmpty(requestString) ? url : $"{url}?{requestString}");
                     }
                     else
                     {
-                        request = new HttpRequestMessage(Method, Url);
+                        request = new HttpRequestMessage(Method, url);
 
                         Stream postContent;
 
@@ -345,12 +340,12 @@ namespace osu.Framework.IO.Network
                 }
                 catch (Exception) when (timeoutToken.IsCancellationRequested)
                 {
-                    Complete(new WebException($"Request to {Url} timed out after {timeSinceLastAction / 1000} seconds idle (read {responseBytesRead} bytes, retried {RetryCount} times).",
+                    Complete(new WebException($"Request to {url} timed out after {timeSinceLastAction / 1000} seconds idle (read {responseBytesRead} bytes, retried {RetryCount} times).",
                         WebExceptionStatus.Timeout));
                 }
                 catch (Exception) when (abortToken.IsCancellationRequested)
                 {
-                    Complete(new WebException($"Request to {Url} aborted by user.", WebExceptionStatus.RequestCanceled));
+                    Complete(new WebException($"Request to {url} aborted by user.", WebExceptionStatus.RequestCanceled));
                 }
                 catch (Exception e)
                 {
