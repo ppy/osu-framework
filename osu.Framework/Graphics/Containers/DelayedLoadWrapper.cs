@@ -44,7 +44,7 @@ namespace osu.Framework.Graphics.Containers
 
         private double timeVisible;
 
-        protected bool ShouldLoadContent => timeBeforeLoad == 0 || timeVisible > timeBeforeLoad;
+        protected virtual bool ShouldLoadContent => timeBeforeLoad == 0 || timeVisible > timeBeforeLoad;
 
         private Task loadTask;
 
