@@ -132,13 +132,28 @@ namespace osu.Framework.Graphics.Containers
             {
                 Drawable c = children[i];
 
+                Axes toAxes(FillDirection direction)
+                {
+                    switch (direction)
+                    {
+                        case FillDirection.Full:
+                            return Axes.Both;
+                        case FillDirection.Horizontal:
+                            return Axes.X;
+                        case FillDirection.Vertical:
+                            return Axes.Y;
+                        default:
+                            throw new ArgumentException($"{direction.ToString()} is not defined");
+                    }
+                }
+
                 // In some cases (see the right hand side of the conditional) we want to permit relatively sized children
                 // in our fill direction; specifically, when children use FillMode.Fit to preserve the aspect ratio.
                 // Consider the following use case: A fill flow container has a fixed width but an automatic height, and fills
                 // in the vertical direction. Now, we can add relatively sized children with FillMode.Fit to make sure their
                 // aspect ratio is preserved while still allowing them to fill vertically. This special case can not result
                 // in an autosize-related feedback loop, and we can thus simply allow it.
-                if ((c.RelativeSizeAxes & AutoSizeAxes & (Axes)Direction) != 0 && (c.FillMode != FillMode.Fit || c.RelativeSizeAxes != Axes.Both || c.Size.X > RelativeChildSize.X || c.Size.Y > RelativeChildSize.Y || AutoSizeAxes == Axes.Both))
+                if ((c.RelativeSizeAxes & AutoSizeAxes & toAxes(Direction)) != 0 && (c.FillMode != FillMode.Fit || c.RelativeSizeAxes != Axes.Both || c.Size.X > RelativeChildSize.X || c.Size.Y > RelativeChildSize.Y || AutoSizeAxes == Axes.Both))
                     throw new InvalidOperationException(
                         "Drawables inside a fill flow container may not have a relative size axis that the fill flow container is filling in and auto sizing for." +
                         $"The fill flow container is set to flow in the {Direction} direction and autosize in {AutoSizeAxes} axes and the child is set to relative size in {c.RelativeSizeAxes} axes.");
@@ -262,16 +277,16 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Fill horizontally first, then fill vertically via multiple rows.
         /// </summary>
-        Full = Axes.Both,
+        Full,
 
         /// <summary>
         /// Fill only horizontally.
         /// </summary>
-        Horizontal = Axes.X,
+        Horizontal,
 
         /// <summary>
         /// Fill only vertically.
         /// </summary>
-        Vertical = Axes.Y,
+        Vertical
     }
 }
