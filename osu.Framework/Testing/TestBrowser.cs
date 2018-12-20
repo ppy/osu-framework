@@ -440,6 +440,7 @@ namespace osu.Framework.Testing
         private class ErrorCatchingDelayedLoadWrapper : DelayedLoadWrapper
         {
             private readonly bool catchErrors;
+            private bool hasCaught;
 
             public Action<Exception> OnCaughtError;
 
@@ -460,12 +461,17 @@ namespace osu.Framework.Testing
                     if (!catchErrors)
                         throw;
 
+                    // without this we will enter an infinite loading loop (DelayedLoadWrapper will see the child removed below and retry).
+                    hasCaught = true;
+
                     OnCaughtError?.Invoke(e);
                     RemoveInternal(Content);
                 }
 
                 return false;
             }
+
+            protected override bool ShouldLoadContent => !hasCaught;
         }
     }
 
