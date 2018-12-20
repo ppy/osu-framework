@@ -26,9 +26,7 @@ namespace osu.Framework.Input.Bindings
         /// <param name="keys">The keys.</param>
         public KeyCombination(IEnumerable<InputKey> keys)
         {
-            var sorted = keys?.OrderBy(k => (int)k).ToArray();
-
-            Keys = sorted?.Length > 0 ? sorted : new [] { InputKey.None };
+            Keys = keys?.Any() == true ? keys.OrderBy(k => (int)k).ToArray() : new [] { InputKey.None };
         }
 
         /// <summary>
