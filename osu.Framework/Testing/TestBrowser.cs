@@ -461,6 +461,7 @@ namespace osu.Framework.Testing
                     if (!catchErrors)
                         throw;
 
+                    // without this we will enter an infinite loading loop (DelayedLoadWrapper will see the child removed below and retry).
                     hasCaught = true;
 
                     OnCaughtError?.Invoke(e);
