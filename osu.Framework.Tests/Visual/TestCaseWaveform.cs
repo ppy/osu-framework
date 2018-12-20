@@ -30,7 +30,6 @@ namespace osu.Framework.Tests.Visual
 
         private Button button;
         private TrackBass track;
-        private SliderBar<float> zoomSlider;
         private readonly Bindable<float> zoom = new BindableFloat(1) { MinValue = 0.1f, MaxValue = 20 };
 
         [BackgroundDependencyLoader]
@@ -73,11 +72,12 @@ namespace osu.Framework.Tests.Visual
                                 Origin = Anchor.CentreLeft,
                                 Anchor = Anchor.CentreLeft,
                             },
-                            zoomSlider = new BasicSliderBar<float>
+                            new BasicSliderBar<float>
                             {
                                 Anchor = Anchor.CentreLeft,
                                 Origin = Anchor.CentreLeft,
-                                Size = new Vector2(200, 40)
+                                Size = new Vector2(200, 40),
+                                Current = zoom
                             },
                         },
                     },
@@ -98,8 +98,7 @@ namespace osu.Framework.Tests.Visual
             for (int i = 1; i <= 16; i *= 2)
                 flow.Add(new TestWaveform(track, 1f / i) { Waveform = waveform });
 
-            zoomSlider.Current.BindTo(zoom);
-            zoomSlider.Current.ValueChanged += v => flow.Width = track_width * v;
+            zoom.ValueChanged += v => flow.Width = track_width * v;
         }
 
         private void startStop()

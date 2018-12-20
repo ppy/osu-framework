@@ -11,6 +11,12 @@ namespace osu.Framework.Graphics.UserInterface
     /// </summary>
     public interface IHasCurrentValue<T>
     {
-        Bindable<T> Current { get; }
+        /// <summary>
+        /// Gets or sets the <see cref="Bindable{T}"/> that provides the current value.
+        /// </summary>
+        /// <remarks>
+        /// A provided <see cref="Bindable{T}"/> will be bound to, rather than be stored internally.
+        /// </remarks>
+        Bindable<T> Current { get; set; }
     }
 }
