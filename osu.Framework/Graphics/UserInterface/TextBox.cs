@@ -10,9 +10,9 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
 using osu.Framework.MathUtils;
 using osu.Framework.Threading;
-using OpenTK;
-using OpenTK.Graphics;
-using OpenTK.Input;
+using osuTK;
+using osuTK.Graphics;
+using osuTK.Input;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Configuration;
@@ -20,8 +20,7 @@ using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Platform;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Bindings;
-using osu.Framework.Input.EventArgs;
-using osu.Framework.Input.States;
+using osu.Framework.Input.Events;
 using osu.Framework.Timing;
 
 namespace osu.Framework.Graphics.UserInterface
@@ -33,7 +32,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected Drawable Caret;
         protected Container TextContainer;
 
-        public override bool HandleKeyboardInput => HasFocus;
+        public override bool HandleNonPositionalInput => HasFocus;
 
         /// <summary>
         /// Padding to be used within the TextContainer. Requires special handling due to the sideways scrolling of text content.
@@ -504,6 +503,11 @@ namespace osu.Framework.Graphics.UserInterface
             foreach (char c in addText)
             {
                 var ch = addCharacter(c);
+                if (ch == null)
+                {
+                    notifyInputError();
+                    continue;
+                }
 
                 var col = (Color4)ch.Colour;
                 ch.FadeColour(col.Opacity(0)).FadeColour(col, caret_move_time * 2, Easing.Out);
@@ -520,10 +524,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (text.Length + 1 > LengthLimit)
             {
-                if (Background.Alpha > 0)
-                    Background.FlashColour(Color4.Red, 200);
-                else
-                    TextFlow.FlashColour(Color4.Red, 200);
+                notifyInputError();
                 return null;
             }
 
@@ -535,6 +536,14 @@ namespace osu.Framework.Graphics.UserInterface
             cursorAndLayout.Invalidate();
 
             return ch;
+        }
+
+        private void notifyInputError()
+        {
+            if (Background.Alpha > 0)
+                Background.FlashColour(Color4.Red, 200);
+            else
+                TextFlow.FlashColour(Color4.Red, 200);
         }
 
         protected virtual SpriteText CreatePlaceholder() => new SpriteText
@@ -550,7 +559,20 @@ namespace osu.Framework.Graphics.UserInterface
             set => Placeholder.Text = value;
         }
 
-        public Bindable<string> Current { get; } = new Bindable<string>();
+        private readonly Bindable<string> current = new Bindable<string>();
+
+        public Bindable<string> Current
+        {
+            get => current;
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException(nameof(value));
+
+                current.UnbindBindings();
+                current.BindTo(value);
+            }
+        }
 
         private string text = string.Empty;
 
@@ -633,18 +655,18 @@ namespace osu.Framework.Graphics.UserInterface
                 Schedule(consumePendingText);
         }
 
-        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
+        protected override bool OnKeyDown(KeyDownEvent e)
         {
             if (textInput?.ImeActive == true || ReadOnly) return true;
 
-            if (state.Keyboard.ControlPressed || state.Keyboard.SuperPressed)
+            if (e.ControlPressed || e.SuperPressed)
                 return false;
 
             // we only care about keys which can result in text output.
-            if (keyProducesCharacter(args.Key))
+            if (keyProducesCharacter(e.Key))
                 BeginConsumingText();
 
-            switch (args.Key)
+            switch (e.Key)
             {
                 case Key.Escape:
                     KillFocus();
@@ -655,7 +677,7 @@ namespace osu.Framework.Graphics.UserInterface
                     return true;
             }
 
-            return base.OnKeyDown(state, args) || consumingText;
+            return base.OnKeyDown(e) || consumingText;
         }
 
         private bool keyProducesCharacter(Key key) => (key == Key.Space || key >= Key.Keypad0) && key != Key.KeypadEnter;
@@ -685,31 +707,31 @@ namespace osu.Framework.Graphics.UserInterface
             OnCommit?.Invoke(this, true);
         }
 
-        protected override bool OnKeyUp(InputState state, KeyUpEventArgs args)
+        protected override bool OnKeyUp(KeyUpEvent e)
         {
-            if (!state.Keyboard.Keys.Any())
+            if (!e.HasAnyKeyPressed)
                 EndConsumingText();
 
-            return base.OnKeyUp(state, args);
+            return base.OnKeyUp(e);
         }
 
-        protected override bool OnDrag(InputState state)
+        protected override bool OnDrag(DragEvent e)
         {
             //if (textInput?.ImeActive == true) return true;
 
             if (doubleClickWord != null)
             {
                 //select words at a time
-                if (getCharacterClosestTo(state.Mouse.Position) > doubleClickWord[1])
+                if (getCharacterClosestTo(e.MousePosition) > doubleClickWord[1])
                 {
                     selectionStart = doubleClickWord[0];
-                    selectionEnd = findSeparatorIndex(text, getCharacterClosestTo(state.Mouse.Position) - 1, 1);
+                    selectionEnd = findSeparatorIndex(text, getCharacterClosestTo(e.MousePosition) - 1, 1);
                     selectionEnd = selectionEnd >= 0 ? selectionEnd : text.Length;
                 }
-                else if (getCharacterClosestTo(state.Mouse.Position) < doubleClickWord[0])
+                else if (getCharacterClosestTo(e.MousePosition) < doubleClickWord[0])
                 {
                     selectionStart = doubleClickWord[1];
-                    selectionEnd = findSeparatorIndex(text, getCharacterClosestTo(state.Mouse.Position), -1);
+                    selectionEnd = findSeparatorIndex(text, getCharacterClosestTo(e.MousePosition), -1);
                     selectionEnd = selectionEnd >= 0 ? selectionEnd + 1 : 0;
                 }
                 else
@@ -725,7 +747,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 if (text.Length == 0) return true;
 
-                selectionEnd = getCharacterClosestTo(state.Mouse.Position);
+                selectionEnd = getCharacterClosestTo(e.MousePosition);
                 if (selectionLength > 0)
                     GetContainingInputManager().ChangeFocus(this);
 
@@ -735,19 +757,16 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
-        protected override bool OnDragStart(InputState state)
+        protected override bool OnDragStart(DragStartEvent e)
         {
             if (HasFocus) return true;
 
-            if (!state.Mouse.PositionMouseDown.HasValue)
-                throw new ArgumentNullException(nameof(state.Mouse.PositionMouseDown));
-
-            Vector2 posDiff = state.Mouse.PositionMouseDown.Value - state.Mouse.Position;
+            Vector2 posDiff = e.MouseDownPosition - e.MousePosition;
 
             return Math.Abs(posDiff.X) > Math.Abs(posDiff.Y);
         }
 
-        protected override bool OnDoubleClick(InputState state)
+        protected override bool OnDoubleClick(DoubleClickEvent e)
         {
             if (textInput?.ImeActive == true) return true;
 
@@ -755,7 +774,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (AllowClipboardExport)
             {
-                int hover = Math.Min(text.Length - 1, getCharacterClosestTo(state.Mouse.Position));
+                int hover = Math.Min(text.Length - 1, getCharacterClosestTo(e.MousePosition));
 
                 int lastSeparator = findSeparatorIndex(text, hover, -1);
                 int nextSeparator = findSeparatorIndex(text, hover, 1);
@@ -789,24 +808,24 @@ namespace osu.Framework.Graphics.UserInterface
             return -1;
         }
 
-        protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
+        protected override bool OnMouseDown(MouseDownEvent e)
         {
             if (textInput?.ImeActive == true) return true;
 
-            selectionStart = selectionEnd = getCharacterClosestTo(state.Mouse.Position);
+            selectionStart = selectionEnd = getCharacterClosestTo(e.MousePosition);
 
             cursorAndLayout.Invalidate();
 
             return false;
         }
 
-        protected override bool OnMouseUp(InputState state, MouseUpEventArgs args)
+        protected override bool OnMouseUp(MouseUpEvent e)
         {
             doubleClickWord = null;
             return true;
         }
 
-        protected override void OnFocusLost(InputState state)
+        protected override void OnFocusLost(FocusLostEvent e)
         {
             unbindInput();
 
@@ -822,9 +841,9 @@ namespace osu.Framework.Graphics.UserInterface
 
         public override bool AcceptsFocus => true;
 
-        protected override bool OnClick(InputState state) => !ReadOnly;
+        protected override bool OnClick(ClickEvent e) => !ReadOnly;
 
-        protected override void OnFocus(InputState state)
+        protected override void OnFocus(FocusEvent e)
         {
             bindInput();
 

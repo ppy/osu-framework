@@ -2,14 +2,14 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Linq;
+using osu.Framework.Allocation;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
-using OpenTK;
-using OpenTK.Graphics;
+using osuTK;
+using osuTK.Graphics;
 using osu.Framework.Graphics.Shapes;
-using osu.Framework.Input.States;
+using osu.Framework.Input.Events;
 
 namespace osu.Framework.Graphics.Visualisation
 {
@@ -29,6 +29,9 @@ namespace osu.Framework.Graphics.Visualisation
         private const float height = 600;
 
         internal PropertyDisplay PropertyDisplay { get; private set; }
+
+        [Resolved]
+        private DrawVisualiser visualiser { get; set; }
 
         private TreeContainerStatus state;
 
@@ -165,23 +168,23 @@ namespace osu.Framework.Graphics.Visualisation
 
         protected override void Update()
         {
-            waitingText.Alpha = scroll.Children.Any() ? 0 : 1;
+            waitingText.Alpha = visualiser.Searching ? 1 : 0;
             base.Update();
         }
 
-        protected override bool OnHover(InputState state)
+        protected override bool OnHover(HoverEvent e)
         {
             State = TreeContainerStatus.Onscreen;
             return true;
         }
 
-        protected override void OnHoverLost(InputState state)
+        protected override void OnHoverLost(HoverLostEvent e)
         {
             State = TreeContainerStatus.Offscreen;
-            base.OnHoverLost(state);
+            base.OnHoverLost(e);
         }
 
-        protected override bool OnClick(InputState state) => true;
+        protected override bool OnClick(ClickEvent e) => true;
 
         protected override void LoadComplete()
         {

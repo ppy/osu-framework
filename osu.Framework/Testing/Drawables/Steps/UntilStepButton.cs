@@ -4,7 +4,7 @@
 using System;
 using System.Diagnostics;
 using osu.Framework.Graphics;
-using OpenTK.Graphics;
+using osuTK.Graphics;
 
 namespace osu.Framework.Testing.Drawables.Steps
 {
@@ -51,7 +51,7 @@ namespace osu.Framework.Testing.Drawables.Steps
                     Success();
                 }
                 else if (elapsedTime.ElapsedMilliseconds >= max_attempt_milliseconds)
-                    throw new TimeoutException();
+                    throw new TimeoutException($"\"{Text}\" timed out");
 
                 Action?.Invoke();
             };

@@ -1,6 +1,6 @@
 # osu!framework [![Build status](https://ci.appveyor.com/api/projects/status/fh5mnml3vsfheymp?svg=true)](https://ci.appveyor.com/project/peppy/osu-framework) [![CodeFactor](https://www.codefactor.io/repository/github/ppy/osu-framework/badge)](https://www.codefactor.io/repository/github/ppy/osu-framework) [![dev chat](https://discordapp.com/api/guilds/188630481301012481/widget.png?style=shield)](https://discord.gg/ppy)
 
-A game framework written with osu! in mind.
+A game framework written with [osu!](https://github.com/ppy/osu) in mind.
 
 # Requirements
 
@@ -26,3 +26,15 @@ Note that while we already have certain standards in place, nothing is set in st
 This framework is licensed under the [MIT licence](https://opensource.org/licenses/MIT). Please see [the licence file](LICENCE) for more information. [tl;dr](https://tldrlegal.com/license/mit-license) you can do whatever you want as long as you include the original copyright and license notice in any copy of the software/source.
 
 The BASS audio library (a dependency of this framework) is a commercial product. While it is free for non-commercial use, please ensure to [obtain a valid licence](http://www.un4seen.com/bass.html#license) if you plan on distributing any application using it commercially.
+
+# Projects that use osu!framework
+
+[osu!](https://github.com/ppy/osu) – rhythm is just a *click* away!
+
+<!--
+We love to see people using our framework! Add your project here via a PR!
+
+Conditions:
+ - Must be a github link (ie. your project is open source)
+ - Must be actively developed
+-->

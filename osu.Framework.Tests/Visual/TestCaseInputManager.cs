@@ -9,12 +9,11 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
-using osu.Framework.Input.EventArgs;
+using osu.Framework.Input.Events;
 using osu.Framework.Input.Handlers.Mouse;
-using osu.Framework.Input.States;
 using osu.Framework.Testing;
-using OpenTK;
-using OpenTK.Graphics;
+using osuTK;
+using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual
 {
@@ -122,50 +121,50 @@ namespace osu.Framework.Tests.Visual
 
             public int MouseDownCount;
 
-            protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
+            protected override bool OnMouseDown(MouseDownEvent e)
             {
                 ++MouseDownCount;
-                onMouseDownStatus.Text = $"OnMouseDown {MouseDownCount}: Position={state.Mouse.Position}";
+                onMouseDownStatus.Text = $"OnMouseDown {MouseDownCount}: Position={e.MousePosition}";
                 return true;
             }
 
             public int MouseUpCount;
 
-            protected override bool OnMouseUp(InputState state, MouseUpEventArgs args)
+            protected override bool OnMouseUp(MouseUpEvent e)
             {
                 ++MouseUpCount;
-                onMouseUpStatus.Text = $"OnMouseUp {MouseUpCount}: Position={state.Mouse.Position}, PositionMouseDown={state.Mouse.PositionMouseDown}";
-                return base.OnMouseUp(state, args);
+                onMouseUpStatus.Text = $"OnMouseUp {MouseUpCount}: Position={e.MousePosition}, MouseDownPosition={e.MouseDownPosition}";
+                return base.OnMouseUp(e);
             }
 
             public int MouseMoveCount;
 
-            protected override bool OnMouseMove(InputState state)
+            protected override bool OnMouseMove(MouseMoveEvent e)
             {
                 ++MouseMoveCount;
-                onMouseMoveStatus.Text = $"OnMouseMove {MouseMoveCount}: Position={state.Mouse.Position}, Delta={state.Mouse.Delta}";
-                return base.OnMouseMove(state);
+                onMouseMoveStatus.Text = $"OnMouseMove {MouseMoveCount}: Position={e.MousePosition}, Delta={e.Delta}";
+                return base.OnMouseMove(e);
             }
 
             public int ScrollCount;
 
-            protected override bool OnScroll(InputState state)
+            protected override bool OnScroll(ScrollEvent e)
             {
                 ++ScrollCount;
-                onScrollStatus.Text = $"OnScroll {ScrollCount}: Scroll={state.Mouse.Scroll}, ScrollDelta={state.Mouse.ScrollDelta}, HasPreciseScroll={state.Mouse.HasPreciseScroll}";
-                return base.OnScroll(state);
+                onScrollStatus.Text = $"OnScroll {ScrollCount}: ScrollDelta={e.ScrollDelta}, IsPrecise={e.IsPrecise}";
+                return base.OnScroll(e);
             }
 
             public int HoverCount;
 
-            protected override bool OnHover(InputState state)
+            protected override bool OnHover(HoverEvent e)
             {
                 ++HoverCount;
-                onHoverStatus.Text = $"OnHover {HoverCount}: Position={state.Mouse.Position}";
-                return base.OnHover(state);
+                onHoverStatus.Text = $"OnHover {HoverCount}: Position={e.MousePosition}";
+                return base.OnHover(e);
             }
 
-            protected override bool OnClick(InputState state)
+            protected override bool OnClick(ClickEvent e)
             {
                 this.MoveToOffset(new Vector2(100, 0)).Then().MoveToOffset(new Vector2(-100, 0), 1000, Easing.In);
                 return true;
@@ -193,7 +192,7 @@ namespace osu.Framework.Tests.Visual
 
         private void setRawInputConfig(bool x)
         {
-            config.Set(FrameworkSetting.IgnoredInputHandlers, x ? nameof(OpenTKMouseHandler) : nameof(OpenTKRawMouseHandler));
+            config.Set(FrameworkSetting.IgnoredInputHandlers, x ? nameof(OsuTKMouseHandler) : nameof(OsuTKRawMouseHandler));
         }
 
         private void setConfineMouseModeConfig(bool x)

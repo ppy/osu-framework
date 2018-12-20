@@ -19,7 +19,7 @@ namespace osu.Framework.Screens
         private Container childModeContainer;
 
         [Resolved]
-        protected Game Game { get; set; }
+        protected Game Game { get; private set; }
 
         protected override Container<Drawable> Content => content;
 
@@ -58,13 +58,13 @@ namespace osu.Framework.Screens
             base.Add(drawable);
         }
 
-        public override bool DisposeOnDeathRemoval => true;
-
         // in the case we don't have a parent screen, we still want to handle input as we are also responsible for
         // children inside childScreenContainer.
         // this means the root screen always received input.
-        public override bool HandleKeyboardInput => IsCurrentScreen || !hasExited && ParentScreen == null;
-        public override bool HandleMouseInput => IsCurrentScreen || !hasExited && ParentScreen == null;
+        private bool propagateInputSubtree => IsCurrentScreen || !hasExited && ParentScreen == null;
+
+        public override bool PropagateNonPositionalInputSubTree => base.PropagateNonPositionalInputSubTree && propagateInputSubtree;
+        public override bool PropagatePositionalInputSubTree => base.PropagatePositionalInputSubTree && propagateInputSubtree;
 
         /// <summary>
         /// Called when this Screen is being entered. Only happens once, ever.
@@ -234,7 +234,7 @@ namespace osu.Framework.Screens
 
         public void MakeCurrent()
         {
-            if (IsCurrentScreen) return;
+            if (IsCurrentScreen || ChildScreen == null) return;
 
             Screen c;
             for (c = ChildScreen; c.ChildScreen != null; c = c.ChildScreen)
@@ -246,8 +246,6 @@ namespace osu.Framework.Screens
 
         protected class ContentContainer : Container
         {
-            public override bool HandleKeyboardInput => LifetimeEnd == double.MaxValue;
-            public override bool HandleMouseInput => LifetimeEnd == double.MaxValue;
             public override bool RemoveWhenNotAlive => false;
 
             public ContentContainer()

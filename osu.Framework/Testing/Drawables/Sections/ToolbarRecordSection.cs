@@ -6,12 +6,11 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
-using osu.Framework.Input.EventArgs;
-using osu.Framework.Input.States;
+using osu.Framework.Input.Events;
 using osu.Framework.Threading;
-using OpenTK;
-using OpenTK.Graphics;
-using OpenTK.Input;
+using osuTK;
+using osuTK.Graphics;
+using osuTK.Input;
 
 namespace osu.Framework.Testing.Drawables.Sections
 {
@@ -32,8 +31,6 @@ namespace osu.Framework.Testing.Drawables.Sections
         private void load(TestBrowser browser)
         {
             this.browser = browser;
-
-            BasicSliderBar<int> frameSliderBar;
 
             InternalChild = new FillFlowContainer
             {
@@ -57,10 +54,11 @@ namespace osu.Framework.Testing.Drawables.Sections
                                 Origin = Anchor.CentreLeft,
                                 Text = "Playback:"
                             },
-                            frameSliderBar = new FrameSliderBar
+                            new FrameSliderBar
                             {
                                 RelativeSizeAxes = Axes.Y,
                                 Width = 250,
+                                Current = browser.CurrentFrame
                             },
                             previousButton = new RepeatButton
                             {
@@ -89,7 +87,6 @@ namespace osu.Framework.Testing.Drawables.Sections
                 }
             };
 
-            frameSliderBar.Current.BindTo(browser.CurrentFrame);
             browser.RecordState.BindValueChanged(updateState, true);
         }
 
@@ -203,16 +200,18 @@ namespace osu.Framework.Testing.Drawables.Sections
         {
             private ScheduledDelegate repeatDelegate;
 
-            protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
+            protected override bool OnMouseDown(MouseDownEvent e)
             {
                 repeatDelegate?.Cancel();
 
-                if (args.Button == MouseButton.Left)
+                if (e.Button == MouseButton.Left)
                 {
-                    if (!base.OnClick(state))
+                    var clickEvent = new ClickEvent(e.CurrentState, e.Button, e.ScreenSpaceMouseDownPosition) { Target = this };
+
+                    if (!base.OnClick(clickEvent))
                         return false;
 
-                    repeatDelegate = Scheduler.AddDelayed(() => { repeatDelegate = Scheduler.AddDelayed(() => base.OnClick(state), 100, true); }, 300);
+                    repeatDelegate = Scheduler.AddDelayed(() => { repeatDelegate = Scheduler.AddDelayed(() => base.OnClick(clickEvent), 100, true); }, 300);
 
                     return true;
                 }
@@ -220,13 +219,13 @@ namespace osu.Framework.Testing.Drawables.Sections
                 return false;
             }
 
-            protected override bool OnMouseUp(InputState state, MouseUpEventArgs args)
+            protected override bool OnMouseUp(MouseUpEvent e)
             {
                 repeatDelegate?.Cancel();
-                return base.OnMouseUp(state, args);
+                return base.OnMouseUp(e);
             }
 
-            protected override bool OnClick(InputState state) => false; // Clicks aren't handled by this type of button
+            protected override bool OnClick(ClickEvent e) => false; // Clicks aren't handled by this type of button
         }
     }
 }

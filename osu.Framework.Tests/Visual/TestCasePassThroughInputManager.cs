@@ -8,8 +8,8 @@ using osu.Framework.Input;
 using osu.Framework.Input.States;
 using osu.Framework.Testing;
 using osu.Framework.Testing.Input;
-using OpenTK;
-using OpenTK.Input;
+using osuTK;
+using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual
 {
@@ -22,9 +22,9 @@ namespace osu.Framework.Tests.Visual
 
         private TestInputManager testInputManager;
         private InputState state;
-        private IMouseState mouse;
-        private IKeyboardState keyboard;
-        private IJoystickState joystick;
+        private ButtonStates<MouseButton> mouse;
+        private ButtonStates<Key> keyboard;
+        private ButtonStates<JoystickButton> joystick;
         private void addTestInputManagerStep()
         {
             AddStep("Add InputManager", () =>
@@ -32,18 +32,18 @@ namespace osu.Framework.Tests.Visual
                 testInputManager = new TestInputManager();
                 Add(testInputManager);
                 state = testInputManager.CurrentState;
-                mouse = state.Mouse;
-                keyboard = state.Keyboard;
-                joystick = state.Joystick;
+                mouse = state.Mouse.Buttons;
+                keyboard = state.Keyboard.Keys;
+                joystick = state.Joystick.Buttons;
             });
         }
 
         [SetUp]
-        public override void SetUp()
+        public override void SetUp() => Schedule(() =>
         {
             base.SetUp();
             ChildrenEnumerable = Enumerable.Empty<Drawable>();
-        }
+        });
 
         [Test]
         public void ReceiveInitialState()
@@ -54,14 +54,14 @@ namespace osu.Framework.Tests.Visual
             addTestInputManagerStep();
             AddAssert("mouse left not pressed", () => !mouse.IsPressed(MouseButton.Left));
             AddAssert("A pressed", () => keyboard.IsPressed(Key.A));
-            AddAssert("Joystick pressed", () => joystick.Buttons.IsPressed(JoystickButton.Button1));
+            AddAssert("Joystick pressed", () => joystick.IsPressed(JoystickButton.Button1));
             AddStep("Release", () =>
             {
                 InputManager.ReleaseButton(MouseButton.Left);
                 InputManager.ReleaseKey(Key.A);
                 InputManager.ReleaseJoystickButton(JoystickButton.Button1);
             });
-            AddAssert("All released", () => !mouse.HasAnyButtonPressed && !keyboard.Keys.HasAnyButtonPressed && !joystick.Buttons.HasAnyButtonPressed);
+            AddAssert("All released", () => !mouse.HasAnyButtonPressed && !keyboard.HasAnyButtonPressed && !joystick.HasAnyButtonPressed);
         }
 
         [Test]
@@ -74,18 +74,18 @@ namespace osu.Framework.Tests.Visual
                 InputManager.PressKey(Key.A);
                 InputManager.PressJoystickButton(JoystickButton.Button1);
             });
-            AddAssert("pressed", () => mouse.IsPressed(MouseButton.Left) && keyboard.IsPressed(Key.A) && joystick.Buttons.IsPressed(JoystickButton.Button1));
+            AddAssert("pressed", () => mouse.IsPressed(MouseButton.Left) && keyboard.IsPressed(Key.A) && joystick.IsPressed(JoystickButton.Button1));
             AddStep("UseParentInput = false", () => testInputManager.UseParentInput = false);
-            AddAssert("still pressed", () => mouse.IsPressed(MouseButton.Left) && keyboard.IsPressed(Key.A) && joystick.Buttons.IsPressed(JoystickButton.Button1));
+            AddAssert("still pressed", () => mouse.IsPressed(MouseButton.Left) && keyboard.IsPressed(Key.A) && joystick.IsPressed(JoystickButton.Button1));
             AddStep("Release on parent", () =>
             {
                 InputManager.ReleaseButton(MouseButton.Left);
                 InputManager.ReleaseKey(Key.A);
                 InputManager.ReleaseJoystickButton(JoystickButton.Button1);
             });
-            AddAssert("doen't affect child", () => mouse.IsPressed(MouseButton.Left) && keyboard.IsPressed(Key.A) && joystick.Buttons.IsPressed(JoystickButton.Button1));
+            AddAssert("doen't affect child", () => mouse.IsPressed(MouseButton.Left) && keyboard.IsPressed(Key.A) && joystick.IsPressed(JoystickButton.Button1));
             AddStep("UseParentInput = true", () => testInputManager.UseParentInput = true);
-            AddAssert("all synced", () => !mouse.IsPressed(MouseButton.Left) && !keyboard.IsPressed(Key.A) && !joystick.Buttons.IsPressed(JoystickButton.Button1));
+            AddAssert("all synced", () => !mouse.IsPressed(MouseButton.Left) && !keyboard.IsPressed(Key.A) && !joystick.IsPressed(JoystickButton.Button1));
         }
 
         [Test]

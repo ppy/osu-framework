@@ -7,7 +7,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Testing.Drawables.Sections;
-using OpenTK.Graphics;
+using osuTK.Graphics;
 
 namespace osu.Framework.Testing.Drawables
 {

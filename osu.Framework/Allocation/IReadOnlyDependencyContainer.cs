@@ -29,7 +29,7 @@ namespace osu.Framework.Allocation
     public static class ReadOnlyDependencyContainerExtensions
     {
         /// <summary>
-        /// Retrieves a cached dependency of type <typeparamref name="T"/> if it exists and null otherwise.
+        /// Retrieves a cached dependency of type <typeparamref name="T"/> if it exists, and null otherwise.
         /// </summary>
         /// <typeparam name="T">The dependency type to query for.</typeparam>
         /// <param name="container">The <see cref="IReadOnlyDependencyContainer"/> to query.</param>
@@ -37,6 +37,20 @@ namespace osu.Framework.Allocation
         public static T Get<T>(this IReadOnlyDependencyContainer container)
             where T : class
             => (T)container.Get(typeof(T));
+
+        /// <summary>
+        /// Retrieves a cached dependency of type <typeparamref name="T"/> if it exists, and default(<typeparamref name="T"/>) otherwise.
+        /// </summary>
+        /// <typeparam name="T">The dependency type to query for.</typeparam>
+        /// <param name="container">The <see cref="IReadOnlyDependencyContainer"/> to query.</param>
+        /// <returns>The requested dependency, or default(<typeparamref name="T"/>) if not found.</returns>
+        internal static T GetValue<T>(this IReadOnlyDependencyContainer container)
+        {
+            var result = container.Get(typeof(T));
+            if (result == null)
+                return default;
+            return (T)container.Get(typeof(T));
+        }
 
         /// <summary>
         /// Tries to retrieve a cached dependency of type <typeparamref name="T"/>.

@@ -3,7 +3,7 @@
 
 using System.Collections.Generic;
 using osu.Framework.Input;
-using OpenTK;
+using osuTK;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -13,37 +13,37 @@ namespace osu.Framework.Graphics.Containers
     public abstract class OverlayContainer : VisibilityContainer
     {
         /// <summary>
-        /// Whether we should block any mouse input from interacting with things behind us.
+        /// Whether we should block any positional input from interacting with things behind us.
         /// </summary>
-        protected virtual bool BlockPassThroughMouse => true;
+        protected virtual bool BlockPositionalInput => true;
 
         /// <summary>
-        /// Whether we should block any keyboard input from interacting with things behind us.
+        /// Whether we should block any non-positional input from interacting with things behind us.
         /// </summary>
-        protected virtual bool BlockPassThroughKeyboard => false;
+        protected virtual bool BlockNonPositionalInput => false;
 
-        internal override bool BuildKeyboardInputQueue(List<Drawable> queue, bool allowBlocking = true)
+        internal override bool BuildNonPositionalInputQueue(List<Drawable> queue, bool allowBlocking = true)
         {
-            if (CanReceiveKeyboardInput && BlockPassThroughKeyboard)
+            if (PropagateNonPositionalInputSubTree && HandleNonPositionalInput && BlockNonPositionalInput)
             {
-                // when blocking keyboard input behind us, we still want to make sure the global handlers receive events
+                // when blocking non-positional input behind us, we still want to make sure the global handlers receive events
                 // but we don't want other drawables behind us handling them.
                 queue.RemoveAll(d => !(d is IHandleGlobalInput));
             }
 
-            return base.BuildKeyboardInputQueue(queue, allowBlocking);
+            return base.BuildNonPositionalInputQueue(queue, allowBlocking);
         }
 
-        internal override bool BuildMouseInputQueue(Vector2 screenSpaceMousePos, List<Drawable> queue)
+        internal override bool BuildPositionalInputQueue(Vector2 screenSpacePos, List<Drawable> queue)
         {
-            if (CanReceiveMouseInput && BlockPassThroughMouse && ReceiveMouseInputAt(screenSpaceMousePos))
+            if (PropagatePositionalInputSubTree && HandlePositionalInput && BlockPositionalInput && ReceivePositionalInputAt(screenSpacePos))
             {
-                // when blocking mouse input behind us, we still want to make sure the global handlers receive events
+                // when blocking positional input behind us, we still want to make sure the global handlers receive events
                 // but we don't want other drawables behind us handling them.
                 queue.RemoveAll(d => !(d is IHandleGlobalInput));
             }
 
-            return base.BuildMouseInputQueue(screenSpaceMousePos, queue);
+            return base.BuildPositionalInputQueue(screenSpacePos, queue);
         }
     }
 }

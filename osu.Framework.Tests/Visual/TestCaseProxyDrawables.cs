@@ -7,8 +7,8 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Testing;
-using OpenTK;
-using OpenTK.Graphics;
+using osuTK;
+using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual
 {
@@ -363,6 +363,7 @@ namespace osu.Framework.Tests.Visual
         private class NonAliveContainer : Container
         {
             protected internal override bool ShouldBeAlive => false;
+            public override bool DisposeOnDeathRemoval => false;
         }
 
         private class Visualiser : Container

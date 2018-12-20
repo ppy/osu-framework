@@ -3,7 +3,7 @@
 
 using System.Collections.Generic;
 using osu.Framework.Input.States;
-using OpenTK.Input;
+using osuTK.Input;
 
 namespace osu.Framework.Input.StateChanges
 {
@@ -25,8 +25,5 @@ namespace osu.Framework.Input.StateChanges
         }
 
         protected override ButtonStates<Key> GetButtonStates(InputState state) => state.Keyboard.Keys;
-
-        protected override void Handle(IInputStateChangeHandler handler, InputState state, Key key, ButtonStateChangeKind kind) =>
-            handler.HandleKeyboardKeyStateChange(state, key, kind);
     }
 }

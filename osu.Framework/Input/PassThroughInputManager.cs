@@ -4,12 +4,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Graphics;
-using osu.Framework.Input.EventArgs;
+using osu.Framework.Input.Events;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Input.States;
-using OpenTK;
-using OpenTK.Input;
-using JoystickEventArgs = osu.Framework.Input.EventArgs.JoystickEventArgs;
+using osuTK;
+using osuTK.Input;
 
 namespace osu.Framework.Input
 {
@@ -19,7 +18,7 @@ namespace osu.Framework.Input
     /// When <see cref="UseParentInput"/> is false, this input manager gets inputs only from own input handlers.
     /// When <see cref="UseParentInput"/> is true, this input manager ignore any local input handlers and
     /// gets inputs from the parent (its ancestor in the scene graph) <see cref="InputManager"/> in the following way:
-    /// For mouse input, this only considers input that is passed as events such as <see cref="OnMouseDown"/>.
+    /// For mouse input, this only considers input that is passed as events such as <see cref="MouseDownEvent"/>.
     /// For keyboard and other inputs, this input manager try to reflect parent <see cref="InputManager"/>'s <see cref="InputState"/> closely as possible.
     /// Thus, when this is attached to the scene graph initially and when <see cref="UseParentInput"/> becomes true,
     /// multiple events may fire to synchronise the local <see cref="InputState"/> with the parent's.
@@ -44,13 +43,13 @@ namespace osu.Framework.Input
 
         private bool useParentInput = true;
 
-        internal override bool BuildKeyboardInputQueue(List<Drawable> queue, bool allowBlocking = true)
+        internal override bool BuildNonPositionalInputQueue(List<Drawable> queue, bool allowBlocking = true)
         {
-            if (!CanReceiveKeyboardInput) return false;
+            if (!PropagateNonPositionalInputSubTree) return false;
 
             if (!allowBlocking)
             {
-                base.BuildKeyboardInputQueue(queue, false);
+                base.BuildNonPositionalInputQueue(queue, false);
                 return false;
             }
 
@@ -59,9 +58,9 @@ namespace osu.Framework.Input
             return false;
         }
 
-        internal override bool BuildMouseInputQueue(Vector2 screenSpaceMousePos, List<Drawable> queue)
+        internal override bool BuildPositionalInputQueue(Vector2 screenSpacePos, List<Drawable> queue)
         {
-            if (!CanReceiveMouseInput) return false;
+            if (!PropagatePositionalInputSubTree) return false;
 
             if (UseParentInput)
                 queue.Add(this);
@@ -77,67 +76,42 @@ namespace osu.Framework.Input
             {
                 pendingInputs.Clear();
             }
+
             return pendingInputs;
         }
 
-        protected override bool OnMouseMove(InputState state)
+        protected override bool Handle(UIEvent e)
         {
-            if (UseParentInput)
-                new MousePositionAbsoluteInput { Position = state.Mouse.NativeState.Position }.Apply(CurrentState, this);
-            return false;
-        }
+            if (!UseParentInput) return false;
 
-        protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
-        {
-            if (UseParentInput)
+            switch (e)
             {
-                // safe-guard for edge cases.
-                if (!CurrentState.Mouse.IsPressed(args.Button))
-                    new MouseButtonInput(args.Button, true).Apply(CurrentState, this);
+                case MouseMoveEvent mouseMove:
+                    new MousePositionAbsoluteInput { Position = mouseMove.ScreenSpaceMousePosition }.Apply(CurrentState, this);
+                    break;
+
+                case MouseDownEvent mouseDown:
+                    // safe-guard for edge cases.
+                    if (!CurrentState.Mouse.IsPressed(mouseDown.Button))
+                        new MouseButtonInput(mouseDown.Button, true).Apply(CurrentState, this);
+                    break;
+
+                case MouseUpEvent mouseUp:
+                    // safe-guard for edge cases.
+                    if (CurrentState.Mouse.IsPressed(mouseUp.Button))
+                        new MouseButtonInput(mouseUp.Button, false).Apply(CurrentState, this);
+                    break;
+
+                case ScrollEvent scroll:
+                    new MouseScrollRelativeInput { Delta = scroll.ScrollDelta, IsPrecise = scroll.IsPrecise }.Apply(CurrentState, this);
+                    break;
+
+                case KeyboardEvent _:
+                case JoystickButtonEvent _:
+                    SyncInputState(e.CurrentState);
+                    break;
             }
-            return false;
-        }
 
-        protected override bool OnMouseUp(InputState state, MouseUpEventArgs args)
-        {
-            if (UseParentInput)
-            {
-                // safe-guard for edge cases.
-                if (CurrentState.Mouse.IsPressed(args.Button))
-                    new MouseButtonInput(args.Button, false).Apply(CurrentState, this);
-            }
-
-            return false;
-        }
-
-        protected override bool OnScroll(InputState state)
-        {
-            if (UseParentInput)
-                new MouseScrollRelativeInput { Delta = state.Mouse.NativeState.ScrollDelta, IsPrecise = state.Mouse.HasPreciseScroll }.Apply(CurrentState, this);
-            return false;
-        }
-
-        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
-        {
-            if (UseParentInput) SyncInputState(state);
-            return false;
-        }
-
-        protected override bool OnKeyUp(InputState state, KeyUpEventArgs args)
-        {
-            if (UseParentInput) SyncInputState(state);
-            return false;
-        }
-
-        protected override bool OnJoystickPress(InputState state, JoystickEventArgs args)
-        {
-            if (UseParentInput) SyncInputState(state);
-            return false;
-        }
-
-        protected override bool OnJoystickRelease(InputState state, JoystickEventArgs args)
-        {
-            if (UseParentInput) SyncInputState(state);
             return false;
         }
 
@@ -153,7 +127,7 @@ namespace osu.Framework.Input
         {
             base.Update();
 
-            // Some keyboard/joystick events are blocked. Sync every frame.
+            // Some non-positional events are blocked. Sync every frame.
             if (UseParentInput) Sync(true);
         }
 

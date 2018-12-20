@@ -7,8 +7,8 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Testing;
-using OpenTK;
-using OpenTK.Graphics;
+using osuTK;
+using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual
 {
@@ -18,7 +18,7 @@ namespace osu.Framework.Tests.Visual
 
         public TestCaseDelayedLoad()
         {
-            FillFlowContainerNoInput flow;
+            FillFlowContainer<Container> flow;
             ScrollContainer scroll;
 
             Children = new Drawable[]
@@ -28,7 +28,7 @@ namespace osu.Framework.Tests.Visual
                     RelativeSizeAxes = Axes.Both,
                     Children = new Drawable[]
                     {
-                        flow = new FillFlowContainerNoInput
+                        flow = new FillFlowContainer<Container>
                         {
                             RelativeSizeAxes = Axes.X,
                             AutoSizeAxes = Axes.Y,
@@ -48,7 +48,7 @@ namespace osu.Framework.Tests.Visual
                             RelativeSizeAxes = Axes.Both,
                             Children = new Drawable[]
                             {
-                                new TestBox{ RelativeSizeAxes = Axes.Both }
+                                new TestBox { RelativeSizeAxes = Axes.Both }
                             }
                         }),
                         new SpriteText { Text = i.ToString() },
@@ -64,30 +64,24 @@ namespace osu.Framework.Tests.Visual
             AddAssert("not too many loaded", () => childrenWithAvatarsLoaded.Count() < panel_count / 4);
         }
 
-        private class FillFlowContainerNoInput : FillFlowContainer<Container>
+        public class TestBox : Container
         {
-            public override bool HandleKeyboardInput => false;
-            public override bool HandleMouseInput => false;
-        }
-    }
-
-    public class TestBox : Container
-    {
-        public TestBox()
-        {
-            RelativeSizeAxes = Axes.Both;
-        }
-
-        [BackgroundDependencyLoader]
-        private void load()
-        {
-            Child = new SpriteText
+            public TestBox()
             {
-                Colour = Color4.Yellow,
-                Text = @"loaded",
-                Anchor = Anchor.Centre,
-                Origin = Anchor.Centre,
-            };
+                RelativeSizeAxes = Axes.Both;
+            }
+
+            [BackgroundDependencyLoader]
+            private void load()
+            {
+                Child = new SpriteText
+                {
+                    Colour = Color4.Yellow,
+                    Text = @"loaded",
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                };
+            }
         }
     }
 }

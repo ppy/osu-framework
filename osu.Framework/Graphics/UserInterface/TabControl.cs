@@ -6,12 +6,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Configuration;
-using osu.Framework.Extensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
-using OpenTK;
+using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -24,12 +23,34 @@ namespace osu.Framework.Graphics.UserInterface
     /// <typeparam name="T">The type of item to be represented by tabs.</typeparam>
     public abstract class TabControl<T> : CompositeDrawable, IHasCurrentValue<T>, IKeyBindingHandler<PlatformAction>
     {
-        public Bindable<T> Current { get; } = new Bindable<T>();
+        private readonly Bindable<T> current = new Bindable<T>();
+
+        public Bindable<T> Current
+        {
+            get => current;
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException(nameof(value));
+
+                current.UnbindBindings();
+                current.BindTo(value);
+            }
+        }
 
         /// <summary>
         /// A list of items currently in the tab control in the order they are dispalyed.
         /// </summary>
-        public IEnumerable<T> Items => TabContainer.TabItems.Select(t => t.Value).Concat(Dropdown.Items.Select(kvp => kvp.Value)).Distinct();
+        public IEnumerable<T> Items {
+            get {
+                var items = TabContainer.TabItems.Select(t => t.Value);
+
+                if (Dropdown != null)
+                    items = items.Concat(Dropdown.Items).Distinct();
+
+                return items;
+            }
+        }
 
         public IEnumerable<T> VisibleItems => TabContainer.TabItems.Select(t => t.Value).Distinct();
 
@@ -82,7 +103,7 @@ namespace osu.Framework.Graphics.UserInterface
                 Dropdown.RelativeSizeAxes = Axes.X;
                 Dropdown.Anchor = Anchor.TopRight;
                 Dropdown.Origin = Anchor.TopRight;
-                Dropdown.Current.BindTo(Current);
+                Dropdown.Current = Current;
 
                 AddInternal(Dropdown);
 
@@ -90,7 +111,7 @@ namespace osu.Framework.Graphics.UserInterface
                 Trace.Assert(!Dropdown.Header.RelativeSizeAxes.HasFlag(Axes.X), $@"The {nameof(Dropdown)} implementation's header should have a specific size.");
 
                 // create tab items for already existing items in dropdown (if any).
-                tabMap = Dropdown.Items.ToDictionary(item => item.Value, item => addTab(item.Value, false));
+                tabMap = Dropdown.Items.ToDictionary(item => item, item => addTab(item, false));
             }
             else
                 tabMap = new Dictionary<T, TabItem<T>>();
@@ -201,7 +222,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             tabMap[tab.Value] = tab;
             if (addToDropdown)
-                Dropdown?.AddDropdownItem((tab.Value as Enum)?.GetDescription() ?? tab.Value.ToString(), tab.Value);
+                Dropdown?.AddDropdownItem(tab.Value);
             TabContainer.Add(tab);
         }
 

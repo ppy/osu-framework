@@ -2,18 +2,19 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Configuration;
 using osu.Framework.Logging;
-using OpenTK;
-using OpenTK.Graphics;
-using OpenTK.Graphics.ES30;
-using OpenTK.Platform;
-using OpenTK.Input;
+using osuTK;
+using osuTK.Graphics;
+using osuTK.Graphics.ES30;
+using osuTK.Platform;
+using osuTK.Input;
 using System.ComponentModel;
 using System.Drawing;
 using JetBrains.Annotations;
-using Icon = OpenTK.Icon;
+using Icon = osuTK.Icon;
 
 namespace osu.Framework.Platform
 {
@@ -52,6 +53,11 @@ namespace osu.Framework.Platform
         /// Whether the OS cursor is currently contained within the game window.
         /// </summary>
         public bool CursorInWindow { get; private set; }
+
+        /// <summary>
+        /// Available resolutions for full-screen display.
+        /// </summary>
+        public virtual IEnumerable<DisplayResolution> AvailableResolutions => Enumerable.Empty<DisplayResolution>();
 
         /// <summary>
         /// Creates a <see cref="GameWindow"/> with a given <see cref="IGameWindow"/> implementation.
@@ -100,10 +106,10 @@ namespace osu.Framework.Platform
 
         /// <summary>
         /// Creates a <see cref="GameWindow"/> with given dimensions.
-        /// <para>Note that this will use the default <see cref="OpenTK.GameWindow"/> implementation, which is not compatible with every platform.</para>
+        /// <para>Note that this will use the default <see cref="osuTK.GameWindow"/> implementation, which is not compatible with every platform.</para>
         /// </summary>
         protected GameWindow(int width, int height)
-            : this(new OpenTK.GameWindow(width, height, new GraphicsMode(GraphicsMode.Default.ColorFormat, GraphicsMode.Default.Depth, GraphicsMode.Default.Stencil, GraphicsMode.Default.Samples, GraphicsMode.Default.AccumulatorFormat, 3)))
+            : this(new osuTK.GameWindow(width, height, new GraphicsMode(GraphicsMode.Default.ColorFormat, GraphicsMode.Default.Depth, GraphicsMode.Default.Stencil, GraphicsMode.Default.Samples, GraphicsMode.Default.AccumulatorFormat, 3)))
         {
         }
 
@@ -166,7 +172,11 @@ namespace osu.Framework.Platform
         /// Gets the <see cref="DisplayDevice"/> that this window is currently on.
         /// </summary>
         /// <returns></returns>
-        public abstract DisplayDevice GetCurrentDisplay();
+        public virtual DisplayDevice CurrentDisplay
+        {
+            get => DisplayDevice.FromRectangle(Bounds) ?? DisplayDevice.Default;
+            set => throw new InvalidOperationException($@"{GetType().Name}.{nameof(CurrentDisplay)} cannot be set.");
+        }
 
         private string getVersionNumberSubstring(string version)
         {

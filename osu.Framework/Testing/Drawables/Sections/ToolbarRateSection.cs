@@ -38,18 +38,17 @@ namespace osu.Framework.Testing.Drawables.Sections
                         rateAdjustSlider = new BasicSliderBar<double>
                         {
                             RelativeSizeAxes = Axes.Both,
+                            Current = browser.PlaybackRate
                         },
                         rateText = new SpriteText
                         {
                             Padding = new MarginPadding(5),
-                            AutoSizeAxes = Axes.None,
                             Width = 60,
                         },
                     }
                 }
             };
 
-            rateAdjustSlider.Current.BindTo(browser.PlaybackRate);
             rateAdjustSlider.Current.BindValueChanged(v => rateText.Text = v.ToString("0%"), true);
         }
     }

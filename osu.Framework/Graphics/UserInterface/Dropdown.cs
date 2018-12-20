@@ -5,10 +5,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Configuration;
+using osu.Framework.Extensions;
 using osu.Framework.Graphics.Containers;
-using OpenTK.Graphics;
+using osuTK.Graphics;
 using osu.Framework.Extensions.IEnumerableExtensions;
-using osu.Framework.Input.States;
+using osu.Framework.Graphics.Sprites;
+using osu.Framework.Input.Events;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -34,13 +36,11 @@ namespace osu.Framework.Graphics.UserInterface
         protected IEnumerable<DropdownMenuItem<T>> MenuItems => itemMap.Values;
 
         /// <summary>
-        /// Generate menu items by <see cref="KeyValuePair{TKey, TValue}"/>.
-        /// The <see cref="KeyValuePair{TKey, TValue}.Key"/> part will become <see cref="MenuItem.Text"/>,
-        /// the <see cref="KeyValuePair{TKey, TValue}.Value"/> part will become <see cref="DropdownMenuItem{T}.Value"/>.
+        /// Enumerate all values in the dropdown.
         /// </summary>
-        public IEnumerable<KeyValuePair<string, T>> Items
+        public IEnumerable<T> Items
         {
-            get => MenuItems.Select(i => new KeyValuePair<string, T>(i.Text, i.Value));
+            get => MenuItems.Select(i => i.Value);
             set
             {
                 ClearItems();
@@ -48,7 +48,7 @@ namespace osu.Framework.Graphics.UserInterface
                     return;
 
                 foreach (var entry in value)
-                    AddDropdownItem(entry.Key, entry.Value);
+                    AddDropdownItem(GenerateItemText(entry), entry);
 
                 if (Current.Value == null || !itemMap.Keys.Contains(Current.Value))
                     Current.Value = itemMap.Keys.FirstOrDefault();
@@ -58,11 +58,17 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
+        /// Add a menu item directly while automatically generating a label.
+        /// </summary>
+        /// <param name="value">Value selected by the menu item.</param>
+        public void AddDropdownItem(T value) => AddDropdownItem(GenerateItemText(value), value);
+
+        /// <summary>
         /// Add a menu item directly.
         /// </summary>
         /// <param name="text">Text to display on the menu item.</param>
         /// <param name="value">Value selected by the menu item.</param>
-        public void AddDropdownItem(string text, T value)
+        protected void AddDropdownItem(string text, T value)
         {
             if (itemMap.ContainsKey(value))
                 throw new ArgumentException($"The item {value} already exists in this {nameof(Dropdown<T>)}.");
@@ -88,7 +94,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (value == null)
                 return false;
 
-            if (!itemMap.TryGetValue(value, out DropdownMenuItem<T> item))
+            if (!itemMap.TryGetValue(value, out var item))
                 return false;
 
             Menu.Remove(item);
@@ -97,7 +103,35 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
-        public Bindable<T> Current { get; } = new Bindable<T>();
+        protected virtual string GenerateItemText(T item)
+        {
+            switch (item)
+            {
+                case MenuItem i:
+                    return i.Text;
+                case IHasText t:
+                    return t.Text;
+                case Enum e:
+                    return e.GetDescription();
+                default:
+                    return item?.ToString() ?? "null";
+            }
+        }
+
+        private readonly Bindable<T> current = new Bindable<T>();
+
+        public Bindable<T> Current
+        {
+            get => current;
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException(nameof(value));
+
+                current.UnbindBindings();
+                current.BindTo(value);
+            }
+        }
 
         private DropdownMenuItem<T> selectedItem;
 
@@ -136,7 +170,7 @@ namespace osu.Framework.Graphics.UserInterface
             Header.Label = SelectedItem?.Text.Value;
         }
 
-        private void selectionChanged(T newSelection = default(T))
+        private void selectionChanged(T newSelection = default)
         {
             // refresh if SelectedItem and SelectedValue mismatched
             // null is not a valid value for Dictionary, so neither here
@@ -144,7 +178,9 @@ namespace osu.Framework.Graphics.UserInterface
                 && newSelection != null)
             {
                 if (!itemMap.TryGetValue(newSelection, out selectedItem))
-                    throw new InvalidOperationException($"Attempted to update dropdown to a value which wasn't contained as an item ({newSelection}).");
+                {
+                    selectedItem = new DropdownMenuItem<T>(GenerateItemText(newSelection), newSelection);
+                }
             }
 
             Menu.SelectItem(selectedItem);
@@ -188,7 +224,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void updateHeaderVisibility() => Header.Alpha = Menu.AnyPresent ? 1 : 0;
 
-        protected override bool OnHover(InputState state) => true;
+        protected override bool OnHover(HoverEvent e) => true;
 
         /// <summary>
         /// Creates the menu body.
@@ -196,6 +232,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected virtual DropdownMenu CreateMenu() => new DropdownMenu();
 
         #region DropdownMenu
+
         public class DropdownMenu : Menu
         {
             public DropdownMenu()
@@ -232,6 +269,7 @@ namespace osu.Framework.Graphics.UserInterface
             protected override DrawableMenuItem CreateDrawableMenuItem(MenuItem item) => new DrawableDropdownMenuItem(item);
 
             #region DrawableDropdownMenuItem
+
             // must be public due to mono bug(?) https://github.com/ppy/osu/issues/1204
             public class DrawableDropdownMenuItem : DrawableMenuItem
             {
@@ -241,6 +279,7 @@ namespace osu.Framework.Graphics.UserInterface
                 }
 
                 private bool selected;
+
                 public bool IsSelected
                 {
                     get => !Item.Action.Disabled && selected;
@@ -255,6 +294,7 @@ namespace osu.Framework.Graphics.UserInterface
                 }
 
                 private Color4 backgroundColourSelected = Color4.SlateGray;
+
                 public Color4 BackgroundColourSelected
                 {
                     get => backgroundColourSelected;
@@ -266,6 +306,7 @@ namespace osu.Framework.Graphics.UserInterface
                 }
 
                 private Color4 foregroundColourSelected = Color4.White;
+
                 public Color4 ForegroundColourSelected
                 {
                     get => foregroundColourSelected;
@@ -287,12 +328,12 @@ namespace osu.Framework.Graphics.UserInterface
 
                 protected override void UpdateBackgroundColour()
                 {
-                    Background.FadeColour(IsHovered ? BackgroundColourHover : (IsSelected ? BackgroundColourSelected : BackgroundColour));
+                    Background.FadeColour(IsHovered ? BackgroundColourHover : IsSelected ? BackgroundColourSelected : BackgroundColour);
                 }
 
                 protected override void UpdateForegroundColour()
                 {
-                    Foreground.FadeColour(IsHovered ? ForegroundColourHover : (IsSelected ? ForegroundColourSelected : ForegroundColour));
+                    Foreground.FadeColour(IsHovered ? ForegroundColourHover : IsSelected ? ForegroundColourSelected : ForegroundColour);
                 }
 
                 protected override void LoadComplete()
@@ -302,8 +343,10 @@ namespace osu.Framework.Graphics.UserInterface
                     Foreground.Colour = IsSelected ? ForegroundColourSelected : ForegroundColour;
                 }
             }
+
             #endregion
         }
+
         #endregion
     }
 }

@@ -3,13 +3,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NUnit.Framework;
 using osu.Framework.IO.Network;
-using HttpMethod = osu.Framework.IO.Network.HttpMethod;
 using WebRequest = osu.Framework.IO.Network.WebRequest;
 
 namespace osu.Framework.Tests.IO
@@ -17,15 +19,40 @@ namespace osu.Framework.Tests.IO
     [TestFixture]
     public class TestWebRequest
     {
-        private const string valid_get_url = "httpbin.org/get";
+        private const string default_protocol = "http";
         private const string invalid_get_url = "a.ppy.shhhhh";
 
-        [Test, Retry(5)]
-        [Ignore("Broken (appveyor or httpbin.org, see https://ci.appveyor.com/project/peppy/osu-framework/build/5155)")]
-        public void TestValidGet([Values("http", "https")] string protocol, [Values(true, false)] bool async)
+        private static readonly string host;
+        private static readonly IEnumerable<string> protocols;
+
+        static TestWebRequest()
         {
-            var url = $"{protocol}://httpbin.org/get";
-            var request = new JsonWebRequest<HttpBinGetResponse>(url) { Method = HttpMethod.GET };
+            bool isAppveyorBuild = Environment.GetEnvironmentVariable("APPVEYOR")?.ToLower().Equals("true") ?? false;
+
+            if (isAppveyorBuild)
+            {
+                // httpbin very frequently falls over and causes random tests to fail
+                // Thus appveyor builds rely on a local httpbin instance to run the tests
+
+                host = "127.0.0.1";
+                protocols = new[] { default_protocol };
+            }
+            else
+            {
+                host = "httpbin.org";
+                protocols = new[] { default_protocol, "https" };
+            }
+        }
+
+        [Test, Retry(5)]
+        public void TestValidGet([ValueSource(nameof(protocols))] string protocol, [Values(true, false)] bool async)
+        {
+            var url = $"{protocol}://{host}/get";
+            var request = new JsonWebRequest<HttpBinGetResponse>(url)
+            {
+                Method = HttpMethod.Get,
+                AllowInsecureRequests = true
+            };
 
             bool hasThrown = false;
             request.Failed += exception => hasThrown = exception != null;
@@ -47,11 +74,61 @@ namespace osu.Framework.Tests.IO
             Assert.IsFalse(hasThrown);
         }
 
-        [Test, Retry(5)]
-        [Ignore("Broken (appveyor or httpbin.org, see https://ci.appveyor.com/project/peppy/osu-framework/build/5155)")]
-        public void TestInvalidGetExceptions([Values("http", "https")] string protocol, [Values(true, false)] bool async)
+        /// <summary>
+        /// Tests async execution is correctly yielding during IO wait time.
+        /// </summary>
+        [Test]
+        [Ignore("failing too often on appveyor")]
+        public void TestConcurrency()
         {
-            var request = new WebRequest($"{protocol}://{invalid_get_url}") { Method = HttpMethod.GET };
+            const int request_count = 10;
+            const int induced_delay = 5;
+
+            int finished = 0;
+
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+
+            List<long> startTimes = new List<long>();
+
+            List<Task> running = new List<Task>();
+            for (int i = 0; i < request_count; i++)
+            {
+                var request = new DelayedWebRequest
+                {
+                    Method = HttpMethod.Get,
+                    AllowInsecureRequests = true,
+                    Delay = induced_delay
+                };
+
+                request.Started += () => startTimes.Add(sw.ElapsedMilliseconds);
+                request.Finished += () => Interlocked.Increment(ref finished);
+                request.Failed += _ => Interlocked.Increment(ref finished);
+                running.Add(request.PerformAsync());
+            }
+
+            Task.WaitAll(running.ToArray());
+
+            // in the case threads are not yielding, the time taken will be greater than double the induced delay (after considering latency).
+            Assert.Less(sw.ElapsedMilliseconds, induced_delay * 2 * 1000);
+
+            Assert.AreEqual(request_count, startTimes.Count);
+
+            // another case would be requests starting too late into the test. just to make sure.
+            for (int i = 0; i < request_count; i++)
+                Assert.Less(startTimes[i] - startTimes[0], induced_delay * 1000);
+
+            Assert.AreEqual(request_count, finished);
+        }
+
+        [Test, Retry(5)]
+        public void TestInvalidGetExceptions([ValueSource(nameof(protocols))] string protocol, [Values(true, false)] bool async)
+        {
+            var request = new WebRequest($"{protocol}://{invalid_get_url}")
+            {
+                Method = HttpMethod.Get,
+                AllowInsecureRequests = true
+            };
 
             Exception finishedException = null;
             request.Failed += exception => finishedException = exception;
@@ -69,10 +146,12 @@ namespace osu.Framework.Tests.IO
         }
 
         [Test, Retry(5)]
-        [Ignore("Broken (appveyor or httpbin.org, see https://ci.appveyor.com/project/peppy/osu-framework/build/5155)")]
         public void TestBadStatusCode([Values(true, false)] bool async)
         {
-            var request = new WebRequest("https://httpbin.org/hidden-basic-auth/user/passwd");
+            var request = new WebRequest($"{default_protocol}://{host}/hidden-basic-auth/user/passwd")
+            {
+                AllowInsecureRequests = true,
+            };
 
             bool hasThrown = false;
             request.Failed += exception => hasThrown = exception != null;
@@ -95,10 +174,13 @@ namespace osu.Framework.Tests.IO
         /// but before data has been read.
         /// </summary>
         [Test, Retry(5)]
-        [Ignore("Broken (appveyor or httpbin.org, see https://ci.appveyor.com/project/peppy/osu-framework/build/5155)")]
         public void TestAbortReceive([Values(true, false)] bool async)
         {
-            var request = new JsonWebRequest<HttpBinGetResponse>("https://httpbin.org/get") { Method = HttpMethod.GET };
+            var request = new JsonWebRequest<HttpBinGetResponse>($"{default_protocol}://{host}/get")
+            {
+                Method = HttpMethod.Get,
+                AllowInsecureRequests = true,
+            };
 
             bool hasThrown = false;
             request.Failed += exception => hasThrown = exception != null;
@@ -121,10 +203,13 @@ namespace osu.Framework.Tests.IO
         /// Tests aborting the <see cref="WebRequest"/> before the request is sent to the server.
         /// </summary>
         [Test, Retry(5)]
-        [Ignore("Broken (appveyor or httpbin.org, see https://ci.appveyor.com/project/peppy/osu-framework/build/5155)")]
         public void TestAbortRequest()
         {
-            var request = new JsonWebRequest<HttpBinGetResponse>("https://httpbin.org/get") { Method = HttpMethod.GET };
+            var request = new JsonWebRequest<HttpBinGetResponse>($"{default_protocol}://{host}/get")
+            {
+                Method = HttpMethod.Get,
+                AllowInsecureRequests = true,
+            };
 
             bool hasThrown = false;
             request.Failed += exception => hasThrown = exception != null;
@@ -147,10 +232,13 @@ namespace osu.Framework.Tests.IO
         /// Tests being able to abort + restart a request.
         /// </summary>
         [Test, Retry(5)]
-        [Ignore("Broken (appveyor or httpbin.org, see https://ci.appveyor.com/project/peppy/osu-framework/build/5155)")]
         public void TestRestartAfterAbort([Values(true, false)] bool async)
         {
-            var request = new JsonWebRequest<HttpBinGetResponse>("https://httpbin.org/get") { Method = HttpMethod.GET };
+            var request = new JsonWebRequest<HttpBinGetResponse>($"{default_protocol}://{host}/get")
+            {
+                Method = HttpMethod.Get,
+                AllowInsecureRequests = true,
+            };
 
             bool hasThrown = false;
             request.Failed += exception => hasThrown = exception != null;
@@ -179,12 +267,12 @@ namespace osu.Framework.Tests.IO
         /// Tests that specifically-crafted <see cref="WebRequest"/> is completed after one timeout.
         /// </summary>
         [Test, Retry(5)]
-        [Ignore("Broken (appveyor or httpbin.org, see https://ci.appveyor.com/project/peppy/osu-framework/build/5155)")]
         public void TestOneTimeout()
         {
             var request = new DelayedWebRequest
             {
-                Method = HttpMethod.GET,
+                Method = HttpMethod.Get,
+                AllowInsecureRequests = true,
                 Timeout = 1000,
                 Delay = 2
             };
@@ -206,12 +294,12 @@ namespace osu.Framework.Tests.IO
         /// Tests that a <see cref="WebRequest"/> will only timeout a maximum of <see cref="WebRequest.MAX_RETRIES"/> times before being aborted.
         /// </summary>
         [Test, Retry(5)]
-        [Ignore("Broken (appveyor or httpbin.org, see https://ci.appveyor.com/project/peppy/osu-framework/build/5155)")]
         public void TestFailTimeout()
         {
-            var request = new WebRequest("https://httpbin.org/delay/4")
+            var request = new WebRequest($"{default_protocol}://{host}/delay/4")
             {
-                Method = HttpMethod.GET,
+                Method = HttpMethod.Get,
+                AllowInsecureRequests = true,
                 Timeout = 1000
             };
 
@@ -232,10 +320,13 @@ namespace osu.Framework.Tests.IO
         /// Tests being able to abort + restart a request.
         /// </summary>
         [Test, Retry(5)]
-        [Ignore("Broken (appveyor or httpbin.org, see https://ci.appveyor.com/project/peppy/osu-framework/build/5155)")]
         public void TestEventUnbindOnCompletion([Values(true, false)] bool async)
         {
-            var request = new JsonWebRequest<HttpBinGetResponse>("https://httpbin.org/get") { Method = HttpMethod.GET };
+            var request = new JsonWebRequest<HttpBinGetResponse>($"{default_protocol}://{host}/get")
+            {
+                Method = HttpMethod.Get,
+                AllowInsecureRequests = true,
+            };
 
             request.Started += () => { };
             request.Failed += e => { };
@@ -256,11 +347,14 @@ namespace osu.Framework.Tests.IO
         /// Tests being able to abort + restart a request.
         /// </summary>
         [Test, Retry(5)]
-        [Ignore("Broken (appveyor or httpbin.org, see https://ci.appveyor.com/project/peppy/osu-framework/build/5155)")]
         public void TestUnbindOnDispose([Values(true, false)] bool async)
         {
             WebRequest request;
-            using (request = new JsonWebRequest<HttpBinGetResponse>("https://httpbin.org/get") { Method = HttpMethod.GET })
+            using (request = new JsonWebRequest<HttpBinGetResponse>($"{default_protocol}://{host}/get")
+            {
+                Method = HttpMethod.Get,
+                AllowInsecureRequests = true,
+            })
             {
                 request.Started += () => { };
                 request.Failed += e => { };
@@ -279,10 +373,13 @@ namespace osu.Framework.Tests.IO
         }
 
         [Test, Retry(5)]
-        [Ignore("Broken (appveyor or httpbin.org, see https://ci.appveyor.com/project/peppy/osu-framework/build/5155)")]
         public void TestPostWithJsonResponse([Values(true, false)] bool async)
         {
-            var request = new JsonWebRequest<HttpBinPostResponse>("https://httpbin.org/post") { Method = HttpMethod.POST };
+            var request = new JsonWebRequest<HttpBinPostResponse>($"{default_protocol}://{host}/post")
+            {
+                Method = HttpMethod.Post,
+                AllowInsecureRequests = true,
+            };
 
             request.AddParameter("testkey1", "testval1");
             request.AddParameter("testkey2", "testval2");
@@ -312,10 +409,13 @@ namespace osu.Framework.Tests.IO
         }
 
         [Test, Retry(5)]
-        [Ignore("Broken (appveyor or httpbin.org, see https://ci.appveyor.com/project/peppy/osu-framework/build/5155)")]
         public void TestPostWithJsonRequest([Values(true, false)] bool async)
         {
-            var request = new JsonWebRequest<HttpBinPostResponse>("https://httpbin.org/post") { Method = HttpMethod.POST };
+            var request = new JsonWebRequest<HttpBinPostResponse>($"{default_protocol}://{host}/post")
+            {
+                Method = HttpMethod.Post,
+                AllowInsecureRequests = true,
+            };
 
             var testObject = new TestObject();
             request.AddRaw(JsonConvert.SerializeObject(testObject));
@@ -338,7 +438,6 @@ namespace osu.Framework.Tests.IO
         }
 
         [Test, Retry(5)]
-        [Ignore("Broken (appveyor or httpbin.org, see https://ci.appveyor.com/project/peppy/osu-framework/build/5155)")]
         public void TestGetBinaryData([Values(true, false)] bool async, [Values(true, false)] bool chunked)
         {
             const int bytes_count = 65536;
@@ -346,7 +445,11 @@ namespace osu.Framework.Tests.IO
 
             string endpoint = chunked ? "stream-bytes" : "bytes";
 
-            WebRequest request = new WebRequest($"http://httpbin.org/{endpoint}/{bytes_count}") { Method = HttpMethod.GET };
+            WebRequest request = new WebRequest($"{default_protocol}://{host}/{endpoint}/{bytes_count}")
+            {
+                Method = HttpMethod.Get,
+                AllowInsecureRequests = true,
+            };
             if (chunked)
                 request.AddParameter("chunk_size", chunk_size.ToString());
 
@@ -419,12 +522,12 @@ namespace osu.Framework.Tests.IO
                 set
                 {
                     delay = value;
-                    Url = $"http://httpbin.org/delay/{delay}";
+                    Url = $"{default_protocol}://{host}/delay/{delay}";
                 }
             }
 
             public DelayedWebRequest()
-                : base("http://httpbin.org/delay/0")
+                : base($"{default_protocol}://{host}/delay/0")
             {
             }
 

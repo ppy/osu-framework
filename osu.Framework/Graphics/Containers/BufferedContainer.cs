@@ -1,9 +1,9 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using OpenTK;
-using OpenTK.Graphics;
-using OpenTK.Graphics.ES30;
+using osuTK;
+using osuTK.Graphics;
+using osuTK.Graphics.ES30;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Primitives;
@@ -277,7 +277,7 @@ namespace osu.Framework.Graphics.Containers
 
             // Our own draw node should contain our correct color, hence we have
             // to undo our overridden DrawInfo getter here.
-            n.DrawInfo.Colour = base.DrawInfo.Colour;
+            n.DrawColourInfo.Colour = base.DrawColourInfo.Colour;
 
             // Only need to generate child draw nodes if the framebuffers will get redrawn this time around
             addChildDrawNodes = n.RequiresRedraw;
@@ -325,7 +325,7 @@ namespace osu.Framework.Graphics.Containers
                 ++updateVersion;
 
             // We actually only care about Invalidation.MiscGeometry | Invalidation.DrawInfo, but must match the blanket invalidation logic in Drawable.Invalidate
-            if ((invalidation & (Invalidation.Colour | Invalidation.RequiredParentSizeToFit | Invalidation.DrawInfo)) > 0)
+            if ((invalidation & (Invalidation.Presence | Invalidation.RequiredParentSizeToFit | Invalidation.DrawInfo)) > 0)
                 screenSpaceSizeBacking.Invalidate();
 
             return base.Invalidate(invalidation, source, shallPropagate);
@@ -362,11 +362,11 @@ namespace osu.Framework.Graphics.Containers
             childrenUpdateVersion = updateVersion;
         }
 
-        public override DrawInfo DrawInfo
+        public override DrawColourInfo DrawColourInfo
         {
             get
             {
-                DrawInfo result = base.DrawInfo;
+                DrawColourInfo result = base.DrawColourInfo;
 
                 // When drawing our children to the frame buffer we do not
                 // want their colour to be polluted by their parent (us!)

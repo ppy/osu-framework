@@ -3,9 +3,9 @@
 
 using System.Collections.Generic;
 using osu.Framework.Input.Handlers;
-using osu.Framework.Input.States;
+using osu.Framework.Input.StateChanges.Events;
 using osu.Framework.Platform;
-using OpenTK;
+using osuTK;
 
 namespace osu.Framework.Input
 {
@@ -20,19 +20,24 @@ namespace osu.Framework.Input
             UseParentInput = false;
         }
 
-        public override void HandleMousePositionChange(InputState state)
+        public override void HandleInputStateChange(InputStateChangeEvent inputStateChange)
         {
-            var mouse = state.Mouse;
-            // confine cursor
-            if (Host.Window != null && Host.Window.CursorState.HasFlag(CursorState.Confined))
-                mouse.Position = Vector2.Clamp(mouse.Position, Vector2.Zero, new Vector2(Host.Window.Width, Host.Window.Height));
-            base.HandleMousePositionChange(state);
-        }
+            switch (inputStateChange)
+            {
+                case MousePositionChangeEvent mousePositionChange:
+                    var mouse = mousePositionChange.State.Mouse;
+                    // confine cursor
+                    if (Host.Window != null && Host.Window.CursorState.HasFlag(CursorState.Confined))
+                        mouse.Position = Vector2.Clamp(mouse.Position, Vector2.Zero, new Vector2(Host.Window.Width, Host.Window.Height));
+                    break;
 
-        public override void HandleMouseScrollChange(InputState state)
-        {
-            if (Host.Window != null && !Host.Window.CursorInWindow) return;
-            base.HandleMouseScrollChange(state);
+                case MouseScrollChangeEvent _:
+                    if (Host.Window != null && !Host.Window.CursorInWindow)
+                        return;
+                    break;
+            }
+
+            base.HandleInputStateChange(inputStateChange);
         }
     }
 }

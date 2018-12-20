@@ -18,18 +18,17 @@ namespace osu.Framework.Audio
 
         protected Task EnqueueAction(Action action)
         {
-            var task = new Task(action);
-
             if (ThreadSafety.IsAudioThread)
             {
-                task.RunSynchronously();
-                return task;
+                action();
+                return Task.CompletedTask;
             }
 
             if (!acceptingActions)
                 // we don't want consumers to block on operations after we are disposed.
                 return Task.CompletedTask;
 
+            var task = new Task(action);
             PendingActions.Enqueue(task);
             return task;
         }

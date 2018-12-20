@@ -8,14 +8,16 @@ using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Testing;
-using OpenTK;
-using OpenTK.Graphics;
+using osuTK;
+using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual
 {
     [System.ComponentModel.Description("implementing the IEffect interface")]
     public class TestCaseEffects : TestCase
     {
+        private readonly SpriteText changeColourText;
+
         public TestCaseEffects()
         {
             var effect = new EdgeEffect
@@ -159,7 +161,7 @@ namespace osu.Framework.Tests.Visual
                                 Colour = ColourInfo.GradientHorizontal(new Color4(1.2f, 0, 0, 1f), new Color4(0, 1f, 0, 1f)),
                                 PadExtent = true,
                             }),
-                            new SpriteText
+                            changeColourText = new SpriteText
                             {
                                 Anchor = Anchor.Centre,
                                 Origin = Anchor.Centre,
@@ -233,6 +235,12 @@ namespace osu.Framework.Tests.Visual
                     },
                 }
             });
+        }
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+            changeColourText.FadeColour(Color4.Black, 1000).Then().FadeColour(Color4.Red, 1000).Loop();
         }
     }
 }

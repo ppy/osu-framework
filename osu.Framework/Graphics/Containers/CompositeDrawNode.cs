@@ -6,7 +6,7 @@ using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Batches;
-using OpenTK;
+using osuTK;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Colour;
 using System;
@@ -142,13 +142,15 @@ namespace osu.Framework.Graphics.Containers
             MaskingInfo edgeEffectMaskingInfo = MaskingInfo.Value;
             edgeEffectMaskingInfo.MaskingRect = effectRect;
             edgeEffectMaskingInfo.ScreenSpaceAABB = ScreenSpaceMaskingQuad.Value.AABB;
-            edgeEffectMaskingInfo.CornerRadius += EdgeEffect.Radius + EdgeEffect.Roundness;
+            edgeEffectMaskingInfo.CornerRadius = MaskingInfo.Value.CornerRadius + EdgeEffect.Radius + EdgeEffect.Roundness;
             edgeEffectMaskingInfo.BorderThickness = 0;
             // HACK HACK HACK. We abuse blend range to give us the linear alpha gradient of
             // the edge effect along its radius using the same rounded-corners shader.
             edgeEffectMaskingInfo.BlendRange = EdgeEffect.Radius;
             edgeEffectMaskingInfo.AlphaExponent = 2;
+            edgeEffectMaskingInfo.EdgeOffset = EdgeEffect.Offset;
             edgeEffectMaskingInfo.Hollow = EdgeEffect.Hollow;
+            edgeEffectMaskingInfo.HollowCornerRadius = MaskingInfo.Value.CornerRadius + EdgeEffect.Radius;
 
             GLWrapper.PushMaskingInfo(edgeEffectMaskingInfo);
 
@@ -157,10 +159,10 @@ namespace osu.Framework.Graphics.Containers
             Shader.Bind();
 
             ColourInfo colour = ColourInfo.SingleColour(EdgeEffect.Colour);
-            colour.TopLeft.MultiplyAlpha(DrawInfo.Colour.TopLeft.Linear.A);
-            colour.BottomLeft.MultiplyAlpha(DrawInfo.Colour.BottomLeft.Linear.A);
-            colour.TopRight.MultiplyAlpha(DrawInfo.Colour.TopRight.Linear.A);
-            colour.BottomRight.MultiplyAlpha(DrawInfo.Colour.BottomRight.Linear.A);
+            colour.TopLeft.MultiplyAlpha(DrawColourInfo.Colour.TopLeft.Linear.A);
+            colour.BottomLeft.MultiplyAlpha(DrawColourInfo.Colour.BottomLeft.Linear.A);
+            colour.TopRight.MultiplyAlpha(DrawColourInfo.Colour.TopRight.Linear.A);
+            colour.BottomRight.MultiplyAlpha(DrawColourInfo.Colour.BottomRight.Linear.A);
 
             Texture.WhitePixel.DrawQuad(
                 ScreenSpaceMaskingQuad.Value,
@@ -205,14 +207,14 @@ namespace osu.Framework.Graphics.Containers
             {
                 MaskingInfo info = MaskingInfo.Value;
                 if (info.BorderThickness > 0)
-                    info.BorderColour *= DrawInfo.Colour.AverageColour;
+                    info.BorderColour *= DrawColourInfo.Colour.AverageColour;
 
                 GLWrapper.PushMaskingInfo(info);
             }
 
             if (Children != null)
-                foreach (DrawNode child in Children)
-                    child.Draw(vertexAction);
+                for (int i = 0; i < Children.Count; i++)
+                    Children[i].Draw(vertexAction);
 
             if (MaskingInfo != null)
                 GLWrapper.PopMaskingInfo();

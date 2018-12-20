@@ -10,7 +10,7 @@ using osu.Framework.IO.Serialization;
 
 namespace osu.Framework.Lists
 {
-    public class SortedList<T> : ICollection<T>, IReadOnlyList<T>, ISortedList
+    public class SortedList<T> : ICollection<T>, IReadOnlyList<T>, ISerializableSortedList
     {
         private readonly List<T> list;
 
@@ -109,11 +109,7 @@ namespace osu.Framework.Lists
 
         public int BinarySearch(T value) => list.BinarySearch(value, Comparer);
 
-        public int IndexOf(T value)
-        {
-            int index = list.BinarySearch(value, Comparer);
-            return index >= 0 && list[index].Equals(value) ? index : -1;
-        }
+        public int IndexOf(T value) => list.BinarySearch(value, Comparer);
 
         public void CopyTo(T[] array, int arrayIndex) => list.CopyTo(array, arrayIndex);
 
@@ -131,28 +127,48 @@ namespace osu.Framework.Lists
 
         void ICollection<T>.Add(T item) => Add(item);
 
-        public IEnumerator<T> GetEnumerator() => list.GetEnumerator();
+        public Enumerator GetEnumerator() => new Enumerator(this);
 
-        IEnumerator IEnumerable.GetEnumerator() => list.GetEnumerator();
+        IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
 
-        public void SerializeTo(JsonWriter writer, JsonSerializer serializer)
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        void ISerializableSortedList.SerializeTo(JsonWriter writer, JsonSerializer serializer)
         {
             serializer.Serialize(writer, list);
         }
 
-        public void DeserializeFrom(JsonReader reader, JsonSerializer serializer)
+        void ISerializableSortedList.DeserializeFrom(JsonReader reader, JsonSerializer serializer)
         {
             serializer.Populate(reader, list);
             list.Sort(Comparer);
         }
 
         #endregion
-    }
 
-    [JsonConverter(typeof(SortedListConverter))]
-    internal interface ISortedList
-    {
-        void SerializeTo(JsonWriter writer, JsonSerializer serializer);
-        void DeserializeFrom(JsonReader reader, JsonSerializer serializer);
+        public struct Enumerator : IEnumerator<T>
+        {
+            private SortedList<T> list;
+            private int currentIndex;
+
+            internal Enumerator(SortedList<T> list)
+            {
+                this.list = list;
+                currentIndex = -1; // The first MoveNext() should bring the iterator to 0
+            }
+
+            public bool MoveNext() => ++currentIndex < list.Count;
+
+            public void Reset() => currentIndex = -1;
+
+            public T Current => list[currentIndex];
+
+            object IEnumerator.Current => Current;
+
+            public void Dispose()
+            {
+                list = null;
+            }
+        }
     }
 }

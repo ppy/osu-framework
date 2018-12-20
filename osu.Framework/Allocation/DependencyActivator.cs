@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Runtime.ExceptionServices;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
@@ -69,13 +70,16 @@ namespace osu.Framework.Allocation
         private void activate(object obj, DependencyContainer dependencies)
         {
             baseActivator?.activate(obj, dependencies);
-            injectionActivators.ForEach(a => a.Invoke(obj, dependencies));
+
+            foreach (var a in injectionActivators)
+                a(obj, dependencies);
         }
 
         private IReadOnlyDependencyContainer mergeDependencies(object obj, IReadOnlyDependencyContainer dependencies)
         {
             dependencies = baseActivator?.mergeDependencies(obj, dependencies) ?? dependencies;
-            buildCacheActivators.ForEach(a => dependencies = a.Invoke(obj, dependencies));
+            foreach (var a in buildCacheActivators)
+                dependencies = a(obj, dependencies);
 
             return dependencies;
         }
@@ -96,12 +100,56 @@ namespace osu.Framework.Allocation
     /// <summary>
     /// Occurs when an object requests the resolution of a dependency, but the dependency doesn't exist.
     /// This is caused by the dependency not being registered by parent <see cref="CompositeDrawable"/> through
-    /// <see cref="Drawable.CreateChildDependencies"/> or <see cref="CachedAttribute"/>.
+    /// <see cref="CompositeDrawable.CreateChildDependencies"/> or <see cref="CachedAttribute"/>.
     /// </summary>
     public class DependencyNotRegisteredException : Exception
     {
         public DependencyNotRegisteredException(Type type, Type requestedType)
             : base($"The type {type.ReadableName()} has a dependency on {requestedType.ReadableName()}, but the dependency is not registered.")
+        {
+        }
+    }
+
+    /// <summary>
+    /// Occurs when a dependency-related operation occurred on a member with an unacceptable access modifier.
+    /// </summary>
+    public abstract class AccessModifierNotAllowedForMemberException : InvalidOperationException
+    {
+        protected AccessModifierNotAllowedForMemberException(AccessModifier modifier, MemberInfo member, string description)
+            : base($"The access modifier(s) [ {modifier.ToString()} ] are not allowed on \"{member.DeclaringType.ReadableName()}.{member.Name}\". {description}")
+        {
+        }
+    }
+
+    /// <summary>
+    /// Occurs when attempting to cache a non-private and non-readonly field with an attached <see cref="CachedAttribute"/>.
+    /// </summary>
+    public class AccessModifierNotAllowedForCachedValueException : AccessModifierNotAllowedForMemberException
+    {
+        public AccessModifierNotAllowedForCachedValueException(AccessModifier modifier, MemberInfo member)
+            : base(modifier, member, $"A field with an attached {nameof(CachedAttribute)} must be private OR readonly.")
+        {
+        }
+    }
+
+    /// <summary>
+    /// Occurs when a method with an attached <see cref="BackgroundDependencyLoaderAttribute"/> isn't private.
+    /// </summary>
+    public class AccessModifierNotAllowedForLoaderMethodException : AccessModifierNotAllowedForMemberException
+    {
+        public AccessModifierNotAllowedForLoaderMethodException(AccessModifier modifier, MemberInfo member)
+            : base(modifier, member, $"A method with an attached {nameof(BackgroundDependencyLoaderAttribute)} must be private.")
+        {
+        }
+    }
+
+    /// <summary>
+    /// Occurs when the setter of a property with an attached <see cref="ResolvedAttribute"/> isn't private.
+    /// </summary>
+    public class AccessModifierNotAllowedForPropertySetterException : AccessModifierNotAllowedForMemberException
+    {
+        public AccessModifierNotAllowedForPropertySetterException(AccessModifier modifier, MemberInfo member)
+            : base(modifier, member, $"A property with an attached {nameof(ResolvedAttribute)} must have a private setter.")
         {
         }
     }
@@ -114,6 +162,7 @@ namespace osu.Framework.Allocation
         public ExceptionDispatchInfo DispatchInfo;
     }
 
-    internal delegate void InjectDependencyDelegate(object target, DependencyContainer dependencies);
+    internal delegate void InjectDependencyDelegate(object target, IReadOnlyDependencyContainer dependencies);
+
     internal delegate IReadOnlyDependencyContainer CacheDependencyDelegate(object target, IReadOnlyDependencyContainer existingDependencies);
 }

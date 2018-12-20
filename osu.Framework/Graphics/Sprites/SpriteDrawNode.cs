@@ -4,9 +4,9 @@
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
-using OpenTK.Graphics.ES30;
+using osuTK.Graphics.ES30;
 using osu.Framework.Graphics.OpenGL;
-using OpenTK;
+using osuTK;
 using System;
 using osu.Framework.Graphics.OpenGL.Vertices;
 
@@ -30,7 +30,7 @@ namespace osu.Framework.Graphics.Sprites
 
         protected virtual void Blit(Action<TexturedVertex2D> vertexAction)
         {
-            Texture.DrawQuad(ScreenSpaceDrawQuad, DrawInfo.Colour, null, vertexAction,
+            Texture.DrawQuad(ScreenSpaceDrawQuad, DrawColourInfo.Colour, null, vertexAction,
                 new Vector2(InflationAmount.X / DrawRectangle.Width, InflationAmount.Y / DrawRectangle.Height));
         }
 
@@ -38,7 +38,7 @@ namespace osu.Framework.Graphics.Sprites
         {
             base.Draw(vertexAction);
 
-            if (Texture == null || Texture.IsDisposed)
+            if (Texture?.Available != true)
                 return;
 
             Shader shader = needsRoundedShader ? RoundedTextureShader : TextureShader;

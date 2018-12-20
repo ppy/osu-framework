@@ -4,15 +4,14 @@
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Logging;
-using OpenTK;
-using OpenTK.Graphics;
+using osuTK;
+using osuTK.Graphics;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
 using osu.Framework.Timing;
-using OpenTK.Input;
+using osuTK.Input;
 using osu.Framework.Graphics.Shapes;
-using osu.Framework.Input.EventArgs;
-using osu.Framework.Input.States;
+using osu.Framework.Input.Events;
 
 namespace osu.Framework.Graphics.Visualisation
 {
@@ -20,7 +19,7 @@ namespace osu.Framework.Graphics.Visualisation
     {
         private readonly FillFlowContainer flow;
 
-        protected override bool BlockPassThroughMouse => false;
+        protected override bool BlockPositionalInput => false;
 
         private Bindable<bool> enabled;
 
@@ -96,19 +95,19 @@ namespace osu.Framework.Graphics.Visualisation
             });
         }
 
-        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
+        protected override bool OnKeyDown(KeyDownEvent e)
         {
-            if (!args.Repeat)
-                setHoldState(args.Key == Key.ControlLeft || args.Key == Key.ControlRight);
+            if (!e.Repeat)
+                setHoldState(e.Key == Key.ControlLeft || e.Key == Key.ControlRight);
 
-            return base.OnKeyDown(state, args);
+            return base.OnKeyDown(e);
         }
 
-        protected override bool OnKeyUp(InputState state, KeyUpEventArgs args)
+        protected override bool OnKeyUp(KeyUpEvent e)
         {
-            if (!state.Keyboard.ControlPressed)
+            if (!e.ControlPressed)
                 setHoldState(false);
-            return base.OnKeyUp(state, args);
+            return base.OnKeyUp(e);
         }
 
         private void setHoldState(bool controlPressed)
@@ -152,9 +151,6 @@ namespace osu.Framework.Graphics.Visualisation
         private const float target_box_width = 65;
 
         private const float font_size = 14;
-
-        public override bool HandleKeyboardInput => false;
-        public override bool HandleMouseInput => false;
 
         public DrawableLogEntry(LogEntry entry)
         {
@@ -202,7 +198,6 @@ namespace osu.Framework.Graphics.Visualisation
                     Padding = new MarginPadding { Left = target_box_width + 10 },
                     Child = new SpriteText
                     {
-                        AutoSizeAxes = Axes.Y,
                         RelativeSizeAxes = Axes.X,
                         TextSize = font_size,
                         Text = entry.Message
@@ -221,8 +216,6 @@ namespace osu.Framework.Graphics.Visualisation
                     return Color4.BlueViolet;
                 case LoggingTarget.Performance:
                     return Color4.HotPink;
-                case LoggingTarget.Debug:
-                    return Color4.DarkBlue;
                 case LoggingTarget.Information:
                     return Color4.CadetBlue;
                 default:

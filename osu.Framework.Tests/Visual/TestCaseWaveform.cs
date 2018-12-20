@@ -13,10 +13,9 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
-using osu.Framework.Input.EventArgs;
-using osu.Framework.Input.States;
-using OpenTK;
-using OpenTK.Graphics;
+using osu.Framework.Input.Events;
+using osuTK;
+using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual
 {
@@ -31,7 +30,6 @@ namespace osu.Framework.Tests.Visual
 
         private Button button;
         private TrackBass track;
-        private SliderBar<float> zoomSlider;
         private readonly Bindable<float> zoom = new BindableFloat(1) { MinValue = 0.1f, MaxValue = 20 };
 
         [BackgroundDependencyLoader]
@@ -74,11 +72,12 @@ namespace osu.Framework.Tests.Visual
                                 Origin = Anchor.CentreLeft,
                                 Anchor = Anchor.CentreLeft,
                             },
-                            zoomSlider = new BasicSliderBar<float>
+                            new BasicSliderBar<float>
                             {
                                 Anchor = Anchor.CentreLeft,
                                 Origin = Anchor.CentreLeft,
-                                Size = new Vector2(200, 40)
+                                Size = new Vector2(200, 40),
+                                Current = zoom
                             },
                         },
                     },
@@ -99,8 +98,7 @@ namespace osu.Framework.Tests.Visual
             for (int i = 1; i <= 16; i *= 2)
                 flow.Add(new TestWaveform(track, 1f / i) { Waveform = waveform });
 
-            zoomSlider.Current.BindTo(zoom);
-            zoomSlider.Current.ValueChanged += v => flow.Width = track_width * v;
+            zoom.ValueChanged += v => flow.Width = track_width * v;
         }
 
         private void startStop()
@@ -194,24 +192,24 @@ namespace osu.Framework.Tests.Visual
 
             private bool mouseDown;
 
-            protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
+            protected override bool OnMouseDown(MouseDownEvent e)
             {
                 mouseDown = true;
-                seekTo(ToLocalSpace(state.Mouse.NativeState.Position).X);
+                seekTo(ToLocalSpace(e.ScreenSpaceMousePosition).X);
                 return true;
             }
 
-            protected override bool OnMouseUp(InputState state, MouseUpEventArgs args)
+            protected override bool OnMouseUp(MouseUpEvent e)
             {
                 mouseDown = false;
                 return true;
             }
 
-            protected override bool OnMouseMove(InputState state)
+            protected override bool OnMouseMove(MouseMoveEvent e)
             {
                 if (mouseDown)
                 {
-                    seekTo(ToLocalSpace(state.Mouse.NativeState.Position).X);
+                    seekTo(ToLocalSpace(e.ScreenSpaceMousePosition).X);
                     return true;
                 }
 

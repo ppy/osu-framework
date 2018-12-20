@@ -4,11 +4,9 @@
 using System;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics.Containers;
-using OpenTK.Input;
-using OpenTK;
-using System.Diagnostics;
-using osu.Framework.Input.EventArgs;
-using osu.Framework.Input.States;
+using osuTK.Input;
+using osuTK;
+using osu.Framework.Input.Events;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -32,7 +30,18 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected readonly BindableNumber<T> CurrentNumber;
 
-        public Bindable<T> Current => CurrentNumber;
+        public Bindable<T> Current
+        {
+            get => CurrentNumber;
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException(nameof(value));
+
+                CurrentNumber.UnbindBindings();
+                CurrentNumber.BindTo(value);
+            }
+        }
 
         protected SliderBar()
         {
@@ -88,32 +97,28 @@ namespace osu.Framework.Graphics.UserInterface
             UpdateValue(NormalizedValue);
         }
 
-        protected override bool OnClick(InputState state)
+        protected override bool OnClick(ClickEvent e)
         {
-            handleMouseInput(state);
+            handleMouseInput(e);
             return true;
         }
 
-        protected override bool OnDrag(InputState state)
+        protected override bool OnDrag(DragEvent e)
         {
-            handleMouseInput(state);
+            handleMouseInput(e);
             return true;
         }
 
-        protected override bool OnDragStart(InputState state)
+        protected override bool OnDragStart(DragStartEvent e)
         {
-            Trace.Assert(state.Mouse.PositionMouseDown.HasValue,
-                $@"Can not start a {nameof(SliderBar<T>)} drag without knowing the mouse down position.");
-
-            // ReSharper disable once PossibleInvalidOperationException
-            Vector2 posDiff = state.Mouse.PositionMouseDown.Value - state.Mouse.Position;
+            Vector2 posDiff = e.MouseDownPosition - e.MousePosition;
 
             return Math.Abs(posDiff.X) > Math.Abs(posDiff.Y);
         }
 
-        protected override bool OnDragEnd(InputState state) => true;
+        protected override bool OnDragEnd(DragEndEvent e) => true;
 
-        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
+        protected override bool OnKeyDown(KeyDownEvent e)
         {
             if (!IsHovered || CurrentNumber.Disabled)
                 return false;
@@ -121,7 +126,7 @@ namespace osu.Framework.Graphics.UserInterface
             var step = KeyboardStep != 0 ? KeyboardStep : (Convert.ToSingle(CurrentNumber.MaxValue) - Convert.ToSingle(CurrentNumber.MinValue)) / 20;
             if (CurrentNumber.IsInteger) step = (float)Math.Ceiling(step);
 
-            switch (args.Key)
+            switch (e.Key)
             {
                 case Key.Right:
                     CurrentNumber.Add(step);
@@ -136,12 +141,12 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        private void handleMouseInput(InputState state)
+        private void handleMouseInput(UIEvent e)
         {
-            var xPosition = ToLocalSpace(state?.Mouse.NativeState.Position ?? Vector2.Zero).X - RangePadding;
+            var xPosition = ToLocalSpace(e.ScreenSpaceMousePosition).X - RangePadding;
 
             if (!CurrentNumber.Disabled)
-                CurrentNumber.SetProportional(xPosition / UsableWidth, state != null && state.Keyboard.ShiftPressed ? KeyboardStep : 0);
+                CurrentNumber.SetProportional(xPosition / UsableWidth, e.ShiftPressed ? KeyboardStep : 0);
 
             OnUserChange();
         }

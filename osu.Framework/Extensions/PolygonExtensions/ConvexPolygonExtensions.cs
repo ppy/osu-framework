@@ -2,7 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Graphics.Primitives;
-using OpenTK;
+using osuTK;
 
 namespace osu.Framework.Extensions.PolygonExtensions
 {

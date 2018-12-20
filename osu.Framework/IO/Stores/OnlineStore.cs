@@ -12,9 +12,6 @@ namespace osu.Framework.IO.Stores
     {
         public async Task<byte[]> GetAsync(string url)
         {
-            if (!url.StartsWith(@"https://", StringComparison.Ordinal))
-                return null;
-
             try
             {
                 WebRequest req = new WebRequest($@"{url}");
@@ -29,7 +26,19 @@ namespace osu.Framework.IO.Stores
 
         public byte[] Get(string url)
         {
-            return GetAsync(url).Result;
+            if (!url.StartsWith(@"https://", StringComparison.Ordinal))
+                return null;
+
+            try
+            {
+                WebRequest req = new WebRequest($@"{url}");
+                req.Perform();
+                return req.ResponseData;
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         public Stream GetStream(string url)

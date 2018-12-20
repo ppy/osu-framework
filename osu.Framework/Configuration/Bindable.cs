@@ -4,6 +4,9 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using JetBrains.Annotations;
+using Newtonsoft.Json;
+using osu.Framework.IO.Serialization;
 using osu.Framework.Lists;
 
 namespace osu.Framework.Configuration
@@ -12,7 +15,7 @@ namespace osu.Framework.Configuration
     /// A generic implementation of a <see cref="IBindable"/>
     /// </summary>
     /// <typeparam name="T">The type of our stored <see cref="Value"/>.</typeparam>
-    public class Bindable<T> : IBindable<T>, IBindable
+    public class Bindable<T> : IBindable<T>, IBindable, ISerializableBindable
     {
         /// <summary>
         /// An event which is raised when <see cref="Value"/> has changed (or manually via <see cref="TriggerValueChange"/>).
@@ -78,20 +81,31 @@ namespace osu.Framework.Configuration
             }
         }
 
+        private readonly WeakReference<Bindable<T>> weakReference;
+
+        /// <summary>
+        /// Creates a new bindable instance. This is used for deserialization of bindables.
+        /// </summary>
+        [UsedImplicitly]
+        private Bindable()
+            : this(default)
+        {
+        }
+
         /// <summary>
         /// Creates a new bindable instance.
         /// </summary>
         /// <param name="value">The initial value.</param>
-        public Bindable(T value = default(T))
+        public Bindable(T value = default)
         {
             this.value = value;
+
+            weakReference = new WeakReference<Bindable<T>>(this);
         }
 
         public static implicit operator T(Bindable<T> value) => value.Value;
 
-        protected WeakList<Bindable<T>> Bindings;
-
-        private WeakReference<Bindable<T>> weakReference => new WeakReference<Bindable<T>>(this);
+        protected WeakList<Bindable<T>> Bindings { get; private set; }
 
         void IBindable.BindTo(IBindable them)
         {
@@ -118,8 +132,8 @@ namespace osu.Framework.Configuration
             Disabled = them.Disabled;
             Default = them.Default;
 
-            AddWeakReference(them.weakReference);
-            them.AddWeakReference(weakReference);
+            addWeakReference(them.weakReference);
+            them.addWeakReference(weakReference);
         }
 
         /// <summary>
@@ -146,13 +160,15 @@ namespace osu.Framework.Configuration
                 onChange(Disabled);
         }
 
-        protected void AddWeakReference(WeakReference<Bindable<T>> weakReference)
+        private void addWeakReference(WeakReference<Bindable<T>> weakReference)
         {
             if (Bindings == null)
                 Bindings = new WeakList<Bindable<T>>();
 
             Bindings.Add(weakReference);
         }
+
+        private void removeWeakReference(WeakReference<Bindable<T>> weakReference) => Bindings?.Remove(weakReference);
 
         /// <summary>
         /// Parse an object into this instance.
@@ -200,7 +216,7 @@ namespace osu.Framework.Configuration
             // check a bound bindable hasn't changed the value again (it will fire its own event)
             bool beforePropagation = disabled;
             if (propagateToBindings) Bindings?.ForEachAlive(b => b.Disabled = disabled);
-            if (Equals(beforePropagation, disabled))
+            if (beforePropagation == disabled)
                 DisabledChanged?.Invoke(disabled);
         }
 
@@ -231,6 +247,15 @@ namespace osu.Framework.Configuration
         {
             UnbindEvents();
             UnbindBindings();
+        }
+
+        public void UnbindFrom(IUnbindable them)
+        {
+            if (!(them is Bindable<T> tThem))
+                throw new InvalidCastException($"Can't unbind a bindable of type {them.GetType()} from a bindable of type {GetType()}.");
+
+            removeWeakReference(tThem.weakReference);
+            tThem.removeWeakReference(weakReference);
         }
 
         public string Description { get; set; }
@@ -264,6 +289,16 @@ namespace osu.Framework.Configuration
             var copy = (Bindable<T>)Activator.CreateInstance(GetType(), Value);
             copy.BindTo(this);
             return copy;
+        }
+
+        void ISerializableBindable.SerializeTo(JsonWriter writer, JsonSerializer serializer)
+        {
+            serializer.Serialize(writer, Value);
+        }
+
+        void ISerializableBindable.DeserializeFrom(JsonReader reader, JsonSerializer serializer)
+        {
+            Value = serializer.Deserialize<T>(reader);
         }
     }
 }

@@ -14,6 +14,7 @@ namespace osu.Framework.Tests.Visual
     public class TestCaseFullscreen : TestCase
     {
         private readonly SpriteText currentActualSize = new SpriteText();
+        private readonly SpriteText currentWindowMode = new SpriteText();
         private readonly SpriteText currentDisplay = new SpriteText();
 
         private GameWindow window;
@@ -30,11 +31,13 @@ namespace osu.Framework.Tests.Visual
                 {
                     currentBindableSize,
                     currentActualSize,
+                    currentWindowMode,
                     currentDisplay
                 },
             };
 
             sizeFullscreen.ValueChanged += newSize => currentBindableSize.Text = $"Fullscreen size: {newSize}";
+            windowMode.ValueChanged += newMode => currentWindowMode.Text = $"Window Mode: {newMode}";
         }
 
         private void testResolution(int w, int h)
@@ -48,6 +51,7 @@ namespace osu.Framework.Tests.Visual
             window = host.Window;
             config.BindWith(FrameworkSetting.SizeFullscreen, sizeFullscreen);
             config.BindWith(FrameworkSetting.WindowMode, windowMode);
+            currentWindowMode.Text = $"Window Mode: {windowMode}";
 
             // so the test case doesn't change fullscreen size just when you enter it
             AddStep("nothing", () => { });
@@ -59,6 +63,9 @@ namespace osu.Framework.Tests.Visual
             testResolution(1280, 960);
             testResolution(9999, 9999);
             AddStep("go back to windowed", () => windowMode.Value = WindowMode.Windowed);
+
+            AddStep("change window size", () => config.GetBindable<Size>(FrameworkSetting.WindowedSize).Value = new Size(640,640));
+
             AddStep("change to borderless", () => windowMode.Value = WindowMode.Borderless);
         }
 
@@ -67,7 +74,7 @@ namespace osu.Framework.Tests.Visual
             base.Update();
 
             currentActualSize.Text = $"Window size: {window?.Bounds.Size}";
-            currentDisplay.Text = $"Current display device: {window?.GetCurrentDisplay()}";
+            currentDisplay.Text = $"Current display device: {window?.CurrentDisplay}";
         }
     }
 }

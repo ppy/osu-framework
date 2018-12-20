@@ -8,8 +8,8 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Testing;
-using OpenTK;
-using OpenTK.Graphics;
+using osuTK;
+using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual
 {
@@ -202,9 +202,6 @@ namespace osu.Framework.Tests.Visual
         private class TooltipBox : Box, IHasTooltip
         {
             public string TooltipText { get; set; }
-
-            public override bool HandleKeyboardInput => true;
-            public override bool HandleMouseInput => true;
         }
 
         private class RectangleCursorContainer : CursorContainer

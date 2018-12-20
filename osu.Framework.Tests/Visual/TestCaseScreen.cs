@@ -12,8 +12,8 @@ using osu.Framework.Graphics.UserInterface;
 using osu.Framework.MathUtils;
 using osu.Framework.Screens;
 using osu.Framework.Testing;
-using OpenTK;
-using OpenTK.Graphics;
+using osuTK;
+using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual
 {
@@ -22,11 +22,11 @@ namespace osu.Framework.Tests.Visual
         private Screen baseScreen;
 
         [SetUp]
-        public new void SetupTest()
+        public new void SetupTest() => Schedule(() =>
         {
             Clear();
             Add(baseScreen = new TestScreen());
-        }
+        });
 
         [Test]
         public void TestPushPop()
@@ -93,7 +93,7 @@ namespace osu.Framework.Tests.Visual
         }
 
         [Test]
-        public void TestCaseExitBeforePush()
+        public void TestExitBeforePush()
         {
             TestScreen screen1 = null;
             TestScreen screen2 = null;
@@ -105,7 +105,7 @@ namespace osu.Framework.Tests.Visual
             AddAssert("ensure not current", () => !screen1.IsCurrentScreen);
             AddAssert("ensure base still current", () => baseScreen.IsCurrentScreen);
             AddStep("push fast", () => baseScreen.Push(screen2 = new TestScreen()));
-            AddAssert("ensure new current", () => screen2.IsCurrentScreen);
+            AddUntilStep(() => screen2.IsCurrentScreen, "ensure new current");
         }
 
         private void pushAndEnsureCurrent(Func<Screen> screenCtor, Func<Screen> target = null)

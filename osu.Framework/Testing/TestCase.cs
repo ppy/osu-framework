@@ -13,8 +13,8 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Platform;
 using osu.Framework.Testing.Drawables.Steps;
 using osu.Framework.Threading;
-using OpenTK;
-using OpenTK.Graphics;
+using osuTK;
+using osuTK.Graphics;
 using System.Threading.Tasks;
 using System.Threading;
 
@@ -40,7 +40,7 @@ namespace osu.Framework.Testing
         {
             isNUnitRunning = true;
 
-            host = new HeadlessGameHost($"test-{Guid.NewGuid()}", realtime: false);
+            host = new HeadlessGameHost($"{GetType().Name}-{Guid.NewGuid()}", realtime: false);
             runner = CreateRunner();
 
             if (!(runner is Game game))
@@ -53,6 +53,15 @@ namespace osu.Framework.Testing
                 Thread.Sleep(10);
             }
         }
+
+        protected internal override void AddInternal(Drawable drawable) =>
+            throw new InvalidOperationException($"Modifying {nameof(InternalChildren)} will cause critical failure. Use {nameof(Add)} instead.");
+
+        protected internal override void ClearInternal(bool disposeChildren = true) =>
+            throw new InvalidOperationException($"Modifying {nameof(InternalChildren)} will cause critical failure. Use {nameof(Clear)} instead.");
+
+        protected internal override bool RemoveInternal(Drawable drawable) =>
+            throw new InvalidOperationException($"Modifying {nameof(InternalChildren)} will cause critical failure. Use {nameof(Remove)} instead.");
 
         [OneTimeTearDown]
         public void DestroyGameHost()
@@ -79,7 +88,7 @@ namespace osu.Framework.Testing
         public void SetupTest()
         {
             if (isNUnitRunning && TestContext.CurrentContext.Test.MethodName != nameof(TestConstructor))
-                StepsContainer.Clear();
+                Schedule(() => StepsContainer.Clear());
         }
 
         [TearDown]
@@ -92,6 +101,9 @@ namespace osu.Framework.Testing
 
         private void checkForErrors()
         {
+            if (host.ExecutionState == ExecutionState.Stopping)
+                runTask.Wait();
+
             if (runTask.Exception != null)
                 throw runTask.Exception;
         }
@@ -120,47 +132,52 @@ namespace osu.Framework.Testing
             RelativeSizeAxes = Axes.Both;
             Masking = true;
 
-            InternalChildren = new Drawable[]
+            base.AddInternal(new Container
             {
-                new Box
+                RelativeSizeAxes = Axes.Both,
+                Children = new Drawable[]
                 {
-                    Colour = new Color4(25, 25, 25, 255),
-                    RelativeSizeAxes = Axes.Y,
-                    Width = steps_width,
-                },
-                scroll = new ScrollContainer
-                {
-                    Width = steps_width,
-                    Depth = float.MinValue,
-                    RelativeSizeAxes = Axes.Y,
-                    Padding = new MarginPadding(5),
-                    Child = StepsContainer = new FillFlowContainer<Drawable>
+                    new Box
                     {
-                        Direction = FillDirection.Vertical,
-                        Spacing = new Vector2(5),
-                        RelativeSizeAxes = Axes.X,
-                        AutoSizeAxes = Axes.Y,
+                        Colour = new Color4(25, 25, 25, 255),
+                        RelativeSizeAxes = Axes.Y,
+                        Width = steps_width,
                     },
-                },
-                new Container
-                {
-                    Masking = true,
-                    Padding = new MarginPadding
+                    scroll = new ScrollContainer
                     {
-                        Left = steps_width + padding,
-                        Right = padding,
-                        Top = padding,
-                        Bottom = padding,
+                        Width = steps_width,
+                        Depth = float.MinValue,
+                        RelativeSizeAxes = Axes.Y,
+                        Padding = new MarginPadding(5),
+                        Child = StepsContainer = new FillFlowContainer<Drawable>
+                        {
+                            Direction = FillDirection.Vertical,
+                            Spacing = new Vector2(5),
+                            RelativeSizeAxes = Axes.X,
+                            AutoSizeAxes = Axes.Y,
+                        },
                     },
-                    RelativeSizeAxes = Axes.Both,
-                    Child = content = new DrawFrameRecordingContainer
+                    new Container
                     {
                         Masking = true,
-                        RelativeSizeAxes = Axes.Both
-                    }
-                },
-            };
+                        Padding = new MarginPadding
+                        {
+                            Left = steps_width + padding,
+                            Right = padding,
+                            Top = padding,
+                            Bottom = padding,
+                        },
+                        RelativeSizeAxes = Axes.Both,
+                        Child = content = new DrawFrameRecordingContainer
+                        {
+                            Masking = true,
+                            RelativeSizeAxes = Axes.Both
+                        }
+                    },
+                }
+            });
         }
+
 
         private const float steps_width = 180;
         private const float padding = 0;
@@ -188,19 +205,22 @@ namespace osu.Framework.Testing
 
         public void RunFirstStep()
         {
-            stepRunner?.Cancel(); // Fixes RunAllSteps not working when toggled off
-            foreach (var step in StepsContainer.OfType<StepButton>())
-                step.Reset();
+            Schedule(() =>
+            {
+                stepRunner?.Cancel(); // Fixes RunAllSteps not working when toggled off
+                foreach (var step in StepsContainer.OfType<StepButton>())
+                    step.Reset();
 
-            actionIndex = 0;
-            try
-            {
-                loadableStep?.PerformStep();
-            }
-            catch (Exception e)
-            {
-                Logging.Logger.Error(e, "Error on running first step");
-            }
+                actionIndex = 0;
+                try
+                {
+                    loadableStep?.PerformStep();
+                }
+                catch (Exception e)
+                {
+                    Logging.Logger.Error(e, "Error on running first step");
+                }
+            });
         }
 
         private StepButton loadableStep => actionIndex >= 0 ? StepsContainer.Children.ElementAtOrDefault(actionIndex) as StepButton : null;
@@ -265,53 +285,52 @@ namespace osu.Framework.Testing
                 Action = action
             };
 
-            StepsContainer.Add(step);
+            Schedule(() => StepsContainer.Add(step));
 
             return step;
         }
 
-        protected void AddRepeatStep(string description, Action action, int invocationCount)
+        protected void AddRepeatStep(string description, Action action, int invocationCount) => Schedule(() =>
         {
             StepsContainer.Add(new RepeatStepButton(action, invocationCount)
             {
                 Text = description,
             });
-        }
+        });
 
-        protected void AddToggleStep(string description, Action<bool> action)
+        protected void AddToggleStep(string description, Action<bool> action) => Schedule(() =>
         {
             StepsContainer.Add(new ToggleStepButton(action)
             {
                 Text = description
             });
-        }
+        });
 
-        protected void AddUntilStep(Func<bool> waitUntilTrueDelegate, string description = null)
+        protected void AddUntilStep(Func<bool> waitUntilTrueDelegate, string description = null) => Schedule(() =>
         {
             StepsContainer.Add(new UntilStepButton(waitUntilTrueDelegate)
             {
                 Text = description ?? @"Until",
             });
-        }
+        });
 
-        protected void AddWaitStep(int waitCount, string description = null)
+        protected void AddWaitStep(int waitCount, string description = null) => Schedule(() =>
         {
             StepsContainer.Add(new RepeatStepButton(() => { }, waitCount)
             {
                 Text = description ?? @"Wait",
             });
-        }
+        });
 
-        protected void AddSliderStep<T>(string description, T min, T max, T start, Action<T> valueChanged)
-            where T : struct, IComparable, IConvertible
+        protected void AddSliderStep<T>(string description, T min, T max, T start, Action<T> valueChanged) where T : struct, IComparable, IConvertible => Schedule(() =>
         {
             StepsContainer.Add(new StepSlider<T>(description, min, max, start)
             {
                 ValueChanged = valueChanged,
             });
-        }
+        });
 
-        protected void AddAssert(string description, Func<bool> assert, string extendedDescription = null)
+        protected void AddAssert(string description, Func<bool> assert, string extendedDescription = null) => Schedule(() =>
         {
             StepsContainer.Add(new AssertButton
             {
@@ -320,7 +339,7 @@ namespace osu.Framework.Testing
                 CallStack = new StackTrace(1),
                 Assertion = assert,
             });
-        }
+        });
 
         public virtual IReadOnlyList<Type> RequiredTypes => new Type[] { };
     }
