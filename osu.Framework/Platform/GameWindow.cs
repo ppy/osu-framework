@@ -76,7 +76,6 @@ namespace osu.Framework.Platform
                 MouseEnter += (sender, args) => CursorInWindow = true;
                 MouseLeave += (sender, args) => CursorInWindow = false;
             }
-            
             MakeCurrent();
 
             string version = GL.GetString(StringName.Version);

@@ -27,12 +27,10 @@ namespace osu.Framework.Android.Input
 
         public void Activate(object sender)
         {
-
         }
 
         public void Deactivate(object sender)
         {
-            
         }
 
         public string GetPendingText()

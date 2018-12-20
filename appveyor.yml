@@ -10,7 +10,7 @@ install:
   - cmd: git submodule update --init --recursive
   - cmd: choco install resharper-clt -y
   - cmd: choco install nvika -y
-  - cmd: dotnet tool install CodeFileSanity --version 0.0.24 --global
+  - cmd: dotnet tool install CodeFileSanity --version 0.0.27 --global
   - cmd: pip install httpbin waitress
   - ps: Start-Process waitress-serve "--listen=*:80 httpbin:app" -PassThru
 before_build:
