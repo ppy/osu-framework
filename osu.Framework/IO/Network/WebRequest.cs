@@ -21,6 +21,12 @@ namespace osu.Framework.IO.Network
         internal const int MAX_RETRIES = 1;
 
         /// <summary>
+        /// Whether non-SSL requests should be allowed. Defaults to disabled.
+        /// In the default state, http:// requests will be automatically converted to https://.
+        /// </summary>
+        public bool AllowInsecureRequests;
+
+        /// <summary>
         /// Invoked when a response has been received, but not data has been received.
         /// </summary>
         public event Action Started;
@@ -83,10 +89,9 @@ namespace osu.Framework.IO.Network
             get => url;
             set
             {
-#if !DEBUG
-                if (!value.StartsWith(@"https://"))
+                if (!AllowInsecureRequests && !value.StartsWith(@"https://"))
                     value = @"https://" + value.Replace(@"http://", @"");
-#endif
+
                 url = value;
             }
         }
