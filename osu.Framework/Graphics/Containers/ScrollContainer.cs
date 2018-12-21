@@ -214,9 +214,14 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        /// <summary>
+        /// A minimum height to ensure the scrollbar is always vertically selectable.
+        /// </summary>
+        private const float min_scrollbar_height = 12;
+
         private void updateScrollbar()
         {
-            Scrollbar.ResizeTo(Math.Min(1, availableContent > 0 ? displayableContent / availableContent : 0), 200, Easing.OutQuint);
+            Scrollbar.ResizeTo(Math.Max(min_scrollbar_height / DrawHeight,Math.Min(1, availableContent > 0 ? displayableContent / availableContent : 0)), 200, Easing.OutQuint);
             Scrollbar.FadeTo(ScrollbarVisible && availableContent - 1 > displayableContent ? 1 : 0, 200);
             updatePadding();
         }
