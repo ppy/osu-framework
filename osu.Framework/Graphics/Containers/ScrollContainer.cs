@@ -216,7 +216,8 @@ namespace osu.Framework.Graphics.Containers
 
         private void updateScrollbar()
         {
-            Scrollbar.ResizeTo(MathHelper.Clamp(availableContent > 0 ? displayableContent / availableContent : 0, Scrollbar.DimSize / DrawHeight, 1), 200, Easing.OutQuint);
+            if (DrawHeight > 0)
+                Scrollbar.ResizeTo(MathHelper.Clamp(availableContent > 0 ? displayableContent / availableContent : 0, Scrollbar.DimSize / DrawHeight, 1), 200, Easing.OutQuint);
             Scrollbar.FadeTo(ScrollbarVisible && availableContent - 1 > displayableContent ? 1 : 0, 200);
             updatePadding();
         }
