@@ -3,11 +3,16 @@ version: '{build}'
 skip_non_tags: true
 image: Visual Studio 2017
 configuration: Release
+before_build:
+  - cmd: nuget restore osu-framework.sln
+  - cmd: nuget restore osu-framework.iOS.sln
 build_script:
   - ps: if($env:appveyor_repo_tag -eq 'True') { Update-AppveyorBuild -Version $env:appveyor_repo_tag_name }
-  - dotnet pack /p:Version=%APPVEYOR_BUILD_VERSION% /p:GenerateDocumentationFile=true
+  - dotnet pack osu.Framework /p:Version=%APPVEYOR_BUILD_VERSION% /p:GenerateDocumentationFile=true
+  - cmd: msbuild /t:pack osu.Framework.iOS /p:Configuration=Debug /p:Version=%APPVEYOR_BUILD_VERSION%
 artifacts:
   - path: osu.Framework/bin/Release/*.nupkg
+  - path: osu.Framework.iOS/bin/Release/*.nupkg
 deploy:
   - provider: Environment
     name: nuget
