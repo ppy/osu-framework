@@ -507,8 +507,7 @@ namespace osu.Framework.Platform
             finally
             {
                 // Close the window and stop all threads
-                if (RuntimeInfo.OS != RuntimeInfo.Platform.iOS)
-                    exit();
+                exit();
             }
         }
 
