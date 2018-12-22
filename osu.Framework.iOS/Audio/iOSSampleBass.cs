@@ -11,13 +11,12 @@ using osu.Framework.Audio.Sample;
 
 namespace osu.Framework.iOS.Audio
 {
-    // ReSharper disable once InconsistentNaming
-    public class iOSSampleBass : SampleBass
+    public class IOSSampleBass : SampleBass
     {
         private GCHandle pinnedData;
         private GCHandle pinnedInstance;
 
-        public iOSSampleBass(byte[] data, ConcurrentQueue<Task> customPendingActions = null, int concurrency = DEFAULT_CONCURRENCY) : base(data, customPendingActions, concurrency)
+        public IOSSampleBass(byte[] data, ConcurrentQueue<Task> customPendingActions = null, int concurrency = DEFAULT_CONCURRENCY) : base(data, customPendingActions, concurrency)
         {
         }
 
@@ -50,7 +49,7 @@ namespace osu.Framework.iOS.Audio
         private static void syncProcedure(int handle, int channel, int data, IntPtr user)
         {
             var gcHandle = GCHandle.FromIntPtr(user);
-            iOSSampleBass inst = (iOSSampleBass)gcHandle.Target;
+            IOSSampleBass inst = (IOSSampleBass)gcHandle.Target;
             if (inst.pinnedData.IsAllocated)
                 inst.pinnedData.Free();
         }

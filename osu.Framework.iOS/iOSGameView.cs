@@ -14,8 +14,7 @@ using osuTK.Graphics.ES30;
 namespace osu.Framework.iOS
 {
     [Register("iOSGameView")]
-    // ReSharper disable once InconsistentNaming
-    public class iOSGameView : osuTK.iOS.iOSGameView
+    public class IOSGameView : osuTK.iOS.iOSGameView
     {
         public event Action<NSSet> HandleTouches;
 
@@ -25,7 +24,7 @@ namespace osu.Framework.iOS
         public static Class LayerClass() => GetLayerClass();
 
         [Export("initWithFrame:")]
-        public iOSGameView(System.Drawing.RectangleF frame) : base(frame)
+        public IOSGameView(System.Drawing.RectangleF frame) : base(frame)
         {
             Scale = (float)UIScreen.MainScreen.Scale;
             ContentScaleFactor = UIScreen.MainScreen.Scale;

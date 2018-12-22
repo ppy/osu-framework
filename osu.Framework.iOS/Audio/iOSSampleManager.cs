@@ -8,13 +8,12 @@ using osu.Framework.IO.Stores;
 
 namespace osu.Framework.iOS.Audio
 {
-    // ReSharper disable once InconsistentNaming
-    public class iOSSampleManager : SampleManager
+    public class IOSSampleManager : SampleManager
     {
-        public iOSSampleManager(IResourceStore<byte[]> store) : base(store)
+        public IOSSampleManager(IResourceStore<byte[]> store) : base(store)
         {
         }
 
-        public override Sample CreateSample(byte[] data, ConcurrentQueue<Task> customPendingActions, int concurrency) => new iOSSampleBass(data, customPendingActions, concurrency);
+        public override Sample CreateSample(byte[] data, ConcurrentQueue<Task> customPendingActions, int concurrency) => new IOSSampleBass(data, customPendingActions, concurrency);
     }
 }

@@ -8,15 +8,14 @@ using osu.Framework.IO.Stores;
 
 namespace osu.Framework.iOS.Audio
 {
-    // ReSharper disable once InconsistentNaming
-    public class iOSAudioManager : AudioManager
+    public class IOSAudioManager : AudioManager
     {
-        public iOSAudioManager(ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore) : base(trackStore, sampleStore)
+        public IOSAudioManager(ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore) : base(trackStore, sampleStore)
         {
         }
 
-        protected override TrackManager CreateTrackManager(ResourceStore<byte[]> store) => new iOSTrackManager(store);
+        protected override TrackManager CreateTrackManager(ResourceStore<byte[]> store) => new IOSTrackManager(store);
 
-        protected override SampleManager CreateSampleManager(IResourceStore<byte[]> store) => new iOSSampleManager(store);
+        protected override SampleManager CreateSampleManager(IResourceStore<byte[]> store) => new IOSSampleManager(store);
     }
 }

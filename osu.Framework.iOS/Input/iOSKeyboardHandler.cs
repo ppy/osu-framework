@@ -11,12 +11,11 @@ using osu.Framework.Input.StateChanges;
 
 namespace osu.Framework.iOS.Input
 {
-    // ReSharper disable once InconsistentNaming
-    public class iOSKeyboardHandler : InputHandler
+    public class IOSKeyboardHandler : InputHandler
     {
-        private readonly iOSGameView view;
+        private readonly IOSGameView view;
 
-        public iOSKeyboardHandler(iOSGameView view)
+        public IOSKeyboardHandler(IOSGameView view)
         {
             this.view = view;
             view.KeyboardTextField.HandleShouldChangeCharacters += handleShouldChangeCharacters;
@@ -30,7 +29,7 @@ namespace osu.Framework.iOS.Input
             {
                 if (range.Length > 0)
                 {
-                    Key key = range.Location < iOSGameView.DummyTextField.CURSOR_POSITION ? Key.BackSpace : Key.Delete;
+                    Key key = range.Location < IOSGameView.DummyTextField.CURSOR_POSITION ? Key.BackSpace : Key.Delete;
                     PendingInputs.Enqueue(new KeyboardKeyInput(key, true));
                     PendingInputs.Enqueue(new KeyboardKeyInput(key, false));
                 }

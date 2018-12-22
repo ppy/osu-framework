@@ -7,14 +7,13 @@ using osu.Framework.Input;
 
 namespace osu.Framework.iOS.Input
 {
-    // ReSharper disable once InconsistentNaming
-    public class iOSTextInput : ITextInputSource
+    public class IOSTextInput : ITextInputSource
     {
-        private readonly iOSGameView view;
+        private readonly IOSGameView view;
 
         private string pending = string.Empty;
 
-        public iOSTextInput(iOSGameView view)
+        public IOSTextInput(IOSGameView view)
         {
             this.view = view;
         }

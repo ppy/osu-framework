@@ -7,13 +7,12 @@ using osu.Framework.IO.Stores;
 
 namespace osu.Framework.iOS.Audio
 {
-    // ReSharper disable once InconsistentNaming
-    public class iOSTrackManager : TrackManager
+    public class IOSTrackManager : TrackManager
     {
-        public iOSTrackManager(IResourceStore<byte[]> store) : base(store)
+        public IOSTrackManager(IResourceStore<byte[]> store) : base(store)
         {
         }
 
-        public override Track CreateTrack(Stream data, bool quick) => new iOSTrackBass(data, quick);
+        public override Track CreateTrack(Stream data, bool quick) => new IOSTrackBass(data, quick);
     }
 }

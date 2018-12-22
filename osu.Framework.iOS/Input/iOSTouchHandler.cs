@@ -11,12 +11,11 @@ using osuTK.Input;
 
 namespace osu.Framework.iOS.Input
 {
-    // ReSharper disable once InconsistentNaming
-    public class iOSTouchHandler : InputHandler
+    public class IOSTouchHandler : InputHandler
     {
-        private readonly iOSGameView view;
+        private readonly IOSGameView view;
 
-        public iOSTouchHandler(iOSGameView view)
+        public IOSTouchHandler(IOSGameView view)
         {
             this.view = view;
             view.HandleTouches += handleTouches;

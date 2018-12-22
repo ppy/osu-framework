@@ -15,22 +15,21 @@ using osu.Framework.Threading;
 
 namespace osu.Framework.iOS
 {
-    // ReSharper disable once InconsistentNaming
-    public class iOSGameHost : GameHost
+    public class IOSGameHost : GameHost
     {
-        private readonly iOSGameView gameView;
+        private readonly IOSGameView gameView;
 
-        public iOSGameHost(iOSGameView gameView)
+        public IOSGameHost(IOSGameView gameView)
         {
             this.gameView = gameView;
-            iOSGameWindow.GameView = gameView;
-            Window = new iOSGameWindow();
+            IOSGameWindow.GameView = gameView;
+            Window = new IOSGameWindow();
         }
 
-        public override ITextInputSource GetTextInput() => new iOSTextInput(gameView);
+        public override ITextInputSource GetTextInput() => new IOSTextInput(gameView);
 
         protected override IEnumerable<InputHandler> CreateAvailableInputHandlers() =>
-            new InputHandler[] { new iOSTouchHandler(gameView), new iOSKeyboardHandler(gameView) };
+            new InputHandler[] { new IOSTouchHandler(gameView), new IOSKeyboardHandler(gameView) };
 
         protected override Storage GetStorage(string baseName) => new MacOSStorage(baseName, this);
 
@@ -39,6 +38,6 @@ namespace osu.Framework.iOS
         public override void OpenUrlExternally(string url) => throw new NotImplementedException();
 
         public override AudioManager CreateAudioManager(ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore, Scheduler eventScheduler) =>
-            new iOSAudioManager(trackStore, sampleStore) { EventScheduler = eventScheduler };
+            new IOSAudioManager(trackStore, sampleStore) { EventScheduler = eventScheduler };
     }
 }

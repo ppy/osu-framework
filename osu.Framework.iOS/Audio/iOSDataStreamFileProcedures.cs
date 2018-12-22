@@ -10,10 +10,9 @@ using osu.Framework.Audio.Track;
 
 namespace osu.Framework.iOS.Audio
 {
-    // ReSharper disable once InconsistentNaming
-    public class iOSDataStreamFileProcedures : DataStreamFileProcedures
+    public class IOSDataStreamFileProcedures : DataStreamFileProcedures
     {
-        public iOSDataStreamFileProcedures(Stream data) : base(data)
+        public IOSDataStreamFileProcedures(Stream data) : base(data)
         {
         }
 

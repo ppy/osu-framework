@@ -12,8 +12,8 @@ namespace osu.Framework.iOS
     {
         public override UIWindow Window { get; set; }
 
-        private iOSGameView gameView;
-        private iOSGameHost host;
+        private IOSGameView gameView;
+        private IOSGameHost host;
 
         protected abstract Game CreateGame();
 
@@ -22,7 +22,7 @@ namespace osu.Framework.iOS
             aotImageSharp();
 
             Window = new UIWindow(UIScreen.MainScreen.Bounds);
-            gameView = new iOSGameView(new RectangleF(0.0f, 0.0f, (float)Window.Frame.Size.Width, (float)Window.Frame.Size.Height));
+            gameView = new IOSGameView(new RectangleF(0.0f, 0.0f, (float)Window.Frame.Size.Width, (float)Window.Frame.Size.Height));
 
             GameViewController viewController = new GameViewController
             {
@@ -34,7 +34,7 @@ namespace osu.Framework.iOS
 
             gameView.Run();
 
-            host = new iOSGameHost(gameView);
+            host = new IOSGameHost(gameView);
             host.Run(CreateGame());
 
             return true;

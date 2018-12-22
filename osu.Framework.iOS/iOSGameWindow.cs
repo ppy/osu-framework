@@ -7,12 +7,11 @@ using osu.Framework.Platform;
 
 namespace osu.Framework.iOS
 {
-    // ReSharper disable once InconsistentNaming
-    public class iOSGameWindow : GameWindow
+    public class IOSGameWindow : GameWindow
     {
-        internal static iOSGameView GameView;
+        internal static IOSGameView GameView;
 
-        public iOSGameWindow() : base(GameView)
+        public IOSGameWindow() : base(GameView)
         {
         }
 
