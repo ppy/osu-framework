@@ -216,7 +216,9 @@ namespace osu.Framework.Graphics.Containers
 
         private void updateScrollbar()
         {
-            Scrollbar.ResizeTo(Math.Min(1, availableContent > 0 ? displayableContent / availableContent : 0), 200, Easing.OutQuint);
+            var size = ScrollDirection == Direction.Horizontal ? DrawWidth : DrawHeight;
+            if (size > 0)
+                Scrollbar.ResizeTo(MathHelper.Clamp(availableContent > 0 ? displayableContent / availableContent : 0, Scrollbar.DimSize / size, 1), 200, Easing.OutQuint);
             Scrollbar.FadeTo(ScrollbarVisible && availableContent - 1 > displayableContent ? 1 : 0, 200);
             updatePadding();
         }
@@ -526,6 +528,8 @@ namespace osu.Framework.Graphics.Containers
         {
             internal Action<float> Dragged;
 
+            private const float dim_size = 10;
+
             private readonly Color4 hoverColour = Color4.White;
             private readonly Color4 defaultColour = Color4.Gray;
             private readonly Color4 highlightColour = Color4.GreenYellow;
@@ -563,9 +567,11 @@ namespace osu.Framework.Graphics.Containers
                 ResizeTo(1);
             }
 
+            public float DimSize => Size[scrollDim == 1 ? 0 : 1];
+
             public void ResizeTo(float val, int duration = 0, Easing easing = Easing.None)
             {
-                Vector2 size = new Vector2(10)
+                Vector2 size = new Vector2(dim_size)
                 {
                     [scrollDim] = val
                 };
