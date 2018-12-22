@@ -125,7 +125,7 @@ namespace osu.Framework.Tests.Visual
                 box.Delay(displayTime).ScaleTo(0.5f, 4000).RotateTo((RNG.NextSingle() - 0.5f) * 90, 4000);
                 container.Delay(displayTime).FadeOut(4000).Expire();
 
-            }, 100, true);
+            }, 10, true);
         }
     }
 }
