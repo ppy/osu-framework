@@ -23,16 +23,21 @@ namespace osu.Framework
         public static bool Is32Bit { get; }
         public static bool Is64Bit { get; }
         public static Platform OS { get; }
-        public static bool IsUnix => OS == Platform.Linux || OS == Platform.MacOsx;
+        public static bool IsUnix => OS == Platform.Linux || OS == Platform.MacOsx || OS == Platform.iOS;
         public static bool IsWine { get; }
+        public static bool SupportsIL => OS != Platform.iOS;
 
         static RuntimeInfo()
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 OS = Platform.Windows;
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            if (osuTK.Configuration.RunningOnIOS)
+                OS = OS == 0 ? Platform.iOS : throw new InvalidOperationException($"Tried to set OS Platform to {nameof(Platform.iOS)}, but is already {Enum.GetName(typeof(Platform), OS)}");
+            if (osuTK.Configuration.RunningOnAndroid)
+                OS = OS == 0 ? Platform.Android : throw new InvalidOperationException($"Tried to set OS Platform to {nameof(Platform.Android)}, but is already {Enum.GetName(typeof(Platform), OS)}");
+            if (OS != Platform.iOS && RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 OS = OS == 0 ? Platform.MacOsx : throw new InvalidOperationException($"Tried to set OS Platform to {nameof(Platform.MacOsx)}, but is already {Enum.GetName(typeof(Platform), OS)}");
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            if (OS != Platform.Android && RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 OS = OS == 0 ? Platform.Linux : throw new InvalidOperationException($"Tried to set OS Platform to {nameof(Platform.Linux)}, but is already {Enum.GetName(typeof(Platform), OS)}");
 
             if (OS == 0)
@@ -59,6 +64,8 @@ namespace osu.Framework
             Windows = 1,
             Linux = 2,
             MacOsx = 3,
+            iOS = 4,
+            Android = 5
         }
     }
 }
