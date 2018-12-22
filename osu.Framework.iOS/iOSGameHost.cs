@@ -26,6 +26,11 @@ namespace osu.Framework.iOS
             Window = new IOSGameWindow();
         }
 
+        protected override void PerformExit(bool immediately)
+        {
+            // we shouldn't exit on iOS, as Window.Run does not block
+        }
+
         public override ITextInputSource GetTextInput() => new IOSTextInput(gameView);
 
         protected override IEnumerable<InputHandler> CreateAvailableInputHandlers() =>
