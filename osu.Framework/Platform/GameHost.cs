@@ -38,6 +38,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using osu.Framework.Audio;
 using osu.Framework.IO.Stores;
+using osu.Framework.Graphics.Textures;
 
 namespace osu.Framework.Platform
 {
@@ -710,6 +711,8 @@ namespace osu.Framework.Platform
 
         public virtual AudioManager CreateAudioManager(ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore, Scheduler eventScheduler) =>
             new AudioManager(trackStore, sampleStore) { EventScheduler = eventScheduler };
+
+        public virtual IImageLoader CreateImageLoader() => new ImageLoader();
 
         #region IDisposable Support
 

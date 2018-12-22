@@ -99,6 +99,8 @@ namespace osu.Framework
         [BackgroundDependencyLoader]
         private void load(FrameworkConfigManager config)
         {
+            ImageLoader.Implementation = Host.CreateImageLoader();
+
             Resources = new ResourceStore<byte[]>();
             Resources.AddStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(@"osu.Framework.dll"), @"Resources"));
 

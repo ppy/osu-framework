@@ -58,7 +58,7 @@ namespace osu.Framework.Graphics.Textures
         /// </summary>
         /// <param name="stream">The image content.</param>
         public TextureUpload(Stream stream)
-            : this(Image.Load(stream))
+            : this(ImageLoader.Load<Rgba32>(stream))
         {
         }
 
