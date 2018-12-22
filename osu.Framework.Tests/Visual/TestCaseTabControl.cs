@@ -8,12 +8,10 @@ using osu.Framework.Extensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Shapes;
-using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Testing;
 using osu.Framework.Input;
 using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual
 {
