@@ -205,7 +205,7 @@ namespace osu.Framework.Graphics.Visualisation
                     if (compositeTarget == null)
                         compositeTarget = composite;
                 }
-                else
+                else if (!(drawable is Component))
                     drawableTarget = drawable;
             }
 
