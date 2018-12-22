@@ -137,39 +137,16 @@ namespace osu.Framework.Tests.Visual
         {
             protected override Dropdown<TestEnum> CreateDropdown() => null;
 
-            protected override TabItem<TestEnum> CreateTabItem(TestEnum value) => new StyledTabItem(value);
+            protected override TabItem<TestEnum> CreateTabItem(TestEnum value)
+                => new BasicTabControl<TestEnum>.BasicTabItem(value);
         }
 
         private class StyledTabControl : TabControl<TestEnum>
         {
             protected override Dropdown<TestEnum> CreateDropdown() => new StyledDropdown();
 
-            protected override TabItem<TestEnum> CreateTabItem(TestEnum value) => new StyledTabItem(value);
-        }
-
-        private class StyledTabItem : TabItem<TestEnum>
-        {
-            private readonly SpriteText text;
-
-            public override bool IsRemovable => true;
-
-            public StyledTabItem(TestEnum value) : base(value)
-            {
-                AutoSizeAxes = Axes.Both;
-                Children = new Drawable[]
-                {
-                    text = new SpriteText
-                    {
-                        Margin = new MarginPadding(2),
-                        Text = value.ToString(),
-                        TextSize = 18
-                    }
-                };
-            }
-
-            protected override void OnActivated() => text.Colour = Color4.MediumPurple;
-
-            protected override void OnDeactivated() => text.Colour = Color4.White;
+            protected override TabItem<TestEnum> CreateTabItem(TestEnum value)
+                => new BasicTabControl<TestEnum>.BasicTabItem(value);
         }
 
         private class StyledDropdown : Dropdown<TestEnum>
