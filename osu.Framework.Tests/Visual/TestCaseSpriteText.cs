@@ -45,7 +45,7 @@ namespace osu.Framework.Tests.Visual
                 Text = @"0123456789!@#$%^&*()_-+-[]{}.,<>;'\"
             });
 
-            for (int i = 1; i <= 2000; i++)
+            for (int i = 1; i <= 200; i++)
             {
                 string font = "OpenSans-";
                 if (i % 4 > 1)
