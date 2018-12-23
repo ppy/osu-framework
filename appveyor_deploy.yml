@@ -9,7 +9,7 @@ before_build:
 build_script:
   - ps: if($env:appveyor_repo_tag -eq 'True') { Update-AppveyorBuild -Version $env:appveyor_repo_tag_name }
   - dotnet pack osu.Framework /p:Version=%APPVEYOR_BUILD_VERSION% /p:GenerateDocumentationFile=true
-  - cmd: msbuild /t:pack osu.Framework.iOS /p:Configuration=Debug /p:Version=%APPVEYOR_BUILD_VERSION%
+  - cmd: msbuild /t:pack osu.Framework.iOS /p:Configuration=Release /p:Version=%APPVEYOR_BUILD_VERSION%
 artifacts:
   - path: osu.Framework/bin/Release/*.nupkg
   - path: osu.Framework.iOS/bin/Release/*.nupkg
