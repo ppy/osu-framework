@@ -55,182 +55,182 @@ namespace osu.Framework.Graphics.Containers.Markdown
             {
                 new Style(ScopeName.PlainText)
                 {
-                    Foreground = DarkPlainText,
-                    Background = DarkBackground,
+                    Colour = DarkPlainText,
+                    BackgroundColour = DarkBackground,
                 },
                 new Style(ScopeName.HtmlServerSideScript)
                 {
-                    Background = Yellow,
+                    BackgroundColour = Yellow,
                 },
                 new Style(ScopeName.HtmlComment)
                 {
-                    Foreground = DarkComment,
+                    Colour = DarkComment,
                 },
                 new Style(ScopeName.HtmlTagDelimiter)
                 {
-                    Foreground = DarkKeyword,
+                    Colour = DarkKeyword,
                 },
                 new Style(ScopeName.HtmlElementName)
                 {
-                    Foreground = DullRed,
+                    Colour = DullRed,
                 },
                 new Style(ScopeName.HtmlAttributeName)
                 {
-                    Foreground = Red,
+                    Colour = Red,
                 },
                 new Style(ScopeName.HtmlAttributeValue)
                 {
-                    Foreground = DarkKeyword,
+                    Colour = DarkKeyword,
                 },
                 new Style(ScopeName.HtmlOperator)
                 {
-                    Foreground = DarkKeyword,
+                    Colour = DarkKeyword,
                 },
                 new Style(ScopeName.Comment)
                 {
-                    Foreground = DarkComment,
+                    Colour = DarkComment,
                 },
                 new Style(ScopeName.XmlDocTag)
                 {
-                    Foreground = DarkXmlComment,
+                    Colour = DarkXmlComment,
                 },
                 new Style(ScopeName.XmlDocComment)
                 {
-                    Foreground = DarkXmlComment,
+                    Colour = DarkXmlComment,
                 },
                 new Style(ScopeName.String)
                 {
-                    Foreground = DarkString,
+                    Colour = DarkString,
                 },
                 new Style(ScopeName.StringCSharpVerbatim)
                 {
-                    Foreground = DarkString,
+                    Colour = DarkString,
                 },
                 new Style(ScopeName.Keyword)
                 {
-                    Foreground = DarkKeyword,
+                    Colour = DarkKeyword,
                 },
                 new Style(ScopeName.PreprocessorKeyword)
                 {
-                    Foreground = DarkKeyword,
+                    Colour = DarkKeyword,
                 },
                 new Style(ScopeName.HtmlEntity)
                 {
-                    Foreground = Red,
+                    Colour = Red,
                 },
                 new Style(ScopeName.XmlAttribute)
                 {
-                    Foreground = DarkXmlAttribute,
+                    Colour = DarkXmlAttribute,
                 },
                 new Style(ScopeName.XmlAttributeQuotes)
                 {
-                    Foreground = DarkKeyword,
+                    Colour = DarkKeyword,
                 },
                 new Style(ScopeName.XmlAttributeValue)
                 {
-                    Foreground = DarkKeyword,
+                    Colour = DarkKeyword,
                 },
                 new Style(ScopeName.XmlCDataSection)
                 {
-                    Foreground = DarkXamlCData,
+                    Colour = DarkXamlCData,
                 },
                 new Style(ScopeName.XmlComment)
                 {
-                    Foreground = DarkComment,
+                    Colour = DarkComment,
                 },
                 new Style(ScopeName.XmlDelimiter)
                 {
-                    Foreground = DarkXmlDelimeter,
+                    Colour = DarkXmlDelimeter,
                 },
                 new Style(ScopeName.XmlName)
                 {
-                    Foreground = DarkXmlName,
+                    Colour = DarkXmlName,
                 },
                 new Style(ScopeName.ClassName)
                 {
-                    Foreground = DarkClass,
+                    Colour = DarkClass,
                 },
                 new Style(ScopeName.CssSelector)
                 {
-                    Foreground = DullRed,
+                    Colour = DullRed,
                 },
                 new Style(ScopeName.CssPropertyName)
                 {
-                    Foreground = Red,
+                    Colour = Red,
                 },
                 new Style(ScopeName.CssPropertyValue)
                 {
-                    Foreground = DarkKeyword,
+                    Colour = DarkKeyword,
                 },
                 new Style(ScopeName.SqlSystemFunction)
                 {
-                    Foreground = Magenta,
+                    Colour = Magenta,
                 },
                 new Style(ScopeName.PowerShellAttribute)
                 {
-                    Foreground = PowderBlue,
+                    Colour = PowderBlue,
                 },
                 new Style(ScopeName.PowerShellOperator)
                 {
-                    Foreground = DarkGray,
+                    Colour = DarkGray,
                 },
                 new Style(ScopeName.PowerShellType)
                 {
-                    Foreground = Teal,
+                    Colour = Teal,
                 },
                 new Style(ScopeName.PowerShellVariable)
                 {
-                    Foreground = OrangeRed,
+                    Colour = OrangeRed,
                 },
 
                 new Style(ScopeName.Type)
                 {
-                    Foreground = Teal,
+                    Colour = Teal,
                 },
                 new Style(ScopeName.TypeVariable)
                 {
-                    Foreground = Teal,
+                    Colour = Teal,
                     Italic = true,
                 },
                 new Style(ScopeName.NameSpace)
                 {
-                    Foreground = Navy,
+                    Colour = Navy,
                 },
                 new Style(ScopeName.Constructor)
                 {
-                    Foreground = Purple,
+                    Colour = Purple,
                 },
                 new Style(ScopeName.Predefined)
                 {
-                    Foreground = Navy,
+                    Colour = Navy,
                 },
                 new Style(ScopeName.PseudoKeyword)
                 {
-                    Foreground = Navy,
+                    Colour = Navy,
                 },
                 new Style(ScopeName.StringEscape)
                 {
-                    Foreground = DarkGray,
+                    Colour = DarkGray,
                 },
                 new Style(ScopeName.ControlKeyword)
                 {
-                    Foreground = DarkKeyword,
+                    Colour = DarkKeyword,
                 },
                 new Style(ScopeName.Number)
                 {
-                    Foreground = DarkNumber
+                    Colour = DarkNumber
                 },
                 new Style(ScopeName.Operator),
                 new Style(ScopeName.Delimiter),
 
                 new Style(ScopeName.MarkdownHeader)
                 {
-                    Foreground = DarkKeyword,
+                    Colour = DarkKeyword,
                     Bold = true,
                 },
                 new Style(ScopeName.MarkdownCode)
                 {
-                    Foreground = DarkString,
+                    Colour = DarkString,
                 },
                 new Style(ScopeName.MarkdownListItem)
                 {
@@ -247,17 +247,17 @@ namespace osu.Framework.Graphics.Containers.Markdown
 
                 new Style(ScopeName.BuiltinFunction)
                 {
-                    Foreground = OliveDrab,
+                    Colour = OliveDrab,
                     Bold = true,
                 },
                 new Style(ScopeName.BuiltinValue)
                 {
-                    Foreground = DarkOliveGreen,
+                    Colour = DarkOliveGreen,
                     Bold = true,
                 },
                 new Style(ScopeName.Attribute)
                 {
-                    Foreground = DarkCyan,
+                    Colour = DarkCyan,
                     Italic = true,
                 },
                 new Style(ScopeName.SpecialCharacter),
@@ -273,20 +273,20 @@ namespace osu.Framework.Graphics.Containers.Markdown
             public Style(string scopeName)
             {
                 ScopeName = scopeName;
-                Foreground = Color4.White;
+                Colour = Color4.White;
             }
 
             /// <summary>
             /// Gets or sets the background color.
             /// </summary>
             /// <value>The background color.</value>
-            public Color4? Background{ get; set; }
+            public Color4? BackgroundColour{ get; set; }
 
             /// <summary>
             /// Gets or sets the foreground color.
             /// </summary>
             /// <value>The foreground color.</value>
-            public Color4 Foreground { get; set; }
+            public Color4 Colour { get; set; }
 
             /// <summary>
             /// Gets or sets the name of the scope the style defines.

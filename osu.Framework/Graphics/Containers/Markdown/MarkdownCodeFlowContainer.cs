@@ -67,8 +67,8 @@ namespace osu.Framework.Graphics.Containers.Markdown
             if (codeStyle.Italic)
                 font += "Italic";
 
-            text.Colour = codeStyle.Foreground;
-            text.ShadowColour = codeStyle.Background ?? text.ShadowColour;
+            text.Colour = codeStyle.Colour;
+            text.ShadowColour = codeStyle.BackgroundColour ?? text.ShadowColour;
             text.Font = font.Trim('-');
         }
 
