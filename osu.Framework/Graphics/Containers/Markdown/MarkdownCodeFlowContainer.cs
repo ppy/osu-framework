@@ -1,21 +1,18 @@
-﻿using ColorCode;
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+
+using ColorCode;
 using ColorCode.Parsing;
-using ColorCode.Styling;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Sprites;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using osuTK.Graphics;
-using System.Collections.ObjectModel;
 
 namespace osu.Framework.Graphics.Containers.Markdown
 {
     public class MarkdownCodeFlowContainer : CustomizableTextContainer, IMarkdownTextComponent
     {
-        public float TotalTextWidth => Padding.TotalHorizontal + FlowingChildren.Sum(x => x.BoundingBox.Size.X);
-
         [Resolved]
         private IMarkdownTextComponent parentTextComponent { get; set; }
 
@@ -28,27 +25,33 @@ namespace osu.Framework.Graphics.Containers.Markdown
         public new void AddText(string text, Action<SpriteText> creationParameters = null)
             => base.AddText(text.Replace("[", "[[").Replace("]", "]]"), creationParameters);
 
-        public void AddCodeText(string codeText,string language)
+        public void AddCodeText(string codeText,string languageCode)
         {
             if(string.IsNullOrEmpty(codeText))
                 AddParagraph("");
 
-            if (string.IsNullOrEmpty(language))
-            {
-                AddText(codeText);
-            }
+            var formatter = new ClassFormatter(Styles);
+
+            var language = Languages.FindById(languageCode);
+            if (language == null)
+                AddParagraph(codeText);
             else
             {
-                var formatter = new LazerClassFormatter(Styles);
-                var codeScopes = formatter.GetHtmlString(codeText, Languages.CSharp);
-
-                foreach (var codeScope in codeScopes)
-                {
-                    AddText(codeScope.ParsedSourceCode,x => x.Colour = codeScope.CodeStyle.Foreground);
-                }
-
                 //Change new line
                 AddParagraph("");
+
+                var codeSyntaxes = formatter.GetCodeSyntaxes(codeText, language);
+
+                foreach (var codeSyntax in codeSyntaxes)
+                    AddText(codeSyntax.ParsedSourceCode,
+                        x =>
+                        {
+                            var style = codeSyntax.CodeStyle;
+                            if(style == null)
+                                return;
+
+                            ApplyCodeText(x, style);
+                        });
             }
         }
 
@@ -56,57 +59,54 @@ namespace osu.Framework.Graphics.Containers.Markdown
 
         protected virtual MarkdownCodeStyle Styles => new MarkdownCodeStyle().CreateDefaultStyle();
 
-        public class LazerClassFormatter : CodeColorizerBase
+        protected virtual void ApplyCodeText(SpriteText text, MarkdownCodeStyle.Style codeStyle)
         {
-            /// <summary>
-            /// Creates a <see cref="LazerClassFormatter"/>, for creating HTML to display Syntax Highlighted code, with Styles applied via CSS.
-            /// </summary>
-            /// <param name="style">The Custom styles to Apply to the formatted Code.</param>
-            /// <param name="languageParser">The language parser that the <see cref="HtmlClassFormatter"/> instance will use for its lifetime.</param>
-            public LazerClassFormatter(MarkdownCodeStyle style, ILanguageParser languageParser = null) : base(null, languageParser)
+            string font = "OpenSans-";
+            if (codeStyle.Bold)
+                font += "Bold";
+            if (codeStyle.Italic)
+                font += "Italic";
+
+            text.Colour = codeStyle.Foreground;
+            text.ShadowColour = codeStyle.Background ?? text.ShadowColour;
+            text.Font = font.Trim('-');
+        }
+
+        public class ClassFormatter : CodeColorizerBase
+        {
+            private readonly List<CodeSyntax> codeSyntaxes = new List<CodeSyntax>();
+
+            private readonly MarkdownCodeStyle markdownCodeStyle;
+
+            public ClassFormatter(MarkdownCodeStyle style, ILanguageParser languageParser = null) : base(null, languageParser)
             {
                 markdownCodeStyle = style;
             }
 
-            private List<CodeScope> codeScopes = new List<CodeScope>();
-
-            private MarkdownCodeStyle markdownCodeStyle;
-
-            /// <summary>
-            /// Creates the HTML Markup, which can be saved to a .html file.
-            /// </summary>
-            /// <param name="sourceCode">The source code to colorize.</param>
-            /// <param name="language">The language to use to colorize the source code.</param>
-            /// <returns>Colorised HTML Markup.</returns>
-            public List<CodeScope> GetHtmlString(string sourceCode, ILanguage language)
+            public List<CodeSyntax> GetCodeSyntaxes(string sourceCode, ILanguage language)
             {
-                codeScopes.Clear();
-
+                codeSyntaxes.Clear();
                 languageParser.Parse(sourceCode, language, (parsedSourceCode, captures) => Write(parsedSourceCode, captures));
-
-                return codeScopes;
+                return codeSyntaxes;
             }
 
             protected override void Write(string parsedSourceCode, IList<Scope> scopes)
             {
                 var scopeName = scopes.FirstOrDefault()?.Name;
                 var style = new MarkdownCodeStyle.Style("unknown");
-                if (!string.IsNullOrEmpty(scopeName) && markdownCodeStyle.Contains(scopeName))
-                {
-                    style = markdownCodeStyle[scopeName];
-                }
 
-                var codeScope = new CodeScope
+                if (!string.IsNullOrEmpty(scopeName) && markdownCodeStyle.Contains(scopeName))
+                    style = markdownCodeStyle[scopeName];
+
+                codeSyntaxes.Add(new CodeSyntax
                 {
                     ParsedSourceCode = parsedSourceCode,
                     CodeStyle = style
-                };
-
-                codeScopes.Add(codeScope);
+                });
             }
         }
 
-        public class CodeScope
+        public class CodeSyntax
         {
             /// <summary>
             /// Gets or sets the parsed source code
