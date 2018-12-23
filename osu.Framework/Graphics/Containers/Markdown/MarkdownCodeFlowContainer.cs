@@ -47,6 +47,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
                     AddText(codeScope.ParsedSourceCode,x => x.Colour = codeScope.CodeStyle.Foreground);
                 }
 
+                //Change new line
                 AddParagraph("");
             }
         }
@@ -67,7 +68,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 markdownCodeStyle = style;
             }
 
-            private List<CodeScope> CodeScopes = new List<CodeScope>();
+            private List<CodeScope> codeScopes = new List<CodeScope>();
 
             private MarkdownCodeStyle markdownCodeStyle;
 
@@ -79,11 +80,11 @@ namespace osu.Framework.Graphics.Containers.Markdown
             /// <returns>Colorised HTML Markup.</returns>
             public List<CodeScope> GetHtmlString(string sourceCode, ILanguage language)
             {
-                CodeScopes.Clear();
+                codeScopes.Clear();
 
                 languageParser.Parse(sourceCode, language, (parsedSourceCode, captures) => Write(parsedSourceCode, captures));
 
-                return CodeScopes;
+                return codeScopes;
             }
 
             protected override void Write(string parsedSourceCode, IList<Scope> scopes)
@@ -101,7 +102,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
                     CodeStyle = style
                 };
 
-                CodeScopes.Add(codeScope);
+                codeScopes.Add(codeScope);
             }
         }
 

@@ -16,12 +16,12 @@ namespace osu.Framework.Graphics.Containers.Markdown
     /// code
     /// ```
     /// </code>
-    public class MarkdownFencedCodeBlock : CompositeDrawable, IMarkdownTextFlowComponent
+    public class MarkdownFencedCodeBlock : CompositeDrawable, IMarkdownCodeFlowComponent
     {
         private readonly FencedCodeBlock fencedCodeBlock;
 
         [Resolved]
-        private IMarkdownTextFlowComponent parentFlowComponent { get; set; }
+        private IMarkdownCodeFlowComponent parentFlowComponent { get; set; }
 
         public MarkdownFencedCodeBlock(FencedCodeBlock fencedCodeBlock)
         {
@@ -38,7 +38,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
             InternalChildren = new []
             {
                 CreateBackground(),
-                textFlowContainer = new MarkdownCodeFlowContainer(),
+                textFlowContainer = CreateCodeFlow(),
             };
 
             foreach (var line in fencedCodeBlock.Lines.Lines)
@@ -53,9 +53,9 @@ namespace osu.Framework.Graphics.Containers.Markdown
             Alpha = 0.5f
         };
 
-        public virtual MarkdownTextFlowContainer CreateTextFlow()
+        public virtual MarkdownCodeFlowContainer CreateCodeFlow()
         {
-            var textFlow = parentFlowComponent.CreateTextFlow();
+            var textFlow = parentFlowComponent.CreateCodeFlow();
             textFlow.Margin = new MarginPadding { Left = 10, Right = 10, Top = 10, Bottom = 10 };
             return textFlow;
         }

@@ -21,7 +21,8 @@ namespace osu.Framework.Graphics.Containers.Markdown
     /// </summary>
     [Cached(Type = typeof(IMarkdownTextComponent))]
     [Cached(Type = typeof(IMarkdownTextFlowComponent))]
-    public class MarkdownContainer : CompositeDrawable, IMarkdownTextComponent, IMarkdownTextFlowComponent
+    [Cached(Type = typeof(IMarkdownCodeFlowComponent))]
+    public class MarkdownContainer : CompositeDrawable, IMarkdownTextComponent, IMarkdownTextFlowComponent , IMarkdownCodeFlowComponent
     {
         private const int root_level = 0;
 
@@ -164,6 +165,8 @@ namespace osu.Framework.Graphics.Containers.Markdown
         }
 
         public virtual MarkdownTextFlowContainer CreateTextFlow() => new MarkdownTextFlowContainer();
+
+        public virtual MarkdownCodeFlowContainer CreateCodeFlow() => new MarkdownCodeFlowContainer();
 
         public virtual SpriteText CreateSpriteText() => new SpriteText();
 
