@@ -86,7 +86,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
             public List<CodeSyntax> GetCodeSyntaxes(string sourceCode, ILanguage language)
             {
                 codeSyntaxes.Clear();
-                languageParser.Parse(sourceCode, language, (parsedSourceCode, captures) => Write(parsedSourceCode, captures));
+                languageParser.Parse(sourceCode, language, Write);
                 return codeSyntaxes;
             }
 
