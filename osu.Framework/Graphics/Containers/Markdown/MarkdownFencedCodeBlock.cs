@@ -34,16 +34,16 @@ namespace osu.Framework.Graphics.Containers.Markdown
         [BackgroundDependencyLoader]
         private void load()
         {
-            MarkdownTextFlowContainer textFlowContainer;
+            MarkdownCodeFlowContainer textFlowContainer;
             InternalChildren = new []
             {
                 CreateBackground(),
-                textFlowContainer = CreateTextFlow(),
+                textFlowContainer = new MarkdownCodeFlowContainer(),
             };
 
             foreach (var line in fencedCodeBlock.Lines.Lines)
                 if (line.Line > 0)
-                    textFlowContainer.AddParagraph(line.ToString());
+                    textFlowContainer.AddCodeText(line.ToString(), fencedCodeBlock.Info);
         }
 
         protected virtual Drawable CreateBackground() => new Box

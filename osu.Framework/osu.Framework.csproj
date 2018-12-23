@@ -32,6 +32,7 @@
     <DefineConstants>$(DefineConstants);JETBRAINS_ANNOTATIONS</DefineConstants>
   </PropertyGroup>
   <ItemGroup Label="Package References">
+    <PackageReference Include="ColorCode.Core" Version="2.0.6" />
     <PackageReference Include="Markdig" Version="0.15.4" />
     <PackageReference Include="FFmpeg.AutoGen" Version="4.1.0.1" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta-63127-02">
