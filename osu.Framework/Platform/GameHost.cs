@@ -36,6 +36,8 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
+using osu.Framework.Audio;
+using osu.Framework.IO.Stores;
 
 namespace osu.Framework.Platform
 {
@@ -413,10 +415,21 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Schedules the game to exit in the next frame.
         /// </summary>
-        public void Exit()
+        public void Exit() => PerformExit(false);
+
+        /// <summary>
+        /// Schedules the game to exit in the next frame (or immediately if <paramref name="immediately"/> is true).
+        /// </summary>
+        /// <param name="immediately">If true, exits the game immediately.  If false (default), schedules the game to exit in the next frame.</param>
+        protected virtual void PerformExit(bool immediately)
         {
-            ExecutionState = ExecutionState.Stopping;
-            InputThread.Scheduler.Add(exit, false);
+            if (immediately)
+                exit();
+            else
+            {
+                ExecutionState = ExecutionState.Stopping;
+                InputThread.Scheduler.Add(exit, false);
+            }
         }
 
         /// <summary>
@@ -505,7 +518,7 @@ namespace osu.Framework.Platform
             finally
             {
                 // Close the window and stop all threads
-                exit();
+                PerformExit(true);
             }
         }
 
@@ -694,6 +707,9 @@ namespace osu.Framework.Platform
         public IEnumerable<InputHandler> AvailableInputHandlers { get; private set; }
 
         public abstract ITextInputSource GetTextInput();
+
+        public virtual AudioManager CreateAudioManager(ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore, Scheduler eventScheduler) =>
+            new AudioManager(trackStore, sampleStore) { EventScheduler = eventScheduler };
 
         #region IDisposable Support
 

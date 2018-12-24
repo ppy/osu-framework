@@ -15,7 +15,8 @@ install:
   - ps: Start-Process waitress-serve "--listen=*:80 httpbin:app" -PassThru
 before_build:
   - cmd: CodeFileSanity
-  - cmd: nuget restore
+  - cmd: nuget restore osu-framework.sln
+  - cmd: nuget restore osu-framework.iOS.sln
 build:
   project: osu-framework.sln
   parallel: true
@@ -24,5 +25,7 @@ after_build:
   - cmd: inspectcode /o="inspectcodereport.xml" /caches-home="inspectcode" osu-framework.sln
   - cmd: NVika parsereport "inspectcodereport.xml" --treatwarningsaserrors
   - cmd: dotnet pack osu.Framework /p:Version=0.0.%APPVEYOR_BUILD_VERSION%
+  - cmd: msbuild /t:pack osu.Framework.iOS /p:Configuration=Debug /p:Version=0.0.%APPVEYOR_BUILD_VERSION%
 artifacts:
   - path: osu.Framework/bin/Debug/*.nupkg
+  - path: osu.Framework.iOS/bin/Debug/*.nupkg
