@@ -55,9 +55,6 @@
     <Compile Include="..\osu.Framework.Tests\**\Lists\**\*.cs">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
     </Compile>
-    <Compile Include="..\osu.Framework.Tests\**\Localisation\**\*.cs">
-      <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
-    </Compile>
     <Compile Include="..\osu.Framework.Tests\**\MathUtils\**\*.cs">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
     </Compile>

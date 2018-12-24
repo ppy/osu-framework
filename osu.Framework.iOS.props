@@ -23,6 +23,7 @@
     <LangVersion>Default</LangVersion>
     <MtouchExtraArgs>$(DefaultMtouchExtraArgs) -force_load $(OutputPath)\libbass.a -force_load $(OutputPath)\libbass_fx.a"</MtouchExtraArgs>
     <OptimizePNGs>false</OptimizePNGs>
+    <MtouchI18n>cjk,mideast,other,rare,west</MtouchI18n>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|iPhone' ">
     <DebugType>pdbonly</DebugType>
@@ -42,6 +43,7 @@
     <LangVersion>Default</LangVersion>
     <MtouchExtraArgs>$(DefaultMtouchExtraArgs) -force_load $(OutputPath)\libbass.a -force_load $(OutputPath)\libbass_fx.a"</MtouchExtraArgs>
     <OptimizePNGs>false</OptimizePNGs>
+    <MtouchI18n>cjk,mideast,other,rare,west</MtouchI18n>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|iPhoneSimulator' ">
     <DebugType>pdbonly</DebugType>
@@ -59,6 +61,7 @@
     <LangVersion>Default</LangVersion>
     <MtouchExtraArgs>$(DefaultMtouchExtraArgs) -force_load $(OutputPath)\libbass.a -force_load $(OutputPath)\libbass_fx.a"</MtouchExtraArgs>
     <OptimizePNGs>false</OptimizePNGs>
+    <MtouchI18n>cjk,mideast,other,rare,west</MtouchI18n>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|iPhone' ">
     <DebugSymbols>true</DebugSymbols>
@@ -82,6 +85,7 @@
     <LangVersion>Default</LangVersion>
     <MtouchExtraArgs>$(DefaultMtouchExtraArgs) -force_load $(OutputPath)\libbass.a -force_load $(OutputPath)\libbass_fx.a"</MtouchExtraArgs>
     <OptimizePNGs>false</OptimizePNGs>
+    <MtouchI18n>cjk,mideast,other,rare,west</MtouchI18n>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
