@@ -11,9 +11,18 @@ namespace osu.Framework.Graphics.Sprites
     /// </summary>
     public class FontUsage
     {
-        private string family = "OpenSans";
+        private string family;
         private string weight;
         private bool italics;
+
+        /// <summary>
+        /// Creates an instance of <see cref="FontUsage"/> using the default font family (OpenSans).
+        /// </summary>
+        public FontUsage()
+        {
+            family = "OpenSans";
+            updateFontName();
+        }
 
         /// <summary>
         /// Gets or sets the font family's name.
