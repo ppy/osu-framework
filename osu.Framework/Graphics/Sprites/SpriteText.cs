@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Caching;
 using osu.Framework.Configuration;
@@ -133,23 +134,44 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        private string font;
+        private FontUsage font;
 
         /// <summary>
-        /// The name of the font to use when looking up textures for the individual characters.
+        /// Contains information on the font used to display the text.
         /// </summary>
-        public string Font
+        /// <exception cref="ArgumentNullException">Thrown if set to null.</exception>
+        [NotNull]
+        public FontUsage Font
         {
-            get => font;
+            get
+            {
+                if (font == null)
+                {
+                    font = new FontUsage();
+                    font.Changed += onFontChanged;
+                }
+
+                return font;
+            }
             set
             {
+                if (value == null)
+                    throw new ArgumentNullException(nameof(Font));
+
                 if (font == value)
                     return;
+
+                if (font != null)
+                    font.Changed -= onFontChanged;
+
                 font = value;
+                font.Changed += onFontChanged;
 
                 invalidate(true);
             }
         }
+
+        private void onFontChanged() => invalidate(true);
 
         private bool allowMultiline = true;
 
@@ -592,7 +614,7 @@ namespace osu.Framework.Graphics.Sprites
             if (store == null)
                 return null;
 
-            return store.GetCharacter(Font, c) ?? store.GetCharacter(null, c) ?? GetFallbackTextureForCharacter(c);
+            return store.GetCharacter(Font.FontName, c) ?? store.GetCharacter(null, c) ?? GetFallbackTextureForCharacter(c);
         }
 
         /// <summary>
@@ -634,7 +656,7 @@ namespace osu.Framework.Graphics.Sprites
         {
             get
             {
-                var baseHeight = store.GetBaseHeight(Font);
+                var baseHeight = store.GetBaseHeight(Font.FontName);
                 if (baseHeight.HasValue)
                     return baseHeight.Value * TextSize;
 

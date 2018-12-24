@@ -160,13 +160,12 @@ namespace osu.Framework.Graphics.Containers.Markdown
         {
             var textDrawable = CreateSpriteText();
 
-            string font = "OpenSans-";
-            if (bold)
-                font += "Bold";
-            if (italic)
-                font += "Italic";
-
-            textDrawable.Font = font.Trim('-');
+            textDrawable.Font = new FontUsage
+            {
+                Family = "OpenSans",
+                Weight = bold ? "Bold" : null,
+                Italics = italic,
+            };
 
             return textDrawable;
         }
