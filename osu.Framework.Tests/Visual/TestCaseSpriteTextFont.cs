@@ -30,13 +30,13 @@ namespace osu.Framework.Tests.Visual
             flow.Add(sprite1 = new SpriteText
             {
                 Text = "THE QUICK RED FOX JUMPS OVER THE LAZY BROWN DOG",
-                Font = new FontUsage { Family = "OpenSans" },
+                Font = new FontUsage(),
             });
 
             flow.Add(sprite2 = new SpriteText
             {
                 Text = "the quick red fox jumps over the lazy brown dog",
-                Font = new FontUsage { Family = "OpenSans" },
+                Font = new FontUsage(),
             });
 
             AddStep("weight regular", () =>

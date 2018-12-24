@@ -11,14 +11,14 @@ namespace osu.Framework.Graphics.Sprites
     /// </summary>
     public class FontUsage
     {
-        private string family;
+        private string family = "OpenSans";
         private string weight;
         private bool italics;
 
         /// <summary>
         /// Gets or sets the font family's name.
         /// </summary>
-        [CanBeNull]
+        [NotNull]
         public string Family
         {
             get => family;
@@ -26,6 +26,9 @@ namespace osu.Framework.Graphics.Sprites
             {
                 if (family == value)
                     return;
+
+                if (string.IsNullOrEmpty(value))
+                    throw new ArgumentException("Cannot be null or empty.", nameof(Family));
 
                 family = value;
                 updateFontName();
@@ -70,12 +73,6 @@ namespace osu.Framework.Graphics.Sprites
 
         private void updateFontName()
         {
-            if (Family == null)
-            {
-                FontName = null;
-                return;
-            }
-
             if (string.IsNullOrEmpty(weight) && !italics)
             {
                 FontName = Family;
