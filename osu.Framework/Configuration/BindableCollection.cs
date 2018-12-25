@@ -11,7 +11,6 @@ namespace osu.Framework.Configuration
 {
     public class BindableCollection<T> : IBindableCollection<T>, ICollection<T>, ICollection, IParseable, IHasDescription
     {
-        // list allows to use methods like AddRange.
         private readonly List<T> collection = new List<T>();
 
         private readonly WeakReference<BindableCollection<T>> weakReference;
