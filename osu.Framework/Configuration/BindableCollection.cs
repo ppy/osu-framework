@@ -231,6 +231,33 @@ namespace osu.Framework.Configuration
         }
 
         /// <summary>
+        /// Removes all items from this <see cref="BindableCollection{T}"/> that match a predicate.
+        /// </summary>
+        /// <param name="match">The predicate.</param>
+        public void RemoveAll(Predicate<T> match)
+            => removeAll(match, null);
+
+        private void removeAll(Predicate<T> match, BindableCollection<T> caller)
+        {
+            ensureMutationAllowed();
+
+            var removed = collection.FindAll(match);
+
+            // RemoveAll is internally optimised
+            collection.RemoveAll(match);
+
+            bindings?.ForEachAlive(b =>
+            {
+                // prevent re-adding the item back to the callee.
+                // That would result in a <see cref="StackOverflowException"/>.
+                if (b != caller)
+                    b.removeAll(match, this);
+            });
+
+            ItemsRemoved?.Invoke(removed);
+        }
+
+        /// <summary>
         /// Copies the contents of this <see cref="BindableCollection{T}"/> to the given array, starting at the given index.
         /// </summary>
         /// <param name="array">The array that is the destination of the items copied from this <see cref="BindableCollection{T}"/>.</param>

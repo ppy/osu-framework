@@ -592,6 +592,58 @@ namespace osu.Framework.Tests.Bindables
 
         #endregion
 
+        #region .RemoveAll(match)
+
+        [Test]
+        public void TestRemoveAllRemovesMatchingElements()
+        {
+            bindableStringCollection.Add("0");
+            bindableStringCollection.Add("0");
+            bindableStringCollection.Add("0");
+            bindableStringCollection.Add("1");
+            bindableStringCollection.Add("2");
+
+            bindableStringCollection.RemoveAll(m => m == "0");
+
+            Assert.AreEqual(2, bindableStringCollection.Count);
+            Assert.Multiple(() =>
+            {
+                Assert.AreEqual("1", bindableStringCollection[0]);
+                Assert.AreEqual("2", bindableStringCollection[1]);
+            });
+        }
+
+        [Test]
+        public void TestRemoveAllNotifiesSubscribers()
+        {
+            bindableStringCollection.Add("0");
+            bindableStringCollection.Add("0");
+
+            List<string> itemsRemoved = null;
+            bindableStringCollection.ItemsRemoved += i => itemsRemoved = i.ToList();
+            bindableStringCollection.RemoveAll(m => m == "0");
+
+            Assert.AreEqual(2, itemsRemoved.Count);
+        }
+
+        [Test]
+        public void TestRemoveAllNotifiesBoundCollections()
+        {
+            bindableStringCollection.Add("0");
+            bindableStringCollection.Add("0");
+
+            List<string> itemsRemoved = null;
+            var collection = new BindableCollection<string>();
+            collection.BindTo(bindableStringCollection);
+            collection.ItemsRemoved += i => itemsRemoved = i.ToList();
+
+            bindableStringCollection.RemoveAll(m => m == "0");
+
+            Assert.AreEqual(2, itemsRemoved.Count);
+        }
+
+        #endregion
+
         #region .Clear()
 
         [Test]
