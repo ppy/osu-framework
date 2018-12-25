@@ -89,8 +89,7 @@ namespace osu.Framework.Configuration
                 return;
 
             // Preserve items for subscribers
-            var clearedItems = new T[collection.Count];
-            collection.CopyTo(clearedItems);
+            var clearedItems = collection.ToList();
 
             collection.Clear();
 
