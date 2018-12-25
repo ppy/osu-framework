@@ -59,8 +59,7 @@ namespace osu.Framework.Configuration
 
         private void setIndex(int index, T item, BindableCollection<T> caller)
         {
-            if (Disabled)
-                throw new InvalidOperationException($"Cannot change items while the {nameof(BindableCollection<T>)} is disabled.");
+            ensureMutationAllowed();
 
             T lastItem = collection[index];
 
@@ -88,8 +87,7 @@ namespace osu.Framework.Configuration
 
         private void add(T item, BindableCollection<T> caller)
         {
-            if (Disabled)
-                throw new InvalidOperationException($"Cannot add items while the {nameof(BindableCollection<T>)} is disabled.");
+            ensureMutationAllowed();
 
             collection.Add(item);
 
@@ -122,8 +120,7 @@ namespace osu.Framework.Configuration
 
         private void insert(int index, T item, BindableCollection<T> caller)
         {
-            if (Disabled)
-                throw new InvalidOperationException($"Cannot insert items while the {nameof(BindableCollection<T>)} is disabled.");
+            ensureMutationAllowed();
 
             collection.Insert(index, item);
 
@@ -147,8 +144,7 @@ namespace osu.Framework.Configuration
 
         private void clear(BindableCollection<T> caller)
         {
-            if (Disabled)
-                throw new InvalidOperationException($"Cannot clear items while the {nameof(BindableCollection<T>)} is disabled.");
+            ensureMutationAllowed();
 
             if (collection.Count <= 0)
                 return;
@@ -188,8 +184,7 @@ namespace osu.Framework.Configuration
 
         private bool remove(T item, BindableCollection<T> caller)
         {
-            if (Disabled)
-                throw new InvalidOperationException($"Cannot remove items while the {nameof(BindableCollection<T>)} is disabled.");
+            ensureMutationAllowed();
 
             bool removed = collection.Remove(item);
 
@@ -219,8 +214,7 @@ namespace osu.Framework.Configuration
 
         private void removeAt(int index, BindableCollection<T> caller)
         {
-            if (Disabled)
-                throw new InvalidOperationException($"Cannot remove items while the {nameof(BindableCollection<T>)} is disabled.");
+            ensureMutationAllowed();
 
             T item = collection[index];
 
@@ -268,8 +262,7 @@ namespace osu.Framework.Configuration
         /// <exception cref="InvalidOperationException">Thrown if this <see cref="BindableCollection{T}"/> is <see cref="Disabled"/>.</exception>
         public void Parse(object input)
         {
-            if (Disabled)
-                throw new InvalidOperationException($"Cannot parse object while the {nameof(BindableCollection<T>)} is disabled.");
+            ensureMutationAllowed();
 
             switch (input)
             {
@@ -382,8 +375,7 @@ namespace osu.Framework.Configuration
 
         private void addRange(IEnumerable<T> items, BindableCollection<T> caller)
         {
-            if (Disabled)
-                throw new InvalidOperationException("Can not add a range of items as bindable collection is disabled.");
+            ensureMutationAllowed();
 
             collection.AddRange(items);
 
@@ -462,5 +454,11 @@ namespace osu.Framework.Configuration
             => GetEnumerator();
 
         #endregion IEnumerable
+
+        private void ensureMutationAllowed()
+        {
+            if (Disabled)
+                throw new InvalidOperationException($"Cannot mutate the {nameof(BindableCollection<T>)} while it is disabled.");
+        }
     }
 }
