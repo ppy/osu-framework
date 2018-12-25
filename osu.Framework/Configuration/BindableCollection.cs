@@ -4,11 +4,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using osu.Framework.Lists;
 
 namespace osu.Framework.Configuration
 {
-    public class BindableCollection<T> : IBindableCollection<T>, ICollection, ICollection<T>, IParseable, IHasDescription
+    public class BindableCollection<T> : IBindableCollection<T>, ICollection<T>, ICollection, IParseable, IHasDescription
     {
         // list allows to use methods like AddRange.
         private readonly List<T> collection = new List<T>();
@@ -45,7 +46,37 @@ namespace osu.Framework.Configuration
             weakReference = new WeakReference<BindableCollection<T>>(this);
         }
 
-        #region ICollection
+        /// <summary>
+        /// Gets or sets the item at an index in this <see cref="BindableCollection{T}"/>.
+        /// </summary>
+        /// <param name="index">The index of the item.</param>
+        /// <exception cref="InvalidOperationException">Thrown when setting a value while this <see cref="BindableCollection{T}"/> is <see cref="Disabled"/>.</exception>
+        public T this[int index]
+        {
+            get => collection[index];
+            set => setIndex(index, value, null);
+        }
+
+        private void setIndex(int index, T item, BindableCollection<T> caller)
+        {
+            if (Disabled)
+                throw new InvalidOperationException($"Cannot change items while the {nameof(BindableCollection<T>)} is disabled.");
+
+            T lastItem = collection[index];
+
+            collection[index] = item;
+
+            bindings?.ForEachAlive(b =>
+            {
+                // prevent re-adding the item back to the callee.
+                // That would result in a <see cref="StackOverflowException"/>.
+                if (b != caller)
+                    b.setIndex(index, item, this);
+            });
+
+            ItemsRemoved?.Invoke(new[] { lastItem });
+            ItemsAdded?.Invoke(new[] { item });
+        }
 
         /// <summary>
         /// Adds a single item to this <see cref="BindableCollection{T}"/>.
@@ -68,6 +99,40 @@ namespace osu.Framework.Configuration
                 // That would result in a <see cref="StackOverflowException"/>.
                 if (b != caller)
                     b.add(item, this);
+            });
+
+            ItemsAdded?.Invoke(new[] { item });
+        }
+
+        /// <summary>
+        /// Retrieves the index of an item in this <see cref="BindableCollection{T}"/>.
+        /// </summary>
+        /// <param name="item">The item to retrieve the index of.</param>
+        /// <returns>The index of the item, or -1 if the item isn't in this <see cref="BindableCollection{T}"/>.</returns>
+        public int IndexOf(T item) => collection.IndexOf(item);
+
+        /// <summary>
+        /// Inserts an item at the specified index in this <see cref="BindableCollection{T}"/>.
+        /// </summary>
+        /// <param name="index">The index to insert at.</param>
+        /// <param name="item">The item to insert.</param>
+        /// <exception cref="InvalidOperationException">Thrown when this <see cref="BindableCollection{T}"/> is <see cref="Disabled"/>.</exception>
+        public void Insert(int index, T item)
+            => insert(index, item, null);
+
+        private void insert(int index, T item, BindableCollection<T> caller)
+        {
+            if (Disabled)
+                throw new InvalidOperationException($"Cannot insert items while the {nameof(BindableCollection<T>)} is disabled.");
+
+            collection.Insert(index, item);
+
+            bindings?.ForEachAlive(b =>
+            {
+                // prevent re-adding the item back to the callee.
+                // That would result in a <see cref="StackOverflowException"/>.
+                if (b != caller)
+                    b.insert(index, item, this);
             });
 
             ItemsAdded?.Invoke(new[] { item });
@@ -145,6 +210,34 @@ namespace osu.Framework.Configuration
         }
 
         /// <summary>
+        /// Removes an item at the specified index from this <see cref="BindableCollection{T}"/>.
+        /// </summary>
+        /// <param name="index">The index of the item to remove.</param>
+        /// <exception cref="InvalidOperationException">Thrown if this <see cref="BindableCollection{T}"/> is <see cref="Disabled"/>.</exception>
+        public void RemoveAt(int index)
+            => removeAt(index, null);
+
+        private void removeAt(int index, BindableCollection<T> caller)
+        {
+            if (Disabled)
+                throw new InvalidOperationException($"Cannot remove items while the {nameof(BindableCollection<T>)} is disabled.");
+
+            T item = collection[index];
+
+            collection.RemoveAt(index);
+
+            bindings?.ForEachAlive(b =>
+            {
+                // prevent re-adding the item back to the callee.
+                // That would result in a <see cref="StackOverflowException"/>.
+                if (b != caller)
+                    b.removeAt(index, this);
+            });
+
+            ItemsRemoved?.Invoke(new[] { item });
+        }
+
+        /// <summary>
         /// Copies the contents of this <see cref="BindableCollection{T}"/> to the given array, starting at the given index.
         /// </summary>
         /// <param name="array">The array that is the destination of the items copied from this <see cref="BindableCollection{T}"/>.</param>
@@ -164,8 +257,6 @@ namespace osu.Framework.Configuration
         public bool IsSynchronized => ((ICollection)collection).IsSynchronized;
         public object SyncRoot => ((ICollection)collection).SyncRoot;
         public bool IsReadOnly => Disabled;
-
-        #endregion ICollection
 
         #region IParseable
 

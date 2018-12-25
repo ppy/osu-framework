@@ -10,7 +10,7 @@ namespace osu.Framework.Configuration
     /// An readonly interface which can be bound to other <see cref="IBindableCollection{T}"/>s in order to watch for state and content changes.
     /// </summary>
     /// <typeparam name="T">The type of value encapsulated by this <see cref="IBindableCollection{T}"/>.</typeparam>
-    public interface IBindableCollection<T> : IReadOnlyCollection<T>, IUnbindable, ICanBeDisabled
+    public interface IBindableCollection<T> : IReadOnlyList<T>, IUnbindable, ICanBeDisabled
     {
         /// <summary>
         /// An event which is raised when an range of items get added.

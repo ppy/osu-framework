@@ -49,6 +49,84 @@ namespace osu.Framework.Tests.Bindables
 
         #endregion
 
+        #region collection[index]
+
+        [Test]
+        public void TestGetRetrievesObjectAtIndex()
+        {
+            bindableStringCollection.Add("0");
+            bindableStringCollection.Add("1");
+            bindableStringCollection.Add("2");
+
+            Assert.AreEqual("1", bindableStringCollection[1]);
+        }
+
+        [Test]
+        public void TestSetMutatesObjectAtIndex()
+        {
+            bindableStringCollection.Add("0");
+            bindableStringCollection.Add("1");
+            bindableStringCollection[1] = "2";
+
+            Assert.AreEqual("2", bindableStringCollection[1]);
+        }
+
+        [Test]
+        public void TestGetWhileDisabledDoesNotThrowInvalidOperationException()
+        {
+            bindableStringCollection.Add("0");
+            bindableStringCollection.Disabled = true;
+
+            Assert.AreEqual("0", bindableStringCollection[0]);
+        }
+
+        [Test]
+        public void TestSetWhileDisabledThrowsInvalidOperationException()
+        {
+            bindableStringCollection.Add("0");
+            bindableStringCollection.Disabled = true;
+
+            Assert.Throws<InvalidOperationException>(() => bindableStringCollection[0] = "1");
+        }
+
+        [Test]
+        public void TestSetNotifiesSubscribers()
+        {
+            bindableStringCollection.Add("0");
+
+            IEnumerable<string> addedItem = null;
+            IEnumerable<string> removedItem = null;
+
+            bindableStringCollection.ItemsAdded += v => addedItem = v;
+            bindableStringCollection.ItemsRemoved += v => removedItem = v;
+
+            bindableStringCollection[0] = "1";
+
+            Assert.AreEqual(removedItem.Single(), "0");
+            Assert.AreEqual(addedItem.Single(), "1");
+        }
+
+        [Test]
+        public void TestSetNotifiesBoundCollections()
+        {
+            bindableStringCollection.Add("0");
+
+            IEnumerable<string> addedItem = null;
+            IEnumerable<string> removedItem = null;
+
+            var collection = new BindableCollection<string>();
+            collection.BindTo(bindableStringCollection);
+            collection.ItemsAdded += v => addedItem = v;
+            collection.ItemsRemoved += v => removedItem = v;
+
+            bindableStringCollection[0] = "1";
+
+            Assert.AreEqual(removedItem.Single(), "0");
+            Assert.AreEqual(addedItem.Single(), "1");
+        }
+
+        #endregion
+
         #region .Add(item)
 
         [TestCase("a random string")]
@@ -225,6 +303,76 @@ namespace osu.Framework.Tests.Bindables
 
         #endregion
 
+        #region .Insert
+
+        [Test]
+        public void TestInsertInsertsItemAtIndex()
+        {
+            bindableStringCollection.Add("0");
+            bindableStringCollection.Add("2");
+
+            bindableStringCollection.Insert(1, "1");
+
+            Assert.Multiple(() =>
+            {
+                Assert.AreEqual("0", bindableStringCollection[0]);
+                Assert.AreEqual("1", bindableStringCollection[1]);
+                Assert.AreEqual("2", bindableStringCollection[2]);
+            });
+        }
+
+        [Test]
+        public void TestInsertNotifiesSubscribers()
+        {
+            bindableStringCollection.Add("0");
+            bindableStringCollection.Add("2");
+
+            bool wasAdded = false;
+            bindableStringCollection.ItemsAdded += _ => wasAdded = true;
+
+            bindableStringCollection.Insert(1, "1");
+
+            Assert.IsTrue(wasAdded);
+        }
+
+        [Test]
+        public void TestInsertNotifiesBoundCollections()
+        {
+            bindableStringCollection.Add("0");
+            bindableStringCollection.Add("2");
+
+            bool wasAdded = false;
+
+            var collection = new BindableCollection<string>();
+            collection.BindTo(bindableStringCollection);
+            collection.ItemsAdded += _ => wasAdded = true;
+
+            bindableStringCollection.Insert(1, "1");
+
+            Assert.IsTrue(wasAdded);
+        }
+
+        [Test]
+        public void TestInsertInsertsItemAtIndexInBoundCollection()
+        {
+            bindableStringCollection.Add("0");
+            bindableStringCollection.Add("2");
+
+            var collection = new BindableCollection<string>();
+            collection.BindTo(bindableStringCollection);
+
+            bindableStringCollection.Insert(1, "1");
+
+            Assert.Multiple(() =>
+            {
+                Assert.AreEqual("0", collection[0]);
+                Assert.AreEqual("1", collection[1]);
+                Assert.AreEqual("2", collection[2]);
+            });
+        }
+
+        #endregion
+
         #region .Remove(item)
 
         [Test]
@@ -385,6 +533,61 @@ namespace osu.Framework.Tests.Bindables
         {
             const string item = "item";
             bindableStringCollection.Add(item);
+        }
+
+        #endregion
+
+        #region .RemoveAt(index)
+
+        [Test]
+        public void TestRemoveAtRemovesItemAtIndex()
+        {
+            bindableStringCollection.Add("0");
+            bindableStringCollection.Add("1");
+            bindableStringCollection.Add("2");
+
+            bindableStringCollection.RemoveAt(1);
+
+            Assert.AreEqual("0", bindableStringCollection[0]);
+            Assert.AreEqual("2", bindableStringCollection[1]);
+        }
+
+        [Test]
+        public void TestRemoveAtWithDisabledCollectionThrowsInvalidOperationException()
+        {
+            bindableStringCollection.Add("abc");
+            bindableStringCollection.Disabled = true;
+
+            Assert.Throws<InvalidOperationException>(() => bindableStringCollection.RemoveAt(0));
+        }
+
+        [Test]
+        public void TestRemoveAtNotifiesSubscribers()
+        {
+            bool wasRemoved = false;
+
+            bindableStringCollection.Add("abc");
+            bindableStringCollection.ItemsRemoved += _ => wasRemoved = true;
+
+            bindableStringCollection.RemoveAt(0);
+
+            Assert.IsTrue(wasRemoved);
+        }
+
+        [Test]
+        public void TestRemoveAtNotifiesBoundCollections()
+        {
+            bindableStringCollection.Add("abc");
+
+            bool wasRemoved = false;
+
+            var collection = new BindableCollection<string>();
+            collection.BindTo(bindableStringCollection);
+            collection.ItemsRemoved += s => wasRemoved = true;
+
+            bindableStringCollection.RemoveAt(0);
+
+            Assert.IsTrue(wasRemoved);
         }
 
         #endregion
