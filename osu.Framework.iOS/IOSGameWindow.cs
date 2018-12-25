@@ -18,6 +18,9 @@ namespace osu.Framework.iOS
         public override void SetupWindow(FrameworkConfigManager config)
         {
             // TODO
+
+            // for now, let's just say the cursor is always in the window.
+            CursorInWindow = true;
         }
 
         public override IGraphicsContext Context => GameView.GraphicsContext;

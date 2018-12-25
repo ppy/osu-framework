@@ -8,6 +8,8 @@ namespace osu.Framework.iOS
 {
     internal class GameViewController : UIViewController
     {
+        public override bool PrefersStatusBarHidden() => true;
+
         public override void ViewWillTransitionToSize(CGSize toSize, IUIViewControllerTransitionCoordinator coordinator)
         {
             coordinator.AnimateAlongsideTransition(_ => { }, _ => UIView.AnimationsEnabled = true);
