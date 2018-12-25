@@ -1,11 +1,16 @@
 // Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
+using System.IO;
+using System.Runtime.InteropServices;
+using CoreGraphics;
+using Foundation;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
+using UIKit;
 
 namespace osu.Framework.iOS.Graphics.Textures
 {
@@ -20,7 +25,7 @@ namespace osu.Framework.iOS.Graphics.Textures
         {
             try
             {
-                using (var stream = store.GetStream(name))
+                using (var stream = Store.GetStream(name))
                 {
                     if (stream != null)
                         return new TextureUpload(imageFromStream<Rgba32>(stream));

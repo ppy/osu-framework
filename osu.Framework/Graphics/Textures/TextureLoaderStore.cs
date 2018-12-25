@@ -8,11 +8,11 @@ namespace osu.Framework.Graphics.Textures
 {
     public class TextureLoaderStore : ResourceStore<TextureUpload>
     {
-        private IResourceStore<byte[]> store { get; }
+        protected IResourceStore<byte[]> Store { get; }
 
         public TextureLoaderStore(IResourceStore<byte[]> store)
         {
-            this.store = store;
+            Store = store;
             (store as ResourceStore<byte[]>)?.AddExtension(@"png");
             (store as ResourceStore<byte[]>)?.AddExtension(@"jpg");
         }
@@ -23,7 +23,7 @@ namespace osu.Framework.Graphics.Textures
         {
             try
             {
-                using (var stream = store.GetStream(name))
+                using (var stream = Store.GetStream(name))
                 {
                     if (stream != null)
                         return new TextureUpload(stream);
