@@ -9,7 +9,6 @@ using Foundation;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
 using UIKit;
 
 namespace osu.Framework.iOS.Graphics.Textures
@@ -21,25 +20,7 @@ namespace osu.Framework.iOS.Graphics.Textures
         {
         }
 
-        public override TextureUpload Get(string name)
-        {
-            try
-            {
-                using (var stream = Store.GetStream(name))
-                {
-                    if (stream != null)
-                        return new TextureUpload(imageFromStream<Rgba32>(stream));
-                }
-            }
-            catch
-            {
-            }
-
-            return null;
-        }
-
-        private Image<TPixel> imageFromStream<TPixel>(Stream stream)
-            where TPixel : struct, IPixel<TPixel>
+        protected override Image<TPixel> ImageFromStream<TPixel>(Stream stream)
         {
             var uiImage = UIImage.LoadFromData(NSData.FromStream(stream));
             int width = (int)uiImage.Size.Width;

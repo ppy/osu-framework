@@ -1,18 +1,21 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System.IO;
 using System.Threading.Tasks;
 using osu.Framework.IO.Stores;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Graphics.Textures
 {
     public class TextureLoaderStore : ResourceStore<TextureUpload>
     {
-        protected IResourceStore<byte[]> Store { get; }
+        private IResourceStore<byte[]> store { get; }
 
         public TextureLoaderStore(IResourceStore<byte[]> store)
         {
-            Store = store;
+            this.store = store;
             (store as ResourceStore<byte[]>)?.AddExtension(@"png");
             (store as ResourceStore<byte[]>)?.AddExtension(@"jpg");
         }
@@ -23,10 +26,10 @@ namespace osu.Framework.Graphics.Textures
         {
             try
             {
-                using (var stream = Store.GetStream(name))
+                using (var stream = store.GetStream(name))
                 {
                     if (stream != null)
-                        return new TextureUpload(stream);
+                        return new TextureUpload(ImageFromStream<Rgba32>(stream));
                 }
             }
             catch
@@ -35,5 +38,8 @@ namespace osu.Framework.Graphics.Textures
 
             return null;
         }
+
+        protected virtual Image<TPixel> ImageFromStream<TPixel>(Stream stream) where TPixel : struct, IPixel<TPixel>
+            => Image.Load<TPixel>(stream);
     }
 }
