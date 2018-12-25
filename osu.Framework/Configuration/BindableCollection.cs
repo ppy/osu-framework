@@ -234,10 +234,10 @@ namespace osu.Framework.Configuration
         /// Removes all items from this <see cref="BindableCollection{T}"/> that match a predicate.
         /// </summary>
         /// <param name="match">The predicate.</param>
-        public void RemoveAll(Predicate<T> match)
+        public int RemoveAll(Predicate<T> match)
             => removeAll(match, null);
 
-        private void removeAll(Predicate<T> match, BindableCollection<T> caller)
+        private int removeAll(Predicate<T> match, BindableCollection<T> caller)
         {
             ensureMutationAllowed();
 
@@ -255,6 +255,8 @@ namespace osu.Framework.Configuration
             });
 
             ItemsRemoved?.Invoke(removed);
+
+            return removed.Count;
         }
 
         /// <summary>
