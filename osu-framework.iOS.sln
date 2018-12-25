@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "osu.Framework.iOS", "osu.Fr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleGame.iOS", "SampleGame.iOS\SampleGame.iOS.csproj", "{529D5E2E-774A-4831-9C9E-59E3E8DFF155}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "osu.Framework.Tests.iOS", "osu.Framework.Tests.iOS\osu.Framework.Tests.iOS.csproj", "{D972753E-45FC-4B82-B017-34BDE485F1BB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -53,5 +55,13 @@ Global
 		{529D5E2E-774A-4831-9C9E-59E3E8DFF155}.Release|iPhoneSimulator.Build.0 = Release|iPhoneSimulator
 		{529D5E2E-774A-4831-9C9E-59E3E8DFF155}.Debug|iPhone.ActiveCfg = Debug|iPhone
 		{529D5E2E-774A-4831-9C9E-59E3E8DFF155}.Debug|iPhone.Build.0 = Debug|iPhone
+		{D972753E-45FC-4B82-B017-34BDE485F1BB}.Debug|iPhoneSimulator.ActiveCfg = Debug|iPhoneSimulator
+		{D972753E-45FC-4B82-B017-34BDE485F1BB}.Debug|iPhoneSimulator.Build.0 = Debug|iPhoneSimulator
+		{D972753E-45FC-4B82-B017-34BDE485F1BB}.Release|iPhone.ActiveCfg = Release|iPhone
+		{D972753E-45FC-4B82-B017-34BDE485F1BB}.Release|iPhone.Build.0 = Release|iPhone
+		{D972753E-45FC-4B82-B017-34BDE485F1BB}.Release|iPhoneSimulator.ActiveCfg = Release|iPhoneSimulator
+		{D972753E-45FC-4B82-B017-34BDE485F1BB}.Release|iPhoneSimulator.Build.0 = Release|iPhoneSimulator
+		{D972753E-45FC-4B82-B017-34BDE485F1BB}.Debug|iPhone.ActiveCfg = Debug|iPhone
+		{D972753E-45FC-4B82-B017-34BDE485F1BB}.Debug|iPhone.Build.0 = Debug|iPhone
 	EndGlobalSection
 EndGlobal
