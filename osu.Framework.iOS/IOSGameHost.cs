@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using osu.Framework.Audio;
+using osu.Framework.Graphics.Textures;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
 using osu.Framework.IO.Stores;
@@ -41,6 +42,9 @@ namespace osu.Framework.iOS
         public override void OpenFileExternally(string filename) => throw new NotImplementedException();
 
         public override void OpenUrlExternally(string url) => throw new NotImplementedException();
+
+        public override IResourceStore<TextureUpload> CreateTextureLoaderStore(IResourceStore underlyingStore)
+            => new IOSTextureLoaderStore(underlyingStore);
 
         public override AudioManager CreateAudioManager(ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore, Scheduler eventScheduler) =>
             new IOSAudioManager(trackStore, sampleStore) { EventScheduler = eventScheduler };
