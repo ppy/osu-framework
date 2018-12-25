@@ -52,5 +52,7 @@ namespace osu.Framework.iOS
             {
             }
         }
+
+        public override abstract bool OpenUrl(UIApplication app, NSUrl url, NSDictionary options);
     }
 }
