@@ -113,14 +113,6 @@ namespace osu.Framework.Configuration
             => collection.Contains(item);
 
         /// <summary>
-        /// Copies the contents of this <see cref="BindableCollection{T}"/> to the given array, starting at the given index.
-        /// </summary>
-        /// <param name="array">The array that is the destination of the items copied from this <see cref="BindableCollection{T}"/>.</param>
-        /// <param name="arrayIndex">The index at which the copying begins.</param>
-        public void CopyTo(T[] array, int arrayIndex)
-            => collection.CopyTo(array, arrayIndex);
-
-        /// <summary>
         /// Removes an item from this <see cref="BindableCollection{T}"/>.
         /// </summary>
         /// <param name="item">The item to remove from this <see cref="BindableCollection{T}"/>.</param>
@@ -152,6 +144,19 @@ namespace osu.Framework.Configuration
             return removed;
         }
 
+        /// <summary>
+        /// Copies the contents of this <see cref="BindableCollection{T}"/> to the given array, starting at the given index.
+        /// </summary>
+        /// <param name="array">The array that is the destination of the items copied from this <see cref="BindableCollection{T}"/>.</param>
+        /// <param name="arrayIndex">The index at which the copying begins.</param>
+        public void CopyTo(T[] array, int arrayIndex)
+            => collection.CopyTo(array, arrayIndex);
+
+        /// <summary>
+        /// Copies the contents of this <see cref="BindableCollection{T}"/> to the given array, starting at the given index.
+        /// </summary>
+        /// <param name="array">The array that is the destination of the items copied from this <see cref="BindableCollection{T}"/>.</param>
+        /// <param name="index">The index at which the copying begins.</param>
         public void CopyTo(Array array, int index)
             => ((ICollection)collection).CopyTo(array, index);
 
