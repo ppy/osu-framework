@@ -731,11 +731,11 @@ namespace osu.Framework.Tests.Bindables
             string[] strings = { "testA", "testB", "testC" };
             bindableStringCollection.AddRange(strings);
             bool itemsGotCleared = false;
-            string[] clearedItems = null;
+            IEnumerable<string> clearedItems = null;
             bindableStringCollection.ItemsRemoved += items =>
             {
                 itemsGotCleared = true;
-                clearedItems = (string[]) items;
+                clearedItems = items;
             };
 
             bindableStringCollection.Parse(null);
