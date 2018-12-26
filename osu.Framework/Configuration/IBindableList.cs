@@ -7,10 +7,10 @@ using System.Collections.Generic;
 namespace osu.Framework.Configuration
 {
     /// <summary>
-    /// An readonly interface which can be bound to other <see cref="IBindableCollection{T}"/>s in order to watch for state and content changes.
+    /// An readonly interface which can be bound to other <see cref="IBindableList{T}"/>s in order to watch for state and content changes.
     /// </summary>
-    /// <typeparam name="T">The type of value encapsulated by this <see cref="IBindableCollection{T}"/>.</typeparam>
-    public interface IBindableCollection<T> : IReadOnlyList<T>, IUnbindable, ICanBeDisabled
+    /// <typeparam name="T">The type of value encapsulated by this <see cref="IBindableList{T}"/>.</typeparam>
+    public interface IBindableList<T> : IReadOnlyList<T>, IUnbindable, ICanBeDisabled
     {
         /// <summary>
         /// An event which is raised when an range of items get added.
@@ -26,7 +26,7 @@ namespace osu.Framework.Configuration
         /// Binds self to another bindable such that we receive any values and value limitations of the bindable we bind width.
         /// </summary>
         /// <param name="them">The foreign bindable. This should always be the most permanent end of the bind (ie. a ConfigManager)</param>
-        void BindTo(IBindableCollection<T> them);
+        void BindTo(IBindableList<T> them);
 
         /// <summary>
         /// Retrieve a new bindable instance weakly bound to the configuration backing.
@@ -34,6 +34,6 @@ namespace osu.Framework.Configuration
         /// a local reference.
         /// </summary>
         /// <returns>A weakly bound copy of the specified bindable.</returns>
-        IBindableCollection<T> GetBoundCopy();
+        IBindableList<T> GetBoundCopy();
     }
 }

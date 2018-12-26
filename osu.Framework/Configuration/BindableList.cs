@@ -9,21 +9,21 @@ using osu.Framework.Lists;
 
 namespace osu.Framework.Configuration
 {
-    public class BindableCollection<T> : IBindableCollection<T>, ICollection<T>, ICollection, IParseable, IHasDescription
+    public class BindableList<T> : IBindableList<T>, ICollection<T>, ICollection, IParseable, IHasDescription
     {
         private readonly List<T> collection = new List<T>();
 
-        private readonly WeakReference<BindableCollection<T>> weakReference;
+        private readonly WeakReference<BindableList<T>> weakReference;
 
-        private WeakList<BindableCollection<T>> bindings;
+        private WeakList<BindableList<T>> bindings;
 
         /// <summary>
-        /// An event which is raised when any items are added to this <see cref="BindableCollection{T}"/>.
+        /// An event which is raised when any items are added to this <see cref="BindableList{T}"/>.
         /// </summary>
         public event Action<IEnumerable<T>> ItemsAdded;
 
         /// <summary>
-        /// An event which is raised when any items are removed from this <see cref="BindableCollection{T}"/>.
+        /// An event which is raised when any items are removed from this <see cref="BindableList{T}"/>.
         /// </summary>
         public event Action<IEnumerable<T>> ItemsRemoved;
 
@@ -33,30 +33,30 @@ namespace osu.Framework.Configuration
         public event Action<bool> DisabledChanged;
 
         /// <summary>
-        /// Creates a new <see cref="BindableCollection{T}"/>, optionally adding the items of the given collection.
+        /// Creates a new <see cref="BindableList{T}"/>, optionally adding the items of the given collection.
         /// </summary>
-        /// <param name="items">The items that are going to be contained in the newly created <see cref="BindableCollection{T}"/>.</param>
-        public BindableCollection(IEnumerable<T> items = null)
+        /// <param name="items">The items that are going to be contained in the newly created <see cref="BindableList{T}"/>.</param>
+        public BindableList(IEnumerable<T> items = null)
         {
             if (items != null)
                 collection.AddRange(items);
 
             // we can not initialize this directly at the property due to the this capture.
-            weakReference = new WeakReference<BindableCollection<T>>(this);
+            weakReference = new WeakReference<BindableList<T>>(this);
         }
 
         /// <summary>
-        /// Gets or sets the item at an index in this <see cref="BindableCollection{T}"/>.
+        /// Gets or sets the item at an index in this <see cref="BindableList{T}"/>.
         /// </summary>
         /// <param name="index">The index of the item.</param>
-        /// <exception cref="InvalidOperationException">Thrown when setting a value while this <see cref="BindableCollection{T}"/> is <see cref="Disabled"/>.</exception>
+        /// <exception cref="InvalidOperationException">Thrown when setting a value while this <see cref="BindableList{T}"/> is <see cref="Disabled"/>.</exception>
         public T this[int index]
         {
             get => collection[index];
             set => setIndex(index, value, null);
         }
 
-        private void setIndex(int index, T item, BindableCollection<T> caller)
+        private void setIndex(int index, T item, BindableList<T> caller)
         {
             ensureMutationAllowed();
 
@@ -77,14 +77,14 @@ namespace osu.Framework.Configuration
         }
 
         /// <summary>
-        /// Adds a single item to this <see cref="BindableCollection{T}"/>.
+        /// Adds a single item to this <see cref="BindableList{T}"/>.
         /// </summary>
         /// <param name="item">The item to be added.</param>
-        /// <exception cref="InvalidOperationException">Thrown when this <see cref="BindableCollection{T}"/> is <see cref="Disabled"/>.</exception>
+        /// <exception cref="InvalidOperationException">Thrown when this <see cref="BindableList{T}"/> is <see cref="Disabled"/>.</exception>
         public void Add(T item)
             => add(item, null);
 
-        private void add(T item, BindableCollection<T> caller)
+        private void add(T item, BindableList<T> caller)
         {
             ensureMutationAllowed();
 
@@ -102,22 +102,22 @@ namespace osu.Framework.Configuration
         }
 
         /// <summary>
-        /// Retrieves the index of an item in this <see cref="BindableCollection{T}"/>.
+        /// Retrieves the index of an item in this <see cref="BindableList{T}"/>.
         /// </summary>
         /// <param name="item">The item to retrieve the index of.</param>
-        /// <returns>The index of the item, or -1 if the item isn't in this <see cref="BindableCollection{T}"/>.</returns>
+        /// <returns>The index of the item, or -1 if the item isn't in this <see cref="BindableList{T}"/>.</returns>
         public int IndexOf(T item) => collection.IndexOf(item);
 
         /// <summary>
-        /// Inserts an item at the specified index in this <see cref="BindableCollection{T}"/>.
+        /// Inserts an item at the specified index in this <see cref="BindableList{T}"/>.
         /// </summary>
         /// <param name="index">The index to insert at.</param>
         /// <param name="item">The item to insert.</param>
-        /// <exception cref="InvalidOperationException">Thrown when this <see cref="BindableCollection{T}"/> is <see cref="Disabled"/>.</exception>
+        /// <exception cref="InvalidOperationException">Thrown when this <see cref="BindableList{T}"/> is <see cref="Disabled"/>.</exception>
         public void Insert(int index, T item)
             => insert(index, item, null);
 
-        private void insert(int index, T item, BindableCollection<T> caller)
+        private void insert(int index, T item, BindableList<T> caller)
         {
             ensureMutationAllowed();
 
@@ -135,13 +135,13 @@ namespace osu.Framework.Configuration
         }
 
         /// <summary>
-        /// Clears the contents of this <see cref="BindableCollection{T}"/>.
+        /// Clears the contents of this <see cref="BindableList{T}"/>.
         /// </summary>
-        /// <exception cref="InvalidOperationException">Thrown when this <see cref="BindableCollection{T}"/> is <see cref="Disabled"/>.</exception>
+        /// <exception cref="InvalidOperationException">Thrown when this <see cref="BindableList{T}"/> is <see cref="Disabled"/>.</exception>
         public void Clear()
             => clear(null);
 
-        private void clear(BindableCollection<T> caller)
+        private void clear(BindableList<T> caller)
         {
             ensureMutationAllowed();
 
@@ -165,23 +165,23 @@ namespace osu.Framework.Configuration
         }
 
         /// <summary>
-        /// Determines if an item is in this <see cref="BindableCollection{T}"/>.
+        /// Determines if an item is in this <see cref="BindableList{T}"/>.
         /// </summary>
-        /// <param name="item">The item to locate in this <see cref="BindableCollection{T}"/>.</param>
-        /// <returns><code>true</code> if this <see cref="BindableCollection{T}"/> contains the given item.</returns>
+        /// <param name="item">The item to locate in this <see cref="BindableList{T}"/>.</param>
+        /// <returns><code>true</code> if this <see cref="BindableList{T}"/> contains the given item.</returns>
         public bool Contains(T item)
             => collection.Contains(item);
 
         /// <summary>
-        /// Removes an item from this <see cref="BindableCollection{T}"/>.
+        /// Removes an item from this <see cref="BindableList{T}"/>.
         /// </summary>
-        /// <param name="item">The item to remove from this <see cref="BindableCollection{T}"/>.</param>
+        /// <param name="item">The item to remove from this <see cref="BindableList{T}"/>.</param>
         /// <returns><code>true</code> if the removal was successful.</returns>
-        /// <exception cref="InvalidOperationException">Thrown if this <see cref="BindableCollection{T}"/> is <see cref="Disabled"/>.</exception>
+        /// <exception cref="InvalidOperationException">Thrown if this <see cref="BindableList{T}"/> is <see cref="Disabled"/>.</exception>
         public bool Remove(T item)
             => remove(item, null);
 
-        private bool remove(T item, BindableCollection<T> caller)
+        private bool remove(T item, BindableList<T> caller)
         {
             ensureMutationAllowed();
 
@@ -204,14 +204,14 @@ namespace osu.Framework.Configuration
         }
 
         /// <summary>
-        /// Removes an item at the specified index from this <see cref="BindableCollection{T}"/>.
+        /// Removes an item at the specified index from this <see cref="BindableList{T}"/>.
         /// </summary>
         /// <param name="index">The index of the item to remove.</param>
-        /// <exception cref="InvalidOperationException">Thrown if this <see cref="BindableCollection{T}"/> is <see cref="Disabled"/>.</exception>
+        /// <exception cref="InvalidOperationException">Thrown if this <see cref="BindableList{T}"/> is <see cref="Disabled"/>.</exception>
         public void RemoveAt(int index)
             => removeAt(index, null);
 
-        private void removeAt(int index, BindableCollection<T> caller)
+        private void removeAt(int index, BindableList<T> caller)
         {
             ensureMutationAllowed();
 
@@ -231,13 +231,13 @@ namespace osu.Framework.Configuration
         }
 
         /// <summary>
-        /// Removes all items from this <see cref="BindableCollection{T}"/> that match a predicate.
+        /// Removes all items from this <see cref="BindableList{T}"/> that match a predicate.
         /// </summary>
         /// <param name="match">The predicate.</param>
         public int RemoveAll(Predicate<T> match)
             => removeAll(match, null);
 
-        private int removeAll(Predicate<T> match, BindableCollection<T> caller)
+        private int removeAll(Predicate<T> match, BindableList<T> caller)
         {
             ensureMutationAllowed();
 
@@ -260,17 +260,17 @@ namespace osu.Framework.Configuration
         }
 
         /// <summary>
-        /// Copies the contents of this <see cref="BindableCollection{T}"/> to the given array, starting at the given index.
+        /// Copies the contents of this <see cref="BindableList{T}"/> to the given array, starting at the given index.
         /// </summary>
-        /// <param name="array">The array that is the destination of the items copied from this <see cref="BindableCollection{T}"/>.</param>
+        /// <param name="array">The array that is the destination of the items copied from this <see cref="BindableList{T}"/>.</param>
         /// <param name="arrayIndex">The index at which the copying begins.</param>
         public void CopyTo(T[] array, int arrayIndex)
             => collection.CopyTo(array, arrayIndex);
 
         /// <summary>
-        /// Copies the contents of this <see cref="BindableCollection{T}"/> to the given array, starting at the given index.
+        /// Copies the contents of this <see cref="BindableList{T}"/> to the given array, starting at the given index.
         /// </summary>
-        /// <param name="array">The array that is the destination of the items copied from this <see cref="BindableCollection{T}"/>.</param>
+        /// <param name="array">The array that is the destination of the items copied from this <see cref="BindableList{T}"/>.</param>
         /// <param name="index">The index at which the copying begins.</param>
         public void CopyTo(Array array, int index)
             => ((ICollection)collection).CopyTo(array, index);
@@ -284,10 +284,10 @@ namespace osu.Framework.Configuration
 
         /// <summary>
         /// Parse an object into this instance.
-        /// A collection holding items of type <typeparamref name="T"/> can be parsed. Null results in an empty <see cref="BindableCollection{T}"/>.
+        /// A collection holding items of type <typeparamref name="T"/> can be parsed. Null results in an empty <see cref="BindableList{T}"/>.
         /// </summary>
         /// <param name="input">The input which is to be parsed.</param>
-        /// <exception cref="InvalidOperationException">Thrown if this <see cref="BindableCollection{T}"/> is <see cref="Disabled"/>.</exception>
+        /// <exception cref="InvalidOperationException">Thrown if this <see cref="BindableList{T}"/> is <see cref="Disabled"/>.</exception>
         public void Parse(object input)
         {
             ensureMutationAllowed();
@@ -313,7 +313,7 @@ namespace osu.Framework.Configuration
         private bool disabled;
 
         /// <summary>
-        /// Whether this <see cref="BindableCollection{T}"/> has been disabled. When disabled, attempting to change the contents of this <see cref="BindableCollection{T}"/> will result in an <see cref="InvalidOperationException"/>.
+        /// Whether this <see cref="BindableList{T}"/> has been disabled. When disabled, attempting to change the contents of this <see cref="BindableList{T}"/> will result in an <see cref="InvalidOperationException"/>.
         /// </summary>
         public bool Disabled
         {
@@ -373,14 +373,14 @@ namespace osu.Framework.Configuration
 
         public void UnbindFrom(IUnbindable them)
         {
-            if (!(them is BindableCollection<T> tThem))
+            if (!(them is BindableList<T> tThem))
                 throw new InvalidCastException($"Can't unbind a bindable of type {them.GetType()} from a bindable of type {GetType()}.");
 
             removeWeakReference(tThem.weakReference);
             tThem.removeWeakReference(weakReference);
         }
 
-        private void unbind(BindableCollection<T> binding)
+        private void unbind(BindableList<T> binding)
             => bindings.Remove(binding.weakReference);
 
         #endregion IUnbindable
@@ -394,14 +394,14 @@ namespace osu.Framework.Configuration
         #region IBindableCollection
 
         /// <summary>
-        /// Adds a collection of items to this <see cref="BindableCollection{T}"/>.
+        /// Adds a collection of items to this <see cref="BindableList{T}"/>.
         /// </summary>
         /// <param name="items">The collection whose items should be added to this collection.</param>
         /// <exception cref="InvalidOperationException">is beeing thrown if this collection is <see cref="Disabled"/></exception>
         public void AddRange(IEnumerable<T> items)
             => addRange(items, null);
 
-        private void addRange(IEnumerable<T> items, BindableCollection<T> caller)
+        private void addRange(IEnumerable<T> items, BindableList<T> caller)
         {
             ensureMutationAllowed();
 
@@ -418,19 +418,19 @@ namespace osu.Framework.Configuration
             ItemsAdded?.Invoke(items);
         }
 
-        void IBindableCollection<T>.BindTo(IBindableCollection<T> them)
+        void IBindableList<T>.BindTo(IBindableList<T> them)
         {
-            if (!(them is BindableCollection<T> tThem))
+            if (!(them is BindableList<T> tThem))
                 throw new InvalidCastException($"Can't bind to a bindable of type {them.GetType()} from a bindable of type {GetType()}.");
 
             BindTo(tThem);
         }
 
         /// <summary>
-        /// Binds this <see cref="BindableCollection{T}"/> to another.
+        /// Binds this <see cref="BindableList{T}"/> to another.
         /// </summary>
-        /// <param name="them">The <see cref="BindableCollection{T}"/> to be bound to.</param>
-        public void BindTo(BindableCollection<T> them)
+        /// <param name="them">The <see cref="BindableList{T}"/> to be bound to.</param>
+        public void BindTo(BindableList<T> them)
         {
             if (them == null)
                 throw new ArgumentNullException(nameof(them));
@@ -447,26 +447,26 @@ namespace osu.Framework.Configuration
             them.addWeakReference(weakReference);
         }
 
-        private void addWeakReference(WeakReference<BindableCollection<T>> weakReference)
+        private void addWeakReference(WeakReference<BindableList<T>> weakReference)
         {
             if (bindings == null)
-                bindings = new WeakList<BindableCollection<T>>();
+                bindings = new WeakList<BindableList<T>>();
 
             bindings.Add(weakReference);
         }
 
-        private void removeWeakReference(WeakReference<BindableCollection<T>> weakReference) => bindings?.Remove(weakReference);
+        private void removeWeakReference(WeakReference<BindableList<T>> weakReference) => bindings?.Remove(weakReference);
 
-        IBindableCollection<T> IBindableCollection<T>.GetBoundCopy()
+        IBindableList<T> IBindableList<T>.GetBoundCopy()
             => GetBoundCopy();
 
         /// <summary>
-        /// Create a new instance of <see cref="BindableCollection{T}"/> and binds it to this instance.
+        /// Create a new instance of <see cref="BindableList{T}"/> and binds it to this instance.
         /// </summary>
         /// <returns>The created instace.</returns>
-        public BindableCollection<T> GetBoundCopy()
+        public BindableList<T> GetBoundCopy()
         {
-            var copy = (BindableCollection<T>)Activator.CreateInstance(GetType(), new object[] { null });
+            var copy = (BindableList<T>)Activator.CreateInstance(GetType(), new object[] { null });
             copy.BindTo(this);
             return copy;
         }
@@ -486,7 +486,7 @@ namespace osu.Framework.Configuration
         private void ensureMutationAllowed()
         {
             if (Disabled)
-                throw new InvalidOperationException($"Cannot mutate the {nameof(BindableCollection<T>)} while it is disabled.");
+                throw new InvalidOperationException($"Cannot mutate the {nameof(BindableList<T>)} while it is disabled.");
         }
     }
 }

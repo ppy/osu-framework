@@ -12,12 +12,12 @@ namespace osu.Framework.Tests.Bindables
     [TestFixture]
     public class BindableCollectionTest
     {
-        private BindableCollection<string> bindableStringCollection;
+        private BindableList<string> bindableStringList;
 
         [SetUp]
         public void SetUp()
         {
-            bindableStringCollection = new BindableCollection<string>();
+            bindableStringList = new BindableList<string>();
         }
 
         #region Constructor
@@ -25,7 +25,7 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestConstructorDoesNotAddItemsByDefault()
         {
-            Assert.IsEmpty(bindableStringCollection);
+            Assert.IsEmpty(bindableStringList);
         }
 
         [Test]
@@ -36,7 +36,7 @@ namespace osu.Framework.Tests.Bindables
                 "ok", "nope", "random", null, ""
             };
 
-            var bindableCollection = new BindableCollection<string>(array);
+            var bindableCollection = new BindableList<string>(array);
 
             Assert.Multiple(() =>
             {
@@ -54,53 +54,53 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestGetRetrievesObjectAtIndex()
         {
-            bindableStringCollection.Add("0");
-            bindableStringCollection.Add("1");
-            bindableStringCollection.Add("2");
+            bindableStringList.Add("0");
+            bindableStringList.Add("1");
+            bindableStringList.Add("2");
 
-            Assert.AreEqual("1", bindableStringCollection[1]);
+            Assert.AreEqual("1", bindableStringList[1]);
         }
 
         [Test]
         public void TestSetMutatesObjectAtIndex()
         {
-            bindableStringCollection.Add("0");
-            bindableStringCollection.Add("1");
-            bindableStringCollection[1] = "2";
+            bindableStringList.Add("0");
+            bindableStringList.Add("1");
+            bindableStringList[1] = "2";
 
-            Assert.AreEqual("2", bindableStringCollection[1]);
+            Assert.AreEqual("2", bindableStringList[1]);
         }
 
         [Test]
         public void TestGetWhileDisabledDoesNotThrowInvalidOperationException()
         {
-            bindableStringCollection.Add("0");
-            bindableStringCollection.Disabled = true;
+            bindableStringList.Add("0");
+            bindableStringList.Disabled = true;
 
-            Assert.AreEqual("0", bindableStringCollection[0]);
+            Assert.AreEqual("0", bindableStringList[0]);
         }
 
         [Test]
         public void TestSetWhileDisabledThrowsInvalidOperationException()
         {
-            bindableStringCollection.Add("0");
-            bindableStringCollection.Disabled = true;
+            bindableStringList.Add("0");
+            bindableStringList.Disabled = true;
 
-            Assert.Throws<InvalidOperationException>(() => bindableStringCollection[0] = "1");
+            Assert.Throws<InvalidOperationException>(() => bindableStringList[0] = "1");
         }
 
         [Test]
         public void TestSetNotifiesSubscribers()
         {
-            bindableStringCollection.Add("0");
+            bindableStringList.Add("0");
 
             IEnumerable<string> addedItem = null;
             IEnumerable<string> removedItem = null;
 
-            bindableStringCollection.ItemsAdded += v => addedItem = v;
-            bindableStringCollection.ItemsRemoved += v => removedItem = v;
+            bindableStringList.ItemsAdded += v => addedItem = v;
+            bindableStringList.ItemsRemoved += v => removedItem = v;
 
-            bindableStringCollection[0] = "1";
+            bindableStringList[0] = "1";
 
             Assert.AreEqual(removedItem.Single(), "0");
             Assert.AreEqual(addedItem.Single(), "1");
@@ -109,17 +109,17 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestSetNotifiesBoundCollections()
         {
-            bindableStringCollection.Add("0");
+            bindableStringList.Add("0");
 
             IEnumerable<string> addedItem = null;
             IEnumerable<string> removedItem = null;
 
-            var collection = new BindableCollection<string>();
-            collection.BindTo(bindableStringCollection);
+            var collection = new BindableList<string>();
+            collection.BindTo(bindableStringList);
             collection.ItemsAdded += v => addedItem = v;
             collection.ItemsRemoved += v => removedItem = v;
 
-            bindableStringCollection[0] = "1";
+            bindableStringList[0] = "1";
 
             Assert.AreEqual(removedItem.Single(), "0");
             Assert.AreEqual(addedItem.Single(), "1");
@@ -134,9 +134,9 @@ namespace osu.Framework.Tests.Bindables
         [TestCase(null)]
         public void TestAddWithStringAddsStringToEnumerator(string str)
         {
-            bindableStringCollection.Add(str);
+            bindableStringList.Add(str);
 
-            Assert.Contains(str, bindableStringCollection);
+            Assert.Contains(str, bindableStringList);
         }
 
         [TestCase("a random string")]
@@ -145,9 +145,9 @@ namespace osu.Framework.Tests.Bindables
         public void TestAddWithStringNotifiesSubscriber(string str)
         {
             string addedString = null;
-            bindableStringCollection.ItemsAdded += s => addedString = s.SingleOrDefault();
+            bindableStringList.ItemsAdded += s => addedString = s.SingleOrDefault();
 
-            bindableStringCollection.Add(str);
+            bindableStringList.Add(str);
 
             Assert.AreEqual(str, addedString);
         }
@@ -158,9 +158,9 @@ namespace osu.Framework.Tests.Bindables
         public void TestAddWithStringNotifiesSubscriberOnce(string str)
         {
             int notificationCount = 0;
-            bindableStringCollection.ItemsAdded += s => notificationCount++;
+            bindableStringList.ItemsAdded += s => notificationCount++;
 
-            bindableStringCollection.Add(str);
+            bindableStringList.Add(str);
 
             Assert.AreEqual(1, notificationCount);
         }
@@ -173,11 +173,11 @@ namespace osu.Framework.Tests.Bindables
             bool subscriberANotified = false;
             bool subscriberBNotified = false;
             bool subscriberCNotified = false;
-            bindableStringCollection.ItemsAdded += s => subscriberANotified = true;
-            bindableStringCollection.ItemsAdded += s => subscriberBNotified = true;
-            bindableStringCollection.ItemsAdded += s => subscriberCNotified = true;
+            bindableStringList.ItemsAdded += s => subscriberANotified = true;
+            bindableStringList.ItemsAdded += s => subscriberBNotified = true;
+            bindableStringList.ItemsAdded += s => subscriberCNotified = true;
 
-            bindableStringCollection.Add(str);
+            bindableStringList.Add(str);
 
             Assert.IsTrue(subscriberANotified);
             Assert.IsTrue(subscriberBNotified);
@@ -192,15 +192,15 @@ namespace osu.Framework.Tests.Bindables
             bool subscriberANotified = false;
             bool subscriberBNotified = false;
             bool subscriberCNotified = false;
-            bindableStringCollection.ItemsAdded += s => subscriberANotified = true;
-            bindableStringCollection.ItemsAdded += s => subscriberBNotified = true;
-            bindableStringCollection.ItemsAdded += s => subscriberCNotified = true;
+            bindableStringList.ItemsAdded += s => subscriberANotified = true;
+            bindableStringList.ItemsAdded += s => subscriberBNotified = true;
+            bindableStringList.ItemsAdded += s => subscriberCNotified = true;
 
             Assert.IsFalse(subscriberANotified);
             Assert.IsFalse(subscriberBNotified);
             Assert.IsFalse(subscriberCNotified);
 
-            bindableStringCollection.Add(str);
+            bindableStringList.Add(str);
         }
 
         [TestCase("a random string")]
@@ -208,10 +208,10 @@ namespace osu.Framework.Tests.Bindables
         [TestCase(null)]
         public void TestAddWithStringNotifiesBoundCollection(string str)
         {
-            var collection = new BindableCollection<string>();
-            collection.BindTo(bindableStringCollection);
+            var collection = new BindableList<string>();
+            collection.BindTo(bindableStringList);
 
-            bindableStringCollection.Add(str);
+            bindableStringList.Add(str);
 
             Assert.Contains(str, collection);
         }
@@ -221,14 +221,14 @@ namespace osu.Framework.Tests.Bindables
         [TestCase(null)]
         public void TestAddWithStringNotifiesBoundCollections(string str)
         {
-            var collectionA = new BindableCollection<string>();
-            var collectionB = new BindableCollection<string>();
-            var collectionC = new BindableCollection<string>();
-            collectionA.BindTo(bindableStringCollection);
-            collectionB.BindTo(bindableStringCollection);
-            collectionC.BindTo(bindableStringCollection);
+            var collectionA = new BindableList<string>();
+            var collectionB = new BindableList<string>();
+            var collectionC = new BindableList<string>();
+            collectionA.BindTo(bindableStringList);
+            collectionB.BindTo(bindableStringList);
+            collectionC.BindTo(bindableStringList);
 
-            bindableStringCollection.Add(str);
+            bindableStringList.Add(str);
 
             Assert.Contains(str, collectionA);
             Assert.Contains(str, collectionB);
@@ -240,11 +240,11 @@ namespace osu.Framework.Tests.Bindables
         [TestCase(null)]
         public void TestAddWithDisabledCollectionThrowsInvalidOperationException(string str)
         {
-            bindableStringCollection.Disabled = true;
+            bindableStringList.Disabled = true;
 
             Assert.Throws<InvalidOperationException>(() =>
             {
-                bindableStringCollection.Add(str);
+                bindableStringList.Add(str);
             });
         }
 
@@ -254,11 +254,11 @@ namespace osu.Framework.Tests.Bindables
         public void TestAddWithCollectionContainingItemsDoesNotOverrideItems(string str)
         {
             const string item = "existing string";
-            bindableStringCollection.Add(item);
+            bindableStringList.Add(item);
 
-            bindableStringCollection.Add(str);
+            bindableStringList.Add(str);
 
-            Assert.Contains(item, bindableStringCollection);
+            Assert.Contains(item, bindableStringList);
         }
 
         #endregion
@@ -273,12 +273,12 @@ namespace osu.Framework.Tests.Bindables
                 "A", "B", "C", "D"
             };
 
-            bindableStringCollection.AddRange(items);
+            bindableStringList.AddRange(items);
 
             Assert.Multiple(() =>
             {
                 foreach (string item in items)
-                    Assert.Contains(item, bindableStringCollection);
+                    Assert.Contains(item, bindableStringList);
             });
         }
 
@@ -286,12 +286,12 @@ namespace osu.Framework.Tests.Bindables
         public void TestAddRangeNotifiesBoundCollections()
         {
             string[] items = { "test1", "test2", "test3" };
-            var collection = new BindableCollection<string>();
-            bindableStringCollection.BindTo(collection);
+            var collection = new BindableList<string>();
+            bindableStringList.BindTo(collection);
             IEnumerable<string> addedItems = null;
             collection.ItemsAdded += e => addedItems = e;
 
-            bindableStringCollection.AddRange(items);
+            bindableStringList.AddRange(items);
 
             Assert.Multiple(() =>
             {
@@ -308,29 +308,29 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestInsertInsertsItemAtIndex()
         {
-            bindableStringCollection.Add("0");
-            bindableStringCollection.Add("2");
+            bindableStringList.Add("0");
+            bindableStringList.Add("2");
 
-            bindableStringCollection.Insert(1, "1");
+            bindableStringList.Insert(1, "1");
 
             Assert.Multiple(() =>
             {
-                Assert.AreEqual("0", bindableStringCollection[0]);
-                Assert.AreEqual("1", bindableStringCollection[1]);
-                Assert.AreEqual("2", bindableStringCollection[2]);
+                Assert.AreEqual("0", bindableStringList[0]);
+                Assert.AreEqual("1", bindableStringList[1]);
+                Assert.AreEqual("2", bindableStringList[2]);
             });
         }
 
         [Test]
         public void TestInsertNotifiesSubscribers()
         {
-            bindableStringCollection.Add("0");
-            bindableStringCollection.Add("2");
+            bindableStringList.Add("0");
+            bindableStringList.Add("2");
 
             bool wasAdded = false;
-            bindableStringCollection.ItemsAdded += _ => wasAdded = true;
+            bindableStringList.ItemsAdded += _ => wasAdded = true;
 
-            bindableStringCollection.Insert(1, "1");
+            bindableStringList.Insert(1, "1");
 
             Assert.IsTrue(wasAdded);
         }
@@ -338,16 +338,16 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestInsertNotifiesBoundCollections()
         {
-            bindableStringCollection.Add("0");
-            bindableStringCollection.Add("2");
+            bindableStringList.Add("0");
+            bindableStringList.Add("2");
 
             bool wasAdded = false;
 
-            var collection = new BindableCollection<string>();
-            collection.BindTo(bindableStringCollection);
+            var collection = new BindableList<string>();
+            collection.BindTo(bindableStringList);
             collection.ItemsAdded += _ => wasAdded = true;
 
-            bindableStringCollection.Insert(1, "1");
+            bindableStringList.Insert(1, "1");
 
             Assert.IsTrue(wasAdded);
         }
@@ -355,13 +355,13 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestInsertInsertsItemAtIndexInBoundCollection()
         {
-            bindableStringCollection.Add("0");
-            bindableStringCollection.Add("2");
+            bindableStringList.Add("0");
+            bindableStringList.Add("2");
 
-            var collection = new BindableCollection<string>();
-            collection.BindTo(bindableStringCollection);
+            var collection = new BindableList<string>();
+            collection.BindTo(bindableStringList);
 
-            bindableStringCollection.Insert(1, "1");
+            bindableStringList.Insert(1, "1");
 
             Assert.Multiple(() =>
             {
@@ -379,16 +379,16 @@ namespace osu.Framework.Tests.Bindables
         public void TestRemoveWithDisabledCollectionThrowsInvalidOperationException()
         {
             const string item = "hi";
-            bindableStringCollection.Add(item);
-            bindableStringCollection.Disabled = true;
+            bindableStringList.Add(item);
+            bindableStringList.Disabled = true;
 
-            Assert.Throws(typeof(InvalidOperationException), () => bindableStringCollection.Remove(item));
+            Assert.Throws(typeof(InvalidOperationException), () => bindableStringList.Remove(item));
         }
 
         [Test]
         public void TestRemoveWithAnItemThatIsNotInTheCollectionReturnsFalse()
         {
-            bool gotRemoved = bindableStringCollection.Remove("hm");
+            bool gotRemoved = bindableStringList.Remove("hm");
 
             Assert.IsFalse(gotRemoved);
         }
@@ -397,19 +397,19 @@ namespace osu.Framework.Tests.Bindables
         public void TestRemoveWhenCollectionIsDisabledThrowsInvalidOperationException()
         {
             const string item = "item";
-            bindableStringCollection.Add(item);
-            bindableStringCollection.Disabled = true;
+            bindableStringList.Add(item);
+            bindableStringList.Disabled = true;
 
-            Assert.Throws<InvalidOperationException>(() => { bindableStringCollection.Remove(item); });
+            Assert.Throws<InvalidOperationException>(() => { bindableStringList.Remove(item); });
         }
 
         [Test]
         public void TestRemoveWithAnItemThatIsInTheCollectionReturnsTrue()
         {
             const string item = "item";
-            bindableStringCollection.Add(item);
+            bindableStringList.Add(item);
 
-            bool gotRemoved = bindableStringCollection.Remove(item);
+            bool gotRemoved = bindableStringList.Remove(item);
 
             Assert.IsTrue(gotRemoved);
         }
@@ -418,11 +418,11 @@ namespace osu.Framework.Tests.Bindables
         public void TestRemoveNotifiesSubscriber()
         {
             const string item = "item";
-            bindableStringCollection.Add(item);
+            bindableStringList.Add(item);
             bool updated = false;
-            bindableStringCollection.ItemsRemoved += s => updated = true;
+            bindableStringList.ItemsRemoved += s => updated = true;
 
-            bindableStringCollection.Remove(item);
+            bindableStringList.Remove(item);
 
             Assert.True(updated);
         }
@@ -431,15 +431,15 @@ namespace osu.Framework.Tests.Bindables
         public void TestRemoveNotifiesSubscribers()
         {
             const string item = "item";
-            bindableStringCollection.Add(item);
+            bindableStringList.Add(item);
             bool updatedA = false;
             bool updatedB = false;
             bool updatedC = false;
-            bindableStringCollection.ItemsRemoved += s => updatedA = true;
-            bindableStringCollection.ItemsRemoved += s => updatedB = true;
-            bindableStringCollection.ItemsRemoved += s => updatedC = true;
+            bindableStringList.ItemsRemoved += s => updatedA = true;
+            bindableStringList.ItemsRemoved += s => updatedB = true;
+            bindableStringList.ItemsRemoved += s => updatedC = true;
 
-            bindableStringCollection.Remove(item);
+            bindableStringList.Remove(item);
 
             Assert.Multiple(() =>
             {
@@ -453,11 +453,11 @@ namespace osu.Framework.Tests.Bindables
         public void TestRemoveNotifiesBoundCollection()
         {
             const string item = "item";
-            bindableStringCollection.Add(item);
-            var collection = new BindableCollection<string>();
-            collection.BindTo(bindableStringCollection);
+            bindableStringList.Add(item);
+            var collection = new BindableList<string>();
+            collection.BindTo(bindableStringList);
 
-            bindableStringCollection.Remove(item);
+            bindableStringList.Remove(item);
 
             Assert.IsEmpty(collection);
         }
@@ -466,15 +466,15 @@ namespace osu.Framework.Tests.Bindables
         public void TestRemoveNotifiesBoundCollections()
         {
             const string item = "item";
-            bindableStringCollection.Add(item);
-            var collectionA = new BindableCollection<string>();
-            collectionA.BindTo(bindableStringCollection);
-            var collectionB = new BindableCollection<string>();
-            collectionB.BindTo(bindableStringCollection);
-            var collectionC = new BindableCollection<string>();
-            collectionC.BindTo(bindableStringCollection);
+            bindableStringList.Add(item);
+            var collectionA = new BindableList<string>();
+            collectionA.BindTo(bindableStringList);
+            var collectionB = new BindableList<string>();
+            collectionB.BindTo(bindableStringList);
+            var collectionC = new BindableList<string>();
+            collectionC.BindTo(bindableStringList);
 
-            bindableStringCollection.Remove(item);
+            bindableStringList.Remove(item);
 
             Assert.Multiple(() =>
             {
@@ -488,13 +488,13 @@ namespace osu.Framework.Tests.Bindables
         public void TestRemoveNotifiesBoundCollectionSubscription()
         {
             const string item = "item";
-            bindableStringCollection.Add(item);
-            var collection = new BindableCollection<string>();
-            collection.BindTo(bindableStringCollection);
+            bindableStringList.Add(item);
+            var collection = new BindableList<string>();
+            collection.BindTo(bindableStringList);
             bool wasRemoved = false;
             collection.ItemsRemoved += s => wasRemoved = true;
 
-            bindableStringCollection.Remove(item);
+            bindableStringList.Remove(item);
 
             Assert.True(wasRemoved);
         }
@@ -503,21 +503,21 @@ namespace osu.Framework.Tests.Bindables
         public void TestRemoveNotifiesBoundCollectionSubscriptions()
         {
             const string item = "item";
-            bindableStringCollection.Add(item);
-            var collectionA = new BindableCollection<string>();
-            collectionA.BindTo(bindableStringCollection);
+            bindableStringList.Add(item);
+            var collectionA = new BindableList<string>();
+            collectionA.BindTo(bindableStringList);
             bool wasRemovedA1 = false;
             bool wasRemovedA2 = false;
             collectionA.ItemsRemoved += s => wasRemovedA1 = true;
             collectionA.ItemsRemoved += s => wasRemovedA2 = true;
-            var collectionB = new BindableCollection<string>();
-            collectionB.BindTo(bindableStringCollection);
+            var collectionB = new BindableList<string>();
+            collectionB.BindTo(bindableStringList);
             bool wasRemovedB1 = false;
             bool wasRemovedB2 = false;
             collectionB.ItemsRemoved += s => wasRemovedB1 = true;
             collectionB.ItemsRemoved += s => wasRemovedB2 = true;
 
-            bindableStringCollection.Remove(item);
+            bindableStringList.Remove(item);
 
             Assert.Multiple(() =>
             {
@@ -532,7 +532,7 @@ namespace osu.Framework.Tests.Bindables
         public void TestRemoveDoesNotNotifySuBeforeItemIsRemoved()
         {
             const string item = "item";
-            bindableStringCollection.Add(item);
+            bindableStringList.Add(item);
         }
 
         #endregion
@@ -542,23 +542,23 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestRemoveAtRemovesItemAtIndex()
         {
-            bindableStringCollection.Add("0");
-            bindableStringCollection.Add("1");
-            bindableStringCollection.Add("2");
+            bindableStringList.Add("0");
+            bindableStringList.Add("1");
+            bindableStringList.Add("2");
 
-            bindableStringCollection.RemoveAt(1);
+            bindableStringList.RemoveAt(1);
 
-            Assert.AreEqual("0", bindableStringCollection[0]);
-            Assert.AreEqual("2", bindableStringCollection[1]);
+            Assert.AreEqual("0", bindableStringList[0]);
+            Assert.AreEqual("2", bindableStringList[1]);
         }
 
         [Test]
         public void TestRemoveAtWithDisabledCollectionThrowsInvalidOperationException()
         {
-            bindableStringCollection.Add("abc");
-            bindableStringCollection.Disabled = true;
+            bindableStringList.Add("abc");
+            bindableStringList.Disabled = true;
 
-            Assert.Throws<InvalidOperationException>(() => bindableStringCollection.RemoveAt(0));
+            Assert.Throws<InvalidOperationException>(() => bindableStringList.RemoveAt(0));
         }
 
         [Test]
@@ -566,10 +566,10 @@ namespace osu.Framework.Tests.Bindables
         {
             bool wasRemoved = false;
 
-            bindableStringCollection.Add("abc");
-            bindableStringCollection.ItemsRemoved += _ => wasRemoved = true;
+            bindableStringList.Add("abc");
+            bindableStringList.ItemsRemoved += _ => wasRemoved = true;
 
-            bindableStringCollection.RemoveAt(0);
+            bindableStringList.RemoveAt(0);
 
             Assert.IsTrue(wasRemoved);
         }
@@ -577,15 +577,15 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestRemoveAtNotifiesBoundCollections()
         {
-            bindableStringCollection.Add("abc");
+            bindableStringList.Add("abc");
 
             bool wasRemoved = false;
 
-            var collection = new BindableCollection<string>();
-            collection.BindTo(bindableStringCollection);
+            var collection = new BindableList<string>();
+            collection.BindTo(bindableStringList);
             collection.ItemsRemoved += s => wasRemoved = true;
 
-            bindableStringCollection.RemoveAt(0);
+            bindableStringList.RemoveAt(0);
 
             Assert.IsTrue(wasRemoved);
         }
@@ -597,31 +597,31 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestRemoveAllRemovesMatchingElements()
         {
-            bindableStringCollection.Add("0");
-            bindableStringCollection.Add("0");
-            bindableStringCollection.Add("0");
-            bindableStringCollection.Add("1");
-            bindableStringCollection.Add("2");
+            bindableStringList.Add("0");
+            bindableStringList.Add("0");
+            bindableStringList.Add("0");
+            bindableStringList.Add("1");
+            bindableStringList.Add("2");
 
-            bindableStringCollection.RemoveAll(m => m == "0");
+            bindableStringList.RemoveAll(m => m == "0");
 
-            Assert.AreEqual(2, bindableStringCollection.Count);
+            Assert.AreEqual(2, bindableStringList.Count);
             Assert.Multiple(() =>
             {
-                Assert.AreEqual("1", bindableStringCollection[0]);
-                Assert.AreEqual("2", bindableStringCollection[1]);
+                Assert.AreEqual("1", bindableStringList[0]);
+                Assert.AreEqual("2", bindableStringList[1]);
             });
         }
 
         [Test]
         public void TestRemoveAllNotifiesSubscribers()
         {
-            bindableStringCollection.Add("0");
-            bindableStringCollection.Add("0");
+            bindableStringList.Add("0");
+            bindableStringList.Add("0");
 
             List<string> itemsRemoved = null;
-            bindableStringCollection.ItemsRemoved += i => itemsRemoved = i.ToList();
-            bindableStringCollection.RemoveAll(m => m == "0");
+            bindableStringList.ItemsRemoved += i => itemsRemoved = i.ToList();
+            bindableStringList.RemoveAll(m => m == "0");
 
             Assert.AreEqual(2, itemsRemoved.Count);
         }
@@ -629,15 +629,15 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestRemoveAllNotifiesBoundCollections()
         {
-            bindableStringCollection.Add("0");
-            bindableStringCollection.Add("0");
+            bindableStringList.Add("0");
+            bindableStringList.Add("0");
 
             List<string> itemsRemoved = null;
-            var collection = new BindableCollection<string>();
-            collection.BindTo(bindableStringCollection);
+            var collection = new BindableList<string>();
+            collection.BindTo(bindableStringList);
             collection.ItemsRemoved += i => itemsRemoved = i.ToList();
 
-            bindableStringCollection.RemoveAll(m => m == "0");
+            bindableStringList.RemoveAll(m => m == "0");
 
             Assert.AreEqual(2, itemsRemoved.Count);
         }
@@ -650,51 +650,51 @@ namespace osu.Framework.Tests.Bindables
         public void TestClear()
         {
             for (int i = 0; i < 5; i++)
-                bindableStringCollection.Add("testA");
+                bindableStringList.Add("testA");
 
-            bindableStringCollection.Clear();
+            bindableStringList.Clear();
 
-            Assert.IsEmpty(bindableStringCollection);
+            Assert.IsEmpty(bindableStringList);
         }
 
         [Test]
         public void TestClearWithDisabledCollectionThrowsInvalidOperationException()
         {
             for (int i = 0; i < 5; i++)
-                bindableStringCollection.Add("testA");
-            bindableStringCollection.Disabled = true;
+                bindableStringList.Add("testA");
+            bindableStringList.Disabled = true;
 
-            Assert.Throws(typeof(InvalidOperationException), () => bindableStringCollection.Clear());
+            Assert.Throws(typeof(InvalidOperationException), () => bindableStringList.Clear());
         }
 
         [Test]
         public void TestClearWithEmptyDisabledCollectionThrowsInvalidOperationException()
         {
-            bindableStringCollection.Disabled = true;
+            bindableStringList.Disabled = true;
 
-            Assert.Throws(typeof(InvalidOperationException), () => bindableStringCollection.Clear());
+            Assert.Throws(typeof(InvalidOperationException), () => bindableStringList.Clear());
         }
 
         [Test]
         public void TestClearUpdatesCountProperty()
         {
             for (int i = 0; i < 5; i++)
-                bindableStringCollection.Add("testA");
+                bindableStringList.Add("testA");
 
-            bindableStringCollection.Clear();
+            bindableStringList.Clear();
 
-            Assert.AreEqual(0, bindableStringCollection.Count);
+            Assert.AreEqual(0, bindableStringList.Count);
         }
 
         [Test]
         public void TestClearNotifiesSubscriber()
         {
             for (int i = 0; i < 5; i++)
-                bindableStringCollection.Add("testA");
+                bindableStringList.Add("testA");
             bool wasNotified = false;
-            bindableStringCollection.ItemsRemoved += items => wasNotified = true;
+            bindableStringList.ItemsRemoved += items => wasNotified = true;
 
-            bindableStringCollection.Clear();
+            bindableStringList.Clear();
 
             Assert.IsTrue(wasNotified);
         }
@@ -703,28 +703,28 @@ namespace osu.Framework.Tests.Bindables
         public void TestClearDoesNotNotifySubscriberBeforeClear()
         {
             bool wasNotified = false;
-            bindableStringCollection.ItemsRemoved += items => wasNotified = true;
+            bindableStringList.ItemsRemoved += items => wasNotified = true;
             for (int i = 0; i < 5; i++)
-                bindableStringCollection.Add("testA");
+                bindableStringList.Add("testA");
 
             Assert.IsFalse(wasNotified);
 
-            bindableStringCollection.Clear();
+            bindableStringList.Clear();
         }
 
         [Test]
         public void TestClearNotifiesSubscribers()
         {
             for (int i = 0; i < 5; i++)
-                bindableStringCollection.Add("testA");
+                bindableStringList.Add("testA");
             bool wasNotifiedA = false;
-            bindableStringCollection.ItemsRemoved += items => wasNotifiedA = true;
+            bindableStringList.ItemsRemoved += items => wasNotifiedA = true;
             bool wasNotifiedB = false;
-            bindableStringCollection.ItemsRemoved += items => wasNotifiedB = true;
+            bindableStringList.ItemsRemoved += items => wasNotifiedB = true;
             bool wasNotifiedC = false;
-            bindableStringCollection.ItemsRemoved += items => wasNotifiedC = true;
+            bindableStringList.ItemsRemoved += items => wasNotifiedC = true;
 
-            bindableStringCollection.Clear();
+            bindableStringList.Clear();
 
             Assert.Multiple(() =>
             {
@@ -737,14 +737,14 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestClearNotifiesBoundBindable()
         {
-            var bindableCollection = new BindableCollection<string>();
-            bindableCollection.BindTo(bindableStringCollection);
+            var bindableCollection = new BindableList<string>();
+            bindableCollection.BindTo(bindableStringList);
             for (int i = 0; i < 5; i++)
-                bindableStringCollection.Add("testA");
+                bindableStringList.Add("testA");
             for (int i = 0; i < 5; i++)
                 bindableCollection.Add("testA");
 
-            bindableStringCollection.Clear();
+            bindableStringList.Clear();
 
             Assert.IsEmpty(bindableCollection);
         }
@@ -752,14 +752,14 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestClearNotifiesBoundBindables()
         {
-            var bindableCollectionA = new BindableCollection<string>();
-            bindableCollectionA.BindTo(bindableStringCollection);
-            var bindableCollectionB = new BindableCollection<string>();
-            bindableCollectionB.BindTo(bindableStringCollection);
-            var bindableCollectionC = new BindableCollection<string>();
-            bindableCollectionC.BindTo(bindableStringCollection);
+            var bindableCollectionA = new BindableList<string>();
+            bindableCollectionA.BindTo(bindableStringList);
+            var bindableCollectionB = new BindableList<string>();
+            bindableCollectionB.BindTo(bindableStringList);
+            var bindableCollectionC = new BindableList<string>();
+            bindableCollectionC.BindTo(bindableStringList);
             for (int i = 0; i < 5; i++)
-                bindableStringCollection.Add("testA");
+                bindableStringList.Add("testA");
             for (int i = 0; i < 5; i++)
                 bindableCollectionA.Add("testA");
             for (int i = 0; i < 5; i++)
@@ -767,7 +767,7 @@ namespace osu.Framework.Tests.Bindables
             for (int i = 0; i < 5; i++)
                 bindableCollectionC.Add("testA");
 
-            bindableStringCollection.Clear();
+            bindableStringList.Clear();
 
             Assert.Multiple(() =>
             {
@@ -780,14 +780,14 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestClearDoesNotNotifyBoundBindablesBeforeClear()
         {
-            var bindableCollectionA = new BindableCollection<string>();
-            bindableCollectionA.BindTo(bindableStringCollection);
-            var bindableCollectionB = new BindableCollection<string>();
-            bindableCollectionB.BindTo(bindableStringCollection);
-            var bindableCollectionC = new BindableCollection<string>();
-            bindableCollectionC.BindTo(bindableStringCollection);
+            var bindableCollectionA = new BindableList<string>();
+            bindableCollectionA.BindTo(bindableStringList);
+            var bindableCollectionB = new BindableList<string>();
+            bindableCollectionB.BindTo(bindableStringList);
+            var bindableCollectionC = new BindableList<string>();
+            bindableCollectionC.BindTo(bindableStringList);
             for (int i = 0; i < 5; i++)
-                bindableStringCollection.Add("testA");
+                bindableStringList.Add("testA");
             for (int i = 0; i < 5; i++)
                 bindableCollectionA.Add("testA");
             for (int i = 0; i < 5; i++)
@@ -802,7 +802,7 @@ namespace osu.Framework.Tests.Bindables
                 Assert.IsNotEmpty(bindableCollectionC);
             });
 
-            bindableStringCollection.Clear();
+            bindableStringList.Clear();
         }
 
         #endregion
@@ -813,12 +813,12 @@ namespace osu.Framework.Tests.Bindables
         public void TestCopyTo()
         {
             for (int i = 0; i < 5; i++)
-                bindableStringCollection.Add("test" + i);
+                bindableStringList.Add("test" + i);
             string[] array = new string[5];
 
-            bindableStringCollection.CopyTo(array, 0);
+            bindableStringList.CopyTo(array, 0);
 
-            CollectionAssert.AreEquivalent(bindableStringCollection, array);
+            CollectionAssert.AreEquivalent(bindableStringList, array);
         }
 
         #endregion
@@ -829,9 +829,9 @@ namespace osu.Framework.Tests.Bindables
         public void TestDisabledWhenSetToTrueNotifiesSubscriber()
         {
             bool? isDisabled = null;
-            bindableStringCollection.DisabledChanged += b => isDisabled = b;
+            bindableStringList.DisabledChanged += b => isDisabled = b;
 
-            bindableStringCollection.Disabled = true;
+            bindableStringList.Disabled = true;
 
             Assert.Multiple(() =>
             {
@@ -846,11 +846,11 @@ namespace osu.Framework.Tests.Bindables
             bool? isDisabledA = null;
             bool? isDisabledB = null;
             bool? isDisabledC = null;
-            bindableStringCollection.DisabledChanged += b => isDisabledA = b;
-            bindableStringCollection.DisabledChanged += b => isDisabledB = b;
-            bindableStringCollection.DisabledChanged += b => isDisabledC = b;
+            bindableStringList.DisabledChanged += b => isDisabledA = b;
+            bindableStringList.DisabledChanged += b => isDisabledB = b;
+            bindableStringList.DisabledChanged += b => isDisabledC = b;
 
-            bindableStringCollection.Disabled = true;
+            bindableStringList.Disabled = true;
 
             Assert.Multiple(() =>
             {
@@ -866,28 +866,28 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestDisabledWhenSetToCurrentValueDoesNotNotifySubscriber()
         {
-            bindableStringCollection.DisabledChanged += b => Assert.Fail();
+            bindableStringList.DisabledChanged += b => Assert.Fail();
 
-            bindableStringCollection.Disabled = bindableStringCollection.Disabled;
+            bindableStringList.Disabled = bindableStringList.Disabled;
         }
 
         [Test]
         public void TestDisabledWhenSetToCurrentValueDoesNotNotifySubscribers()
         {
-            bindableStringCollection.DisabledChanged += b => Assert.Fail();
-            bindableStringCollection.DisabledChanged += b => Assert.Fail();
-            bindableStringCollection.DisabledChanged += b => Assert.Fail();
+            bindableStringList.DisabledChanged += b => Assert.Fail();
+            bindableStringList.DisabledChanged += b => Assert.Fail();
+            bindableStringList.DisabledChanged += b => Assert.Fail();
 
-            bindableStringCollection.Disabled = bindableStringCollection.Disabled;
+            bindableStringList.Disabled = bindableStringList.Disabled;
         }
 
         [Test]
         public void TestDisabledNotifiesBoundCollections()
         {
-            var collection = new BindableCollection<string>();
-            collection.BindTo(bindableStringCollection);
+            var collection = new BindableList<string>();
+            collection.BindTo(bindableStringList);
 
-            bindableStringCollection.Disabled = true;
+            bindableStringList.Disabled = true;
 
             Assert.IsTrue(collection.Disabled);
         }
@@ -899,14 +899,14 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestGetEnumeratorDoesNotReturnNull()
         {
-            Assert.NotNull(bindableStringCollection.GetEnumerator());
+            Assert.NotNull(bindableStringList.GetEnumerator());
         }
 
         [Test]
         public void TestGetEnumeratorWhenCopyConstructorIsUsedDoesNotReturnTheEnumeratorOfTheInputtedEnumerator()
         {
             string[] array = { "" };
-            var collection = new BindableCollection<string>(array);
+            var collection = new BindableList<string>(array);
 
             var enumerator = collection.GetEnumerator();
 
@@ -922,9 +922,9 @@ namespace osu.Framework.Tests.Bindables
         {
             const string description = "The collection used for testing.";
 
-            bindableStringCollection.Description = description;
+            bindableStringList.Description = description;
 
-            Assert.AreEqual(description, bindableStringCollection.Description);
+            Assert.AreEqual(description, bindableStringList.Description);
         }
 
         #endregion
@@ -934,11 +934,11 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestParseWithNullClearsCollection()
         {
-            bindableStringCollection.Add("a item");
+            bindableStringList.Add("a item");
 
-            bindableStringCollection.Parse(null);
+            bindableStringList.Parse(null);
 
-            Assert.IsEmpty(bindableStringCollection);
+            Assert.IsEmpty(bindableStringList);
         }
 
         [Test]
@@ -946,20 +946,20 @@ namespace osu.Framework.Tests.Bindables
         {
             IEnumerable<string> strings = new [] { "testA", "testB" };
 
-            bindableStringCollection.Parse(strings);
+            bindableStringList.Parse(strings);
 
-            CollectionAssert.AreEquivalent(strings, bindableStringCollection);
+            CollectionAssert.AreEquivalent(strings, bindableStringList);
         }
 
         [Test]
         public void TestParseWithDisabledCollectionThrowsInvalidOperationException()
         {
-            bindableStringCollection.Disabled = true;
+            bindableStringList.Disabled = true;
 
             Assert.Multiple(() =>
             {
-                Assert.Throws(typeof(InvalidOperationException), () => bindableStringCollection.Parse(null));
-                Assert.Throws(typeof(InvalidOperationException), () => bindableStringCollection.Parse(new object[] {
+                Assert.Throws(typeof(InvalidOperationException), () => bindableStringList.Parse(null));
+                Assert.Throws(typeof(InvalidOperationException), () => bindableStringList.Parse(new object[] {
                     "test", "testabc", "asdasdasdasd"
                 }));
             });
@@ -970,13 +970,13 @@ namespace osu.Framework.Tests.Bindables
         {
             Assert.Multiple(() =>
             {
-                Assert.Throws(typeof(ArgumentException), () => bindableStringCollection.Parse(1));
-                Assert.Throws(typeof(ArgumentException), () => bindableStringCollection.Parse(""));
-                Assert.Throws(typeof(ArgumentException), () => bindableStringCollection.Parse(new object()));
-                Assert.Throws(typeof(ArgumentException), () => bindableStringCollection.Parse(1.1));
-                Assert.Throws(typeof(ArgumentException), () => bindableStringCollection.Parse(1.1f));
-                Assert.Throws(typeof(ArgumentException), () => bindableStringCollection.Parse("test123"));
-                Assert.Throws(typeof(ArgumentException), () => bindableStringCollection.Parse(29387L));
+                Assert.Throws(typeof(ArgumentException), () => bindableStringList.Parse(1));
+                Assert.Throws(typeof(ArgumentException), () => bindableStringList.Parse(""));
+                Assert.Throws(typeof(ArgumentException), () => bindableStringList.Parse(new object()));
+                Assert.Throws(typeof(ArgumentException), () => bindableStringList.Parse(1.1));
+                Assert.Throws(typeof(ArgumentException), () => bindableStringList.Parse(1.1f));
+                Assert.Throws(typeof(ArgumentException), () => bindableStringList.Parse("test123"));
+                Assert.Throws(typeof(ArgumentException), () => bindableStringList.Parse(29387L));
             });
         }
 
@@ -984,16 +984,16 @@ namespace osu.Framework.Tests.Bindables
         public void TestParseWithNullNotifiesClearSubscribers()
         {
             string[] strings = { "testA", "testB", "testC" };
-            bindableStringCollection.AddRange(strings);
+            bindableStringList.AddRange(strings);
             bool itemsGotCleared = false;
             IEnumerable<string> clearedItems = null;
-            bindableStringCollection.ItemsRemoved += items =>
+            bindableStringList.ItemsRemoved += items =>
             {
                 itemsGotCleared = true;
                 clearedItems = items;
             };
 
-            bindableStringCollection.Parse(null);
+            bindableStringList.Parse(null);
 
             Assert.Multiple(() =>
             {
@@ -1005,27 +1005,27 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestParseWithItemsNotifiesAddRangeAndClearSubscribers()
         {
-            bindableStringCollection.Add("test123");
+            bindableStringList.Add("test123");
 
             IEnumerable<string> strings = new []{ "testA", "testB" };
             IEnumerable<string> addedItems = null;
             bool? itemsWereFirstCleaned = null;
-            bindableStringCollection.ItemsAdded += items =>
+            bindableStringList.ItemsAdded += items =>
             {
                 addedItems = items;
                 if (itemsWereFirstCleaned == null)
                     itemsWereFirstCleaned = false;
             };
-            bindableStringCollection.ItemsRemoved += items => {
+            bindableStringList.ItemsRemoved += items => {
                 if (itemsWereFirstCleaned == null)
                     itemsWereFirstCleaned = true;
             };
 
-            bindableStringCollection.Parse(strings);
+            bindableStringList.Parse(strings);
 
             Assert.Multiple(() =>
             {
-                CollectionAssert.AreEquivalent(strings, bindableStringCollection);
+                CollectionAssert.AreEquivalent(strings, bindableStringList);
                 CollectionAssert.AreEquivalent(strings, addedItems);
                 Assert.NotNull(itemsWereFirstCleaned);
                 Assert.IsTrue(itemsWereFirstCleaned ?? false);
@@ -1039,11 +1039,11 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestBoundCopyWithAdd()
         {
-            var boundCopy = bindableStringCollection.GetBoundCopy();
+            var boundCopy = bindableStringList.GetBoundCopy();
             bool boundCopyItemAdded = false;
             boundCopy.ItemsAdded += item => boundCopyItemAdded = true;
 
-            bindableStringCollection.Add("test");
+            bindableStringList.Add("test");
 
             Assert.IsTrue(boundCopyItemAdded);
         }
