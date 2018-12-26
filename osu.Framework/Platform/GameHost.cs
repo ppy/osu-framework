@@ -37,6 +37,7 @@ using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using osu.Framework.Audio;
+using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
 
 namespace osu.Framework.Platform
@@ -790,6 +791,14 @@ namespace osu.Framework.Platform
             new KeyBinding(new KeyCombination(new[] { InputKey.Control, InputKey.Tab }), new PlatformAction(PlatformActionType.DocumentNext)),
             new KeyBinding(new KeyCombination(new[] { InputKey.Control, InputKey.Shift, InputKey.Tab }), new PlatformAction(PlatformActionType.DocumentPrevious)),
         };
+
+        /// <summary>
+        /// Create a texture loader store based on an underlying data store.
+        /// </summary>
+        /// <param name="underlyingStore">The underlying provider of texture data (in arbitrary image formats).</param>
+        /// <returns>A texture loader store.</returns>
+        public virtual IResourceStore<TextureUpload> CreateTextureLoaderStore(IResourceStore<byte[]> underlyingStore)
+            => new TextureLoaderStore(underlyingStore);
     }
 
     /// <summary>
