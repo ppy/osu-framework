@@ -9,7 +9,7 @@ using osu.Framework.Lists;
 
 namespace osu.Framework.Configuration
 {
-    public class BindableList<T> : IBindableList<T>, ICollection<T>, ICollection, IParseable, IHasDescription
+    public class BindableList<T> : IBindableList<T>, IList<T>, IList, IParseable, IHasDescription
     {
         private readonly List<T> collection = new List<T>();
 
@@ -279,6 +279,32 @@ namespace osu.Framework.Configuration
         public bool IsSynchronized => ((ICollection)collection).IsSynchronized;
         public object SyncRoot => ((ICollection)collection).SyncRoot;
         public bool IsReadOnly => Disabled;
+
+        #region IList
+
+        object IList.this[int index]
+        {
+            get => this[index];
+            set => this[index] = (T)value;
+        }
+
+        int IList.Add(object value)
+        {
+            Add((T)value);
+            return Count - 1;
+        }
+
+        bool IList.Contains(object value) => Contains((T)value);
+
+        int IList.IndexOf(object value) => IndexOf((T)value);
+
+        void IList.Insert(int index, object value) => Insert(index, (T)value);
+
+        void IList.Remove(object value) => Remove((T)value);
+
+        bool IList.IsFixedSize => false;
+
+        #endregion
 
         #region IParseable
 
