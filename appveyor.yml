@@ -17,6 +17,7 @@ before_build:
   - cmd: CodeFileSanity
   - cmd: nuget restore osu-framework.sln
   - cmd: nuget restore osu-framework.iOS.sln
+  - cmd: nuget restore osu-framework.Android.sln
 build:
   project: osu-framework.sln
   parallel: true
