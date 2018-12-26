@@ -50,12 +50,7 @@ namespace osu.Framework.Tests.Visual
                 SpriteText text = new SpriteText
                 {
                     Text = $@"Font testy at size {i}",
-                    Font = new FontUsage
-                    {
-                        Family = "OpenSans",
-                        Weight = i % 4 > 1 ? "Bold" : null,
-                        Italics = i % 2 == 1,
-                    },
+                    Font = new FontUsage(weight: i % 4 > 1 ? "Bold" : null, italics: i % 2 == 1),
                     AllowMultiline = true,
                     RelativeSizeAxes = Axes.X,
                     TextSize = i

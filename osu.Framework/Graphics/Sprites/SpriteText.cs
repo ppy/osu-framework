@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Caching;
 using osu.Framework.Configuration;
@@ -140,38 +139,15 @@ namespace osu.Framework.Graphics.Sprites
         /// Contains information on the font used to display the text.
         /// </summary>
         /// <exception cref="ArgumentNullException">Thrown if set to null.</exception>
-        [NotNull]
         public FontUsage Font
         {
-            get
-            {
-                if (font == null)
-                {
-                    font = new FontUsage();
-                    font.Changed += onFontChanged;
-                }
-
-                return font;
-            }
+            get => font;
             set
             {
-                if (value == null)
-                    throw new ArgumentNullException(nameof(Font));
-
-                if (font == value)
-                    return;
-
-                if (font != null)
-                    font.Changed -= onFontChanged;
-
                 font = value;
-                font.Changed += onFontChanged;
-
                 invalidate(true);
             }
         }
-
-        private void onFontChanged() => invalidate(true);
 
         private bool allowMultiline = true;
 
