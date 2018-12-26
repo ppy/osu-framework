@@ -15,10 +15,10 @@ namespace osu.Framework.Tests.Visual
     public class TestCaseTextures : TestCase
     {
         [Cached]
-        private TextureStore normalStore = new TextureStore(new TextureLoaderStore(new OnlineStore()));
+        private TextureStore normalStore;
 
         [Cached]
-        private LargeTextureStore largeStore = new LargeTextureStore(new TextureLoaderStore(new OnlineStore()));
+        private LargeTextureStore largeStore;
 
         protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent)
         {
