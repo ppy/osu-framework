@@ -5,10 +5,11 @@ using UIKit;
 using Foundation;
 using System.Drawing;
 using SixLabors.ImageSharp.PixelFormats;
+using osuTK.iOS;
 
 namespace osu.Framework.iOS
 {
-    public abstract class GameAppDelegate : UIApplicationDelegate
+    public abstract class GameAppDelegate : IOSAppDelegate
     {
         public override UIWindow Window { get; set; }
 
@@ -53,6 +54,5 @@ namespace osu.Framework.iOS
             }
         }
 
-        public override abstract bool OpenUrl(UIApplication app, NSUrl url, NSDictionary options);
     }
 }
