@@ -45,6 +45,8 @@ namespace osu.Framework.Configuration
             weakReference = new WeakReference<BindableList<T>>(this);
         }
 
+        #region IList<T>
+
         /// <summary>
         /// Gets or sets the item at an index in this <see cref="BindableList{T}"/>.
         /// </summary>
@@ -279,6 +281,8 @@ namespace osu.Framework.Configuration
         public bool IsSynchronized => ((ICollection)collection).IsSynchronized;
         public object SyncRoot => ((ICollection)collection).SyncRoot;
         public bool IsReadOnly => Disabled;
+
+        #endregion
 
         #region IList
 
