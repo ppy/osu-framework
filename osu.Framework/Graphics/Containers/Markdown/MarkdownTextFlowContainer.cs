@@ -160,7 +160,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
         {
             var textDrawable = CreateSpriteText();
 
-            textDrawable.Font = new FontUsage(weight: bold ? "Bold" : null, italics: italic);
+            textDrawable.Font = new FontUsage("OpenSans", bold ? "Bold" : null, italic);
 
             return textDrawable;
         }

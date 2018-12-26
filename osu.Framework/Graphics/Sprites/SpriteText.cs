@@ -133,7 +133,7 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        private FontUsage font;
+        private FontUsage font = new FontUsage("OpenSans");
 
         /// <summary>
         /// Contains information on the font used to display the text.

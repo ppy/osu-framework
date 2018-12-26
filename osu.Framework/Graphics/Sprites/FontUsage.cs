@@ -17,7 +17,7 @@ namespace osu.Framework.Graphics.Sprites
         /// <param name="family">The used font family.</param>
         /// <param name="weight">The used font weight.</param>
         /// <param name="italics">Whether the font is italic.</param>
-        public FontUsage([NotNull] string family = "OpenSans", [CanBeNull] string weight = null, bool italics = false)
+        public FontUsage([NotNull] string family, [CanBeNull] string weight = null, bool italics = false)
         {
             Family = string.IsNullOrEmpty(family) ? throw new ArgumentException("Cannot be null or empty.", nameof(family)) : family;
             Weight = weight;
