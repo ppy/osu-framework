@@ -38,7 +38,7 @@ namespace osu.Framework.Input
         [Resolved(CanBeNull = true)]
         protected GameHost Host { get; private set; }
 
-        internal Drawable FocusedDrawable;
+        public Drawable FocusedDrawable { get; internal set; }
 
         protected abstract IEnumerable<InputHandler> InputHandlers { get; }
 
