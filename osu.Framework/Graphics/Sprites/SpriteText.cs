@@ -114,22 +114,18 @@ namespace osu.Framework.Graphics.Sprites
             set => Text = value;
         }
 
-        private float textSize = default_text_size;
-
         /// <summary>
         /// The size of the text in local space. This means that if TextSize is set to 16, a single line will have a height of 16.
         /// </summary>
         public float TextSize
         {
-            get => textSize;
+            get => Font.Size;
             set
             {
-                if (textSize == value)
+                if (TextSize == value)
                     return;
-                textSize = value;
 
-                invalidate(true);
-                shadowOffsetCache.Invalidate();
+                Font = new FontUsage(Font.Family, value, Font.Weight, Font.Italics, Font.FixedWidth);
             }
         }
 
@@ -138,7 +134,6 @@ namespace osu.Framework.Graphics.Sprites
         /// <summary>
         /// Contains information on the font used to display the text.
         /// </summary>
-        /// <exception cref="ArgumentNullException">Thrown if set to null.</exception>
         public FontUsage Font
         {
             get => font;
@@ -146,6 +141,7 @@ namespace osu.Framework.Graphics.Sprites
             {
                 font = value;
                 invalidate(true);
+                shadowOffsetCache.Invalidate();
             }
         }
 
@@ -222,21 +218,18 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        private bool fixedWidth;
-
         /// <summary>
         /// True if all characters should be spaced apart the same distance.
         /// </summary>
         public bool FixedWidth
         {
-            get => fixedWidth;
+            get => Font.FixedWidth;
             set
             {
-                if (fixedWidth == value)
+                if (FixedWidth == value)
                     return;
-                fixedWidth = value;
 
-                invalidate(true);
+                Font = new FontUsage(Font.Family, Font.Size, Font.Weight, font.Italics, value);
             }
         }
 
