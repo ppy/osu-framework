@@ -5,9 +5,12 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Android.App;
+using osu.Framework.Android.Graphics.Textures;
 using osu.Framework.Android.Input;
+using osu.Framework.Graphics.Textures;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
+using osu.Framework.IO.Stores;
 using osu.Framework.Platform;
 
 namespace osu.Framework.Android
@@ -40,5 +43,7 @@ namespace osu.Framework.Android
         public override void OpenFileExternally(string filename) => throw new NotImplementedException();
 
         public override void OpenUrlExternally(string url) => throw new NotImplementedException();
+
+        public override IResourceStore<TextureUpload> CreateTextureLoaderStore(IResourceStore<byte[]> underlyingStore) => new AndroidTextureLoaderStore(underlyingStore);
     }
 }
