@@ -10,6 +10,7 @@ using Android.App;
 using Android.Content;
 using Android.OS;
 using Android.Runtime;
+using Android.Util;
 using Android.Views;
 using Android.Widget;
 
@@ -19,6 +20,11 @@ namespace osu.Framework.Tests.Android
 {
     public class TestGameView : AndroidGameView
     {
+        public TestGameView(Context context, IAttributeSet attrs) : base(context, attrs)
+        {
+            CreateGame();
+        }
+
         public override Game CreateGame() => new VisualTestGame();
     }
 }
