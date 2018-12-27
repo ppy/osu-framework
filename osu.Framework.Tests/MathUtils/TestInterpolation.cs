@@ -20,8 +20,8 @@ namespace osu.Framework.Tests.MathUtils
         [Test]
         public void TestLagrange()
         {
-            double[] x = new double[] {0, 0.5, 1};
-            double[] y = new double[] {0, 0.35, 1};
+            double[] x = {0, 0.5, 1};
+            double[] y = {0, 0.35, 1};
 
             // lagrange of (0,0) (0.5,0.35) (1,1) is equal to 0.6x*x + 0.4x
 
