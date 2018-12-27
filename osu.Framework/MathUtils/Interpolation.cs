@@ -34,6 +34,38 @@ namespace osu.Framework.MathUtils
             return Lerp(start, final, 1 - Math.Pow(@base, exponent));
         }
 
+        /// <summary>
+        /// Interpolates between a set of points represented by x and y using a lagrange polynomial.
+        /// </summary>
+        /// <param name="x">An array of x coordinates. No two x should be the same.</param>
+        /// <param name="y">An array of y coordinates making points given every x coordinate in the x parameter.</param>
+        /// <param name="time">The x coordinate to calculate the y coordinate for.</param>
+        public static double Lagrange(double[] x, double[] y, double time)
+        {
+            if (x.Length != y.Length)
+                throw new ArgumentException($"{nameof(x)} must be of same length as {nameof(y)}", nameof(x));
+
+            double sum = 0;
+            for (int i = 0; i < y.Length; i++)
+                sum += y[i] * LagrangeBasis(x, i, time);
+            return sum;
+        }
+
+        /// <summary>
+        /// Calculates the Lagrange basis polynomial for a given set of x coordinates. Used as a helper function to compute Lagrange polynomials.
+        /// </summary>
+        /// <param name="x">An array of x coordinates. No two x should be the same.</param>
+        /// <param name="base">The index inside the x coordinate array which polynomial to compute.</param>
+        /// <param name="time">The x coordinate to calculate the basis polynomial for.</param>
+        public static double LagrangeBasis(double[] x, int @base, double time)
+        {
+            double product = 1;
+            for (int i = 0; i < x.Length; i++)
+                if (i != @base)
+                    product *= (time - x[i]) / (x[@base] - x[i]);
+            return product;
+        }
+
         public static ColourInfo ValueAt(double time, ColourInfo startColour, ColourInfo endColour, double startTime, double endTime, Easing easing = Easing.None)
         {
             if (startColour.HasSingleColour && endColour.HasSingleColour)
