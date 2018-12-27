@@ -60,7 +60,7 @@ namespace osu.Framework.Graphics.Sprites
         /// Gets the size of the text in local space. This means that if <see cref="Size"/> is set to 16, a single line will have a height of 16.
         /// </summary>
         public float Size { get; }
-        
+
         /// <summary>
         /// Gets whether all characters should be spaced apart the same distance.
         /// </summary>
