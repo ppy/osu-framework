@@ -3,6 +3,7 @@
 
 using NUnit.Framework;
 using osu.Framework.MathUtils;
+using osuTK;
 
 namespace osu.Framework.Tests.MathUtils
 {
@@ -20,13 +21,15 @@ namespace osu.Framework.Tests.MathUtils
         [Test]
         public void TestLagrange()
         {
-            double[] x = {0, 0.5, 1};
-            double[] y = {0, 0.35, 1};
-
             // lagrange of (0,0) (0.5,0.35) (1,1) is equal to 0.6x*x + 0.4x
+            Vector2d[] points = { new Vector2d(0, 0), new Vector2d(0.5, 0.35), new Vector2d(1, 1) };
+            Vector2[] pointsf = { new Vector2(0, 0), new Vector2(0.5f, 0.35f), new Vector2(1, 1) };
 
             for (double t = -10; t <= 10; t += 0.01)
-                Assert.AreEqual(0.6 * t * t + 0.4 * t, Interpolation.Lagrange(x, y, t), 1e-6);
+            {
+                Assert.AreEqual(0.6 * t * t + 0.4 * t, Interpolation.Lagrange(points, t), 1e-6);
+                Assert.AreEqual(0.6 * t * t + 0.4 * t, Interpolation.Lagrange(pointsf, t), 1e-4);
+            }
         }
     }
 }
