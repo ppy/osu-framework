@@ -37,38 +37,38 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        // Not yet loaded children.
+        /// Not yet loaded children.
         private readonly List<Drawable> newChildren = new List<Drawable>();
 
-        // Children which is currently dead and becomes alive in future (in the Clock sense).
-        // Child with earliest LifetimeStart is placed at the last in order to do RemoveAt(Lengh - 1) in O(1) time rather than RemoveAt(0) in O(length) time.
-        private readonly SortedList<Drawable> nextChildren = new SortedList<Drawable>(new LifetimeStartComparator());
+        /// Children which is currently dead and becomes alive in future (in the Clock sense).
+        /// Child with earliest LifetimeStart is placed at the last in order to do RemoveAt(Lengh - 1) in O(1) time rather than RemoveAt(0) in O(length) time.
+        private readonly SortedList<Drawable> futureChildren = new SortedList<Drawable>(new LifetimeStartComparator());
 
         /// Children which is currently dead and becomes alive if the clock is rewinded.
-        private readonly SortedList<Drawable> prevChildren = new SortedList<Drawable>(new LifetimeEndComparator());
+        private readonly SortedList<Drawable> pastChildren = new SortedList<Drawable>(new LifetimeEndComparator());
 
-        // newChildren are not on this map.
+        /// newChildren are not on this map.
         private readonly Dictionary<Drawable, ChildState> childStateMap = new Dictionary<Drawable, ChildState>();
 
         private enum ChildState
         {
-            // This child is in AliveInternalChildren.
-            Alive,
+            /// This child is in AliveInternalChildren.
+            Current,
 
-            // This child is in nextChildren.
-            Next,
+            /// This child is in futureChildren.
+            Future,
 
-            // This child is in prevChildren.
-            Prev,
+            /// This child is in pastChildren.
+            Past,
         }
 
         private ChildState getNewState(Drawable child)
         {
             var currentTime = Time.Current;
             return
-                currentTime < child.LifetimeStart ? ChildState.Next :
-                child.LifetimeEnd <= currentTime ? ChildState.Prev :
-                ChildState.Alive;
+                currentTime < child.LifetimeStart ? ChildState.Future :
+                child.LifetimeEnd <= currentTime ? ChildState.Past :
+                ChildState.Current;
         }
 
         private ChildState updateChildState(Drawable child, ChildState? currentState)
@@ -81,24 +81,24 @@ namespace osu.Framework.Graphics.Containers
             {
                 childStateMap[child] = newState;
 
-                if (newState == ChildState.Alive)
+                if (newState == ChildState.Current)
                 {
                     MakeChildAlive(child);
                 }
                 else
                 {
-                    if (currentState == ChildState.Alive)
+                    if (currentState == ChildState.Current)
                     {
                         MakeChildDead(child);
                     }
 
-                    if (newState == ChildState.Next)
+                    if (newState == ChildState.Future)
                     {
-                        nextChildren.Add(child);
+                        futureChildren.Add(child);
                     }
                     else
                     {
-                        prevChildren.Add(child);
+                        pastChildren.Add(child);
                     }
                 }
             }
@@ -125,17 +125,17 @@ namespace osu.Framework.Graphics.Containers
                     newChildren.RemoveAt(i);
 
                     var newState = updateChildState(child, null);
-                    aliveChildrenChanged |= newState == ChildState.Alive;
+                    aliveChildrenChanged |= newState == ChildState.Current;
                 }
             }
 
             var currentTime = Time.Current;
 
             // Checks for newly alive children when time is increased or new children added.
-            while (nextChildren.Count > 0)
+            while (futureChildren.Count > 0)
             {
                 FrameStatistics.Increment(StatisticsCounterType.CCL);
-                var child = nextChildren[nextChildren.Count - 1];
+                var child = futureChildren[futureChildren.Count - 1];
 
                 if (currentTime < child.LifetimeStart)
                 {
@@ -144,42 +144,42 @@ namespace osu.Framework.Graphics.Containers
                     break;
                 }
 
-                nextChildren.RemoveAt(nextChildren.Count - 1);
+                futureChildren.RemoveAt(futureChildren.Count - 1);
 
-                var newState = updateChildState(child, ChildState.Next);
-                aliveChildrenChanged |= newState == ChildState.Alive;
+                var newState = updateChildState(child, ChildState.Future);
+                aliveChildrenChanged |= newState == ChildState.Current;
 
                 // Shouldn't happen but if it happens then it becomes an infinity loop so do a fail-fast.
-                Trace.Assert(newState != ChildState.Next);
+                Trace.Assert(newState != ChildState.Future);
             }
 
             // Symmetric to above for rewinding case.
-            while (prevChildren.Count > 0)
+            while (pastChildren.Count > 0)
             {
                 FrameStatistics.Increment(StatisticsCounterType.CCL);
-                var child = prevChildren[prevChildren.Count - 1];
+                var child = pastChildren[pastChildren.Count - 1];
 
                 if (child.LifetimeEnd <= currentTime)
                 {
                     break;
                 }
 
-                prevChildren.RemoveAt(prevChildren.Count - 1);
+                pastChildren.RemoveAt(pastChildren.Count - 1);
 
-                var newState = updateChildState(child, ChildState.Prev);
-                aliveChildrenChanged |= newState == ChildState.Alive;
+                var newState = updateChildState(child, ChildState.Past);
+                aliveChildrenChanged |= newState == ChildState.Current;
 
-                Trace.Assert(newState != ChildState.Prev);
+                Trace.Assert(newState != ChildState.Past);
             }
 
             for(var i = AliveInternalChildren.Count - 1; i >= 0; -- i)
             {
                 FrameStatistics.Increment(StatisticsCounterType.CCL);
                 var child = AliveInternalChildren[i];
-                Debug.Assert(childStateMap[child] == ChildState.Alive);
+                Debug.Assert(childStateMap[child] == ChildState.Current);
 
-                var newState = updateChildState(child, ChildState.Alive);
-                aliveChildrenChanged |= newState != ChildState.Alive;
+                var newState = updateChildState(child, ChildState.Current);
+                aliveChildrenChanged |= newState != ChildState.Current;
             }
 
             return aliveChildrenChanged;
@@ -198,11 +198,11 @@ namespace osu.Framework.Graphics.Containers
                 childStateMap.Remove(drawable);
                 switch (state)
                 {
-                    case ChildState.Next:
-                        nextChildren.Remove(drawable);
+                    case ChildState.Future:
+                        futureChildren.Remove(drawable);
                         break;
-                    case ChildState.Prev:
-                        prevChildren.Remove(drawable);
+                    case ChildState.Past:
+                        pastChildren.Remove(drawable);
                         break;
                 }
             }
@@ -218,8 +218,8 @@ namespace osu.Framework.Graphics.Containers
         {
             childStateMap.Clear();
             newChildren.Clear();
-            nextChildren.Clear();
-            prevChildren.Clear();
+            futureChildren.Clear();
+            pastChildren.Clear();
 
             base.ClearInternal(disposeChildren);
         }
