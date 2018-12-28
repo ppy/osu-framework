@@ -255,6 +255,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Gets or sets the only child in <see cref="InternalChildren"/>.
         /// </summary>
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         protected internal Drawable InternalChild
         {
             get

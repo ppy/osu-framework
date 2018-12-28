@@ -31,6 +31,8 @@ namespace osu.Framework.Graphics.Transforms
 
         private static ReadFunc createFieldGetter(FieldInfo field)
         {
+            if (!RuntimeInfo.SupportsIL) return transformable => (TValue)field.GetValue(transformable);
+
             string methodName = $"{typeof(T).ReadableName()}.{field.Name}.get_{Guid.NewGuid():N}";
             DynamicMethod setterMethod = new DynamicMethod(methodName, typeof(TValue), new[] { typeof(T) }, true);
             ILGenerator gen = setterMethod.GetILGenerator();
@@ -42,6 +44,8 @@ namespace osu.Framework.Graphics.Transforms
 
         private static WriteFunc createFieldSetter(FieldInfo field)
         {
+            if (!RuntimeInfo.SupportsIL) return (transformable, value) => field.SetValue(transformable, value);
+
             string methodName = $"{typeof(T).ReadableName()}.{field.Name}.set_{Guid.NewGuid():N}";
             DynamicMethod setterMethod = new DynamicMethod(methodName, null, new[] { typeof(T), typeof(TValue) }, true);
             ILGenerator gen = setterMethod.GetILGenerator();
@@ -50,6 +54,18 @@ namespace osu.Framework.Graphics.Transforms
             gen.Emit(OpCodes.Stfld, field);
             gen.Emit(OpCodes.Ret);
             return (WriteFunc)setterMethod.CreateDelegate(typeof(WriteFunc));
+        }
+
+        private static ReadFunc createPropertyGetter(MethodInfo getter)
+        {
+            if (!RuntimeInfo.SupportsIL) return transformable => (TValue)getter.Invoke(transformable, new object[0]);
+            return (ReadFunc)getter.CreateDelegate(typeof(ReadFunc));
+        }
+
+        private static WriteFunc createPropertySetter(MethodInfo setter)
+        {
+            if (!RuntimeInfo.SupportsIL) return (transformable, value) => setter.Invoke(transformable, new object[]{ value });
+            return (WriteFunc)setter.CreateDelegate(typeof(WriteFunc));
         }
 
         private static Accessor findAccessor(Type type, string propertyOrFieldName)
@@ -76,8 +92,8 @@ namespace osu.Framework.Graphics.Transforms
 
                 return new Accessor
                 {
-                    Read = (ReadFunc)getter.CreateDelegate(typeof(ReadFunc)),
-                    Write = (WriteFunc)setter.CreateDelegate(typeof(WriteFunc)),
+                    Read = createPropertyGetter(getter),
+                    Write = createPropertySetter(setter),
                 };
             }
 

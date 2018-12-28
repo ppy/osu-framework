@@ -32,8 +32,6 @@ namespace osu.Framework.Testing.Drawables.Sections
         {
             this.browser = browser;
 
-            BasicSliderBar<int> frameSliderBar;
-
             InternalChild = new FillFlowContainer
             {
                 RelativeSizeAxes = Axes.Y,
@@ -56,10 +54,11 @@ namespace osu.Framework.Testing.Drawables.Sections
                                 Origin = Anchor.CentreLeft,
                                 Text = "Playback:"
                             },
-                            frameSliderBar = new FrameSliderBar
+                            new FrameSliderBar
                             {
                                 RelativeSizeAxes = Axes.Y,
                                 Width = 250,
+                                Current = browser.CurrentFrame
                             },
                             previousButton = new RepeatButton
                             {
@@ -88,7 +87,6 @@ namespace osu.Framework.Testing.Drawables.Sections
                 }
             };
 
-            frameSliderBar.Current.BindTo(browser.CurrentFrame);
             browser.RecordState.BindValueChanged(updateState, true);
         }
 

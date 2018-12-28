@@ -22,14 +22,16 @@ using osu.Framework.Platform;
 
 namespace osu.Framework.Graphics.OpenGL
 {
-    internal static class GLWrapper
+    public static class GLWrapper
     {
         public static MaskingInfo CurrentMaskingInfo { get; private set; }
         public static RectangleI Viewport { get; private set; }
         public static RectangleF Ortho { get; private set; }
         public static Matrix4 ProjectionMatrix { get; private set; }
 
-        public static bool UsingBackbuffer => lastFrameBuffer == 0;
+        public static bool UsingBackbuffer => lastFrameBuffer == DefaultFrameBuffer;
+
+        public static int DefaultFrameBuffer;
 
         /// <summary>
         /// Check whether we have an initialised and non-disposed GL context.
@@ -90,7 +92,7 @@ namespace osu.Framework.Graphics.OpenGL
 
             all_batches.ForEachAlive(b => b.ResetCounters());
 
-            lastFrameBuffer = 0;
+            lastFrameBuffer = DefaultFrameBuffer;
 
             viewport_stack.Clear();
             ortho_stack.Clear();

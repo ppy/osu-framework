@@ -13,8 +13,9 @@ namespace osu.Framework.Configuration
         // list allows to use methods like AddRange.
         private readonly List<T> collection = new List<T>();
 
-        private WeakReference<BindableCollection<T>> weakReference { get; }
-        private WeakList<BindableCollection<T>> bindings;
+        private readonly WeakReference<BindableCollection<T>> weakReference;
+
+        private LockedWeakList<BindableCollection<T>> bindings;
 
         /// <summary>
         /// An event which is raised when any items are added to this <see cref="BindableCollection{T}"/>.
@@ -254,6 +255,15 @@ namespace osu.Framework.Configuration
             UnbindBindings();
         }
 
+        public void UnbindFrom(IUnbindable them)
+        {
+            if (!(them is BindableCollection<T> tThem))
+                throw new InvalidCastException($"Can't unbind a bindable of type {them.GetType()} from a bindable of type {GetType()}.");
+
+            removeWeakReference(tThem.weakReference);
+            tThem.removeWeakReference(weakReference);
+        }
+
         private void unbind(BindableCollection<T> binding)
             => bindings.Remove(binding.weakReference);
 
@@ -325,10 +335,12 @@ namespace osu.Framework.Configuration
         private void addWeakReference(WeakReference<BindableCollection<T>> weakReference)
         {
             if (bindings == null)
-                bindings = new WeakList<BindableCollection<T>>();
+                bindings = new LockedWeakList<BindableCollection<T>>();
 
             bindings.Add(weakReference);
         }
+
+        private void removeWeakReference(WeakReference<BindableCollection<T>> weakReference) => bindings?.Remove(weakReference);
 
         IBindableCollection<T> IBindableCollection<T>.GetBoundCopy()
             => GetBoundCopy();
