@@ -24,13 +24,6 @@ namespace osu.Framework.Android
             this.gameView = gameView;
             AndroidGameWindow.view = gameView;
             Window = new AndroidGameWindow();
-            /*Window.WindowStateChanged += (sender, e) =>
-            {
-                if (Window.WindowState != WindowState.Minimized)
-                    OnActivated();
-                else
-                    OnDeactivated();
-            };*/
         }
 
         public override ITextInputSource GetTextInput() => new AndroidTextInput(gameView);
@@ -45,5 +38,10 @@ namespace osu.Framework.Android
         public override void OpenUrlExternally(string url) => throw new NotImplementedException();
 
         public override IResourceStore<TextureUpload> CreateTextureLoaderStore(IResourceStore<byte[]> underlyingStore) => new AndroidTextureLoaderStore(underlyingStore);
+
+        protected override void PerformExit(bool immediately)
+        {
+            // Do not exit on Android, Window.Run() does not block
+        }
     }
 }

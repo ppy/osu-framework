@@ -3,28 +3,18 @@
 
 using Android.App;
 using Android.OS;
-using Android.Widget;
-using osu.Framework.Android;
-using System;
+using Android.Content.PM;
 
 namespace SampleGame.Android
 {
-    [Activity(Label = "SampleGame", MainLauncher = true, Icon = "@mipmap/icon")]
+    [Activity(Label = "SampleGame", MainLauncher = true, ScreenOrientation = ScreenOrientation.Landscape)]
     public class MainActivity : Activity
     {
         protected override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
 
-            SetContentView(Resource.Layout.Main);
-
-            //Button button = FindViewById<Button>(Resource.Id.button1);
-            //button.Click += OnClick;
+            SetContentView(new SampleGameView(this));
         }
-        /*private void OnClick(object sender, EventArgs e)
-        {
-            SampleGameView view = new SampleGameView(this);
-            SetContentView(view);
-        }*/
     }
 }

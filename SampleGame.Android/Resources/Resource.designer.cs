@@ -41,34 +41,27 @@ namespace SampleGame.Android
 			}
 		}
 		
-		public partial class Id
+		public partial class Color
 		{
 			
-			// aapt resource value: 0x7f050000
-			public const int sampleGameView1 = 2131034112;
-			
-			static Id()
-			{
-				global::Android.Runtime.ResourceIdManager.UpdateIdValues();
-			}
-			
-			private Id()
-			{
-			}
-		}
-		
-		public partial class Layout
-		{
+			// aapt resource value: 0x7f030002
+			public const int colorAccent = 2130903042;
 			
 			// aapt resource value: 0x7f030000
-			public const int Main = 2130903040;
+			public const int colorPrimary = 2130903040;
 			
-			static Layout()
+			// aapt resource value: 0x7f030001
+			public const int colorPrimaryDark = 2130903041;
+			
+			// aapt resource value: 0x7f030003
+			public const int ic_launcher_background = 2130903043;
+			
+			static Color()
 			{
 				global::Android.Runtime.ResourceIdManager.UpdateIdValues();
 			}
 			
-			private Layout()
+			private Color()
 			{
 			}
 		}
@@ -77,7 +70,13 @@ namespace SampleGame.Android
 		{
 			
 			// aapt resource value: 0x7f020000
-			public const int Icon = 2130837504;
+			public const int ic_launcher = 2130837504;
+			
+			// aapt resource value: 0x7f020001
+			public const int ic_launcher_foreground = 2130837505;
+			
+			// aapt resource value: 0x7f020002
+			public const int ic_launcher_round = 2130837506;
 			
 			static Mipmap()
 			{
@@ -93,10 +92,10 @@ namespace SampleGame.Android
 		{
 			
 			// aapt resource value: 0x7f040001
-			public const int app_name = 2130968577;
+			public const int action_settings = 2130968577;
 			
 			// aapt resource value: 0x7f040000
-			public const int hello = 2130968576;
+			public const int app_name = 2130968576;
 			
 			static String()
 			{

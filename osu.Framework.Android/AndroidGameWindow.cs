@@ -23,7 +23,6 @@ namespace osu.Framework.Android
 
         public override void SetupWindow(FrameworkConfigManager config)
         {
-            //throw new NotImplementedException();
         }
 
         public override void Run()

@@ -62,7 +62,18 @@
     <Compile Include="TestGameView.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\AboutResources.txt" />
+    <AndroidNativeLibrary Include="lib\arm64-v8a\libbass.so">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
+    <AndroidNativeLibrary Include="lib\arm64-v8a\libbass_fx.so">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
+    <AndroidNativeLibrary Include="lib\armeabi-v7a\libbass.so">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
+    <AndroidNativeLibrary Include="lib\armeabi-v7a\libbass_fx.so">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
     <None Include="Properties\AndroidManifest.xml" />
     <None Include="Assets\AboutAssets.txt" />
   </ItemGroup>
@@ -126,6 +137,7 @@
     <Compile Include="..\osu.Framework.Tests\*.cs" Exclude="**\Program.cs">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
     </Compile>
+    <None Include="bass.dll" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Xamarin.Android.Support.Design" Version="27.0.2.1" />
@@ -141,11 +153,4 @@
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
-    Other similar extension points exist, see Microsoft.Common.targets.
-    <Target Name="BeforeBuild">
-    </Target>
-    <Target Name="AfterBuild">
-    </Target>
-  -->
 </Project>
