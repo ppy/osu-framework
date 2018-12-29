@@ -204,7 +204,7 @@ namespace osu.Framework.Tests.Visual
         private void updateWindowContainer()
         {
             if(window == null) return;
-            bool fullscreen = window?.WindowMode.Value == WindowMode.Fullscreen;
+            bool fullscreen = window.WindowMode.Value == WindowMode.Fullscreen;
 
             windowContainer.X = window.X;
             windowContainer.Y = window.Y;
