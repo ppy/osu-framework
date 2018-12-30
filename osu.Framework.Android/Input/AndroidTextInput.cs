@@ -3,10 +3,6 @@
 
 using osu.Framework.Input;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace osu.Framework.Android.Input
 {
@@ -20,6 +16,7 @@ namespace osu.Framework.Android.Input
         {
             this.view = view;
         }
+
         public bool ImeActive => false;
 
         public event Action<string> OnNewImeComposition;

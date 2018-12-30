@@ -128,7 +128,14 @@ namespace osu.Framework.Platform
             {
                 cursorState = value;
 
-                Implementation.Cursor = cursorState.HasFlag(CursorState.Hidden) ? MouseCursor.Empty : MouseCursor.Default;
+                try
+                {
+                    Implementation.Cursor = cursorState.HasFlag(CursorState.Hidden) ? MouseCursor.Empty : MouseCursor.Default;
+                }
+                catch
+                {
+                    // may not be supported by platform (Android).
+                }
 
                 try
                 {

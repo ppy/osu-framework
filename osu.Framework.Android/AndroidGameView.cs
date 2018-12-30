@@ -11,7 +11,7 @@ namespace osu.Framework.Android
 {
     public abstract class AndroidGameView : osuTK.Android.AndroidGameView
     {
-        int viewportWidth, viewportHeight;
+        private int viewportWidth, viewportHeight;
         private AndroidGameHost host;
 
         public abstract Game CreateGame();

@@ -3,11 +3,6 @@
 
 using osu.Framework.Input.Handlers;
 using osu.Framework.Platform;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace osu.Framework.Android.Input
 {
@@ -19,6 +14,7 @@ namespace osu.Framework.Android.Input
         {
             this.view = view;
         }
+
         public override bool IsActive => true;
 
         public override int Priority => 0;

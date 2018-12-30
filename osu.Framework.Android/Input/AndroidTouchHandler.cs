@@ -13,17 +13,18 @@ namespace osu.Framework.Android.Input
     {
         private readonly AndroidGameView view;
 
-        private float LastX, LastY;
-
         public AndroidTouchHandler(AndroidGameView view)
         {
             this.view = view;
-            view.Touch += HandleTouches;
+            view.Touch += handleTouches;
         }
 
-        private void HandleTouches(object sender, View.TouchEventArgs e)
+        private void handleTouches(object sender, View.TouchEventArgs e)
         {
-            PendingInputs.Enqueue(new MousePositionAbsoluteInput { Position = new osuTK.Vector2(e.Event.GetX() * view.ScaleX, e.Event.GetY() * view.ScaleY)});
+            PendingInputs.Enqueue(new MousePositionAbsoluteInput
+            {
+                Position = new osuTK.Vector2(e.Event.GetX() * view.ScaleX, e.Event.GetY() * view.ScaleY)
+            });
 
             switch (e.Event.Action & MotionEventActions.Mask)
             {
@@ -41,7 +42,7 @@ namespace osu.Framework.Android.Input
 
         protected override void Dispose(bool disposing)
         {
-            view.Touch -= HandleTouches;
+            view.Touch -= handleTouches;
             base.Dispose(disposing);
         }
 

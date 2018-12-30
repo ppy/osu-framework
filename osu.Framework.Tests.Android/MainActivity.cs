@@ -5,15 +5,19 @@ using Android.App;
 using Android.Content.PM;
 using Android.OS;
 using Android.Support.V7.App;
+using Android.Views;
 
 namespace osu.Framework.Tests.Android
 {
-    [Activity(Label = "@string/app_name", Theme = "@style/AppTheme", MainLauncher = true, ScreenOrientation = ScreenOrientation.Landscape)]
+    [Activity(Label = "@string/app_name", Theme = "@android:style/Theme.NoTitleBar", MainLauncher = true, ScreenOrientation = ScreenOrientation.Landscape)]
     public class MainActivity : AppCompatActivity
     {
         protected override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
+
+            Window.AddFlags(WindowManagerFlags.Fullscreen);
+            Window.AddFlags(WindowManagerFlags.KeepScreenOn);
             SetContentView(new TestGameView(this));
         }
     }

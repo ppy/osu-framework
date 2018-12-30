@@ -4,16 +4,19 @@
 using Android.App;
 using Android.OS;
 using Android.Content.PM;
+using Android.Views;
 
 namespace SampleGame.Android
 {
-    [Activity(Label = "SampleGame", MainLauncher = true, ScreenOrientation = ScreenOrientation.Landscape)]
+    [Activity(Label = "SampleGame", MainLauncher = true, ScreenOrientation = ScreenOrientation.Landscape, Theme = "@android:style/Theme.NoTitleBar")]
     public class MainActivity : Activity
     {
         protected override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
 
+            Window.AddFlags(WindowManagerFlags.Fullscreen);
+            Window.AddFlags(WindowManagerFlags.KeepScreenOn);
             SetContentView(new SampleGameView(this));
         }
     }

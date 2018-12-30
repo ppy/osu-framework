@@ -3,10 +3,7 @@
 
 using System;
 using Android.App;
-using Android.OS;
 using osu.Framework.Platform;
-
-using Environment = Android.OS.Environment;
 
 namespace osu.Framework.Android
 {
