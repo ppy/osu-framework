@@ -1,10 +1,11 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using JetBrains.Annotations;
-using osu.Framework.Lists;
 using osu.Framework.Statistics;
 
 namespace osu.Framework.Graphics.Containers
@@ -21,82 +22,126 @@ namespace osu.Framework.Graphics.Containers
     /// </remarks>
     public class LifetimeManagementContainer : CompositeDrawable
     {
-        private sealed class LifetimeStartComparator : IComparer<Drawable>
+        private enum LifetimeState
         {
-            public int Compare(Drawable x, Drawable y)
+            /// Not yet loaded.
+            New,
+            /// Currently dead and becomes alive in the future (with respect to <see cref="Drawable.Clock"/>).
+            Future,
+            /// Currently dead and becomes alive if the clock is rewinded.
+            Past,
+            /// Currently alive.
+            Current,
+        }
+
+        /// We have to maintain lifetime separately because it is used as a key of sorted set and
+        /// dynamic change of key ordering is invalid.
+        private sealed class ChildEntry
+        {
+            [NotNull] public readonly Drawable Drawable;
+            public LifetimeState State { get; set; }
+            public double LifetimeStart { get; private set; }
+            public double LifetimeEnd { get; private set; }
+
+            public ChildEntry([NotNull] Drawable drawable)
             {
-                // Smallest LifetimeStart is placed on last.
-                return (y?.LifetimeStart ?? 0).CompareTo(x?.LifetimeStart ?? 0);
+                Drawable = drawable;
+                State = LifetimeState.New;
+                UpdateLifetime();
+            }
+
+            public void UpdateLifetime()
+            {
+                LifetimeStart = Drawable.LifetimeStart;
+                LifetimeEnd = Math.Max(Drawable.LifetimeStart, Drawable.LifetimeEnd);    // Negative intervals are undesired for calculation.
             }
         }
 
-        private sealed class LifetimeEndComparator : IComparer<Drawable>
+        /// <summary>
+        /// Compare by <see cref="ChildEntry.LifetimeStart"/>.
+        /// </summary>
+        private sealed class LifetimeStartComparator : IComparer<ChildEntry>
         {
-            public int Compare(Drawable x, Drawable y)
+            public int Compare(ChildEntry x, ChildEntry y)
             {
-                // Largest LifetimeEnd is placed on last.
-                return (x?.LifetimeEnd ?? 0).CompareTo(y?.LifetimeEnd ?? 0);
+                if (x == null) throw new ArgumentNullException(nameof(x));
+                if (y == null) throw new ArgumentNullException(nameof(y));
+
+                var c = x.LifetimeStart.CompareTo(y.LifetimeStart);
+                return c != 0 ? c : x.Drawable.ChildID.CompareTo(y.Drawable.ChildID);
             }
         }
 
-        /// Not yet loaded children.
+        /// <summary>
+        /// Compare by <see cref="ChildEntry.LifetimeEnd"/>.
+        /// </summary>
+        private sealed class LifetimeEndComparator : IComparer<ChildEntry>
+        {
+            public int Compare(ChildEntry x, ChildEntry y)
+            {
+                if (x == null) throw new ArgumentNullException(nameof(x));
+                if (y == null) throw new ArgumentNullException(nameof(y));
+
+                var c = x.LifetimeEnd.CompareTo(y.LifetimeEnd);
+                return c != 0 ? c : x.Drawable.ChildID.CompareTo(y.Drawable.ChildID);
+            }
+        }
+
+        /// <summary>
+        /// Contains all but <see cref="newChildren"/>.
+        /// </summary>
+        private readonly Dictionary<Drawable, ChildEntry> childStateMap = new Dictionary<Drawable, ChildEntry>();
+
         private readonly List<Drawable> newChildren = new List<Drawable>();
 
-        /// Children which is currently dead and becomes alive in future (with respect to <see cref="Drawable.Clock"/>).
-        /// Child with earliest LifetimeStart is placed at the last in order to do RemoveAt(Lengh - 1) in O(1) time rather than RemoveAt(0) in O(length) time.
-        private readonly SortedList<Drawable> futureChildren = new SortedList<Drawable>(new LifetimeStartComparator());
+        private readonly SortedSet<ChildEntry> futureChildren = new SortedSet<ChildEntry>(new LifetimeStartComparator());
 
-        /// Children which is currently dead and becomes alive if the clock is rewinded.
-        private readonly SortedList<Drawable> pastChildren = new SortedList<Drawable>(new LifetimeEndComparator());
+        private readonly SortedSet<ChildEntry> pastChildren = new SortedSet<ChildEntry>(new LifetimeEndComparator());
 
-        /// Note: <see cref="newChildren"/> are not on this map.
-        private readonly Dictionary<Drawable, ChildState> childStateMap = new Dictionary<Drawable, ChildState>();
-
-        private enum ChildState
+        /// <summary>
+        /// Update child life according to the current time.
+        /// The entry should be in <see cref="childStateMap"/>.
+        /// If the current state is <see cref="LifetimeState.Current"/> then
+        /// the child should be contained in <see cref="CompositeDrawable.AliveInternalChildren"/>.
+        /// Otherwise, the entry should already be removed from the corresponding list.
+        /// </summary>
+        /// <returns>Whether <see cref="CompositeDrawable.AliveInternalChildren"/> has changed.</returns>
+        private bool updateChildEntry([NotNull] ChildEntry entry)
         {
-            /// This child is in AliveInternalChildren.
-            Current,
-
-            /// This child is in futureChildren.
-            Future,
-
-            /// This child is in pastChildren.
-            Past,
-        }
-
-        private ChildState getNewState(Drawable child)
-        {
-            var currentTime = Time.Current;
-            return
-                currentTime < child.LifetimeStart ? ChildState.Future :
-                child.LifetimeEnd <= currentTime ? ChildState.Past :
-                ChildState.Current;
-        }
-
-        private ChildState updateChildState(Drawable child, ChildState? currentState)
-        {
+            var child = entry.Drawable;
             Debug.Assert(child.LoadState >= LoadState.Ready);
-            Debug.Assert(currentState == (childStateMap.TryGetValue(child, out var s) ? s : (ChildState?)null));
+            Debug.Assert(childStateMap.TryGetValue(child, out var e) && e == entry);
+            Debug.Assert(entry.State != LifetimeState.Current || AliveInternalChildren.Contains(child));
+            Debug.Assert(!futureChildren.Contains(entry) && !pastChildren.Contains(entry));
 
-            var newState = getNewState(child);
-            if (newState != currentState)
+            var currentTime = Time.Current;
+            var newState =
+                currentTime < entry.LifetimeStart ? LifetimeState.Future :
+                entry.LifetimeEnd <= currentTime ? LifetimeState.Past :
+                LifetimeState.Current;
+            if (newState == entry.State)
             {
-                if (newState == ChildState.Current)
-                {
-                    MakeChildAlive(child);
-                }
-                else if (currentState == ChildState.Current)
-                {
-                    if (MakeChildDead(child))
-                        return newState;
-                }
-
-                childStateMap[child] = newState;
+                Debug.Assert(newState != LifetimeState.Future && newState != LifetimeState.Past);
+                return false;
             }
 
-            getList(newState)?.Add(child);
+            bool aliveChildrenChanged = false;
+            if (newState == LifetimeState.Current)
+            {
+                MakeChildAlive(child);
+                aliveChildrenChanged = true;
+            }
+            else if (entry.State == LifetimeState.Current)
+            {
+                if (MakeChildDead(child))
+                    return true;
+                aliveChildrenChanged = true;
+            }
 
-            return newState;
+            entry.State = newState;
+            futureOrPastChildren(newState)?.Add(entry);
+
+            return aliveChildrenChanged;
         }
 
         protected override bool CheckChildrenLife()
@@ -115,10 +160,14 @@ namespace osu.Framework.Graphics.Containers
 
                 if (child.LoadState == LoadState.Ready)
                 {
+                    Debug.Assert(!childStateMap.ContainsKey(child));
+
                     newChildren.RemoveAt(i);
 
-                    var newState = updateChildState(child, null);
-                    aliveChildrenChanged |= newState == ChildState.Current;
+                    var entry = new ChildEntry(child);
+                    childStateMap.Add(child, entry);
+
+                    aliveChildrenChanged |= updateChildEntry(entry);
                 }
             }
 
@@ -128,66 +177,53 @@ namespace osu.Framework.Graphics.Containers
             while (futureChildren.Count > 0)
             {
                 FrameStatistics.Increment(StatisticsCounterType.CCL);
-                var child = futureChildren[futureChildren.Count - 1];
+                var entry = futureChildren.Min;
+                Debug.Assert(entry.State == LifetimeState.Future);
 
-                if (currentTime < child.LifetimeStart)
-                {
-                    // Rest of the array contains children which becomes alive at least as late as this child.
-                    // Thus we can skip checking.
-                    break;
-                }
+                if (currentTime < entry.LifetimeStart)
+                     break;
 
-                futureChildren.RemoveAt(futureChildren.Count - 1);
+                futureChildren.Remove(entry);
 
-                var newState = updateChildState(child, ChildState.Future);
-                aliveChildrenChanged |= newState == ChildState.Current;
-
-                // Shouldn't happen but if it happens then it becomes an infinity loop so do a fail-fast.
-                Trace.Assert(newState != ChildState.Future);
+                aliveChildrenChanged |= updateChildEntry(entry);
             }
 
-            // Symmetric to above for rewinding case.
             while (pastChildren.Count > 0)
             {
                 FrameStatistics.Increment(StatisticsCounterType.CCL);
-                var child = pastChildren[pastChildren.Count - 1];
+                var entry = pastChildren.Max;
+                Debug.Assert(entry.State == LifetimeState.Past);
 
-                if (child.LifetimeEnd <= currentTime)
-                {
+                if (entry.LifetimeEnd <= currentTime)
                     break;
-                }
 
-                pastChildren.RemoveAt(pastChildren.Count - 1);
+                pastChildren.Remove(entry);
 
-                var newState = updateChildState(child, ChildState.Past);
-                aliveChildrenChanged |= newState == ChildState.Current;
-
-                Trace.Assert(newState != ChildState.Past);
+                aliveChildrenChanged |= updateChildEntry(entry);
             }
 
             for(var i = AliveInternalChildren.Count - 1; i >= 0; -- i)
             {
                 FrameStatistics.Increment(StatisticsCounterType.CCL);
                 var child = AliveInternalChildren[i];
-                Debug.Assert(childStateMap.TryGetValue(child, out var s) && s == ChildState.Current);
+                Debug.Assert(childStateMap.ContainsKey(child));
+                var entry = childStateMap[child];
 
-                var newState = updateChildState(child, ChildState.Current);
-                aliveChildrenChanged |= newState != ChildState.Current;
+                aliveChildrenChanged |= updateChildEntry(entry);
             }
+
+            Debug.Assert(newChildren.Count + futureChildren.Count + pastChildren.Count + AliveInternalChildren.Count == InternalChildren.Count);
 
             return aliveChildrenChanged;
         }
 
-        /// <summary>
-        /// Returns <see cref="futureChildren"/> or <see cref="pastChildren"/> or null.
-        /// </summary>
-        [CanBeNull] private SortedList<Drawable> getList(ChildState state)
+        [CanBeNull] private SortedSet<ChildEntry> futureOrPastChildren(LifetimeState state)
         {
             switch (state)
             {
-                case ChildState.Future:
+                case LifetimeState.Future:
                     return futureChildren;
-                case ChildState.Past:
+                case LifetimeState.Past:
                     return pastChildren;
                 default:
                     return null;
@@ -196,14 +232,16 @@ namespace osu.Framework.Graphics.Containers
 
         private void childLifetimeChanged(Drawable child)
         {
-            if (!childStateMap.TryGetValue(child, out var state)) return;
+            if (!childStateMap.TryGetValue(child, out var entry)) return;
 
-            var list = getList(state);
-            // We can't use binary search (Remove method) to locate child because lifetime is changed and
-            // might be invalid for the list ordering.
-            list?.RemoveAt(list.FindIndex(x => x == child));
+            futureOrPastChildren(entry.State)?.Remove(entry);
 
-            updateChildState(child, state);
+            // We need to re-insert to the future/past children set even if state is unchanged.
+            if (entry.State == LifetimeState.Future || entry.State == LifetimeState.Past)
+                entry.State = LifetimeState.New;
+            entry.UpdateLifetime();
+
+            updateChildEntry(entry);
         }
 
         protected internal override void AddInternal(Drawable drawable)
@@ -219,11 +257,10 @@ namespace osu.Framework.Graphics.Containers
         {
             drawable.LifetimeChanged -= childLifetimeChanged;
 
-            if (childStateMap.TryGetValue(drawable, out var state))
+            if (childStateMap.TryGetValue(drawable, out var entry))
             {
                 childStateMap.Remove(drawable);
-                var list = getList(state);
-                list?.Remove(drawable);
+                futureOrPastChildren(entry.State)?.Remove(entry);
             }
             else
             {
