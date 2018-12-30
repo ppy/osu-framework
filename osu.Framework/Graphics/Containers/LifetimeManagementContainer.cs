@@ -137,6 +137,10 @@ namespace osu.Framework.Graphics.Containers
                     return true;
                 aliveChildrenChanged = true;
             }
+            else if (entry.State != LifetimeState.New)
+            {
+                OnChildLifetimeSkipped(child, entry.State == LifetimeState.Future ? SkipDirection.Forward : SkipDirection.Backward);
+            }
 
             entry.State = newState;
             futureOrPastChildren(newState)?.Add(entry);
@@ -278,6 +282,32 @@ namespace osu.Framework.Graphics.Containers
             pastChildren.Clear();
 
             base.ClearInternal(disposeChildren);
+        }
+
+        /// <summary>
+        /// Represents a direction of skip.
+        /// </summary>
+        public enum SkipDirection
+        {
+            /// <summary>
+            /// A skip from past to future.
+            /// </summary>
+            Forward,
+
+            /// <summary>
+            /// A skip from future to past.
+            /// </summary>
+            Backward,
+        }
+
+        /// <summary>
+        /// Invoked when the clock is skipped child lifetime interval completely.
+        /// For example, when child lifetime is [1,2) and clock is skipped from 0 to 3, it is a <see cref="SkipDirection.Forward"/> skip.
+        /// </summary>
+        /// <param name="child">The skipped child.</param>
+        /// <param name="skipDirection">The direction of the skip.</param>
+        protected virtual void OnChildLifetimeSkipped(Drawable child, SkipDirection skipDirection)
+        {
         }
     }
 }

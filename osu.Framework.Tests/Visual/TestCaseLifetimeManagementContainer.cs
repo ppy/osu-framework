@@ -1,7 +1,6 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -23,7 +22,7 @@ namespace osu.Framework.Tests.Visual
 
             Children = new Drawable[]
             {
-                container = new LifetimeManagementContainer
+                container = new TestContainer
                 {
                     Clock = new FramedClock(manualClock),
                 },
@@ -32,7 +31,7 @@ namespace osu.Framework.Tests.Visual
 
         private void skipTo(double time)
         {
-            AddStep($"set time to {time}", () => manualClock.CurrentTime = time);
+            AddStep($"Set time to {time}", () => manualClock.CurrentTime = time);
         }
 
         private void validate(int numAlive)
@@ -42,9 +41,8 @@ namespace osu.Framework.Tests.Visual
                 int num = 0;
                 foreach (var child in container.InternalChildren)
                 {
-                    var isAlive = container.AliveInternalChildren.Any(c => c == child);
-                    num += isAlive ? 1 : 0;
-                    Assert.AreEqual(isAlive, child.ShouldBeAlive);
+                    num += child.IsAlive ? 1 : 0;
+                    Assert.AreEqual(child.IsAlive, child.ShouldBeAlive, $"Aliveness is invalid for {child}");
                 }
 
                 return num == numAlive;
@@ -54,7 +52,7 @@ namespace osu.Framework.Tests.Visual
         [Test]
         public void Basic()
         {
-            AddStep("add children", () =>
+            AddStep("Add children", () =>
             {
                 container.AddInternal(new TestChild(-1, 1));
                 container.AddInternal(new TestChild(0, 1));
@@ -78,7 +76,7 @@ namespace osu.Framework.Tests.Visual
         public void DynamicChange()
         {
             TestChild a = null, b = null, c = null, d = null;
-            AddStep("add children", () =>
+            AddStep("Add children", () =>
             {
                 container.AddInternal(a = new TestChild(-1, 0));
                 container.AddInternal(b = new TestChild(0, 1));
@@ -114,23 +112,58 @@ namespace osu.Framework.Tests.Visual
             validate(2);
         }
 
-        public class TestChild : Container
+        [Test]
+        public void Skip()
+        {
+            TestChild a = null, b = null, c = null;
+            AddStep("Add children", () =>
+            {
+                container.AddInternal(a = new TestChild(-1, 0));
+                container.AddInternal(b = new TestChild(0, 1));
+                container.AddInternal(c = new TestChild(1, 2));
+            });
+            skipTo(2);
+            AddAssert("Check skipped", () =>
+                a.Skipped == null &&
+                b.Skipped == null &&
+                c.Skipped == LifetimeManagementContainer.SkipDirection.Forward);
+            skipTo(1);
+            skipTo(-1);
+            AddAssert("Check skipped", () =>
+                a.Skipped == null &&
+                b.Skipped == LifetimeManagementContainer.SkipDirection.Backward &&
+                c.Skipped == null);
+        }
+
+        public class TestChild : SpriteText
         {
             public override bool RemoveWhenNotAlive => false;
 
-            private readonly SpriteText text;
+            public LifetimeManagementContainer.SkipDirection? Skipped;
 
             public TestChild(double lifetimeStart, double lifetimeEnd)
             {
                 LifetimeStart = lifetimeStart;
                 LifetimeEnd = lifetimeEnd;
-                Add(text = new SpriteText());
+                Text = ".";
             }
 
             protected override void Update()
             {
-                text.Y = ChildID * text.TextSize;
-                text.Text = $"{ChildID}: {LifetimeStart}..{LifetimeEnd}";
+                Y = ChildID * TextSize;
+                Text = $"{ChildID}: {LifetimeStart}..{LifetimeEnd}";
+                Skipped = null;
+            }
+        }
+
+        public class TestContainer : LifetimeManagementContainer
+        {
+            protected override void OnChildLifetimeSkipped(Drawable child, SkipDirection skipDirection)
+            {
+                if (child is TestChild c)
+                {
+                    c.Skipped = skipDirection;
+                }
             }
         }
     }
