@@ -12,12 +12,10 @@ namespace osu.Framework.Tests.Android
     {
         public TestGameView(Context context) : base(context)
         {
-            CreateGame();
         }
 
         public TestGameView(Context context, IAttributeSet attrs) : base(context, attrs)
         {
-            CreateGame();
         }
 
         public override Game CreateGame() => new VisualTestGame();
