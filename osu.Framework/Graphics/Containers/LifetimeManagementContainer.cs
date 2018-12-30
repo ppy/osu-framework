@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using JetBrains.Annotations;
 using osu.Framework.Lists;
 using osu.Framework.Statistics;
 
@@ -15,7 +16,8 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     /// <remarks>
     /// This container assumes child's <see cref="Drawable.Clock"/> is the same as ours and
-    /// <see cref="Drawable.ShouldBeAlive"/> is not overrided and lifetimes won't change dynamically.
+    /// <see cref="Drawable.ShouldBeAlive"/> is not overrided.
+    /// Also, <see cref="Drawable.RemoveWhenNotAlive"/> should be false.
     /// </remarks>
     public class LifetimeManagementContainer : CompositeDrawable
     {
@@ -40,14 +42,14 @@ namespace osu.Framework.Graphics.Containers
         /// Not yet loaded children.
         private readonly List<Drawable> newChildren = new List<Drawable>();
 
-        /// Children which is currently dead and becomes alive in future (in the Clock sense).
+        /// Children which is currently dead and becomes alive in future (with respect to <see cref="Drawable.Clock"/>).
         /// Child with earliest LifetimeStart is placed at the last in order to do RemoveAt(Lengh - 1) in O(1) time rather than RemoveAt(0) in O(length) time.
         private readonly SortedList<Drawable> futureChildren = new SortedList<Drawable>(new LifetimeStartComparator());
 
         /// Children which is currently dead and becomes alive if the clock is rewinded.
         private readonly SortedList<Drawable> pastChildren = new SortedList<Drawable>(new LifetimeEndComparator());
 
-        /// newChildren are not on this map.
+        /// Note: <see cref="newChildren"/> are not on this map.
         private readonly Dictionary<Drawable, ChildState> childStateMap = new Dictionary<Drawable, ChildState>();
 
         private enum ChildState
@@ -79,29 +81,20 @@ namespace osu.Framework.Graphics.Containers
             var newState = getNewState(child);
             if (newState != currentState)
             {
-                childStateMap[child] = newState;
-
                 if (newState == ChildState.Current)
                 {
                     MakeChildAlive(child);
                 }
-                else
+                else if (currentState == ChildState.Current)
                 {
-                    if (currentState == ChildState.Current)
-                    {
-                        MakeChildDead(child);
-                    }
-
-                    if (newState == ChildState.Future)
-                    {
-                        futureChildren.Add(child);
-                    }
-                    else
-                    {
-                        pastChildren.Add(child);
-                    }
+                    if (MakeChildDead(child))
+                        return newState;
                 }
+
+                childStateMap[child] = newState;
             }
+
+            getList(newState)?.Add(child);
 
             return newState;
         }
@@ -176,7 +169,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 FrameStatistics.Increment(StatisticsCounterType.CCL);
                 var child = AliveInternalChildren[i];
-                Debug.Assert(childStateMap[child] == ChildState.Current);
+                Debug.Assert(childStateMap.TryGetValue(child, out var s) && s == ChildState.Current);
 
                 var newState = updateChildState(child, ChildState.Current);
                 aliveChildrenChanged |= newState != ChildState.Current;
@@ -185,26 +178,52 @@ namespace osu.Framework.Graphics.Containers
             return aliveChildrenChanged;
         }
 
+        /// <summary>
+        /// Returns <see cref="futureChildren"/> or <see cref="pastChildren"/> or null.
+        /// </summary>
+        [CanBeNull] private SortedList<Drawable> getList(ChildState state)
+        {
+            switch (state)
+            {
+                case ChildState.Future:
+                    return futureChildren;
+                case ChildState.Past:
+                    return pastChildren;
+                default:
+                    return null;
+            }
+        }
+
+        private void childLifetimeChanged(Drawable child)
+        {
+            if (!childStateMap.TryGetValue(child, out var state)) return;
+
+            var list = getList(state);
+            // We can't use binary search (Remove method) to locate child because lifetime is changed and
+            // might be invalid for the list ordering.
+            list?.RemoveAt(list.FindIndex(x => x == child));
+
+            updateChildState(child, state);
+        }
+
         protected internal override void AddInternal(Drawable drawable)
         {
+            Trace.Assert(!drawable.RemoveWhenNotAlive, $"{nameof(RemoveWhenNotAlive)} is not supported for {nameof(LifetimeManagementContainer)}");
+            drawable.LifetimeChanged += childLifetimeChanged;
+
             newChildren.Add(drawable);
             base.AddInternal(drawable);
         }
 
         protected internal override bool RemoveInternal(Drawable drawable)
         {
+            drawable.LifetimeChanged -= childLifetimeChanged;
+
             if (childStateMap.TryGetValue(drawable, out var state))
             {
                 childStateMap.Remove(drawable);
-                switch (state)
-                {
-                    case ChildState.Future:
-                        futureChildren.Remove(drawable);
-                        break;
-                    case ChildState.Past:
-                        pastChildren.Remove(drawable);
-                        break;
-                }
+                var list = getList(state);
+                list?.Remove(drawable);
             }
             else
             {

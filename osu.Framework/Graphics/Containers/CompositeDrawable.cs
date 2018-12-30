@@ -678,7 +678,8 @@ namespace osu.Framework.Graphics.Containers
         /// Caller have to ensure that <see cref="child"/> is this <see cref="CompositeDrawable"/>'s <see cref="AliveInternalChildren"/>.
         /// </remarks>
         /// <param name="child">The child of this <see cref="CompositeDrawable"/>> to make dead.</param>
-        protected void MakeChildDead(Drawable child)
+        /// <returns>Returns true if <paramref name="child"/> is removed by death.</returns>
+        protected bool MakeChildDead(Drawable child)
         {
             Debug.Assert(child.IsAlive);
 
@@ -690,7 +691,10 @@ namespace osu.Framework.Graphics.Containers
             if (child.RemoveWhenNotAlive)
             {
                 removeChildByDeath(child);
+                return true;
             }
+
+            return false;
         }
 
         private void removeChildByDeath(Drawable child)

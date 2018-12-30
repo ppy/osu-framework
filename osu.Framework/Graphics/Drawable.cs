@@ -1315,15 +1315,41 @@ namespace osu.Framework.Graphics
         /// </summary>
         public bool ProcessCustomClock = true;
 
+        private double lifetimeStart = double.MinValue;
+        private double lifetimeEnd = double.MaxValue;
+
+        /// <summary>
+        /// Invoked after <see cref="lifetimeStart"/> or <see cref="LifetimeEnd"/> has changed.
+        /// </summary>
+        internal event Action<Drawable> LifetimeChanged;
+
         /// <summary>
         /// The time at which this drawable becomes valid (and is considered for drawing).
         /// </summary>
-        public virtual double LifetimeStart { get; set; } = double.MinValue;
+        public virtual double LifetimeStart
+        {
+            get => lifetimeStart;
+            set
+            {
+                if (lifetimeStart == value) return;
+                lifetimeStart = value;
+                LifetimeChanged?.Invoke(this);
+            }
+        }
 
         /// <summary>
         /// The time at which this drawable is no longer valid (and is considered for disposal).
         /// </summary>
-        public virtual double LifetimeEnd { get; set; } = double.MaxValue;
+        public virtual double LifetimeEnd
+        {
+            get => lifetimeEnd;
+            set
+            {
+                if (lifetimeEnd == value) return;
+                lifetimeEnd = value;
+                LifetimeChanged?.Invoke(this);
+            }
+        }
 
         /// <summary>
         /// Whether this drawable should currently be alive.
