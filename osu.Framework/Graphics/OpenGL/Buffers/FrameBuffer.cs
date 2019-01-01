@@ -12,7 +12,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 {
     public class FrameBuffer : IDisposable
     {
-        private int lastFramebuffer;
+        private static int lastFramebuffer;
         private int frameBuffer = -1;
 
         public TextureGL Texture { get; private set; }
