@@ -140,7 +140,7 @@ namespace osu.Framework.Tests.Visual
             window = host.Window as DesktopGameWindow;
             config.BindWith(FrameworkSetting.WindowMode, windowMode);
 
-            if (window == null) return;
+            if (window == null)
             {
                 Console.WriteLine("No suitable window found");
                 return;
