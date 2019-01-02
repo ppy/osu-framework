@@ -41,9 +41,7 @@
     <None Include="packages.config" />
     <None Include="Properties\AndroidManifest.xml" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Assets\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <ProjectReference Include="..\osu.Framework.Android\osu.Framework.Android.csproj">
       <Project>{87D8D3B5-7E16-4207-9972-8242AF1DEC3C}</Project>
