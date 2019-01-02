@@ -1,6 +1,5 @@
 <Project>
   <PropertyGroup>
-    <AndroidSupportedAbis>armeabi;armeabi-v7a;x86;arm64-v8a</AndroidSupportedAbis>
     <OutputPath>bin\$(Configuration)</OutputPath>
     <WarningLevel>4</WarningLevel>
     <EnableLLVM>false</EnableLLVM>
@@ -10,11 +9,15 @@
     <OutputType>Library</OutputType>
     <MandroidI18n>CJK</MandroidI18n>
     <FileAlignment>512</FileAlignment>
-    <AndroidApplication>True</AndroidApplication>
     <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
     <EmbedAssembliesIntoApk>false</EmbedAssembliesIntoApk>
     <RegisterForComInterop>false</RegisterForComInterop>
+    <AndroidApplication>True</AndroidApplication>
     <AndroidEnableSGenConcurrent>false</AndroidEnableSGenConcurrent>
+    <AndroidSupportedAbis>armeabi;armeabi-v7a;x86;arm64-v8a</AndroidSupportedAbis>
+    <AndroidHttpClientHandlerType>Xamarin.Android.Net.AndroidClientHandler</AndroidHttpClientHandlerType>
+    <TargetFrameworkVersion>v8.1</TargetFrameworkVersion>
+    <AndroidUseLatestPlatformSdk>false</AndroidUseLatestPlatformSdk>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -35,24 +38,14 @@
     <AndroidUseSharedRuntime>false</AndroidUseSharedRuntime>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="FFmpeg.AutoGen">
-      <HintPath>..\packages\FFmpeg.AutoGen.4.1.0.1\lib\netstandard2.0\FFmpeg.AutoGen.dll</HintPath>
-    </Reference>
-    <Reference Include="ManagedBass, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\ManagedBass.2.0.4\lib\netstandard1.4\ManagedBass.dll</HintPath>
-    </Reference>
-    <Reference Include="ManagedBass.Fx, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\ManagedBass.Fx.2.0.1\lib\netstandard1.4\ManagedBass.Fx.dll</HintPath>
-    </Reference>
-    <Reference Include="osuTK, Version=3.0.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
-      <HintPath>..\packages\ppy.osuTK.NS20.1.0.50\lib\netstandard2.0\osuTK.dll</HintPath>
-    </Reference>
-    <Reference Include="osuTK.Android, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\ppy.osuTK.Android.1.0.50\lib\monoandroid50\osuTK.Android.dll</HintPath>
-    </Reference>
-    <Reference Include="SharpFNT">
-      <HintPath>..\packages\SharpFNT.1.0.1\lib\netstandard1.3\SharpFNT.dll</HintPath>
-    </Reference>
+    <None Include="$(MSBuildThisFileDirectory)\osu-framework.licenseheader">
+      <Link>osu-framework.licenseheader</Link>
+    </None>
+    <AndroidNativeLibrary Include="$(MSBuildThisFileDirectory)\osu.Framework.Android\lib\**\*.so">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.Net.Http" />
