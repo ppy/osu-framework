@@ -5,9 +5,6 @@ using Android.App;
 using Android.OS;
 using Android.Content.PM;
 using Android.Views;
-using System;
-using Android.Runtime;
-using Android.Content.Res;
 
 namespace SampleGame.Android
 {
