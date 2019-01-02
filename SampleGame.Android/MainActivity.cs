@@ -8,7 +8,7 @@ using Android.Views;
 
 namespace SampleGame.Android
 {
-    [Activity(Label = "SampleGame", MainLauncher = true, ScreenOrientation = ScreenOrientation.Landscape, Theme = "@android:style/Theme.NoTitleBar")]
+    [Activity(Label = "SampleGame", ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize, MainLauncher = true, Theme = "@android:style/Theme.NoTitleBar")]
     public class MainActivity : Activity
     {
         protected override void OnCreate(Bundle savedInstanceState)
@@ -17,6 +17,7 @@ namespace SampleGame.Android
 
             Window.AddFlags(WindowManagerFlags.Fullscreen);
             Window.AddFlags(WindowManagerFlags.KeepScreenOn);
+
             SetContentView(new SampleGameView(this));
         }
     }
