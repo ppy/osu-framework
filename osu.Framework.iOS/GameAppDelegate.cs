@@ -64,7 +64,7 @@ namespace osu.Framework.iOS
                 gameView.OnFileDrop(url.Path);
             } else if (url.ToString().StartsWith("osu://"))
             {
-                //TODO: Handle osu URLs
+                //TODO: Handle osu URLs for things like direct from the web. 
             }
             return true;
         }
