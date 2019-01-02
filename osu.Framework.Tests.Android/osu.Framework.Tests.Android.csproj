@@ -20,6 +20,9 @@
     <Compile Include="..\osu.Framework.Tests\**\*.cs" Exclude="..\osu.Framework.Tests\Program.cs;..\osu.Framework.Tests\obj\**\*;..\osu.Framework.Tests\bin\**\*">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
     </Compile>
+    <EmbeddedResource Include="..\osu.Framework.Tests\Resources\**\*" >
+      <Link>Resources\%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="ppy.osuTK.Android" Version="1.0.50" />
