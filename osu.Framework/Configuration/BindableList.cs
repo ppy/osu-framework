@@ -15,7 +15,7 @@ namespace osu.Framework.Configuration
 
         private readonly WeakReference<BindableList<T>> weakReference;
 
-        private WeakList<BindableList<T>> bindings;
+        private LockedWeakList<BindableList<T>> bindings;
 
         /// <summary>
         /// An event which is raised when any items are added to this <see cref="BindableList{T}"/>.
@@ -480,7 +480,7 @@ namespace osu.Framework.Configuration
         private void addWeakReference(WeakReference<BindableList<T>> weakReference)
         {
             if (bindings == null)
-                bindings = new WeakList<BindableList<T>>();
+                bindings = new LockedWeakList<BindableList<T>>();
 
             bindings.Add(weakReference);
         }
