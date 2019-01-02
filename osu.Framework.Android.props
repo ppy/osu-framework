@@ -7,7 +7,11 @@
     <BundleAssemblies>false</BundleAssemblies>
     <AotAssemblies>false</AotAssemblies>
     <LangVersion>default</LangVersion>
+    <OutputType>Library</OutputType>
     <MandroidI18n>CJK</MandroidI18n>
+    <FileAlignment>512</FileAlignment>
+    <AndroidApplication>True</AndroidApplication>
+    <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
     <EmbedAssembliesIntoApk>false</EmbedAssembliesIntoApk>
     <RegisterForComInterop>false</RegisterForComInterop>
     <AndroidEnableSGenConcurrent>false</AndroidEnableSGenConcurrent>
