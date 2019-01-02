@@ -43,7 +43,7 @@
       <Link>osu-framework.licenseheader</Link>
     </None>
     <AndroidNativeLibrary Include="$(MSBuildThisFileDirectory)\osu.Framework.Android\lib\**\*.so">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </AndroidNativeLibrary>
   </ItemGroup>
   <ItemGroup>
