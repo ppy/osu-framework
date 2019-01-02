@@ -47,7 +47,7 @@ namespace osu.Framework.Testing
 
             Task.Run(() =>
             {
-                var basePath = di.Parent?.Parent?.Parent?.Parent?.FullName;
+                var basePath = getSolutionPath(di);
 
                 if (!Directory.Exists(basePath))
                     return;
@@ -73,6 +73,14 @@ namespace osu.Framework.Testing
                     watchers.Add(fsw);
                 }
             });
+
+            string getSolutionPath(DirectoryInfo d)
+            {
+                if (d == null)
+                    return null;
+
+                return d.GetFiles().Any(f => f.Extension == ".sln") ? d.FullName : getSolutionPath(d.Parent);
+            }
         }
 
         private void onChange(object sender, FileSystemEventArgs e)

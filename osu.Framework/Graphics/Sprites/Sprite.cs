@@ -125,7 +125,7 @@ namespace osu.Framework.Graphics.Sprites
         {
             string result = base.ToString();
             if (!string.IsNullOrEmpty(texture?.AssetName))
-                result += $" tex: {texture?.AssetName}";
+                result += $" tex: {texture.AssetName}";
             return result;
         }
     }
