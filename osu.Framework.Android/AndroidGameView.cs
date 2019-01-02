@@ -74,6 +74,5 @@ namespace osu.Framework.Android
             host = new AndroidGameHost(this);
             host.Run(CreateGame());
         }
-
     }
 }
