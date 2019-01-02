@@ -8,7 +8,7 @@ using Android.Views;
 
 namespace osu.Framework.Tests.Android
 {
-    [Activity(Label = "@string/app_name", Theme = "@android:style/Theme.NoTitleBar", MainLauncher = true, ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize)]
+    [Activity(Theme = "@android:style/Theme.NoTitleBar", MainLauncher = true, ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize)]
     public class MainActivity : Activity
     {
         protected override void OnCreate(Bundle savedInstanceState)
