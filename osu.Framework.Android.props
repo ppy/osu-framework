@@ -2,6 +2,7 @@
   <PropertyGroup>
     <OutputPath>bin\$(Configuration)</OutputPath>
     <WarningLevel>4</WarningLevel>
+    <SchemaVersion>2.0</SchemaVersion>
     <EnableLLVM>false</EnableLLVM>
     <BundleAssemblies>false</BundleAssemblies>
     <AotAssemblies>false</AotAssemblies>
@@ -52,6 +53,7 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.Core" />
     <Reference Include="Mono.Android" />
+    <Reference Include="Java.Interop" />
     <Reference Include="Java.Interop" />
   </ItemGroup>
 </Project>

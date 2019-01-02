@@ -11,8 +11,6 @@ namespace SampleGame.Android
     [Activity(Label = "SampleGame", ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize, MainLauncher = true, Theme = "@android:style/Theme.NoTitleBar")]
     public class MainActivity : Activity
     {
-        private SampleGameView sampleGameView;
-
         protected override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
@@ -20,7 +18,7 @@ namespace SampleGame.Android
             Window.AddFlags(WindowManagerFlags.Fullscreen);
             Window.AddFlags(WindowManagerFlags.KeepScreenOn);
 
-            SetContentView(sampleGameView = new SampleGameView(this));
+            SetContentView(new SampleGameView(this));
         }
     }
 }
