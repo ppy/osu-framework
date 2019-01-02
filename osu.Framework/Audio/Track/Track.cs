@@ -10,8 +10,11 @@ namespace osu.Framework.Audio.Track
 {
     public abstract class Track : AdjustableAudioComponent, IAdjustableClock
     {
-        public virtual event Action Completed;
-        public virtual event Action Failed;
+        public event Action Completed;
+        public event Action Failed;
+
+        protected virtual void RaiseCompleted() => Completed?.Invoke();
+        protected virtual void RaiseFailed() => Failed?.Invoke();
 
         /// <summary>
         /// Is this track capable of producing audio?

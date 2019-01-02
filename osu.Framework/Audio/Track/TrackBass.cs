@@ -17,9 +17,6 @@ namespace osu.Framework.Audio.Track
     {
         private AsyncBufferStream dataStream;
 
-        public override event Action Completed;
-        public override event Action Failed;
-
         /// <summary>
         /// Should this track only be used for preview purposes? This suggests it has not yet been fully loaded.
         /// </summary>
@@ -92,11 +89,11 @@ namespace osu.Framework.Audio.Track
                     bitrate = (int)Bass.ChannelGetAttribute(activeStream, ChannelAttribute.Bitrate);
 
                     // Init Events
-                    Bass.ChannelSetSync(activeStream, SyncFlags.Stop, 0, (a, b, c, d) => Failed?.Invoke());
+                    Bass.ChannelSetSync(activeStream, SyncFlags.Stop, 0, (a, b, c, d) => RaiseFailed());
                     Bass.ChannelSetSync(activeStream, SyncFlags.End, 0, (a, b, c, d) =>
                     {
                         if (!Looping)
-                            Completed?.Invoke();
+                            RaiseCompleted();
                     });
 
                     isLoaded = true;
