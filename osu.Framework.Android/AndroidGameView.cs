@@ -18,21 +18,25 @@ namespace osu.Framework.Android
 
         public AndroidGameView(Context context) : base(context)
         {
-            Init();
+            init();
         }
+
         public AndroidGameView(Context context, IAttributeSet attrs) : base(context, attrs)
         {
-            Init();
+            init();
         }
+
         public AndroidGameView(IntPtr handle, JniHandleOwnership transfer) : base(handle, transfer)
         {
-            Init();
+            init();
         }
-        private void Init()
+
+        private void init()
         {
             AutoSetContextOnRenderFrame = true;
             ContextRenderingApi = GLVersion.ES3;
         }
+
         protected override void CreateFrameBuffer()
         {
             try
@@ -57,6 +61,7 @@ namespace osu.Framework.Android
 
             RenderGame();
         }
+
         protected override void OnResize(EventArgs e)
         {
             viewportHeight = Height;
@@ -69,5 +74,6 @@ namespace osu.Framework.Android
             host = new AndroidGameHost(this);
             host.Run(CreateGame());
         }
+
     }
 }
