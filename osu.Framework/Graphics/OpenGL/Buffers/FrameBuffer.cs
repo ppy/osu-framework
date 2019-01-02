@@ -101,8 +101,6 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             attachedRenderBuffers.Add(new RenderBuffer(format));
         }
 
-        private bool firstBinding = true;
-
         /// <summary>
         /// Binds the framebuffer.
         /// <para>Does not clear the buffer or reset the viewport/ortho.</para>
@@ -110,16 +108,10 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         public void Bind()
         {
             GLWrapper.BindFrameBuffer(frameBuffer);
-
-            if (firstBinding)
+            foreach (var r in attachedRenderBuffers)
             {
-                foreach (var r in attachedRenderBuffers)
-                {
-                    r.Size = Size;
-                    r.Bind(frameBuffer);
-                }
-
-                firstBinding = false;
+                r.Size = Size;
+                r.Bind(frameBuffer);
             }
         }
 
