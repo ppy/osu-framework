@@ -5,6 +5,7 @@ using UIKit;
 using Foundation;
 using System.Drawing;
 using SixLabors.ImageSharp.PixelFormats;
+using osuTK.Input;
 
 namespace osu.Framework.iOS
 {
@@ -37,6 +38,8 @@ namespace osu.Framework.iOS
             host = new IOSGameHost(gameView);
             host.Run(CreateGame());
 
+            gameView.FileDrop += fileDrop;
+
             return true;
         }
 
@@ -53,6 +56,19 @@ namespace osu.Framework.iOS
             }
         }
 
-        public override abstract bool OpenUrl(UIApplication app, NSUrl url, NSDictionary options);
+
+        public override bool OpenUrl(UIApplication app, NSUrl url, NSDictionary options)
+        {
+            if (url.IsFileUrl) // Built-in check whether Url is actually a file path. 
+            {
+                gameView.OnFileDrop(url.Path);
+            } else if (url.ToString().StartsWith("osu://"))
+            {
+                //TODO: Handle osu URLs
+            }
+            return true;
+        }
+
+        public abstract void fileDrop(object sender, FileDropEventArgs e);
     }
 }
