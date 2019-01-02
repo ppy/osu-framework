@@ -234,14 +234,6 @@ namespace osu.Framework.Graphics.UserInterface
 
         public class DropdownMenu : Menu
         {
-            private float? explicitHeight;
-
-            public override float Height
-            {
-                get => base.Height;
-                set => base.Height = (float)(explicitHeight = value);
-            }
-
             public DropdownMenu()
                 : base(Direction.Vertical)
             {
@@ -250,14 +242,14 @@ namespace osu.Framework.Graphics.UserInterface
 
             protected override void ComputeSize()
             {
-                if (explicitHeight.HasValue)
+                if (float.IsPositiveInfinity(MaxHeight))
                 {
-                    var calculatedHeight = MathHelper.Clamp(ItemsContainer.Height, 0, MaxHeight);
-                    base.Height = Math.Min(calculatedHeight, explicitHeight.Value);
+                    base.ComputeSize();
                 }
                 else
                 {
-                    base.ComputeSize();
+                    var calculatedHeight = MathHelper.Clamp(ItemsContainer.Height, 0, MaxHeight);
+                    base.Height = Math.Min(calculatedHeight, MaxHeight);
                 }
             }
 
