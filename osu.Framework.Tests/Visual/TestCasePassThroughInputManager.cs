@@ -39,11 +39,11 @@ namespace osu.Framework.Tests.Visual
         }
 
         [SetUp]
-        public override void SetUp()
+        public override void SetUp() => Schedule(() =>
         {
             base.SetUp();
             ChildrenEnumerable = Enumerable.Empty<Drawable>();
-        }
+        });
 
         [Test]
         public void ReceiveInitialState()

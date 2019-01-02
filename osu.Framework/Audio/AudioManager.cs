@@ -140,6 +140,10 @@ namespace osu.Framework.Audio
             scheduler.Add(() => setAudioDevice(string.IsNullOrEmpty(newDevice) ? null : newDevice));
         }
 
+        protected virtual TrackManager CreateTrackManager(ResourceStore<byte[]> store) => new TrackManager(store);
+
+        protected virtual SampleManager CreateSampleManager(IResourceStore<byte[]> store) => new SampleManager(store);
+
         /// <summary>
         /// Returns a list of the names of recognized audio devices.
         /// </summary>
@@ -159,7 +163,7 @@ namespace osu.Framework.Audio
         {
             if (store == null) return globalTrackManager.Value;
 
-            TrackManager tm = new TrackManager(store);
+            TrackManager tm = CreateTrackManager(store);
             AddItem(tm);
             tm.AddAdjustment(AdjustableProperty.Volume, VolumeTrack);
             VolumeTrack.ValueChanged += tm.InvalidateState;
@@ -176,7 +180,7 @@ namespace osu.Framework.Audio
         {
             if (store == null) return globalSampleManager.Value;
 
-            SampleManager sm = new SampleManager(store);
+            SampleManager sm = CreateSampleManager(store);
             AddItem(sm);
             sm.AddAdjustment(AdjustableProperty.Volume, VolumeSample);
             VolumeSample.ValueChanged += sm.InvalidateState;

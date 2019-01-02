@@ -12,34 +12,34 @@ namespace osu.Framework.Development
         [Conditional("DEBUG")]
         internal static void EnsureUpdateThread()
         {
-            //This check is very intrusive on performance, so let's only run when a debugger is actually attached.
-            if (!Debugger.IsAttached) return;
-
             Debug.Assert(IsUpdateThread);
         }
 
         [Conditional("DEBUG")]
         internal static void EnsureNotUpdateThread()
         {
-            //This check is very intrusive on performance, so let's only run when a debugger is actually attached.
-            if (!Debugger.IsAttached) return;
-
             Debug.Assert(!IsUpdateThread);
         }
 
         [Conditional("DEBUG")]
         internal static void EnsureDrawThread()
         {
-            //This check is very intrusive on performance, so let's only run when a debugger is actually attached.
-            if (!Debugger.IsAttached) return;
-
             Debug.Assert(IsDrawThread);
         }
 
-        public static bool IsUpdateThread => Thread.CurrentThread.Name == GameThread.PrefixedThreadNameFor("Update");
+        private static readonly ThreadLocal<bool> is_update_thread = new ThreadLocal<bool>(() =>
+            Thread.CurrentThread.Name == GameThread.PrefixedThreadNameFor("Update"));
 
-        public static bool IsDrawThread => Thread.CurrentThread.Name == GameThread.PrefixedThreadNameFor("Draw");
+        private static readonly ThreadLocal<bool> is_draw_thread = new ThreadLocal<bool>(() =>
+            Thread.CurrentThread.Name == GameThread.PrefixedThreadNameFor("Draw"));
 
-        public static bool IsAudioThread => Thread.CurrentThread.Name == GameThread.PrefixedThreadNameFor("Audio");
+        private static readonly ThreadLocal<bool> is_audio_thread = new ThreadLocal<bool>(() =>
+            Thread.CurrentThread.Name == GameThread.PrefixedThreadNameFor("Audio"));
+
+        public static bool IsUpdateThread => is_update_thread.Value;
+
+        public static bool IsDrawThread => is_draw_thread.Value;
+
+        public static bool IsAudioThread => is_audio_thread.Value;
     }
 }

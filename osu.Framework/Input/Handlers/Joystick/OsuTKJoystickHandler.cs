@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Logging;
 using osu.Framework.MathUtils;
@@ -19,9 +20,8 @@ namespace osu.Framework.Input.Handlers.Joystick
         private ScheduledDelegate scheduledPoll;
         private ScheduledDelegate scheduledRefreshDevices;
 
-        private int mostSeenDevices;
-
         private readonly List<JoystickDevice> devices = new List<JoystickDevice>();
+        private readonly List<osuTK.Input.JoystickState> rawStates = new List<osuTK.Input.JoystickState>();
 
         public override bool Initialize(GameHost host)
         {
@@ -56,7 +56,6 @@ namespace osu.Framework.Input.Handlers.Joystick
                     }
 
                     devices.Clear();
-                    mostSeenDevices = 0;
                 }
             }, true);
 
@@ -72,35 +71,28 @@ namespace osu.Framework.Input.Handlers.Joystick
 
         private void refreshDevices()
         {
-            // Update devices and add them to newDevices if still connected
-            for (int i = 0; i < devices.Count; i++)
+            // update states and add newly connected devices
+            osuTK.Input.Joystick.GetStates(rawStates);
+
+            // it seems like OpenTK leaves all disconnected devices with IsConnceted == false
+            Debug.Assert(devices.Count <= rawStates.Count);
+
+            for (int index = 0; index < rawStates.Count; index++)
             {
-                var dev = devices[i];
-
-                dev.Refresh();
-
-                if (!dev.RawState.IsConnected)
+                var rawState = rawStates[index];
+                if (index < devices.Count)
                 {
-                    mostSeenDevices--;
-                    if (dev.LastState != null)
-                        handleState(dev, new JoystickState());
-
-                    devices.RemoveAt(i--);
+                    devices[index].UpdateRawState(rawState);
                 }
-            }
+                else
+                {
+                    var guid = osuTK.Input.Joystick.GetGuid(index);
 
-            // Find any newly-connected devices
-            while (true)
-            {
-                if (!osuTK.Input.Joystick.GetCapabilities(mostSeenDevices).IsConnected)
-                    break;
+                    var newDevice = new JoystickDevice(guid, rawState);
+                    devices.Add(newDevice);
 
-                var newDevice = new JoystickDevice(mostSeenDevices);
-
-                Logger.Log($"Connected joystick device: {newDevice.Guid}");
-
-                devices.Add(newDevice);
-                mostSeenDevices++;
+                    Logger.Log($"Connected joystick device: {newDevice.Guid}");
+                }
             }
         }
 
@@ -178,7 +170,7 @@ namespace osu.Framework.Input.Handlers.Joystick
 
             /// <summary>
             /// The last state of this <see cref="JoystickDevice"/>.
-            /// This is updated with ever invocation of <see cref="Refresh"/>.
+            /// This is updated with ever invocation of <see cref="UpdateRawState"/>.
             /// </summary>
             public osuTK.Input.JoystickState? LastRawState { get; private set; }
 
@@ -186,7 +178,7 @@ namespace osu.Framework.Input.Handlers.Joystick
 
             /// <summary>
             /// The current state of this <see cref="JoystickDevice"/>.
-            /// Use <see cref="Refresh"/> to update the state.
+            /// Use <see cref="UpdateRawState"/> to update the state.
             /// </summary>
             public osuTK.Input.JoystickState RawState { get; private set; }
 
@@ -202,24 +194,16 @@ namespace osu.Framework.Input.Handlers.Joystick
             /// </summary>
             public readonly Guid Guid;
 
-            private readonly int deviceIndex;
-
-            public JoystickDevice(int deviceIndex)
+            public JoystickDevice(Guid guid, osuTK.Input.JoystickState rawState)
             {
-                this.deviceIndex = deviceIndex;
-
-                Guid = osuTK.Input.Joystick.GetGuid(deviceIndex);
-
-                Refresh();
+                Guid = guid;
+                UpdateRawState(rawState);
             }
 
-            /// <summary>
-            /// Refreshes the state of this <see cref="JoystickDevice"/>.
-            /// </summary>
-            public void Refresh()
+            public void UpdateRawState(osuTK.Input.JoystickState rawState)
             {
                 LastRawState = RawState;
-                RawState = osuTK.Input.Joystick.GetState(deviceIndex);
+                RawState = rawState;
 
                 if (!defaultDeadZones.IsValueCreated)
                 {

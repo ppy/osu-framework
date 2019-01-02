@@ -1,7 +1,6 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using osu.Framework.Graphics.Sprites;
 using System;
 using System.Collections.Generic;
 
@@ -70,12 +69,12 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="factory">The factory method creating drawables.</param>
         protected void AddIconFactory(string name, Func<int, int, Drawable> factory) => iconFactories.Add(name, factory);
 
-        internal override IEnumerable<SpriteText> AddLine(TextLine line, bool newLineIsParagraph)
+        internal override IEnumerable<Drawable> AddLine(TextLine line, bool newLineIsParagraph)
         {
             if (!newLineIsParagraph)
                 AddInternal(new NewLineContainer(true));
 
-            var sprites = new List<SpriteText>();
+            var sprites = new List<Drawable>();
             int index = 0;
             string str = line.Text;
             while (index < str.Length)
