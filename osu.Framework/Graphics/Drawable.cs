@@ -1149,7 +1149,7 @@ namespace osu.Framework.Graphics
         /// to the <see cref="Parent"/> in the coordinate system with origin at the top
         /// left corner of the <see cref="Parent"/>'s <see cref="DrawRectangle"/>.
         /// </summary>
-        public Vector2 AnchorPosition => RelativeAnchorPosition * Parent?.ChildSize ?? Vector2.Zero;
+        public Vector2 AnchorPosition => RelativeAnchorPosition * (Parent?.ChildSize ?? Vector2.Zero);
 
         /// <summary>
         /// Helper function to compute an absolute position given an absolute size and
@@ -1487,7 +1487,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Contains the colour and blending information of this <see cref="Drawable"/> that are used during draw.
         /// </summary>
-        public virtual DrawColourInfo DrawColourInfo => drawColourInfoBacking.IsValid? drawColourInfoBacking : drawColourInfoBacking.Value = computeDrawColourInfo();
+        public virtual DrawColourInfo DrawColourInfo => drawColourInfoBacking.IsValid ? drawColourInfoBacking : drawColourInfoBacking.Value = computeDrawColourInfo();
 
         private DrawColourInfo computeDrawColourInfo()
         {
