@@ -773,7 +773,7 @@ namespace osu.Framework.Tests.Bindables
                 CollectionAssert.AreEquivalent(strings, bindableStringCollection);
                 CollectionAssert.AreEquivalent(strings, addedItems);
                 Assert.NotNull(itemsWereFirstCleaned);
-                Assert.IsTrue(itemsWereFirstCleaned ?? false);
+                Assert.IsTrue(itemsWereFirstCleaned);
             });
         }
 
