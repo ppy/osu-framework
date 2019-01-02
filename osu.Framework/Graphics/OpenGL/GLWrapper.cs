@@ -29,7 +29,7 @@ namespace osu.Framework.Graphics.OpenGL
         public static RectangleF Ortho { get; private set; }
         public static Matrix4 ProjectionMatrix { get; private set; }
 
-        public static bool UsingBackbuffer => lastFrameBuffer == DefaultFrameBuffer;
+        public static bool UsingBackbuffer => frame_buffer_stack.Peek() == DefaultFrameBuffer;
 
         public static int DefaultFrameBuffer;
 
@@ -92,7 +92,7 @@ namespace osu.Framework.Graphics.OpenGL
 
             all_batches.ForEachAlive(b => b.ResetCounters());
 
-            lastFrameBuffer = DefaultFrameBuffer;
+            frame_buffer_stack.Push(DefaultFrameBuffer);
 
             viewport_stack.Clear();
             ortho_stack.Clear();
@@ -271,28 +271,6 @@ namespace osu.Framework.Graphics.OpenGL
             lastBlendingInfo = blendingInfo;
         }
 
-        private static int lastFrameBuffer;
-
-        /// <summary>
-        /// Binds a framebuffer.
-        /// </summary>
-        /// <param name="frameBuffer">The framebuffer to bind.</param>
-        /// <returns>The last bound framebuffer.</returns>
-        public static int BindFrameBuffer(int frameBuffer)
-        {
-            if (lastFrameBuffer == frameBuffer)
-                return lastFrameBuffer;
-
-            FlushCurrentBatch();
-
-            int last = lastFrameBuffer;
-
-            GL.BindFramebuffer(FramebufferTarget.Framebuffer, frameBuffer);
-            lastFrameBuffer = frameBuffer;
-
-            return last;
-        }
-
         private static readonly Stack<RectangleI> viewport_stack = new Stack<RectangleI>();
 
         /// <summary>
@@ -394,6 +372,7 @@ namespace osu.Framework.Graphics.OpenGL
 
         private static readonly Stack<MaskingInfo> masking_stack = new Stack<MaskingInfo>();
         private static readonly Stack<RectangleI> scissor_rect_stack = new Stack<RectangleI>();
+        private static readonly Stack<int> frame_buffer_stack = new Stack<int>();
 
         public static void UpdateScissorToCurrentViewportAndOrtho()
         {
@@ -519,12 +498,51 @@ namespace osu.Framework.Graphics.OpenGL
         }
 
         /// <summary>
+        /// Binds a framebuffer.
+        /// </summary>
+        /// <param name="frameBuffer">The framebuffer to bind.</param>
+        public static void BindFrameBuffer(int frameBuffer)
+        {
+            if (frameBuffer == -1) return;
+
+            bool alreadyBound = frame_buffer_stack.Peek() == frameBuffer;
+
+            frame_buffer_stack.Push(frameBuffer);
+
+            if (!alreadyBound)
+            {
+                FlushCurrentBatch();
+                GL.BindFramebuffer(FramebufferTarget.Framebuffer, frameBuffer);
+            }
+        }
+
+        /// <summary>
+        /// Binds a framebuffer.
+        /// </summary>
+        /// <param name="frameBuffer">The framebuffer to bind.</param>
+        public static void UnbindFrameBuffer(int frameBuffer)
+        {
+            if (frameBuffer == -1) return;
+
+            if (frame_buffer_stack.Peek() != frameBuffer)
+                return;
+
+            frame_buffer_stack.Pop();
+
+            FlushCurrentBatch();
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, frame_buffer_stack.Peek());
+        }
+
+        /// <summary>
         /// Deletes a framebuffer.
         /// </summary>
         /// <param name="frameBuffer">The framebuffer to delete.</param>
         internal static void DeleteFramebuffer(int frameBuffer)
         {
             if (frameBuffer == -1) return;
+
+            while (frame_buffer_stack.Peek()== frameBuffer)
+                UnbindFrameBuffer(frameBuffer);
 
             //todo: don't use scheduler
             ScheduleDisposal(() => { GL.DeleteFramebuffer(frameBuffer); });

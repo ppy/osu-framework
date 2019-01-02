@@ -12,21 +12,15 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 {
     public class FrameBuffer : IDisposable
     {
-        private static int lastFramebuffer;
         private int frameBuffer = -1;
 
         public TextureGL Texture { get; private set; }
-
-        private bool isBound => lastFramebuffer != -1;
 
         private readonly List<RenderBuffer> attachedRenderBuffers = new List<RenderBuffer>();
 
         #region Disposal
 
-        ~FrameBuffer()
-        {
-            Dispose(false);
-        }
+        ~FrameBuffer() => Dispose(false);
 
         public void Dispose()
         {
@@ -44,7 +38,6 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
             GLWrapper.ScheduleDisposal(delegate
             {
-                Unbind();
                 GLWrapper.DeleteFramebuffer(frameBuffer);
                 frameBuffer = -1;
             });
@@ -108,40 +101,31 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             attachedRenderBuffers.Add(new RenderBuffer(format));
         }
 
+        private bool firstBinding = true;
+
         /// <summary>
         /// Binds the framebuffer.
         /// <para>Does not clear the buffer or reset the viewport/ortho.</para>
         /// </summary>
         public void Bind()
         {
-            if (frameBuffer == -1)
-                return;
+            GLWrapper.BindFrameBuffer(frameBuffer);
 
-            if (lastFramebuffer == frameBuffer)
-                return;
-
-            // Bind framebuffer and all its renderbuffers
-            lastFramebuffer = GLWrapper.BindFrameBuffer(frameBuffer);
-            foreach (var r in attachedRenderBuffers)
+            if (firstBinding)
             {
-                r.Size = Size;
-                r.Bind(frameBuffer);
+                foreach (var r in attachedRenderBuffers)
+                {
+                    r.Size = Size;
+                    r.Bind(frameBuffer);
+                }
+
+                firstBinding = false;
             }
         }
 
         /// <summary>
         /// Unbinds the framebuffer.
         /// </summary>
-        public void Unbind()
-        {
-            if (!isBound)
-                return;
-
-            GLWrapper.BindFrameBuffer(lastFramebuffer);
-            foreach (var r in attachedRenderBuffers)
-                r.Unbind();
-
-            lastFramebuffer = -1;
-        }
+        public void Unbind() => GLWrapper.UnbindFrameBuffer(frameBuffer);
     }
 }
