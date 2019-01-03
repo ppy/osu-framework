@@ -541,7 +541,7 @@ namespace osu.Framework.Graphics.OpenGL
         {
             if (frameBuffer == -1) return;
 
-            while (frame_buffer_stack.Peek()== frameBuffer)
+            while (frame_buffer_stack.Peek() == frameBuffer)
                 UnbindFrameBuffer(frameBuffer);
 
             //todo: don't use scheduler
