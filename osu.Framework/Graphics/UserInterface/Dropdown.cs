@@ -158,6 +158,8 @@ namespace osu.Framework.Graphics.UserInterface
                 Menu = CreateMenu()
             };
 
+            Menu.RelativeSizeAxes = Axes.X;
+
             Header.Action = Menu.Toggle;
             Current.ValueChanged += selectionChanged;
         }
@@ -237,20 +239,14 @@ namespace osu.Framework.Graphics.UserInterface
             public DropdownMenu()
                 : base(Direction.Vertical)
             {
-                RelativeSizeAxes = Axes.X;
             }
 
             protected override void ComputeSize()
             {
                 if (float.IsPositiveInfinity(MaxHeight))
-                {
                     base.ComputeSize();
-                }
                 else
-                {
-                    var calculatedHeight = MathHelper.Clamp(ItemsContainer.Height, 0, MaxHeight);
-                    base.Height = Math.Min(calculatedHeight, MaxHeight);
-                }
+                    base.Height = MathHelper.Clamp(ItemsContainer.Height, 0, MaxHeight);
             }
 
             /// <summary>
