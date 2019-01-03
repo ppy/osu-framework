@@ -11,7 +11,6 @@ using osuTK.Graphics;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
-using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -239,14 +238,6 @@ namespace osu.Framework.Graphics.UserInterface
             public DropdownMenu()
                 : base(Direction.Vertical)
             {
-            }
-
-            protected override void ComputeSize()
-            {
-                if (float.IsPositiveInfinity(MaxHeight))
-                    base.ComputeSize();
-                else
-                    base.Height = MathHelper.Clamp(ItemsContainer.Height, 0, MaxHeight);
             }
 
             /// <summary>
