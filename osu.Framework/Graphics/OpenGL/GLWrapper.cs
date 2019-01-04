@@ -84,20 +84,20 @@ namespace osu.Framework.Graphics.OpenGL
                 action.Invoke();
 
             lastBoundTexture = null;
-
+            lastActiveBatch = null;
             lastDepthTest = null;
-
             lastBlendingInfo = new BlendingInfo();
             lastBlendingEnabledState = null;
 
             all_batches.ForEachAlive(b => b.ResetCounters());
 
-            frame_buffer_stack.Push(DefaultFrameBuffer);
-
             viewport_stack.Clear();
             ortho_stack.Clear();
             masking_stack.Clear();
             scissor_rect_stack.Clear();
+            frame_buffer_stack.Clear();
+
+            BindFrameBuffer(DefaultFrameBuffer);
 
             scissor_rect_stack.Push(new RectangleI(0, 0, (int)size.X, (int)size.Y));
 
@@ -505,7 +505,7 @@ namespace osu.Framework.Graphics.OpenGL
         {
             if (frameBuffer == -1) return;
 
-            bool alreadyBound = frame_buffer_stack.Peek() == frameBuffer;
+            bool alreadyBound = frame_buffer_stack.Count > 0 && frame_buffer_stack.Peek() == frameBuffer;
 
             frame_buffer_stack.Push(frameBuffer);
 
