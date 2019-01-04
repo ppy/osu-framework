@@ -258,6 +258,7 @@ namespace osu.Framework.Graphics.UserInterface
             drawableItem.SetFlowDirection(Direction);
 
             ItemsContainer.Add(drawableItem);
+            sizeCache.Invalidate();
         }
 
         private void itemStateChanged(DrawableMenuItem item, MenuItemState state)
