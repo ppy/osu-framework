@@ -20,13 +20,17 @@ namespace osu.Framework.Tests.Visual
         [TestCase(true)]
         public void TestBoxInBounds(bool masking)
         {
-            Box box;
-            Child = new Container
+            Box box = null;
+
+            AddStep("init", () =>
             {
-                Size = new Vector2(200),
-                Masking = masking,
-                Child = box = new Box()
-            };
+                Child = new Container
+                {
+                    Size = new Vector2(200),
+                    Masking = masking,
+                    Child = box = new Box()
+                };
+            });
 
             AddWaitStep(1, "Wait for UpdateSubTree");
             AddAssert("Check box IsMaskedAway", () => !box.IsMaskedAway);
@@ -38,12 +42,17 @@ namespace osu.Framework.Tests.Visual
         [Test]
         public void TestBoxOutOfBoundsNoMasking()
         {
-            Box box;
-            Child = new Container
+            Box box = null;
+
+            AddStep("init", () =>
             {
-                Size = new Vector2(200),
-                Child = box = new Box { Position = new Vector2(-1) }
-            };
+                Child = new Container
+                {
+                    Size = new Vector2(200),
+                    Child = box = new Box { Position = new Vector2(-1) }
+                };
+            });
+
 
             AddWaitStep(1, "Wait for UpdateSubTree");
             AddAssert("Check box IsMaskedAway", () => !box.IsMaskedAway);
@@ -60,19 +69,23 @@ namespace osu.Framework.Tests.Visual
         [TestCase(Anchor.BottomRight)]
         public void TestBoxSlightlyOutOfBoundsMasking(Anchor anchor)
         {
-            Box box;
-            Child = new Container
+            Box box = null;
+
+            AddStep("init", () =>
             {
-                Size = new Vector2(200),
-                Masking = true,
-                Child = box = new Box
+                Child = new Container
                 {
-                    Anchor = anchor,
-                    Origin = anchor,
-                    Size = new Vector2(10),
-                    Position = new Vector2(anchor.HasFlag(Anchor.x0) ? -5 : 5, anchor.HasFlag(Anchor.y0) ? -5 : 5),
-                }
-            };
+                    Size = new Vector2(200),
+                    Masking = true,
+                    Child = box = new Box
+                    {
+                        Anchor = anchor,
+                        Origin = anchor,
+                        Size = new Vector2(10),
+                        Position = new Vector2(anchor.HasFlag(Anchor.x0) ? -5 : 5, anchor.HasFlag(Anchor.y0) ? -5 : 5),
+                    }
+                };
+            });
 
             AddWaitStep(1, "Wait for UpdateSubTree");
             AddAssert("Check box IsMaskedAway", () => !box.IsMaskedAway);
@@ -89,19 +102,23 @@ namespace osu.Framework.Tests.Visual
         [TestCase(Anchor.BottomRight)]
         public void TestBoxFullyOutOfBoundsMasking(Anchor anchor)
         {
-            Box box;
-            Child = new Container
+            Box box = null;
+
+            AddStep("init", () =>
             {
-                Size = new Vector2(200),
-                Masking = true,
-                Child = box = new Box
+                Child = new Container
                 {
-                    Anchor = anchor,
-                    Origin = anchor,
-                    Size = new Vector2(10),
-                    Position = new Vector2(anchor.HasFlag(Anchor.x0) ? -20 : 20, anchor.HasFlag(Anchor.y0) ? -20 : 20),
-                }
-            };
+                    Size = new Vector2(200),
+                    Masking = true,
+                    Child = box = new Box
+                    {
+                        Anchor = anchor,
+                        Origin = anchor,
+                        Size = new Vector2(10),
+                        Position = new Vector2(anchor.HasFlag(Anchor.x0) ? -20 : 20, anchor.HasFlag(Anchor.y0) ? -20 : 20),
+                    }
+                };
+            });
 
             AddWaitStep(1, "Wait for UpdateSubTree");
             AddAssert("Check box IsMaskedAway", () => box.IsMaskedAway);
@@ -118,23 +135,26 @@ namespace osu.Framework.Tests.Visual
         public void TestBoxInBoundsWithProxyInBounds(bool boxMasking, bool proxyMasking)
         {
             var box = new Box();
+            Drawable proxy = null;
 
-            Drawable proxy;
-            Children = new Drawable[]
+            AddStep("init", () =>
             {
-                new Container
+                Children = new Drawable[]
                 {
-                    Size = new Vector2(200),
-                    Masking = boxMasking,
-                    Child = box
-                },
-                new Container
-                {
-                    Size = new Vector2(200),
-                    Masking = proxyMasking,
-                    Child = proxy = box.CreateProxy()
-                },
-            };
+                    new Container
+                    {
+                        Size = new Vector2(200),
+                        Masking = boxMasking,
+                        Child = box
+                    },
+                    new Container
+                    {
+                        Size = new Vector2(200),
+                        Masking = proxyMasking,
+                        Child = proxy = box.CreateProxy()
+                    },
+                };
+            });
 
             AddWaitStep(1, "Wait for UpdateSubTree");
             AddAssert("Check box IsMaskedAway", () => !box.IsMaskedAway);
@@ -150,18 +170,21 @@ namespace osu.Framework.Tests.Visual
         public void TestBoxOutOfBoundsWithProxyInBounds(bool masking)
         {
             var box = new Box { Position = new Vector2(-1) };
+            Drawable proxy = null;
 
-            Drawable proxy;
-            Children = new[]
+            AddStep("init", () =>
             {
-                new Container
+                Children = new[]
                 {
-                    Size = new Vector2(200),
-                    Masking = masking,
-                    Child = box
-                },
-                proxy = box.CreateProxy()
-            };
+                    new Container
+                    {
+                        Size = new Vector2(200),
+                        Masking = masking,
+                        Child = box
+                    },
+                    proxy = box.CreateProxy()
+                };
+            });
 
             AddWaitStep(1, "Wait for UpdateSubTree");
             AddAssert("Check box IsMaskedAway", () => !box.IsMaskedAway);
@@ -181,24 +204,27 @@ namespace osu.Framework.Tests.Visual
         public void TestBoxInBoundsWithProxyOutOfBounds(bool boxMasking, bool proxyMasking, bool shouldBeMaskedAway)
         {
             var box = new Box();
+            Drawable proxy = null;
 
-            Drawable proxy;
-            Children = new Drawable[]
+            AddStep("init", () =>
             {
-                new Container
+                Children = new Drawable[]
                 {
-                    Size = new Vector2(200),
-                    Masking = boxMasking,
-                    Child = box
-                },
-                new Container
-                {
-                    Position = new Vector2(10),
-                    Size = new Vector2(200),
-                    Masking = proxyMasking,
-                    Child = proxy = box.CreateProxy()
-                },
-            };
+                    new Container
+                    {
+                        Size = new Vector2(200),
+                        Masking = boxMasking,
+                        Child = box
+                    },
+                    new Container
+                    {
+                        Position = new Vector2(10),
+                        Size = new Vector2(200),
+                        Masking = proxyMasking,
+                        Child = proxy = box.CreateProxy()
+                    },
+                };
+            });
 
             AddWaitStep(1, "Wait for UpdateSubTree");
             AddAssert("Check box IsMaskedAway", () => box.IsMaskedAway == shouldBeMaskedAway);
@@ -218,24 +244,27 @@ namespace osu.Framework.Tests.Visual
         public void TestBoxOutOfBoundsWithProxyOutOfBounds(bool boxMasking, bool proxyMasking, bool shouldBeMaskedAway)
         {
             var box = new Box { Position = new Vector2(-1) };
+            Drawable proxy = null;
 
-            Drawable proxy;
-            Children = new Drawable[]
+            AddStep("init", () =>
             {
-                new Container
+                Children = new Drawable[]
                 {
-                    Size = new Vector2(200),
-                    Masking = boxMasking,
-                    Child = box
-                },
-                new Container
-                {
-                    Position = new Vector2(10),
-                    Size = new Vector2(200),
-                    Masking = proxyMasking,
-                    Child = proxy = box.CreateProxy()
-                },
-            };
+                    new Container
+                    {
+                        Size = new Vector2(200),
+                        Masking = boxMasking,
+                        Child = box
+                    },
+                    new Container
+                    {
+                        Position = new Vector2(10),
+                        Size = new Vector2(200),
+                        Masking = proxyMasking,
+                        Child = proxy = box.CreateProxy()
+                    },
+                };
+            });
 
             AddWaitStep(1, "Wait for UpdateSubTree");
             AddAssert("Check box IsMaskedAway", () => box.IsMaskedAway == shouldBeMaskedAway);
@@ -260,28 +289,31 @@ namespace osu.Framework.Tests.Visual
             var proxy1 = box.CreateProxy();
             var proxy2 = proxy1.CreateProxy();
 
-            Children = new Drawable[]
+            AddStep("init", () =>
             {
-                new Container
+                Children = new Drawable[]
                 {
-                    Size = new Vector2(200),
-                    Masking = boxMasking,
-                    Child = box
-                },
-                new Container
-                {
-                    Size = new Vector2(200),
-                    Position = new Vector2(10),
-                    Masking = proxy1Masking,
-                    Child = proxy1
-                },
-                new Container
-                {
-                    Size = new Vector2(200),
-                    Masking = proxy2Masking,
-                    Child = proxy2
-                }
-            };
+                    new Container
+                    {
+                        Size = new Vector2(200),
+                        Masking = boxMasking,
+                        Child = box
+                    },
+                    new Container
+                    {
+                        Size = new Vector2(200),
+                        Position = new Vector2(10),
+                        Masking = proxy1Masking,
+                        Child = proxy1
+                    },
+                    new Container
+                    {
+                        Size = new Vector2(200),
+                        Masking = proxy2Masking,
+                        Child = proxy2
+                    }
+                };
+            });
 
             AddWaitStep(1, "Wait for UpdateSubTree");
             AddAssert("Check box IsMaskedAway", () => !box.IsMaskedAway);
@@ -309,28 +341,31 @@ namespace osu.Framework.Tests.Visual
             var proxy1 = box.CreateProxy();
             var proxy2 = proxy1.CreateProxy();
 
-            Children = new Drawable[]
+            AddStep("init", () =>
             {
-                new Container
+                Children = new Drawable[]
                 {
-                    Size = new Vector2(200),
-                    Masking = boxMasking,
-                    Child = box
-                },
-                new Container
-                {
-                    Size = new Vector2(200),
-                    Masking = proxy1Masking,
-                    Child = proxy1
-                },
-                new Container
-                {
-                    Size = new Vector2(200),
-                    Position = new Vector2(10),
-                    Masking = proxy2Masking,
-                    Child = proxy2
-                }
-            };
+                    new Container
+                    {
+                        Size = new Vector2(200),
+                        Masking = boxMasking,
+                        Child = box
+                    },
+                    new Container
+                    {
+                        Size = new Vector2(200),
+                        Masking = proxy1Masking,
+                        Child = proxy1
+                    },
+                    new Container
+                    {
+                        Size = new Vector2(200),
+                        Position = new Vector2(10),
+                        Masking = proxy2Masking,
+                        Child = proxy2
+                    }
+                };
+            });
 
             AddWaitStep(1, "Wait for UpdateSubTree");
             AddAssert("Check box IsMaskedAway", () => box.IsMaskedAway == shouldBeMaskedAway);

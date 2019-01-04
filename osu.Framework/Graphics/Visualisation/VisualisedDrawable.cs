@@ -328,8 +328,8 @@ namespace osu.Framework.Graphics.Visualisation
 
         private void onDispose()
         {
-            SetContainer(null);
-            Dispose();
+            // May come from the disposal thread, in which case they won't ever be reused and the container doesn't need to be reset
+            Schedule(() => SetContainer(null));
         }
 
         private void updateSpecifics()

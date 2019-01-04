@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics.Containers
     }
 
     /// <summary>
-    /// This interface is used for recogonizing <see cref="TabbableContainer{T}"/> of any type without reflection.
+    /// This interface is used for recognizing <see cref="TabbableContainer{T}"/> of any type without reflection.
     /// </summary>
     internal interface ITabbableContainer
     {

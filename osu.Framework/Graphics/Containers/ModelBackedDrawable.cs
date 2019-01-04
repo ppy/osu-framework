@@ -74,9 +74,12 @@ namespace osu.Framework.Graphics.Containers
         protected ModelBackedDrawable(IEqualityComparer<T> comparer)
         {
             Comparer = comparer;
+        }
 
-            DisplayedDrawable = CreateDrawable(null);
-            AddInternal(CreateDelayedLoadWrapper(DisplayedDrawable, 0));
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+            updateDrawable();
         }
 
         private void replaceDrawable(Drawable source, Drawable target, bool placeholder = false)
@@ -92,8 +95,10 @@ namespace osu.Framework.Graphics.Containers
                         target?.Expire();
                         return;
                     }
+
                     nextDrawable = null;
                 }
+
                 DisplayedDrawable = target;
                 source?.Expire();
             });
@@ -101,11 +106,9 @@ namespace osu.Framework.Graphics.Containers
 
         private void updateDrawable()
         {
-            var newDrawable = CreateDrawable(model);
+            nextDrawable = CreateDrawable(model);
 
-            nextDrawable = newDrawable;
-
-            if (newDrawable == null)
+            if (nextDrawable == null)
             {
                 replaceDrawable(DisplayedDrawable, null);
                 return;
@@ -118,17 +121,18 @@ namespace osu.Framework.Graphics.Containers
                 replaceDrawable(DisplayedDrawable, placeholder, true);
             }
 
-            newDrawable.OnLoadComplete = loadedDrawable =>
+            nextDrawable.OnLoadComplete = loadedDrawable =>
             {
                 if (loadedDrawable != nextDrawable)
                 {
                     loadedDrawable.Expire();
                     return;
                 }
+
                 replaceDrawable(DisplayedDrawable, loadedDrawable);
             };
 
-            AddInternal(CreateDelayedLoadWrapper(newDrawable, LoadDelay));
+            AddInternal(CreateDelayedLoadWrapper(nextDrawable, LoadDelay));
         }
 
         /// <summary>

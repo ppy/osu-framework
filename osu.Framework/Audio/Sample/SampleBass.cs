@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace osu.Framework.Audio.Sample
 {
-    internal class SampleBass : Sample, IBassAudio
+    public class SampleBass : Sample, IBassAudio
     {
         private volatile int sampleId;
 
@@ -19,7 +19,7 @@ namespace osu.Framework.Audio.Sample
             if (customPendingActions != null)
                 PendingActions = customPendingActions;
 
-            EnqueueAction(() => { sampleId = Bass.SampleLoad(data, 0, data.Length, PlaybackConcurrency, BassFlags.Default | BassFlags.SampleOverrideLongestPlaying); });
+            EnqueueAction(() => { sampleId = LoadSample(data); });
         }
 
         protected override void Dispose(bool disposing)
@@ -36,5 +36,7 @@ namespace osu.Framework.Audio.Sample
         }
 
         public int CreateChannel() => Bass.SampleGetChannel(sampleId);
+
+        protected virtual int LoadSample(byte[] data) => Bass.SampleLoad(data, 0, data.Length, PlaybackConcurrency, BassFlags.Default | BassFlags.SampleOverrideLongestPlaying);
     }
 }
