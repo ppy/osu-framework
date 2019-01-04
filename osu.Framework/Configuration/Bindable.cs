@@ -278,6 +278,9 @@ namespace osu.Framework.Configuration
 
         IBindable<T> IBindable<T>.GetBoundCopy() => GetBoundCopy();
 
+        /// <summary>
+        /// Create an unbound clone of this bindable.
+        /// </summary>
         public IBindable<T> Clone()
         {
             var clone = GetBoundCopy();
