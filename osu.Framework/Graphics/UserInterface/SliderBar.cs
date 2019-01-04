@@ -30,6 +30,41 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected readonly BindableNumber<T> CurrentNumber;
 
+        private bool transferValueOnCommit;
+
+        /// <summary>
+        /// When set, value changes based on user input are only transferred to any bound <see cref="Current"/> on commit.
+        /// This is useful if the UI interaction could be adversely affected by the value changing, such as the position of the <see cref="SliderBar{T}"/> on the screen.
+        /// </summary>
+        public bool TransferValueOnCommit
+        {
+            get { return transferValueOnCommit; }
+            set
+            {
+                transferValueOnCommit = value;
+                updateBindings();
+            }
+        }
+
+        private void updateBindings()
+        {
+            CurrentNumber.UnbindBindings();
+
+            if (externalBindable == null) return;
+
+            CurrentNumber.BindTo(externalBindable);
+
+            if (transferValueOnCommit)
+            {
+                // we've transferred default values etc. so we can unbind now and add manual handling logic.
+                CurrentNumber.UnbindBindings();
+                externalBindable.ValueChanged += v => CurrentNumber.Value = v;
+            }
+        }
+
+
+        private Bindable<T> externalBindable;
+
         public Bindable<T> Current
         {
             get => CurrentNumber;
@@ -38,8 +73,8 @@ namespace osu.Framework.Graphics.UserInterface
                 if (value == null)
                     throw new ArgumentNullException(nameof(value));
 
-                CurrentNumber.UnbindBindings();
-                CurrentNumber.BindTo(value);
+                externalBindable = value;
+                updateBindings();
             }
         }
 
@@ -100,6 +135,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected override bool OnClick(ClickEvent e)
         {
             handleMouseInput(e);
+            commit();
             return true;
         }
 
@@ -116,7 +152,11 @@ namespace osu.Framework.Graphics.UserInterface
             return Math.Abs(posDiff.X) > Math.Abs(posDiff.Y);
         }
 
-        protected override bool OnDragEnd(DragEndEvent e) => true;
+        protected override bool OnDragEnd(DragEndEvent e)
+        {
+            commit();
+            return true;
+        }
 
         protected override bool OnKeyDown(KeyDownEvent e)
         {
@@ -141,6 +181,18 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
+        protected override bool OnKeyUp(KeyUpEvent e)
+        {
+            commit();
+            return base.OnKeyUp(e);
+        }
+
+        private void commit()
+        {
+            if (transferValueOnCommit)
+                externalBindable.Value = CurrentNumber.Value;
+        }
+
         private void handleMouseInput(UIEvent e)
         {
             var xPosition = ToLocalSpace(e.ScreenSpaceMousePosition).X - RangePadding;
@@ -154,6 +206,8 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Triggered when the value is changed based on end-user input to this control.
         /// </summary>
-        protected virtual void OnUserChange() { }
+        protected virtual void OnUserChange()
+        {
+        }
     }
 }
