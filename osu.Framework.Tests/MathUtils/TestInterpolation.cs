@@ -1,6 +1,8 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
+using System.Collections.Generic;
 using NUnit.Framework;
 using osu.Framework.MathUtils;
 using osuTK;
@@ -30,6 +32,20 @@ namespace osu.Framework.Tests.MathUtils
                 Assert.AreEqual(0.6 * t * t + 0.4 * t, Interpolation.Lagrange(points, t), 1e-6);
                 Assert.AreEqual(0.6 * t * t + 0.4 * t, Interpolation.Lagrange(pointsf, t), 1e-4);
             }
+
+            Assert.Throws<ArgumentException>(() =>
+            {
+                List<Vector2> list = null;
+                Interpolation.Lagrange(list, 4);
+            });
+
+            Assert.Throws<ArgumentException>(() =>
+            {
+                List<Vector2> list = new List<Vector2>();
+                Interpolation.Lagrange(list, 4);
+            });
+
+            Assert.AreEqual(Interpolation.Lagrange(new[] { new Vector2(3, 4) }, 12), 4);
         }
     }
 }

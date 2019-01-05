@@ -42,8 +42,8 @@ namespace osu.Framework.MathUtils
         /// <param name="time">The x coordinate to calculate the y coordinate for.</param>
         public static double Lagrange(IList<Vector2> points, double time)
         {
-            if (points.Count == 0)
-                return double.NaN;
+            if (points == null || points.Count == 0)
+                throw new ArgumentException($"{nameof(points)} must contain at least one point");
 
             double sum = 0;
             for (int i = 0; i < points.Count; i++)
@@ -73,8 +73,8 @@ namespace osu.Framework.MathUtils
         /// <param name="time">The x coordinate to calculate the y coordinate for.</param>
         public static double Lagrange(IList<Vector2d> points, double time)
         {
-            if (points.Count == 0)
-                return double.NaN;
+            if (points == null || points.Count == 0)
+                throw new ArgumentException($"{nameof(points)} must contain at least one point");
 
             double sum = 0;
             for (int i = 0; i < points.Count; i++)
