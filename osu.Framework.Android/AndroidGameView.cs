@@ -12,7 +12,7 @@ namespace osu.Framework.Android
     public class AndroidGameView : osuTK.Android.AndroidGameView
     {
         private AndroidGameHost host;
-        private Game game;
+        private readonly Game game;
 
         public AndroidGameView(Context context, Game game) : base(context)
         {
