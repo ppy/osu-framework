@@ -11,7 +11,6 @@ namespace osu.Framework.Android
 {
     public abstract class AndroidGameView : osuTK.Android.AndroidGameView
     {
-        private int viewportWidth, viewportHeight;
         private AndroidGameHost host;
 
         public abstract Game CreateGame();
@@ -55,16 +54,7 @@ namespace osu.Framework.Android
         {
             base.OnLoad(e);
 
-            viewportHeight = Height;
-            viewportWidth = Width;
-
             RenderGame();
-        }
-
-        protected override void OnResize(EventArgs e)
-        {
-            viewportHeight = Height;
-            viewportWidth = Width;
         }
 
         [STAThread]
