@@ -9,14 +9,14 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Android
 {
-    public abstract class AndroidGameView : osuTK.Android.AndroidGameView
+    public class AndroidGameView : osuTK.Android.AndroidGameView
     {
         private AndroidGameHost host;
+        private Game game;
 
-        public abstract Game CreateGame();
-
-        public AndroidGameView(Context context) : base(context)
+        public AndroidGameView(Context context, Game game) : base(context)
         {
+            this.game = game;
             init();
         }
 
@@ -61,7 +61,7 @@ namespace osu.Framework.Android
         public void RenderGame()
         {
             host = new AndroidGameHost(this);
-            host.Run(CreateGame());
+            host.Run(game);
         }
     }
 }

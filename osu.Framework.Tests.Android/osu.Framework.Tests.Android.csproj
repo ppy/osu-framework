@@ -10,8 +10,7 @@
     <AndroidManifest>Properties\AndroidManifest.xml</AndroidManifest>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="MainActivity.cs" />
-    <Compile Include="TestGameView.cs" />
+    <Compile Include="TestGameActivity.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Properties\AndroidManifest.xml" />

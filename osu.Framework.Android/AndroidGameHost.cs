@@ -22,8 +22,7 @@ namespace osu.Framework.Android
         public AndroidGameHost(AndroidGameView gameView)
         {
             this.gameView = gameView;
-            AndroidGameWindow.view = gameView;
-            Window = new AndroidGameWindow();
+            Window = new AndroidGameWindow(gameView);
         }
 
         public override ITextInputSource GetTextInput()
