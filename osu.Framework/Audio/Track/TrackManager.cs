@@ -12,6 +12,8 @@ namespace osu.Framework.Audio.Track
 
         public virtual Track CreateTrack(Stream data, bool quick) => new TrackBass(data, quick);
 
+        public virtual Waveform CreateWaveform(Stream data = null) => new Waveform(data);
+
         public TrackManager(IResourceStore<byte[]> store)
         {
             this.store = store;
