@@ -16,7 +16,7 @@ namespace osu.Framework.Android
 
         protected override string LocateBasePath()
         {
-            return Application.Context.GetExternalFilesDir("").ToString();
+            return Application.Context.GetExternalFilesDir(string.Empty).ToString();
         }
 
         public override void OpenInNativeExplorer()

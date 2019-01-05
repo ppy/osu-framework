@@ -10,8 +10,7 @@
     <AndroidManifest>Properties\AndroidManifest.xml</AndroidManifest>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="MainActivity.cs" />
-    <Compile Include="TestGameView.cs" />
+    <Compile Include="TestGameActivity.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Properties\AndroidManifest.xml" />
@@ -20,7 +19,7 @@
     <Compile Include="..\osu.Framework.Tests\**\*.cs" Exclude="..\osu.Framework.Tests\Program.cs;..\osu.Framework.Tests\obj\**\*;..\osu.Framework.Tests\bin\**\*">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
     </Compile>
-    <EmbeddedResource Include="..\osu.Framework.Tests\Resources\**\*" >
+    <EmbeddedResource Include="..\osu.Framework.Tests\Resources\**\*">
       <Link>Resources\%(RecursiveDir)%(Filename)%(Extension)</Link>
     </EmbeddedResource>
   </ItemGroup>
@@ -29,7 +28,7 @@
     <PackageReference Include="System.ValueTuple" Version="4.5.0" />
     <PackageReference Include="ManagedBass" Version="2.0.4" />
     <PackageReference Include="ManagedBass.Fx" Version="2.0.1" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0005" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-dev002298" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\osu.Framework.Android\osu.Framework.Android.csproj">

@@ -3,14 +3,14 @@
 
 using Android.App;
 using Android.OS;
-using Android.Content.PM;
 using Android.Views;
 
-namespace SampleGame.Android
+namespace osu.Framework.Android
 {
-    [Activity(Label = "SampleGame", ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize, MainLauncher = true, Theme = "@android:style/Theme.NoTitleBar")]
-    public class MainActivity : Activity
+    public abstract class AndroidGameActivity : Activity
     {
+        protected abstract Game CreateGame();
+
         protected override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
@@ -18,7 +18,7 @@ namespace SampleGame.Android
             Window.AddFlags(WindowManagerFlags.Fullscreen);
             Window.AddFlags(WindowManagerFlags.KeepScreenOn);
 
-            SetContentView(new SampleGameView(this));
+            SetContentView(new AndroidGameView(this, CreateGame()));
         }
     }
 }

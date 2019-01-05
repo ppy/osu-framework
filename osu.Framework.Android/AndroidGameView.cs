@@ -5,19 +5,24 @@ using System;
 using Android.Content;
 using Android.Runtime;
 using Android.Util;
+using Android.Views;
 using osuTK.Graphics;
 
 namespace osu.Framework.Android
 {
-    public abstract class AndroidGameView : osuTK.Android.AndroidGameView
+    public class AndroidGameView : osuTK.Android.AndroidGameView
     {
-        private int viewportWidth, viewportHeight;
         private AndroidGameHost host;
+        private readonly Game game;
 
-        public abstract Game CreateGame();
+        public event Action<Keycode> KeyDown;
+        public event Action<Keycode> KeyUp;
+        public event Action<Keycode> KeyLongPress;
 
-        public AndroidGameView(Context context) : base(context)
+        public AndroidGameView(Context context, Game game) : base(context)
         {
+            this.game = game;
+
             init();
         }
 
@@ -35,6 +40,11 @@ namespace osu.Framework.Android
         {
             AutoSetContextOnRenderFrame = true;
             ContextRenderingApi = GLVersion.ES3;
+
+            // enable soft and hardware keyboard
+            // this needs to happen in the constructor
+            Focusable = true;
+            FocusableInTouchMode = true;
         }
 
         protected override void CreateFrameBuffer()
@@ -42,38 +52,45 @@ namespace osu.Framework.Android
             try
             {
                 base.CreateFrameBuffer();
-                Log.Verbose("AndroidGameView", "Successfully loaded");
-                return;
+                Log.Verbose("AndroidGameView", "Successfully created the framebuffer");
             }
             catch (Exception e)
             {
                 Log.Verbose("AndroidGameView", "{0}", e);
+                throw new Exception("Can't load egl, aborting", e);
             }
-            throw new Exception("Can't load egl, aborting");
+        }
+
+        public override bool OnKeyDown([GeneratedEnum] Keycode keyCode, KeyEvent e)
+        {
+            KeyDown?.Invoke(keyCode);
+            return true;
+        }
+
+        public override bool OnKeyLongPress([GeneratedEnum] Keycode keyCode, KeyEvent e)
+        {
+            KeyLongPress?.Invoke(keyCode);
+            return true;
+        }
+
+        public override bool OnKeyUp([GeneratedEnum] Keycode keyCode, KeyEvent e)
+        {
+            KeyUp?.Invoke(keyCode);
+            return true;
         }
 
         protected override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
 
-            viewportHeight = Height;
-            viewportWidth = Width;
-
             RenderGame();
-        }
-
-        protected override void OnResize(EventArgs e)
-        {
-            viewportHeight = Height;
-            viewportWidth = Width;
         }
 
         [STAThread]
         public void RenderGame()
         {
             host = new AndroidGameHost(this);
-            host.Run(CreateGame());
+            host.Run(game);
         }
-
     }
 }
