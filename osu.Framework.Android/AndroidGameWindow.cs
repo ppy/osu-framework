@@ -28,6 +28,7 @@ namespace osu.Framework.Android
         public override void Run()
         {
         }
+
         public override void Run(double updateRate)
         {
         }
