@@ -13,9 +13,13 @@ namespace osu.Framework.Android
 
         public override IGraphicsContext Context => view.GraphicsContext;
 
-        public override bool Focused => true;
+        public override bool Focused
+            => true;
 
-        public override osuTK.WindowState WindowState { get => osuTK.WindowState.Normal; set { } }
+        public override osuTK.WindowState WindowState {
+            get => osuTK.WindowState.Normal;
+            set { }
+        }
 
         public AndroidGameWindow() : base(view)
         {

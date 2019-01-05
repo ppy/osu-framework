@@ -42,14 +42,13 @@ namespace osu.Framework.Android
             try
             {
                 base.CreateFrameBuffer();
-                Log.Verbose("AndroidGameView", "Successfully loaded");
-                return;
+                Log.Verbose("AndroidGameView", "Successfully created the framebuffer");
             }
             catch (Exception e)
             {
                 Log.Verbose("AndroidGameView", "{0}", e);
+                throw new Exception("Can't load egl, aborting", e);
             }
-            throw new Exception("Can't load egl, aborting");
         }
 
         protected override void OnLoad(EventArgs e)
