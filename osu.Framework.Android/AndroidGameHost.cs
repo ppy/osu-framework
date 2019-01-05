@@ -26,18 +26,23 @@ namespace osu.Framework.Android
             Window = new AndroidGameWindow();
         }
 
-        public override ITextInputSource GetTextInput() => new AndroidTextInput(gameView);
+        public override ITextInputSource GetTextInput()
+            => new AndroidTextInput(gameView);
 
-        protected override IEnumerable<InputHandler> CreateAvailableInputHandlers() =>
-            new InputHandler[] { new AndroidKeyboardHandler(gameView), new AndroidTouchHandler(gameView) };
+        protected override IEnumerable<InputHandler> CreateAvailableInputHandlers()
+            => new InputHandler[] { new AndroidKeyboardHandler(gameView), new AndroidTouchHandler(gameView) };
 
-        protected override Storage GetStorage(string baseName) => new AndroidStorage(baseName, this);
+        protected override Storage GetStorage(string baseName)
+            => new AndroidStorage(baseName, this);
 
-        public override void OpenFileExternally(string filename) => throw new NotImplementedException();
+        public override void OpenFileExternally(string filename)
+            => throw new NotImplementedException();
 
-        public override void OpenUrlExternally(string url) => throw new NotImplementedException();
+        public override void OpenUrlExternally(string url)
+            => throw new NotImplementedException();
 
-        public override IResourceStore<TextureUpload> CreateTextureLoaderStore(IResourceStore<byte[]> underlyingStore) => new AndroidTextureLoaderStore(underlyingStore);
+        public override IResourceStore<TextureUpload> CreateTextureLoaderStore(IResourceStore<byte[]> underlyingStore)
+            => new AndroidTextureLoaderStore(underlyingStore);
 
         protected override void PerformExit(bool immediately)
         {
