@@ -2,6 +2,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" 
           package="osu.Framework.Tests.Android"
           android:installLocation="auto">
-  <uses-sdk android:minSdkVersion="21" android:targetSdkVersion="26" />
+  <uses-sdk android:minSdkVersion="21" android:targetSdkVersion="27" />
   <application />
 </manifest>
