@@ -35,8 +35,7 @@ namespace osu.Framework.Tests.MathUtils
 
             Assert.Throws<ArgumentException>(() =>
             {
-                List<Vector2> list = null;
-                Interpolation.Lagrange(list, 4);
+                Interpolation.Lagrange((List<Vector2>)null, 4);
             });
 
             Assert.Throws<ArgumentException>(() =>
