@@ -361,7 +361,7 @@ namespace osu.Framework.Audio
                     }
                     else
                     {
-                        var preferredDevice = getAllDevices().Find(d => d.Name == AudioDevice.Value);
+                        var preferredDevice = getAllDevices().SingleOrDefault(d => d.Name == AudioDevice.Value);
                         if (preferredDevice.Name == AudioDevice.Value && preferredDevice.IsEnabled)
                             setAudioDevice(preferredDevice.Name);
                         else if (!device.IsEnabled && !setAudioDevice())
