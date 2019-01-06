@@ -4,8 +4,8 @@
 using System;
 using System.Threading;
 using osu.Framework.Graphics.Primitives;
-using OpenTK.Graphics.ES30;
-using OpenTK;
+using osuTK.Graphics.ES30;
+using osuTK;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Textures;

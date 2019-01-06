@@ -6,8 +6,9 @@ using System.Collections.Generic;
 using System;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics.Colour;
-using OpenTK;
+using osuTK;
 using System.Collections;
+using System.Diagnostics;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -122,6 +123,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Gets or sets the only child of this container.
         /// </summary>
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         public T Child
         {
             get
@@ -158,7 +160,11 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Checks whether a given child is contained within <see cref="Children"/>.
         /// </summary>
-        public bool Contains(T drawable) => IndexOf(drawable) >= 0;
+        public bool Contains(T drawable)
+        {
+            int index = IndexOf(drawable);
+            return index >= 0 && this[index] == drawable;
+        }
 
         /// <summary>
         /// Adds a child to this container. This amount to adding a child to <see cref="Content"/>'s

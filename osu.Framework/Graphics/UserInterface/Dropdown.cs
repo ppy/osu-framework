@@ -7,7 +7,7 @@ using System.Linq;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions;
 using osu.Framework.Graphics.Containers;
-using OpenTK.Graphics;
+using osuTK.Graphics;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
@@ -118,7 +118,20 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        public Bindable<T> Current { get; } = new Bindable<T>();
+        private readonly Bindable<T> current = new Bindable<T>();
+
+        public Bindable<T> Current
+        {
+            get => current;
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException(nameof(value));
+
+                current.UnbindBindings();
+                current.BindTo(value);
+            }
+        }
 
         private DropdownMenuItem<T> selectedItem;
 

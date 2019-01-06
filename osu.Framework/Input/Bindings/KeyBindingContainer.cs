@@ -10,7 +10,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
 using osu.Framework.Logging;
-using OpenTK;
+using osuTK;
 
 namespace osu.Framework.Input.Bindings
 {

@@ -100,6 +100,29 @@ namespace osu.Framework.Tests.Bindables
             Assert.AreEqual(toSerialize.Value.Bindable2.Value, deserialized.Value.Bindable2.Value);
         }
 
+        [Test]
+        public void TestPopulateBindable()
+        {
+            var obj = new CustomObj2
+            {
+                Bindable =
+                {
+                    MaxValue = 500,
+                    Value = 500
+                }
+            };
+
+            var serialized = JsonConvert.SerializeObject(obj);
+            obj.Bindable.Value = 100;
+
+            bool valueChanged = false;
+            obj.Bindable.BindValueChanged(_ => valueChanged = true);
+
+            JsonConvert.PopulateObject(serialized, obj);
+
+            Assert.IsTrue(valueChanged);
+        }
+
         private class CustomObj
         {
             public Bindable<int> Bindable1 = new Bindable<int>();

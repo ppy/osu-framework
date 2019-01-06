@@ -4,12 +4,12 @@
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Logging;
-using OpenTK;
-using OpenTK.Graphics;
+using osuTK;
+using osuTK.Graphics;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
 using osu.Framework.Timing;
-using OpenTK.Input;
+using osuTK.Input;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Events;
 
@@ -216,8 +216,6 @@ namespace osu.Framework.Graphics.Visualisation
                     return Color4.BlueViolet;
                 case LoggingTarget.Performance:
                     return Color4.HotPink;
-                case LoggingTarget.Debug:
-                    return Color4.DarkBlue;
                 case LoggingTarget.Information:
                     return Color4.CadetBlue;
                 default:

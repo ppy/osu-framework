@@ -11,7 +11,7 @@ namespace osu.Framework.Platform.MacOS.Native
     internal static class Cocoa
     {
         internal const string LIB_OBJ_C = "/usr/lib/libobjc.dylib";
-        internal const string LIB_APP_SERVICES = "/System/Library/Frameworks/ApplicationServices.framework/Versions/Current/ApplicationServices";
+        internal const string LIB_CORE_GRAPHICS = "/System/Library/Frameworks/CoreGraphics.framework/Versions/Current/CoreGraphics";
 
         [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
         public static extern IntPtr SendIntPtr(IntPtr receiver, IntPtr selector);
@@ -61,7 +61,7 @@ namespace osu.Framework.Platform.MacOS.Native
         [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
         public static extern void SendVoid(IntPtr receiver, IntPtr selector, IntPtr intPtr1, IntPtr intPtr2, IntPtr intPtr3, IntPtr intPtr4);
 
-        private static readonly Type type_cocoa = typeof(OpenTK.NativeWindow).Assembly.GetTypes().Single(x => x.Name == "Cocoa");
+        private static readonly Type type_cocoa = typeof(osuTK.NativeWindow).Assembly.GetTypes().Single(x => x.Name == "Cocoa");
         private static readonly MethodInfo method_cocoa_from_ns_string = type_cocoa.GetMethod("FromNSString");
         private static readonly MethodInfo method_cocoa_to_ns_string = type_cocoa.GetMethod("ToNSString");
         private static readonly MethodInfo method_cocoa_get_string_constant = type_cocoa.GetMethod("GetStringConstant");
@@ -69,7 +69,7 @@ namespace osu.Framework.Platform.MacOS.Native
         public static IntPtr AppKitLibrary;
         public static IntPtr FoundationLibrary;
 
-        [DllImport(LIB_APP_SERVICES, EntryPoint = "CGCursorIsVisible")]
+        [DllImport(LIB_CORE_GRAPHICS, EntryPoint = "CGCursorIsVisible")]
         public static extern bool CGCursorIsVisible();
 
         static Cocoa()

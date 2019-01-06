@@ -10,11 +10,10 @@
             "args": [
                 "build",
                 "--no-restore",
-                "osu.Framework.Tests",
-                "/p:TargetFramework=netcoreapp2.1",
                 "/p:GenerateFullPaths=true",
                 "/m",
-                "/verbosity:m"
+                "/verbosity:m",
+                "osu-framework.sln"
             ],
             "group": "build",
             "problemMatcher": "$msCompile"
@@ -26,12 +25,11 @@
             "args": [
                 "build",
                 "--no-restore",
-                "osu.Framework.Tests",
-                "/p:TargetFramework=netcoreapp2.1",
                 "/p:Configuration=Release",
                 "/p:GenerateFullPaths=true",
                 "/m",
-                "/verbosity:m"
+                "/verbosity:m",
+                "osu-framework.sln"
             ],
             "group": "build",
             "problemMatcher": "$msCompile"

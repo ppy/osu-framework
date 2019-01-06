@@ -14,10 +14,10 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
-using OpenTK;
-using OpenTK.Graphics;
-using OpenTK.Graphics.ES30;
-using OpenTK.Input;
+using osuTK;
+using osuTK.Graphics;
+using osuTK.Graphics.ES30;
+using osuTK.Input;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions.IEnumerableExtensions;
@@ -36,6 +36,9 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
+using osu.Framework.Audio;
+using osu.Framework.Graphics.Textures;
+using osu.Framework.IO.Stores;
 
 namespace osu.Framework.Platform
 {
@@ -388,9 +391,9 @@ namespace osu.Framework.Platform
                 if (GraphicsContext.CurrentContext == null)
                     throw new GraphicsContextMissingException();
 
-                OpenTK.Graphics.OpenGL.GL.ReadPixels(0, 0, image.Width, image.Height,
-                    OpenTK.Graphics.OpenGL.PixelFormat.Rgba,
-                    OpenTK.Graphics.OpenGL.PixelType.UnsignedByte,
+                osuTK.Graphics.OpenGL.GL.ReadPixels(0, 0, image.Width, image.Height,
+                    osuTK.Graphics.OpenGL.PixelFormat.Rgba,
+                    osuTK.Graphics.OpenGL.PixelType.UnsignedByte,
                     ref MemoryMarshal.GetReference(image.GetPixelSpan()));
 
                 complete = true;
@@ -413,10 +416,21 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Schedules the game to exit in the next frame.
         /// </summary>
-        public void Exit()
+        public void Exit() => PerformExit(false);
+
+        /// <summary>
+        /// Schedules the game to exit in the next frame (or immediately if <paramref name="immediately"/> is true).
+        /// </summary>
+        /// <param name="immediately">If true, exits the game immediately.  If false (default), schedules the game to exit in the next frame.</param>
+        protected virtual void PerformExit(bool immediately)
         {
-            ExecutionState = ExecutionState.Stopping;
-            InputThread.Scheduler.Add(exit, false);
+            if (immediately)
+                exit();
+            else
+            {
+                ExecutionState = ExecutionState.Stopping;
+                InputThread.Scheduler.Add(exit, false);
+            }
         }
 
         /// <summary>
@@ -505,7 +519,7 @@ namespace osu.Framework.Platform
             finally
             {
                 // Close the window and stop all threads
-                exit();
+                PerformExit(true);
             }
         }
 
@@ -658,7 +672,8 @@ namespace osu.Framework.Platform
                 var configIgnores = ignoredString.Split(' ').Where(s => !string.IsNullOrWhiteSpace(s));
 
                 // for now, we always want at least one handler disabled (don't want raw and non-raw mouse at once).
-                bool restoreDefaults = !configIgnores.Any();
+                // Todo: We renamed OpenTK to osuTK, the second condition can be removed after some time has passed
+                bool restoreDefaults = !configIgnores.Any() || ignoredString.Contains("OpenTK");
 
                 if (restoreDefaults)
                 {
@@ -693,6 +708,9 @@ namespace osu.Framework.Platform
         public IEnumerable<InputHandler> AvailableInputHandlers { get; private set; }
 
         public abstract ITextInputSource GetTextInput();
+
+        public virtual AudioManager CreateAudioManager(ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore, Scheduler eventScheduler) =>
+            new AudioManager(trackStore, sampleStore) { EventScheduler = eventScheduler };
 
         #region IDisposable Support
 
@@ -756,6 +774,8 @@ namespace osu.Framework.Platform
             new KeyBinding(InputKey.Delete, new PlatformAction(PlatformActionType.CharNext, PlatformActionMethod.Delete)),
             new KeyBinding(new KeyCombination(new[] { InputKey.Shift, InputKey.Left }), new PlatformAction(PlatformActionType.CharPrevious, PlatformActionMethod.Select)),
             new KeyBinding(new KeyCombination(new[] { InputKey.Shift, InputKey.Right }), new PlatformAction(PlatformActionType.CharNext, PlatformActionMethod.Select)),
+            new KeyBinding(new KeyCombination(new[] { InputKey.Shift, InputKey.BackSpace }), new PlatformAction(PlatformActionType.CharPrevious, PlatformActionMethod.Delete)),
+            new KeyBinding(new KeyCombination(new[] { InputKey.Shift, InputKey.Delete }), new PlatformAction(PlatformActionType.CharPrevious, PlatformActionMethod.Delete)),
             new KeyBinding(new KeyCombination(new[] { InputKey.Control, InputKey.Left }), new PlatformAction(PlatformActionType.WordPrevious, PlatformActionMethod.Move)),
             new KeyBinding(new KeyCombination(new[] { InputKey.Control, InputKey.Right }), new PlatformAction(PlatformActionType.WordNext, PlatformActionMethod.Move)),
             new KeyBinding(new KeyCombination(new[] { InputKey.Control, InputKey.BackSpace }), new PlatformAction(PlatformActionType.WordPrevious, PlatformActionMethod.Delete)),
@@ -771,6 +791,14 @@ namespace osu.Framework.Platform
             new KeyBinding(new KeyCombination(new[] { InputKey.Control, InputKey.Tab }), new PlatformAction(PlatformActionType.DocumentNext)),
             new KeyBinding(new KeyCombination(new[] { InputKey.Control, InputKey.Shift, InputKey.Tab }), new PlatformAction(PlatformActionType.DocumentPrevious)),
         };
+
+        /// <summary>
+        /// Create a texture loader store based on an underlying data store.
+        /// </summary>
+        /// <param name="underlyingStore">The underlying provider of texture data (in arbitrary image formats).</param>
+        /// <returns>A texture loader store.</returns>
+        public virtual IResourceStore<TextureUpload> CreateTextureLoaderStore(IResourceStore<byte[]> underlyingStore)
+            => new TextureLoaderStore(underlyingStore);
     }
 
     /// <summary>

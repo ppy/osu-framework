@@ -15,8 +15,8 @@ using osu.Framework.Input.States;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
-using OpenTK;
-using OpenTK.Input;
+using osuTK;
+using osuTK.Input;
 using JoystickState = osu.Framework.Input.States.JoystickState;
 using KeyboardState = osu.Framework.Input.States.KeyboardState;
 using MouseState = osu.Framework.Input.States.MouseState;
@@ -38,7 +38,10 @@ namespace osu.Framework.Input
         [Resolved(CanBeNull = true)]
         protected GameHost Host { get; private set; }
 
-        internal Drawable FocusedDrawable;
+        /// <summary>
+        /// The currently focused <see cref="Drawable"/>. Null if there is no current focus.
+        /// </summary>
+        public Drawable FocusedDrawable { get; internal set; }
 
         protected abstract IEnumerable<InputHandler> InputHandlers { get; }
 

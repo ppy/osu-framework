@@ -3,7 +3,7 @@
 
 using osu.Framework.Input.StateChanges.Events;
 using osu.Framework.Input.States;
-using OpenTK;
+using osuTK;
 
 namespace osu.Framework.Input.StateChanges
 {

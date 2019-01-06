@@ -8,7 +8,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Testing;
-using OpenTK;
+using osuTK;
 
 namespace osu.Framework.Tests.Visual
 {

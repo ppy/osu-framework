@@ -4,7 +4,7 @@
 using System;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Textures;
-using OpenTK;
+using osuTK;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Allocation;
 
@@ -125,7 +125,7 @@ namespace osu.Framework.Graphics.Sprites
         {
             string result = base.ToString();
             if (!string.IsNullOrEmpty(texture?.AssetName))
-                result += $" tex: {texture?.AssetName}";
+                result += $" tex: {texture.AssetName}";
             return result;
         }
     }

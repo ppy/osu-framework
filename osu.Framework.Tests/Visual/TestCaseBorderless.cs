@@ -12,8 +12,8 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Platform;
 using osu.Framework.Testing;
-using OpenTK;
-using OpenTK.Graphics;
+using osuTK;
+using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual
 {
@@ -140,7 +140,7 @@ namespace osu.Framework.Tests.Visual
             window = host.Window as DesktopGameWindow;
             config.BindWith(FrameworkSetting.WindowMode, windowMode);
 
-            if(window == null)
+            if (window == null)
             {
                 Console.WriteLine("No suitable window found");
                 return;
@@ -204,7 +204,7 @@ namespace osu.Framework.Tests.Visual
         private void updateWindowContainer()
         {
             if(window == null) return;
-            bool fullscreen = window?.WindowMode.Value == WindowMode.Fullscreen;
+            bool fullscreen = window.WindowMode.Value == WindowMode.Fullscreen;
 
             windowContainer.X = window.X;
             windowContainer.Y = window.Y;

@@ -13,7 +13,7 @@ using System.Security;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using OpenTK;
+using osuTK;
 
 // this is an abusive thing to do, but it increases the visibility of Extension Methods to virtually every file.
 

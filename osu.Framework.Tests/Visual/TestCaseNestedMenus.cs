@@ -10,8 +10,8 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Testing;
-using OpenTK;
-using OpenTK.Input;
+using osuTK;
+using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual
 {
@@ -27,7 +27,7 @@ namespace osu.Framework.Tests.Visual
         private MenuStructure menus;
 
         [SetUp]
-        public override void SetUp()
+        public override void SetUp() => Schedule(() =>
         {
             base.SetUp();
             Clear();
@@ -46,7 +46,7 @@ namespace osu.Framework.Tests.Visual
             };
 
             menus = new MenuStructure(menu);
-        }
+        });
 
         private Menu createMenu() => new ClickOpenMenu(TimePerAction)
         {

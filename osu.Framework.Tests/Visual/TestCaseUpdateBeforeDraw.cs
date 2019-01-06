@@ -8,8 +8,8 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Testing;
-using OpenTK;
-using OpenTK.Graphics;
+using osuTK;
+using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual
 {
@@ -38,13 +38,16 @@ namespace osu.Framework.Tests.Visual
             var sender = new HookableContainer();
             var greenBox = new TestBox { Colour = Color4.Green };
 
-            Children = new Drawable[]
+            AddStep("add children", () =>
             {
-                new SpriteText { Text = "Red box should be visible, green should not be visible" },
-                // Order is important
-                receiver,
-                sender,
-            };
+                Children = new Drawable[]
+                {
+                    new SpriteText { Text = "Red box should be visible, green should not be visible" },
+                    // Order is important
+                    receiver,
+                    sender,
+                };
+            });
 
             sender.OnUpdateAfterChildren = () => receiver.Add(greenBox);
 

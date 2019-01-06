@@ -4,7 +4,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Input.Events;
-using OpenTK.Input;
+using osuTK.Input;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics.Containers
     }
 
     /// <summary>
-    /// This interface is used for recogonizing <see cref="TabbableContainer{T}"/> of any type without reflection.
+    /// This interface is used for recognizing <see cref="TabbableContainer{T}"/> of any type without reflection.
     /// </summary>
     internal interface ITabbableContainer
     {

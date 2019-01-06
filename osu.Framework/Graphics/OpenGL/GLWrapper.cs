@@ -10,9 +10,9 @@ using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Threading;
-using OpenTK;
-using OpenTK.Graphics;
-using OpenTK.Graphics.ES30;
+using osuTK;
+using osuTK.Graphics;
+using osuTK.Graphics.ES30;
 using osu.Framework.Statistics;
 using osu.Framework.MathUtils;
 using osu.Framework.Graphics.Primitives;
@@ -22,14 +22,16 @@ using osu.Framework.Platform;
 
 namespace osu.Framework.Graphics.OpenGL
 {
-    internal static class GLWrapper
+    public static class GLWrapper
     {
         public static MaskingInfo CurrentMaskingInfo { get; private set; }
         public static RectangleI Viewport { get; private set; }
         public static RectangleF Ortho { get; private set; }
         public static Matrix4 ProjectionMatrix { get; private set; }
 
-        public static bool UsingBackbuffer => lastFrameBuffer == 0;
+        public static bool UsingBackbuffer => lastFrameBuffer == DefaultFrameBuffer;
+
+        public static int DefaultFrameBuffer;
 
         /// <summary>
         /// Check whether we have an initialised and non-disposed GL context.
@@ -90,7 +92,7 @@ namespace osu.Framework.Graphics.OpenGL
 
             all_batches.ForEachAlive(b => b.ResetCounters());
 
-            lastFrameBuffer = 0;
+            lastFrameBuffer = DefaultFrameBuffer;
 
             viewport_stack.Clear();
             ortho_stack.Clear();
@@ -444,6 +446,8 @@ namespace osu.Framework.Graphics.OpenGL
             GlobalPropertyManager.Set(GlobalProperty.EdgeOffset, maskingInfo.EdgeOffset);
 
             GlobalPropertyManager.Set(GlobalProperty.DiscardInner, maskingInfo.Hollow);
+            if (maskingInfo.Hollow)
+                GlobalPropertyManager.Set(GlobalProperty.InnerCornerRadius, maskingInfo.HollowCornerRadius);
 
             RectangleI actualRect = maskingInfo.ScreenSpaceAABB;
             actualRect.X += Viewport.X;
@@ -661,6 +665,7 @@ namespace osu.Framework.Graphics.OpenGL
         public Vector2 EdgeOffset;
 
         public bool Hollow;
+        public float HollowCornerRadius;
 
         public bool Equals(MaskingInfo other)
         {
@@ -674,7 +679,8 @@ namespace osu.Framework.Graphics.OpenGL
                 BlendRange == other.BlendRange &&
                 AlphaExponent == other.AlphaExponent &&
                 EdgeOffset == other.EdgeOffset &&
-                Hollow == other.Hollow;
+                Hollow == other.Hollow &&
+                HollowCornerRadius == other.HollowCornerRadius;
         }
     }
 }

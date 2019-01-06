@@ -9,8 +9,8 @@ using osu.Framework.Input.Events;
 using osu.Framework.MathUtils;
 using osu.Framework.Testing;
 using osu.Framework.Timing;
-using OpenTK;
-using OpenTK.Graphics;
+using osuTK;
+using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual
 {
@@ -27,7 +27,7 @@ namespace osu.Framework.Tests.Visual
         private const float changed_value = 100;
 
         [SetUp]
-        public void SetUp()
+        public void SetUp() => Schedule(() =>
         {
             manualClock = new ManualClock();
 
@@ -75,7 +75,7 @@ namespace osu.Framework.Tests.Visual
 
             fillFlowContainer.LayoutDuration = 0;
             fillFlowContainer.Size = new Vector2(200, 200);
-        }
+        });
 
         private void check(float ratio) =>
             AddAssert($"Check @{ratio}", () => Precision.AlmostEquals(autoSizeContainer.Size, new Vector2(changed_value * ratio)) &&

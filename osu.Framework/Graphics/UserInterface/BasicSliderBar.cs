@@ -3,8 +3,8 @@
 
 using System;
 using osu.Framework.Extensions.Color4Extensions;
-using OpenTK;
-using OpenTK.Graphics;
+using osuTK;
+using osuTK.Graphics;
 using osu.Framework.Graphics.Shapes;
 
 namespace osu.Framework.Graphics.UserInterface

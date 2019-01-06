@@ -2,10 +2,10 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
-using OpenTK.Input;
+using osu.Framework.Platform.Windows.Native;
+using osuTK.Input;
 
 namespace osu.Framework.Platform.Windows
 {
@@ -13,6 +13,7 @@ namespace osu.Framework.Platform.Windows
     {
         private const int seticon_message = 0x0080;
 
+        private IconGroup iconGroup;
         private Icon smallIcon;
         private Icon largeIcon;
 
@@ -32,14 +33,10 @@ namespace osu.Framework.Platform.Windows
             if (WindowInfo.Handle == IntPtr.Zero)
                 throw new InvalidOperationException("Window must be created before an icon can be set.");
 
-            var secondStream = new MemoryStream();
-            stream.CopyTo(secondStream);
+            iconGroup = new IconGroup(stream);
 
-            stream.Position = 0;
-            secondStream.Position = 0;
-
-            smallIcon = new Icon(stream, 24, 24);
-            largeIcon = new Icon(secondStream, 256, 256);
+            smallIcon = iconGroup.CreateIcon(24, 24);
+            largeIcon = iconGroup.CreateIcon(256, 256);
 
             SendMessage(WindowInfo.Handle, seticon_message, (IntPtr)0, smallIcon.Handle);
             SendMessage(WindowInfo.Handle, seticon_message, (IntPtr)1, largeIcon.Handle);

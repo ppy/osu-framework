@@ -9,8 +9,8 @@ using System.Linq;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions;
 using osu.Framework.Input;
-using OpenTK;
-using OpenTK.Graphics;
+using osuTK;
+using osuTK.Graphics;
 
 namespace osu.Framework.Platform
 {
@@ -33,9 +33,9 @@ namespace osu.Framework.Platform
 
         public readonly Bindable<ConfineMouseMode> ConfineMouseMode = new Bindable<ConfineMouseMode>();
 
-        internal override IGraphicsContext Context => Implementation.Context;
+        public override IGraphicsContext Context => Implementation.Context;
 
-        protected new OpenTK.GameWindow Implementation => (OpenTK.GameWindow)base.Implementation;
+        protected new osuTK.GameWindow Implementation => (osuTK.GameWindow)base.Implementation;
 
         public readonly BindableBool MapAbsoluteInputToWindow = new BindableBool();
 
@@ -117,7 +117,7 @@ namespace osu.Framework.Platform
 
             if (newResolution == null)
             {
-                // we wanted a new resolution but got nothing, which means OpenTK didn't find this resolution
+                // we wanted a new resolution but got nothing, which means osuTK didn't find this resolution
                 RestoreResolution(display);
             }
             else

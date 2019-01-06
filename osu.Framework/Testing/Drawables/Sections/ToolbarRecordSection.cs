@@ -8,9 +8,9 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Events;
 using osu.Framework.Threading;
-using OpenTK;
-using OpenTK.Graphics;
-using OpenTK.Input;
+using osuTK;
+using osuTK.Graphics;
+using osuTK.Input;
 
 namespace osu.Framework.Testing.Drawables.Sections
 {
@@ -31,8 +31,6 @@ namespace osu.Framework.Testing.Drawables.Sections
         private void load(TestBrowser browser)
         {
             this.browser = browser;
-
-            BasicSliderBar<int> frameSliderBar;
 
             InternalChild = new FillFlowContainer
             {
@@ -56,10 +54,11 @@ namespace osu.Framework.Testing.Drawables.Sections
                                 Origin = Anchor.CentreLeft,
                                 Text = "Playback:"
                             },
-                            frameSliderBar = new FrameSliderBar
+                            new FrameSliderBar
                             {
                                 RelativeSizeAxes = Axes.Y,
                                 Width = 250,
+                                Current = browser.CurrentFrame
                             },
                             previousButton = new RepeatButton
                             {
@@ -88,7 +87,6 @@ namespace osu.Framework.Testing.Drawables.Sections
                 }
             };
 
-            frameSliderBar.Current.BindTo(browser.CurrentFrame);
             browser.RecordState.BindValueChanged(updateState, true);
         }
 

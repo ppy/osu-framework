@@ -10,9 +10,9 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
 using osu.Framework.MathUtils;
 using osu.Framework.Threading;
-using OpenTK;
-using OpenTK.Graphics;
-using OpenTK.Input;
+using osuTK;
+using osuTK.Graphics;
+using osuTK.Input;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Configuration;
@@ -559,7 +559,20 @@ namespace osu.Framework.Graphics.UserInterface
             set => Placeholder.Text = value;
         }
 
-        public Bindable<string> Current { get; } = new Bindable<string>();
+        private readonly Bindable<string> current = new Bindable<string>();
+
+        public Bindable<string> Current
+        {
+            get => current;
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException(nameof(value));
+
+                current.UnbindBindings();
+                current.BindTo(value);
+            }
+        }
 
         private string text = string.Empty;
 
@@ -646,7 +659,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (textInput?.ImeActive == true || ReadOnly) return true;
 
-            if (e.ControlPressed || e.SuperPressed)
+            if (e.ControlPressed || e.SuperPressed || e.AltPressed)
                 return false;
 
             // we only care about keys which can result in text output.

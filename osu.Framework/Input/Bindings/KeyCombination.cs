@@ -5,8 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Input.States;
-using OpenTK;
-using OpenTK.Input;
+using osuTK;
+using osuTK.Input;
 
 namespace osu.Framework.Input.Bindings
 {
@@ -26,7 +26,7 @@ namespace osu.Framework.Input.Bindings
         /// <param name="keys">The keys.</param>
         public KeyCombination(IEnumerable<InputKey> keys)
         {
-            Keys = keys.OrderBy(k => (int)k).ToArray();
+            Keys = keys?.Any() == true ? keys.OrderBy(k => (int)k).ToArray() : new [] { InputKey.None };
         }
 
         /// <summary>
@@ -81,7 +81,7 @@ namespace osu.Framework.Input.Bindings
             return Equals((KeyCombination)obj);
         }
 
-        public override int GetHashCode() => Keys != null ? Keys.Select(b => b.GetHashCode()).Aggregate((h1, h2) => h1 * 17 + h2) : 0;
+        public override int GetHashCode() => Keys.Select(b => b.GetHashCode()).Aggregate((h1, h2) => h1 * 17 + h2);
 
         public static implicit operator KeyCombination(InputKey singleKey) => new KeyCombination(new[] { singleKey });
 
@@ -89,9 +89,9 @@ namespace osu.Framework.Input.Bindings
 
         public static implicit operator KeyCombination(InputKey[] keys) => new KeyCombination(keys);
 
-        public override string ToString() => Keys?.Select(b => ((int)b).ToString()).Aggregate((s1, s2) => $"{s1},{s2}") ?? string.Empty;
+        public override string ToString() => Keys.Select(b => ((int)b).ToString()).Aggregate((s1, s2) => $"{s1},{s2}");
 
-        public string ReadableString() => Keys?.Select(getReadableKey).Aggregate((s1, s2) => $"{s1}+{s2}") ?? string.Empty;
+        public string ReadableString() => Keys.Select(getReadableKey).Aggregate((s1, s2) => $"{s1}+{s2}");
 
         public static bool IsModifierKey(InputKey key) => key == InputKey.Control || key == InputKey.Shift || key == InputKey.Alt || key == InputKey.Super;
 

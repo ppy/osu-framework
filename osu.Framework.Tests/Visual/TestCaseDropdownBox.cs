@@ -8,15 +8,17 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Events;
 using osu.Framework.Testing;
-using OpenTK;
-using OpenTK.Graphics;
-using OpenTK.Input;
+using osuTK;
+using osuTK.Graphics;
+using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual
 {
     public class TestCaseDropdownBox : ManualInputManagerTestCase
     {
         private const int items_to_add = 10;
+        private const float explicit_height = 100;
+        private float calculatedHeight;
         private readonly StyledDropdown styledDropdown, styledDropdownMenu2;
 
         public TestCaseDropdownBox()
@@ -51,6 +53,16 @@ namespace osu.Framework.Tests.Visual
 
             AddRepeatStep("add item", () => styledDropdown.AddDropdownItem("test " + i++), items_to_add);
             AddAssert("item count is correct", () => styledDropdown.Items.Count() == items_to_add * 2);
+
+            AddStep($"Set dropdown1 height to {explicit_height}", () =>
+            {
+                calculatedHeight = styledDropdown.Menu.Height;
+                styledDropdown.Menu.MaxHeight = explicit_height;
+            });
+            AddAssert($"dropdown1 height is {explicit_height}", () => styledDropdown.Menu.Height == explicit_height);
+
+            AddStep($"Set dropdown1 height to {float.PositiveInfinity}", () => styledDropdown.Menu.MaxHeight = float.PositiveInfinity);
+            AddAssert("dropdown1 height is calculated automatically", () => styledDropdown.Menu.Height == calculatedHeight);
 
             AddStep("click item 13", () => styledDropdown.SelectItem(styledDropdown.Menu.Items[13]));
 

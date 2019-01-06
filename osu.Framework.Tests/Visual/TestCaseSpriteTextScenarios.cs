@@ -14,8 +14,8 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.IO.Stores;
 using osu.Framework.Localisation;
 using osu.Framework.Testing;
-using OpenTK;
-using OpenTK.Graphics;
+using osuTK;
+using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual
 {
@@ -215,6 +215,17 @@ namespace osu.Framework.Tests.Visual
                     }
                 }
             };
+
+            Bindable<string> boundString = new Bindable<string>("bindable: 0");
+            int boundStringValue = 0;
+
+            Cell(2, 4).Child = new LocalisableTestContainer
+            {
+                RelativeSizeAxes = Axes.Both,
+                Child = new SpriteText { Current = boundString },
+            };
+
+            Scheduler.AddDelayed(() => boundString.Value = $"bindable: {++boundStringValue}", 200, true);
         }
 
         private class NoFixedWidthSpaceText : SpriteText

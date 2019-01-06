@@ -8,12 +8,10 @@ using osu.Framework.Extensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Shapes;
-using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Testing;
 using osu.Framework.Input;
-using OpenTK;
-using OpenTK.Graphics;
+using osuTK;
 
 namespace osu.Framework.Tests.Visual
 {
@@ -58,10 +56,18 @@ namespace osu.Framework.Tests.Visual
                 Size = new Vector2(200, 30)
             };
 
+            var withoutDropdownTabControl = new StyledTabControlWithoutDropdown
+            {
+                Position = new Vector2(200, 450),
+                Size = new Vector2(200, 30)
+            };
+            items.AsEnumerable().ForEach(item => withoutDropdownTabControl.AddItem(item.Value));
+
             Add(simpleTabcontrol);
             Add(pinnedAndAutoSort);
             Add(platformActionContainer);
             Add(removeAllTabControl);
+            Add(withoutDropdownTabControl);
 
             var nextTest = new Func<TestEnum>(() => items.AsEnumerable()
                                                          .Select(item => item.Value)
@@ -119,38 +125,26 @@ namespace osu.Framework.Tests.Visual
 
             AddStep("Remove all items", () => removeAllTabControl.Clear());
             AddAssert("Ensure no items", () => !removeAllTabControl.Items.Any());
+
+            AddAssert("Ensure any items", () => withoutDropdownTabControl.Items.Any());
+            AddStep("Remove all items", () => withoutDropdownTabControl.Clear());
+            AddAssert("Ensure no items", () => !withoutDropdownTabControl.Items.Any());
+        }
+
+        private class StyledTabControlWithoutDropdown : TabControl<TestEnum>
+        {
+            protected override Dropdown<TestEnum> CreateDropdown() => null;
+
+            protected override TabItem<TestEnum> CreateTabItem(TestEnum value)
+                => new BasicTabControl<TestEnum>.BasicTabItem(value);
         }
 
         private class StyledTabControl : TabControl<TestEnum>
         {
             protected override Dropdown<TestEnum> CreateDropdown() => new StyledDropdown();
 
-            protected override TabItem<TestEnum> CreateTabItem(TestEnum value) => new StyledTabItem(value);
-        }
-
-        private class StyledTabItem : TabItem<TestEnum>
-        {
-            private readonly SpriteText text;
-
-            public override bool IsRemovable => true;
-
-            public StyledTabItem(TestEnum value) : base(value)
-            {
-                AutoSizeAxes = Axes.Both;
-                Children = new Drawable[]
-                {
-                    text = new SpriteText
-                    {
-                        Margin = new MarginPadding(2),
-                        Text = value.ToString(),
-                        TextSize = 18
-                    }
-                };
-            }
-
-            protected override void OnActivated() => text.Colour = Color4.MediumPurple;
-
-            protected override void OnDeactivated() => text.Colour = Color4.White;
+            protected override TabItem<TestEnum> CreateTabItem(TestEnum value)
+                => new BasicTabControl<TestEnum>.BasicTabItem(value);
         }
 
         private class StyledDropdown : Dropdown<TestEnum>

@@ -14,8 +14,8 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Logging;
 using osu.Framework.Testing;
-using OpenTK;
-using OpenTK.Graphics;
+using osuTK;
+using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual
 {
@@ -24,11 +24,11 @@ namespace osu.Framework.Tests.Visual
         private readonly List<SlowLoader> loaders = new List<SlowLoader>();
 
         [SetUp]
-        public void SetUp()
+        public void SetUp() => Schedule(() =>
         {
             loaders.Clear();
             Child = createLoader();
-        }
+        });
 
         [Test]
         public void TestConcurrentLoad()
@@ -56,7 +56,7 @@ namespace osu.Framework.Tests.Visual
 
             AddStep("start async load", () => LoadComponentAsync(loader = new PausableLoadDrawable(0), _ => loaded = true, (cancellationSource = new CancellationTokenSource()).Token));
 
-            AddAssert("load started", () => loader.IsLoading);
+            AddUntilStep(() => loader.IsLoading, "load started");
 
             AddStep("cancel", () => cancellationSource.Cancel());
 

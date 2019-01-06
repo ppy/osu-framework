@@ -21,9 +21,9 @@ using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Testing.Drawables;
 using osu.Framework.Timing;
-using OpenTK;
-using OpenTK.Graphics;
-using OpenTK.Input;
+using osuTK;
+using osuTK.Graphics;
+using osuTK.Input;
 
 namespace osu.Framework.Testing
 {
@@ -205,19 +205,22 @@ namespace osu.Framework.Testing
 
             searchTextBox.Current.ValueChanged += newValue => leftFlowContainer.SearchTerm = newValue;
 
-            backgroundCompiler = new DynamicClassCompiler<TestCase>
+            if (RuntimeInfo.SupportsIL)
             {
-                CompilationStarted = compileStarted,
-                CompilationFinished = compileFinished,
-                CompilationFailed = compileFailed
-            };
-            try
-            {
-                backgroundCompiler.Start();
-            }
-            catch
-            {
-                //it's okay for this to fail for now.
+                backgroundCompiler = new DynamicClassCompiler<TestCase>
+                {
+                    CompilationStarted = compileStarted,
+                    CompilationFinished = compileFinished,
+                    CompilationFailed = compileFailed
+                };
+                try
+                {
+                    backgroundCompiler.Start();
+                }
+                catch
+                {
+                    //it's okay for this to fail for now.
+                }
             }
 
             foreach (Assembly asm in assemblies)
@@ -417,7 +420,7 @@ namespace osu.Framework.Testing
                     }
                 }
 
-                backgroundCompiler.Checkpoint(CurrentTest);
+                backgroundCompiler?.Checkpoint(CurrentTest);
                 runTests(onCompletion);
                 updateButtons();
             });
@@ -440,6 +443,7 @@ namespace osu.Framework.Testing
         private class ErrorCatchingDelayedLoadWrapper : DelayedLoadWrapper
         {
             private readonly bool catchErrors;
+            private bool hasCaught;
 
             public Action<Exception> OnCaughtError;
 
@@ -460,12 +464,17 @@ namespace osu.Framework.Testing
                     if (!catchErrors)
                         throw;
 
+                    // without this we will enter an infinite loading loop (DelayedLoadWrapper will see the child removed below and retry).
+                    hasCaught = true;
+
                     OnCaughtError?.Invoke(e);
                     RemoveInternal(Content);
                 }
 
                 return false;
             }
+
+            protected override bool ShouldLoadContent => !hasCaught;
         }
     }
 

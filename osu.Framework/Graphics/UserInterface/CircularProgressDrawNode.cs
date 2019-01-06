@@ -3,13 +3,13 @@
 
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
-using OpenTK.Graphics.ES30;
+using osuTK.Graphics.ES30;
 using osu.Framework.Graphics.OpenGL;
-using OpenTK;
+using osuTK;
 using System;
 using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Primitives;
-using OpenTK.Graphics;
+using osuTK.Graphics;
 using osu.Framework.Extensions.MatrixExtensions;
 using osu.Framework.Graphics.OpenGL.Vertices;
 

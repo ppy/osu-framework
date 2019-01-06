@@ -6,10 +6,10 @@ using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
-using OpenTK;
-using OpenTK.Graphics;
+using osuTK;
+using osuTK.Graphics;
 using osu.Framework.Extensions.Color4Extensions;
-using OpenTK.Input;
+using osuTK.Input;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.IEnumerableExtensions;
@@ -328,8 +328,8 @@ namespace osu.Framework.Graphics.Visualisation
 
         private void onDispose()
         {
-            SetContainer(null);
-            Dispose();
+            // May come from the disposal thread, in which case they won't ever be reused and the container doesn't need to be reset
+            Schedule(() => SetContainer(null));
         }
 
         private void updateSpecifics()

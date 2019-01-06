@@ -15,4 +15,8 @@
     <Company>ppy Pty Ltd</Company>
     <Copyright>ppy Pty Ltd 2007-2018</Copyright>
   </PropertyGroup>
+  <PropertyGroup Label="Sourcelink3">
+    <EnableSourceLink Condition=" '$(OS)' != 'Windows_NT' AND '$(MSBuildRuntimeType)' != 'Core' ">false</EnableSourceLink>
+    <EnableSourceControlManagerQueries>$(EnableSourceLink)</EnableSourceControlManagerQueries>
+  </PropertyGroup>
 </Project>

@@ -8,8 +8,8 @@ using osu.Framework.Input;
 using osu.Framework.Input.States;
 using osu.Framework.Testing;
 using osu.Framework.Testing.Input;
-using OpenTK;
-using OpenTK.Input;
+using osuTK;
+using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual
 {
@@ -39,11 +39,11 @@ namespace osu.Framework.Tests.Visual
         }
 
         [SetUp]
-        public override void SetUp()
+        public override void SetUp() => Schedule(() =>
         {
             base.SetUp();
             ChildrenEnumerable = Enumerable.Empty<Drawable>();
-        }
+        });
 
         [Test]
         public void ReceiveInitialState()

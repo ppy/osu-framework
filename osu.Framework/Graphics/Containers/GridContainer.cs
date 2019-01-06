@@ -4,7 +4,7 @@
 using System;
 using System.Linq;
 using osu.Framework.Allocation;
-using OpenTK;
+using osuTK;
 using osu.Framework.Caching;
 
 namespace osu.Framework.Graphics.Containers

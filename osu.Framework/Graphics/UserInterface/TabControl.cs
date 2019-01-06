@@ -10,7 +10,7 @@ using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
-using OpenTK;
+using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -23,12 +23,34 @@ namespace osu.Framework.Graphics.UserInterface
     /// <typeparam name="T">The type of item to be represented by tabs.</typeparam>
     public abstract class TabControl<T> : CompositeDrawable, IHasCurrentValue<T>, IKeyBindingHandler<PlatformAction>
     {
-        public Bindable<T> Current { get; } = new Bindable<T>();
+        private readonly Bindable<T> current = new Bindable<T>();
+
+        public Bindable<T> Current
+        {
+            get => current;
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException(nameof(value));
+
+                current.UnbindBindings();
+                current.BindTo(value);
+            }
+        }
 
         /// <summary>
         /// A list of items currently in the tab control in the order they are dispalyed.
         /// </summary>
-        public IEnumerable<T> Items => TabContainer.TabItems.Select(t => t.Value).Concat(Dropdown.Items).Distinct();
+        public IEnumerable<T> Items {
+            get {
+                var items = TabContainer.TabItems.Select(t => t.Value);
+
+                if (Dropdown != null)
+                    items = items.Concat(Dropdown.Items).Distinct();
+
+                return items;
+            }
+        }
 
         public IEnumerable<T> VisibleItems => TabContainer.TabItems.Select(t => t.Value).Distinct();
 
@@ -81,7 +103,7 @@ namespace osu.Framework.Graphics.UserInterface
                 Dropdown.RelativeSizeAxes = Axes.X;
                 Dropdown.Anchor = Anchor.TopRight;
                 Dropdown.Origin = Anchor.TopRight;
-                Dropdown.Current.BindTo(Current);
+                Dropdown.Current = Current;
 
                 AddInternal(Dropdown);
 

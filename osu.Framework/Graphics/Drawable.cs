@@ -1,8 +1,8 @@
 // Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using OpenTK;
-using OpenTK.Graphics;
+using osuTK;
+using osuTK.Graphics;
 using osu.Framework.Allocation;
 using osu.Framework.Caching;
 using osu.Framework.Extensions.TypeExtensions;
@@ -30,7 +30,7 @@ using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
 using osu.Framework.MathUtils;
-using OpenTK.Input;
+using osuTK.Input;
 
 namespace osu.Framework.Graphics
 {
@@ -184,6 +184,11 @@ namespace osu.Framework.Graphics
         /// </summary>
         public LoadState LoadState => loadState;
 
+        /// <summary>
+        /// The thread on which the <see cref="Load"/> operation started, or null if <see cref="Drawable"/> has not started loading.
+        /// </summary>
+        internal Thread LoadThread { get; private set; }
+
         private readonly object loadLock = new object();
 
         private static readonly StopwatchClock perf = new StopwatchClock(true);
@@ -216,7 +221,8 @@ namespace osu.Framework.Graphics
 
         private void load(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies)
         {
-            // Blocks when loading from another thread already.
+            LoadThread = Thread.CurrentThread;
+
             double t0 = getPerfTime();
 
             double lockDuration = getPerfTime() - t0;
