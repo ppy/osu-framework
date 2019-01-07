@@ -61,6 +61,18 @@ namespace osu.Framework.Tests.Visual
                 KeyboardStep = 1,
                 Current = sliderBarValue
             });
+
+            Add(new BasicSliderBar<double>
+            {
+                TransferValueOnCommit = true,
+                Size = new Vector2(200, 10),
+                RangePadding = 20,
+                Position = new Vector2(25, 65),
+                BackgroundColour = Color4.White,
+                SelectionColour = Color4.Pink,
+                KeyboardStep = 1,
+                Current = sliderBarValue
+            });
         }
 
         [Test]
