@@ -15,6 +15,9 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="Startup.cs" />
+  </ItemGroup>
   <PropertyGroup>
     <IsPackable>true</IsPackable>
   </PropertyGroup>
