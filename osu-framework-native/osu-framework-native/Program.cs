@@ -7,7 +7,6 @@ namespace osu_framework_native
     {
         public static void Main(string[] args)
         {
-            return;
         }
     }
 }
