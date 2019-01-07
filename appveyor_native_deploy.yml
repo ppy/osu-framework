@@ -7,9 +7,9 @@ before_build:
 - cmd: nuget restore osu-framework-native/osu-framework-native.sln
 
 build_script:
-  - cmd: dotnet pack osu-framework-native /p:Version=0.0.%APPVEYOR_BUILD_VERSION%
+  - cmd: dotnet pack osu-framework-native/osu-framework-native /p:Version=0.0.%APPVEYOR_BUILD_VERSION%
 artifacts:
-  - path: osu-framework-native/bin/Any CPU/Release/*.nupkg
+  - path: osu-framework-native/osu-framework-native/bin/Any CPU/Release/*.nupkg
 
 deploy:
   - provider: Environment
