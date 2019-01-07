@@ -13,8 +13,8 @@ namespace osu.Framework.iOS.Audio
         {
         }
 
-        public override Track CreateTrack(Stream data, bool quick) => new IOSTrackBass(data, quick);
+        public override Track CreateTrack(Stream data, bool quick = false) => new IOSTrackBass(data, quick);
 
-        public override Waveform CreateWaveform(Stream data = null) => new IOSWaveform(data);
+        public override Waveform CreateWaveform(Stream data) => new IOSWaveform(data);
     }
 }

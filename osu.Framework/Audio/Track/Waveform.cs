@@ -72,7 +72,7 @@ namespace osu.Framework.Audio.Track
         /// Constructs a new <see cref="Waveform"/> from provided audio data.
         /// </summary>
         /// <param name="data">The sample data stream. If null, an empty waveform is constructed.</param>
-        public Waveform(Stream data = null)
+        public Waveform(Stream data)
         {
             if (data == null) return;
 
@@ -190,7 +190,7 @@ namespace osu.Framework.Audio.Track
             if (pointCount < 0) throw new ArgumentOutOfRangeException(nameof(pointCount));
 
             if (readTask == null)
-                return new Waveform();
+                return new Waveform(null);
 
             await readTask;
 
@@ -245,7 +245,7 @@ namespace osu.Framework.Audio.Track
                     generatedPoints.Add(point);
                 }
 
-                return new Waveform
+                return new Waveform(null)
                 {
                     points = generatedPoints,
                     channels = channels
