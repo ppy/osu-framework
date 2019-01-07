@@ -207,7 +207,7 @@ namespace osu.Framework.Configuration
             // check a bound bindable hasn't changed the value again (it will fire its own event)
             T beforePropagation = value;
             if (propagateToBindings) Bindings?.ForEachAlive(b => b.Value = value);
-            if (Equals(beforePropagation, value))
+            if (EqualityComparer<T>.Default.Equals(beforePropagation, value))
                 ValueChanged?.Invoke(value);
         }
 
@@ -277,6 +277,16 @@ namespace osu.Framework.Configuration
         IBindable IBindable.GetBoundCopy() => GetBoundCopy();
 
         IBindable<T> IBindable<T>.GetBoundCopy() => GetBoundCopy();
+
+        /// <summary>
+        /// Create an unbound clone of this bindable.
+        /// </summary>
+        public IBindable<T> GetUnboundCopy()
+        {
+            var clone = GetBoundCopy();
+            clone.UnbindAll();
+            return clone;
+        }
 
         /// <summary>
         /// Retrieve a new bindable instance weakly bound to the configuration backing.
