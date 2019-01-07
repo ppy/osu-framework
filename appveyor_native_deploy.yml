@@ -1,0 +1,18 @@
+version: '{build}'
+configuration: Release
+image: Visual Studio 2017
+platform: Any CPU
+
+before_build:
+- cmd: nuget restore osu-framework-native.sln
+
+build_script:
+  - cmd: dotnet pack osu-framework-native /p:Version=0.0.%APPVEYOR_BUILD_VERSION%
+artifacts:
+  - path: osu-framework-native/bin/Any CPU/Release/*.nupkg
+
+deploy:
+  - provider: Environment
+    name: nuget
+  - provider: Environment
+    name: github
