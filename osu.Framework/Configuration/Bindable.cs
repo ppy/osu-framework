@@ -279,6 +279,16 @@ namespace osu.Framework.Configuration
         IBindable<T> IBindable<T>.GetBoundCopy() => GetBoundCopy();
 
         /// <summary>
+        /// Create an unbound clone of this bindable.
+        /// </summary>
+        public IBindable<T> GetUnboundCopy()
+        {
+            var clone = GetBoundCopy();
+            clone.UnbindAll();
+            return clone;
+        }
+
+        /// <summary>
         /// Retrieve a new bindable instance weakly bound to the configuration backing.
         /// If you are further binding to events of a bindable retrieved using this method, ensure to hold
         /// a local reference.
