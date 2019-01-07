@@ -53,6 +53,7 @@
     <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.3.0" />
     <PackageReference Include="System.Reflection.Emit.ILGeneration" Version="4.3.0" />
     <PackageReference Include="JetBrains.Annotations" Version="2018.2.1" />
+      <PackageReference Include="osu-framework-native" Version="0.0.21" Condition="'$(APPVEYOR)'==True"/>
   </ItemGroup>
   <ItemGroup>
     <NativeLibs Include="$(MSBuildThisFileDirectory)*\*.dll*" />
@@ -65,6 +66,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\osu-framework-native\osu-framework-native\osu-framework-native.csproj" />
+    <ProjectReference Condition="'$(APPVEYOR)'==False" Include="..\osu-framework-native\osu-framework-native\osu-framework-native.csproj" />
   </ItemGroup>
 </Project>
+
