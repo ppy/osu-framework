@@ -4,6 +4,7 @@ skip_non_tags: true
 image: Visual Studio 2017
 configuration: Release
 before_build:
+  - cmd: nuget sources add -name osu-framework-native -Source https://ci.appveyor.com/nuget/osu-framework-nativedeps/api/v2/package
   - cmd: nuget restore osu-framework.sln
   - cmd: nuget restore osu-framework.iOS.sln
 build_script:
