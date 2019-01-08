@@ -21,6 +21,15 @@ namespace osu.Framework.Graphics.Colour
         public SRGBColour BottomRight;
         public bool HasSingleColour;
 
+        public ColourInfo(SRGBColour topLeft, SRGBColour bottomLeft, SRGBColour topRight, SRGBColour bottomRight, bool hasSingleColour)
+        {
+            TopLeft = topLeft;
+            BottomLeft = bottomLeft;
+            TopRight = topRight;
+            BottomRight = bottomRight;
+            HasSingleColour = hasSingleColour;
+        }
+
         /// <summary>
         /// Creates a ColourInfo with a single linear colour assigned to all vertices.
         /// </summary>
