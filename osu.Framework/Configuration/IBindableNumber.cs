@@ -36,5 +36,10 @@ namespace osu.Framework.Configuration
         /// The maximum value of this bindable. <see cref="IBindableNumber{T}"/> will never go above this value.
         /// </summary>
         T MaxValue { get; }
+
+        /// <summary>
+        /// Whether <typeparamref name="T"/> is an integer.
+        /// </summary>
+        bool IsInteger { get; }
     }
 }
