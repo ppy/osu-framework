@@ -14,5 +14,3 @@ artifacts:
 deploy:
   - provider: Environment
     name: nuget
-  - provider: Environment
-    name: github
