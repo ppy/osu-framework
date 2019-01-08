@@ -77,6 +77,9 @@ namespace osu.Framework.Android.Input
                 case Keycode.Grave:
                     pending += "`";
                     break;
+                case Keycode.Semicolon:
+                    pending += ";";
+                    break;
                 case Keycode.CtrlLeft:
                 case Keycode.AltLeft:
                 case Keycode.ShiftLeft:
@@ -111,6 +114,7 @@ namespace osu.Framework.Android.Input
                 case Keycode.ForwardDel:
                 case Keycode.Insert:
                 case Keycode.NumpadEnter:
+                case Keycode.Enter:
                     break;
                 default:
                     pending += key.ToString();

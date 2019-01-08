@@ -29,6 +29,7 @@ namespace osu.Framework.Android.Input
         public override bool Initialize(GameHost host)
         {
             view.KeyDown += keyDown;
+            view.KeyUp += keyUp;
 
             return true;
         }
