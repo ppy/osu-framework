@@ -15,7 +15,7 @@ namespace osu.Framework.Configuration
     /// A generic implementation of a <see cref="IBindable"/>
     /// </summary>
     /// <typeparam name="T">The type of our stored <see cref="Value"/>.</typeparam>
-    public class Bindable<T> : IBindable<T>, IBindable, ISerializableBindable
+    public class Bindable<T> : IBindable<T>, ISerializableBindable
     {
         /// <summary>
         /// An event which is raised when <see cref="Value"/> has changed (or manually via <see cref="TriggerValueChange"/>).
@@ -105,7 +105,7 @@ namespace osu.Framework.Configuration
 
         public static implicit operator T(Bindable<T> value) => value.Value;
 
-        protected WeakList<Bindable<T>> Bindings { get; private set; }
+        protected LockedWeakList<Bindable<T>> Bindings { get; private set; }
 
         void IBindable.BindTo(IBindable them)
         {
@@ -163,7 +163,7 @@ namespace osu.Framework.Configuration
         private void addWeakReference(WeakReference<Bindable<T>> weakReference)
         {
             if (Bindings == null)
-                Bindings = new WeakList<Bindable<T>>();
+                Bindings = new LockedWeakList<Bindable<T>>();
 
             Bindings.Add(weakReference);
         }
@@ -207,7 +207,7 @@ namespace osu.Framework.Configuration
             // check a bound bindable hasn't changed the value again (it will fire its own event)
             T beforePropagation = value;
             if (propagateToBindings) Bindings?.ForEachAlive(b => b.Value = value);
-            if (Equals(beforePropagation, value))
+            if (EqualityComparer<T>.Default.Equals(beforePropagation, value))
                 ValueChanged?.Invoke(value);
         }
 
@@ -277,6 +277,16 @@ namespace osu.Framework.Configuration
         IBindable IBindable.GetBoundCopy() => GetBoundCopy();
 
         IBindable<T> IBindable<T>.GetBoundCopy() => GetBoundCopy();
+
+        /// <summary>
+        /// Create an unbound clone of this bindable.
+        /// </summary>
+        public Bindable<T> GetUnboundCopy()
+        {
+            var clone = GetBoundCopy();
+            clone.UnbindAll();
+            return clone;
+        }
 
         /// <summary>
         /// Retrieve a new bindable instance weakly bound to the configuration backing.

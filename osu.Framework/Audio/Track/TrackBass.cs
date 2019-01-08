@@ -45,6 +45,11 @@ namespace osu.Framework.Audio.Track
 
         public override bool IsLoaded => isLoaded;
 
+        /// <summary>
+        /// Constructs a new <see cref="TrackBass"/> from provided audio data.
+        /// </summary>
+        /// <param name="data">The sample data stream.</param>
+        /// <param name="quick">If true, the track will not be fully loaded, and should only be used for preview purposes.  Defaults to false.</param>
         public TrackBass(Stream data, bool quick = false)
         {
             EnqueueAction(() =>

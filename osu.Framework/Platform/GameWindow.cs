@@ -52,7 +52,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Whether the OS cursor is currently contained within the game window.
         /// </summary>
-        public bool CursorInWindow { get; private set; }
+        public bool CursorInWindow { get; protected set; }
 
         /// <summary>
         /// Available resolutions for full-screen display.
