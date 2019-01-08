@@ -57,7 +57,7 @@
   <Choose>
     <When Condition="'$(APPVEYOR_DEPLOY)'==1">
       <ItemGroup>
-        <PackageReference Include="osu-framework-native" Version="0.0.20" />
+        <PackageReference Include="osu.Framework.NativeLibs" Version="0.0.20" />
       </ItemGroup>
     </When>
     <When Condition="'$(APPVEYOR_DEPLOY)'!=1">
