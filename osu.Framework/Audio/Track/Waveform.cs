@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using ManagedBass;
 using osuTK;
 using osu.Framework.MathUtils;
+using System.Runtime.InteropServices;
 
 namespace osu.Framework.Audio.Track
 {
@@ -64,11 +65,14 @@ namespace osu.Framework.Audio.Track
         private readonly CancellationTokenSource cancelSource = new CancellationTokenSource();
         private readonly Task readTask;
 
+        private DataStreamFileProcedures procedures;
+        private GCHandle pinnedProcedures;
+
         /// <summary>
         /// Constructs a new <see cref="Waveform"/> from provided audio data.
         /// </summary>
         /// <param name="data">The sample data stream. If null, an empty waveform is constructed.</param>
-        public Waveform(Stream data = null)
+        public Waveform(Stream data)
         {
             if (data == null) return;
 
@@ -78,9 +82,13 @@ namespace osu.Framework.Audio.Track
                 if (Bass.CurrentDevice <= 0)
                     return;
 
-                var procs = new DataStreamFileProcedures(data);
+                procedures = CreateDataStreamFileProcedures(data);
 
-                int decodeStream = Bass.CreateStream(StreamSystem.NoBuffer, BassFlags.Decode | BassFlags.Float, procs.BassProcedures, IntPtr.Zero);
+                if (!RuntimeInfo.SupportsIL)
+                    pinnedProcedures = GCHandle.Alloc(procedures, GCHandleType.Pinned);
+
+                int decodeStream = Bass.CreateStream(StreamSystem.NoBuffer, BassFlags.Decode | BassFlags.Float, procedures.BassProcedures,
+                    RuntimeInfo.SupportsIL ? IntPtr.Zero : GCHandle.ToIntPtr(pinnedProcedures));
 
                 Bass.ChannelGetInfo(decodeStream, out ChannelInfo info);
 
@@ -155,6 +163,8 @@ namespace osu.Framework.Audio.Track
             }, cancelSource.Token);
         }
 
+        protected virtual DataStreamFileProcedures CreateDataStreamFileProcedures(Stream dataStream) => new DataStreamFileProcedures(dataStream);
+
         private double computeIntensity(ChannelInfo info, float[] bins, double startFrequency, double endFrequency)
         {
             int startBin = (int)(fft_bins * 2 * startFrequency / info.Frequency);
@@ -180,7 +190,7 @@ namespace osu.Framework.Audio.Track
             if (pointCount < 0) throw new ArgumentOutOfRangeException(nameof(pointCount));
 
             if (readTask == null)
-                return new Waveform();
+                return new Waveform(null);
 
             await readTask;
 
@@ -235,7 +245,7 @@ namespace osu.Framework.Audio.Track
                     generatedPoints.Add(point);
                 }
 
-                return new Waveform
+                return new Waveform(null)
                 {
                     points = generatedPoints,
                     channels = channels
@@ -301,6 +311,11 @@ namespace osu.Framework.Audio.Track
             cancelSource?.Cancel();
             cancelSource?.Dispose();
             points = null;
+
+            if (pinnedProcedures.IsAllocated)
+                pinnedProcedures.Free();
+
+            procedures = null;
         }
 
         #endregion
