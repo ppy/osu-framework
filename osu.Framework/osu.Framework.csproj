@@ -56,16 +56,6 @@
     <PackageReference Include="osu-framework-native" Version="0.0.20" Condition="'$(APPVEYOR_DEPLOY)'==1" />
   </ItemGroup>
   <ItemGroup>
-    <NativeLibs Include="$(MSBuildThisFileDirectory)*\*.dll*" />
-    <NativeLibs Include="$(MSBuildThisFileDirectory)*.so" />
-    <NativeLibs Include="$(MSBuildThisFileDirectory)*.dylib" />
-    <None Include="@(NativeLibs)">
-      <Pack>true</Pack>
-      <PackageCopyToOutput>true</PackageCopyToOutput>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\osu.Framework.NativeLibs\osu.Framework.NativeLibs.csproj" Condition="'$(APPVEYOR_DEPLOY)'==0" />
   </ItemGroup>
 </Project>
