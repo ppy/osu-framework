@@ -7,7 +7,7 @@ using System.Globalization;
 
 namespace osu.Framework.Configuration
 {
-    public abstract class BindableNumber<T> : Bindable<T>
+    public abstract class BindableNumber<T> : Bindable<T>, IBindableNumber<T>
         where T : struct, IComparable, IConvertible
     {
         static BindableNumber()
@@ -32,19 +32,10 @@ namespace osu.Framework.Configuration
                     $"{nameof(BindableNumber<T>)} only accepts the primitive numeric types (except for {typeof(decimal).FullName}) as type arguments. You provided {typeof(T).FullName}.");
         }
 
-        /// <summary>
-        /// An event which is raised when <see cref="Precision"/> has changed (or manually via <see cref="TriggerPrecisionChange"/>).
-        /// </summary>
         public event Action<T> PrecisionChanged;
 
-        /// <summary>
-        /// An event which is raised when <see cref="MinValue"/> has changed (or manually via <see cref="TriggerMinValueChange"/>).
-        /// </summary>
         public event Action<T> MinValueChanged;
 
-        /// <summary>
-        /// An event which is raised when <see cref="MaxValue"/> has changed (or manually via <see cref="TriggerMaxValueChange"/>).
-        /// </summary>
         public event Action<T> MaxValueChanged;
 
         protected BindableNumber(T value = default)
@@ -58,9 +49,6 @@ namespace osu.Framework.Configuration
 
         private T precision;
 
-        /// <summary>
-        /// The precision up to which the value of this bindable should be rounded.
-        /// </summary>
         public T Precision
         {
             get => precision;
@@ -97,9 +85,6 @@ namespace osu.Framework.Configuration
 
         private T minValue;
 
-        /// <summary>
-        /// The minimum value of this bindable. <see cref="Bindable{T}.Value"/> will never go below this value.
-        /// </summary>
         public T MinValue
         {
             get => minValue;
@@ -116,9 +101,6 @@ namespace osu.Framework.Configuration
 
         private T maxValue;
 
-        /// <summary>
-        /// The maximum value of this bindable. <see cref="Bindable{T}.Value"/> will never go above this value.
-        /// </summary>
         public T MaxValue
         {
             get => maxValue;
