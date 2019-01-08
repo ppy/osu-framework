@@ -15,7 +15,7 @@ namespace osu.Framework.Configuration
     /// A generic implementation of a <see cref="IBindable"/>
     /// </summary>
     /// <typeparam name="T">The type of our stored <see cref="Value"/>.</typeparam>
-    public class Bindable<T> : IBindable<T>, IBindable, ISerializableBindable
+    public class Bindable<T> : IBindable<T>, ISerializableBindable
     {
         /// <summary>
         /// An event which is raised when <see cref="Value"/> has changed (or manually via <see cref="TriggerValueChange"/>).
@@ -281,7 +281,7 @@ namespace osu.Framework.Configuration
         /// <summary>
         /// Create an unbound clone of this bindable.
         /// </summary>
-        public IBindable<T> GetUnboundCopy()
+        public Bindable<T> GetUnboundCopy()
         {
             var clone = GetBoundCopy();
             clone.UnbindAll();
