@@ -9,7 +9,7 @@ before_build:
 - cmd: nuget restore osu-framework-native/osu-framework-native.sln
 - ps: if($env:appveyor_repo_tag -eq 'True') { Update-AppveyorBuild -Version $env:appveyor_repo_tag_name }
 build_script:
-  - cmd: dotnet pack osu-framework-native/osu-framework-native /p:Version=0.0.%APPVEYOR_BUILD_VERSION%
+  - cmd: dotnet pack osu-framework-native/osu-framework-native /p:Version=%APPVEYOR_BUILD_VERSION%
 artifacts:
   - path: osu-framework-native/osu-framework-native/bin/Any CPU/Release/*.nupkg
 
