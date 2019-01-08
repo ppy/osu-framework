@@ -29,7 +29,7 @@ namespace osu.Framework.Configuration
     /// An interface which can be bound to other <see cref="IBindable{T}"/>s in order to watch for (and react to) <see cref="IBindable{T}.Disabled"/> and <see cref="IBindable{T}.Value"/> changes.
     /// </summary>
     /// <typeparam name="T">The type of value encapsulated by this <see cref="IBindable{T}"/>.</typeparam>
-    public interface IBindable<T> : IParseable, ICanBeDisabled, IHasDefaultValue, IUnbindable, IHasDescription
+    public interface IBindable<T> : IBindable
     {
         /// <summary>
         /// An event which is raised when <see cref="Value"/> has changed.
@@ -65,6 +65,6 @@ namespace osu.Framework.Configuration
         /// a local reference.
         /// </summary>
         /// <returns>A weakly bound copy of the specified bindable.</returns>
-        IBindable<T> GetBoundCopy();
+        new IBindable<T> GetBoundCopy();
     }
 }

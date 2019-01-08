@@ -38,7 +38,10 @@ namespace osu.Framework.Input
         [Resolved(CanBeNull = true)]
         protected GameHost Host { get; private set; }
 
-        internal Drawable FocusedDrawable;
+        /// <summary>
+        /// The currently focused <see cref="Drawable"/>. Null if there is no current focus.
+        /// </summary>
+        public Drawable FocusedDrawable { get; internal set; }
 
         protected abstract IEnumerable<InputHandler> InputHandlers { get; }
 
