@@ -56,7 +56,7 @@
     <PackageReference Include="osu-framework-native" Version="0.0.20" Condition="'$(APPVEYOR_DEPLOY)'==1" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\osu.Framework.NativeLibs\osu.Framework.NativeLibs.csproj" Condition="'$(APPVEYOR_DEPLOY)'==0" />
+    <ProjectReference Include="..\osu.Framework.NativeLibs\osu.Framework.NativeLibs.csproj" Condition="'$(APPVEYOR_DEPLOY)'==''"/>
   </ItemGroup>
 </Project>
 
