@@ -1,4 +1,6 @@
 clone_depth: 1
+environment:
+  APPVEYOR_DEPLOY: 0
 version: '{build}'
 skip_tags: true
 image: Visual Studio 2017
@@ -14,7 +16,6 @@ install:
   - cmd: pip install httpbin waitress
   - ps: Start-Process waitress-serve "--listen=*:80 httpbin:app" -PassThru
 before_build:
-  - cmd: nuget sources add -name osu-framework-native -Source https://ci.appveyor.com/nuget/osu-framework-nativedeps
   - cmd: CodeFileSanity
   - cmd: nuget restore osu-framework.sln
   - cmd: nuget restore osu-framework.iOS.sln

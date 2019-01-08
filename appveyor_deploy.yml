@@ -1,10 +1,11 @@
 clone_depth: 1
+environment:
+  APPVEYOR_DEPLOY: 1
 version: '{build}'
 skip_non_tags: true
 image: Visual Studio 2017
 configuration: Release
 before_build:
-  - cmd: nuget sources add -name osu-framework-native -Source https://ci.appveyor.com/nuget/osu-framework-nativedeps
   - cmd: nuget restore osu-framework.sln
   - cmd: nuget restore osu-framework.iOS.sln
 build_script:
