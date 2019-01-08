@@ -67,7 +67,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (CurrentNumber == null)
                 throw new NotSupportedException($"We don't support the generic type of {nameof(BindableNumber<T>)}.");
 
-            currentNumberInstantaneous = (BindableNumber<T>)CurrentNumber.GetUnboundCopy();
+            currentNumberInstantaneous = CurrentNumber.GetUnboundCopy();
 
             CurrentNumber.ValueChanged += v => currentNumberInstantaneous.Value = v;
             CurrentNumber.MinValueChanged += v => currentNumberInstantaneous.MinValue = v;

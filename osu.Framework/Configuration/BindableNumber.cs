@@ -369,6 +369,8 @@ namespace osu.Framework.Configuration
             Set(value);
         }
 
+        public new BindableNumber<T> GetUnboundCopy() => (BindableNumber<T>)base.GetUnboundCopy();
+
         private static T max(T value1, T value2)
         {
             var comparison = value1.CompareTo(value2);
