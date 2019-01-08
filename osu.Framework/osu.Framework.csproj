@@ -53,10 +53,18 @@
     <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.3.0" />
     <PackageReference Include="System.Reflection.Emit.ILGeneration" Version="4.3.0" />
     <PackageReference Include="JetBrains.Annotations" Version="2018.2.1" />
-    <PackageReference Include="osu-framework-native" Version="0.0.20" Condition="'$(APPVEYOR_DEPLOY)'==1" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\osu.Framework.NativeLibs\osu.Framework.NativeLibs.csproj" Condition="'$(APPVEYOR_DEPLOY)'!=1"/>
-  </ItemGroup>
+  <Choose>
+    <When Condition="'$(APPVEYOR_DEPLOY)'==1">
+      <ItemGroup>
+        <PackageReference Include="osu-framework-native" Version="0.0.20" />
+      </ItemGroup>
+    </When>
+    <When Condition="'$(APPVEYOR_DEPLOY)'!=1">
+      <ItemGroup>
+        <ProjectReference Include="..\osu.Framework.NativeLibs\osu.Framework.NativeLibs.csproj" />
+      </ItemGroup>
+    </When>
+  </Choose>
 </Project>
 
