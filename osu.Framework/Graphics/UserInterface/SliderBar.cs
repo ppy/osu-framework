@@ -157,11 +157,11 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 case Key.Right:
                     currentNumberInstantaneous.Add(step);
-                    OnUserChange();
+                    OnUserChange(currentNumberInstantaneous);
                     return true;
                 case Key.Left:
                     currentNumberInstantaneous.Add(-step);
-                    OnUserChange();
+                    OnUserChange(currentNumberInstantaneous);
                     return true;
                 default:
                     return false;
@@ -189,13 +189,13 @@ namespace osu.Framework.Graphics.UserInterface
             if (!currentNumberInstantaneous.Disabled)
                 currentNumberInstantaneous.SetProportional(xPosition / UsableWidth, e.ShiftPressed ? KeyboardStep : 0);
 
-            OnUserChange();
+            OnUserChange(currentNumberInstantaneous);
         }
 
         /// <summary>
         /// Triggered when the value is changed based on end-user input to this control.
         /// </summary>
-        protected virtual void OnUserChange()
+        protected virtual void OnUserChange(T value)
         {
         }
     }
