@@ -216,7 +216,7 @@ namespace osu.Framework.Audio
             }
 
             if (newDevice == oldDevice && oldDeviceValid)
-                    return true;
+                return true;
 
             if (string.IsNullOrEmpty(newDevice))
             {

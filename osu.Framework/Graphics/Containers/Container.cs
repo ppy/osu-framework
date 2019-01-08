@@ -193,7 +193,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected internal override void AddInternal(Drawable drawable)
         {
-            if (Content == this && !(drawable is T))
+            if (Content == this && drawable != null && !(drawable is T))
                 throw new InvalidOperationException($"Only {typeof(T).ReadableName()} type drawables may be added to a container of type {GetType().ReadableName()} which does not redirect {nameof(Content)}.");
 
             base.AddInternal(drawable);

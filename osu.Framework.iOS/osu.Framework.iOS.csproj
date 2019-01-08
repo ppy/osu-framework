@@ -1,4 +1,4 @@
-<Project Sdk="MSBuild.Sdk.Extras/1.6.55">
+﻿<Project Sdk="MSBuild.Sdk.Extras/1.6.55">
   <PropertyGroup Label="Project">
     <TargetFramework>xamarinios10</TargetFramework>
     <OutputType>Library</OutputType>
@@ -42,5 +42,6 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="ppy.osuTK.iOS" Version="1.0.50" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0005" />
   </ItemGroup>
 </Project>

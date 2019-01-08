@@ -56,11 +56,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
             {
                 if (rootUrl == value)
                     return;
-
                 rootUrl = value;
-
-                if (string.IsNullOrEmpty(Text))
-                    return;
 
                 contentCache.Invalidate();
             }
@@ -130,6 +126,12 @@ namespace osu.Framework.Graphics.Containers.Markdown
             if (!contentCache.IsValid)
             {
                 var markdownText = Text;
+
+                document.Clear();
+
+                if (string.IsNullOrEmpty(Text))
+                    return;
+
                 var pipeline = CreateBuilder();
                 var parsed = Markdig.Markdown.Parse(markdownText, pipeline);
 
@@ -148,8 +150,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
                         }
                     }
                 }
-
-                document.Clear();
+                
                 foreach (var component in parsed)
                     AddMarkdownComponent(component, document, root_level);
 
