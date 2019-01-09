@@ -262,8 +262,59 @@ namespace osu.Framework.Tests.Dependencies
             var dependencies = new DependencyContainer();
             dependencies.CacheValueAs(testObject);
 
-            Assert.AreEqual(5, dependencies.GetValue<int>());
-            Assert.AreEqual(5, dependencies.GetValue<int?>());
+            Assert.AreEqual(testObject, dependencies.GetValue<int>());
+            Assert.AreEqual(testObject, dependencies.GetValue<int?>());
+        }
+
+        [Test]
+        public void TestCacheWithDependencyInfo()
+        {
+            var cases = new[]
+            {
+                default,
+                new CacheInfo("name"),
+                new CacheInfo(parent: typeof(object)),
+                new CacheInfo("name", typeof(object))
+            };
+
+            var dependencies = new DependencyContainer();
+
+            for (int i = 0; i < cases.Length; i++)
+                dependencies.CacheValueAs(i, cases[i]);
+
+            Assert.Multiple(() =>
+            {
+                for (int i = 0; i < cases.Length; i++)
+                    Assert.AreEqual(i, dependencies.GetValue<int>(cases[i]));
+            });
+        }
+
+        [Test]
+        public void TestDependenciesOverrideParent()
+        {
+            var cases = new[]
+            {
+                default,
+                new CacheInfo("name"),
+                new CacheInfo(parent: typeof(object)),
+                new CacheInfo("name", typeof(object))
+            };
+
+            var dependencies = new DependencyContainer();
+
+            for (int i = 0; i < cases.Length; i++)
+                dependencies.CacheValueAs(i, cases[i]);
+
+            dependencies = new DependencyContainer(dependencies);
+
+            for (int i = 0; i < cases.Length; i++)
+                dependencies.CacheValueAs(cases.Length + i, cases[i]);
+
+            Assert.Multiple(() =>
+            {
+                for (int i = 0; i < cases.Length; i++)
+                    Assert.AreEqual(cases.Length + i, dependencies.GetValue<int>(cases[i]));
+            });
         }
 
         private interface IBaseInterface
