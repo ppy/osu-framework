@@ -19,7 +19,7 @@ namespace osu.Framework.Allocation
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Field, AllowMultiple = true, Inherited = false)]
     public class CachedAttribute : Attribute
     {
-        private const BindingFlags activator_flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly;
+        internal const BindingFlags ACTIVATOR_FLAGS = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly;
 
         /// <summary>
         /// The type to cache the value as. If null, the value will be cached as the value's most derived type.
@@ -33,17 +33,19 @@ namespace osu.Framework.Allocation
         /// </example>
         public Type Type;
 
+        public string Name;
+
         internal static CacheDependencyDelegate CreateActivator(Type type)
         {
-            var additionActivators = new List<Action<object, DependencyContainer>>();
+            var additionActivators = new List<Action<object, DependencyContainer, CacheInfo>>();
 
             // Types within the framework should be able to cache value types if they desire (e.g. cancellation tokens)
             var allowValueTypes = type.Assembly == typeof(Drawable).Assembly;
 
             foreach (var attribute in type.GetCustomAttributes<CachedAttribute>())
-                additionActivators.Add((target, dc) => dc.CacheAs(attribute.Type ?? type, target, allowValueTypes));
+                additionActivators.Add((target, dc, info) => dc.CacheAs(attribute.Type ?? type, new CacheInfo(attribute.Name, info.Parent), target, allowValueTypes));
 
-            foreach (var field in type.GetFields(activator_flags).Where(f => f.GetCustomAttributes<CachedAttribute>().Any()))
+            foreach (var field in type.GetFields(ACTIVATOR_FLAGS).Where(f => f.GetCustomAttributes<CachedAttribute>().Any()))
             {
                 var modifier = field.GetAccessModifier();
                 if (modifier != AccessModifier.Private && !field.IsInitOnly)
@@ -51,7 +53,7 @@ namespace osu.Framework.Allocation
 
                 foreach (var attribute in field.GetCustomAttributes<CachedAttribute>())
                 {
-                    additionActivators.Add((target, dc) =>
+                    additionActivators.Add((target, dc, info) =>
                     {
                         var value = field.GetValue(target);
 
@@ -62,19 +64,26 @@ namespace osu.Framework.Allocation
                             throw new NullReferenceException($"Attempted to cache a null value: {type.ReadableName()}.{field.Name}.");
                         }
 
-                        dc.CacheAs(attribute.Type ?? value.GetType(), value, allowValueTypes);
+                        var cacheInfo = new CacheInfo(attribute.Name);
+                        if (info.Parent != null)
+                        {
+                            // When a parent type exists, infer the property name if one is not provided
+                            cacheInfo = new CacheInfo(cacheInfo.Name ?? field.Name, info.Parent);
+                        }
+
+                        dc.CacheAs(attribute.Type ?? value.GetType(), cacheInfo, value, allowValueTypes);
                     });
                 }
             }
 
             if (additionActivators.Count == 0)
-                return (_, existing) => existing;
+                return (_, existing, info) => existing;
 
-            return (target, existing) =>
+            return (target, existing, info) =>
             {
                 var dependencies = new DependencyContainer(existing);
                 foreach (var a in additionActivators)
-                    a(target, dependencies);
+                    a(target, dependencies, info);
 
                 return dependencies;
             };

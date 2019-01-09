@@ -57,8 +57,8 @@ namespace osu.Framework.Allocation
         /// <param name="obj">The object whose dependencies should be merged into the dependencies provided by <paramref name="dependencies"/>.</param>
         /// <param name="dependencies">The existing dependencies.</param>
         /// <returns>A new <see cref="IReadOnlyDependencyContainer"/> if <paramref name="obj"/> provides any dependencies, otherwise <paramref name="dependencies"/>.</returns>
-        public static IReadOnlyDependencyContainer MergeDependencies(object obj, IReadOnlyDependencyContainer dependencies)
-            => getActivator(obj.GetType()).mergeDependencies(obj, dependencies);
+        public static IReadOnlyDependencyContainer MergeDependencies(object obj, IReadOnlyDependencyContainer dependencies, CacheInfo info = default)
+            => getActivator(obj.GetType()).mergeDependencies(obj, dependencies, info);
 
         private static DependencyActivator getActivator(Type type)
         {
@@ -75,11 +75,11 @@ namespace osu.Framework.Allocation
                 a(obj, dependencies);
         }
 
-        private IReadOnlyDependencyContainer mergeDependencies(object obj, IReadOnlyDependencyContainer dependencies)
+        private IReadOnlyDependencyContainer mergeDependencies(object obj, IReadOnlyDependencyContainer dependencies, CacheInfo info)
         {
-            dependencies = baseActivator?.mergeDependencies(obj, dependencies) ?? dependencies;
+            dependencies = baseActivator?.mergeDependencies(obj, dependencies, info) ?? dependencies;
             foreach (var a in buildCacheActivators)
-                dependencies = a(obj, dependencies);
+                dependencies = a(obj, dependencies, info);
 
             return dependencies;
         }
@@ -164,5 +164,5 @@ namespace osu.Framework.Allocation
 
     internal delegate void InjectDependencyDelegate(object target, IReadOnlyDependencyContainer dependencies);
 
-    internal delegate IReadOnlyDependencyContainer CacheDependencyDelegate(object target, IReadOnlyDependencyContainer existingDependencies);
+    internal delegate IReadOnlyDependencyContainer CacheDependencyDelegate(object target, IReadOnlyDependencyContainer existingDependencies, CacheInfo info);
 }
