@@ -43,22 +43,42 @@ namespace osu.Framework.Graphics.Containers
         private void updateShadowBindings(TModel lastModel, TModel newModel)
         {
             foreach (var field in typeof(TModel).GetFields(CachedAttribute.ACTIVATOR_FLAGS).Where(f => f.GetCustomAttributes<CachedAttribute>().Any()))
+                rebind(field);
+
+            foreach (var property in typeof(TModel).GetProperties(CachedAttribute.ACTIVATOR_FLAGS).Where(f => f.GetCustomAttributes<CachedAttribute>().Any()))
+                rebind(property);
+
+            void rebind(MemberInfo member)
             {
-                var shadowField = field.GetValue(shadowModel);
-                var lastModelField = lastModel == null ? null : field.GetValue(lastModel);
-                var modelField = field.GetValue(model);
+                object shadowValue = null;
+                object lastModelValue = null;
+                object newModelValue = null;
+
+                switch (member)
+                {
+                    case PropertyInfo pi:
+                        shadowValue = pi.GetValue(shadowModel);
+                        lastModelValue = lastModel == null ? null : pi.GetValue(lastModel);
+                        newModelValue = pi.GetValue(newModel);
+                        break;
+                    case FieldInfo fi:
+                        shadowValue = fi.GetValue(shadowModel);
+                        lastModelValue = lastModel == null ? null : fi.GetValue(lastModel);
+                        newModelValue = fi.GetValue(newModel);
+                        break;
+                }
 
                 // Todo: This will fail if shadowField is null
 
-                if (shadowField is IBindable bindableShadowField)
+                if (shadowValue is IBindable shadowBindable)
                 {
                     // Unbind from the last model
-                    if (lastModelField is IBindable bindableLastModelField)
-                        bindableShadowField.UnbindFrom(bindableLastModelField);
+                    if (lastModelValue is IBindable lastModelBindable)
+                        shadowBindable.UnbindFrom(lastModelBindable);
 
                     // Bind to the new model
-                    if (modelField is IBindable bindableModelField)
-                        bindableShadowField.BindTo(bindableModelField);
+                    if (newModelValue is IBindable newModelBindable)
+                        shadowBindable.BindTo(newModelBindable);
                 }
             }
         }
