@@ -127,7 +127,8 @@ namespace osu.Framework.Allocation
     public class AccessModifierNotAllowedForCachedValueException : AccessModifierNotAllowedForMemberException
     {
         public AccessModifierNotAllowedForCachedValueException(AccessModifier modifier, MemberInfo member)
-            : base(modifier, member, $"A field with an attached {nameof(CachedAttribute)} must be private OR readonly.")
+            : base(modifier, member, $"A field with an attached {nameof(CachedAttribute)} must be private, readonly,"
+                                     + " or be an auto-property with a getter and private (or non-existing) setter.")
         {
         }
     }

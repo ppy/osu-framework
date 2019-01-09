@@ -213,6 +213,57 @@ namespace osu.Framework.Tests.Dependencies
             Assert.Throws<NullReferenceException>(() => DependencyActivator.MergeDependencies(provider, new DependencyContainer()));
         }
 
+        [Test]
+        public void TestCacheProperty()
+        {
+            var provider = new Provider19();
+
+            var dependencies = DependencyActivator.MergeDependencies(provider, new DependencyContainer());
+
+            Assert.IsNotNull(dependencies.Get<object>());
+        }
+
+        [Test]
+        public void TestCachePropertyWithNoSetter()
+        {
+            var provider = new Provider20();
+
+            Assert.DoesNotThrow(() => DependencyActivator.MergeDependencies(provider, new DependencyContainer()));
+        }
+
+        [Test]
+        public void TestCachePropertyWithPublicSetter()
+        {
+            var provider = new Provider21();
+
+            Assert.Throws<AccessModifierNotAllowedForCachedValueException>(() => DependencyActivator.MergeDependencies(provider, new DependencyContainer()));
+        }
+
+        [Test]
+        public void TestCachePropertyWithNonAutoSetter()
+        {
+            var provider = new Provider22();
+
+            Assert.Throws<AccessModifierNotAllowedForCachedValueException>(() => DependencyActivator.MergeDependencies(provider, new DependencyContainer()));
+        }
+
+        [Test]
+        public void TestCachePropertyWithNoGetter()
+        {
+            var provider = new Provider23();
+
+            Assert.Throws<AccessModifierNotAllowedForCachedValueException>(() => DependencyActivator.MergeDependencies(provider, new DependencyContainer()));
+        }
+
+        [Test]
+        public void TestCacheWithNonAutoGetter()
+        {
+            var provider = new Provider24();
+
+            Assert.Throws<AccessModifierNotAllowedForCachedValueException>(() => DependencyActivator.MergeDependencies(provider, new DependencyContainer()));
+        }
+
+
         private interface IProvidedInterface1
         {
         }
@@ -345,6 +396,55 @@ namespace osu.Framework.Tests.Dependencies
             [Cached]
             public readonly object Provided1;
 #pragma warning restore 649
+        }
+
+        private class Provider19
+        {
+            [Cached]
+            public object Provided1 { get; private set; } = new object();
+        }
+
+        private class Provider20
+        {
+            [Cached]
+            public object Provided1 { get; } = new object();
+        }
+
+        private class Provider21
+        {
+            [Cached]
+            public object Provided1 { get; set; }
+        }
+
+        private class Provider22
+        {
+            [Cached]
+            public object Provided1
+            {
+                get => null;
+                // ReSharper disable once ValueParameterNotUsed
+                set
+                {
+                }
+            }
+        }
+
+        private class Provider23
+        {
+            [Cached]
+            public object Provided1
+            {
+                // ReSharper disable once ValueParameterNotUsed
+                set
+                {
+                }
+            }
+        }
+
+        private class Provider24
+        {
+            [Cached]
+            public object Provided1 => null;
         }
     }
 }
