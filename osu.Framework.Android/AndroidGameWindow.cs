@@ -29,6 +29,8 @@ namespace osu.Framework.Android
 
         public override void SetupWindow(FrameworkConfigManager config)
         {
+            // Let's just say the cursor is always in the window.
+            CursorInWindow = true;
         }
 
         public override void Run()
