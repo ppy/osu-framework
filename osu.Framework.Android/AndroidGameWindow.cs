@@ -10,10 +10,9 @@ namespace osu.Framework.Android
     public class AndroidGameWindow : GameWindow
     {
         public override IGraphicsContext Context
-            => Implementation.GraphicsContext;
+            => View.GraphicsContext;
 
-        protected new AndroidGameView Implementation
-            => base.Implementation as AndroidGameView;
+        internal static AndroidGameView View;
 
         public override bool Focused
             => true;
@@ -23,7 +22,7 @@ namespace osu.Framework.Android
             set { }
         }
 
-        public AndroidGameWindow(AndroidGameView view) : base(view)
+        public AndroidGameWindow() : base(View)
         {
         }
 

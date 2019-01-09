@@ -3,8 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading;
-using Android.App;
 using osu.Framework.Android.Graphics.Textures;
 using osu.Framework.Android.Input;
 using osu.Framework.Graphics.Textures;
@@ -22,7 +20,8 @@ namespace osu.Framework.Android
         public AndroidGameHost(AndroidGameView gameView)
         {
             this.gameView = gameView;
-            Window = new AndroidGameWindow(gameView);
+            AndroidGameWindow.View = gameView;
+            Window = new AndroidGameWindow();
         }
 
         public override ITextInputSource GetTextInput()
