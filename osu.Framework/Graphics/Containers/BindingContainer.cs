@@ -59,12 +59,12 @@ namespace osu.Framework.Graphics.Containers
                     case PropertyInfo pi:
                         shadowValue = pi.GetValue(shadowModel);
                         lastModelValue = lastModel == null ? null : pi.GetValue(lastModel);
-                        newModelValue = pi.GetValue(newModel);
+                        newModelValue = newModel == null ? null : pi.GetValue(newModel);
                         break;
                     case FieldInfo fi:
                         shadowValue = fi.GetValue(shadowModel);
                         lastModelValue = lastModel == null ? null : fi.GetValue(lastModel);
-                        newModelValue = fi.GetValue(newModel);
+                        newModelValue = newModel == null ? null : fi.GetValue(newModel);
                         break;
                 }
 
