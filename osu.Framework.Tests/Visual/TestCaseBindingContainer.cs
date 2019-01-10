@@ -48,7 +48,10 @@ namespace osu.Framework.Tests.Visual
             AddAssert("bindable changed", () => resolver.Cached.Value == model2.Cached.Value);
 
             AddStep("change first model", () => model1.Cached.Value = 3);
-            AddAssert("bindable didn't change", () => resolver.Cached.Value != model1.Cached.Value);
+            AddAssert("bindable didn't change", () => resolver.Cached.Value != 3);
+
+            AddStep("change second model", () => model2.Cached.Value = 3);
+            AddAssert("bindable did change", () => resolver.Cached.Value == 3);
         }
 
         [Test]
