@@ -10,7 +10,7 @@ using osu.Framework.Configuration;
 namespace osu.Framework.Graphics.Containers
 {
     /// <summary>
-    /// A <see cref="Container"/> which caches the members of a model for usage by its children.
+    /// A <see cref="Container"/> which caches all cacheable members of a model for usage by its children.
     /// </summary>
     /// <typeparam name="TModel">The type of model.</typeparam>
     public class BindingContainer<TModel> : Container
