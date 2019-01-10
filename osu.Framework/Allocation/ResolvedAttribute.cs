@@ -26,9 +26,47 @@ namespace osu.Framework.Allocation
         private const BindingFlags activator_flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly;
 
         /// <summary>
-        /// Whether a null value can be accepted if the value does not exist in the cache.
+        /// The containing type of the cached member in the <see cref="DependencyContainer"/>.
+        /// </summary>
+        /// <remarks>
+        /// This is only set if the member was cached with a custom <see cref="CacheInfo"/>.
+        /// </remarks>
+        public Type Parent;
+
+        /// <summary>
+        /// The name of the cached member in the <see cref="DependencyContainer"/>.
+        /// </summary>
+        /// <remarks>
+        /// This is only set if the member was cached with a custom <see cref="CacheInfo"/>.
+        /// </remarks>
+        public string Name;
+
+        /// <summary>
+        /// Whether a null value can be accepted if the member doesn't exist in the cache.
         /// </summary>
         public bool CanBeNull;
+
+        /// <summary>
+        /// Identifies a member to be resolved from a <see cref="DependencyContainer"/>.
+        /// </summary>
+        public ResolvedAttribute()
+        {
+        }
+
+        /// <summary>
+        /// Identifies a member to be resolved from a <see cref="DependencyContainer"/>.
+        /// </summary>
+        /// <param name="parent">The parent which the member is identified with in the cache.
+        /// This is only set if the member was cached with a custom <see cref="CacheInfo"/>.</param>
+        /// <param name="name">The name which the member is identified with in the cache.
+        /// This is only set if the member was cached with a custom <see cref="CacheInfo"/>.</param>
+        /// <param name="canBeNull">Whether a null value can be accepted if the member doesn't exist in the cache.</param>
+        public ResolvedAttribute(Type parent = null, string name = null, bool canBeNull = false)
+        {
+            Parent = parent;
+            Name = name;
+            CanBeNull = canBeNull;
+        }
 
         internal static InjectDependencyDelegate CreateActivator(Type type)
         {
@@ -45,7 +83,15 @@ namespace osu.Framework.Allocation
                     throw new AccessModifierNotAllowedForPropertySetterException(modifier, property);
 
                 var attribute = property.GetCustomAttribute<ResolvedAttribute>();
-                var fieldGetter = getDependency(property.PropertyType, type, attribute.CanBeNull || property.PropertyType.IsNullable());
+
+                var cacheInfo = new CacheInfo(attribute.Name);
+                if (attribute.Parent != null)
+                {
+                    // When a parent type exists, infer the property name if one is not provided
+                    cacheInfo = new CacheInfo(cacheInfo.Name ?? property.Name, attribute.Parent);
+                }
+
+                var fieldGetter = getDependency(property.PropertyType, type, attribute.CanBeNull || property.PropertyType.IsNullable(), cacheInfo);
 
                 activators.Add((target, dc) => property.SetValue(target, fieldGetter(dc)));
             }
@@ -57,9 +103,9 @@ namespace osu.Framework.Allocation
             };
         }
 
-        private static Func<IReadOnlyDependencyContainer, object> getDependency(Type type, Type requestingType, bool permitNulls) => dc =>
+        private static Func<IReadOnlyDependencyContainer, object> getDependency(Type type, Type requestingType, bool permitNulls, CacheInfo info) => dc =>
         {
-            var val = dc.Get(type);
+            var val = dc.Get(type, info);
             if (val == null && !permitNulls)
                 throw new DependencyNotRegisteredException(requestingType, type);
 
