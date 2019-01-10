@@ -11,34 +11,65 @@ namespace osu.Framework.Tests.Visual
 {
     public class TestCaseBindingContainer : TestCase
     {
+        private BindingContainer<TestModel> container;
+        private TestResolver resolver;
+
+        [SetUp]
+        public void Setup() => Schedule(() => Child = container = new BindingContainer<TestModel> { Child = resolver = new TestResolver() });
+
         [Test]
-        public void TestCacheModel()
+        public void TestNoModel()
         {
-            var model = new TestModel();
-            BindingContainer<TestModel> container = null;
+            AddAssert("has default value", () => resolver.Cached.Value == 0);
+        }
 
-            TestResolver resolver = null;
+        [Test]
+        public void TestSingleModel()
+        {
+            var model = new TestModel { Cached = { Value = 1 } };
 
-            AddStep("initialise", () =>
-            {
-                Child = container = new BindingContainer<TestModel>
-                {
-                    Model = model,
-                    Child = resolver = new TestResolver()
-                };
-            });
-
+            AddStep("add model", () => container.Model = model);
             AddAssert("bindable resolved", () => resolver.Cached.Value == model.Cached.Value);
 
-            AddStep("change model", () => container.Model = model = new TestModel { Cached = { Value = 2 } });
+            AddStep("change model value", () => model.Cached.Value = 2);
+            AddAssert("bindable changed", () => resolver.Cached.Value == model.Cached.Value);
+        }
 
+        [Test]
+        public void TestChangeModel()
+        {
+            TestModel model1 = new TestModel { Cached = { Value = 1 } };
+            TestModel model2 = new TestModel { Cached = { Value = 2 } };
+
+            AddStep("add model", () => container.Model = model1);
+            AddAssert("bindable resolved", () => resolver.Cached.Value == model1.Cached.Value);
+
+            AddStep("change model", () => container.Model = model2);
+            AddAssert("bindable changed", () => resolver.Cached.Value == model2.Cached.Value);
+
+            AddStep("change first model", () => model1.Cached.Value = 3);
+            AddAssert("bindable didn't change", () => resolver.Cached.Value != model1.Cached.Value);
+        }
+
+        [Test]
+        public void TestNullModel()
+        {
+            TestModel model = new TestModel { Cached = { Value = 1 } };
+
+            AddStep("add model", () => container.Model = model);
             AddAssert("bindable resolved", () => resolver.Cached.Value == model.Cached.Value);
+
+            AddStep("set null model", () => container.Model = null);
+            AddAssert("bindable didn't change", () => resolver.Cached.Value == model.Cached.Value);
+
+            AddStep("change model value", () => model.Cached.Value = 2);
+            AddAssert("bindable didn't change", () => resolver.Cached.Value == 1);
         }
 
         private class TestModel
         {
             [Cached]
-            public readonly Bindable<int> Cached = new Bindable<int>(1);
+            public readonly Bindable<int> Cached = new Bindable<int>();
         }
 
         private class TestResolver : CompositeDrawable
