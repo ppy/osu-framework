@@ -44,7 +44,7 @@ namespace osu.Framework.Allocation
             var allowValueTypes = type.Assembly == typeof(Drawable).Assembly;
 
             foreach (var attribute in type.GetCustomAttributes<CachedAttribute>())
-                additionActivators.Add((target, dc, info) => dc.CacheAs(attribute.Type ?? type, new CacheInfo(attribute.Name, info.Parent), target, allowValueTypes));
+                additionActivators.Add((target, dc, info) => dc.CacheAs(attribute.Type ?? type, new CacheInfo(info.Name ?? attribute.Name, info.Parent), target, allowValueTypes));
 
             foreach (var property in type.GetProperties(ACTIVATOR_FLAGS).Where(f => f.GetCustomAttributes<CachedAttribute>().Any()))
                 additionActivators.AddRange(createMemberActivator(property, type, allowValueTypes));
@@ -119,7 +119,8 @@ namespace osu.Framework.Allocation
                         throw new NullReferenceException($"Attempted to cache a null value: {type.ReadableName()}.{member.Name}.");
                     }
 
-                    var cacheInfo = new CacheInfo(attribute.Name);
+                    var cacheInfo = new CacheInfo(info.Name ?? attribute.Name);
+
                     if (info.Parent != null)
                     {
                         // When a parent type exists, infer the property name if one is not provided

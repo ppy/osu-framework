@@ -56,6 +56,7 @@ namespace osu.Framework.Allocation
         /// </summary>
         /// <param name="obj">The object whose dependencies should be merged into the dependencies provided by <paramref name="dependencies"/>.</param>
         /// <param name="dependencies">The existing dependencies.</param>
+        /// <param name="info">Extra information that describes how the dependency should be cached. Overrides any <see cref="CacheInfo"/> provided by the properties in <paramref name="obj"/>.</param>
         /// <returns>A new <see cref="IReadOnlyDependencyContainer"/> if <paramref name="obj"/> provides any dependencies, otherwise <paramref name="dependencies"/>.</returns>
         public static IReadOnlyDependencyContainer MergeDependencies(object obj, IReadOnlyDependencyContainer dependencies, CacheInfo info = default)
             => getActivator(obj.GetType()).mergeDependencies(obj, dependencies, info);
