@@ -34,7 +34,31 @@ namespace osu.Framework.Allocation
         /// </example>
         public Type Type;
 
+        /// <summary>
+        /// The name to identify this member with.
+        /// </summary>
+        /// <remarks>
+        /// If the member is cached with a custom <see cref="CacheInfo"/> that provides a parent, the name is automatically inferred from the field/property.
+        /// </remarks>
         public string Name;
+
+        /// <summary>
+        /// Identifies a member to be cached to a <see cref="DependencyContainer"/>.
+        /// </summary>
+        public CachedAttribute()
+        {
+        }
+
+        /// <summary>
+        /// Identifies a member to be cached to a <see cref="DependencyContainer"/>.
+        /// </summary>
+        /// <param name="type">The type to cache the member as.</param>
+        /// <param name="name">The name to identify the member as in the cache.</param>
+        public CachedAttribute(Type type = null, string name = null)
+        {
+            Type = type;
+            Name = name;
+        }
 
         internal static CacheDependencyDelegate CreateActivator(Type type)
         {

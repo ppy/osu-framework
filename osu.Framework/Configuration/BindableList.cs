@@ -277,6 +277,8 @@ namespace osu.Framework.Configuration
         public void CopyTo(Array array, int index)
             => ((ICollection)collection).CopyTo(array, index);
 
+        public int BinarySearch(T item) => collection.BinarySearch(item);
+
         public int Count => collection.Count;
         public bool IsSynchronized => ((ICollection)collection).IsSynchronized;
         public object SyncRoot => ((ICollection)collection).SyncRoot;
