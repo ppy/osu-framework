@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using osu.Framework.Allocation;
@@ -11,6 +12,8 @@ namespace osu.Framework.Graphics.Containers
 {
     internal static class CachedModelCompositeExtensions
     {
+        private const BindingFlags activator_flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly;
+
         public static IReadOnlyDependencyContainer CreateDependencies<TModel>(this ICachedModelComposite<TModel> composite, IReadOnlyDependencyContainer parent)
             where TModel : new()
             => DependencyActivator.MergeDependencies(composite.BoundModel, parent, new CacheInfo(parent: typeof(TModel)));
@@ -20,11 +23,20 @@ namespace osu.Framework.Graphics.Containers
         {
             var newShadow = newModel == null ? new TModel() : TypeExtensions.Clone(newModel);
 
-            foreach (var field in typeof(TModel).GetFields(CachedAttribute.ACTIVATOR_FLAGS).Where(f => f.GetCustomAttributes<CachedAttribute>().Any()))
-                rebind(field);
+            var type = typeof(TModel);
 
-            foreach (var property in typeof(TModel).GetProperties(CachedAttribute.ACTIVATOR_FLAGS).Where(f => f.GetCustomAttributes<CachedAttribute>().Any()))
-                rebind(property);
+            while (type != typeof(object))
+            {
+                Debug.Assert(type != null);
+
+                foreach (var field in type.GetFields(activator_flags).Where(f => f.GetCustomAttributes<CachedAttribute>().Any()))
+                    rebind(field);
+
+                foreach (var property in type.GetProperties(activator_flags).Where(f => f.GetCustomAttributes<CachedAttribute>().Any()))
+                    rebind(property);
+
+                type = type.BaseType;
+            }
 
             composite.BoundModel = newShadow;
 

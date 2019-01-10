@@ -20,7 +20,7 @@ namespace osu.Framework.Allocation
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = true, Inherited = false)]
     public class CachedAttribute : Attribute
     {
-        internal const BindingFlags ACTIVATOR_FLAGS = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly;
+        private const BindingFlags activator_flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly;
 
         /// <summary>
         /// The type to cache the value as. If null, the value will be cached as the value's most derived type.
@@ -70,10 +70,10 @@ namespace osu.Framework.Allocation
             foreach (var attribute in type.GetCustomAttributes<CachedAttribute>())
                 additionActivators.Add((target, dc, info) => dc.CacheAs(attribute.Type ?? type, new CacheInfo(info.Name ?? attribute.Name, info.Parent), target, allowValueTypes));
 
-            foreach (var property in type.GetProperties(ACTIVATOR_FLAGS).Where(f => f.GetCustomAttributes<CachedAttribute>().Any()))
+            foreach (var property in type.GetProperties(activator_flags).Where(f => f.GetCustomAttributes<CachedAttribute>().Any()))
                 additionActivators.AddRange(createMemberActivator(property, type, allowValueTypes));
 
-            foreach (var field in type.GetFields(ACTIVATOR_FLAGS).Where(f => f.GetCustomAttributes<CachedAttribute>().Any()))
+            foreach (var field in type.GetFields(activator_flags).Where(f => f.GetCustomAttributes<CachedAttribute>().Any()))
                 additionActivators.AddRange(createMemberActivator(field, type, allowValueTypes));
 
             if (additionActivators.Count == 0)
