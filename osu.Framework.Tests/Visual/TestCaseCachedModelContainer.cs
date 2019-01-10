@@ -9,13 +9,13 @@ using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual
 {
-    public class TestCaseBindingContainer : TestCase
+    public class TestCaseCachedModelContainer : TestCase
     {
-        private BindingContainer<TestModel> container;
+        private CachedModelContainer<TestModel> container;
         private TestResolver resolver;
 
         [SetUp]
-        public void Setup() => Schedule(() => Child = container = new BindingContainer<TestModel> { Child = resolver = new TestResolver() });
+        public void Setup() => Schedule(() => Child = container = new CachedModelContainer<TestModel> { Child = resolver = new TestResolver() });
 
         [Test]
         public void TestNoModel()
