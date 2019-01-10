@@ -57,7 +57,7 @@
   <Choose>
     <When Condition="'$(APPVEYOR_DEPLOY)'==1">
       <ItemGroup>
-        <PackageReference Include="ppy.osu.Framework.NativeLibs" Version="2019.110.0" />
+        <PackageReference Include="ppy.osu.Framework.NativeLibs" Version="2019.110.0" PrivateAssets="build;analyzers"/>
       </ItemGroup>
     </When>
     <When Condition="'$(APPVEYOR_DEPLOY)'!=1">
