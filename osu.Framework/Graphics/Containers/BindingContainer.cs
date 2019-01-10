@@ -68,8 +68,6 @@ namespace osu.Framework.Graphics.Containers
                         break;
                 }
 
-                // Todo: This will fail if shadowField is null
-
                 if (shadowValue is IBindable shadowBindable)
                 {
                     // Unbind from the last model
