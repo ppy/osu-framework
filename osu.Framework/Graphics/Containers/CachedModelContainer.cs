@@ -22,10 +22,17 @@ namespace osu.Framework.Graphics.Containers
 
                 model = value;
 
-                this.UpdateShadowBindings(lastModel, model);
+                this.UpdateShadowModel(lastModel, model);
             }
         }
 
-        public TModel BoundModel { get; } = new TModel();
+
+        public TModel BoundModel { get; private set; } = new TModel();
+
+        TModel ICachedModelComposite<TModel>.BoundModel
+        {
+            get => BoundModel;
+            set => BoundModel = value;
+        }
     }
 }

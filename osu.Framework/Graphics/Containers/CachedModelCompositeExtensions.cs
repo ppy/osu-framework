@@ -10,14 +10,18 @@ namespace osu.Framework.Graphics.Containers
 {
     internal static class CachedModelCompositeExtensions
     {
-        public static void UpdateShadowBindings<TModel>(this ICachedModelComposite<TModel> composite, TModel lastModel, TModel newModel)
+        public static void UpdateShadowModel<TModel>(this ICachedModelComposite<TModel> composite, TModel lastModel, TModel newModel)
             where TModel : new()
         {
+            var newShadow = newModel == null ? new TModel() : TypeExtensions.Clone(newModel);
+
             foreach (var field in typeof(TModel).GetFields(CachedAttribute.ACTIVATOR_FLAGS).Where(f => f.GetCustomAttributes<CachedAttribute>().Any()))
                 rebind(field);
 
             foreach (var property in typeof(TModel).GetProperties(CachedAttribute.ACTIVATOR_FLAGS).Where(f => f.GetCustomAttributes<CachedAttribute>().Any()))
                 rebind(property);
+
+            composite.BoundModel = newShadow;
 
             void rebind(MemberInfo member)
             {
@@ -31,11 +35,19 @@ namespace osu.Framework.Graphics.Containers
                         shadowValue = pi.GetValue(composite.BoundModel);
                         lastModelValue = lastModel == null ? null : pi.GetValue(lastModel);
                         newModelValue = newModel == null ? null : pi.GetValue(newModel);
+
+                        if (shadowValue is IBindable)
+                            pi.SetValue(newShadow, shadowValue);
+
                         break;
                     case FieldInfo fi:
                         shadowValue = fi.GetValue(composite.BoundModel);
                         lastModelValue = lastModel == null ? null : fi.GetValue(lastModel);
                         newModelValue = newModel == null ? null : fi.GetValue(newModel);
+
+                        if (shadowValue is IBindable)
+                            fi.SetValue(newShadow, shadowValue);
+
                         break;
                 }
 
