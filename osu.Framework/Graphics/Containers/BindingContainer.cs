@@ -9,6 +9,10 @@ using osu.Framework.Configuration;
 
 namespace osu.Framework.Graphics.Containers
 {
+    /// <summary>
+    /// A <see cref="Container"/> which caches the members of a model for usage by its children.
+    /// </summary>
+    /// <typeparam name="TModel">The type of model.</typeparam>
     public class BindingContainer<TModel> : Container
         where TModel : new()
     {
@@ -24,6 +28,10 @@ namespace osu.Framework.Graphics.Containers
 
         private TModel model;
 
+        /// <summary>
+        /// The model to cache.
+        /// Children of this <see cref="BindingContainer{TModel}"/> can resolve the cached members by using <see cref="ResolvedAttribute.Parent"/> = typeof(<see cref="TModel"/>).
+        /// </summary>
         public TModel Model
         {
             get => model;
