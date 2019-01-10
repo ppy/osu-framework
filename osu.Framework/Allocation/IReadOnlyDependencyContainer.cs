@@ -22,6 +22,7 @@ namespace osu.Framework.Allocation
         /// Retrieves a cached dependency of <paramref name="type"/> if it exists and null otherwise.
         /// </summary>
         /// <param name="type">The dependency type to query for.</param>
+        /// <param name="info">Extra information that identifies the cached dependency.</param>
         /// <returns>The requested dependency, or null if not found.</returns>
         object Get(Type type, CacheInfo info);
 
@@ -50,6 +51,7 @@ namespace osu.Framework.Allocation
         /// </summary>
         /// <typeparam name="T">The dependency type to query for.</typeparam>
         /// <param name="container">The <see cref="IReadOnlyDependencyContainer"/> to query.</param>
+        /// <param name="info">Extra information that identifies the cached dependency.</param>
         /// <returns>The requested dependency, or null if not found.</returns>
         public static T Get<T>(this IReadOnlyDependencyContainer container, CacheInfo info)
             where T : class
@@ -69,6 +71,7 @@ namespace osu.Framework.Allocation
         /// </summary>
         /// <typeparam name="T">The dependency type to query for.</typeparam>
         /// <param name="container">The <see cref="IReadOnlyDependencyContainer"/> to query.</param>
+        /// <param name="info">Extra information that identifies the cached dependency.</param>
         /// <returns>The requested dependency, or default(<typeparamref name="T"/>) if not found.</returns>
         internal static T GetValue<T>(this IReadOnlyDependencyContainer container, CacheInfo info)
         {
@@ -94,6 +97,7 @@ namespace osu.Framework.Allocation
         /// </summary>
         /// <param name="container">The <see cref="IReadOnlyDependencyContainer"/> to query.</param>
         /// <param name="value">The requested dependency, or null if not found.</param>
+        /// <param name="info">Extra information that identifies the cached dependency.</param>
         /// <typeparam name="T">The dependency type to query for.</typeparam>
         /// <returns>Whether the requested dependency existed.</returns>
         public static bool TryGet<T>(this IReadOnlyDependencyContainer container, out T value, CacheInfo info)

@@ -27,35 +27,37 @@ namespace osu.Framework.Allocation
         }
 
         /// <summary>
-        /// Caches an instance of a type as its most derived type. This instance will be returned each time you <see cref="Get(Type, Type)"/>.
+        /// Caches an instance of a type as its most derived type. This instance will be returned each time you <see cref="Get(Type)"/>.
         /// </summary>
         /// <param name="instance">The instance to cache.</param>
         public void Cache(object instance)
             => Cache(instance, default);
 
         /// <summary>
-        /// Caches an instance of a type as its most derived type. This instance will be returned each time you <see cref="Get(Type, Type)"/>.
+        /// Caches an instance of a type as its most derived type. This instance will be returned each time you <see cref="Get(Type)"/>.
         /// </summary>
         /// <param name="instance">The instance to cache.</param>
+        /// <param name="info">Extra information to identify <paramref name="instance"/> in the cache.</param>
         public void Cache(object instance, CacheInfo info)
             => CacheAs(instance.GetType(), info, instance, false);
 
         /// <summary>
-        /// Caches an instance of a type as a type of <typeparamref name="T"/>. This instance will be returned each time you <see cref="Get(Type, Type)"/>.
+        /// Caches an instance of a type as a type of <typeparamref name="T"/>. This instance will be returned each time you <see cref="Get(Type)"/>.
         /// </summary>
         /// <param name="instance">The instance to cache. Must be or derive from <typeparamref name="T"/>.</param>
         public void CacheAs<T>(T instance) where T : class
             => CacheAs(instance, default);
 
         /// <summary>
-        /// Caches an instance of a type as a type of <typeparamref name="T"/>. This instance will be returned each time you <see cref="Get(Type, Type)"/>.
+        /// Caches an instance of a type as a type of <typeparamref name="T"/>. This instance will be returned each time you <see cref="Get(Type)"/>.
         /// </summary>
         /// <param name="instance">The instance to cache. Must be or derive from <typeparamref name="T"/>.</param>
+        /// <param name="info">Extra information to identify <paramref name="instance"/> in the cache.</param>
         public void CacheAs<T>(T instance, CacheInfo info) where T : class
             => CacheAs(typeof(T), info, instance, false);
 
         /// <summary>
-        /// Caches an instance of a type as a type of <paramref name="type"/>. This instance will be returned each time you <see cref="Get(Type, Type)"/>.
+        /// Caches an instance of a type as a type of <paramref name="type"/>. This instance will be returned each time you <see cref="Get(Type)"/>.
         /// </summary>
         /// <param name="type">The type to cache <paramref name="instance"/> as.</param>
         /// <param name="instance">The instance to cache. Must be or derive from <paramref name="type"/>.</param>
@@ -63,15 +65,16 @@ namespace osu.Framework.Allocation
             => CacheAs(type, instance, default);
 
         /// <summary>
-        /// Caches an instance of a type as a type of <paramref name="type"/>. This instance will be returned each time you <see cref="Get(Type, Type)"/>.
+        /// Caches an instance of a type as a type of <paramref name="type"/>. This instance will be returned each time you <see cref="Get(Type)"/>.
         /// </summary>
         /// <param name="type">The type to cache <paramref name="instance"/> as.</param>
         /// <param name="instance">The instance to cache. Must be or derive from <paramref name="type"/>.</param>
+        /// <param name="info">Extra information to identify <paramref name="instance"/> in the cache.</param>
         public void CacheAs<T>(Type type, T instance, CacheInfo info) where T : class
             => CacheAs(type, info, instance, false);
 
         /// <summary>
-        /// Caches an instance of a type as its most derived type. This instance will be returned each time you <see cref="DependencyContainer.Get(Type, Type)"/>.
+        /// Caches an instance of a type as its most derived type. This instance will be returned each time you <see cref="DependencyContainer.Get(Type)"/>.
         /// </summary>
         /// <remarks>
         /// This should only be used when it is guaranteed that the internal state of the type will remain consistent through retrieval.
@@ -82,13 +85,14 @@ namespace osu.Framework.Allocation
             => CacheValue(instance, default);
 
         /// <summary>
-        /// Caches an instance of a type as its most derived type. This instance will be returned each time you <see cref="DependencyContainer.Get(Type, Type)"/>.
+        /// Caches an instance of a type as its most derived type. This instance will be returned each time you <see cref="DependencyContainer.Get(Type)"/>.
         /// </summary>
         /// <remarks>
         /// This should only be used when it is guaranteed that the internal state of the type will remain consistent through retrieval.
         /// (e.g. <see cref="CancellationToken"/> or reference types).
         /// </remarks>
         /// <param name="instance">The instance to cache.</param>
+        /// <param name="info">Extra information to identify <paramref name="instance"/> in the cache.</param>
         internal void CacheValue(object instance, CacheInfo info)
         {
             if (instance == null)
@@ -97,7 +101,7 @@ namespace osu.Framework.Allocation
         }
 
         /// <summary>
-        /// Caches an instance of a type as a type of <typeparamref name="T"/>. This instance will be returned each time you <see cref="DependencyContainer.Get(Type, Type)"/>.
+        /// Caches an instance of a type as a type of <typeparamref name="T"/>. This instance will be returned each time you <see cref="DependencyContainer.Get(Type)"/>.
         /// </summary>
         /// <remarks>
         /// This should only be used when it is guaranteed that the internal state of the type will remain consistent through retrieval.
@@ -108,19 +112,22 @@ namespace osu.Framework.Allocation
             => CacheValueAs(instance, default);
 
         /// <summary>
-        /// Caches an instance of a type as a type of <typeparamref name="T"/>. This instance will be returned each time you <see cref="DependencyContainer.Get(Type, Type)"/>.
+        /// Caches an instance of a type as a type of <typeparamref name="T"/>. This instance will be returned each time you <see cref="DependencyContainer.Get(Type)"/>.
         /// </summary>
         /// <remarks>
         /// This should only be used when it is guaranteed that the internal state of the type will remain consistent through retrieval.
         /// (e.g. <see cref="CancellationToken"/> or reference types).
         /// </remarks>
         /// <param name="instance">The instance to cache. Must be or derive from <typeparamref name="T"/>.</param>
+        /// <param name="info">Extra information to identify <paramref name="instance"/> in the cache.</param>
         internal void CacheValueAs<T>(T instance, CacheInfo info)
             => CacheAs(typeof(T), info, instance, true);
 
         /// <summary>
-        /// Caches an instance of a type as a type of <paramref name="type"/>. This instance will be returned each time you <see cref="Get(Type, Type)"/>.
+        /// Caches an instance of a type as a type of <paramref name="type"/>. This instance will be returned each time you <see cref="Get(Type)"/>.
         /// </summary>
+        /// <param name="type">The type to cache <paramref name="instance"/> as.</param>
+        /// <param name="info">Extra information to identify <paramref name="instance"/> in the cache.</param>
         /// <param name="instance">The instance to cache. Must be or derive from <paramref name="type"/>.</param>
         /// <param name="allowValueTypes">Whether value types are allowed to be cached.
         /// This should only be used when it is guaranteed that the internal state of the type will remain consistent through retrieval.
