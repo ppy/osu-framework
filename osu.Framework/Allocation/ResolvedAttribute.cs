@@ -26,13 +26,47 @@ namespace osu.Framework.Allocation
         private const BindingFlags activator_flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly;
 
         /// <summary>
-        /// Whether a null value can be accepted if the value does not exist in the cache.
+        /// The containing type of the cached member in the <see cref="DependencyContainer"/>.
+        /// </summary>
+        /// <remarks>
+        /// This is only set if the member was cached with a custom <see cref="CacheInfo"/>.
+        /// </remarks>
+        public Type Parent;
+
+        /// <summary>
+        /// The name of the cached member in the <see cref="DependencyContainer"/>.
+        /// </summary>
+        /// <remarks>
+        /// This is only set if the member was cached with a custom <see cref="CacheInfo"/>.
+        /// </remarks>
+        public string Name;
+
+        /// <summary>
+        /// Whether a null value can be accepted if the member doesn't exist in the cache.
         /// </summary>
         public bool CanBeNull;
 
-        public string Name;
+        /// <summary>
+        /// Identifies a member to be resolved from a <see cref="DependencyContainer"/>.
+        /// </summary>
+        public ResolvedAttribute()
+        {
+        }
 
-        public Type Parent;
+        /// <summary>
+        /// Identifies a member to be resolved from a <see cref="DependencyContainer"/>.
+        /// </summary>
+        /// <param name="parent">The parent which the member is identified with in the cache.
+        /// This is only set if the member was cached with a custom <see cref="CacheInfo"/>.</param>
+        /// <param name="name">The name which the member is identified with in the cache.
+        /// This is only set if the member was cached with a custom <see cref="CacheInfo"/>.</param>
+        /// <param name="canBeNull">Whether a null value can be accepted if the member doesn't exist in the cache.</param>
+        public ResolvedAttribute(Type parent = null, string name = null, bool canBeNull = false)
+        {
+            Parent = parent;
+            Name = name;
+            CanBeNull = canBeNull;
+        }
 
         internal static InjectDependencyDelegate CreateActivator(Type type)
         {
