@@ -5,11 +5,16 @@ using System.Linq;
 using System.Reflection;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
+using osu.Framework.Extensions.TypeExtensions;
 
 namespace osu.Framework.Graphics.Containers
 {
     internal static class CachedModelCompositeExtensions
     {
+        public static IReadOnlyDependencyContainer CreateDependencies<TModel>(this ICachedModelComposite<TModel> composite, IReadOnlyDependencyContainer parent)
+            where TModel : new()
+            => DependencyActivator.MergeDependencies(composite.BoundModel, parent, new CacheInfo(parent: typeof(TModel)));
+
         public static void UpdateShadowModel<TModel>(this ICachedModelComposite<TModel> composite, TModel lastModel, TModel newModel)
             where TModel : new()
         {

@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Collections.Generic;
+using osu.Framework.Allocation;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -25,6 +26,9 @@ namespace osu.Framework.Graphics.Containers
                 this.UpdateShadowModel(lastModel, model);
             }
         }
+        
+        protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent)
+            => this.CreateDependencies(base.CreateChildDependencies(parent));
 
         public TModel BoundModel { get; private set; } = new TModel();
 
