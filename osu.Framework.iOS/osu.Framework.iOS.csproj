@@ -29,15 +29,6 @@
     <Reference Include="Xamarin.iOS" />
   </ItemGroup>
   <ItemGroup>
-    <NativeLibs Include="$(MSBuildThisFileDirectory)*\*.dll*" />
-    <NativeLibs Include="$(MSBuildThisFileDirectory)*.a" />
-    <None Include="@(NativeLibs)">
-      <Pack>true</Pack>
-      <PackageCopyToOutput>true</PackageCopyToOutput>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\osu.Framework\osu.Framework.csproj" />
   </ItemGroup>
   <ItemGroup>

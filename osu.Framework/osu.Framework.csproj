@@ -54,14 +54,17 @@
     <PackageReference Include="System.Reflection.Emit.ILGeneration" Version="4.3.0" />
     <PackageReference Include="JetBrains.Annotations" Version="2018.2.1" />
   </ItemGroup>
-  <ItemGroup>
-    <NativeLibs Include="$(MSBuildThisFileDirectory)*\*.dll*" />
-    <NativeLibs Include="$(MSBuildThisFileDirectory)*.so" />
-    <NativeLibs Include="$(MSBuildThisFileDirectory)*.dylib" />
-    <None Include="@(NativeLibs)">
-      <Pack>true</Pack>
-      <PackageCopyToOutput>true</PackageCopyToOutput>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
+  <Choose>
+    <When Condition="'$(APPVEYOR_DEPLOY)'==1">
+      <ItemGroup>
+        <PackageReference Include="ppy.osu.Framework.NativeLibs" Version="2019.110.0" />
+      </ItemGroup>
+    </When>
+    <When Condition="'$(APPVEYOR_DEPLOY)'!=1">
+      <ItemGroup>
+        <ProjectReference Include="..\osu.Framework.NativeLibs\osu.Framework.NativeLibs.csproj" />
+      </ItemGroup>
+    </When>
+  </Choose>
 </Project>
+
