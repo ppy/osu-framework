@@ -2,6 +2,7 @@
   <PropertyGroup Label="Project">
     <TargetFramework>netstandard2.0</TargetFramework>
     <OutputType>Library</OutputType>
+    <ContentTargetFolders>contentFiles</ContentTargetFolders>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <AssemblyTitle>osu!framework Libraries</AssemblyTitle>
