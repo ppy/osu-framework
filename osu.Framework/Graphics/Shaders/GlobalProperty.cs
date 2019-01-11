@@ -19,5 +19,6 @@ namespace osu.Framework.Graphics.Shaders
         EdgeOffset,
         DiscardInner,
         InnerCornerRadius,
+        GammaCorrection,
     }
 }
