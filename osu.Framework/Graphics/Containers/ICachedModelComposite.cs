@@ -6,7 +6,7 @@ using osu.Framework.Configuration;
 
 namespace osu.Framework.Graphics.Containers
 {
-    internal interface ICachedModelComposite<TModel>
+    public interface ICachedModelComposite<TModel>
         where TModel : new()
     {
         /// <summary>
@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics.Containers
         /// Children of this <see cref="ICachedModelComposite{TModel}"/> can resolve the cached members by using <see cref="ResolvedAttribute.Parent"/> = typeof(<see cref="TModel"/>).
         /// Any non-bindable members are not updated in children when this value is set.
         /// </remarks>
-        TModel Model { set; }
+        TModel Model { get; set; }
 
         /// <summary>
         /// The <see cref="TModel"/> which is cached. All <see cref="IBindable"/>s in this object are bound to those of <see cref="Model"/>.
@@ -24,6 +24,6 @@ namespace osu.Framework.Graphics.Containers
         /// <remarks>
         /// It is safe to directly bind to <see cref="IBindable"/>s of this object.
         /// </remarks>
-        TModel ShadowModel { get; set; }
+        TModel ShadowModel { get; }
     }
 }

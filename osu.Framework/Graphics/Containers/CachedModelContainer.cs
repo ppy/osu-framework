@@ -30,12 +30,6 @@ namespace osu.Framework.Graphics.Containers
         protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent)
             => this.CreateDependencies(base.CreateChildDependencies(parent));
 
-        public TModel ShadowModel { get; private set; } = new TModel();
-
-        TModel ICachedModelComposite<TModel>.ShadowModel
-        {
-            get => ShadowModel;
-            set => ShadowModel = value;
-        }
+        public TModel ShadowModel { get; } = new TModel();
     }
 }
