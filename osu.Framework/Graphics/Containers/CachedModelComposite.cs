@@ -26,7 +26,7 @@ namespace osu.Framework.Graphics.Containers
                 this.UpdateShadowModel(lastModel, model);
             }
         }
-        
+
         protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent)
             => this.CreateDependencies(base.CreateChildDependencies(parent));
 

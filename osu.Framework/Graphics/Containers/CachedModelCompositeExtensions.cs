@@ -1,12 +1,12 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
-using osu.Framework.Extensions.TypeExtensions;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -16,29 +16,56 @@ namespace osu.Framework.Graphics.Containers
 
         public static IReadOnlyDependencyContainer CreateDependencies<TModel>(this ICachedModelComposite<TModel> composite, IReadOnlyDependencyContainer parent)
             where TModel : new()
+            => new DelegatingDependencyContainer
+            {
+                Target = createDependencies(composite, parent),
+                TargetParent = parent
+            };
+
+        private static IReadOnlyDependencyContainer createDependencies<TModel>(ICachedModelComposite<TModel> composite, IReadOnlyDependencyContainer parent)
+            where TModel : new()
             => DependencyActivator.MergeDependencies(composite.BoundModel, parent, new CacheInfo(parent: typeof(TModel)));
 
         public static void UpdateShadowModel<TModel>(this ICachedModelComposite<TModel> composite, TModel lastModel, TModel newModel)
             where TModel : new()
         {
-            var newShadow = newModel == null ? new TModel() : TypeExtensions.Clone(newModel);
+            // The following code performs the following tasks:
+            // 1. Copy all non-bindable fields from the new model into the shadow model, so subclasses can reference ShadowModel.{Field}
+            // 2. Re-bind all IBindable fields and properties in the shadow model to point to the new model, so that children's bindables are updated
+            // 3. Reconstruct the dependencies so children can retrieve updated dependencies through dependencies.Get()
 
             var type = typeof(TModel);
-
             while (type != typeof(object))
             {
                 Debug.Assert(type != null);
 
-                foreach (var field in type.GetFields(activator_flags).Where(f => f.GetCustomAttributes<CachedAttribute>().Any()))
-                    rebind(field);
+                foreach (var field in type.GetFields(activator_flags))
+                {
+                    if (newModel != null)
+                    {
+                        // Copy non-bindable field to the shadow model
+                        var newValue = field.GetValue(newModel);
+                        if (!(newValue is IBindable))
+                            field.SetValue(composite.BoundModel, newValue);
+                    }
 
-                foreach (var property in type.GetProperties(activator_flags).Where(f => f.GetCustomAttributes<CachedAttribute>().Any()))
-                    rebind(property);
+                    if (field.GetCustomAttributes<CachedAttribute>().Any())
+                        rebind(field);
+                }
+
+                foreach (var property in type.GetProperties(activator_flags))
+                {
+                    if (property.GetCustomAttributes<CachedAttribute>().Any())
+                        rebind(property);
+                }
 
                 type = type.BaseType;
             }
 
-            composite.BoundModel = newShadow;
+            // Re-cache the shadow model to update non-bindable dependencies
+            var dependencies = (composite as CompositeDrawable)?.Dependencies;
+            if (dependencies is DelegatingDependencyContainer delegatingDependencies)
+                delegatingDependencies.Target = createDependencies(composite, delegatingDependencies.TargetParent);
 
             void rebind(MemberInfo member)
             {
@@ -52,19 +79,11 @@ namespace osu.Framework.Graphics.Containers
                         shadowValue = pi.GetValue(composite.BoundModel);
                         lastModelValue = lastModel == null ? null : pi.GetValue(lastModel);
                         newModelValue = newModel == null ? null : pi.GetValue(newModel);
-
-                        if (shadowValue is IBindable)
-                            pi.SetValue(newShadow, shadowValue);
-
                         break;
                     case FieldInfo fi:
                         shadowValue = fi.GetValue(composite.BoundModel);
                         lastModelValue = lastModel == null ? null : fi.GetValue(lastModel);
                         newModelValue = newModel == null ? null : fi.GetValue(newModel);
-
-                        if (shadowValue is IBindable)
-                            fi.SetValue(newShadow, shadowValue);
-
                         break;
                 }
 
@@ -79,6 +98,28 @@ namespace osu.Framework.Graphics.Containers
                         shadowBindable.BindTo(newModelBindable);
                 }
             }
+        }
+
+        private class DelegatingDependencyContainer : IReadOnlyDependencyContainer
+        {
+            /// <summary>
+            /// The <see cref="IReadOnlyDependencyContainer"/> target for delegation.
+            /// </summary>
+            public IReadOnlyDependencyContainer Target;
+
+            /// <summary>
+            /// The parent of <see cref="Target"/>.
+            /// </summary>
+            public IReadOnlyDependencyContainer TargetParent;
+
+            public object Get(Type type)
+                => Target.Get(type);
+
+            public object Get(Type type, CacheInfo info)
+                => Target.Get(type, info);
+
+            public void Inject<T>(T instance) where T : class
+                => Target.Inject(instance);
         }
     }
 }
