@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics.Containers
 
         public TModel Model
         {
-            private get => model;
+            get => model;
             set
             {
                 if (EqualityComparer<TModel>.Default.Equals(model, value))
