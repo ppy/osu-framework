@@ -24,7 +24,7 @@ namespace osu.Framework.Graphics.Containers
 
         private static IReadOnlyDependencyContainer createDependencies<TModel>(ICachedModelComposite<TModel> composite, IReadOnlyDependencyContainer parent)
             where TModel : new()
-            => DependencyActivator.MergeDependencies(composite.BoundModel, parent, new CacheInfo(parent: typeof(TModel)));
+            => DependencyActivator.MergeDependencies(composite.ShadowModel, parent, new CacheInfo(parent: typeof(TModel)));
 
         public static void UpdateShadowModel<TModel>(this ICachedModelComposite<TModel> composite, TModel lastModel, TModel newModel)
             where TModel : new()
@@ -46,7 +46,7 @@ namespace osu.Framework.Graphics.Containers
                         // Copy non-bindable field to the shadow model
                         var newValue = field.GetValue(newModel);
                         if (!(newValue is IBindable))
-                            field.SetValue(composite.BoundModel, newValue);
+                            field.SetValue(composite.ShadowModel, newValue);
                     }
 
                     if (field.GetCustomAttributes<CachedAttribute>().Any())
@@ -76,12 +76,12 @@ namespace osu.Framework.Graphics.Containers
                 switch (member)
                 {
                     case PropertyInfo pi:
-                        shadowValue = pi.GetValue(composite.BoundModel);
+                        shadowValue = pi.GetValue(composite.ShadowModel);
                         lastModelValue = lastModel == null ? null : pi.GetValue(lastModel);
                         newModelValue = newModel == null ? null : pi.GetValue(newModel);
                         break;
                     case FieldInfo fi:
-                        shadowValue = fi.GetValue(composite.BoundModel);
+                        shadowValue = fi.GetValue(composite.ShadowModel);
                         lastModelValue = lastModel == null ? null : fi.GetValue(lastModel);
                         newModelValue = newModel == null ? null : fi.GetValue(newModel);
                         break;

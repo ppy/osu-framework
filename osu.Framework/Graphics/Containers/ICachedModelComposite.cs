@@ -10,7 +10,7 @@ namespace osu.Framework.Graphics.Containers
         where TModel : new()
     {
         /// <summary>
-        /// The model which provides the values for <see cref="BoundModel"/>.
+        /// The model which provides the values for <see cref="ShadowModel"/>.
         /// </summary>
         /// <remarks>
         /// Children of this <see cref="ICachedModelComposite{TModel}"/> can resolve the cached members by using <see cref="ResolvedAttribute.Parent"/> = typeof(<see cref="TModel"/>).
@@ -24,6 +24,6 @@ namespace osu.Framework.Graphics.Containers
         /// <remarks>
         /// It is safe to directly bind to <see cref="IBindable"/>s of this object.
         /// </remarks>
-        TModel BoundModel { get; set; }
+        TModel ShadowModel { get; set; }
     }
 }
