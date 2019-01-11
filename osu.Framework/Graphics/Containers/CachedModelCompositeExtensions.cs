@@ -14,6 +14,9 @@ namespace osu.Framework.Graphics.Containers
     {
         private const BindingFlags activator_flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly;
 
+        /// <summary>
+        /// Helper method to create dependencies for a <see cref="ICachedModelComposite{TModel}"/>.
+        /// </summary>
         public static IReadOnlyDependencyContainer CreateDependencies<TModel>(this ICachedModelComposite<TModel> composite, IReadOnlyDependencyContainer parent)
             where TModel : new()
             => new DelegatingDependencyContainer
@@ -26,6 +29,9 @@ namespace osu.Framework.Graphics.Containers
             where TModel : new()
             => DependencyActivator.MergeDependencies(composite.ShadowModel, parent, new CacheInfo(parent: typeof(TModel)));
 
+        /// <summary>
+        /// Helper method to perform updates to the shadow model of a <see cref="ICachedModelComposite{TModel}"/>.
+        /// </summary>
         public static void UpdateShadowModel<TModel>(this ICachedModelComposite<TModel> composite, TModel lastModel, TModel newModel)
             where TModel : new()
         {
