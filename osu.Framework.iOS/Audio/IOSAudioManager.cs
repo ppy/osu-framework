@@ -2,9 +2,9 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Audio;
-using osu.Framework.Audio.Sample;
-using osu.Framework.Audio.Track;
+using osu.Framework.Audio.Callbacks;
 using osu.Framework.IO.Stores;
+using osu.Framework.iOS.Audio.Callbacks;
 
 namespace osu.Framework.iOS.Audio
 {
@@ -14,8 +14,6 @@ namespace osu.Framework.iOS.Audio
         {
         }
 
-        protected override TrackManager CreateTrackManager(ResourceStore<byte[]> store) => new IOSTrackManager(store);
-
-        protected override SampleManager CreateSampleManager(IResourceStore<byte[]> store) => new IOSSampleManager(store);
+        protected override CallbackFactory CreateCallbackFactory() => new IOSCallbackFactory();
     }
 }
