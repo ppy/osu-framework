@@ -2,7 +2,9 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using ManagedBass;
+using osu.Framework.Allocation;
 using System.Collections.Concurrent;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 namespace osu.Framework.Audio.Sample
@@ -37,6 +39,10 @@ namespace osu.Framework.Audio.Sample
 
         public int CreateChannel() => Bass.SampleGetChannel(sampleId);
 
-        protected virtual int LoadSample(byte[] data) => Bass.SampleLoad(data, 0, data.Length, PlaybackConcurrency, BassFlags.Default | BassFlags.SampleOverrideLongestPlaying);
+        protected virtual int LoadSample(byte[] data)
+        {
+            using (var handle = new ObjectHandle<byte[]>(data, GCHandleType.Pinned))
+                return Bass.SampleLoad(handle.Handle, 0, data.Length, PlaybackConcurrency, BassFlags.Default | BassFlags.SampleOverrideLongestPlaying);
+        }
     }
 }

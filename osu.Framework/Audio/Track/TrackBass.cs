@@ -10,7 +10,7 @@ using osuTK;
 using osu.Framework.IO;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using System.Runtime.InteropServices;
+using osu.Framework.Audio.Callbacks;
 
 namespace osu.Framework.Audio.Track
 {
@@ -38,8 +38,7 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         private bool isPlayed;
 
-        private DataStreamFileProcedures procedures;
-        private GCHandle pinnedProcedures;
+        private FileCallbacks fileCallbacks;
 
         private volatile bool isLoaded;
 
@@ -50,7 +49,7 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         /// <param name="data">The sample data stream.</param>
         /// <param name="quick">If true, the track will not be fully loaded, and should only be used for preview purposes.  Defaults to false.</param>
-        public TrackBass(Stream data, bool quick = false)
+        public TrackBass(Stream data, CallbackFactory callbackFactory, bool quick = false)
         {
             EnqueueAction(() =>
             {
@@ -61,13 +60,10 @@ namespace osu.Framework.Audio.Track
                 //encapsulate incoming stream with async buffer if it isn't already.
                 dataStream = data as AsyncBufferStream ?? new AsyncBufferStream(data, quick ? 8 : -1);
 
-                procedures = CreateDataStreamFileProcedures(dataStream);
-
-                if (!RuntimeInfo.SupportsIL)
-                    pinnedProcedures = GCHandle.Alloc(procedures, GCHandleType.Pinned);
+                fileCallbacks = callbackFactory.CreateFileCallbacks(new DataStreamFileProcedures(dataStream));
 
                 BassFlags flags = Preview ? 0 : BassFlags.Decode | BassFlags.Prescan | BassFlags.Float;
-                activeStream = Bass.CreateStream(StreamSystem.NoBuffer, flags, procedures.BassProcedures, RuntimeInfo.SupportsIL ? IntPtr.Zero : GCHandle.ToIntPtr(pinnedProcedures));
+                activeStream = Bass.CreateStream(StreamSystem.NoBuffer, flags, fileCallbacks.Callbacks, fileCallbacks.Handle);
 
                 if (!Preview)
                 {
@@ -106,8 +102,6 @@ namespace osu.Framework.Audio.Track
 
             InvalidateState();
         }
-
-        protected virtual DataStreamFileProcedures CreateDataStreamFileProcedures(Stream dataStream) => new DataStreamFileProcedures(dataStream);
 
         void IBassAudio.UpdateDevice(int deviceIndex)
         {
@@ -158,10 +152,8 @@ namespace osu.Framework.Audio.Track
             dataStream?.Dispose();
             dataStream = null;
 
-            if (pinnedProcedures.IsAllocated)
-                pinnedProcedures.Free();
-
-            procedures = null;
+            fileCallbacks?.Dispose();
+            fileCallbacks = null;
 
             base.Dispose(disposing);
         }

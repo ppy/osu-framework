@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
+using osu.Framework.Audio.Callbacks;
 using osu.Framework.Audio.Track;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics;
@@ -29,16 +30,16 @@ namespace osu.Framework.Tests.Visual
         };
 
         private Button button;
-        private TrackBass track;
+        private Track track;
         private readonly Bindable<float> zoom = new BindableFloat(1) { MinValue = 0.1f, MaxValue = 20 };
 
         [BackgroundDependencyLoader]
         private void load(Game game, AudioManager audio)
         {
-            track = new TrackBass(game.Resources.GetStream("Tracks/sample-track.mp3"));
+            track = audio.Track.CreateTrack(game.Resources.GetStream("Tracks/sample-track.mp3"));
             audio.Track.AddItem(track);
 
-            var waveform = new Waveform(game.Resources.GetStream("Tracks/sample-track.mp3"));
+            var waveform = audio.Track.CreateWaveform(game.Resources.GetStream("Tracks/sample-track.mp3"));
 
             FillFlowContainer flow;
 
