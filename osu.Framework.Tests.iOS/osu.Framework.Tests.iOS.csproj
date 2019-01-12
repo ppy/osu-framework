@@ -7,7 +7,7 @@
     <ProjectTypeGuids>{FEACFBD2-3405-455C-9665-78FE426C6842};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <OutputType>Exe</OutputType>
     <RootNamespace>osu.Framework.Tests</RootNamespace>
-    <AssemblyName>osu.Framework.Tests.iOS</AssemblyName>
+    <AssemblyName>osu.Framework.Tests</AssemblyName>
     <IPhoneResourcePrefix>Resources</IPhoneResourcePrefix>
     <ProjectGuid>{D972753E-45FC-4B82-B017-34BDE485F1BB}</ProjectGuid>
   </PropertyGroup>
@@ -31,6 +31,7 @@
       <Link>libbass_fx.a</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <LinkDescription Include="Linker.xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Application.cs" />
@@ -64,9 +65,9 @@
     <Compile Include="..\osu.Framework.Tests\**\Visual\**\*.cs">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
     </Compile>
-    <Content Include="..\osu.Framework.Tests\**\Resources\**\*.*">
+    <EmbeddedResource Include="..\osu.Framework.Tests\**\Resources\**\*.*">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
-    </Content>
+    </EmbeddedResource>
     <Compile Include="..\osu.Framework.Tests\*.cs" Exclude="**\Program.cs">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
     </Compile>

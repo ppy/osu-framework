@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<linker>
+    <assembly fullname="osu.Framework">
+        <type fullname="*" />
+    </assembly>
+    <assembly fullname="osu.Framework.iOS">
+        <type fullname="*" />
+    </assembly>
+    <assembly fullname="osu.Framework.Tests">
+        <type fullname="*" />
+    </assembly>
+</linker>
