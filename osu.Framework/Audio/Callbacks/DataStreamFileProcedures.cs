@@ -4,35 +4,28 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
-using ManagedBass;
 
-namespace osu.Framework.Audio.Track
+namespace osu.Framework.Audio.Callbacks
 {
-    public class DataStreamFileProcedures
+    /// <summary>
+    /// Implementation of <see cref="IFileProcedures" /> that supports reading from a <see cref="Stream" />.
+    /// </summary>
+    public class DataStreamFileProcedures : IFileProcedures
     {
         private byte[] readBuffer = new byte[32768];
 
         private readonly Stream dataStream;
-
-        public virtual FileProcedures BassProcedures => new FileProcedures
-        {
-            Close = CloseCallback,
-            Length = LengthCallback,
-            Read = ReadCallback,
-            Seek = SeekCallback
-        };
 
         public DataStreamFileProcedures(Stream data)
         {
             dataStream = data;
         }
 
-        public void CloseCallback(IntPtr user)
+        public void Close(IntPtr user)
         {
-            //manually handle closing of stream
         }
 
-        public long LengthCallback(IntPtr user)
+        public long Length(IntPtr user)
         {
             if (dataStream == null) return 0;
 
@@ -47,7 +40,7 @@ namespace osu.Framework.Audio.Track
             return 0;
         }
 
-        public int ReadCallback(IntPtr buffer, int length, IntPtr user)
+        public int Read(IntPtr buffer, int length, IntPtr user)
         {
             if (dataStream == null) return 0;
 
@@ -70,7 +63,7 @@ namespace osu.Framework.Audio.Track
             return 0;
         }
 
-        public bool SeekCallback(long offset, IntPtr user)
+        public bool Seek(long offset, IntPtr user)
         {
             if (dataStream == null) return false;
 
