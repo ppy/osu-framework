@@ -25,7 +25,7 @@ namespace osu.Framework.Audio.Callbacks
         /// <summary>
         /// The pinned handle, or <see cref="IntPtr.Zero" /> if the object is not pinned.
         /// </summary>
-        public IntPtr Handle => pinnedHandle?.Handle ?? IntPtr.Zero;
+        public IntPtr Handle => pinnedHandle.Handle;
 
         /// <summary>
         /// Returns true if the callback should be pinned on creation.  Defaults to false, may be overridden by
@@ -41,7 +41,7 @@ namespace osu.Framework.Audio.Callbacks
         {
             if (!disposedValue)
             {
-                pinnedHandle?.Dispose();
+                pinnedHandle.Dispose();
                 disposedValue = true;
             }
         }

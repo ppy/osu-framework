@@ -9,7 +9,7 @@ namespace osu.Framework.Allocation
     /// <summary>
     /// Wrapper on <see cref="GCHandle" /> that supports the <see cref="IDisposable" /> pattern.
     /// </summary>
-    public class ObjectHandle<T> : IDisposable
+    public struct ObjectHandle<T> : IDisposable
     {
         /// <summary>
         /// The object being referenced.
@@ -43,31 +43,10 @@ namespace osu.Framework.Allocation
 
         #region IDisposable Support
 
-        private bool disposedValue;
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                    Target = default;
-
-                if (handle.IsAllocated)
-                    handle.Free();
-
-                disposedValue = true;
-            }
-        }
-
-        ~ObjectHandle()
-        {
-            Dispose(false);
-        }
-
         public void Dispose()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
+            if (handle.IsAllocated)
+                handle.Free();
         }
 
         #endregion
