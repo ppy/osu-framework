@@ -22,6 +22,9 @@ namespace osu.Framework.iOS.Input {
         }
 
         public override bool Initialize(GameHost host) {
+            if (!(UIApplication.SharedApplication is GameUIApplication)) {
+                return false;
+            }
             ((GameUIApplication)UIApplication.SharedApplication).keyEvent += handleKey;
             // Build key map
             keyMap = new Dictionary<int, Key>();
