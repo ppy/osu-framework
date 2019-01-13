@@ -205,7 +205,7 @@ namespace osu.Framework.Testing
 
             searchTextBox.Current.ValueChanged += newValue => leftFlowContainer.SearchTerm = newValue;
 
-            if (RuntimeInfo.SupportsIL)
+            if (RuntimeInfo.SupportsJIT)
             {
                 backgroundCompiler = new DynamicClassCompiler<TestCase>
                 {
