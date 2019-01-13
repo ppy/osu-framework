@@ -10,8 +10,8 @@ namespace osu.Framework.iOS {
     [Register("GameUIApplication")]
     public class GameUIApplication : UIApplication {
 
-        private static bool IS_IOS7 = int.Parse(UIDevice.CurrentDevice.SystemVersion.Split('.')[0]) >= 7;
-        private static bool IS_IOS9 = int.Parse(UIDevice.CurrentDevice.SystemVersion.Split('.')[0]) >= 9;
+        private static bool IS_IOS7 = new NSProcessInfo().IsOperatingSystemAtLeastVersion(new NSOperatingSystemVersion(7, 0, 0));
+        private static bool IS_IOS9 = new NSProcessInfo().IsOperatingSystemAtLeastVersion(new NSOperatingSystemVersion(9, 0, 0));
 
         private static bool IS_64BIT = IntPtr.Size == 8;
 
