@@ -36,7 +36,7 @@ namespace osu.Framework.iOS
         public override ITextInputSource GetTextInput() => new IOSTextInput(gameView);
 
         protected override IEnumerable<InputHandler> CreateAvailableInputHandlers() =>
-            new InputHandler[] { new IOSTouchHandler(gameView), new IOSKeyboardHandler(gameView) };
+            new InputHandler[] { new IOSTouchHandler(gameView), new IOSKeyboardHandler(gameView), new IOSRawKeyboardHandler() };
 
         protected override Storage GetStorage(string baseName) => new MacOSStorage(baseName, this);
 
