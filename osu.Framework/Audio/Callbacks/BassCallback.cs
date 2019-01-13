@@ -14,7 +14,7 @@ namespace osu.Framework.Audio.Callbacks
     /// </summary>
     public abstract class BassCallback : IDisposable
     {
-        private readonly ObjectHandle<BassCallback> pinnedHandle;
+        private ObjectHandle<BassCallback> pinnedHandle;
 
         protected BassCallback()
         {
