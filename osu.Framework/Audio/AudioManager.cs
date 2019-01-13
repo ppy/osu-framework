@@ -144,7 +144,7 @@ namespace osu.Framework.Audio
             scheduler.Add(() => setAudioDevice(string.IsNullOrEmpty(newDevice) ? null : newDevice));
         }
 
-        protected virtual TrackManager CreateTrackManager(ResourceStore<byte[]> store) => new TrackManager(store, Callback);
+        protected virtual TrackManager CreateTrackManager(IResourceStore<byte[]> store) => new TrackManager(store, Callback);
 
         protected virtual SampleManager CreateSampleManager(IResourceStore<byte[]> store) => new SampleManager(store);
 
@@ -164,8 +164,8 @@ namespace osu.Framework.Audio
         /// Obtains the <see cref="TrackManager"/> corresponding to a given resource store.
         /// Returns the global <see cref="TrackManager"/> if no resource store is passed.
         /// </summary>
-        /// <param name="store">The <see cref="T:ResourceStore"/> of which to retrieve the <see cref="TrackManager"/>.</param>
-        public TrackManager GetTrackManager(ResourceStore<byte[]> store = null)
+        /// <param name="store">The <see cref="IResourceStore{T}"/> of which to retrieve the <see cref="TrackManager"/>.</param>
+        public TrackManager GetTrackManager(IResourceStore<byte[]> store = null)
         {
             if (store == null) return globalTrackManager.Value;
 
@@ -181,7 +181,7 @@ namespace osu.Framework.Audio
         /// Obtains the <see cref="SampleManager"/> corresponding to a given resource store.
         /// Returns the global <see cref="SampleManager"/> if no resource store is passed.
         /// </summary>
-        /// <param name="store">The <see cref="T:ResourceStore"/> of which to retrieve the <see cref="SampleManager"/>.</param>
+        /// <param name="store">The <see cref="IResourceStore{T}"/> of which to retrieve the <see cref="SampleManager"/>.</param>
         public SampleManager GetSampleManager(IResourceStore<byte[]> store = null)
         {
             if (store == null) return globalSampleManager.Value;
