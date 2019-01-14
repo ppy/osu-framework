@@ -4,6 +4,7 @@ using UIKit;
 using osu.Framework.Logging;
 using osu.Framework.Input;
 using System;
+using System.Runtime.InteropServices;
 
 namespace osu.Framework.iOS {
 
@@ -26,6 +27,12 @@ namespace osu.Framework.iOS {
         public delegate void KeyHandler(int keyCode, bool isDown);
         public event KeyHandler keyEvent;
 
+        // https://github.com/xamarin/xamarin-macios/blob/master/src/ObjCRuntime/Messaging.iOS.cs
+        internal const string LIBOBJC_DYLIB = "/usr/lib/libobjc.dylib";
+
+        [DllImport(LIBOBJC_DYLIB, EntryPoint = "objc_msgSendSuper")]
+        public extern static void void_objc_msgSendSuper_intptr(IntPtr receiver, IntPtr selector, IntPtr arg1);
+
         unsafe void decodeKeyEvent(NSObject eventMem) {
             IntPtr* eventPtr = (IntPtr*)eventMem.Handle.ToPointer();
 
@@ -42,15 +49,18 @@ namespace osu.Framework.iOS {
             }
         }
 
+        Selector gsSelector = new Selector("_gsEvent");
+        Selector handleSelector = new Selector("handleKeyUIEvent:");
+
         [Export("handleKeyUIEvent:")]
         void handleKeyUIEvent(UIEvent evt) {
-            Selector selector = new Selector("_gsEvent");
-            if (evt.RespondsToSelector(selector)) {
-                var eventMem = evt.PerformSelector(selector);
+            if (evt.RespondsToSelector(gsSelector)) {
+                var eventMem = evt.PerformSelector(gsSelector);
                 if (eventMem != null) {
                     decodeKeyEvent(eventMem);
                 }
             }
+            void_objc_msgSendSuper_intptr(this.SuperHandle, handleSelector.Handle, evt.Handle);
         }
     }
 }
