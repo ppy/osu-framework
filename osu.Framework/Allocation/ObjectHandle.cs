@@ -12,16 +12,27 @@ namespace osu.Framework.Allocation
     public struct ObjectHandle<T> : IDisposable
     {
         /// <summary>
-        /// The object being referenced.
+        /// The object being referenced.  Returns the default value for <see cref="T" /> if the handle is not allocated
+        /// or if the handle points to an object that cannot be cast to <see cref="T" />.
         /// </summary>
-        public T Target { get; private set; }
+        public T Target => handle.IsAllocated && handle.Target is T ? (T)handle.Target : default;
 
         /// <summary>
         /// The pointer from the <see cref="GCHandle" />, if it is allocated.  Otherwise <see cref="IntPtr.Zero" />.
         /// </summary>
         public IntPtr Handle => handle.IsAllocated ? GCHandle.ToIntPtr(handle) : IntPtr.Zero;
 
+        /// <summary>
+        /// The address of target object, if it is allocated and pinned.  Otherwise <see cref="IntPtr.Zero" />.
+        /// Note: This is not the same as the <see cref="Handle" />.
+        /// </summary>
+        public IntPtr Address => handle.IsAllocated ? handle.AddrOfPinnedObject() : IntPtr.Zero;
+
+        public bool IsAllocated => handle.IsAllocated;
+
         private GCHandle handle;
+
+        private readonly bool fromPointer;
 
         /// <summary>
         /// Wraps the provided object with a <see cref="GCHandle" />, using the given <see cref="GCHandleType" />.
@@ -30,22 +41,26 @@ namespace osu.Framework.Allocation
         /// <param name="handleType">The handle type to use.</param>
         public ObjectHandle(T target, GCHandleType handleType)
         {
-            Target = target;
             handle = GCHandle.Alloc(target, handleType);
+            fromPointer = false;
         }
 
         /// <summary>
-        /// Wrapper on <see cref="GCHandle.FromIntPtr" /> that returns the associated object.
+        /// Recreates an <see cref="ObjectHandle{T}" /> based on the passed <see cref="IntPtr" />.
+        /// Disposing this object will not free the handle, the original object must be disposed instead.
         /// </summary>
-        /// <returns>The associated object.</returns>
-        /// <param name="handle">The pointer to the associated object.</param>
-        public static T FromPointer(IntPtr handle) => (T)GCHandle.FromIntPtr(handle).Target;
+        /// <param name="handle">Handle.</param>
+        public ObjectHandle(IntPtr handle)
+        {
+            this.handle = GCHandle.FromIntPtr(handle);
+            fromPointer = true;
+        }
 
         #region IDisposable Support
 
         public void Dispose()
         {
-            if (handle.IsAllocated)
+            if (!fromPointer && handle.IsAllocated)
                 handle.Free();
         }
 

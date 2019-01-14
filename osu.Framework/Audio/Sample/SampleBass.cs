@@ -41,8 +41,11 @@ namespace osu.Framework.Audio.Sample
 
         protected virtual int LoadSample(byte[] data)
         {
+            if (RuntimeInfo.SupportsJIT)
+                return Bass.SampleLoad(data, 0, data.Length, PlaybackConcurrency, BassFlags.Default | BassFlags.SampleOverrideLongestPlaying);
+
             using (var handle = new ObjectHandle<byte[]>(data, GCHandleType.Pinned))
-                return Bass.SampleLoad(handle.Handle, 0, data.Length, PlaybackConcurrency, BassFlags.Default | BassFlags.SampleOverrideLongestPlaying);
+                return Bass.SampleLoad(handle.Address, 0, data.Length, PlaybackConcurrency, BassFlags.Default | BassFlags.SampleOverrideLongestPlaying);
         }
     }
 }

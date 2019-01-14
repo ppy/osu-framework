@@ -22,8 +22,8 @@ namespace osu.Framework.iOS.Audio.Callbacks
         [MonoPInvokeCallback(typeof(SyncProcedure))]
         private static void sync(int handle, int channel, int data, IntPtr user)
         {
-            SyncCallback inst = ObjectHandle<SyncCallback>.FromPointer(user);
-            inst.Sync(handle, channel, data, user);
+            var objectHandle = new ObjectHandle<SyncCallback>(user);
+            objectHandle.Target.Sync(handle, channel, data, user);
         }
     }
 }

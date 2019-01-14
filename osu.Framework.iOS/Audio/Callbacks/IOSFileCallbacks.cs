@@ -32,29 +32,29 @@ namespace osu.Framework.iOS.Audio.Callbacks
         [MonoPInvokeCallback(typeof(FileLengthProcedure))]
         private static long length(IntPtr user)
         {
-            FileCallbacks inst = ObjectHandle<FileCallbacks>.FromPointer(user);
-            return inst.Length(user);
+            var handle = new ObjectHandle<FileCallbacks>(user);
+            return handle.Target.Length(user);
         }
 
         [MonoPInvokeCallback(typeof(FileCloseProcedure))]
         private static void close(IntPtr user)
         {
-            FileCallbacks inst = ObjectHandle<FileCallbacks>.FromPointer(user);
-            inst.Close(user);
+            var handle = new ObjectHandle<FileCallbacks>(user);
+            handle.Target.Close(user);
         }
 
         [MonoPInvokeCallback(typeof(FileSeekProcedure))]
         private static bool seek(long offset, IntPtr user)
         {
-            FileCallbacks inst = ObjectHandle<FileCallbacks>.FromPointer(user);
-            return inst.Seek(offset, user);
+            var handle = new ObjectHandle<FileCallbacks>(user);
+            return handle.Target.Seek(offset, user);
         }
 
         [MonoPInvokeCallback(typeof(FileReadProcedure))]
         private static int read(IntPtr buffer, int len, IntPtr user)
         {
-            FileCallbacks inst = ObjectHandle<FileCallbacks>.FromPointer(user);
-            return inst.Read(buffer, len, user);
+            var handle = new ObjectHandle<FileCallbacks>(user);
+            return handle.Target.Read(buffer, len, user);
         }
     }
 }
