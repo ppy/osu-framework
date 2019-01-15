@@ -84,11 +84,11 @@ namespace osu.Framework.Audio.Track
 
                 procedures = CreateDataStreamFileProcedures(data);
 
-                if (!RuntimeInfo.SupportsIL)
+                if (!RuntimeInfo.SupportsJIT)
                     pinnedProcedures = GCHandle.Alloc(procedures, GCHandleType.Pinned);
 
                 int decodeStream = Bass.CreateStream(StreamSystem.NoBuffer, BassFlags.Decode | BassFlags.Float, procedures.BassProcedures,
-                    RuntimeInfo.SupportsIL ? IntPtr.Zero : GCHandle.ToIntPtr(pinnedProcedures));
+                    RuntimeInfo.SupportsJIT ? IntPtr.Zero : GCHandle.ToIntPtr(pinnedProcedures));
 
                 Bass.ChannelGetInfo(decodeStream, out ChannelInfo info);
 

@@ -63,11 +63,11 @@ namespace osu.Framework.Audio.Track
 
                 procedures = CreateDataStreamFileProcedures(dataStream);
 
-                if (!RuntimeInfo.SupportsIL)
+                if (!RuntimeInfo.SupportsJIT)
                     pinnedProcedures = GCHandle.Alloc(procedures, GCHandleType.Pinned);
 
                 BassFlags flags = Preview ? 0 : BassFlags.Decode | BassFlags.Prescan | BassFlags.Float;
-                activeStream = Bass.CreateStream(StreamSystem.NoBuffer, flags, procedures.BassProcedures, RuntimeInfo.SupportsIL ? IntPtr.Zero : GCHandle.ToIntPtr(pinnedProcedures));
+                activeStream = Bass.CreateStream(StreamSystem.NoBuffer, flags, procedures.BassProcedures, RuntimeInfo.SupportsJIT ? IntPtr.Zero : GCHandle.ToIntPtr(pinnedProcedures));
 
                 if (!Preview)
                 {
