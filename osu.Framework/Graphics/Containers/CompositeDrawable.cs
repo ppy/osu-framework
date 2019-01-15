@@ -661,7 +661,18 @@ namespace osu.Framework.Graphics.Containers
             return changed;
         }
 
-        private void disposeChildAsync(Drawable drawable) => Task.Run(() => drawable.Dispose());
+        internal override void UnbindAllBindables()
+        {
+            base.UnbindAllBindables();
+            foreach (Drawable child in internalChildren)
+                child.UnbindAllBindables();
+        }
+
+        private void disposeChildAsync(Drawable drawable)
+        {
+            UnbindAllBindables();
+            Task.Run(() => drawable.Dispose());
+        }
 
         internal override void UpdateClock(IFrameBasedClock clock)
         {
