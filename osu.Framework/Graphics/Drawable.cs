@@ -116,25 +116,20 @@ namespace osu.Framework.Graphics
 
         internal virtual void UnbindAllBindables() => unbindAllBindables();
 
-        private List<Action<object>> unbindActions;
-
-        private void prepareUnbindActions()
+        private void cacheUnbindActions()
         {
-            Trace.Assert(unbindActions == null);
-
-            unbindActions = new List<Action<object>>();
             Type type = GetType();
 
             do
             {
-                unbindActions.Add(createUnbindAction(type));
+                cacheUnbindAction(type);
                 type = type.BaseType;
             } while (type != null && type != typeof(object));
 
-            Action<object> createUnbindAction(Type targetType)
+            void cacheUnbindAction(Type targetType)
             {
-                if (unbind_action_cache.TryGetValue(targetType, out var existing))
-                    return existing;
+                if (unbind_action_cache.TryGetValue(targetType, out _))
+                    return;
 
                 // List containing all the delegates to perform the unbinds
                 var actions = new List<Action<object>>();
@@ -149,9 +144,7 @@ namespace osu.Framework.Graphics
                                            .Where(p => typeof(IUnbindable).IsAssignableFrom(p.PropertyType))
                                            .Select(p => new Action<object>(target => ((IUnbindable)p.GetValue(target))?.UnbindAll())));
 
-                return unbind_action_cache[targetType] = performUnbind;
-
-                void performUnbind(object target)
+                unbind_action_cache[targetType] = target =>
                 {
                     foreach (var a in actions)
                     {
@@ -164,7 +157,7 @@ namespace osu.Framework.Graphics
                             // Execution should continue regardless of whether an unbind failed
                         }
                     }
-                }
+                };
             }
         }
 
@@ -173,11 +166,15 @@ namespace osu.Framework.Graphics
         /// </summary>
         private void unbindAllBindables()
         {
-            if (unbindActions == null)
-                return;
+            Type type = GetType();
 
-            foreach (var a in unbindActions)
-                a.Invoke(this);
+            do
+            {
+                if (unbind_action_cache.TryGetValue(type, out var existing))
+                    existing?.Invoke(this);
+
+                type = type.BaseType;
+            } while (type != null && type != typeof(object));
         }
 
         #endregion
@@ -254,7 +251,7 @@ namespace osu.Framework.Graphics
 
             InjectDependencies(dependencies);
 
-            prepareUnbindActions();
+            cacheUnbindActions();
 
             LoadAsyncComplete();
 
