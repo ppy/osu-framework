@@ -116,25 +116,25 @@ namespace osu.Framework.Graphics
 
         internal virtual void UnbindAllBindables() => unbindAllBindables();
 
-        /// <summary>
-        /// Unbinds all <see cref="Bindable{T}"/>s stored as fields or properties in this <see cref="Drawable"/>.
-        /// </summary>
-        private void unbindAllBindables()
+        private List<Action<object>> unbindActions;
+
+        private void prepareUnbindActions()
         {
+            Trace.Assert(unbindActions == null);
+
+            unbindActions = new List<Action<object>>();
             Type type = GetType();
+
             do
             {
-                unbind(type);
+                unbindActions.Add(createUnbindAction(type));
                 type = type.BaseType;
             } while (type != null && type != typeof(object));
 
-            void unbind(Type targetType)
+            Action<object> createUnbindAction(Type targetType)
             {
                 if (unbind_action_cache.TryGetValue(targetType, out var existing))
-                {
-                    existing(this);
-                    return;
-                }
+                    return existing;
 
                 // List containing all the delegates to perform the unbinds
                 var actions = new List<Action<object>>();
@@ -149,8 +149,7 @@ namespace osu.Framework.Graphics
                                            .Where(p => typeof(IUnbindable).IsAssignableFrom(p.PropertyType))
                                            .Select(p => new Action<object>(target => ((IUnbindable)p.GetValue(target))?.UnbindAll())));
 
-                unbind_action_cache[targetType] = performUnbind;
-                performUnbind(this);
+                return unbind_action_cache[targetType] = performUnbind;
 
                 void performUnbind(object target)
                 {
@@ -167,6 +166,18 @@ namespace osu.Framework.Graphics
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Unbinds all <see cref="Bindable{T}"/>s stored as fields or properties in this <see cref="Drawable"/>.
+        /// </summary>
+        private void unbindAllBindables()
+        {
+            if (unbindActions == null)
+           return;
+
+            foreach (var a in unbindActions)
+                a.Invoke(this);
         }
 
         #endregion
@@ -242,6 +253,8 @@ namespace osu.Framework.Graphics
             RequestsPositionalInputSubTree = RequestsPositionalInput;
 
             InjectDependencies(dependencies);
+
+            prepareUnbindActions();
 
             LoadAsyncComplete();
 
