@@ -8,6 +8,7 @@ using System.Reflection.Emit;
 using osu.Framework.Extensions.TypeExtensions;
 using System.Reflection;
 using System.Diagnostics;
+using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Transforms
 {
@@ -153,7 +154,11 @@ namespace osu.Framework.Graphics.Transforms
             accessor = getAccessor(propertyOrFieldName);
             Trace.Assert(accessor.Read != null && accessor.Write != null, $"Failed to populate {nameof(accessor)}.");
 
-            this.interpolationFunc = interpolationFunc ?? Interpolation<TValue>.ValueAt;
+            // Xamarin.iOS cannot AoT Interpolation<Color4>.ValueAt, so we must call it manually
+            if (!RuntimeInfo.SupportsJIT && typeof(TValue) == typeof(Color4))
+                this.interpolationFunc = interpolateColour;
+            else
+                this.interpolationFunc = interpolationFunc ?? Interpolation<TValue>.ValueAt;
 
             if (this.interpolationFunc == null)
                 throw new InvalidOperationException(
@@ -167,6 +172,9 @@ namespace osu.Framework.Graphics.Transforms
 
             return interpolationFunc(time, StartValue, EndValue, StartTime, EndTime, Easing);
         }
+
+        private TValue interpolateColour(double time, TValue startValue, TValue endValue, double startTime, double endTime, Easing easing = Easing.None) =>
+            (TValue)(object)Interpolation.ValueAt(time, (Color4)(object)startValue, (Color4)(object)endValue, startTime, endTime, easing);
 
         public override string TargetMember { get; }
 

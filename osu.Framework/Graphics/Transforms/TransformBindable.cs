@@ -3,6 +3,7 @@
 
 using osu.Framework.Configuration;
 using osu.Framework.MathUtils;
+using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Transforms
 {
@@ -17,7 +18,12 @@ namespace osu.Framework.Graphics.Transforms
         public TransformBindable(Bindable<TValue> targetBindable, InterpolationFunc<TValue> interpolationFunc)
         {
             this.targetBindable = targetBindable;
-            this.interpolationFunc = interpolationFunc ?? Interpolation<TValue>.ValueAt;
+
+            // Xamarin.iOS cannot AoT Interpolation<Color4>.ValueAt, so we must call it manually
+            if (!RuntimeInfo.SupportsJIT && typeof(TValue) == typeof(Color4))
+                this.interpolationFunc = interpolateColour;
+            else
+                this.interpolationFunc = interpolationFunc ?? Interpolation<TValue>.ValueAt;
 
             TargetMember = $"{targetBindable.GetHashCode()}.Value";
         }
@@ -29,6 +35,9 @@ namespace osu.Framework.Graphics.Transforms
 
             return interpolationFunc(time, StartValue, EndValue, StartTime, EndTime, Easing);
         }
+
+        private TValue interpolateColour(double time, TValue startValue, TValue endValue, double startTime, double endTime, Easing easing = Easing.None) =>
+            (TValue)(object)Interpolation.ValueAt(time, (Color4)(object)startValue, (Color4)(object)endValue, startTime, endTime, easing);
 
         protected override void Apply(T d, double time) => targetBindable.Value = valueAt(time);
         protected override void ReadIntoStartValue(T d) => StartValue = targetBindable.Value;
