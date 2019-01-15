@@ -174,7 +174,7 @@ namespace osu.Framework.Graphics
         private void unbindAllBindables()
         {
             if (unbindActions == null)
-           return;
+                return;
 
             foreach (var a in unbindActions)
                 a.Invoke(this);
@@ -1502,7 +1502,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Contains the colour and blending information of this <see cref="Drawable"/> that are used during draw.
         /// </summary>
-        public virtual DrawColourInfo DrawColourInfo => drawColourInfoBacking.IsValid? drawColourInfoBacking : drawColourInfoBacking.Value = computeDrawColourInfo();
+        public virtual DrawColourInfo DrawColourInfo => drawColourInfoBacking.IsValid ? drawColourInfoBacking : drawColourInfoBacking.Value = computeDrawColourInfo();
 
         private DrawColourInfo computeDrawColourInfo()
         {
@@ -1872,9 +1872,15 @@ namespace osu.Framework.Graphics
         public bool Click() => TriggerEvent(new ClickEvent(GetContainingInputManager()?.CurrentState ?? new InputState(), MouseButton.Left));
 
         #region Individual event handlers
+
         protected virtual bool OnMouseMove(MouseMoveEvent e) => Handle(e);
         protected virtual bool OnHover(HoverEvent e) => Handle(e);
-        protected virtual void OnHoverLost(HoverLostEvent e) { Handle(e); }
+
+        protected virtual void OnHoverLost(HoverLostEvent e)
+        {
+            Handle(e);
+        }
+
         protected virtual bool OnMouseDown(MouseDownEvent e) => Handle(e);
         protected virtual bool OnMouseUp(MouseUpEvent e) => Handle(e);
         protected virtual bool OnClick(ClickEvent e) => Handle(e);
@@ -1883,12 +1889,22 @@ namespace osu.Framework.Graphics
         protected virtual bool OnDrag(DragEvent e) => Handle(e);
         protected virtual bool OnDragEnd(DragEndEvent e) => Handle(e);
         protected virtual bool OnScroll(ScrollEvent e) => Handle(e);
-        protected virtual void OnFocus(FocusEvent e) { Handle(e); }
-        protected virtual void OnFocusLost(FocusLostEvent e) { Handle(e); }
+
+        protected virtual void OnFocus(FocusEvent e)
+        {
+            Handle(e);
+        }
+
+        protected virtual void OnFocusLost(FocusLostEvent e)
+        {
+            Handle(e);
+        }
+
         protected virtual bool OnKeyDown(KeyDownEvent e) => Handle(e);
         protected virtual bool OnKeyUp(KeyUpEvent e) => Handle(e);
         protected virtual bool OnJoystickPress(JoystickPressEvent e) => Handle(e);
         protected virtual bool OnJoystickRelease(JoystickReleaseEvent e) => Handle(e);
+
         #endregion
 
         /// <summary>
@@ -1985,6 +2001,7 @@ namespace osu.Framework.Graphics
                     value = compute(type, positional);
                     cache.TryAdd(type, value);
                 }
+
                 return value;
             }
 
