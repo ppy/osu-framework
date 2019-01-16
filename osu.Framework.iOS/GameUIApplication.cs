@@ -2,7 +2,6 @@
 using ObjCRuntime;
 using UIKit;
 using osu.Framework.Logging;
-using osu.Framework.Input;
 using System;
 using System.Runtime.InteropServices;
 
@@ -17,6 +16,7 @@ namespace osu.Framework.iOS {
         private static bool IS_64BIT = IntPtr.Size == 8;
 
         private static int GSEVENT_TYPE = 2;
+        private static int GSEVENT_FLAGS = IS_64BIT ? 10 : 12;
 
         private static int GSEVENT_KEYCODE = IS_64BIT ? (IS_IOS9 ? 13 : 19) : (IS_IOS7 ? 17 : 15);
 
@@ -33,19 +33,27 @@ namespace osu.Framework.iOS {
         [DllImport(LIBOBJC_DYLIB, EntryPoint = "objc_msgSendSuper")]
         public extern static void void_objc_msgSendSuper_intptr(IntPtr receiver, IntPtr selector, IntPtr arg1);
 
+        int lastEventFlags;
+
         unsafe void decodeKeyEvent(NSObject eventMem) {
             IntPtr* eventPtr = (IntPtr*)eventMem.Handle.ToPointer();
 
-            IntPtr eventType = eventPtr[GSEVENT_TYPE];
-            IntPtr eventScanCode = eventPtr[GSEVENT_KEYCODE];
+            int eventType = (int)eventPtr[GSEVENT_TYPE];
+            int eventModifier = (int)eventPtr[GSEVENT_FLAGS];
+            int eventScanCode = (int)eventPtr[GSEVENT_KEYCODE];
+            int eventLastModifier = lastEventFlags;
 
-            Logger.Log(string.Format("{0} : {1}", eventType, eventScanCode));
+            Logger.Log(string.Format("keyboard event: {0} - {1}", eventType, eventScanCode));
 
             // General key, modifiers ignored for now
-            if ((int)eventType == GSEVENT_TYPE_KEYDOWN) {
-                keyEvent((int)eventScanCode, true);
-            } else if ((int)eventType == GSEVENT_TYPE_KEYUP) {
-                keyEvent((int)eventScanCode, false);
+            if (eventType == GSEVENT_TYPE_KEYDOWN) {
+                keyEvent(eventScanCode, true);
+            } else if (eventType == GSEVENT_TYPE_KEYUP) {
+                keyEvent(eventScanCode, false);
+            } else if (IS_IOS9 && eventType == GSEVENT_TYPE_MODIFIER) {
+                bool pressed = (eventModifier != 0 && eventModifier > eventLastModifier);
+                keyEvent(eventScanCode, pressed);
+                lastEventFlags = eventModifier;
             }
         }
 
