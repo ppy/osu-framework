@@ -161,11 +161,16 @@ namespace osu.Framework.Graphics
             }
         }
 
+        private bool unbindComplete;
+
         /// <summary>
         /// Unbinds all <see cref="Bindable{T}"/>s stored as fields or properties in this <see cref="Drawable"/>.
         /// </summary>
         private void unbindAllBindables()
         {
+            if (unbindComplete) return;
+            unbindComplete = true;
+
             Type type = GetType();
 
             do

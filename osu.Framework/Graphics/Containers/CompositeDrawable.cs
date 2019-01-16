@@ -670,7 +670,7 @@ namespace osu.Framework.Graphics.Containers
 
         private void disposeChildAsync(Drawable drawable)
         {
-            UnbindAllBindables();
+            drawable.UnbindAllBindables();
             Task.Run(() => drawable.Dispose());
         }
 
