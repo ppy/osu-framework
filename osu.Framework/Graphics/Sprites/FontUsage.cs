@@ -14,6 +14,11 @@ namespace osu.Framework.Graphics.Sprites
         private const float default_text_size = 20;
 
         /// <summary>
+        /// Gets the default <see cref="FontUsage"/>, using the fallback font family.
+        /// </summary>
+        public static FontUsage Default => new FontUsage(null);
+
+        /// <summary>
         /// Creates an instance of <see cref="FontUsage"/> using the specified font <paramref name="family"/>, font <paramref name="weight"/> and a value indicating whether the used font is italic or not.
         /// </summary>
         /// <param name="family">The used font family.</param>
@@ -21,9 +26,9 @@ namespace osu.Framework.Graphics.Sprites
         /// <param name="weight">The used font weight.</param>
         /// <param name="italics">Whether the font is italic.</param>
         /// <param name="fixedWidth">Whether all characters should be spaced apart the same distance.</param>
-        public FontUsage([NotNull] string family, float size = default_text_size, [CanBeNull] string weight = null, bool italics = false, bool fixedWidth = false)
+        public FontUsage([CanBeNull] string family = null, float size = default_text_size, [CanBeNull] string weight = null, bool italics = false, bool fixedWidth = false)
         {
-            Family = string.IsNullOrEmpty(family) ? throw new ArgumentException("Cannot be null or empty.", nameof(family)) : family;
+            Family = family;
             Size = size >= 0 ? size : throw new ArgumentOutOfRangeException(nameof(size), "Must be non-negative.");
             Weight = weight;
             Italics = italics;
@@ -42,7 +47,7 @@ namespace osu.Framework.Graphics.Sprites
         /// <summary>
         /// Gets or sets the font family's name.
         /// </summary>
-        [NotNull]
+        [CanBeNull]
         public string Family { get; }
 
         /// <summary>
