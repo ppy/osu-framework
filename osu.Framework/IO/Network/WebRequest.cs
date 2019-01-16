@@ -454,6 +454,19 @@ namespace osu.Framework.IO.Network
                 }
 
                 logger.Add($"Request to {Url} failed with {e}.");
+
+                if (ResponseStream?.Length > 0)
+                {
+                    // in the case we fail a request, spitting out the response in the log is quite helpful.
+                    ResponseStream.Seek(0, SeekOrigin.Begin);
+                    using (StreamReader r = new StreamReader(ResponseStream, Encoding.UTF8))
+                    {
+                        char[] output = new char[1024];
+                        int read = r.ReadBlock(output, 0, 1024);
+                        string trimmedResponse = new string(output, 0, read);
+                        logger.Add($"Response was: {trimmedResponse}");
+                    }
+                }
             }
             else
                 logger.Add($@"Request to {Url} successfully completed!");
