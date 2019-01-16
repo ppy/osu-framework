@@ -187,7 +187,7 @@ namespace osu.Framework.Graphics.Sprites
         private bool useFullGlyphHeight = true;
 
         /// <summary>
-        /// True if the <see cref="SpriteText"/>'s vertical size should be equal to <see cref="Font.Size"/> (the full height) or precisely the size of used characters.
+        /// True if the <see cref="SpriteText"/>'s vertical size should be equal to Font.Size (the full height) or precisely the size of used characters.
         /// Set to false to allow better centering of individual characters/numerals/etc.
         /// </summary>
         public bool UseFullGlyphHeight
@@ -564,7 +564,7 @@ namespace osu.Framework.Graphics.Sprites
         protected virtual Texture GetFallbackTextureForCharacter(char c) => GetTextureForCharacter('?');
 
         /// <summary>
-        /// Whether the visual representation of a character should use fixed width when <see cref="Font.FixedWidth"/> is true.
+        /// Whether the visual representation of a character should use fixed width when Font.FixedWidth is true.
         /// By default, this includes the following characters, commonly used in numerical formatting: '.' ',' ':' and ' '
         /// </summary>
         /// <param name="c">The character.</param>
