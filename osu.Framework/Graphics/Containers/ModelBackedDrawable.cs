@@ -42,7 +42,9 @@ namespace osu.Framework.Graphics.Containers
                     return;
 
                 model = value;
-                updateDrawable();
+
+                if (IsLoaded)
+                    updateDrawable();
             }
         }
 
@@ -72,9 +74,12 @@ namespace osu.Framework.Graphics.Containers
         protected ModelBackedDrawable(IEqualityComparer<T> comparer)
         {
             Comparer = comparer;
+        }
 
-            DisplayedDrawable = CreateDrawable(null);
-            AddInternal(CreateDelayedLoadWrapper(DisplayedDrawable, 0));
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+            updateDrawable();
         }
 
         private void replaceDrawable(Drawable source, Drawable target, bool placeholder = false)

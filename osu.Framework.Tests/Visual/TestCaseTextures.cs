@@ -7,6 +7,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
+using osu.Framework.Platform;
 using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual
@@ -14,10 +15,20 @@ namespace osu.Framework.Tests.Visual
     public class TestCaseTextures : TestCase
     {
         [Cached]
-        private readonly TextureStore normalStore = new TextureStore(new TextureLoaderStore(new OnlineStore()));
+        private TextureStore normalStore;
 
         [Cached]
-        private readonly LargeTextureStore largeStore = new LargeTextureStore(new TextureLoaderStore(new OnlineStore()));
+        private LargeTextureStore largeStore;
+
+        protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent)
+        {
+            var host = parent.Get<GameHost>();
+
+            normalStore = new TextureStore(host.CreateTextureLoaderStore(new OnlineStore()));
+            largeStore = new LargeTextureStore(host.CreateTextureLoaderStore(new OnlineStore()));
+
+            return base.CreateChildDependencies(parent);
+        }
 
         /// <summary>
         /// Tests that a ref-counted texture is disposed when all references are lost.

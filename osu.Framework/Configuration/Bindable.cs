@@ -105,7 +105,7 @@ namespace osu.Framework.Configuration
 
         public static implicit operator T(Bindable<T> value) => value.Value;
 
-        protected WeakList<Bindable<T>> Bindings { get; private set; }
+        protected LockedWeakList<Bindable<T>> Bindings { get; private set; }
 
         void IBindable.BindTo(IBindable them)
         {
@@ -163,7 +163,7 @@ namespace osu.Framework.Configuration
         private void addWeakReference(WeakReference<Bindable<T>> weakReference)
         {
             if (Bindings == null)
-                Bindings = new WeakList<Bindable<T>>();
+                Bindings = new LockedWeakList<Bindable<T>>();
 
             Bindings.Add(weakReference);
         }

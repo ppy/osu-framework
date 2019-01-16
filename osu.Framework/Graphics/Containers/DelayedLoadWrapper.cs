@@ -75,7 +75,13 @@ namespace osu.Framework.Graphics.Containers
             timeVisible = 0;
             loadTask = null;
             AddInternal(content);
+            DelayedLoadComplete?.Invoke(content);
         }
+
+        /// <summary>
+        /// Fired when delayed async load completes. Should be used to perform transitions.
+        /// </summary>
+        public Action<Drawable> DelayedLoadComplete;
 
         /// <summary>
         /// True if the load task for our content has been started.

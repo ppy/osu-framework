@@ -205,19 +205,22 @@ namespace osu.Framework.Testing
 
             searchTextBox.Current.ValueChanged += newValue => leftFlowContainer.SearchTerm = newValue;
 
-            backgroundCompiler = new DynamicClassCompiler<TestCase>
+            if (RuntimeInfo.SupportsIL)
             {
-                CompilationStarted = compileStarted,
-                CompilationFinished = compileFinished,
-                CompilationFailed = compileFailed
-            };
-            try
-            {
-                backgroundCompiler.Start();
-            }
-            catch
-            {
-                //it's okay for this to fail for now.
+                backgroundCompiler = new DynamicClassCompiler<TestCase>
+                {
+                    CompilationStarted = compileStarted,
+                    CompilationFinished = compileFinished,
+                    CompilationFailed = compileFailed
+                };
+                try
+                {
+                    backgroundCompiler.Start();
+                }
+                catch
+                {
+                    //it's okay for this to fail for now.
+                }
             }
 
             foreach (Assembly asm in assemblies)
@@ -417,7 +420,7 @@ namespace osu.Framework.Testing
                     }
                 }
 
-                backgroundCompiler.Checkpoint(CurrentTest);
+                backgroundCompiler?.Checkpoint(CurrentTest);
                 runTests(onCompletion);
                 updateButtons();
             });

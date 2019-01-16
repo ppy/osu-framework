@@ -1,8 +1,11 @@
 ﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System.IO;
 using System.Threading.Tasks;
 using osu.Framework.IO.Stores;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Graphics.Textures
 {
@@ -26,7 +29,7 @@ namespace osu.Framework.Graphics.Textures
                 using (var stream = store.GetStream(name))
                 {
                     if (stream != null)
-                        return new TextureUpload(stream);
+                        return new TextureUpload(ImageFromStream<Rgba32>(stream));
                 }
             }
             catch
@@ -35,5 +38,8 @@ namespace osu.Framework.Graphics.Textures
 
             return null;
         }
+
+        protected virtual Image<TPixel> ImageFromStream<TPixel>(Stream stream) where TPixel : struct, IPixel<TPixel>
+            => Image.Load<TPixel>(stream);
     }
 }
