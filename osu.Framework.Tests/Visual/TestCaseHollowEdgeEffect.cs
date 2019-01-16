@@ -58,7 +58,7 @@ namespace osu.Framework.Tests.Visual
                     new SpriteText
                     {
                         Text = $"{nameof(CornerRadius)}={cornerRadii[i]} {nameof(Alpha)}={alphas[i]}",
-                        TextSize = 20,
+                        Font = new FontUsage(size: 20),
                     },
                     new Container
                     {

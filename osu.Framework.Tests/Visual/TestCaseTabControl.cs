@@ -162,7 +162,7 @@ namespace osu.Framework.Tests.Visual
                     {
                         Margin = new MarginPadding(2),
                         Text = value.ToString(),
-                        TextSize = 18
+                        Font = new FontUsage(size: 18),
                     }
                 };
             }

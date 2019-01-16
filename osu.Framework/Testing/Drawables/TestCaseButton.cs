@@ -10,6 +10,7 @@ using osu.Framework.Graphics.Shapes;
 using osuTK.Graphics;
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
 
 namespace osu.Framework.Testing.Drawables
@@ -90,7 +91,7 @@ namespace osu.Framework.Testing.Drawables
             if (description != null)
             {
                 text.NewLine();
-                text.AddText(description, t => t.TextSize = 15);
+                text.AddText(description, t => t.Font = new FontUsage(size: 15));
             }
         }
 

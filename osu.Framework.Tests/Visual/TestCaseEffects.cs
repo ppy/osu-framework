@@ -41,7 +41,7 @@ namespace osu.Framework.Tests.Visual
                     new SpriteText
                     {
                         Text = "Blur Test",
-                        TextSize = 32f
+                        Font = new FontUsage(size: 32),
                     }.WithEffect(new BlurEffect
                     {
                         Sigma = new Vector2(2f, 0f),
@@ -51,7 +51,7 @@ namespace osu.Framework.Tests.Visual
                     new SpriteText
                     {
                         Text = "EdgeEffect Test",
-                        TextSize = 32f
+                        Font = new FontUsage(size: 32),
                     }.WithEffect(new EdgeEffect
                     {
                         CornerRadius = 3f,
@@ -66,22 +66,22 @@ namespace osu.Framework.Tests.Visual
                     new SpriteText
                     {
                         Text = "Repeated usage of same effect test",
-                        TextSize = 32f
+                        Font = new FontUsage(size: 32),
                     }.WithEffect(effect),
                     new SpriteText
                     {
                         Text = "Repeated usage of same effect test",
-                        TextSize = 32f
+                        Font = new FontUsage(size: 32),
                     }.WithEffect(effect),
                     new SpriteText
                     {
                         Text = "Repeated usage of same effect test",
-                        TextSize = 32f
+                        Font = new FontUsage(size: 32),
                     }.WithEffect(effect),
                     new SpriteText
                     {
                         Text = "Multiple effects Test",
-                        TextSize = 32f
+                        Font = new FontUsage(size: 32),
                     }.WithEffect(new BlurEffect
                     {
                         Sigma = new Vector2(2f, 2f),
@@ -110,7 +110,7 @@ namespace osu.Framework.Tests.Visual
                             new SpriteText
                             {
                                 Text = "Outlined Text",
-                                TextSize = 32f
+                                Font = new FontUsage(size: 32),
                             }.WithEffect(new OutlineEffect
                             {
                                 BlurSigma = new Vector2(3f),
@@ -133,7 +133,7 @@ namespace osu.Framework.Tests.Visual
                             new SpriteText
                             {
                                 Text = "Glowing Text",
-                                TextSize = 32f,
+                                Font = new FontUsage(size: 32),
                             }.WithEffect(new GlowEffect
                             {
                                 BlurSigma = new Vector2(3f),
@@ -166,7 +166,7 @@ namespace osu.Framework.Tests.Visual
                                 Anchor = Anchor.Centre,
                                 Origin = Anchor.Centre,
                                 Text = "Absolute Size",
-                                TextSize = 32f,
+                                Font = new FontUsage(size: 32),
                                 Colour = Color4.Red,
                                 Shadow = true,
                             }
@@ -196,7 +196,7 @@ namespace osu.Framework.Tests.Visual
                                 Anchor = Anchor.Centre,
                                 Origin = Anchor.Centre,
                                 Text = "Relative Size",
-                                TextSize = 32f,
+                                Font = new FontUsage(size: 32),
                                 Colour = Color4.Red,
                                 Shadow = true,
                             },
@@ -227,7 +227,7 @@ namespace osu.Framework.Tests.Visual
                                 Anchor = Anchor.Centre,
                                 Origin = Anchor.Centre,
                                 Text = "Rotation",
-                                TextSize = 32f,
+                                Font = new FontUsage(size: 32),
                                 Colour = Color4.Red,
                                 Shadow = true,
                             },

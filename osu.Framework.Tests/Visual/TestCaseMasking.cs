@@ -259,7 +259,7 @@ namespace osu.Framework.Tests.Visual
                                     new SpriteText
                                     {
                                         Text = @"Size: " + size + ", Scale: " + scale,
-                                        TextSize = 20 / scale,
+                                        Font = new FontUsage(size: 20 / scale),
                                         Colour = Color4.Blue,
                                         Anchor = Anchor.Centre,
                                         Origin = Anchor.Centre,

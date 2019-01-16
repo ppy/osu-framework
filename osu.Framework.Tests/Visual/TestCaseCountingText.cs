@@ -90,7 +90,7 @@ namespace osu.Framework.Tests.Visual
         public TestTextCounter(Func<double, string> resultFunction)
         {
             this.resultFunction = resultFunction;
-            AddInternal(text = new SpriteText { TextSize = 24 });
+            AddInternal(text = new SpriteText { Font = new FontUsage(size: 24) });
         }
 
         protected override void OnCountChanged(double count) => text.Text = resultFunction(count);

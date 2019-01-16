@@ -40,7 +40,7 @@ namespace osu.Framework.Tests.Visual
                         text = new SpriteText
                         {
                             Text = "Hello world!",
-                            TextSize = 12,
+                            Font = new FontUsage(size: 12),
                         }
                     }
                 };
@@ -79,7 +79,7 @@ namespace osu.Framework.Tests.Visual
                         text = new AlwaysPresentSpriteText
                         {
                             Text = "Hello world!",
-                            TextSize = 12,
+                            Font = new FontUsage(size: 12),
                         }
                     }
                 };

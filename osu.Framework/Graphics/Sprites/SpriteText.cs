@@ -114,21 +114,6 @@ namespace osu.Framework.Graphics.Sprites
             set => Text = value;
         }
 
-        /// <summary>
-        /// The size of the text in local space. This means that if TextSize is set to 16, a single line will have a height of 16.
-        /// </summary>
-        public float TextSize
-        {
-            get => Font.Size;
-            set
-            {
-                if (TextSize == value)
-                    return;
-
-                Font = new FontUsage(Font.Family, value, Font.Weight, Font.Italics, Font.FixedWidth);
-            }
-        }
-
         private FontUsage font = FontUsage.Default;
 
         /// <summary>
@@ -202,7 +187,7 @@ namespace osu.Framework.Graphics.Sprites
         private bool useFullGlyphHeight = true;
 
         /// <summary>
-        /// True if the <see cref="SpriteText"/>'s vertical size should be equal to <see cref="TextSize"/> (the full height) or precisely the size of used characters.
+        /// True if the <see cref="SpriteText"/>'s vertical size should be equal to <see cref="Font.Size"/> (the full height) or precisely the size of used characters.
         /// Set to false to allow better centering of individual characters/numerals/etc.
         /// </summary>
         public bool UseFullGlyphHeight
@@ -215,21 +200,6 @@ namespace osu.Framework.Graphics.Sprites
                 useFullGlyphHeight = value;
 
                 invalidate(true);
-            }
-        }
-
-        /// <summary>
-        /// True if all characters should be spaced apart the same distance.
-        /// </summary>
-        public bool FixedWidth
-        {
-            get => Font.FixedWidth;
-            set
-            {
-                if (FixedWidth == value)
-                    return;
-
-                Font = new FontUsage(Font.Family, Font.Size, Font.Weight, font.Italics, value);
             }
         }
 
@@ -393,9 +363,9 @@ namespace osu.Framework.Graphics.Sprites
 
                 foreach (var character in displayedText)
                 {
-                    bool useFixedWidth = FixedWidth && UseFixedWidthForCharacter(character);
+                    bool useFixedWidth = Font.FixedWidth && UseFixedWidthForCharacter(character);
 
-                    // Unscaled size (i.e. not multiplied by TextSize)
+                    // Unscaled size (i.e. not multiplied by Font.Size)
                     Vector2 textureSize;
                     Texture texture = null;
 
@@ -419,10 +389,10 @@ namespace osu.Framework.Graphics.Sprites
                     }
 
                     // Scaled glyph size to be used for positioning
-                    Vector2 glyphSize = new Vector2(useFixedWidth ? constantWidth : textureSize.X, UseFullGlyphHeight ? 1 : textureSize.Y) * TextSize;
+                    Vector2 glyphSize = new Vector2(useFixedWidth ? constantWidth : textureSize.X, UseFullGlyphHeight ? 1 : textureSize.Y) * Font.Size;
 
-                    // Texture size scaled by TextSize
-                    Vector2 scaledTextureSize = textureSize * TextSize;
+                    // Texture size scaled by Font.Size
+                    Vector2 scaledTextureSize = textureSize * Font.Size;
 
                     // Check if we need to go onto the next line
                     if (AllowMultiline && currentPos.X + glyphSize.X >= maxWidth)
@@ -506,7 +476,7 @@ namespace osu.Framework.Graphics.Sprites
         private float constantWidth => constantWidthCache.IsValid ? constantWidthCache.Value : constantWidthCache.Value = GetTextureForCharacter('D')?.DisplayWidth ?? 0;
 
         private Cached<Vector2> shadowOffsetCache;
-        private Vector2 shadowOffset => shadowOffsetCache.IsValid ? shadowOffsetCache.Value : shadowOffsetCache.Value = ToScreenSpace(shadow_offset * TextSize) - ToScreenSpace(Vector2.Zero);
+        private Vector2 shadowOffset => shadowOffsetCache.IsValid ? shadowOffsetCache.Value : shadowOffsetCache.Value = ToScreenSpace(shadow_offset * Font.Size) - ToScreenSpace(Vector2.Zero);
 
         #endregion
 
@@ -594,7 +564,7 @@ namespace osu.Framework.Graphics.Sprites
         protected virtual Texture GetFallbackTextureForCharacter(char c) => GetTextureForCharacter('?');
 
         /// <summary>
-        /// Whether the visual representation of a character should use fixed width when <see cref="FixedWidth"/> is true.
+        /// Whether the visual representation of a character should use fixed width when <see cref="Font.FixedWidth"/> is true.
         /// By default, this includes the following characters, commonly used in numerical formatting: '.' ',' ':' and ' '
         /// </summary>
         /// <param name="c">The character.</param>
@@ -627,12 +597,12 @@ namespace osu.Framework.Graphics.Sprites
             {
                 var baseHeight = store.GetBaseHeight(Font.FontName);
                 if (baseHeight.HasValue)
-                    return baseHeight.Value * TextSize;
+                    return baseHeight.Value * Font.Size;
 
                 if (string.IsNullOrEmpty(displayedText))
                     return 0;
 
-                return store.GetBaseHeight(displayedText[0]).GetValueOrDefault() * TextSize;
+                return store.GetBaseHeight(displayedText[0]).GetValueOrDefault() * Font.Size;
             }
         }
 

@@ -91,7 +91,7 @@ namespace osu.Framework.Tests.Visual
                     new SpriteText
                     {
                         Text = labels[i],
-                        TextSize = 20,
+                        Font = new FontUsage(size: 20),
                     },
                     boxes[i] = new Container
                     {

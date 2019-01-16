@@ -49,7 +49,7 @@ namespace osu.Framework.Tests.Visual
                     new SpriteText
                     {
                         Text = labels[i],
-                        TextSize = 20,
+                        Font = new FontUsage(size: 20),
                     },
                     box = new ContainingBox(i >= 6, i >= 8)
                     {
@@ -141,7 +141,7 @@ namespace osu.Framework.Tests.Visual
                         Colour = Color4.Black,
                         Origin = Anchor.Centre,
                         Anchor = Anchor.Centre,
-                        TextSize = 80
+                        Font = new FontUsage(size: 80),
                     }
                 };
             }

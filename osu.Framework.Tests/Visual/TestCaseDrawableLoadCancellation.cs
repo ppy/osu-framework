@@ -141,7 +141,7 @@ namespace osu.Framework.Tests.Visual
                     {
                         Text = id.ToString(),
                         Colour = Color4.Black,
-                        TextSize = 50,
+                        Font = new FontUsage(size: 50),
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre
                     }
