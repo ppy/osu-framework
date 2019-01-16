@@ -1,4 +1,7 @@
-﻿using Foundation;
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+
+using Foundation;
 using ObjCRuntime;
 using UIKit;
 using osu.Framework.Logging;
@@ -6,10 +9,8 @@ using System;
 using System.Runtime.InteropServices;
 
 namespace osu.Framework.iOS {
-
     [Register("GameUIApplication")]
     public class GameUIApplication : UIApplication {
-
         private static bool IS_IOS7 = new NSProcessInfo().IsOperatingSystemAtLeastVersion(new NSOperatingSystemVersion(7, 0, 0));
         private static bool IS_IOS9 = new NSProcessInfo().IsOperatingSystemAtLeastVersion(new NSOperatingSystemVersion(9, 0, 0));
 
@@ -45,12 +46,13 @@ namespace osu.Framework.iOS {
 
             Logger.Log(string.Format("keyboard event: {0} - {1}", eventType, eventScanCode));
 
-            // General key, modifiers ignored for now
             if (eventType == GSEVENT_TYPE_KEYDOWN) {
                 keyEvent(eventScanCode, true);
-            } else if (eventType == GSEVENT_TYPE_KEYUP) {
+            } else
+            if (eventType == GSEVENT_TYPE_KEYUP) {
                 keyEvent(eventScanCode, false);
-            } else if (IS_IOS9 && eventType == GSEVENT_TYPE_MODIFIER) {
+            } else
+            if (IS_IOS9 && eventType == GSEVENT_TYPE_MODIFIER) {
                 bool pressed = (eventModifier != 0 && eventModifier > eventLastModifier);
                 keyEvent(eventScanCode, pressed);
                 lastEventFlags = eventModifier;

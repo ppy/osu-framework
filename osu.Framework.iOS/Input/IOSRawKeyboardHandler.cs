@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) 2007-2018 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+
 using System.Collections.Generic;
 using UIKit;
 using osu.Framework.Input.Handlers;
@@ -8,7 +10,6 @@ using osuTK.Input;
 
 namespace osu.Framework.iOS.Input {
     public class IOSRawKeyboardHandler : InputHandler {
-
         public override bool IsActive => true;
 
         public override int Priority => 0;
