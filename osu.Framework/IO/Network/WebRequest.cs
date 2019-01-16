@@ -465,6 +465,8 @@ namespace osu.Framework.IO.Network
                         int read = r.ReadBlock(output, 0, 1024);
                         string trimmedResponse = new string(output, 0, read);
                         logger.Add($"Response was: {trimmedResponse}");
+                        if (read == 1024)
+                            logger.Add("(Response was trimmed)");
                     }
                 }
             }
