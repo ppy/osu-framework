@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics.Containers
         /// Children of this <see cref="ICachedModelComposite{TModel}"/> can resolve the cached members by using <see cref="ResolvedAttribute.Parent"/> = typeof(<see cref="TModel"/>).
         /// Any non-bindable members are not updated in children when this value is set.
         /// </remarks>
-        TModel Model { get; set; }
+        TModel Model { set; }
 
         /// <summary>
         /// The <see cref="TModel"/> which is cached. All <see cref="IBindable"/>s in this object are bound to those of <see cref="Model"/>.

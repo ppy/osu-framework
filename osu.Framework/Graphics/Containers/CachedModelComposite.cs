@@ -18,13 +18,12 @@ namespace osu.Framework.Graphics.Containers
 
         public TModel Model
         {
-            get => model;
             set
             {
                 if (EqualityComparer<TModel>.Default.Equals(model, value))
                     return;
 
-                var lastModel = Model;
+                var lastModel = model;
 
                 model = value;
 
