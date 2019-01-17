@@ -1,9 +1,11 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
+using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Testing;
 
@@ -12,217 +14,183 @@ namespace osu.Framework.Tests.Visual
     public class TestCaseCachedModelContainer : TestCase
     {
         [Test]
-        public void TestNoModel()
+        public void TestModelWithNonBindableFieldsFails()
         {
-            TestDerivedResolver resolver = null;
-
-            AddStep("setup", () => Child = new CachedModelContainer<TestDerivedModel> { Child = resolver = new TestDerivedResolver() });
-            AddAssert("resolver has default values", () => allEqual(0, resolver));
+            Assert.Throws<TypeInitializationException>(() => Child = new CachedModelComposite<NonBindablePublicFieldModel>());
+            Assert.Throws<TypeInitializationException>(() => Child = new CachedModelComposite<NonBindablePrivateFieldModel>());
         }
 
         [Test]
-        public void TestSingleModel()
+        public void TestSettingNoModelResolvesDefault()
         {
-            var model = new TestModel { Value = 1 };
-            TestResolver resolver = null;
+            FieldModelResolver resolver = null;
 
-            AddStep("setup", () => Child = new CachedModelContainer<TestModel>
+            AddStep("initialise", () => Child = new CachedModelContainer<FieldModel> { Child = resolver = new FieldModelResolver() });
+            AddAssert("resolved default bindable", () => resolver.Bindable.Value == 1);
+        }
+
+        [Test]
+        public void TestModelWithBindableFieldsPropagatesToChildren()
+        {
+            FieldModelResolver resolver = null;
+
+            AddStep("initialise", () => Child = new CachedModelContainer<FieldModel>
             {
-                Model = model,
-                Child = resolver = new TestResolver()
+                Model = new FieldModel { Bindable = { Value = 2 } },
+                Child = resolver = new FieldModelResolver()
             });
 
-            AddAssert("all values == 1", () => allEqual(1, resolver));
-            AddStep("set model value = 2", () => model.Value = 2);
-            AddAssert("all values == 2 (change)", () => allEqual(2, resolver));
+            AddAssert("resolved bindable value = 2", () => resolver.Bindable.Value == 2);
         }
 
         [Test]
-        public void TestSingleDerivedModel()
+        public void TestModelWithBindablePropertiesPropagatesToChildren()
         {
-            var model = new TestDerivedModel { Value = 1 };
-            TestDerivedResolver resolver = null;
+            PropertyModelResolver resolver = null;
 
-            AddStep("setup", () => Child = new CachedModelContainer<TestDerivedModel>
+            AddStep("initialise", () => Child = new CachedModelContainer<PropertyModel>
             {
-                Model = model,
-                Child = resolver = new TestDerivedResolver()
+                Model = new PropertyModel { Bindable = { Value = 2 } },
+                Child = resolver = new PropertyModelResolver()
             });
 
-            AddAssert("all values == 1", () => allEqual(1, resolver));
-            AddStep("set model value = 2", () => model.Value = 2);
-            AddAssert("all values == 2 (change)", () => allEqual(2, resolver));
+            AddAssert("resolved bindable value = 2", () => resolver.Bindable.Value == 2);
         }
 
         [Test]
-        public void TestChangeModel()
+        public void TestChangeModelValuePropagatesToChildren()
         {
-            var model1 = new TestDerivedModel { Value = 1 };
-            var model2 = new TestDerivedModel { Value = 2 };
+            CachedModelContainer<FieldModel> container = null;
+            FieldModelResolver resolver = null;
 
-            CachedModelContainer<TestDerivedModel> container = null;
-            TestDerivedResolver resolver = null;
+            AddStep("initialise", () => Child = container = new CachedModelContainer<FieldModel>
+            {
+                Model = new FieldModel { Bindable = { Value = 2 } },
+                Child = resolver = new FieldModelResolver()
+            });
 
-            AddStep("setup", () => Child = container = new CachedModelContainer<TestDerivedModel>
+            AddStep("change model value to 3", () => container.Model.Bindable.Value = 3);
+            AddAssert("resolved bindable value = 3", () => resolver.Bindable.Value == 3);
+        }
+
+        [Test]
+        public void TestSubClassedModelCachedAllSuperClasses()
+        {
+            CachedModelContainer<DerivedFieldModel> container = null;
+            DerivedFieldModelResolver resolver = null;
+
+            AddStep("initialise", () => Child = container = new CachedModelContainer<DerivedFieldModel>
+            {
+                Model = new DerivedFieldModel { Bindable = { Value = 2 } },
+                Child = resolver = new DerivedFieldModelResolver()
+            });
+
+            AddStep("change model value to 3", () =>
+            {
+                container.Model.Bindable.Value = 3;
+                container.Model.BindableString.Value = "3";
+            });
+
+            AddAssert("resolved bindable value = 3", () => resolver.Bindable.Value == 3 && resolver.BindableString.Value == "3");
+        }
+
+        [Test]
+        public void TestChangeModelPropagatesAllChanges()
+        {
+            CachedModelContainer<FieldModel> container = null;
+            FieldModelResolver resolver = null;
+
+            var model1 = new FieldModel { Bindable = { Value = 2 } };
+            var model2 = new FieldModel { Bindable = { Value = 3 } };
+
+            AddStep("initialise", () => Child = container = new CachedModelContainer<FieldModel>
             {
                 Model = model1,
-                Child = resolver = new TestDerivedResolver()
+                Child = resolver = new FieldModelResolver()
             });
 
-            AddAssert("all values == 1", () => allEqual(1, resolver));
-
             AddStep("change model", () => container.Model = model2);
-            AddAssert("all bindable values == 2", () => allBindablesEqual(2, resolver));
-            AddAssert("all field values == 1", () => allFieldsEqual(1, resolver));
+            AddAssert("resolved bindable value = 3", () => resolver.Bindable.Value == 3 );
 
-            AddStep("set first model value = 3", () => model1.Value = 3);
-            AddAssert("all bindable values == 2 (no change)", () => allBindablesEqual(2, resolver));
-            AddAssert("all field values == 3 (change)", () => allFieldsEqual(3, resolver));
+            AddStep("change model1 value to 4", () => model1.Bindable.Value = 4);
+            AddAssert("resolved bindable value = 3", () => resolver.Bindable.Value == 3 );
 
-            AddStep("set second model value = 3", () => model2.Value = 3);
-            AddAssert("all bindable values == 3 (change)", () => allBindablesEqual(3, resolver));
-            AddAssert("all field values == 3 (change)", () => allFieldsEqual(3, resolver));
+            AddStep("change model2 value to 4", () => model2.Bindable.Value = 4);
+            AddAssert("resolved bindable value = 4", () => resolver.Bindable.Value == 4 );
         }
 
         [Test]
-        public void TestNullModel()
+        public void TestSetModelToNullAfterResolved()
         {
-            var model = new TestDerivedModel { Value = 1 };
+            CachedModelContainer<FieldModel> container = null;
+            FieldModelResolver resolver = null;
 
-            CachedModelContainer<TestDerivedModel> container = null;
-            TestDerivedResolver resolver = null;
+            var model = new FieldModel { Bindable = { Value = 2 } };
 
-            AddStep("setup", () => Child = container = new CachedModelContainer<TestDerivedModel>
+            AddStep("initialise", () => Child = container = new CachedModelContainer<FieldModel>
             {
                 Model = model,
-                Child = resolver = new TestDerivedResolver()
+                Child = resolver = new FieldModelResolver()
             });
 
-            AddAssert("all values == 1", () => allEqual(1, resolver));
+            AddStep("set model to null", () => container.Model = null);
+            AddAssert("resolved bindable value = 2", () => resolver.Bindable.Value == 2);
 
-            AddStep("change model to null", () => container.Model = null);
-            AddAssert("all values == 1", () => allEqual(1, resolver));
-
-            AddStep("set model value = 2", () => model.Value = 2);
-            AddAssert("all bindable values == 1", () => allBindablesEqual(1, resolver));
-            AddAssert("all fields values == 2", () => allFieldsEqual(2, resolver));
+            AddStep("change model value to 3", () => model.Bindable.Value = 3);
+            AddAssert("resolved bindable value = 2", () => resolver.Bindable.Value == 2);
         }
 
-        private bool allBindablesEqual(int value, TestResolver resolver)
-            => resolver.CachedBindable1.Value == value && resolver.CachedBindable2.Value == value;
-
-        private bool allFieldsEqual(int value, TestResolver resolver)
-            => resolver.CachedField1.Value == value && resolver.CachedField2.Value == value;
-
-        private bool allBindablesEqual(int value, TestDerivedResolver resolver)
-            => resolver.CachedBindable1.Value == value && resolver.CachedBindable2.Value == value && resolver.CachedBindable3.Value == value;
-
-        private bool allFieldsEqual(int value, TestDerivedResolver resolver)
-            => resolver.CachedField1.Value == value && resolver.CachedField2.Value == value && resolver.CachedField3.Value == value;
-
-        private bool allEqual(int value, TestResolver resolver) => allBindablesEqual(value, resolver) && allFieldsEqual(value, resolver);
-
-        private bool allEqual(int value, TestDerivedResolver resolver) => allBindablesEqual(value, resolver) && allFieldsEqual(value, resolver);
-
-        private class TestModel
+        private class NonBindablePublicFieldModel
         {
-            private int value;
-
-            public virtual int Value
-            {
-                get => value;
-                set
-                {
-                    this.value = value;
-
-                    CachedBindable1.Value = value;
-                    CachedBindable2.Value = value;
-                    CachedField1.Value = value;
-                    CachedField2.Value = value;
-                }
-            }
-
-            [Cached]
-            public readonly Bindable<int> CachedBindable1 = new Bindable<int>();
-
-            [Cached]
-            private Bindable<int> cachedBindable2 = new Bindable<int>();
-
-            public Bindable<int> CachedBindable2 => cachedBindable2;
-
-            [Cached]
-            public FieldWrapper CachedField1 { get; private set; } = new FieldWrapper();
-
-            [Cached]
-            private FieldWrapper cachedField2 { get; set; } = new FieldWrapper();
-
-            public FieldWrapper CachedField2
-            {
-                get => cachedField2;
-                set => cachedField2 = value;
-            }
+#pragma warning disable 649
+            public int FailingField;
+#pragma warning restore 649
         }
 
-        private class TestDerivedModel : TestModel
+        private class NonBindablePrivateFieldModel
         {
-            public override int Value
-            {
-                get => base.Value;
-                set
-                {
-                    base.Value = value;
+#pragma warning disable 169
+            private int failingField;
+#pragma warning restore 169
+        }
 
-                    CachedBindable3.Value = value;
-                    CachedField3.Value = value;
-                }
-            }
-
+        private class FieldModel
+        {
             [Cached]
-            public readonly Bindable<int> CachedBindable3 = new Bindable<int>();
+            public readonly Bindable<int> Bindable = new Bindable<int>(1);
+        }
 
+        private class PropertyModel
+        {
             [Cached]
-            public FieldWrapper CachedField3 { get; private set; } = new FieldWrapper();
+            public Bindable<int> Bindable { get; private set; } = new Bindable<int>(1);
         }
 
-        private class TestResolver : CompositeDrawable
+        private class DerivedFieldModel : FieldModel
         {
-            [Resolved(typeof(TestModel))]
-            public Bindable<int> CachedBindable1 { get; private set; }
-
-            [Resolved(typeof(TestModel), "cachedBindable2")]
-            public Bindable<int> CachedBindable2 { get; private set; }
-
-            [Resolved(typeof(TestModel))]
-            public FieldWrapper CachedField1 { get; private set; }
-
-            [Resolved(typeof(TestModel), "cachedField2")]
-            public FieldWrapper CachedField2 { get; private set; }
+            [Cached]
+            public readonly Bindable<string> BindableString = new Bindable<string>();
         }
 
-        private class TestDerivedResolver : CompositeDrawable
+        private class FieldModelResolver : Drawable
         {
-            [Resolved(typeof(TestDerivedModel))]
-            public Bindable<int> CachedBindable1 { get; private set; }
-
-            [Resolved(typeof(TestDerivedModel), "cachedBindable2")]
-            public Bindable<int> CachedBindable2 { get; private set; }
-
-            [Resolved(typeof(TestDerivedModel), canBeNull: true)]
-            public Bindable<int> CachedBindable3 { get; private set; }
-
-            [Resolved(typeof(TestDerivedModel))]
-            public FieldWrapper CachedField1 { get; private set; }
-
-            [Resolved(typeof(TestDerivedModel), "cachedField2")]
-            public FieldWrapper CachedField2 { get; private set; }
-
-            [Resolved(typeof(TestDerivedModel))]
-            public FieldWrapper CachedField3 { get; private set; }
+            [Resolved(typeof(FieldModel))]
+            public Bindable<int> Bindable { get; private set; }
         }
 
-        private class FieldWrapper
+        private class PropertyModelResolver : Drawable
         {
-            public int Value;
+            [Resolved(typeof(PropertyModel))]
+            public Bindable<int> Bindable { get; private set; }
+        }
+
+        private class DerivedFieldModelResolver : Drawable
+        {
+            [Resolved(typeof(DerivedFieldModel))]
+            public Bindable<int> Bindable { get; private set; }
+
+            [Resolved(typeof(DerivedFieldModel))]
+            public Bindable<string> BindableString { get; private set; }
         }
     }
 }

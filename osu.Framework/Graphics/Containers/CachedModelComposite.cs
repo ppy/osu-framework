@@ -9,6 +9,11 @@ namespace osu.Framework.Graphics.Containers
     public class CachedModelComposite<TModel> : CompositeDrawable, ICachedModelComposite<TModel>
         where TModel : new()
     {
+        static CachedModelComposite()
+        {
+            CachedModelCompositeExtensions.VerifyModelType(typeof(TModel));
+        }
+
         private TModel model;
 
         public TModel Model

@@ -3,7 +3,6 @@
 
 using System;
 using System.Diagnostics;
-using System.Linq;
 using System.Reflection;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
@@ -19,14 +18,6 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public static IReadOnlyDependencyContainer CreateDependencies<TModel>(this ICachedModelComposite<TModel> composite, IReadOnlyDependencyContainer parent)
             where TModel : new()
-            => new DelegatingDependencyContainer
-            {
-                Target = createDependencies(composite, parent),
-                TargetParent = parent
-            };
-
-        private static IReadOnlyDependencyContainer createDependencies<TModel>(ICachedModelComposite<TModel> composite, IReadOnlyDependencyContainer parent)
-            where TModel : new()
             => DependencyActivator.MergeDependencies(composite.ShadowModel, parent, new CacheInfo(parent: typeof(TModel)));
 
         /// <summary>
@@ -35,10 +26,7 @@ namespace osu.Framework.Graphics.Containers
         public static void UpdateShadowModel<TModel>(this ICachedModelComposite<TModel> composite, TModel lastModel, TModel newModel)
             where TModel : new()
         {
-            // The following code performs the following tasks:
-            // 1. Copy all non-bindable fields from the new model into the shadow model, so subclasses can reference ShadowModel.{Field}
-            // 2. Re-bind all IBindable fields and properties in the shadow model to point to the new model, so that children's bindables are updated
-            // 3. Reconstruct the dependencies so children can retrieve updated dependencies through dependencies.Get()
+            // Due to static-constructor checks, we are guaranteed that all fields will be IBindable
 
             var type = typeof(TModel);
             while (type != typeof(object))
@@ -46,32 +34,10 @@ namespace osu.Framework.Graphics.Containers
                 Debug.Assert(type != null);
 
                 foreach (var field in type.GetFields(activator_flags))
-                {
-                    if (newModel != null)
-                    {
-                        // Copy non-bindable field to the shadow model
-                        var newValue = field.GetValue(newModel);
-                        if (!(newValue is IBindable))
-                            field.SetValue(composite.ShadowModel, newValue);
-                    }
-
-                    if (field.GetCustomAttributes<CachedAttribute>().Any())
-                        rebind(field);
-                }
-
-                foreach (var property in type.GetProperties(activator_flags))
-                {
-                    if (property.GetCustomAttributes<CachedAttribute>().Any())
-                        rebind(property);
-                }
+                    rebind(field);
 
                 type = type.BaseType;
             }
-
-            // Re-cache the shadow model to update non-bindable dependencies
-            var dependencies = (composite as CompositeDrawable)?.Dependencies;
-            if (dependencies is DelegatingDependencyContainer delegatingDependencies)
-                delegatingDependencies.Target = createDependencies(composite, delegatingDependencies.TargetParent);
 
             void rebind(MemberInfo member)
             {
@@ -106,26 +72,19 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private class DelegatingDependencyContainer : IReadOnlyDependencyContainer
+        public static void VerifyModelType(Type type)
         {
-            /// <summary>
-            /// The <see cref="IReadOnlyDependencyContainer"/> target for delegation.
-            /// </summary>
-            public IReadOnlyDependencyContainer Target;
+            while (type != null && type != typeof(object))
+            {
+                foreach (var field in type.GetFields(activator_flags))
+                {
+                    if (!typeof(IBindable).IsAssignableFrom(field.FieldType))
+                        throw new InvalidOperationException($"The field \"{field.Name}\" does not subclass {nameof(IBindable)}. "
+                                                            + $"All fields or auto-properties of a cached model container's model must subclass {nameof(IBindable)}");
+                }
 
-            /// <summary>
-            /// The parent of <see cref="Target"/>.
-            /// </summary>
-            public IReadOnlyDependencyContainer TargetParent;
-
-            public object Get(Type type)
-                => Target.Get(type);
-
-            public object Get(Type type, CacheInfo info)
-                => Target.Get(type, info);
-
-            public void Inject<T>(T instance) where T : class
-                => Target.Inject(instance);
+                type = type.BaseType;
+            }
         }
     }
 }

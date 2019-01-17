@@ -78,22 +78,6 @@ namespace osu.Framework.Extensions.TypeExtensions
         /// </summary>
         /// <remarks>See: https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/nullable-types/how-to-identify-a-nullable-type</remarks>
         public static bool IsNullable(this Type type) => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>);
-
-        /// <summary>
-        /// Creates a new object by shallow-cloning an existing object.
-        /// </summary>
-        /// <param name="existing">The existing object.</param>
-        /// <typeparam name="T">The type of object to clone.</typeparam>
-        /// <returns>A shallow-copied clone of <paramref name="existing"/>.</returns>
-        public static T Clone<T>(T existing)
-        {
-            var copy = (T)Activator.CreateInstance(typeof(T));
-
-            foreach (var f in typeof(T).GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
-                f.SetValue(copy, f.GetValue(existing));
-
-            return copy;
-        }
     }
 
     [Flags]
