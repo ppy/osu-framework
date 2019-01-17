@@ -61,7 +61,9 @@ namespace osu.Framework.Screens
         // in the case we don't have a parent screen, we still want to handle input as we are also responsible for
         // children inside childScreenContainer.
         // this means the root screen always received input.
-        private bool propagateInputSubtree => IsCurrentScreen || !hasExited && ParentScreen == null;
+        // Also, Avoid the case that this receives input but content and children don't receive input.
+        // Which causes a problem if an input blocking is expected.
+        private bool propagateInputSubtree => (IsCurrentScreen || !hasExited && ParentScreen == null) && Content.IsPresent;
 
         public override bool PropagateNonPositionalInputSubTree => base.PropagateNonPositionalInputSubTree && propagateInputSubtree;
         public override bool PropagatePositionalInputSubTree => base.PropagatePositionalInputSubTree && propagateInputSubtree;
