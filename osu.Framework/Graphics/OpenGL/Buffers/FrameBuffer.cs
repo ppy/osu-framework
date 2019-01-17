@@ -118,6 +118,11 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         /// <summary>
         /// Unbinds the framebuffer.
         /// </summary>
-        public void Unbind() => GLWrapper.UnbindFrameBuffer(frameBuffer);
+        public void Unbind()
+        {
+            GLWrapper.UnbindFrameBuffer(frameBuffer);
+            foreach (var r in attachedRenderBuffers)
+                r.Unbind();
+        }
     }
 }

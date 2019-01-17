@@ -514,6 +514,8 @@ namespace osu.Framework.Graphics.OpenGL
                 FlushCurrentBatch();
                 GL.BindFramebuffer(FramebufferTarget.Framebuffer, frameBuffer);
             }
+
+            GlobalPropertyManager.Set(GlobalProperty.GammaCorrection, UsingBackbuffer);
         }
 
         /// <summary>
@@ -531,6 +533,8 @@ namespace osu.Framework.Graphics.OpenGL
 
             FlushCurrentBatch();
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, frame_buffer_stack.Peek());
+
+            GlobalPropertyManager.Set(GlobalProperty.GammaCorrection, UsingBackbuffer);
         }
 
         /// <summary>
