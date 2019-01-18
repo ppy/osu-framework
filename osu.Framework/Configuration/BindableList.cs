@@ -5,18 +5,13 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Caching;
 using osu.Framework.Lists;
 
 namespace osu.Framework.Configuration
 {
     public class BindableList<T> : IBindableList<T>, IList<T>, IList, IParseable, IHasDescription
     {
-        private readonly List<T> collection = new List<T>();
-
-        private readonly WeakReference<BindableList<T>> weakReference;
-
-        private LockedWeakList<BindableList<T>> bindings;
-
         /// <summary>
         /// An event which is raised when any items are added to this <see cref="BindableList{T}"/>.
         /// </summary>
@@ -32,6 +27,14 @@ namespace osu.Framework.Configuration
         /// </summary>
         public event Action<bool> DisabledChanged;
 
+        private readonly List<T> collection = new List<T>();
+
+        private Cached<WeakReference<BindableList<T>>> weakReferenceCache;
+
+        private WeakReference<BindableList<T>> weakReference => weakReferenceCache.IsValid ? weakReferenceCache.Value : weakReferenceCache.Value = new WeakReference<BindableList<T>>(this);
+
+        private LockedWeakList<BindableList<T>> bindings;
+
         /// <summary>
         /// Creates a new <see cref="BindableList{T}"/>, optionally adding the items of the given collection.
         /// </summary>
@@ -40,9 +43,6 @@ namespace osu.Framework.Configuration
         {
             if (items != null)
                 collection.AddRange(items);
-
-            // we can not initialize this directly at the property due to the this capture.
-            weakReference = new WeakReference<BindableList<T>>(this);
         }
 
         #region IList<T>
@@ -276,6 +276,8 @@ namespace osu.Framework.Configuration
         /// <param name="index">The index at which the copying begins.</param>
         public void CopyTo(Array array, int index)
             => ((ICollection)collection).CopyTo(array, index);
+
+        public int BinarySearch(T item) => collection.BinarySearch(item);
 
         public int Count => collection.Count;
         public bool IsSynchronized => ((ICollection)collection).IsSynchronized;
