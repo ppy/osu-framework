@@ -3,17 +3,14 @@
 
 using System;
 using System.Collections.Generic;
-using osu.Framework.Audio;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
 using osu.Framework.IO.Stores;
-using osu.Framework.iOS.Audio;
 using osu.Framework.iOS.Graphics.Textures;
 using osu.Framework.iOS.Input;
 using osu.Framework.Platform;
 using osu.Framework.Platform.MacOS;
-using osu.Framework.Threading;
 
 namespace osu.Framework.iOS
 {
@@ -46,8 +43,5 @@ namespace osu.Framework.iOS
 
         public override IResourceStore<TextureUpload> CreateTextureLoaderStore(IResourceStore<byte[]> underlyingStore)
             => new IOSTextureLoaderStore(underlyingStore);
-
-        public override AudioManager CreateAudioManager(ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore, Scheduler eventScheduler) =>
-            new IOSAudioManager(trackStore, sampleStore) { EventScheduler = eventScheduler };
     }
 }

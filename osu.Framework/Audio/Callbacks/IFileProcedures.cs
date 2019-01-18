@@ -7,7 +7,7 @@ using ManagedBass;
 namespace osu.Framework.Audio.Callbacks
 {
     /// <summary>
-    /// Interface that closely matches the definition of the <see cref="FileProcedures" /> struct.
+    /// Interface that closely matches the definition of the <see cref="FileProcedures"/> struct.
     /// </summary>
     public interface IFileProcedures
     {

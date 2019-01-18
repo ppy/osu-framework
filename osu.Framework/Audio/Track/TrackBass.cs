@@ -48,9 +48,8 @@ namespace osu.Framework.Audio.Track
         /// Constructs a new <see cref="TrackBass"/> from provided audio data.
         /// </summary>
         /// <param name="data">The sample data stream.</param>
-        /// <param name="callbackFactory">The <see cref="CallbackFactory" />to use when creating <see cref="FileCallbacks" />.</param>
         /// <param name="quick">If true, the track will not be fully loaded, and should only be used for preview purposes.  Defaults to false.</param>
-        public TrackBass(Stream data, CallbackFactory callbackFactory, bool quick = false)
+        public TrackBass(Stream data, bool quick = false)
         {
             EnqueueAction(() =>
             {
@@ -61,7 +60,7 @@ namespace osu.Framework.Audio.Track
                 //encapsulate incoming stream with async buffer if it isn't already.
                 dataStream = data as AsyncBufferStream ?? new AsyncBufferStream(data, quick ? 8 : -1);
 
-                fileCallbacks = callbackFactory.CreateFileCallbacks(new DataStreamFileProcedures(dataStream));
+                fileCallbacks = new FileCallbacks(new DataStreamFileProcedures(dataStream));
 
                 BassFlags flags = Preview ? 0 : BassFlags.Decode | BassFlags.Prescan | BassFlags.Float;
                 activeStream = Bass.CreateStream(StreamSystem.NoBuffer, flags, fileCallbacks.Callbacks, fileCallbacks.Handle);

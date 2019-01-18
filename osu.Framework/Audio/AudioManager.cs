@@ -90,8 +90,6 @@ namespace osu.Framework.Audio
         private readonly Lazy<TrackManager> globalTrackManager;
         private readonly Lazy<SampleManager> globalSampleManager;
 
-        public CallbackFactory Callback { get; private set; }
-
         /// <summary>
         /// Constructs an AudioManager given a track resource store, and a sample resource store.
         /// </summary>
@@ -109,7 +107,6 @@ namespace osu.Framework.Audio
             Thread = new AudioThread(Update);
             Thread.Start();
 
-            Callback = CreateCallbackFactory();
             globalTrackManager = new Lazy<TrackManager>(() => GetTrackManager(trackStore));
             globalSampleManager = new Lazy<SampleManager>(() => GetSampleManager(sampleStore));
 
@@ -144,11 +141,9 @@ namespace osu.Framework.Audio
             scheduler.Add(() => setAudioDevice(string.IsNullOrEmpty(newDevice) ? null : newDevice));
         }
 
-        protected virtual TrackManager CreateTrackManager(IResourceStore<byte[]> store) => new TrackManager(store, Callback);
+        protected virtual TrackManager CreateTrackManager(IResourceStore<byte[]> store) => new TrackManager(store);
 
         protected virtual SampleManager CreateSampleManager(IResourceStore<byte[]> store) => new SampleManager(store);
-
-        protected virtual CallbackFactory CreateCallbackFactory() => new CallbackFactory();
 
         /// <summary>
         /// Returns a list of the names of recognized audio devices.

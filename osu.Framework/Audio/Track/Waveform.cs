@@ -71,21 +71,17 @@ namespace osu.Framework.Audio.Track
         /// Constructs a new <see cref="Waveform"/> from provided audio data.
         /// </summary>
         /// <param name="data">The sample data stream. If null, an empty waveform is constructed.</param>
-        /// <param name="callbackFactory">The factory used to create the <see cref="FileCallbacks" />.  May be null if <paramref name="data"/> is also null.</param>
-        public Waveform(Stream data, CallbackFactory callbackFactory = null)
+        public Waveform(Stream data)
         {
             if (data == null) return;
 
             readTask = Task.Run(() =>
             {
-                if (callbackFactory == null)
-                    throw new ArgumentNullException(nameof(callbackFactory));
-
                 // for the time being, this code cannot run if there is no bass device available.
                 if (Bass.CurrentDevice <= 0)
                     return;
 
-                fileCallbacks = callbackFactory.CreateFileCallbacks(new DataStreamFileProcedures(data));
+                fileCallbacks = new FileCallbacks(new DataStreamFileProcedures(data));
 
                 int decodeStream = Bass.CreateStream(StreamSystem.NoBuffer, BassFlags.Decode | BassFlags.Float, fileCallbacks.Callbacks, fileCallbacks.Handle);
 

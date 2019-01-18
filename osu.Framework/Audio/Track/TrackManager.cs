@@ -10,25 +10,23 @@ namespace osu.Framework.Audio.Track
     public class TrackManager : AudioCollectionManager<Track>
     {
         private readonly IResourceStore<byte[]> store;
-        private readonly CallbackFactory callbackFactory;
 
         /// <summary>
         /// Constructs a new <see cref="Track"/> from provided audio data.
         /// </summary>
         /// <param name="data">The sample data stream.</param>
         /// <param name="quick">If true, the <see cref="Track"/> will not be fully loaded, and should only be used for preview purposes.  Defaults to false.</param>
-        public virtual Track CreateTrack(Stream data, bool quick = false) => new TrackBass(data, callbackFactory, quick);
+        public virtual Track CreateTrack(Stream data, bool quick = false) => new TrackBass(data, quick);
 
         /// <summary>
         /// Constructs a new <see cref="Waveform"/> from provided audio data.
         /// </summary>
         /// <param name="data">The sample data stream. If null, an empty waveform is constructed.</param>
-        public virtual Waveform CreateWaveform(Stream data) => new Waveform(data, callbackFactory);
+        public virtual Waveform CreateWaveform(Stream data) => new Waveform(data);
 
-        public TrackManager(IResourceStore<byte[]> store, CallbackFactory callbackFactory)
+        public TrackManager(IResourceStore<byte[]> store)
         {
             this.store = store;
-            this.callbackFactory = callbackFactory;
         }
 
         public Track Get(string name)

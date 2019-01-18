@@ -8,9 +8,8 @@ using osu.Framework.Allocation;
 namespace osu.Framework.Audio.Callbacks
 {
     /// <summary>
-    /// Abstract class that provides an optional pinned <see cref="ObjectHandle{T}" />, used for callbacks to
-    /// the Bass library.  Targets that do not support JIT compiling (such as iOS) can subclass implementations
-    /// to use static callbacks.
+    /// Abstract class that provides an optional pinned <see cref="ObjectHandle{T}"/>, used for callbacks to
+    /// the Bass library.
     /// </summary>
     public abstract class BassCallback : IDisposable
     {
@@ -18,20 +17,14 @@ namespace osu.Framework.Audio.Callbacks
 
         protected BassCallback()
         {
-            if (ShouldPin)
+            if (!RuntimeInfo.SupportsJIT)
                 pinnedHandle = new ObjectHandle<BassCallback>(this, GCHandleType.Pinned);
         }
 
         /// <summary>
-        /// The pinned handle, or <see cref="IntPtr.Zero" /> if the object is not pinned.
+        /// The pinned handle, or <see cref="IntPtr.Zero"/> if the object is not pinned.
         /// </summary>
         public IntPtr Handle => pinnedHandle.Handle;
-
-        /// <summary>
-        /// Returns true if the callback should be pinned on creation.  Defaults to false, may be overridden by
-        /// platform-specific implementations.
-        /// </summary>
-        protected virtual bool ShouldPin => false;
 
         #region IDisposable Support
 
