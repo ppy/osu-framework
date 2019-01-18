@@ -459,14 +459,21 @@ namespace osu.Framework.IO.Network
                 {
                     // in the case we fail a request, spitting out the response in the log is quite helpful.
                     ResponseStream.Seek(0, SeekOrigin.Begin);
-                    using (StreamReader r = new StreamReader(ResponseStream, Encoding.UTF8))
+                    using (StreamReader r = new StreamReader(ResponseStream, new UTF8Encoding(false, true)))
                     {
-                        char[] output = new char[1024];
-                        int read = r.ReadBlock(output, 0, 1024);
-                        string trimmedResponse = new string(output, 0, read);
-                        logger.Add($"Response was: {trimmedResponse}");
-                        if (read == 1024)
-                            logger.Add("(Response was trimmed)");
+                        try
+                        {
+                            char[] output = new char[1024];
+                            int read = r.ReadBlock(output, 0, 1024);
+                            string trimmedResponse = new string(output, 0, read);
+                            logger.Add($"Response was: {trimmedResponse}");
+                            if (read == 1024)
+                                logger.Add("(Response was trimmed)");
+                        }
+                        catch (DecoderFallbackException)
+                        {
+                            // Ignore non-text format
+                        }
                     }
                 }
             }
