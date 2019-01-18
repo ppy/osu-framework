@@ -18,6 +18,7 @@ namespace osu.Framework.Graphics.Containers
 
         public TModel Model
         {
+            internal get => model;
             set
             {
                 if (EqualityComparer<TModel>.Default.Equals(model, value))
