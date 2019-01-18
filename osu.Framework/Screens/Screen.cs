@@ -172,7 +172,7 @@ namespace osu.Framework.Screens
             if (screen.LoadState >= LoadState.Ready)
                 finishLoad();
             else
-                LoadComponentAsync(screen, _ => finishLoad());
+                childModeContainer.LoadComponentAsync(screen, _ => finishLoad());
         }
 
         private void startSuspend(Screen next)
