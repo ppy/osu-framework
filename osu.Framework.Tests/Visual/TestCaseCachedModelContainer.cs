@@ -140,6 +140,38 @@ namespace osu.Framework.Tests.Visual
             AddAssert("resolved bindable value = 2", () => resolver.Bindable.Value == 2);
         }
 
+        [Test]
+        public void TestResolveWholeModel()
+        {
+            CachedModelContainer<FieldModel> container = null;
+            WholeFieldModelResolver resolver1 = null;
+            WholeFieldModelResolver resolver2 = null;
+
+            var model = new FieldModel { Bindable = { Value = 2 } };
+
+            AddStep("initialise", () => Child = container = new CachedModelContainer<FieldModel>
+            {
+                Model = model,
+                Children = new[]
+                {
+                    resolver1 = new WholeFieldModelResolver(),
+                    resolver2 = new WholeFieldModelResolver()
+                }
+            });
+
+            AddAssert("resolver1 model != resolver2 model", () => resolver1.FieldModel != resolver2.FieldModel);
+            AddAssert("resolver1 model != model", () => resolver1.FieldModel != model);
+            AddAssert("resolver2 model != model", () => resolver2.FieldModel != model);
+
+            AddAssert("resolver1 bindable value = 2", () => resolver1.FieldModel.Bindable.Value == 2);
+            AddAssert("resolver2 bindable value = 2", () => resolver2.FieldModel.Bindable.Value == 2);
+
+            AddStep("set model to null", () => container.Model = null);
+            AddStep("change model value to 3", () => model.Bindable.Value = 3);
+            AddAssert("resolver1 bindable value = 2", () => resolver1.FieldModel.Bindable.Value == 2);
+            AddAssert("resolver2 bindable value = 2", () => resolver2.FieldModel.Bindable.Value == 2);
+        }
+
         private class NonBindablePublicFieldModel
         {
 #pragma warning disable 649
@@ -191,6 +223,12 @@ namespace osu.Framework.Tests.Visual
 
             [Resolved(typeof(DerivedFieldModel))]
             public Bindable<string> BindableString { get; private set; }
+        }
+
+        private class WholeFieldModelResolver : Drawable
+        {
+            [Resolved]
+            public FieldModel FieldModel { get; private set; }
         }
     }
 }
