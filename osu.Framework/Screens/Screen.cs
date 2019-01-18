@@ -21,7 +21,7 @@ namespace osu.Framework.Screens
         [Resolved]
         protected Game Game { get; private set; }
 
-        protected override Container<Drawable> Content => content;
+        protected sealed override Container<Drawable> Content => content;
 
         public event Action<Screen> ModePushed;
 
@@ -116,8 +116,20 @@ namespace osu.Framework.Screens
             else
             {
                 childModeContainer = ParentScreen.childModeContainer;
+                var customContent = CreateChildContainer();
+                if (customContent != null)
+                {
+                    childModeContainer.Add(customContent);
+                    childModeContainer = customContent;
+                }
             }
         }
+
+        /// <summary>
+        /// Create an optional container which all recursively <see cref="Push"/>ed screens are contained within.
+        /// </summary>
+        /// <returns>A container</returns>
+        protected virtual Container CreateChildContainer() => null;
 
         /// <summary>
         /// Changes to a new Screen.
