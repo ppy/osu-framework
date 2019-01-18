@@ -16,16 +16,24 @@ namespace osu.Framework.Configuration
         private bool isLeased => leasedBindable != null;
 
         private LeasedBindable<T> leasedBindable;
+        private T valueBeforeLease;
+        private bool revertValueOnReturn;
 
         public LeasableBindable(IMutableBindable<T> underlyingBindable)
         {
             this.underlyingBindable = underlyingBindable;
         }
 
-        public IMutableBindable<T> BeginLease()
+        public IMutableBindable<T> BeginLease(bool revertValueOnReturn)
         {
             if (isLeased)
                 throw new InvalidOperationException();
+
+            if (revertValueOnReturn)
+            {
+                this.revertValueOnReturn = true;
+                valueBeforeLease = Value;
+            }
 
             underlyingBindable.Disabled = true;
             return leasedBindable = new LeasedBindable<T>(underlyingBindable, this);
@@ -38,6 +46,13 @@ namespace osu.Framework.Configuration
 
             leasedBindable = null;
             underlyingBindable.Disabled = false;
+            if (revertValueOnReturn)
+            {
+                Value = valueBeforeLease;
+                
+                revertValueOnReturn = false;
+                valueBeforeLease = default;
+            }
         }
 
         public void Parse(object input) => underlyingBindable.Parse(input);
