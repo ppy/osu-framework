@@ -21,7 +21,7 @@ namespace osu.Framework.Configuration
         /// The default value of this bindable. Used when querying <see cref="IBindable{T}.IsDefault"/>.
         /// </summary>
         new T Default { get; set; }
-        
+
         /// <summary>
         /// Retrieve a new bindable instance weakly bound to the configuration backing.
         /// If you are further binding to events of a bindable retrieved using this method, ensure to hold

@@ -297,11 +297,11 @@ namespace osu.Framework.Configuration
             copy.BindTo(this);
             return copy;
         }
-        
+
         IBindable IBindable.GetBoundCopy() => GetBoundCopy();
 
         IBindable<T> IBindable<T>.GetBoundCopy() => GetBoundCopy();
-        
+
         IMutableBindable<T> IMutableBindable<T>.GetBoundCopy() => GetBoundCopy();
 
         void ISerializableBindable.SerializeTo(JsonWriter writer, JsonSerializer serializer)

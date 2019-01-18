@@ -49,7 +49,7 @@ namespace osu.Framework.Configuration
             if (revertValueOnReturn)
             {
                 Value = valueBeforeLease;
-                
+
                 revertValueOnReturn = false;
                 valueBeforeLease = default;
             }
@@ -84,7 +84,7 @@ namespace osu.Framework.Configuration
         public string Description => underlyingBindable.Description;
 
         public void BindTo(IBindable them) => underlyingBindable.BindTo(them);
-        
+
         IBindable<T> IBindable<T>.GetBoundCopy() => underlyingBindable.GetBoundCopy();
 
         public IMutableBindable<T> GetBoundCopy() => underlyingBindable.GetBoundCopy();
