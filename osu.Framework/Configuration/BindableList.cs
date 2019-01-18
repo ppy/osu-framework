@@ -10,7 +10,7 @@ using osu.Framework.Lists;
 
 namespace osu.Framework.Configuration
 {
-    public class BindableList<T> : IBindableList<T>, IList<T>, IList, IParseable, IHasDescription
+    public class BindableList<T> : IMutableBindableList<T>, IList, IParseable, IHasDescription
     {
         /// <summary>
         /// An event which is raised when any items are added to this <see cref="BindableList{T}"/>.

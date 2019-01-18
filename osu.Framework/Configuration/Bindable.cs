@@ -16,7 +16,7 @@ namespace osu.Framework.Configuration
     /// A generic implementation of a <see cref="IBindable"/>
     /// </summary>
     /// <typeparam name="T">The type of our stored <see cref="Value"/>.</typeparam>
-    public class Bindable<T> : IBindable<T>, ISerializableBindable
+    public class Bindable<T> : IMutableBindable<T>, ISerializableBindable
     {
         /// <summary>
         /// An event which is raised when <see cref="Value"/> has changed (or manually via <see cref="TriggerValueChange"/>).
@@ -84,7 +84,7 @@ namespace osu.Framework.Configuration
 
         private Cached<WeakReference<Bindable<T>>> weakReferenceCache;
 
-        private WeakReference<Bindable<T>> weakReference => weakReferenceCache.IsValid ? weakReferenceCache.Value : weakReferenceCache.Value = new WeakReference<Bindable<T>>(this);
+        public WeakReference<Bindable<T>> WeakReference => weakReferenceCache.IsValid ? weakReferenceCache.Value : weakReferenceCache.Value = new WeakReference<Bindable<T>>(this);
 
         /// <summary>
         /// Creates a new bindable instance. This is used for deserialization of bindables.
@@ -117,7 +117,7 @@ namespace osu.Framework.Configuration
 
         void IBindable<T>.BindTo(IBindable<T> them)
         {
-            if (!(them is Bindable<T> tThem))
+            if (!(them is IMutableBindable<T> tThem))
                 throw new InvalidCastException($"Can't bind to a bindable of type {them.GetType()} from a bindable of type {GetType()}.");
             BindTo(tThem);
         }
@@ -127,14 +127,14 @@ namespace osu.Framework.Configuration
         /// This will adopt any values and value limitations of the bindable bound to.
         /// </summary>
         /// <param name="them">The foreign bindable. This should always be the most permanent end of the bind (ie. a ConfigManager).</param>
-        public virtual void BindTo(Bindable<T> them)
+        public virtual void BindTo(IMutableBindable<T> them)
         {
             Value = them.Value;
             Disabled = them.Disabled;
             Default = them.Default;
 
-            addWeakReference(them.weakReference);
-            them.addWeakReference(weakReference);
+            AddWeakReference(them.WeakReference);
+            them.AddWeakReference(WeakReference);
         }
 
         /// <summary>
@@ -161,7 +161,7 @@ namespace osu.Framework.Configuration
                 onChange(Disabled);
         }
 
-        private void addWeakReference(WeakReference<Bindable<T>> weakReference)
+        public void AddWeakReference(WeakReference<Bindable<T>> weakReference)
         {
             if (Bindings == null)
                 Bindings = new LockedWeakList<Bindable<T>>();
@@ -239,7 +239,7 @@ namespace osu.Framework.Configuration
             Bindings?.Clear();
         }
 
-        protected void Unbind(Bindable<T> binding) => Bindings.Remove(binding.weakReference);
+        protected void Unbind(Bindable<T> binding) => Bindings.Remove(binding.WeakReference);
 
         /// <summary>
         /// Calls <see cref="UnbindEvents"/> and <see cref="UnbindBindings"/>
@@ -255,8 +255,8 @@ namespace osu.Framework.Configuration
             if (!(them is Bindable<T> tThem))
                 throw new InvalidCastException($"Can't unbind a bindable of type {them.GetType()} from a bindable of type {GetType()}.");
 
-            removeWeakReference(tThem.weakReference);
-            tThem.removeWeakReference(weakReference);
+            removeWeakReference(tThem.WeakReference);
+            tThem.removeWeakReference(WeakReference);
         }
 
         public string Description { get; set; }
@@ -274,10 +274,6 @@ namespace osu.Framework.Configuration
             Value = Default;
             Disabled = false;
         }
-
-        IBindable IBindable.GetBoundCopy() => GetBoundCopy();
-
-        IBindable<T> IBindable<T>.GetBoundCopy() => GetBoundCopy();
 
         /// <summary>
         /// Create an unbound clone of this bindable.
@@ -301,6 +297,12 @@ namespace osu.Framework.Configuration
             copy.BindTo(this);
             return copy;
         }
+        
+        IBindable IBindable.GetBoundCopy() => GetBoundCopy();
+
+        IBindable<T> IBindable<T>.GetBoundCopy() => GetBoundCopy();
+        
+        IMutableBindable<T> IMutableBindable<T>.GetBoundCopy() => GetBoundCopy();
 
         void ISerializableBindable.SerializeTo(JsonWriter writer, JsonSerializer serializer)
         {

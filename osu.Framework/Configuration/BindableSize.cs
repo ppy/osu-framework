@@ -27,7 +27,7 @@ namespace osu.Framework.Configuration
             set => base.Value = clamp(value, MinValue, MaxValue);
         }
 
-        public override void BindTo(Bindable<Size> them)
+        public override void BindTo(IMutableBindable<Size> them)
         {
             if (them is BindableSize other)
             {
