@@ -222,7 +222,11 @@ namespace osu.Framework.Graphics.Containers
                     default:
                     case RenderPass.Back:
                         for (int i = 0; i < Children.Count; i++)
-                            Children[i].Draw(pass, vertexAction);
+                        {
+                            if (!Children[i].SupportsFrontRenderPass)
+                                Children[i].Draw(pass, vertexAction);
+                        }
+
                         break;
                     case RenderPass.Front:
                         for (int i = Children.Count - 1; i >= 0; i--)
