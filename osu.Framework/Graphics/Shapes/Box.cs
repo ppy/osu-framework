@@ -5,6 +5,7 @@ using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osuTK;
+using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Shapes
 {
@@ -22,7 +23,7 @@ namespace osu.Framework.Graphics.Shapes
 
         private class BoxDrawNode : SpriteDrawNode
         {
-            protected internal override bool SupportsFrontRenderPass => !GLWrapper.IsMaskingActive && InflationAmount == Vector2.Zero;
+            protected internal override bool SupportsFrontRenderPass => DrawColourInfo.Colour.MinAlpha == 1 && DrawColourInfo.Blending.RGBEquation == BlendEquationMode.FuncAdd && !GLWrapper.IsMaskingActive && InflationAmount == Vector2.Zero;
         }
     }
 }

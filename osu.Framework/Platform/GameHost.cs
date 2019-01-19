@@ -364,17 +364,16 @@ namespace osu.Framework.Platform
                     osuTK.Graphics.OpenGL.GL.ClearDepth(0.0);
                     GL.Clear(ClearBufferMask.DepthBufferBit);
 
+                    // Front pass
                     float depth = 1;
-
                     GL.DepthFunc(DepthFunction.Greater);
                     buffer.Object.Draw(RenderPass.Front, null, ref depth);
-
                     GLWrapper.FlushCurrentBatch();
 
+                    // Back pass
                     GL.DepthMask(false);
                     GL.DepthFunc(DepthFunction.Gequal);
                     buffer.Object.Draw(RenderPass.Back, null, ref depth);
-
                     GLWrapper.FlushCurrentBatch();
 
                     lastDrawFrameId = buffer.FrameId;

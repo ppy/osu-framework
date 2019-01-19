@@ -39,7 +39,7 @@ namespace osu.Framework.Graphics.Sprites
             base.Draw(pass, vertexAction, ref vertexDepth);
 
             if (pass == RenderPass.Front)
-                vertexDepth -= 0.0002f;
+                vertexDepth -= 0.0005f;
 
             if (vertexDepth < 0)
             {
